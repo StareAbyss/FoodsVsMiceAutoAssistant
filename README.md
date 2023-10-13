@@ -123,3 +123,14 @@ P2必须加P1为好友, 且为 [唯一] 好友(P1不受限)
         2: 火山
         3: 浮空
             0: 保证每一个关卡都有三个参数 占位
+            
+## 项目说明
+如要拿到本地使用, 请解压 resource.zip 放到项目根目录级
+
+内部的文件路径是为了封包为exe而书写的, 
+如果需要在IDE上调试, 请调整以下路径：   
+1. script/common.py 中的 class FAA 的构造函数, 更改self.path_root(已用注释).  
+2. script/farm_battle_no_ui.py 中的 class AutoCompleteToDoList 的构造函数, 更改exe_path.
+
+封装为exe后, 需要把todo.json和resource文件夹放到main.exe的同目录下 即可开始运行.  
+Link Start!
