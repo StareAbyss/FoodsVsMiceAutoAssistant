@@ -21,6 +21,7 @@ Contact : Tencent QQ - 815204388
     │
     ├─ 自动流水线刷本
     │   ├─ 公会任务
+    │   ├─ 情侣任务
     │   ├─ 单人魔塔(默认5连)
     │   ├─ 双人魔塔(默认5连)
     │   ├─ 单人魔塔密室(默认4连)
@@ -37,10 +38,10 @@ Contact : Tencent QQ - 815204388
     │   └─ 每日免费塔罗抽取
     │
     └─ 未来计划
+        ├─ 部分高难关卡自定义战斗支持
         ├─ GUI界面
         ├─ 自动登录和自动启动
-        ├─ 双人跨服
-        └─ 情侣任务
+        └─ 双人跨服
 
 ## 使用要求
 #### 1.浏览器
@@ -128,10 +129,21 @@ P2必须加P1为好友, 且为 [唯一] 好友(P1不受限)
         3: 浮空
             0: 保证每一个关卡都有三个参数 占位
             
-## 项目说明
+## 项目路径
 如要拿到本地使用, 请解压 resource.zip 放到项目根目录级. 
 
-根据封装为exe或在IDE上调试, 请调整function/get_root_path.py中的根目录函数.
+    root
+     │
+     ├─ function
+     │   ├─ common 包含各种工具类, 后台进行 截图/找图/按键/点击等
+     │   ├─ script 主要功能函数 以common.py和farm_no_ui.py为主 其他未实现
+     │   ├─ get_root_path.py 根据exe和pycharm运行环境 获取root路径
+     │   └─ main.py 主函数
+     ├─ resource
+     │   ├─ logs 战利品记录
+     │   ├─ common
+     │   ├─ common
+     │   ├─ common
 
 封装为exe后, 需要把 todo.json 和 resource解压后的文件夹 放到main.exe的上一级的目录即可开始运行.  
 Link Start!
