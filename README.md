@@ -1,9 +1,9 @@
 # FAA_FoodsVsMouses_AutoAssistant
-一款名叫中国页游《美食大战老鼠》的自动助手。  
-An automatic assistant for a Chinese webpage game called Foods Vs Mouses. 
+一款名叫中国页游《美食大战老鼠》的自动助手, 一键完成所有日常任务。  
+An automatic assistant for a Chinese webpage game called Foods Vs Mouses, Complete all daily tasks with one click. 
 
-本软件不支持任何作弊功能(秒杀或更多)。  
-This software does not support any cheating function (flash killing and more).
+本软件基于图像识别, 不支持任何作弊功能(秒杀或更多)。  
+This software is based on image recognition, and does not support any cheating function (flash killing and more).
 
 本软件尚处于开发阶段, 已实现功能见下。  
 This software is still in the development stage and its functions have been implemented as shown below.
@@ -87,12 +87,16 @@ todo.josn 是本脚本的配置文件, 配置窗口名称/角色id/以及打哪�
 启动main文件夹中的main.exe
 可以为它创建快捷方式
 
-## 关于&免责声明
+## 关于
 1. 本软件采用通用 [全自动] 进图组队+战斗。执行期间 [务必不要把鼠标移入游戏区域] 内将干扰功能。  
 2. 本软件战斗以 [1P为战斗力], 2P仅使用承载用垫子卡。为增加便捷性通用性, 本脚本将公会任务可能用到的卡片已添加到卡组中。  
 3. 本软件组队以 [2P为队长], 进行双人模式的组队操作。  
-4. 本软件不对背包爆满的问题做预设, 请自行 [保证背包格子充足]。  
-5. 本软件处于 [开发测试阶段] , 执行过程中建议 [关注执行情况] , 若执行中因bug导致任何问题, 请立刻关闭窗口, 本人不负任何法律责任。为防止潜在的问题发生, 建议为您的角色 [设定二级密码] 且在本次登录中 [不输入它] 做兜底。  
+4. 本软件不对背包爆满的问题做预设, 请自行 [保证背包格子充足]。
+
+## 免责声明
+本软件使用 AGPL 3.0 协议开源、免费，仅供学习交流使用。若您遇到商家使用本软件进行代练并收费，可能是设备与时间等费用，产生的问题及后果与本软件无关。  
+本软件处于 [开发测试阶段] , 执行过程中建议 [关注执行情况] , 若执行中因bug导致任何问题, 请立刻关闭窗口, 本人不负任何法律责任。  
+为防止潜在的问题发生, 建议为您的角色 [设定二级密码] 且在本次登录中 [不输入它] 做兜底。  
 
 ## 地图代号说明
 
