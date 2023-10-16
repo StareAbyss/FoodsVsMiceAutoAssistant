@@ -1,5 +1,5 @@
 # coding:utf-8
-from function.script.farm_battle_no_ui import AutoCompleteToDoList
+from function.script.farm_no_ui import AutoCompleteToDoList
 
 
 def main():

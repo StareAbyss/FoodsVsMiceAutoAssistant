@@ -1,6 +1,6 @@
 # coding:utf-8
-from function.common.background_mouse import mouse_left_click
-from function.common.background_screenshot_and_compare_picture import find_p_in_p
+from function.common.bg_mouse import mouse_left_click
+from function.common.bg_screenshot_and_compare_picture import find_p_in_p
 from function.common.loop_timer_and_counter import loop_timer_and_counter
 from function.script.common import FAA
 
