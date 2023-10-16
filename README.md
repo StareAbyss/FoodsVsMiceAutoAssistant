@@ -2,7 +2,7 @@
 一款名叫中国页游《美食大战老鼠》的自动助手, 一键完成所有日常任务。  
 An automatic assistant for a Chinese webpage game called Foods Vs Mouses, Complete all daily tasks with one click. 
 
-本软件基于图像识别, 不支持任何作弊功能(秒杀或更多)。  
+本软件基于图像识别 + 自动放卡完成战斗, 不支持任何作弊功能(秒杀或更多)。  
 This software is based on image recognition, and does not support any cheating function (flash killing and more).
 
 本软件尚处于开发阶段, 已实现功能见下。  
