@@ -16,7 +16,7 @@ Contact : Tencent QQ - 815204388
 
 ## 下载
 [Github下载](https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant/releases)  
-[百度网盘(可能版本落后)](https://pan.baidu.com/s/1CNVlU2dcNMyNz-6VW-7e1w?pwd=star)
+[百度网盘(可能版本落后)](https://pan.baidu.com/s/1kfIiMwA538PW34QGdWOWVw?pwd=star)
 
 ## 主要功能 Main
 
@@ -167,13 +167,18 @@ P2必须加P1为好友, 且为 **<唯一>** 好友(P1不受限)。
      ├─ function(打包后为main)
      │   ├─ common 包含各种工具类, 后台进行 截图/找图/按键/点击等
      │   ├─ script 主要功能函数 以common.py和farm_no_ui.py为主 其他未实现
+     │   │   ├─ common.py 战斗中的通用封装函数
+     │   │   ├─ common_action.py 一轮战斗和邀请的封装函数
+     │   │   ├─ load_ui_file.py MainWindow类, 读取ui, 书写少量通用函数.
+     │   │   ├─ load_opt.py 继承MainWindow, todo_ui.josn 和 opt数组 和 ui界面的数据传输.
+     │   │   └─ battle_with_ui.py 继承MainWindow, 根据opt进行战斗, 包含不同战斗模式下的不同参数和步骤.
      │   ├─ get_root_path.py 根据exe和pycharm运行环境 获取root路径
      │   └─ main.py 主函数
      ├─ resource
      │   ├─ logs 战利品记录
      │   ├─ picture 图片资源
-     │   ├─ ui .ui文件
-     └─ todo.josn
+     │   └─ ui .ui文件
+     └─ todo_ui.josn
 
 路径做了简单处理 再pycharm和打包exe后都可以轻松运行.  
 Link Start!
