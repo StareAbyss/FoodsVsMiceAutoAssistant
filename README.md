@@ -16,7 +16,7 @@ Contact : Tencent QQ - 815204388
 
 ## 下载
 [Github下载](https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant/releases)  
-[百度网盘(可能版本落后)](https://pan.baidu.com/s/1kfIiMwA538PW34QGdWOWVw?pwd=star)
+[百度网盘(可能版本落后)](https://pan.baidu.com/s/11_3l076upWYJCZnupowUEQ?pwd=STAR)
 
 ## 主要功能 Main
 
