@@ -12,7 +12,8 @@ This software is still in the development stage and its functions have been impl
 The original intention of developing this tool is to fulfill a childhood wish ten years ago (XP)
 
 联系我: QQ - 815204388  
-Contact : Tencent QQ - 815204388  
+反馈群: QQ - 786921130
+
 
 ## 下载
 [Github下载](https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant/releases)  
