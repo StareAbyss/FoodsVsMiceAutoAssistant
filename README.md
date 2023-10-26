@@ -172,8 +172,10 @@ P2必须加P1为好友, 且为 **<唯一>** 好友(P1不受限)。
 
 
 <details>
-<summary>地图代号说明</summary>
-
+<summary>自定义说明</summary>
+在config目录中:  
+    opt_customize_todo.json 为 高级自定义任务定义.  
+    opt_battle_plan 为 战斗方案.  
 </details>
 
 ## 免责声明
