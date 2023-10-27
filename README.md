@@ -70,19 +70,29 @@ P2必须加P1为好友, 且为 **<唯一>** 好友(P1不受限)。
 #### 3.卡组(默认卡组)
 本软件支持自定义的战斗布阵, 下图布阵为软件自带战斗方案
 其中默认方案是用于通勤, 可通杀大多数关卡, 包括所有公会任务和情侣任务, 火山遗迹, 勇士, 单人魔塔125, 双人魔塔上限未知, 跨服巫毒11(或更高)
-![B5%B5_)LUW4 8IWYKEP0ATP](https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant/assets/112901226/15db85f9-9d82-4b48-ae24-8af038692578)
+下图不是指定特定卡, 而是类似的功能的卡都可以
 
-#### 4.练度
-没说明则可以任意配置, 可采取上位替代, 此处仅针对默认配置(default_1和default_2)
+默认卡组  
+1P   
+![6N%AB34O@})L9JR0DT6)D1G](https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant/assets/112901226/432134c4-7282-47f5-8166-63c2679ecd34)
+2P   
+雷城卡组(主要是钟楼日夜)
+1P    
+![HURF2E28PCXS0X_@4@4M2(U](https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant/assets/112901226/e0c65485-dd81-4f79-86a0-7590401762a4)
+2P   
+![R80_4}QLV58B0`8B 3 S1UJ](https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant/assets/112901226/e97a14f5-14ca-4562-a737-cdd4d175b3bd)
 
-    木盘子: 必须1转, 1P|2P均是.
+#### 4.练度(默认卡组)
+没说明则可以任意配置, 可采取上位替代
+
+    木盘子: 必须1转, 1P|2P均是.不可替代.
     麦芽糖+咖啡粉: 可以用魔法软糖替代. 推荐1转减费.
     小火: 推荐2转. 人形太阳神或者其他变态产火卡随意. 
     海星: 1P推荐 12星+技能7+2转. 2P 能上岸就行
     糖葫芦: 9星+技能5.
     狮子座: 9星.
     瓜皮: 9星+1转+技能7, 没有问题也不是很大, 但容错更高.
-    麦芽糖+咖啡粉: 可以用魔法软糖替代.
+
 </details>
 
 
