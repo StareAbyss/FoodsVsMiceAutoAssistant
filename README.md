@@ -43,7 +43,8 @@ The original intention of developing this tool is to fulfill a childhood wish te
     │   └─ 漂亮不瞎眼的GUI界面(大概)
     │
     ├─ 其他特性
-    │   ├─ 2P角色的自动拾取
+    │   └─ 2P角色的自动拾取
+    │
     ├─ 自动日常(开发中...)
     │   ├─ 每日签到
     │   ├─ 美食活动免费许愿
