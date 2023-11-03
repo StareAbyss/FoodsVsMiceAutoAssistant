@@ -1,11 +1,11 @@
-# coding:utf-8
-
-from ctypes import windll, byref, c_ubyte, c_void_p
+from ctypes import windll, byref, c_ubyte
 from ctypes.wintypes import RECT, HWND
 
-from cv2 import imwrite, waitKey, imshow
+from cv2 import imshow as cv2_imshow
+from cv2 import waitKey as cv2_waitKey
 from numpy import uint8, frombuffer
-from win32gui import FindWindow, FindWindowEx
+
+from function.tools.gat_handle import faa_get_handle
 
 # 如果没有依赖
 # pip install opencv-contrib-python
@@ -50,16 +50,11 @@ def capture_picture_png(f_handle: HWND):
 
 
 if __name__ == "__main__":
-    handle = FindWindow("DUIWindow", None)
-    handle = FindWindowEx(handle, None, "TabContentWnd", "")
-    handle = FindWindowEx(handle, None, "CefBrowserWindow", "")
-    handle = FindWindowEx(handle, None, "Chrome_WidgetWin_0", "")
-    handle = FindWindowEx(handle, None, "WrapperNativeWindowClass", "")
-    handle = FindWindowEx(handle, None, "NativeWindowClass", "")
-    handle = c_void_p(handle)
+    handle = faa_get_handle(channel="锑食", mode="browser")
     image = capture_picture_png(handle)
-
-    imwrite("test_screenshot.png", image)
-
-    imshow("Capture Test", image)
-    waitKey()
+    cv2_imshow("Capture Test.png", image)
+    cv2_waitKey()
+    handle = faa_get_handle(channel="锑食", mode="game")
+    image = capture_picture_png(handle)
+    cv2_imshow("Capture Test.png", image)
+    cv2_waitKey()

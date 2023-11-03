@@ -1,5 +1,3 @@
-# coding:utf-8
-
 from ctypes import windll
 from ctypes.wintypes import HWND
 from string import printable
@@ -18,7 +16,7 @@ WM_KEYUP = 0x101  # 松开操作
 VkCode = {
     "l_button": 0x01,  # 鼠标左键
     "r_button": 0x02,  # 鼠标右键
-    "back": 0x08,
+    "backspace": 0x08,
     "tab": 0x09,
     "return": 0x0D,
     "shift": 0x10,

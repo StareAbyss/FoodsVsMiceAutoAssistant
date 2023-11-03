@@ -1,0 +1,68 @@
+def create_battle_coordinates(dpi):
+    """创建战斗中的 选卡槽和部署位→映射坐标"""
+    # 创建卡片位→坐标的映射
+    # 为方便理解 使用的卡槽序列号 以及坐标 均为 1 开始
+    card_dict = {
+        1: [int(224 * dpi), int(50 * dpi)],
+        2: [int(277 * dpi), int(50 * dpi)],
+        3: [int(330 * dpi), int(50 * dpi)],
+        4: [int(383 * dpi), int(50 * dpi)],
+        5: [int(436 * dpi), int(50 * dpi)],
+        6: [int(489 * dpi), int(50 * dpi)],
+        7: [int(542 * dpi), int(50 * dpi)],
+        8: [int(595 * dpi), int(50 * dpi)],
+        9: [int(648 * dpi), int(50 * dpi)],
+        10: [int(701 * dpi), int(50 * dpi)],
+        11: [int(754 * dpi), int(50 * dpi)],
+        12: [int(807 * dpi), int(50 * dpi)],
+        13: [int(860 * dpi), int(50 * dpi)],
+        14: [int(913 * dpi), int(50 * dpi)],
+        15: [int(913 * dpi), int(118 * dpi)],  # 之后是向下
+        16: [int(913 * dpi), int(186 * dpi)],
+        17: [int(913 * dpi), int(254 * dpi)],
+        18: [int(913 * dpi), int(322 * dpi)],
+        19: [int(913 * dpi), int(390 * dpi)],
+        20: [int(913 * dpi), int(458 * dpi)],
+        21: [int(913 * dpi), int(526 * dpi)],
+        22: [int(50 * dpi), int(166 * dpi)]  # 铲子会移动
+    }
+    # 坐标是左上为1-1 往右-往下
+    cell_dict = {
+        '1-1': [int(332 * dpi), int(143 * dpi)], '1-2': [int(332 * dpi), int(206 * dpi)],
+        '1-3': [int(332 * dpi), int(270 * dpi)], '1-4': [int(332 * dpi), int(334 * dpi)],
+        '1-5': [int(332 * dpi), int(397 * dpi)], '1-6': [int(332 * dpi), int(461 * dpi)],
+        '1-7': [int(332 * dpi), int(525 * dpi)],
+        '2-1': [int(392 * dpi), int(143 * dpi)], '2-2': [int(392 * dpi), int(206 * dpi)],
+        '2-3': [int(392 * dpi), int(270 * dpi)], '2-4': [int(392 * dpi), int(334 * dpi)],
+        '2-5': [int(392 * dpi), int(397 * dpi)], '2-6': [int(392 * dpi), int(461 * dpi)],
+        '2-7': [int(392 * dpi), int(525 * dpi)],
+        '3-1': [int(452 * dpi), int(143 * dpi)], '3-2': [int(452 * dpi), int(206 * dpi)],
+        '3-3': [int(452 * dpi), int(270 * dpi)], '3-4': [int(452 * dpi), int(334 * dpi)],
+        '3-5': [int(452 * dpi), int(397 * dpi)], '3-6': [int(452 * dpi), int(461 * dpi)],
+        '3-7': [int(452 * dpi), int(525 * dpi)],
+        '4-1': [int(512 * dpi), int(143 * dpi)], '4-2': [int(512 * dpi), int(206 * dpi)],
+        '4-3': [int(512 * dpi), int(270 * dpi)], '4-4': [int(512 * dpi), int(334 * dpi)],
+        '4-5': [int(512 * dpi), int(397 * dpi)], '4-6': [int(512 * dpi), int(461 * dpi)],
+        '4-7': [int(512 * dpi), int(525 * dpi)],
+        '5-1': [int(572 * dpi), int(143 * dpi)], '5-2': [int(572 * dpi), int(206 * dpi)],
+        '5-3': [int(572 * dpi), int(270 * dpi)], '5-4': [int(572 * dpi), int(334 * dpi)],
+        '5-5': [int(572 * dpi), int(397 * dpi)], '5-6': [int(572 * dpi), int(461 * dpi)],
+        '5-7': [int(572 * dpi), int(525 * dpi)],
+        '6-1': [int(632 * dpi), int(143 * dpi)], '6-2': [int(632 * dpi), int(206 * dpi)],
+        '6-3': [int(632 * dpi), int(270 * dpi)], '6-4': [int(632 * dpi), int(334 * dpi)],
+        '6-5': [int(632 * dpi), int(397 * dpi)], '6-6': [int(632 * dpi), int(461 * dpi)],
+        '6-7': [int(632 * dpi), int(525 * dpi)],
+        '7-1': [int(692 * dpi), int(143 * dpi)], '7-2': [int(692 * dpi), int(206 * dpi)],
+        '7-3': [int(692 * dpi), int(270 * dpi)], '7-4': [int(692 * dpi), int(334 * dpi)],
+        '7-5': [int(692 * dpi), int(397 * dpi)], '7-6': [int(692 * dpi), int(461 * dpi)],
+        '7-7': [int(692 * dpi), int(525 * dpi)],
+        '8-1': [int(752 * dpi), int(143 * dpi)], '8-2': [int(752 * dpi), int(206 * dpi)],
+        '8-3': [int(752 * dpi), int(270 * dpi)], '8-4': [int(752 * dpi), int(334 * dpi)],
+        '8-5': [int(752 * dpi), int(397 * dpi)], '8-6': [int(752 * dpi), int(461 * dpi)],
+        '8-7': [int(752 * dpi), int(525 * dpi)],
+        '9-1': [int(812 * dpi), int(143 * dpi)], '9-2': [int(812 * dpi), int(206 * dpi)],
+        '9-3': [int(812 * dpi), int(270 * dpi)], '9-4': [int(812 * dpi), int(334 * dpi)],
+        '9-5': [int(812 * dpi), int(397 * dpi)], '9-6': [int(812 * dpi), int(461 * dpi)],
+        '9-7': [int(812 * dpi), int(525 * dpi)],
+    }
+    return card_dict, cell_dict

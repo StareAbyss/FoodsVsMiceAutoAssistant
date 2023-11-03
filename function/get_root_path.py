@@ -1,5 +1,6 @@
+# coding:utf-8
+
 import os
-import sys
 from pathlib import Path
 from time import sleep
 
@@ -10,7 +11,7 @@ def get_root_path():
     my_path = my_path.parent  # 上一级
 
     for i in range(3):
-        if os.path.exists(str(my_path) + "\\todo.json"):
+        if os.path.exists(str(my_path) + "\\LICENSE"):
             return str(my_path)
         else:
             my_path = my_path.parent  # 上一级

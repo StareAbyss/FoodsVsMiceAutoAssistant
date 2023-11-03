@@ -1,0 +1,93 @@
+{
+    "GameName": "\u9511\u98df",
+    "Name1P": "",
+    "Name2P": "\u6df1\u6e0a\u4e4b\u4e0b",
+    "ZoomRatio": 2,
+    "Level1P": 57,
+    "Level2P": 53,
+    "AutoUseCard": true,
+    "GuildTask": {
+        "Active": true,
+        "Skip": true,
+        "Deck": 6,
+        "BattlePlan1P": 9,
+        "BattlePlan2P": 10
+    },
+    "SpouseTask": {
+        "Active": true,
+        "Deck": 6,
+        "BattlePlan1P": 0,
+        "BattlePlan2P": 10
+    },
+    "OfferReward": {
+        "Active": true,
+        "Deck": 3,
+        "BattlePlan1P": 0,
+        "BattlePlan2P": 1
+    },
+    "MagicTowerDouble": {
+        "Active": false,
+        "MaxTimes": 1,
+        "Stage": 94,
+        "Deck": 6,
+        "BattlePlan1P": 7,
+        "BattlePlan2P": 8
+    },
+    "MagicTowerAlone": {
+        "Active": false,
+        "MaxTimes": 2,
+        "Stage": 139,
+        "Deck": 5,
+        "BattlePlan1P": 6,
+        "BattlePlan2P": null
+    },
+    "MagicTowerPrison": {
+        "Active": false,
+        "Extra": false,
+        "Deck": 6,
+        "BattlePlan1P": 9,
+        "BattlePlan2P": null
+    },
+    "Warrior": {
+        "Active": false,
+        "IsGroup": true,
+        "MaxTimes": 1,
+        "Deck": 6,
+        "BattlePlan1P": 9,
+        "BattlePlan2P": 10,
+        "Group": false
+    },
+    "CrossServer": {
+        "Active": false,
+        "IsGroup": false,
+        "MaxTimes": 10,
+        "Stage": "CS-5-4",
+        "Deck": 6,
+        "BattlePlan1P": 9,
+        "BattlePlan2P": 10,
+        "Group": false
+    },
+    "Relic": {
+        "Active": false,
+        "IsGroup": false,
+        "MaxTimes": 4,
+        "Stage": "NO-3-4",
+        "Deck": 6,
+        "BattlePlan1P": 9,
+        "BattlePlan2P": 10,
+        "Group": false
+    },
+    "NormalBattle": {
+        "Active": false,
+        "IsGroup": false,
+        "MaxTimes": 15,
+        "Stage": "EX-4-3",
+        "Deck": 4,
+        "BattlePlan1P": 9,
+        "BattlePlan2P": 10,
+        "Group": true
+    },
+    "Customize": {
+        "Active": false
+    }
+}

@@ -1,0 +1,32 @@
+[
+    {
+        "group": true,
+        "stage_id": "NO-1-7",
+        "max_times": 2,
+        "task_card": "None",
+        "list_ban_card": [],
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                3
+            ]
+        }
+    },
+    {
+        "group": true,
+        "stage_id": "NO-1-7",
+        "max_times": 2,
+        "task_card": "None",
+        "list_ban_card": [],
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                3
+            ]
+        }
+    }
+]

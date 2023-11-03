@@ -1,0 +1,170 @@
+{
+    "player": [
+        "3-3",
+        "4-3",
+        "3-5",
+        "4-5",
+        "1-1",
+        "2-1",
+        "3-1",
+        "4-1",
+        "5-1",
+        "6-1",
+        "7-1",
+        "8-1",
+        "9-1"
+    ],
+    "card": [
+        {
+            "tips": "生产卡",
+            "id": 3,
+            "name": "Small fire",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "1-1",
+                "1-7",
+                "2-1",
+                "2-7",
+                "3-1",
+                "3-7",
+                "4-1",
+                "4-7",
+                "5-1",
+                "5-7",
+                "6-1",
+                "6-7",
+                "7-1",
+                "7-7",
+                "8-1",
+                "8-7"
+            ]
+        },
+        {
+            "tips": "海星",
+            "id": 4,
+            "name": "Charcoal fired starfish",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "1-4",
+                "3-3",
+                "3-4",
+                "3-5",
+                "4-3",
+                "4-4",
+                "4-5",
+                "5-2",
+                "5-3",
+                "5-4",
+                "5-5",
+                "5-6",
+                "6-2",
+                "6-3",
+                "6-4",
+                "6-5",
+                "6-6",
+                "7-2",
+                "7-4",
+                "7-6",
+                "8-2",
+                "8-3",
+                "8-4",
+                "8-5",
+                "8-6"
+            ]
+        },
+        {
+            "id": 5,
+            "tips": "糖葫芦",
+            "name": "Tomatoes on sticks bomb",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "2-2",
+                "3-2",
+                "4-2",
+                "2-6",
+                "3-6",
+                "4-6"
+            ]
+        },
+        {
+            "id": 6,
+            "tips": "瓜皮护罩",
+            "name": "Watermelon Skin Shield",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "8-1",
+                "8-2",
+                "8-3",
+                "8-4",
+                "8-5",
+                "8-6",
+                "8-7"
+            ]
+        },
+        {
+            "id": 7,
+            "tips": "狮子座精灵",
+            "name": "Leo Elf",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "7-3",
+                "7-5"
+            ]
+        },
+        {
+            "id": 8,
+            "tips": "油灯",
+            "name": "oil lamp",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "2-3"
+            ]
+        },
+        {
+            "id": 9,
+            "tips": "布丁",
+            "name": "Cherry bounce pudding",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "2-4",
+                "1-3",
+                "1-5",
+                "1-2",
+                "1-6"
+            ]
+        }
+    ],
+    "card_timer": [
+        {
+            "tips": "海盐粉",
+            "time": 90,
+            "id": 10,
+            "location": "3-3"
+        },
+        {
+            "tips": "海盐粉",
+            "time": 180,
+            "id": 10,
+            "location": "3-3"
+        },
+        {
+            "tips": "海盐粉",
+            "time": 270,
+            "id": 10,
+            "location": "3-3"
+        },
+        {
+            "tips": "海盐粉",
+            "time": 360,
+            "id": 10,
+            "location": "3-3"
+        }
+    ]
+}

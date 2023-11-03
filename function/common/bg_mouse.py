@@ -1,5 +1,3 @@
-# coding:utf-8
-
 from ctypes import windll, byref
 from ctypes.wintypes import HWND, POINT
 from time import sleep
@@ -7,11 +5,13 @@ from time import sleep
 PostMessageW = windll.user32.PostMessageW
 ClientToScreen = windll.user32.ClientToScreen
 
-# WM_MOUSE_MOVE = 0x0200
-# WM_L_BUTTON_DOWN = 0x0201
-# WM_L_BUTTON_UP = 0x202
-# WM_MOUSE_WHEEL = 0x020A
-# WHEEL_DELTA = 120
+"""
+WM_MOUSE_MOVE = 0x0200
+WM_L_BUTTON_DOWN = 0x0201
+WM_L_BUTTON_UP = 0x202
+WM_MOUSE_WHEEL = 0x020A
+WHEEL_DELTA = 120
+"""
 
 
 def mouse_move_to(handle: HWND, x: int, y: int):
