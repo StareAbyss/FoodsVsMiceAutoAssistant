@@ -5,7 +5,7 @@ from cv2 import imshow as cv2_imshow
 from cv2 import waitKey as cv2_waitKey
 from numpy import uint8, frombuffer
 
-from function.tools.gat_handle import faa_get_handle
+from function.script.scattered.gat_handle import faa_get_handle
 
 # 如果没有依赖
 # pip install opencv-contrib-python
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     image = capture_picture_png(handle)
     cv2_imshow("Capture Test.png", image)
     cv2_waitKey()
-    handle = faa_get_handle(channel="锑食", mode="game")
-    image = capture_picture_png(handle)
-    cv2_imshow("Capture Test.png", image)
-    cv2_waitKey()
+    # handle = faa_get_handle(channel="锑食", mode="game")
+    # image = capture_picture_png(handle)
+    # cv2_imshow("Capture Test.png", image)
+    # cv2_waitKey()

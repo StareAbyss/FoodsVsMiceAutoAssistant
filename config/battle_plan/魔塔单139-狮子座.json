@@ -1,0 +1,166 @@
+{
+    "tips": [
+        "by 直视深渊"
+    ],
+    "player": [
+        "2-2"
+    ],
+    "card": [
+        {
+            "id": 2,
+            "tips": "麦芽糖",
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": true,
+            "location": [
+                "9-2",
+                "9-6"
+            ]
+        },
+        {
+            "id": 3,
+            "tips": "生产卡",
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "4-1",
+                "4-7",
+                "1-3",
+                "1-5",
+                "2-3",
+                "2-5",
+                "4-3",
+                "4-5"
+            ]
+        },
+        {
+            "id": 4,
+            "tips": "海星",
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "8-2",
+                "8-6",
+                "1-2",
+                "1-6",
+                "4-2",
+                "4-6",
+                "4-4",
+                "5-4"
+            ]
+        },
+        {
+            "id": 5,
+            "tips": "糖葫芦",
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "1-1",
+                "2-1",
+                "3-1",
+                "3-2",
+                "1-7",
+                "2-7",
+                "3-7",
+                "3-6",
+                "2-6"
+            ]
+        },
+        {
+            "id": 6,
+            "tips": "瓜皮",
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "8-2",
+                "8-6",
+                "7-2",
+                "7-6"
+            ]
+        },
+        {
+            "tips": "冰沙",
+            "id": 7,
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "7-2"
+            ]
+        },
+        {
+            "id": 8,
+            "tips": "狮子座",
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "7-2",
+                "7-6"
+            ]
+        },
+        {
+            "id": 2,
+            "tips": "麦芽糖",
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": true,
+            "location": [
+                "9-6",
+                "9-2"
+            ]
+        },
+        {
+            "id": 9,
+            "tips": "辣椒粉",
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "9-2",
+                "9-6"
+            ]
+        },
+        {
+            "tips": "清明果",
+            "id": 10,
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "9-2",
+                "9-6"
+            ]
+        },
+        {
+            "id": 11,
+            "tips": "其他瓜皮类卡",
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "8-2",
+                "8-6",
+                "7-2",
+                "7-6"
+            ]
+        },
+        {
+            "id": 12,
+            "tips": "其他瓜皮类卡",
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "8-2",
+                "8-6",
+                "7-2",
+                "7-6"
+            ]
+        }
+    ]
+}

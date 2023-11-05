@@ -3,41 +3,41 @@
     "Name1P": "",
     "Name2P": "\u6df1\u6e0a\u4e4b\u4e0b",
     "ZoomRatio": 2,
-    "Level1P": 57,
+    "Level1P": 58,
     "Level2P": 53,
     "AutoUseCard": true,
     "GuildTask": {
-        "Active": true,
+        "Active": false,
         "Skip": true,
         "Deck": 6,
-        "BattlePlan1P": 9,
-        "BattlePlan2P": 10
+        "BattlePlan1P": 11,
+        "BattlePlan2P": 12
     },
     "SpouseTask": {
-        "Active": true,
+        "Active": false,
         "Deck": 6,
         "BattlePlan1P": 0,
-        "BattlePlan2P": 10
+        "BattlePlan2P": 12
     },
     "OfferReward": {
-        "Active": true,
-        "Deck": 3,
+        "Active": false,
+        "Deck": 5,
         "BattlePlan1P": 0,
         "BattlePlan2P": 1
     },
     "MagicTowerDouble": {
         "Active": false,
         "MaxTimes": 1,
-        "Stage": 94,
+        "Stage": 100,
         "Deck": 6,
         "BattlePlan1P": 7,
         "BattlePlan2P": 8
     },
     "MagicTowerAlone": {
         "Active": false,
-        "MaxTimes": 2,
-        "Stage": 139,
-        "Deck": 5,
+        "MaxTimes": 1,
+        "Stage": 0,
+        "Deck": 3,
         "BattlePlan1P": 6,
         "BattlePlan2P": null
     },
@@ -45,46 +45,46 @@
         "Active": false,
         "Extra": false,
         "Deck": 6,
-        "BattlePlan1P": 9,
+        "BattlePlan1P": 11,
         "BattlePlan2P": null
     },
     "Warrior": {
         "Active": false,
         "IsGroup": true,
-        "MaxTimes": 1,
+        "MaxTimes": 6,
         "Deck": 6,
-        "BattlePlan1P": 9,
-        "BattlePlan2P": 10,
+        "BattlePlan1P": 11,
+        "BattlePlan2P": 12,
         "Group": false
     },
     "CrossServer": {
         "Active": false,
-        "IsGroup": false,
-        "MaxTimes": 10,
+        "IsGroup": true,
+        "MaxTimes": 1,
         "Stage": "CS-5-4",
         "Deck": 6,
-        "BattlePlan1P": 9,
-        "BattlePlan2P": 10,
+        "BattlePlan1P": 11,
+        "BattlePlan2P": 12,
         "Group": false
     },
     "Relic": {
         "Active": false,
-        "IsGroup": false,
+        "IsGroup": true,
         "MaxTimes": 4,
         "Stage": "NO-3-4",
         "Deck": 6,
-        "BattlePlan1P": 9,
-        "BattlePlan2P": 10,
+        "BattlePlan1P": 11,
+        "BattlePlan2P": 12,
         "Group": false
     },
     "NormalBattle": {
-        "Active": false,
-        "IsGroup": false,
-        "MaxTimes": 15,
+        "Active": true,
+        "IsGroup": true,
+        "MaxTimes": 1,
         "Stage": "EX-4-3",
         "Deck": 4,
-        "BattlePlan1P": 9,
-        "BattlePlan2P": 10,
+        "BattlePlan1P": 2,
+        "BattlePlan2P": 3,
         "Group": true
     },
     "Customize": {

@@ -1,8 +1,11 @@
 [
     {
-        "group": true,
         "stage_id": "NO-1-7",
         "max_times": 2,
+        "deck": 6,
+        "is_group": true,
+        "battle_plan_1p": "默认-1P",
+        "battle_plan_2p": "默认-2P",
         "task_card": "None",
         "list_ban_card": [],
         "dict_exit": {
@@ -15,9 +18,12 @@
         }
     },
     {
-        "group": true,
-        "stage_id": "NO-1-7",
+        "stage_id": "NO-1-14",
         "max_times": 2,
+        "deck": 6,
+        "is_group": true,
+        "battle_plan_1p": "默认-1P",
+        "battle_plan_2p": "默认-2P",
         "task_card": "None",
         "list_ban_card": [],
         "dict_exit": {

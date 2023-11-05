@@ -1,6 +1,6 @@
 # coding:utf-8
 
-from function.script.battle_with_ui import main
+from function.script.ui.ui_2_battle_with_ui import main
 
 if __name__ == '__main__':
     # 游戏[固定]分辨率 950* 596 大约16:10
