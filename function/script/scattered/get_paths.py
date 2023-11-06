@@ -8,7 +8,6 @@ from time import sleep
 def get_root_path():
     my_path = Path(__file__).resolve()  # 该.py所在目录
     my_path = my_path.parent  # 上一级
-    my_path = my_path.parent  # 上一级
 
     for i in range(3):
         if os.path.exists(str(my_path) + "\\LICENSE"):
