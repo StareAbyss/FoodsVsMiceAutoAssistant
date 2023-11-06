@@ -80,7 +80,7 @@ def round_of_game(
             if not flag_find_task_card:
                 if loop_find_p_in_w(handle=handle,
                                     target_path=paths["picture"]["card"] + "\\" + task_card + ".png",
-                                    target_tolerance=0.97,
+                                    target_tolerance=0.95,
                                     click_zoom=zoom,
                                     click=True,
                                     target_failed_check=1):

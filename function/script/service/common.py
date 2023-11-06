@@ -203,7 +203,6 @@ class FAA:
                     # 遍历任务
                     for j in os.listdir("{}\\{}\\".format(path, i)):
                         # 找到任务 加入任务列表
-                        print("{}\\{}\\{}".format(path, i, j))
                         find_p = find_p_in_w(handle=self.handle,
                                              target_path="{}\\{}\\{}".format(path, i, j),
                                              target_tolerance=0.999)

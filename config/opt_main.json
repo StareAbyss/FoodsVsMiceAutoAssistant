@@ -34,9 +34,9 @@
         "BattlePlan2P": 8
     },
     "MagicTowerAlone": {
-        "Active": false,
-        "MaxTimes": 1,
-        "Stage": 0,
+        "Active": true,
+        "MaxTimes": 5,
+        "Stage": 139,
         "Deck": 3,
         "BattlePlan1P": 6,
         "BattlePlan2P": null
@@ -58,9 +58,9 @@
         "Group": false
     },
     "CrossServer": {
-        "Active": false,
+        "Active": true,
         "IsGroup": true,
-        "MaxTimes": 1,
+        "MaxTimes": 10,
         "Stage": "CS-5-4",
         "Deck": 6,
         "BattlePlan1P": 11,
@@ -71,7 +71,7 @@
         "Active": false,
         "IsGroup": true,
         "MaxTimes": 4,
-        "Stage": "NO-3-4",
+        "Stage": "NO-3-5",
         "Deck": 6,
         "BattlePlan1P": 11,
         "BattlePlan2P": 12,
@@ -80,7 +80,7 @@
     "NormalBattle": {
         "Active": true,
         "IsGroup": true,
-        "MaxTimes": 1,
+        "MaxTimes": 20,
         "Stage": "EX-4-3",
         "Deck": 4,
         "BattlePlan1P": 2,
