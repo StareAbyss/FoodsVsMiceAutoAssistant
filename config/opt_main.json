@@ -4,7 +4,7 @@
     "Name2P": "\u6df1\u6e0a\u4e4b\u4e0b",
     "ZoomRatio": 2,
     "Level1P": 58,
-    "Level2P": 53,
+    "Level2P": 54,
     "AutoUseCard": true,
     "GuildTask": {
         "Active": false,
@@ -14,31 +14,31 @@
         "BattlePlan2P": 12
     },
     "SpouseTask": {
-        "Active": false,
+        "Active": true,
         "Deck": 6,
-        "BattlePlan1P": 0,
+        "BattlePlan1P": 11,
         "BattlePlan2P": 12
     },
     "OfferReward": {
-        "Active": true,
-        "Deck": 5,
+        "Active": false,
+        "Deck": 4,
         "BattlePlan1P": 0,
-        "BattlePlan2P": 10
+        "BattlePlan2P": 1
     },
     "MagicTowerDouble": {
         "Active": false,
-        "MaxTimes": 1,
-        "Stage": 100,
+        "MaxTimes": 4,
+        "Stage": 90,
         "Deck": 6,
-        "BattlePlan1P": 7,
-        "BattlePlan2P": 8
+        "BattlePlan1P": 11,
+        "BattlePlan2P": 12
     },
     "MagicTowerAlone": {
         "Active": false,
         "MaxTimes": 5,
         "Stage": 139,
         "Deck": 3,
-        "BattlePlan1P": 6,
+        "BattlePlan1P": 8,
         "BattlePlan2P": null
     },
     "MagicTowerPrison": {
@@ -69,7 +69,7 @@
     },
     "Relic": {
         "Active": false,
-        "IsGroup": true,
+        "IsGroup": false,
         "MaxTimes": 4,
         "Stage": "NO-3-5",
         "Deck": 6,
@@ -81,10 +81,10 @@
         "Active": false,
         "IsGroup": true,
         "MaxTimes": 20,
-        "Stage": "EX-4-3",
-        "Deck": 4,
-        "BattlePlan1P": 2,
-        "BattlePlan2P": 3,
+        "Stage": "EX-4-5",
+        "Deck": 5,
+        "BattlePlan1P": 6,
+        "BattlePlan2P": 7,
         "Group": true
     },
     "Customize": {

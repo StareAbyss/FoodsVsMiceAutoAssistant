@@ -160,7 +160,7 @@ class MyMainWindow1(MyMainWindow0):
 
         self.opt["SpouseTask"]["Active"] = self.SpouseTask_Active.isChecked()
         self.opt["SpouseTask"]["Deck"] = self.SpouseTask_Deck.value()
-        my_transformer(self.SpouseTask_1P, "SpouseTask", "BattlePlan2P")
+        my_transformer(self.SpouseTask_1P, "SpouseTask", "BattlePlan1P")
         my_transformer(self.SpouseTask_2P, "SpouseTask", "BattlePlan2P")
 
         self.opt["OfferReward"]["Active"] = self.OfferReward_Active.isChecked()

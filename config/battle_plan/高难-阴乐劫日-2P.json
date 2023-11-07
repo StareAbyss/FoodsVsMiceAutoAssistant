@@ -1,0 +1,136 @@
+{
+    "player": [
+        "4-1",
+        "4-2"
+    ],
+    "card": [
+        {
+            "tips": "生产卡",
+            "id": 3,
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "4-3",
+                "4-4",
+                "4-5",
+                "4-6",
+                "4-6",
+                "4-7",
+                "7-1",
+                "7-2",
+                "7-6",
+                "7-7"
+            ]
+        },
+        {
+            "tips": "海星",
+            "id": 4,
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "5-1",
+                "5-2",
+                "5-6",
+                "5-7"
+            ]
+        },
+        {
+            "id": 5,
+            "tips": "糖葫芦",
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": true,
+            "location": [
+                "1-3",
+                "1-4",
+                "1-5",
+                "2-3",
+                "2-4",
+                "2-5"
+            ]
+        },
+        {
+            "id": 6,
+            "tips": "瓜皮一类",
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "7-1",
+                "7-2",
+                "4-3",
+                "4-4",
+                "4-5",
+                "7-6",
+                "7-7",
+                "6-1",
+                "6-2",
+                "3-3",
+                "3-4",
+                "3-5",
+                "6-6",
+                "6-7"
+            ]
+        },
+        {
+            "id": 7,
+            "tips": "冰淇淋",
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "8-1"
+            ]
+        },
+        {
+            "id": 8,
+            "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "8-1",
+                "8-2",
+                "5-3",
+                "5-4",
+                "5-5",
+                "8-6",
+                "8-7"
+            ]
+        },
+        {
+            "id": 9,
+            "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "8-1",
+                "8-2",
+                "5-3",
+                "5-4",
+                "5-5",
+                "8-6",
+                "8-7"
+            ]
+        },
+        {
+            "id": 10,
+            "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "8-1",
+                "8-2",
+                "5-3",
+                "5-4",
+                "5-5",
+                "8-6",
+                "8-7"
+            ]
+        }
+    ]
+}

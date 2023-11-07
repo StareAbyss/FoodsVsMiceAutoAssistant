@@ -512,12 +512,11 @@ class FAA:
                         # 到魔塔最低一层
                         mouse_left_click(self.handle, int(47 * self.zoom), int(579 * self.zoom), sleep_time=0.3)
                         # 向右到对应位置
-                        my_left = int((int(stage_2) - int(stage_2) % 15) / 15)
+                        my_left = int((int(stage_2) - 1) / 15)
                         for i in range(my_left):
                             mouse_left_click(self.handle, int(152 * self.zoom), int(577 * self.zoom), sleep_time=0.3)
                         # 点击对应层数
-                        my_up = int(stage_2) % 15
-                        my_y = int(572 - (30.8 * my_up))
+                        my_y = int(542 - (30.8 * (int(stage_2) - my_left * 15 - 1)))
                         mouse_left_click(self.handle, int(110 * self.zoom), int(my_y * self.zoom), sleep_time=0.3)
 
                 # 进入关卡
