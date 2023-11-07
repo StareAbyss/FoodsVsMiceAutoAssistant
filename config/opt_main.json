@@ -20,10 +20,10 @@
         "BattlePlan2P": 12
     },
     "OfferReward": {
-        "Active": false,
+        "Active": true,
         "Deck": 5,
         "BattlePlan1P": 0,
-        "BattlePlan2P": 1
+        "BattlePlan2P": 10
     },
     "MagicTowerDouble": {
         "Active": false,
@@ -34,7 +34,7 @@
         "BattlePlan2P": 8
     },
     "MagicTowerAlone": {
-        "Active": true,
+        "Active": false,
         "MaxTimes": 5,
         "Stage": 139,
         "Deck": 3,
@@ -58,10 +58,10 @@
         "Group": false
     },
     "CrossServer": {
-        "Active": true,
+        "Active": false,
         "IsGroup": true,
         "MaxTimes": 10,
-        "Stage": "CS-5-4",
+        "Stage": "CS-5-3",
         "Deck": 6,
         "BattlePlan1P": 11,
         "BattlePlan2P": 12,
@@ -78,7 +78,7 @@
         "Group": false
     },
     "NormalBattle": {
-        "Active": true,
+        "Active": false,
         "IsGroup": true,
         "MaxTimes": 20,
         "Stage": "EX-4-3",

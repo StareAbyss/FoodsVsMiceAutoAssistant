@@ -5,7 +5,7 @@ from PyQt5 import uic, QtWidgets
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox
 
-from function.script.scattered.get_paths import get_root_path
+from function.get_paths import get_root_path
 
 
 class MyMainWindow0(QMainWindow):

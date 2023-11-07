@@ -10,9 +10,9 @@ from function.common.bg_keyboard import key_down_up
 from function.common.bg_mouse import mouse_left_click
 from function.common.bg_screenshot import capture_picture_png
 from function.common.bg_screenshot_and_compare import find_p_in_w, loop_find_p_in_w
+from function.get_paths import get_paths
 from function.script.scattered.gat_handle import faa_get_handle
 from function.script.scattered.get_battle_plan_list import get_battle_plan_list
-from function.script.scattered.get_paths import get_paths
 from function.script.service.in_battle.round_of_battle import RoundOfBattle
 from function.script.service.in_battle.round_of_battle_calculation_arrange import calculation_cell_all_card
 from function.script.service.in_battle.round_of_game import round_of_game
@@ -300,9 +300,9 @@ class FAA:
         # 防止活动列表不在
         self.change_activity_list(1)
 
-        # 点击进入跨服副本界面
+        # 点击进入OR界面
         loop_find_p_in_w(handle=self.handle,
-                         target_path=self.paths["picture"]["stage"] + "\\CS.png",
+                         target_path=self.paths["picture"]["stage"] + "\\OR.png",
                          target_sleep=2,
                          click=True,
                          click_zoom=self.zoom)

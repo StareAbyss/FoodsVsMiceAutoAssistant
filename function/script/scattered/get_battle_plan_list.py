@@ -1,6 +1,6 @@
 import os
 
-from function.script.scattered.get_paths import get_root_path
+from function.get_paths import get_root_path
 
 
 def get_battle_plan_list(with_extension):

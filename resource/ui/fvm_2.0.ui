@@ -2420,7 +2420,7 @@ Link Start</string>
           </size>
          </property>
          <property name="text">
-          <string>组队*</string>
+          <string>组队</string>
          </property>
         </widget>
        </item>
