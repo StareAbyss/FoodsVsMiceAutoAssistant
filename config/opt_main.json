@@ -14,7 +14,7 @@
         "BattlePlan2P": 12
     },
     "SpouseTask": {
-        "Active": true,
+        "Active": false,
         "Deck": 6,
         "BattlePlan1P": 11,
         "BattlePlan2P": 12
@@ -78,9 +78,9 @@
         "Group": false
     },
     "NormalBattle": {
-        "Active": false,
+        "Active": true,
         "IsGroup": true,
-        "MaxTimes": 20,
+        "MaxTimes": 1,
         "Stage": "EX-4-5",
         "Deck": 5,
         "BattlePlan1P": 6,

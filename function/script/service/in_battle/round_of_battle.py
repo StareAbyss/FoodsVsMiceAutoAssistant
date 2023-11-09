@@ -14,9 +14,19 @@ class RoundOfBattle:
                  path_p_common, stage_info, battle_plan, is_group):
 
         # 其他手动内部参数
-        self.click_interval = 0.025
-        self.click_sleep = 0.025
+        self.check_invite = 3.0  # 战斗中, [检测战斗结束]和[检测继续战斗]的时间间隔
+        self.click_interval = 0.025  # 每次点击时 按下和抬起之间的间隔
+        self.click_sleep = 0.025  # 每次点击时 按下和抬起之间的间隔
         self.battle_card, self.battle_cell = create_battle_coordinates(zoom)  # 计算关卡内的卡牌 和 格子位置
+        self.warning_cell = ["4-4", "4-5", "5-4", "5-5"]  # the locations of cell easy touch the use-key UI by mistake
+        self.auto_collect_cells = ["1-1", "2-1", "3-1", "4-1", "5-1", "6-1", "7-1", "8-1", "9-1",
+                                   "1-2", "2-2", "3-2", "4-2", "5-2", "6-2", "7-2", "8-2", "9-2",
+                                   "1-3", "2-3", "3-3", "4-3", "5-3", "6-3", "7-3", "8-3", "9-3",
+                                   "1-4", "2-4", "3-4", "4-4", "5-4", "6-4", "7-4", "8-4", "9-4",
+                                   "1-5", "2-5", "3-5", "4-5", "5-5", "6-5", "7-5", "8-5", "9-5",
+                                   "1-6", "2-6", "3-6", "4-6", "5-6", "6-6", "7-6", "8-6", "9-6",
+                                   "1-7", "2-7", "3-7", "4-7", "5-7", "6-7", "7-7", "8-7", "9-7"]
+        self.auto_collect_cells = [i for i in self.auto_collect_cells if i not in self.warning_cell]
 
         # FAA主类中调用函数获取 - 生成类时获取
         self.handle = handle
@@ -59,7 +69,6 @@ class RoundOfBattle:
 
         # 战斗循环
         if battle_mode == 0:
-            # 0 多线程遍历模式 布阵慢 补阵快 性能开销略大 是遍历模式的优化
             self.use_card_loop_0(list_cell_all=list_cell_all)
         elif battle_mode == 1:
             # 1 备用拓展
@@ -137,41 +146,79 @@ class RoundOfBattle:
                              sleep_time=self.click_sleep)
 
     def use_card_loop_0(self, list_cell_all):
-        """循环方式 每一个卡都先在其对应的全部的位置放一次,再放下一张(每轮开始位置+1)"""
+        """
+        !!!最重要的函数!!!
+        本项目的精髓, 性能开销最大的函数, 为了优化性能, 可读性和低耦合这些就放弃了吧...
+        循环方式:
+        每一个卡都先在其对应的全部的位置放一次,再放下一张(每轮开始位置+1)
+        """
+
+        # 放一些self中的值为变量, 优化性能(调用self较慢)
+        check_invite = self.check_invite
+        click_interval = self.click_interval
+        click_sleep = self.click_sleep
+
+        handle = self.handle
+        zoom = self.zoom
+        is_auto_battle = self.is_auto_battle
+        is_auto_collect = self.is_auto_collect
+
+        battle_card = self.battle_card
+        battle_cell = self.battle_cell
+        auto_collect_cells = self.auto_collect_cells
+        warning_cell = self.warning_cell
+
         # 计算一轮最长时间(防止空转)
         max_len_position_in_opt = 0
         for i in list_cell_all:
             max_len_position_in_opt = max(max_len_position_in_opt, len(i["location"]))
-        round_max_time = self.click_interval * max_len_position_in_opt + 7.3
+        round_max_time = click_interval * max_len_position_in_opt + 7.3
 
         end_flag = False  # 用flag值来停止循环
-        check_invite = 3.0  # 检测间隔(根据时间)
         check_last_one_time = time()  # 记录上一次检测的时间
 
         while True:
+
             time_round_begin = time()  # 每一轮开始的时间
-            for i in range(len(list_cell_all)):  # 遍历每一张卡
-                if self.is_auto_battle:  # 启动了自动战斗
+
+            """遍历每一张卡"""
+            for i in range(len(list_cell_all)):
+                if is_auto_battle:  # 启动了自动战斗
                     # 点击 选中卡片
-                    mouse_left_click(handle=self.handle,
-                                     x=self.battle_card[list_cell_all[i]["id"]][0],
-                                     y=self.battle_card[list_cell_all[i]["id"]][1],
-                                     interval_time=self.click_interval,
-                                     sleep_time=self.click_sleep)
+                    mouse_left_click(handle=handle, interval_time=click_interval, sleep_time=click_sleep,
+                                     x=battle_card[list_cell_all[i]["id"]][0],
+                                     y=battle_card[list_cell_all[i]["id"]][1])
+
+                    # 启动遍历模式
                     if list_cell_all[i]["ergodic"]:
-                        # 遍历该卡每一个可以放的位置
+                        """遍历模式: True 遍历该卡每一个可以放的位置"""
                         for j in list_cell_all[i]["location"]:
-                            self.use_card_somewhere(j=j)
+                            """安全放一张卡"""
+                            # 防止误触
+                            if j in warning_cell:
+                                self.use_key(mode=1)
+                            # 点击 放下卡片
+                            mouse_left_click(handle=handle, interval_time=click_interval, sleep_time=click_sleep,
+                                             x=battle_cell[j][0], y=battle_cell[j][1])
+                    # 非遍历模式
                     else:
-                        # 只放一下
+                        """安全放一张卡"""
                         j = list_cell_all[i]["location"][0]
-                        self.use_card_somewhere(j=j)
-                    self.click_space()  # 放卡后点一下
+                        # 防止误触
+                        if j in warning_cell:
+                            self.use_key(mode=1)
+                        # 点击 放下卡片
+                        mouse_left_click(handle=handle, interval_time=click_interval, sleep_time=click_sleep,
+                                         x=battle_cell[j][0], y=battle_cell[j][1])
+                    """放卡后点一下"""
+                    mouse_move_to(handle=handle, x=200, y=350)
+                    mouse_left_click(handle=handle, x=200, y=350, interval_time=click_interval, sleep_time=click_sleep)
+
                 # 每放完一轮卡片 根据设定间隔 检测一下
                 if time() - check_last_one_time > check_invite:
                     # 更新上次检测时间 + 更新flag + 中止休息循环
                     check_last_one_time = time()
-                    if self.check_end():
+                    if self.use_key_and_check_end():
                         end_flag = True
                         break
 
@@ -184,17 +231,39 @@ class RoundOfBattle:
                     list_cell_all[i]["location"].append(list_cell_all[i]["location"][0])
                     list_cell_all[i]["location"].remove(list_cell_all[i]["location"][0])
 
-            self.use_weapon_skill()  # 武器技能
-            self.auto_collect()  # 自动收集
+            """武器技能"""
+            mouse_left_click(handle=handle,
+                             x=int(23 * zoom),
+                             y=int(200 * zoom),
+                             interval_time=click_interval,
+                             sleep_time=click_sleep)
+            mouse_left_click(handle=handle,
+                             x=int(23 * zoom),
+                             y=int(250 * zoom),
+                             interval_time=click_interval,
+                             sleep_time=click_sleep)
+            mouse_left_click(handle=handle,
+                             x=int(23 * zoom),
+                             y=int(297 * zoom),
+                             interval_time=click_interval,
+                             sleep_time=click_sleep)
 
-            # 一轮不到7s+点7*9个位置需要的时间, 休息到该时间, 期间每[check_invite]秒检测一次
+            """自动收集"""
+            if is_auto_collect:
+                for coordinate in auto_collect_cells:
+                    mouse_move_to(handle=handle,
+                                  x=battle_cell[coordinate][0],
+                                  y=battle_cell[coordinate][1])
+                    sleep(click_sleep)
+
+            # 一轮不到7s+点7*9个位置需要的时间, 休息到该时间, 期间每[self.check_invite]秒检测一次
             time_spend_a_round = time() - time_round_begin
             if time_spend_a_round < round_max_time:
                 for i in range(int((round_max_time - time_spend_a_round) // check_invite)):
                     if time() - check_last_one_time > check_invite:
                         # 更新上次检测时间 + 更新flag + 中止休息循环
                         check_last_one_time = time()
-                        if self.check_end():
+                        if self.use_key_and_check_end():
                             end_flag = True
                             break
                     sleep(check_invite)
@@ -204,7 +273,7 @@ class RoundOfBattle:
                 if time() - check_last_one_time > check_invite:
                     # 更新上次检测时间 + 更新flag + 中止休息循环
                     check_last_one_time = time()
-                    if self.check_end():
+                    if self.use_key_and_check_end():
                         break
 
             if end_flag:
@@ -239,66 +308,35 @@ class RoundOfBattle:
 
         # 点一下空白
         if click_space:
-            self.click_space()
+            mouse_move_to(handle=self.handle, x=200, y=350)
+            mouse_left_click(handle=self.handle, x=200, y=350,
+                             interval_time=self.click_interval, sleep_time=self.click_sleep)
 
     """ Layer2 - 被Layer1调用 """
 
-    def click_space(self):
-        """战斗中点空白"""
-        mouse_move_to(handle=self.handle,
-                      x=200,
-                      y=350)
-        mouse_left_click(handle=self.handle,
-                         x=200,
-                         y=350,
-                         interval_time=self.click_interval,
-                         sleep_time=self.click_sleep)
-
-    def use_card_somewhere(self, j):
+    def use_key(self, mode: int = 0):
         """
-        防误触的使用一张卡
-        :param j: 卡片坐标str 例如 "1-3"
+        使用钥匙的函数,
+        :param mode:
+            the mode of use key.
+            0: click on the location of "next UI".
+            1: if you find the picture of "next UI", click it.
+        :return:
+            None
         """
-
-        def use_key():
-            if self.is_use_key:
+        if self.is_use_key:
+            if mode == 0:
+                mouse_left_click(handle=self.handle, interval_time=self.click_interval, sleep_time=self.click_sleep,
+                                 x=int(427 * self.zoom), y=int(360 * self.zoom))
+            if mode == 1:
                 if find_p_in_w(handle=self.handle,
                                target_path=self.path_p_common + "\\battle_next_need.png"):
-                    mouse_left_click(handle=self.handle,
-                                     x=int(427 * self.zoom),
-                                     y=int(360 * self.zoom),
-                                     interval_time=self.click_interval,
-                                     sleep_time=self.click_sleep)
+                    mouse_left_click(handle=self.handle, interval_time=self.click_interval, sleep_time=self.click_sleep,
+                                     x=int(427 * self.zoom), y=int(360 * self.zoom))
 
-        # 防止误触
-        if j == "4-4" or j == "4-5" or j == "5-4" or j == "5-4":
-            use_key()
-        # 点击 放下卡片
-        mouse_left_click(handle=self.handle,
-                         x=self.battle_cell[j][0],
-                         y=self.battle_cell[j][1],
-                         interval_time=self.click_interval,
-                         sleep_time=self.click_sleep)
-
-    def use_weapon_skill(self):
-        mouse_left_click(handle=self.handle,
-                         x=int(23 * self.zoom),
-                         y=int(200 * self.zoom),
-                         interval_time=self.click_interval,
-                         sleep_time=self.click_sleep)
-        mouse_left_click(handle=self.handle,
-                         x=int(23 * self.zoom),
-                         y=int(250 * self.zoom),
-                         interval_time=self.click_interval,
-                         sleep_time=self.click_sleep)
-        mouse_left_click(handle=self.handle,
-                         x=int(23 * self.zoom),
-                         y=int(297 * self.zoom),
-                         interval_time=self.click_interval,
-                         sleep_time=self.click_sleep)
-
-    def check_end(self):
+    def use_key_and_check_end(self):
         # 找到战利品字样(被黑色透明物遮挡,会看不到)
+        self.use_key(mode=0)
         return find_ps_in_w(handle=self.handle,
                             target_opts=[
                                 {
@@ -324,22 +362,4 @@ class RoundOfBattle:
                             ],
                             return_mode="or")
 
-    def auto_collect(self):
-        if self.is_auto_collect:
-            coordinates = ["1-1", "2-1", "3-1", "4-1", "5-1", "6-1", "7-1", "8-1", "9-1",
-                           "1-2", "2-2", "3-2", "4-2", "5-2", "6-2", "7-2", "8-2", "9-2",
-                           "1-3", "2-3", "3-3", "4-3", "5-3", "6-3", "7-3", "8-3", "9-3",
-                           "1-4", "2-4", "3-4", "4-4", "5-4", "6-4", "7-4", "8-4", "9-4",
-                           "1-5", "2-5", "3-5", "4-5", "5-5", "6-5", "7-5", "8-5", "9-5",
-                           "1-6", "2-6", "3-6", "4-6", "5-6", "6-6", "7-6", "8-6", "9-6",
-                           "1-7", "2-7", "3-7", "4-7", "5-7", "6-7", "7-7", "8-7", "9-7"]
-
-            for coordinate in coordinates:
-                mouse_move_to(handle=self.handle,
-                              x=self.battle_cell[coordinate][0],
-                              y=self.battle_cell[coordinate][1])
-                sleep(self.click_sleep)
-
     """ 暂时废弃 """
-
-
