@@ -159,6 +159,7 @@ def round_of_game(
         handle=handle,
         target_path=paths["picture"]["common"] + "\\battle_end_4_chest.png",
         target_failed_check=15,
+        target_sleep=2,
         click=False,
         click_zoom=zoom
     )
@@ -193,6 +194,7 @@ def round_of_game(
 
     if find:
         print("[{}] [Safe]成功捕获[开始/准备/魔塔蛋糕UI], 完成战斗流程.".format(player))
+        sleep(3)
     else:
         print("=" * 50)
         print("[{}] [Error]没能捕获[开始/准备/魔塔蛋糕UI], 超长时间sleep, 请中止脚本!!!".format(player))
