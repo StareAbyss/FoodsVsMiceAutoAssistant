@@ -1,8 +1,7 @@
 from ctypes import windll, byref, c_ubyte
 from ctypes.wintypes import RECT, HWND
 
-from cv2 import imshow as cv2_imshow
-from cv2 import waitKey as cv2_waitKey
+from cv2 import imshow, waitKey
 from numpy import uint8, frombuffer
 
 from function.script.scattered.gat_handle import faa_get_handle
@@ -50,10 +49,10 @@ def capture_picture_png(f_handle: HWND):
 
 
 if __name__ == "__main__":
-    handle = faa_get_handle(channel="锑食", mode="browser")
+    handle = faa_get_handle(channel="深渊之下 | 锑食", mode="browser")
     image = capture_picture_png(handle)
-    cv2_imshow("Capture Test.png", image)
-    cv2_waitKey()
+    imshow("Capture Test.png", image)
+    waitKey()
     # handle = faa_get_handle(channel="锑食", mode="game")
     # image = capture_picture_png(handle)
     # cv2_imshow("Capture Test.png", image)

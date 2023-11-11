@@ -25,6 +25,7 @@ def find_p_in_w(
     """
     template = capture_picture_png(handle)
     target = imread(target_path, IMREAD_UNCHANGED)  # 读取带透明度
+
     # 执行模板匹配，采用的匹配方式cv2.TM_SQDIFF_NORMED
     result = matchTemplate(target, template, TM_SQDIFF_NORMED)
     (minVal, maxVal, minLoc, maxLoc) = minMaxLoc(result)
@@ -65,19 +66,25 @@ def find_ps_in_w(
     # 截屏
     template = capture_picture_png(handle)
     result_list = []
+
     for p in target_opts:
+
         target_path = p["target_path"]
         tolerance = p["tolerance"]
         target = imread(target_path, IMREAD_UNCHANGED)  # 读取带透明度
+
         # 执行模板匹配，采用的匹配方式cv2.TM_SQDIFF_NORMED
         result = matchTemplate(target, template, TM_SQDIFF_NORMED)
         (minVal, maxVal, minLoc, maxLoc) = minMaxLoc(result)
+
         # 如果匹配度小于X%，就认为没有找到
         if minVal > 1 - tolerance:
             result_list.append(None)
             continue
+
         # 最优匹配的左上坐标
         (start_x, start_y) = minLoc
+
         # 输出识别到的中心
         result_list.append([start_x + int(target.shape[1] / 2), start_y + int(target.shape[0] / 2)])
 
@@ -160,7 +167,7 @@ def loop_find_ps_in_w(
         target_return_mode: str,
         target_failed_check: float = 10,  # 找图时间限制
         target_interval: float = 0.2,  # 每次捕捉图片循环的间隔
-        ):
+):
     """
 
         :param handle: 句柄
@@ -193,15 +200,14 @@ if __name__ == '__main__':
 
     def main():
         handle = faa_get_handle("锑食")
-        kwargs_find_completed = {"handle": handle,
-                                 "target_path": "find_needed.png",
-                                 "tolerance": 0.97,
-                                 "change_per": 1.5,
-                                 "click": True,
-                                 "sleep_time": 1,
-                                 "failed_check_time": 2
-                                 }
-        loop_find_p_in_w(**kwargs_find_completed)
+        handle = faa_get_handle("深渊之下 | 锑食")
+
+        result = loop_find_p_in_w(handle=handle,
+                                  target_path="find_needed.png",
+                                  target_tolerance=0.85,
+                                  target_sleep=1,
+                                  target_failed_check=2)
+        print(result)
 
 
     main()

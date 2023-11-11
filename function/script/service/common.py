@@ -10,7 +10,7 @@ from function.common.bg_keyboard import key_down_up
 from function.common.bg_mouse import mouse_left_click
 from function.common.bg_screenshot import capture_picture_png
 from function.common.bg_screenshot_and_compare import find_p_in_w, loop_find_p_in_w
-from function.get_paths import get_paths
+from function.get_paths import get_paths_faa_new
 from function.script.scattered.gat_handle import faa_get_handle
 from function.script.scattered.get_battle_plan_list import get_battle_plan_list
 from function.script.service.in_battle.round_of_battle import RoundOfBattle
@@ -39,7 +39,7 @@ class FAA:
         self.is_auto_collect = is_auto_collect
 
         # 资源文件路径
-        self.paths = get_paths()
+        self.paths = get_paths_faa_new()
 
         # 每个副本的战斗都不一样的参数 使用内部函数调用更改
         self.is_group = False
@@ -753,34 +753,34 @@ class FAA:
         if exit_mode == 1:
             loop_find_p_in_w(handle=self.handle,
                              target_path=self.paths["picture"]["common"] + "\\bottom_menu_back.png",
-                             target_sleep=1,
+                             target_sleep=1.5,
                              click=True,
                              click_zoom=self.zoom)
 
         if exit_mode == 2:
             loop_find_p_in_w(handle=self.handle,
                              target_path=self.paths["picture"]["common"] + "\\battle_before_exit_x.png",
-                             target_sleep=1,
+                             target_sleep=1.5,
                              click=True,
                              click_zoom=self.zoom)
 
         if exit_mode == 3:
             loop_find_p_in_w(handle=self.handle,
                              target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto.png",
-                             target_sleep=0.5,
+                             target_sleep=1.5,
                              click=True,
                              click_zoom=self.zoom)
 
             loop_find_p_in_w(handle=self.handle,
                              target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto_arena.png",
-                             target_sleep=1,
+                             target_sleep=1.5,
                              click=True,
                              click_zoom=self.zoom)
 
         if exit_mode == 4:
             loop_find_p_in_w(handle=self.handle,
                              target_path=self.paths["picture"]["common"] + "\\offer_reward_exit.png",
-                             target_sleep=1,
+                             target_sleep=1.5,
                              click=True,
                              click_zoom=self.zoom)
 

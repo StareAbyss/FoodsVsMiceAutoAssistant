@@ -17,26 +17,51 @@ def get_root_path():
     sleep(10000)
 
 
-def get_paths():
-    paths = {
+paths = {
+    "root": get_root_path(),
+    "logs": None,
+    "config": None,
+    "picture": {
+    },
+}
+paths["logs"] = paths["root"] + "\\logs"
+paths["config"] = paths["root"] + "\\config"
+paths["picture"]["current"] = paths["root"] + "\\resource\\picture"
+paths["picture"]["common"] = paths["picture"]["current"] + "\\common"
+paths["picture"]["number"] = paths["picture"]["current"] + "\\number"
+paths["picture"]["card"] = paths["picture"]["current"] + "\\card"
+paths["picture"]["stage"] = paths["picture"]["current"] + "\\stage"
+paths["picture"]["guild_task"] = paths["picture"]["current"] + "\\task_guild"
+paths["picture"]["spouse_task"] = paths["picture"]["current"] + "\\task_spouse"
+paths["picture"]["ready_check_stage"] = paths["picture"]["current"] + "\\stage_ready_check"
+
+
+def get_paths_faa_new():
+    global paths
+    return paths
+
+
+def get_paths_faa_old():
+    my_paths = {
         "root": get_root_path(),
         "logs": None,
         "config": None,
         "picture": {
         },
     }
-    paths["logs"] = paths["root"] + "\\logs"
-    paths["config"] = paths["root"] + "\\config"
-    paths["picture"]["current"] = paths["root"] + "\\resource\\picture"
-    paths["picture"]["common"] = paths["picture"]["current"] + "\\common"
-    paths["picture"]["card"] = paths["picture"]["current"] + "\\card"
-    paths["picture"]["stage"] = paths["picture"]["current"] + "\\stage"
-    paths["picture"]["guild_task"] = paths["picture"]["current"] + "\\task_guild"
-    paths["picture"]["spouse_task"] = paths["picture"]["current"] + "\\task_spouse"
-    paths["picture"]["ready_check_stage"] = paths["picture"]["current"] + "\\stage_ready_check"
-
-    return paths
+    my_paths["logs"] = my_paths["root"] + "\\logs"
+    my_paths["config"] = my_paths["root"] + "\\config"
+    my_paths["picture"]["current"] = my_paths["root"] + "\\resource\\picture"
+    my_paths["picture"]["common"] = my_paths["picture"]["current"] + "\\common"
+    my_paths["picture"]["number"] = my_paths["picture"]["current"] + "\\number"
+    my_paths["picture"]["card"] = my_paths["picture"]["current"] + "\\card"
+    my_paths["picture"]["stage"] = my_paths["picture"]["current"] + "\\stage"
+    my_paths["picture"]["guild_task"] = my_paths["picture"]["current"] + "\\task_guild"
+    my_paths["picture"]["spouse_task"] = my_paths["picture"]["current"] + "\\task_spouse"
+    my_paths["picture"]["ready_check_stage"] = my_paths["picture"]["current"] + "\\stage_ready_check"
+    return my_paths
 
 
 if __name__ == '__main__':
     print(get_root_path())
+    print(get_paths_faa_new())

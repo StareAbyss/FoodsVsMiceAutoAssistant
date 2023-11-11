@@ -1,7 +1,7 @@
 from time import sleep
 
 from function.common.bg_mouse import mouse_left_click
-from function.common.bg_screenshot_and_compare import loop_find_p_in_w, find_p_in_w, loop_find_ps_in_w, find_ps_in_w
+from function.common.bg_screenshot_and_compare import loop_find_p_in_w, loop_find_ps_in_w, find_ps_in_w
 from function.tools.screen_loot_logs import screen_loot_logs
 
 
@@ -63,7 +63,7 @@ def round_of_game(
                      y=int(121 * zoom),
                      sleep_time=0.5)
 
-    # 开始寻找并添加任务所需卡片
+    """开始寻找并添加任务所需卡片"""
     if task_card == "None" or task_card == "Bubble":
         print("[{}] 不需要额外带卡,跳过".format(player))
     else:
@@ -110,15 +110,15 @@ def round_of_game(
         print("[{}] 10s找不到[开始/准备]字样! 创建房间可能失败!".format(player))
 
     # 防止被没有带xx卡卡住
-    my_path = paths["picture"]["common"] + "\\battle_before_no_mat_card_enter.png"
-    if find_p_in_w(handle=handle, target_path=my_path):
-        mouse_left_click(handle, int(427 * zoom), int(353 * zoom))
+    # my_path = paths["picture"]["common"] + "\\battle_before_no_mat_card_enter.png"
+    # if find_p_in_w(handle=handle, target_path=my_path):
+    #     mouse_left_click(handle, int(427 * zoom), int(353 * zoom))
 
     # 刷新ui: 状态文本
     print("[{}] 查找火苗标识物, 等待进入战斗".format(player))
 
     # 循环查找火苗图标 找到战斗开始
-    find = loop_find_p_in_w(
+    loop_find_p_in_w(
         handle=handle,
         target_path=paths["picture"]["common"] + "\\battle_fire_element.png",
         click_zoom=zoom,

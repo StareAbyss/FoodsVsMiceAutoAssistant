@@ -555,7 +555,7 @@ class Todo(QThread):
                 is_group=my_opt["IsGroup"],
                 battle_plan_1p=my_opt["BattlePlan1P"],
                 battle_plan_2p=my_opt["BattlePlan2P"],
-                dict_exit={"other_time": [0], "last_time": [1, 2]})
+                dict_exit={"other_time": [0], "last_time": [3, 2]})
 
         my_opt = self.opt["GuildTask"]
         if my_opt["Active"]:
