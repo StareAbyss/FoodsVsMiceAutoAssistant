@@ -4,7 +4,6 @@ python -m cProfile -o "D:\Project_Python\WorkSpace\FoodsVsMouses_AutoAssistant\f
 
 # 可视化
 
-pip install graphviz
-pip install gprof2dot
+pip install snakeviz
 
-gprof2dot -f pstats "D:\Project_Python\WorkSpace\FoodsVsMouses_AutoAssistant\function\performance_testing.prof" | -Tpng -o "D:\Project_Python\WorkSpace\FoodsVsMouses_AutoAssistant\function\performance_testing.png"
+snakeviz "D:\Project_Python\WorkSpace\FoodsVsMouses_AutoAssistant\function\performance_testing.prof" 

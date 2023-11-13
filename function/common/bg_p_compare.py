@@ -4,6 +4,7 @@ from cv2 import rectangle, imread, IMREAD_UNCHANGED, TM_SQDIFF_NORMED, minMaxLoc
 
 from function.common.bg_mouse import mouse_left_click
 from function.common.bg_p_screenshot import capture_picture_png
+from function.get_paths import paths
 
 
 def find_p_in_w(
@@ -218,15 +219,19 @@ if __name__ == '__main__':
 
 
     def main():
-        handle = faa_get_handle("锑食")
-        # handle = faa_get_handle("深渊之下 | 锑食")
-
+        # handle = faa_get_handle("锑食")
+        handle = faa_get_handle("深渊之下 | 锑食")
+        target_path = paths["picture"]["common"] + "\\bottom_menu_goto.png"
         result = loop_find_p_in_w(raw_w_handle=handle,
                                   raw_range=[0, 0, 950, 600],
-                                  target_path="find_needed.png",
-                                  target_tolerance=0.9999,
+                                  target_path=target_path,
                                   target_sleep=1,
-                                  target_failed_check=2)
+                                  target_failed_check=2,
+                                  click=True,
+                                  click_zoom=1.5)
+        # result = find_p_in_w(raw_w_handle=handle,
+        #                      raw_range=[0, 0, 950, 600],
+        #                      target_path=target_path)
         print(result)
 
 

@@ -260,8 +260,8 @@ class Todo(QThread):
                 else:
                     flag_invite_failed = True
                     self.sin_out.emit("服务器抽风, 尝试进入竞技岛, 并重新进行邀请...")
-                    self.faa_1.action_exit(exit_mode=3)
                     self.faa_2.action_exit(exit_mode=3)
+                    self.faa_1.action_exit(exit_mode=3)
 
             # 创建战斗进程 -> 开始进程 -> 阻塞进程让进程执行完再继续本循环函数
             self.thread_1p = ThreadWithException(target=self.faa_1.action_round_of_game,
@@ -680,7 +680,8 @@ class MyMainWindow2(MyMainWindow1):
                     thread.stop()
                     thread.join()
             # 中断 任务线程 (QThread)
-            self.thread_todo.terminate()
+            self.thread_todo.quit()
+            self.thread_todo.wait()
             # 结束线程后的ui处理
             self.todo_completed()
 

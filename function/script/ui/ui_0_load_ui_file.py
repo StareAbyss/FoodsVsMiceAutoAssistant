@@ -1,3 +1,4 @@
+import os
 import sys
 
 from PyQt5 import uic, QtWidgets
@@ -50,9 +51,9 @@ class MyMainWindow0(QMainWindow):
         # else:
         #     event.ignore()
 
-        # event.accept()
+        event.accept()
         # 用过sys.exit(0)和sys.exit(app.exec_())，但没起效果
-        # os._exit(0)
+        os._exit(0)
 
 
 if __name__ == "__main__":

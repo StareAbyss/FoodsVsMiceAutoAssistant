@@ -795,6 +795,7 @@ class FAA:
             loop_find_p_in_w(raw_w_handle=self.handle,
                              raw_range=[0, 0, 900, 650],
                              target_path=self.paths["picture"]["common"] + "\\bottom_menu_back.png",
+                             target_failed_check=100,
                              target_sleep=1.5,
                              click=True,
                              click_zoom=self.zoom)
@@ -803,6 +804,7 @@ class FAA:
             loop_find_p_in_w(raw_w_handle=self.handle,
                              raw_range=[0, 0, 900, 650],
                              target_path=self.paths["picture"]["common"] + "\\battle_before_exit_x.png",
+                             target_failed_check=100,
                              target_sleep=1.5,
                              click=True,
                              click_zoom=self.zoom)
@@ -811,6 +813,8 @@ class FAA:
             loop_find_p_in_w(raw_w_handle=self.handle,
                              raw_range=[0, 0, 900, 650],
                              target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto.png",
+                             target_tolerance=0.99,
+                             target_failed_check=100,
                              target_sleep=1.5,
                              click=True,
                              click_zoom=self.zoom)
@@ -818,6 +822,8 @@ class FAA:
             loop_find_p_in_w(raw_w_handle=self.handle,
                              raw_range=[0, 0, 900, 650],
                              target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto_arena.png",
+                             target_tolerance=0.99,
+                             target_failed_check=100,
                              target_sleep=1.5,
                              click=True,
                              click_zoom=self.zoom)
@@ -826,6 +832,8 @@ class FAA:
             loop_find_p_in_w(raw_w_handle=self.handle,
                              raw_range=[0, 0, 900, 650],
                              target_path=self.paths["picture"]["common"] + "\\offer_reward_exit.png",
+                             target_tolerance=0.99,
+                             target_failed_check=100,
                              target_sleep=1.5,
                              click=True,
                              click_zoom=self.zoom)

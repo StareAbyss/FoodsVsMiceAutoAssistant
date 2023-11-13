@@ -54,7 +54,7 @@ def capture_picture_png(handle: HWND, raw_range: list):
 
 def main():
 
-    # handle = faa_get_handle(channel="锑食", mode="browser")
+    # handle = faa_get_handle(channel="锑食", mode="game")
     handle = faa_get_handle(channel="深渊之下 | 锑食", mode="game")
 
     # 调用截图
