@@ -1,7 +1,7 @@
 from time import sleep
 
 from function.common.bg_mouse import mouse_left_click
-from function.common.bg_screenshot_and_compare import loop_find_p_in_w, loop_find_ps_in_w, find_ps_in_w
+from function.common.bg_p_compare import loop_find_p_in_w, loop_find_ps_in_w, find_ps_in_w
 from function.tools.screen_loot_logs import screen_loot_logs
 
 
@@ -40,11 +40,13 @@ def round_of_game(
     sleep(0.3)
 
     # 刷新ui: 状态文本
+    print("=" * 50)
     print("[{}] 寻找开始或准备按钮".format(player))
 
     # 循环查找开始按键
     my_path = paths["picture"]["common"] + "\\battle_before_ready_check_start.png"
-    if not loop_find_p_in_w(handle=handle,
+    if not loop_find_p_in_w(raw_w_handle=handle,
+                            raw_range=[0, 0, 950, 600],
                             target_path=my_path,
                             click_zoom=zoom,
                             target_interval=1,
@@ -78,7 +80,8 @@ def round_of_game(
             # 找到就点一下
             if not flag_find_task_card:
                 find = loop_find_p_in_w(
-                    handle=handle,
+                    raw_w_handle=handle,
+                    raw_range=[0, 0, 950, 600],
                     target_path=paths["picture"]["card"] + "\\" + task_card + ".png",
                     target_tolerance=0.95,
                     click_zoom=zoom,
@@ -98,7 +101,8 @@ def round_of_game(
         sleep(0.5)
     # 点击开始
     find = loop_find_p_in_w(
-        handle=handle,
+        raw_w_handle=handle,
+        raw_range=[0, 0, 950, 600],
         target_path=paths["picture"]["common"] + "\\battle_before_ready_check_start.png",
         click_zoom=zoom,
         target_interval=1,
@@ -119,7 +123,8 @@ def round_of_game(
 
     # 循环查找火苗图标 找到战斗开始
     loop_find_p_in_w(
-        handle=handle,
+        raw_w_handle=handle,
+        raw_range=[0, 0, 950, 600],
         target_path=paths["picture"]["common"] + "\\battle_fire_element.png",
         click_zoom=zoom,
         target_interval=1,
@@ -143,11 +148,12 @@ def round_of_game(
 
     # 理想情况下,此处应该是[战利品]界面
     find = find_ps_in_w(
-        handle=handle,
+        raw_w_handle=handle,
+        raw_range=[0, 0, 950, 600],
         target_opts=[{"target_path": paths["picture"]["common"] + "\\battle_end_1_loot.png",
-                      "tolerance": 0.999},
+                      "target_tolerance": 0.999},
                      {"target_path": paths["picture"]["common"] + "\\battle_end_2_loot.png",
-                      "tolerance": 0.999}],
+                      "target_tolerance": 0.999}],
         return_mode="or"
     )
     if find:
@@ -156,7 +162,8 @@ def round_of_game(
 
     # 循环查找[翻宝箱], 确认是否可以安全翻牌
     find = loop_find_p_in_w(
-        handle=handle,
+        raw_w_handle=handle,
+        raw_range=[0, 0, 950, 600],
         target_path=paths["picture"]["common"] + "\\battle_end_4_chest.png",
         target_failed_check=15,
         target_sleep=2,
@@ -167,12 +174,13 @@ def round_of_game(
         # 刷新ui: 状态文本
         print("[{}] [Safe]捕获到[翻宝箱]字样, 翻牌中...".format(player))
         # 开始翻牌
-        mouse_left_click(handle, int(708 * zoom), int(502 * zoom), 0.05, 5)
+        sleep(1.5)
+        mouse_left_click(handle, int(708 * zoom), int(502 * zoom), 0.05, 6)
         # 翻牌 1+2
-        mouse_left_click(handle, int(550 * zoom), int(170 * zoom), 0.05, 0.25)
-        mouse_left_click(handle, int(708 * zoom), int(170 * zoom), 0.05, 0.25)
+        mouse_left_click(handle, int(550 * zoom), int(170 * zoom), 0.05, 1)
+        mouse_left_click(handle, int(708 * zoom), int(170 * zoom), 0.05, 1)
         # 结束翻牌
-        mouse_left_click(handle, int(708 * zoom), int(502 * zoom), 0.05, 0.1)
+        mouse_left_click(handle, int(708 * zoom), int(502 * zoom), 0.05, 1)
         print("[{}] [Safe]战斗结束!".format(player))
     else:
         print("=" * 50)
@@ -182,12 +190,13 @@ def round_of_game(
     # 查找战斗结束 来兜底正确完成了战斗
     print("[{}] [Safe]尝试捕获[开始/准备/魔塔蛋糕UI], 以完成战斗流程.".format(player))
 
-    find = loop_find_ps_in_w(handle=handle,
+    find = loop_find_ps_in_w(raw_w_handle=handle,
+                             raw_range=[0, 0, 950, 600],
                              target_opts=[
                                  {"target_path": paths["picture"]["common"] + "\\battle_before_ready_check_start.png",
-                                  "tolerance": 0.99},
+                                  "target_tolerance": 0.99},
                                  {"target_path": paths["picture"]["common"] + "\\mage_tower_ui.png",
-                                  "tolerance": 0.99}],
+                                  "target_tolerance": 0.99}],
                              target_return_mode="or",
                              target_failed_check=10,
                              target_interval=0.2)

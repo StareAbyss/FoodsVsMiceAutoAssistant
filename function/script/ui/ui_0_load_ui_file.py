@@ -1,9 +1,8 @@
-import os
 import sys
 
 from PyQt5 import uic, QtWidgets
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMainWindow, QApplication, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QApplication
 
 from function.get_paths import get_root_path
 
@@ -39,17 +38,21 @@ class MyMainWindow0(QMainWindow):
 
     def closeEvent(self, event):
         """对MainWindow的函数closeEvent进行重构, 退出软件时弹窗提醒 并且结束所有进程(和内部的线程)"""
-        self.reply = QMessageBox.question(self,
-                                          '提示',
-                                          "确认退出吗？",
-                                          QMessageBox.Yes | QMessageBox.No,
-                                          QMessageBox.No)
-        if self.reply == QMessageBox.Yes:
-            event.accept()
-            # 用过sys.exit(0)和sys.exit(app.exec_())，但没起效果
-            os._exit(0)
-        else:
-            event.ignore()
+        # self.reply = QMessageBox.question(self,
+        #                                   '提示',
+        #                                   "确认退出吗？",
+        #                                   QMessageBox.Yes | QMessageBox.No,
+        #                                   QMessageBox.No)
+        # if self.reply == QMessageBox.Yes:
+        #     event.accept()
+        #     # 用过sys.exit(0)和sys.exit(app.exec_())，但没起效果
+        #     os._exit(0)
+        # else:
+        #     event.ignore()
+
+        # event.accept()
+        # 用过sys.exit(0)和sys.exit(app.exec_())，但没起效果
+        # os._exit(0)
 
 
 if __name__ == "__main__":

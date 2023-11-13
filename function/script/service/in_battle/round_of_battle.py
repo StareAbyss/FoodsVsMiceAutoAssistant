@@ -2,7 +2,7 @@ from time import sleep, time
 
 from function.common.bg_keyboard import key_down_up
 from function.common.bg_mouse import mouse_left_click, mouse_move_to
-from function.common.bg_screenshot_and_compare import find_ps_in_w, find_p_in_w
+from function.common.bg_p_compare import find_ps_in_w, find_p_in_w
 from function.script.service.in_battle.round_of_battle_calculation_arrange import calculation_cell_all_card
 from function.tools.create_battle_coordinates import create_battle_coordinates
 
@@ -214,10 +214,11 @@ class RoundOfBattle:
                     mouse_move_to(handle=handle, x=200, y=350)
                     mouse_left_click(handle=handle, x=200, y=350, interval_time=click_interval, sleep_time=click_sleep)
 
+                print("[{}][放卡间隔] {:.2f}s".format(self.player, time() - check_last_one_time))  # 测试用时
                 # 每放完一轮卡片 根据设定间隔 检测一下
                 if time() - check_last_one_time > check_invite:
-                    # 更新上次检测时间 + 更新flag + 中止休息循环
-                    check_last_one_time = time()
+                    print("[{}][放卡间检测] {:.2f}s".format(self.player, time() - check_last_one_time))  # 测试用时
+                    check_last_one_time = time()  # 更新上次检测时间 + 更新flag + 中止休息循环
                     if self.use_key_and_check_end():
                         end_flag = True
                         break
@@ -261,8 +262,8 @@ class RoundOfBattle:
             if time_spend_a_round < round_max_time:
                 for i in range(int((round_max_time - time_spend_a_round) // check_invite)):
                     if time() - check_last_one_time > check_invite:
-                        # 更新上次检测时间 + 更新flag + 中止休息循环
-                        check_last_one_time = time()
+                        print("[{}][休息检测] {:.2f}s".format(self.player, time() - check_last_one_time))  # 测试用时
+                        check_last_one_time = time()  # 更新上次检测时间 + 更新flag + 中止休息循环
                         if self.use_key_and_check_end():
                             end_flag = True
                             break
@@ -271,6 +272,7 @@ class RoundOfBattle:
             else:
                 # 一轮放卡循环够长 补一次检测
                 if time() - check_last_one_time > check_invite:
+                    print("[{}][补检测] {:.2f}s".format(self.player, time() - check_last_one_time))  # 测试用时
                     # 更新上次检测时间 + 更新flag + 中止休息循环
                     check_last_one_time = time()
                     if self.use_key_and_check_end():
@@ -326,38 +328,46 @@ class RoundOfBattle:
         """
         if self.is_use_key:
             if mode == 0:
-                mouse_left_click(handle=self.handle, interval_time=self.click_interval, sleep_time=self.click_sleep,
-                                 x=int(427 * self.zoom), y=int(360 * self.zoom))
+                mouse_left_click(handle=self.handle,
+                                 interval_time=self.click_interval,
+                                 sleep_time=self.click_sleep,
+                                 x=int(427 * self.zoom),
+                                 y=int(360 * self.zoom))
             if mode == 1:
-                if find_p_in_w(handle=self.handle,
+                if find_p_in_w(raw_w_handle=self.handle,
+                               raw_range=[0, 0, 950, 600],
                                target_path=self.path_p_common + "\\battle_next_need.png"):
-                    mouse_left_click(handle=self.handle, interval_time=self.click_interval, sleep_time=self.click_sleep,
-                                     x=int(427 * self.zoom), y=int(360 * self.zoom))
+                    mouse_left_click(handle=self.handle,
+                                     interval_time=self.click_interval,
+                                     sleep_time=self.click_sleep,
+                                     x=int(427 * self.zoom),
+                                     y=int(360 * self.zoom))
 
     def use_key_and_check_end(self):
         # 找到战利品字样(被黑色透明物遮挡,会看不到)
         self.use_key(mode=0)
-        return find_ps_in_w(handle=self.handle,
+        return find_ps_in_w(raw_w_handle=self.handle,
+                            raw_range=[0, 0, 950, 600],
                             target_opts=[
                                 {
                                     "target_path": self.path_p_common + "\\battle_end_1_loot.png",
-                                    "tolerance": 0.999
+                                    "target_tolerance": 0.999
                                 },
                                 {
                                     "target_path": self.path_p_common + "\\battle_end_2_loot.png",
-                                    "tolerance": 0.999
+                                    "target_tolerance": 0.999
                                 },
                                 {
                                     "target_path": self.path_p_common + "\\battle_end_3_summarize.png",
-                                    "tolerance": 0.999
+                                    "target_tolerance": 0.999
                                 },
                                 {
                                     "target_path": self.path_p_common + "\\battle_end_4_chest.png",
-                                    "tolerance": 0.999
+                                    "target_tolerance": 0.999
                                 },
                                 {
                                     "target_path": self.path_p_common + "\\battle_before_ready_check_start.png",
-                                    "tolerance": 0.999
+                                    "target_tolerance": 0.999
                                 }
                             ],
                             return_mode="or")

@@ -1,5 +1,5 @@
 from function.common.bg_mouse import mouse_left_click
-from function.common.bg_screenshot_and_compare import loop_find_p_in_w
+from function.common.bg_p_compare import loop_find_p_in_w
 
 """包含 需要多个角色异步完成的操作"""
 
@@ -14,7 +14,8 @@ def invite(
     :return: bool 是否最终找到了图片
     """
     zoom = faa_1.zoom
-    if not loop_find_p_in_w(handle=faa_1.handle,
+    if not loop_find_p_in_w(raw_w_handle=faa_1.handle,
+                            raw_range=[0, 0, 950, 600],
                             target_path=faa_1.paths["picture"]["common"] + "\\battle_before_ready_check_start.png",
                             click_zoom=zoom,
                             target_sleep=0.3,
@@ -25,14 +26,15 @@ def invite(
     # 点击[房间ui-邀请按钮]
     mouse_left_click(handle=faa_1.handle, x=int(410 * zoom), y=int(546 * zoom), sleep_time=0.5)
 
-    # 点击[房间ui-邀请ui-公会按钮]
-    mouse_left_click(handle=faa_1.handle, x=int(600 * zoom), y=int(130 * zoom), sleep_time=0.5)
+    # 点击[房间ui-邀请ui-好友按钮]
+    mouse_left_click(handle=faa_1.handle, x=int(535 * zoom), y=int(130 * zoom), sleep_time=0.5)
 
     """直接邀请"""
-    # mouse_left_click(handle=faa_1.handle, x=int(601 * zoom), y=int(157 * zoom), sleep_time=0.5)
+    mouse_left_click(handle=faa_1.handle, x=int(601 * zoom), y=int(157 * zoom), sleep_time=0.5)
 
     """p2接受邀请"""
-    if not loop_find_p_in_w(handle=faa_2.handle,
+    if not loop_find_p_in_w(raw_w_handle=faa_2.handle,
+                            raw_range=[0, 0, 950, 600],
                             target_path=faa_1.paths["picture"]["common"] + "\\battle_before_be_invited_enter.png",
                             click_zoom=zoom,
                             target_sleep=2.0,

@@ -1,5 +1,5 @@
 from function.common.bg_mouse import mouse_left_click
-from function.common.bg_screenshot_and_compare import find_p_in_w
+from function.common.bg_p_compare import find_p_in_w
 from function.common.loop_timer_and_counter import loop_timer_and_counter
 from function.script.service.common import FAA
 

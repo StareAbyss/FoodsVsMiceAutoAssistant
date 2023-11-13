@@ -80,8 +80,8 @@
     "NormalBattle": {
         "Active": true,
         "IsGroup": true,
-        "MaxTimes": 5,
-        "Stage": "NO-2-15",
+        "MaxTimes": 1,
+        "Stage": "NO-2-5",
         "Deck": 6,
         "BattlePlan1P": 11,
         "BattlePlan2P": 12,
