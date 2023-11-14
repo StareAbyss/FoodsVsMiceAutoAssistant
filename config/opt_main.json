@@ -3,7 +3,7 @@
     "Name1P": "",
     "Name2P": "\u6df1\u6e0a\u4e4b\u4e0b",
     "ZoomRatio": 2,
-    "Level1P": 58,
+    "Level1P": 59,
     "Level2P": 55,
     "AutoUseCard": true,
     "GuildTask": {
@@ -34,8 +34,8 @@
         "BattlePlan2P": 12
     },
     "MagicTowerAlone": {
-        "Active": false,
-        "MaxTimes": 5,
+        "Active": true,
+        "MaxTimes": 4,
         "Stage": 139,
         "Deck": 3,
         "BattlePlan1P": 8,
@@ -49,7 +49,7 @@
         "BattlePlan2P": null
     },
     "Warrior": {
-        "Active": true,
+        "Active": false,
         "IsGroup": true,
         "MaxTimes": 6,
         "Deck": 6,
@@ -58,7 +58,7 @@
         "Group": false
     },
     "CrossServer": {
-        "Active": true,
+        "Active": false,
         "IsGroup": true,
         "MaxTimes": 10,
         "Stage": "CS-5-3",
@@ -80,11 +80,11 @@
     "NormalBattle": {
         "Active": false,
         "IsGroup": true,
-        "MaxTimes": 5,
-        "Stage": "NO-2-5",
-        "Deck": 6,
-        "BattlePlan1P": 11,
-        "BattlePlan2P": 12,
+        "MaxTimes": 1,
+        "Stage": "EX-4-5",
+        "Deck": 5,
+        "BattlePlan1P": 6,
+        "BattlePlan2P": 7,
         "Group": true
     },
     "Customize": {

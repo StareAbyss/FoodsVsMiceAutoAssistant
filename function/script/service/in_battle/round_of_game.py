@@ -5,15 +5,13 @@ from function.common.bg_p_compare import loop_find_p_in_w, loop_find_ps_in_w, fi
 from function.tools.screen_loot_logs import screen_loot_logs
 
 
-def round_of_game(
-        # 从FAA类中直接获取
+def round_of_game(  # 从FAA类中直接获取
         handle,
         zoom,
         paths,
         player,
         stage_info_id,
         action_battle_normal,
-        # 调用函数时输入
         deck: int,
         delay_start: bool,
         battle_mode: int,
@@ -193,7 +191,8 @@ def round_of_game(
     find = loop_find_ps_in_w(raw_w_handle=handle,
                              raw_range=[0, 0, 950, 600],
                              target_opts=[
-                                 {"target_path": paths["picture"]["common"] + "\\battle_before_ready_check_start.png",
+                                 {"target_path": paths["picture"][
+                                                     "common"] + "\\battle_before_ready_check_start.png",
                                   "target_tolerance": 0.99},
                                  {"target_path": paths["picture"]["common"] + "\\mage_tower_ui.png",
                                   "target_tolerance": 0.99}],
@@ -212,3 +211,5 @@ def round_of_game(
 
     # 休息3s 来让线程对齐 防止未知bug
     sleep(3)
+
+

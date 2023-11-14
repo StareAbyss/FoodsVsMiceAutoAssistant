@@ -14,18 +14,18 @@ class RoundOfBattle:
                  path_p_common, stage_info, battle_plan, is_group):
 
         # 其他手动内部参数
-        self.check_invite = 3.0  # 战斗中, [检测战斗结束]和[检测继续战斗]的时间间隔
+        self.check_invite = 1.0  # 战斗中, [检测战斗结束]和[检测继续战斗]的时间间隔, 不建议大于1s(因为检测只在放完一张卡后完成 遍历会耗时)
         self.click_interval = 0.025  # 每次点击时 按下和抬起之间的间隔
         self.click_sleep = 0.025  # 每次点击时 按下和抬起之间的间隔
         self.battle_card, self.battle_cell = create_battle_coordinates(zoom)  # 计算关卡内的卡牌 和 格子位置
         self.warning_cell = ["4-4", "4-5", "5-4", "5-5"]  # the locations of cell easy touch the use-key UI by mistake
-        self.auto_collect_cells = ["1-1", "2-1", "3-1", "4-1", "5-1", "6-1", "7-1", "8-1", "9-1",
-                                   "1-2", "2-2", "3-2", "4-2", "5-2", "6-2", "7-2", "8-2", "9-2",
-                                   "1-3", "2-3", "3-3", "4-3", "5-3", "6-3", "7-3", "8-3", "9-3",
-                                   "1-4", "2-4", "3-4", "4-4", "5-4", "6-4", "7-4", "8-4", "9-4",
-                                   "1-5", "2-5", "3-5", "4-5", "5-5", "6-5", "7-5", "8-5", "9-5",
-                                   "1-6", "2-6", "3-6", "4-6", "5-6", "6-6", "7-6", "8-6", "9-6",
-                                   "1-7", "2-7", "3-7", "4-7", "5-7", "6-7", "7-7", "8-7", "9-7"]
+        self.auto_collect_cells = ["1-1", "2-1", "8-1", "9-1",
+                                   "1-2", "2-2", "8-2", "9-2",
+                                   "1-3", "2-3", "8-3", "9-3",
+                                   "1-4", "2-4", "8-4", "9-4",
+                                   "1-5", "2-5", "8-5", "9-5",
+                                   "1-6", "2-6", "8-6", "9-6",
+                                   "1-7", "2-7", "8-7", "9-7"]
         self.auto_collect_cells = [i for i in self.auto_collect_cells if i not in self.warning_cell]
 
         # FAA主类中调用函数获取 - 生成类时获取
@@ -181,15 +181,17 @@ class RoundOfBattle:
 
             time_round_begin = time()  # 每一轮开始的时间
 
-            """遍历每一张卡"""
             for i in range(len(list_cell_all)):
+                """遍历每一张卡"""
+
                 if is_auto_battle:  # 启动了自动战斗
                     # 点击 选中卡片
-                    mouse_left_click(handle=handle, interval_time=click_interval, sleep_time=click_sleep,
+                    mouse_left_click(handle=handle,
+                                     interval_time=click_interval,
+                                     sleep_time=click_sleep,
                                      x=battle_card[list_cell_all[i]["id"]][0],
                                      y=battle_card[list_cell_all[i]["id"]][1])
 
-                    # 启动遍历模式
                     if list_cell_all[i]["ergodic"]:
                         """遍历模式: True 遍历该卡每一个可以放的位置"""
                         for j in list_cell_all[i]["location"]:
@@ -198,27 +200,38 @@ class RoundOfBattle:
                             if j in warning_cell:
                                 self.use_key(mode=1)
                             # 点击 放下卡片
-                            mouse_left_click(handle=handle, interval_time=click_interval, sleep_time=click_sleep,
-                                             x=battle_cell[j][0], y=battle_cell[j][1])
-                    # 非遍历模式
+                            mouse_left_click(handle=handle,
+                                             interval_time=click_interval,
+                                             sleep_time=click_sleep,
+                                             x=battle_cell[j][0],
+                                             y=battle_cell[j][1])
+
                     else:
+                        """遍历模式: False"""
                         """安全放一张卡"""
                         j = list_cell_all[i]["location"][0]
                         # 防止误触
                         if j in warning_cell:
                             self.use_key(mode=1)
                         # 点击 放下卡片
-                        mouse_left_click(handle=handle, interval_time=click_interval, sleep_time=click_sleep,
-                                         x=battle_cell[j][0], y=battle_cell[j][1])
-                    """放卡后点一下"""
-                    mouse_move_to(handle=handle, x=200, y=350)
-                    mouse_left_click(handle=handle, x=200, y=350, interval_time=click_interval, sleep_time=click_sleep)
+                        mouse_left_click(handle=handle,
+                                         interval_time=click_interval,
+                                         sleep_time=click_sleep,
+                                         x=battle_cell[j][0],
+                                         y=battle_cell[j][1])
 
-                print("[{}][放卡间隔] {:.2f}s".format(self.player, time() - check_last_one_time))  # 测试用时
-                # 每放完一轮卡片 根据设定间隔 检测一下
+                    """放卡后点一下空白"""
+                    mouse_move_to(handle=handle, x=200, y=350)
+                    mouse_left_click(handle=handle, x=200, y=350, interval_time=click_interval,
+                                     sleep_time=click_sleep)
+
+                """每放完一张卡片的所有位置 检查时间设定间隔 检测战斗间隔"""
                 if time() - check_last_one_time > check_invite:
-                    print("[{}][放卡间检测] {:.2f}s".format(self.player, time() - check_last_one_time))  # 测试用时
-                    check_last_one_time = time()  # 更新上次检测时间 + 更新flag + 中止休息循环
+                    # 测试用时
+                    print("[{}][放卡间进行了战斗结束检测] {:.2f}s".format(
+                        self.player, time() - check_last_one_time))
+                    # 更新上次检测时间 + 更新flag + 中止休息循环
+                    check_last_one_time = time()
                     if self.use_key_and_check_end():
                         end_flag = True
                         break
@@ -257,22 +270,26 @@ class RoundOfBattle:
                                   y=battle_cell[coordinate][1])
                     sleep(click_sleep)
 
-            # 一轮不到7s+点7*9个位置需要的时间, 休息到该时间, 期间每[self.check_invite]秒检测一次
+            """一轮不到7s+点7*9个位置需要的时间, 休息到该时间, 期间每[self.check_invite]秒检测一次"""
             time_spend_a_round = time() - time_round_begin
             if time_spend_a_round < round_max_time:
                 for i in range(int((round_max_time - time_spend_a_round) // check_invite)):
+                    """检查时间设定间隔 检测战斗间隔"""
                     if time() - check_last_one_time > check_invite:
-                        print("[{}][休息检测] {:.2f}s".format(self.player, time() - check_last_one_time))  # 测试用时
-                        check_last_one_time = time()  # 更新上次检测时间 + 更新flag + 中止休息循环
+                        # 测试用时
+                        print("[{}][休息期战斗结束检测] {:.2f}s".format(
+                            self.player,time() - check_last_one_time))
+                        # 更新上次检测时间 + 更新flag + 中止休息循环
+                        check_last_one_time = time()
                         if self.use_key_and_check_end():
                             end_flag = True
                             break
                     sleep(check_invite)
                 sleep((round_max_time - time_spend_a_round) % check_invite)  # 补充余数
             else:
-                # 一轮放卡循环够长 补一次检测
+                """一轮放卡循环>7s 检查时间设定间隔 检测战斗间隔"""
                 if time() - check_last_one_time > check_invite:
-                    print("[{}][补检测] {:.2f}s".format(self.player, time() - check_last_one_time))  # 测试用时
+                    print("[{}][补战斗结束检测] {:.2f}s".format(self.player, time() - check_last_one_time))  # 测试用时
                     # 更新上次检测时间 + 更新flag + 中止休息循环
                     check_last_one_time = time()
                     if self.use_key_and_check_end():

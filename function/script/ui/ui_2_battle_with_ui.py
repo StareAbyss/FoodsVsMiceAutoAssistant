@@ -2,7 +2,7 @@ import json
 import sys
 from time import sleep
 
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread, pyqtSignal, QMutex, QWaitCondition
 from PyQt5.QtWidgets import QApplication
 
 from function.common.thread_with_exception import ThreadWithException
@@ -19,6 +19,11 @@ class Todo(QThread):
 
     def __init__(self, faa_1, faa_2, opt):
         super().__init__()
+        # 用于暂停恢复
+        self.mutex = QMutex()
+        self.condition = QWaitCondition()
+        self.is_paused = False
+        # 功能需要
         self.faa_1 = faa_1
         self.faa_2 = faa_2
         self.opt = opt
@@ -494,7 +499,7 @@ class Todo(QThread):
         self.sin_out.emit("{} Completed!\n".format(text_))
 
     def run(self):
-
+        """覆写主方法"""
         my_opt = self.opt["MagicTowerAlone"]
         if my_opt["Active"]:
             self.alone_magic_tower(
@@ -602,6 +607,19 @@ class Todo(QThread):
         # 全部完成了? 发个信号
         self.sin_out_completed.emit()
 
+    def pause(self):
+        """暂停"""
+        self.mutex.lock()
+        self.is_paused = True
+        self.mutex.unlock()
+
+    def resume(self):
+        """恢复暂停"""
+        self.mutex.lock()
+        self.is_paused = False
+        self.condition.wakeAll()
+        self.mutex.unlock()
+
 
 class MyMainWindow2(MyMainWindow1):
 
@@ -672,16 +690,27 @@ class MyMainWindow2(MyMainWindow1):
             # 开始线程
             self.thread_todo.start()
 
-        # 线程已经激活
         else:
-            # 中断内部战斗线程 (ThreadWithException) join用于等待进程确实中断
+            """
+            线程已经激活 则从外到内中断,再从内到外销毁
+            thread_todo (QThread)
+                |-- thread_1p (ThreadWithException)
+                |-- thread_2p (ThreadWithException)
+            """
+            # 暂停外部线程
+            self.thread_todo.pause()
+
+            # 中断[内部战斗线程]
             for thread in [self.thread_todo.thread_1p, self.thread_todo.thread_2p]:
                 if thread is not None:
                     thread.stop()
-                    thread.join()
-            # 中断 任务线程 (QThread)
-            self.thread_todo.quit()
-            self.thread_todo.wait()
+                    thread.join()  # 等待线程确实中断
+
+            # 中断 销毁 [任务线程]
+            self.thread_todo.terminate()
+            self.thread_todo.wait()  # 等待线程确实中断
+            self.thread_todo.deleteLater()
+
             # 结束线程后的ui处理
             self.todo_completed()
 

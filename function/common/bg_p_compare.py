@@ -1,6 +1,6 @@
 from time import sleep
 
-from cv2 import rectangle, imread, IMREAD_UNCHANGED, TM_SQDIFF_NORMED, minMaxLoc, matchTemplate, imshow, waitKey
+from cv2 import imread, IMREAD_UNCHANGED, TM_SQDIFF_NORMED, minMaxLoc, matchTemplate
 
 from function.common.bg_mouse import mouse_left_click
 from function.common.bg_p_screenshot import capture_picture_png
@@ -50,15 +50,15 @@ def find_p_in_w(
     (start_x, start_y) = minLoc
 
     # 测试时绘制边框
-    if __name__ == '__main__':
-        # 确定起点和终点的(x，y)坐标边界框
-        end_x = start_x + tar_img.shape[1]
-        end_y = start_y + tar_img.shape[0]
-        # 在图像上绘制边框
-        rectangle(img=raw_img, pt1=(start_x, start_y), pt2=(end_x, end_y), color=(0, 0, 255), thickness=1)
-        # 显示输出图像
-        imshow(winname="Output.jpg", mat=raw_img)
-        waitKey(0)
+    # if __name__ == '__main__':
+    #     # 确定起点和终点的(x，y)坐标边界框
+    #     end_x = start_x + tar_img.shape[1]
+    #     end_y = start_y + tar_img.shape[0]
+    #     # 在图像上绘制边框
+    #     rectangle(img=raw_img, pt1=(start_x, start_y), pt2=(end_x, end_y), color=(0, 0, 255), thickness=1)
+    #     # 显示输出图像
+    #     imshow(winname="Output.jpg", mat=raw_img)
+    #     waitKey(0)
 
     # 输出识别到的中心
     return [start_x + int(tar_img.shape[1] / 2), start_y + int(tar_img.shape[0] / 2)]
@@ -173,8 +173,8 @@ def loop_find_p_in_w(
             return True
 
         # 超时, 查找失败
-        invite_time += target_interval
         sleep(target_interval)
+        invite_time += target_interval
         if invite_time > target_failed_check:
             return False
 
@@ -221,7 +221,7 @@ if __name__ == '__main__':
     def main():
         # handle = faa_get_handle("锑食")
         handle = faa_get_handle("深渊之下 | 锑食")
-        target_path = paths["picture"]["common"] + "\\bottom_menu_goto.png"
+        target_path = paths["picture"]["common"] + "\\bottom_menu_goto_arena.png"
         result = loop_find_p_in_w(raw_w_handle=handle,
                                   raw_range=[0, 0, 950, 600],
                                   target_path=target_path,

@@ -14,7 +14,6 @@ from function.get_paths import get_paths_faa_new
 from function.script.scattered.gat_handle import faa_get_handle
 from function.script.scattered.get_battle_plan_list import get_battle_plan_list
 from function.script.service.in_battle.round_of_battle import RoundOfBattle
-from function.script.service.in_battle.round_of_battle_calculation_arrange import calculation_cell_all_card
 from function.script.service.in_battle.round_of_game import round_of_game
 
 
@@ -202,7 +201,7 @@ class FAA:
             for i in ["1", "2", "3"]:
                 # 任务未完成
                 find_p = find_p_in_w(raw_w_handle=self.handle,
-                                     raw_range=[0, 0, 900, 650],
+                                     raw_range=[0, 0, 950, 600],
                                      target_path="{}\\NO-{}.png".format(path, i),
                                      target_tolerance=0.999)
                 if find_p:
@@ -210,7 +209,7 @@ class FAA:
                     for j in os.listdir("{}\\{}\\".format(path, i)):
                         # 找到任务 加入任务列表
                         find_p = find_p_in_w(raw_w_handle=self.handle,
-                                             raw_range=[0, 0, 900, 650],
+                                             raw_range=[0, 0, 950, 600],
                                              target_path="{}\\{}\\{}".format(path, i, j),
                                              target_tolerance=0.999)
                         if find_p:
@@ -233,14 +232,14 @@ class FAA:
     ):
         # 点跳转
         loop_find_p_in_w(raw_w_handle=self.handle,
-                         raw_range=[0, 0, 900, 650],
+                         raw_range=[0, 0, 950, 600],
                          target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto.png",
                          target_sleep=1,
                          click=True,
                          click_zoom=self.zoom)
         # 点任务
         loop_find_p_in_w(raw_w_handle=self.handle,
-                         raw_range=[0, 0, 900, 650],
+                         raw_range=[0, 0, 950, 600],
                          target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto_guild_task.png",
                          target_sleep=1,
                          click=True,
@@ -249,13 +248,13 @@ class FAA:
         while True:
             # 点一下 让左边的选中任务颜色消失
             loop_find_p_in_w(raw_w_handle=self.handle,
-                             raw_range=[0, 0, 900, 650],
+                             raw_range=[0, 0, 950, 600],
                              target_path=self.paths["picture"]["guild_task"] + "\\ui.png",
                              target_sleep=0.5,
                              click=True,
                              click_zoom=self.zoom)
             result = loop_find_p_in_w(raw_w_handle=self.handle,
-                                      raw_range=[0, 0, 900, 650],
+                                      raw_range=[0, 0, 950, 600],
                                       target_path=self.paths["picture"]["guild_task"] + "\\completed.png",
                                       target_tolerance=0.99,
                                       click_zoom=self.zoom,
@@ -264,7 +263,7 @@ class FAA:
                                       target_sleep=0.5)
             if result:
                 loop_find_p_in_w(raw_w_handle=self.handle,
-                                 raw_range=[0, 0, 900, 650],
+                                 raw_range=[0, 0, 950, 600],
                                  target_path=self.paths["picture"]["guild_task"] + "\\gather.png",
                                  target_tolerance=0.99,
                                  click_zoom=self.zoom,
@@ -281,7 +280,7 @@ class FAA:
     ):
         # 点跳转
         loop_find_p_in_w(raw_w_handle=self.handle,
-                         raw_range=[0, 0, 900, 650],
+                         raw_range=[0, 0, 950, 600],
                          target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto.png",
                          target_sleep=1,
                          click=True,
@@ -289,7 +288,7 @@ class FAA:
         # 点任务
         # 点任务
         loop_find_p_in_w(raw_w_handle=self.handle,
-                         raw_range=[0, 0, 900, 650],
+                         raw_range=[0, 0, 950, 600],
                          target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto_spouse_task.png",
                          target_sleep=1,
                          click=True,
@@ -297,7 +296,7 @@ class FAA:
         # 循环遍历点击完成
         while True:
             result = loop_find_p_in_w(raw_w_handle=self.handle,
-                                      raw_range=[0, 0, 900, 650],
+                                      raw_range=[0, 0, 950, 600],
                                       target_path=self.paths["picture"]["spouse_task"] + "\\completed.png",
                                       target_tolerance=0.99,
                                       click_zoom=self.zoom,
@@ -317,7 +316,7 @@ class FAA:
 
         # 点击进入OR界面
         loop_find_p_in_w(raw_w_handle=self.handle,
-                         raw_range=[0, 0, 900, 650],
+                         raw_range=[0, 0, 950, 600],
                          target_path=self.paths["picture"]["stage"] + "\\OR.png",
                          target_sleep=2,
                          click=True,
@@ -326,7 +325,7 @@ class FAA:
         # 循环遍历点击完成
         while True:
             result = loop_find_p_in_w(raw_w_handle=self.handle,
-                                      raw_range=[0, 0, 900, 650],
+                                      raw_range=[0, 0, 950, 600],
                                       target_path=self.paths["picture"]["common"] + "\\offer_reward_get_loot.png",
                                       target_tolerance=0.99,
                                       click_zoom=self.zoom,
@@ -364,7 +363,7 @@ class FAA:
         """检测顶部的活动清单, 1为第一页, 2为第二页(有举报图标的一页)"""
 
         target = find_p_in_w(raw_w_handle=self.handle,
-                             raw_range=[0, 0, 900, 650],
+                             raw_range=[0, 0, 950, 600],
                              target_path=self.paths["picture"]["common"] + "\\above_report.png")
 
         if serial_num == 1:
@@ -412,7 +411,7 @@ class FAA:
 
         def click_world_map():
             if not loop_find_p_in_w(raw_w_handle=self.handle,
-                                    raw_range=[0, 0, 900, 650],
+                                    raw_range=[0, 0, 950, 600],
                                     target_path=self.paths["picture"]["common"] + "\\above_map.png",
                                     click_zoom=self.zoom,
                                     target_sleep=1,
@@ -458,7 +457,7 @@ class FAA:
             # 点击对应的地图
             my_path = self.paths["picture"]["stage"] + "\\NO-" + stage_1 + ".png"
             loop_find_p_in_w(raw_w_handle=self.handle,
-                             raw_range=[0, 0, 900, 650],
+                             raw_range=[0, 0, 950, 600],
                              target_path=my_path,
                              target_tolerance=0.995,
                              click_zoom=self.zoom,
@@ -474,7 +473,7 @@ class FAA:
                 # 选择关卡
                 my_path = self.paths["picture"]["stage"] + "\\" + self.stage_info["id"] + ".png"
                 loop_find_p_in_w(raw_w_handle=self.handle,
-                                 raw_range=[0, 0, 900, 650],
+                                 raw_range=[0, 0, 950, 600],
                                  target_path=my_path,
                                  click_zoom=self.zoom,
                                  target_tolerance=0.995,
@@ -486,7 +485,7 @@ class FAA:
                 # 创建队伍
                 my_path = self.paths["picture"]["common"] + "\\" + "battle_before_create_stage.png"
                 loop_find_p_in_w(raw_w_handle=self.handle,
-                                 raw_range=[0, 0, 900, 650],
+                                 raw_range=[0, 0, 950, 600],
                                  target_path=my_path,
                                  click_zoom=self.zoom,
                                  target_sleep=1, click=True)
@@ -502,7 +501,7 @@ class FAA:
                 # 点击前往海底
                 my_path = self.paths["picture"]["stage"] + "\\NO-5.png"
                 loop_find_p_in_w(raw_w_handle=self.handle,
-                                 raw_range=[0, 0, 900, 650],
+                                 raw_range=[0, 0, 950, 600],
                                  target_path=my_path,
                                  click_zoom=self.zoom,
                                  target_sleep=2,
@@ -515,7 +514,7 @@ class FAA:
                 # 进入魔塔
                 my_path = self.paths["picture"]["stage"] + "\\MT.png"
                 loop_find_p_in_w(raw_w_handle=self.handle,
-                                 raw_range=[0, 0, 900, 650],
+                                 raw_range=[0, 0, 950, 600],
                                  target_path=my_path,
                                  click_zoom=self.zoom,
                                  target_sleep=2,
@@ -530,7 +529,7 @@ class FAA:
                 if stage_1 == "3":
                     my_path = self.paths["picture"]["stage"] + "\\" + self.stage_info["id"] + ".png"
                     loop_find_p_in_w(raw_w_handle=self.handle,
-                                     raw_range=[0, 0, 900, 650],
+                                     raw_range=[0, 0, 950, 600],
                                      target_path=my_path,
                                      click_zoom=self.zoom,
                                      target_sleep=0.3,
@@ -552,7 +551,7 @@ class FAA:
                 # 进入关卡
                 my_path = self.paths["picture"]["common"] + "\\" + "battle_before_select_stage_magic_tower_start.png"
                 loop_find_p_in_w(raw_w_handle=self.handle,
-                                 raw_range=[0, 0, 900, 650],
+                                 raw_range=[0, 0, 950, 600],
                                  target_path=my_path,
                                  click_zoom=self.zoom,
                                  target_sleep=1,
@@ -564,7 +563,7 @@ class FAA:
 
             # 点击进入跨服副本界面
             loop_find_p_in_w(raw_w_handle=self.handle,
-                             raw_range=[0, 0, 900, 650],
+                             raw_range=[0, 0, 950, 600],
                              target_path=self.paths["picture"]["stage"] + "\\CS.png",
                              target_sleep=2,
                              click=True,
@@ -617,7 +616,7 @@ class FAA:
                 mouse_left_click(self.handle, int(602 * self.zoom), int(490 * self.zoom), sleep_time=0.1)
                 for i in range(20):
                     find = loop_find_p_in_w(raw_w_handle=self.handle,
-                                            raw_range=[0, 0, 900, 650],
+                                            raw_range=[0, 0, 950, 600],
                                             target_path=self.paths["picture"]["common"] + "\\cross_server_1p.png",
                                             click_zoom=self.zoom,
                                             click=True,
@@ -640,7 +639,7 @@ class FAA:
             # 点击进入悬赏副本
             my_path = self.paths["picture"]["stage"] + "\\OR.png"
             loop_find_p_in_w(raw_w_handle=self.handle,
-                             raw_range=[0, 0, 900, 650],
+                             raw_range=[0, 0, 950, 600],
                              target_path=my_path,
                              click_zoom=self.zoom,
                              target_sleep=2, click=True)
@@ -675,7 +674,7 @@ class FAA:
 
             # 点击对应的地图
             loop_find_p_in_w(raw_w_handle=self.handle,
-                             raw_range=[0, 0, 900, 650],
+                             raw_range=[0, 0, 950, 600],
                              target_path="{}\\EX-1.png".format(self.paths["picture"]["stage"]),
                              click_zoom=self.zoom,
                              target_sleep=2,
@@ -684,14 +683,14 @@ class FAA:
             if stage_1 != "1":
                 # 找船
                 loop_find_p_in_w(raw_w_handle=self.handle,
-                                 raw_range=[0, 0, 900, 650],
+                                 raw_range=[0, 0, 950, 600],
                                  target_path="{}\\EX-Ship.png".format(self.paths["picture"]["stage"]),
                                  click_zoom=self.zoom,
                                  target_sleep=1.5,
                                  click=True)
                 # 找地图图标
                 loop_find_p_in_w(raw_w_handle=self.handle,
-                                 raw_range=[0, 0, 900, 650],
+                                 raw_range=[0, 0, 950, 600],
                                  target_path="{}\\EX-{}.png".format(self.paths["picture"]["stage"], stage_1),
                                  click_zoom=self.zoom,
                                  target_sleep=1.5,
@@ -705,7 +704,7 @@ class FAA:
                 # 选择关卡
                 my_path = "{}\\{}.png".format(self.paths["picture"]["stage"], self.stage_info["id"])
                 loop_find_p_in_w(raw_w_handle=self.handle,
-                                 raw_range=[0, 0, 900, 650],
+                                 raw_range=[0, 0, 950, 600],
                                  target_path=my_path,
                                  click_zoom=self.zoom,
                                  target_sleep=0.5,
@@ -717,7 +716,7 @@ class FAA:
                 # 创建队伍
                 my_path = "{}\\battle_before_create_stage.png".format(self.paths["picture"]["common"])
                 loop_find_p_in_w(raw_w_handle=self.handle,
-                                 raw_range=[0, 0, 900, 650],
+                                 raw_range=[0, 0, 950, 600],
                                  target_path=my_path,
                                  click_zoom=self.zoom,
                                  target_sleep=0.5,
@@ -788,12 +787,13 @@ class FAA:
         )
 
     def action_exit(
-            self, exit_mode: int
+            self,
+            exit_mode: int
     ):
         """退出 0-不退出  1-右下回退到上一级  2-右上红叉  3-直接到竞技岛 4-悬赏"""
         if exit_mode == 1:
             loop_find_p_in_w(raw_w_handle=self.handle,
-                             raw_range=[0, 0, 900, 650],
+                             raw_range=[0, 0, 950, 600],
                              target_path=self.paths["picture"]["common"] + "\\bottom_menu_back.png",
                              target_failed_check=100,
                              target_sleep=1.5,
@@ -802,7 +802,7 @@ class FAA:
 
         if exit_mode == 2:
             loop_find_p_in_w(raw_w_handle=self.handle,
-                             raw_range=[0, 0, 900, 650],
+                             raw_range=[0, 0, 950, 600],
                              target_path=self.paths["picture"]["common"] + "\\battle_before_exit_x.png",
                              target_failed_check=100,
                              target_sleep=1.5,
@@ -811,7 +811,7 @@ class FAA:
 
         if exit_mode == 3:
             loop_find_p_in_w(raw_w_handle=self.handle,
-                             raw_range=[0, 0, 900, 650],
+                             raw_range=[0, 0, 950, 600],
                              target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto.png",
                              target_tolerance=0.99,
                              target_failed_check=100,
@@ -820,7 +820,7 @@ class FAA:
                              click_zoom=self.zoom)
 
             loop_find_p_in_w(raw_w_handle=self.handle,
-                             raw_range=[0, 0, 900, 650],
+                             raw_range=[0, 0, 950, 600],
                              target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto_arena.png",
                              target_tolerance=0.99,
                              target_failed_check=100,
@@ -830,7 +830,7 @@ class FAA:
 
         if exit_mode == 4:
             loop_find_p_in_w(raw_w_handle=self.handle,
-                             raw_range=[0, 0, 900, 650],
+                             raw_range=[0, 0, 950, 600],
                              target_path=self.paths["picture"]["common"] + "\\offer_reward_exit.png",
                              target_tolerance=0.99,
                              target_failed_check=100,
@@ -843,13 +843,14 @@ if __name__ == '__main__':
     def main():
         faa = FAA()
         faa.get_config_for_battle(True, 1, "NO-5-3")
-        list_cell_all, list_shovel = calculation_cell_all_card(stage_info=faa.stage_info,
-                                                               is_group=faa.is_group,
-                                                               battle_plan=faa.battle_plan["card"],
-                                                               player="2P",
-                                                               task_card="None",
-                                                               list_ban_card=[])
-        print(list_cell_all)
-
+        # faa.action_exit(exit_mode=3)
+        loop_find_p_in_w(raw_w_handle=faa.handle,
+                         raw_range=[0, 0, 950, 600],
+                         target_path=faa.paths["picture"]["common"] + "\\bottom_menu_goto_arena.png",
+                         target_tolerance=0.99,
+                         target_failed_check=100,
+                         target_sleep=1.5,
+                         click=True,
+                         click_zoom=faa.zoom)
 
     main()
