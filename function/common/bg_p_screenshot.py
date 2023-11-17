@@ -2,7 +2,7 @@ import time
 from ctypes import windll, byref, c_ubyte
 from ctypes.wintypes import RECT, HWND
 
-from cv2 import imwrite
+from cv2 import imwrite, imshow, waitKey
 from numpy import uint8, frombuffer
 
 from function.script.scattered.gat_handle import faa_get_handle
@@ -64,8 +64,8 @@ def main():
     imwrite(time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + ".png", image)
 
     # 暂时显示
-    # imshow("Capture Test.png", image)
-    # waitKey()
+    imshow(winname="Capture Test.png", mat=image)
+    waitKey()
 
 
 if __name__ == "__main__":

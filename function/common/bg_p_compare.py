@@ -221,7 +221,7 @@ if __name__ == '__main__':
     def main():
         # handle = faa_get_handle("锑食")
         handle = faa_get_handle("深渊之下 | 锑食")
-        target_path = paths["picture"]["common"] + "\\bottom_menu_goto_arena.png"
+        target_path = paths["picture"]["stage"] + "\\NO-1.png"
         result = loop_find_p_in_w(raw_w_handle=handle,
                                   raw_range=[0, 0, 950, 600],
                                   target_path=target_path,

@@ -172,7 +172,7 @@ class RoundOfBattle:
         max_len_position_in_opt = 0
         for i in list_cell_all:
             max_len_position_in_opt = max(max_len_position_in_opt, len(i["location"]))
-        round_max_time = click_interval * max_len_position_in_opt + 7.3
+        round_max_time = (click_interval + click_sleep) * max_len_position_in_opt + 7.3
 
         end_flag = False  # 用flag值来停止循环
         check_last_one_time = time()  # 记录上一次检测的时间

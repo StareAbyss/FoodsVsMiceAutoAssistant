@@ -11,3 +11,9 @@
     -D 产生完整目录作为可执行文件
     -w 不显示黑框
     -i 路径  icon 图标
+
+环境迁移
+生成配置文件
+
+    pip freeze > requirements.txt
+    pip install -r requirements.txt

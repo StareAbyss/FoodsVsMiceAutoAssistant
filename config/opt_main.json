@@ -7,7 +7,7 @@
     "Level2P": 55,
     "AutoUseCard": true,
     "GuildTask": {
-        "Active": false,
+        "Active": true,
         "Skip": true,
         "Deck": 6,
         "BattlePlan1P": 11,
@@ -27,15 +27,15 @@
     },
     "MagicTowerDouble": {
         "Active": false,
-        "MaxTimes": 1,
+        "MaxTimes": 5,
         "Stage": 90,
         "Deck": 6,
         "BattlePlan1P": 11,
         "BattlePlan2P": 12
     },
     "MagicTowerAlone": {
-        "Active": true,
-        "MaxTimes": 4,
+        "Active": false,
+        "MaxTimes": 5,
         "Stage": 139,
         "Deck": 3,
         "BattlePlan1P": 8,
