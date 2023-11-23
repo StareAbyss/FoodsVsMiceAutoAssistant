@@ -24,5 +24,6 @@ def faa_get_handle(channel, mode="game"):
 
 
 if __name__ == '__main__':
+    print(faa_get_handle(channel="锑食", mode="360"))
     print(faa_get_handle(channel="锑食", mode="browser"))
-    print(faa_get_handle(channel="锑食", mode="game"))
+    print(faa_get_handle(channel="锑食", mode="game")) # 刷新游戏后改变

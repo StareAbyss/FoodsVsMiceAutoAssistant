@@ -30,11 +30,27 @@ class Todo(QThread):
         self.thread_1p = None
         self.thread_2p = None
 
-    def n_battle(
-            self, is_group,
-            stage_id, max_times,
-            deck, battle_plan_1p, battle_plan_2p,
-            task_card, list_ban_card, dict_exit):
+    def reload_game(self):
+        self.sin_out.emit("Refresh Game...")
+        # 创建进程 -> 开始进程 -> 阻塞主进程
+        self.thread_1p = ThreadWithException(target=self.faa_1.reload_game,
+                                             name="1P Thread - Reload",
+                                             kwargs={})
+
+        self.thread_2p = ThreadWithException(target=self.faa_2.reload_game,
+                                             name="2P Thread - Reload",
+                                             kwargs={})
+        # 涉及键盘抢夺, 容错低, 分开执行
+        self.thread_1p.start()
+        self.thread_1p.join()
+        self.thread_2p.start()
+        self.thread_2p.join()
+
+
+    def n_battle(self, is_group,
+                 stage_id, max_times,
+                 deck, battle_plan_1p, battle_plan_2p,
+                 task_card, list_ban_card, dict_exit):
         """[单本轮战]1次 副本外 → 副本内n次战斗 → 副本外"""
 
         self.sin_out.emit("[单本轮战]目标副本:{}".format(stage_id))
@@ -115,8 +131,7 @@ class Todo(QThread):
 
             self.sin_out.emit("[单本轮战] 第{}次, 结束\n".format(i + 1))
 
-    def n_n_battle(
-            self, task_list, list_type):
+    def n_n_battle(self, task_list, list_type):
         """
         [多本战斗]n次 副本外→副本内n次战斗→副本外
         :param task_list: 任务清单
@@ -307,10 +322,9 @@ class Todo(QThread):
 
         self.sin_out.emit("{} Completed!\n".format(text_))
 
-    def alone_magic_tower(
-            self, text_,
-            floor, max_times,
-            deck, battle_plan_1p):
+    def alone_magic_tower(self, text_,
+                          floor, max_times,
+                          deck, battle_plan_1p):
         self.sin_out.emit("{} Link Start!\n".format(text_))
 
         stage_id = "MT-1-" + str(floor)
@@ -350,9 +364,8 @@ class Todo(QThread):
 
         self.sin_out.emit("{} Completed!\n".format(text_))
 
-    def alone_magic_tower_prison(
-            self, text_, sutra_pavilion,
-            deck, battle_plan_1p):
+    def alone_magic_tower_prison(self, text_, sutra_pavilion,
+                                 deck, battle_plan_1p):
 
         self.sin_out.emit("{} Link Start!\n".format(text_))
 
@@ -397,10 +410,9 @@ class Todo(QThread):
 
         self.sin_out.emit("{} Completed!\n".format(text_))
 
-    def cross_server(
-            self, text_, is_group,
-            stage_id, max_times,
-            deck, battle_plan_1p, battle_plan_2p):
+    def cross_server(self, text_, is_group,
+                     stage_id, max_times,
+                     deck, battle_plan_1p, battle_plan_2p):
         self.sin_out.emit("{} Link Start!\n".format(text_))
 
         # 填入战斗方案和关卡信息
@@ -459,10 +471,9 @@ class Todo(QThread):
 
         self.sin_out.emit("{} Completed!\n".format(text_))
 
-    def easy_battle(
-            self, text_, stage_id, max_times,
-            deck, is_group, battle_plan_1p, battle_plan_2p,
-            dict_exit):
+    def easy_battle(self, text_, stage_id, max_times,
+                    deck, is_group, battle_plan_1p, battle_plan_2p,
+                    dict_exit):
         """仅调用 n_battle"""
         # 战斗开始
         self.sin_out.emit("{} Link Start!\n".format(text_))
@@ -500,35 +511,49 @@ class Todo(QThread):
 
     def run(self):
         """覆写主方法"""
-        my_opt = self.opt["MagicTowerAlone"]
+        my_opt = self.opt["NormalBattle"]
         if my_opt["Active"]:
-            self.alone_magic_tower(
-                text_="[魔塔单人]",
-                floor=int(my_opt["Stage"]),
+            self.reload_game()
+            self.easy_battle(
+                text_="[常规刷本]",
+                stage_id=my_opt["Stage"],
                 max_times=int(my_opt["MaxTimes"]),
                 deck=my_opt["Deck"],
-                battle_plan_1p=my_opt["BattlePlan1P"])
+                is_group=my_opt["IsGroup"],
+                battle_plan_1p=my_opt["BattlePlan1P"],
+                battle_plan_2p=my_opt["BattlePlan2P"],
+                dict_exit={"other_time": [0], "last_time": [3]})
 
-        my_opt = self.opt["MagicTowerPrison"]
+        my_opt = self.opt["GuildTask"]
         if my_opt["Active"]:
-            self.alone_magic_tower_prison(
-                text_="[魔塔密室]",
-                sutra_pavilion=my_opt["Extra"],
+            self.reload_game()
+            self.double_task(
+                text_="[公会任务]",
+                task_type="guild",
                 deck=my_opt["Deck"],
-                battle_plan_1p=my_opt["BattlePlan1P"])
+                battle_plan_1p=my_opt["BattlePlan1P"],
+                battle_plan_2p=my_opt["BattlePlan2P"])
 
-        my_opt = self.opt["MagicTowerDouble"]
+        my_opt = self.opt["SpouseTask"]
         if my_opt["Active"]:
-            self.double_magic_tower(
-                text_="[魔塔双人]",
-                floor=int(my_opt["Stage"]),
-                max_times=int(my_opt["MaxTimes"]),
+            self.double_task(
+                text_="[情侣任务]",
+                task_type="spouse",
+                deck=my_opt["Deck"],
+                battle_plan_1p=my_opt["BattlePlan1P"],
+                battle_plan_2p=my_opt["BattlePlan2P"])
+
+        my_opt = self.opt["OfferReward"]
+        if my_opt["Active"]:
+            self.double_offer_reward(
+                text_="[悬赏任务]",
                 deck=my_opt["Deck"],
                 battle_plan_1p=my_opt["BattlePlan1P"],
                 battle_plan_2p=my_opt["BattlePlan2P"])
 
         my_opt = self.opt["Relic"]
         if my_opt["Active"]:
+            self.reload_game()
             self.easy_battle(
                 text_="[火山遗迹]",
                 stage_id=my_opt["Stage"],
@@ -562,43 +587,33 @@ class Todo(QThread):
                 battle_plan_2p=my_opt["BattlePlan2P"],
                 dict_exit={"other_time": [0], "last_time": [3, 2]})
 
-        my_opt = self.opt["GuildTask"]
+        my_opt = self.opt["MagicTowerAlone"]
         if my_opt["Active"]:
-            self.double_task(
-                text_="[公会任务]",
-                task_type="guild",
-                deck=my_opt["Deck"],
-                battle_plan_1p=my_opt["BattlePlan1P"],
-                battle_plan_2p=my_opt["BattlePlan2P"])
-
-        my_opt = self.opt["SpouseTask"]
-        if my_opt["Active"]:
-            self.double_task(
-                text_="[情侣任务]",
-                task_type="spouse",
-                deck=my_opt["Deck"],
-                battle_plan_1p=my_opt["BattlePlan1P"],
-                battle_plan_2p=my_opt["BattlePlan2P"])
-
-        my_opt = self.opt["OfferReward"]
-        if my_opt["Active"]:
-            self.double_offer_reward(
-                text_="[悬赏任务]",
-                deck=my_opt["Deck"],
-                battle_plan_1p=my_opt["BattlePlan1P"],
-                battle_plan_2p=my_opt["BattlePlan2P"])
-
-        my_opt = self.opt["NormalBattle"]
-        if my_opt["Active"]:
-            self.easy_battle(
-                text_="[常规刷本]",
-                stage_id=my_opt["Stage"],
+            self.reload_game()
+            self.alone_magic_tower(
+                text_="[魔塔单人]",
+                floor=int(my_opt["Stage"]),
                 max_times=int(my_opt["MaxTimes"]),
                 deck=my_opt["Deck"],
-                is_group=my_opt["IsGroup"],
+                battle_plan_1p=my_opt["BattlePlan1P"])
+
+        my_opt = self.opt["MagicTowerPrison"]
+        if my_opt["Active"]:
+            self.alone_magic_tower_prison(
+                text_="[魔塔密室]",
+                sutra_pavilion=my_opt["Extra"],
+                deck=my_opt["Deck"],
+                battle_plan_1p=my_opt["BattlePlan1P"])
+
+        my_opt = self.opt["MagicTowerDouble"]
+        if my_opt["Active"]:
+            self.double_magic_tower(
+                text_="[魔塔双人]",
+                floor=int(my_opt["Stage"]),
+                max_times=int(my_opt["MaxTimes"]),
+                deck=my_opt["Deck"],
                 battle_plan_1p=my_opt["BattlePlan1P"],
-                battle_plan_2p=my_opt["BattlePlan2P"],
-                dict_exit={"other_time": [0], "last_time": [3]})
+                battle_plan_2p=my_opt["BattlePlan2P"])
 
         my_opt = self.opt["Customize"]
         if my_opt["Active"]:
@@ -647,7 +662,7 @@ class MyMainWindow2(MyMainWindow1):
         if not self.thread_states:
             self.ui_to_opt()
             game_name = self.opt["GameName"]
-            serve_id = self.opt["serve_id"]
+            server_id = self.opt["server_id"]
             name_1p = self.opt["Name1P"]
             name_2p = self.opt["Name2P"]
             channel_1p, channel_2p = get_channel_name(game_name, name_1p, name_2p)
@@ -658,7 +673,7 @@ class MyMainWindow2(MyMainWindow1):
 
             faa_1 = FAA(channel=channel_1p,
                         zoom=zoom_ratio,
-                        serve_id=serve_id,
+                        server_id=server_id,
                         player="1P",
                         character_level=self.opt["Level1P"],
                         is_use_key=True,  # boolean 是否使用钥匙 做任务必须选择 是
@@ -667,7 +682,7 @@ class MyMainWindow2(MyMainWindow1):
 
             faa_2 = FAA(channel=channel_2p,
                         zoom=zoom_ratio,
-                        serve_id=serve_id,
+                        server_id=server_id,
                         player="2P",
                         character_level=self.opt["Level2P"],
                         is_use_key=True,

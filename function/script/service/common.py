@@ -18,20 +18,18 @@ from function.script.service.in_battle.round_of_game import round_of_game
 
 
 class FAA:
-    def __init__(
-            self,
-            channel="锑食", zoom=1, serve_id="1", player="1P", character_level=1,
-            is_use_key=True, is_auto_battle=True, is_auto_collect=False
-    ):
+    def __init__(self, channel="锑食", zoom=1, server_id=1, player="1P", character_level=1,
+                 is_use_key=True, is_auto_battle=True, is_auto_collect=False):
 
         # 获取窗口句柄
-        self.handle = faa_get_handle(channel=channel, mode="game")
-        self.handle_browser = faa_get_handle(channel=channel, mode="browser")
-        self.handle_360 = faa_get_handle(channel=channel, mode="360")
+        self.channel = channel
+        self.handle = faa_get_handle(channel=self.channel, mode="game")
+        self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
+        self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
 
         # 缩放
         self.zoom = zoom  # float 1.0 即百分百
-        self.serve_id = serve_id
+        self.server_id = server_id
 
         # 角色|等级|是否使用钥匙|卡片|收集战利品
         self.player = player
@@ -50,9 +48,7 @@ class FAA:
 
     """调用输入关卡配置和战斗配置, 在战斗前进行该操作"""
 
-    def get_config_for_battle(
-            self, is_group=False, battle_plan_index=0, stage_id="NO-1-1"
-    ):
+    def get_config_for_battle(self, is_group=False, battle_plan_index=0, stage_id="NO-1-1"):
         """
         :param is_group: 是否组队
         :param battle_plan_index: 战斗方案的索引
@@ -98,9 +94,7 @@ class FAA:
 
     """封装好的对窗口的动作"""
 
-    def action_get_stage_name(
-            self
-    ):
+    def action_get_stage_name(self):
         """在关卡备战界面 获得关卡名字"""
         stage_id = "Unknown"  # 默认名称
         img1 = capture_picture_png(handle=self.handle, raw_range=[0, 0, 950, 600])[468:484, 383:492, :3]
@@ -115,9 +109,7 @@ class FAA:
                 break
         return stage_id
 
-    def action_get_task(
-            self, target: str
-    ):
+    def action_get_task(self, target: str):
         """
         获取公会任务列表
         :param target:
@@ -230,9 +222,7 @@ class FAA:
 
     """receive task reward"""
 
-    def action_task_guild(
-            self
-    ):
+    def action_task_guild(self):
         # 点跳转
         loop_find_p_in_w(raw_w_handle=self.handle,
                          raw_range=[0, 0, 950, 600],
@@ -278,9 +268,7 @@ class FAA:
         # 退出任务界面
         self.action_exit(exit_mode=2)
 
-    def action_task_spouse(
-            self
-    ):
+    def action_task_spouse(self):
         # 点跳转
         loop_find_p_in_w(raw_w_handle=self.handle,
                          raw_range=[0, 0, 950, 600],
@@ -288,7 +276,6 @@ class FAA:
                          target_sleep=1,
                          click=True,
                          click_zoom=self.zoom)
-        # 点任务
         # 点任务
         loop_find_p_in_w(raw_w_handle=self.handle,
                          raw_range=[0, 0, 950, 600],
@@ -311,9 +298,7 @@ class FAA:
         # 退出任务界面
         self.action_exit(exit_mode=2)
 
-    def action_task_offer_reward(
-            self
-    ):
+    def action_task_offer_reward(self):
         # 防止活动列表不在
         self.change_activity_list(1)
 
@@ -341,9 +326,7 @@ class FAA:
         # 退出任务界面
         self.action_exit(exit_mode=2)
 
-    def action_task_receive_rewards(
-            self, task_type: str
-    ):
+    def action_task_receive_rewards(self, task_type: str):
         """
         收取任务奖励
         :param task_type: "guild" or "spouse" or "offer_reward"
@@ -360,9 +343,7 @@ class FAA:
 
         print("[{}][收取任务奖励][{}] 已全部领取".format(self.player, task_type))
 
-    def change_activity_list(
-            self, serial_num: int
-    ):
+    def change_activity_list(self, serial_num: int):
         """检测顶部的活动清单, 1为第一页, 2为第二页(有举报图标的一页)"""
 
         target = find_p_in_w(raw_w_handle=self.handle,
@@ -385,20 +366,14 @@ class FAA:
 
     """battle enter / in combat / exit"""
 
-    def check_level(
-            self
-    ):
+    def check_level(self):
         """检测角色等级和关卡等级(调用于输入关卡信息之后)"""
         if self.character_level < self.stage_info["level"]:
             return False
         else:
             return True
 
-    def action_goto_stage(
-            self,
-            room_creator: bool = True,
-            mt_first_time: bool = False
-    ):
+    def action_goto_stage(self, room_creator: bool = True, mt_first_time: bool = False):
         """
         只要右上能看到地球 就可以到目标关卡
         Args:
@@ -738,12 +713,7 @@ class FAA:
         else:
             print("请输入正确的关卡名称！")
 
-    def action_battle_normal(
-            self,
-            battle_mode: int,
-            task_card: str,
-            list_ban_card: list
-    ):
+    def action_battle_normal(self, battle_mode: int, task_card: str, list_ban_card: list):
         """从类中继承主要方法 方便被调用"""
 
         # 调用 InBattle 类 生成实例, 从self中填充数据
@@ -766,14 +736,8 @@ class FAA:
             list_ban_card=list_ban_card
         )
 
-    def action_round_of_game(
-            self,
-            deck: int,
-            delay_start: bool,
-            battle_mode: int,
-            task_card: str,
-            list_ban_card: list
-    ):
+    def action_round_of_game(self, deck: int, delay_start: bool, battle_mode: int,
+                             task_card: str, list_ban_card: list):
         """调用主要方法 低耦合 方便被调用"""
         round_of_game(
             handle=self.handle,
@@ -789,10 +753,7 @@ class FAA:
             list_ban_card=list_ban_card
         )
 
-    def action_exit(
-            self,
-            exit_mode: int
-    ):
+    def action_exit(self, exit_mode: int):
         """退出 0-不退出  1-右下回退到上一级  2-右上红叉  3-直接到竞技岛 4-悬赏"""
         if exit_mode == 1:
             loop_find_p_in_w(raw_w_handle=self.handle,
@@ -846,7 +807,7 @@ class FAA:
     def reload_game(self):
         while True:
             # 点击刷新按钮 该按钮在360窗口上
-            target_path = self.paths["picture"]["common"] + "\\login_refresh.png"
+            target_path = self.paths["picture"]["common"] + "\\login\\refresh.png"
             loop_find_p_in_w(raw_w_handle=self.handle_360,
                              raw_range=[0, 0, 2000, 2000],
                              target_path=target_path,
@@ -856,7 +817,7 @@ class FAA:
                              click_zoom=self.zoom)
 
             # 检测是否有 输入服务器id字样
-            target_path = self.paths["picture"]["common"] + "\\login_input_server_id.png"
+            target_path = self.paths["picture"]["common"] + "\\login\\input_server_id.png"
             result = loop_find_p_in_w(raw_w_handle=self.handle_browser,
                                       raw_range=[0, 0, 2000, 2000],
                                       target_path=target_path,
@@ -868,27 +829,27 @@ class FAA:
 
             else:
                 # 点击两次右边的输入框 并输入服务器号
-                target_path = self.paths["picture"]["common"] + "\\login_input_server_id.png"
+                target_path = self.paths["picture"]["common"] + "\\login\\input_server_id.png"
                 x, y = find_p_in_w(raw_w_handle=self.handle_browser,
                                    raw_range=[0, 0, 2000, 2000],
                                    target_path=target_path,
                                    target_tolerance=0.99)
                 mouse_left_click(handle=self.handle_browser,
-                                 x=int(x + 64) * self.zoom,
+                                 x=int((x + 64) * self.zoom),
                                  y=int(y * self.zoom),
                                  interval_time=0.05,
                                  sleep_time=0.2)
                 mouse_left_click(handle=self.handle_browser,
-                                 x=int(x + 64) * self.zoom,
+                                 x=int((x + 64) * self.zoom),
                                  y=int(y * self.zoom),
                                  interval_time=0.05,
                                  sleep_time=0.2)
 
-                for key in self.serve_id:
+                for key in str(self.server_id):
                     key_down_up(handle=self.handle_browser, key=key, sleep_time=0.1)
                 sleep(1)
 
-                target_path = self.paths["picture"]["common"] + "\\login_input_server_enter.png"
+                target_path = self.paths["picture"]["common"] + "\\login\\input_server_enter.png"
                 result = loop_find_p_in_w(raw_w_handle=self.handle_browser,
                                           raw_range=[0, 0, 2000, 2000],
                                           target_path=target_path,
@@ -899,26 +860,32 @@ class FAA:
                     print("[{}] 未找到进入输入服务器 + 进入服务器, 刷新".format(self.player))
                     continue
 
-                target_path = self.paths["picture"]["common"] + "\\login_health_game_advice.png"
+                target_path = self.paths["picture"]["common"] + "\\login\\health_game_advice.png"
                 result = loop_find_p_in_w(raw_w_handle=self.handle_browser,
                                           raw_range=[0, 0, 2000, 2000],
                                           target_path=target_path,
                                           target_tolerance=0.99,
+                                          target_sleep=0.5,
                                           click=False)
                 if not result:
                     print("[{}] 未找到健康游戏公告, 刷新".format(self.player))
                     continue
                 else:
-                    target_path = self.paths["picture"]["common"] + "\\login_health_game_advice_enter.png"
-                    loop_find_p_in_w(raw_w_handle=self.handle_browser,
-                                     raw_range=[0, 0, 2000, 2000],
+                    # 重新获取句柄, 此时游戏界面的句柄已经改变
+                    self.handle = faa_get_handle(channel=self.channel, mode="game")
+                    # 关闭健康游戏公告
+                    target_path = self.paths["picture"]["common"] + "\\login\\health_game_advice_enter.png"
+                    loop_find_p_in_w(raw_w_handle=self.handle,
+                                     raw_range=[0, 0, 950, 600],
                                      target_path=target_path,
                                      target_tolerance=0.99,
                                      click=True,
                                      click_zoom=self.zoom)
-
                     # 每日必充界面可能弹出 但没有影响
                     break
+
+    def sign_in(self):
+        self.change_activity_list(1)
 
 
 if __name__ == '__main__':

@@ -44,7 +44,7 @@ class MyMainWindow1(MyMainWindow0):
         self.Name2P_Input.setText(self.opt["Name2P"])
         self.ZoomRatio_Input.setCurrentIndex(self.opt["ZoomRatio"])
 
-        self.Server_Input.setValue(self.opt["serve_id"])
+        self.Server_Input.setValue(self.opt["server_id"])
         self.Level1P_Input.setValue(self.opt["Level1P"])
         self.Level2P_Input.setValue(self.opt["Level2P"])
         self.AutoUseCard.setChecked(self.opt["AutoUseCard"])
@@ -149,7 +149,7 @@ class MyMainWindow1(MyMainWindow0):
         self.opt["Name2P"] = self.Name2P_Input.text()
         self.opt["ZoomRatio"] = self.ZoomRatio_Input.currentIndex()  # combobox 序号
 
-        self.opt["serve_id"] = self.Server_Input.value()
+        self.opt["server_id"] = self.Server_Input.value()
         self.opt["Level1P"] = self.Level1P_Input.value()
         self.opt["Level2P"] = self.Level2P_Input.value()
         self.opt["AutoUseCard"] = self.AutoUseCard.isChecked()
