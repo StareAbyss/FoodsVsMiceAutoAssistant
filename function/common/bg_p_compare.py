@@ -221,18 +221,19 @@ if __name__ == '__main__':
     def main():
         handle = faa_get_handle("锑食", mode="game")
         # handle = faa_get_handle(channel="深渊之下 | 锑食", mode="browser")
-        target_path = paths["picture"]["common"] + "\\login_health_game_advice_enter.png"
-        # result = loop_find_p_in_w(raw_w_handle=handle,
-        #                           raw_range=[0, 0, 950, 600],
-        #                           target_path=target_path,
-        #                           target_tolerance=0.98,
-        #                           target_sleep=1,
-        #                           target_failed_check=2,
-        #                           click=True,
-        #                           click_zoom=1)
-        result = find_p_in_w(raw_w_handle=handle,
-                             raw_range=[0, 0, 950, 600],
-                             target_path=target_path)
+        target_path = paths["picture"]["common"] + "\\sign_in\\daily_sign_in.png"
+        result = loop_find_p_in_w(raw_w_handle=handle,
+                                  raw_range=[0, 0, 950, 600],
+                                  target_path=target_path,
+                                  target_tolerance=0.99,
+                                  target_sleep=1,
+                                  target_failed_check=1,
+                                  click=True,
+                                  click_zoom=1)
+        # result = find_p_in_w(raw_w_handle=handle,
+        #                      raw_range=[0, 0, 950, 600],
+        #                      target_path=target_path,
+        #                      target_tolerance=0.99)
         print(result)
 
 

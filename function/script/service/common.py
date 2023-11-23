@@ -125,7 +125,7 @@ class FAA:
         # 点跳转
         loop_find_p_in_w(raw_w_handle=self.handle,
                          raw_range=[0, 0, 950, 600],
-                         target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto.png",
+                         target_path=self.paths["picture"]["common"] + "\\bottom_menu\\goto.png",
                          target_sleep=1,
                          click=True,
                          click_zoom=self.zoom)
@@ -135,7 +135,7 @@ class FAA:
             # 公会任务 guild
             loop_find_p_in_w(raw_w_handle=self.handle,
                              raw_range=[0, 0, 950, 600],
-                             target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto_guild_task.png",
+                             target_path=self.paths["picture"]["common"] + "\\bottom_menu\\goto_guild_task.png",
                              target_sleep=1,
                              click=True,
                              click_zoom=self.zoom)
@@ -150,7 +150,7 @@ class FAA:
             # 情侣任务 spouse
             loop_find_p_in_w(raw_w_handle=self.handle,
                              raw_range=[0, 0, 950, 600],
-                             target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto_spouse_task.png",
+                             target_path=self.paths["picture"]["common"] + "\\bottom_menu\\goto_spouse_task.png",
                              target_sleep=1,
                              click=True,
                              click_zoom=self.zoom)
@@ -226,14 +226,14 @@ class FAA:
         # 点跳转
         loop_find_p_in_w(raw_w_handle=self.handle,
                          raw_range=[0, 0, 950, 600],
-                         target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto.png",
+                         target_path=self.paths["picture"]["common"] + "\\bottom_menu\\goto.png",
                          target_sleep=1,
                          click=True,
                          click_zoom=self.zoom)
         # 点任务
         loop_find_p_in_w(raw_w_handle=self.handle,
                          raw_range=[0, 0, 950, 600],
-                         target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto_guild_task.png",
+                         target_path=self.paths["picture"]["common"] + "\\bottom_menu\\goto_guild_task.png",
                          target_sleep=1,
                          click=True,
                          click_zoom=self.zoom)
@@ -272,14 +272,14 @@ class FAA:
         # 点跳转
         loop_find_p_in_w(raw_w_handle=self.handle,
                          raw_range=[0, 0, 950, 600],
-                         target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto.png",
+                         target_path=self.paths["picture"]["common"] + "\\bottom_menu\\goto.png",
                          target_sleep=1,
                          click=True,
                          click_zoom=self.zoom)
         # 点任务
         loop_find_p_in_w(raw_w_handle=self.handle,
                          raw_range=[0, 0, 950, 600],
-                         target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto_spouse_task.png",
+                         target_path=self.paths["picture"]["common"] + "\\bottom_menu\\goto_spouse_task.png",
                          target_sleep=1,
                          click=True,
                          click_zoom=self.zoom)
@@ -758,7 +758,7 @@ class FAA:
         if exit_mode == 1:
             loop_find_p_in_w(raw_w_handle=self.handle,
                              raw_range=[0, 0, 950, 600],
-                             target_path=self.paths["picture"]["common"] + "\\bottom_menu_back.png",
+                             target_path=self.paths["picture"]["common"] + "\\bottom_menu\\back.png",
                              target_failed_check=100,
                              target_sleep=1.5,
                              click=True,
@@ -776,7 +776,7 @@ class FAA:
         if exit_mode == 3:
             loop_find_p_in_w(raw_w_handle=self.handle,
                              raw_range=[0, 0, 950, 600],
-                             target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto.png",
+                             target_path=self.paths["picture"]["common"] + "\\bottom_menu\\goto.png",
                              target_tolerance=0.99,
                              target_failed_check=100,
                              target_sleep=1.5,
@@ -785,7 +785,7 @@ class FAA:
 
             loop_find_p_in_w(raw_w_handle=self.handle,
                              raw_range=[0, 0, 950, 600],
-                             target_path=self.paths["picture"]["common"] + "\\bottom_menu_goto_arena.png",
+                             target_path=self.paths["picture"]["common"] + "\\bottom_menu\\goto_arena.png",
                              target_tolerance=0.99,
                              target_failed_check=100,
                              target_sleep=1.5,
@@ -812,7 +812,7 @@ class FAA:
                              raw_range=[0, 0, 2000, 2000],
                              target_path=target_path,
                              target_tolerance=0.99,
-                             target_sleep=5,
+                             target_sleep=3,
                              click=True,
                              click_zoom=self.zoom)
 
@@ -887,11 +887,167 @@ class FAA:
     def sign_in(self):
         self.change_activity_list(1)
 
+        """VIP签到"""
+        target_path = self.paths["picture"]["common"] + "\\sign_in\\vip.png"
+        loop_find_p_in_w(raw_w_handle=self.handle,
+                         raw_range=[0, 0, 950, 600],
+                         target_path=target_path,
+                         target_tolerance=0.99,
+                         target_failed_check=1,
+                         target_sleep=1,
+                         click=True,
+                         click_zoom=self.zoom)
+
+        target_path = self.paths["picture"]["common"] + "\\sign_in\\vip_enter_1.png"
+        loop_find_p_in_w(raw_w_handle=self.handle,
+                         raw_range=[0, 0, 950, 600],
+                         target_path=target_path,
+                         target_tolerance=0.99,
+                         target_failed_check=1,
+                         target_sleep=1,
+                         click=True,
+                         click_zoom=self.zoom)
+
+        target_path = self.paths["picture"]["common"] + "\\sign_in\\vip_enter_2.png"
+        loop_find_p_in_w(raw_w_handle=self.handle,
+                         raw_range=[0, 0, 950, 600],
+                         target_path=target_path,
+                         target_tolerance=0.99,
+                         target_failed_check=1,
+                         target_sleep=1,
+                         click=True,
+                         click_zoom=self.zoom)
+
+        self.action_exit(exit_mode=2)
+
+        """每日签到"""
+        target_path = self.paths["picture"]["common"] + "\\sign_in\\daily_sign_in.png"
+        loop_find_p_in_w(raw_w_handle=self.handle,
+                         raw_range=[0, 0, 950, 600],
+                         target_path=target_path,
+                         target_tolerance=0.99,
+                         target_failed_check=1,
+                         target_sleep=1,
+                         click=True,
+                         click_zoom=self.zoom)
+
+        target_path = self.paths["picture"]["common"] + "\\sign_in\\daily_sign_in_enter.png"
+        loop_find_p_in_w(raw_w_handle=self.handle,
+                         raw_range=[0, 0, 950, 600],
+                         target_path=target_path,
+                         target_tolerance=0.99,
+                         target_failed_check=1,
+                         target_sleep=1,
+                         click=True,
+                         click_zoom=self.zoom)
+
+        self.action_exit(exit_mode=2)
+
+        """美食活动"""
+        target_path = self.paths["picture"]["common"] + "\\sign_in\\food_activation.png"
+        loop_find_p_in_w(raw_w_handle=self.handle,
+                         raw_range=[0, 0, 950, 600],
+                         target_path=target_path,
+                         target_tolerance=0.99,
+                         target_failed_check=1,
+                         target_sleep=1,
+                         click=True,
+                         click_zoom=self.zoom)
+
+        target_path = self.paths["picture"]["common"] + "\\sign_in\\food_activation_enter.png"
+        loop_find_p_in_w(raw_w_handle=self.handle,
+                         raw_range=[0, 0, 950, 600],
+                         target_path=target_path,
+                         target_tolerance=0.99,
+                         target_failed_check=1,
+                         target_sleep=1,
+                         click=True,
+                         click_zoom=self.zoom)
+
+        self.action_exit(exit_mode=2)
+
+        """塔罗寻宝"""
+        target_path = self.paths["picture"]["common"] + "\\sign_in\\tarot.png"
+        loop_find_p_in_w(raw_w_handle=self.handle,
+                         raw_range=[0, 0, 950, 600],
+                         target_path=target_path,
+                         target_tolerance=0.99,
+                         target_failed_check=1,
+                         target_sleep=1,
+                         click=True,
+                         click_zoom=self.zoom)
+
+        target_path = self.paths["picture"]["common"] + "\\sign_in\\tarot_enter.png"
+        loop_find_p_in_w(raw_w_handle=self.handle,
+                         raw_range=[0, 0, 950, 600],
+                         target_path=target_path,
+                         target_tolerance=0.99,
+                         target_failed_check=1,
+                         target_sleep=1,
+                         click=True,
+                         click_zoom=self.zoom)
+
+        target_path = self.paths["picture"]["common"] + "\\sign_in\\tarot_exit.png"
+        loop_find_p_in_w(raw_w_handle=self.handle,
+                         raw_range=[0, 0, 950, 600],
+                         target_path=target_path,
+                         target_tolerance=0.99,
+                         target_failed_check=1,
+                         target_sleep=1,
+                         click=True,
+                         click_zoom=self.zoom)
+
+    def quest(self):
+        handle = self.handle
+        zoom = self.zoom
+        paths = self.paths
+
+        while True:
+            # 点任务
+            find = loop_find_p_in_w(
+                raw_w_handle=handle,
+                raw_range=[0, 0, 950, 600],
+                target_path=paths["picture"]["common"] + "\\" + "bottom_menu\\quest.png",
+                target_tolerance=0.99,
+                target_failed_check=1,
+                target_sleep=0.5,
+                click=True,
+                click_zoom=zoom)
+
+            if find:
+                # 复位滑块
+                mouse_left_click(handle=handle, x=int(413 * zoom), y=int(155 * zoom), sleep_time=0.25)
+
+                for i in range(7):
+                    # 找到就点一下, 找不到就跳过
+                    while True:
+                        find = loop_find_p_in_w(
+                            raw_w_handle=handle,
+                            raw_range=[0, 0, 950, 600],
+                            target_path=paths["picture"]["common"] + "\\" + "quest_completed.png",
+                            target_tolerance=0.95,
+                            target_failed_check=1,
+                            target_sleep=0.5,
+                            click_zoom=zoom,
+                            click=True)
+                        if find:
+                            # 领取奖励
+                            mouse_left_click(handle=handle, x=int(643 * zoom), y=int(534 * zoom), sleep_time=0.2)
+                        else:
+                            break
+
+                    # 滑块向下移动3次
+                    for j in range(3):
+                        mouse_left_click(handle=handle, x=int(413 * zoom), y=int(524 * zoom), sleep_time=0.05)
+
+                self.action_exit(exit_mode=2)
+                break
+
 
 if __name__ == '__main__':
     def main():
         faa = FAA()
-        faa.reload_game()
+        faa.quest()
 
 
     main()

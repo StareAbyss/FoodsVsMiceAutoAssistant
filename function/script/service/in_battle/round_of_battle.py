@@ -185,6 +185,7 @@ class RoundOfBattle:
                 """遍历每一张卡"""
 
                 if is_auto_battle:  # 启动了自动战斗
+
                     # 点击 选中卡片
                     mouse_left_click(handle=handle,
                                      interval_time=click_interval,
@@ -193,12 +194,16 @@ class RoundOfBattle:
                                      y=battle_card[list_cell_all[i]["id"]][1])
 
                     if list_cell_all[i]["ergodic"]:
+
                         """遍历模式: True 遍历该卡每一个可以放的位置"""
                         for j in list_cell_all[i]["location"]:
+
                             """安全放一张卡"""
+
                             # 防止误触
                             if j in warning_cell:
                                 self.use_key(mode=1)
+
                             # 点击 放下卡片
                             mouse_left_click(handle=handle,
                                              interval_time=click_interval,
@@ -210,9 +215,11 @@ class RoundOfBattle:
                         """遍历模式: False"""
                         """安全放一张卡"""
                         j = list_cell_all[i]["location"][0]
+
                         # 防止误触
                         if j in warning_cell:
                             self.use_key(mode=1)
+
                         # 点击 放下卡片
                         mouse_left_click(handle=handle,
                                          interval_time=click_interval,
@@ -227,9 +234,11 @@ class RoundOfBattle:
 
                 """每放完一张卡片的所有位置 检查时间设定间隔 检测战斗间隔"""
                 if time() - check_last_one_time > check_invite:
+
                     # 测试用时
-                    print("[{}][放卡间进行了战斗结束检测] {:.2f}s".format(
-                        self.player, time() - check_last_one_time))
+                    # print("[{}][放卡间进行了战斗结束检测] {:.2f}s".format(
+                    #     self.player, time() - check_last_one_time))
+
                     # 更新上次检测时间 + 更新flag + 中止休息循环
                     check_last_one_time = time()
                     if self.use_key_and_check_end():
@@ -274,11 +283,14 @@ class RoundOfBattle:
             time_spend_a_round = time() - time_round_begin
             if time_spend_a_round < round_max_time:
                 for i in range(int((round_max_time - time_spend_a_round) // check_invite)):
+
                     """检查时间设定间隔 检测战斗间隔"""
                     if time() - check_last_one_time > check_invite:
+
                         # 测试用时
-                        print("[{}][休息期战斗结束检测] {:.2f}s".format(
-                            self.player,time() - check_last_one_time))
+                        # print("[{}][休息期战斗结束检测] {:.2f}s".format(
+                        #     self.player,time() - check_last_one_time))
+
                         # 更新上次检测时间 + 更新flag + 中止休息循环
                         check_last_one_time = time()
                         if self.use_key_and_check_end():
@@ -289,9 +301,13 @@ class RoundOfBattle:
             else:
                 """一轮放卡循环>7s 检查时间设定间隔 检测战斗间隔"""
                 if time() - check_last_one_time > check_invite:
-                    print("[{}][补战斗结束检测] {:.2f}s".format(self.player, time() - check_last_one_time))  # 测试用时
+
+                    # 测试用时
+                    # print("[{}][补战斗结束检测] {:.2f}s".format(self.player, time() - check_last_one_time))  # 测试用时
+
                     # 更新上次检测时间 + 更新flag + 中止休息循环
                     check_last_one_time = time()
+
                     if self.use_key_and_check_end():
                         break
 

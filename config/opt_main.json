@@ -8,26 +8,26 @@
     "Level2P": 55,
     "AutoUseCard": true,
     "GuildTask": {
-        "Active": true,
+        "Active": false,
         "Skip": true,
         "Deck": 6,
         "BattlePlan1P": 11,
         "BattlePlan2P": 12
     },
     "SpouseTask": {
-        "Active": true,
+        "Active": false,
         "Deck": 6,
         "BattlePlan1P": 11,
         "BattlePlan2P": 12
     },
     "OfferReward": {
-        "Active": true,
+        "Active": false,
         "Deck": 4,
         "BattlePlan1P": 0,
         "BattlePlan2P": 1
     },
     "MagicTowerDouble": {
-        "Active": true,
+        "Active": false,
         "MaxTimes": 5,
         "Stage": 90,
         "Deck": 6,
@@ -35,7 +35,7 @@
         "BattlePlan2P": 12
     },
     "MagicTowerAlone": {
-        "Active": true,
+        "Active": false,
         "MaxTimes": 5,
         "Stage": 139,
         "Deck": 3,
@@ -43,14 +43,14 @@
         "BattlePlan2P": null
     },
     "MagicTowerPrison": {
-        "Active": true,
+        "Active": false,
         "Extra": false,
         "Deck": 6,
         "BattlePlan1P": 11,
         "BattlePlan2P": null
     },
     "Warrior": {
-        "Active": true,
+        "Active": false,
         "IsGroup": true,
         "MaxTimes": 2,
         "Deck": 6,
@@ -59,7 +59,7 @@
         "Group": false
     },
     "CrossServer": {
-        "Active": true,
+        "Active": false,
         "IsGroup": true,
         "MaxTimes": 10,
         "Stage": "CS-5-3",
@@ -69,7 +69,7 @@
         "Group": false
     },
     "Relic": {
-        "Active": true,
+        "Active": false,
         "IsGroup": true,
         "MaxTimes": 4,
         "Stage": "NO-3-5",
@@ -79,10 +79,10 @@
         "Group": false
     },
     "NormalBattle": {
-        "Active": false,
+        "Active": true,
         "IsGroup": true,
-        "MaxTimes": 20,
-        "Stage": "NO-4-2",
+        "MaxTimes": 10,
+        "Stage": "NO-4-5",
         "Deck": 6,
         "BattlePlan1P": 11,
         "BattlePlan2P": 12,

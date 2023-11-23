@@ -4,9 +4,7 @@ from function.common.bg_p_compare import loop_find_p_in_w
 """包含 需要多个角色异步完成的操作"""
 
 
-def invite(
-        faa_1: object,
-        faa_2: object):
+def invite(faa_1: object,faa_2: object):
     """
     号1邀请号2到房间 需要在同一个区
     :param faa_1: 号1

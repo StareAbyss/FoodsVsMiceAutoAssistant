@@ -5,19 +5,9 @@ from function.common.bg_p_compare import loop_find_p_in_w, loop_find_ps_in_w, fi
 from function.tools.screen_loot_logs import screen_loot_logs
 
 
-def round_of_game(  # 从FAA类中直接获取
-        handle,
-        zoom,
-        paths,
-        player,
-        stage_info_id,
-        action_battle_normal,
-        deck: int,
-        delay_start: bool,
-        battle_mode: int,
-        task_card: str,
-        list_ban_card: list
-):
+# 从FAA类中直接获取
+def round_of_game(handle, zoom, paths, player, stage_info_id, action_battle_normal,
+                  deck: int, delay_start: bool, battle_mode: int, task_card: str, list_ban_card: list):
     """
     一轮战斗
     Args:
@@ -72,7 +62,7 @@ def round_of_game(  # 从FAA类中直接获取
             sleep(6)
         print("[{}] 开始寻找任务卡".format(player))
         # 复位滑块
-        mouse_left_click(handle, int(931 * zoom), int(209 * zoom), sleep_time=0.25)
+        mouse_left_click(handle=handle, x=int(931 * zoom), y=int(209 * zoom), sleep_time=0.25)
         flag_find_task_card = False
         for i in range(7):
             # 找到就点一下
@@ -84,13 +74,12 @@ def round_of_game(  # 从FAA类中直接获取
                     target_tolerance=0.95,
                     click_zoom=zoom,
                     click=True,
-                    target_failed_check=1
-                )
+                    target_failed_check=1)
                 if find:
                     flag_find_task_card = True
             # 滑块向下移动3次
             for j in range(3):
-                mouse_left_click(handle, int(931 * zoom), int(400 * zoom), sleep_time=0.05)
+                mouse_left_click(handle=handle, x=int(931 * zoom), y=int(400 * zoom), sleep_time=0.05)
         # 双方都完成循环 以保证同步
         print("[{}] 完成任务卡查找 大概.?".format(player))
 
@@ -106,8 +95,7 @@ def round_of_game(  # 从FAA类中直接获取
         target_interval=1,
         target_sleep=0.3,
         click=True,
-        target_failed_check=10
-    )
+        target_failed_check=10)
     if not find:
         print("[{}] 10s找不到[开始/准备]字样! 创建房间可能失败!".format(player))
 
@@ -128,8 +116,7 @@ def round_of_game(  # 从FAA类中直接获取
         target_interval=1,
         target_sleep=1,
         click=False,
-        target_failed_check=86400
-    )
+        target_failed_check=86400)
 
     # 刷新ui: 状态文本
     print("[{}] 战斗进行中...".format(player))
@@ -152,8 +139,7 @@ def round_of_game(  # 从FAA类中直接获取
                       "target_tolerance": 0.999},
                      {"target_path": paths["picture"]["common"] + "\\battle_end_2_loot.png",
                       "target_tolerance": 0.999}],
-        return_mode="or"
-    )
+        return_mode="or")
     if find:
         print("[{}] [Safe]正常结束, 尝试捕获战利品截图".format(player))
         screen_loot_logs(handle=handle, zoom=zoom, save_log=paths["logs"], stage_id=stage_info_id, player=player)
@@ -173,12 +159,12 @@ def round_of_game(  # 从FAA类中直接获取
         print("[{}] [Safe]捕获到[翻宝箱]字样, 翻牌中...".format(player))
         # 开始翻牌
         sleep(1.5)
-        mouse_left_click(handle, int(708 * zoom), int(502 * zoom), 0.05, 6)
+        mouse_left_click(handle=handle, x=int(708 * zoom), y=int(502 * zoom), interval_time=0.05, sleep_time=6)
         # 翻牌 1+2
-        mouse_left_click(handle, int(550 * zoom), int(170 * zoom), 0.05, 1)
-        mouse_left_click(handle, int(708 * zoom), int(170 * zoom), 0.05, 1)
+        mouse_left_click(handle=handle, x=int(550 * zoom), y=int(170 * zoom), interval_time=0.05, sleep_time=0.5)
+        mouse_left_click(handle=handle, x=int(708 * zoom), y=int(170 * zoom), interval_time=0.05, sleep_time=0.5)
         # 结束翻牌
-        mouse_left_click(handle, int(708 * zoom), int(502 * zoom), 0.05, 1)
+        mouse_left_click(handle=handle, x=int(708 * zoom), y=int(502 * zoom), interval_time=0.05, sleep_time=0.5)
         print("[{}] [Safe]战斗结束!".format(player))
     else:
         print("=" * 50)
@@ -211,5 +197,3 @@ def round_of_game(  # 从FAA类中直接获取
 
     # 休息3s 来让线程对齐 防止未知bug
     sleep(3)
-
-

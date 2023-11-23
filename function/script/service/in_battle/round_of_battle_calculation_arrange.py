@@ -1,9 +1,7 @@
 """计算卡片的部署方案相关的函数"""
 
 
-def calculation_card_task(
-        list_cell_all,
-        task_card):
+def calculation_card_task(list_cell_all, task_card):
     """计算步骤一 加入任务卡的摆放坐标"""
     # 任务卡 大号小号开始位置不同 任务卡id = 0 则为没有
     locations = ["6-2", "6-3", "6-4", "6-5", "6-6"]
@@ -28,11 +26,7 @@ def calculation_card_task(
         return list_cell_all
 
 
-def calculation_card_mat(
-        list_cell_all,
-        stage_info,
-        player,
-        is_group):
+def calculation_card_mat(list_cell_all, stage_info, player, is_group):
     """步骤二 2张承载卡"""
     # 预设中该关卡无垫子
     if stage_info["mat_card"] == 0:
@@ -66,9 +60,7 @@ def calculation_card_mat(
     return list_cell_all
 
 
-def calculation_card_ban(
-        list_cell_all,
-        list_ban_card):
+def calculation_card_ban(list_cell_all, list_ban_card):
     """步骤三 ban掉某些卡"""
     list_new = []
     for i in list_cell_all:
@@ -77,9 +69,7 @@ def calculation_card_ban(
     return list_new
 
 
-def calculation_obstacle(
-        list_cell_all,
-        stage_info):
+def calculation_obstacle(list_cell_all, stage_info):
     """去除有障碍的位置的放卡"""
     # 预设中 该关卡有障碍物
     new_list_1 = []
@@ -96,9 +86,7 @@ def calculation_obstacle(
     return new_list_2
 
 
-def calculation_alt_transformer(
-        list_cell_all,
-        player):
+def calculation_alt_transformer(list_cell_all, player):
     """[非]1P, 队列模式, 就颠倒坐标数组, [非]队列模式代表着优先级很重要的卡片, 所以不颠倒"""
     if player == "2P":
         for i in range(len(list_cell_all)):
@@ -107,15 +95,13 @@ def calculation_alt_transformer(
     return list_cell_all
 
 
-def calculation_shovel(
-        stage_info):
+def calculation_shovel(stage_info):
     """铲子位置 """
     list_shovel = stage_info["shovel"]
     return list_shovel
 
 
-def calculation_one_card(
-        option):
+def calculation_one_card(option):
     """
     计算卡片部署方案
     Args:
@@ -131,9 +117,7 @@ def calculation_one_card(
     return my_list
 
 
-def calculation_mat_card(
-        cell_need_mat,
-        cell_all_dict):
+def calculation_mat_card(cell_need_mat, cell_all_dict):
     """
     计算承载卡的部署方案 - 通过其他需要部署的卡 和此处option定义的区域的 [交集] 来计算
     Args:
@@ -159,13 +143,7 @@ def calculation_mat_card(
     return cell_2
 
 
-def calculation_cell_all_card(
-        stage_info,
-        battle_plan,
-        player,
-        is_group,
-        task_card,
-        list_ban_card):
+def calculation_cell_all_card(stage_info, battle_plan, player, is_group, task_card, list_ban_card):
     """
     计算所有卡片的部署方案
     Return:卡片的部署方案字典
@@ -185,7 +163,8 @@ def calculation_cell_all_card(
     list_cell_all = calculation_card_task(list_cell_all=list_cell_all, task_card=task_card)
 
     # 调用计算承载卡
-    list_cell_all = calculation_card_mat(list_cell_all=list_cell_all, stage_info=stage_info, player=player, is_group=is_group)
+    list_cell_all = calculation_card_mat(list_cell_all=list_cell_all, stage_info=stage_info, player=player,
+                                         is_group=is_group)
 
     # 调用ban掉某些卡(不使用该卡)
     list_cell_all = calculation_card_ban(list_cell_all=list_cell_all, list_ban_card=list_ban_card)
