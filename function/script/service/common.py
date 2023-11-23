@@ -20,15 +20,18 @@ from function.script.service.in_battle.round_of_game import round_of_game
 class FAA:
     def __init__(
             self,
-            channel="锑食", dpi=1.5, player="1P", character_level=1,
+            channel="锑食", zoom=1, serve_id="1", player="1P", character_level=1,
             is_use_key=True, is_auto_battle=True, is_auto_collect=False
     ):
 
         # 获取窗口句柄
         self.handle = faa_get_handle(channel=channel, mode="game")
+        self.handle_browser = faa_get_handle(channel=channel, mode="browser")
+        self.handle_360 = faa_get_handle(channel=channel, mode="360")
 
-        # DPI
-        self.zoom = dpi  # float 1.0 即百分百
+        # 缩放
+        self.zoom = zoom  # float 1.0 即百分百
+        self.serve_id = serve_id
 
         # 角色|等级|是否使用钥匙|卡片|收集战利品
         self.player = player
@@ -838,19 +841,90 @@ class FAA:
                              click=True,
                              click_zoom=self.zoom)
 
+    """reload game"""
+
+    def reload_game(self):
+        while True:
+            # 点击刷新按钮 该按钮在360窗口上
+            target_path = self.paths["picture"]["common"] + "\\login_refresh.png"
+            loop_find_p_in_w(raw_w_handle=self.handle_360,
+                             raw_range=[0, 0, 2000, 2000],
+                             target_path=target_path,
+                             target_tolerance=0.99,
+                             target_sleep=5,
+                             click=True,
+                             click_zoom=self.zoom)
+
+            # 检测是否有 输入服务器id字样
+            target_path = self.paths["picture"]["common"] + "\\login_input_server_id.png"
+            result = loop_find_p_in_w(raw_w_handle=self.handle_browser,
+                                      raw_range=[0, 0, 2000, 2000],
+                                      target_path=target_path,
+                                      target_tolerance=0.99,
+                                      click=False)
+            if not result:
+                print("[{}] 未找到进入输入服务器, 可能随机进入了未知界面, 刷新".format(self.player))
+                continue
+
+            else:
+                # 点击两次右边的输入框 并输入服务器号
+                target_path = self.paths["picture"]["common"] + "\\login_input_server_id.png"
+                x, y = find_p_in_w(raw_w_handle=self.handle_browser,
+                                   raw_range=[0, 0, 2000, 2000],
+                                   target_path=target_path,
+                                   target_tolerance=0.99)
+                mouse_left_click(handle=self.handle_browser,
+                                 x=int(x + 64) * self.zoom,
+                                 y=int(y * self.zoom),
+                                 interval_time=0.05,
+                                 sleep_time=0.2)
+                mouse_left_click(handle=self.handle_browser,
+                                 x=int(x + 64) * self.zoom,
+                                 y=int(y * self.zoom),
+                                 interval_time=0.05,
+                                 sleep_time=0.2)
+
+                for key in self.serve_id:
+                    key_down_up(handle=self.handle_browser, key=key, sleep_time=0.1)
+                sleep(1)
+
+                target_path = self.paths["picture"]["common"] + "\\login_input_server_enter.png"
+                result = loop_find_p_in_w(raw_w_handle=self.handle_browser,
+                                          raw_range=[0, 0, 2000, 2000],
+                                          target_path=target_path,
+                                          target_tolerance=0.95,  # 有轻微色差
+                                          click=True,
+                                          click_zoom=self.zoom)
+                if not result:
+                    print("[{}] 未找到进入输入服务器 + 进入服务器, 刷新".format(self.player))
+                    continue
+
+                target_path = self.paths["picture"]["common"] + "\\login_health_game_advice.png"
+                result = loop_find_p_in_w(raw_w_handle=self.handle_browser,
+                                          raw_range=[0, 0, 2000, 2000],
+                                          target_path=target_path,
+                                          target_tolerance=0.99,
+                                          click=False)
+                if not result:
+                    print("[{}] 未找到健康游戏公告, 刷新".format(self.player))
+                    continue
+                else:
+                    target_path = self.paths["picture"]["common"] + "\\login_health_game_advice_enter.png"
+                    loop_find_p_in_w(raw_w_handle=self.handle_browser,
+                                     raw_range=[0, 0, 2000, 2000],
+                                     target_path=target_path,
+                                     target_tolerance=0.99,
+                                     click=True,
+                                     click_zoom=self.zoom)
+
+                    # 每日必充界面可能弹出 但没有影响
+                    break
+
 
 if __name__ == '__main__':
     def main():
         faa = FAA()
-        faa.get_config_for_battle(True, 1, "NO-5-3")
-        # faa.action_exit(exit_mode=3)
-        loop_find_p_in_w(raw_w_handle=faa.handle,
-                         raw_range=[0, 0, 950, 600],
-                         target_path=faa.paths["picture"]["common"] + "\\bottom_menu_goto_arena.png",
-                         target_tolerance=0.99,
-                         target_failed_check=100,
-                         target_sleep=1.5,
-                         click=True,
-                         click_zoom=faa.zoom)
+        faa.reload_game()
+
 
     main()

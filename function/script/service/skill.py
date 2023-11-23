@@ -5,7 +5,7 @@ from function.script.service.common import FAA
 
 
 def f_proficiency(channel, dpi):
-    fvm = FAA(channel=channel, dpi=dpi)
+    fvm = FAA(channel=channel, zoom=dpi)
     dpi = fvm.zoom
     path_common = fvm.path_p_common
     path_p_stage = fvm.path_p_stage

@@ -647,6 +647,7 @@ class MyMainWindow2(MyMainWindow1):
         if not self.thread_states:
             self.ui_to_opt()
             game_name = self.opt["GameName"]
+            serve_id = self.opt["serve_id"]
             name_1p = self.opt["Name1P"]
             name_2p = self.opt["Name2P"]
             channel_1p, channel_2p = get_channel_name(game_name, name_1p, name_2p)
@@ -656,7 +657,8 @@ class MyMainWindow2(MyMainWindow1):
             zoom_ratio = zoom_ratio[self.opt["ZoomRatio"]]
 
             faa_1 = FAA(channel=channel_1p,
-                        dpi=zoom_ratio,
+                        zoom=zoom_ratio,
+                        serve_id=serve_id,
                         player="1P",
                         character_level=self.opt["Level1P"],
                         is_use_key=True,  # boolean 是否使用钥匙 做任务必须选择 是
@@ -664,7 +666,8 @@ class MyMainWindow2(MyMainWindow1):
                         is_auto_collect=False)
 
             faa_2 = FAA(channel=channel_2p,
-                        dpi=zoom_ratio,
+                        zoom=zoom_ratio,
+                        serve_id=serve_id,
                         player="2P",
                         character_level=self.opt["Level2P"],
                         is_use_key=True,

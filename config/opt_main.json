@@ -2,12 +2,12 @@
     "GameName": "\u9511\u98df",
     "Name1P": "",
     "Name2P": "\u6df1\u6e0a\u4e4b\u4e0b",
-    "ZoomRatio": 2,
+    "ZoomRatio": 0,
     "Level1P": 59,
     "Level2P": 55,
     "AutoUseCard": true,
     "GuildTask": {
-        "Active": true,
+        "Active": false,
         "Skip": true,
         "Deck": 6,
         "BattlePlan1P": 11,
@@ -51,7 +51,7 @@
     "Warrior": {
         "Active": false,
         "IsGroup": true,
-        "MaxTimes": 6,
+        "MaxTimes": 2,
         "Deck": 6,
         "BattlePlan1P": 11,
         "BattlePlan2P": 12,
@@ -78,13 +78,13 @@
         "Group": false
     },
     "NormalBattle": {
-        "Active": false,
+        "Active": true,
         "IsGroup": true,
-        "MaxTimes": 1,
-        "Stage": "EX-4-5",
-        "Deck": 5,
-        "BattlePlan1P": 6,
-        "BattlePlan2P": 7,
+        "MaxTimes": 7,
+        "Stage": "NO-1-7",
+        "Deck": 6,
+        "BattlePlan1P": 11,
+        "BattlePlan2P": 12,
         "Group": true
     },
     "Customize": {

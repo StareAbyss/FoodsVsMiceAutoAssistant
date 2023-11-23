@@ -7,17 +7,18 @@ def faa_get_handle(channel, mode="game"):
     号1：输入你为游戏命名 例如'锑食‘
     号2：输入你命名的角色名 + 空格 + | + 空格 游戏命名。例如：'深渊之下 | 锑食'
     :param channel: 频道名称
-    :param mode: "browser" -> "game"
+    :param mode: "360" -> "browser" -> "game"
     :return: handel
     """
 
-    handle = FindWindow("DUIWindow", channel)  # 360窗口
-    if mode == "game":
+    handle = FindWindow("DUIWindow", channel)  # 360窗口 该层级有刷新框
+    if mode in ["browser", "game"]:
         handle = FindWindowEx(handle, None, "TabContentWnd", "")
         handle = FindWindowEx(handle, None, "CefBrowserWindow", "")
-        handle = FindWindowEx(handle, None, "Chrome_WidgetWin_0", "")  # 4399窗口
+        handle = FindWindowEx(handle, None, "Chrome_WidgetWin_0", "")  # 该层级 有 服务器序号输入框
+    if mode == "game":
         handle = FindWindowEx(handle, None, "WrapperNativeWindowClass", "")
-        handle = FindWindowEx(handle, None, "NativeWindowClass", "")  # 游戏窗口
+        handle = FindWindowEx(handle, None, "NativeWindowClass", "")  # game窗口
 
     return handle
 

@@ -1,6 +1,6 @@
 from time import sleep
 
-from cv2 import imread, IMREAD_UNCHANGED, TM_SQDIFF_NORMED, minMaxLoc, matchTemplate
+from cv2 import imread, IMREAD_UNCHANGED, TM_SQDIFF_NORMED, minMaxLoc, matchTemplate, rectangle, imshow, waitKey
 
 from function.common.bg_mouse import mouse_left_click
 from function.common.bg_p_screenshot import capture_picture_png
@@ -50,15 +50,15 @@ def find_p_in_w(
     (start_x, start_y) = minLoc
 
     # 测试时绘制边框
-    # if __name__ == '__main__':
-    #     # 确定起点和终点的(x，y)坐标边界框
-    #     end_x = start_x + tar_img.shape[1]
-    #     end_y = start_y + tar_img.shape[0]
-    #     # 在图像上绘制边框
-    #     rectangle(img=raw_img, pt1=(start_x, start_y), pt2=(end_x, end_y), color=(0, 0, 255), thickness=1)
-    #     # 显示输出图像
-    #     imshow(winname="Output.jpg", mat=raw_img)
-    #     waitKey(0)
+    if __name__ == '__main__':
+        # 确定起点和终点的(x，y)坐标边界框
+        end_x = start_x + tar_img.shape[1]
+        end_y = start_y + tar_img.shape[0]
+        # 在图像上绘制边框
+        rectangle(img=raw_img, pt1=(start_x, start_y), pt2=(end_x, end_y), color=(0, 0, 255), thickness=1)
+        # 显示输出图像
+        imshow(winname="Output.jpg", mat=raw_img)
+        waitKey(0)
 
     # 输出识别到的中心
     return [start_x + int(tar_img.shape[1] / 2), start_y + int(tar_img.shape[0] / 2)]
@@ -219,16 +219,17 @@ if __name__ == '__main__':
 
 
     def main():
-        # handle = faa_get_handle("锑食")
-        handle = faa_get_handle("深渊之下 | 锑食")
-        target_path = paths["picture"]["stage"] + "\\NO-1.png"
+        handle = faa_get_handle("锑食", mode="browser")
+        # handle = faa_get_handle(channel="深渊之下 | 锑食", mode="browser")
+        target_path = paths["picture"]["common"] + "\\login_input_server_enter.png"
         result = loop_find_p_in_w(raw_w_handle=handle,
                                   raw_range=[0, 0, 950, 600],
                                   target_path=target_path,
+                                  target_tolerance=0.98,
                                   target_sleep=1,
                                   target_failed_check=2,
                                   click=True,
-                                  click_zoom=1.5)
+                                  click_zoom=1)
         # result = find_p_in_w(raw_w_handle=handle,
         #                      raw_range=[0, 0, 950, 600],
         #                      target_path=target_path)
