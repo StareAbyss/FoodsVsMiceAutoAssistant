@@ -30,7 +30,7 @@ def f_proficiency(channel, dpi):
 
         # 检测读条完成
         while True:
-            a = find_p_in_w(handle, path_common + "\\battle_fire_element.png")
+            a = find_p_in_w(handle, path_common + "\\battle\\fire_element.png")
             if a:
                 break
         # 战斗并退出

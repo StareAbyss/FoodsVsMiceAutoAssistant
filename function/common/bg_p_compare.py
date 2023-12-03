@@ -1,6 +1,7 @@
 from time import sleep
 
-from cv2 import imread, IMREAD_UNCHANGED, TM_SQDIFF_NORMED, minMaxLoc, matchTemplate, rectangle, imshow, waitKey
+import cv2
+import numpy as np
 
 from function.common.bg_mouse import mouse_left_click
 from function.common.bg_p_screenshot import capture_picture_png
@@ -26,8 +27,10 @@ def find_p_in_w(
 
 
     """
+    # tar_img = cv2.imread(filename=target_path, flags=cv2.IMREAD_UNCHANGED)  # 读取目标图像, (行,列,ABGR), 不可使用中文路径
+    tar_img = cv2.imdecode(np.fromfile(target_path, dtype=np.uint8), -1)  # 读取目标图像,中文路径兼容方案, (行,列,ABGR)
+
     raw_img = capture_picture_png(handle=raw_w_handle, raw_range=raw_range)  # 截取原始图像(windows窗口)
-    tar_img = imread(filename=target_path, flags=IMREAD_UNCHANGED)  # 读取目标图像, 带透明度
 
     # 执行模板匹配，采用的匹配方式cv2.TM_SQDIFF_NORMED, 仅匹配BGR不匹配A
     """
@@ -39,10 +42,10 @@ def find_p_in_w(
     CV_TM_CCOEFF:系数匹配法；
     CV_TM_CCOEFF_NORMED:归一化相关系数匹配法 [1]->[0]->[-1]
     """
-    result = matchTemplate(image=tar_img[:, :, :-1], templ=raw_img[:, :, :-1], method=TM_SQDIFF_NORMED)
-    (minVal, maxVal, minLoc, maxLoc) = minMaxLoc(src=result)
+    result = cv2.matchTemplate(image=tar_img[:, :, :-1], templ=raw_img[:, :, :-1], method=cv2.TM_SQDIFF_NORMED)
+    (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(src=result)
 
-    # 如果匹配度小于85%，就认为没有找到
+    # 如果匹配度<阈值，就认为没有找到
     if minVal > 1 - target_tolerance:
         return None
 
@@ -55,10 +58,10 @@ def find_p_in_w(
         end_x = start_x + tar_img.shape[1]
         end_y = start_y + tar_img.shape[0]
         # 在图像上绘制边框
-        rectangle(img=raw_img, pt1=(start_x, start_y), pt2=(end_x, end_y), color=(0, 0, 255), thickness=1)
+        cv2.rectangle(img=raw_img, pt1=(start_x, start_y), pt2=(end_x, end_y), color=(0, 0, 255), thickness=1)
         # 显示输出图像
-        imshow(winname="Output.jpg", mat=raw_img)
-        waitKey(0)
+        cv2.imshow(winname="Output.jpg", mat=raw_img)
+        cv2.waitKey(0)
 
     # 输出识别到的中心
     return [start_x + int(tar_img.shape[1] / 2), start_y + int(tar_img.shape[0] / 2)]
@@ -85,11 +88,12 @@ def find_ps_in_w(
 
         target_path = p["target_path"]
         target_tolerance = p["target_tolerance"]
-        tar_img = imread(filename=target_path, flags=IMREAD_UNCHANGED)  # 读取目标图像, 带透明度
+        # tar_img = cv2.imread(filename=target_path, flags=cv2.IMREAD_UNCHANGED)  # 读取目标图像, (行,列,ABGR), 不可使用中文路径
+        tar_img = cv2.imdecode(np.fromfile(target_path, dtype=np.uint8), -1)  # 读取目标图像,中文路径兼容方案, (行,列,ABGR)
 
         # 执行模板匹配，采用的匹配方式cv2.TM_SQDIFF_NORMED
-        result = matchTemplate(image=tar_img[:, :, :-1], templ=raw_img[:, :, :-1], method=TM_SQDIFF_NORMED)
-        (minVal, maxVal, minLoc, maxLoc) = minMaxLoc(src=result)
+        result = cv2.matchTemplate(image=tar_img[:, :, :-1], templ=raw_img[:, :, :-1], method=cv2.TM_SQDIFF_NORMED)
+        (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(src=result)
 
         # 如果匹配度小于X%，就认为没有找到
         if minVal > 1 - target_tolerance:
@@ -219,9 +223,12 @@ if __name__ == '__main__':
 
 
     def main():
+
         handle = faa_get_handle("锑食", mode="game")
         # handle = faa_get_handle(channel="深渊之下 | 锑食", mode="browser")
-        target_path = paths["picture"]["common"] + "\\sign_in\\daily_sign_in.png"
+
+        target_path = paths["picture"]["card"] + "\\小火炉-2.png"
+
         result = loop_find_p_in_w(raw_w_handle=handle,
                                   raw_range=[0, 0, 950, 600],
                                   target_path=target_path,

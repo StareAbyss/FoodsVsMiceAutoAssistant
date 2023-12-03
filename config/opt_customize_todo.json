@@ -1,13 +1,13 @@
 [
     {
         "stage_id": "NO-1-7",
-        "max_times": 2,
+        "max_times": 4,
         "deck": 6,
         "is_group": true,
         "battle_plan_1p": "默认-1P",
         "battle_plan_2p": "默认-2P",
         "task_card": "None",
-        "list_ban_card": [],
+        "list_ban_card": ["小火炉-0"],
         "dict_exit": {
             "other_time": [
                 0

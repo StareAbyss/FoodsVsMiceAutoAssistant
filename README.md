@@ -48,14 +48,14 @@ The original intention of developing this tool is to fulfill a childhood wish te
     │   ├─ 自动使用武器技能.
     │   └─ 2P 角色的自动拾取.
     │
-    ├─ 其他特性
-    │   └─ 带一个不瞎眼的GUI界面(大概)
-    │
-    ├─ 自动日常(开发中...)
+    ├─ 自动日常
     │   ├─ 每日签到
     │   ├─ 美食活动免费许愿
     │   ├─ 每日vip签到&礼卷领取
     │   └─ 每日免费塔罗抽取
+    │
+    ├─ 其他特性
+    │   └─ 带一个不瞎眼的GUI界面(大概)
     │
     └─ 未来计划
         └─ 自动登录和自动启动

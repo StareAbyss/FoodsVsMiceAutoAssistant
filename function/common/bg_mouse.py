@@ -14,7 +14,7 @@ WHEEL_DELTA = 120
 """
 
 
-def mouse_move_to(handle: HWND, x: int, y: int):
+def mouse_left_moveto(handle: HWND, x: int, y: int):
     """移动鼠标到坐标（x, y)
 
     Args:
@@ -84,7 +84,7 @@ def scroll(handle: HWND, delta: int, x: int, y: int):
         x (int): 横坐标
         y (int): 纵坐标
     """
-    mouse_move_to(handle, x, y)
+    mouse_left_moveto(handle, x, y)
     # https://docs.microsoft.com/en-us/windows/win32/inputdev/wm-mousewheel
     wparam = delta << 16
     p = POINT(x, y)

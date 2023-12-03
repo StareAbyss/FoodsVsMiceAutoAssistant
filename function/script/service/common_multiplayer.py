@@ -1,5 +1,6 @@
 from function.common.bg_mouse import mouse_left_click
 from function.common.bg_p_compare import loop_find_p_in_w
+from function.get_paths import paths
 
 """包含 需要多个角色异步完成的操作"""
 
@@ -14,7 +15,7 @@ def invite(faa_1: object,faa_2: object):
     zoom = faa_1.zoom
     if not loop_find_p_in_w(raw_w_handle=faa_1.handle,
                             raw_range=[0, 0, 950, 600],
-                            target_path=faa_1.paths["picture"]["common"] + "\\battle_before_ready_check_start.png",
+                            target_path=paths["picture"]["common"] + "\\battle\\before_ready_check_start.png",
                             click_zoom=zoom,
                             target_sleep=0.3,
                             click=False,
@@ -33,7 +34,7 @@ def invite(faa_1: object,faa_2: object):
     """p2接受邀请"""
     if not loop_find_p_in_w(raw_w_handle=faa_2.handle,
                             raw_range=[0, 0, 950, 600],
-                            target_path=faa_1.paths["picture"]["common"] + "\\battle_before_be_invited_enter.png",
+                            target_path=paths["picture"]["common"] + "\\battle\\before_be_invited_enter.png",
                             click_zoom=zoom,
                             target_sleep=2.0,
                             target_failed_check=2.0):
@@ -44,4 +45,3 @@ def invite(faa_1: object,faa_2: object):
     mouse_left_click(handle=faa_1.handle, x=int(590 * zoom), y=int(491 * zoom), sleep_time=1.5)
 
     return True
-

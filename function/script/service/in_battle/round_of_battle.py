@@ -1,7 +1,7 @@
 from time import sleep, time
 
 from function.common.bg_keyboard import key_down_up
-from function.common.bg_mouse import mouse_left_click, mouse_move_to
+from function.common.bg_mouse import mouse_left_click, mouse_left_moveto
 from function.common.bg_p_compare import find_ps_in_w, find_p_in_w
 from function.script.service.in_battle.round_of_battle_calculation_arrange import calculation_cell_all_card
 from function.tools.create_battle_coordinates import create_battle_coordinates
@@ -148,7 +148,7 @@ class RoundOfBattle:
     def use_card_loop_0(self, list_cell_all):
         """
         !!!最重要的函数!!!
-        本项目的精髓, 性能开销最大的函数, 为了优化性能, 可读性和低耦合这些就放弃了吧...
+        本项目的精髓, 性能开销最大的函数, 为了性能, [可读性]和[低耦合]已牺牲...
         循环方式:
         每一个卡都先在其对应的全部的位置放一次,再放下一张(每轮开始位置+1)
         """
@@ -168,7 +168,7 @@ class RoundOfBattle:
         auto_collect_cells = self.auto_collect_cells
         warning_cell = self.warning_cell
 
-        # 计算一轮最长时间(防止空转)
+        # 计算一轮最长时间(防止一轮太短, 导致某些卡cd转不好就尝试点它也就是空转)
         max_len_position_in_opt = 0
         for i in list_cell_all:
             max_len_position_in_opt = max(max_len_position_in_opt, len(i["location"]))
@@ -228,7 +228,7 @@ class RoundOfBattle:
                                          y=battle_cell[j][1])
 
                     """放卡后点一下空白"""
-                    mouse_move_to(handle=handle, x=200, y=350)
+                    mouse_left_moveto(handle=handle, x=200, y=350)
                     mouse_left_click(handle=handle, x=200, y=350, interval_time=click_interval,
                                      sleep_time=click_sleep)
 
@@ -236,8 +236,7 @@ class RoundOfBattle:
                 if time() - check_last_one_time > check_invite:
 
                     # 测试用时
-                    # print("[{}][放卡间进行了战斗结束检测] {:.2f}s".format(
-                    #     self.player, time() - check_last_one_time))
+                    # print("[{}][放卡间进行了战斗结束检测] {:.2f}s".format(self.player, time() - check_last_one_time))
 
                     # 更新上次检测时间 + 更新flag + 中止休息循环
                     check_last_one_time = time()
@@ -255,28 +254,19 @@ class RoundOfBattle:
                     list_cell_all[i]["location"].remove(list_cell_all[i]["location"][0])
 
             """武器技能"""
-            mouse_left_click(handle=handle,
-                             x=int(23 * zoom),
-                             y=int(200 * zoom),
-                             interval_time=click_interval,
-                             sleep_time=click_sleep)
-            mouse_left_click(handle=handle,
-                             x=int(23 * zoom),
-                             y=int(250 * zoom),
-                             interval_time=click_interval,
-                             sleep_time=click_sleep)
-            mouse_left_click(handle=handle,
-                             x=int(23 * zoom),
-                             y=int(297 * zoom),
-                             interval_time=click_interval,
-                             sleep_time=click_sleep)
+            mouse_left_click(handle=handle,x=int(23 * zoom),y=int(200 * zoom),
+                             interval_time=click_interval,sleep_time=click_sleep)
+            mouse_left_click(handle=handle,x=int(23 * zoom),y=int(250 * zoom),
+                             interval_time=click_interval,sleep_time=click_sleep)
+            mouse_left_click(handle=handle,x=int(23 * zoom),y=int(297 * zoom),
+                             interval_time=click_interval,sleep_time=click_sleep)
 
             """自动收集"""
             if is_auto_collect:
                 for coordinate in auto_collect_cells:
-                    mouse_move_to(handle=handle,
-                                  x=battle_cell[coordinate][0],
-                                  y=battle_cell[coordinate][1])
+                    mouse_left_moveto(handle=handle,
+                                      x=battle_cell[coordinate][0],
+                                      y=battle_cell[coordinate][1])
                     sleep(click_sleep)
 
             """一轮不到7s+点7*9个位置需要的时间, 休息到该时间, 期间每[self.check_invite]秒检测一次"""
@@ -288,8 +278,7 @@ class RoundOfBattle:
                     if time() - check_last_one_time > check_invite:
 
                         # 测试用时
-                        # print("[{}][休息期战斗结束检测] {:.2f}s".format(
-                        #     self.player,time() - check_last_one_time))
+                        # print("[{}][休息期战斗结束检测] {:.2f}s".format(self.player,time() - check_last_one_time))
 
                         # 更新上次检测时间 + 更新flag + 中止休息循环
                         check_last_one_time = time()
@@ -343,7 +332,7 @@ class RoundOfBattle:
 
         # 点一下空白
         if click_space:
-            mouse_move_to(handle=self.handle, x=200, y=350)
+            mouse_left_moveto(handle=self.handle, x=200, y=350)
             mouse_left_click(handle=self.handle, x=200, y=350,
                              interval_time=self.click_interval, sleep_time=self.click_sleep)
 
@@ -369,7 +358,7 @@ class RoundOfBattle:
             if mode == 1:
                 if find_p_in_w(raw_w_handle=self.handle,
                                raw_range=[0, 0, 950, 600],
-                               target_path=self.path_p_common + "\\battle_next_need.png"):
+                               target_path=self.path_p_common + "\\battle\\next_need.png"):
                     mouse_left_click(handle=self.handle,
                                      interval_time=self.click_interval,
                                      sleep_time=self.click_sleep,
@@ -383,23 +372,23 @@ class RoundOfBattle:
                             raw_range=[0, 0, 950, 600],
                             target_opts=[
                                 {
-                                    "target_path": self.path_p_common + "\\battle_end_1_loot.png",
+                                    "target_path": self.path_p_common + "\\battle\\end_1_loot.png",
                                     "target_tolerance": 0.999
                                 },
                                 {
-                                    "target_path": self.path_p_common + "\\battle_end_2_loot.png",
+                                    "target_path": self.path_p_common + "\\battle\\end_2_loot.png",
                                     "target_tolerance": 0.999
                                 },
                                 {
-                                    "target_path": self.path_p_common + "\\battle_end_3_summarize.png",
+                                    "target_path": self.path_p_common + "\\battle\\end_3_summarize.png",
                                     "target_tolerance": 0.999
                                 },
                                 {
-                                    "target_path": self.path_p_common + "\\battle_end_4_chest.png",
+                                    "target_path": self.path_p_common + "\\battle\\end_4_chest.png",
                                     "target_tolerance": 0.999
                                 },
                                 {
-                                    "target_path": self.path_p_common + "\\battle_before_ready_check_start.png",
+                                    "target_path": self.path_p_common + "\\battle\\before_ready_check_start.png",
                                     "target_tolerance": 0.999
                                 }
                             ],

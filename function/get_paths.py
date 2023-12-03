@@ -24,6 +24,7 @@ paths = {
     "picture": {
     },
 }
+
 paths["logs"] = paths["root"] + "\\logs"
 paths["config"] = paths["root"] + "\\config"
 paths["picture"]["current"] = paths["root"] + "\\resource\\picture"
@@ -34,6 +35,7 @@ paths["picture"]["stage"] = paths["picture"]["current"] + "\\stage"
 paths["picture"]["guild_task"] = paths["picture"]["current"] + "\\task_guild"
 paths["picture"]["spouse_task"] = paths["picture"]["current"] + "\\task_spouse"
 paths["picture"]["ready_check_stage"] = paths["picture"]["current"] + "\\stage_ready_check"
+paths["picture"]["map"] = paths["picture"]["current"] + "\\map"
 
 
 def get_paths_faa_new():
@@ -42,6 +44,7 @@ def get_paths_faa_new():
 
 
 def get_paths_faa_old():
+    """老方法, 启用"""
     my_paths = {
         "root": get_root_path(),
         "logs": None,

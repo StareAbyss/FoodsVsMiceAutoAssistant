@@ -1,10 +1,10 @@
 切换位置
     
-    cd D:\Project_Python\exe_workspace
+    cd F:\Project\Python\WorkSpace\_ExeWorkSpace
 
 打包开始
 
-    pyinstaller -i "D:\Project_Python\WorkSpace\FoodsVsMouses_AutoAssistant\resource\logo\icon-64x64.ico" -w -D  "D:\Project_Python\WorkSpace\FoodsVsMouses_AutoAssistant\function\main.py"
+    pyinstaller -i "F:\Project\Python\WorkSpace\FoodsVsMousesAutoAssistant\resource\logo\icon-64x64.ico" -w -D  "F:\Project\Python\WorkSpace\FoodsVsMousesAutoAssistant\function\main.py"
 
 其他tip
 
