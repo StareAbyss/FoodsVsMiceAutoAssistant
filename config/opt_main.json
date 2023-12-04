@@ -32,7 +32,7 @@
     "magic_tower_double": {
         "active": true,
         "max_times": 5,
-        "stage": 95,
+        "stage": 99,
         "deck": 1,
         "battle_plan_1p": 2,
         "battle_plan_2p": 3
