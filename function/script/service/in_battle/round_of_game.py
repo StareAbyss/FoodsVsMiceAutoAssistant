@@ -1,3 +1,4 @@
+import os
 from time import sleep
 
 from function.common.bg_mouse import mouse_left_click
@@ -46,42 +47,74 @@ def round_of_game(handle, zoom, paths, player, stage_info_id, action_battle_norm
     if delay_start:
         sleep(0.5)
     # 选择卡组
-    print("[{}] 选择卡组".format(player))
+    print("[{}] 选择卡组, 并开始加入新卡和ban卡".format(player))
     mouse_left_click(handle=handle,
                      x=int({1: 425, 2: 523, 3: 588, 4: 666, 5: 756, 6: 837}[deck] * zoom),
                      y=int(121 * zoom),
                      sleep_time=0.5)
 
-    """开始寻找并添加任务所需卡片"""
-    # 由于公会任务的卡组特性, 当任务卡为[气泡]时, 不需要额外选择带卡.
-    if task_card == "None" or task_card == "气泡-0":
-        print("[{}] 不需要额外带卡,跳过".format(player))
-    else:
-        # 房主晚点开始
-        if delay_start:
-            sleep(6)
-        print("[{}] 开始寻找任务卡".format(player))
-        # 复位滑块
-        mouse_left_click(handle=handle, x=int(931 * zoom), y=int(209 * zoom), sleep_time=0.25)
-        flag_find_task_card = False
-        for i in range(7):
-            # 找到就点一下
-            if not flag_find_task_card:
-                find = loop_find_p_in_w(
-                    raw_w_handle=handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=paths["picture"]["card"] + "\\" + task_card + ".png",
-                    target_tolerance=0.95,
-                    click_zoom=zoom,
-                    click=True,
-                    target_failed_check=1)
-                if find:
-                    flag_find_task_card = True
-            # 滑块向下移动3次
-            for j in range(3):
-                mouse_left_click(handle=handle, x=int(931 * zoom), y=int(400 * zoom), sleep_time=0.05)
-        # 双方都完成循环 以保证同步
-        print("[{}] 完成任务卡查找 大概.?".format(player))
+    def action_add_task_card():
+        """寻找并添加任务所需卡片"""
+
+        # 由于公会任务的卡组特性, 当任务卡为[气泡]时, 不需要额外选择带卡.
+        if task_card == "None" or task_card == "气泡-0":
+            print("[{}] 不需要额外带卡,跳过".format(player))
+        else:
+            # 房主晚点开始
+            if delay_start:
+                sleep(6)
+            print("[{}] 开始寻找任务卡".format(player))
+            # 复位滑块
+            mouse_left_click(handle=handle, x=int(931 * zoom), y=int(209 * zoom), sleep_time=0.25)
+            flag_find_task_card = False
+            for i in range(7):
+                # 找到就点一下
+                if not flag_find_task_card:
+                    find = loop_find_p_in_w(
+                        raw_w_handle=handle,
+                        raw_range=[0, 0, 950, 600],
+                        target_path=paths["picture"]["card"] + "\\" + task_card + ".png",
+                        target_tolerance=0.95,
+                        click_zoom=zoom,
+                        click=True,
+                        target_failed_check=1)
+                    if find:
+                        flag_find_task_card = True
+                # 滑块向下移动3次
+                for j in range(3):
+                    mouse_left_click(handle=handle, x=int(931 * zoom), y=int(400 * zoom), sleep_time=0.05)
+            # 双方都完成循环 以保证同步
+            print("[{}] 完成任务卡查找 大概.?".format(player))
+
+    def action_remove_ban_card():
+        """寻找并移除需要ban的卡, 暂不支持跨页ban, 只从前11张ban"""
+
+        # 只有ban卡数组非空, 继续进行
+        if list_ban_card:
+
+            # 读取所有可以ban的卡片名称
+            list_all_card_can_ban = os.listdir(paths["picture"]["card"])
+
+            # 遍历ban卡
+            for ban_card in list_ban_card:
+                ban_cards = []
+                for i in range(8):
+                    ban_cards.append("{}-{}.png".format(ban_card,i))
+                for ban_card_n in ban_cards:
+                    # 只ban被记录了图片的变种卡
+                    if ban_card_n in list_all_card_can_ban:
+                        loop_find_p_in_w(raw_w_handle=handle,
+                                         raw_range=[0, 0, 920, 110],
+                                         target_path=paths["picture"]["card"] + "\\" + ban_card_n,
+                                         target_tolerance=0.95,
+                                         target_interval=0.2,
+                                         target_failed_check=1,
+                                         target_sleep=0.1,
+                                         click=True,
+                                         click_zoom=zoom)
+
+    action_add_task_card()
+    action_remove_ban_card()
 
     # 房主延时
     if delay_start:

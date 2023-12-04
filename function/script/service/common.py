@@ -304,7 +304,7 @@ class FAA:
         # 点击进入OR界面
         loop_find_p_in_w(raw_w_handle=self.handle,
                          raw_range=[0, 0, 950, 600],
-                         target_path=paths["picture"]["stage"] + "\\OR.png",
+                         target_path=paths["picture"]["common"] + "\\顶部菜单\\X年活动",
                          target_sleep=2,
                          click=True,
                          click_zoom=self.zoom)
@@ -347,7 +347,7 @@ class FAA:
 
         target = find_p_in_w(raw_w_handle=self.handle,
                              raw_range=[0, 0, 950, 600],
-                             target_path=paths["picture"]["common"] + "\\above_report.png")
+                             target_path=paths["picture"]["common"] + "\\顶部菜单\\举报.png")
 
         if serial_num == 1:
             if target:
@@ -374,13 +374,13 @@ class FAA:
 
     def action_goto_map(self, map_id):
         """
-        用于前往各个地图,0美味阵,1美味岛,2火山岛,3火山遗迹,4浮空岛,5海底,6营地
+        用于前往各地图,0.美味阵,1.美味岛,2.火山岛,3.火山遗迹,4.浮空岛,5.海底,6.营地
         """
 
         # 点击世界地图
         if not loop_find_p_in_w(raw_w_handle=self.handle,
                                 raw_range=[0, 0, 950, 600],
-                                target_path=paths["picture"]["common"] + "\\above_map.png",
+                                target_path=paths["picture"]["common"] + "\\顶部菜单\\大地图.png",
                                 click_zoom=self.zoom,
                                 target_sleep=1.5,
                                 click=True,
@@ -566,7 +566,7 @@ class FAA:
             # 点击进入跨服副本界面
             loop_find_p_in_w(raw_w_handle=self.handle,
                              raw_range=[0, 0, 950, 600],
-                             target_path=paths["picture"]["stage"] + "\\CS.png",
+                             target_path=paths["picture"]["common"] + "\\顶部菜单\\跨服远征.png",
                              target_sleep=2,
                              click=True,
                              click_zoom=self.zoom)
@@ -639,7 +639,7 @@ class FAA:
             self.change_activity_list(1)
 
             # 点击进入悬赏副本
-            my_path = paths["picture"]["stage"] + "\\OR.png"
+            my_path = paths["picture"]["common"] + "\\顶部菜单\\X年活动"
             loop_find_p_in_w(raw_w_handle=self.handle,
                              raw_range=[0, 0, 950, 600],
                              target_path=my_path,
@@ -771,53 +771,127 @@ class FAA:
         )
 
     def action_exit(self, exit_mode: int):
-        """退出 0-不退出  1-右下回退到上一级  2-右上红叉  3-直接到竞技岛 4-悬赏"""
+        """退出 0-不退出  1-右下回退到上一级  2-右上红叉  3-直接到竞技岛 4-悬赏 5-美食大赛领取"""
+        handle = self.handle
+        zoom = self.zoom
         if exit_mode == 1:
-            loop_find_p_in_w(raw_w_handle=self.handle,
+            loop_find_p_in_w(raw_w_handle=handle,
                              raw_range=[0, 0, 950, 600],
                              target_path=paths["picture"]["common"] + "\\bottom_menu\\back.png",
                              target_failed_check=100,
                              target_sleep=1.5,
                              click=True,
-                             click_zoom=self.zoom)
+                             click_zoom=zoom)
 
         if exit_mode == 2:
-            loop_find_p_in_w(raw_w_handle=self.handle,
+            loop_find_p_in_w(raw_w_handle=handle,
                              raw_range=[0, 0, 950, 600],
                              target_path=paths["picture"]["common"] + "\\battle\\before_exit_x.png",
                              target_failed_check=100,
                              target_sleep=1.5,
                              click=True,
-                             click_zoom=self.zoom)
+                             click_zoom=zoom)
 
         if exit_mode == 3:
-            loop_find_p_in_w(raw_w_handle=self.handle,
+            loop_find_p_in_w(raw_w_handle=handle,
                              raw_range=[0, 0, 950, 600],
                              target_path=paths["picture"]["common"] + "\\bottom_menu\\goto.png",
                              target_tolerance=0.99,
                              target_failed_check=100,
                              target_sleep=1.5,
                              click=True,
-                             click_zoom=self.zoom)
+                             click_zoom=zoom)
 
-            loop_find_p_in_w(raw_w_handle=self.handle,
+            loop_find_p_in_w(raw_w_handle=handle,
                              raw_range=[0, 0, 950, 600],
                              target_path=paths["picture"]["common"] + "\\bottom_menu\\goto_arena.png",
                              target_tolerance=0.99,
                              target_failed_check=100,
                              target_sleep=1.5,
                              click=True,
-                             click_zoom=self.zoom)
+                             click_zoom=zoom)
 
         if exit_mode == 4:
-            loop_find_p_in_w(raw_w_handle=self.handle,
+            loop_find_p_in_w(raw_w_handle=handle,
                              raw_range=[0, 0, 950, 600],
                              target_path=paths["picture"]["common"] + "\\offer_reward_exit.png",
                              target_tolerance=0.99,
                              target_failed_check=100,
                              target_sleep=1.5,
                              click=True,
-                             click_zoom=self.zoom)
+                             click_zoom=zoom)
+
+        if exit_mode == 5:
+            """美食大赛领取专用, 从一般关卡打完后开始"""
+            # 记录一下是否有完成任何一次任务
+            found_flag = False
+            # 先回到竞技岛
+            loop_find_p_in_w(raw_w_handle=handle,
+                             raw_range=[0, 0, 950, 600],
+                             target_path=paths["picture"]["common"] + "\\bottom_menu\\goto.png",
+                             target_tolerance=0.99,
+                             target_failed_check=100,
+                             target_sleep=1.5,
+                             click=True,
+                             click_zoom=zoom)
+
+            loop_find_p_in_w(raw_w_handle=handle,
+                             raw_range=[0, 0, 950, 600],
+                             target_path=paths["picture"]["common"] + "\\bottom_menu\\goto_arena.png",
+                             target_tolerance=0.99,
+                             target_failed_check=100,
+                             target_sleep=1.5,
+                             click=True,
+                             click_zoom=zoom)
+
+            # 找到活动第一页 并进入活动页面
+            self.change_activity_list(serial_num=1)
+
+            # 循环查找进入美食大赛界面
+            while True:
+                # 循环查找
+                find = loop_find_p_in_w(
+                    raw_w_handle=handle,
+                    raw_range=[0, 0, 950, 600],
+                    target_path=paths["picture"]["common"] + "\\顶部菜单\\美食大赛.png",
+                    target_tolerance=0.99,
+                    target_failed_check=1,
+                    target_sleep=1.5,
+                    click=True,
+                    click_zoom=zoom)
+
+                if find:
+                    my_dict = {0: 362, 1: 405, 2: 448, 3: 491, 4: 534, 5: 570}
+                    for i in range(6):
+                        # 先移动一次位置
+                        mouse_left_click(handle=handle, x=int(536 * zoom), y=int(my_dict[i] * zoom), sleep_time=0.1)
+                        # 找到就点一下领取, 1s内找不到就跳过
+                        while True:
+                            find = loop_find_p_in_w(
+                                raw_w_handle=handle,
+                                raw_range=[0, 0, 950, 600],
+                                target_path=paths["picture"]["common"] + "\\美食大赛_领取.png",
+                                target_tolerance=0.95,
+                                target_failed_check=1,
+                                target_sleep=0.5,
+                                click_zoom=zoom,
+                                click=True)
+                            if find:
+                                # 领取升级有动画
+                                sleep(6)
+                                # 更新是否找到flag
+                                found_flag = True
+                            else:
+                                break
+
+                    # 退出美食大赛界面
+                    mouse_left_click(handle=handle, x=int(888 * zoom), y=int(53 * zoom), sleep_time=0.5)
+                    break
+
+            # 如果没有完成任何任务, 卡注5s
+            if not found_flag:
+                sleep(5)
+                print("[{}] 没有在美食大赛完成任何任务, 请注意哦!".format(self.player))
 
     """reload game"""
 
@@ -1029,7 +1103,7 @@ class FAA:
             find = loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["common"] + "\\" + "bottom_menu\\quest.png",
+                target_path=paths["picture"]["common"] + "\\bottom_menu\\quest.png",
                 target_tolerance=0.99,
                 target_failed_check=1,
                 target_sleep=0.5,
@@ -1046,7 +1120,7 @@ class FAA:
                         find = loop_find_p_in_w(
                             raw_w_handle=handle,
                             raw_range=[0, 0, 950, 600],
-                            target_path=paths["picture"]["common"] + "\\" + "quest_completed.png",
+                            target_path=paths["picture"]["common"] + "\\任务_完成.png",
                             target_tolerance=0.95,
                             target_failed_check=1,
                             target_sleep=0.5,
@@ -1113,12 +1187,13 @@ class FAA:
 
                 """进入施肥界面"""
                 while True:
-                    mouse_left_click(handle=self.handle, x=int(745 * self.zoom), y=int(430 * self.zoom), sleep_time=0.001)
+                    mouse_left_click(handle=self.handle, x=int(745 * self.zoom), y=int(430 * self.zoom),
+                                     sleep_time=0.001)
                     mouse_left_click(handle=self.handle, x=int(800 * self.zoom), y=int(350 * self.zoom), sleep_time=2)
                     find = loop_find_p_in_w(
                         raw_w_handle=handle,
                         raw_range=[0, 0, 950, 600],
-                        target_path=paths["picture"]["guild_task"] + "\\" + "ui.png",
+                        target_path=paths["picture"]["guild_task"] + "\\ui.png",
                         target_tolerance=0.95,
                         target_failed_check=1,
                         target_sleep=0.5,

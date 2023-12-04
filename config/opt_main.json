@@ -95,8 +95,8 @@
     "normal_battle": {
         "active": true,
         "is_group": true,
-        "max_times": 45,
-        "stage": "EX-3-4",
+        "max_times": 1,
+        "stage": "EX-3-3",
         "deck": 5,
         "battle_plan_1p": 14,
         "battle_plan_2p": 15,

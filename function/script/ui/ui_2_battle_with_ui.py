@@ -6,6 +6,7 @@ from PyQt5.QtCore import QThread, pyqtSignal, QMutex, QWaitCondition
 from PyQt5.QtWidgets import QApplication
 
 from function.common.thread_with_exception import ThreadWithException
+from function.get_paths import paths
 from function.script.scattered.get_channel_name import get_channel_name
 from function.script.service.common import FAA
 from function.script.service.common_multiplayer import invite
@@ -509,10 +510,10 @@ class Todo(QThread):
         # 战斗开始
         self.sin_out.emit("{}开始[多本轮战]...".format(text_))
 
-        with open(self.faa[1].paths["config"] + "//opt_customize_todo.json", "r", encoding="UTF-8") as file:
+        with open(paths["config"] + "//opt_customize_todo.json", "r", encoding="UTF-8") as file:
             task_list = json.load(file)
 
-        self.n_n_battle(task_list=task_list, list_type=["NO"])
+        self.n_n_battle(task_list=task_list, list_type=["NO","EX"])
 
         # 战斗结束
         self.sin_out.emit("{} Completed!\n".format(text_))
@@ -648,7 +649,6 @@ class Todo(QThread):
 
         my_opt = self.opt["customize"]
         if my_opt["active"]:
-            self.reload_game()
             self.customize_battle(text_="[高级自定义]")
 
         # 全部完成前 先 领取一下任务

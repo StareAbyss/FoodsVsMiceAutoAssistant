@@ -1,37 +1,1099 @@
 [
     {
-        "stage_id": "NO-1-7",
-        "max_times": 4,
-        "deck": 6,
-        "is_group": true,
-        "battle_plan_1p": "默认-1P",
-        "battle_plan_2p": "默认-2P",
         "task_card": "None",
-        "list_ban_card": ["小火炉-0"],
+        "stage_id": "EX-1-1",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
         "dict_exit": {
             "other_time": [
                 0
             ],
             "last_time": [
-                3
+                5
             ]
         }
     },
     {
-        "stage_id": "NO-1-14",
-        "max_times": 2,
-        "deck": 6,
-        "is_group": true,
-        "battle_plan_1p": "默认-1P",
-        "battle_plan_2p": "默认-2P",
         "task_card": "None",
+        "stage_id": "EX-1-2",
+        "max_times": 1,
+        "is_group": false,
         "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
         "dict_exit": {
             "other_time": [
                 0
             ],
             "last_time": [
-                3
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-1-9",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-1-4",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [
+            "糖葫芦炮弹",
+            "瓜皮护罩",
+            "狮子座精灵",
+            "油灯",
+            "樱桃反弹布丁"
+        ],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-1-7",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [
+            "小火炉"
+        ],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-1-8",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-1-9",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-1-10",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-1-12",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-1-13",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "可乐炸弹-0",
+        "stage_id": "NO-1-14",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-2-1",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-2-2",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-2-3",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-2-4",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-2-5",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-4-2",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-5-1",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [
+            "麦芽糖",
+            "糖葫芦炮弹",
+            "瓜皮护罩",
+            "狮子座精灵",
+            "油灯",
+            "樱桃反弹布丁"
+        ],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-5-2",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-2-6",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [
+            "油灯"
+        ],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-2-7",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-2-7",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [
+            "木盘子"
+        ],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-2-9",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-2-10",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-2-11",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-4-5",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "EX-1-5",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-1-12",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-1-5",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-1-6",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-1-7",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-1-8",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-1-10",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-1-11",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-1-12",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-2-1",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-2-5",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-2-8",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [
+            "小火炉"
+        ],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-2-12",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-2-13",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-2-14",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-2-15",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [
+            "油灯",
+            "樱桃反弹布丁"
+        ],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-3-2",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-3-3",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-5-5",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-4-1",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-4-2",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-4-3",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-4-4",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-4-5",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [
+            "樱桃反弹布丁"
+        ],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-4-7",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [
+            "糖葫芦炮弹",
+            "瓜皮护罩",
+            "狮子座精灵",
+            "油灯",
+            "樱桃反弹布丁"
+        ],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "CS-2-2",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-5-1",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-5-2",
+        "max_times": 1,
+        "is_group": false,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-5-3",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [
+            "狮子座精灵",
+            "油灯",
+            "樱桃反弹布丁"
+        ],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-5-4",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "NO-5-5",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "CS-1-2",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
+            ]
+        }
+    },
+    {
+        "task_card": "None",
+        "stage_id": "CS-6-2",
+        "max_times": 1,
+        "is_group": true,
+        "list_ban_card": [],
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                5
             ]
         }
     }

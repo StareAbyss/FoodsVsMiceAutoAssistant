@@ -1,0 +1,38 @@
+[
+    {
+        "stage_id": "NO-1-7",
+        "max_times": 2,
+        "deck": 6,
+        "is_group": true,
+        "battle_plan_1p": "1-默认-1P.json",
+        "battle_plan_2p": "1-默认-1P.json",
+        "task_card": "None",
+        "list_ban_card": [],
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                3
+            ]
+        }
+    },
+    {
+        "stage_id": "NO-1-14",
+        "max_times": 2,
+        "deck": 6,
+        "is_group": true,
+        "battle_plan_1p": "1-默认-1P.json",
+        "battle_plan_2p": "1-默认-1P.jsonP",
+        "task_card": "None",
+        "list_ban_card": [],
+        "dict_exit": {
+            "other_time": [
+                0
+            ],
+            "last_time": [
+                3
+            ]
+        }
+    }
+]

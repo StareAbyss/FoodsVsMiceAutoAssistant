@@ -61,7 +61,7 @@ def calculation_card_mat(list_cell_all, stage_info, player, is_group):
 
 
 def calculation_card_ban(list_cell_all, list_ban_card):
-    """步骤三 ban掉某些卡"""
+    """步骤三 ban掉某些卡, 依据[卡组信息中的name字段] 和 ban卡信息中的字符串 是否重复"""
     list_new = []
     for i in list_cell_all:
         if not (i["name"] in list_ban_card):
