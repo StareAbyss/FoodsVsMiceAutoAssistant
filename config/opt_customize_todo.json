@@ -78,12 +78,16 @@
         }
     },
     {
-        "task_card": "None",
+        "task_card": "酒杯灯",
         "stage_id": "NO-1-7",
         "max_times": 1,
         "is_group": false,
         "list_ban_card": [
-            "小火炉"
+            "小火炉",
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩",
+            "糖葫芦炮弹"
         ],
         "deck": 1,
         "battle_plan_1p": 0,
@@ -156,7 +160,11 @@
         "stage_id": "NO-1-12",
         "max_times": 1,
         "is_group": false,
-        "list_ban_card": [],
+        "list_ban_card": [
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩"
+        ],
         "deck": 1,
         "battle_plan_1p": 0,
         "battle_plan_2p": 1,
@@ -228,7 +236,11 @@
         "stage_id": "NO-2-2",
         "max_times": 1,
         "is_group": true,
-        "list_ban_card": [],
+        "list_ban_card": [
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩"
+        ],
         "deck": 1,
         "battle_plan_1p": 0,
         "battle_plan_2p": 1,
@@ -300,7 +312,11 @@
         "stage_id": "NO-4-2",
         "max_times": 1,
         "is_group": false,
-        "list_ban_card": [],
+        "list_ban_card": [
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩"
+        ],
         "deck": 1,
         "battle_plan_1p": 0,
         "battle_plan_2p": 1,
@@ -617,7 +633,11 @@
         "stage_id": "NO-1-11",
         "max_times": 1,
         "is_group": true,
-        "list_ban_card": [],
+        "list_ban_card": [
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩"
+        ],
         "deck": 1,
         "battle_plan_1p": 0,
         "battle_plan_2p": 1,
@@ -685,12 +705,16 @@
         }
     },
     {
-        "task_card": "None",
+        "task_card": "酒杯灯",
         "stage_id": "NO-2-8",
         "max_times": 1,
         "is_group": true,
         "list_ban_card": [
-            "小火炉"
+            "小火炉",
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩",
+            "糖葫芦炮弹"
         ],
         "deck": 1,
         "battle_plan_1p": 0,
@@ -745,7 +769,11 @@
         "stage_id": "NO-2-14",
         "max_times": 1,
         "is_group": true,
-        "list_ban_card": [],
+        "list_ban_card": [
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩"
+        ],
         "deck": 1,
         "battle_plan_1p": 0,
         "battle_plan_2p": 1,
@@ -892,7 +920,11 @@
         "stage_id": "NO-4-4",
         "max_times": 1,
         "is_group": true,
-        "list_ban_card": [],
+        "list_ban_card": [
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩"
+        ],
         "deck": 1,
         "battle_plan_1p": 0,
         "battle_plan_2p": 1,

@@ -4,7 +4,7 @@
 def calculation_card_task(list_cell_all, task_card):
     """计算步骤一 加入任务卡的摆放坐标"""
     # 任务卡 大号小号开始位置不同 任务卡id = 0 则为没有
-    locations = ["6-2", "6-3", "6-4", "6-5", "6-6"]
+    locations = ["6-1", "6-2", "6-3", "6-4", "6-5", "6-6","6-7"]
     if task_card != "None":
         # 遍历删除 主要卡中 占用了任务卡摆放的坐标
         new_list = []
@@ -159,15 +159,15 @@ def calculation_cell_all_card(stage_info, battle_plan, player, is_group, task_ca
     # 初始化数组 + 调用战斗卡
     list_cell_all = battle_plan
 
-    # 调用计算任务卡
-    list_cell_all = calculation_card_task(list_cell_all=list_cell_all, task_card=task_card)
-
     # 调用计算承载卡
     list_cell_all = calculation_card_mat(list_cell_all=list_cell_all, stage_info=stage_info, player=player,
                                          is_group=is_group)
 
     # 调用ban掉某些卡(不使用该卡)
     list_cell_all = calculation_card_ban(list_cell_all=list_cell_all, list_ban_card=list_ban_card)
+
+    # 调用计算任务卡
+    list_cell_all = calculation_card_task(list_cell_all=list_cell_all, task_card=task_card)
 
     # 调用去掉障碍位置
     list_cell_all = calculation_obstacle(list_cell_all=list_cell_all, stage_info=stage_info)

@@ -25,14 +25,14 @@
     },
     "offer_reward": {
         "active": false,
-        "deck": 4,
-        "battle_plan_1p": 11,
-        "battle_plan_2p": 12
+        "deck": 1,
+        "battle_plan_1p": 2,
+        "battle_plan_2p": 3
     },
     "magic_tower_double": {
-        "active": false,
+        "active": true,
         "max_times": 5,
-        "stage": 90,
+        "stage": 95,
         "deck": 1,
         "battle_plan_1p": 2,
         "battle_plan_2p": 3
@@ -52,19 +52,19 @@
         "battle_plan_1p": 0
     },
     "magic_tower_prison_1": {
-        "active": false,
+        "active": true,
         "stage": false,
         "deck": 1,
         "battle_plan_1p": 2
     },
     "magic_tower_prison_2": {
-        "active": false,
+        "active": true,
         "stage": false,
         "deck": 1,
         "battle_plan_1p": 2
     },
     "warrior": {
-        "active": false,
+        "active": true,
         "is_group": true,
         "max_times": 6,
         "deck": 1,
@@ -73,9 +73,9 @@
         "group": false
     },
     "cross_server": {
-        "active": false,
+        "active": true,
         "is_group": true,
-        "max_times": 10,
+        "max_times": 5,
         "stage": "CS-5-3",
         "deck": 1,
         "battle_plan_1p": 2,
@@ -93,7 +93,7 @@
         "group": false
     },
     "normal_battle": {
-        "active": true,
+        "active": false,
         "is_group": true,
         "max_times": 1,
         "stage": "EX-3-3",

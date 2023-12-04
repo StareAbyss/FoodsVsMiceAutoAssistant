@@ -304,7 +304,7 @@ class FAA:
         # 点击进入OR界面
         loop_find_p_in_w(raw_w_handle=self.handle,
                          raw_range=[0, 0, 950, 600],
-                         target_path=paths["picture"]["common"] + "\\顶部菜单\\X年活动",
+                         target_path=paths["picture"]["common"] + "\\顶部菜单\\X年活动.png",
                          target_sleep=2,
                          click=True,
                          click_zoom=self.zoom)
@@ -639,12 +639,13 @@ class FAA:
             self.change_activity_list(1)
 
             # 点击进入悬赏副本
-            my_path = paths["picture"]["common"] + "\\顶部菜单\\X年活动"
+            my_path = paths["picture"]["common"] + "\\顶部菜单\\X年活动.png"
             loop_find_p_in_w(raw_w_handle=self.handle,
                              raw_range=[0, 0, 950, 600],
                              target_path=my_path,
                              click_zoom=self.zoom,
-                             target_sleep=2, click=True)
+                             target_sleep=2,
+                             click=True)
 
             # 根据模式进行选择
             my_dict = {"1": 260, "2": 475, "3": 710}
