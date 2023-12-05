@@ -4,7 +4,7 @@
 def calculation_card_task(list_cell_all, task_card):
     """计算步骤一 加入任务卡的摆放坐标"""
     # 任务卡 大号小号开始位置不同 任务卡id = 0 则为没有
-    locations = ["6-1", "6-2", "6-3", "6-4", "6-5", "6-6","6-7"]
+    locations = ["6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7"]
     if task_card != "None":
         # 遍历删除 主要卡中 占用了任务卡摆放的坐标
         new_list = []
@@ -14,7 +14,7 @@ def calculation_card_task(list_cell_all, task_card):
                     card["location"].remove(location)
             new_list.append(card)
         # 设定任务卡dict
-        dict_task = {"id": 2 + len(new_list) + 1,
+        dict_task = {"id": 3 + len(new_list),
                      "name": task_card,
                      "ergodic": True,
                      "queue": True,
@@ -35,12 +35,12 @@ def calculation_card_mat(list_cell_all, stage_info, player, is_group):
     # 分辨不同的垫子卡
     elif stage_info["mat_card"] == 1:
         # 木盘子会被毁 队列 + 遍历
-        mat_name = "Wooden plate"
+        mat_name = "木盘子"
         ergodic = True
         queue = True
     else:
         # 麦芽糖坏不掉 所以只队列 不遍历
-        mat_name = "Maltose"
+        mat_name = "麦芽糖"
         ergodic = False
         queue = True
     # 预设中该关卡有垫子 或采用了默认的没有垫子
@@ -66,6 +66,16 @@ def calculation_card_ban(list_cell_all, list_ban_card):
     for i in list_cell_all:
         if not (i["name"] in list_ban_card):
             list_new.append(i)
+    # 遍历更改删卡后的位置
+    for card_new in list_new:
+        cum_card_left = 0
+        for ban_card in list_ban_card:
+            for c_card in list_cell_all:
+                if c_card["name"] == ban_card:
+                    if card_new["id"] > c_card["id"]:
+                        cum_card_left += 1
+        card_new["id"] -= cum_card_left
+
     return list_new
 
 
@@ -159,6 +169,9 @@ def calculation_cell_all_card(stage_info, battle_plan, player, is_group, task_ca
     # 初始化数组 + 调用战斗卡
     list_cell_all = battle_plan
 
+    # 调用计算任务卡
+    list_cell_all = calculation_card_task(list_cell_all=list_cell_all, task_card=task_card)
+
     # 调用计算承载卡
     list_cell_all = calculation_card_mat(list_cell_all=list_cell_all, stage_info=stage_info, player=player,
                                          is_group=is_group)
@@ -166,8 +179,7 @@ def calculation_cell_all_card(stage_info, battle_plan, player, is_group, task_ca
     # 调用ban掉某些卡(不使用该卡)
     list_cell_all = calculation_card_ban(list_cell_all=list_cell_all, list_ban_card=list_ban_card)
 
-    # 调用计算任务卡
-    list_cell_all = calculation_card_task(list_cell_all=list_cell_all, task_card=task_card)
+
 
     # 调用去掉障碍位置
     list_cell_all = calculation_obstacle(list_cell_all=list_cell_all, stage_info=stage_info)

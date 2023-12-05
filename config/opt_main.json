@@ -11,26 +11,26 @@
         "active": false
     },
     "guild_task": {
-        "active": false,
+        "active": true,
         "stage": true,
         "deck": 1,
         "battle_plan_1p": 2,
-        "battle_plan_2p": 3
+        "battle_plan_2p": 1
     },
     "spouse_task": {
-        "active": false,
+        "active": true,
         "deck": 1,
         "battle_plan_1p": 2,
         "battle_plan_2p": 3
     },
     "offer_reward": {
-        "active": false,
+        "active": true,
         "deck": 1,
         "battle_plan_1p": 2,
         "battle_plan_2p": 3
     },
     "magic_tower_double": {
-        "active": true,
+        "active": false,
         "max_times": 5,
         "stage": 99,
         "deck": 1,
@@ -52,13 +52,13 @@
         "battle_plan_1p": 0
     },
     "magic_tower_prison_1": {
-        "active": true,
+        "active": false,
         "stage": false,
         "deck": 1,
         "battle_plan_1p": 2
     },
     "magic_tower_prison_2": {
-        "active": true,
+        "active": false,
         "stage": false,
         "deck": 1,
         "battle_plan_1p": 2
@@ -83,7 +83,7 @@
         "group": false
     },
     "relic": {
-        "active": false,
+        "active": true,
         "is_group": true,
         "max_times": 4,
         "stage": "NO-3-5",
@@ -95,14 +95,14 @@
     "normal_battle": {
         "active": false,
         "is_group": true,
-        "max_times": 1,
-        "stage": "EX-3-3",
-        "deck": 5,
-        "battle_plan_1p": 14,
-        "battle_plan_2p": 15,
+        "max_times": 2,
+        "stage": "NO-4-10",
+        "deck": 1,
+        "battle_plan_1p": 2,
+        "battle_plan_2p": 3,
         "group": true
     },
     "customize": {
-        "active": false
+        "active": true
     }
 }

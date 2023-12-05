@@ -1,22 +1,12 @@
-my_str = "NO-1-7_呜呜呜呜-1.png"
-task_card = "None"
+import os
 
-# 去.png
-my_str = my_str.split(".")[0]
+from function.get_paths import paths
 
-num_of_line = my_str.count("_")
+task_card_s = ["酒杯灯-0.png","酒杯灯-1.png","瓜皮护罩-1.png","小火炉-4.png"]
 
-if num_of_line == 0:
-    stage = my_str
-else:
-    my_list = my_str.split("_")
-    stage = my_list[0]
-
-    if num_of_line == 1:
-        if not my_list[1].isdigit():
-            task_card = my_list[1]
-    elif num_of_line == 2:
-        task_card = my_list[2]
-
-print(stage)
-print(task_card)
+list_all_card_recorded = os.listdir(paths["picture"]["card"])
+for task_card_n in task_card_s:
+    # 只ban被记录了图片的变种卡
+    if not (task_card_n in list_all_card_recorded):
+        task_card_s.remove(task_card_n)
+print(task_card_s)

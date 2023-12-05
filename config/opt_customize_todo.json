@@ -59,11 +59,13 @@
         "max_times": 1,
         "is_group": true,
         "list_ban_card": [
+            "麦芽糖",
             "糖葫芦炮弹",
             "瓜皮护罩",
             "狮子座精灵",
             "油灯",
-            "樱桃反弹布丁"
+            "樱桃反弹布丁",
+            "气泡"
         ],
         "deck": 1,
         "battle_plan_1p": 0,
@@ -196,7 +198,7 @@
         }
     },
     {
-        "task_card": "可乐炸弹-0",
+        "task_card": "可乐炸弹",
         "stage_id": "NO-1-14",
         "max_times": 1,
         "is_group": false,
@@ -335,12 +337,14 @@
         "max_times": 1,
         "is_group": false,
         "list_ban_card": [
+            "木盘子",
             "麦芽糖",
             "糖葫芦炮弹",
             "瓜皮护罩",
             "狮子座精灵",
             "油灯",
-            "樱桃反弹布丁"
+            "樱桃反弹布丁",
+            "气泡"
         ],
         "deck": 1,
         "battle_plan_1p": 0,
@@ -792,8 +796,10 @@
         "max_times": 1,
         "is_group": true,
         "list_ban_card": [
+            "狮子座精灵",
             "油灯",
-            "樱桃反弹布丁"
+            "樱桃反弹布丁",
+            "气泡"
         ],
         "deck": 1,
         "battle_plan_1p": 0,
@@ -943,7 +949,9 @@
         "max_times": 1,
         "is_group": true,
         "list_ban_card": [
-            "樱桃反弹布丁"
+            "油灯",
+            "樱桃反弹布丁",
+            "气泡"
         ],
         "deck": 1,
         "battle_plan_1p": 0,
@@ -963,11 +971,13 @@
         "max_times": 1,
         "is_group": true,
         "list_ban_card": [
+            "麦芽糖",
             "糖葫芦炮弹",
             "瓜皮护罩",
             "狮子座精灵",
             "油灯",
-            "樱桃反弹布丁"
+            "樱桃反弹布丁",
+            "气泡"
         ],
         "deck": 1,
         "battle_plan_1p": 0,
@@ -1041,9 +1051,11 @@
         "max_times": 1,
         "is_group": true,
         "list_ban_card": [
+            "瓜皮护罩",
             "狮子座精灵",
             "油灯",
-            "樱桃反弹布丁"
+            "樱桃反弹布丁",
+            "气泡"
         ],
         "deck": 1,
         "battle_plan_1p": 0,

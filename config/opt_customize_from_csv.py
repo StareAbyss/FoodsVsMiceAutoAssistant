@@ -8,7 +8,7 @@ jsonFilePath = "opt_customize_todo.json"
 my_list = []
 
 default_deck = ["炭烧海星", "小火炉", "木盘子", "麦芽糖", "糖葫芦炮弹", "瓜皮护罩", "狮子座精灵", "油灯",
-                "樱桃反弹布丁"]
+                "樱桃反弹布丁","气泡"]
 
 with open(csvFilePath, "r", encoding='utf-8') as csv_file:
     # 读取文本为有序字典
@@ -46,8 +46,8 @@ for my_dict in my_list:
         for already_ban in my_dict["list_ban_card"]:
             if already_ban in default_deck:
                 default_deck.remove(already_ban)
-        # 在属于的卡中, 选出后几位ban掉
-        for j in default_deck[int(my_dict["数量限制"]):]:
+        # 在属于的卡中, 选出后几位ban掉, 多ban一张, 因为咖啡粉在第12个格子不好ban
+        for j in default_deck[int(my_dict["数量限制"])-1:]:
             my_dict["list_ban_card"].append(j)
     my_dict.pop("数量限制")
 
