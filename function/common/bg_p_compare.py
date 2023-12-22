@@ -223,25 +223,29 @@ if __name__ == '__main__':
 
 
     def main():
+        # handle = faa_get_handle("锑食", mode="browser")
+        handle = faa_get_handle(channel="深渊之下 | 锑食", mode="browser")
 
-        handle = faa_get_handle("锑食", mode="game")
-        # handle = faa_get_handle(channel="深渊之下 | 锑食", mode="browser")
+        target_path = paths["picture"]["common"] + "\\battle\\before_create_room.png"
 
-        target_path = paths["picture"]["card"] + "\\小火炉-2.png"
+        # result = loop_find_p_in_w(raw_w_handle=handle,
+        #                           raw_range=[0, 0, 950, 600],
+        #                           target_path=target_path,
+        #                           target_tolerance=0.99,
+        #                           target_sleep=1,
+        #                           target_failed_check=1,
+        #                           click=True,
+        #                           click_zoom=1)
+        #
+        result = find_p_in_w(raw_w_handle=handle,
+                             raw_range=[0, 0, 950, 600],
+                             target_path=target_path,
+                             target_tolerance=0.99)
 
-        result = loop_find_p_in_w(raw_w_handle=handle,
-                                  raw_range=[0, 0, 950, 600],
-                                  target_path=target_path,
-                                  target_tolerance=0.99,
-                                  target_sleep=1,
-                                  target_failed_check=1,
-                                  click=True,
-                                  click_zoom=1)
-        # result = find_p_in_w(raw_w_handle=handle,
-        #                      raw_range=[0, 0, 950, 600],
-        #                      target_path=target_path,
-        #                      target_tolerance=0.99)
         print(result)
+        result =(1,2)
+        if result:
+            print(result[0], result[1])
 
 
     main()

@@ -7,8 +7,17 @@ from function.tools.screen_loot_logs import screen_loot_logs
 
 
 # 从FAA类中直接获取
-def round_of_game(handle, zoom, paths, player, stage_info_id, action_battle_normal,
-                  deck: int, delay_start: bool, battle_mode: int, task_card: str, list_ban_card: list):
+def round_of_game(handle,
+                  zoom,
+                  paths,
+                  player,
+                  stage_info_id,
+                  action_battle_normal,
+                  deck: int,
+                  delay_start: bool,
+                  battle_mode: int,
+                  task_card: str,
+                  list_ban_card: list):
     """
     一轮战斗
     Args:
@@ -53,123 +62,141 @@ def round_of_game(handle, zoom, paths, player, stage_info_id, action_battle_norm
                      y=int(121 * zoom),
                      sleep_time=0.5)
 
-    def action_add_task_card():
-        """寻找并添加任务所需卡片"""
+    """寻找并添加任务所需卡片"""
 
-        # 由于公会任务的卡组特性, 当任务卡为[气泡]时, 不需要额外选择带卡.
-        if task_card == "None" or task_card == "气泡-0" or task_card == "气泡-1" or task_card == "气泡":
+    def action_add_task_card_():
+        # 房主晚点开始
+        if delay_start:
+            sleep(6)
+        print("[{}] 开始寻找任务卡".format(player))
+
+        # 对于名称带-的卡, 就对应的写入, 如果不带-, 就查找其所有变种
+        task_card_s = []
+        if "-" in task_card:
+            task_card_s.append("{}.png".format(task_card))
+        else:
+            for i in range(9):  # i代表一张卡能有的最高变种 姑且认为是3*3 = 9
+                task_card_s.append("{}-{}.png".format(task_card, i))
+
+        # 读取所有记录了的卡的图片文件名, 只携带被记录图片的卡
+        list_all_card_recorded = os.listdir(paths["picture"]["card"])
+        my_list = []
+        for task_card_n in task_card_s:
+            if task_card_n in list_all_card_recorded:
+                my_list.append(task_card_n)
+        task_card_s = my_list
+
+        # 复位滑块
+        mouse_left_click(handle=handle, x=int(931 * zoom), y=int(209 * zoom), sleep_time=0.25)
+        flag_find_task_card = False
+
+        # 最多向下点3*7次滑块
+        for i in range(7):
+
+            # 找到就点一下, 任何一次寻找成功 中断循环
+            if not flag_find_task_card:
+                for task_card_n in task_card_s:
+                    find = loop_find_p_in_w(
+                        raw_w_handle=handle,
+                        raw_range=[0, 0, 950, 600],
+                        target_path=paths["picture"]["card"] + "\\" + task_card_n,
+                        target_tolerance=0.95,
+                        click_zoom=zoom,
+                        click=True,
+                        target_failed_check=1)
+                    if find:
+                        flag_find_task_card = True
+
+                # 滑块向下移动3次
+                for j in range(3):
+                    mouse_left_click(handle=handle, x=int(931 * zoom), y=int(400 * zoom), sleep_time=0.05)
+
+        # 双方都完成循环 以保证同步
+        print("[{}] 完成任务卡查找 大概.?".format(player))
+        # 完成后休息1s
+        sleep(1)
+
+    def action_add_task_card():
+        # 由于公会任务的卡组特性, 当任务卡为[苏打气泡]时, 不需要额外选择带卡.
+        if task_card == "None" or task_card == "苏打气泡-0" or task_card == "苏打气泡-1" or task_card == "苏打气泡":
             print("[{}] 不需要额外带卡,跳过".format(player))
         else:
-            # 房主晚点开始
-            if delay_start:
-                sleep(6)
-            print("[{}] 开始寻找任务卡".format(player))
+            action_add_task_card_()
 
+    def action_remove_ban_card_():
+
+        # 房主晚点开始
+        if delay_start:
+            sleep(10)
+
+        ban_card_s = []
+
+        # 处理需要ban的卡片,
+        for ban_card in list_ban_card:
             # 对于名称带-的卡, 就对应的写入, 如果不带-, 就查找其所有变种
-            task_card_s = []
-            if "-" in task_card:
-                task_card_s.append("{}.png".format(task_card))
+            if "-" in ban_card:
+                ban_card_s.append("{}.png".format(ban_card))
             else:
                 for i in range(9):  # i代表一张卡能有的最高变种 姑且认为是3*3 = 9
-                    task_card_s.append("{}-{}.png".format(task_card, i))
+                    ban_card_s.append("{}-{}.png".format(ban_card, i))
 
-            # 读取所有记录了的卡的图片文件名, 只携带被记录图片的卡
-            list_all_card_recorded = os.listdir(paths["picture"]["card"])
-            my_list = []
-            for task_card_n in task_card_s:
-                if task_card_n in list_all_card_recorded:
-                    my_list.append(task_card_n)
-            task_card_s = my_list
+        # 读取所有已记录的卡片文件名, 并去除没有记录的卡片
+        list_all_card_recorded = os.listdir(paths["picture"]["card"])
+        my_list = []
+        for ban_card_n in ban_card_s:
+            if ban_card_n in list_all_card_recorded:
+                my_list.append(ban_card_n)
+        ban_card_s = my_list
 
-            # 复位滑块
-            mouse_left_click(handle=handle, x=int(931 * zoom), y=int(209 * zoom), sleep_time=0.25)
-            flag_find_task_card = False
-
-            # 最多向下点3*7次滑块
-            for i in range(7):
-
-                # 找到就点一下, 任何一次寻找成功 中断循环
-                if not flag_find_task_card:
-                    for task_card_n in task_card_s:
-                        find = loop_find_p_in_w(
-                            raw_w_handle=handle,
-                            raw_range=[0, 0, 950, 600],
-                            target_path=paths["picture"]["card"] + "\\" + task_card_n,
-                            target_tolerance=0.95,
-                            click_zoom=zoom,
-                            click=True,
-                            target_failed_check=1)
-                        if find:
-                            flag_find_task_card = True
-
-                    # 滑块向下移动3次
-                    for j in range(3):
-                        mouse_left_click(handle=handle, x=int(931 * zoom), y=int(400 * zoom), sleep_time=0.05)
-
-            # 双方都完成循环 以保证同步
-            print("[{}] 完成任务卡查找 大概.?".format(player))
+        for ban_card_n in ban_card_s:
+            # 只ban被记录了图片的变种卡
+            loop_find_p_in_w(raw_w_handle=handle,
+                             raw_range=[0, 0, 950, 110],
+                             target_path=paths["picture"]["card"] + "\\" + ban_card_n,
+                             target_tolerance=0.95,
+                             target_interval=0.2,
+                             target_failed_check=1,
+                             target_sleep=1,
+                             click=True,
+                             click_zoom=zoom)
+        # 休息1s
+        sleep(1)
 
     def action_remove_ban_card():
         """寻找并移除需要ban的卡, 暂不支持跨页ban, 只从前11张ban"""
-
         # 只有ban卡数组非空, 继续进行
         if list_ban_card:
-
-            ban_card_s = []
-
-            # 处理需要ban的卡片,
-            for ban_card in list_ban_card:
-                # 对于名称带-的卡, 就对应的写入, 如果不带-, 就查找其所有变种
-                if "-" in ban_card:
-                    ban_card_s.append("{}.png".format(ban_card))
-                else:
-                    for i in range(9):  # i代表一张卡能有的最高变种 姑且认为是3*3 = 9
-                        ban_card_s.append("{}-{}.png".format(ban_card, i))
-
-            # 读取所有已记录的卡片文件名, 并去除没有记录的卡片
-            list_all_card_recorded = os.listdir(paths["picture"]["card"])
-            my_list = []
-            for ban_card_n in ban_card_s:
-                if ban_card_n in list_all_card_recorded:
-                    my_list.append(ban_card_n)
-            ban_card_s = my_list
-
-            for ban_card_n in ban_card_s:
-                # 只ban被记录了图片的变种卡
-                loop_find_p_in_w(raw_w_handle=handle,
-                                 raw_range=[0, 0, 950, 110],
-                                 target_path=paths["picture"]["card"] + "\\" + ban_card_n,
-                                 target_tolerance=0.95,
-                                 target_interval=0.2,
-                                 target_failed_check=1,
-                                 target_sleep=0.1,
-                                 click=True,
-                                 click_zoom=zoom)
+            action_remove_ban_card_()
 
     action_add_task_card()
     action_remove_ban_card()
 
+    """点击开始"""
+
     # 房主延时
     if delay_start:
-        sleep(0.5)
+        sleep(2.5)  # 0.5 错开房主和队友, 2 防止队友号被卡在没带某某卡而房主带了
+
     # 点击开始
     find = loop_find_p_in_w(
         raw_w_handle=handle,
         raw_range=[0, 0, 950, 600],
         target_path=paths["picture"]["common"] + "\\battle\\before_ready_check_start.png",
-        click_zoom=zoom,
+        target_tolerance=0.95,
         target_interval=1,
+        target_failed_check=30,
         target_sleep=1,
         click=True,
-        target_failed_check=10)
+        click_zoom=zoom)
     if not find:
-        print("[{}] 10s找不到[开始/准备]字样! 创建房间可能失败!".format(player))
+        print("[{}] 30s找不到[开始/准备]字样! 创建房间可能失败!".format(player))
 
     # 防止被 [没有带xx卡] or []包已满]
-    find = find_p_in_w(raw_w_handle=handle,
-                       raw_range=[0, 0, 950, 600],
-                       target_path=paths["picture"]["common"] + "\\battle\\before_system_prompt.png",
-                       target_tolerance=0.98)
+    find = find_p_in_w(
+        raw_w_handle=handle,
+        raw_range=[0, 0, 950, 600],
+        target_path=paths["picture"]["common"] + "\\battle\\before_system_prompt.png",
+        target_tolerance=0.98)
     if find:
         mouse_left_click(handle=handle, x=int(427 * zoom), y=int(353 * zoom))
 
@@ -181,11 +208,11 @@ def round_of_game(handle, zoom, paths, player, stage_info_id, action_battle_norm
         raw_w_handle=handle,
         raw_range=[0, 0, 950, 600],
         target_path=paths["picture"]["common"] + "\\battle\\fire_element.png",
-        click_zoom=zoom,
         target_interval=1,
+        target_failed_check=86400,
         target_sleep=1,
         click=False,
-        target_failed_check=86400)
+        click_zoom=zoom)
 
     # 刷新ui: 状态文本
     print("[{}] 找到火苗标识物, 战斗进行中...".format(player))
@@ -240,32 +267,24 @@ def round_of_game(handle, zoom, paths, player, stage_info_id, action_battle_norm
         # 结束翻牌
         mouse_left_click(handle=handle, x=int(708 * zoom), y=int(502 * zoom), interval_time=0.05, sleep_time=0.5)
     else:
-        print("=" * 50)
         print("[{}] [Warning] [翻宝箱UI] 15s未能捕获正确标志, 出问题了!".format(player))
-        print("=" * 50)
 
     # 查找战斗结束 来兜底正确完成了战斗
     print("[{}] [Safe] [开始/准备/魔塔蛋糕UI] 尝试捕获正确标志, 以完成战斗流程.".format(player))
-
-    find = loop_find_ps_in_w(raw_w_handle=handle,
-                             raw_range=[0, 0, 950, 600],
-                             target_opts=[
-                                 {"target_path": paths["picture"]["common"] + "\\battle\\before_ready_check_start.png",
-                                  "target_tolerance": 0.99},
-                                 {"target_path": paths["picture"]["common"] + "\\mage_tower_ui.png",
-                                  "target_tolerance": 0.99}],
-                             target_return_mode="or",
-                             target_failed_check=10,
-                             target_interval=0.2)
-
+    find = loop_find_ps_in_w(
+        raw_w_handle=handle,
+        raw_range=[0, 0, 950, 600],
+        target_opts=[
+            {"target_path": paths["picture"]["common"] + "\\battle\\before_ready_check_start.png",
+             "target_tolerance": 0.99},
+            {"target_path": paths["picture"]["common"] + "\\mage_tower_ui.png",
+             "target_tolerance": 0.99}],
+        target_return_mode="or",
+        target_failed_check=10,
+        target_interval=0.2)
     if find:
         print("[{}] [Safe] 成功捕获[开始/准备/魔塔蛋糕UI], 完成战斗流程.".format(player))
-        sleep(3)
+        sleep(10)  # 休息10s 来让线程对齐 防止未知bug
     else:
-        print("=" * 50)
         print("[{}] [Error] 10s没能捕获[开始/准备/魔塔蛋糕UI], 超长时间sleep, 请关闭脚本!!!".format(player))
-        print("=" * 50)
         sleep(999999)
-
-    # 休息7s 来让线程对齐 防止未知bug
-    sleep(7)

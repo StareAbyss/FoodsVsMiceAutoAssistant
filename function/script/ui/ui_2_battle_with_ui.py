@@ -1,8 +1,10 @@
+import datetime
 import json
 import sys
+import time
 from time import sleep
 
-from PyQt5.QtCore import QThread, pyqtSignal, QMutex, QWaitCondition
+from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QApplication
 
 from function.common.thread_with_exception import ThreadWithException
@@ -31,7 +33,11 @@ class Todo(QThread):
         self.thread_2p = None
 
     def reload_game(self):
-        self.sin_out.emit("Refresh Game...")
+
+        self.sin_out.emit(
+            "[{}] Refresh Game...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(target=self.faa[1].reload_game,
                                              name="1P Thread - Reload",
@@ -40,14 +46,17 @@ class Todo(QThread):
         self.thread_2p = ThreadWithException(target=self.faa[2].reload_game,
                                              name="2P Thread - Reload",
                                              kwargs={})
-        # 涉及键盘抢夺, 容错低, 最好分开执行
         self.thread_1p.start()
-        self.thread_1p.join()
         self.thread_2p.start()
+        self.thread_1p.join()
         self.thread_2p.join()
 
     def compete_quest(self):
-        self.sin_out.emit("Compete Quest...")
+
+        self.sin_out.emit(
+            "[{}] Compete Quest...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(target=self.faa[1].quest,
                                              name="1P Thread - Quest",
@@ -63,13 +72,22 @@ class Todo(QThread):
         self.thread_1p.join()
         self.thread_2p.join()
 
-    def n_battle(self, is_group,
-                 stage_id, max_times,
-                 deck, battle_plan_1p, battle_plan_2p,
-                 task_card, list_ban_card, dict_exit):
+    def n_battle(self,
+                 is_group,
+                 stage_id,
+                 max_times,
+                 deck,
+                 battle_plan_1p,
+                 battle_plan_2p,
+                 task_card,
+                 list_ban_card,
+                 dict_exit):
         """[单本轮战]1次 副本外 → 副本内n次战斗 → 副本外"""
 
-        self.sin_out.emit("[单本轮战]目标副本:{}".format(stage_id))
+        self.sin_out.emit(
+            "[{}] [单本轮战] 目标副本:{}".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                stage_id))
 
         # 填入战斗方案和关卡信息
         self.faa[1].get_config_for_battle(is_group=is_group, battle_plan_index=battle_plan_1p, stage_id=stage_id)
@@ -78,11 +96,15 @@ class Todo(QThread):
 
         # 检查人物等级 不组队检查1P 组队还额外检查2P
         if not self.faa[1].check_level():
-            self.sin_out.emit("[单本轮战]1P等级不足, 跳过")
+            self.sin_out.emit(
+                "[{}] [单本轮战] 1P等级不足, 跳过".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
             return False
         if is_group:
             if not self.faa[2].check_level():
-                self.sin_out.emit("[单本轮战]2P等级不足, 跳过")
+                self.sin_out.emit(
+                    "[{}] [单本轮战] 2P等级不足, 跳过".format(
+                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
                 return False
 
         if not is_group:
@@ -97,17 +119,29 @@ class Todo(QThread):
                 if invite(self.faa[2], self.faa[1]):
                     break
                 else:
-                    self.sin_out.emit("[单本轮战]服务器抽风,进入竞技岛,重新邀请...")
-                    self.faa[1].action_exit(exit_mode=3)
-                    self.faa[2].action_exit(exit_mode=3)
+                    self.sin_out.emit(
+                        "[{}] [单本轮战] 服务器抽风,进入竞技岛,重新邀请...".format(
+                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                    self.faa[1].action_exit(exit_mode="sports_land")
+                    self.faa[2].action_exit(exit_mode="sports_land")
 
         # 轮次作战
         for i in range(max_times):
-            self.sin_out.emit("[单本轮战]第{}次,开始".format(i + 1))
+
+            timer_begin = time.time()
+            print("=" * 50)
+            print(
+                "[{}] [单本轮战] 第{}次, 开始".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    i + 1))
+            self.sin_out.emit(
+                "[{}] [单本轮战] 第{}次, 开始".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    i + 1))
 
             # 创建战斗进程 -> 开始进程
             self.thread_1p = ThreadWithException(target=self.faa[1].action_round_of_game,
-                                                 name="1P Thread",
+                                                 name="1P Thread - Battle",
                                                  kwargs={
                                                      "delay_start": False,
                                                      "battle_mode": 0,
@@ -117,7 +151,7 @@ class Todo(QThread):
                                                  })
             if is_group:
                 self.thread_2p = ThreadWithException(target=self.faa[2].action_round_of_game,
-                                                     name="2P Thread",
+                                                     name="2P Thread - Battle",
                                                      kwargs={
                                                          "delay_start": True,
                                                          "battle_mode": 0,
@@ -125,7 +159,6 @@ class Todo(QThread):
                                                          "list_ban_card": list_ban_card,
                                                          "deck": deck
                                                      })
-            print("=" * 50)
 
             self.thread_1p.start()
             if is_group:
@@ -135,8 +168,6 @@ class Todo(QThread):
             self.thread_1p.join()
             if is_group:
                 self.thread_2p.join()
-
-            print("=" * 50)
 
             # 最后一次的退出方式不同
             if i + 1 == max_times:
@@ -150,8 +181,16 @@ class Todo(QThread):
                     if is_group:
                         self.faa[2].action_exit(exit_mode=j)
 
-            print("[单本轮战] 第{}次, 结束\n".format(i + 1))
-            self.sin_out.emit("[单本轮战] 第{}次, 结束\n".format(i + 1))
+            # 结束提示文本
+            print(
+                "[{}] [单本轮战] 第{}次, 结束".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    i + 1))
+            self.sin_out.emit(
+                "[{}] [单本轮战] 第{}次, 结束, 耗时:{:.0f}s".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    i + 1,
+                    time.time() - timer_begin))
 
     def n_n_battle(self, task_list, list_type):
         """
@@ -165,7 +204,8 @@ class Todo(QThread):
             # 判断不打的任务
             if task["stage_id"].split("-")[0] in list_type:
                 self.sin_out.emit(
-                    "[多本轮战]任务{},组队:{},目标地点:{},次数:{},额外带卡:{},Ban卡:{}".format(
+                    "[{}] [多本轮战] 任务{},组队:{},目标地点:{},次数:{},额外带卡:{},Ban卡:{}".format(
+                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         i + 1,
                         "是" if task["battle_plan_2p"] else "否",
                         task["stage_id"],
@@ -185,7 +225,8 @@ class Todo(QThread):
                     dict_exit=task["dict_exit"])
             else:
                 self.sin_out.emit(
-                    "[多本轮战]任务{},组队:{},目标地点:{},次数:{},额外带卡:{},Ban卡:{},不打的地图类型,skip\n".format(
+                    "[{}] [多本轮战] 任务{},组队:{},目标地点:{},次数:{},额外带卡:{},Ban卡:{},不打的地图类型,skip".format(
+                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         i + 1,
                         "是" if task["battle_plan_2p"] else "否",
                         task["stage_id"],
@@ -197,36 +238,70 @@ class Todo(QThread):
     def double_task(self, text_, task_type, deck, battle_plan_1p, battle_plan_2p):
         """完成公会or情侣任务"""
 
-        self.sin_out.emit("{}Link Start!\n".format(text_))
+        self.sin_out.emit(
+            "\n[{}] {}Link Start!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
 
-        self.sin_out.emit("{}检查领取奖励中...\n".format(text_))
+        self.sin_out.emit(
+            "[{}] {}检查领取奖励中...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
+
         self.faa[1].action_task_receive_rewards(task_type=task_type)
         self.faa[2].action_task_receive_rewards(task_type=task_type)
 
-        self.sin_out.emit("{}开始获取任务列表".format(text_))
+        self.sin_out.emit(
+            "[{}] {}开始获取任务列表".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
+
         task_list = self.faa[1].action_get_task(target=task_type)
 
         for i in task_list:
-            self.sin_out.emit("副本:{},额外带卡:{}".format(i["stage_id"], i["task_card"]))
+            self.sin_out.emit(
+                "[{}] 副本:{},额外带卡:{}".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    i["stage_id"],
+                    i["task_card"]))
 
         for i in range(len(task_list)):
             task_list[i]["deck"] = deck
             task_list[i]["battle_plan_1p"] = battle_plan_1p
             task_list[i]["battle_plan_2p"] = battle_plan_2p
 
-        self.sin_out.emit("{}已取得任务,开始[多本轮战]...".format(text_))
+        self.sin_out.emit(
+            "[{}] {}已取得任务,开始[多本轮战]...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
+
         self.n_n_battle(task_list=task_list, list_type=["NO"])
 
-        self.sin_out.emit("{}检查领取奖励中...\n".format(text_))
+        self.sin_out.emit(
+            "[{}] {}检查领取奖励中...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
+
         self.faa[1].action_task_receive_rewards(task_type=task_type)
         self.faa[2].action_task_receive_rewards(task_type=task_type)
 
-        self.sin_out.emit("{}Completed!\n".format(text_))
+        self.sin_out.emit(
+            "[{}] {}Completed!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
 
     def double_offer_reward(self, text_, deck, battle_plan_1p, battle_plan_2p):
-        self.sin_out.emit("{}Link Start!\n".format(text_))
-        # 战斗开始
-        self.sin_out.emit("{}开始[多本轮战]...".format(text_))
+
+        self.sin_out.emit(
+            "\n[{}] {}Link Start!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
+
+        self.sin_out.emit(
+            "[{}] {}开始[多本轮战]...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
+
         task_list = [
             {
                 "deck": deck,
@@ -237,7 +312,7 @@ class Todo(QThread):
                 "max_times": 1,
                 "task_card": "None",
                 "list_ban_card": [],
-                "dict_exit": {"other_time": [0], "last_time": [3]}
+                "dict_exit": {"other_time": ["none"], "last_time": ["sports_land"]}
             }, {
                 "deck": deck,
                 "is_group": True,
@@ -247,7 +322,7 @@ class Todo(QThread):
                 "max_times": 1,
                 "task_card": "None",
                 "list_ban_card": [],
-                "dict_exit": {"other_time": [0], "last_time": [3]}
+                "dict_exit": {"other_time": ["none"], "last_time": ["sports_land"]}
             }, {
                 "deck": deck,
                 "is_group": True,
@@ -257,17 +332,24 @@ class Todo(QThread):
                 "max_times": 1,
                 "task_card": "None",
                 "list_ban_card": [],
-                "dict_exit": {"other_time": [0], "last_time": [3]}
+                "dict_exit": {"other_time": ["none"], "last_time": ["sports_land"]}
             }]
         self.n_n_battle(task_list=task_list, list_type=["OR"])
         # 领取奖励
         self.faa[1].action_task_receive_rewards(task_type="offer_reward")
         self.faa[2].action_task_receive_rewards(task_type="offer_reward")
-        # 战斗结束
-        self.sin_out.emit("{}Completed!\n".format(text_))
+
+        self.sin_out.emit(
+            "[{}] {}Completed!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
 
     def double_magic_tower(self, text_, floor, max_times, deck, battle_plan_1p, battle_plan_2p):
-        self.sin_out.emit("{} Link Start!\n".format(text_))
+
+        self.sin_out.emit(
+            "\n[{}] {} Link Start!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
 
         # 填入战斗方案和关卡信息
         stage_id = "MT-2-" + str(floor)
@@ -276,15 +358,20 @@ class Todo(QThread):
 
         # 轮次作战
         for i in range(max_times):
-            self.sin_out.emit("{} 第{}次, 开始".format(text_, i + 1))
+
+            self.sin_out.emit(
+                "[{}] {} 第{}次, 开始".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    text_, i + 1))
+
             flag_invite_failed = False
 
             # 前往副本
             while True:
                 # 第一次 或 邀请失败后 进入方式不同
                 if i == 0 or flag_invite_failed:
-                    self.faa[1].action_goto_stage(room_creator=False, mt_first_time=True)
-                    self.faa[2].action_goto_stage(room_creator=True, mt_first_time=True)
+                    self.faa[1].action_goto_stage(room_creator=False, extra_action_first_time=True)
+                    self.faa[2].action_goto_stage(room_creator=True, extra_action_first_time=True)
                 else:
                     self.faa[2].action_goto_stage(room_creator=True)
 
@@ -294,13 +381,15 @@ class Todo(QThread):
                     break
                 else:
                     flag_invite_failed = True
-                    self.sin_out.emit("服务器抽风, 尝试进入竞技岛, 并重新进行邀请...")
-                    self.faa[2].action_exit(exit_mode=3)
-                    self.faa[1].action_exit(exit_mode=3)
+                    self.sin_out.emit(
+                        "[{}] 服务器抽风, 尝试进入竞技岛, 并重新进行邀请...".format(
+                            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                    self.faa[2].action_exit(exit_mode="sports_land")
+                    self.faa[1].action_exit(exit_mode="sports_land")
 
             # 创建战斗进程 -> 开始进程 -> 阻塞进程让进程执行完再继续本循环函数
             self.thread_1p = ThreadWithException(target=self.faa[1].action_round_of_game,
-                                                 name="1P Thread",
+                                                 name="1P Thread - Battle",
                                                  kwargs={
                                                      "delay_start": False,
                                                      "battle_mode": 0,
@@ -310,7 +399,7 @@ class Todo(QThread):
                                                  })
 
             self.thread_2p = ThreadWithException(target=self.faa[2].action_round_of_game,
-                                                 name="2P Thread",
+                                                 name="2P Thread - Battle",
                                                  kwargs={
                                                      "delay_start": True,
                                                      "battle_mode": 0,
@@ -326,19 +415,30 @@ class Todo(QThread):
             # 打完出本
             if i + 1 == max_times:
                 # 最后一把
-                self.faa[1].action_exit(exit_mode=1)
-                self.faa[2].action_exit(exit_mode=2)
+                self.faa[1].action_exit(exit_mode="back_one_level")
+                self.faa[2].action_exit(exit_mode="normal_x")
             else:
                 # 其他次数
-                self.faa[1].action_exit(exit_mode=1)
-                self.faa[2].action_exit(exit_mode=0)
+                self.faa[1].action_exit(exit_mode="back_one_level")
+                self.faa[2].action_exit(exit_mode="none")
 
-            self.sin_out.emit("{} 第{}次, 结束\n".format(text_, i + 1))
+            self.sin_out.emit(
+                "[{}] {} 第{}次, 结束".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    text_,
+                    i + 1))
 
-        self.sin_out.emit("{} Completed!\n".format(text_))
+        self.sin_out.emit(
+            "[{}] {} Completed!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
 
     def alone_magic_tower(self, text_, player_id, floor, max_times, deck, battle_plan_1p):
-        self.sin_out.emit("{} Link Start!\n".format(text_))
+
+        self.sin_out.emit(
+            "\n[{}] {} Link Start!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
 
         stage_id = "MT-1-" + str(floor)
         self.faa[player_id].get_config_for_battle(is_group=False, battle_plan_index=battle_plan_1p, stage_id=stage_id)
@@ -346,17 +446,21 @@ class Todo(QThread):
         # 轮次作战
         for count_times in range(max_times):
 
-            self.sin_out.emit("{} 第{}次, 开始".format(text_, count_times + 1))
+            self.sin_out.emit(
+                "[{}] {} 第{}次, 开始".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    text_,
+                    count_times + 1))
 
             # 第一次的进入方式不同
             if count_times == 0:
-                self.faa[player_id].action_goto_stage(room_creator=True, mt_first_time=True)
+                self.faa[player_id].action_goto_stage(room_creator=True, extra_action_first_time=True)
             else:
                 self.faa[player_id].action_goto_stage(room_creator=True)
 
             # 创建战斗进程 -> 开始进程 -> 阻塞进程让进程执行完再继续本循环函数
             self.thread_1p = ThreadWithException(target=self.faa[player_id].action_round_of_game,
-                                                 name="{}P Thread".format(player_id),
+                                                 name="{}P Thread - Battle".format(player_id),
                                                  kwargs={
                                                      "deck": deck,
                                                      "delay_start": False,
@@ -369,17 +473,27 @@ class Todo(QThread):
 
             # 最后一次的退出方式不同
             if count_times + 1 == max_times:
-                self.faa[player_id].action_exit(exit_mode=2)
+                self.faa[player_id].action_exit(exit_mode="normal_x")
             else:
-                self.faa[player_id].action_exit(exit_mode=0)
+                self.faa[player_id].action_exit(exit_mode="none")
 
-            self.sin_out.emit("{} 第{}次, 结束\n".format(text_, count_times + 1))
+            self.sin_out.emit(
+                "[{}] {} 第{}次, 结束".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    text_,
+                    count_times + 1))
 
-        self.sin_out.emit("{} Completed!\n".format(text_))
+        self.sin_out.emit(
+            "[{}] {} Completed!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
 
     def alone_magic_tower_prison(self, text_, player_id, sutra_pavilion, deck, battle_plan_1p):
 
-        self.sin_out.emit("{} Link Start!\n".format(text_))
+        self.sin_out.emit(
+            "\n[{}] {} Link Start!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
 
         if sutra_pavilion:
             stage_list = ["MT-3-1", "MT-3-2", "MT-3-3", "MT-3-4"]
@@ -394,7 +508,7 @@ class Todo(QThread):
 
             # 第一次的进入方式不同
             if stage_id == "MT-3-1":
-                self.faa[player_id].action_goto_stage(room_creator=True, mt_first_time=True)
+                self.faa[player_id].action_goto_stage(room_creator=True, extra_action_first_time=True)
             else:
                 self.faa[player_id].action_goto_stage(room_creator=True)
 
@@ -402,7 +516,7 @@ class Todo(QThread):
 
             # 创建战斗进程 -> 开始进程 -> 阻塞进程让进程执行完再继续本循环函数
             self.thread_1p = ThreadWithException(target=self.faa[player_id].action_round_of_game,
-                                                 name="{}P Thread".format(player_id),
+                                                 name="{}P Thread - Battle".format(player_id),
                                                  kwargs={
                                                      "deck": deck,
                                                      "delay_start": False,
@@ -413,18 +527,27 @@ class Todo(QThread):
             self.thread_1p.start()
             self.thread_1p.join()
 
-            self.sin_out.emit("{}  战斗结束:{}".format(text_, stage_id))
+            self.sin_out.emit(
+                "[{}] {} 战斗结束:{}".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    text_,
+                    stage_id))
 
             # 最后一次的退出方式不同
             if stage_id == "MT-3-4":
-                self.faa[player_id].action_exit(exit_mode=2)
+                self.faa[player_id].action_exit(exit_mode="normal_x")
             else:
-                self.faa[player_id].action_exit(exit_mode=0)
+                self.faa[player_id].action_exit(exit_mode="none")
 
-        self.sin_out.emit("{} Completed!\n".format(text_))
+        self.sin_out.emit(
+            "[{}] {} Completed!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
 
     def cross_server(self, text_, is_group, stage_id, max_times, deck, battle_plan_1p, battle_plan_2p):
-        self.sin_out.emit("{} Link Start!\n".format(text_))
+        self.sin_out.emit(
+            "\n[{}] {} Link Start!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), text_))
 
         # 填入战斗方案和关卡信息
         self.faa[1].get_config_for_battle(is_group=True, battle_plan_index=battle_plan_1p, stage_id=stage_id)
@@ -439,10 +562,15 @@ class Todo(QThread):
 
         # 轮次作战
         for i in range(max_times):
-            self.sin_out.emit("{} 第{}次, 开始".format(text_, i + 1))
+
+            self.sin_out.emit("[{}] {} 第{}次, 开始".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_,
+                i + 1))
+
             # 创建战斗进程 -> 开始进程 -> 阻塞进程让进程执行完再继续本循环函数
             self.thread_1p = ThreadWithException(target=self.faa[1].action_round_of_game,
-                                                 name="1P Thread",
+                                                 name="1P Thread - Battle",
                                                  kwargs={"delay_start": True,
                                                          "battle_mode": 0,
                                                          "task_card": "None",
@@ -451,7 +579,7 @@ class Todo(QThread):
                                                          })
             if is_group:
                 self.thread_2p = ThreadWithException(target=self.faa[2].action_round_of_game,
-                                                     name="2P Thread",
+                                                     name="2P Thread - Battle",
                                                      kwargs={
                                                          "delay_start": False,
                                                          "battle_mode": 0,
@@ -469,25 +597,39 @@ class Todo(QThread):
             # 打完出本
             if i + 1 == max_times:
                 # 最后一把 打完回竞技岛
-                self.faa[1].action_exit(exit_mode=3)
+                self.faa[1].action_exit(exit_mode="sports_land")
                 if is_group:
-                    self.faa[2].action_exit(exit_mode=3)
+                    self.faa[2].action_exit(exit_mode="sports_land")
             else:
                 # 其他次数 打完按兵不动
-                self.faa[1].action_exit(exit_mode=0)
+                self.faa[1].action_exit(exit_mode="none")
                 if is_group:
-                    self.faa[2].action_exit(exit_mode=0)
+                    self.faa[2].action_exit(exit_mode="none")
 
-            self.sin_out.emit("{} 第{}次, 结束\n".format(text_, i + 1))
+            self.sin_out.emit(
+                "[{}] {} 第{}次, 结束".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    text_,
+                    i + 1))
 
-        self.sin_out.emit("{} Completed!\n".format(text_))
+        self.sin_out.emit(
+            "[{}] {} Completed!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
 
     def easy_battle(self, text_, stage_id, max_times, deck, is_group, battle_plan_1p, battle_plan_2p, dict_exit):
         """仅调用 n_battle"""
         # 战斗开始
-        self.sin_out.emit("{} Link Start!\n".format(text_))
+        self.sin_out.emit(
+            "\n[{}] {} Link Start!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
         # 战斗开始
-        self.sin_out.emit("{}开始[多本轮战]...".format(text_))
+        self.sin_out.emit(
+            "[{}] {}开始[多本轮战]...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
+
         task_list = [
             {
                 "stage_id": stage_id,
@@ -502,31 +644,49 @@ class Todo(QThread):
             }]
         self.n_n_battle(task_list=task_list, list_type=["NO", "OR", "CS", "EX"])
         # 战斗结束
-        self.sin_out.emit("{} Completed!\n".format(text_))
+        self.sin_out.emit(
+            "[{}] {} Completed!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
 
     def customize_battle(self, text_: str):
         # 开始链接
-        self.sin_out.emit("{} Link Start!\n".format(text_))
+        self.sin_out.emit(
+            "[{}] {} Link Start!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
+
         # 战斗开始
-        self.sin_out.emit("{}开始[多本轮战]...".format(text_))
+        self.sin_out.emit(
+            "[{}] {}开始[多本轮战]...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
 
         with open(paths["config"] + "//opt_customize_todo.json", "r", encoding="UTF-8") as file:
             task_list = json.load(file)
 
-        self.n_n_battle(task_list=task_list, list_type=["NO","EX"])
+        self.n_n_battle(task_list=task_list, list_type=["NO", "EX"])
 
         # 战斗结束
-        self.sin_out.emit("{} Completed!\n".format(text_))
+        self.sin_out.emit(
+            "[{}] {} Completed!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
 
     def run(self):
         """覆写主方法"""
         # 签到!
-        self.sin_out.emit("每一个大类的任务开始前均会重启游戏以防止bug...")
+        self.sin_out.emit(
+            "每一个大类的任务开始前均会重启游戏以防止bug...")
 
         my_opt = self.opt["reload_and_daily_tasks"]
         if my_opt["active"]:
             self.reload_game()
-            self.sin_out.emit("每日签到检查中...")
+
+            self.sin_out.emit(
+                "[{}] 每日签到检查中...".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
             self.faa[1].sign_in()
             self.faa[2].sign_in()
 
@@ -539,7 +699,7 @@ class Todo(QThread):
                              is_group=my_opt["is_group"],
                              battle_plan_1p=my_opt["battle_plan_1p"],
                              battle_plan_2p=my_opt["battle_plan_2p"],
-                             dict_exit={"other_time": [0], "last_time": [3]})
+                             dict_exit={"other_time": ["none"], "last_time": ["sports_land"]})
 
         if (
                 self.opt["guild_task"]["active"] or
@@ -587,7 +747,7 @@ class Todo(QThread):
                              is_group=my_opt["is_group"],
                              battle_plan_1p=my_opt["battle_plan_1p"],
                              battle_plan_2p=my_opt["battle_plan_2p"],
-                             dict_exit={"other_time": [0], "last_time": [3]})
+                             dict_exit={"other_time": ["none"], "last_time": ["sports_land"]})
 
         my_opt = self.opt["cross_server"]
         if my_opt["active"]:
@@ -608,7 +768,12 @@ class Todo(QThread):
                              is_group=my_opt["is_group"],
                              battle_plan_1p=my_opt["battle_plan_1p"],
                              battle_plan_2p=my_opt["battle_plan_2p"],
-                             dict_exit={"other_time": [0], "last_time": [3, 2]})
+                             dict_exit={"other_time": ["none"], "last_time": ["sports_land"]})
+            # 勇士挑战在全部完成后, [进入竞技岛], 创建房间者[有概率]会保留勇士挑战选择关卡的界面.
+            # 对于创建房间者, 在触发后, 需要设定完成后退出方案为[进入竞技岛 → 点X] 才能完成退出.
+            # 对于非创建房间者, 由于号1不会出现选择关卡界面, 会因为找不到[X]而卡死.
+            # 无论如何都会出现卡死的可能性.
+            # 因此此处选择退出方案直接选择[进入竞技岛], 并将勇士挑战选择放在本大类的最后进行, 依靠下一个大类开始后的重启游戏刷新.
 
         if (
                 self.opt["magic_tower_alone_1"]["active"] or
@@ -647,14 +812,30 @@ class Todo(QThread):
                                     battle_plan_1p=my_opt["battle_plan_1p"],
                                     battle_plan_2p=my_opt["battle_plan_2p"])
 
+        # 全部完成前 先 领取一下任务
+        self.sin_out.emit(
+            "[{}] 全部主要事项已完成! 检查所有[任务]完成情况".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        self.compete_quest()
+        self.sin_out.emit(
+            "[{}] 已领取所有[任务]奖励".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+        if (
+                self.opt["customize"]["active"] or
+                self.opt["cross_server_reputation"]["active"]
+        ):
+            self.reload_game()
+
+        my_opt = self.opt["cross_server_reputation"]
+        if my_opt["active"]:
+            self.sin_out.emit(
+                "[{}] 无限刷跨服威望功能开发ing...".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
         my_opt = self.opt["customize"]
         if my_opt["active"]:
             self.customize_battle(text_="[高级自定义]")
-
-        # 全部完成前 先 领取一下任务
-        self.sin_out.emit("检查所有任务完成情况")
-        self.compete_quest()
-        self.sin_out.emit("所有已领取奖励")
 
         # 全部完成了? 发个信号
         self.sin_out_completed.emit()
@@ -680,7 +861,7 @@ class MyMainWindow2(MyMainWindow1):
         super().__init__()
         self.thread_todo = None
         self.reply = None
-        self.faa = [None,None,None]
+        self.faa = [None, None, None]
         # 线程激活即为True
         self.thread_states = False
 
@@ -698,7 +879,6 @@ class MyMainWindow2(MyMainWindow1):
         if not self.thread_states:
             self.ui_to_opt()
             game_name = self.opt["game_name"]
-            server_id = self.opt["server_id"]
             name_1p = self.opt["name_1p"]
             name_2p = self.opt["name_2p"]
             channel_1p, channel_2p = get_channel_name(game_name, name_1p, name_2p)
@@ -707,10 +887,9 @@ class MyMainWindow2(MyMainWindow1):
             zoom_ratio = {0: 1.00, 1: 1.25, 2: 1.50, 3: 1.75, 4: 2.00, 5: 2.25, 6: 2.50}
             zoom_ratio = zoom_ratio[self.opt["zoom_ratio"]]
 
-            faa = [None,None,None]
+            faa = [None, None, None]
             faa[1] = FAA(channel=channel_1p,
                          zoom=zoom_ratio,
-                         server_id=server_id,
                          player="1P",
                          character_level=self.opt["level_1p"],
                          is_use_key=True,  # boolean 是否使用钥匙 做任务必须选择 是
@@ -719,7 +898,6 @@ class MyMainWindow2(MyMainWindow1):
 
             faa[2] = FAA(channel=channel_2p,
                          zoom=zoom_ratio,
-                         server_id=server_id,
                          player="2P",
                          character_level=self.opt["level_2p"],
                          is_use_key=True,
@@ -735,6 +913,8 @@ class MyMainWindow2(MyMainWindow1):
             self.TextBrowser.clear()
             self.printf(">>> 链接开始 线程开启 <<<")
             self.printf(">>> 务必有二级密码, 且未输入以以兜底 <<<")
+            self.printf(">>> 不绑卡高星建议放拍卖行 <<<")
+            self.printf(">>> 支持360游戏大厅 - 4399 或 QQ 渠道 <<<")
             self.printf("")
 
             self.thread_todo = Todo(faa=faa, opt=self.opt)

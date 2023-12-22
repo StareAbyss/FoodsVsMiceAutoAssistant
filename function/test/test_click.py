@@ -8,7 +8,7 @@ def f_test():
     zoom = 1.5
     click_interval = 0
     click_sleep = 0
-    handle = faa_get_handle(channel="深渊之下 | 锑食", mode="game")
+    handle = faa_get_handle(channel="深渊之下 | 锑食", mode="flash")
     for i in range(1000):
         mouse_left_click(handle=handle,
                          x=int(10 * zoom),

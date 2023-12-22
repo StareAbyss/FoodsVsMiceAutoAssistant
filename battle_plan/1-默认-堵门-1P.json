@@ -81,8 +81,7 @@
         },
         {
             "id": 5,
-            "tips": "糖葫芦",
-            "name": "Tomatoes on sticks bomb",
+            "name": "糖葫芦炮弹",
             "ergodic": true,
             "queue": false,
             "location": [
@@ -96,8 +95,7 @@
         },
         {
             "id": 6,
-            "tips": "瓜皮护罩",
-            "name": "Watermelon Skin Shield",
+            "name": "瓜皮护罩",
             "ergodic": true,
             "queue": false,
             "location": [
@@ -113,7 +111,7 @@
         {
             "id": 7,
             "tips": "狮子座精灵",
-            "name": "Leo Elf",
+            "name": "狮子座精灵",
             "ergodic": true,
             "queue": false,
             "location": [

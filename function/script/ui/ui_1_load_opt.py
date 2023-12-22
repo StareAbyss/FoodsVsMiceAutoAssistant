@@ -44,7 +44,6 @@ class MyMainWindow1(MyMainWindow0):
         self.Name2P_Input.setText(self.opt["name_2p"])
         self.ZoomRatio_Input.setCurrentIndex(self.opt["zoom_ratio"])
 
-        self.Server_Input.setValue(self.opt["server_id"])
         self.Level1P_Input.setValue(self.opt["level_1p"])
         self.Level2P_Input.setValue(self.opt["level_2p"])
         self.AutoUseCard.setChecked(self.opt["auto_use_card"])
@@ -147,6 +146,7 @@ class MyMainWindow1(MyMainWindow0):
         self.NormalBattle_1P.setCurrentIndex(self.opt["normal_battle"]["battle_plan_1p"])
         self.NormalBattle_2P.setCurrentIndex(self.opt["normal_battle"]["battle_plan_2p"])
 
+        self.CrossServerReputation_Active.setChecked(self.opt["cross_server_reputation"]["active"])
         self.Customize_Active.setChecked(self.opt["customize"]["active"])
 
     def ui_to_opt(self):
@@ -164,7 +164,6 @@ class MyMainWindow1(MyMainWindow0):
         self.opt["name_2p"] = self.Name2P_Input.text()
         self.opt["zoom_ratio"] = self.ZoomRatio_Input.currentIndex()  # combobox 序号
 
-        self.opt["server_id"] = self.Server_Input.value()
         self.opt["level_1p"] = self.Level1P_Input.value()
         self.opt["level_2p"] = self.Level2P_Input.value()
         self.opt["auto_use_card"] = self.AutoUseCard.isChecked()
@@ -247,6 +246,7 @@ class MyMainWindow1(MyMainWindow0):
         my_transformer(self.NormalBattle_1P, "normal_battle", "battle_plan_1p")
         my_transformer(self.NormalBattle_2P, "normal_battle", "battle_plan_2p")
 
+        self.opt["cross_server_reputation"]["active"] = self.CrossServerReputation_Active.isChecked()
         self.opt["customize"]["active"] = self.Customize_Active.isChecked()
 
     def click_btn_save(self):

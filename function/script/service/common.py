@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 from time import sleep
@@ -12,23 +13,23 @@ from function.common.bg_p_screenshot import capture_picture_png
 from function.get_paths import paths
 from function.script.scattered.gat_handle import faa_get_handle
 from function.script.scattered.get_battle_plan_list import get_battle_plan_list
+from function.script.scattered.read_json_to_stage_info import read_json_to_stage_info
 from function.script.service.in_battle.round_of_battle import RoundOfBattle
 from function.script.service.in_battle.round_of_game import round_of_game
 
 
 class FAA:
-    def __init__(self, channel="锑食", zoom=1, server_id=1, player="1P", character_level=1,
+    def __init__(self, channel="锑食", zoom=1.0, player="1P", character_level=1,
                  is_use_key=True, is_auto_battle=True, is_auto_collect=False):
 
         # 获取窗口句柄
         self.channel = channel
-        self.handle = faa_get_handle(channel=self.channel, mode="game")
+        self.handle = faa_get_handle(channel=self.channel, mode="flash")
         self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
         self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
 
         # 缩放
         self.zoom = zoom  # float 1.0 即百分百
-        self.server_id = server_id
 
         # 角色|等级|是否使用钥匙|卡片|收集战利品
         self.player = player
@@ -56,37 +57,15 @@ class FAA:
 
         def read_json_to_battle_plan():
             battle_plan_list = get_battle_plan_list(with_extension=True)
-            battle_plan_path = "{}\\battle_plan\\{}".format(
-                paths["config"],
+            battle_plan_path = "{}\\{}".format(
+                paths["battle_plan"],
                 battle_plan_list[battle_plan_index]
             )
             with open(battle_plan_path, "r", encoding="UTF-8") as file:
                 return json.load(file)
 
-        def read_json_to_stage_info():
-            """读取文件中是否存在预设"""
-            with open(paths["config"] + "//opt_stage_info.json", "r", encoding="UTF-8") as file:
-                f_my_dict = json.load(file)
-            # 初始化
-            stage_info = f_my_dict["default"]
-            stage_info["id"] = stage_id
-            # 拆分关卡名称
-            stage_list = stage_id.split("-")
-            stage_0 = stage_list[0]  # type
-            stage_1 = stage_list[1]  # map
-            stage_2 = stage_list[2]  # stage
-            # 如果找到预设
-            if stage_0 in f_my_dict.keys():
-                if stage_1 in f_my_dict[stage_0].keys():
-                    if stage_2 in f_my_dict[stage_0][stage_1].keys():
-                        # 用设定里有的键值对覆盖已有的 并填写关卡名称(没有则保持默认)
-                        f_stage_info_1 = f_my_dict[stage_0][stage_1][stage_2]
-
-                        stage_info = {**stage_info, **f_stage_info_1}
-            return stage_info
-
         self.battle_plan = read_json_to_battle_plan()
-        self.stage_info = read_json_to_stage_info()
+        self.stage_info = read_json_to_stage_info(stage_id)
 
     """封装好的对窗口的动作"""
 
@@ -215,7 +194,7 @@ class FAA:
                                               "dict_exit": {"other_time": [0], "last_time": [3]}})
 
         # 关闭公会任务列表(红X)
-        self.action_exit(exit_mode=2)
+        self.action_exit(exit_mode="normal_x")
 
         return task_list
 
@@ -251,7 +230,7 @@ class FAA:
                                       target_tolerance=0.99,
                                       click_zoom=self.zoom,
                                       click=True,
-                                      target_failed_check=7,  # 7s 因为偶尔会弹出美食大赛完成 需要充足时间！这个确实脑瘫...
+                                      target_failed_check=5,  # 1+4s 因为偶尔会弹出美食大赛完成动画4s 需要充足时间！这个确实脑瘫...
                                       target_sleep=0.5)
             if result:
                 loop_find_p_in_w(raw_w_handle=self.handle,
@@ -265,7 +244,7 @@ class FAA:
             else:
                 break
         # 退出任务界面
-        self.action_exit(exit_mode=2)
+        self.action_exit(exit_mode="normal_x")
 
     def action_task_spouse(self):
         # 点跳转
@@ -295,7 +274,7 @@ class FAA:
             if not result:
                 break
         # 退出任务界面
-        self.action_exit(exit_mode=2)
+        self.action_exit(exit_mode="normal_x")
 
     def action_task_offer_reward(self):
         # 防止活动列表不在
@@ -315,15 +294,15 @@ class FAA:
                                       raw_range=[0, 0, 950, 600],
                                       target_path=paths["picture"]["common"] + "\\offer_reward_get_loot.png",
                                       target_tolerance=0.99,
+                                      target_failed_check=2,
                                       click_zoom=self.zoom,
                                       click=True,
-                                      target_failed_check=2,
                                       target_sleep=2)
             if not result:
                 break
 
         # 退出任务界面
-        self.action_exit(exit_mode=2)
+        self.action_exit(exit_mode="normal_x")
 
     def action_task_receive_rewards(self, task_type: str):
         """
@@ -397,12 +376,12 @@ class FAA:
                          target_sleep=2,
                          click=True)
 
-    def action_goto_stage(self, room_creator: bool = True, mt_first_time: bool = False):
+    def action_goto_stage(self, room_creator: bool = True, extra_action_first_time: bool = False):
         """
         只要右上能看到地球 就可以到目标关卡
         Args:
             room_creator: 是房主；仅房主创建关卡；
-            mt_first_time: 魔塔关卡下 是否是第一次打(第一次塔需要进塔 第二次只需要选关卡序号)
+            extra_action_first_time: 魔塔关卡下 是否是第一次打(第一次塔需要进塔 第二次只需要选关卡序号)
         """
 
         # 拆成数组["关卡类型","地图id","关卡id"]
@@ -465,7 +444,7 @@ class FAA:
                 click_set_password()
 
                 # 创建队伍
-                my_path = paths["picture"]["common"] + "\\battle\\before_create_stage.png"
+                my_path = paths["picture"]["common"] + "\\battle\\before_create_room.png"
                 loop_find_p_in_w(raw_w_handle=self.handle,
                                  raw_range=[0, 0, 950, 600],
                                  target_path=my_path,
@@ -473,7 +452,7 @@ class FAA:
                                  target_sleep=1, click=True)
 
         def main_mt():
-            if mt_first_time:
+            if extra_action_first_time:
                 # 防止被活动列表遮住
                 self.change_activity_list(2)
 
@@ -483,7 +462,7 @@ class FAA:
                 # 选区
                 change_to_region(region_id=2)
 
-            if room_creator and mt_first_time:
+            if room_creator and extra_action_first_time:
                 # 进入魔塔
                 my_path = paths["picture"]["stage"] + "\\MT.png"
                 loop_find_p_in_w(raw_w_handle=self.handle,
@@ -710,7 +689,7 @@ class FAA:
                 click_set_password()
 
                 # 创建队伍
-                my_path = "{}\\battle\\before_create_stage.png".format(paths["picture"]["common"])
+                my_path = "{}\\battle\\before_create_room.png".format(paths["picture"]["common"])
                 loop_find_p_in_w(raw_w_handle=self.handle,
                                  raw_range=[0, 0, 950, 600],
                                  target_path=my_path,
@@ -744,7 +723,7 @@ class FAA:
             is_auto_collect=self.is_auto_collect,
             path_p_common=paths["picture"]["common"],
             stage_info=self.stage_info,
-            battle_plan=self.battle_plan,
+            battle_plan=copy.deepcopy(self.battle_plan),
             is_group=self.is_group
         )
 
@@ -754,9 +733,12 @@ class FAA:
             list_ban_card=list_ban_card
         )
 
-    def action_round_of_game(self, deck: int, delay_start: bool, battle_mode: int,
-                             task_card: str, list_ban_card: list):
-        """调用主要方法 低耦合 方便被调用"""
+    def action_round_of_game(
+            self, deck: int, delay_start: bool, battle_mode: int, task_card: str, list_ban_card: list):
+        """
+        一轮游戏
+        """
+
         round_of_game(
             handle=self.handle,
             zoom=self.zoom,
@@ -771,11 +753,23 @@ class FAA:
             list_ban_card=list_ban_card
         )
 
-    def action_exit(self, exit_mode: int):
-        """退出 0-不退出  1-右下回退到上一级  2-右上红叉  3-直接到竞技岛 4-悬赏 5-美食大赛领取"""
+    def action_exit(self, exit_mode):
+        """
+        退出
+        "none" 或者 瞎填 -不退出 0
+        "normal_x" - 普通的右上红叉 2
+        "back_one_level"-右下回退到上一级 1
+        "sports_land" - 直接到竞技岛  3
+        "exit_offer_reward" - 悬赏的右上角红叉关闭
+        "food_competition" - 美食大赛领取
+        "exit_game" -游戏内退出
+        """
+
         handle = self.handle
         zoom = self.zoom
-        if exit_mode == 1:
+
+        """右下 回退到上一级"""
+        if exit_mode == "back_one_level":
             loop_find_p_in_w(raw_w_handle=handle,
                              raw_range=[0, 0, 950, 600],
                              target_path=paths["picture"]["common"] + "\\bottom_menu\\back.png",
@@ -784,7 +778,8 @@ class FAA:
                              click=True,
                              click_zoom=zoom)
 
-        if exit_mode == 2:
+        """右上 红叉"""
+        if exit_mode == "normal_x":
             loop_find_p_in_w(raw_w_handle=handle,
                              raw_range=[0, 0, 950, 600],
                              target_path=paths["picture"]["common"] + "\\battle\\before_exit_x.png",
@@ -793,7 +788,8 @@ class FAA:
                              click=True,
                              click_zoom=zoom)
 
-        if exit_mode == 3:
+        """右下 前往竞技岛"""
+        if exit_mode == "sports_land":
             loop_find_p_in_w(raw_w_handle=handle,
                              raw_range=[0, 0, 950, 600],
                              target_path=paths["picture"]["common"] + "\\bottom_menu\\goto.png",
@@ -812,6 +808,7 @@ class FAA:
                              click=True,
                              click_zoom=zoom)
 
+        """悬赏窗口关闭"""
         if exit_mode == 4:
             loop_find_p_in_w(raw_w_handle=handle,
                              raw_range=[0, 0, 950, 600],
@@ -822,8 +819,9 @@ class FAA:
                              click=True,
                              click_zoom=zoom)
 
-        if exit_mode == 5:
-            """美食大赛领取专用, 从一般关卡打完后开始"""
+        """美食大赛领取专用, 从一般关卡打完后开始"""
+        if exit_mode == "food_competition":
+
             # 记录一下是否有完成任何一次任务
             found_flag = False
             # 先回到竞技岛
@@ -879,6 +877,7 @@ class FAA:
                                 click=True)
                             if find:
                                 # 领取升级有动画
+                                print("[{}] 美食大赛 完成任务!".format(self.player))
                                 sleep(6)
                                 # 更新是否找到flag
                                 found_flag = True
@@ -894,208 +893,230 @@ class FAA:
                 sleep(5)
                 print("[{}] 没有在美食大赛完成任何任务, 请注意哦!".format(self.player))
 
+        """游戏内退出游戏"""
+        if exit_mode == "exit_game":
+            # 游戏内退出
+            mouse_left_click(handle=self.handle,
+                             x=int(1050 * self.zoom),
+                             y=int(582 * self.zoom),
+                             sleep_time=0.5)
+            # 确定游戏内退出
+            mouse_left_click(handle=self.handle,
+                             x=int(454 * self.zoom),
+                             y=int(386 * self.zoom),
+                             sleep_time=0.5)
+
     """reload game"""
 
     def reload_game(self):
+        zoom = self.zoom
         while True:
             # 点击刷新按钮 该按钮在360窗口上
-            target_path = paths["picture"]["common"] + "\\login\\refresh.png"
-            loop_find_p_in_w(raw_w_handle=self.handle_360,
-                             raw_range=[0, 0, 2000, 2000],
-                             target_path=target_path,
-                             target_tolerance=0.99,
-                             target_sleep=3,
-                             click=True,
-                             click_zoom=self.zoom)
+            loop_find_p_in_w(
+                raw_w_handle=self.handle_360,
+                raw_range=[0, 0, 2000, 2000],
+                target_path=paths["picture"]["common"] + "\\login\\0_refresh.png",
+                target_tolerance=0.99,
+                target_sleep=3,
+                click=True,
+                click_zoom=zoom)
 
-            # 检测是否有 输入服务器id字样
-            target_path = paths["picture"]["common"] + "\\login\\input_server_id.png"
-            result = loop_find_p_in_w(raw_w_handle=self.handle_browser,
-                                      raw_range=[0, 0, 2000, 2000],
-                                      target_path=target_path,
-                                      target_tolerance=0.99,
-                                      click=False)
+            # 是否在 选择服务器界面 - 判断是否存在 最近玩过的服务器ui(4399 or qq空间)
+            result = loop_find_ps_in_w(
+                raw_w_handle=self.handle_browser,
+                raw_range=[0, 0, 2000, 2000],
+                target_opts=[
+                    {
+                        "target_path": paths["picture"]["common"] + "\\login\\1_last_server_4399.png",
+                        "target_tolerance": 0.99,
+                    }, {
+                        "target_path": paths["picture"]["common"] + "\\login\\1_last_server_qq.png",
+                        "target_tolerance": 0.99,
+                    }
+                ],
+                target_return_mode="or")
+
             if not result:
-                print("[{}] 未找到进入输入服务器, 可能随机进入了未知界面, 刷新".format(self.player))
+                print("[{}] [Warning] 未找到进入输入服务器, 可能随机进入了未知界面, 重新刷新".format(self.player))
                 continue
-
             else:
-                # 点击两次右边的输入框 并输入服务器号
-                target_path = paths["picture"]["common"] + "\\login\\input_server_id.png"
-                x, y = find_p_in_w(raw_w_handle=self.handle_browser,
-                                   raw_range=[0, 0, 2000, 2000],
-                                   target_path=target_path,
-                                   target_tolerance=0.99)
-                mouse_left_click(handle=self.handle_browser,
-                                 x=int((x + 64) * self.zoom),
-                                 y=int(y * self.zoom),
-                                 interval_time=0.05,
-                                 sleep_time=0.1)
-                mouse_left_click(handle=self.handle_browser,
-                                 x=int((x + 64) * self.zoom),
-                                 y=int(y * self.zoom),
-                                 interval_time=0.05,
-                                 sleep_time=0.3)
+                """尝试根据qq或4399的不同ui 进入最近进入的服务器"""
+                result = find_p_in_w(
+                    raw_w_handle=self.handle_browser,
+                    raw_range=[0, 0, 2000, 2000],
+                    target_path=paths["picture"]["common"] + "\\login\\1_last_server_4399.png",
+                    target_tolerance=0.99
+                )
+                if result:
+                    # 点击进入服务器
+                    mouse_left_click(handle=self.handle_browser,
+                                     x=int(result[0] * zoom),
+                                     y=int((result[1] + 30) * zoom),
+                                     sleep_time=0.5)
+                result = find_p_in_w(
+                    raw_w_handle=self.handle_browser,
+                    raw_range=[0, 0, 2000, 2000],
+                    target_path=paths["picture"]["common"] + "\\login\\1_last_server_qq.png",
+                    target_tolerance=0.99
+                )
+                if result:
+                    # 点击进入服务器
+                    mouse_left_click(handle=self.handle_browser,
+                                     x=int(result[0] * zoom),
+                                     y=int((result[1] + 30) * zoom),
+                                     sleep_time=0.5)
 
-                for key in str(self.server_id):
-                    key_down_up(handle=self.handle_browser, key=key, sleep_time=0.1)
-                sleep(1)
-
-                target_path = paths["picture"]["common"] + "\\login\\input_server_enter.png"
-                result = loop_find_p_in_w(raw_w_handle=self.handle_browser,
-                                          raw_range=[0, 0, 2000, 2000],
-                                          target_path=target_path,
-                                          target_tolerance=0.95,  # 有轻微色差
-                                          click=True,
-                                          click_zoom=self.zoom)
+                """查找 - 关闭 健康游戏公告"""
+                # 查找健康游戏公告
+                target_path = paths["picture"]["common"] + "\\login\\2_health_game_advice.png"
+                result = loop_find_p_in_w(
+                    raw_w_handle=self.handle_browser,
+                    raw_range=[0, 0, 2000, 2000],
+                    target_path=target_path,
+                    target_tolerance=0.97,
+                    target_failed_check=10,
+                    target_sleep=0.5,
+                    click=False)
                 if not result:
-                    print("[{}] 未找到进入输入服务器 + 进入服务器, 刷新".format(self.player))
-                    continue
-
-                target_path = paths["picture"]["common"] + "\\login\\health_game_advice.png"
-                result = loop_find_p_in_w(raw_w_handle=self.handle_browser,
-                                          raw_range=[0, 0, 2000, 2000],
-                                          target_path=target_path,
-                                          target_tolerance=0.97,
-                                          target_sleep=0.5,
-                                          click=False)
-
-                if not result:
-
                     print("[{}] 未找到健康游戏公告, 刷新".format(self.player))
                     continue
-
                 else:
-
                     # 重新获取句柄, 此时游戏界面的句柄已经改变
-                    self.handle = faa_get_handle(channel=self.channel, mode="game")
+                    self.handle = faa_get_handle(channel=self.channel, mode="flash")
 
                     # 关闭健康游戏公告
-                    target_path = paths["picture"]["common"] + "\\login\\health_game_advice_enter.png"
-                    loop_find_p_in_w(raw_w_handle=self.handle,
-                                     raw_range=[0, 0, 950, 600],
-                                     target_path=target_path,
-                                     target_tolerance=0.97,
-                                     target_failed_check=15,
-                                     click=True,
-                                     click_zoom=self.zoom)
+                    loop_find_p_in_w(
+                        raw_w_handle=self.handle,
+                        raw_range=[0, 0, 950, 600],
+                        target_path=paths["picture"]["common"] + "\\login\\3_health_game_advice_enter.png",
+                        target_tolerance=0.97,
+                        target_failed_check=15,
+                        click=True,
+                        click_zoom=zoom)
 
-                    # 每日必充界面关闭
-                    target_path = paths["picture"]["common"] + "\\login\\exit.png"
-                    loop_find_p_in_w(raw_w_handle=self.handle,
-                                     raw_range=[0, 0, 950, 600],
-                                     target_path=target_path,
-                                     target_tolerance=0.99,
-                                     target_failed_check=2,
-                                     click=True,
-                                     click_zoom=self.zoom)
+                    # [可能发生] 每日必充界面关闭
+                    loop_find_p_in_w(
+                        raw_w_handle=self.handle,
+                        raw_range=[0, 0, 950, 600],
+                        target_path=paths["picture"]["common"] + "\\login\\4_exit.png",
+                        target_tolerance=0.99,
+                        target_failed_check=2,
+                        click=True,
+                        click_zoom=zoom)
 
                     break
 
     def sign_in(self):
+        handle = self.handle
+        zoom = self.zoom
         self.change_activity_list(1)
 
         """VIP签到"""
         target_path = paths["picture"]["common"] + "\\sign_in\\vip.png"
-        loop_find_p_in_w(raw_w_handle=self.handle,
-                         raw_range=[0, 0, 950, 600],
-                         target_path=target_path,
-                         target_tolerance=0.99,
-                         target_failed_check=1,
-                         target_sleep=1,
-                         click=True,
-                         click_zoom=self.zoom)
+        loop_find_p_in_w(
+            raw_w_handle=handle,
+            raw_range=[0, 0, 950, 600],
+            target_path=target_path,
+            target_tolerance=0.99,
+            target_failed_check=1,
+            target_sleep=1,
+            click=True,
+            click_zoom=zoom)
 
-        mouse_left_click(handle=self.handle,
-                         x=int(740 * self.zoom),
-                         y=int(190 * self.zoom),
-                         sleep_time=0.5)
-        mouse_left_click(handle=self.handle,
-                         x=int(225 * self.zoom),
-                         y=int(280 * self.zoom),
-                         sleep_time=0.5)
-        self.action_exit(exit_mode=2)
+        mouse_left_click(
+            handle=handle,
+            x=int(740 * zoom),
+            y=int(190 * zoom),
+            sleep_time=0.5)
+
+        mouse_left_click(
+            handle=handle,
+            x=int(225 * zoom),
+            y=int(280 * zoom),
+            sleep_time=0.5)
+
+        self.action_exit(exit_mode="normal_x")
 
         """每日签到"""
-        target_path = paths["picture"]["common"] + "\\sign_in\\daily_sign_in.png"
-        loop_find_p_in_w(raw_w_handle=self.handle,
-                         raw_range=[0, 0, 950, 600],
-                         target_path=target_path,
-                         target_tolerance=0.99,
-                         target_failed_check=1,
-                         target_sleep=1,
-                         click=True,
-                         click_zoom=self.zoom)
+        loop_find_p_in_w(
+            raw_w_handle=handle,
+            raw_range=[0, 0, 950, 600],
+            target_path=paths["picture"]["common"] + "\\sign_in\\daily_sign_in.png",
+            target_tolerance=0.99,
+            target_failed_check=1,
+            target_sleep=1,
+            click=True,
+            click_zoom=zoom)
 
-        target_path = paths["picture"]["common"] + "\\sign_in\\daily_sign_in_enter.png"
-        loop_find_p_in_w(raw_w_handle=self.handle,
-                         raw_range=[0, 0, 950, 600],
-                         target_path=target_path,
-                         target_tolerance=0.99,
-                         target_failed_check=1,
-                         target_sleep=1,
-                         click=True,
-                         click_zoom=self.zoom)
+        loop_find_p_in_w(
+            raw_w_handle=handle,
+            raw_range=[0, 0, 950, 600],
+            target_path=paths["picture"]["common"] + "\\sign_in\\daily_sign_in_enter.png",
+            target_tolerance=0.99,
+            target_failed_check=1,
+            target_sleep=1,
+            click=True,
+            click_zoom=zoom)
 
-        self.action_exit(exit_mode=2)
+        self.action_exit(exit_mode="normal_x")
 
         """美食活动"""
-        target_path = paths["picture"]["common"] + "\\sign_in\\food_activation.png"
-        loop_find_p_in_w(raw_w_handle=self.handle,
-                         raw_range=[0, 0, 950, 600],
-                         target_path=target_path,
-                         target_tolerance=0.99,
-                         target_failed_check=1,
-                         target_sleep=1,
-                         click=True,
-                         click_zoom=self.zoom)
 
-        target_path = paths["picture"]["common"] + "\\sign_in\\food_activation_enter.png"
-        loop_find_p_in_w(raw_w_handle=self.handle,
-                         raw_range=[0, 0, 950, 600],
-                         target_path=target_path,
-                         target_tolerance=0.99,
-                         target_failed_check=1,
-                         target_sleep=1,
-                         click=True,
-                         click_zoom=self.zoom)
+        loop_find_p_in_w(
+            raw_w_handle=handle,
+            raw_range=[0, 0, 950, 600],
+            target_path=paths["picture"]["common"] + "\\sign_in\\food_activation.png",
+            target_tolerance=0.99,
+            target_failed_check=1,
+            target_sleep=1,
+            click=True,
+            click_zoom=zoom)
 
-        self.action_exit(exit_mode=2)
+        loop_find_p_in_w(
+            raw_w_handle=handle,
+            raw_range=[0, 0, 950, 600],
+            target_path=paths["picture"]["common"] + "\\sign_in\\food_activation_enter.png",
+            target_tolerance=0.99,
+            target_failed_check=1,
+            target_sleep=1,
+            click=True,
+            click_zoom=zoom)
+
+        self.action_exit(exit_mode="normal_x")
 
         """塔罗寻宝"""
-        target_path = paths["picture"]["common"] + "\\sign_in\\tarot.png"
-        loop_find_p_in_w(raw_w_handle=self.handle,
-                         raw_range=[0, 0, 950, 600],
-                         target_path=target_path,
-                         target_tolerance=0.99,
-                         target_failed_check=1,
-                         target_sleep=1,
-                         click=True,
-                         click_zoom=self.zoom)
+        loop_find_p_in_w(
+            raw_w_handle=handle,
+            raw_range=[0, 0, 950, 600],
+            target_path=paths["picture"]["common"] + "\\sign_in\\tarot.png",
+            target_tolerance=0.99,
+            target_failed_check=1,
+            target_sleep=1,
+            click=True,
+            click_zoom=zoom)
 
-        target_path = paths["picture"]["common"] + "\\sign_in\\tarot_enter.png"
-        loop_find_p_in_w(raw_w_handle=self.handle,
-                         raw_range=[0, 0, 950, 600],
-                         target_path=target_path,
-                         target_tolerance=0.99,
-                         target_failed_check=1,
-                         target_sleep=1,
-                         click=True,
-                         click_zoom=self.zoom)
+        loop_find_p_in_w(
+            raw_w_handle=handle,
+            raw_range=[0, 0, 950, 600],
+            target_path=paths["picture"]["common"] + "\\sign_in\\tarot_enter.png",
+            target_tolerance=0.99,
+            target_failed_check=1,
+            target_sleep=1,
+            click=True,
+            click_zoom=zoom)
 
-        target_path = paths["picture"]["common"] + "\\sign_in\\tarot_exit.png"
-        loop_find_p_in_w(raw_w_handle=self.handle,
-                         raw_range=[0, 0, 950, 600],
-                         target_path=target_path,
-                         target_tolerance=0.99,
-                         target_failed_check=1,
-                         target_sleep=1,
-                         click=True,
-                         click_zoom=self.zoom)
-
-    """领取普通任务奖励"""
+        loop_find_p_in_w(
+            raw_w_handle=handle,
+            raw_range=[0, 0, 950, 600],
+            target_path=paths["picture"]["common"] + "\\sign_in\\tarot_exit.png",
+            target_tolerance=0.99,
+            target_failed_check=1,
+            target_sleep=1,
+            click=True,
+            click_zoom=zoom)
 
     def quest(self):
+        """领取普通任务奖励"""
         handle = self.handle
         zoom = self.zoom
 
@@ -1137,12 +1158,11 @@ class FAA:
                     for j in range(3):
                         mouse_left_click(handle=handle, x=int(413 * zoom), y=int(524 * zoom), sleep_time=0.05)
 
-                self.action_exit(exit_mode=2)
+                self.action_exit(exit_mode="normal_x")
                 break
 
-    """公会施肥浇水功能"""
-
     def fed_and_watered(self):
+        """公会施肥浇水功能"""
         # 暂存常用变量
         handle = self.handle
         zoom = self.zoom
@@ -1255,13 +1275,20 @@ class FAA:
                 try_time += 1
 
         # 退出工会
-        self.action_exit(exit_mode=2)
+        self.action_exit(exit_mode="normal_x")
+
+    def cross_server_reputation(self):
+        self.get_config_for_battle(is_group=False, battle_plan_index=0, stage_id="CS-1-2")
+        self.action_goto_stage(room_creator=True, extra_action_first_time=True)
+        sleep(60.5)  # 休息60.5s 等待完成
+        # 游戏内退出
+        self.action_exit(exit_mode="exit_game")
 
 
 if __name__ == '__main__':
     def main():
-        faa = FAA(channel="深渊之下 | 锑食")
-        faa.fed_and_watered()
+        faa = FAA(channel="ti")
+        faa.reload_game()
 
 
     main()

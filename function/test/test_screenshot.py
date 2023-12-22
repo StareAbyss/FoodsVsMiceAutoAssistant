@@ -5,7 +5,7 @@ from function.script.scattered.gat_handle import faa_get_handle
 
 
 def f_test():
-    handle = faa_get_handle(channel="深渊之下 | 锑食", mode="game")
+    handle = faa_get_handle(channel="深渊之下 | 锑食", mode="flash")
     for i in range(1000):
         image = capture_picture_png(handle=handle, raw_range=[0, 0, 950, 600])
 

@@ -6,7 +6,7 @@ from function.script.scattered.gat_handle import faa_get_handle
 
 
 def f_test():
-    handle = faa_get_handle(channel="深渊之下 | 锑食", mode="game")
+    handle = faa_get_handle(channel="深渊之下 | 锑食", mode="flash")
     target_path = paths["picture"]["common"] + "\\goto_arena.png"
     for i in range(100):
         find_p_in_w(

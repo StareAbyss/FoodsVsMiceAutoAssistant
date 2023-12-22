@@ -54,12 +54,12 @@ def capture_picture_png(handle: HWND, raw_range: list):
 
 def main():
 
-    # handle = faa_get_handle(channel="锑食", mode="game")
-    # handle = faa_get_handle(channel="深渊之下 | 锑食", mode="game")
-    handle = faa_get_handle(channel="深渊之下 | 锑食", mode="browser")
+    handle = faa_get_handle(channel="锑食", mode="flash")
+    # handle = faa_get_handle(channel="深渊之下 | 锑食", mode="flash")
+    # handle = faa_get_handle(channel="深渊之下 | 锑食", mode="browser")
 
     # 调用截图
-    image = capture_picture_png(handle=handle, raw_range=[0, 0, 10000, 10000])
+    image = capture_picture_png(handle=handle, raw_range=[0, 0, 2000, 2000])
     # image = capture_picture_png(handle=handle, raw_range=[0, 0, 950, 600])
 
     # 保存图片

@@ -1,6 +1,6 @@
 import os
 
-from function.get_paths import get_root_path
+from function.get_paths import paths
 
 
 def get_battle_plan_list(with_extension):
@@ -8,7 +8,7 @@ def get_battle_plan_list(with_extension):
     :param with_extension: Include extension name
     :return: a list of battle plan
     """
-    my_list = os.listdir(get_root_path() + "\\config\\battle_plan\\")
+    my_list = os.listdir(paths["battle_plan"] + "\\")
     if with_extension:
         return my_list
     else:

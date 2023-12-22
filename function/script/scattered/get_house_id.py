@@ -56,7 +56,7 @@ def get_house_id(handle):
 if __name__ == "__main__":
     def main():
 
-        handle = faa_get_handle(channel="深渊之下 | 锑食", mode="game")
+        handle = faa_get_handle(channel="深渊之下 | 锑食", mode="flash")
 
         image_0 = capture_picture_png(handle=handle, raw_range=[0, 0, 950, 600])
         images = [image_0[28:36, 152 + 3:152 + 3 + 6],
