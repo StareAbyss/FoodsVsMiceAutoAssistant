@@ -84,7 +84,7 @@ class FAA:
                 break
         return stage_id
 
-    def action_get_task(self, target: str):
+    def action_get_quest(self, target: str):
         """
         获取公会任务列表
         :param target:
@@ -92,7 +92,7 @@ class FAA:
             {
                 "stage_id":str,
                 "max_times":,
-                "task_card":str,
+                "quest_card":str,
                 "ban_card":None
             },
         ]
@@ -110,14 +110,14 @@ class FAA:
             # 公会任务 guild
             loop_find_p_in_w(raw_w_handle=self.handle,
                              raw_range=[0, 0, 950, 600],
-                             target_path=paths["picture"]["common"] + "\\bottom_menu\\goto_guild_task.png",
+                             target_path=paths["picture"]["common"] + "\\bottom_menu\\goto_quest_guild.png",
                              target_sleep=1,
                              click=True,
                              click_zoom=self.zoom)
             # 点一下 让左边的选中任务颜色消失
             loop_find_p_in_w(raw_w_handle=self.handle,
                              raw_range=[0, 0, 950, 600],
-                             target_path=paths["picture"]["guild_task"] + "\\ui.png",
+                             target_path=paths["picture"]["quest_guild"] + "\\ui_quest_list.png",
                              target_sleep=0.5,
                              click=True,
                              click_zoom=self.zoom)
@@ -125,16 +125,16 @@ class FAA:
             # 情侣任务 spouse
             loop_find_p_in_w(raw_w_handle=self.handle,
                              raw_range=[0, 0, 950, 600],
-                             target_path=paths["picture"]["common"] + "\\bottom_menu\\goto_spouse_task.png",
+                             target_path=paths["picture"]["common"] + "\\bottom_menu\\goto_quest_spouse.png",
                              target_sleep=1,
                              click=True,
                              click_zoom=self.zoom)
 
         # 读取
-        task_list = []
+        quest_list = []
         # 公会任务 guild
         if target == "guild":
-            path = paths["picture"]["guild_task"]
+            path = paths["picture"]["quest_guild"]
             for i in range(7):
                 # 遍历任务
                 for j in os.listdir("{}\\{}\\".format(path, str(i + 1))):
@@ -145,7 +145,7 @@ class FAA:
                                          target_tolerance=0.999)
                     if find_p:
                         # 任务携带卡片默认为None
-                        task_card = "None"
+                        quest_card = "None"
                         # 去除.png
                         j = j.split(".")[0]
                         # 处理解析字符串
@@ -157,20 +157,20 @@ class FAA:
                             stage_id = my_list[0]
                             if num_of_line == 1:
                                 if not my_list[1].isdigit():
-                                    task_card = my_list[1]
+                                    quest_card = my_list[1]
                             elif num_of_line == 2:
-                                task_card = my_list[2]
+                                quest_card = my_list[2]
                         # 添加到任务列表
-                        task_list.append({"is_group": True,
-                                          "stage_id": stage_id,
-                                          "max_times": 1,
-                                          "task_card": task_card,
-                                          "list_ban_card": [],
-                                          "dict_exit": {"other_time": [0], "last_time": [3]}})
+                        quest_list.append({"is_group": True,
+                                           "stage_id": stage_id,
+                                           "max_times": 1,
+                                           "quest_card": quest_card,
+                                           "list_ban_card": [],
+                                           "dict_exit": {"other_time": [0], "last_time": [3]}})
 
         # 情侣任务 spouse
         if target == "spouse":
-            path = paths["picture"]["spouse_task"]
+            path = paths["picture"]["quest_spouse"]
             for i in ["1", "2", "3"]:
                 # 任务未完成
                 find_p = find_p_in_w(raw_w_handle=self.handle,
@@ -186,21 +186,21 @@ class FAA:
                                              target_path="{}\\{}\\{}".format(path, i, j),
                                              target_tolerance=0.999)
                         if find_p:
-                            task_list.append({"is_group": True,
-                                              "stage_id": j.split(".")[0],
-                                              "max_times": 1,
-                                              "task_card": "None",
-                                              "list_ban_card": [],
-                                              "dict_exit": {"other_time": [0], "last_time": [3]}})
+                            quest_list.append({"is_group": True,
+                                               "stage_id": j.split(".")[0],
+                                               "max_times": 1,
+                                               "quest_card": "None",
+                                               "list_ban_card": [],
+                                               "dict_exit": {"other_time": [0], "last_time": [3]}})
 
         # 关闭公会任务列表(红X)
         self.action_exit(exit_mode="normal_x")
 
-        return task_list
+        return quest_list
 
-    """receive task reward"""
+    """receive quest reward"""
 
-    def action_task_guild(self):
+    def action_quest_guild(self):
         # 点跳转
         loop_find_p_in_w(raw_w_handle=self.handle,
                          raw_range=[0, 0, 950, 600],
@@ -211,7 +211,7 @@ class FAA:
         # 点任务
         loop_find_p_in_w(raw_w_handle=self.handle,
                          raw_range=[0, 0, 950, 600],
-                         target_path=paths["picture"]["common"] + "\\bottom_menu\\goto_guild_task.png",
+                         target_path=paths["picture"]["common"] + "\\bottom_menu\\goto_quest_guild.png",
                          target_sleep=1,
                          click=True,
                          click_zoom=self.zoom)
@@ -220,13 +220,13 @@ class FAA:
             # 点一下 让左边的选中任务颜色消失
             loop_find_p_in_w(raw_w_handle=self.handle,
                              raw_range=[0, 0, 950, 600],
-                             target_path=paths["picture"]["guild_task"] + "\\ui.png",
+                             target_path=paths["picture"]["quest_guild"] + "\\ui_quest_list.png",
                              target_sleep=0.5,
                              click=True,
                              click_zoom=self.zoom)
             result = loop_find_p_in_w(raw_w_handle=self.handle,
                                       raw_range=[0, 0, 950, 600],
-                                      target_path=paths["picture"]["guild_task"] + "\\completed.png",
+                                      target_path=paths["picture"]["quest_guild"] + "\\completed.png",
                                       target_tolerance=0.99,
                                       click_zoom=self.zoom,
                                       click=True,
@@ -235,7 +235,7 @@ class FAA:
             if result:
                 loop_find_p_in_w(raw_w_handle=self.handle,
                                  raw_range=[0, 0, 950, 600],
-                                 target_path=paths["picture"]["guild_task"] + "\\gather.png",
+                                 target_path=paths["picture"]["quest_guild"] + "\\gather.png",
                                  target_tolerance=0.99,
                                  click_zoom=self.zoom,
                                  click=True,
@@ -246,7 +246,7 @@ class FAA:
         # 退出任务界面
         self.action_exit(exit_mode="normal_x")
 
-    def action_task_spouse(self):
+    def action_quest_spouse(self):
         # 点跳转
         loop_find_p_in_w(raw_w_handle=self.handle,
                          raw_range=[0, 0, 950, 600],
@@ -257,7 +257,7 @@ class FAA:
         # 点任务
         loop_find_p_in_w(raw_w_handle=self.handle,
                          raw_range=[0, 0, 950, 600],
-                         target_path=paths["picture"]["common"] + "\\bottom_menu\\goto_spouse_task.png",
+                         target_path=paths["picture"]["common"] + "\\bottom_menu\\goto_quest_spouse.png",
                          target_sleep=1,
                          click=True,
                          click_zoom=self.zoom)
@@ -265,7 +265,7 @@ class FAA:
         while True:
             result = loop_find_p_in_w(raw_w_handle=self.handle,
                                       raw_range=[0, 0, 950, 600],
-                                      target_path=paths["picture"]["spouse_task"] + "\\completed.png",
+                                      target_path=paths["picture"]["quest_spouse"] + "\\completed.png",
                                       target_tolerance=0.99,
                                       click_zoom=self.zoom,
                                       click=True,
@@ -276,7 +276,7 @@ class FAA:
         # 退出任务界面
         self.action_exit(exit_mode="normal_x")
 
-    def action_task_offer_reward(self):
+    def action_quest_offer_reward(self):
         # 防止活动列表不在
         self.change_activity_list(1)
 
@@ -304,22 +304,22 @@ class FAA:
         # 退出任务界面
         self.action_exit(exit_mode="normal_x")
 
-    def action_task_receive_rewards(self, task_type: str):
+    def action_quest_receive_rewards(self, quest_type: str):
         """
         收取任务奖励
-        :param task_type: "guild" or "spouse" or "offer_reward"
+        :param quest_type: "guild" or "spouse" or "offer_reward"
         :return:
         """
-        print("[{}][收取任务奖励][{}] 开始收取".format(self.player, task_type))
+        print("[{}][收取任务奖励][{}] 开始收取".format(self.player, quest_type))
 
-        if task_type == "guild":
-            self.action_task_guild()
-        if task_type == "spouse":
-            self.action_task_spouse()
-        if task_type == "offer_reward":
-            self.action_task_offer_reward()
+        if quest_type == "guild":
+            self.action_quest_guild()
+        if quest_type == "spouse":
+            self.action_quest_spouse()
+        if quest_type == "offer_reward":
+            self.action_quest_offer_reward()
 
-        print("[{}][收取任务奖励][{}] 已全部领取".format(self.player, task_type))
+        print("[{}][收取任务奖励][{}] 已全部领取".format(self.player, quest_type))
 
     def change_activity_list(self, serial_num: int):
         """检测顶部的活动清单, 1为第一页, 2为第二页(有举报图标的一页)"""
@@ -710,7 +710,7 @@ class FAA:
         else:
             print("请输入正确的关卡名称！")
 
-    def action_battle_normal(self, battle_mode: int, task_card: str, list_ban_card: list):
+    def action_battle_normal(self, battle_mode: int, quest_card: str, list_ban_card: list):
         """从类中继承主要方法 方便被调用"""
 
         # 调用 InBattle 类 生成实例, 从self中填充数据
@@ -729,12 +729,12 @@ class FAA:
 
         round_of_battle.action_battle_normal(
             battle_mode=battle_mode,
-            task_card=task_card,
+            quest_card=quest_card,
             list_ban_card=list_ban_card
         )
 
     def action_round_of_game(
-            self, deck: int, delay_start: bool, battle_mode: int, task_card: str, list_ban_card: list):
+            self, deck: int, delay_start: bool, battle_mode: int, quest_card: str, list_ban_card: list):
         """
         一轮游戏
         """
@@ -749,7 +749,7 @@ class FAA:
             deck=deck,
             delay_start=delay_start,
             battle_mode=battle_mode,
-            task_card=task_card,
+            quest_card=quest_card,
             list_ban_card=list_ban_card
         )
 
@@ -1166,116 +1166,220 @@ class FAA:
         # 暂存常用变量
         handle = self.handle
         zoom = self.zoom
-        try_time = 0
 
-        print("[{}] 开始公会浇水施肥".format(self.player))
+        def from_guild_to_quest_guild():
+            """进入任务界面, 正确进入就跳出循环"""
+            while True:
+                mouse_left_click(
+                    handle=self.handle,
+                    x=int(745 * self.zoom),
+                    y=int(430 * self.zoom),
+                    sleep_time=0.001
+                )
+                mouse_left_click(
+                    handle=self.handle,
+                    x=int(700 * self.zoom),
+                    y=int(350 * self.zoom),
+                    sleep_time=2
+                )
+                find = loop_find_p_in_w(
+                    raw_w_handle=handle,
+                    raw_range=[0, 0, 950, 600],
+                    target_path=paths["picture"]["quest_guild"] + "\\ui_quest_list.png",
+                    target_tolerance=0.95,
+                    target_failed_check=1,
+                    target_sleep=0.5,
+                    click_zoom=zoom,
+                    click=True
+                )
+                if find:
+                    break
 
-        # 回到初始城镇
-        self.action_goto_map(map_id=0)
+        def from_guild_to_guild_garden():
+            """进入施肥界面, 正确进入就跳出循环"""
+            while True:
+                mouse_left_click(
+                    handle=self.handle,
+                    x=int(745 * self.zoom),
+                    y=int(430 * self.zoom),
+                    sleep_time=0.001
+                )
+                mouse_left_click(
+                    handle=self.handle,
+                    x=int(800 * self.zoom),
+                    y=int(350 * self.zoom),
+                    sleep_time=2
+                )
+                find = loop_find_p_in_w(
+                    raw_w_handle=handle,
+                    raw_range=[0, 0, 950, 600],
+                    target_path=paths["picture"]["quest_guild"] + "\\ui_fed.png",
+                    target_tolerance=0.95,
+                    target_failed_check=1,
+                    target_sleep=0.5,
+                    click_zoom=zoom,
+                    click=True
+                )
+                if find:
+                    break
 
-        # 进入公会
-        mouse_left_click(handle=self.handle, x=int(320 * self.zoom), y=int(220 * self.zoom), sleep_time=1)
+        def switch_guild_garden_by_try_times(try_time):
+            """根据目前尝试次数, 到达不同的公会"""
+            if try_time != 0:
 
-        # 循环到任务完成
-        while True:
-            # 进入任务界面
-            # mouse_left_moveto(handle=self.handle, x=int(757 * self.zoom), y=int(410 * self.zoom))
-            mouse_left_click(handle=self.handle, x=int(745 * self.zoom), y=int(430 * self.zoom), sleep_time=0.001)
-            # mouse_left_moveto(handle=self.handle, x=int(700 * self.zoom), y=int(300 * self.zoom))
-            mouse_left_click(handle=self.handle, x=int(700 * self.zoom), y=int(350 * self.zoom), sleep_time=2)
+                # 点击全部工会
+                mouse_left_click(
+                    handle=self.handle,
+                    x=int(798 * self.zoom),
+                    y=int(123 * self.zoom),
+                    sleep_time=0.5
+                )
+
+                # 跳转到最后
+                mouse_left_click(
+                    handle=self.handle,
+                    x=int(843 * self.zoom),
+                    y=int(305 * self.zoom),
+                    sleep_time=0.5
+                )
+
+                # 以倒数第二页从上到下为1-4, 第二页为5-8次尝试对应的公会 以此类推
+                for i in range((try_time-1) // 4 + 1 ):
+                    # 向上翻的页数
+                    mouse_left_click(
+                        handle=self.handle,
+                        x=int(843 * self.zoom),
+                        y=int(194 * self.zoom),
+                        sleep_time=0.5)
+
+                # 点第几个
+                my_dict = {1: 217, 2: 244, 3: 271, 4: 300}
+                mouse_left_click(
+                    handle=self.handle,
+                    x=int(810 * self.zoom),
+                    y=int(my_dict[(try_time-1) % 4 + 1] * self.zoom),
+                    sleep_time=0.5)
+
+        def do_something_and_exit(try_time):
+            """完成素质三连并退出公会花园界面"""
+            # 采摘一次
+            mouse_left_click(
+                handle=self.handle,
+                x=int(785 * self.zoom),
+                y=int(471 * self.zoom),
+                sleep_time=1
+            )
+            # 浇水一次
+            mouse_left_click(
+                handle=self.handle,
+                x=int(785 * self.zoom),
+                y=int(362 * self.zoom),
+                sleep_time=1
+            )
+            # 等待一下 确保没有完成的黑屏
+            loop_find_p_in_w(
+                raw_w_handle=handle,
+                raw_range=[0, 0, 950, 600],
+                target_path=paths["picture"]["common"] + "\\battle\\before_exit_x.png",
+                target_tolerance=0.95,
+                target_failed_check=7,
+                target_sleep=1,
+                click=False
+            )
+            print("{}次尝试, 浇水后, 已确认无任务完成黑屏".format(try_time+1))
+
+            # 施肥一次
+            mouse_left_click(
+                handle=self.handle,
+                x=int(785 * self.zoom),
+                y=int(418 * self.zoom),
+                sleep_time=1
+            )
+            # 等待一下 确保没有完成的黑屏
+            loop_find_p_in_w(
+                raw_w_handle=handle,
+                raw_range=[0, 0, 950, 600],
+                target_path=paths["picture"]["common"] + "\\battle\\before_exit_x.png",
+                target_tolerance=0.95,
+                target_failed_check=7,
+                target_sleep=1,
+                click=False)
+            print("{}次尝试, 施肥后, 已确认无任务完成黑屏".format(try_time+1))
+
+            # 点X回退一次
+            mouse_left_click(
+                handle=self.handle,
+                x=int(854 * self.zoom),
+                y=int(55 * self.zoom),
+                sleep_time=1.5)
+
+        def fed_and_watered_one_action(try_time):
+            """
+            :return: bool completed True else False
+            """
+            # 进入任务界面, 正确进入就跳出循环
+            from_guild_to_quest_guild()
+
             # 检测施肥任务完成情况 任务是进行中的话为True
             find = loop_find_ps_in_w(
                 raw_w_handle=handle,
                 raw_range=[0, 0, 950, 600],
-                target_opts=[
-                    {
-                        "target_path": paths["picture"]["guild_task"] + "\\fed_0.png",
-                        "target_tolerance": 0.99,
-                    }, {
-                        "target_path": paths["picture"]["guild_task"] + "\\fed_1.png",
-                        "target_tolerance": 0.99,
-                    }
-                ],
+                target_opts=[{"target_path": paths["picture"]["quest_guild"] + "\\fed_0.png",
+                              "target_tolerance": 0.99, },
+                             {"target_path": paths["picture"]["quest_guild"] + "\\fed_1.png",
+                              "target_tolerance": 0.99, },
+                             {"target_path": paths["picture"]["quest_guild"] + "\\fed_2.png",
+                              "target_tolerance": 0.99, },
+                             {"target_path": paths["picture"]["quest_guild"] + "\\fed_3.png",
+                              "target_tolerance": 0.99, }],
                 target_return_mode="or",
                 target_failed_check=2)
+
             # 退出任务界面
-            mouse_left_click(handle=self.handle, x=int(854 * self.zoom), y=int(55 * self.zoom), sleep_time=0.5)
+            mouse_left_click(
+                handle=self.handle,
+                x=int(854 * self.zoom),
+                y=int(55 * self.zoom),
+                sleep_time=0.5
+            )
 
             if not find:
                 print("[{}] 已完成公会浇水施肥, 尝试次数:{}".format(self.player, try_time))
-                break
+                return True
             else:
+                # 进入施肥界面, 正确进入就跳出循环
+                from_guild_to_guild_garden()
 
-                """进入施肥界面"""
-                while True:
-                    mouse_left_click(handle=self.handle, x=int(745 * self.zoom), y=int(430 * self.zoom),
-                                     sleep_time=0.001)
-                    mouse_left_click(handle=self.handle, x=int(800 * self.zoom), y=int(350 * self.zoom), sleep_time=2)
-                    find = loop_find_p_in_w(
-                        raw_w_handle=handle,
-                        raw_range=[0, 0, 950, 600],
-                        target_path=paths["picture"]["guild_task"] + "\\ui.png",
-                        target_tolerance=0.95,
-                        target_failed_check=1,
-                        target_sleep=0.5,
-                        click_zoom=zoom,
-                        click=True)
-                    if find:
-                        break
+                # 根据目前尝试次数, 到达不同的公会
+                switch_guild_garden_by_try_times(try_time=try_time)
 
-                if try_time != 0:
+                # 完成素质三连并退出公会花园界面
+                do_something_and_exit(try_time=try_time)
 
-                    # 点击全部工会
-                    mouse_left_click(handle=self.handle, x=int(798 * self.zoom), y=int(123 * self.zoom), sleep_time=0.5)
-                    # 跳转到最后
-                    mouse_left_click(handle=self.handle, x=int(843 * self.zoom), y=int(305 * self.zoom), sleep_time=0.5)
-                    # 以倒数第二页从上到下为1-4, 第二页为5-8次尝试对应的公会 以此类推
-                    for i in range(try_time // 4 + 1):
-                        # 向上翻的页数
-                        mouse_left_click(handle=self.handle, x=int(843 * self.zoom), y=int(194 * self.zoom),
-                                         sleep_time=0.5)
-                        # 点第几个
-                        my_dict = {1: 217, 2: 244, 3: 271, 4: 300}
-                        mouse_left_click(handle=self.handle,
-                                         x=int(810 * self.zoom),
-                                         y=int(my_dict[try_time % 4] * self.zoom),
-                                         sleep_time=0.5)
-                # 采摘一次
-                mouse_left_click(handle=self.handle, x=int(785 * self.zoom), y=int(471 * self.zoom), sleep_time=1)
+                return False
 
-                # 浇水一次
-                mouse_left_click(handle=self.handle, x=int(785 * self.zoom), y=int(362 * self.zoom), sleep_time=1)
-                # 等待一下 确保没有完成的黑屏
-                loop_find_p_in_w(
-                    raw_w_handle=handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=paths["picture"]["common"] + "\\battle\\before_exit_x.png",
-                    target_tolerance=0.95,
-                    target_failed_check=5,
-                    target_sleep=0.5,
-                    click=False)
-                print("{}次尝试, 浇水后, 已确认无任务完成黑屏".format(try_time))
+        def fed_and_watered_main():
+            try_time = 0
+            print("[{}] 开始公会浇水施肥".format(self.player))
 
-                # 施肥一次
-                mouse_left_click(handle=self.handle, x=int(785 * self.zoom), y=int(418 * self.zoom), sleep_time=1)
-                # 等待一下 确保没有完成的黑屏
-                loop_find_p_in_w(
-                    raw_w_handle=handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=paths["picture"]["common"] + "\\battle\\before_exit_x.png",
-                    target_tolerance=0.95,
-                    target_failed_check=5,
-                    target_sleep=0.5,
-                    click=False)
-                print("{}次尝试, 施肥后, 已确认无任务完成黑屏".format(try_time))
+            # 回到初始城镇
+            self.action_goto_map(map_id=0)
 
-                # 点X回退一次
-                mouse_left_click(handle=self.handle, x=int(854 * self.zoom), y=int(55 * self.zoom), sleep_time=1.5)
+            # 进入公会
+            mouse_left_click(handle=self.handle, x=int(320 * self.zoom), y=int(220 * self.zoom), sleep_time=1)
 
+            # 循环到任务完成
+            try_time = 0
+            while True:
+                completed_flag = fed_and_watered_one_action(try_time)
                 try_time += 1
+                if completed_flag:
+                    break
 
-        # 退出工会
-        self.action_exit(exit_mode="normal_x")
+            # 退出工会
+            self.action_exit(exit_mode="normal_x")
+
+        fed_and_watered_main()
 
     def cross_server_reputation(self):
         self.get_config_for_battle(is_group=False, battle_plan_index=0, stage_id="CS-1-2")
@@ -1287,8 +1391,9 @@ class FAA:
 
 if __name__ == '__main__':
     def main():
-        faa = FAA(channel="ti")
-        faa.reload_game()
+        # faa = FAA(channel="锑食",zoom=1.25)
+        faa = FAA(channel="深渊之下 | 锑食", zoom=1.25)
+        faa.fed_and_watered()
 
 
     main()

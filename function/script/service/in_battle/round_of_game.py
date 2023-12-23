@@ -16,7 +16,7 @@ def round_of_game(handle,
                   deck: int,
                   delay_start: bool,
                   battle_mode: int,
-                  task_card: str,
+                  quest_card: str,
                   list_ban_card: list):
     """
     一轮战斗
@@ -29,7 +29,7 @@ def round_of_game(handle,
         :param action_battle_normal: 来自FAA类 function
         :param delay_start: 是房主 房主要晚一点点开始
         :param battle_mode: 战斗模式 0 cd模式 或 1遍历模式
-        :param task_card: 任务要求卡片的序号。默认0即为没有。
+        :param quest_card: 任务要求卡片的序号。默认0即为没有。
         :param list_ban_card: ban卡列表
         :param deck: 卡组序号(1-6)
     """
@@ -64,48 +64,48 @@ def round_of_game(handle,
 
     """寻找并添加任务所需卡片"""
 
-    def action_add_task_card_():
+    def action_add_quest_card_():
         # 房主晚点开始
         if delay_start:
             sleep(6)
         print("[{}] 开始寻找任务卡".format(player))
 
         # 对于名称带-的卡, 就对应的写入, 如果不带-, 就查找其所有变种
-        task_card_s = []
-        if "-" in task_card:
-            task_card_s.append("{}.png".format(task_card))
+        quest_card_s = []
+        if "-" in quest_card:
+            quest_card_s.append("{}.png".format(quest_card))
         else:
             for i in range(9):  # i代表一张卡能有的最高变种 姑且认为是3*3 = 9
-                task_card_s.append("{}-{}.png".format(task_card, i))
+                quest_card_s.append("{}-{}.png".format(quest_card, i))
 
         # 读取所有记录了的卡的图片文件名, 只携带被记录图片的卡
         list_all_card_recorded = os.listdir(paths["picture"]["card"])
         my_list = []
-        for task_card_n in task_card_s:
-            if task_card_n in list_all_card_recorded:
-                my_list.append(task_card_n)
-        task_card_s = my_list
+        for quest_card_n in quest_card_s:
+            if quest_card_n in list_all_card_recorded:
+                my_list.append(quest_card_n)
+        quest_card_s = my_list
 
         # 复位滑块
         mouse_left_click(handle=handle, x=int(931 * zoom), y=int(209 * zoom), sleep_time=0.25)
-        flag_find_task_card = False
+        flag_find_quest_card = False
 
         # 最多向下点3*7次滑块
         for i in range(7):
 
             # 找到就点一下, 任何一次寻找成功 中断循环
-            if not flag_find_task_card:
-                for task_card_n in task_card_s:
+            if not flag_find_quest_card:
+                for quest_card_n in quest_card_s:
                     find = loop_find_p_in_w(
                         raw_w_handle=handle,
                         raw_range=[0, 0, 950, 600],
-                        target_path=paths["picture"]["card"] + "\\" + task_card_n,
+                        target_path=paths["picture"]["card"] + "\\" + quest_card_n,
                         target_tolerance=0.95,
                         click_zoom=zoom,
                         click=True,
                         target_failed_check=1)
                     if find:
-                        flag_find_task_card = True
+                        flag_find_quest_card = True
 
                 # 滑块向下移动3次
                 for j in range(3):
@@ -116,12 +116,12 @@ def round_of_game(handle,
         # 完成后休息1s
         sleep(1)
 
-    def action_add_task_card():
+    def action_add_quest_card():
         # 由于公会任务的卡组特性, 当任务卡为[苏打气泡]时, 不需要额外选择带卡.
-        if task_card == "None" or task_card == "苏打气泡-0" or task_card == "苏打气泡-1" or task_card == "苏打气泡":
+        if quest_card == "None" or quest_card == "苏打气泡-0" or quest_card == "苏打气泡-1" or quest_card == "苏打气泡":
             print("[{}] 不需要额外带卡,跳过".format(player))
         else:
-            action_add_task_card_()
+            action_add_quest_card_()
 
     def action_remove_ban_card_():
 
@@ -168,7 +168,7 @@ def round_of_game(handle,
         if list_ban_card:
             action_remove_ban_card_()
 
-    action_add_task_card()
+    action_add_quest_card()
     action_remove_ban_card()
 
     """点击开始"""
@@ -223,7 +223,7 @@ def round_of_game(handle,
         sleep(0.5)
 
     # 战斗循环
-    action_battle_normal(battle_mode=battle_mode, task_card=task_card, list_ban_card=list_ban_card)
+    action_battle_normal(battle_mode=battle_mode, quest_card=quest_card, list_ban_card=list_ban_card)
 
     print("[{}] 识别到五种战斗结束标志之一, 进行收尾工作".format(player))
     """战斗结束后, 一般流程为 (潜在的任务完成黑屏) -> 战利品 -> 战斗结算 -> 翻宝箱, 之后会回到房间, 魔塔会回到其他界面"""

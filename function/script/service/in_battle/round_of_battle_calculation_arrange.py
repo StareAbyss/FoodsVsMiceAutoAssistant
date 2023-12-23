@@ -1,24 +1,24 @@
 """计算卡片的部署方案相关的函数"""
 
 
-def calculation_card_task(list_cell_all, task_card):
+def calculation_card_quest(list_cell_all, quest_card):
     """计算步骤一 加入任务卡的摆放坐标"""
     # 任务卡 大号小号开始位置不同 任务卡id = 0 则为没有
     locations = ["6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7"]
-    if task_card != "None":
+    if quest_card != "None":
         # 遍历删除 主要卡中 占用了任务卡摆放的坐标
         new_list = []
         for card in list_cell_all:
             card["location"] = list(filter(lambda x: x not in locations, card["location"]))
             new_list.append(card)
         # 设定任务卡dict
-        dict_task = {"id": 3 + len(new_list),  # 3即为 2承载卡 + 1自身
-                     "name": task_card,
-                     "ergodic": True,
-                     "queue": True,
-                     "location": locations}
+        dict_quest = {"id": 3 + len(new_list),  # 3即为 2承载卡 + 1自身
+                      "name": quest_card,
+                      "ergodic": True,
+                      "queue": True,
+                      "location": locations}
         # 加入数组
-        new_list.append(dict_task)
+        new_list.append(dict_quest)
         return new_list
     else:
         return list_cell_all
@@ -108,7 +108,7 @@ def calculation_shovel(stage_info):
     return list_shovel
 
 
-def calculation_cell_all_card(stage_info, battle_plan, player, is_group, task_card, list_ban_card):
+def calculation_cell_all_card(stage_info, battle_plan, player, is_group, quest_card, list_ban_card):
     """
     计算所有卡片的部署方案
     Return:卡片的部署方案字典
@@ -125,9 +125,9 @@ def calculation_cell_all_card(stage_info, battle_plan, player, is_group, task_ca
     list_cell_all = battle_plan
 
     # 调用计算任务卡
-    list_cell_all = calculation_card_task(
+    list_cell_all = calculation_card_quest(
         list_cell_all=list_cell_all,
-        task_card=task_card)
+        quest_card=quest_card)
 
     # 调用计算承载卡
     list_cell_all = calculation_card_mat(

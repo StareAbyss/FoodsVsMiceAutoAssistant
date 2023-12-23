@@ -52,12 +52,12 @@ class RoundOfBattle:
 
     """ Layer0 - 在FAA类中复写 以直接被调用 """
 
-    def action_battle_normal(self, battle_mode: int, task_card: str, list_ban_card: list):
+    def action_battle_normal(self, battle_mode: int, quest_card: str, list_ban_card: list):
         """
         战斗中放卡的函数
         Args:
             :param battle_mode: 0 常规模式 1 试验模式
-            :param task_card:
+            :param quest_card:
             :param list_ban_card:
         """
 
@@ -66,7 +66,7 @@ class RoundOfBattle:
             is_group=self.is_group,
             player=self.player,
             battle_plan=self.battle_plan["card"],
-            task_card=task_card,
+            quest_card=quest_card,
             list_ban_card=list_ban_card
         )
 

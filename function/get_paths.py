@@ -33,8 +33,8 @@ paths["picture"]["common"] = paths["picture"]["current"] + "\\common"
 paths["picture"]["number"] = paths["picture"]["current"] + "\\number"
 paths["picture"]["card"] = paths["picture"]["current"] + "\\card"
 paths["picture"]["stage"] = paths["picture"]["current"] + "\\stage"
-paths["picture"]["guild_task"] = paths["picture"]["current"] + "\\task_guild"
-paths["picture"]["spouse_task"] = paths["picture"]["current"] + "\\task_spouse"
+paths["picture"]["quest_guild"] = paths["picture"]["current"] + "\\quest_guild"
+paths["picture"]["quest_spouse"] = paths["picture"]["current"] + "\\quest_spouse"
 paths["picture"]["ready_check_stage"] = paths["picture"]["current"] + "\\stage_ready_check"
 paths["picture"]["map"] = paths["picture"]["current"] + "\\map"
 
@@ -60,8 +60,8 @@ def get_paths_faa_old():
     my_paths["picture"]["number"] = my_paths["picture"]["current"] + "\\number"
     my_paths["picture"]["card"] = my_paths["picture"]["current"] + "\\card"
     my_paths["picture"]["stage"] = my_paths["picture"]["current"] + "\\stage"
-    my_paths["picture"]["guild_task"] = my_paths["picture"]["current"] + "\\task_guild"
-    my_paths["picture"]["spouse_task"] = my_paths["picture"]["current"] + "\\task_spouse"
+    my_paths["picture"]["guild_task"] = my_paths["picture"]["current"] + "\\quest_guild"
+    my_paths["picture"]["spouse_task"] = my_paths["picture"]["current"] + "\\quest_spouse"
     my_paths["picture"]["ready_check_stage"] = my_paths["picture"]["current"] + "\\stage_ready_check"
     return my_paths
 
