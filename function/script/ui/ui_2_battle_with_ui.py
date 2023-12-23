@@ -49,6 +49,7 @@ class Todo(QThread):
             name="2P Thread - Reload",
             kwargs={})
         self.thread_1p.start()
+        sleep(0.5)
         self.thread_2p.start()
         self.thread_1p.join()
         self.thread_2p.join()

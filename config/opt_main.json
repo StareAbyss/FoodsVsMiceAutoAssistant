@@ -26,7 +26,7 @@
         "battle_plan_2p": 3
     },
     "offer_reward": {
-        "active": true,
+        "active": false,
         "deck": 4,
         "battle_plan_1p": 11,
         "battle_plan_2p": 12
@@ -40,35 +40,35 @@
         "battle_plan_2p": 6
     },
     "magic_tower_alone_1": {
-        "active": true,
+        "active": false,
         "max_times": 5,
         "stage": 139,
         "deck": 3,
         "battle_plan_1p": 13
     },
     "magic_tower_alone_2": {
-        "active": true,
+        "active": false,
         "max_times": 4,
         "stage": 70,
         "deck": 3,
         "battle_plan_1p": 0
     },
     "magic_tower_prison_1": {
-        "active": true,
+        "active": false,
         "stage": true,
         "deck": 1,
         "battle_plan_1p": 2
     },
     "magic_tower_prison_2": {
-        "active": true,
+        "active": false,
         "stage": true,
         "deck": 1,
         "battle_plan_1p": 2
     },
     "warrior": {
-        "active": true,
+        "active": false,
         "is_group": true,
-        "max_times": 7,
+        "max_times": 8,
         "deck": 1,
         "battle_plan_1p": 2,
         "battle_plan_2p": 3,

@@ -161,12 +161,19 @@ class FAA:
                             elif num_of_line == 2:
                                 quest_card = my_list[2]
                         # 添加到任务列表
-                        quest_list.append({"is_group": True,
-                                           "stage_id": stage_id,
-                                           "max_times": 1,
-                                           "quest_card": quest_card,
-                                           "list_ban_card": [],
-                                           "dict_exit": {"other_time": [0], "last_time": [3]}})
+                        quest_list.append(
+                            {
+                                "is_group": True,
+                                "stage_id": stage_id,
+                                "max_times": 1,
+                                "quest_card": quest_card,
+                                "list_ban_card": [],
+                                "dict_exit": {
+                                    "other_time": ["none"],
+                                    "last_time": ["sports_land"]
+                                }
+                            }
+                        )
 
         # 情侣任务 spouse
         if target == "spouse":
@@ -186,12 +193,19 @@ class FAA:
                                              target_path="{}\\{}\\{}".format(path, i, j),
                                              target_tolerance=0.999)
                         if find_p:
-                            quest_list.append({"is_group": True,
-                                               "stage_id": j.split(".")[0],
-                                               "max_times": 1,
-                                               "quest_card": "None",
-                                               "list_ban_card": [],
-                                               "dict_exit": {"other_time": [0], "last_time": [3]}})
+                            quest_list.append(
+                                {
+                                    "is_group": True,
+                                    "stage_id": j.split(".")[0],
+                                    "max_times": 1,
+                                    "quest_card": "None",
+                                    "list_ban_card": [],
+                                    "dict_exit": {
+                                        "other_time": ["none"],
+                                        "last_time": ["sports_land"]
+                                    }
+                                }
+                            )
 
         # 关闭公会任务列表(红X)
         self.action_exit(exit_mode="normal_x")
@@ -928,10 +942,10 @@ class FAA:
                 target_opts=[
                     {
                         "target_path": paths["picture"]["common"] + "\\login\\1_last_server_4399.png",
-                        "target_tolerance": 0.99,
+                        "target_tolerance": 0.9,
                     }, {
                         "target_path": paths["picture"]["common"] + "\\login\\1_last_server_qq.png",
-                        "target_tolerance": 0.99,
+                        "target_tolerance": 0.9,
                     }
                 ],
                 target_return_mode="or")
@@ -945,7 +959,7 @@ class FAA:
                     raw_w_handle=self.handle_browser,
                     raw_range=[0, 0, 2000, 2000],
                     target_path=paths["picture"]["common"] + "\\login\\1_last_server_4399.png",
-                    target_tolerance=0.99
+                    target_tolerance=0.9
                 )
                 if result:
                     # 点击进入服务器
@@ -957,7 +971,7 @@ class FAA:
                     raw_w_handle=self.handle_browser,
                     raw_range=[0, 0, 2000, 2000],
                     target_path=paths["picture"]["common"] + "\\login\\1_last_server_qq.png",
-                    target_tolerance=0.99
+                    target_tolerance=0.9
                 )
                 if result:
                     # 点击进入服务器
@@ -974,7 +988,7 @@ class FAA:
                     raw_range=[0, 0, 2000, 2000],
                     target_path=target_path,
                     target_tolerance=0.97,
-                    target_failed_check=10,
+                    target_failed_check=30,
                     target_sleep=0.5,
                     click=False)
                 if not result:
@@ -1244,7 +1258,7 @@ class FAA:
                 )
 
                 # 以倒数第二页从上到下为1-4, 第二页为5-8次尝试对应的公会 以此类推
-                for i in range((try_time-1) // 4 + 1 ):
+                for i in range((try_time - 1) // 4 + 1):
                     # 向上翻的页数
                     mouse_left_click(
                         handle=self.handle,
@@ -1257,7 +1271,7 @@ class FAA:
                 mouse_left_click(
                     handle=self.handle,
                     x=int(810 * self.zoom),
-                    y=int(my_dict[(try_time-1) % 4 + 1] * self.zoom),
+                    y=int(my_dict[(try_time - 1) % 4 + 1] * self.zoom),
                     sleep_time=0.5)
 
         def do_something_and_exit(try_time):
@@ -1286,7 +1300,7 @@ class FAA:
                 target_sleep=1,
                 click=False
             )
-            print("{}次尝试, 浇水后, 已确认无任务完成黑屏".format(try_time+1))
+            print("{}次尝试, 浇水后, 已确认无任务完成黑屏".format(try_time + 1))
 
             # 施肥一次
             mouse_left_click(
@@ -1304,7 +1318,7 @@ class FAA:
                 target_failed_check=7,
                 target_sleep=1,
                 click=False)
-            print("{}次尝试, 施肥后, 已确认无任务完成黑屏".format(try_time+1))
+            print("{}次尝试, 施肥后, 已确认无任务完成黑屏".format(try_time + 1))
 
             # 点X回退一次
             mouse_left_click(
@@ -1359,7 +1373,6 @@ class FAA:
                 return False
 
         def fed_and_watered_main():
-            try_time = 0
             print("[{}] 开始公会浇水施肥".format(self.player))
 
             # 回到初始城镇
