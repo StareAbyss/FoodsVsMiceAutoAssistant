@@ -961,6 +961,8 @@ class MyMainWindow2(MyMainWindow1):
             self.printf(">>> 务必有二级密码, 且未输入以以兜底 <<<")
             self.printf(">>> 不绑卡高星建议放拍卖行 <<<")
             self.printf(">>> 支持360游戏大厅 - 4399 或 QQ 渠道 <<<")
+            self.printf(">>> 如有疑问, 请阅读README.md文档, 欢迎加入反馈QQ群:786921130 <<<")
+            self.printf(">>> 开源免费, 请为我在Github点个免费的Star支持我吧 <<<")
             self.printf("")
 
             self.thread_todo = Todo(faa=faa, opt=self.opt)

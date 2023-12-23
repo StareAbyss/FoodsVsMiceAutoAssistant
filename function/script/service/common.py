@@ -302,7 +302,7 @@ class FAA:
                 break
 
         # 退出任务界面
-        self.action_exit(exit_mode="normal_x")
+        self.action_exit(exit_mode="exit_offer_reward")
 
     def action_quest_receive_rewards(self, quest_type: str):
         """
