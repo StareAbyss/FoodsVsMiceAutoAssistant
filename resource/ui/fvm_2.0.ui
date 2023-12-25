@@ -1645,7 +1645,7 @@ Link Start</string>
           </size>
          </property>
          <property name="text">
-          <string>重启+签到</string>
+          <string>签到</string>
          </property>
         </widget>
        </item>
@@ -3847,7 +3847,7 @@ Link Start</string>
           </size>
          </property>
          <property name="text">
-          <string>公会施肥</string>
+          <string>施肥浇水摘果</string>
          </property>
         </widget>
        </item>

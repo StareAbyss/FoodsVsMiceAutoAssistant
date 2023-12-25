@@ -35,7 +35,7 @@ class Todo(QThread):
     def reload_game(self):
 
         self.sin_out.emit(
-            "[{}] Refresh Game...".format(
+            "\n[{}] Refresh Game...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
@@ -533,7 +533,11 @@ class Todo(QThread):
             else:
                 self.faa[player_id].action_goto_stage(room_creator=True)
 
-            self.sin_out.emit("{} 开始关卡:{}".format(text_, stage_id))
+            self.sin_out.emit(
+                "[{}] {} 开始关卡:{}".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    text_,
+                    stage_id))
 
             # 创建战斗进程 -> 开始进程 -> 阻塞进程让进程执行完再继续本循环函数
             self.thread_1p = ThreadWithException(
@@ -708,9 +712,15 @@ class Todo(QThread):
         self.sin_out.emit(
             "每一个大类的任务开始前均会重启游戏以防止bug...")
 
+        need_reload = False
+        need_reload = need_reload or self.opt["reload_and_daily_quest"]["active"]
+        need_reload = need_reload or self.opt["fed_and_watered"]["active"]
+        need_reload = need_reload or self.opt["normal_battle"]["active"]
+        if need_reload:
+            self.reload_game()
+
         my_opt = self.opt["reload_and_daily_quest"]
         if my_opt["active"]:
-            self.reload_game()
             self.sin_out.emit(
                 "[{}] 每日签到检查中...".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
@@ -737,11 +747,11 @@ class Todo(QThread):
                 battle_plan_2p=my_opt["battle_plan_2p"],
                 dict_exit={"other_time": ["none"], "last_time": ["sports_land"]})
 
-        if (
-                self.opt["quest_guild"]["active"] or
-                self.opt["quest_spouse"]["active"] or
-                self.opt["offer_reward"]["active"]
-        ):
+        need_reload = False
+        need_reload = need_reload or self.opt["quest_guild"]["active"]
+        need_reload = need_reload or self.opt["quest_spouse"]["active"]
+        need_reload = need_reload or self.opt["offer_reward"]["active"]
+        if need_reload:
             self.reload_game()
 
         my_opt = self.opt["quest_guild"]
@@ -770,11 +780,11 @@ class Todo(QThread):
                 battle_plan_1p=my_opt["battle_plan_1p"],
                 battle_plan_2p=my_opt["battle_plan_2p"])
 
-        if (
-                self.opt["relic"]["active"] or
-                self.opt["cross_server"]["active"] or
-                self.opt["warrior"]["active"]
-        ):
+        need_reload = False
+        need_reload = need_reload or self.opt["relic"]["active"]
+        need_reload = need_reload or self.opt["cross_server"]["active"]
+        need_reload = need_reload or self.opt["warrior"]["active"]
+        if need_reload:
             self.reload_game()
 
         my_opt = self.opt["relic"]
@@ -811,19 +821,20 @@ class Todo(QThread):
                 battle_plan_1p=my_opt["battle_plan_1p"],
                 battle_plan_2p=my_opt["battle_plan_2p"],
                 dict_exit={"other_time": ["none"], "last_time": ["sports_land"]})
+
             # 勇士挑战在全部完成后, [进入竞技岛], 创建房间者[有概率]会保留勇士挑战选择关卡的界面.
             # 对于创建房间者, 在触发后, 需要设定完成后退出方案为[进入竞技岛 → 点X] 才能完成退出.
             # 对于非创建房间者, 由于号1不会出现选择关卡界面, 会因为找不到[X]而卡死.
             # 无论如何都会出现卡死的可能性.
             # 因此此处选择退出方案直接选择[进入竞技岛], 并将勇士挑战选择放在本大类的最后进行, 依靠下一个大类开始后的重启游戏刷新.
 
-        if (
-                self.opt["magic_tower_alone_1"]["active"] or
-                self.opt["magic_tower_alone_2"]["active"] or
-                self.opt["magic_tower_prison_1"]["active"] or
-                self.opt["magic_tower_prison_2"]["active"] or
-                self.opt["magic_tower_double"]["active"]
-        ):
+        need_reload = False
+        need_reload = need_reload or self.opt["magic_tower_alone_1"]["active"]
+        need_reload = need_reload or self.opt["magic_tower_alone_2"]["active"]
+        need_reload = need_reload or self.opt["magic_tower_prison_1"]["active"]
+        need_reload = need_reload or self.opt["magic_tower_prison_2"]["active"]
+        need_reload = need_reload or self.opt["magic_tower_double"]["active"]
+        if need_reload:
             self.reload_game()
 
         for player_id in [1, 2]:
@@ -861,15 +872,17 @@ class Todo(QThread):
         self.sin_out.emit(
             "[{}] 全部主要事项已完成! 检查所有[任务]完成情况".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
         self.compete_quest()
+
         self.sin_out.emit(
             "[{}] 已领取所有[任务]奖励".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
-        if (
-                self.opt["customize"]["active"] or
-                self.opt["cross_server_reputation"]["active"]
-        ):
+        need_reload = False
+        need_reload = need_reload or self.opt["customize"]["active"]
+        need_reload = need_reload or self.opt["cross_server_reputation"]["active"]
+        if need_reload:
             self.reload_game()
 
         my_opt = self.opt["cross_server_reputation"]
