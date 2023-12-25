@@ -93,6 +93,7 @@ The original intention of developing this tool is to fulfill a childhood wish te
     | 1P | 木盘 | 麦芽 | 小火 | 海星 | 糖葫 | 瓜皮 | 狮子 | 油灯 | 布丁 | 空格 | 气泡 | 咖粉 |
     | 2P | 木盘 | 麦芽 | 小火 | 海星 | 糖葫 | 瓜皮 | 狮子 | 油灯 | 空格 | 气泡 | 咖粉 |
 
+
 * 花瓶卡组
 
     摆烂, 什么都不干,一般可以是1P默认,2P花瓶, 作用同默认卡组 
@@ -100,6 +101,7 @@ The original intention of developing this tool is to fulfill a childhood wish te
     | 序号 | 1  | 2  | 3  | 4  | 5  | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
     |:---|:---|:---|:---|:---|:---|:--|:--|:--|:--|:---|:---|:---|
     | NP | 木盘 | 麦芽 | 空格 | 气泡 | 咖粉 |   |   |   |   |    |    |    |
+
 
 * 高难卡组
 
@@ -112,6 +114,7 @@ The original intention of developing this tool is to fulfill a childhood wish te
     | 1P | 木盘 | 麦芽 | 小火 | 海星 | 糖葫 | 瓜皮 | 冰沙 | 辣粉 | 清明 | 鼠夹 | 布丁 | 咖粉 |
     | 2P | 木盘 | 麦芽 | 小火 | 海星 | 糖葫 | 瓜皮 | 冰沙 | 辣粉 | 清明 | 鼠夹 | 咖粉 |
 
+
 * 单人魔塔139卡组
   
     默认设置为[卡组3]
@@ -119,6 +122,13 @@ The original intention of developing this tool is to fulfill a childhood wish te
     | 序号 | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | 10 | 11 | 12 |
     |:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|
     | 1P | 木盘 | 麦芽 | 小火 | 海星 | 糖葫 | 瓜皮 | 冰沙 | 狮子 | 辣粉 | 清明 | 瓜皮 | 瓜皮 |
+
+
+* 悬赏卡组
+
+    默认设置为[卡组4]  
+    具体卡组请打开opt自行查看或加入反馈群, 每轮悬赏均有变化
+
 
 * 雪山卡组
 
@@ -129,6 +139,7 @@ The original intention of developing this tool is to fulfill a childhood wish te
     |:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|:---|
     | 1P | 木盘 | 麦芽 | 小火 | 海星 | 糖葫 | 瓜皮 | 冰沙 | 狮子 | 海盐 | 咖粉 |    |    |
     | 2P | 木盘 | 麦芽 | 小火 | 海星 | 糖葫 | 瓜皮 | 冰沙 | 狮子 | 海盐 | 咖粉 |    |    |
+
 
 * 生煎锅速刷卡组
 
