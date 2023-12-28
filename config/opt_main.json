@@ -4,10 +4,10 @@
     "name_2p": "\u6df1\u6e0a\u4e4b\u4e0b",
     "zoom_ratio": 1,
     "level_1p": 60,
-    "level_2p": 59,
+    "level_2p": 60,
     "auto_use_card": true,
     "reload_and_daily_quest": {
-        "active": false
+        "active": true
     },
     "fed_and_watered": {
         "active": false
@@ -28,8 +28,8 @@
     "offer_reward": {
         "active": true,
         "deck": 4,
-        "battle_plan_1p": 11,
-        "battle_plan_2p": 12
+        "battle_plan_1p": 14,
+        "battle_plan_2p": 15
     },
     "magic_tower_double": {
         "active": false,
@@ -97,11 +97,11 @@
     "normal_battle": {
         "active": true,
         "is_group": true,
-        "max_times": 43,
-        "stage": "NO-2-5",
+        "max_times": 20,
+        "stage": "NO-1-14",
         "deck": 6,
-        "battle_plan_1p": 14,
-        "battle_plan_2p": 15,
+        "battle_plan_1p": 18,
+        "battle_plan_2p": 19,
         "group": true
     },
     "cross_server_reputation": {
