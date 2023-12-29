@@ -97,11 +97,11 @@
     "normal_battle": {
         "active": true,
         "is_group": true,
-        "max_times": 7,
-        "stage": "NO-1-7",
+        "max_times": 20,
+        "stage": "NO-1-5",
         "deck": 6,
-        "battle_plan_1p": 20,
-        "battle_plan_2p": 21,
+        "battle_plan_1p": 18,
+        "battle_plan_2p": 19,
         "group": true
     },
     "cross_server_reputation": {
