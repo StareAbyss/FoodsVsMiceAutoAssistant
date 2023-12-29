@@ -91,6 +91,8 @@ The original intention of developing this tool is to fulfill a childhood wish te
         * 将鼠标悬停在windows任务栏中的360游戏大厅的窗口上, 启动1P和2P时可以看到. 为 角色名称 | 游戏名称 或 游戏名称
         * 其中 仅有游戏名称, 为第一个启动的角色, 对应在软件中, 其窗口名空置
         * 其中 角色名称 | 游戏名称, 为之后启动的角色, 对应在软件中, 填写角色名称
+    ![image](https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant/assets/112901226/80dea34e-5c84-43ce-932b-838c168bbdbd)
+
 
 * 角色等级
     * 用于在任务需要完成高等级解锁的副本, 但角色等级不足时, 直接跳过对应任务, 防止卡死, 请如实填写
