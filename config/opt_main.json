@@ -7,26 +7,26 @@
     "level_2p": 60,
     "auto_use_card": true,
     "reload_and_daily_quest": {
-        "active": true
+        "active": false
     },
     "fed_and_watered": {
         "active": false
     },
     "quest_guild": {
-        "active": true,
+        "active": false,
         "stage": true,
         "deck": 1,
         "battle_plan_1p": 2,
         "battle_plan_2p": 3
     },
     "quest_spouse": {
-        "active": true,
+        "active": false,
         "deck": 1,
         "battle_plan_1p": 2,
         "battle_plan_2p": 3
     },
     "offer_reward": {
-        "active": true,
+        "active": false,
         "deck": 4,
         "battle_plan_1p": 14,
         "battle_plan_2p": 15
@@ -34,10 +34,10 @@
     "magic_tower_double": {
         "active": false,
         "max_times": 5,
-        "stage": 95,
+        "stage": 100,
         "deck": 2,
-        "battle_plan_1p": 5,
-        "battle_plan_2p": 6
+        "battle_plan_1p": 9,
+        "battle_plan_2p": 10
     },
     "magic_tower_alone_1": {
         "active": false,
@@ -97,11 +97,11 @@
     "normal_battle": {
         "active": true,
         "is_group": true,
-        "max_times": 20,
-        "stage": "NO-1-14",
+        "max_times": 7,
+        "stage": "NO-1-7",
         "deck": 6,
-        "battle_plan_1p": 18,
-        "battle_plan_2p": 19,
+        "battle_plan_1p": 20,
+        "battle_plan_2p": 21,
         "group": true
     },
     "cross_server_reputation": {

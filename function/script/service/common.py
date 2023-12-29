@@ -1393,6 +1393,7 @@ class FAA:
             self.action_exit(exit_mode="normal_x")
 
         fed_and_watered_main()
+        self.action_quest_receive_rewards(quest_type="guild")
 
     def cross_server_reputation(self):
         self.get_config_for_battle(is_group=False, battle_plan_index=0, stage_id="CS-1-2")
