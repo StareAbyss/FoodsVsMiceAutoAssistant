@@ -91,8 +91,7 @@
         },
         {
             "id": 6,
-            "tips": "瓜皮护罩",
-            "name": "Watermelon Skin Shield",
+            "name": "瓜皮护罩",
             "ergodic": true,
             "queue": true,
             "location": [
@@ -107,8 +106,7 @@
         },
         {
             "id": 7,
-            "tips": "狮子座精灵",
-            "name": "Leo Elf",
+            "name": "狮子座精灵",
             "ergodic": true,
             "queue": true,
             "location": [
@@ -118,12 +116,19 @@
         },
         {
             "id": 8,
-            "tips": "油灯",
-            "name": "oil lamp",
+            "name": "油灯",
             "ergodic": true,
             "queue": true,
             "location": [
                 "2-5"
+            ]
+        },
+        {
+            "id": 9,
+            "name": "樱桃反弹布丁",
+            "ergodic": true,
+            "queue": false,
+            "location": [
             ]
         }
     ]

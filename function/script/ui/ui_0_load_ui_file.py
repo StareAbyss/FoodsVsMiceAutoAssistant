@@ -2,7 +2,7 @@ import os
 import sys
 
 from PyQt5 import uic, QtWidgets
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import QMainWindow, QApplication
 
 from function.get_paths import get_root_path
@@ -30,20 +30,34 @@ class MyMainWindow0(QMainWindow):
         # 设置窗口名称
         self.setWindowTitle("FAA - 本软件免费且开源 - 反馈交流: 786921130")
 
+        # 设定字体
+        c_font = QFont()  # custom_font
+        c_font.setFamily("SimHei")
+        QApplication.setFont(c_font, "QLabel")  # LayMain
+
     def printf(self, mes):
-        """打印文本到输出框"""
-        self.TextBrowser.append(mes)  # 在TextBrowser显示提示信息
+        """
+        打印文本到输出框
+        """
+        text_browser = self.TextBrowser
+        text_browser.append(mes)  # 在TextBrowser显示提示信息
         cursor = self.TextBrowser.textCursor()
-        self.TextBrowser.moveCursor(cursor.End)
+        text_browser.moveCursor(cursor.End)
         QtWidgets.QApplication.processEvents()  # 实时输出
 
     def closeEvent(self, event):
-        """对MainWindow的函数closeEvent进行重构, 退出软件时弹窗提醒 并且结束所有进程(和内部的线程)"""
-        # self.reply = QMessageBox.question(self,
-        #                                   '提示',
-        #                                   "确认退出吗？",
-        #                                   QMessageBox.Yes | QMessageBox.No,
-        #                                   QMessageBox.No)
+        """
+        对MainWindow的函数closeEvent进行重构, 退出软件时弹窗提醒 并且结束所有进程(和内部的线程)
+        """
+
+        # 退出提示
+        # self.reply = QMessageBox.question(
+        #     self,
+        #     '提示',
+        #     "确认退出吗？",
+        #     QMessageBox.Yes | QMessageBox.No,
+        #     QMessageBox.No
+        # )
         # if self.reply == QMessageBox.Yes:
         #     event.accept()
         #     # 用过sys.exit(0)和sys.exit(app.exec_())，但没起效果

@@ -16,7 +16,7 @@
             "queue": false,
             "location": []
         },
-        {
+         {
             "id": 4,
             "name": "生煎锅",
             "ergodic": true,
@@ -55,6 +55,17 @@
                 "9-3",
                 "9-5",
                 "9-7"
+            ]
+        },
+        {
+            "id": 9,
+            "name": "防漏卡",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "1-4",
+                "2-4",
+                "3-4"
             ]
         },
         {
@@ -108,7 +119,7 @@
             ]
         },
         {
-            "id": 9,
+            "id": 10,
             "name": "清明肉松粿",
             "ergodic": true,
             "queue": false,

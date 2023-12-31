@@ -114,6 +114,14 @@
             "location": [
                 "2-5"
             ]
+        },
+        {
+            "id": 9,
+            "name": "樱桃反弹布丁",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+            ]
         }
     ]
 }

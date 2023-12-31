@@ -32,6 +32,8 @@ class Todo(QThread):
         self.thread_1p = None
         self.thread_2p = None
 
+    """业务代码, 不直接调用opt设定, 会向输出窗口传参"""
+
     def reload_game(self):
 
         self.sin_out.emit(
@@ -54,22 +56,74 @@ class Todo(QThread):
         self.thread_1p.join()
         self.thread_2p.join()
 
-    def compete_quest(self):
+    def cross_server_reputation(self):
 
         self.sin_out.emit(
-            "[{}] Compete Quest...".format(
+            "[{}] 无限刷跨服启动!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
-            target=self.faa[1].quest,
-            name="1P Thread - Quest",
+            target=self.faa[1].cross_server_reputation,
+            name="1P Thread",
             kwargs={})
 
         self.thread_2p = ThreadWithException(
-            target=self.faa[2].quest,
-            name="2P Thread - Quest",
+            target=self.faa[2].cross_server_reputation,
+            name="2P Thread",
             kwargs={})
+
+        self.thread_1p.start()
+        sleep(0.5)
+        self.thread_2p.start()
+        self.thread_1p.join()
+        self.thread_2p.join()
+
+    def receive_quest_rewards(self):
+
+        self.sin_out.emit(
+            "[{}] 领取一般任务奖励...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+        # 创建进程 -> 开始进程 -> 阻塞主进程
+        self.thread_1p = ThreadWithException(
+            target=self.faa[1].action_quest_receive_rewards,
+            name="1P Thread - Quest",
+            kwargs={
+                "mode":"normal"
+            })
+
+        self.thread_2p = ThreadWithException(
+            target=self.faa[2].action_quest_receive_rewards,
+            name="2P Thread - Quest",
+            kwargs={
+                "mode":"normal"
+            })
+        # 涉及键盘抢夺, 容错低, 最好分开执行
+        self.thread_1p.start()
+        sleep(0.333)
+        self.thread_2p.start()
+        self.thread_1p.join()
+        self.thread_2p.join()
+
+        self.sin_out.emit(
+            "[{}] 登陆美食大赛并领取任务奖励...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+        # 创建进程 -> 开始进程 -> 阻塞主进程
+        self.thread_1p = ThreadWithException(
+            target=self.faa[1].action_quest_receive_rewards,
+            name="1P Thread - Quest",
+            kwargs={
+                "mode":"food_competition"
+            })
+
+        self.thread_2p = ThreadWithException(
+            target=self.faa[2].action_quest_receive_rewards,
+            name="2P Thread - Quest",
+            kwargs={
+                "mode":"food_competition"
+            })
         # 涉及键盘抢夺, 容错低, 最好分开执行
         self.thread_1p.start()
         sleep(0.333)
@@ -127,8 +181,8 @@ class Todo(QThread):
                     self.sin_out.emit(
                         "[{}] [单本轮战] 服务器抽风,进入竞技岛,重新邀请...".format(
                             datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-                    self.faa[1].action_exit(exit_mode="sports_land")
-                    self.faa[2].action_exit(exit_mode="sports_land")
+                    self.faa[1].action_exit(mode="sports_land")
+                    self.faa[2].action_exit(mode="sports_land")
 
         # 轮次作战
         for i in range(max_times):
@@ -149,7 +203,7 @@ class Todo(QThread):
                 target=self.faa[1].action_round_of_game,
                 name="1P Thread - Battle",
                 kwargs={
-                    "delay_start": False,
+                    "is_delay_start": False,
                     "battle_mode": 0,
                     "quest_card": quest_card,
                     "list_ban_card": list_ban_card,
@@ -160,7 +214,7 @@ class Todo(QThread):
                     target=self.faa[2].action_round_of_game,
                     name="2P Thread - Battle",
                     kwargs={
-                        "delay_start": True,
+                        "is_delay_start": True,
                         "battle_mode": 0,
                         "quest_card": quest_card,
                         "list_ban_card": list_ban_card,
@@ -179,14 +233,14 @@ class Todo(QThread):
             # 最后一次的退出方式不同
             if i + 1 == max_times:
                 for j in dict_exit["last_time"]:
-                    self.faa[1].action_exit(exit_mode=j)
+                    self.faa[1].action_exit(mode=j)
                     if is_group:
-                        self.faa[2].action_exit(exit_mode=j)
+                        self.faa[2].action_exit(mode=j)
             else:
                 for j in dict_exit["other_time"]:
-                    self.faa[1].action_exit(exit_mode=j)
+                    self.faa[1].action_exit(mode=j)
                     if is_group:
-                        self.faa[2].action_exit(exit_mode=j)
+                        self.faa[2].action_exit(mode=j)
 
             # 结束提示文本
             print(
@@ -255,8 +309,8 @@ class Todo(QThread):
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
-        self.faa[1].action_quest_receive_rewards(quest_type=quest_type)
-        self.faa[2].action_quest_receive_rewards(quest_type=quest_type)
+        self.faa[1].action_quest_receive_rewards(mode=quest_type)
+        self.faa[2].action_quest_receive_rewards(mode=quest_type)
 
         self.sin_out.emit(
             "[{}] {}开始获取任务列表".format(
@@ -289,8 +343,8 @@ class Todo(QThread):
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
-        self.faa[1].action_quest_receive_rewards(quest_type=quest_type)
-        self.faa[2].action_quest_receive_rewards(quest_type=quest_type)
+        self.faa[1].action_quest_receive_rewards(mode=quest_type)
+        self.faa[2].action_quest_receive_rewards(mode=quest_type)
 
         self.sin_out.emit(
             "[{}] {}Completed!".format(
@@ -343,8 +397,8 @@ class Todo(QThread):
             }]
         self.n_n_battle(quest_list=quest_list, list_type=["OR"])
         # 领取奖励
-        self.faa[1].action_quest_receive_rewards(quest_type="offer_reward")
-        self.faa[2].action_quest_receive_rewards(quest_type="offer_reward")
+        self.faa[1].action_quest_receive_rewards(mode="offer_reward")
+        self.faa[2].action_quest_receive_rewards(mode="offer_reward")
 
         self.sin_out.emit(
             "[{}] {}Completed!".format(
@@ -397,15 +451,15 @@ class Todo(QThread):
                     self.sin_out.emit(
                         "[{}] 服务器抽风, 尝试进入竞技岛, 并重新进行邀请...".format(
                             datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-                    self.faa[2].action_exit(exit_mode="sports_land")
-                    self.faa[1].action_exit(exit_mode="sports_land")
+                    self.faa[2].action_exit(mode="sports_land")
+                    self.faa[1].action_exit(mode="sports_land")
 
             # 创建战斗进程 -> 开始进程 -> 阻塞进程让进程执行完再继续本循环函数
             self.thread_1p = ThreadWithException(
                 target=self.faa[1].action_round_of_game,
                 name="1P Thread - Battle",
                 kwargs={
-                    "delay_start": False,
+                    "is_delay_start": False,
                     "battle_mode": 0,
                     "quest_card": "None",
                     "list_ban_card": [],
@@ -416,7 +470,7 @@ class Todo(QThread):
                 target=self.faa[2].action_round_of_game,
                 name="2P Thread - Battle",
                 kwargs={
-                    "delay_start": True,
+                    "is_delay_start": True,
                     "battle_mode": 0,
                     "quest_card": "None",
                     "list_ban_card": [],
@@ -430,12 +484,12 @@ class Todo(QThread):
             # 打完出本
             if i + 1 == max_times:
                 # 最后一把
-                self.faa[1].action_exit(exit_mode="back_one_level")
-                self.faa[2].action_exit(exit_mode="normal_x")
+                self.faa[1].action_exit(mode="back_one_level")
+                self.faa[2].action_exit(mode="normal_x")
             else:
                 # 其他次数
-                self.faa[1].action_exit(exit_mode="back_one_level")
-                self.faa[2].action_exit(exit_mode="none")
+                self.faa[1].action_exit(mode="back_one_level")
+                self.faa[2].action_exit(mode="none")
 
             self.sin_out.emit(
                 "[{}] {} 第{}次, 结束".format(
@@ -482,7 +536,7 @@ class Todo(QThread):
                 name="{}P Thread - Battle".format(player_id),
                 kwargs={
                     "deck": deck,
-                    "delay_start": False,
+                    "is_delay_start": False,
                     "battle_mode": 0,
                     "quest_card": "None",
                     "list_ban_card": []
@@ -492,9 +546,9 @@ class Todo(QThread):
 
             # 最后一次的退出方式不同
             if count_times + 1 == max_times:
-                self.faa[player_id].action_exit(exit_mode="normal_x")
+                self.faa[player_id].action_exit(mode="normal_x")
             else:
-                self.faa[player_id].action_exit(exit_mode="none")
+                self.faa[player_id].action_exit(mode="none")
 
             self.sin_out.emit(
                 "[{}] {} 第{}次, 结束".format(
@@ -545,7 +599,7 @@ class Todo(QThread):
                 name="{}P Thread - Battle".format(player_id),
                 kwargs={
                     "deck": deck,
-                    "delay_start": False,
+                    "is_delay_start": False,
                     "battle_mode": 0,
                     "quest_card": "None",
                     "list_ban_card": []
@@ -561,9 +615,9 @@ class Todo(QThread):
 
             # 最后一次的退出方式不同
             if stage_id == "MT-3-4":
-                self.faa[player_id].action_exit(exit_mode="normal_x")
+                self.faa[player_id].action_exit(mode="normal_x")
             else:
-                self.faa[player_id].action_exit(exit_mode="none")
+                self.faa[player_id].action_exit(mode="none")
 
         self.sin_out.emit(
             "[{}] {} Completed!".format(
@@ -598,7 +652,7 @@ class Todo(QThread):
             self.thread_1p = ThreadWithException(
                 target=self.faa[1].action_round_of_game,
                 name="1P Thread - Battle",
-                kwargs={"delay_start": True,
+                kwargs={"is_delay_start": True,
                         "battle_mode": 0,
                         "quest_card": "None",
                         "list_ban_card": [],
@@ -609,7 +663,7 @@ class Todo(QThread):
                     target=self.faa[2].action_round_of_game,
                     name="2P Thread - Battle",
                     kwargs={
-                        "delay_start": False,
+                        "is_delay_start": False,
                         "battle_mode": 0,
                         "quest_card": "None",
                         "list_ban_card": [],
@@ -625,14 +679,14 @@ class Todo(QThread):
             # 打完出本
             if i + 1 == max_times:
                 # 最后一把 打完回竞技岛
-                self.faa[1].action_exit(exit_mode="sports_land")
+                self.faa[1].action_exit(mode="sports_land")
                 if is_group:
-                    self.faa[2].action_exit(exit_mode="sports_land")
+                    self.faa[2].action_exit(mode="sports_land")
             else:
                 # 其他次数 打完按兵不动
-                self.faa[1].action_exit(exit_mode="none")
+                self.faa[1].action_exit(mode="none")
                 if is_group:
-                    self.faa[2].action_exit(exit_mode="none")
+                    self.faa[2].action_exit(mode="none")
 
             self.sin_out.emit(
                 "[{}] {} 第{}次, 结束".format(
@@ -706,11 +760,15 @@ class Todo(QThread):
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
+    """需要调用用户的设定的代码"""
+    """调用上面的业务代码"""
+    """主要线程"""
+
     def run(self):
-        """覆写主方法"""
-        # 签到!
+
         self.sin_out.emit(
             "每一个大类的任务开始前均会重启游戏以防止bug...")
+        start_time = datetime.datetime.now()
 
         need_reload = False
         need_reload = need_reload or self.opt["reload_and_daily_quest"]["active"]
@@ -870,26 +928,34 @@ class Todo(QThread):
 
         # 全部完成前 先 领取一下任务
         self.sin_out.emit(
-            "[{}] 全部主要事项已完成! 检查所有[任务]完成情况".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-
-        self.compete_quest()
-
-        self.sin_out.emit(
-            "[{}] 已领取所有[任务]奖励".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            "[{}] 全部主要事项已完成! 耗时:{}".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                start_time - datetime.datetime.now()
+            )
+        )
 
         need_reload = False
+        need_reload = need_reload or self.opt["receive_awards"]["active"]
         need_reload = need_reload or self.opt["customize"]["active"]
         need_reload = need_reload or self.opt["cross_server_reputation"]["active"]
         if need_reload:
             self.reload_game()
 
-        my_opt = self.opt["cross_server_reputation"]
+        my_opt = self.opt["receive_awards"]
         if my_opt["active"]:
             self.sin_out.emit(
-                "[{}] 无限刷跨服威望功能开发ing...".format(
-                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                "[{}] 检查所有[任务]完成情况".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                ))
+            self.receive_quest_rewards()
+            self.sin_out.emit(
+                "[{}] 已领取所有[任务]奖励".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                ))
+
+        my_opt = self.opt["cross_server_reputation"]
+        if my_opt["active"]:
+            self.cross_server_reputation()
 
         my_opt = self.opt["customize"]
         if my_opt["active"]:
@@ -924,12 +990,27 @@ class MyMainWindow2(MyMainWindow1):
         self.thread_states = False
 
     def todo_completed(self):
-        # 设置按钮文本
-        self.Button_Start.setText("开始\nLink Start")
-        # 设置进程状态文本
+        self.thread_states = False  # 设置flag
+        self.Button_Start.setText("开始\nLink Start")  # 设置按钮文本
+        # 设置输出文本
         self.printf("\n>>> 全任务完成 线程关闭 <<<\n")
-        # 设置flag
-        self.thread_states = False
+
+    def todo_start(self):
+
+        self.thread_states = True  # 设置flag
+        self.Button_Start.setText("终止\nEnd")  # 设置按钮文本
+        # 设置输出文本
+        self.TextBrowser.clear()
+        self.printf(">>> 链接开始 线程开启 <<<")
+        self.printf(">>> 为确保安全请阅读以下文本: <<<")
+        self.printf(">>> [1] 务必有二级密码 <<<")
+        self.printf(">>> [2] 有一定的礼卷防翻牌异常 <<<")
+        self.printf(">>> [3] 高星或珍贵不绑卡挂拍卖/提前转移 <<<")
+        self.printf(">>> 支持360游戏大厅 - 4399 或 QQ 渠道 <<<")
+        self.printf(">>> 如有疑问, 请阅读文件中README.md文档或在Github查看<<")
+        self.printf(">>> 开源免费, 请为我在Github点个免费的Star支持我吧 <<<")
+        self.printf(">>> [Github] https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant\n<<<")
+        self.printf(">>> [反馈QQ] 786921130 欢迎加入<<<")
 
     def click_btn_start(self):
         """战斗开始函数"""
@@ -964,20 +1045,7 @@ class MyMainWindow2(MyMainWindow1):
                 is_auto_battle=self.opt["auto_use_card"],
                 is_auto_collect=True)
 
-            # 设置按钮文本
-            self.Button_Start.setText("终止\nEnd")
-            # 设置flag
-            self.thread_states = True
-
-            # Link Start!
-            self.TextBrowser.clear()
-            self.printf(">>> 链接开始 线程开启 <<<")
-            self.printf(">>> 务必有二级密码, 且未输入以以兜底 <<<")
-            self.printf(">>> 不绑卡高星建议放拍卖行 <<<")
-            self.printf(">>> 支持360游戏大厅 - 4399 或 QQ 渠道 <<<")
-            self.printf(">>> 如有疑问, 请阅读README.md文档, 欢迎加入反馈QQ群:786921130 <<<")
-            self.printf(">>> 开源免费, 请为我在Github点个免费的Star支持我吧 <<<")
-            self.printf("")
+            self.todo_start()
 
             self.thread_todo = Todo(faa=faa, opt=self.opt)
             # 绑定手动结束线程
@@ -1019,10 +1087,11 @@ def main():
     # 实例化 主窗口
     window = MyMainWindow2()
 
-    # 建立槽连接 注意 多线程中 槽连接必须写在主函数
     # 注册函数：开始/结束按钮
     window.Button_Start.clicked.connect(lambda: window.click_btn_start())
+
     window.Button_Save.clicked.connect(lambda: window.click_btn_save())
+
     # 主窗口 实现
     window.show()
 

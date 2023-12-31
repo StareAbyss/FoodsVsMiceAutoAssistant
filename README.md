@@ -208,6 +208,7 @@ The original intention of developing this tool is to fulfill a childhood wish te
     * **<设定二级密码 + 使用中不输入>**
     * **<有一定的礼卷防翻牌异常>**
     * **<高星不绑卡挂拍卖/提前转移>**
+* 软件会自动截图记录战利品储存于软件根目录logs文件夹中, 若不需要或占用了过大储存, 可以将图片删除
 
 ## 地图代号说明
 
