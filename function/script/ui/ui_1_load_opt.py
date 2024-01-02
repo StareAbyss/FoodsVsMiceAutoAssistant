@@ -258,41 +258,6 @@ class MyMainWindow1(MyMainWindow0):
         self.ui_to_opt()
         self.opt_to_json()
 
-    # def click_btn_start(self):
-    #     """
-    #     开始/结束按钮 需要注册的函数
-    #     Args:
-    #         button: 被注册的按钮对象
-    #     """
-    #
-    #     # 先刷新数据
-    #     self.refresh_process_parameter(p_id)
-    #
-    #     if not self.dic_p["flag_activation"][p_id]:
-    #         # 创建 储存 启动进程
-    #         print([p_id, self.dic_p["dic_process_opt"][p_id]])
-    #         self.dic_p["process"][p_id] = multiprocessing.Process(
-    #             target=self.battle_all_round,
-    #             args=(p_id, self.dic_p["dic_process_opt"][p_id])
-    #         )
-    #         print(self.dic_p["process"][p_id])
-    #         self.dic_p["process"][p_id].start()
-    #         # 设置按钮文本
-    #         button.sender().setText("终止\nEnd")
-    #         # 设置flag
-    #         self.dic_p["flag_activation"][p_id] = True
-    #     else:
-    #         # 中止进程
-    #         # if self.dic_p["process"][p_id].is_alive():  # 判断进程是否还在运作中
-    #         #     self.dic_p["process"][p_id].terminate()  # 中断进程
-    #         #     self.dic_p["process"][p_id].join()  # 清理僵尸进程
-    #         # 设置按钮文本
-    #         button.sender().setText("开始\nLink Start")
-    #         # 设置进程状态文本
-    #         self.findChild(QLabel, "E_{}_7_2".format(p_id * 2 + 1)).setText("已中断进程")
-    #         # 设置flag
-    #         self.dic_p["flag_activation"][p_id] = False
-
 
 if __name__ == "__main__":
     def main():

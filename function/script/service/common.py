@@ -201,10 +201,10 @@ class FAA:
                 break
         return stage_id
 
-    def action_get_quest(self, target: str):
+    def action_get_quest(self, mode: str):
         """
         获取公会任务列表
-        :param target:
+        :param mode:
         :return: [
             {
                 "stage_id":str,
@@ -215,23 +215,23 @@ class FAA:
         ]
         """
         # 跳转到对应界面
-        if target == "guild":
+        if mode == "公会任务":
             self.action_bottom_menu(mode="跳转_公会任务")
             # 点一下 让左边的选中任务颜色消失
             loop_find_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=paths["picture"]["quest_guild"] + "\\ui_quest_list.png",
-                target_sleep=0.5,
+                target_sleep=0.2,
                 click=True,
                 click_zoom=self.zoom)
-        if target == "spouse":
+        if mode == "情侣任务":
             self.action_bottom_menu(mode="跳转_情侣任务")
 
         # 读取
         quest_list = []
         # 公会任务 guild
-        if target == "guild":
+        if mode == "公会任务":
             path = paths["picture"]["quest_guild"]
             for i in range(7):
                 # 遍历任务
@@ -274,7 +274,7 @@ class FAA:
                         )
 
         # 情侣任务 spouse
-        if target == "spouse":
+        if mode == "情侣任务":
             path = paths["picture"]["quest_spouse"]
             for i in ["1", "2", "3"]:
                 # 任务未完成
@@ -692,79 +692,7 @@ class FAA:
 
     """领取任务奖励"""
 
-    def action_receive_rewards_quest_guild(self):
-        # 跳转到任务界面
-        self.action_bottom_menu(mode="跳转_公会任务")
-        # 循环遍历点击完成
-        while True:
-            # 点一下 让左边的选中任务颜色消失
-            loop_find_p_in_w(raw_w_handle=self.handle,
-                             raw_range=[0, 0, 950, 600],
-                             target_path=paths["picture"]["quest_guild"] + "\\ui_quest_list.png",
-                             target_sleep=0.5,
-                             click=True,
-                             click_zoom=self.zoom)
-            result = loop_find_p_in_w(raw_w_handle=self.handle,
-                                      raw_range=[0, 0, 950, 600],
-                                      target_path=paths["picture"]["quest_guild"] + "\\completed.png",
-                                      target_tolerance=0.99,
-                                      click_zoom=self.zoom,
-                                      click=True,
-                                      target_failed_check=5,  # 1+4s 因为偶尔会弹出美食大赛完成动画4s 需要充足时间！这个确实脑瘫...
-                                      target_sleep=0.5)
-            if result:
-                loop_find_p_in_w(raw_w_handle=self.handle,
-                                 raw_range=[0, 0, 950, 600],
-                                 target_path=paths["picture"]["quest_guild"] + "\\gather.png",
-                                 target_tolerance=0.99,
-                                 click_zoom=self.zoom,
-                                 click=True,
-                                 target_failed_check=2,
-                                 target_sleep=2)  # 2s 完成任务有显眼动画
-            else:
-                break
-        # 退出任务界面
-        self.action_exit(mode="normal_x")
-
-    def action_receive_rewards_quest_spouse(self):
-        # 跳转到任务界面
-        self.action_bottom_menu(mode="跳转_情侣任务")
-        # 循环遍历点击完成
-        while True:
-            result = loop_find_p_in_w(raw_w_handle=self.handle,
-                                      raw_range=[0, 0, 950, 600],
-                                      target_path=paths["picture"]["quest_spouse"] + "\\completed.png",
-                                      target_tolerance=0.99,
-                                      click_zoom=self.zoom,
-                                      click=True,
-                                      target_failed_check=2,
-                                      target_sleep=2)  # 2s 完成任务有显眼动画)
-            if not result:
-                break
-        # 退出任务界面
-        self.action_exit(mode="normal_x")
-
-    def action_receive_rewards_quest_offer_reward(self):
-        # 进入X年活动界面
-        self.action_top_menu(mode="X年活动")
-
-        # 循环遍历点击完成
-        while True:
-            result = loop_find_p_in_w(raw_w_handle=self.handle,
-                                      raw_range=[0, 0, 950, 600],
-                                      target_path=paths["picture"]["common"] + "\\offer_reward_get_loot.png",
-                                      target_tolerance=0.99,
-                                      target_failed_check=2,
-                                      click_zoom=self.zoom,
-                                      click=True,
-                                      target_sleep=2)
-            if not result:
-                break
-
-        # 退出任务界面
-        self.action_exit(mode="exit_offer_reward")
-
-    def action_receive_rewards_quest_normal(self):
+    def AQRR_normal(self):
         """领取普通任务奖励"""
         handle = self.handle
         zoom = self.zoom
@@ -802,7 +730,79 @@ class FAA:
                 self.action_exit(mode="normal_x")
                 break
 
-    def action_receive_rewards_quest_food_competition(self):
+    def AQRR_guild(self):
+        # 跳转到任务界面
+        self.action_bottom_menu(mode="跳转_公会任务")
+        # 循环遍历点击完成
+        while True:
+            # 点一下 让左边的选中任务颜色消失
+            loop_find_p_in_w(raw_w_handle=self.handle,
+                             raw_range=[0, 0, 950, 600],
+                             target_path=paths["picture"]["quest_guild"] + "\\ui_quest_list.png",
+                             target_sleep=0.5,
+                             click=True,
+                             click_zoom=self.zoom)
+            result = loop_find_p_in_w(raw_w_handle=self.handle,
+                                      raw_range=[0, 0, 950, 600],
+                                      target_path=paths["picture"]["quest_guild"] + "\\completed.png",
+                                      target_tolerance=0.99,
+                                      click_zoom=self.zoom,
+                                      click=True,
+                                      target_failed_check=5,  # 1+4s 因为偶尔会弹出美食大赛完成动画4s 需要充足时间！这个确实脑瘫...
+                                      target_sleep=0.5)
+            if result:
+                loop_find_p_in_w(raw_w_handle=self.handle,
+                                 raw_range=[0, 0, 950, 600],
+                                 target_path=paths["picture"]["quest_guild"] + "\\gather.png",
+                                 target_tolerance=0.99,
+                                 click_zoom=self.zoom,
+                                 click=True,
+                                 target_failed_check=2,
+                                 target_sleep=2)  # 2s 完成任务有显眼动画
+            else:
+                break
+        # 退出任务界面
+        self.action_exit(mode="normal_x")
+
+    def AQRR_spouse(self):
+        # 跳转到任务界面
+        self.action_bottom_menu(mode="跳转_情侣任务")
+        # 循环遍历点击完成
+        while True:
+            result = loop_find_p_in_w(raw_w_handle=self.handle,
+                                      raw_range=[0, 0, 950, 600],
+                                      target_path=paths["picture"]["quest_spouse"] + "\\completed.png",
+                                      target_tolerance=0.99,
+                                      click_zoom=self.zoom,
+                                      click=True,
+                                      target_failed_check=2,
+                                      target_sleep=2)  # 2s 完成任务有显眼动画)
+            if not result:
+                break
+        # 退出任务界面
+        self.action_exit(mode="normal_x")
+
+    def AQRR_offer_reward(self):
+        # 进入X年活动界面
+        self.action_top_menu(mode="X年活动")
+
+        # 循环遍历点击完成
+        while True:
+            result = loop_find_p_in_w(raw_w_handle=self.handle,
+                                      raw_range=[0, 0, 950, 600],
+                                      target_path=paths["picture"]["common"] + "\\offer_reward_get_loot.png",
+                                      target_tolerance=0.99,
+                                      target_failed_check=2,
+                                      click_zoom=self.zoom,
+                                      click=True,
+                                      target_sleep=2)
+            if not result:
+                break
+
+        # 退出任务界面
+        self.action_exit(mode="exit_offer_reward")
+
+    def AQRR_food_competition(self):
 
         handle = self.handle
         zoom = self.zoom
@@ -857,21 +857,21 @@ class FAA:
         """
         收取任务奖励
         :param mode: normal/guild/spouse/offer_reward/food_competition
-        :return:
+        :return:None
         """
 
         print_g(text="[收取任务奖励] [{}] 开始收取".format(mode), player=self.player, garde=1)
 
-        if mode == "normal":
-            self.action_receive_rewards_quest_normal()
-        if mode == "guild":
-            self.action_receive_rewards_quest_guild()
-        if mode == "spouse":
-            self.action_receive_rewards_quest_spouse()
-        if mode == "offer_reward":
-            self.action_receive_rewards_quest_offer_reward()
-        if mode == "food_competition":
-            self.action_receive_rewards_quest_food_competition()
+        if mode == "普通任务":
+            self.AQRR_normal()
+        if mode == "公会任务":
+            self.AQRR_guild()
+        if mode == "情侣任务":
+            self.AQRR_spouse()
+        if mode == "悬赏任务":
+            self.AQRR_offer_reward()
+        if mode == "美食大赛":
+            self.AQRR_food_competition()
 
         print_g(text="[收取任务奖励] [{}] 已全部领取".format(mode), player=self.player, garde=1)
 
@@ -2054,7 +2054,7 @@ class FAA:
             self.action_exit(mode="normal_x")
 
         fed_and_watered_main()
-        self.action_quest_receive_rewards(mode="guild")
+        self.action_quest_receive_rewards(mode="公会任务")
 
     def open_chest(self):
 

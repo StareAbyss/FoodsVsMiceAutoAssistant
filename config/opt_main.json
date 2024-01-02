@@ -26,7 +26,7 @@
         "battle_plan_2p": 3
     },
     "offer_reward": {
-        "active": true,
+        "active": false,
         "deck": 4,
         "battle_plan_1p": 15,
         "battle_plan_2p": 16
@@ -40,9 +40,9 @@
         "battle_plan_2p": 10
     },
     "magic_tower_alone_1": {
-        "active": false,
-        "max_times": 6,
-        "stage": 0,
+        "active": true,
+        "max_times": 5,
+        "stage": 149,
         "deck": 3,
         "battle_plan_1p": 14
     },
@@ -75,7 +75,7 @@
         "group": false
     },
     "cross_server": {
-        "active": true,
+        "active": false,
         "is_group": true,
         "max_times": 10,
         "stage": "CS-5-4",
@@ -85,7 +85,7 @@
         "group": false
     },
     "relic": {
-        "active": true,
+        "active": false,
         "is_group": true,
         "max_times": 3,
         "stage": "NO-3-2",
@@ -95,20 +95,20 @@
         "group": false
     },
     "normal_battle": {
-        "active": true,
+        "active": false,
         "is_group": true,
         "max_times": 45,
-        "stage": "NO-4-10",
-        "deck": 1,
-        "battle_plan_1p": 1,
-        "battle_plan_2p": 3,
+        "stage": "NO-2-12",
+        "deck": 6,
+        "battle_plan_1p": 19,
+        "battle_plan_2p": 20,
         "group": true
     },
     "receive_awards": {
         "active": true
     },
     "cross_server_reputation": {
-        "active": true
+        "active": false
     },
     "customize": {
         "active": false

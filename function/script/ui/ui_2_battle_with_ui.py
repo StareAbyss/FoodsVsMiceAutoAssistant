@@ -90,14 +90,14 @@ class Todo(QThread):
             target=self.faa[1].action_quest_receive_rewards,
             name="1P Thread - Quest",
             kwargs={
-                "mode":"normal"
+                "mode":"普通任务"
             })
 
         self.thread_2p = ThreadWithException(
             target=self.faa[2].action_quest_receive_rewards,
             name="2P Thread - Quest",
             kwargs={
-                "mode":"normal"
+                "mode":"普通任务"
             })
         # 涉及键盘抢夺, 容错低, 最好分开执行
         self.thread_1p.start()
@@ -115,14 +115,14 @@ class Todo(QThread):
             target=self.faa[1].action_quest_receive_rewards,
             name="1P Thread - Quest",
             kwargs={
-                "mode":"food_competition"
+                "mode":"美食大赛"
             })
 
         self.thread_2p = ThreadWithException(
             target=self.faa[2].action_quest_receive_rewards,
             name="2P Thread - Quest",
             kwargs={
-                "mode":"food_competition"
+                "mode":"美食大赛"
             })
         # 涉及键盘抢夺, 容错低, 最好分开执行
         self.thread_1p.start()
@@ -131,16 +131,8 @@ class Todo(QThread):
         self.thread_1p.join()
         self.thread_2p.join()
 
-    def n_battle(self,
-                 is_group,
-                 stage_id,
-                 max_times,
-                 deck,
-                 battle_plan_1p,
-                 battle_plan_2p,
-                 quest_card,
-                 list_ban_card,
-                 dict_exit):
+    def n_battle(self,is_group,stage_id, max_times,
+                 deck, battle_plan_1p,battle_plan_2p, quest_card, list_ban_card,dict_exit):
         """[单本轮战]1次 副本外 → 副本内n次战斗 → 副本外"""
 
         self.sin_out.emit(
@@ -255,7 +247,7 @@ class Todo(QThread):
 
     def n_n_battle(self, quest_list, list_type):
         """
-        [多本战斗]n次 副本外→副本内n次战斗→副本外
+        [多本战斗]n次 副本外 -> 副本内n次战斗 -> 副本外
         :param quest_list: 任务清单
         :param list_type: 打哪些类型的副本 比如 ["NO","CS"]
         """
@@ -296,7 +288,7 @@ class Todo(QThread):
                         quest["list_ban_card"]))
                 continue
 
-    def double_quest(self, text_, quest_type, deck, battle_plan_1p, battle_plan_2p):
+    def guild_or_spouse_quest(self, text_, quest_mode, deck, battle_plan_1p, battle_plan_2p):
         """完成公会or情侣任务"""
 
         self.sin_out.emit(
@@ -309,15 +301,15 @@ class Todo(QThread):
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
-        self.faa[1].action_quest_receive_rewards(mode=quest_type)
-        self.faa[2].action_quest_receive_rewards(mode=quest_type)
+        self.faa[1].action_quest_receive_rewards(mode=quest_mode)
+        self.faa[2].action_quest_receive_rewards(mode=quest_mode)
 
         self.sin_out.emit(
             "[{}] {}开始获取任务列表".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
-        quest_list = self.faa[1].action_get_quest(target=quest_type)
+        quest_list = self.faa[1].action_get_quest(mode=quest_mode)
 
         for i in quest_list:
             self.sin_out.emit(
@@ -343,8 +335,8 @@ class Todo(QThread):
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
-        self.faa[1].action_quest_receive_rewards(mode=quest_type)
-        self.faa[2].action_quest_receive_rewards(mode=quest_type)
+        self.faa[1].action_quest_receive_rewards(mode=quest_mode)
+        self.faa[2].action_quest_receive_rewards(mode=quest_mode)
 
         self.sin_out.emit(
             "[{}] {}Completed!".format(
@@ -396,9 +388,10 @@ class Todo(QThread):
                 "dict_exit": {"other_time": ["none"], "last_time": ["sports_land"]}
             }]
         self.n_n_battle(quest_list=quest_list, list_type=["OR"])
+
         # 领取奖励
-        self.faa[1].action_quest_receive_rewards(mode="offer_reward")
-        self.faa[2].action_quest_receive_rewards(mode="offer_reward")
+        self.faa[1].action_quest_receive_rewards(mode="悬赏任务")
+        self.faa[2].action_quest_receive_rewards(mode="悬赏任务")
 
         self.sin_out.emit(
             "[{}] {}Completed!".format(
@@ -814,18 +807,18 @@ class Todo(QThread):
 
         my_opt = self.opt["quest_guild"]
         if my_opt["active"]:
-            self.double_quest(
+            self.guild_or_spouse_quest(
                 text_="[公会任务]",
-                quest_type="guild",
+                quest_mode="公会任务",
                 deck=my_opt["deck"],
                 battle_plan_1p=my_opt["battle_plan_1p"],
                 battle_plan_2p=my_opt["battle_plan_2p"])
 
         my_opt = self.opt["quest_spouse"]
         if my_opt["active"]:
-            self.double_quest(
+            self.guild_or_spouse_quest(
                 text_="[情侣任务]",
-                quest_type="spouse",
+                quest_mode="情侣任务",
                 deck=my_opt["deck"],
                 battle_plan_1p=my_opt["battle_plan_1p"],
                 battle_plan_2p=my_opt["battle_plan_2p"])
@@ -1002,15 +995,7 @@ class MyMainWindow2(MyMainWindow1):
         # 设置输出文本
         self.TextBrowser.clear()
         self.printf(">>> 链接开始 线程开启 <<<")
-        self.printf(">>> 为确保安全请阅读以下文本: <<<")
-        self.printf(">>> [1] 务必有二级密码 <<<")
-        self.printf(">>> [2] 有一定的礼卷防翻牌异常 <<<")
-        self.printf(">>> [3] 高星或珍贵不绑卡挂拍卖/提前转移 <<<")
-        self.printf(">>> 支持360游戏大厅 - 4399 或 QQ 渠道 <<<")
-        self.printf(">>> 如有疑问, 请阅读文件中README.md文档或在Github查看<<")
-        self.printf(">>> 开源免费, 请为我在Github点个免费的Star支持我吧 <<<")
-        self.printf(">>> [Github] https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant\n<<<")
-        self.printf(">>> [反馈QQ] 786921130 欢迎加入<<<")
+        self.start_print()
 
     def click_btn_start(self):
         """战斗开始函数"""
