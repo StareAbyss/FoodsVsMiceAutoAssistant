@@ -60,11 +60,6 @@ class MyMainWindow1(MyMainWindow0):
         self.QuestGuild_2P.setCurrentIndex(self.opt["quest_guild"]["battle_plan_2p"])
 
         self.QuestSpouse_Active.setChecked(self.opt["quest_spouse"]["active"])
-        self.QuestSpouse_Deck.setValue(self.opt["quest_spouse"]["deck"])
-        self.QuestSpouse_1P.addItems(battle_plan_list)
-        self.QuestSpouse_2P.addItems(battle_plan_list)
-        self.QuestSpouse_1P.setCurrentIndex(self.opt["quest_spouse"]["battle_plan_1p"])
-        self.QuestSpouse_2P.setCurrentIndex(self.opt["quest_spouse"]["battle_plan_2p"])
 
         self.OfferReward_Active.setChecked(self.opt["offer_reward"]["active"])
         self.OfferReward_Deck.setValue(self.opt["offer_reward"]["deck"])
@@ -148,7 +143,11 @@ class MyMainWindow1(MyMainWindow0):
         self.NormalBattle_2P.setCurrentIndex(self.opt["normal_battle"]["battle_plan_2p"])
 
         self.ReceiveAwards_Active.setChecked(self.opt["receive_awards"]["active"])
+
+        self.UseItems_Active.setChecked(self.opt["use_items"]["active"])
+
         self.CrossServerReputation_Active.setChecked(self.opt["cross_server_reputation"]["active"])
+
         self.Customize_Active.setChecked(self.opt["customize"]["active"])
 
     def ui_to_opt(self):
@@ -180,9 +179,6 @@ class MyMainWindow1(MyMainWindow0):
         my_transformer(self.QuestGuild_2P, "quest_guild", "battle_plan_2p")
 
         self.opt["quest_spouse"]["active"] = self.QuestSpouse_Active.isChecked()
-        self.opt["quest_spouse"]["deck"] = self.QuestSpouse_Deck.value()
-        my_transformer(self.QuestSpouse_1P, "quest_spouse", "battle_plan_1p")
-        my_transformer(self.QuestSpouse_2P, "quest_spouse", "battle_plan_2p")
 
         self.opt["offer_reward"]["active"] = self.OfferReward_Active.isChecked()
         self.opt["offer_reward"]["deck"] = self.OfferReward_Deck.value()
@@ -250,7 +246,11 @@ class MyMainWindow1(MyMainWindow0):
         my_transformer(self.NormalBattle_2P, "normal_battle", "battle_plan_2p")
 
         self.opt["receive_awards"]["active"] = self.ReceiveAwards_Active.isChecked()
+
+        self.opt["use_items"]["active"] = self.UseItems_Active.isChecked()
+
         self.opt["cross_server_reputation"]["active"] = self.CrossServerReputation_Active.isChecked()
+
         self.opt["customize"]["active"] = self.Customize_Active.isChecked()
 
     def click_btn_save(self):

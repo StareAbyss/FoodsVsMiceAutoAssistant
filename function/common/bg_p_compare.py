@@ -137,7 +137,7 @@ def loop_find_p_in_w(
     click the center of the smaller one in the bigger one by handle(relative position)
     Args:
         :param raw_w_handle: 截图句柄
-        :param raw_range: 截图后截取范围
+        :param raw_range: 截图后截取范围 [左上x,左上y,右下x,右下y]
         :param target_path: 目标图片路径
         :param target_tolerance: 捕捉准确度阈值 0-1
         :param target_interval: 捕捉图片的间隔
@@ -163,8 +163,8 @@ def loop_find_p_in_w(
                 sleep(target_sleep)
             else:
                 mouse_left_click(handle=raw_w_handle,
-                                 x=int(find_target[0] * click_zoom),
-                                 y=int(find_target[1] * click_zoom),
+                                 x=int((find_target[0]+raw_range[0]) * click_zoom),
+                                 y=int((find_target[1]+raw_range[1]) * click_zoom),
                                  interval_time=click_interval,
                                  sleep_time=target_sleep)
                 if click_now_path:

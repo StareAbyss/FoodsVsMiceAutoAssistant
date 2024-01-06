@@ -1,11 +1,8 @@
 from cv2 import imwrite, imread, IMREAD_UNCHANGED, matchTemplate, TM_SQDIFF_NORMED, minMaxLoc
 
 from function.common.bg_p_screenshot import capture_picture_png
-from function.get_paths import get_paths_faa_new
+from function.get_paths import paths
 from function.script.scattered.gat_handle import faa_get_handle
-
-if __name__ == "__main__":
-    paths = get_paths_faa_new()
 
 
 def get_house_id(handle):

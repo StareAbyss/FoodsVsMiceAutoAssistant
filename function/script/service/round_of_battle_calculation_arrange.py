@@ -3,25 +3,39 @@
 
 def calculation_card_quest(list_cell_all, quest_card):
     """计算步骤一 加入任务卡的摆放坐标"""
+
     # 任务卡 大号小号开始位置不同 任务卡id = 0 则为没有
     locations = ["6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7"]
-    if quest_card != "None":
+
+    if quest_card == "None":
+        return list_cell_all
+
+    else:
+
         # 遍历删除 主要卡中 占用了任务卡摆放的坐标
         new_list = []
         for card in list_cell_all:
             card["location"] = list(filter(lambda x: x not in locations, card["location"]))
             new_list.append(card)
+
+        # 计算任务卡的id
+        card_id_list = []
+        for card in list_cell_all:
+            card_id_list.append(card["id"])
+        quest_card_id = max(card_id_list) + 1  # 取其中最大的卡片id + 1
+
         # 设定任务卡dict
-        dict_quest = {"id": 3 + len(new_list),  # 3即为 2承载卡 + 1自身
-                      "name": quest_card,
-                      "ergodic": True,
-                      "queue": True,
-                      "location": locations}
+        dict_quest = {
+            "id": quest_card_id,
+            "name": quest_card,
+            "ergodic": True,
+            "queue": True,
+            "location": locations
+        }
+
         # 加入数组
         new_list.append(dict_quest)
         return new_list
-    else:
-        return list_cell_all
 
 
 def calculation_card_mat(list_cell_all, stage_info, player, is_group):
@@ -78,18 +92,20 @@ def calculation_card_ban(list_cell_all, list_ban_card):
 
 def calculation_obstacle(list_cell_all, stage_info):
     """去除有障碍的位置的放卡"""
+
     # 预设中 该关卡有障碍物
     new_list_1 = []
-    for i in list_cell_all:
-        for location in i["location"]:
+    for card in list_cell_all:
+        for location in card["location"]:
             if location in stage_info["obstacle"]:
-                i["location"].remove(location)
-        new_list_1.append(i)
+                card["location"].remove(location)
+        new_list_1.append(card)
+
     # 如果location被删完了 就去掉它
     new_list_2 = []
-    for i in new_list_1:
-        if i["location"]:
-            new_list_2.append(i)
+    for card in new_list_1:
+        if card["location"]:
+            new_list_2.append(card)
     return new_list_2
 
 
@@ -121,7 +137,7 @@ def calculation_cell_all_card(stage_info, battle_plan, player, is_group, quest_c
         ]
     """
 
-    # 初始化数组 + 调用战斗卡
+    # 初始化数组 + 复制一份全新的 battle_plan
     list_cell_all = battle_plan
 
     # 调用计算任务卡
@@ -147,7 +163,6 @@ def calculation_cell_all_card(stage_info, battle_plan, player, is_group, quest_c
         stage_info=stage_info)
 
     # 颠倒2P的放置顺序
-    # list_cell_all = solve_alt_transformer(list_cell_all=list_cell_all, player=player)
 
     # 调用计算铲子卡
     list_shovel = calculation_shovel(stage_info=stage_info)
