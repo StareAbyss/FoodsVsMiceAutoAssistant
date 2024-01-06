@@ -121,7 +121,7 @@ def calculation_cell_all_card(stage_info, battle_plan, player, is_group, quest_c
         ]
     """
 
-    # 初始化数组 + 调用战斗卡
+    # 初始化数组 + 复制一份全新的 battle_plan
     list_cell_all = battle_plan
 
     # 调用计算任务卡

@@ -37,6 +37,8 @@ paths["picture"]["quest_guild"] = paths["picture"]["current"] + "\\quest_guild"
 paths["picture"]["quest_spouse"] = paths["picture"]["current"] + "\\quest_spouse"
 paths["picture"]["ready_check_stage"] = paths["picture"]["current"] + "\\stage_ready_check"
 paths["picture"]["map"] = paths["picture"]["current"] + "\\map"
+paths["picture"]["item"] = paths["picture"]["current"] + "\\item"
+paths["picture"]["error"] = paths["picture"]["current"] + "\\error"
 
 
 def get_paths_faa_new():
@@ -45,7 +47,7 @@ def get_paths_faa_new():
 
 
 def get_paths_faa_old():
-    """老方法, 启用"""
+    """老方法, 不启用"""
     my_paths = {
         "root": get_root_path(),
         "logs": None,

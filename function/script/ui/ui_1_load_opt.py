@@ -148,7 +148,11 @@ class MyMainWindow1(MyMainWindow0):
         self.NormalBattle_2P.setCurrentIndex(self.opt["normal_battle"]["battle_plan_2p"])
 
         self.ReceiveAwards_Active.setChecked(self.opt["receive_awards"]["active"])
+
+        self.UseItems_Active.setChecked(self.opt["use_items"]["active"])
+
         self.CrossServerReputation_Active.setChecked(self.opt["cross_server_reputation"]["active"])
+
         self.Customize_Active.setChecked(self.opt["customize"]["active"])
 
     def ui_to_opt(self):
@@ -250,7 +254,11 @@ class MyMainWindow1(MyMainWindow0):
         my_transformer(self.NormalBattle_2P, "normal_battle", "battle_plan_2p")
 
         self.opt["receive_awards"]["active"] = self.ReceiveAwards_Active.isChecked()
+
+        self.opt["use_items"]["active"] = self.UseItems_Active.isChecked()
+
         self.opt["cross_server_reputation"]["active"] = self.CrossServerReputation_Active.isChecked()
+
         self.opt["customize"]["active"] = self.Customize_Active.isChecked()
 
     def click_btn_save(self):

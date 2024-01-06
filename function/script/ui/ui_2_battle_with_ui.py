@@ -7,11 +7,12 @@ from time import sleep
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QApplication
 
+from function.common.bg_mouse import mouse_left_click
+from function.common.bg_p_compare import loop_find_p_in_w
 from function.common.thread_with_exception import ThreadWithException
 from function.get_paths import paths
 from function.script.scattered.get_channel_name import get_channel_name
 from function.script.service.common import FAA
-from function.script.service.common_multiplayer import invite
 from function.script.ui.ui_1_load_opt import MyMainWindow1
 
 
@@ -34,6 +35,70 @@ class Todo(QThread):
 
     """业务代码, 不直接调用opt设定, 会向输出窗口传参"""
 
+    def invite(self):
+        """
+        号1邀请号2到房间 需要在同一个区
+        :return: bool 是否最终找到了图片
+        """
+        faa_1 = self.faa[2]
+        faa_2 = self.faa[1]
+        zoom = self.faa[1].zoom
+
+        find = loop_find_p_in_w(
+            raw_w_handle=faa_1.handle,
+            raw_range=[0, 0, 950, 600],
+            target_path=paths["picture"]["common"] + "\\battle\\before_ready_check_start.png",
+            click_zoom=zoom,
+            target_sleep=0.3,
+            click=False,
+            target_failed_check=2.0)
+        if not find:
+            print("2s找不到开始游戏! 土豆服务器问题, 创建房间可能失败!")
+            return False
+
+        # 点击[房间ui-邀请按钮]
+        mouse_left_click(
+            handle=faa_1.handle,
+            x=int(410 * zoom),
+            y=int(546 * zoom),
+            sleep_time=0.5)
+
+        # 点击[房间ui-邀请ui-好友按钮]
+        mouse_left_click(
+            handle=faa_1.handle,
+            x=int(535 * zoom),
+            y=int(130 * zoom),
+            sleep_time=0.5)
+
+        # 直接邀请
+        mouse_left_click(
+            handle=faa_1.handle,
+            x=int(601 * zoom),
+            y=int(157 * zoom),
+            sleep_time=0.5)
+
+        # p2接受邀请
+        find = loop_find_p_in_w(
+            raw_w_handle=faa_2.handle,
+            raw_range=[0, 0, 950, 600],
+            target_path=paths["picture"]["common"] + "\\battle\\before_be_invited_enter.png",
+            click_zoom=zoom,
+            target_sleep=2.0,
+            target_failed_check=2.0)
+
+        if not find:
+            print("2s没能组队? 土豆服务器问题, 尝试解决ing...")
+            return False
+
+        # p1关闭邀请窗口
+        mouse_left_click(
+            handle=faa_1.handle,
+            x=int(590 * zoom),
+            y=int(491 * zoom),
+            sleep_time=1.5)
+
+        return True
+
     def reload_game(self):
 
         self.sin_out.emit(
@@ -55,6 +120,121 @@ class Todo(QThread):
         self.thread_2p.start()
         self.thread_1p.join()
         self.thread_2p.join()
+
+    def reload_to_login_ui(self):
+
+        self.sin_out.emit(
+            "\n[{}] Refresh Game...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+        # 创建进程 -> 开始进程 -> 阻塞主进程
+        self.thread_1p = ThreadWithException(
+            target=self.faa[1].reload_to_login_ui,
+            name="1P Thread - Reload",
+            kwargs={})
+
+        self.thread_2p = ThreadWithException(
+            target=self.faa[2].reload_to_login_ui,
+            name="2P Thread - Reload",
+            kwargs={})
+        self.thread_1p.start()
+        sleep(0.5)
+        self.thread_2p.start()
+        self.thread_1p.join()
+        self.thread_2p.join()
+
+    def receive_quest_rewards(self):
+
+        self.sin_out.emit(
+            "[{}] 领取所有[任务]完成, 开始".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+        self.sin_out.emit(
+            "[{}] 领取一般任务奖励...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+        # 创建进程 -> 开始进程 -> 阻塞主进程
+        self.thread_1p = ThreadWithException(
+            target=self.faa[1].action_quest_receive_rewards,
+            name="1P Thread - ReceiveQuest",
+            kwargs={
+                "mode": "普通任务"
+            })
+
+        self.thread_2p = ThreadWithException(
+            target=self.faa[2].action_quest_receive_rewards,
+            name="2P Thread - ReceiveQuest",
+            kwargs={
+                "mode": "普通任务"
+            })
+        # 涉及键盘抢夺, 容错低, 最好分开执行
+        self.thread_1p.start()
+        sleep(0.333)
+        self.thread_2p.start()
+        self.thread_1p.join()
+        self.thread_2p.join()
+
+        self.sin_out.emit(
+            "[{}] 登陆美食大赛并领取任务奖励...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+        # 创建进程 -> 开始进程 -> 阻塞主进程
+        self.thread_1p = ThreadWithException(
+            target=self.faa[1].action_quest_receive_rewards,
+            name="1P Thread - Quest",
+            kwargs={
+                "mode": "美食大赛"
+            })
+
+        self.thread_2p = ThreadWithException(
+            target=self.faa[2].action_quest_receive_rewards,
+            name="2P Thread - Quest",
+            kwargs={
+                "mode": "美食大赛"
+            })
+
+        # 涉及键盘抢夺, 容错低, 最好分开执行
+        self.thread_1p.start()
+        sleep(0.333)
+        self.thread_2p.start()
+        self.thread_1p.join()
+        self.thread_2p.join()
+
+        self.sin_out.emit(
+            "[{}] 领取所有[任务]奖励, 完成".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+    def use_items(self):
+
+        self.sin_out.emit(
+            "[{}] 使用绑定消耗品和宝箱, 开始".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+        self.sin_out.emit(
+            "[{}] 领取一般任务奖励...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+        # 创建进程 -> 开始进程 -> 阻塞主进程
+        self.thread_1p = ThreadWithException(
+            target=self.faa[1].use_item,
+            name="1P Thread - UseItems",
+            kwargs={})
+
+        self.thread_2p = ThreadWithException(
+            target=self.faa[2].use_item,
+            name="2P Thread - UseItems",
+            kwargs={})
+
+        # 涉及键盘抢夺, 容错低, 最好分开执行
+        self.thread_1p.start()
+        sleep(0.333)
+        self.thread_2p.start()
+        self.thread_1p.join()
+        self.thread_2p.join()
+
+        self.sin_out.emit(
+            "[{}] 使用绑定消耗品和宝箱, 完成".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
     def cross_server_reputation(self):
 
@@ -79,60 +259,8 @@ class Todo(QThread):
         self.thread_1p.join()
         self.thread_2p.join()
 
-    def receive_quest_rewards(self):
-
-        self.sin_out.emit(
-            "[{}] 领取一般任务奖励...".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-
-        # 创建进程 -> 开始进程 -> 阻塞主进程
-        self.thread_1p = ThreadWithException(
-            target=self.faa[1].action_quest_receive_rewards,
-            name="1P Thread - Quest",
-            kwargs={
-                "mode":"普通任务"
-            })
-
-        self.thread_2p = ThreadWithException(
-            target=self.faa[2].action_quest_receive_rewards,
-            name="2P Thread - Quest",
-            kwargs={
-                "mode":"普通任务"
-            })
-        # 涉及键盘抢夺, 容错低, 最好分开执行
-        self.thread_1p.start()
-        sleep(0.333)
-        self.thread_2p.start()
-        self.thread_1p.join()
-        self.thread_2p.join()
-
-        self.sin_out.emit(
-            "[{}] 登陆美食大赛并领取任务奖励...".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-
-        # 创建进程 -> 开始进程 -> 阻塞主进程
-        self.thread_1p = ThreadWithException(
-            target=self.faa[1].action_quest_receive_rewards,
-            name="1P Thread - Quest",
-            kwargs={
-                "mode":"美食大赛"
-            })
-
-        self.thread_2p = ThreadWithException(
-            target=self.faa[2].action_quest_receive_rewards,
-            name="2P Thread - Quest",
-            kwargs={
-                "mode":"美食大赛"
-            })
-        # 涉及键盘抢夺, 容错低, 最好分开执行
-        self.thread_1p.start()
-        sleep(0.333)
-        self.thread_2p.start()
-        self.thread_1p.join()
-        self.thread_2p.join()
-
-    def n_battle(self,is_group,stage_id, max_times,
-                 deck, battle_plan_1p,battle_plan_2p, quest_card, list_ban_card,dict_exit):
+    def n_battle(self, is_group, stage_id, max_times,
+                 deck, battle_plan_1p, battle_plan_2p, quest_card, list_ban_card, dict_exit):
         """[单本轮战]1次 副本外 → 副本内n次战斗 → 副本外"""
 
         self.sin_out.emit(
@@ -167,7 +295,8 @@ class Todo(QThread):
                 self.faa[1].action_goto_stage(room_creator=False)
                 self.faa[2].action_goto_stage(room_creator=True)
                 sleep(3)
-                if invite(self.faa[2], self.faa[1]):
+                find = self.invite()
+                if find:
                     break
                 else:
                     self.sin_out.emit(
@@ -437,7 +566,7 @@ class Todo(QThread):
 
                 sleep(3)
                 # 尝试要求 如果成功就结束循环 如果失败 退出到竞技岛尝试重新邀请
-                if invite(self.faa[2], self.faa[1]):
+                if self.invite():
                     break
                 else:
                     flag_invite_failed = True
@@ -919,7 +1048,6 @@ class Todo(QThread):
                 battle_plan_1p=my_opt["battle_plan_1p"],
                 battle_plan_2p=my_opt["battle_plan_2p"])
 
-        # 全部完成前 先 领取一下任务
         self.sin_out.emit(
             "[{}] 全部主要事项已完成! 耗时:{}".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -936,15 +1064,11 @@ class Todo(QThread):
 
         my_opt = self.opt["receive_awards"]
         if my_opt["active"]:
-            self.sin_out.emit(
-                "[{}] 检查所有[任务]完成情况".format(
-                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                ))
             self.receive_quest_rewards()
-            self.sin_out.emit(
-                "[{}] 已领取所有[任务]奖励".format(
-                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                ))
+
+        my_opt = self.opt["use_items"]
+        if my_opt["active"]:
+            self.use_items()
 
         my_opt = self.opt["cross_server_reputation"]
         if my_opt["active"]:
@@ -954,7 +1078,13 @@ class Todo(QThread):
         if my_opt["active"]:
             self.customize_battle(text_="[高级自定义]")
 
-        # 全部完成了? 发个信号
+        # 全部完成了刷新一下
+        self.sin_out.emit(
+            "[{}] 已完成所有事项, 刷新游戏回到登录界面, 防止长期运行flash导致卡顿".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        self.reload_to_login_ui()
+
+        # 全部完成了发个信号
         self.sin_out_completed.emit()
 
     def pause(self):
