@@ -4,8 +4,8 @@ from pprint import pprint
 
 from function.script.scattered.read_json_to_stage_info import read_json_to_stage_info
 
-csvFilePath = "opt_customize_todo_csv.csv"
-jsonFilePath = "opt_customize_todo.json"
+csvFilePath = "csv_美食大赛.csv"
+jsonFilePath = "231221-240118 大赛单人.json"
 
 my_list = []
 
@@ -32,8 +32,8 @@ with open(csvFilePath, "r", encoding='utf-8') as csv_file:
 for my_dict in my_list:
     my_dict.pop("产火数")
 
-    my_dict["battle_id"] = my_dict.pop("任务序号")
-    my_dict["task_card"] = my_dict.pop("使用卡片")
+    my_dict["battle_id"] = int(my_dict.pop("任务序号"))
+    my_dict["quest_card"] = my_dict.pop("使用卡片")
     my_dict["stage_id"] = my_dict.pop("地图编号")
 
     my_dict["max_times"] = 1
@@ -52,7 +52,7 @@ for my_dict in my_list:
         my_dict["list_ban_card"].remove("")
 
     """根据数量限制 地图所需的承载卡 优先级 综合规划 增加ban卡"""
-    if my_dict["数量限制"] != "0":
+    if not (my_dict["数量限制"] == "0" or my_dict["数量限制"] == ""):
         # 先把已经ban了的 从卡组中 去掉
         for already_ban in my_dict["list_ban_card"]:
             if already_ban in default_deck:
@@ -71,10 +71,16 @@ for my_dict in my_list:
     my_dict.pop("数量限制")
 
     """增加额外的预设值"""
+
     my_dict["deck"] = 1
+
     my_dict["battle_plan_1p"] = 0
+
     my_dict["battle_plan_2p"] = 1
-    my_dict["dict_exit"] = {"other_time": ["none"], "last_time": ["food_competition"]}  # 5 为美食大赛领取专用
+
+    my_dict["dict_exit"] = {
+        "other_time": ["none"],
+        "last_time": ["food_competition"]}
 
     """"""
 

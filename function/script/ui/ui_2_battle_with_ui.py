@@ -12,6 +12,7 @@ from function.common.bg_p_compare import loop_find_p_in_w
 from function.common.thread_with_exception import ThreadWithException
 from function.get_paths import paths
 from function.script.scattered.get_channel_name import get_channel_name
+from function.script.scattered.get_customize_todo_list import get_customize_todo_list
 from function.script.service.common import FAA
 from function.script.ui.ui_1_load_opt import MyMainWindow1
 
@@ -430,7 +431,6 @@ class Todo(QThread):
                 self.sin_out.emit(text)
 
             if result == 1:
-
                 # 进入异常, 重启再来
                 is_need_goto_stage = True
 
@@ -444,7 +444,6 @@ class Todo(QThread):
                 self.reload_game()
 
             if result == 2:
-
                 # 跳过本次 计数+1
                 success_battle_time += 1
 
@@ -946,7 +945,17 @@ class Todo(QThread):
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
-    def customize_battle(self, text_: str):
+    def customize_todo(self, text_: str, customize_todo_index: int):
+
+        def read_json_to_customize_todo():
+            customize_todo_list = get_customize_todo_list(with_extension=True)
+            customize_todo_path = "{}\\{}".format(
+                paths["customize_todo"],
+                customize_todo_list[customize_todo_index]
+            )
+            with open(customize_todo_path, "r", encoding="UTF-8") as file:
+                return json.load(file)
+
         # 开始链接
         self.sin_out.emit(
             "[{}] {} Link Start!".format(
@@ -955,16 +964,15 @@ class Todo(QThread):
 
         # 战斗开始
         self.sin_out.emit(
-            "[{}] {}开始[多本轮战]...".format(
+            "[{}] {} 开始[多本论战]".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
-        with open(paths["config"] + "//opt_customize_todo.json", "r", encoding="UTF-8") as file:
-            quest_list = json.load(file)
+        quest_list = read_json_to_customize_todo()
 
         self.n_n_battle(
             quest_list=quest_list,
-            list_type=["NO", "EX"])
+            list_type=["NO", "EX", "CS"])
 
         # 战斗结束
         self.sin_out.emit(
@@ -1164,7 +1172,7 @@ class Todo(QThread):
             self.cross_server_reputation(deck=self.opt["quest_guild"]["deck"])
 
         if self.opt["customize"]["active"]:
-            self.customize_battle(text_="[高级自定义]")
+            self.customize_todo(text_="[高级自定义]", customize_todo_index=self.opt["customize"]["battle_plan_1p"])
 
         # 全部完成了刷新一下
         self.sin_out.emit(
@@ -1237,7 +1245,7 @@ class MyMainWindow2(MyMainWindow1):
                 character_level=self.opt["level_1p"],
                 is_use_key=True,  # boolean 是否使用钥匙 做任务必须选择 是
                 is_auto_battle=self.opt["auto_use_card"],  # boolean 是否使用自动战斗 做任务必须选择 是
-                is_auto_collect=False)
+                is_auto_pickup=self.opt["auto_pickup_1p"])
 
             faa[2] = FAA(
                 channel=channel_2p,
@@ -1246,7 +1254,7 @@ class MyMainWindow2(MyMainWindow1):
                 character_level=self.opt["level_2p"],
                 is_use_key=True,
                 is_auto_battle=self.opt["auto_use_card"],
-                is_auto_collect=True)
+                is_auto_pickup=self.opt["auto_pickup_2p"])
 
             self.todo_start()
 

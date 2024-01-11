@@ -28,6 +28,8 @@ paths = {
 paths["logs"] = paths["root"] + "\\logs"
 paths["battle_plan"] = paths["root"] + "\\battle_plan"
 paths["config"] = paths["root"] + "\\config"
+paths["customize_todo"] = paths["root"] + "\\customize_todo"
+
 paths["picture"]["current"] = paths["root"] + "\\resource\\picture"
 paths["picture"]["common"] = paths["picture"]["current"] + "\\common"
 paths["picture"]["number"] = paths["picture"]["current"] + "\\number"

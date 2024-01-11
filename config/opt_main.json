@@ -6,6 +6,8 @@
     "level_1p": 60,
     "level_2p": 60,
     "auto_use_card": true,
+    "auto_pickup_1p": false,
+    "auto_pickup_2p": true,
     "reload_and_daily_quest": {
         "active": false
     },
@@ -29,41 +31,41 @@
         "battle_plan_2p": 17
     },
     "magic_tower_double": {
-        "active": true,
+        "active": false,
         "max_times": 5,
-        "stage": 99,
+        "stage": 100,
         "deck": 2,
         "battle_plan_1p": 10,
         "battle_plan_2p": 9
     },
     "magic_tower_alone_1": {
-        "active": true,
+        "active": false,
         "max_times": 5,
         "stage": 149,
         "deck": 3,
         "battle_plan_1p": 15
     },
     "magic_tower_alone_2": {
-        "active": true,
-        "max_times": 1,
+        "active": false,
+        "max_times": 4,
         "stage": 84,
         "deck": 3,
         "battle_plan_1p": 13
     },
     "magic_tower_prison_1": {
-        "active": true,
+        "active": false,
         "stage": true,
         "deck": 6,
         "battle_plan_1p": 20
     },
     "magic_tower_prison_2": {
-        "active": true,
+        "active": false,
         "stage": true,
         "deck": 6,
         "battle_plan_1p": 20
     },
     "warrior": {
-        "active": true,
+        "active": false,
         "is_group": true,
         "max_times": 8,
         "deck": 1,
@@ -72,7 +74,7 @@
         "group": false
     },
     "cross_server": {
-        "active": true,
+        "active": false,
         "is_group": true,
         "max_times": 10,
         "stage": "CS-5-4",
@@ -93,24 +95,25 @@
     },
     "normal_battle": {
         "active": false,
-        "is_group": true,
-        "max_times": 10,
-        "stage": "NO-4-3",
-        "deck": 1,
-        "battle_plan_1p": 2,
-        "battle_plan_2p": 3,
+        "is_group": false,
+        "max_times": 1,
+        "stage": "EX-4-1",
+        "deck": 2,
+        "battle_plan_1p": 5,
+        "battle_plan_2p": 6,
         "group": true
     },
     "receive_awards": {
-        "active": true
+        "active": false
     },
     "use_items": {
-        "active": true
+        "active": false
     },
     "cross_server_reputation": {
-        "active": true
+        "active": false
     },
     "customize": {
-        "active": true
+        "active": true,
+        "battle_plan_1p": 0
     }
 }

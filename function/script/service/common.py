@@ -21,7 +21,7 @@ from function.tools.create_battle_coordinates import create_battle_coordinates
 
 class FAA:
     def __init__(self, channel="锑食", zoom=1.0, player="1P", character_level=1,
-                 is_use_key=True, is_auto_battle=True, is_auto_collect=False):
+                 is_use_key=True, is_auto_battle=True, is_auto_pickup=False):
 
         # 获取窗口句柄
         self.channel = channel
@@ -37,7 +37,7 @@ class FAA:
         self.character_level = character_level
         self.is_use_key = is_use_key
         self.is_auto_battle = is_auto_battle
-        self.is_auto_collect = is_auto_collect
+        self.is_auto_pickup = is_auto_pickup
 
         # 每个副本的战斗都不一样的参数 使用内部函数调用更改
         self.is_group = False
@@ -109,7 +109,7 @@ class FAA:
             self.action_bottom_menu(mode="跳转_竞技场")
 
             # 领取奖励
-            self.action_quest_receive_rewards(mode="food_competition")
+            self.action_quest_receive_rewards(mode="美食大赛")
 
         """游戏内退出游戏"""
         if mode == "exit_game":
@@ -577,11 +577,13 @@ class FAA:
                     handle=self.handle,
                     x=int(my_dict[stage_2][0] * self.zoom),
                     y=int(my_dict[stage_2][1] * self.zoom),
-                    sleep_time=1)
+                    sleep_time=0.5)
 
                 # 输入密码
-                key_down_up(self.handle, "1")
-                time.sleep(1)
+                key_down_up(
+                    handle=self.handle,
+                    key="1",
+                    sleep_time=0.5)
 
                 # 创建关卡
                 my_dict = {  # X+225 Y+221
@@ -591,7 +593,7 @@ class FAA:
                     handle=self.handle,
                     x=int(my_dict[stage_2][0] * self.zoom),
                     y=int(my_dict[stage_2][1] * self.zoom),
-                    sleep_time=1)
+                    sleep_time=0.5)
             else:
                 # 刷新
                 mouse_left_click(
@@ -605,7 +607,7 @@ class FAA:
                     handle=self.handle,
                     x=int(602 * self.zoom),
                     y=int(490 * self.zoom),
-                    sleep_time=0.1)
+                    sleep_time=0.2)
 
                 for i in range(20):
                     find = loop_find_p_in_w(
@@ -614,7 +616,7 @@ class FAA:
                         target_path=paths["picture"]["common"] + "\\跨服远征_1p.png",
                         click_zoom=self.zoom,
                         click=True,
-                        target_sleep=2.0,
+                        target_sleep=1.0,
                         target_failed_check=1.0)
                     if find:
                         break
@@ -623,18 +625,26 @@ class FAA:
                             handle=self.handle,
                             x=int(700 * self.zoom),
                             y=int(490 * self.zoom),
-                            sleep_time=0.1)
+                            sleep_time=0.2)
                         # 下一页
 
-                # 输入密码 确定进入
+                # 点击密码框 输入密码 确定进入
+                mouse_left_click(
+                    handle=self.handle,
+                    x=int(490 * self.zoom),
+                    y=int(300 * self.zoom),
+                    sleep_time=0.5)
+
                 key_down_up(
                     handle=self.handle,
-                    key="1")
+                    key="1",
+                    sleep_time=0.5)
+
                 mouse_left_click(
                     handle=self.handle,
                     x=int(490 * self.zoom),
                     y=int(360 * self.zoom),
-                    sleep_time=0.1)
+                    sleep_time=0.5)
 
         def main_or():
             # 进入X年活动界面
@@ -963,7 +973,7 @@ class FAA:
         handle = self.handle
         player = self.player
         is_auto_battle = self.is_auto_battle
-        is_auto_collect = self.is_auto_collect
+        is_auto_pickup = self.is_auto_pickup
         is_use_key = self.is_use_key
 
         """调用类参数-战斗前生成"""
@@ -1242,7 +1252,7 @@ class FAA:
                     sleep_time=click_sleep)
 
                 """自动收集"""
-                if is_auto_collect:
+                if is_auto_pickup:
                     for coordinate in auto_collect_cells:
                         mouse_left_moveto(
                             handle=handle,

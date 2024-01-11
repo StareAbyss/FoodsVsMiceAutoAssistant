@@ -4,6 +4,7 @@ import sys
 from PyQt5.QtWidgets import QApplication
 
 from function.script.scattered.get_battle_plan_list import get_battle_plan_list
+from function.script.scattered.get_customize_todo_list import get_customize_todo_list
 from function.script.ui.ui_0_load_ui_file import MyMainWindow0
 
 
@@ -38,6 +39,7 @@ class MyMainWindow1(MyMainWindow0):
         # comboBox.setCurrentIndex时 如果超过了已有预设 会显示为空 不会报错
         # comboBox.clear时 会把所有选项设定为默认选项
         battle_plan_list = get_battle_plan_list(with_extension=False)
+        customize_todo_list = get_customize_todo_list(with_extension=False)
 
         self.GameName_Input.setText(self.opt["game_name"])
         self.Name1P_Input.setText(self.opt["name_1p"])
@@ -47,6 +49,8 @@ class MyMainWindow1(MyMainWindow0):
         self.Level1P_Input.setValue(self.opt["level_1p"])
         self.Level2P_Input.setValue(self.opt["level_2p"])
         self.AutoUseCard.setChecked(self.opt["auto_use_card"])
+        self.AutoPickUp_1P.setChecked(self.opt["auto_pickup_1p"])
+        self.AutoPickUp_2P.setChecked(self.opt["auto_pickup_2p"])
 
         self.ReloadAndDailyQuest_Active.setChecked(self.opt["reload_and_daily_quest"]["active"])
         self.FedAndWatered_Active.setChecked(self.opt["fed_and_watered"]["active"])
@@ -149,15 +153,26 @@ class MyMainWindow1(MyMainWindow0):
         self.CrossServerReputation_Active.setChecked(self.opt["cross_server_reputation"]["active"])
 
         self.Customize_Active.setChecked(self.opt["customize"]["active"])
+        self.Customize_1P.addItems(customize_todo_list)
+        self.Customize_1P.setCurrentIndex(self.opt["customize"]["battle_plan_1p"])
 
     def ui_to_opt(self):
         # battle_plan_list
         battle_plan_list = get_battle_plan_list(with_extension=False)
+        customize_todo_list = get_customize_todo_list(with_extension=False)
 
-        def my_transformer(change_class: object, opt_1, opt_2):
+        def my_transformer_b(change_class: object, opt_1, opt_2):
+            # 用于配置 带有选单的 战斗方案
             self.opt[opt_1][opt_2] = change_class.currentIndex()
             change_class.clear()
             change_class.addItems(battle_plan_list)
+            change_class.setCurrentIndex(self.opt[opt_1][opt_2])
+
+        def my_transformer_c(change_class: object, opt_1, opt_2):
+            # 用于配置 带有选单的 自定义目标
+            self.opt[opt_1][opt_2] = change_class.currentIndex()
+            change_class.clear()
+            change_class.addItems(customize_todo_list)
             change_class.setCurrentIndex(self.opt[opt_1][opt_2])
 
         self.opt["game_name"] = self.GameName_Input.text()
@@ -168,6 +183,8 @@ class MyMainWindow1(MyMainWindow0):
         self.opt["level_1p"] = self.Level1P_Input.value()
         self.opt["level_2p"] = self.Level2P_Input.value()
         self.opt["auto_use_card"] = self.AutoUseCard.isChecked()
+        self.opt["auto_pickup_1p"] = self.AutoPickUp_1P.isChecked()
+        self.opt["auto_pickup_2p"] = self.AutoPickUp_2P.isChecked()
 
         self.opt["reload_and_daily_quest"]["active"] = self.ReloadAndDailyQuest_Active.isChecked()
         self.opt["fed_and_watered"]["active"] = self.FedAndWatered_Active.isChecked()
@@ -175,75 +192,75 @@ class MyMainWindow1(MyMainWindow0):
         self.opt["quest_guild"]["active"] = self.QuestGuild_Active.isChecked()
         self.opt["quest_guild"]["stage"] = self.QuestGuild_Stage.isChecked()
         self.opt["quest_guild"]["deck"] = self.QuestGuild_Deck.value()
-        my_transformer(self.QuestGuild_1P, "quest_guild", "battle_plan_1p")
-        my_transformer(self.QuestGuild_2P, "quest_guild", "battle_plan_2p")
+        my_transformer_b(self.QuestGuild_1P, "quest_guild", "battle_plan_1p")
+        my_transformer_b(self.QuestGuild_2P, "quest_guild", "battle_plan_2p")
 
         self.opt["quest_spouse"]["active"] = self.QuestSpouse_Active.isChecked()
 
         self.opt["offer_reward"]["active"] = self.OfferReward_Active.isChecked()
         self.opt["offer_reward"]["deck"] = self.OfferReward_Deck.value()
-        my_transformer(self.OfferReward_1P, "offer_reward", "battle_plan_1p")
-        my_transformer(self.OfferReward_2P, "offer_reward", "battle_plan_2p")
+        my_transformer_b(self.OfferReward_1P, "offer_reward", "battle_plan_1p")
+        my_transformer_b(self.OfferReward_2P, "offer_reward", "battle_plan_2p")
 
         self.opt["magic_tower_double"]["active"] = self.MagicTowerDouble_Active.isChecked()
         self.opt["magic_tower_double"]["max_times"] = self.MagicTowerDouble_MaxTimes.value()
         self.opt["magic_tower_double"]["stage"] = self.MagicTowerDouble_Stage.value()
         self.opt["magic_tower_double"]["deck"] = self.MagicTowerDouble_Deck.value()
-        my_transformer(self.MagicTowerDouble_1P, "magic_tower_double", "battle_plan_1p")
-        my_transformer(self.MagicTowerDouble_2P, "magic_tower_double", "battle_plan_2p")
+        my_transformer_b(self.MagicTowerDouble_1P, "magic_tower_double", "battle_plan_1p")
+        my_transformer_b(self.MagicTowerDouble_2P, "magic_tower_double", "battle_plan_2p")
 
         self.opt["magic_tower_alone_1"]["active"] = self.MagicTowerAlone1_Active.isChecked()
         self.opt["magic_tower_alone_1"]["max_times"] = self.MagicTowerAlone1_MaxTimes.value()
         self.opt["magic_tower_alone_1"]["stage"] = self.MagicTowerAlone1_Stage.value()
         self.opt["magic_tower_alone_1"]["deck"] = self.MagicTowerAlone1_Deck.value()
-        my_transformer(self.MagicTowerAlone1_1P, "magic_tower_alone_1", "battle_plan_1p")
+        my_transformer_b(self.MagicTowerAlone1_1P, "magic_tower_alone_1", "battle_plan_1p")
 
         self.opt["magic_tower_alone_2"]["active"] = self.MagicTowerAlone2_Active.isChecked()
         self.opt["magic_tower_alone_2"]["max_times"] = self.MagicTowerAlone2_MaxTimes.value()
         self.opt["magic_tower_alone_2"]["stage"] = self.MagicTowerAlone2_Stage.value()
         self.opt["magic_tower_alone_2"]["deck"] = self.MagicTowerAlone2_Deck.value()
-        my_transformer(self.MagicTowerAlone2_1P, "magic_tower_alone_2", "battle_plan_1p")
+        my_transformer_b(self.MagicTowerAlone2_1P, "magic_tower_alone_2", "battle_plan_1p")
         
         self.opt["magic_tower_prison_1"]["active"] = self.MagicTowerPrison1_Active.isChecked()
         self.opt["magic_tower_prison_1"]["stage"] = self.MagicTowerPrison1_Stage.isChecked()
         self.opt["magic_tower_prison_1"]["deck"] = self.MagicTowerPrison1_Deck.value()
-        my_transformer(self.MagicTowerPrison1_1P, "magic_tower_prison_1", "battle_plan_1p")
+        my_transformer_b(self.MagicTowerPrison1_1P, "magic_tower_prison_1", "battle_plan_1p")
 
         self.opt["magic_tower_prison_2"]["active"] = self.MagicTowerPrison2_Active.isChecked()
         self.opt["magic_tower_prison_2"]["stage"] = self.MagicTowerPrison2_Stage.isChecked()
         self.opt["magic_tower_prison_2"]["deck"] = self.MagicTowerPrison2_Deck.value()
-        my_transformer(self.MagicTowerPrison2_1P, "magic_tower_prison_2", "battle_plan_1p")
+        my_transformer_b(self.MagicTowerPrison2_1P, "magic_tower_prison_2", "battle_plan_1p")
 
         self.opt["warrior"]["active"] = self.Warrior_Active.isChecked()
         self.opt["warrior"]["is_group"] = self.Warrior_Group.isChecked()
         self.opt["warrior"]["max_times"] = self.Warrior_MaxTimes.value()
         self.opt["warrior"]["deck"] = self.Warrior_Deck.value()
-        my_transformer(self.Warrior_1P, "warrior", "battle_plan_1p")
-        my_transformer(self.Warrior_2P, "warrior", "battle_plan_2p")
+        my_transformer_b(self.Warrior_1P, "warrior", "battle_plan_1p")
+        my_transformer_b(self.Warrior_2P, "warrior", "battle_plan_2p")
 
         self.opt["cross_server"]["active"] = self.CrossServer_Active.isChecked()
         self.opt["cross_server"]["is_group"] = self.CrossServer_Group.isChecked()
         self.opt["cross_server"]["max_times"] = self.CrossServer_MaxTimes.value()
         self.opt["cross_server"]["stage"] = self.CrossServer_Stage.text()
         self.opt["cross_server"]["deck"] = self.CrossServer_Deck.value()
-        my_transformer(self.CrossServer_1P, "cross_server", "battle_plan_1p")
-        my_transformer(self.CrossServer_2P, "cross_server", "battle_plan_2p")
+        my_transformer_b(self.CrossServer_1P, "cross_server", "battle_plan_1p")
+        my_transformer_b(self.CrossServer_2P, "cross_server", "battle_plan_2p")
 
         self.opt["relic"]["active"] = self.Relic_Active.isChecked()
         self.opt["relic"]["is_group"] = self.Relic_Group.isChecked()
         self.opt["relic"]["max_times"] = self.Relic_MaxTimes.value()
         self.opt["relic"]["stage"] = self.Relic_Stage.text()
         self.opt["relic"]["deck"] = self.Relic_Deck.value()
-        my_transformer(self.Relic_1P, "relic", "battle_plan_1p")
-        my_transformer(self.Relic_2P, "relic", "battle_plan_2p")
+        my_transformer_b(self.Relic_1P, "relic", "battle_plan_1p")
+        my_transformer_b(self.Relic_2P, "relic", "battle_plan_2p")
 
         self.opt["normal_battle"]["active"] = self.NormalBattle_Active.isChecked()
         self.opt["normal_battle"]["is_group"] = self.NormalBattle_Group.isChecked()
         self.opt["normal_battle"]["max_times"] = self.NormalBattle_MaxTimes.value()
         self.opt["normal_battle"]["stage"] = self.NormalBattle_Stage.text()
         self.opt["normal_battle"]["deck"] = self.NormalBattle_Deck.value()
-        my_transformer(self.NormalBattle_1P, "normal_battle", "battle_plan_1p")
-        my_transformer(self.NormalBattle_2P, "normal_battle", "battle_plan_2p")
+        my_transformer_b(self.NormalBattle_1P, "normal_battle", "battle_plan_1p")
+        my_transformer_b(self.NormalBattle_2P, "normal_battle", "battle_plan_2p")
 
         self.opt["receive_awards"]["active"] = self.ReceiveAwards_Active.isChecked()
 
@@ -252,6 +269,7 @@ class MyMainWindow1(MyMainWindow0):
         self.opt["cross_server_reputation"]["active"] = self.CrossServerReputation_Active.isChecked()
 
         self.opt["customize"]["active"] = self.Customize_Active.isChecked()
+        my_transformer_c(self.Customize_1P, "customize", "battle_plan_1p")
 
     def click_btn_save(self):
         """点击保存配置按钮的函数"""
