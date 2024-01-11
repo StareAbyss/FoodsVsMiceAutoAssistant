@@ -12,10 +12,11 @@ from function.common.bg_p_compare import find_p_in_w, loop_find_p_in_w, loop_fin
 from function.common.bg_p_screenshot import capture_picture_png
 from function.get_paths import paths
 from function.script.scattered.gat_handle import faa_get_handle
-from function.script.scattered.get_battle_plan_list import get_battle_plan_list
+from function.script.scattered.get_list_battle_plan import get_list_battle_plan
+from function.script.scattered.get_list_card_battle import get_list_card_battle
+from function.script.scattered.get_list_card_room import get_list_card_room
 from function.script.scattered.print_grade import print_g
 from function.script.scattered.read_json_to_stage_info import read_json_to_stage_info
-from function.script.service.round_of_battle_calculation_arrange import calculation_cell_all_card
 from function.tools.create_battle_coordinates import create_battle_coordinates
 
 
@@ -43,6 +44,14 @@ class FAA:
         self.is_group = False
         self.battle_plan = None
         self.stage_info = None
+
+        # 部分文件夹文件名 list
+        self.card_recorded_battle = get_list_card_battle(with_extension=False)
+        self.card_recorded_room = get_list_card_room(with_extension=False)
+
+        # 调用战斗中 卡牌 和 格子位置 字典
+        # bp -> battle position
+        self.bp_card, self.bp_cell = create_battle_coordinates(zoom)
 
     """通用对flash界面的基础操作"""
 
@@ -948,7 +957,7 @@ class FAA:
         self.is_group = is_group
 
         def read_json_to_battle_plan():
-            battle_plan_list = get_battle_plan_list(with_extension=True)
+            battle_plan_list = get_list_battle_plan(with_extension=True)
             battle_plan_path = "{}\\{}".format(
                 paths["battle_plan"],
                 battle_plan_list[battle_plan_index]
@@ -961,13 +970,236 @@ class FAA:
 
     """战斗函数"""
 
-    def action_round_of_battle(self, battle_mode: int, quest_card: str, list_ban_card: list):
+    def calculation_cell_all_card(self, mat_card_position, quest_card, list_ban_card):
+        """
+        计算所有卡片的部署方案
+        Return:卡片的部署方案字典
+            example = [
+                {
+
+                    来自配置文件
+                    "name": str,  名称 用于ban卡
+                    "id": int, 卡片从哪取 代号 (卡片在战斗中, 在卡组的的从左到右序号 )
+                    "location": ["x-y","x-y"...] ,  卡片放到哪 代号
+                    "ergodic": True,  放卡模式 遍历
+                    "queue": True,  放卡模式 队列
+
+                    函数计算得出
+                    "location_from": [x:int, y:int]  卡片从哪取 坐标
+                    "location_to": [[x:int, y:int],[x:int, y:int],[x:int, y:int],...] 卡片放到哪 坐标
+
+                },
+                ...
+            ]
+        """
+        stage_info = self.stage_info
+        battle_plan = self.battle_plan
+        player = self.player
+        is_group = self.is_group
+        zoom = self.zoom
+        bp_cell = self.bp_cell
+        bp_card = self.bp_card
+
+        def calculation_card_quest(list_cell_all):
+            """计算步骤一 加入任务卡的摆放坐标"""
+
+            # 任务卡 大号小号开始位置不同 任务卡id = 0 则为没有
+            locations = ["6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7"]
+
+            if quest_card == "None":
+                return list_cell_all
+
+            else:
+
+                # 遍历删除 主要卡中 占用了任务卡摆放的坐标
+                new_list = []
+                for card in list_cell_all:
+                    card["location"] = list(filter(lambda x: x not in locations, card["location_to"]))
+                    new_list.append(card)
+
+                # 计算任务卡的id
+                card_id_list = []
+                for card in list_cell_all:
+                    card_id_list.append(card["id"])
+                quest_card_id = max(card_id_list) + 1  # 取其中最大的卡片id + 1
+
+                # 设定任务卡dict
+                dict_quest = {
+                    "name": quest_card,
+                    "id": quest_card_id,
+                    "location": locations,
+                    "ergodic": True,
+                    "queue": True,
+                    "location_from": [],
+                    "location_to": []
+                }
+
+                # 加入数组
+                new_list.append(dict_quest)
+                return new_list
+
+        def calculation_card_mat(list_cell_all):
+            """步骤二 2张承载卡"""
+
+            location = copy.deepcopy(stage_info["mat_cell"])  # 深拷贝 防止对配置文件数据更改
+
+            # p1p2分别摆一半
+            if is_group:
+                if player == "1P":
+                    location = location[::2]  # 奇数
+                else:
+                    location = location[1::2]  # 偶数
+            # 根据不同垫子数量 再分
+            num_mat_card = len(mat_card_position)
+
+            for i in range(num_mat_card):
+                dict_mat = {
+                    "name": "承载卡",
+                    "id": 1,
+                    "location": location[i::num_mat_card],
+                    "ergodic": True,
+                    "queue": True,
+                    "location_from": mat_card_position[i],
+                    "location_to": []}
+                list_cell_all.append(dict_mat)
+
+            return list_cell_all
+
+        def calculation_card_ban(list_cell_all):
+            """步骤三 ban掉某些卡, 依据[卡组信息中的name字段] 和 ban卡信息中的字符串 是否重复"""
+
+            list_new = []
+            for card in list_cell_all:
+                if not (card["name"] in list_ban_card):
+                    list_new.append(card)
+
+            # 遍历更改删卡后的位置
+            for card in list_new:
+                cum_card_left = 0
+                for ban_card in list_ban_card:
+                    for c_card in list_cell_all:
+                        if c_card["name"] == ban_card:
+                            if card["id"] > c_card["id"]:
+                                cum_card_left += 1
+                card["id"] -= cum_card_left
+
+            return list_new
+
+        def calculation_obstacle(list_cell_all):
+            """去除有障碍的位置的放卡"""
+
+            # # 预设中 该关卡有障碍物
+            # new_list_1 = []
+            # for card in list_cell_all:
+            #     for location in card["location"]:
+            #         if location in stage_info["location"]:
+            #             card["location"].remove(location)
+            #     new_list_1.append(card)
+            #
+            # # 如果location完全不存在 就去掉它
+            # new_list_2 = []
+            # for card in new_list_1:
+            #     if card["location"]:
+            #         new_list_2.append(card)
+            # return new_list_2
+
+            # 预设中 该关卡有障碍物
+            for card in list_cell_all:
+                for location in card["location"]:
+                    if location in stage_info["location"]:
+                        card["location"].remove(location)
+
+            # 如果location完全不存在 就去掉它
+            new_list = []
+            for card in list_cell_all:
+                if card["location"]:
+                    new_list.append(card)
+
+            return new_list
+
+        def calculation_alt_transformer(list_cell_all):
+            """[非]1P, 队列模式, 就颠倒坐标数组, [非]队列模式代表着优先级很重要的卡片, 所以不颠倒"""
+            if player == "2P":
+                for i in range(len(list_cell_all)):
+                    if list_cell_all[i]["queue"]:
+                        list_cell_all[i]["location"] = list_cell_all[i]["location"][::-1]
+            return list_cell_all
+
+        def calculation_shovel():
+            """铲子位置 """
+            list_shovel = stage_info["shovel"]
+            return list_shovel
+
+        def transform_code_to_coordinate(list_cell_all, list_shovel):
+            """
+            如果没有后者
+            将 id:int 变为 location_from:[x:int,y:int]
+            将 location:str 变为 location_to:[[x:int,y:int],...]"""
+
+            for card in list_cell_all:
+                if not card["location_from"]:
+                    coordinate = copy.deepcopy(bp_card[card["id"]])
+                    coordinate = [int(coordinate[0] * zoom), int(coordinate[1] * zoom)]
+                    card["location_from"] = coordinate
+
+                if not card["location_to"]:
+                    new_list = []
+                    for location in card["location"]:
+                        coordinate = copy.deepcopy(bp_cell[location])
+                        new_list.append([int(coordinate[0] * zoom), int(coordinate[1] * zoom)])
+                    card["location_to"] = copy.deepcopy(new_list)
+
+            new_list = []
+            for location in list_shovel:
+                coordinate = bp_cell[location]
+                new_list.append([int(coordinate[0] * zoom), int(coordinate[1] * zoom)])
+            list_shovel = copy.deepcopy(new_list)  # 因为重新注册list容器了, 可以不用深拷贝 但为了方便理解用一下
+
+            return list_cell_all, list_shovel
+
+        def main():
+            # 初始化数组 + 复制一份全新的 battle_plan
+            list_cell_all = battle_plan
+
+            # 调用计算任务卡
+            list_cell_all = calculation_card_quest(list_cell_all=list_cell_all)
+
+            # 调用计算承载卡
+            list_cell_all = calculation_card_mat(list_cell_all=list_cell_all)
+
+            # 调用ban掉某些卡(不使用该卡)
+            list_cell_all = calculation_card_ban(list_cell_all=list_cell_all)
+
+            # 调用去掉障碍位置
+            list_cell_all = calculation_obstacle(list_cell_all=list_cell_all)
+
+            # 调用计算铲子卡
+            list_shovel = calculation_shovel()
+
+            # 统一以坐标直接表示位置, 防止重复计算
+            list_cell_all, list_shovel = transform_code_to_coordinate(
+                list_cell_all=list_cell_all,
+                list_shovel=list_shovel)
+
+            # 调试print
+            print("调试info: 你的战斗放卡opt如下")
+            print(list_cell_all)
+
+            return list_cell_all, list_shovel
+
+        return main()
+
+    def action_round_of_battle(self, battle_mode=0, quest_card="None", list_ban_card=None):
         """
         :param battle_mode: 0 默认放卡模式 1 测试放卡模式 2 刷技能放卡模式
         :param quest_card: 任务卡
         :param list_ban_card:  ban卡组
         :return: None
         """
+
+        if list_ban_card is None:
+            list_ban_card = []
+
         """调用类参数"""
         zoom = self.zoom
         handle = self.handle
@@ -975,10 +1207,11 @@ class FAA:
         is_auto_battle = self.is_auto_battle
         is_auto_pickup = self.is_auto_pickup
         is_use_key = self.is_use_key
+        bp_cell = self.bp_cell
+        bp_card = self.bp_card
 
         """调用类参数-战斗前生成"""
         stage_info = self.stage_info
-        is_group = self.is_group
         battle_plan = self.battle_plan
 
         """其他手动内部参数"""
@@ -988,8 +1221,7 @@ class FAA:
         click_interval = 0.025
         # 每次点击时 按下和抬起之间的间隔
         click_sleep = 0.025
-        # 计算关卡内的卡牌 和 格子位置
-        battle_card, battle_cell = create_battle_coordinates(zoom)
+
         # the locations of cell easy touch the use-key UI by mistake
         warning_cell = ["4-4", "4-5", "5-4", "5-5"]
         auto_collect_cells = ["1-1", "2-1", "8-1", "9-1",
@@ -1001,33 +1233,77 @@ class FAA:
                               "1-7", "2-7", "8-7", "9-7"]
         auto_collect_cells = [i for i in auto_collect_cells if i not in warning_cell]
 
+        auto_collect_cells_coordinate = []
+        for i in auto_collect_cells:
+            auto_collect_cells_coordinate.append(bp_card[i])
+
         """ 战斗内的子函数 """
+
+        def get_mat_card_position():
+
+            mat_card_list = ["木盘子", "棉花糖", "苏打气泡", "麦芽糖", "魔法软糖"]
+
+            # 筛选出 对应关卡可用的卡片
+            for mat_card in mat_card_list:
+                if mat_card not in stage_info["mat_card"]:
+                    mat_card_list.remove(mat_card)
+
+            # 筛选出 被记录的卡片变种
+            new_list = []
+            for mat_card in mat_card_list:
+                for i in range(3):
+                    new_card = "{}-{}".format(mat_card, i)
+                    if new_card in self.card_recorded_battle:
+                        new_list.append(new_card)
+
+            mat_card_list = new_list
+
+            position_list = []
+            find_list = []
+
+            # 查找对应卡片坐标 重复5次
+            for i in range(5):
+                for mat_card in mat_card_list:
+                    find = find_p_in_w(
+                        raw_w_handle=handle,
+                        raw_range=[0, 0, 950, 600],
+                        target_path=paths["picture"]["card"] + "\\battle\\" + mat_card + ".png",
+                        target_tolerance=0.95)
+                    if find:
+                        position_list.append([int(find[0] * zoom), int(find[1] * zoom)])
+                        find_list.append(mat_card)
+                mat_card_list = list(filter(lambda x: x not in find_list, mat_card_list))
+                time.sleep(0.5)
+
+            print(position_list)
+
+            return position_list
 
         def use_player(num_cell):
             mouse_left_click(
                 handle=handle,
-                x=battle_cell[num_cell][0],
-                y=battle_cell[num_cell][1],
+                x=bp_cell[num_cell][0],
+                y=bp_cell[num_cell][1],
                 interval_time=click_interval,
                 sleep_time=click_sleep)
 
-        def use_shovel(position: list = None):
+        def use_shovel(positions: list = None):
             """
             用铲子
             Args:
-                position: 放哪些格子
+                positions: 放哪些格子
             """
-            if position is None:
-                position = []
+            if positions is None:
+                positions = []
 
-            for target in position:
+            for position in positions:
                 key_down_up(
                     handle=handle,
                     key="1")
                 mouse_left_click(
                     handle=handle,
-                    x=battle_cell[target][0],
-                    y=battle_cell[target][1],
+                    x=position[0],
+                    y=position[1],
                     interval_time=click_interval,
                     sleep_time=click_sleep)
 
@@ -1101,15 +1377,15 @@ class FAA:
             # 注 美食大战老鼠中 放卡动作 需要按下一下 然后拖动 然后按下并松开 才能完成 整个动作
             mouse_left_click(
                 handle=handle,
-                x=battle_card[num_card][0],
-                y=battle_card[num_card][1],
+                x=bp_card[num_card][0],
+                y=bp_card[num_card][1],
                 interval_time=click_interval,
                 sleep_time=click_sleep)
 
             mouse_left_click(
                 handle=handle,
-                x=battle_cell[num_cell][0],
-                y=battle_cell[num_cell][1],
+                x=bp_card[num_cell][0],
+                y=bp_card[num_cell][1],
                 interval_time=click_interval,
                 sleep_time=click_sleep)
 
@@ -1126,6 +1402,36 @@ class FAA:
                     interval_time=click_interval,
                     sleep_time=click_sleep)
 
+        def use_weapon_skill():
+            """使用武器技能"""
+            mouse_left_click(
+                handle=handle,
+                x=int(23 * zoom),
+                y=int(200 * zoom),
+                interval_time=click_interval,
+                sleep_time=click_sleep)
+            mouse_left_click(
+                handle=handle,
+                x=int(23 * zoom),
+                y=int(250 * zoom),
+                interval_time=click_interval,
+                sleep_time=click_sleep)
+            mouse_left_click(
+                handle=handle,
+                x=int(23 * zoom),
+                y=int(297 * zoom),
+                interval_time=click_interval,
+                sleep_time=click_sleep)
+
+        def auto_pickup():
+            if is_auto_pickup:
+                for coordinate in auto_collect_cells_coordinate:
+                    mouse_left_moveto(
+                        handle=handle,
+                        x=coordinate[0],
+                        y=coordinate[1])
+                    time.sleep(click_sleep)
+
         """(循环)放卡函数"""
 
         def use_card_loop_0(list_cell_all):
@@ -1139,7 +1445,7 @@ class FAA:
             # 计算一轮最长时间(防止一轮太短, 导致某些卡cd转不好就尝试点它也就是空转)
             max_len_position_in_opt = 0
             for i in list_cell_all:
-                max_len_position_in_opt = max(max_len_position_in_opt, len(i["location"]))
+                max_len_position_in_opt = max(max_len_position_in_opt, len(i["location_to"]))
             round_max_time = (click_interval + click_sleep) * max_len_position_in_opt + 7.3
 
             end_flag = False  # 用flag值来停止循环
@@ -1149,7 +1455,7 @@ class FAA:
 
                 time_round_begin = time.time()  # 每一轮开始的时间
 
-                for i in range(len(list_cell_all)):
+                for card in list_cell_all:
                     """遍历每一张卡"""
 
                     if is_auto_battle:  # 启动了自动战斗
@@ -1159,19 +1465,19 @@ class FAA:
                             handle=handle,
                             interval_time=click_interval,
                             sleep_time=click_sleep,
-                            x=battle_card[list_cell_all[i]["id"]][0],
-                            y=battle_card[list_cell_all[i]["id"]][1]
+                            x=card["location_from"][0],
+                            y=card["location_from"][1]
                         )
 
-                        if list_cell_all[i]["ergodic"]:
+                        if card["ergodic"]:
 
                             """遍历模式: True 遍历该卡每一个可以放的位置"""
-                            for j in list_cell_all[i]["location"]:
+                            for j in range(len(card["location"])):
 
                                 """安全放一张卡"""
 
                                 # 防止误触
-                                if j in warning_cell:
+                                if card["location"][j] in warning_cell:
                                     use_key(mode=1)
 
                                 # 点击 放下卡片
@@ -1179,17 +1485,16 @@ class FAA:
                                     handle=handle,
                                     interval_time=click_interval,
                                     sleep_time=click_sleep,
-                                    x=battle_cell[j][0],
-                                    y=battle_cell[j][1]
+                                    x=card["location_to"][j][0],
+                                    y=card["location_to"][j][1]
                                 )
 
                         else:
                             """遍历模式: False"""
                             """安全放一张卡"""
-                            j = list_cell_all[i]["location"][0]
 
                             # 防止误触
-                            if j in warning_cell:
+                            if card["location"][0] in warning_cell:
                                 use_key(mode=1)
 
                             # 点击 放下卡片
@@ -1197,8 +1502,8 @@ class FAA:
                                 handle=handle,
                                 interval_time=click_interval,
                                 sleep_time=click_sleep,
-                                x=battle_cell[j][0],
-                                y=battle_cell[j][1]
+                                x=card["location_to"][0][0],
+                                y=card["location_to"][0][1]
                             )
 
                         """放卡后点一下空白"""
@@ -1230,35 +1535,12 @@ class FAA:
                     if list_cell_all[i]["queue"]:
                         list_cell_all[i]["location"].append(list_cell_all[i]["location"][0])
                         list_cell_all[i]["location"].remove(list_cell_all[i]["location"][0])
+                        list_cell_all[i]["location_to"].append(list_cell_all[i]["location_to"][0])
+                        list_cell_all[i]["location_to"].remove(list_cell_all[i]["location_to"][0])
 
-                """武器技能"""
-                mouse_left_click(
-                    handle=handle,
-                    x=int(23 * zoom),
-                    y=int(200 * zoom),
-                    interval_time=click_interval,
-                    sleep_time=click_sleep)
-                mouse_left_click(
-                    handle=handle,
-                    x=int(23 * zoom),
-                    y=int(250 * zoom),
-                    interval_time=click_interval,
-                    sleep_time=click_sleep)
-                mouse_left_click(
-                    handle=handle,
-                    x=int(23 * zoom),
-                    y=int(297 * zoom),
-                    interval_time=click_interval,
-                    sleep_time=click_sleep)
-
-                """自动收集"""
-                if is_auto_pickup:
-                    for coordinate in auto_collect_cells:
-                        mouse_left_moveto(
-                            handle=handle,
-                            x=battle_cell[coordinate][0],
-                            y=battle_cell[coordinate][1])
-                        time.sleep(click_sleep)
+                # 武器技能 + 自动收集
+                use_weapon_skill()
+                auto_pickup()
 
                 """一轮不到7s+点7*9个位置需要的时间, 休息到该时间, 期间每[check_invite]秒检测一次"""
                 time_spend_a_round = time.time() - time_round_begin
@@ -1332,12 +1614,10 @@ class FAA:
         """主函数"""
 
         def main():
+            mat_card_position = get_mat_card_position()
 
-            list_cell_all, list_shovel = calculation_cell_all_card(
-                stage_info=stage_info,
-                is_group=is_group,
-                player=player,
-                battle_plan=copy.deepcopy(battle_plan["card"]),  # 此处要使用深拷贝 否则会对原有数组进行更改
+            list_cell_all, list_shovel = self.calculation_cell_all_card(
+                mat_card_position=mat_card_position,
                 quest_card=quest_card,
                 list_ban_card=list_ban_card
             )
@@ -1346,9 +1626,13 @@ class FAA:
             for i in battle_plan["player"]:
                 use_player(i)
 
+            time.sleep(0.5)
+
             # 铲自带的卡
             if player == "1P":
-                use_shovel(position=list_shovel)
+                use_shovel(positions=list_shovel)
+
+            time.sleep(0.5)
 
             # 战斗循环
             if battle_mode == 0:
@@ -1366,13 +1650,8 @@ class FAA:
 
         main()
 
-    def action_round_of_game(
-            self,
-            deck: int,
-            is_delay_start: bool,
-            battle_mode: int,
-            quest_card: str,
-            list_ban_card: list):
+    def action_round_of_game(self, deck: int, is_delay_start: bool, battle_mode: int,
+                             quest_card: str, list_ban_card: list):
 
         """
         一轮游戏
@@ -1398,10 +1677,9 @@ class FAA:
                     quest_card_s.append("{}-{}.png".format(quest_card, i))
 
             # 读取所有记录了的卡的图片文件名, 只携带被记录图片的卡
-            list_all_card_recorded = os.listdir(paths["picture"]["card"])
             my_list = []
             for quest_card_n in quest_card_s:
-                if quest_card_n in list_all_card_recorded:
+                if quest_card_n in self.card_recorded_room:
                     my_list.append(quest_card_n)
             quest_card_s = my_list
 
@@ -1417,8 +1695,8 @@ class FAA:
                     for quest_card_n in quest_card_s:
                         find = loop_find_p_in_w(
                             raw_w_handle=handle,
-                            raw_range=[0, 0, 950, 600],
-                            target_path=paths["picture"]["card"] + "\\" + quest_card_n,
+                            raw_range=[380, 175, 925, 420],
+                            target_path=paths["picture"]["card"] + "\\room\\" + quest_card_n,
                             target_tolerance=0.95,
                             click_zoom=zoom,
                             click=True,
@@ -1469,10 +1747,9 @@ class FAA:
                         ban_card_s.append("{}-{}.png".format(ban_card, i))
 
             # 读取所有已记录的卡片文件名, 并去除没有记录的卡片
-            list_all_card_recorded = os.listdir(paths["picture"]["card"])
             my_list = []
             for ban_card_n in ban_card_s:
-                if ban_card_n in list_all_card_recorded:
+                if ban_card_n in self.card_recorded_room:
                     my_list.append(ban_card_n)
             ban_card_s = my_list
 
@@ -1480,7 +1757,7 @@ class FAA:
                 # 只ban被记录了图片的变种卡
                 loop_find_p_in_w(
                     raw_w_handle=handle,
-                    raw_range=[0, 0, 950, 110],
+                    raw_range=[370, 35, 915, 105],
                     target_path=paths["picture"]["card"] + "\\" + ban_card_n,
                     target_tolerance=0.95,
                     target_interval=0.2,
@@ -1604,7 +1881,7 @@ class FAA:
                 target_failed_check=20)
             if not find:
                 print_g(text="20s找不到[开始/准备]字样! 创建房间可能失败!", player=player, garde=2)
-                return 1   # 1-重启本次
+                return 1  # 1-重启本次
 
             # 房主延时
             if is_delay_start:
@@ -2370,7 +2647,8 @@ if __name__ == '__main__':
     def f_main():
         faa = FAA(channel="锑食", zoom=1)
         # faa = FAA(channel="深渊之下 | 锑食", zoom=1.25)
-        faa.use_item()
+        faa.get_config_for_battle(is_group=False, battle_plan_index=0, stage_id="NO-5-1")
+        faa.action_round_of_battle()
 
 
     f_main()

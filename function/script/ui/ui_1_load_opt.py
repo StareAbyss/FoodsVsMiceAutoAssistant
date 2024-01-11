@@ -3,8 +3,8 @@ import sys
 
 from PyQt5.QtWidgets import QApplication
 
-from function.script.scattered.get_battle_plan_list import get_battle_plan_list
 from function.script.scattered.get_customize_todo_list import get_customize_todo_list
+from function.script.scattered.get_list_battle_plan import get_list_battle_plan
 from function.script.ui.ui_0_load_ui_file import MyMainWindow0
 
 
@@ -38,7 +38,7 @@ class MyMainWindow1(MyMainWindow0):
     def opt_to_ui(self):
         # comboBox.setCurrentIndex时 如果超过了已有预设 会显示为空 不会报错
         # comboBox.clear时 会把所有选项设定为默认选项
-        battle_plan_list = get_battle_plan_list(with_extension=False)
+        battle_plan_list = get_list_battle_plan(with_extension=False)
         customize_todo_list = get_customize_todo_list(with_extension=False)
 
         self.GameName_Input.setText(self.opt["game_name"])
@@ -158,7 +158,7 @@ class MyMainWindow1(MyMainWindow0):
 
     def ui_to_opt(self):
         # battle_plan_list
-        battle_plan_list = get_battle_plan_list(with_extension=False)
+        battle_plan_list = get_list_battle_plan(with_extension=False)
         customize_todo_list = get_customize_todo_list(with_extension=False)
 
         def my_transformer_b(change_class: object, opt_1, opt_2):

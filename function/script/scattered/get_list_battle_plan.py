@@ -3,7 +3,7 @@ import os
 from function.get_paths import paths
 
 
-def get_battle_plan_list(with_extension):
+def get_list_battle_plan(with_extension):
     """
     :param with_extension: Include extension name
     :return: a list of battle plan

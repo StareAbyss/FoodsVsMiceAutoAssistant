@@ -21,6 +21,7 @@
             "ergodic": true,
             "queue": false,
             "location": [
+                "2-5",
                 "1-1",
                 "1-7",
                 "2-1",
@@ -107,6 +108,8 @@
             "ergodic": true,
             "queue": false,
             "location": [
+                "6-3",
+                "6-5",
                 "7-3",
                 "7-5"
             ]

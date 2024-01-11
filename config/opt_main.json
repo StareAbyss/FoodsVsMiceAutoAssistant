@@ -6,7 +6,7 @@
     "level_1p": 60,
     "level_2p": 60,
     "auto_use_card": true,
-    "auto_pickup_1p": false,
+    "auto_pickup_1p": true,
     "auto_pickup_2p": true,
     "reload_and_daily_quest": {
         "active": false
@@ -26,17 +26,17 @@
     },
     "offer_reward": {
         "active": false,
-        "deck": 4,
-        "battle_plan_1p": 16,
-        "battle_plan_2p": 17
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1
     },
     "magic_tower_double": {
         "active": false,
         "max_times": 5,
         "stage": 100,
         "deck": 2,
-        "battle_plan_1p": 10,
-        "battle_plan_2p": 9
+        "battle_plan_1p": 9,
+        "battle_plan_2p": 10
     },
     "magic_tower_alone_1": {
         "active": false,
@@ -94,13 +94,13 @@
         "group": false
     },
     "normal_battle": {
-        "active": false,
-        "is_group": false,
+        "active": true,
+        "is_group": true,
         "max_times": 1,
-        "stage": "EX-4-1",
-        "deck": 2,
-        "battle_plan_1p": 5,
-        "battle_plan_2p": 6,
+        "stage": "NO-5-1",
+        "deck": 1,
+        "battle_plan_1p": 2,
+        "battle_plan_2p": 3,
         "group": true
     },
     "receive_awards": {
@@ -113,7 +113,7 @@
         "active": false
     },
     "customize": {
-        "active": true,
-        "battle_plan_1p": 0
+        "active": false,
+        "battle_plan_1p": 1
     }
 }

@@ -1,7 +1,7 @@
 from pprint import pprint
 
+from function.script.service.calculation_battle_arrange import calculation_cell_all_card
 from function.script.service.common import FAA
-from function.script.service.round_of_battle_calculation_arrange import calculation_cell_all_card
 
 if __name__ == '__main__':
     def test():
@@ -15,7 +15,15 @@ if __name__ == '__main__':
             stage_id=stage_id)
 
         quest_card = "None"
-        list_ban_card = []
+        list_ban_card = [
+            "糖葫芦炮弹",
+            "瓜皮护罩",
+            "狮子座精灵",
+            "油灯",
+            "樱桃反弹布丁",
+            "苏打气泡",
+            "麦芽糖"]
+
         list_cell_all, list_shovel = calculation_cell_all_card(
             stage_info=faa.stage_info,
             battle_plan=faa.battle_plan["card"],

@@ -408,7 +408,7 @@ class Todo(QThread):
                 # 战斗成功 计数+1
                 success_battle_time += 1
 
-                # 运行正常, 执行正常退出函数
+                # 退出函数
                 if success_battle_time == max_times:
                     # 最后一次的退出方式不同
                     for j in dict_exit["last_time"]:
@@ -447,17 +447,29 @@ class Todo(QThread):
                 # 跳过本次 计数+1
                 success_battle_time += 1
 
-                # 进入异常, 重启跳过
+                # 进入异常, 跳过
                 is_need_goto_stage = True
 
                 # 结束提示文本
-                text = "[{}] [单本轮战] 第{}次, 异常进入, 重启跳过".format(
-                    success_battle_time,
-                    time.time() - timer_begin)
+                text = "[{}] [单本轮战] 第{}次, 异常进入, 跳过本次".format(
+                    time.time() - timer_begin,
+                    success_battle_time)
                 print(text)
                 self.sin_out.emit(text)
 
-                self.reload_game()
+                # 退出函数
+                if success_battle_time == max_times:
+                    # 最后一次的退出方式不同
+                    for j in dict_exit["last_time"]:
+                        self.faa[1].action_exit(mode=j)
+                        if is_group:
+                            self.faa[2].action_exit(mode=j)
+                else:
+                    # 常规的退出方式不同
+                    for j in dict_exit["other_time"]:
+                        self.faa[1].action_exit(mode=j)
+                        if is_group:
+                            self.faa[2].action_exit(mode=j)
 
     def n_n_battle(self, quest_list, list_type):
         """
