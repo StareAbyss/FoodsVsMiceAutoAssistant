@@ -17,7 +17,7 @@
     "card": [
         {
             "tips": "生产卡",
-            "id": 3,
+            "id": 1,
             "name": "Small fire",
             "ergodic": true,
             "queue": false,
@@ -42,7 +42,7 @@
         },
         {
             "tips": "海星",
-            "id": 4,
+            "id": 2,
             "name": "Charcoal fired starfish",
             "ergodic": true,
             "queue": false,
@@ -73,7 +73,7 @@
             ]
         },
         {
-            "id": 5,
+            "id": 3,
             "tips": "糖葫芦",
             "name": "Tomatoes on sticks bomb",
             "ergodic": true,
@@ -88,7 +88,7 @@
             ]
         },
         {
-            "id": 6,
+            "id": 4,
             "name": "瓜皮护罩",
             "ergodic": true,
             "queue": true,
@@ -103,7 +103,7 @@
             ]
         },
         {
-            "id": 7,
+            "id": 5,
             "name": "狮子座精灵",
             "ergodic": true,
             "queue": true,
@@ -115,7 +115,7 @@
             ]
         },
         {
-            "id": 8,
+            "id": 6,
             "name": "油灯",
             "ergodic": true,
             "queue": true,
@@ -123,7 +123,7 @@
             ]
         },
         {
-            "id": 9,
+            "id": 7,
             "name": "樱桃反弹布丁",
             "ergodic": true,
             "queue": false,

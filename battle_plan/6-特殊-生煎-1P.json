@@ -10,7 +10,7 @@
     ],
     "card": [
         {
-            "id": 3,
+            "id": 1,
             "name": "小火炉",
             "ergodic": true,
             "queue": false,
@@ -27,7 +27,7 @@
             ]
         },
         {
-            "id": 4,
+            "id": 2,
             "name": "生煎锅",
             "ergodic": true,
             "queue": false,
@@ -68,7 +68,7 @@
             ]
         },
         {
-            "id": 9,
+            "id": 7,
             "name": "防漏卡",
             "ergodic": true,
             "queue": false,
@@ -79,7 +79,7 @@
             ]
         },
         {
-            "id": 11,
+            "id": 9,
             "name": "猪猪加强器",
             "ergodic": true,
             "queue": false,
@@ -94,7 +94,7 @@
             ]
         },
         {
-            "id": 5,
+            "id": 3,
             "name": "糖葫芦炮弹",
             "ergodic": true,
             "queue": false,
@@ -110,7 +110,7 @@
             ]
         },
         {
-            "id": 6,
+            "id": 4,
             "name": "瓜皮护罩",
             "ergodic": true,
             "queue": false,
@@ -125,7 +125,7 @@
             ]
         },
         {
-            "id": 7,
+            "id": 5,
             "name": "狮子座精灵",
             "ergodic": true,
             "queue": false,
@@ -135,7 +135,7 @@
             ]
         },
         {
-            "id": 8,
+            "id": 6,
             "name": "冰淇淋",
             "ergodic": true,
             "queue": false,
@@ -144,7 +144,7 @@
             ]
         },
         {
-            "id": 10,
+            "id": 8,
             "name": "清明肉松粿",
             "ergodic": true,
             "queue": false,

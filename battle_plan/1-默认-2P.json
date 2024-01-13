@@ -16,7 +16,7 @@
     ],
     "card": [
         {
-            "id": 3,
+            "id": 1,
             "name": "小火炉",
             "ergodic": true,
             "queue": false,
@@ -42,7 +42,7 @@
             ]
         },
         {
-            "id": 4,
+            "id": 2,
             "name": "炭烧海星",
             "ergodic": true,
             "queue": false,
@@ -68,7 +68,7 @@
             ]
         },
         {
-            "id": 5,
+            "id": 3,
             "name": "糖葫芦炮弹",
             "ergodic": true,
             "queue": true,
@@ -82,7 +82,7 @@
             ]
         },
         {
-            "id": 6,
+            "id": 4,
             "name": "瓜皮护罩",
             "ergodic": true,
             "queue": true,
@@ -97,7 +97,7 @@
             ]
         },
         {
-            "id": 7,
+            "id": 5,
             "name": "狮子座精灵",
             "ergodic": true,
             "queue": true,
@@ -109,7 +109,7 @@
             ]
         },
         {
-            "id": 8,
+            "id": 6,
             "name": "油灯",
             "ergodic": true,
             "queue": true,
@@ -117,7 +117,7 @@
             ]
         },
         {
-            "id": 9,
+            "id": 7,
             "name": "樱桃反弹布丁",
             "ergodic": true,
             "queue": false,

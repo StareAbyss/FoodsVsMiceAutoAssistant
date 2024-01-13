@@ -6,7 +6,7 @@
     "card": [
         {
             "tips": "生产卡",
-            "id": 3,
+            "id": 1,
             "name": "Unknown",
             "ergodic": true,
             "queue": false,
@@ -28,7 +28,7 @@
 
         {
             "tips": "海星",
-            "id": 4,
+            "id": 2,
             "name": "Unknown",
             "ergodic": true,
             "queue": false,
@@ -52,7 +52,7 @@
             ]
         },
         {
-            "id": 5,
+            "id": 3,
             "tips": "糖葫芦",
             "name": "Unknown",
             "ergodic": true,
@@ -67,7 +67,7 @@
             ]
         },
         {
-            "id": 7,
+            "id": 5,
             "tips": "冰淇淋",
             "name": "Unknown",
             "ergodic": true,
@@ -78,7 +78,7 @@
         },
 
         {
-            "id": 8,
+            "id": 6,
             "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
             "name": "Unknown",
             "ergodic": true,
@@ -94,39 +94,39 @@
                 "7-7"
             ]
         },{
+            "id": 7,
+            "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "7-1",
+                "8-2",
+                "8-3",
+                "7-4",
+                "8-5",
+                "8-6",
+                "7-7"
+            ]
+        },
+        {
+            "id": 8,
+            "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
+            "name": "Unknown",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "7-1",
+                "8-2",
+                "8-3",
+                "7-4",
+                "8-5",
+                "8-6",
+                "7-7"
+            ]
+        },
+        {
             "id": 9,
-            "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
-            "name": "Unknown",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "7-1",
-                "8-2",
-                "8-3",
-                "7-4",
-                "8-5",
-                "8-6",
-                "7-7"
-            ]
-        },
-        {
-            "id": 10,
-            "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
-            "name": "Unknown",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "7-1",
-                "8-2",
-                "8-3",
-                "7-4",
-                "8-5",
-                "8-6",
-                "7-7"
-            ]
-        },
-        {
-            "id": 11,
             "tips": "布丁",
             "name": "Unknown",
             "ergodic": true,

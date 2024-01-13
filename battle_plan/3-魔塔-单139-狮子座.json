@@ -7,18 +7,7 @@
     ],
     "card": [
         {
-            "id": 2,
-            "tips": "麦芽糖",
-            "name": "Unknown",
-            "ergodic": true,
-            "queue": true,
-            "location": [
-                "9-2",
-                "9-6"
-            ]
-        },
-        {
-            "id": 3,
+            "id": 1,
             "tips": "生产卡",
             "name": "Unknown",
             "ergodic": true,
@@ -35,7 +24,7 @@
             ]
         },
         {
-            "id": 4,
+            "id": 2,
             "tips": "海星",
             "name": "Unknown",
             "ergodic": true,
@@ -52,7 +41,7 @@
             ]
         },
         {
-            "id": 5,
+            "id": 3,
             "tips": "糖葫芦",
             "name": "Unknown",
             "ergodic": true,
@@ -70,7 +59,7 @@
             ]
         },
         {
-            "id": 6,
+            "id": 4,
             "tips": "瓜皮",
             "name": "Unknown",
             "ergodic": true,
@@ -84,7 +73,7 @@
         },
         {
             "tips": "冰沙",
-            "id": 7,
+            "id": 5,
             "name": "Unknown",
             "ergodic": true,
             "queue": false,
@@ -93,7 +82,7 @@
             ]
         },
         {
-            "id": 8,
+            "id": 6,
             "tips": "狮子座",
             "name": "Unknown",
             "ergodic": true,
@@ -104,18 +93,7 @@
             ]
         },
         {
-            "id": 2,
-            "tips": "麦芽糖",
-            "name": "Unknown",
-            "ergodic": true,
-            "queue": true,
-            "location": [
-                "9-6",
-                "9-2"
-            ]
-        },
-        {
-            "id": 9,
+            "id": 7,
             "tips": "辣椒粉",
             "name": "Unknown",
             "ergodic": true,
@@ -127,7 +105,7 @@
         },
         {
             "tips": "清明果",
-            "id": 10,
+            "id": 8,
             "name": "Unknown",
             "ergodic": true,
             "queue": false,
@@ -137,7 +115,7 @@
             ]
         },
         {
-            "id": 11,
+            "id": 9,
             "tips": "其他瓜皮类卡",
             "name": "Unknown",
             "ergodic": true,
@@ -150,7 +128,7 @@
             ]
         },
         {
-            "id": 12,
+            "id": 10,
             "tips": "其他瓜皮类卡",
             "name": "Unknown",
             "ergodic": true,

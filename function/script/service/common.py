@@ -1106,7 +1106,7 @@ class FAA:
             # 预设中 该关卡有障碍物
             for card in list_cell_all:
                 for location in card["location"]:
-                    if location in stage_info["location"]:
+                    if location in stage_info["obstacle"]:
                         card["location"].remove(location)
 
             # 如果location完全不存在 就去掉它
@@ -1136,6 +1136,14 @@ class FAA:
             将 id:int 变为 location_from:[x:int,y:int]
             将 location:str 变为 location_to:[[x:int,y:int],...]"""
 
+            # 为每个字典添加未预设字段
+            for card in list_cell_all:
+                if "location_from" not in card:
+                    card["location_from"] = []
+                if "location_to" not in card:
+                    card["location_to"] = []
+
+            # 根据字段值, 判断是否完成写入, 并进行转换
             for card in list_cell_all:
                 if not card["location_from"]:
                     coordinate = copy.deepcopy(bp_card[card["id"]])
@@ -1159,7 +1167,7 @@ class FAA:
 
         def main():
             # 初始化数组 + 复制一份全新的 battle_plan
-            list_cell_all = battle_plan
+            list_cell_all = battle_plan["card"]
 
             # 调用计算任务卡
             list_cell_all = calculation_card_quest(list_cell_all=list_cell_all)
@@ -1182,8 +1190,8 @@ class FAA:
                 list_shovel=list_shovel)
 
             # 调试print
-            print("调试info: 你的战斗放卡opt如下")
-            print(list_cell_all)
+            # print("调试info: 你的战斗放卡opt如下")
+            # pprint(list_cell_all)
 
             return list_cell_all, list_shovel
 
@@ -1235,7 +1243,7 @@ class FAA:
 
         auto_collect_cells_coordinate = []
         for i in auto_collect_cells:
-            auto_collect_cells_coordinate.append(bp_card[i])
+            auto_collect_cells_coordinate.append(bp_cell[i])
 
         """ 战斗内的子函数 """
 
@@ -1273,7 +1281,7 @@ class FAA:
                         position_list.append([int(find[0] * zoom), int(find[1] * zoom)])
                         find_list.append(mat_card)
                 mat_card_list = list(filter(lambda x: x not in find_list, mat_card_list))
-                time.sleep(0.5)
+                time.sleep(0.2)
 
             print(position_list)
 
@@ -1721,9 +1729,9 @@ class FAA:
             # 由于公会任务的卡组特性, 当任务卡为[苏打气泡]时, 不需要额外选择带卡.
             my_bool = False
             my_bool = my_bool or quest_card == "None"
-            my_bool = my_bool or quest_card == "苏打气泡-0"
-            my_bool = my_bool or quest_card == "苏打气泡-1"
-            my_bool = my_bool or quest_card == "苏打气泡"
+            # my_bool = my_bool or quest_card == "苏打气泡-0"
+            # my_bool = my_bool or quest_card == "苏打气泡-1"
+            # my_bool = my_bool or quest_card == "苏打气泡"
             if my_bool:
                 print_g(text="不需要额外带卡,跳过", player=player, garde=1)
             else:
@@ -1945,11 +1953,11 @@ class FAA:
             # 刷新ui: 状态文本
             if find:
                 print_g(text="找到火苗标识物, 战斗进行中...", player=player, garde=1)
-                time.sleep(1)
+                time.sleep(0.2)
 
                 # 2P晚一点开始循环
                 if not is_delay_start:
-                    time.sleep(0.5)
+                    time.sleep(0.2)
 
                 # 战斗循环
                 self.action_round_of_battle(

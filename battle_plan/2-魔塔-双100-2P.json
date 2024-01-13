@@ -5,7 +5,7 @@
     ],
     "card": [
         {
-            "id": 3,
+            "id": 1,
             "name": "小火炉",
             "ergodic": true,
             "queue": false,
@@ -14,7 +14,7 @@
             ]
         },
         {
-            "id": 4,
+            "id": 2,
             "name": "炭烧海星",
             "ergodic": true,
             "queue": false,
@@ -50,7 +50,7 @@
             ]
         },
         {
-            "id": 5,
+            "id": 3,
             "name": "糖葫芦炮弹",
             "ergodic": true,
             "queue": false,
@@ -88,7 +88,7 @@
             ]
         },
         {
-            "id": 6,
+            "id": 4,
             "name": "瓜皮护罩",
             "ergodic": true,
             "queue": false,
@@ -103,7 +103,7 @@
             ]
         },
         {
-            "id": 7,
+            "id": 5,
             "name": "冰淇淋",
             "ergodic": true,
             "queue": false,
@@ -112,7 +112,7 @@
             ]
         },
         {
-            "id": 8,
+            "id": 6,
             "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
             "name": "Unknown",
             "ergodic": true,
@@ -127,7 +127,7 @@
             ]
         },
         {
-            "id": 9,
+            "id": 7,
             "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
             "name": "Unknown",
             "ergodic": true,
@@ -142,7 +142,7 @@
             ]
         },
         {
-            "id": 10,
+            "id": 8,
             "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
             "name": "Unknown",
             "ergodic": true,

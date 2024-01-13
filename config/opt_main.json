@@ -6,23 +6,23 @@
     "level_1p": 60,
     "level_2p": 60,
     "auto_use_card": true,
-    "auto_pickup_1p": true,
+    "auto_pickup_1p": false,
     "auto_pickup_2p": true,
     "reload_and_daily_quest": {
-        "active": false
+        "active": true
     },
     "fed_and_watered": {
         "active": false
     },
     "quest_guild": {
-        "active": false,
+        "active": true,
         "stage": false,
         "deck": 1,
         "battle_plan_1p": 2,
         "battle_plan_2p": 3
     },
     "quest_spouse": {
-        "active": false
+        "active": true
     },
     "offer_reward": {
         "active": false,
@@ -31,7 +31,7 @@
         "battle_plan_2p": 1
     },
     "magic_tower_double": {
-        "active": false,
+        "active": true,
         "max_times": 5,
         "stage": 100,
         "deck": 2,
@@ -39,33 +39,33 @@
         "battle_plan_2p": 10
     },
     "magic_tower_alone_1": {
-        "active": false,
+        "active": true,
         "max_times": 5,
         "stage": 149,
         "deck": 3,
         "battle_plan_1p": 15
     },
     "magic_tower_alone_2": {
-        "active": false,
+        "active": true,
         "max_times": 4,
         "stage": 84,
         "deck": 3,
         "battle_plan_1p": 13
     },
     "magic_tower_prison_1": {
-        "active": false,
+        "active": true,
         "stage": true,
         "deck": 6,
         "battle_plan_1p": 20
     },
     "magic_tower_prison_2": {
-        "active": false,
+        "active": true,
         "stage": true,
         "deck": 6,
         "battle_plan_1p": 20
     },
     "warrior": {
-        "active": false,
+        "active": true,
         "is_group": true,
         "max_times": 8,
         "deck": 1,
@@ -74,7 +74,7 @@
         "group": false
     },
     "cross_server": {
-        "active": false,
+        "active": true,
         "is_group": true,
         "max_times": 10,
         "stage": "CS-5-4",
@@ -84,7 +84,7 @@
         "group": false
     },
     "relic": {
-        "active": false,
+        "active": true,
         "is_group": true,
         "max_times": 5,
         "stage": "NO-3-4",
@@ -104,13 +104,13 @@
         "group": true
     },
     "receive_awards": {
-        "active": false
+        "active": true
     },
     "use_items": {
-        "active": false
+        "active": true
     },
     "cross_server_reputation": {
-        "active": false
+        "active": true
     },
     "customize": {
         "active": false,

@@ -7,9 +7,11 @@ def read_json_to_stage_info(stage_id):
     """读取文件中是否存在预设"""
     with open(paths["config"] + "//opt_stage_info.json", "r", encoding="UTF-8") as file:
         f_my_dict = json.load(file)
+
     # 初始化
     stage_info = f_my_dict["default"]
     stage_info["id"] = stage_id
+
     # 拆分关卡名称
     stage_list = stage_id.split("-")
     stage_0 = stage_list[0]  # type
@@ -23,4 +25,5 @@ def read_json_to_stage_info(stage_id):
                 f_stage_info_1 = f_my_dict[stage_0][stage_1][stage_2]
 
                 stage_info = {**stage_info, **f_stage_info_1}
+
     return stage_info
