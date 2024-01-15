@@ -25,7 +25,7 @@
         "active": true
     },
     "offer_reward": {
-        "active": false,
+        "active": true,
         "deck": 1,
         "battle_plan_1p": 0,
         "battle_plan_2p": 1
@@ -96,11 +96,11 @@
     "normal_battle": {
         "active": true,
         "is_group": true,
-        "max_times": 1,
-        "stage": "NO-5-1",
+        "max_times": 5,
+        "stage": "NO-5-7",
         "deck": 1,
-        "battle_plan_1p": 2,
-        "battle_plan_2p": 3,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
         "group": true
     },
     "receive_awards": {

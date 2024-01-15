@@ -144,12 +144,7 @@
         "stage_id": "NO-1-14",
         "max_times": 1,
         "is_group": true,
-        "list_ban_card": [
-            "小火炉",
-            "狮子座精灵",
-            "樱桃反弹布丁",
-            "瓜皮护罩"
-        ],
+        "list_ban_card": [],
         "deck": 1,
         "battle_plan_1p": 0,
         "battle_plan_2p": 1,
@@ -485,10 +480,14 @@
         "max_times": 1,
         "is_group": true,
         "list_ban_card": [
-            "炭烧海星",
+            "小火炉",
             "糖葫芦炮弹",
+            "瓜皮护罩",
+            "狮子座精灵",
             "油灯",
-            "苏打气泡"
+            "樱桃反弹布丁",
+            "苏打气泡",
+            "木盘子"
         ],
         "deck": 1,
         "battle_plan_1p": 0,

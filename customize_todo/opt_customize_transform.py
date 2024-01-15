@@ -5,20 +5,11 @@ from pprint import pprint
 from function.script.scattered.read_json_to_stage_info import read_json_to_stage_info
 
 csvFilePath = "csv_美食大赛.csv"
-jsonFilePath = "231221-240118 大赛单人.json"
+jsonFilePath = "231221-240118 大赛.json"
 
 my_list = []
 
-default_deck = ["炭烧海星",
-                "小火炉",
-                "糖葫芦炮弹",
-                "瓜皮护罩",
-                "狮子座精灵",
-                "油灯",
-                "樱桃反弹布丁",
-                "苏打气泡",
-                "木盘子",
-                "麦芽糖"]
+
 
 with open(csvFilePath, "r", encoding='utf-8') as csv_file:
     # 读取文本为有序字典
@@ -30,6 +21,18 @@ with open(csvFilePath, "r", encoding='utf-8') as csv_file:
         my_list.append(info)
 
 for my_dict in my_list:
+
+    default_deck = ["炭烧海星",
+                    "小火炉",
+                    "糖葫芦炮弹",
+                    "瓜皮护罩",
+                    "狮子座精灵",
+                    "油灯",
+                    "樱桃反弹布丁",
+                    "苏打气泡",
+                    "木盘子",
+                    "麦芽糖"]
+
     my_dict.pop("产火数")
 
     my_dict["battle_id"] = int(my_dict.pop("任务序号"))
@@ -59,15 +62,14 @@ for my_dict in my_list:
                 default_deck.remove(already_ban)
         # 根据地图所需的承载卡, 重新排序
         mat_card_opt = read_json_to_stage_info(stage_id=my_dict["stage_id"])["mat_card"]
-        if mat_card_opt == 1:
+        if "木盘子" in mat_card_opt:
             default_deck.remove("木盘子")
             default_deck.insert(0, "木盘子")
-        elif mat_card_opt == 2:
+        elif "麦芽糖" in mat_card_opt:
             default_deck.remove("麦芽糖")
             default_deck.insert(0, "麦芽糖")
         # 在属于的卡中, 选出后几位ban掉, 多ban一张, 因为咖啡粉在第12个格子不好ban
-        for j in default_deck[int(my_dict["数量限制"]) - 1:]:
-            my_dict["list_ban_card"].append(j)
+        my_dict["list_ban_card"] = default_deck[(int(my_dict["数量限制"]) - 1):]
     my_dict.pop("数量限制")
 
     """增加额外的预设值"""
