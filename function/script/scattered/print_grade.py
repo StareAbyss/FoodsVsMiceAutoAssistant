@@ -13,4 +13,4 @@ def print_g(text, player, garde=1):
     else:
         garde_text = "Error"
 
-    print("[{}] [{}] {}".format(garde_text,player,text))
+    print("[{}] [{}P] {}".format(garde_text,player,text))
