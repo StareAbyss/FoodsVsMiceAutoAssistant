@@ -9,10 +9,10 @@
     "auto_pickup_1p": false,
     "auto_pickup_2p": true,
     "sign_in": {
-        "active": true
+        "active": false
     },
     "fed_and_watered": {
-        "active": true
+        "active": false
     },
     "quest_guild": {
         "active": false,
@@ -84,7 +84,7 @@
         "group": false
     },
     "relic": {
-        "active": true,
+        "active": false,
         "is_group": true,
         "max_times": 5,
         "stage": "NO-3-4",
@@ -94,7 +94,7 @@
         "group": false
     },
     "normal_battle": {
-        "active": true,
+        "active": false,
         "is_group": true,
         "max_times": 20,
         "stage": "NO-2-15",

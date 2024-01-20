@@ -321,7 +321,7 @@ class Todo(QThread):
 
         is_cs = "CS" in stage_id
         is_mt = "MT" in stage_id
-        
+
         faa_a = self.faa[player_a]
         faa_b = self.faa[player_b]
 
@@ -393,10 +393,10 @@ class Todo(QThread):
 
         # 判断是不是打魔塔
         is_mt = "MT" in stage_id
-        
+
         is_group = False
         player_a = player[0]
-        player_b = 1
+        player_b = 1 if player_a == 2 else 2
         faa_a = self.faa[player_a]
         faa_b = self.faa[player_b]
 
@@ -464,7 +464,7 @@ class Todo(QThread):
                     else:
                         # 多人前往副本
                         self.goto_stage_and_invite(
-                            stage_id=stage_id, 
+                            stage_id=stage_id,
                             mt_first_time=False,
                             player_a=player_a,
                             player_b=player_b)
@@ -478,7 +478,7 @@ class Todo(QThread):
                 else:
                     # 多人前往副本
                     self.goto_stage_and_invite(
-                        stage_id=stage_id, 
+                        stage_id=stage_id,
                         mt_first_time=need_goto_stage,
                         player_a=player_a,
                         player_b=player_b)
