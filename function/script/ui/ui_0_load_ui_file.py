@@ -48,17 +48,18 @@ class MyMainWindow0(QMainWindow):
 
     def start_print(self):
         """打印默认输出提示"""
-        self.printf("为确保安全")
+        self.printf("为确保使用安全")
         self.printf("[1] 务必有二级密码")
         self.printf("[2] 有一定的礼卷防翻牌异常")
         self.printf("[3] 高星或珍贵不绑卡挂拍卖/提前转移")
         self.printf("跨服和勇士功能罕见情况下会卡死, 但不会导致其他问题")
         self.printf("支持360游戏大厅 - 4399 或 QQ 渠道")
-        self.printf("请认真阅读文件中[README.md文档]中的使用须知, 或在Github查看")
-        self.printf("运行直接闪退, 是窗口和游戏名称填写有误, 参考文档中[重要信息填写]部分")
+        self.printf("请认真阅读[文档], 以解决多数问题, 文档在[1]文件夹中README.md [2]Github主页下 [3]交流群精华消息")
+        self.printf("运行直接闪退, 是窗口和游戏名称填写有误, 参考[文档]中[重要信息填写]部分")
+        self.printf("开始后没反应, 请将软件移动到系统盘(C)之外, 或使用管理员身份运行")
         self.printf("[Github] https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant")
-        self.printf("[反馈QQ] 786921130 欢迎加入")
-        self.printf("[开源][免费] 请为我在Github点个免费的Star支持我吧")
+        self.printf("[反馈&交流QQ] 786921130 欢迎加入")
+        self.printf("[开源][免费][绿色] 请为我在Github点个免费的Star支持我吧")
 
     def closeEvent(self, event):
         """
