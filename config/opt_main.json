@@ -8,31 +8,31 @@
     "auto_use_card": true,
     "auto_pickup_1p": false,
     "auto_pickup_2p": true,
-    "reload_and_daily_quest": {
+    "sign_in": {
         "active": true
     },
     "fed_and_watered": {
-        "active": false
+        "active": true
     },
     "quest_guild": {
-        "active": true,
+        "active": false,
         "stage": false,
         "deck": 1,
         "battle_plan_1p": 2,
         "battle_plan_2p": 3
     },
     "quest_spouse": {
-        "active": true
+        "active": false
     },
     "offer_reward": {
-        "active": true,
+        "active": false,
         "deck": 1,
         "battle_plan_1p": 0,
         "battle_plan_2p": 1
     },
     "magic_tower_double": {
-        "active": true,
-        "max_times": 5,
+        "active": false,
+        "max_times": 4,
         "stage": 100,
         "deck": 2,
         "battle_plan_1p": 9,
@@ -53,13 +53,13 @@
         "battle_plan_1p": 13
     },
     "magic_tower_prison_1": {
-        "active": true,
+        "active": false,
         "stage": true,
         "deck": 6,
         "battle_plan_1p": 20
     },
     "magic_tower_prison_2": {
-        "active": true,
+        "active": false,
         "stage": true,
         "deck": 6,
         "battle_plan_1p": 20
@@ -96,11 +96,11 @@
     "normal_battle": {
         "active": true,
         "is_group": true,
-        "max_times": 5,
-        "stage": "NO-5-7",
-        "deck": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "max_times": 20,
+        "stage": "NO-2-15",
+        "deck": 6,
+        "battle_plan_1p": 20,
+        "battle_plan_2p": 21,
         "group": true
     },
     "receive_awards": {

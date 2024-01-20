@@ -52,7 +52,8 @@ class MyMainWindow1(MyMainWindow0):
         self.AutoPickUp_1P.setChecked(self.opt["auto_pickup_1p"])
         self.AutoPickUp_2P.setChecked(self.opt["auto_pickup_2p"])
 
-        self.ReloadAndDailyQuest_Active.setChecked(self.opt["reload_and_daily_quest"]["active"])
+        self.SignIn_Active.setChecked(self.opt["sign_in"]["active"])
+
         self.FedAndWatered_Active.setChecked(self.opt["fed_and_watered"]["active"])
 
         self.QuestGuild_Active.setChecked(self.opt["quest_guild"]["active"])
@@ -186,7 +187,8 @@ class MyMainWindow1(MyMainWindow0):
         self.opt["auto_pickup_1p"] = self.AutoPickUp_1P.isChecked()
         self.opt["auto_pickup_2p"] = self.AutoPickUp_2P.isChecked()
 
-        self.opt["reload_and_daily_quest"]["active"] = self.ReloadAndDailyQuest_Active.isChecked()
+        self.opt["sign_in"]["active"] = self.SignIn_Active.isChecked()
+
         self.opt["fed_and_watered"]["active"] = self.FedAndWatered_Active.isChecked()
 
         self.opt["quest_guild"]["active"] = self.QuestGuild_Active.isChecked()
