@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from function.common.bg_mouse import mouse_left_click
-from function.common.bg_p_screenshot import capture_picture_png
+from function.common.bg_p_screenshot import capture_picture_png, png_cropping
 from function.get_paths import paths
 
 
@@ -58,41 +58,66 @@ def find_p_in_w(
         end_x = start_x + tar_img.shape[1]
         end_y = start_y + tar_img.shape[0]
         # 在图像上绘制边框
-        cv2.rectangle(img=raw_img, pt1=(start_x, start_y), pt2=(end_x, end_y), color=(0, 0, 255), thickness=1)
+        cv2.rectangle(
+            img=raw_img,
+            pt1=(start_x, start_y),
+            pt2=(end_x, end_y),
+            color=(0, 0, 255),
+            thickness=1)
         # 显示输出图像
-        cv2.imshow(winname="Output.jpg", mat=raw_img)
+        cv2.imshow(
+            winname="Output.jpg",
+            mat=raw_img)
         cv2.waitKey(0)
 
     # 输出识别到的中心
-    return [start_x + int(tar_img.shape[1] / 2), start_y + int(tar_img.shape[0] / 2)]
+    center_point = [
+        start_x + int(tar_img.shape[1] / 2),
+        start_y + int(tar_img.shape[0] / 2)
+    ]
+
+    return center_point
 
 
 def find_ps_in_w(
         raw_w_handle,  # 句柄
-        raw_range: list,  # 原始图像生效的范围
         target_opts: list,
         return_mode: str
 ):
     """
+    一次截图中找复数的图片, 性能更高的写法
     :param raw_w_handle: 窗口句柄
-    :param raw_range: 原始图像生效的范围,为 [左上X, 左上Y,右下X, 右下Y], 右下位置超出范围取最大(不会报错)
-    :param target_opts: [{"target_path":value, "target_tolerance":value},...]
+    :param target_opts: [{"target_path":str,"raw_range":[x1:int,y1:int,x2:int,y2:int],"target_tolerance":float},...]
     :param return_mode: 模式 and 或者 or
     :return: 通过了mode, 则返回[{"x":int,"y":int},None,...] , 否则返回None
     """
     # 截屏
-    raw_img = capture_picture_png(handle=raw_w_handle, raw_range=raw_range)
+    raw_img = capture_picture_png(
+        handle=raw_w_handle,
+        raw_range=[0,0,10000,10000])
     result_list = []
 
     for p in target_opts:
 
-        target_path = p["target_path"]
-        target_tolerance = p["target_tolerance"]
-        # tar_img = cv2.imread(filename=target_path, flags=cv2.IMREAD_UNCHANGED)  # 读取目标图像, (行,列,ABGR), 不可使用中文路径
-        tar_img = cv2.imdecode(np.fromfile(target_path, dtype=np.uint8), -1)  # 读取目标图像,中文路径兼容方案, (行,列,ABGR)
+        raw_img_p = png_cropping(
+            image=raw_img,
+            raw_range=p["raw_range"])  # 裁剪
+        target_path = p["target_path"]  # 目标路径
+        target_tolerance = p["target_tolerance"]  # 目标精准度阈值
+
+        # 读取目标图像,中文路径兼容方案, (行,列,ABGR)
+        tar_img = cv2.imdecode(
+            np.fromfile(
+                file=target_path,
+                dtype=np.uint8),
+            -1)
 
         # 执行模板匹配，采用的匹配方式cv2.TM_SQDIFF_NORMED
-        result = cv2.matchTemplate(image=tar_img[:, :, :-1], templ=raw_img[:, :, :-1], method=cv2.TM_SQDIFF_NORMED)
+        result = cv2.matchTemplate(
+            image=tar_img[:, :, :-1],
+            templ=raw_img_p[:, :, :-1],
+            method=cv2.TM_SQDIFF_NORMED)
+
         (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(src=result)
 
         # 如果匹配度小于X%，就认为没有找到
@@ -104,15 +129,19 @@ def find_ps_in_w(
         (start_x, start_y) = minLoc
 
         # 输出识别到的中心
-        result_list.append([start_x + int(tar_img.shape[1] / 2), start_y + int(tar_img.shape[0] / 2)])
+        result_list.append(
+            [
+                start_x + int(tar_img.shape[1] / 2),
+                start_y + int(tar_img.shape[0] / 2)
+            ]
+        )
 
     if return_mode == "and":
         if None in result_list:
             return None
         else:
             return result_list
-
-    if return_mode == "or":
+    elif return_mode == "or":
         if all(i is None for i in result_list):
             return None
         else:
@@ -163,8 +192,8 @@ def loop_find_p_in_w(
                 sleep(target_sleep)
             else:
                 mouse_left_click(handle=raw_w_handle,
-                                 x=int((find_target[0]+raw_range[0]) * click_zoom),
-                                 y=int((find_target[1]+raw_range[1]) * click_zoom),
+                                 x=int((find_target[0] + raw_range[0]) * click_zoom),
+                                 y=int((find_target[1] + raw_range[1]) * click_zoom),
                                  interval_time=click_interval,
                                  sleep_time=target_sleep)
                 if click_now_path:
@@ -185,7 +214,6 @@ def loop_find_p_in_w(
 
 def loop_find_ps_in_w(
         raw_w_handle,
-        raw_range: list,
         target_opts: list,
         target_return_mode: str,
         target_failed_check: float = 10,
@@ -193,8 +221,7 @@ def loop_find_ps_in_w(
 ):
     """
         :param raw_w_handle: 截图句柄
-        :param raw_range: 截图后截取范围
-        :param target_opts: [{"target_path":value, "target_tolerance":value},...]
+        :param target_opts: [{"target_path":str,"raw_range":[x1:int,y1:int,x2:int,y2:int],"target_tolerance":float},...]
         :param target_return_mode: 模式 and 或者 or
         :param target_interval: 捕捉图片的间隔
         :param target_failed_check: # 捕捉图片时间限制, 超时输出False
@@ -205,7 +232,6 @@ def loop_find_ps_in_w(
     invite_time = 0.0
     while True:
         find_target = find_ps_in_w(raw_w_handle=raw_w_handle,
-                                   raw_range=raw_range,
                                    target_opts=target_opts,
                                    return_mode=target_return_mode)
         if find_target:
@@ -226,7 +252,7 @@ if __name__ == '__main__':
         # handle = faa_get_handle("锑食", mode="browser")
         handle = faa_get_handle(channel="深渊之下 | 锑食", mode="browser")
 
-        target_path = paths["picture"]["common"] + "\\battle\\before_create_room.png"
+        target_path = paths["picture"]["common"] + "\\战斗\\战斗前_创建房间.png"
 
         # result = loop_find_p_in_w(raw_w_handle=handle,
         #                           raw_range=[0, 0, 950, 600],
@@ -243,7 +269,7 @@ if __name__ == '__main__':
                              target_tolerance=0.99)
 
         print(result)
-        result =(1,2)
+        result = (1, 2)
         if result:
             print(result[0], result[1])
 

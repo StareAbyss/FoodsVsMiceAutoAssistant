@@ -19,7 +19,7 @@ def capture_picture_png(handle: HWND, raw_range: list):
 
     Args:
         handle (HWND): 要截图的窗口句柄
-        raw_range: 截取, 为 [左上X, 左上Y,右下X, 右下Y], 右下位置超出范围取最大(不会报错)
+        raw_range: 裁剪, 为 [左上X, 左上Y,右下X, 右下Y], 右下位置超出范围取最大(不会报错)
 
     Returns:
         numpy.array: 截图数据 3D array (高度,宽度,[B G R A四通道])
@@ -48,12 +48,16 @@ def capture_picture_png(handle: HWND, raw_range: list):
 
     # 返回截图数据为 numpy.array (高度,宽度,[B G R A四通道])
     image = frombuffer(buffer, dtype=uint8).reshape(height, width, 4)
-    image = image[raw_range[1]:raw_range[3], raw_range[0]:raw_range[2], :]
+    # 裁剪
+    image = png_cropping(image=image,raw_range=raw_range)
     return image
 
 
-def main():
+def png_cropping(image, raw_range: list):
+    return image[raw_range[1]:raw_range[3], raw_range[0]:raw_range[2], :]
 
+
+def main():
     handle = faa_get_handle(channel="锑食", mode="flash")
     # handle = faa_get_handle(channel="深渊之下 | 锑食", mode="flash")
     # handle = faa_get_handle(channel="深渊之下 | 锑食", mode="360")
