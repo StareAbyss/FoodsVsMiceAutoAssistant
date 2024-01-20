@@ -74,7 +74,7 @@
         "group": false
     },
     "cross_server": {
-        "active": true,
+        "active": false,
         "is_group": true,
         "max_times": 10,
         "stage": "CS-5-4",

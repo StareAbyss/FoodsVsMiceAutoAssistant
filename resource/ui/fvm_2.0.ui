@@ -519,6 +519,34 @@
          <item row="2" column="1">
           <layout class="QHBoxLayout" name="horizontalLayout_7">
            <item>
+            <widget class="QCheckBox" name="QQSpaceServer">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>170</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>待定选项...</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QCheckBox" name="AutoUseCard">
              <property name="enabled">
               <bool>true</bool>
@@ -543,31 +571,6 @@
              </property>
              <property name="text">
               <string>自动放卡战斗</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLabel" name="Space">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>70</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="text">
-              <string/>
              </property>
             </widget>
            </item>

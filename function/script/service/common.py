@@ -642,7 +642,7 @@ class FAA:
                     find = loop_find_p_in_w(
                         raw_w_handle=self.handle,
                         raw_range=[0, 0, 950, 600],
-                        target_path=paths["picture"]["common"] + "\\跨服远征_1p.png",
+                        target_path=paths["picture"]["common"] + "\\用户自截\\跨服远征_1p.png",
                         click_zoom=self.zoom,
                         click=True,
                         target_sleep=1.0,
@@ -2143,10 +2143,27 @@ class FAA:
                 target_return_mode="or")
 
             if not result:
-                print_g(text="未找到进入输入服务器, 可能随机进入了未知界面, 重新刷新", player=self.player, garde=2)
+                print_g(text="未找到进入输入服务器, 可能进入未知界面, 或QQ空间需重新登录", player=self.player,garde=1)
+                result = loop_find_p_in_w(
+                    raw_w_handle=self.handle_browser,
+                    raw_range=[0, 0, 2000, 2000],
+                    target_path=paths["picture"]["common"] + "\\用户自截\\空间服登录界面_{}P.png".format(self.player),
+                    target_tolerance=0.95,
+                    target_interval=0.5,
+                    target_failed_check=5,
+                    target_sleep=5,
+                    click=True,
+                    click_zoom=zoom)
+                if result:
+                    print_g(text="找到qq空间服一键登录, 正在登录", player=self.player, garde=0)
+                else:
+                    print_g(text="未找到qq空间服一键登录, 非qq服或其他原因", player=self.player, garde=1)
+
                 continue
+
             else:
-                """尝试根据qq或4399的不同ui 进入最近进入的服务器"""
+                """尝试根据QQ空间或4399的不同ui 进入最近进入的服务器"""
+                # 4399
                 result = find_p_in_w(
                     raw_w_handle=self.handle_browser,
                     raw_range=[0, 0, 2000, 2000],
@@ -2160,6 +2177,8 @@ class FAA:
                         x=int(result[0] * zoom),
                         y=int((result[1] + 30) * zoom),
                         sleep_time=0.5)
+
+                # QQ空间
                 result = find_p_in_w(
                     raw_w_handle=self.handle_browser,
                     raw_range=[0, 0, 2000, 2000],
@@ -2176,11 +2195,10 @@ class FAA:
 
                 """查找 - 关闭 健康游戏公告"""
                 # 查找健康游戏公告
-                target_path = paths["picture"]["common"] + "\\登录\\2_健康游戏公告.png"
                 result = loop_find_p_in_w(
                     raw_w_handle=self.handle_browser,
                     raw_range=[0, 0, 2000, 2000],
-                    target_path=target_path,
+                    target_path=paths["picture"]["common"] + "\\登录\\2_健康游戏公告.png",
                     target_tolerance=0.97,
                     target_failed_check=30,
                     target_sleep=0.5,
