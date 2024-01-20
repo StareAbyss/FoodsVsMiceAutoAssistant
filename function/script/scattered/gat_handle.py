@@ -7,7 +7,7 @@ Type:DUIWindow Name: channel-name # 360层级
         |- Type: CefBrowserWindow
             |- Type: Chrome_WidgetWin_0 # 窗口浏览器层级
                 |- Type: WrapperNativeWindowClass
-                    |- Type: NativeWindowClass # Flase游戏层级
+                    |- Type: NativeWindowClass # Flash游戏层级
 
 """
 
