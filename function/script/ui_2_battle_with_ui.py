@@ -11,10 +11,10 @@ from function.common.bg_mouse import mouse_left_click
 from function.common.bg_p_compare import loop_find_p_in_w
 from function.common.thread_with_exception import ThreadWithException
 from function.get_paths import paths
+from function.script.common import FAA
 from function.script.scattered.get_channel_name import get_channel_name
 from function.script.scattered.get_customize_todo_list import get_customize_todo_list
-from function.script.service.common import FAA
-from function.script.ui.ui_1_load_opt import MyMainWindow1
+from function.script.ui_1_load_opt import MyMainWindow1
 
 
 class Todo(QThread):
@@ -378,8 +378,8 @@ class Todo(QThread):
                         self.reload_game()
                         break
 
-                    faa_a.action_exit(mode="sports_land")
-                    faa_b.action_exit(mode="sports_land")
+                    faa_a.action_exit(mode="竞技岛")
+                    faa_b.action_exit(mode="竞技岛")
 
             if failed_round == 3:
                 text = "[{}] [单本轮战] 刷新游戏次数过多".format(
@@ -761,8 +761,8 @@ class Todo(QThread):
                 "dict_exit": {
                     "other_time_player_a": [],
                     "other_time_player_b": [],
-                    "last_time_player_a": ["sports_land"],
-                    "last_time_player_b": ["sports_land"]}
+                    "last_time_player_a": ["竞技岛"],
+                    "last_time_player_b": ["竞技岛"]}
             })
         self.n_n_battle(quest_list=quest_list, list_type=["OR"])
 
@@ -805,8 +805,8 @@ class Todo(QThread):
                     "dict_exit": {
                         "other_time_player_a": [],
                         "other_time_player_b": [],
-                        "last_time_player_a": ["normal_x"],
-                        "last_time_player_b": ["normal_x"]
+                        "last_time_player_a": ["普通红叉"],
+                        "last_time_player_b": ["普通红叉"]
                     }
                 }
             )
@@ -897,8 +897,8 @@ class Todo(QThread):
                 dict_exit={
                     "other_time_player_a": [],
                     "other_time_player_b": [],
-                    "last_time_player_a": ["sports_land"],
-                    "last_time_player_b": ["sports_land"]
+                    "last_time_player_a": ["竞技岛"],
+                    "last_time_player_b": ["竞技岛"]
                 })
 
         need_reload = False
@@ -954,8 +954,8 @@ class Todo(QThread):
                 dict_exit={
                     "other_time_player_a": [],
                     "other_time_player_b": [],
-                    "last_time_player_a": ["sports_land"],
-                    "last_time_player_b": ["sports_land"]
+                    "last_time_player_a": ["竞技岛"],
+                    "last_time_player_b": ["竞技岛"]
                 })
 
         my_opt = self.opt["cross_server"]
@@ -971,8 +971,8 @@ class Todo(QThread):
                 dict_exit={
                     "other_time_player_a": [],
                     "other_time_player_b": [],
-                    "last_time_player_a": ["sports_land"],
-                    "last_time_player_b": ["sports_land"]
+                    "last_time_player_a": ["竞技岛"],
+                    "last_time_player_b": ["竞技岛"]
                 })
 
         my_opt = self.opt["warrior"]
@@ -988,8 +988,8 @@ class Todo(QThread):
                 dict_exit={
                     "other_time_player_a": [],
                     "other_time_player_b": [],
-                    "last_time_player_a": ["sports_land"],
-                    "last_time_player_b": ["sports_land"]
+                    "last_time_player_a": ["竞技岛"],
+                    "last_time_player_b": ["竞技岛"]
                 })
 
             # 勇士挑战在全部完成后, [进入竞技岛], 创建房间者[有概率]会保留勇士挑战选择关卡的界面.
@@ -1021,7 +1021,7 @@ class Todo(QThread):
                     dict_exit={
                         "other_time_player_a": [],
                         "other_time_player_b": [],
-                        "last_time_player_a": ["normal_x"],
+                        "last_time_player_a": ["普通红叉"],
                         "last_time_player_b": []
                     }
                 )
@@ -1048,9 +1048,9 @@ class Todo(QThread):
                 battle_plan_2p=my_opt["battle_plan_2p"],
                 dict_exit={
                     "other_time_player_a": [],
-                    "other_time_player_b": ["back_one_level"],
-                    "last_time_player_a": ["normal_x"],
-                    "last_time_player_b": ["back_one_level"]
+                    "other_time_player_b": ["回到上一级"],
+                    "last_time_player_a": ["普通红叉"],
+                    "last_time_player_b": ["回到上一级"]
                 }
             )
 

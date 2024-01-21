@@ -59,16 +59,15 @@ class FAA:
 
     """通用对flash界面的基础操作"""
 
-    def action_exit(self, mode: str, raw_range=None):
+    def action_exit(self, mode: str = "None", raw_range=None):
         """
-        退出
-        "none" 或者 瞎填 -不退出 0
-        "normal_x" - 普通的右上红叉 2
-        "back_one_level"-右下回退到上一级 1
-        "sports_land" - 直接到竞技岛  3
-        "exit_offer_reward" - 悬赏的右上角红叉关闭
-        "food_competition" - 美食大赛领取
-        "exit_game" -游戏内退出
+        游戏中的各种退出操作
+        "普通红叉"
+        "回到上一级"
+        "竞技岛"
+        "关闭悬赏窗口"
+        "美食大赛领取"
+        "游戏内退出"
         """
 
         if raw_range is None:
@@ -77,12 +76,10 @@ class FAA:
         handle = self.handle
         zoom = self.zoom
 
-        """右下 回退到上一级"""
-        if mode == "back_one_level":
+        if mode == "回到上一级":
             self.action_bottom_menu(mode="后退")
 
-        """右上 红叉"""
-        if mode == "normal_x":
+        if mode == "普通红叉":
             find = loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=raw_range,
@@ -103,12 +100,10 @@ class FAA:
                 if not find:
                     print_g(text="未能成功找到右上红叉以退出!前面的步骤有致命错误!", player=self.player, garde=3)
 
-        """右下 前往竞技岛"""
-        if mode == "sports_land":
+        if mode == "竞技岛":
             self.action_bottom_menu(mode="跳转_竞技场")
 
-        """悬赏窗口关闭"""
-        if mode == "close_offer_reward_ui":
+        if mode == "关闭悬赏窗口":
             loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=raw_range,
@@ -119,16 +114,11 @@ class FAA:
                 click=True,
                 click_zoom=zoom)
 
-        """美食大赛领取专用, 从战斗房间->竞技岛->领取->退出大赛ui"""
-        if mode == "food_competition":
-            # 先跳转到竞技岛
-            self.action_bottom_menu(mode="跳转_竞技场")
-
+        if mode == "美食大赛领取":
             # 领取奖励
             self.action_quest_receive_rewards(mode="美食大赛")
 
-        """游戏内退出游戏"""
-        if mode == "exit_game":
+        if mode == "游戏内退出":
             # 游戏内退出
             mouse_left_click(
                 handle=self.handle,
@@ -332,10 +322,10 @@ class FAA:
                                 "quest_card": quest_card,
                                 "list_ban_card": [],
                                 "dict_exit": {
-                                    "other_time_player_a": ["none"],
-                                    "other_time_player_b": ["none"],
-                                    "last_time_player_a": ["sports_land"],
-                                    "last_time_player_b": ["sports_land"]
+                                    "other_time_player_a": [],
+                                    "other_time_player_b": [],
+                                    "last_time_player_a": ["竞技岛"],
+                                    "last_time_player_b": ["竞技岛"]
                                 }
                             }
                         )
@@ -370,14 +360,14 @@ class FAA:
                                     "dict_exit": {
                                         "other_time_player_a": ["none"],
                                         "other_time_player_b": ["none"],
-                                        "last_time_player_a": ["sports_land"],
-                                        "last_time_player_b": ["sports_land"]
+                                        "last_time_player_a": ["竞技岛"],
+                                        "last_time_player_b": ["竞技岛"]
                                     }
                                 }
                             )
 
         # 关闭公会任务列表(红X)
-        self.action_exit(mode="normal_x")
+        self.action_exit(mode="普通红叉")
 
         return quest_list
 
@@ -832,7 +822,7 @@ class FAA:
                     for j in range(3):
                         mouse_left_click(handle=handle, x=int(413 * zoom), y=int(524 * zoom), sleep_time=0.05)
 
-                self.action_exit(mode="normal_x")
+                self.action_exit(mode="普通红叉")
                 break
 
     def AQRR_guild(self):
@@ -841,51 +831,55 @@ class FAA:
         # 循环遍历点击完成
         while True:
             # 点一下 让左边的选中任务颜色消失
-            loop_find_p_in_w(raw_w_handle=self.handle,
-                             raw_range=[0, 0, 950, 600],
-                             target_path=paths["picture"]["quest_guild"] + "\\ui_quest_list.png",
-                             target_sleep=0.5,
-                             click=True,
-                             click_zoom=self.zoom)
-            result = loop_find_p_in_w(raw_w_handle=self.handle,
-                                      raw_range=[0, 0, 950, 600],
-                                      target_path=paths["picture"]["quest_guild"] + "\\completed.png",
-                                      target_tolerance=0.99,
-                                      click_zoom=self.zoom,
-                                      click=True,
-                                      target_failed_check=5,  # 1+4s 因为偶尔会弹出美食大赛完成动画4s 需要充足时间！这个确实脑瘫...
-                                      target_sleep=0.5)
+            loop_find_p_in_w(
+                raw_w_handle=self.handle,
+                raw_range=[0, 0, 950, 600],
+                target_path=paths["picture"]["quest_guild"] + "\\ui_quest_list.png",
+                target_sleep=0.5,
+                click=True,
+                click_zoom=self.zoom)
+            result = loop_find_p_in_w(
+                raw_w_handle=self.handle,
+                raw_range=[0, 0, 950, 600],
+                target_path=paths["picture"]["quest_guild"] + "\\completed.png",
+                target_tolerance=0.99,
+                click_zoom=self.zoom,
+                click=True,
+                target_failed_check=5,  # 1+4s 因为偶尔会弹出美食大赛完成动画4s 需要充足时间！这个确实脑瘫...
+                target_sleep=0.5)
             if result:
-                loop_find_p_in_w(raw_w_handle=self.handle,
-                                 raw_range=[0, 0, 950, 600],
-                                 target_path=paths["picture"]["quest_guild"] + "\\gather.png",
-                                 target_tolerance=0.99,
-                                 click_zoom=self.zoom,
-                                 click=True,
-                                 target_failed_check=2,
-                                 target_sleep=2)  # 2s 完成任务有显眼动画
+                loop_find_p_in_w(
+                    raw_w_handle=self.handle,
+                    raw_range=[0, 0, 950, 600],
+                    target_path=paths["picture"]["quest_guild"] + "\\gather.png",
+                    target_tolerance=0.99,
+                    click_zoom=self.zoom,
+                    click=True,
+                    target_failed_check=2,
+                    target_sleep=2)  # 2s 完成任务有显眼动画
             else:
                 break
         # 退出任务界面
-        self.action_exit(mode="normal_x")
+        self.action_exit(mode="普通红叉")
 
     def AQRR_spouse(self):
         # 跳转到任务界面
         self.action_bottom_menu(mode="跳转_情侣任务")
         # 循环遍历点击完成
         while True:
-            result = loop_find_p_in_w(raw_w_handle=self.handle,
-                                      raw_range=[0, 0, 950, 600],
-                                      target_path=paths["picture"]["quest_spouse"] + "\\completed.png",
-                                      target_tolerance=0.99,
-                                      click_zoom=self.zoom,
-                                      click=True,
-                                      target_failed_check=2,
-                                      target_sleep=2)  # 2s 完成任务有显眼动画)
+            result = loop_find_p_in_w(
+                raw_w_handle=self.handle,
+                raw_range=[0, 0, 950, 600],
+                target_path=paths["picture"]["quest_spouse"] + "\\completed.png",
+                target_tolerance=0.99,
+                click_zoom=self.zoom,
+                click=True,
+                target_failed_check=2,
+                target_sleep=2)  # 2s 完成任务有显眼动画)
             if not result:
                 break
         # 退出任务界面
-        self.action_exit(mode="normal_x")
+        self.action_exit(mode="普通红叉")
 
     def AQRR_offer_reward(self):
         # 进入X年活动界面
@@ -893,14 +887,15 @@ class FAA:
 
         # 循环遍历点击完成
         while True:
-            result = loop_find_p_in_w(raw_w_handle=self.handle,
-                                      raw_range=[0, 0, 950, 600],
-                                      target_path=paths["picture"]["common"] + "\\悬赏任务_领取奖励.png",
-                                      target_tolerance=0.99,
-                                      target_failed_check=2,
-                                      click_zoom=self.zoom,
-                                      click=True,
-                                      target_sleep=2)
+            result = loop_find_p_in_w(
+                raw_w_handle=self.handle,
+                raw_range=[0, 0, 950, 600],
+                target_path=paths["picture"]["common"] + "\\悬赏任务_领取奖励.png",
+                target_tolerance=0.99,
+                target_failed_check=2,
+                click_zoom=self.zoom,
+                click=True,
+                target_sleep=2)
             if not result:
                 break
 
@@ -1678,7 +1673,7 @@ class FAA:
             #     sleep(0.05)
 
             # 退出关卡
-            self.action_exit(mode="exit_game")
+            self.action_exit(mode="游戏内退出")
 
         """主函数"""
 
@@ -2269,7 +2264,7 @@ class FAA:
                 y=int(280 * zoom),
                 sleep_time=0.5)
 
-            self.action_exit(mode="normal_x")
+            self.action_exit(mode="普通红叉")
 
         def sign_in_everyday():
             """每日签到"""
@@ -2285,7 +2280,7 @@ class FAA:
                 click=True,
                 click_zoom=zoom)
 
-            self.action_exit(mode="normal_x")
+            self.action_exit(mode="普通红叉")
 
         def sign_in_food_activity():
             """美食活动"""
@@ -2302,7 +2297,7 @@ class FAA:
                 click=True,
                 click_zoom=zoom)
 
-            self.action_exit(mode="normal_x")
+            self.action_exit(mode="普通红叉")
 
         def sign_in_tarot():
             """塔罗寻宝"""
@@ -2378,10 +2373,10 @@ class FAA:
                     click=False,
                     click_zoom=zoom)
                 # 关闭抽奖(红X)
-                self.action_exit(mode="normal_x", raw_range=[616, 172, 660, 228])
+                self.action_exit(mode="普通红叉", raw_range=[616, 172, 660, 228])
 
             # 关闭任务列表(红X)
-            self.action_exit(mode="normal_x", raw_range=[834, 35, 876, 83])
+            self.action_exit(mode="普通红叉", raw_range=[834, 35, 876, 83])
 
         def main():
             sign_in_vip()
@@ -2615,7 +2610,7 @@ class FAA:
                     break
 
             # 退出工会
-            self.action_exit(mode="normal_x")
+            self.action_exit(mode="普通红叉")
 
         fed_and_watered_main()
         self.action_quest_receive_rewards(mode="公会任务")
@@ -2708,7 +2703,7 @@ class FAA:
                         break
 
         # 关闭背包
-        self.action_exit(mode="normal_x")
+        self.action_exit(mode="普通红叉")
 
     def cross_server_reputation(self, deck):
 
@@ -2815,7 +2810,7 @@ class FAA:
             time.sleep(59.5)
 
             # 游戏内退出
-            self.action_exit(mode="exit_game")
+            self.action_exit(mode="游戏内退出")
 
 
 if __name__ == '__main__':

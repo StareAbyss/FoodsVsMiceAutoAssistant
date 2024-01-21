@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QApplication
 
 from function.script.scattered.get_customize_todo_list import get_customize_todo_list
 from function.script.scattered.get_list_battle_plan import get_list_battle_plan
-from function.script.ui.ui_0_load_ui_file import MyMainWindow0
+from function.script.ui_0_load_ui_file import MyMainWindow0
 
 
 class MyMainWindow1(MyMainWindow0):

@@ -248,7 +248,7 @@ def loop_find_ps_in_w(
 
 
 if __name__ == '__main__':
-    from function.script.service.common import faa_get_handle
+    from function.script.common import faa_get_handle
 
 
     def main():

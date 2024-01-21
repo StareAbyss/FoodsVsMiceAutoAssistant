@@ -1,5 +1,5 @@
 # coding:utf-8
-from function.script.ui.ui_2_battle_with_ui import main
+from function.script.ui_2_battle_with_ui import main
 
 
 if __name__ == '__main__':

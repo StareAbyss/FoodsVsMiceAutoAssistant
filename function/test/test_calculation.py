@@ -1,6 +1,6 @@
 from pprint import pprint
 
-from function.script.service.common import FAA
+from function.script.common import FAA
 
 if __name__ == '__main__':
     def test():
