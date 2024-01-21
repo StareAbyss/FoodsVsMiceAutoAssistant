@@ -31,7 +31,7 @@
         "battle_plan_2p": 1
     },
     "magic_tower_double": {
-        "active": false,
+        "active": true,
         "max_times": 4,
         "stage": 100,
         "deck": 2,
@@ -53,13 +53,13 @@
         "battle_plan_1p": 13
     },
     "magic_tower_prison_1": {
-        "active": false,
+        "active": true,
         "stage": true,
         "deck": 6,
         "battle_plan_1p": 20
     },
     "magic_tower_prison_2": {
-        "active": false,
+        "active": true,
         "stage": true,
         "deck": 6,
         "battle_plan_1p": 20
@@ -74,9 +74,9 @@
         "group": false
     },
     "cross_server": {
-        "active": false,
+        "active": true,
         "is_group": true,
-        "max_times": 10,
+        "max_times": 2,
         "stage": "CS-5-4",
         "deck": 1,
         "battle_plan_1p": 2,
@@ -96,8 +96,8 @@
     "normal_battle": {
         "active": false,
         "is_group": true,
-        "max_times": 20,
-        "stage": "NO-2-15",
+        "max_times": 10,
+        "stage": "NO-1-14",
         "deck": 6,
         "battle_plan_1p": 20,
         "battle_plan_2p": 21,

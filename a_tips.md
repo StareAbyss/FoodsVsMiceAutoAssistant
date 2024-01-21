@@ -22,3 +22,12 @@
 ## 导入配置文件
     pip install -r requirements.txt
     pycharm 自动
+
+# git抽风无法提交到github
+## 在git仓库打开终端 并输入下文
+
+    git config --global --unset http.proxy
+    git config --global --unset https.proxy
+
+    git config --global http.proxy http://127.0.0.1:10809
+    git config --global https.proxy http://127.0.0.1:10809

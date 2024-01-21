@@ -150,6 +150,7 @@ class FAA:
         其中跨服会跳转到二区
         """
 
+        failed_time = 0
         l_id = 1
         while True:
             self.change_activity_list(serial_num=l_id)
@@ -163,9 +164,15 @@ class FAA:
                 click=True,
                 click_zoom=self.zoom)
             if find:
+                print_g(text="[顶部菜单] [{}] 3s内跳转成功".format(mode), player=self.player, garde=1)
                 break
             else:
                 l_id = 1 if l_id == 2 else 2
+                failed_time += 1
+
+            if failed_time == 5:
+                print_g(text="[顶部菜单] [{}] 3s内跳转失败".format(mode), player=self.player, garde=2)
+                break
 
         if mode == "跨服远征":
             # 选2区人少
@@ -190,8 +197,9 @@ class FAA:
         if mode == "任务" or mode == "后退" or mode == "背包" or mode == "公会":
             find = loop_find_p_in_w(
                 raw_w_handle=self.handle,
-                raw_range=[0, 0, 950, 600],
+                raw_range=[520, 530, 950, 600],
                 target_path=paths["picture"]["common"] + "\\底部菜单\\" + mode + ".png",
+                target_failed_check=3,
                 target_sleep=1,
                 click=True,
                 click_zoom=self.zoom)
@@ -199,21 +207,24 @@ class FAA:
         if mode == "跳转_公会任务" or mode == "跳转_公会副本" or mode == "跳转_情侣任务" or mode == "跳转_竞技场":
             loop_find_p_in_w(
                 raw_w_handle=self.handle,
-                raw_range=[0, 0, 950, 600],
+                raw_range=[520, 530, 950, 600],
                 target_path=paths["picture"]["common"] + "\\底部菜单\\跳转.png",
+                target_failed_check=3,
                 target_sleep=0.5,
                 click=True,
                 click_zoom=self.zoom)
             find = loop_find_p_in_w(
                 raw_w_handle=self.handle,
-                raw_range=[0, 0, 950, 600],
+                raw_range=[520, 170, 950, 600],
                 target_path=paths["picture"]["common"] + "\\底部菜单\\" + mode + ".png",
+                target_failed_check=3,
                 target_sleep=2,
                 click=True,
                 click_zoom=self.zoom)
 
         if not find:
-            print("没有找到正确的跳转图标 错误 错误")
+            print_g(text="[底部菜单] [{}] 3s内跳转失败".format(mode), player=self.player, garde=2)
+
         return find
 
     def change_activity_list(self, serial_num: int):
@@ -380,13 +391,16 @@ class FAA:
 
         # 点击对应的地图
         my_path = paths["picture"]["map"] + "\\" + str(map_id) + ".png"
-        loop_find_p_in_w(raw_w_handle=self.handle,
-                         raw_range=[0, 0, 950, 600],
-                         target_path=my_path,
-                         target_tolerance=0.99,
-                         click_zoom=self.zoom,
-                         target_sleep=2,
-                         click=True)
+        loop_find_p_in_w(
+            raw_w_handle=self.handle,
+            raw_range=[0, 0, 950, 600],
+            target_path=my_path,
+            target_tolerance=0.99,
+            target_failed_check=5,
+            target_sleep=2,
+            click=True,
+            click_zoom=self.zoom,
+        )
 
     def action_goto_stage(self, room_creator: bool = True, mt_first_time: bool = False):
         """
@@ -488,9 +502,11 @@ class FAA:
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=paths["picture"]["stage"] + "\\MT.png",
-                    click_zoom=self.zoom,
+                    target_failed_check=5,
                     target_sleep=2,
-                    click=True)
+                    click=True,
+                    click_zoom=self.zoom
+                )
 
                 # 根据模式进行选择
                 my_dict = {"1": 46, "2": 115, "3": 188}
@@ -2143,7 +2159,7 @@ class FAA:
                 target_return_mode="or")
 
             if not result:
-                print_g(text="未找到进入输入服务器, 可能进入未知界面, 或QQ空间需重新登录", player=self.player,garde=1)
+                print_g(text="未找到进入输入服务器, 可能进入未知界面, 或QQ空间需重新登录", player=self.player, garde=1)
                 result = loop_find_p_in_w(
                     raw_w_handle=self.handle_browser,
                     raw_range=[0, 0, 2000, 2000],

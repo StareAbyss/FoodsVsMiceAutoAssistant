@@ -94,7 +94,7 @@ def find_ps_in_w(
     # 截屏
     raw_img = capture_picture_png(
         handle=raw_w_handle,
-        raw_range=[0,0,10000,10000])
+        raw_range=[0, 0, 10000, 10000])
     result_list = []
 
     for p in target_opts:
@@ -183,24 +183,27 @@ def loop_find_p_in_w(
     """
     invite_time = 0.0
     while True:
-        find_target = find_p_in_w(raw_w_handle=raw_w_handle,
-                                  raw_range=raw_range,
-                                  target_path=target_path,
-                                  target_tolerance=target_tolerance)
+        find_target = find_p_in_w(
+            raw_w_handle=raw_w_handle,
+            raw_range=raw_range,
+            target_path=target_path,
+            target_tolerance=target_tolerance)
         if find_target:
             if not click:
                 sleep(target_sleep)
             else:
-                mouse_left_click(handle=raw_w_handle,
-                                 x=int((find_target[0] + raw_range[0]) * click_zoom),
-                                 y=int((find_target[1] + raw_range[1]) * click_zoom),
-                                 interval_time=click_interval,
-                                 sleep_time=target_sleep)
+                mouse_left_click(
+                    handle=raw_w_handle,
+                    x=int((find_target[0] + raw_range[0]) * click_zoom),
+                    y=int((find_target[1] + raw_range[1]) * click_zoom),
+                    interval_time=click_interval,
+                    sleep_time=target_sleep)
                 if click_now_path:
-                    find_target = find_p_in_w(raw_w_handle=raw_w_handle,
-                                              raw_range=raw_range,
-                                              target_path=click_now_path,
-                                              target_tolerance=target_tolerance)
+                    find_target = find_p_in_w(
+                        raw_w_handle=raw_w_handle,
+                        raw_range=raw_range,
+                        target_path=click_now_path,
+                        target_tolerance=target_tolerance)
                     if find_target:
                         continue  # 当前状态没有产生变化, 就不进行输出
             return True

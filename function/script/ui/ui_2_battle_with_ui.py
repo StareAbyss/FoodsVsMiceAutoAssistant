@@ -325,6 +325,8 @@ class Todo(QThread):
         faa_a = self.faa[player_a]
         faa_b = self.faa[player_b]
 
+        failed_round = 0  # 计数失败轮次
+
         while True:
 
             failed_time = 0  # 计数失败次数
@@ -344,7 +346,7 @@ class Todo(QThread):
 
                 if is_cs:
                     # 跨服副本 直接退出
-                    return True
+                    return 0
                 invite_success = self.invite(player_a=player_a, player_b=player_b)
 
                 if invite_success:
@@ -354,29 +356,38 @@ class Todo(QThread):
                     print(text)
                     self.sin_out.emit(text)
                     # 邀请成功 返回退出
-                    return True
+                    return 0
 
                 else:
                     failed_time += 1
                     mt_first_time = True
 
-                    text = "[{}] [单本轮战] 服务器抽风,进入竞技岛重新邀请...({}/5)".format(
+                    text = "[{}] [单本轮战] 服务器抽风,进入竞技岛重新邀请...({}/3)".format(
                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         failed_time)
                     print(text)
                     self.sin_out.emit(text)
 
-                    if failed_time == 5:
+                    if failed_time == 3:
                         text = "[{}] [单本轮战] 服务器抽风过头, 刷新游戏!".format(
                             datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                             failed_time)
                         print(text)
                         self.sin_out.emit(text)
+                        failed_round += 1
                         self.reload_game()
                         break
 
                     faa_a.action_exit(mode="sports_land")
                     faa_b.action_exit(mode="sports_land")
+
+            if failed_round == 3:
+                text = "[{}] [单本轮战] 刷新游戏次数过多".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    failed_time)
+                print(text)
+                self.sin_out.emit(text)
+                return 2
 
     def n_battle(
             self,
@@ -454,6 +465,8 @@ class Todo(QThread):
         # 轮次作战
         while success_battle_time < max_times:
 
+            # 前往副本
+            result = 0
             if not is_mt:
                 # 非魔塔
                 if need_goto_stage:
@@ -463,7 +476,7 @@ class Todo(QThread):
                             room_creator=True)
                     else:
                         # 多人前往副本
-                        self.goto_stage_and_invite(
+                        result = self.goto_stage_and_invite(
                             stage_id=stage_id,
                             mt_first_time=False,
                             player_a=player_a,
@@ -477,13 +490,27 @@ class Todo(QThread):
                     faa_a.action_goto_stage(room_creator=True, mt_first_time=need_goto_stage)
                 else:
                     # 多人前往副本
-                    self.goto_stage_and_invite(
+                    result = self.goto_stage_and_invite(
                         stage_id=stage_id,
                         mt_first_time=need_goto_stage,
                         player_a=player_a,
                         player_b=player_b)
 
                 need_goto_stage = False  # 进入后Flag变化
+
+            if result == 2:
+                # 跳过本次 计数+1
+                success_battle_time += 1
+                # 进入异常, 跳过
+                need_goto_stage = True
+                # 结束提示文本
+                text = "[{}] [单本轮战] 第{}次, 创建房间多次异常, 重启跳过".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    success_battle_time)
+                print(text)
+                self.sin_out.emit(text)
+
+                self.reload_game()
 
             timer_begin = time.time()
 
@@ -546,27 +573,13 @@ class Todo(QThread):
                 need_goto_stage = True
 
                 # 结束提示文本
-                text = "[{}] [单本轮战] 第{}次, 异常进入, 跳过本次".format(
+                text = "[{}] [单本轮战] 第{}次, 开始游戏异常, 重启跳过".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     success_battle_time)
                 print(text)
                 self.sin_out.emit(text)
 
-                # 退出函数
-                if success_battle_time == max_times:
-                    # 最后一次的退出方式不同
-                    for j in dict_exit["last_time_player_a"]:
-                        faa_a.action_exit(mode=j)
-                    if is_group:
-                        for j in dict_exit["last_time_player_b"]:
-                            faa_b.action_exit(mode=j)
-                else:
-                    # 常规的退出方式不同
-                    for j in dict_exit["other_time_player_a"]:
-                        faa_a.action_exit(mode=j)
-                    if is_group:
-                        for j in dict_exit["other_time_player_b"]:
-                            faa_b.action_exit(mode=j)
+                self.reload_game()
 
     def n_n_battle(
             self,
@@ -1004,7 +1017,7 @@ class Todo(QThread):
                     max_times=int(my_opt["max_times"]),
                     deck=my_opt["deck"],
                     battle_plan_1p=my_opt["battle_plan_1p"],
-                    battle_plan_2p=my_opt["battle_plan_2p"],
+                    battle_plan_2p=my_opt["battle_plan_1p"],
                     dict_exit={
                         "other_time_player_a": [],
                         "other_time_player_b": [],

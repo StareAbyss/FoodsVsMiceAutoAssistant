@@ -48,7 +48,6 @@ class MyMainWindow1(MyMainWindow0):
 
         self.Level1P_Input.setValue(self.opt["level_1p"])
         self.Level2P_Input.setValue(self.opt["level_2p"])
-        self.QQSpaceServer.setValue(self.opt["qq_space_server"])
         self.AutoUseCard.setChecked(self.opt["auto_use_card"])
         self.AutoPickUp_1P.setChecked(self.opt["auto_pickup_1p"])
         self.AutoPickUp_2P.setChecked(self.opt["auto_pickup_2p"])
@@ -184,7 +183,6 @@ class MyMainWindow1(MyMainWindow0):
 
         self.opt["level_1p"] = self.Level1P_Input.value()
         self.opt["level_2p"] = self.Level2P_Input.value()
-        self.opt["qq_space_server"] = self.QQSpaceServer.value()
         self.opt["auto_use_card"] = self.AutoUseCard.isChecked()
         self.opt["auto_pickup_1p"] = self.AutoPickUp_1P.isChecked()
         self.opt["auto_pickup_2p"] = self.AutoPickUp_2P.isChecked()
