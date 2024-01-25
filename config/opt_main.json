@@ -9,10 +9,10 @@
     "auto_pickup_1p": false,
     "auto_pickup_2p": true,
     "sign_in": {
-        "active": false
+        "active": true
     },
     "fed_and_watered": {
-        "active": false
+        "active": true
     },
     "quest_guild": {
         "active": false,
@@ -31,41 +31,41 @@
         "battle_plan_2p": 1
     },
     "magic_tower_double": {
-        "active": true,
-        "max_times": 4,
+        "active": false,
+        "max_times": 5,
         "stage": 100,
         "deck": 2,
-        "battle_plan_1p": 9,
-        "battle_plan_2p": 10
+        "battle_plan_1p": 11,
+        "battle_plan_2p": 12
     },
     "magic_tower_alone_1": {
-        "active": true,
+        "active": false,
         "max_times": 5,
         "stage": 149,
         "deck": 3,
-        "battle_plan_1p": 15
+        "battle_plan_1p": 17
     },
     "magic_tower_alone_2": {
-        "active": true,
+        "active": false,
         "max_times": 4,
-        "stage": 84,
+        "stage": 86,
         "deck": 3,
-        "battle_plan_1p": 13
+        "battle_plan_1p": 15
     },
     "magic_tower_prison_1": {
-        "active": true,
+        "active": false,
         "stage": true,
         "deck": 6,
-        "battle_plan_1p": 20
+        "battle_plan_1p": 22
     },
     "magic_tower_prison_2": {
-        "active": true,
+        "active": false,
         "stage": true,
         "deck": 6,
-        "battle_plan_1p": 20
+        "battle_plan_1p": 23
     },
     "warrior": {
-        "active": true,
+        "active": false,
         "is_group": true,
         "max_times": 8,
         "deck": 1,
@@ -74,9 +74,9 @@
         "group": false
     },
     "cross_server": {
-        "active": true,
+        "active": false,
         "is_group": true,
-        "max_times": 2,
+        "max_times": 10,
         "stage": "CS-5-4",
         "deck": 1,
         "battle_plan_1p": 2,
@@ -94,20 +94,20 @@
         "group": false
     },
     "normal_battle": {
-        "active": false,
+        "active": true,
         "is_group": true,
-        "max_times": 10,
-        "stage": "NO-1-14",
-        "deck": 6,
-        "battle_plan_1p": 20,
-        "battle_plan_2p": 21,
+        "max_times": 35,
+        "stage": "EX-4-6",
+        "deck": 2,
+        "battle_plan_1p": 9,
+        "battle_plan_2p": 10,
         "group": true
     },
     "receive_awards": {
-        "active": true
+        "active": false
     },
     "use_items": {
-        "active": true
+        "active": false
     },
     "cross_server_reputation": {
         "active": true

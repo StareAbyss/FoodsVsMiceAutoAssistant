@@ -1142,7 +1142,14 @@ class MyMainWindow2(MyMainWindow1):
             channel_1p, channel_2p = get_channel_name(game_name, name_1p, name_2p)
 
             # 把索引变值 需要注意的是 battle_plan均为索引 需要在FAA类中处理
-            zoom_ratio = {0: 1.00, 1: 1.25, 2: 1.50, 3: 1.75, 4: 2.00, 5: 2.25, 6: 2.50}
+            zoom_ratio = {
+                0: 1.00,
+                1: 1.25,
+                2: 1.50,
+                3: 1.75,
+                4: 2.00,
+                5: 2.25,
+                6: 2.50}
             zoom_ratio = zoom_ratio[self.opt["zoom_ratio"]]
 
             faa = [None, None, None]
