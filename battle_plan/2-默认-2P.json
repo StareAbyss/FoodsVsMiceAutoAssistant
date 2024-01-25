@@ -144,15 +144,19 @@
             ]
         },
         {
+            "id": 9,
+            "name": "雷电长棍面包",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+            ]
+        },
+        {
             "name": "樱桃反弹布丁",
             "ergodic": true,
             "queue": false,
-            "id": 9,
+            "id": 10,
             "location": [
-                "1-1",
-                "1-2",
-                "1-6",
-                "1-7"
             ]
         }
     ]

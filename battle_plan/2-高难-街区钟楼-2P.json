@@ -111,6 +111,22 @@
                 "8-6",
                 "7-7"
             ]
+        },
+        {
+            "id": 9,
+            "name": "雷电长棍面包",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+            ]
+        },
+        {
+            "id": 10,
+            "name": "樱桃反弹布丁",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+            ]
         }
     ]
 }

@@ -149,6 +149,14 @@
         },
         {
             "id": 9,
+            "name": "雷电长棍面包",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+            ]
+        },
+        {
+            "id": 10,
             "tips": "布丁",
             "name": "Unknown",
             "ergodic": true,
