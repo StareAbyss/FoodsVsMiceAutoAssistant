@@ -1040,19 +1040,17 @@ class FAA:
         """
 
         """调用类参数"""
-        stage_info = self.stage_info
-        battle_plan = self.battle_plan
         player = self.player
         is_group = self.is_group
         zoom = self.zoom
-        bp_cell = self.bp_cell
-        bp_card = self.bp_card
+        bp_cell = copy.deepcopy(self.bp_cell)
+        bp_card = copy.deepcopy(self.bp_card)
 
         """调用类参数-战斗前生成"""
-        quest_card = self.quest_card
-        ban_card_list = self.ban_card_list
-        stage_info = self.stage_info
-        battle_plan = self.battle_plan
+        quest_card = copy.deepcopy(self.quest_card)
+        ban_card_list = copy.deepcopy(self.ban_card_list)
+        stage_info = copy.deepcopy(self.stage_info)
+        battle_plan = copy.deepcopy(self.battle_plan)
 
         def calculation_card_quest(list_cell_all):
             """计算步骤一 加入任务卡的摆放坐标"""
@@ -1095,7 +1093,7 @@ class FAA:
         def calculation_card_mat(list_cell_all):
             """步骤二 2张承载卡"""
 
-            location = copy.deepcopy(stage_info["mat_cell"])  # 深拷贝 防止对配置文件数据更改
+            location = stage_info["mat_cell"]  # 深拷贝 防止对配置文件数据更改
 
             # p1p2分别摆一半
             if is_group:
@@ -1142,21 +1140,6 @@ class FAA:
         def calculation_obstacle(list_cell_all):
             """去除有障碍的位置的放卡"""
 
-            # # 预设中 该关卡有障碍物
-            # new_list_1 = []
-            # for card in list_cell_all:
-            #     for location in card["location"]:
-            #         if location in stage_info["location"]:
-            #             card["location"].remove(location)
-            #     new_list_1.append(card)
-            #
-            # # 如果location完全不存在 就去掉它
-            # new_list_2 = []
-            # for card in new_list_1:
-            #     if card["location"]:
-            #         new_list_2.append(card)
-            # return new_list_2
-
             # 预设中 该关卡有障碍物
             for card in list_cell_all:
                 for location in card["location"]:
@@ -1190,6 +1173,9 @@ class FAA:
             将 id:int 变为 location_from:[x:int,y:int]
             将 location:str 变为 location_to:[[x:int,y:int],...]"""
 
+            # 注意 bp_cell 和 bp_card 已经根据缩放转化过坐标了
+            # 不要二次转化
+
             # 为每个字典添加未预设字段
             for card in list_cell_all:
                 if "location_from" not in card:
@@ -1201,20 +1187,20 @@ class FAA:
             for card in list_cell_all:
                 if not card["location_from"]:
                     coordinate = copy.deepcopy(bp_card[card["id"]])
-                    coordinate = [int(coordinate[0] * zoom), int(coordinate[1] * zoom)]
+                    coordinate = [coordinate[0], coordinate[1]]
                     card["location_from"] = coordinate
 
                 if not card["location_to"]:
                     new_list = []
                     for location in card["location"]:
                         coordinate = copy.deepcopy(bp_cell[location])
-                        new_list.append([int(coordinate[0] * zoom), int(coordinate[1] * zoom)])
+                        new_list.append([coordinate[0], coordinate[1]])
                     card["location_to"] = copy.deepcopy(new_list)
 
             new_list = []
             for location in list_shovel:
                 coordinate = bp_cell[location]
-                new_list.append([int(coordinate[0] * zoom), int(coordinate[1] * zoom)])
+                new_list.append([coordinate[0], coordinate[1]])
             list_shovel = copy.deepcopy(new_list)  # 因为重新注册list容器了, 可以不用深拷贝 但为了方便理解用一下
 
             return list_cell_all, list_shovel
@@ -1253,7 +1239,7 @@ class FAA:
 
     def get_mat_card_position(self):
 
-        stage_info = self.stage_info
+        stage_info = copy.deepcopy(self.stage_info)
         handle = self.handle
         zoom = self.zoom
         mat_card_list = ["木盘子", "棉花糖", "苏打气泡", "麦芽糖", "魔法软糖"]
@@ -1324,13 +1310,15 @@ class FAA:
 
         # the locations of cell easy touch the use-key UI by mistake
         warning_cell = ["4-4", "4-5", "5-4", "5-5"]
-        auto_collect_cells = ["1-1", "2-1", "8-1", "9-1",
-                              "1-2", "2-2", "8-2", "9-2",
-                              "1-3", "2-3", "8-3", "9-3",
-                              "1-4", "2-4", "8-4", "9-4",
-                              "1-5", "2-5", "8-5", "9-5",
-                              "1-6", "2-6", "8-6", "9-6",
-                              "1-7", "2-7", "8-7", "9-7"]
+        auto_collect_cells = [
+            "1-1", "2-1", "8-1", "9-1",
+            "1-2", "2-2", "8-2", "9-2",
+            "1-3", "2-3", "8-3", "9-3",
+            "1-4", "2-4", "8-4", "9-4",
+            "1-5", "2-5", "8-5", "9-5",
+            "1-6", "2-6", "8-6", "9-6",
+            "1-7", "2-7", "8-7", "9-7"
+        ]
         auto_collect_cells = [i for i in auto_collect_cells if i not in warning_cell]
 
         auto_collect_cells_coordinate = []
@@ -2552,21 +2540,21 @@ class FAA:
                 raw_w_handle=handle,
                 target_opts=[
                     {
-                        "raw_range": [0, 0, 950, 600],
+                        "raw_range": [75, 80, 430, 560],
                         "target_path": paths["picture"]["quest_guild"] + "\\fed_0.png",
-                        "target_tolerance": 0.99
+                        "target_tolerance": 0.98
                     }, {
-                        "raw_range": [0, 0, 950, 600],
+                        "raw_range": [75, 80, 430, 560],
                         "target_path": paths["picture"]["quest_guild"] + "\\fed_1.png",
-                        "target_tolerance": 0.99
+                        "target_tolerance": 0.98
                     }, {
-                        "raw_range": [0, 0, 950, 600],
+                        "raw_range": [75, 80, 430, 560],
                         "target_path": paths["picture"]["quest_guild"] + "\\fed_2.png",
-                        "target_tolerance": 0.99,
+                        "target_tolerance": 0.98,
                     }, {
-                        "raw_range": [0, 0, 950, 600],
+                        "raw_range": [75, 80, 430, 560],
                         "target_path": paths["picture"]["quest_guild"] + "\\fed_3.png",
-                        "target_tolerance": 0.99,
+                        "target_tolerance": 0.98,
                     }
                 ],
                 target_return_mode="or",
