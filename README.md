@@ -17,7 +17,7 @@ The original intention of developing this tool is to fulfill a childhood wish te
 
 # 下载
 
-[Github下载](https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant/releases) 
+[Github下载](https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant/releases)    
 [QQ交流群群文件]
 
 # 预览
