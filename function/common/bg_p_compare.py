@@ -11,7 +11,7 @@ from function.get_paths import paths
 def find_p_in_w(
         raw_w_handle,  # 句柄
         raw_range: list,  # 原始图像生效的范围
-        target_path: str,
+        target_path,
         target_tolerance: float = 0.95
 ):
     """
@@ -27,8 +27,10 @@ def find_p_in_w(
 
 
     """
-    # tar_img = cv2.imread(filename=target_path, flags=cv2.IMREAD_UNCHANGED)  # 读取目标图像, (行,列,ABGR), 不可使用中文路径
-    tar_img = cv2.imdecode(np.fromfile(target_path, dtype=np.uint8), -1)  # 读取目标图像,中文路径兼容方案, (行,列,ABGR)
+    if type(target_path) is np.ndarray:
+        tar_img = target_path
+    else:
+        tar_img = cv2.imdecode(np.fromfile(target_path, dtype=np.uint8), -1)  # 读取目标图像,中文路径兼容方案, (行,列,ABGR)
 
     raw_img = capture_picture_png(handle=raw_w_handle, raw_range=raw_range)  # 截取原始图像(windows窗口)
 
@@ -105,12 +107,15 @@ def find_ps_in_w(
         target_path = p["target_path"]  # 目标路径
         target_tolerance = p["target_tolerance"]  # 目标精准度阈值
 
-        # 读取目标图像,中文路径兼容方案, (行,列,ABGR)
-        tar_img = cv2.imdecode(
-            np.fromfile(
-                file=target_path,
-                dtype=np.uint8),
-            -1)
+        if type(target_path) is np.ndarray:
+            tar_img = target_path
+        else:
+            # 读取目标图像,中文路径兼容方案, (行,列,ABGR)
+            tar_img = cv2.imdecode(
+                np.fromfile(
+                    file=target_path,
+                    dtype=np.uint8),
+                -1)
 
         # 执行模板匹配，采用的匹配方式cv2.TM_SQDIFF_NORMED
         result = cv2.matchTemplate(
@@ -151,7 +156,7 @@ def find_ps_in_w(
 def loop_find_p_in_w(
         raw_w_handle,
         raw_range: list,
-        target_path: str,
+        target_path,
         target_tolerance: float = 0.95,
         target_interval: float = 0.2,
         target_failed_check: float = 10,
