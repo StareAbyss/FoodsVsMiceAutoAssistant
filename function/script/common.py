@@ -774,7 +774,10 @@ class FAA:
         elif stage_0 == "EX":
             main_ex()
         else:
-            print("请输入正确的关卡名称！")
+            print_g(
+                text="请输入正确的关卡名称！",
+                player=self.player,
+                garde=3)
 
     """其他基础函数"""
 
@@ -1277,8 +1280,6 @@ class FAA:
             mat_card_list = list(filter(lambda x: x not in find_list, mat_card_list))
             time.sleep(0.1)
 
-        print(position_list)
-
         return position_list
 
     def action_in_battle(self):
@@ -1630,9 +1631,10 @@ class FAA:
 
         def use_card_loop_1(list_cell_all):
             """循环方式 每一个卡都先在其对应的全部的位置放一次,再放下一张(每轮开始位置+1)"""
-            print("测试方法, 啥都没有")
-            print(list_cell_all)
-            print(handle)
+            print_g(
+                text="测试方法, 啥都没有",
+                player=self.player,
+                garde=1)
             return False
 
         def use_card_loop_skill():
@@ -2501,7 +2503,10 @@ class FAA:
                 target_sleep=1,
                 click=False
             )
-            print("{}次尝试, 浇水后, 已确认无任务完成黑屏".format(try_time + 1))
+            print_g(
+                text="{}次尝试, 浇水后, 已确认无任务完成黑屏".format(try_time + 1),
+                player=self.player,
+                garde=1)
 
             # 施肥一次
             mouse_left_click(
@@ -2519,7 +2524,10 @@ class FAA:
                 target_failed_check=7,
                 target_sleep=1,
                 click=False)
-            print("{}次尝试, 施肥后, 已确认无任务完成黑屏".format(try_time + 1))
+            print_g(
+                text="{}次尝试, 施肥后, 已确认无任务完成黑屏".format(try_time + 1),
+                player=self.player,
+                garde=1)
 
             # 点X回退一次
             mouse_left_click(
@@ -2569,7 +2577,10 @@ class FAA:
             )
 
             if not find:
-                print("[{}] 已完成公会浇水施肥, 尝试次数:{}".format(self.player, try_time))
+                print_g(
+                    text="已完成公会浇水施肥, 尝试次数:{}".format(try_time),
+                    player=self.player,
+                    garde=1)
                 return True
             else:
                 # 进入施肥界面, 正确进入就跳出循环
@@ -2584,7 +2595,10 @@ class FAA:
                 return False
 
         def fed_and_watered_main():
-            print("[{}] 开始公会浇水施肥".format(self.player))
+            print_g(
+                text="开始公会浇水施肥",
+                player=self.player,
+                garde=1)
 
             # 进入公会
             self.action_bottom_menu(mode="公会")
@@ -2748,7 +2762,11 @@ class FAA:
                 click=True,
                 click_zoom=zoom)
             if not find:
-                print("[{}] 30s找不到[开始/准备]字样! 创建房间可能失败! 直接reload游戏防止卡死".format(player))
+                print_g(
+                    text="30s找不到[开始/准备]字样! 创建房间可能失败! 直接reload游戏防止卡死",
+                    player=player,
+                    garde=2
+                )
                 self.reload_game()
                 first_time = True
                 handle = self.handle
@@ -2767,7 +2785,10 @@ class FAA:
                     y=int(353 * zoom))
 
             # 刷新ui: 状态文本
-            print("[{}] 查找火苗标识物, 等待loading完成".format(player))
+            print_g(
+                text="查找火苗标识物, 等待loading完成",
+                player=player,
+                garde=1)
 
             # 循环查找火苗图标 找到战斗开始
             find = loop_find_p_in_w(
@@ -2780,9 +2801,15 @@ class FAA:
                 click=False,
                 click_zoom=zoom)
             if find:
-                print("[{}] 找到[火苗标识物], 战斗进行中...".format(player))
+                print_g(
+                    text="找到[火苗标识物], 战斗进行中...",
+                    player=player,
+                    garde=1)
             else:
-                print("[{}] 30s找不到[火苗标识物]! 进入游戏! 直接reload游戏防止卡死".format(player))
+                print_g(
+                    text="30s找不到[火苗标识物]! 进入游戏! 直接reload游戏防止卡死",
+                    player=player,
+                    garde=2)
                 self.reload_game()
                 first_time = True
                 handle = self.handle
