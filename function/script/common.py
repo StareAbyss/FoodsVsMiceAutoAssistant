@@ -2,6 +2,7 @@ import copy
 import json
 import os
 import time
+from pprint import pprint
 
 import numpy as np
 from cv2 import imread, vconcat, imwrite
@@ -1045,7 +1046,6 @@ class FAA:
         """调用类参数"""
         player = self.player
         is_group = self.is_group
-        zoom = self.zoom
         bp_cell = copy.deepcopy(self.bp_cell)
         bp_card = copy.deepcopy(self.bp_card)
 
@@ -1233,8 +1233,8 @@ class FAA:
                 list_shovel=list_shovel)
 
             # 调试print
-            # print("调试info: 你的战斗放卡opt如下")
-            # pprint(list_cell_all)
+            print("调试info: 你的战斗放卡opt如下")
+            pprint(list_cell_all)
 
             return list_cell_all, list_shovel
 
@@ -1799,10 +1799,10 @@ class FAA:
                 for ban_card in ban_card_list:
                     # 对于名称带-的卡, 就对应的写入, 如果不带-, 就查找其所有变种
                     if "-" in ban_card:
-                        ban_card_s.append("{}.png".format(ban_card))
+                        ban_card_s.append("{}".format(ban_card))
                     else:
                         for i in range(9):  # i代表一张卡能有的最高变种 姑且认为是3*3 = 9
-                            ban_card_s.append("{}-{}.png".format(ban_card, i))
+                            ban_card_s.append("{}-{}".format(ban_card, i))
 
                 # 读取所有已记录的卡片文件名, 并去除没有记录的卡片
                 my_list = []
@@ -1815,8 +1815,8 @@ class FAA:
                     # 只ban被记录了图片的变种卡
                     loop_find_p_in_w(
                         raw_w_handle=handle,
-                        raw_range=[370, 35, 915, 105],
-                        target_path=paths["picture"]["card"] + "\\" + ban_card_n,
+                        raw_range=[380, 40, 915, 105],
+                        target_path=paths["picture"]["card"] + "\\房间\\" + ban_card_n + ".png",
                         target_tolerance=0.95,
                         target_interval=0.2,
                         target_failed_check=1,
