@@ -67,6 +67,7 @@ class MyMainWindow1(MyMainWindow0):
         self.QuestSpouse_Active.setChecked(self.opt["quest_spouse"]["active"])
 
         self.OfferReward_Active.setChecked(self.opt["offer_reward"]["active"])
+        self.OfferReward_MaxTimes.setValue(self.opt["offer_reward"]["max_times"])
         self.OfferReward_Deck.setValue(self.opt["offer_reward"]["deck"])
         self.OfferReward_1P.addItems(battle_plan_list)
         self.OfferReward_2P.addItems(battle_plan_list)
@@ -74,8 +75,8 @@ class MyMainWindow1(MyMainWindow0):
         self.OfferReward_2P.setCurrentIndex(self.opt["offer_reward"]["battle_plan_2p"])
 
         self.MagicTowerDouble_Active.setChecked(self.opt["magic_tower_double"]["active"])
-        self.MagicTowerDouble_MaxTimes.setValue(self.opt["magic_tower_double"]["max_times"])
         self.MagicTowerDouble_Stage.setValue(self.opt["magic_tower_double"]["stage"])
+        self.MagicTowerDouble_MaxTimes.setValue(self.opt["magic_tower_double"]["max_times"])
         self.MagicTowerDouble_Deck.setValue(self.opt["magic_tower_double"]["deck"])
         self.MagicTowerDouble_1P.addItems(battle_plan_list)
         self.MagicTowerDouble_1P.setCurrentIndex(self.opt["magic_tower_double"]["battle_plan_1p"])
@@ -201,6 +202,7 @@ class MyMainWindow1(MyMainWindow0):
 
         self.opt["offer_reward"]["active"] = self.OfferReward_Active.isChecked()
         self.opt["offer_reward"]["deck"] = self.OfferReward_Deck.value()
+        self.opt["offer_reward"]["max_times"] = self.OfferReward_MaxTimes.value()
         my_transformer_b(self.OfferReward_1P, "offer_reward", "battle_plan_1p")
         my_transformer_b(self.OfferReward_2P, "offer_reward", "battle_plan_2p")
 

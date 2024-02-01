@@ -9,10 +9,10 @@
     "auto_pickup_1p": false,
     "auto_pickup_2p": true,
     "sign_in": {
-        "active": true
+        "active": false
     },
     "fed_and_watered": {
-        "active": true
+        "active": false
     },
     "quest_guild": {
         "active": false,
@@ -25,7 +25,8 @@
         "active": false
     },
     "offer_reward": {
-        "active": false,
+        "active": true,
+        "max_times": 1,
         "deck": 1,
         "battle_plan_1p": 0,
         "battle_plan_2p": 1
@@ -48,7 +49,7 @@
     "magic_tower_alone_2": {
         "active": false,
         "max_times": 4,
-        "stage": 86,
+        "stage": 115,
         "deck": 3,
         "battle_plan_1p": 15
     },
@@ -56,13 +57,13 @@
         "active": false,
         "stage": true,
         "deck": 6,
-        "battle_plan_1p": 22
+        "battle_plan_1p": 24
     },
     "magic_tower_prison_2": {
         "active": false,
         "stage": true,
         "deck": 6,
-        "battle_plan_1p": 23
+        "battle_plan_1p": 22
     },
     "warrior": {
         "active": false,
@@ -94,26 +95,26 @@
         "group": false
     },
     "normal_battle": {
-        "active": true,
+        "active": false,
         "is_group": true,
-        "max_times": 35,
-        "stage": "EX-4-6",
+        "max_times": 45,
+        "stage": "EX-4-4",
         "deck": 2,
-        "battle_plan_1p": 9,
-        "battle_plan_2p": 10,
+        "battle_plan_1p": 7,
+        "battle_plan_2p": 8,
         "group": true
     },
     "receive_awards": {
-        "active": false
+        "active": true
     },
     "use_items": {
         "active": false
     },
     "cross_server_reputation": {
-        "active": true
+        "active": false
     },
     "customize": {
         "active": false,
-        "battle_plan_1p": 1
+        "battle_plan_1p": 3
     }
 }

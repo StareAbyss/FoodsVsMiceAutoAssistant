@@ -139,6 +139,7 @@ class FAA:
         点击上方菜单栏, 包含:
         VIP签到|X年活动|塔罗寻宝|大地图|大富翁|欢乐假期|每日签到|美食大赛|美食活动|萌宠神殿|跨服远征
         其中跨服会跳转到二区
+        :return bool 是否进入成功
         """
 
         failed_time = 0
@@ -382,7 +383,7 @@ class FAA:
 
         # 点击对应的地图
         my_path = paths["picture"]["map"] + "\\" + str(map_id) + ".png"
-        loop_find_p_in_w(
+        find = loop_find_p_in_w(
             raw_w_handle=self.handle,
             raw_range=[0, 0, 950, 600],
             target_path=my_path,
@@ -392,6 +393,7 @@ class FAA:
             click=True,
             click_zoom=self.zoom,
         )
+        return find
 
     def action_goto_stage(self, room_creator: bool = True, mt_first_time: bool = False):
         """
@@ -686,16 +688,21 @@ class FAA:
             # 进入X年活动界面
             self.action_top_menu(mode="X年活动")
 
-            # 根据模式进行选择
-            my_dict = {"1": 260, "2": 475, "3": 710}
-            mouse_left_click(
-                handle=self.handle,
-                x=int(my_dict[stage_1] * self.zoom),
-                y=int(411 * self.zoom),
-                sleep_time=2)
+            # 选择关卡
+            loop_find_p_in_w(
+                raw_w_handle=self.handle,
+                raw_range=[0, 0, 950, 600],
+                target_path=paths["picture"]["stage"] + "\\" + self.stage_info["id"] + ".png",
+                click_zoom=self.zoom,
+                target_tolerance=0.95,
+                target_sleep=1,
+                click=True)
 
             # 切区
-            my_dict = {"1": 8, "2": 2, "3": 2}
+            my_dict = {
+                "1": 8,
+                "2": 2,
+                "3": 2}
             change_to_region(region_id=my_dict[stage_1])
 
             # 仅限创房间的人
@@ -886,6 +893,7 @@ class FAA:
         self.action_exit(mode="普通红叉")
 
     def AQRR_offer_reward(self):
+
         # 进入X年活动界面
         self.action_top_menu(mode="X年活动")
 
@@ -911,9 +919,6 @@ class FAA:
         handle = self.handle
         zoom = self.zoom
         found_flag = False  # 记录是否有完成任何一次任务
-
-        # 找到活动第一页 并进入活动页面
-        self.change_activity_list(serial_num=1)
 
         # 进入美食大赛界面
         find = self.action_top_menu(mode="美食大赛")
@@ -952,19 +957,63 @@ class FAA:
                 sleep_time=0.5)
 
         else:
-            print_g(text="[收取奖励] [美食大赛] 未打开界面, 可能大赛未刷新", player=self.player, garde=2)
+            print_g(text="[领取奖励] [美食大赛] 未打开界面, 可能大赛未刷新", player=self.player, garde=2)
 
         if not found_flag:
-            print_g(text="[收取奖励] [美食大赛] 未完成任意任务", player=self.player, garde=1)
+            print_g(text="[领取奖励] [美食大赛] 未完成任意任务", player=self.player, garde=1)
+
+    def AQRR_monopoly(self):
+
+        handle = self.handle
+        zoom = self.zoom
+
+        # 进入对应地图
+        find = self.action_top_menu(mode="大富翁")
+
+        if find:
+
+            y_dict = {
+                0: 167,
+                1: 217,
+                2: 266,
+                3: 320,
+                4: 366,
+                5: 417
+            }
+
+            for i in range(3):
+
+                if i > 0:
+                    # 下一页
+                    mouse_left_click(
+                        handle=handle,
+                        x=int(878 * zoom),
+                        y=int(458 * zoom),
+                        sleep_time=0.5)
+
+                # 点击每一个有效位置
+                for j in range(6):
+                    mouse_left_click(
+                        handle=handle,
+                        x=int(768 * zoom),
+                        y=int(y_dict[j] * zoom),
+                        sleep_time=0.1)
+
+            # 退出界面
+            mouse_left_click(
+                handle=handle,
+                x=int(928 * zoom),
+                y=int(16 * zoom),
+                sleep_time=0.5)
 
     def action_quest_receive_rewards(self, mode: str):
         """
-        收取任务奖励
-        :param mode: normal/guild/spouse/offer_reward/food_competition
+        领取奖励
+        :param mode: 普通任务/公会任务/情侣任务/悬赏任务/美食大赛/大富翁
         :return:None
         """
 
-        print_g(text="[收取任务奖励] [{}] 开始收取".format(mode), player=self.player, garde=1)
+        print_g(text="[领取奖励] [{}] 开始".format(mode), player=self.player, garde=1)
 
         if mode == "普通任务":
             self.AQRR_normal()
@@ -976,8 +1025,10 @@ class FAA:
             self.AQRR_offer_reward()
         if mode == "美食大赛":
             self.AQRR_food_competition()
+        if mode == "大富翁":
+            self.AQRR_monopoly()
 
-        print_g(text="[收取任务奖励] [{}] 已全部领取".format(mode), player=self.player, garde=1)
+        print_g(text="[领取奖励] [{}] 结束".format(mode), player=self.player, garde=1)
 
     """调用输入关卡配置和战斗配置, 在战斗前必须进行该操作"""
 
@@ -2339,7 +2390,7 @@ class FAA:
                 y=int(98 * zoom),
                 sleep_time=1)
 
-        def release_quest_guild():
+        def sign_in_release_quest_guild():
             """会长发布任务"""
             self.action_bottom_menu(mode="跳转_公会任务")
 
@@ -2368,13 +2419,27 @@ class FAA:
             # 关闭任务列表(红X)
             self.action_exit(mode="普通红叉", raw_range=[834, 35, 876, 83])
 
+        def sign_in_camp_key():
+            """领取营地钥匙"""
+            # 进入界面
+            find = self.action_goto_map(map_id=6)
+
+            if find:
+                # 领取钥匙
+                mouse_left_click(
+                    handle=handle,
+                    x=int(400 * zoom),
+                    y=int(445 * zoom),
+                    sleep_time=0.5)
+
         def main():
             sign_in_vip()
             sign_in_everyday()
             sign_in_food_activity()
             sign_in_tarot()
             sign_in_pharaoh()
-            release_quest_guild()
+            sign_in_release_quest_guild()
+            sign_in_camp_key()
 
         main()
 

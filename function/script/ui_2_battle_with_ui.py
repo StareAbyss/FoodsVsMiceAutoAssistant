@@ -84,11 +84,12 @@ class Todo(QThread):
     def receive_quest_rewards(self):
 
         self.sin_out.emit(
-            "[{}] 领取所有[任务]完成, 开始".format(
+            "[{}] [领取奖励] 开始...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
+        """普通任务"""
         self.sin_out.emit(
-            "[{}] 领取一般任务奖励...".format(
+            "[{}] [领取奖励] [普通任务] 开始...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
@@ -105,6 +106,7 @@ class Todo(QThread):
             kwargs={
                 "mode": "普通任务"
             })
+
         # 涉及键盘抢夺, 容错低, 最好分开执行
         self.thread_1p.start()
         sleep(0.333)
@@ -113,7 +115,13 @@ class Todo(QThread):
         self.thread_2p.join()
 
         self.sin_out.emit(
-            "[{}] 登陆美食大赛并领取任务奖励...".format(
+            "[{}] [领取奖励] [普通任务] 结束".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+        """美食大赛"""
+
+        self.sin_out.emit(
+            "[{}] [领取奖励] [美食大赛] 开始...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
@@ -137,6 +145,41 @@ class Todo(QThread):
         self.thread_2p.start()
         self.thread_1p.join()
         self.thread_2p.join()
+
+        self.sin_out.emit(
+            "[{}] [领取奖励] [美食大赛] 结束...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+        """大富翁"""
+        self.sin_out.emit(
+            "[{}] [领取奖励] [大富翁] 开始...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+        # 创建进程 -> 开始进程 -> 阻塞主进程
+        self.thread_1p = ThreadWithException(
+            target=self.faa[1].action_quest_receive_rewards,
+            name="1P Thread - Quest",
+            kwargs={
+                "mode": "大富翁"
+            })
+
+        self.thread_2p = ThreadWithException(
+            target=self.faa[2].action_quest_receive_rewards,
+            name="2P Thread - Quest",
+            kwargs={
+                "mode": "大富翁"
+            })
+
+        # 涉及键盘抢夺, 容错低, 最好分开执行
+        self.thread_1p.start()
+        sleep(0.333)
+        self.thread_2p.start()
+        self.thread_1p.join()
+        self.thread_2p.join()
+
+        self.sin_out.emit(
+            "[{}] [领取奖励] [大富翁] 结束...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
         self.sin_out.emit(
             "[{}] 领取所有[任务]奖励, 完成".format(
@@ -733,7 +776,7 @@ class Todo(QThread):
                 text_))
 
     def double_offer_reward(
-            self, text_,
+            self, text_, max_times,
             deck,
             battle_plan_1p, battle_plan_2p):
 
@@ -755,7 +798,7 @@ class Todo(QThread):
                 "battle_plan_1p": battle_plan_1p,
                 "battle_plan_2p": battle_plan_2p,
                 "stage_id": "OR-" + str(i + 1) + "-0",
-                "max_times": 1,
+                "max_times": max_times,
                 "quest_card": "None",
                 "list_ban_card": [],
                 "dict_exit": {
@@ -931,6 +974,7 @@ class Todo(QThread):
             self.double_offer_reward(
                 text_="[悬赏任务]",
                 deck=my_opt["deck"],
+                max_times=my_opt["max_times"],
                 battle_plan_1p=my_opt["battle_plan_1p"],
                 battle_plan_2p=my_opt["battle_plan_2p"])
 
