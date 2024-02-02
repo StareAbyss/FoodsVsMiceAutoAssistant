@@ -442,22 +442,22 @@ class Todo(QThread):
             ban_card_list,
             battle_plan_1p,
             battle_plan_2p,
-            dict_exit):
+            dict_exit
+    ):
         """[单本轮战]1次 副本外 → 副本内n次战斗 → 副本外"""
 
         # 判断是不是打魔塔
         is_mt = "MT" in stage_id
 
+        # 处理多人信息
         is_group = False
         player_a = player[0]
         player_b = 1 if player_a == 2 else 2
         faa_a = self.faa[player_a]
         faa_b = self.faa[player_b]
-
         if len(player) == 2:
             is_group = True
             player_b = player[1]
-
         battle_plan_a = battle_plan_1p if player_a == 1 else battle_plan_2p
         battle_plan_b = battle_plan_1p if player_b == 1 else battle_plan_2p
 
@@ -627,12 +627,20 @@ class Todo(QThread):
     def n_n_battle(
             self,
             quest_list,
-            list_type):
+            list_type
+    ):
         """
         [多本战斗]n次 副本外 -> 副本内n次战斗 -> 副本外
         :param quest_list: 任务清单
         :param list_type: 打哪些类型的副本 比如 ["NO","CS"]
         """
+
+        # 战斗开始
+        self.sin_out.emit(
+            "[{}] [多本轮战] 开始...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            ))
+
         # 遍历完成每一个任务
         for i in range(len(quest_list)):
             quest = quest_list[i]
@@ -673,56 +681,162 @@ class Todo(QThread):
                         quest["list_ban_card"]))
                 continue
 
+        # 战斗开始
+        self.sin_out.emit(
+            "[{}] [多本轮战] 结束".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            ))
+
+    def n_battle_customize(
+            self,
+            text_,
+            is_group,
+            max_times,
+            deck,
+            battle_plan_1p,
+            battle_plan_2p,
+    ):
+        """
+        用于自建房对战
+        """
+        self.sin_out.emit(
+            "\n[{}] {} Link Start!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
+
+        # index of player -> list of player
+        player = [2, 1]
+        if is_group == 0:
+            player = [1, 2]
+        elif is_group == 1:
+            player = [2, 1]
+        elif is_group == 2:
+            player = [1]
+        elif is_group == 3:
+            player = [2]
+
+        # 处理多人信息
+        is_group = False
+        player_a = player[0]
+        player_b = 1 if player_a == 2 else 2
+        faa_a = self.faa[player_a]
+        faa_b = self.faa[player_b]
+        if len(player) == 2:
+            is_group = True
+            player_b = player[1]
+        battle_plan_a = battle_plan_1p if player_a == 1 else battle_plan_2p
+        battle_plan_b = battle_plan_1p if player_b == 1 else battle_plan_2p
+
+        # 填入战斗方案和关卡信息
+        faa_a.set_config_for_battle(
+            battle_mode=0,
+            is_group=is_group,
+            deck=deck,
+            quest_card="None",
+            ban_card_list=[],
+            battle_plan_index=battle_plan_a,
+            stage_id="OR-1-0"  # 该地图不自动放承载卡, 且铲所有卡~
+        )
+        faa_b.set_config_for_battle(
+            battle_mode=0,
+            is_group=is_group,
+            deck=deck,
+            quest_card="None",
+            ban_card_list=[],
+            battle_plan_index=battle_plan_b,
+            stage_id="OR-1-0"  # 该地图不自动放承载卡, 且铲所有卡~
+        )
+
+        success_battle_time = 0  # 记录成功战斗次数
+
+        # 轮次作战
+        while success_battle_time < max_times:
+
+            timer_begin = time.time()
+
+            print("=" * 50)
+            text = "[{}] [单本轮战] 第{}次, 开始".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                success_battle_time + 1)
+            print(text)
+            self.sin_out.emit(text)
+
+            # 创建战斗进程 -> 开始进程
+            result = self.battle(player_a=player_a, player_b=player_b)
+
+            if result == 0:
+                # 战斗成功 计数+1
+                success_battle_time += 1
+
+                # 结束提示文本
+                text = "[{}] [单本轮战] 第{}次, 正常结束, 耗时:{:.0f}s".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    success_battle_time,
+                    time.time() - timer_begin)
+                print(text)
+                self.sin_out.emit(text)
+
+            else:
+                # 结束提示文本
+                text = "[{}] [单本轮战] 第{}次, 出现未知异常! 刷新后卡死, 以防止更多问题, 出现此问题可上报作者".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    success_battle_time)
+                print(text)
+                self.sin_out.emit(text)
+
+                self.reload_game()
+                sleep(60 * 60 * 24)
+
+        # 战斗结束
+        self.sin_out.emit(
+            "[{}] {} Completed!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
+
     def guild_or_spouse_quest(
             self,
             text_,
             quest_mode,
             deck,
             battle_plan_1p,
-            battle_plan_2p):
+            battle_plan_2p
+    ):
         """完成公会or情侣任务"""
 
         self.sin_out.emit(
-            "\n[{}] {}Link Start!".format(
+            "\n[{}] {} Link Start!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
         self.sin_out.emit(
-            "[{}] {}检查领取奖励中...".format(
+            "[{}] {} 检查领取奖励...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
-
         self.faa[1].action_quest_receive_rewards(mode=quest_mode)
         self.faa[2].action_quest_receive_rewards(mode=quest_mode)
 
         self.sin_out.emit(
-            "[{}] {}开始获取任务列表".format(
+            "[{}] {} 获取任务列表...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
-
         quest_list = self.faa[1].action_get_quest(mode=quest_mode)
-
         for i in quest_list:
             self.sin_out.emit(
                 "[{}] 副本:{},额外带卡:{}".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     i["stage_id"],
                     i["quest_card"]))
-
         for i in range(len(quest_list)):
             quest_list[i]["deck"] = deck
             quest_list[i]["battle_plan_1p"] = battle_plan_1p
             quest_list[i]["battle_plan_2p"] = battle_plan_2p
 
-        self.sin_out.emit(
-            "[{}] {}已取得任务,开始[多本轮战]...".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                text_))
-
-        self.n_n_battle(quest_list=quest_list, list_type=["NO"])
+        self.n_n_battle(
+            quest_list=quest_list,
+            list_type=["NO"])
 
         self.sin_out.emit(
-            "[{}] {}检查领取奖励中...".format(
+            "[{}] {} 检查领取奖励中...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
@@ -730,7 +844,7 @@ class Todo(QThread):
         self.faa[2].action_quest_receive_rewards(mode=quest_mode)
 
         self.sin_out.emit(
-            "[{}] {}Completed!".format(
+            "[{}] {} Completed!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
@@ -744,12 +858,6 @@ class Todo(QThread):
         # 战斗开始
         self.sin_out.emit(
             "\n[{}] {} Link Start!".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                text_))
-
-        # 战斗开始
-        self.sin_out.emit(
-            "[{}] {}开始[多本轮战]...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
@@ -1123,12 +1231,27 @@ class Todo(QThread):
         if self.opt["cross_server_reputation"]["active"]:
             self.cross_server_reputation(deck=self.opt["quest_guild"]["deck"])
 
-        if self.opt["customize"]["active"]:
-            self.customize_todo(text_="[高级自定义]", customize_todo_index=self.opt["customize"]["battle_plan_1p"])
+        my_opt = self.opt["customize_battle"]
+        if my_opt["active"]:
+            self.n_battle_customize(
+                text_="[自建房战斗]",
+                is_group=my_opt["is_group"],
+                max_times=int(my_opt["max_times"]),
+                deck=my_opt["deck"],
+                battle_plan_1p=my_opt["battle_plan_1p"],
+                battle_plan_2p=my_opt["battle_plan_2p"],
+
+            )
+
+        my_opt = self.opt["customize"]
+        if my_opt["active"]:
+            self.customize_todo(
+                text_="[高级自定义]",
+                customize_todo_index=my_opt["battle_plan_1p"])
 
         # 全部完成了刷新一下
         self.sin_out.emit(
-            "[{}] 已完成所有事项, 刷新游戏回到登录界面, 防止长期运行flash导致卡顿".format(
+            "\n[{}] 已完成所有事项, 刷新游戏回到登录界面, 防止长期运行flash导致卡顿".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
         self.reload_to_login_ui()
 

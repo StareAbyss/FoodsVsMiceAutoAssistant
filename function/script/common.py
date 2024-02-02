@@ -2,7 +2,6 @@ import copy
 import json
 import os
 import time
-from pprint import pprint
 
 import numpy as np
 from cv2 import imread, vconcat, imwrite
@@ -1283,9 +1282,9 @@ class FAA:
                 list_cell_all=list_cell_all,
                 list_shovel=list_shovel)
 
-            # 调试print
-            print("调试info: 你的战斗放卡opt如下")
-            pprint(list_cell_all)
+            # 调试print 打包前务必注释!
+            # print("调试info: 你的战斗放卡opt如下")
+            # pprint(list_cell_all)
 
             return list_cell_all, list_shovel
 
@@ -1306,7 +1305,7 @@ class FAA:
         # 筛选出 被记录的卡片变种
         new_list = []
         for mat_card in mat_card_list:
-            for i in range(3):
+            for i in range(10):
                 new_card = "{}-{}".format(mat_card, i)
                 if new_card in self.card_recorded_battle:
                     new_list.append(new_card)
@@ -2783,25 +2782,25 @@ class FAA:
         while True:
 
             if first_time:
-                # 进入X年活动界面
+                # 进入界面
                 self.action_top_menu(mode="跨服远征")
                 first_time = False
 
-            # 创建房间
+            # 创建房间-右下角
             mouse_left_click(
                 handle=handle,
                 x=int(853 * zoom),
                 y=int(553 * zoom),
                 sleep_time=0.5)
 
-            # 选择地图
+            # 选择地图-巫毒
             mouse_left_click(
                 handle=handle,
                 x=int(65 * zoom),
-                y=int(70 * zoom),
+                y=int(470 * zoom),
                 sleep_time=0.5)
 
-            # 选择关卡
+            # 选择关卡-第二关
             mouse_left_click(
                 handle=handle,
                 x=int(401 * zoom),

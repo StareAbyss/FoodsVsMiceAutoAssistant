@@ -154,6 +154,15 @@ class MyMainWindow1(MyMainWindow0):
 
         self.CrossServerReputation_Active.setChecked(self.opt["cross_server_reputation"]["active"])
 
+        self.CustomizeBattle_Active.setChecked(self.opt["customize_battle"]["active"])
+        self.CustomizeBattle_Group.setCurrentIndex(self.opt["customize_battle"]["is_group"])
+        self.CustomizeBattle_MaxTimes.setValue(self.opt["customize_battle"]["max_times"])
+        self.CustomizeBattle_Deck.setValue(self.opt["customize_battle"]["deck"])
+        self.CustomizeBattle_1P.addItems(battle_plan_list)
+        self.CustomizeBattle_2P.addItems(battle_plan_list)
+        self.CustomizeBattle_1P.setCurrentIndex(self.opt["customize_battle"]["battle_plan_1p"])
+        self.CustomizeBattle_2P.setCurrentIndex(self.opt["customize_battle"]["battle_plan_2p"])
+
         self.Customize_Active.setChecked(self.opt["customize"]["active"])
         self.Customize_1P.addItems(customize_todo_list)
         self.Customize_1P.setCurrentIndex(self.opt["customize"]["battle_plan_1p"])
@@ -271,6 +280,13 @@ class MyMainWindow1(MyMainWindow0):
         self.opt["use_items"]["active"] = self.UseItems_Active.isChecked()
 
         self.opt["cross_server_reputation"]["active"] = self.CrossServerReputation_Active.isChecked()
+
+        self.opt["customize_battle"]["active"] = self.CustomizeBattle_Active.isChecked()
+        self.opt["customize_battle"]["is_group"] = self.CustomizeBattle_Group.currentIndex()  # combobox 序号
+        self.opt["customize_battle"]["max_times"] = self.CustomizeBattle_MaxTimes.value()
+        self.opt["customize_battle"]["deck"] = self.CustomizeBattle_Deck.value()
+        my_transformer_b(self.CustomizeBattle_1P, "customize_battle", "battle_plan_1p")
+        my_transformer_b(self.CustomizeBattle_2P, "customize_battle", "battle_plan_2p")
 
         self.opt["customize"]["active"] = self.Customize_Active.isChecked()
         my_transformer_c(self.Customize_1P, "customize", "battle_plan_1p")
