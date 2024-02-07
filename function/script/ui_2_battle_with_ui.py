@@ -462,7 +462,7 @@ class Todo(QThread):
         battle_plan_b = battle_plan_1p if player_b == 1 else battle_plan_2p
 
         self.sin_out.emit(
-            "[{}] [单本轮战] {} {}次".format(
+            "[{}] [单本轮战] {} {}次 开始".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 stage_id,
                 max_times))
@@ -504,7 +504,7 @@ class Todo(QThread):
 
         need_goto_stage = True  # 标记是否需要进入副本
         success_battle_time = 0  # 记录成功战斗次数
-
+        result_list = []  # 记录成功场次
         # 轮次作战
         while success_battle_time < max_times:
 
@@ -588,10 +588,12 @@ class Todo(QThread):
                             faa_b.action_exit(mode=j)
 
                 # 结束提示文本
+                time_spend = time.time() - timer_begin
+                result_list.append(time_spend)
                 text = "[{}] [单本轮战] 第{}次, 正常结束, 耗时:{:.0f}s".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     success_battle_time,
-                    time.time() - timer_begin)
+                    time_spend)
                 print(text)
                 self.sin_out.emit(text)
 
@@ -623,6 +625,25 @@ class Todo(QThread):
                 self.sin_out.emit(text)
 
                 self.reload_game()
+
+        # 结束后进行统计和输出
+        count = 0
+        sum_time = 0
+        for i in result_list:
+            count += 1
+            sum_time += i
+        average_time_spend = sum_time / count
+        # 战斗结束
+        self.sin_out.emit(
+            "[{}] [单本轮战] {} {}次 结束 正常场次:{} 耗时:总{:.0f}s/均{:.0f}s".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                stage_id,
+                max_times,
+                count,
+                sum_time,
+                average_time_spend
+            )
+        )
 
     def n_n_battle(
             self,
@@ -668,6 +689,7 @@ class Todo(QThread):
                     ban_card_list=quest["list_ban_card"],
                     dict_exit=quest["dict_exit"])
 
+
             else:
 
                 self.sin_out.emit(
@@ -681,10 +703,10 @@ class Todo(QThread):
                         quest["list_ban_card"]))
                 continue
 
-        # 战斗开始
+        # 战斗结束
         self.sin_out.emit(
             "[{}] [多本轮战] 结束".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             ))
 
     def n_battle_customize(
