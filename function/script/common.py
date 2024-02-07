@@ -2700,7 +2700,7 @@ class FAA:
         handle = self.handle
         zoom = self.zoom
         # 获取所有图片资源
-        my_list = os.listdir(paths["picture"]["item"] + "\\")
+        my_list = os.listdir(paths["picture"]["item"] + "\\背包\\")
         print_g(text="开启使用物品功能", player=self.player, garde=1)
 
         # 打开背包
@@ -2743,7 +2743,7 @@ class FAA:
                     find = loop_find_p_in_w(
                         raw_w_handle=handle,
                         raw_range=[466, 86, 891, 435],
-                        target_path=paths["picture"]["item"] + "\\" + item,
+                        target_path=paths["picture"]["item"] + "\\背包\\" + item,
                         target_tolerance=0.95,
                         target_interval=0.2,
                         target_failed_check=1,
@@ -2756,7 +2756,7 @@ class FAA:
                         find = loop_find_p_in_w(
                             raw_w_handle=handle,
                             raw_range=[466, 86, 950, 500],
-                            target_path=paths["picture"]["item"] + "\\使用.png",
+                            target_path=paths["picture"]["item"] + "\\背包\\使用.png",
                             target_tolerance=0.95,
                             target_interval=0.2,
                             target_failed_check=1,
@@ -2769,7 +2769,7 @@ class FAA:
                             loop_find_p_in_w(
                                 raw_w_handle=handle,
                                 raw_range=[466, 86, 950, 500],
-                                target_path=paths["picture"]["item"] + "\\使用_被选中.png",
+                                target_path=paths["picture"]["item"] + "\\背包\\使用_被选中.png",
                                 target_tolerance=0.95,
                                 target_interval=0.2,
                                 target_failed_check=1,

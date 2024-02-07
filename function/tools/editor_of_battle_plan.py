@@ -8,6 +8,11 @@ from PyQt5.QtWidgets import (
 
 double_click_card_list = pyqtSignal(object)
 
+"""
+战斗方案编辑器
+致谢：八重垣天知
+"""
+
 
 class QListWidgetDraggable(QListWidget):
 
