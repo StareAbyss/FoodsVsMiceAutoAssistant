@@ -25,8 +25,8 @@
         "active": false
     },
     "offer_reward": {
-        "active": true,
-        "max_times": 1,
+        "active": false,
+        "max_times": 2,
         "deck": 1,
         "battle_plan_1p": 0,
         "battle_plan_2p": 1
@@ -41,15 +41,15 @@
     },
     "magic_tower_alone_1": {
         "active": false,
-        "max_times": 5,
+        "max_times": 3,
         "stage": 149,
         "deck": 3,
         "battle_plan_1p": 17
     },
     "magic_tower_alone_2": {
         "active": false,
-        "max_times": 4,
-        "stage": 115,
+        "max_times": 1,
+        "stage": 123,
         "deck": 3,
         "battle_plan_1p": 15
     },
@@ -71,8 +71,7 @@
         "max_times": 8,
         "deck": 1,
         "battle_plan_1p": 2,
-        "battle_plan_2p": 3,
-        "group": false
+        "battle_plan_2p": 3
     },
     "cross_server": {
         "active": false,
@@ -81,37 +80,42 @@
         "stage": "CS-5-4",
         "deck": 1,
         "battle_plan_1p": 2,
-        "battle_plan_2p": 3,
-        "group": false
+        "battle_plan_2p": 3
     },
     "relic": {
         "active": false,
         "is_group": true,
         "max_times": 5,
-        "stage": "NO-3-4",
+        "stage": "NO-3-6",
         "deck": 1,
         "battle_plan_1p": 2,
-        "battle_plan_2p": 3,
-        "group": false
+        "battle_plan_2p": 3
     },
     "normal_battle": {
-        "active": false,
+        "active": true,
         "is_group": true,
-        "max_times": 45,
-        "stage": "EX-4-4",
-        "deck": 2,
-        "battle_plan_1p": 7,
-        "battle_plan_2p": 8,
-        "group": true
+        "max_times": 1,
+        "stage": "NO-4-3",
+        "deck": 1,
+        "battle_plan_1p": 2,
+        "battle_plan_2p": 3
     },
     "receive_awards": {
-        "active": true
+        "active": false
     },
     "use_items": {
         "active": false
     },
     "cross_server_reputation": {
-        "active": false
+        "active": true
+    },
+    "customize_battle": {
+        "active": false,
+        "is_group": 0,
+        "max_times": 5,
+        "deck": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1
     },
     "customize": {
         "active": false,
