@@ -808,14 +808,28 @@ class FAA:
 
             if find:
                 # 复位滑块
-                mouse_left_click(handle=handle, x=int(413 * zoom), y=int(155 * zoom), sleep_time=0.25)
+                mouse_left_click(
+                    handle=handle,
+                    x=int(413 * zoom),
+                    y=int(155 * zoom),
+                    sleep_time=0.25)
 
-                for i in range(7):
+                for i in range(8):
+
+                    # 不是第一次滑块向下移动3次
+                    if i != 0:
+                        for j in range(3):
+                            mouse_left_click(
+                                handle=handle,
+                                x=int(413 * zoom),
+                                y=int(524 * zoom),
+                                sleep_time=0.05)
+
                     # 找到就点一下, 找不到就跳过
                     while True:
                         find = loop_find_p_in_w(
                             raw_w_handle=handle,
-                            raw_range=[0, 0, 950, 600],
+                            raw_range=[335, 120, 420, 545],
                             target_path=paths["picture"]["common"] + "\\任务_完成.png",
                             target_tolerance=0.95,
                             target_failed_check=1,
@@ -824,13 +838,13 @@ class FAA:
                             click=True)
                         if find:
                             # 领取奖励
-                            mouse_left_click(handle=handle, x=int(643 * zoom), y=int(534 * zoom), sleep_time=0.2)
+                            mouse_left_click(
+                                handle=handle,
+                                x=int(643 * zoom),
+                                y=int(534 * zoom),
+                                sleep_time=0.2)
                         else:
                             break
-
-                    # 滑块向下移动3次
-                    for j in range(3):
-                        mouse_left_click(handle=handle, x=int(413 * zoom), y=int(524 * zoom), sleep_time=0.05)
 
                 self.action_exit(mode="普通红叉")
                 break
@@ -1962,7 +1976,7 @@ class FAA:
             if find:
                 print_g(text="[战利品UI] 正常结束, 尝试捕获战利品截图", player=player, garde=1)
 
-                # 记录战利品
+                # 记录战利品 tip 一张图49x49 是完美规整的
                 img = []
                 mouse_left_click(
                     handle=handle,
@@ -1973,7 +1987,7 @@ class FAA:
                 img.append(
                     capture_picture_png(
                         handle=handle,
-                        raw_range=[209, 453, 698, 551]))
+                        raw_range=[209, 454, 699, 552]))
                 time.sleep(0.5)
 
                 mouse_left_click(
@@ -1985,19 +1999,19 @@ class FAA:
                 img.append(
                     capture_picture_png(
                         handle=handle,
-                        raw_range=[209, 453, 698, 551]))
+                        raw_range=[209, 456, 699, 505]))
                 time.sleep(0.5)
 
                 mouse_left_click(
                     handle=handle,
                     x=int(708 * zoom),
-                    y=int(527 * zoom),
+                    y=int(529 * zoom),
                     interval_time=0.05,
                     sleep_time=0.3)
                 img.append(
                     capture_picture_png(
                         handle=handle,
-                        raw_range=[209, 502, 698, 551]))
+                        raw_range=[209, 454, 699, 552]))
 
                 # 垂直拼接
                 img = vconcat(img)
