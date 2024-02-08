@@ -17,7 +17,7 @@ from function.script.scattered.get_list_card_battle import get_list_card_battle
 from function.script.scattered.get_list_card_room import get_list_card_room
 from function.script.scattered.print_grade import print_g
 from function.script.scattered.read_json_to_stage_info import read_json_to_stage_info
-from function.tools.create_battle_coordinates import create_battle_coordinates
+from function.tools.get_battle_coordinates import create_battle_coordinates
 
 
 class FAA:
@@ -1971,7 +1971,8 @@ class FAA:
                         "raw_range": [202, 419, 306, 461],
                         "target_path": paths["picture"]["common"] + "\\战斗\\战斗后_2_战利品阴影版.png",
                         "target_tolerance": 0.999
-                    }],
+                    }
+                ],
                 return_mode="or")
             if find:
                 print_g(text="[战利品UI] 正常结束, 尝试捕获战利品截图", player=player, garde=1)
@@ -2016,11 +2017,12 @@ class FAA:
                 # 垂直拼接
                 img = vconcat(img)
                 # 保存图片
-                title = "{}\\{}_{}_{}.png".format(
+                title = "{}\\{}_{}P_{}.png".format(
                     paths["logs"],
                     self.stage_info["id"],
-                    time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime()),
-                    player
+                    player,
+                    time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+
                 )
                 imwrite(title, img)
 
