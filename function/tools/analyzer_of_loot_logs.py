@@ -1,10 +1,9 @@
 import os
-import sys
+import random
 
-sys.path.append('C:/192/FAA/FoodsVsMouses_AutoAssistant')
-from function.get_paths import paths
 import cv2
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog, QVBoxLayout, QLabel
+
+from function.get_paths import paths
 
 """
 战斗结果logs分析器
@@ -12,45 +11,15 @@ from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QFileDialog, QVB
 """
 
 
-class LogsAnalyzer(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.initUI()
-        self.test_number = 0
+class LogsAnalyzer:
 
-    def initUI(self):
-        self.setWindowTitle('logs分析器')
-        self.layout = QVBoxLayout()
-
-        self.btnOpen = QPushButton('选择图片', self)
-        self.btnOpen.clicked.connect(self.openImage)
-        self.layout.addWidget(self.btnOpen)
-
-        self.lblResult = QLabel('', self)
-        self.layout.addWidget(self.lblResult)
-
-        self.setLayout(self.layout)
-        self.show()
-
-    def openImage(self):
-        options = QFileDialog.Options()
-        fileName, _ = QFileDialog.getOpenFileName(
-            self,
-            "QFileDialog.getOpenFileName()",
-            "",
-            "PNG Files (*.png)",
-            options=options)
-
-        if fileName:
-            self.matchImage(fileName)
-
-    def matchImage(self, imagePath):
+    def matchImage(imagePath):
         print("成功调用该函数")
         # 读图
         img = cv2.imread(imagePath)
         if img is None:
-            self.lblResult.setText('图片打不开')
-            return
+            print('图片打不开')
+            return None
 
         # 从文件名中提取地图名
         map_name = os.path.basename(imagePath).split('_')[0]
@@ -74,7 +43,7 @@ class LogsAnalyzer(QWidget):
                 block = img[i * 49 + 5:i * 49 + 30, j * 49 + 5:j * 49 + 44]
 
                 # 执行模板匹配并获取最佳匹配的文件名
-                best_match_item = self.templateMatch(block)
+                best_match_item = LogsAnalyzer.templateMatch(block)
                 if best_match_item == 999:
                     found = True
                     break
@@ -92,8 +61,9 @@ class LogsAnalyzer(QWidget):
         return best_match_items
 
     # 带有调试功能的模板匹配，使用根目录下items文件夹来识图，识图失败会把结果保存在block里，方便调试
-    def templateMatch(self, block):
-        items_dir = paths["picture"]["item"] + "\\背包"
+
+    def templateMatch(block):
+        items_dir = paths["picture"]["item"] + "\\combat"
 
         highest_score = 0
         item_name = None
@@ -123,15 +93,9 @@ class LogsAnalyzer(QWidget):
         if highest_score < 0.9:
             print(f'该道具未能识别，已在根目录下生成文件，请检查')
             # 调试功能，确保block目录存在
-            self.test_number += 1
-            block_filename = os.path.join(paths["picture"]["item"] + "\\block", f'{self.test_number}.png')
+            block_filename = os.path.join(paths["picture"]["item"] + "\\block", f'{random.randint(1, 1000)}.png')
             cv2.imwrite(block_filename, block)
             print(f'最高分数为{highest_score}')
 
         return item_name
 
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = LogsAnalyzer()
-    sys.exit(app.exec_())
