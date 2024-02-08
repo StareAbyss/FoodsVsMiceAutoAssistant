@@ -315,15 +315,17 @@ class Todo(QThread):
             player_b):
 
         is_group = self.faa[player_a].is_group
-        result = 0
-        # 分开进行战前准备
-        if result == 0:
-            if is_group:
-                result = max(result, self.faa[player_b].action_round_of_battle_before())
-            result = max(result, self.faa[player_a].action_round_of_battle_before())
+        result_id = 0
+        result_loot_dict_list = []
 
-        if result == 0:
-            # 多线程进行战斗
+        # 分开进行战前准备
+        if result_id == 0:
+            if is_group:
+                result_id = max(result_id, self.faa[player_b].action_round_of_battle_before())
+            result_id = max(result_id, self.faa[player_a].action_round_of_battle_before())
+
+        if result_id == 0:
+            # 多线程进行战斗 此处1p-ap 2p-bp
             self.thread_1p = ThreadWithException(
                 target=self.faa[player_a].action_round_of_battle_self,
                 name="{}P Thread - Battle".format(player_a),
@@ -343,17 +345,23 @@ class Todo(QThread):
             if is_group:
                 self.thread_2p.join()
 
+            # result = (result_id, result_loot_dict)
             result = self.thread_1p.get_return_value()
+            result_id = max(result_id, result[0])
+            result_loot_dict_list.append(result[1])
             if is_group:
-                result = max(result, self.thread_2p.get_return_value())
+                result = self.thread_2p.get_return_value()
+                result_id = max(result_id, result[0])
+                result_loot_dict_list.append(result[1])
+                max(result, self.thread_2p.get_return_value())
 
-        if result == 0:
+        if result_id == 0:
             # 分开进行战后检查
             result = self.faa[player_a].action_round_of_battle_after()
             if is_group:
                 result = self.faa[player_b].action_round_of_battle_after()
 
-        return result
+        return result_id, result_loot_dict_list
 
     def goto_stage_and_invite(
             self,
@@ -450,14 +458,17 @@ class Todo(QThread):
         is_mt = "MT" in stage_id
 
         # 处理多人信息
-        is_group = False
         player_a = player[0]
         player_b = 1 if player_a == 2 else 2
+
+        if len(player) == 1:
+            is_group = False
+        else:
+            is_group = True
+
         faa_a = self.faa[player_a]
         faa_b = self.faa[player_b]
-        if len(player) == 2:
-            is_group = True
-            player_b = player[1]
+
         battle_plan_a = battle_plan_1p if player_a == 1 else battle_plan_2p
         battle_plan_b = battle_plan_1p if player_b == 1 else battle_plan_2p
 
@@ -509,7 +520,7 @@ class Todo(QThread):
         while success_battle_time < max_times:
 
             # 前往副本
-            result = 0
+            result_id = 0
             if not is_mt:
                 # 非魔塔
                 if need_goto_stage:
@@ -519,7 +530,7 @@ class Todo(QThread):
                             room_creator=True)
                     else:
                         # 多人前往副本
-                        result = self.goto_stage_and_invite(
+                        result_id = self.goto_stage_and_invite(
                             stage_id=stage_id,
                             mt_first_time=False,
                             player_a=player_a,
@@ -533,7 +544,7 @@ class Todo(QThread):
                     faa_a.action_goto_stage(room_creator=True, mt_first_time=need_goto_stage)
                 else:
                     # 多人前往副本
-                    result = self.goto_stage_and_invite(
+                    result_id = self.goto_stage_and_invite(
                         stage_id=stage_id,
                         mt_first_time=need_goto_stage,
                         player_a=player_a,
@@ -541,7 +552,7 @@ class Todo(QThread):
 
                 need_goto_stage = False  # 进入后Flag变化
 
-            if result == 2:
+            if result_id == 2:
                 # 跳过本次 计数+1
                 success_battle_time += 1
                 # 进入异常, 跳过
@@ -565,9 +576,9 @@ class Todo(QThread):
             self.sin_out.emit(text)
 
             # 创建战斗进程 -> 开始进程
-            result = self.battle(player_a=player_a, player_b=player_b)
+            result_id, result_loot_dict_list = self.battle(player_a=player_a, player_b=player_b)
 
-            if result == 0:
+            if result_id == 0:
                 # 战斗成功 计数+1
                 success_battle_time += 1
 
@@ -589,7 +600,12 @@ class Todo(QThread):
 
                 # 结束提示文本
                 time_spend = time.time() - timer_begin
-                result_list.append(time_spend)
+                result_list.append({
+                    "time_spend": time_spend,
+                    "loot_dict_list": result_loot_dict_list
+                })
+
+                # 时间
                 text = "[{}] [单本轮战] 第{}次, 正常结束, 耗时:{:.0f}s".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     success_battle_time,
@@ -597,7 +613,7 @@ class Todo(QThread):
                 print(text)
                 self.sin_out.emit(text)
 
-            if result == 1:
+            if result_id == 1:
                 # 进入异常, 重启再来
                 need_goto_stage = True
 
@@ -610,7 +626,7 @@ class Todo(QThread):
 
                 self.reload_game()
 
-            if result == 2:
+            if result_id == 2:
                 # 跳过本次 计数+1
                 success_battle_time += 1
 
@@ -627,23 +643,51 @@ class Todo(QThread):
                 self.reload_game()
 
         # 结束后进行统计和输出
-        count = 0
+        valid_time = len(result_list)
+
+        # 时间
         sum_time = 0
-        for i in result_list:
-            count += 1
-            sum_time += i
-        average_time_spend = sum_time / count
-        # 战斗结束
+        average_time_spend = 0
+
+        if valid_time != 0:
+            for i in result_list:
+                sum_time += i["time_spend"]
+            average_time_spend = sum_time / valid_time
+
         self.sin_out.emit(
             "[{}] [单本轮战] {} {}次 结束 正常场次:{} 耗时:总{:.0f}s/均{:.0f}s".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 stage_id,
                 max_times,
-                count,
+                valid_time,
                 sum_time,
                 average_time_spend
             )
         )
+
+        # 玩家掉落
+        def print_player_loot(list_index,player_id):
+            # 输入为 0, player_a, 1, player_b
+            my_dict = {}
+            for result in result_list:
+                # 复制key
+                for key in result["loot_dict_list"][list_index].keys():
+                    my_dict[key] = 0
+                # 累加数据
+                for k, v in result["loot_dict_list"][list_index].items():
+                    my_dict[k] += v
+
+            my_text = ""
+            for k, v in my_dict.items():
+                # 生成文本
+                my_text += "{}x{}({:.1}); ".format(k, v, v / valid_time)
+            # 玩家A掉落
+            self.sin_out.emit(
+                "{}P掉落: ".format(player_id,my_text))
+
+        print_player_loot(list_index=0,player_id=player_a)
+        if len(player) == 2:
+            print_player_loot(list_index=1, player_id=player_b)
 
     def n_n_battle(
             self,

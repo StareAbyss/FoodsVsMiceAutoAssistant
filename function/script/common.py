@@ -17,6 +17,7 @@ from function.script.scattered.get_list_card_battle import get_list_card_battle
 from function.script.scattered.get_list_card_room import get_list_card_room
 from function.script.scattered.print_grade import print_g
 from function.script.scattered.read_json_to_stage_info import read_json_to_stage_info
+from function.tools.analyzer_of_loot_logs import LogsAnalyzer
 from function.tools.get_battle_coordinates import create_battle_coordinates
 
 
@@ -1960,6 +1961,10 @@ class FAA:
         player = self.player
 
         def screen_loot_logs():
+            """
+            :return: 捕获的战利品dict
+            """
+            # 是否还在战利品ui界面
             find = find_ps_in_w(
                 raw_w_handle=handle,
                 target_opts=[
@@ -1977,57 +1982,100 @@ class FAA:
             if find:
                 print_g(text="[战利品UI] 正常结束, 尝试捕获战利品截图", player=player, garde=1)
 
-                # 记录战利品 tip 一张图49x49 是完美规整的
-                img = []
-                mouse_left_click(
-                    handle=handle,
-                    x=int(708 * zoom),
-                    y=int(484 * zoom),
-                    interval_time=0.05,
-                    sleep_time=0.3)
-                img.append(
-                    capture_picture_png(
+                def screen():
+                    # 记录战利品 tip 一张图49x49 是完美规整的
+                    image = []
+                    mouse_left_click(
                         handle=handle,
-                        raw_range=[209, 454, 699, 552]))
-                time.sleep(0.5)
+                        x=int(708 * zoom),
+                        y=int(484 * zoom),
+                        interval_time=0.05,
+                        sleep_time=0.3)
+                    image.append(
+                        capture_picture_png(
+                            handle=handle,
+                            raw_range=[209, 454, 699, 552]))
+                    time.sleep(0.5)
 
-                mouse_left_click(
-                    handle=handle,
-                    x=int(708 * zoom),
-                    y=int(510 * zoom),
-                    interval_time=0.05,
-                    sleep_time=0.3)
-                img.append(
-                    capture_picture_png(
+                    mouse_left_click(
                         handle=handle,
-                        raw_range=[209, 456, 699, 505]))
-                time.sleep(0.5)
+                        x=int(708 * zoom),
+                        y=int(510 * zoom),
+                        interval_time=0.05,
+                        sleep_time=0.3)
+                    image.append(
+                        capture_picture_png(
+                            handle=handle,
+                            raw_range=[209, 456, 699, 505]))
+                    time.sleep(0.5)
 
-                mouse_left_click(
-                    handle=handle,
-                    x=int(708 * zoom),
-                    y=int(529 * zoom),
-                    interval_time=0.05,
-                    sleep_time=0.3)
-                img.append(
-                    capture_picture_png(
+                    mouse_left_click(
                         handle=handle,
-                        raw_range=[209, 454, 699, 552]))
+                        x=int(708 * zoom),
+                        y=int(529 * zoom),
+                        interval_time=0.05,
+                        sleep_time=0.3)
+                    image.append(
+                        capture_picture_png(
+                            handle=handle,
+                            raw_range=[209, 454, 699, 552]))
 
-                # 垂直拼接
-                img = vconcat(img)
-                # 保存图片
-                title = "{}\\{}_{}P_{}.png".format(
+                    # 垂直拼接
+                    image = vconcat(image)
+
+                    return image
+
+                # 定义保存路径和文件名格式
+                my_path = "{}\\{}_{}P_{}.png".format(
                     paths["logs"],
                     self.stage_info["id"],
                     player,
                     time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
-
                 )
-                imwrite(title, img)
+
+                # 截图并保存
+                screen = screen()
+                imwrite(my_path, screen)
+
+                # 分析图片，获取战利品字典
+                analyzer = LogsAnalyzer()
+                drop_dict = analyzer.matchImage(my_path)
+                print_g(text="[战利品UI] 战利品已 捕获/识别/保存, 如下:".format(drop_dict), player=player, garde=1)
+
+                # 分P，在目录下保存战利品字典。
+                file_path = os.path.join(paths["root"], "logs_drop_list", f"{player}P掉落.json")
+
+                # 尝试读取现有的JSON文件
+                if os.path.exists(file_path):
+                    with open(file_path, "r", encoding="utf-8") as json_file:
+                        existing_data = json.load(json_file)
+                        # 更新现有数据
+                        map_name = list(drop_dict.keys())[0]  # drop_list中的地图是固定为一个的
+                        if map_name in existing_data:
+                            for item_id, count in drop_dict[map_name].items():
+                                if item_id in existing_data[map_name]:
+                                    existing_data[map_name][item_id] += count  # 更新数量
+                                else:
+                                    existing_data[map_name][item_id] = count  # 新增道具
+                            existing_data[map_name]["times"] = existing_data[map_name].get("times", 0) + 1  # 更新次数
+                        else:
+                            existing_data[map_name] = drop_dict[map_name]
+                            existing_data[map_name]["times"] = 1  # 初始化次数
+                    drop_dict = existing_data
+                else:
+                    # 如果文件不存在，初始化times
+                    map_name = list(drop_dict.keys())[0]
+                    drop_dict[map_name]["times"] = 1
+                # 保存或更新后的战利品字典到JSON文件
+                with open(file_path, "w", encoding="utf-8") as json_file:
+                    json.dump(drop_dict, json_file, ensure_ascii=False, indent=4)
+
+                return drop_dict
 
             else:
                 print_g(text="[非战利品UI] 正常结束, 可能由于延迟未能捕获战利品, 继续流程", player=player, garde=1)
+
+                return None
 
         def action_flip_treasure_chest():
             find = loop_find_p_in_w(
@@ -2108,7 +2156,7 @@ class FAA:
                 """战斗结束后, 一般流程为 (潜在的任务完成黑屏) -> 战利品 -> 战斗结算 -> 翻宝箱, 之后会回到房间, 魔塔会回到其他界面"""
 
                 # 战利品部分
-                screen_loot_logs()
+                loot_dict = screen_loot_logs()
 
                 # 战斗结算部分, 等待跳过就好了
 
@@ -2117,9 +2165,9 @@ class FAA:
 
             else:
                 print_g(text="未能找到火苗标识物, 进入战斗失败, 可能是次数不足或服务器卡顿", player=player, garde=2)
-                return 2  # 2-跳过本次
+                return 2, None  # 2-跳过本次
 
-            return 0  # 0-正常结束
+            return 0, loot_dict  # 0-正常结束
 
         return main()
 
