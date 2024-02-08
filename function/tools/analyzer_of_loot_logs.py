@@ -13,7 +13,7 @@ from function.get_paths import paths
 
 class LogsAnalyzer:
 
-    def matchImage(imagePath):
+    def matchImage(self,imagePath):
         print("成功调用该函数")
         # 读图
         img = cv2.imread(imagePath)
@@ -44,6 +44,7 @@ class LogsAnalyzer:
 
                 # 执行模板匹配并获取最佳匹配的文件名
                 best_match_item = LogsAnalyzer.templateMatch(block)
+
                 if best_match_item == 999:
                     found = True
                     break
@@ -62,8 +63,8 @@ class LogsAnalyzer:
 
     # 带有调试功能的模板匹配，使用根目录下items文件夹来识图，识图失败会把结果保存在block里，方便调试
 
-    def templateMatch(block):
-        items_dir = paths["picture"]["item"] + "\\combat"
+    def templateMatch(self, block):
+        items_dir = paths["picture"]["item"] + "\\战斗"
 
         highest_score = 0
         item_name = None
