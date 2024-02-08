@@ -17,7 +17,7 @@ from function.script.scattered.get_list_card_battle import get_list_card_battle
 from function.script.scattered.get_list_card_room import get_list_card_room
 from function.script.scattered.print_grade import print_g
 from function.script.scattered.read_json_to_stage_info import read_json_to_stage_info
-from function.tools.analyzer_of_loot_logs import LogsAnalyzer
+from function.tools.analyzer_of_loot_logs import matchImage
 from function.tools.get_battle_coordinates import create_battle_coordinates
 
 
@@ -2027,7 +2027,7 @@ class FAA:
 
                 # 定义保存路径和文件名格式
                 my_path = "{}\\{}_{}P_{}.png".format(
-                    paths["logs"],
+                    paths["logs"] + "\\loot_picture",
                     self.stage_info["id"],
                     player,
                     time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
@@ -2038,37 +2038,43 @@ class FAA:
                 imwrite(my_path, screen)
 
                 # 分析图片，获取战利品字典
-                analyzer = LogsAnalyzer()
-                drop_dict = analyzer.matchImage(my_path)
+                drop_dict = matchImage(imagePath=my_path)
                 print_g(text="[战利品UI] 战利品已 捕获/识别/保存, 如下:".format(drop_dict), player=player, garde=1)
+                print(drop_dict)
 
                 # 分P，在目录下保存战利品字典。
-                file_path = os.path.join(paths["root"], "logs_drop_list", f"{player}P掉落.json")
+                file_path = "{}\\loot_json\\{}P掉落.json".format(paths["logs"], player)
+                map_name = self.stage_info["id"]
 
                 # 尝试读取现有的JSON文件
                 if os.path.exists(file_path):
                     with open(file_path, "r", encoding="utf-8") as json_file:
-                        existing_data = json.load(json_file)
+                        lod_data = json.load(json_file)
+
+                    if map_name in lod_data:
                         # 更新现有数据
-                        map_name = list(drop_dict.keys())[0]  # drop_list中的地图是固定为一个的
-                        if map_name in existing_data:
-                            for item_id, count in drop_dict[map_name].items():
-                                if item_id in existing_data[map_name]:
-                                    existing_data[map_name][item_id] += count  # 更新数量
-                                else:
-                                    existing_data[map_name][item_id] = count  # 新增道具
-                            existing_data[map_name]["times"] = existing_data[map_name].get("times", 0) + 1  # 更新次数
-                        else:
-                            existing_data[map_name] = drop_dict[map_name]
-                            existing_data[map_name]["times"] = 1  # 初始化次数
-                    drop_dict = existing_data
+                        for item_str, count in drop_dict.items():
+                            if item_str in lod_data[map_name]:
+                                lod_data[map_name]["loots"][item_str] += count  # 更新数量
+                            else:
+                                lod_data[map_name]["loots"][item_str] = count  # 新增道具
+
+                        lod_data[map_name]["times"] += 1  # 更新次数
+
+                    else:
+                        # 创建新数据
+                        lod_data[map_name] = {}
+                        lod_data[map_name]["loots"] = drop_dict
+                        lod_data[map_name]["times"] = 1  # 初始化次数
+
+                    new_data = lod_data
                 else:
-                    # 如果文件不存在，初始化times
-                    map_name = list(drop_dict.keys())[0]
-                    drop_dict[map_name]["times"] = 1
+                    # 如果文件不存在，初始化
+                    new_data = {}
+
                 # 保存或更新后的战利品字典到JSON文件
                 with open(file_path, "w", encoding="utf-8") as json_file:
-                    json.dump(drop_dict, json_file, ensure_ascii=False, indent=4)
+                    json.dump(new_data, json_file, ensure_ascii=False, indent=4)
 
                 return drop_dict
 

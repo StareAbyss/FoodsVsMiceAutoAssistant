@@ -355,11 +355,15 @@ class Todo(QThread):
                 result_loot_dict_list.append(result[1])
                 max(result, self.thread_2p.get_return_value())
 
+            # 测试
+            print(result)
+            print(result_loot_dict_list)
+
         if result_id == 0:
             # 分开进行战后检查
-            result = self.faa[player_a].action_round_of_battle_after()
+            result_id = self.faa[player_a].action_round_of_battle_after()
             if is_group:
-                result = self.faa[player_b].action_round_of_battle_after()
+                result_id = self.faa[player_b].action_round_of_battle_after()
 
         return result_id, result_loot_dict_list
 
@@ -602,7 +606,7 @@ class Todo(QThread):
                 time_spend = time.time() - timer_begin
                 result_list.append({
                     "time_spend": time_spend,
-                    "loot_dict_list": result_loot_dict_list
+                    "loot_dict_list": result_loot_dict_list  # result_loot_dict_list = [{1P掉落}, {2P掉落}]
                 })
 
                 # 时间
@@ -643,6 +647,8 @@ class Todo(QThread):
                 self.reload_game()
 
         # 结束后进行统计和输出
+        print("result_list:")
+        print(result_list)
         valid_time = len(result_list)
 
         # 时间
@@ -650,8 +656,8 @@ class Todo(QThread):
         average_time_spend = 0
 
         if valid_time != 0:
-            for i in result_list:
-                sum_time += i["time_spend"]
+            for result in result_list:
+                sum_time += result["time_spend"]
             average_time_spend = sum_time / valid_time
 
         self.sin_out.emit(
@@ -669,21 +675,25 @@ class Todo(QThread):
         def print_player_loot(list_index,player_id):
             # 输入为 0, player_a, 1, player_b
             my_dict = {}
-            for result in result_list:
-                # 复制key
-                for key in result["loot_dict_list"][list_index].keys():
+
+            # 复制key
+            for _result in result_list:
+                for key in _result["loot_dict_list"][list_index].keys():
                     my_dict[key] = 0
-                # 累加数据
-                for k, v in result["loot_dict_list"][list_index].items():
+
+            # 累加数据
+            for _result in result_list:
+                for k, v in _result["loot_dict_list"][list_index].items():
                     my_dict[k] += v
 
+            # 生成文本
             my_text = ""
             for k, v in my_dict.items():
-                # 生成文本
                 my_text += "{}x{}({:.1}); ".format(k, v, v / valid_time)
+
             # 玩家A掉落
             self.sin_out.emit(
-                "{}P掉落: ".format(player_id,my_text))
+                "{}P掉落: {}".format(player_id,my_text))
 
         print_player_loot(list_index=0,player_id=player_a)
         if len(player) == 2:
