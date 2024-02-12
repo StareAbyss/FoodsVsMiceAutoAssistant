@@ -118,8 +118,7 @@
         },
         {
             "id": 6,
-            "tips": "油灯",
-            "name": "oil lamp",
+            "name": "油灯",
             "ergodic": true,
             "queue": false,
             "location": [
@@ -128,8 +127,7 @@
         },
         {
             "id": 7,
-            "tips": "布丁",
-            "name": "Cherry bounce pudding",
+            "name": "樱桃反弹布丁",
             "ergodic": true,
             "queue": false,
             "location": [

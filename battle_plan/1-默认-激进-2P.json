@@ -16,9 +16,8 @@
     ],
     "card": [
         {
-            "tips": "生产卡",
             "id": 1,
-            "name": "Small fire",
+            "name": "小火炉",
             "ergodic": true,
             "queue": false,
             "location": [
@@ -41,9 +40,8 @@
             ]
         },
         {
-            "tips": "海星",
             "id": 2,
-            "name": "Charcoal fired starfish",
+            "name": "炭烧海星",
             "ergodic": true,
             "queue": false,
             "location": [
@@ -68,8 +66,7 @@
         },
         {
             "id": 3,
-            "tips": "糖葫芦",
-            "name": "Tomatoes on sticks bomb",
+            "name": "糖葫芦炮弹",
             "ergodic": true,
             "queue": true,
             "location": [
