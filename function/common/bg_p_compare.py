@@ -30,9 +30,16 @@ def find_p_in_w(
     if type(target_path) is np.ndarray:
         tar_img = target_path
     else:
-        tar_img = cv2.imdecode(np.fromfile(target_path, dtype=np.uint8), -1)  # 读取目标图像,中文路径兼容方案, (行,列,ABGR)
+        # 读取目标图像,中文路径兼容方案
+        tar_img = cv2.imdecode(
+            buf=np.fromfile(
+                file=target_path,
+                dtype=np.uint8),
+            flags=-1)
 
-    raw_img = capture_picture_png(handle=raw_w_handle, raw_range=raw_range)  # 截取原始图像(windows窗口)
+    raw_img = capture_picture_png(
+        handle=raw_w_handle,
+        raw_range=raw_range)  # 截取原始图像(windows窗口)
 
     # 执行模板匹配，采用的匹配方式cv2.TM_SQDIFF_NORMED, 仅匹配BGR不匹配A
     """
@@ -44,7 +51,11 @@ def find_p_in_w(
     CV_TM_CCOEFF:系数匹配法；
     CV_TM_CCOEFF_NORMED:归一化相关系数匹配法 [1]->[0]->[-1]
     """
-    result = cv2.matchTemplate(image=tar_img[:, :, :-1], templ=raw_img[:, :, :-1], method=cv2.TM_SQDIFF_NORMED)
+    result = cv2.matchTemplate(
+        image=tar_img[:, :, :-1],
+        templ=raw_img[:, :, :-1],
+        method=cv2.TM_SQDIFF_NORMED)
+
     (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(src=result)
 
     # 如果匹配度<阈值，就认为没有找到

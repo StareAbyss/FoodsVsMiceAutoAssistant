@@ -2042,39 +2042,67 @@ class FAA:
                 print_g(text="[战利品UI] 战利品已 捕获/识别/保存, 如下:".format(drop_dict), player=player, garde=1)
                 print(drop_dict)
 
-                # 分P，在目录下保存战利品字典。
-                file_path = "{}\\loot_json\\{}P掉落.json".format(paths["logs"], player)
-                map_name = self.stage_info["id"]
+                def statistics():
 
-                # 尝试读取现有的JSON文件
-                if os.path.exists(file_path):
-                    with open(file_path, "r", encoding="utf-8") as json_file:
-                        lod_data = json.load(json_file)
+                    # 分P，在目录下保存战利品字典。
+                    file_path = "{}\\loot_json\\{}P掉落汇总.json".format(paths["logs"], player)
+                    stage_name = self.stage_info["id"]
 
-                    if map_name in lod_data:
+                    if os.path.exists(file_path):
+                        # 尝试读取现有的JSON文件
+                        with open(file_path, "r", encoding="utf-8") as json_file:
+                            json_data = json.load(json_file)
+                    else:
+                        # 如果文件不存在，初始化
+                        json_data = {}
+
+                    if stage_name in json_data:
                         # 更新现有数据
                         for item_str, count in drop_dict.items():
-                            if item_str in lod_data[map_name]:
-                                lod_data[map_name]["loots"][item_str] += count  # 更新数量
+                            if item_str in json_data[stage_name]["loots"]:
+                                json_data[stage_name]["loots"][item_str] += count  # 更新数量
                             else:
-                                lod_data[map_name]["loots"][item_str] = count  # 新增道具
+                                json_data[stage_name]["loots"][item_str] = count  # 新增道具
 
-                        lod_data[map_name]["times"] += 1  # 更新次数
+                        json_data[stage_name]["times"] += 1  # 更新次数
 
                     else:
-                        # 创建新数据
-                        lod_data[map_name] = {}
-                        lod_data[map_name]["loots"] = drop_dict
-                        lod_data[map_name]["times"] = 1  # 初始化次数
+                        # 初始化新数据
+                        json_data[stage_name] = {
+                            "loots": drop_dict,
+                            "times": 1
+                        }
 
-                    new_data = lod_data
-                else:
-                    # 如果文件不存在，初始化
-                    new_data = {}
+                    # 保存或更新后的战利品字典到JSON文件
+                    with open(file_path, "w", encoding="utf-8") as json_file:
+                        json.dump(json_data, json_file, ensure_ascii=False, indent=4)
 
-                # 保存或更新后的战利品字典到JSON文件
-                with open(file_path, "w", encoding="utf-8") as json_file:
-                    json.dump(new_data, json_file, ensure_ascii=False, indent=4)
+                def detail():
+
+                    # 分P，在目录下保存战利品字典。
+                    file_path = "{}\\loot_json\\{}P掉落明细.json".format(paths["logs"], player)
+                    stage_name = self.stage_info["id"]
+
+                    if os.path.exists(file_path):
+                        # 读取现有的JSON文件
+                        with open(file_path, "r", encoding="utf-8") as json_file:
+                            json_data = json.load(json_file)
+                    else:
+                        # 如果文件不存在，初始化
+                        json_data = {"data": []}
+
+                    json_data["data"].append({
+                        "timestamp": time.time(),
+                        "stage": stage_name,
+                        "loots": drop_dict,
+                    })
+
+                    # 保存或更新后的战利品字典到JSON文件
+                    with open(file_path, "w", encoding="utf-8") as json_file:
+                        json.dump(json_data, json_file, ensure_ascii=False, indent=4)
+
+                statistics()
+                detail()
 
                 return drop_dict
 

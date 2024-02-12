@@ -646,7 +646,7 @@ class Todo(QThread):
 
                 self.reload_game()
 
-        # 结束后进行统计和输出
+        """结束后进行统计和输出"""
         print("result_list:")
         print(result_list)
         valid_time = len(result_list)
@@ -689,7 +689,7 @@ class Todo(QThread):
             # 生成文本
             my_text = ""
             for k, v in my_dict.items():
-                my_text += "{}x{}({:.1}); ".format(k, v, v / valid_time)
+                my_text += "{}x{}({:.1f}); ".format(k, v, v / valid_time)
 
             # 玩家A掉落
             self.sin_out.emit(

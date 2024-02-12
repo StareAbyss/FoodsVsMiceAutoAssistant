@@ -41,29 +41,29 @@
     },
     "magic_tower_alone_1": {
         "active": false,
-        "max_times": 3,
+        "max_times": 5,
         "stage": 149,
         "deck": 3,
         "battle_plan_1p": 17
     },
     "magic_tower_alone_2": {
         "active": false,
-        "max_times": 1,
-        "stage": 123,
+        "max_times": 4,
+        "stage": 125,
         "deck": 3,
-        "battle_plan_1p": 15
+        "battle_plan_1p": 0
     },
     "magic_tower_prison_1": {
         "active": false,
         "stage": true,
-        "deck": 6,
-        "battle_plan_1p": 24
+        "deck": 1,
+        "battle_plan_1p": 2
     },
     "magic_tower_prison_2": {
         "active": false,
         "stage": true,
-        "deck": 6,
-        "battle_plan_1p": 22
+        "deck": 1,
+        "battle_plan_1p": 3
     },
     "warrior": {
         "active": false,
@@ -92,10 +92,10 @@
         "battle_plan_2p": 3
     },
     "normal_battle": {
-        "active": true,
+        "active": false,
         "is_group": true,
-        "max_times": 1,
-        "stage": "NO-4-3",
+        "max_times": 45,
+        "stage": "NO-1-4",
         "deck": 1,
         "battle_plan_1p": 2,
         "battle_plan_2p": 3
