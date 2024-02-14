@@ -2282,7 +2282,18 @@ class FAA:
                 click_zoom=zoom)
 
             if not find:
-                print_g(text="未找到360大厅刷新游戏按钮, 可能导致一系列问题", player=self.player, garde=2)
+
+                find = loop_find_p_in_w(
+                    raw_w_handle=handle,
+                    raw_range=[0, 0, 400, 100],
+                    target_path=paths["picture"]["common"] + "\\登录\\0_刷新_被点击.png",
+                    target_tolerance=0.98,
+                    target_sleep=3,
+                    click=True,
+                    click_zoom=zoom)
+
+                if not find:
+                    print_g(text="未找到360大厅刷新游戏按钮, 可能导致一系列问题...", player=self.player, garde=2)
 
     def reload_game(self):
         zoom = self.zoom
