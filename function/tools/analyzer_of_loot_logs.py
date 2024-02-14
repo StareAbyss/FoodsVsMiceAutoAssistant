@@ -66,7 +66,7 @@ def matchImage(imagePath, test_print=False):
             # 执行模板匹配并获取最佳匹配的文件名
             best_match_item = templateMatch(block)
 
-            if best_match_item == "0":
+            if best_match_item == "0" or best_match_item == "1":
                 found = True
                 break
             if best_match_item:
