@@ -1478,10 +1478,10 @@ class FAA:
                         "target_tolerance": 0.999
                     },
                     {
-                        "raw_range": [796, 413, 950, 485],
-                        "target_path": paths["picture"]["common"] + "\\战斗\\战斗前_开始按钮.png",
+                        "raw_range": [362, 286, 562, 341],
+                        "target_path": paths["picture"]["common"] + "\\战斗\\战斗后_断开连接.png",
                         "target_tolerance": 0.999
-                    }
+                    },
                 ],
                 return_mode="or")
 
@@ -2196,6 +2196,22 @@ class FAA:
 
                 # 翻宝箱部分, 循环查找, 确认是否可以安全翻牌
                 action_flip_treasure_chest()
+
+                # 是否是卡在断开连接
+                # 循环查找火苗图标 找到战斗开始
+                find = loop_find_p_in_w(
+                    raw_w_handle=handle,
+                    raw_range=[362, 286, 562, 341],
+                    target_path=paths["picture"]["common"] + "\\战斗\\战斗后_断开连接.png",
+                    target_interval=0.25,
+                    target_failed_check=0.5,
+                    target_sleep=0.1,
+                    click=False,
+                    click_zoom=zoom)
+
+                if find:
+                    print_g(text="断开连接, 炸服了", player=player, garde=1)
+                    return 1, None  # 1-重启本次
 
             else:
                 print_g(text="未能找到火苗标识物, 进入战斗失败, 可能是次数不足或服务器卡顿", player=player, garde=2)
