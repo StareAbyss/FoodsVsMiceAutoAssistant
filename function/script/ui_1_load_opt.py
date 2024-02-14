@@ -41,6 +41,8 @@ class MyMainWindow1(MyMainWindow0):
         battle_plan_list = get_list_battle_plan(with_extension=False)
         customize_todo_list = get_customize_todo_list(with_extension=False)
 
+        # 基础设置
+
         self.GameName_Input.setText(self.opt["game_name"])
         self.Name1P_Input.setText(self.opt["name_1p"])
         self.Name2P_Input.setText(self.opt["name_2p"])
@@ -52,9 +54,25 @@ class MyMainWindow1(MyMainWindow0):
         self.AutoPickUp_1P.setChecked(self.opt["auto_pickup_1p"])
         self.AutoPickUp_2P.setChecked(self.opt["auto_pickup_2p"])
 
+        # 签到 浇水施肥摘果 常规单本
+
         self.SignIn_Active.setChecked(self.opt["sign_in"]["active"])
+        self.SignIn_Group.setChecked(self.opt["sign_in"]["is_group"])
 
         self.FedAndWatered_Active.setChecked(self.opt["fed_and_watered"]["active"])
+        self.FedAndWatered_Group.setChecked(self.opt["fed_and_watered"]["is_group"])
+
+        self.NormalBattle_Active.setChecked(self.opt["normal_battle"]["active"])
+        self.NormalBattle_Group.setChecked(self.opt["normal_battle"]["is_group"])
+        self.NormalBattle_MaxTimes.setValue(self.opt["normal_battle"]["max_times"])
+        self.NormalBattle_Stage.setText(self.opt["normal_battle"]["stage"])
+        self.NormalBattle_Deck.setValue(self.opt["normal_battle"]["deck"])
+        self.NormalBattle_1P.addItems(battle_plan_list)
+        self.NormalBattle_2P.addItems(battle_plan_list)
+        self.NormalBattle_1P.setCurrentIndex(self.opt["normal_battle"]["battle_plan_1p"])
+        self.NormalBattle_2P.setCurrentIndex(self.opt["normal_battle"]["battle_plan_2p"])
+
+        # 公会任务 情侣任务 悬赏任务
 
         self.QuestGuild_Active.setChecked(self.opt["quest_guild"]["active"])
         self.QuestGuild_Stage.setChecked(self.opt["quest_guild"]["stage"])
@@ -73,6 +91,39 @@ class MyMainWindow1(MyMainWindow0):
         self.OfferReward_2P.addItems(battle_plan_list)
         self.OfferReward_1P.setCurrentIndex(self.opt["offer_reward"]["battle_plan_1p"])
         self.OfferReward_2P.setCurrentIndex(self.opt["offer_reward"]["battle_plan_2p"])
+
+        # 火山遗迹 跨服副本 勇士本
+
+        self.Relic_Active.setChecked(self.opt["relic"]["active"])
+        self.Relic_Group.setChecked(self.opt["relic"]["is_group"])
+        self.Relic_MaxTimes.setValue(self.opt["relic"]["max_times"])
+        self.Relic_Stage.setText(self.opt["relic"]["stage"])
+        self.Relic_Deck.setValue(self.opt["relic"]["deck"])
+        self.Relic_1P.addItems(battle_plan_list)
+        self.Relic_2P.addItems(battle_plan_list)
+        self.Relic_1P.setCurrentIndex(self.opt["relic"]["battle_plan_1p"])
+        self.Relic_2P.setCurrentIndex(self.opt["relic"]["battle_plan_2p"])
+
+        self.CrossServer_Active.setChecked(self.opt["cross_server"]["active"])
+        self.CrossServer_Group.setChecked(self.opt["cross_server"]["is_group"])
+        self.CrossServer_MaxTimes.setValue(self.opt["cross_server"]["max_times"])
+        self.CrossServer_Stage.setText(self.opt["cross_server"]["stage"])
+        self.CrossServer_Deck.setValue(self.opt["cross_server"]["deck"])
+        self.CrossServer_1P.addItems(battle_plan_list)
+        self.CrossServer_2P.addItems(battle_plan_list)
+        self.CrossServer_1P.setCurrentIndex(self.opt["cross_server"]["battle_plan_1p"])
+        self.CrossServer_2P.setCurrentIndex(self.opt["cross_server"]["battle_plan_2p"])
+
+        self.Warrior_Active.setChecked(self.opt["warrior"]["active"])
+        self.Warrior_Group.setChecked(self.opt["warrior"]["is_group"])
+        self.Warrior_MaxTimes.setValue(self.opt["warrior"]["max_times"])
+        self.Warrior_Deck.setValue(self.opt["warrior"]["deck"])
+        self.Warrior_1P.addItems(battle_plan_list)
+        self.Warrior_2P.addItems(battle_plan_list)
+        self.Warrior_1P.setCurrentIndex(self.opt["warrior"]["battle_plan_1p"])
+        self.Warrior_2P.setCurrentIndex(self.opt["warrior"]["battle_plan_2p"])
+
+        # 魔塔
 
         self.MagicTowerDouble_Active.setChecked(self.opt["magic_tower_double"]["active"])
         self.MagicTowerDouble_Stage.setValue(self.opt["magic_tower_double"]["stage"])
@@ -96,7 +147,7 @@ class MyMainWindow1(MyMainWindow0):
         self.MagicTowerAlone2_Deck.setValue(self.opt["magic_tower_alone_2"]["deck"])
         self.MagicTowerAlone2_1P.addItems(battle_plan_list)
         self.MagicTowerAlone2_1P.setCurrentIndex(self.opt["magic_tower_alone_2"]["battle_plan_1p"])
-        
+
         self.MagicTowerPrison1_Active.setChecked(self.opt["magic_tower_prison_1"]["active"])
         self.MagicTowerPrison1_Stage.setChecked(self.opt["magic_tower_prison_1"]["stage"])
         self.MagicTowerPrison1_Deck.setValue(self.opt["magic_tower_prison_1"]["deck"])
@@ -109,50 +160,16 @@ class MyMainWindow1(MyMainWindow0):
         self.MagicTowerPrison2_1P.addItems(battle_plan_list)
         self.MagicTowerPrison2_1P.setCurrentIndex(self.opt["magic_tower_prison_2"]["battle_plan_1p"])
 
-        self.Warrior_Active.setChecked(self.opt["warrior"]["active"])
-        self.Warrior_Group.setChecked(self.opt["warrior"]["is_group"])
-        self.Warrior_MaxTimes.setValue(self.opt["warrior"]["max_times"])
-        self.Warrior_Deck.setValue(self.opt["warrior"]["deck"])
-        self.Warrior_1P.addItems(battle_plan_list)
-        self.Warrior_2P.addItems(battle_plan_list)
-        self.Warrior_1P.setCurrentIndex(self.opt["warrior"]["battle_plan_1p"])
-        self.Warrior_2P.setCurrentIndex(self.opt["warrior"]["battle_plan_2p"])
-
-        self.CrossServer_Active.setChecked(self.opt["cross_server"]["active"])
-        self.CrossServer_Group.setChecked(self.opt["cross_server"]["is_group"])
-        self.CrossServer_MaxTimes.setValue(self.opt["cross_server"]["max_times"])
-        self.CrossServer_Stage.setText(self.opt["cross_server"]["stage"])
-        self.CrossServer_Deck.setValue(self.opt["cross_server"]["deck"])
-        self.CrossServer_1P.addItems(battle_plan_list)
-        self.CrossServer_2P.addItems(battle_plan_list)
-        self.CrossServer_1P.setCurrentIndex(self.opt["cross_server"]["battle_plan_1p"])
-        self.CrossServer_2P.setCurrentIndex(self.opt["cross_server"]["battle_plan_2p"])
-
-        self.Relic_Active.setChecked(self.opt["relic"]["active"])
-        self.Relic_Group.setChecked(self.opt["relic"]["is_group"])
-        self.Relic_MaxTimes.setValue(self.opt["relic"]["max_times"])
-        self.Relic_Stage.setText(self.opt["relic"]["stage"])
-        self.Relic_Deck.setValue(self.opt["relic"]["deck"])
-        self.Relic_1P.addItems(battle_plan_list)
-        self.Relic_2P.addItems(battle_plan_list)
-        self.Relic_1P.setCurrentIndex(self.opt["relic"]["battle_plan_1p"])
-        self.Relic_2P.setCurrentIndex(self.opt["relic"]["battle_plan_2p"])
-
-        self.NormalBattle_Active.setChecked(self.opt["normal_battle"]["active"])
-        self.NormalBattle_Group.setChecked(self.opt["normal_battle"]["is_group"])
-        self.NormalBattle_MaxTimes.setValue(self.opt["normal_battle"]["max_times"])
-        self.NormalBattle_Stage.setText(self.opt["normal_battle"]["stage"])
-        self.NormalBattle_Deck.setValue(self.opt["normal_battle"]["deck"])
-        self.NormalBattle_1P.addItems(battle_plan_list)
-        self.NormalBattle_2P.addItems(battle_plan_list)
-        self.NormalBattle_1P.setCurrentIndex(self.opt["normal_battle"]["battle_plan_1p"])
-        self.NormalBattle_2P.setCurrentIndex(self.opt["normal_battle"]["battle_plan_2p"])
+        # 附加功能
 
         self.ReceiveAwards_Active.setChecked(self.opt["receive_awards"]["active"])
+        self.ReceiveAwards_Group.setChecked(self.opt["receive_awards"]["is_group"])
 
         self.UseItems_Active.setChecked(self.opt["use_items"]["active"])
+        self.UseItems_Group.setChecked(self.opt["use_items"]["is_group"])
 
         self.CrossServerReputation_Active.setChecked(self.opt["cross_server_reputation"]["active"])
+        self.CrossServerReputation_Group.setChecked(self.opt["cross_server_reputation"]["is_group"])
 
         self.CustomizeBattle_Active.setChecked(self.opt["customize_battle"]["active"])
         self.CustomizeBattle_Group.setCurrentIndex(self.opt["customize_battle"]["is_group"])
@@ -186,6 +203,8 @@ class MyMainWindow1(MyMainWindow0):
             change_class.addItems(customize_todo_list)
             change_class.setCurrentIndex(self.opt[opt_1][opt_2])
 
+        # 基础设置
+
         self.opt["game_name"] = self.GameName_Input.text()
         self.opt["name_1p"] = self.Name1P_Input.text()
         self.opt["name_2p"] = self.Name2P_Input.text()
@@ -197,9 +216,23 @@ class MyMainWindow1(MyMainWindow0):
         self.opt["auto_pickup_1p"] = self.AutoPickUp_1P.isChecked()
         self.opt["auto_pickup_2p"] = self.AutoPickUp_2P.isChecked()
 
+        # 签到 浇水施肥摘果 常规单本
+
         self.opt["sign_in"]["active"] = self.SignIn_Active.isChecked()
+        self.opt["sign_in"]["is_group"] = self.SignIn_Group.isChecked()
 
         self.opt["fed_and_watered"]["active"] = self.FedAndWatered_Active.isChecked()
+        self.opt["fed_and_watered"]["is_group"] = self.FedAndWatered_Group.isChecked()
+
+        self.opt["normal_battle"]["active"] = self.NormalBattle_Active.isChecked()
+        self.opt["normal_battle"]["is_group"] = self.NormalBattle_Group.isChecked()
+        self.opt["normal_battle"]["max_times"] = self.NormalBattle_MaxTimes.value()
+        self.opt["normal_battle"]["stage"] = self.NormalBattle_Stage.text()
+        self.opt["normal_battle"]["deck"] = self.NormalBattle_Deck.value()
+        my_transformer_b(self.NormalBattle_1P, "normal_battle", "battle_plan_1p")
+        my_transformer_b(self.NormalBattle_2P, "normal_battle", "battle_plan_2p")
+
+        # 公会任务 情侣任务 悬赏任务
 
         self.opt["quest_guild"]["active"] = self.QuestGuild_Active.isChecked()
         self.opt["quest_guild"]["stage"] = self.QuestGuild_Stage.isChecked()
@@ -214,6 +247,33 @@ class MyMainWindow1(MyMainWindow0):
         self.opt["offer_reward"]["max_times"] = self.OfferReward_MaxTimes.value()
         my_transformer_b(self.OfferReward_1P, "offer_reward", "battle_plan_1p")
         my_transformer_b(self.OfferReward_2P, "offer_reward", "battle_plan_2p")
+
+        # 火山遗迹 跨服副本 勇士副本
+
+        self.opt["relic"]["active"] = self.Relic_Active.isChecked()
+        self.opt["relic"]["is_group"] = self.Relic_Group.isChecked()
+        self.opt["relic"]["max_times"] = self.Relic_MaxTimes.value()
+        self.opt["relic"]["stage"] = self.Relic_Stage.text()
+        self.opt["relic"]["deck"] = self.Relic_Deck.value()
+        my_transformer_b(self.Relic_1P, "relic", "battle_plan_1p")
+        my_transformer_b(self.Relic_2P, "relic", "battle_plan_2p")
+
+        self.opt["cross_server"]["active"] = self.CrossServer_Active.isChecked()
+        self.opt["cross_server"]["is_group"] = self.CrossServer_Group.isChecked()
+        self.opt["cross_server"]["max_times"] = self.CrossServer_MaxTimes.value()
+        self.opt["cross_server"]["stage"] = self.CrossServer_Stage.text()
+        self.opt["cross_server"]["deck"] = self.CrossServer_Deck.value()
+        my_transformer_b(self.CrossServer_1P, "cross_server", "battle_plan_1p")
+        my_transformer_b(self.CrossServer_2P, "cross_server", "battle_plan_2p")
+
+        self.opt["warrior"]["active"] = self.Warrior_Active.isChecked()
+        self.opt["warrior"]["is_group"] = self.Warrior_Group.isChecked()
+        self.opt["warrior"]["max_times"] = self.Warrior_MaxTimes.value()
+        self.opt["warrior"]["deck"] = self.Warrior_Deck.value()
+        my_transformer_b(self.Warrior_1P, "warrior", "battle_plan_1p")
+        my_transformer_b(self.Warrior_2P, "warrior", "battle_plan_2p")
+
+        # 魔塔
 
         self.opt["magic_tower_double"]["active"] = self.MagicTowerDouble_Active.isChecked()
         self.opt["magic_tower_double"]["max_times"] = self.MagicTowerDouble_MaxTimes.value()
@@ -233,7 +293,7 @@ class MyMainWindow1(MyMainWindow0):
         self.opt["magic_tower_alone_2"]["stage"] = self.MagicTowerAlone2_Stage.value()
         self.opt["magic_tower_alone_2"]["deck"] = self.MagicTowerAlone2_Deck.value()
         my_transformer_b(self.MagicTowerAlone2_1P, "magic_tower_alone_2", "battle_plan_1p")
-        
+
         self.opt["magic_tower_prison_1"]["active"] = self.MagicTowerPrison1_Active.isChecked()
         self.opt["magic_tower_prison_1"]["stage"] = self.MagicTowerPrison1_Stage.isChecked()
         self.opt["magic_tower_prison_1"]["deck"] = self.MagicTowerPrison1_Deck.value()
@@ -244,42 +304,16 @@ class MyMainWindow1(MyMainWindow0):
         self.opt["magic_tower_prison_2"]["deck"] = self.MagicTowerPrison2_Deck.value()
         my_transformer_b(self.MagicTowerPrison2_1P, "magic_tower_prison_2", "battle_plan_1p")
 
-        self.opt["warrior"]["active"] = self.Warrior_Active.isChecked()
-        self.opt["warrior"]["is_group"] = self.Warrior_Group.isChecked()
-        self.opt["warrior"]["max_times"] = self.Warrior_MaxTimes.value()
-        self.opt["warrior"]["deck"] = self.Warrior_Deck.value()
-        my_transformer_b(self.Warrior_1P, "warrior", "battle_plan_1p")
-        my_transformer_b(self.Warrior_2P, "warrior", "battle_plan_2p")
-
-        self.opt["cross_server"]["active"] = self.CrossServer_Active.isChecked()
-        self.opt["cross_server"]["is_group"] = self.CrossServer_Group.isChecked()
-        self.opt["cross_server"]["max_times"] = self.CrossServer_MaxTimes.value()
-        self.opt["cross_server"]["stage"] = self.CrossServer_Stage.text()
-        self.opt["cross_server"]["deck"] = self.CrossServer_Deck.value()
-        my_transformer_b(self.CrossServer_1P, "cross_server", "battle_plan_1p")
-        my_transformer_b(self.CrossServer_2P, "cross_server", "battle_plan_2p")
-
-        self.opt["relic"]["active"] = self.Relic_Active.isChecked()
-        self.opt["relic"]["is_group"] = self.Relic_Group.isChecked()
-        self.opt["relic"]["max_times"] = self.Relic_MaxTimes.value()
-        self.opt["relic"]["stage"] = self.Relic_Stage.text()
-        self.opt["relic"]["deck"] = self.Relic_Deck.value()
-        my_transformer_b(self.Relic_1P, "relic", "battle_plan_1p")
-        my_transformer_b(self.Relic_2P, "relic", "battle_plan_2p")
-
-        self.opt["normal_battle"]["active"] = self.NormalBattle_Active.isChecked()
-        self.opt["normal_battle"]["is_group"] = self.NormalBattle_Group.isChecked()
-        self.opt["normal_battle"]["max_times"] = self.NormalBattle_MaxTimes.value()
-        self.opt["normal_battle"]["stage"] = self.NormalBattle_Stage.text()
-        self.opt["normal_battle"]["deck"] = self.NormalBattle_Deck.value()
-        my_transformer_b(self.NormalBattle_1P, "normal_battle", "battle_plan_1p")
-        my_transformer_b(self.NormalBattle_2P, "normal_battle", "battle_plan_2p")
+        # 附加功能
 
         self.opt["receive_awards"]["active"] = self.ReceiveAwards_Active.isChecked()
+        self.opt["receive_awards"]["is_group"] = self.ReceiveAwards_Group.isChecked()
 
         self.opt["use_items"]["active"] = self.UseItems_Active.isChecked()
+        self.opt["use_items"]["is_group"] = self.ReceiveAwards_Group.isChecked()
 
         self.opt["cross_server_reputation"]["active"] = self.CrossServerReputation_Active.isChecked()
+        self.opt["cross_server_reputation"]["is_group"] = self.ReceiveAwards_Group.isChecked()
 
         self.opt["customize_battle"]["active"] = self.CustomizeBattle_Active.isChecked()
         self.opt["customize_battle"]["is_group"] = self.CustomizeBattle_Group.currentIndex()  # combobox 序号

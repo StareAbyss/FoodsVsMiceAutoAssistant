@@ -81,7 +81,7 @@ class Todo(QThread):
         self.thread_1p.join()
         self.thread_2p.join()
 
-    def receive_quest_rewards(self):
+    def receive_quest_rewards(self,is_group):
 
         self.sin_out.emit(
             "[{}] [领取奖励] 开始...".format(
@@ -100,19 +100,23 @@ class Todo(QThread):
                 "mode": "普通任务"
             })
 
-        self.thread_2p = ThreadWithException(
-            target=self.faa[2].action_quest_receive_rewards,
-            name="2P Thread - ReceiveQuest",
-            kwargs={
-                "mode": "普通任务"
-            })
+        if is_group:
+            self.thread_2p = ThreadWithException(
+                target=self.faa[2].action_quest_receive_rewards,
+                name="2P Thread - ReceiveQuest",
+                kwargs={
+                    "mode": "普通任务"
+                })
 
         # 涉及键盘抢夺, 容错低, 最好分开执行
         self.thread_1p.start()
-        sleep(0.333)
-        self.thread_2p.start()
+        if is_group:
+            sleep(0.333)
+            self.thread_2p.start()
+
         self.thread_1p.join()
-        self.thread_2p.join()
+        if is_group:
+            self.thread_2p.join()
 
         self.sin_out.emit(
             "[{}] [领取奖励] [普通任务] 结束".format(
@@ -185,7 +189,7 @@ class Todo(QThread):
             "[{}] 领取所有[任务]奖励, 完成".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
-    def use_items(self):
+    def use_items(self,is_group):
 
         self.sin_out.emit(
             "[{}] 使用绑定消耗品和宝箱, 开始".format(
@@ -201,23 +205,26 @@ class Todo(QThread):
             name="1P Thread - UseItems",
             kwargs={})
 
-        self.thread_2p = ThreadWithException(
-            target=self.faa[2].use_item,
-            name="2P Thread - UseItems",
-            kwargs={})
+        if is_group:
+            self.thread_2p = ThreadWithException(
+                target=self.faa[2].use_item,
+                name="2P Thread - UseItems",
+                kwargs={})
 
         # 涉及键盘抢夺, 容错低, 最好分开执行
         self.thread_1p.start()
-        sleep(0.333)
-        self.thread_2p.start()
+        if is_group:
+            sleep(0.333)
+            self.thread_2p.start()
         self.thread_1p.join()
-        self.thread_2p.join()
+        if is_group:
+            self.thread_2p.join()
 
         self.sin_out.emit(
             "[{}] 使用绑定消耗品和宝箱, 完成".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
-    def cross_server_reputation(self, deck):
+    def cross_server_reputation(self,is_group, deck):
 
         self.sin_out.emit(
             "[{}] 无限刷跨服启动!".format(
@@ -229,16 +236,20 @@ class Todo(QThread):
             name="1P Thread",
             kwargs={"deck": deck})
 
-        self.thread_2p = ThreadWithException(
-            target=self.faa[2].cross_server_reputation,
-            name="2P Thread",
-            kwargs={"deck": deck})
+        if is_group:
+            self.thread_2p = ThreadWithException(
+                target=self.faa[2].cross_server_reputation,
+                name="2P Thread",
+                kwargs={"deck": deck})
 
         self.thread_1p.start()
-        sleep(0.5)
-        self.thread_2p.start()
+        if is_group:
+            sleep(0.5)
+            self.thread_2p.start()
+
         self.thread_1p.join()
-        self.thread_2p.join()
+        if is_group:
+            self.thread_2p.join()
 
     def invite(
             self,
@@ -1101,7 +1112,8 @@ class Todo(QThread):
                 "[{}] 每日签到检查中...".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
             self.faa[1].sign_in()
-            self.faa[2].sign_in()
+            if my_opt["is_group"]:
+                self.faa[2].sign_in()
 
         my_opt = self.opt["fed_and_watered"]
         if my_opt["active"]:
@@ -1109,7 +1121,8 @@ class Todo(QThread):
                 "[{}] 公会浇水施肥摘果子中, 领取奖励需激活[公会任务], 否则只完成不领取奖励...".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
             self.faa[1].fed_and_watered()
-            self.faa[2].fed_and_watered()
+            if my_opt["is_group"]:
+                self.faa[2].fed_and_watered()
 
         my_opt = self.opt["normal_battle"]
         if my_opt["active"]:
@@ -1299,13 +1312,20 @@ class Todo(QThread):
             self.reload_game()
 
         if self.opt["receive_awards"]["active"]:
-            self.receive_quest_rewards()
+            self.receive_quest_rewards(
+                is_group=my_opt["is_group"]
+            )
 
-        if self.opt["use_items"]["active"]:
-            self.use_items()
+        my_opt = self.opt["use_items"]
+        if my_opt["active"]:
+            self.use_items(
+                is_group=my_opt["is_group"])
 
-        if self.opt["cross_server_reputation"]["active"]:
-            self.cross_server_reputation(deck=self.opt["quest_guild"]["deck"])
+        my_opt = self.opt["cross_server_reputation"]
+        if my_opt["active"]:
+            self.cross_server_reputation(
+                is_group=my_opt["is_group"],
+                deck=self.opt["quest_guild"]["deck"])
 
         my_opt = self.opt["customize_battle"]
         if my_opt["active"]:

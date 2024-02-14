@@ -774,7 +774,7 @@ Link Start</string>
           </size>
          </property>
          <property name="text">
-          <string>组队</string>
+          <string>双人</string>
          </property>
         </widget>
        </item>
@@ -1192,10 +1192,10 @@ Link Start</string>
           </size>
          </property>
          <property name="text">
-          <string>组队</string>
+          <string>双人</string>
          </property>
          <property name="checked">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -1468,7 +1468,7 @@ Link Start</string>
           </size>
          </property>
          <property name="text">
-          <string>组队</string>
+          <string>双人</string>
          </property>
         </widget>
        </item>
@@ -1571,7 +1571,7 @@ Link Start</string>
           </size>
          </property>
          <property name="text">
-          <string>同公会</string>
+          <string>同公会战斗方案</string>
          </property>
         </widget>
        </item>
@@ -2326,7 +2326,7 @@ Link Start</string>
           </size>
          </property>
          <property name="text">
-          <string>常规单本</string>
+          <string>常规单本连战</string>
          </property>
         </widget>
        </item>
@@ -3106,7 +3106,7 @@ Link Start</string>
           </size>
          </property>
          <property name="text">
-          <string>组队</string>
+          <string>双人</string>
          </property>
         </widget>
        </item>
@@ -3425,7 +3425,7 @@ Link Start</string>
           </size>
          </property>
          <property name="text">
-          <string>勇士本</string>
+          <string>勇士副本</string>
          </property>
         </widget>
        </item>
@@ -3795,31 +3795,6 @@ Link Start</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
-       <item row="22" column="4">
-        <widget class="QLabel" name="CrossServerReputation_Group">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>50</width>
-           <height>22</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>1P+2P</string>
          </property>
         </widget>
        </item>
@@ -4276,7 +4251,7 @@ Link Start</string>
           </size>
          </property>
          <property name="text">
-          <string>同公会</string>
+          <string>同公会战斗方案</string>
          </property>
         </widget>
        </item>
@@ -4679,6 +4654,107 @@ Link Start</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="20" column="4">
+        <widget class="QCheckBox" name="ReceiveAwards_Group">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>22</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>双人</string>
+         </property>
+        </widget>
+       </item>
+       <item row="21" column="4">
+        <widget class="QCheckBox" name="UseItems_Group">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>22</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>双人</string>
+         </property>
+        </widget>
+       </item>
+       <item row="22" column="4">
+        <widget class="QCheckBox" name="CrossServerReputation_Group">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>22</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>双人</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="4">
+        <widget class="QCheckBox" name="FedAndWatered_Group">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>22</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>双人</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="4">
+        <widget class="QCheckBox" name="SignIn_Group">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>22</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>双人</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
