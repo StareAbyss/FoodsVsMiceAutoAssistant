@@ -16,15 +16,6 @@
         "active": false,
         "is_group": true
     },
-    "normal_battle": {
-        "active": true,
-        "is_group": true,
-        "max_times": 23,
-        "stage": "NO-2-12",
-        "deck": 1,
-        "battle_plan_1p": 2,
-        "battle_plan_2p": 3
-    },
     "quest_guild": {
         "active": true,
         "stage": false,
@@ -51,48 +42,30 @@
         "battle_plan_2p": 12
     },
     "magic_tower_alone_1": {
-        "active": true,
+        "active": false,
         "max_times": 5,
         "stage": 149,
         "deck": 3,
         "battle_plan_1p": 17
     },
     "magic_tower_alone_2": {
-        "active": true,
+        "active": false,
         "max_times": 4,
         "stage": 125,
         "deck": 3,
         "battle_plan_1p": 0
     },
     "magic_tower_prison_1": {
-        "active": true,
+        "active": false,
         "stage": true,
         "deck": 1,
         "battle_plan_1p": 2
     },
     "magic_tower_prison_2": {
-        "active": true,
+        "active": false,
         "stage": true,
         "deck": 1,
         "battle_plan_1p": 3
-    },
-        "relic": {
-        "active": true,
-        "is_group": true,
-        "max_times": 5,
-        "stage": "NO-3-6",
-        "deck": 1,
-        "battle_plan_1p": 2,
-        "battle_plan_2p": 3
-    },
-     "cross_server": {
-        "active": true,
-        "is_group": true,
-        "max_times": 10,
-        "stage": "CS-5-4",
-        "deck": 1,
-        "battle_plan_1p": 2,
-        "battle_plan_2p": 3
     },
     "warrior": {
         "active": true,
@@ -102,12 +75,39 @@
         "battle_plan_1p": 2,
         "battle_plan_2p": 3
     },
+    "cross_server": {
+        "active": true,
+        "is_group": true,
+        "max_times": 10,
+        "stage": "CS-5-4",
+        "deck": 1,
+        "battle_plan_1p": 2,
+        "battle_plan_2p": 3
+    },
+    "relic": {
+        "active": true,
+        "is_group": true,
+        "max_times": 5,
+        "stage": "NO-3-6",
+        "deck": 1,
+        "battle_plan_1p": 2,
+        "battle_plan_2p": 3
+    },
+    "normal_battle": {
+        "active": true,
+        "is_group": true,
+        "max_times": 45,
+        "stage": "NO-2-4",
+        "deck": 1,
+        "battle_plan_1p": 2,
+        "battle_plan_2p": 3
+    },
     "receive_awards": {
         "active": true,
         "is_group": true
     },
     "use_items": {
-        "active": true,
+        "active": false,
         "is_group": true
     },
     "cross_server_reputation": {

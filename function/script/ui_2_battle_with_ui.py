@@ -81,7 +81,7 @@ class Todo(QThread):
         self.thread_1p.join()
         self.thread_2p.join()
 
-    def receive_quest_rewards(self,is_group):
+    def receive_quest_rewards(self, is_group):
 
         self.sin_out.emit(
             "[{}] [领取奖励] 开始...".format(
@@ -189,7 +189,7 @@ class Todo(QThread):
             "[{}] 领取所有[任务]奖励, 完成".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
-    def use_items(self,is_group):
+    def use_items(self, is_group):
 
         self.sin_out.emit(
             "[{}] 使用绑定消耗品和宝箱, 开始".format(
@@ -224,7 +224,7 @@ class Todo(QThread):
             "[{}] 使用绑定消耗品和宝箱, 完成".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
-    def cross_server_reputation(self,is_group, deck):
+    def cross_server_reputation(self, is_group, deck):
 
         self.sin_out.emit(
             "[{}] 无限刷跨服启动!".format(
@@ -360,11 +360,11 @@ class Todo(QThread):
             result = self.thread_1p.get_return_value()
             result_id = max(result_id, result[0])
             result_loot_dict_list.append(result[1])
+
             if is_group:
                 result = self.thread_2p.get_return_value()
                 result_id = max(result_id, result[0])
                 result_loot_dict_list.append(result[1])
-                max(result, self.thread_2p.get_return_value())
 
             # 测试
             print(result)
@@ -683,8 +683,13 @@ class Todo(QThread):
         )
 
         # 玩家掉落
-        def print_player_loot(list_index,player_id):
-            # 输入为 0, player_a, 1, player_b
+        def print_player_loot(list_index, player_id):
+            """
+            :param list_index: 0,1
+            :param player_id:  player_a, player_b
+            :return:
+            """
+            # 输入为
             my_dict = {}
 
             # 复制key
@@ -704,9 +709,9 @@ class Todo(QThread):
 
             # 玩家A掉落
             self.sin_out.emit(
-                "{}P掉落: {}".format(player_id,my_text))
+                "{}P掉落: {}".format(player_id, my_text))
 
-        print_player_loot(list_index=0,player_id=player_a)
+        print_player_loot(list_index=0, player_id=player_a)
         if len(player) == 2:
             print_player_loot(list_index=1, player_id=player_b)
 
@@ -753,7 +758,6 @@ class Todo(QThread):
                     quest_card=quest["quest_card"],
                     ban_card_list=quest["list_ban_card"],
                     dict_exit=quest["dict_exit"])
-
 
             else:
 
@@ -1311,7 +1315,8 @@ class Todo(QThread):
         if need_reload:
             self.reload_game()
 
-        if self.opt["receive_awards"]["active"]:
+        my_opt = self.opt["receive_awards"]
+        if my_opt["active"]:
             self.receive_quest_rewards(
                 is_group=my_opt["is_group"]
             )

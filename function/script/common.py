@@ -1554,10 +1554,10 @@ class FAA:
 
         def use_card_loop_0(list_cell_all):
             """
-            !!!最重要的函数!!!
-            本项目的精髓, 性能开销最大的函数, 为了性能, [可读性]和[低耦合]已牺牲...
+            !!! Important !!!
+            该函数是本项目的精髓, 性能开销最大的函数, 为了性能, [可读性]和 [低耦合]已牺牲...
             循环方式:
-            每一个卡都先在其对应的全部的位置放一次,再放下一张(每轮开始位置+1)
+            每一个卡都先在其对应的全部的位置放一次,再放下一张(每轮开始位置+1)，根据遍历或队列，有不同的效果
             """
 
             # 计算一轮最长时间(防止一轮太短, 导致某些卡cd转不好就尝试点它也就是空转)
@@ -2525,7 +2525,7 @@ class FAA:
                 target_tolerance=0.99,
                 target_failed_check=1,
                 target_sleep=1,
-                click=False,
+                click=True,
                 click_zoom=zoom)
             if find:
                 loop_find_p_in_w(
@@ -2535,7 +2535,7 @@ class FAA:
                     target_tolerance=0.99,
                     target_failed_check=1,
                     target_sleep=3,
-                    click=False,
+                    click=True,
                     click_zoom=zoom)
                 # 关闭抽奖(红X)
                 self.action_exit(mode="普通红叉", raw_range=[616, 172, 660, 228])

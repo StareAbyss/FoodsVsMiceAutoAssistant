@@ -1,2 +1,4 @@
-l=[1,2,3]
-print(l[:-1])
+my_dict = {}
+
+for key in my_dict.keys():
+    print(key)

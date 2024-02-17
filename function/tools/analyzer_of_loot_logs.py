@@ -60,8 +60,10 @@ def matchImage(imagePath, test_print=False):
             break  # 如果设置了标志，跳出外层循环
         for j in range(column):
 
+            # 切分为 49x49
             block = img[i * 49:(i + 1) * 49, j * 49:(j + 1) * 49]
-            block = block[4: 33, 4: 42]
+            # 切分为 30x36
+            block = block[5:-8,5:-14]
 
             # 执行模板匹配并获取最佳匹配的文件名
             best_match_item = templateMatch(block)

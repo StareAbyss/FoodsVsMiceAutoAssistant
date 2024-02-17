@@ -20,8 +20,8 @@ for name in img_name_list:
     image = cv2.imdecode(np.fromfile(path, dtype=np.uint8), -1)
 
     # 实际截图去除 可能出现数字的部分 和边角
-    # 38x29 用于比较 是保存的图片战斗中查找的目标
-    image = image[3:32, 3:41]
+    # 30x36 用于比较 是保存的图片战斗中查找的目标
+    image = image[4:-4, 4:-10]
 
     # 保存
     path = paths["picture"]["item"] + "\\原始资源\\transformer\\" + name
