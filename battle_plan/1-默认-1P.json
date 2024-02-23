@@ -23,7 +23,7 @@
             "id": 1,
             "name": "小火炉",
             "ergodic": true,
-            "queue": false,
+            "queue": true,
             "location": [
                 "1-1",
                 "1-7",
