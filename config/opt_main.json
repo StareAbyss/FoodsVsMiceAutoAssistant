@@ -9,7 +9,7 @@
     "auto_pickup_1p": false,
     "auto_pickup_2p": true,
     "sign_in": {
-        "active": true,
+        "active": false,
         "is_group": true
     },
     "fed_and_watered": {
@@ -17,25 +17,25 @@
         "is_group": true
     },
     "quest_guild": {
-        "active": true,
+        "active": false,
         "stage": false,
         "deck": 1,
-        "battle_plan_1p": 2,
-        "battle_plan_2p": 3
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1
     },
     "quest_spouse": {
-        "active": true
+        "active": false
     },
     "offer_reward": {
-        "active": true,
+        "active": false,
         "max_times": 2,
         "deck": 1,
         "battle_plan_1p": 0,
         "battle_plan_2p": 1
     },
     "magic_tower_double": {
-        "active": true,
-        "max_times": 5,
+        "active": false,
+        "max_times": 4,
         "stage": 100,
         "deck": 2,
         "battle_plan_1p": 11,
@@ -68,7 +68,7 @@
         "battle_plan_1p": 3
     },
     "warrior": {
-        "active": true,
+        "active": false,
         "is_group": true,
         "max_times": 8,
         "deck": 1,
@@ -78,14 +78,14 @@
     "cross_server": {
         "active": true,
         "is_group": true,
-        "max_times": 10,
-        "stage": "CS-5-4",
-        "deck": 1,
-        "battle_plan_1p": 2,
-        "battle_plan_2p": 3
+        "max_times": 1,
+        "stage": "CS-5-3",
+        "deck": 5,
+        "battle_plan_1p": 20,
+        "battle_plan_2p": 21
     },
     "relic": {
-        "active": true,
+        "active": false,
         "is_group": true,
         "max_times": 5,
         "stage": "NO-3-6",
@@ -94,16 +94,16 @@
         "battle_plan_2p": 3
     },
     "normal_battle": {
-        "active": true,
+        "active": false,
         "is_group": true,
-        "max_times": 45,
-        "stage": "NO-2-4",
+        "max_times": 1,
+        "stage": "EX-1-5",
         "deck": 1,
-        "battle_plan_1p": 2,
-        "battle_plan_2p": 3
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1
     },
     "receive_awards": {
-        "active": true,
+        "active": false,
         "is_group": true
     },
     "use_items": {
@@ -111,7 +111,7 @@
         "is_group": true
     },
     "cross_server_reputation": {
-        "active": true,
+        "active": false,
         "is_group": true
     },
     "customize_battle": {
@@ -124,6 +124,6 @@
     },
     "customize": {
         "active": false,
-        "battle_plan_1p": 3
+        "battle_plan_1p": 0
     }
 }

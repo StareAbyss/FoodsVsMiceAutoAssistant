@@ -19,18 +19,27 @@ def get_root_path():
 
 paths = {
     "root": get_root_path(),
-    "logs": None,
+    "battle_plan": None,
     "config": None,
+    "customize_todo": None,
+    "logs": None,
+    # resource
+    "font": None,
+    "logo": None,
     "picture": {
     },
 }
 
-paths["logs"] = paths["root"] + "\\logs"
+
 paths["battle_plan"] = paths["root"] + "\\battle_plan"
 paths["config"] = paths["root"] + "\\config"
 paths["customize_todo"] = paths["root"] + "\\customize_todo"
+paths["logs"] = paths["root"] + "\\logs"
 
+paths["font"] = paths["root"] + "\\resource\\font"
+paths["logo"] = paths["root"] + "\\resource\\logo"
 paths["picture"]["current"] = paths["root"] + "\\resource\\picture"
+
 paths["picture"]["common"] = paths["picture"]["current"] + "\\common"
 paths["picture"]["number"] = paths["picture"]["current"] + "\\number"
 paths["picture"]["card"] = paths["picture"]["current"] + "\\card"
