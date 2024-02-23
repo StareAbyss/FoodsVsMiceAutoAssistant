@@ -3,8 +3,8 @@ import json
 import os
 import time
 
+import cv2
 import numpy as np
-from cv2 import imread, vconcat, imwrite
 
 from function.common.bg_keyboard import key_down_up
 from function.common.bg_mouse import mouse_left_click, mouse_left_moveto
@@ -253,7 +253,10 @@ class FAA:
             if i.find(".png") != -1:
                 stage_text_in_ready_check.append(i.split(".")[0])
         for i in stage_text_in_ready_check:
-            if np.all(img1 == imread(paths["picture"]["ready_check_stage"] + "\\" + i + ".png", 1)):
+            img_tar_path = paths["picture"]["ready_check_stage"] + "\\" + i + ".png"
+            img_tar = cv2.imdecode(np.fromfile(img_tar_path, dtype=np.uint8), -1)
+            if np.all(img1 == img_tar):
+                # 图片完全一致
                 stage_id = i
                 break
         return stage_id
@@ -926,7 +929,7 @@ class FAA:
                 break
 
         # 退出任务界面
-        self.action_exit(mode="exit_offer_reward")
+        self.action_exit(mode="关闭悬赏窗口")
 
     def AQRR_food_competition(self):
 
@@ -1299,7 +1302,7 @@ class FAA:
 
             # 调试print 打包前务必注释!
             # print("调试info: 你的战斗放卡opt如下")
-            # pprint(list_cell_all)
+            # print(list_cell_all)
 
             return list_cell_all, list_shovel
 
@@ -1454,7 +1457,7 @@ class FAA:
         def use_key_and_check_end():
             # 找到战利品字样(被黑色透明物遮挡,会看不到)
             use_key(mode=0)
-            return find_ps_in_w(
+            result = find_ps_in_w(
                 raw_w_handle=handle,
                 target_opts=[
                     {
@@ -1478,12 +1481,23 @@ class FAA:
                         "target_tolerance": 0.999
                     },
                     {
-                        "raw_range": [362, 286, 562, 341],
-                        "target_path": paths["picture"]["common"] + "\\战斗\\战斗后_断开连接.png",
+                        "raw_range": [350, 275, 600, 360],
+                        "target_path": paths["picture"]["error"] + "\\登录超时.png",
+                        "target_tolerance": 0.999
+                    },
+                    {
+                        "raw_range": [350, 275, 600, 360],
+                        "target_path": paths["picture"]["error"] + "\\断开连接.png",
+                        "target_tolerance": 0.999
+                    },
+                    {
+                        "raw_range": [350, 275, 600, 360],
+                        "target_path": paths["picture"]["error"] + "\\Flash爆炸.png",
                         "target_tolerance": 0.999
                     },
                 ],
                 return_mode="or")
+            return result
 
         def use_card_once(num_card: int, num_cell: str, click_space=True):
             """
@@ -1982,7 +1996,10 @@ class FAA:
             if find:
                 print_g(text="[战利品UI] 正常结束, 尝试捕获战利品截图", player=player, garde=1)
 
-                def screen():
+                def screen_loots():
+                    """
+                    :return: 捕获的战利品dict
+                    """
                     # 记录战利品 tip 一张图49x49 是完美规整的
                     image = []
                     mouse_left_click(
@@ -2021,7 +2038,7 @@ class FAA:
                             raw_range=[209, 454, 699, 552]))
 
                     # 垂直拼接
-                    image = vconcat(image)
+                    image = cv2.vconcat(image)
 
                     return image
 
@@ -2034,8 +2051,8 @@ class FAA:
                 )
 
                 # 截图并保存
-                screen = screen()
-                imwrite(my_path, screen)
+                screen = screen_loots()
+                cv2.imencode('.png', screen)[1].tofile(my_path)
 
                 # 分析图片，获取战利品字典
                 drop_dict = matchImage(imagePath=my_path)
@@ -2044,7 +2061,7 @@ class FAA:
 
                 def statistics():
 
-                    # 分P，在目录下保存战利品字典。
+                    # 分P，在目录下保存战利品字典
                     file_path = "{}\\loot_json\\{}P掉落汇总.json".format(paths["logs"], player)
                     stage_name = self.stage_info["id"]
 
@@ -2189,28 +2206,40 @@ class FAA:
 
                 """战斗结束后, 一般流程为 (潜在的任务完成黑屏) -> 战利品 -> 战斗结算 -> 翻宝箱, 之后会回到房间, 魔塔会回到其他界面"""
 
-                # 战利品部分
+                # 战利品部分, 会先检测是否在对应界面
                 loot_dict = screen_loot_logs()
 
                 # 战斗结算部分, 等待跳过就好了
 
-                # 翻宝箱部分, 循环查找, 确认是否可以安全翻牌
+                # 翻宝箱部分, 会先检测是否在对应界面
                 action_flip_treasure_chest()
 
-                # 是否是卡在断开连接
-                # 循环查找火苗图标 找到战斗开始
-                find = loop_find_p_in_w(
+                # 先检是否炸服了
+                find = loop_find_ps_in_w(
                     raw_w_handle=handle,
-                    raw_range=[362, 286, 562, 341],
-                    target_path=paths["picture"]["common"] + "\\战斗\\战斗后_断开连接.png",
-                    target_interval=0.25,
-                    target_failed_check=0.5,
-                    target_sleep=0.1,
-                    click=False,
-                    click_zoom=zoom)
+                    target_opts=[
+                        {
+                            "raw_range": [350, 275, 600, 360],
+                            "target_path": paths["picture"]["error"] + "\\登录超时.png",
+                            "target_tolerance": 0.999
+                        },
+                        {
+                            "raw_range": [350, 275, 600, 360],
+                            "target_path": paths["picture"]["error"] + "\\断开连接.png",
+                            "target_tolerance": 0.999
+                        },
+                        {
+                            "raw_range": [350, 275, 600, 360],
+                            "target_path": paths["picture"]["error"] + "\\Flash爆炸.png",
+                            "target_tolerance": 0.999
+                        }
+                    ],
+                    target_return_mode="or",
+                    target_failed_check=1,
+                    target_interval=0.2)
 
                 if find:
-                    print_g(text="断开连接, 炸服了", player=player, garde=1)
+                    print_g(text="检测到 断开连接 or 登录超时 or Flash爆炸, 炸服了", player=player, garde=1)
                     return 1, None  # 1-重启本次
 
             else:
