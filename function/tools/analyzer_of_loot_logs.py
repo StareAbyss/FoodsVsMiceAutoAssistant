@@ -5,6 +5,7 @@ import random
 import cv2
 import numpy as np
 
+from function.common.match import match_histogram
 from function.get_paths import paths
 
 """
@@ -23,23 +24,39 @@ def templateMatch(block):
         target_path = "{}\\{}".format(items_dir, target_filename)
         target_image = cv2.imdecode(np.fromfile(target_path, dtype=np.uint8), -1)
 
+        # 跳过大小不相等的图片
         if target_image is not None and target_image.shape == block.shape:
 
-            if (target_image[:, :, :-1] == block[:, :, :-1]).all():
-                item_name = target_filename.replace(".png", "")
-                # 占位，如果读取到文件名为0的item，则结束分割图片，直接返回结果
+            # 对比 block 和 target_image
+            result_bool = match_histogram(
+                block=block[:, :, :-1],
+                target_image=target_image[:, :, :-1])
+
+            if result_bool:
+                # 识图成功 返回识别的道具名称
+                item_name = target_filename.replace(".png", "")  # 返回值切掉.png
                 return item_name
 
-    # 带有调试功能的模板匹配，使用根目录下items文件夹来识图，识图失败会把结果保存在block里，方便调试
+    # 识图失败 把block保存到resource-picture-item-未编码索引中
     print(f'该道具未能识别, 已在resource-picture-item-未编码索引中生成文件, 请检查')
-    # 调试功能
-    filename = "{}\\未编码索引\\{}.png".format(paths["picture"]["item"], random.randint(1, 1000))
+    # 随便编码
+    filename = "{}\\未编码索引\\{}.png".format(
+        paths["picture"]["item"],
+        random.randint(1, 1000)
+    )
+    # 保存图片
     cv2.imencode('.png', block)[1].tofile(filename)
 
     return item_name
 
 
 def matchImage(imagePath, test_print=False):
+    """
+
+    :param imagePath:
+    :param test_print:
+    :return:
+    """
     # 读图
     img = cv2.imdecode(np.fromfile(imagePath, dtype=np.uint8), -1)
     if img is None:
@@ -63,7 +80,7 @@ def matchImage(imagePath, test_print=False):
             # 切分为 49x49
             block = img[i * 49:(i + 1) * 49, j * 49:(j + 1) * 49]
             # 切分为 30x36
-            block = block[5:-8,5:-14]
+            block = block[5:41, 5:35]
 
             # 执行模板匹配并获取最佳匹配的文件名
             best_match_item = templateMatch(block)
@@ -93,4 +110,3 @@ if __name__ == '__main__':
 
 
     cProfile.run("main()")
-
