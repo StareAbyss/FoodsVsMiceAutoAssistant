@@ -2,10 +2,10 @@ import os
 import sys
 
 from PyQt5 import uic, QtWidgets
-from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtGui import QIcon, QFont, QFontDatabase
 from PyQt5.QtWidgets import QMainWindow, QApplication
 
-from function.get_paths import get_root_path
+from function.get_paths import paths
 
 
 class MyMainWindow0(QMainWindow):
@@ -18,48 +18,44 @@ class MyMainWindow0(QMainWindow):
         # 继承父方法
         super().__init__()
 
-        # 根目录获取
-        self.path_root = get_root_path()
-
         # 加载 ui文件
-        uic.loadUi(self.path_root + '\\resource\\ui\\fvm_2.0.ui', self)
-
-        # 加载图标
-        self.setWindowIcon(QIcon(self.path_root + '\\resource\\logo\\png-512x512.png'))
+        uic.loadUi(paths["root"] + '\\resource\\ui\\fvm_2.0.ui', self)
 
         # 设置窗口名称
         self.setWindowTitle("FAA - 本软件免费且开源 - 反馈交流: 786921130")
 
+        # 设置窗口图标
+        self.setWindowIcon(QIcon(paths["logo"] + "\\FetTuo-192x.png"))
+
         # 设定字体
-        c_font = QFont()  # custom_font
-        c_font.setFamily("Microsoft YaHei")
-        self.setFont(c_font)  # LayMain
+        QFontDatabase.addApplicationFont(paths["font"] + "\\金山云技术体.ttf")
+        font = QFont()
+        font.setFamily("金山云技术体")
+        font.setPointSize(10)
+        self.setFont(font)
 
         # 打印默认输出提示
         self.start_print()
 
     def printf(self, mes):
         """打印文本到输出框 """
-        text_browser = self.TextBrowser
-        text_browser.append(mes)  # 在TextBrowser显示提示信息
-        cursor = self.TextBrowser.textCursor()
-        text_browser.moveCursor(cursor.End)
+        self.TextBrowser.append(mes)  # 在TextBrowser显示提示信息
+        self.TextBrowser.moveCursor(self.TextBrowser.textCursor().End)
         QtWidgets.QApplication.processEvents()  # 实时输出
 
     def start_print(self):
         """打印默认输出提示"""
-        self.printf("为确保使用安全")
+        self.printf("使用安全说明")
         self.printf("[1] 务必有二级密码")
         self.printf("[2] 有一定的礼卷防翻牌异常")
         self.printf("[3] 高星或珍贵不绑卡挂拍卖/提前转移")
-        self.printf("跨服和勇士功能罕见情况下会卡死, 但不会导致其他问题")
-        self.printf("支持360游戏大厅 - 4399 或 QQ 渠道")
-        self.printf("请认真阅读[文档], 以解决多数问题, 文档在[1]文件夹中README.md [2]Github主页下 [3]交流群精华消息")
-        self.printf("运行直接闪退, 是窗口和游戏名称填写有误, 参考[文档]中[重要信息填写]部分")
-        self.printf("开始后没反应, 请将软件移动到系统盘(C)之外, 或使用管理员身份运行")
+        self.printf("")
+        self.printf("任何用户使用前, 请认真阅读[使用前请看我.pdf], 以解决[运行直接闪退][开始后没反应]多数问题")
+        self.printf("开发者和深入使用, 请参考[README.md]")
         self.printf("[Github] https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant")
-        self.printf("[反馈&交流QQ] 786921130 欢迎加入")
-        self.printf("[开源][免费][绿色] 请为我在Github点个免费的Star支持我吧")
+        self.printf("[B站] https://www.bilibili.com/video/BV1fS421N7")
+        self.printf("[反馈&交流QQ] 786921130 欢迎加入获取帮助")
+        self.printf("[开源][免费][绿色] 请为我在 Github点个Star/B站三连评论弹幕支持吧")
 
     def closeEvent(self, event):
         """
