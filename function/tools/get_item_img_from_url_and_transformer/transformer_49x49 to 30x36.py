@@ -21,6 +21,9 @@ cv2.waitKey()
 image = image[1:-4, 1:-4]
 # 30x36
 image = image[4:-4, 4:-10]
-# tip 合并起来就是 [5:-8,5:-14]
+# tip 合并起来就是 [5:41,5:35]
 cv2.imshow(winname="Capture Test.png", mat=image)
 cv2.waitKey()
+
+path = "test.png"
+cv2.imencode('.png', image)[1].tofile(path)
