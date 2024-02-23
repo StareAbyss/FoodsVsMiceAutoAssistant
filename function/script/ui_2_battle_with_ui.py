@@ -327,7 +327,10 @@ class Todo(QThread):
 
         is_group = self.faa[player_a].is_group
         result_id = 0
-        result_loot_dict_list = []
+        result_loot = {
+            player_a: {},
+            player_b: {}
+        }
 
         # 分开进行战前准备
         if result_id == 0:
@@ -359,16 +362,16 @@ class Todo(QThread):
             # result = (result_id, result_loot_dict)
             result = self.thread_1p.get_return_value()
             result_id = max(result_id, result[0])
-            result_loot_dict_list.append(result[1])
+            result_loot[player_a] = result[1]
 
             if is_group:
                 result = self.thread_2p.get_return_value()
                 result_id = max(result_id, result[0])
-                result_loot_dict_list.append(result[1])
+                result_loot[player_b] = result[1]
 
             # 测试
             print(result)
-            print(result_loot_dict_list)
+            print(result_loot)
 
         if result_id == 0:
             # 分开进行战后检查
@@ -376,7 +379,7 @@ class Todo(QThread):
             if is_group:
                 result_id = self.faa[player_b].action_round_of_battle_after()
 
-        return result_id, result_loot_dict_list
+        return result_id, result_loot
 
     def goto_stage_and_invite(
             self,
@@ -591,7 +594,9 @@ class Todo(QThread):
             self.sin_out.emit(text)
 
             # 创建战斗进程 -> 开始进程
-            result_id, result_loot_dict_list = self.battle(player_a=player_a, player_b=player_b)
+            result_id, result_loot = self.battle(
+                player_a=player_a,
+                player_b=player_b)
 
             if result_id == 0:
                 # 战斗成功 计数+1
@@ -617,7 +622,7 @@ class Todo(QThread):
                 time_spend = time.time() - timer_begin
                 result_list.append({
                     "time_spend": time_spend,
-                    "loot_dict_list": result_loot_dict_list  # result_loot_dict_list = [{1P掉落}, {2P掉落}]
+                    "loot_dict_list": result_loot  # result_loot_dict_list = {a:{掉落}, b:{掉落}}
                 })
 
                 # 时间
@@ -672,48 +677,55 @@ class Todo(QThread):
             average_time_spend = sum_time / valid_time
 
         self.sin_out.emit(
-            "[{}] [单本轮战] {} {}次 结束 正常场次:{} 耗时:总{:.0f}s/均{:.0f}s".format(
+            "[{}] [单本轮战] {} {}次 结束 ".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 stage_id,
-                max_times,
-                valid_time,
-                sum_time,
-                average_time_spend
+                max_times
+            )
+        )
+        self.sin_out.emit(
+            "正常场次:{} 耗时:总{:.0f}s/均{:.0f}s".format(
+                valid_time, sum_time, average_time_spend
             )
         )
 
         # 玩家掉落
-        def print_player_loot(list_index, player_id):
+        def print_player_loot(player_id):
             """
-            :param list_index: 0,1
-            :param player_id:  player_a, player_b
+            :param player_id:  player_a, player_b int 1 2
             :return:
+            关于 result_list
             """
             # 输入为
             my_dict = {}
 
             # 复制key
             for _result in result_list:
-                for key in _result["loot_dict_list"][list_index].keys():
+                for key in _result["loot_dict_list"][player_id].keys():
                     my_dict[key] = 0
 
             # 累加数据
             for _result in result_list:
-                for k, v in _result["loot_dict_list"][list_index].items():
+                for k, v in _result["loot_dict_list"][player_id].items():
                     my_dict[k] += v
 
             # 生成文本
             my_text = ""
-            for k, v in my_dict.items():
-                my_text += "{}x{}({:.1f}); ".format(k, v, v / valid_time)
+            for name, count in my_dict.items():
+                my_text += "{}[{}|{:.1f}] ".format(name, count, count / valid_time)
 
             # 玩家A掉落
-            self.sin_out.emit(
-                "{}P掉落: {}".format(player_id, my_text))
+            self.sin_out.emit("[{}P掉落]\n{}".format(player_id, my_text))
 
-        print_player_loot(list_index=0, player_id=player_a)
-        if len(player) == 2:
-            print_player_loot(list_index=1, player_id=player_b)
+        if len(player) == 1:
+            # 单人
+            print_player_loot(player_id=player_a)
+        else:
+            # 多人
+            print_player_loot(player_id=1)
+            print_player_loot(player_id=2)
+
+        self.sin_out.emit("")
 
     def n_n_battle(
             self,
@@ -1388,7 +1400,7 @@ class MyMainWindow2(MyMainWindow1):
         self.thread_states = False  # 设置flag
         self.Button_Start.setText("开始\nLink Start")  # 设置按钮文本
         # 设置输出文本
-        self.printf("\n>>> 全任务完成 线程关闭 <<<\n")
+        self.printf("\n>>> 全部完成 线程关闭 <<<\n")
 
     def todo_start(self):
 
@@ -1397,7 +1409,7 @@ class MyMainWindow2(MyMainWindow1):
         # 设置输出文本
         self.TextBrowser.clear()
         self.start_print()
-        self.printf("\n>>> 链接开始 线程开启 <<<")
+        self.printf("\n>>> 链接开始 线程开启 <<<\n")
 
     def click_btn_start(self):
         """战斗开始函数"""
