@@ -388,6 +388,10 @@ class Todo(QThread):
             player_a,
             player_b):
 
+        # 自定义作战直接调出
+        if "CU" in stage_id:
+            return 0
+
         is_cs = "CS" in stage_id
         is_mt = "MT" in stage_id
 
@@ -457,6 +461,16 @@ class Todo(QThread):
                 print(text)
                 self.sin_out.emit(text)
                 return 2
+
+    def n_battle_customize_battle_error_print(self, success_battle_time):
+        # 结束提示文本
+        text = "[{}] [单本轮战] 第{}次, 出现未知异常! 刷新后卡死, 以防止更多问题, 出现此问题可上报作者".format(
+            datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            success_battle_time)
+        print(text)
+        self.sin_out.emit(text)
+        self.reload_game()
+        sleep(60 * 60 * 24)
 
     def n_battle(
             self,
@@ -634,33 +648,44 @@ class Todo(QThread):
                 self.sin_out.emit(text)
 
             if result_id == 1:
-                # 进入异常, 重启再来
-                need_goto_stage = True
 
-                # 结束提示文本
-                text = "[{}] [单本轮战] 第{}次, 异常结束, 重启再来".format(
-                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    success_battle_time + 1)
-                print(text)
-                self.sin_out.emit(text)
+                if "CU" in stage_id:
+                    # 进入异常 但是自定义
+                    self.n_battle_customize_battle_error_print(success_battle_time=success_battle_time)
 
-                self.reload_game()
+                else:
+                    # 进入异常, 重启再来
+                    need_goto_stage = True
+
+                    # 结束提示文本
+                    text = "[{}] [单本轮战] 第{}次, 异常结束, 重启再来".format(
+                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        success_battle_time + 1)
+                    print(text)
+                    self.sin_out.emit(text)
+
+                    self.reload_game()
 
             if result_id == 2:
-                # 跳过本次 计数+1
-                success_battle_time += 1
 
-                # 进入异常, 跳过
-                need_goto_stage = True
+                if "CU" in stage_id:
+                    # 进入异常 但是自定义
+                    self.n_battle_customize_battle_error_print(success_battle_time=success_battle_time)
+                else:
+                    # 跳过本次 计数+1
+                    success_battle_time += 1
 
-                # 结束提示文本
-                text = "[{}] [单本轮战] 第{}次, 开始游戏异常, 重启跳过".format(
-                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    success_battle_time)
-                print(text)
-                self.sin_out.emit(text)
+                    # 进入异常, 跳过
+                    need_goto_stage = True
 
-                self.reload_game()
+                    # 结束提示文本
+                    text = "[{}] [单本轮战] 第{}次, 开始游戏异常, 重启跳过".format(
+                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        success_battle_time)
+                    print(text)
+                    self.sin_out.emit(text)
+
+                    self.reload_game()
 
         """结束后进行统计和输出"""
         print("result_list:")
@@ -790,105 +815,34 @@ class Todo(QThread):
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             ))
 
-    def n_battle_customize(
-            self,
-            text_,
-            is_group,
-            max_times,
+    """使用n_n_battle为核心的变种函数"""
+
+    def easy_battle(
+            self, text_, stage_id, player, max_times,
             deck,
-            battle_plan_1p,
-            battle_plan_2p,
-    ):
-        """
-        用于自建房对战
-        """
+            battle_plan_1p, battle_plan_2p, dict_exit):
+        """仅调用 n_battle的简易作战"""
+        # 战斗开始
         self.sin_out.emit(
             "\n[{}] {} Link Start!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
-        # index of player -> list of player
-        player = [2, 1]
-        if is_group == 0:
-            player = [1, 2]
-        elif is_group == 1:
-            player = [2, 1]
-        elif is_group == 2:
-            player = [1]
-        elif is_group == 3:
-            player = [2]
-
-        # 处理多人信息
-        is_group = False
-        player_a = player[0]
-        player_b = 1 if player_a == 2 else 2
-        faa_a = self.faa[player_a]
-        faa_b = self.faa[player_b]
-        if len(player) == 2:
-            is_group = True
-            player_b = player[1]
-        battle_plan_a = battle_plan_1p if player_a == 1 else battle_plan_2p
-        battle_plan_b = battle_plan_1p if player_b == 1 else battle_plan_2p
-
-        # 填入战斗方案和关卡信息
-        faa_a.set_config_for_battle(
-            battle_mode=0,
-            is_group=is_group,
-            deck=deck,
-            quest_card="None",
-            ban_card_list=[],
-            battle_plan_index=battle_plan_a,
-            stage_id="OR-1-0"  # 该地图不自动放承载卡, 且铲所有卡~
-        )
-        faa_b.set_config_for_battle(
-            battle_mode=0,
-            is_group=is_group,
-            deck=deck,
-            quest_card="None",
-            ban_card_list=[],
-            battle_plan_index=battle_plan_b,
-            stage_id="OR-1-0"  # 该地图不自动放承载卡, 且铲所有卡~
-        )
-
-        success_battle_time = 0  # 记录成功战斗次数
-
-        # 轮次作战
-        while success_battle_time < max_times:
-
-            timer_begin = time.time()
-
-            print("=" * 50)
-            text = "[{}] [单本轮战] 第{}次, 开始".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                success_battle_time + 1)
-            print(text)
-            self.sin_out.emit(text)
-
-            # 创建战斗进程 -> 开始进程
-            result = self.battle(player_a=player_a, player_b=player_b)
-
-            if result == 0:
-                # 战斗成功 计数+1
-                success_battle_time += 1
-
-                # 结束提示文本
-                text = "[{}] [单本轮战] 第{}次, 正常结束, 耗时:{:.0f}s".format(
-                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    success_battle_time,
-                    time.time() - timer_begin)
-                print(text)
-                self.sin_out.emit(text)
-
-            else:
-                # 结束提示文本
-                text = "[{}] [单本轮战] 第{}次, 出现未知异常! 刷新后卡死, 以防止更多问题, 出现此问题可上报作者".format(
-                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    success_battle_time)
-                print(text)
-                self.sin_out.emit(text)
-
-                self.reload_game()
-                sleep(60 * 60 * 24)
+        quest_list = [
+            {
+                "stage_id": stage_id,
+                "max_times": max_times,
+                "deck": deck,
+                "player": player,
+                "battle_plan_1p": battle_plan_1p,
+                "battle_plan_2p": battle_plan_2p,
+                "quest_card": "None",
+                "list_ban_card": [],
+                "dict_exit": dict_exit
+            }]
+        self.n_n_battle(
+            quest_list=quest_list,
+            list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU"])
 
         # 战斗结束
         self.sin_out.emit(
@@ -897,12 +851,9 @@ class Todo(QThread):
                 text_))
 
     def guild_or_spouse_quest(
-            self,
-            text_,
-            quest_mode,
+            self, text_, quest_mode,
             deck,
-            battle_plan_1p,
-            battle_plan_2p
+            battle_plan_1p, battle_plan_2p
     ):
         """完成公会or情侣任务"""
 
@@ -951,41 +902,6 @@ class Todo(QThread):
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
-    """使用n_n_battle为核心的变种函数"""
-
-    def easy_battle(
-            self, text_, stage_id, player, max_times,
-            deck,
-            battle_plan_1p, battle_plan_2p, dict_exit):
-        """仅调用 n_battle"""
-        # 战斗开始
-        self.sin_out.emit(
-            "\n[{}] {} Link Start!".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                text_))
-
-        quest_list = [
-            {
-                "stage_id": stage_id,
-                "max_times": max_times,
-                "deck": deck,
-                "player": player,
-                "battle_plan_1p": battle_plan_1p,
-                "battle_plan_2p": battle_plan_2p,
-                "quest_card": "None",
-                "list_ban_card": [],
-                "dict_exit": dict_exit
-            }]
-        self.n_n_battle(
-            quest_list=quest_list,
-            list_type=["NO", "OR", "CS", "EX", "MT"])
-
-        # 战斗结束
-        self.sin_out.emit(
-            "[{}] {} Completed!".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                text_))
-
     def double_offer_reward(
             self, text_, max_times,
             deck,
@@ -1008,7 +924,7 @@ class Todo(QThread):
                 "deck": deck,
                 "battle_plan_1p": battle_plan_1p,
                 "battle_plan_2p": battle_plan_2p,
-                "stage_id": "OR-" + str(i + 1) + "-0",
+                "stage_id": "OR-0-" + str(i + 1),
                 "max_times": max_times,
                 "quest_card": "None",
                 "list_ban_card": [],
@@ -1261,6 +1177,8 @@ class Todo(QThread):
         need_reload = need_reload or self.opt["magic_tower_prison_1"]["active"]
         need_reload = need_reload or self.opt["magic_tower_prison_2"]["active"]
         need_reload = need_reload or self.opt["magic_tower_double"]["active"]
+        need_reload = need_reload or self.opt["pet_temple_1"]["active"]
+        need_reload = need_reload or self.opt["pet_temple_2"]["active"]
         if need_reload:
             self.reload_game()
 
@@ -1270,7 +1188,7 @@ class Todo(QThread):
                 self.easy_battle(
                     text_="[魔塔单人_{}P]".format(player_id),
                     stage_id="MT-1-" + str(my_opt["stage"]),
-                    player=[1] if player_id == 1 else [2],
+                    player=[player_id],
                     max_times=int(my_opt["max_times"]),
                     deck=my_opt["deck"],
                     battle_plan_1p=my_opt["battle_plan_1p"],
@@ -1288,7 +1206,7 @@ class Todo(QThread):
             if my_opt["active"]:
                 self.alone_magic_tower_prison(
                     text_="[魔塔密室_{}P]".format(player_id),
-                    player=[1] if player_id == 1 else [2],
+                    player=[player_id],
                     deck=my_opt["deck"],
                     battle_plan_1p=my_opt["battle_plan_1p"],
                     sutra_pavilion=my_opt["stage"])
@@ -1310,6 +1228,25 @@ class Todo(QThread):
                     "last_time_player_b": ["回到上一级"]
                 }
             )
+
+        for player_id in [1, 2]:
+            my_opt = self.opt["pet_temple_{}".format(player_id)]
+            if my_opt["active"]:
+                self.easy_battle(
+                    text_="[萌宠神殿_{}P]".format(player_id),
+                    stage_id="PT-0-" + str(my_opt["stage"]),
+                    player=[player_id],
+                    max_times=1,
+                    deck=my_opt["deck"],
+                    battle_plan_1p=my_opt["battle_plan_1p"],
+                    battle_plan_2p=my_opt["battle_plan_1p"],
+                    dict_exit={
+                        "other_time_player_a": [],
+                        "other_time_player_b": [],
+                        "last_time_player_a": [],  # "回到上一级","普通红叉" 但之后会刷新 所以不管了
+                        "last_time_player_b": []
+                    }
+                )
 
         self.sin_out.emit(
             "[{}] 全部主要事项已完成! 耗时:{}".format(
@@ -1346,14 +1283,20 @@ class Todo(QThread):
 
         my_opt = self.opt["customize_battle"]
         if my_opt["active"]:
-            self.n_battle_customize(
+            self.easy_battle(
                 text_="[自建房战斗]",
-                is_group=my_opt["is_group"],
+                stage_id="CU-0-0",
+                player=[2, 1] if my_opt["is_group"] else [1],
                 max_times=int(my_opt["max_times"]),
                 deck=my_opt["deck"],
                 battle_plan_1p=my_opt["battle_plan_1p"],
                 battle_plan_2p=my_opt["battle_plan_2p"],
-
+                dict_exit={
+                    "other_time_player_a": [],
+                    "other_time_player_b": [],
+                    "last_time_player_a": [],
+                    "last_time_player_b": []
+                }
             )
 
         my_opt = self.opt["customize"]
