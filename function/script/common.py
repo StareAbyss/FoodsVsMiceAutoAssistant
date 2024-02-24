@@ -176,7 +176,6 @@ class FAA:
             )
 
             if find:
-
                 # 选2区人少
                 mouse_left_click(
                     handle=self.handle,
@@ -494,7 +493,6 @@ class FAA:
 
         def main_mt():
             if mt_first_time:
-
                 # 前往海底
                 self.action_goto_map(map_id=5)
 
