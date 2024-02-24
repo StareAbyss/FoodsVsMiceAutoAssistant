@@ -2,31 +2,30 @@
     "game_name": "\u9511\u98df",
     "name_1p": "",
     "name_2p": "\u6df1\u6e0a\u4e4b\u4e0b",
-    "zoom_ratio": 0,
     "level_1p": 60,
     "level_2p": 60,
     "auto_use_card": true,
     "auto_pickup_1p": false,
     "auto_pickup_2p": true,
     "sign_in": {
-        "active": false,
+        "active": true,
         "is_group": true
     },
     "fed_and_watered": {
-        "active": false,
+        "active": true,
         "is_group": true
     },
     "normal_battle": {
-        "active": false,
+        "active": true,
         "is_group": true,
-        "max_times": 1,
-        "stage": "EX-1-5",
+        "max_times": 45,
+        "stage": "NO-4-1",
         "deck": 1,
         "battle_plan_1p": 0,
         "battle_plan_2p": 1
     },
     "quest_guild": {
-        "active": false,
+        "active": true,
         "stage": false,
         "deck": 1,
         "battle_plan_1p": 0,
@@ -36,14 +35,14 @@
         "active": true
     },
     "offer_reward": {
-        "active": false,
+        "active": true,
         "max_times": 2,
         "deck": 1,
         "battle_plan_1p": 0,
         "battle_plan_2p": 1
     },
     "relic": {
-        "active": false,
+        "active": true,
         "is_group": true,
         "max_times": 5,
         "stage": "NO-3-6",
@@ -54,7 +53,7 @@
     "warrior": {
         "active": true,
         "is_group": true,
-        "max_times": 8,
+        "max_times": 7,
         "deck": 1,
         "battle_plan_1p": 2,
         "battle_plan_2p": 3
@@ -103,19 +102,19 @@
         "battle_plan_2p": 12
     },
     "pet_temple_1": {
-        "active": false,
+        "active": true,
         "stage": 25,
-        "deck": 1,
+        "deck": 2,
         "battle_plan_1p": 11
     },
     "pet_temple_2": {
-        "active": false,
+        "active": true,
         "stage": 10,
         "deck": 1,
-        "battle_plan_1p": 11
+        "battle_plan_1p": 0
     },
     "use_items": {
-        "active": true,
+        "active": false,
         "is_group": true
     },
     "receive_awards": {
@@ -129,13 +128,13 @@
     "customize_battle": {
         "active": false,
         "is_group": 0,
-        "max_times": 5,
+        "max_times": 2,
         "deck": 1,
         "battle_plan_1p": 0,
         "battle_plan_2p": 1
     },
     "customize": {
         "active": true,
-        "battle_plan_1p": 0
+        "battle_plan_1p": 1
     }
 }

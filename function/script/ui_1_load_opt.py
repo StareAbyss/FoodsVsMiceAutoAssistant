@@ -47,7 +47,8 @@ class MyMainWindow1(MyMainWindow0):
         self.GameName_Input.setText(self.opt["game_name"])
         self.Name1P_Input.setText(self.opt["name_1p"])
         self.Name2P_Input.setText(self.opt["name_2p"])
-        self.ZoomRatio_Input.setCurrentIndex(self.opt["zoom_ratio"])
+        # self.ZoomRatio_Input.setCurrentIndex(self.opt["zoom_ratio"])
+        self.ZoomRatio_Output.setText(str(self.zoom) + " (自动获取)")
 
         self.Level1P_Input.setValue(self.opt["level_1p"])
         self.Level2P_Input.setValue(self.opt["level_2p"])
@@ -223,7 +224,8 @@ class MyMainWindow1(MyMainWindow0):
         self.opt["game_name"] = self.GameName_Input.text()
         self.opt["name_1p"] = self.Name1P_Input.text()
         self.opt["name_2p"] = self.Name2P_Input.text()
-        self.opt["zoom_ratio"] = self.ZoomRatio_Input.currentIndex()  # combobox 序号
+        # self.opt["zoom_ratio"] = self.ZoomRatio_Input.currentIndex()  # combobox 序号
+        self.ZoomRatio_Output.setText(str(self.zoom) + " (自动获取)")
 
         self.opt["level_1p"] = self.Level1P_Input.value()
         self.opt["level_2p"] = self.Level2P_Input.value()

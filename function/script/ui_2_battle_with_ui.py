@@ -4,6 +4,7 @@ import sys
 import time
 from time import sleep
 
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QApplication
 
@@ -12,6 +13,7 @@ from function.common.bg_p_compare import loop_find_p_in_w
 from function.common.thread_with_exception import ThreadWithException
 from function.get_paths import paths
 from function.script.common import FAA
+from function.script.scattered.gat_handle import faa_get_handle
 from function.script.scattered.get_channel_name import get_channel_name
 from function.script.scattered.get_customize_todo_list import get_customize_todo_list
 from function.script.ui_1_load_opt import MyMainWindow1
@@ -389,7 +391,8 @@ class Todo(QThread):
             player_b):
 
         # 自定义作战直接调出
-        if "CU" in stage_id:
+        is_cu = "CU" in stage_id
+        if is_cu:
             return 0
 
         is_cs = "CS" in stage_id
@@ -486,8 +489,9 @@ class Todo(QThread):
     ):
         """[单本轮战]1次 副本外 → 副本内n次战斗 → 副本外"""
 
-        # 判断是不是打魔塔
+        # 判断是不是打魔塔 或 自建房
         is_mt = "MT" in stage_id
+        is_cu = "CU" in stage_id
 
         # 处理多人信息
         player_a = player[0]
@@ -545,7 +549,9 @@ class Todo(QThread):
                     ))
                 return False
 
-        need_goto_stage = True  # 标记是否需要进入副本
+        # 标记是否需要进入副本
+        need_goto_stage = not is_cu
+
         success_battle_time = 0  # 记录成功战斗次数
         result_list = []  # 记录成功场次
         # 轮次作战
@@ -1286,7 +1292,7 @@ class Todo(QThread):
             self.easy_battle(
                 text_="[自建房战斗]",
                 stage_id="CU-0-0",
-                player=[2, 1] if my_opt["is_group"] else [1],
+                player=[[1, 2], [2, 1], [1], [2]][my_opt["is_group"]],
                 max_times=int(my_opt["max_times"]),
                 deck=my_opt["deck"],
                 battle_plan_1p=my_opt["battle_plan_1p"],
@@ -1329,6 +1335,7 @@ class Todo(QThread):
 
 
 class MyMainWindow2(MyMainWindow1):
+    error_signal = pyqtSignal(str, str)
 
     def __init__(self):
         # 继承父类构造方法
@@ -1338,6 +1345,8 @@ class MyMainWindow2(MyMainWindow1):
         self.faa = [None, None, None]
         # 线程激活即为True
         self.thread_states = False
+        # 链接防呆弹窗
+        self.error_signal.connect(self.show_dialog)
 
     def todo_completed(self):
         self.thread_states = False  # 设置flag
@@ -1365,15 +1374,15 @@ class MyMainWindow2(MyMainWindow1):
             channel_1p, channel_2p = get_channel_name(game_name, name_1p, name_2p)
 
             # 把索引变值 需要注意的是 battle_plan均为索引 需要在FAA类中处理
-            zoom_ratio = {
-                0: 1.00,
-                1: 1.25,
-                2: 1.50,
-                3: 1.75,
-                4: 2.00,
-                5: 2.25,
-                6: 2.50}
-            zoom_ratio = zoom_ratio[self.opt["zoom_ratio"]]
+            # zoom_ratio = {
+            #     0: 1.00,
+            #     1: 1.25,
+            #     2: 1.50,
+            #     3: 1.75,
+            #     4: 2.00,
+            #     5: 2.25,
+            #     6: 2.50}
+            zoom_ratio = self.zoom
 
             faa = [None, None, None]
             faa[1] = FAA(
@@ -1396,13 +1405,22 @@ class MyMainWindow2(MyMainWindow1):
 
             self.todo_start()
 
-            self.thread_todo = Todo(faa=faa, opt=self.opt)
-            # 绑定手动结束线程
-            self.thread_todo.sin_out_completed.connect(self.todo_completed)
-            # 绑定文本输出
-            self.thread_todo.sin_out.connect(self.printf)
-            # 开始线程
-            self.thread_todo.start()
+            # 防呆测试
+            handle = faa_get_handle(channel=channel_1p, mode="flash")
+            if handle is None or handle == 0:
+                # 报错弹窗
+                self.error_signal.emit("嗷呜！出错啦！", "错误的窗口名或游戏名称，请参考使用前看我!.pdf 或 README.md")
+                # 还原文本结束输出
+                self.todo_completed()
+            else:
+                # 创造todo线程
+                self.thread_todo = Todo(faa=faa, opt=self.opt)
+                # 绑定手动结束线程
+                self.thread_todo.sin_out_completed.connect(self.todo_completed)
+                # 绑定文本输出
+                self.thread_todo.sin_out.connect(self.printf)
+                # 开始线程
+                self.thread_todo.start()
 
         else:
             """
@@ -1427,6 +1445,15 @@ class MyMainWindow2(MyMainWindow1):
 
             # 结束线程后的ui处理
             self.todo_completed()
+
+    @QtCore.pyqtSlot(str, str)
+    def show_dialog(self, title, message):
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Icon.Warning)
+        msg.setWindowTitle(title)
+        msg.setText(message)
+        msg.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
+        msg.exec_()
 
 
 def main():

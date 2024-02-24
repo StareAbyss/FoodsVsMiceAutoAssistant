@@ -6,6 +6,7 @@ from PyQt5.QtGui import QIcon, QFont, QFontDatabase
 from PyQt5.QtWidgets import QMainWindow, QApplication
 
 from function.get_paths import paths
+from function.get_system_dpi import get_system_dpi
 
 
 class MyMainWindow0(QMainWindow):
@@ -26,6 +27,9 @@ class MyMainWindow0(QMainWindow):
 
         # 设置窗口图标
         self.setWindowIcon(QIcon(paths["logo"] + "\\FetTuo-192x.png"))
+
+        # 获取 dpi & zoom 仅能在类中调用
+        self.zoom = get_system_dpi() / 96
 
         # 设定字体
         QFontDatabase.addApplicationFont(paths["font"] + "\\金山云技术体.ttf")

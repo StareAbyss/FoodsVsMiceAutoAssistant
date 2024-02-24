@@ -494,7 +494,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QComboBox" name="ZoomRatio_Input">
+            <widget class="QLineEdit" name="ZoomRatio_Output">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -513,41 +513,18 @@
                <height>16777215</height>
               </size>
              </property>
-             <item>
-              <property name="text">
-               <string>1.00</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>1.25</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>1.50</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>1.75</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>2.00</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>2.25</string>
-              </property>
-             </item>
-             <item>
-              <property name="text">
-               <string>2.50</string>
-              </property>
-             </item>
+             <property name="tabletTracking">
+              <bool>false</bool>
+             </property>
+             <property name="autoFillBackground">
+              <bool>false</bool>
+             </property>
+             <property name="text">
+              <string>自动缩放倍率</string>
+             </property>
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
             </widget>
            </item>
           </layout>
