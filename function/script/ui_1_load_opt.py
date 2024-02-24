@@ -123,16 +123,9 @@ class MyMainWindow1(MyMainWindow0):
         self.Warrior_1P.setCurrentIndex(self.opt["warrior"]["battle_plan_1p"])
         self.Warrior_2P.setCurrentIndex(self.opt["warrior"]["battle_plan_2p"])
 
-        # 魔塔
+        # 魔塔 萌宠神殿
 
-        self.MagicTowerDouble_Active.setChecked(self.opt["magic_tower_double"]["active"])
-        self.MagicTowerDouble_Stage.setValue(self.opt["magic_tower_double"]["stage"])
-        self.MagicTowerDouble_MaxTimes.setValue(self.opt["magic_tower_double"]["max_times"])
-        self.MagicTowerDouble_Deck.setValue(self.opt["magic_tower_double"]["deck"])
-        self.MagicTowerDouble_1P.addItems(battle_plan_list)
-        self.MagicTowerDouble_1P.setCurrentIndex(self.opt["magic_tower_double"]["battle_plan_1p"])
-        self.MagicTowerDouble_2P.addItems(battle_plan_list)
-        self.MagicTowerDouble_2P.setCurrentIndex(self.opt["magic_tower_double"]["battle_plan_2p"])
+
 
         self.MagicTowerAlone1_Active.setChecked(self.opt["magic_tower_alone_1"]["active"])
         self.MagicTowerAlone1_MaxTimes.setValue(self.opt["magic_tower_alone_1"]["max_times"])
@@ -159,7 +152,28 @@ class MyMainWindow1(MyMainWindow0):
         self.MagicTowerPrison2_Deck.setValue(self.opt["magic_tower_prison_2"]["deck"])
         self.MagicTowerPrison2_1P.addItems(battle_plan_list)
         self.MagicTowerPrison2_1P.setCurrentIndex(self.opt["magic_tower_prison_2"]["battle_plan_1p"])
+        
+        self.MagicTowerDouble_Active.setChecked(self.opt["magic_tower_double"]["active"])
+        self.MagicTowerDouble_Stage.setValue(self.opt["magic_tower_double"]["stage"])
+        self.MagicTowerDouble_MaxTimes.setValue(self.opt["magic_tower_double"]["max_times"])
+        self.MagicTowerDouble_Deck.setValue(self.opt["magic_tower_double"]["deck"])
+        self.MagicTowerDouble_1P.addItems(battle_plan_list)
+        self.MagicTowerDouble_1P.setCurrentIndex(self.opt["magic_tower_double"]["battle_plan_1p"])
+        self.MagicTowerDouble_2P.addItems(battle_plan_list)
+        self.MagicTowerDouble_2P.setCurrentIndex(self.opt["magic_tower_double"]["battle_plan_2p"])
+        
+        self.PetTemple1_Active.setChecked(self.opt["pet_temple_1"]["active"])
+        self.PetTemple1_Stage.setValue(self.opt["pet_temple_1"]["stage"])
+        self.PetTemple1_Deck.setValue(self.opt["pet_temple_1"]["deck"])
+        self.PetTemple1_1P.addItems(battle_plan_list)
+        self.PetTemple1_1P.setCurrentIndex(self.opt["pet_temple_1"]["battle_plan_1p"])
 
+        self.PetTemple2_Active.setChecked(self.opt["pet_temple_2"]["active"])
+        self.PetTemple2_Stage.setValue(self.opt["pet_temple_2"]["stage"])
+        self.PetTemple2_Deck.setValue(self.opt["pet_temple_2"]["deck"])
+        self.PetTemple2_1P.addItems(battle_plan_list)
+        self.PetTemple2_1P.setCurrentIndex(self.opt["pet_temple_2"]["battle_plan_1p"])
+        
         # 附加功能
 
         self.ReceiveAwards_Active.setChecked(self.opt["receive_awards"]["active"])
@@ -273,14 +287,7 @@ class MyMainWindow1(MyMainWindow0):
         my_transformer_b(self.Warrior_1P, "warrior", "battle_plan_1p")
         my_transformer_b(self.Warrior_2P, "warrior", "battle_plan_2p")
 
-        # 魔塔
-
-        self.opt["magic_tower_double"]["active"] = self.MagicTowerDouble_Active.isChecked()
-        self.opt["magic_tower_double"]["max_times"] = self.MagicTowerDouble_MaxTimes.value()
-        self.opt["magic_tower_double"]["stage"] = self.MagicTowerDouble_Stage.value()
-        self.opt["magic_tower_double"]["deck"] = self.MagicTowerDouble_Deck.value()
-        my_transformer_b(self.MagicTowerDouble_1P, "magic_tower_double", "battle_plan_1p")
-        my_transformer_b(self.MagicTowerDouble_2P, "magic_tower_double", "battle_plan_2p")
+        # 魔塔 萌宠神殿
 
         self.opt["magic_tower_alone_1"]["active"] = self.MagicTowerAlone1_Active.isChecked()
         self.opt["magic_tower_alone_1"]["max_times"] = self.MagicTowerAlone1_MaxTimes.value()
@@ -303,6 +310,23 @@ class MyMainWindow1(MyMainWindow0):
         self.opt["magic_tower_prison_2"]["stage"] = self.MagicTowerPrison2_Stage.isChecked()
         self.opt["magic_tower_prison_2"]["deck"] = self.MagicTowerPrison2_Deck.value()
         my_transformer_b(self.MagicTowerPrison2_1P, "magic_tower_prison_2", "battle_plan_1p")
+
+        self.opt["magic_tower_double"]["active"] = self.MagicTowerDouble_Active.isChecked()
+        self.opt["magic_tower_double"]["max_times"] = self.MagicTowerDouble_MaxTimes.value()
+        self.opt["magic_tower_double"]["stage"] = self.MagicTowerDouble_Stage.value()
+        self.opt["magic_tower_double"]["deck"] = self.MagicTowerDouble_Deck.value()
+        my_transformer_b(self.MagicTowerDouble_1P, "magic_tower_double", "battle_plan_1p")
+        my_transformer_b(self.MagicTowerDouble_2P, "magic_tower_double", "battle_plan_2p")
+
+        self.opt["pet_temple_1"]["active"] = self.PetTemple1_Active.isChecked()
+        self.opt["pet_temple_1"]["stage"] = self.PetTemple1_Stage.value()
+        self.opt["pet_temple_1"]["deck"] = self.PetTemple1_Deck.value()
+        my_transformer_b(self.PetTemple1_1P, "pet_temple_1", "battle_plan_1p")
+
+        self.opt["pet_temple_2"]["active"] = self.PetTemple2_Active.isChecked()
+        self.opt["pet_temple_2"]["stage"] = self.PetTemple2_Stage.value()
+        self.opt["pet_temple_2"]["deck"] = self.PetTemple2_Deck.value()
+        my_transformer_b(self.PetTemple2_1P, "pet_temple_2", "battle_plan_1p")
 
         # 附加功能
 

@@ -782,6 +782,42 @@ class FAA:
                     target_sleep=0.5,
                     click=True)
 
+        def main_pt():
+            # 进入海底旋涡
+            self.action_goto_map(map_id=5)
+
+            # 点击进入萌宠神殿
+            self.action_top_menu(mode="萌宠神殿")
+
+            # 到魔塔最低一层
+            mouse_left_click(
+                handle=self.handle,
+                x=int(192 * self.zoom),
+                y=int(579 * self.zoom),
+                sleep_time=0.3)
+            # 向右到对应位置
+            my_left = int((int(stage_2) - 1) / 15)
+            for i in range(my_left):
+                mouse_left_click(
+                    handle=self.handle,
+                    x=int(297 * self.zoom),
+                    y=int(577 * self.zoom),
+                    sleep_time=0.3)
+            # 点击对应层数
+            mouse_left_click(
+                handle=self.handle,
+                x=int(225 * self.zoom),
+                y=int(int(542 - (30.8 * (int(stage_2) - my_left * 15 - 1))) * self.zoom),
+                sleep_time=0.3)
+            # 创建房间
+            loop_find_p_in_w(
+                raw_w_handle=self.handle,
+                raw_range=[0, 0, 950, 600],
+                target_path=paths["picture"]["common"] + "\\战斗\\战斗前_魔塔_创建房间.png",
+                click_zoom=self.zoom,
+                target_sleep=1,
+                click=True)
+
         if stage_0 == "NO":
             main_no()
         elif stage_0 == "MT":
@@ -792,6 +828,8 @@ class FAA:
             main_or()
         elif stage_0 == "EX":
             main_ex()
+        elif stage_0 == "PT":
+            main_pt()
         else:
             print_g(
                 text="请输入正确的关卡名称！",
@@ -3058,7 +3096,8 @@ if __name__ == '__main__':
     def f_main():
         faa = FAA(channel="锑食", zoom=1)
         # faa = FAA(channel="深渊之下 | 锑食", zoom=1.25)
-        faa.set_config_for_battle(is_group=False, battle_plan_index=0, stage_id="NO-5-1")
+        faa.set_config_for_battle(is_group=False, battle_plan_index=0, stage_id="PT-0-23")
+        faa.action_goto_stage()
 
 
     f_main()
