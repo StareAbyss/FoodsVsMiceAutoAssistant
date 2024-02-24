@@ -150,7 +150,6 @@ class FAA:
                 raw_w_handle=self.handle,
                 raw_range=[250, 0, 925, 110],
                 target_path=paths["picture"]["common"] + "\\顶部菜单\\" + mode + ".png",
-                target_tolerance=0.95,
                 target_failed_check=3,
                 target_sleep=1.5,
                 click=True,
@@ -167,17 +166,29 @@ class FAA:
                 break
 
         if mode == "跨服远征":
-            # 选2区人少
-            mouse_left_click(
-                handle=self.handle,
-                x=int(785 * self.zoom),
-                y=int(30 * self.zoom),
-                sleep_time=0.5)
-            mouse_left_click(
-                handle=self.handle,
-                x=int(785 * self.zoom),
-                y=int(85 * self.zoom),
-                sleep_time=0.5)
+
+            # 确认已经跨服进房间
+            find = loop_find_p_in_w(
+                raw_w_handle=self.handle,
+                raw_range=[0, 0, 950, 200],
+                target_path=paths["picture"]["common"] + "\\跨服副本_ui.png",
+                target_failed_check=10
+            )
+
+            if find:
+
+                # 选2区人少
+                mouse_left_click(
+                    handle=self.handle,
+                    x=int(785 * self.zoom),
+                    y=int(30 * self.zoom),
+                    sleep_time=0.5)
+
+                mouse_left_click(
+                    handle=self.handle,
+                    x=int(785 * self.zoom),
+                    y=int(85 * self.zoom),
+                    sleep_time=0.5)
 
         return find
 
@@ -483,8 +494,6 @@ class FAA:
 
         def main_mt():
             if mt_first_time:
-                # 防止被活动列表遮住
-                self.change_activity_list(2)
 
                 # 前往海底
                 self.action_goto_map(map_id=5)
@@ -570,8 +579,7 @@ class FAA:
                             y=int(int(542 - (30.8 * (int(stage_2) - my_left * 15 - 1))) * self.zoom),
                             sleep_time=0.3)
 
-                # 进入关卡
-
+                # 创建房间
                 loop_find_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
