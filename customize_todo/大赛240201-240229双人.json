@@ -276,7 +276,7 @@
         },
         "stage_id": "NO-2-4",
         "battle_id": 46,
-        "quest_card": "None",
+        "quest_card": "酒杯灯",
         "player": [
             2,
             1
@@ -314,11 +314,11 @@
         "battle_plan_1p": 0,
         "battle_plan_2p": 1,
         "list_ban_card": [
-            "狮子座精灵",
             "油灯",
             "樱桃反弹布丁",
             "苏打气泡",
             "木盘子",
+            "咖啡粉",
             "麦芽糖"
         ]
     },
@@ -401,12 +401,12 @@
         "battle_plan_1p": 0,
         "battle_plan_2p": 1,
         "list_ban_card": [
-            "瓜皮护罩",
             "狮子座精灵",
             "油灯",
             "樱桃反弹布丁",
             "苏打气泡",
             "木盘子",
+            "咖啡粉",
             "麦芽糖"
         ]
     },
@@ -453,7 +453,7 @@
         },
         "stage_id": "NO-2-13",
         "battle_id": 52,
-        "quest_card": "None",
+        "quest_card": "酒杯灯",
         "player": [
             2,
             1
@@ -625,13 +625,13 @@
         "battle_plan_1p": 0,
         "battle_plan_2p": 1,
         "list_ban_card": [
-            "糖葫芦炮弹",
             "瓜皮护罩",
             "狮子座精灵",
             "油灯",
             "樱桃反弹布丁",
             "苏打气泡",
             "木盘子",
+            "咖啡粉",
             "麦芽糖"
         ]
     },
@@ -730,7 +730,7 @@
         },
         "stage_id": "EX-3-4",
         "battle_id": 62,
-        "quest_card": "None",
+        "quest_card": "酒杯灯",
         "player": [
             2,
             1

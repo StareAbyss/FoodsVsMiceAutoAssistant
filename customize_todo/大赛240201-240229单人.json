@@ -141,7 +141,7 @@
         },
         "stage_id": "NO-2-8",
         "battle_id": 6,
-        "quest_card": "None",
+        "quest_card": "酒杯灯",
         "player": [
             1
         ],
@@ -171,7 +171,7 @@
         },
         "stage_id": "NO-2-14",
         "battle_id": 7,
-        "quest_card": "None",
+        "quest_card": "酒杯灯",
         "player": [
             1
         ],
@@ -200,7 +200,7 @@
         },
         "stage_id": "NO-2-2",
         "battle_id": 8,
-        "quest_card": "None",
+        "quest_card": "酒杯灯",
         "player": [
             1
         ],
@@ -236,9 +236,9 @@
         "battle_plan_1p": 0,
         "battle_plan_2p": 1,
         "list_ban_card": [
-            "樱桃反弹布丁",
             "苏打气泡",
             "木盘子",
+            "咖啡粉",
             "麦芽糖"
         ]
     },
@@ -266,8 +266,8 @@
         "battle_plan_1p": 0,
         "battle_plan_2p": 1,
         "list_ban_card": [
-            "苏打气泡",
             "木盘子",
+            "咖啡粉",
             "麦芽糖"
         ]
     },
@@ -313,7 +313,7 @@
         },
         "stage_id": "NO-1-11",
         "battle_id": 12,
-        "quest_card": "None",
+        "quest_card": "酒杯灯",
         "player": [
             1
         ],
@@ -682,7 +682,7 @@
         },
         "stage_id": "NO-4-4",
         "battle_id": 26,
-        "quest_card": "None",
+        "quest_card": "酒杯灯",
         "player": [
             1
         ],

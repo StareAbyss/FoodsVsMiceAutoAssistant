@@ -712,7 +712,7 @@ class FAA:
                 "1": 8,
                 "2": 2,
                 "3": 2}
-            change_to_region(region_id=my_dict[stage_1])
+            change_to_region(region_id=my_dict[stage_2])
 
             # 仅限创房间的人
             if room_creator:
@@ -1912,19 +1912,35 @@ class FAA:
                     player=player,
                     garde=1)
 
+        def action_ban_card_loop_a_round(ban_card_s):
+
+            for card in ban_card_s:
+                # 只ban被记录了图片的变种卡
+                loop_find_p_in_w(
+                    raw_w_handle=handle,
+                    raw_range=[380, 40, 915, 105],
+                    target_path=paths["picture"]["card"] + "\\房间\\" + card + ".png",
+                    target_tolerance=0.95,
+                    target_interval=0.2,
+                    target_failed_check=0.6,
+                    target_sleep=1,
+                    click=True,
+                    click_zoom=zoom)
+
         def action_remove_ban_card():
-            """寻找并移除需要ban的卡, 暂不支持跨页ban, 只从前11张ban"""
+            """寻找并移除需要ban的卡, 现已支持跨页ban"""
+
             # 只有ban卡数组非空, 继续进行
             if ban_card_list:
-                ban_card_s = []
 
                 # 处理需要ban的卡片,
+                ban_card_s = []
                 for ban_card in ban_card_list:
                     # 对于名称带-的卡, 就对应的写入, 如果不带-, 就查找其所有变种
                     if "-" in ban_card:
                         ban_card_s.append("{}".format(ban_card))
                     else:
-                        for i in range(9):  # i代表一张卡能有的最高变种 姑且认为是3*3 = 9
+                        for i in range(21):  # i代表一张卡能有的最高变种 姑且认为是3*7 = 21
                             ban_card_s.append("{}-{}".format(ban_card, i))
 
                 # 读取所有已记录的卡片文件名, 并去除没有记录的卡片
@@ -1934,20 +1950,13 @@ class FAA:
                         my_list.append(ban_card_n)
                 ban_card_s = my_list
 
-                for ban_card_n in ban_card_s:
-                    # 只ban被记录了图片的变种卡
-                    loop_find_p_in_w(
-                        raw_w_handle=handle,
-                        raw_range=[380, 40, 915, 105],
-                        target_path=paths["picture"]["card"] + "\\房间\\" + ban_card_n + ".png",
-                        target_tolerance=0.95,
-                        target_interval=0.2,
-                        target_failed_check=1,
-                        target_sleep=1,
-                        click=True,
-                        click_zoom=zoom)
-                # 休息1s
-                time.sleep(1)
+                # 第一页
+                action_ban_card_loop_a_round(ban_card_s=ban_card_s)
+                # 翻页到第二页
+                for i in range(5):
+                    mouse_left_click(handle=handle, x=int(930 * zoom), y=int(85 * zoom))
+                # 第二页
+                action_ban_card_loop_a_round(ban_card_s=ban_card_s)
 
         def main():
             # 循环查找开始按键
@@ -2994,8 +3003,8 @@ class FAA:
             # 选择地图-巫毒
             mouse_left_click(
                 handle=handle,
-                x=int(65 * zoom),
-                y=int(470 * zoom),
+                x=int(469 * zoom),
+                y=int(70 * zoom),
                 sleep_time=0.5)
 
             # 选择关卡-第二关
