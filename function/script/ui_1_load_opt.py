@@ -3,6 +3,7 @@ import sys
 
 from PyQt5.QtWidgets import QApplication
 
+from function.get_paths import paths
 from function.script.scattered.get_customize_todo_list import get_customize_todo_list
 from function.script.scattered.get_list_battle_plan import get_list_battle_plan
 from function.script.ui_0_load_ui_file import MyMainWindow0
@@ -16,7 +17,7 @@ class MyMainWindow1(MyMainWindow0):
         super().__init__()
 
         # opt路径
-        self.opt_path = self.path_root + "\\config\\opt_main.json"
+        self.opt_path = paths["root"] + "\\config\\opt_main.json"
 
         # 从json文件中读取opt 并刷新ui
         self.opt = self.json_to_opt()
