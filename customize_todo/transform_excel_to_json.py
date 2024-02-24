@@ -19,7 +19,8 @@ default_deck = [
     "樱桃反弹布丁",
     "苏打气泡",
     "木盘子",
-    "麦芽糖"
+    "咖啡粉",
+    "麦芽糖",
 ]
 
 # 读取 转化
@@ -43,8 +44,8 @@ for a_dict in data_list:
     a_dict["dict_exit"] = {
         "other_time_player_a": [],
         "other_time_player_b": [],
-        "last_time_player_a": ["回到上一级","美食大赛领取"],
-        "last_time_player_b": ["回到上一级","美食大赛领取"]
+        "last_time_player_a": ["回到上一级", "美食大赛领取"],
+        "last_time_player_b": ["回到上一级", "美食大赛领取"]
     }
 
     # 直接读取参数
@@ -88,15 +89,15 @@ for a_dict in data_list:
         elif mat_card_opt == 2:
             default_deck.remove("麦芽糖")
             default_deck.insert(0, "麦芽糖")
+            default_deck.remove("咖啡粉")
+            default_deck.insert(0, "咖啡粉")
 
-        # 在属于的卡中, 选出后几位ban掉, 多ban一张, 因为咖啡粉在第12个格子不好ban
-        for j in default_deck[int(a_dict["数量限制"]) - 1:]:
-            a_dict["list_ban_card"].append(j)
+        # 在属于的卡中, 选出后几位ban掉, 如果有任务卡额外加一张ban掉
+        max_card_num = int(a_dict["数量限制"]) + 0 if a_dict["quest_card"] == "None" else 1
+        a_dict["list_ban_card"] = default_deck[max_card_num:]
 
     # 卸磨杀驴数量限制列
     a_dict.pop("数量限制")
-
-
 
 pprint(data_list)
 
