@@ -1406,10 +1406,16 @@ class MyMainWindow2(MyMainWindow1):
             self.todo_start()
 
             # 防呆测试
-            handle = faa_get_handle(channel=channel_1p, mode="flash")
-            if handle is None or handle == 0:
+            handle_1 = faa_get_handle(channel=channel_1p, mode="browser")
+            handle_2 = faa_get_handle(channel=channel_2p, mode="browser")
+            if handle_1 is None or handle_1 == 0:
                 # 报错弹窗
-                self.error_signal.emit("嗷呜！出错啦！", "错误的窗口名或游戏名称，请参考使用前看我!.pdf 或 README.md")
+                self.error_signal.emit("嗷呜！出错啦！", "1P存在错误的窗口名或游戏名称, 请参考使用前看我!.pdf 或 README.md")
+                # 还原文本结束输出
+                self.todo_completed()
+            elif handle_2 is None or handle_2 == 0:
+                # 报错弹窗
+                self.error_signal.emit("嗷呜！出错啦！", "2P存在错误的窗口名或游戏名称, 单人运行请将2P角色名同1P一致, 更多信息请参考使用前看我!.pdf 或 README.md")
                 # 还原文本结束输出
                 self.todo_completed()
             else:
