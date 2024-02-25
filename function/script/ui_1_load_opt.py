@@ -127,8 +127,6 @@ class MyMainWindow1(MyMainWindow0):
 
         # 魔塔 萌宠神殿
 
-
-
         self.MagicTowerAlone1_Active.setChecked(self.opt["magic_tower_alone_1"]["active"])
         self.MagicTowerAlone1_MaxTimes.setValue(self.opt["magic_tower_alone_1"]["max_times"])
         self.MagicTowerAlone1_Stage.setValue(self.opt["magic_tower_alone_1"]["stage"])
@@ -154,7 +152,7 @@ class MyMainWindow1(MyMainWindow0):
         self.MagicTowerPrison2_Deck.setValue(self.opt["magic_tower_prison_2"]["deck"])
         self.MagicTowerPrison2_1P.addItems(battle_plan_list)
         self.MagicTowerPrison2_1P.setCurrentIndex(self.opt["magic_tower_prison_2"]["battle_plan_1p"])
-        
+
         self.MagicTowerDouble_Active.setChecked(self.opt["magic_tower_double"]["active"])
         self.MagicTowerDouble_Stage.setValue(self.opt["magic_tower_double"]["stage"])
         self.MagicTowerDouble_MaxTimes.setValue(self.opt["magic_tower_double"]["max_times"])
@@ -163,7 +161,7 @@ class MyMainWindow1(MyMainWindow0):
         self.MagicTowerDouble_1P.setCurrentIndex(self.opt["magic_tower_double"]["battle_plan_1p"])
         self.MagicTowerDouble_2P.addItems(battle_plan_list)
         self.MagicTowerDouble_2P.setCurrentIndex(self.opt["magic_tower_double"]["battle_plan_2p"])
-        
+
         self.PetTemple1_Active.setChecked(self.opt["pet_temple_1"]["active"])
         self.PetTemple1_Stage.setValue(self.opt["pet_temple_1"]["stage"])
         self.PetTemple1_Deck.setValue(self.opt["pet_temple_1"]["deck"])
@@ -175,7 +173,7 @@ class MyMainWindow1(MyMainWindow0):
         self.PetTemple2_Deck.setValue(self.opt["pet_temple_2"]["deck"])
         self.PetTemple2_1P.addItems(battle_plan_list)
         self.PetTemple2_1P.setCurrentIndex(self.opt["pet_temple_2"]["battle_plan_1p"])
-        
+
         # 附加功能
 
         self.ReceiveAwards_Active.setChecked(self.opt["receive_awards"]["active"])
@@ -197,6 +195,7 @@ class MyMainWindow1(MyMainWindow0):
         self.CustomizeBattle_2P.setCurrentIndex(self.opt["customize_battle"]["battle_plan_2p"])
 
         self.Customize_Active.setChecked(self.opt["customize"]["active"])
+        self.Customize_Stage.setValue(self.opt["customize"]["stage"])
         self.Customize_1P.addItems(customize_todo_list)
         self.Customize_1P.setCurrentIndex(self.opt["customize"]["battle_plan_1p"])
 
@@ -350,6 +349,7 @@ class MyMainWindow1(MyMainWindow0):
         my_transformer_b(self.CustomizeBattle_2P, "customize_battle", "battle_plan_2p")
 
         self.opt["customize"]["active"] = self.Customize_Active.isChecked()
+        self.opt["customize"]["stage"] = self.Customize_Stage.value()
         my_transformer_c(self.Customize_1P, "customize", "battle_plan_1p")
 
     def click_btn_save(self):

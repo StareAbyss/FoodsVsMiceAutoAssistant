@@ -784,7 +784,7 @@ class Todo(QThread):
                 self.sin_out.emit(
                     "[{}] [多本轮战] 事项{},{},{},{}次,带卡:{},Ban卡:{}".format(
                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        i + 1,
+                        quest["battle_id"] if "battle_id" in quest else (i + 1),
                         "组队" if quest["battle_plan_2p"] else "单人",
                         quest["stage_id"],
                         quest["max_times"],
@@ -807,7 +807,7 @@ class Todo(QThread):
                 self.sin_out.emit(
                     "[{}] [多本轮战] 事项{},{},{},{}次,带卡:{},Ban卡:{},不打的地图Skip".format(
                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        i + 1,
+                        quest["battle_id"] if "battle_id" in quest else (i + 1),
                         "组队" if quest["battle_plan_2p"] else "单人",
                         quest["stage_id"],
                         quest["max_times"],
@@ -893,7 +893,7 @@ class Todo(QThread):
 
         self.n_n_battle(
             quest_list=quest_list,
-            list_type=["NO"])
+            list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU"])
 
         self.sin_out.emit(
             "[{}] {} 检查领取奖励中...".format(
@@ -994,7 +994,7 @@ class Todo(QThread):
                 text_))
 
     def customize_todo(
-            self, text_, customize_todo_index: int):
+            self, text_, stage_begin:int, customize_todo_index: int):
 
         def read_json_to_customize_todo():
             customize_todo_list = get_customize_todo_list(with_extension=True)
@@ -1017,11 +1017,28 @@ class Todo(QThread):
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
+        # 读取json文件
         quest_list = read_json_to_customize_todo()
 
+        # 获得最高方案的id
+        max_battle_id = 1
+        for quest in quest_list:
+            max_battle_id = max(max_battle_id,quest["battle_id"])
+
+        if stage_begin > max_battle_id:
+            self.sin_out.emit(
+                "[{}] {} 任务序号超过了该方案最高序号! 将直接跳过!".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    text_))
+            return
+
+        # 由于任务id从1开始, 故需要减1
+        quest_list = quest_list[stage_begin-1:]
+
+        # 开始战斗
         self.n_n_battle(
             quest_list=quest_list,
-            list_type=["NO", "EX", "CS"])
+            list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU"])
 
         # 战斗结束
         self.sin_out.emit(
@@ -1309,6 +1326,7 @@ class Todo(QThread):
         if my_opt["active"]:
             self.customize_todo(
                 text_="[高级自定义]",
+                stage_begin = my_opt["stage"],
                 customize_todo_index=my_opt["battle_plan_1p"])
 
         # 全部完成了刷新一下
