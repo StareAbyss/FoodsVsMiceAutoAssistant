@@ -5,6 +5,7 @@ import time
 
 import cv2
 import numpy as np
+from PyQt5 import QtCore
 
 from function.common.bg_keyboard import key_down_up
 from function.common.bg_mouse import mouse_left_click, mouse_left_moveto
@@ -2027,152 +2028,95 @@ class FAA:
         zoom = self.zoom
         player = self.player
 
+        def screen_loots():
+            """
+            :return: 捕获的战利品dict
+            """
+            # 记录战利品 tip 一张图49x49 是完美规整的
+            images = []
+
+            for i in range(3):
+                mouse_left_click(
+                    handle=handle,
+                    x=int(708 * zoom),
+                    y=int(484 * zoom),
+                    interval_time=0.05,
+                    sleep_time=0.05)
+
+            QtCore.QThread.msleep(500)
+
+            images.append(
+                capture_picture_png(
+                    handle=handle,
+                    raw_range=[209, 454, 699, 552]))
+
+            for i in range(3):
+                mouse_left_click(
+                    handle=handle,
+                    x=int(708 * zoom),
+                    y=int(510 * zoom),
+                    interval_time=0.05,
+                    sleep_time=0.05)
+
+            images.append(
+                capture_picture_png(
+                    handle=handle,
+                    raw_range=[209, 456, 699, 505]))
+
+            QtCore.QThread.msleep(500)
+
+            for i in range(3):
+                mouse_left_click(
+                    handle=handle,
+                    x=int(708 * zoom),
+                    y=int(529 * zoom),
+                    interval_time=0.05,
+                    sleep_time=0.5)
+
+            images.append(
+                capture_picture_png(
+                    handle=handle,
+                    raw_range=[209, 454, 699, 552]))
+
+            # 垂直拼接
+            image = cv2.vconcat(images)
+
+            return image
+
         def screen_loot_logs():
             """
             :return: 捕获的战利品dict
             """
             # 是否还在战利品ui界面
-            find = find_ps_in_w(
+            find = loop_find_p_in_w(
                 raw_w_handle=handle,
-                target_opts=[
-                    {
-                        "raw_range": [202, 419, 306, 461],
-                        "target_path": paths["picture"]["common"] + "\\战斗\\战斗后_1_战利品.png",
-                        "target_tolerance": 0.999},
-                    {
-                        "raw_range": [202, 419, 306, 461],
-                        "target_path": paths["picture"]["common"] + "\\战斗\\战斗后_2_战利品阴影版.png",
-                        "target_tolerance": 0.999
-                    }
-                ],
-                return_mode="or")
+                raw_range=[202, 419, 306, 461],
+                target_path=paths["picture"]["common"] + "\\战斗\\战斗后_1_战利品.png",
+                target_failed_check=2,
+                target_tolerance=0.99,
+                click=False)
+
             if find:
                 print_g(text="[战利品UI] 正常结束, 尝试捕获战利品截图", player=player, garde=1)
 
-                def screen_loots():
-                    """
-                    :return: 捕获的战利品dict
-                    """
-                    # 记录战利品 tip 一张图49x49 是完美规整的
-                    image = []
-                    mouse_left_click(
-                        handle=handle,
-                        x=int(708 * zoom),
-                        y=int(484 * zoom),
-                        interval_time=0.05,
-                        sleep_time=0.3)
-                    image.append(
-                        capture_picture_png(
-                            handle=handle,
-                            raw_range=[209, 454, 699, 552]))
-                    time.sleep(0.5)
-
-                    mouse_left_click(
-                        handle=handle,
-                        x=int(708 * zoom),
-                        y=int(510 * zoom),
-                        interval_time=0.05,
-                        sleep_time=0.3)
-                    image.append(
-                        capture_picture_png(
-                            handle=handle,
-                            raw_range=[209, 456, 699, 505]))
-                    time.sleep(0.5)
-
-                    mouse_left_click(
-                        handle=handle,
-                        x=int(708 * zoom),
-                        y=int(529 * zoom),
-                        interval_time=0.05,
-                        sleep_time=0.3)
-                    image.append(
-                        capture_picture_png(
-                            handle=handle,
-                            raw_range=[209, 454, 699, 552]))
-
-                    # 垂直拼接
-                    image = cv2.vconcat(image)
-
-                    return image
+                # 错开一下, 避免卡住
+                if player == 2:
+                    QtCore.QThread.msleep(333)
 
                 # 定义保存路径和文件名格式
-                my_path = "{}\\{}_{}P_{}.png".format(
-                    paths["logs"] + "\\loot_picture",
+                img_path = "{}\\{}_{}P_{}.png".format(
+                    paths["logs"] + "\\loots_picture",
                     self.stage_info["id"],
                     player,
                     time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
                 )
 
                 # 截图并保存
-                screen = screen_loots()
-                cv2.imencode('.png', screen)[1].tofile(my_path)
+                img = screen_loots()
 
                 # 分析图片，获取战利品字典
-                drop_dict = matchImage(imagePath=my_path)
-                print_g(text="[战利品UI] 战利品已 捕获/识别/保存, 如下:".format(drop_dict), player=player, garde=1)
-                print(drop_dict)
-
-                def statistics():
-
-                    # 分P，在目录下保存战利品字典
-                    file_path = "{}\\loot_json\\{}P掉落汇总.json".format(paths["logs"], player)
-                    stage_name = self.stage_info["id"]
-
-                    if os.path.exists(file_path):
-                        # 尝试读取现有的JSON文件
-                        with open(file_path, "r", encoding="utf-8") as json_file:
-                            json_data = json.load(json_file)
-                    else:
-                        # 如果文件不存在，初始化
-                        json_data = {}
-
-                    if stage_name in json_data:
-                        # 更新现有数据
-                        for item_str, count in drop_dict.items():
-                            if item_str in json_data[stage_name]["loots"]:
-                                json_data[stage_name]["loots"][item_str] += count  # 更新数量
-                            else:
-                                json_data[stage_name]["loots"][item_str] = count  # 新增道具
-
-                        json_data[stage_name]["times"] += 1  # 更新次数
-
-                    else:
-                        # 初始化新数据
-                        json_data[stage_name] = {
-                            "loots": drop_dict,
-                            "times": 1
-                        }
-
-                    # 保存或更新后的战利品字典到JSON文件
-                    with open(file_path, "w", encoding="utf-8") as json_file:
-                        json.dump(json_data, json_file, ensure_ascii=False, indent=4)
-
-                def detail():
-
-                    # 分P，在目录下保存战利品字典。
-                    file_path = "{}\\loot_json\\{}P掉落明细.json".format(paths["logs"], player)
-                    stage_name = self.stage_info["id"]
-
-                    if os.path.exists(file_path):
-                        # 读取现有的JSON文件
-                        with open(file_path, "r", encoding="utf-8") as json_file:
-                            json_data = json.load(json_file)
-                    else:
-                        # 如果文件不存在，初始化
-                        json_data = {"data": []}
-
-                    json_data["data"].append({
-                        "timestamp": time.time(),
-                        "stage": stage_name,
-                        "loots": drop_dict,
-                    })
-
-                    # 保存或更新后的战利品字典到JSON文件
-                    with open(file_path, "w", encoding="utf-8") as json_file:
-                        json.dump(json_data, json_file, ensure_ascii=False, indent=4)
-
-                statistics()
-                detail()
+                drop_dict = matchImage(img_path=img_path, img=img)
+                print_g(text="[战利品UI] 战利品已 捕获/识别/保存".format(drop_dict), player=player, garde=1)
 
                 return drop_dict
 
@@ -2214,9 +2158,33 @@ class FAA:
                     interval_time=0.05,
                     sleep_time=0.5)
 
+                QtCore.QThread.msleep(1000)
+                img = [
+                    capture_picture_png(
+                        handle=handle,
+                        raw_range=[249, 89, 293, 133]),
+                    capture_picture_png(
+                        handle=handle,
+                        raw_range=[317, 89, 361, 133])
+                ]
+
+                img = cv2.hconcat(img)
+
+                # 定义保存路径和文件名格式
+                img_path = "{}\\{}_{}P_{}.png".format(
+                    paths["logs"] + "\\chests_picture",
+                    self.stage_info["id"],
+                    player,
+                    time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+                )
+
+                # 分析图片，获取战利品字典
+                drop_dict = matchImage(img_path=img_path, img=img, mode="chests")
+                print_g(text="[翻宝箱] 宝箱已 捕获/识别/保存".format(drop_dict), player=player, garde=1)
+
                 # 组队2P慢点结束翻牌 保证双人魔塔后自己是房主
                 if self.is_group and player == 2:
-                    time.sleep(2)
+                    QtCore.QThread.msleep(2000)
 
                 # 结束翻牌
                 mouse_left_click(
@@ -2226,8 +2194,11 @@ class FAA:
                     interval_time=0.05,
                     sleep_time=3)
 
+                return drop_dict
+
             else:
                 print_g(text="[翻宝箱UI] 15s未能捕获正确标志, 出问题了!", player=player, garde=2)
+                return {}
 
         def main():
 
@@ -2260,12 +2231,87 @@ class FAA:
                 """战斗结束后, 一般流程为 (潜在的任务完成黑屏) -> 战利品 -> 战斗结算 -> 翻宝箱, 之后会回到房间, 魔塔会回到其他界面"""
 
                 # 战利品部分, 会先检测是否在对应界面
-                loot_dict = screen_loot_logs()
+                loots_dict = screen_loot_logs()
 
                 # 战斗结算部分, 等待跳过就好了
 
                 # 翻宝箱部分, 会先检测是否在对应界面
-                action_flip_treasure_chest()
+                chests_dict = action_flip_treasure_chest()
+
+                result_dict = {
+                    "loots": loots_dict,
+                    "chests": chests_dict
+                }
+
+                def statistics():
+
+                    # 分P，在目录下保存战利品字典
+                    file_path = "{}\\result_json\\{}P掉落汇总.json".format(paths["logs"], player)
+                    stage_name = self.stage_info["id"]
+
+                    if os.path.exists(file_path):
+                        # 尝试读取现有的JSON文件
+                        with open(file_path, "r", encoding="utf-8") as json_file:
+                            json_data = json.load(json_file)
+                    else:
+                        # 如果文件不存在，初始化
+                        json_data = {}
+
+                    if stage_name in json_data:
+                        # 更新现有数据
+                        for item_str, count in loots_dict.items():
+                            if item_str in json_data[stage_name]["loots"]:
+                                json_data[stage_name]["loots"][item_str] += count  # 更新数量
+                            else:
+                                json_data[stage_name]["loots"][item_str] = count  # 新增道具
+                        # 更新现有数据
+                        for item_str, count in chests_dict.items():
+                            if item_str in json_data[stage_name]["chests"]:
+                                json_data[stage_name]["chests"][item_str] += count  # 更新数量
+                            else:
+                                json_data[stage_name]["chests"][item_str] = count  # 新增道具
+
+                        json_data[stage_name]["times"] += 1  # 更新次数
+
+                    else:
+                        # 初始化新数据
+                        json_data[stage_name] = {
+                            "loots": loots_dict,
+                            "chests": chests_dict,
+                            "times": 1
+                        }
+
+                    # 保存或更新后的战利品字典到JSON文件
+                    with open(file_path, "w", encoding="utf-8") as json_file:
+                        json.dump(json_data, json_file, ensure_ascii=False, indent=4)
+
+                def detail():
+
+                    # 分P，在目录下保存战利品字典。
+                    file_path = "{}\\result_json\\{}P掉落明细.json".format(paths["logs"], player)
+                    stage_name = self.stage_info["id"]
+
+                    if os.path.exists(file_path):
+                        # 读取现有的JSON文件
+                        with open(file_path, "r", encoding="utf-8") as json_file:
+                            json_data = json.load(json_file)
+                    else:
+                        # 如果文件不存在，初始化
+                        json_data = {"data": []}
+
+                    json_data["data"].append({
+                        "timestamp": time.time(),
+                        "stage": stage_name,
+                        "loots": loots_dict,
+                        "chests": chests_dict
+                    })
+
+                    # 保存或更新后的战利品字典到JSON文件
+                    with open(file_path, "w", encoding="utf-8") as json_file:
+                        json.dump(json_data, json_file, ensure_ascii=False, indent=4)
+
+                statistics()
+                detail()
 
                 # 先检是否炸服了
                 find = loop_find_ps_in_w(
@@ -2299,7 +2345,7 @@ class FAA:
                 print_g(text="未能找到火苗标识物, 进入战斗失败, 可能是次数不足或服务器卡顿", player=player, garde=2)
                 return 2, None  # 2-跳过本次
 
-            return 0, loot_dict  # 0-正常结束
+            return 0, result_dict  # 0-正常结束
 
         return main()
 

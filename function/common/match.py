@@ -14,7 +14,7 @@ def match_histogram(block, target_image):
         [block],
         [0, 1, 2],
         None,
-        [8, 8, 8],
+        [16, 16, 16],
         [0, 256, 0, 256, 0, 256]
     )
 
@@ -22,7 +22,7 @@ def match_histogram(block, target_image):
         [target_image],
         [0, 1, 2],
         None,
-        [8, 8, 8],
+        [16, 16, 16],
         [0, 256, 0, 256, 0, 256]
     )
 
@@ -32,7 +32,7 @@ def match_histogram(block, target_image):
         method=cv2.HISTCMP_CORREL
     )
 
-    if score > 0.90:
+    if score > 0.97:
         return True
 
     else:

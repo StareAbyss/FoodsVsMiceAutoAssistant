@@ -728,25 +728,40 @@ class Todo(QThread):
             关于 result_list
             """
             # 输入为
-            my_dict = {}
+            loots_dict = {}
+            chests_dict = {}
 
             # 复制key
             for _result in result_list:
-                for key in _result["loot_dict_list"][player_id].keys():
-                    my_dict[key] = 0
+                for key in _result["loot_dict_list"][player_id]["loots"].keys():
+                    loots_dict[key] = 0
+                for key in _result["loot_dict_list"][player_id]["chests"].keys():
+                    chests_dict[key] = 0
 
             # 累加数据
             for _result in result_list:
-                for k, v in _result["loot_dict_list"][player_id].items():
-                    my_dict[k] += v
+                for k, v in _result["loot_dict_list"][player_id]["loots"].items():
+                    loots_dict[k] += v
+                for k, v in _result["loot_dict_list"][player_id]["chests"].items():
+                    chests_dict[k] += v
 
             # 生成文本
-            my_text = ""
-            for name, count in my_dict.items():
-                my_text += "{}[{}|{:.1f}] ".format(name, count, count / valid_time)
+            loots_text = ""
+            chests_text = ""
+            for name, count in loots_dict.items():
+                loots_text += "{}[{}|{:.1f}] ".format(name, count, count / valid_time)
+            for name, count in chests_dict.items():
+                chests_text += "{}[{}|{:.1f}] ".format(name, count, count / valid_time)
 
             # 玩家A掉落
-            self.sin_out.emit("[{}P掉落]\n{}".format(player_id, my_text))
+            self.sin_out.emit(
+                "[{}P掉落]\n{}\n[{}P宝箱]\n{}".format(
+                    player_id,
+                    loots_text,
+                    player_id,
+                    chests_text
+                )
+            )
 
         if len(player) == 1:
             # 单人
