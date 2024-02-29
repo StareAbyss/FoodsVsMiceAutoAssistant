@@ -4,6 +4,8 @@ import random
 
 import cv2
 import numpy as np
+import sys
+sys.path.append('c:/192/FAA/FoodsVsMouses_AutoAssistant')
 
 from function.common.match import match_histogram
 from function.get_paths import paths
@@ -13,20 +15,29 @@ from function.get_paths import paths
 致谢：八重垣天知
 """
 
+# 比较两个图像是否完全相同
+def compare(imageA, imageB):
+    # 直接比较图像数组
+    return np.array_equal(imageA, imageB)
 
-def templateMatch(block):
-    items_dir = paths["picture"]["item"] + "\\战斗"
-
-    item_name = "识别失败"
-
-    # 遍历每个目标图像
+# 预加载图像
+def preload_target_images(items_dir):
+    target_images = {}
     for target_filename in os.listdir(items_dir):
-        target_path = "{}\\{}".format(items_dir, target_filename)
+        target_path = os.path.join(items_dir, target_filename)
         target_image = cv2.imdecode(np.fromfile(target_path, dtype=np.uint8), -1)
+        if target_image is not None:
+            # 存储图像和它的文件名（去掉扩展名）
+            target_images[target_filename.replace(".png", "")] = target_image
+    return target_images
+
+def templateMatch(block, target_images):
+    item_name = "识别失败"
+    # 遍历预加载的目标图像
+    for item_name, target_image in target_images.items():
 
         # 跳过大小不相等的图片
         if target_image is not None and target_image.shape == block.shape:
-
             # 对比 block 和 target_image
             result_bool = match_histogram(
                 block=block[:, :, :-1],
@@ -34,7 +45,6 @@ def templateMatch(block):
 
             if result_bool:
                 # 识图成功 返回识别的道具名称
-                item_name = target_filename.replace(".png", "")  # 返回值切掉.png
                 return item_name
 
     # 识图失败 把block保存到resource-picture-item-未编码索引中
@@ -70,6 +80,10 @@ def matchImage(imagePath, test_print=False):
     # 保存最佳匹配道具的识图数据
     best_match_items = {}
 
+    # 预加载图像
+    items_dir = paths["picture"]["item"] + "\\战斗"
+    target_images = preload_target_images(items_dir)
+
     # 按照分割规则，遍历分割每一块，然后依次识图
     found = False
     for i in range(rows):
@@ -83,7 +97,7 @@ def matchImage(imagePath, test_print=False):
             block = block[5:41, 5:35]
 
             # 执行模板匹配并获取最佳匹配的文件名
-            best_match_item = templateMatch(block)
+            best_match_item = templateMatch(block, target_images)
 
             if best_match_item == "0" or best_match_item == "1":
                 found = True
