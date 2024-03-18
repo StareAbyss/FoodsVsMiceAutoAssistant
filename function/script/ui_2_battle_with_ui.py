@@ -272,8 +272,8 @@ class Todo(QThread):
         find = loop_find_p_in_w(
             raw_w_handle=faa_a.handle,
             raw_range=[796, 413, 950, 485],
-            target_path=paths["picture"]["common"] + "\\战斗\\战斗前_开始按钮.png",
             click_zoom=zoom,
+            target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_开始按钮.png",
             target_sleep=0.3,
             click=False,
             target_failed_check=2.0)
@@ -302,14 +302,15 @@ class Todo(QThread):
             y=int(157 * zoom),
             sleep_time=0.5)
 
-        # p2接受邀请
-        find = loop_find_p_in_w(
-            raw_w_handle=faa_b.handle,
-            raw_range=[0, 0, 950, 600],
-            target_path=paths["picture"]["common"] + "\\战斗\\战斗前_接受邀请.png",
             click_zoom=zoom,
-            target_sleep=2.0,
-            target_failed_check=2.0)
+            # p2接受邀请
+            find = loop_find_p_in_w(
+                raw_w_handle=faa_b.handle,
+                raw_range=[0, 0, 950, 600],
+                target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_接受邀请.png",
+                target_sleep=2.0,
+                target_failed_check=2.0
+            )
 
         if not find:
             print("2s没能组队? 土豆服务器问题, 尝试解决ing...")
@@ -1016,7 +1017,7 @@ class Todo(QThread):
         def read_json_to_customize_todo():
             customize_todo_list = get_customize_todo_list(with_extension=True)
             customize_todo_path = "{}\\{}".format(
-                paths["customize_todo"],
+                PATHS["customize_todo"],
                 customize_todo_list[customize_todo_index]
             )
             with open(customize_todo_path, "r", encoding="UTF-8") as file:

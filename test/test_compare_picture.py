@@ -2,15 +2,15 @@ import cProfile
 
 import cv2
 import numpy as np
-from function.global_paths import PATHS
 
 from function.common.bg_p_compare import find_p_in_w
+from function.globals.get_paths import PATHS
 from function.scattered.gat_handle import faa_get_handle
 
 
 def f_test():
     handle = faa_get_handle(channel="深渊之下 | 锑食", mode="flash")
-    target_path = paths["picture"]["item"] + "\\原始资源\\2\\1级四叶草.png"
+    target_path = PATHS["picture"]["item"] + "\\原始资源\\2\\1级四叶草.png"
     target_path = cv2.imdecode(np.fromfile(target_path, dtype=np.uint8), -1)
     print(target_path)
     # for i in range(100):

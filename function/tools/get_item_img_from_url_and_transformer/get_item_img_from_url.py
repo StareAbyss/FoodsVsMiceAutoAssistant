@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 
 import requests
 
-from function.get_paths import paths
+from function.globals.get_paths import PATHS
 
 
 # 下载并保存图片的函数
@@ -16,7 +16,7 @@ def download_and_save_image(image_id, image_name):
         response = requests.get(image_url)
 
         if response.status_code == 200:
-            file_name = "{}\\原始资源\\{}\\{}.png".format(paths["picture"]["item"], n, image_name)
+            file_name = "{}\\原始资源\\{}\\{}.png".format(PATHS["picture"]["item"], n, image_name)
             with open(file_name, 'wb') as file:
                 file.write(response.content)
             print("{}次尝试,已下载并保存图片到文件夹到对应序号".format(n))

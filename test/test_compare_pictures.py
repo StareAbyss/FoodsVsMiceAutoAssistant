@@ -1,8 +1,7 @@
 import cProfile
 
-from function.global_paths import PATHS
-
 from function.common.bg_p_compare import find_ps_in_w
+from function.globals.get_paths import PATHS
 from function.scattered.gat_handle import faa_get_handle
 
 
@@ -11,17 +10,17 @@ def f_test():
     target_opts = [
         {
             "raw_range": [792, 200, 942, 534],
-            "target_path": paths["picture"]["common"] + "\\底部菜单\\跳转_竞技场.png",
+            "target_path": PATHS["picture"]["common"] + "\\底部菜单\\跳转_竞技场.png",
             "target_tolerance": 0.95,
         },
         {
             "raw_range": [792, 200, 942, 534],
-            "target_path": paths["picture"]["common"] + "\\底部菜单\\跳转_情侣任务.png",
+            "target_path": PATHS["picture"]["common"] + "\\底部菜单\\跳转_情侣任务.png",
             "target_tolerance": 0.95,
         },
         {
             "raw_range": [792, 200, 942, 534],
-            "target_path": paths["picture"]["common"] + "\\底部菜单\\跳转_公会副本.png",
+            "target_path": PATHS["picture"]["common"] + "\\底部菜单\\跳转_公会副本.png",
             "target_tolerance": 0.95,
         }
     ]

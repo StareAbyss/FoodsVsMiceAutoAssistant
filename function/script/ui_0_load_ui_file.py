@@ -5,8 +5,11 @@ from PyQt5 import uic, QtWidgets
 from PyQt5.QtGui import QIcon, QFont, QFontDatabase
 from PyQt5.QtWidgets import QMainWindow, QApplication
 
-from function.get_paths import paths
-from function.get_system_dpi import get_system_dpi
+from function.common.get_system_dpi import get_system_dpi
+from function.globals.get_paths import PATHS
+from function.globals.thread_click_queue import T_CLICK_QUEUE_TIMER
+
+ZOOM_RATE = None
 
 
 class MyMainWindow0(QMainWindow):
@@ -20,19 +23,19 @@ class MyMainWindow0(QMainWindow):
         super().__init__()
 
         # 加载 ui文件
-        uic.loadUi(paths["root"] + '\\resource\\ui\\fvm_2.0.ui', self)
+        uic.loadUi(PATHS["root"] + '\\resource\\ui\\fvm_2.0.ui', self)
 
         # 设置窗口名称
         self.setWindowTitle("FAA - 本软件免费且开源 - 反馈交流: 786921130")
 
         # 设置窗口图标
-        self.setWindowIcon(QIcon(paths["logo"] + "\\FetTuo-192x.png"))
+        self.setWindowIcon(QIcon(PATHS["logo"] + "\\FetTuo-192x.png"))
 
         # 获取 dpi & zoom 仅能在类中调用
         self.zoom = get_system_dpi() / 96
 
         # 设定字体
-        QFontDatabase.addApplicationFont(paths["font"] + "\\汉仪文黑-85W Heavy.ttf")
+        QFontDatabase.addApplicationFont(PATHS["font"] + "\\汉仪文黑-85W Heavy.ttf")
         font = QFont()
         font.setFamily("汉仪文黑-85W")
         font.setPointSize(10)

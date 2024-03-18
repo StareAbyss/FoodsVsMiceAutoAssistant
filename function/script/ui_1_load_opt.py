@@ -17,7 +17,7 @@ class MyMainWindow1(MyMainWindow0):
         super().__init__()
 
         # opt路径
-        self.opt_path = paths["root"] + "\\config\\opt_main.json"
+        self.opt_path = PATHS["root"] + "\\config\\settings.json"
 
         # 从json文件中读取opt 并刷新ui
         self.opt = self.json_to_opt()

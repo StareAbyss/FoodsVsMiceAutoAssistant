@@ -86,7 +86,7 @@ class FAA:
             find = loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=raw_range,
-                target_path=paths["picture"]["common"] + "\\退出.png",
+                target_path=PATHS["picture"]["common"] + "\\退出.png",
                 target_failed_check=5,
                 target_sleep=1.5,
                 click=True,
@@ -95,7 +95,7 @@ class FAA:
                 find = loop_find_p_in_w(
                     raw_w_handle=handle,
                     raw_range=[0, 0, 950, 600],
-                    target_path=paths["picture"]["common"] + "\\退出_被选中.png",
+                    target_path=PATHS["picture"]["common"] + "\\退出_被选中.png",
                     target_failed_check=5,
                     target_sleep=1.5,
                     click=True,
@@ -110,7 +110,7 @@ class FAA:
             loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=raw_range,
-                target_path=paths["picture"]["common"] + "\\悬赏任务_退出.png",
+                target_path=PATHS["picture"]["common"] + "\\悬赏任务_退出.png",
                 target_tolerance=0.99,
                 target_failed_check=100,
                 target_sleep=1.5,
@@ -151,7 +151,7 @@ class FAA:
             find = loop_find_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[250, 0, 925, 110],
-                target_path=paths["picture"]["common"] + "\\顶部菜单\\" + mode + ".png",
+                target_path=PATHS["picture"]["common"] + "\\顶部菜单\\" + mode + ".png",
                 target_failed_check=3,
                 target_sleep=1.5,
                 click=True,
@@ -173,7 +173,7 @@ class FAA:
             find = loop_find_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 200],
-                target_path=paths["picture"]["common"] + "\\跨服副本_ui.png",
+                target_path=PATHS["picture"]["common"] + "\\跨服副本_ui.png",
                 target_failed_check=10
             )
 
@@ -202,7 +202,7 @@ class FAA:
             find = loop_find_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[520, 530, 950, 600],
-                target_path=paths["picture"]["common"] + "\\底部菜单\\" + mode + ".png",
+                target_path=PATHS["picture"]["common"] + "\\底部菜单\\" + mode + ".png",
                 target_failed_check=3,
                 target_sleep=1,
                 click=True,
@@ -212,7 +212,7 @@ class FAA:
             loop_find_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[520, 530, 950, 600],
-                target_path=paths["picture"]["common"] + "\\底部菜单\\跳转.png",
+                target_path=PATHS["picture"]["common"] + "\\底部菜单\\跳转.png",
                 target_failed_check=3,
                 target_sleep=0.5,
                 click=True,
@@ -220,7 +220,7 @@ class FAA:
             find = loop_find_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[520, 170, 950, 600],
-                target_path=paths["picture"]["common"] + "\\底部菜单\\" + mode + ".png",
+                target_path=PATHS["picture"]["common"] + "\\底部菜单\\" + mode + ".png",
                 target_failed_check=3,
                 target_sleep=2,
                 click=True,
@@ -237,7 +237,7 @@ class FAA:
         find = find_p_in_w(
             raw_w_handle=self.handle,
             raw_range=[0, 0, 950, 600],
-            target_path=paths["picture"]["common"] + "\\顶部菜单\\举报.png")
+            target_path=PATHS["picture"]["common"] + "\\顶部菜单\\举报.png")
 
         if serial_num == 1:
             if find:
@@ -261,11 +261,11 @@ class FAA:
         img1 = capture_picture_png(handle=self.handle, raw_range=[0, 0, 950, 600])[468:484, 383:492, :3]
         # 关卡名称集 从资源文件夹自动获取, 资源文件命名格式：关卡名称.png
         stage_text_in_ready_check = []
-        for i in os.listdir(paths["picture"]["ready_check_stage"]):
+        for i in os.listdir(PATHS["picture"]["ready_check_stage"]):
             if i.find(".png") != -1:
                 stage_text_in_ready_check.append(i.split(".")[0])
         for i in stage_text_in_ready_check:
-            img_tar_path = paths["picture"]["ready_check_stage"] + "\\" + i + ".png"
+            img_tar_path = PATHS["picture"]["ready_check_stage"] + "\\" + i + ".png"
             img_tar = cv2.imdecode(np.fromfile(img_tar_path, dtype=np.uint8), -1)
             if np.all(img1 == img_tar):
                 # 图片完全一致
@@ -293,7 +293,7 @@ class FAA:
             loop_find_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["quest_guild"] + "\\ui_quest_list.png",
+                target_path=PATHS["picture"]["quest_guild"] + "\\ui_quest_list.png",
                 target_sleep=0.2,
                 click=True,
                 click_zoom=self.zoom)
@@ -302,12 +302,12 @@ class FAA:
 
         # 读取
         quest_list = []
-        # 公会任务 guild
         if mode == "公会任务":
-            path = paths["picture"]["quest_guild"]
+            my_path = PATHS["picture"]["quest_guild"]
+
             for i in range(7):
-                # 遍历任务
-                for j in os.listdir("{}\\{}\\".format(path, str(i + 1))):
+                one_page_quest = os.listdir("{}\\{}\\".format(my_path, str(i + 1)))
+                for quest in one_page_quest:
                     # 找到任务 加入任务列表
                     find_p = find_p_in_w(raw_w_handle=self.handle,
                                          raw_range=[0, 0, 950, 600],
@@ -349,7 +349,7 @@ class FAA:
 
         # 情侣任务 spouse
         if mode == "情侣任务":
-            path = paths["picture"]["quest_spouse"]
+            my_path = PATHS["picture"]["quest_spouse"]
             for i in ["1", "2", "3"]:
                 # 任务未完成
                 find_p = find_p_in_w(
@@ -401,7 +401,7 @@ class FAA:
         find = loop_find_p_in_w(
             raw_w_handle=self.handle,
             raw_range=[0, 0, 950, 600],
-            target_path=my_path,
+            target_path=PATHS["picture"]["map"] + "\\" + str(map_id) + ".png",
             target_tolerance=0.99,
             target_failed_check=5,
             target_sleep=2,
@@ -475,8 +475,8 @@ class FAA:
                 loop_find_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
-                    target_path=paths["picture"]["stage"] + "\\" + self.stage_info["id"] + ".png",
                     click_zoom=self.zoom,
+                    target_path=PATHS["picture"]["stage"] + "\\" + self.stage_info["id"] + ".png",
                     target_tolerance=0.995,
                     target_sleep=1,
                     click=True)
@@ -488,8 +488,8 @@ class FAA:
                 loop_find_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
-                    target_path=paths["picture"]["common"] + "\\战斗\\战斗前_创建房间.png",
                     click_zoom=self.zoom,
+                    target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_创建房间.png",
                     target_sleep=1,
                     click=True)
 
@@ -506,7 +506,7 @@ class FAA:
                 loop_find_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
-                    target_path=paths["picture"]["stage"] + "\\MT.png",
+                    target_path=PATHS["picture"]["stage"] + "\\MT.png",
                     target_failed_check=5,
                     target_sleep=2,
                     click=True,
@@ -527,8 +527,8 @@ class FAA:
                     loop_find_p_in_w(
                         raw_w_handle=self.handle,
                         raw_range=[0, 0, 950, 600],
-                        target_path=paths["picture"]["stage"] + "\\" + self.stage_info["id"] + ".png",
                         click_zoom=self.zoom,
+                        target_path=PATHS["picture"]["stage"] + "\\" + self.stage_info["id"] + ".png",
                         target_sleep=0.3,
                         click=True)
                 # 选择了单双人爬塔
@@ -583,8 +583,8 @@ class FAA:
                 loop_find_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
-                    target_path=paths["picture"]["common"] + "\\战斗\\战斗前_魔塔_创建房间.png",
                     click_zoom=self.zoom,
+                    target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_魔塔_创建房间.png",
                     target_sleep=1,
                     click=True)
 
@@ -662,8 +662,8 @@ class FAA:
                     find = loop_find_p_in_w(
                         raw_w_handle=self.handle,
                         raw_range=[0, 0, 950, 600],
-                        target_path=paths["picture"]["common"] + "\\用户自截\\跨服远征_1p.png",
                         click_zoom=self.zoom,
+                        target_path=PATHS["picture"]["common"] + "\\用户自截\\跨服远征_1p.png",
                         click=True,
                         target_sleep=1.0,
                         target_failed_check=1.0)
@@ -703,8 +703,8 @@ class FAA:
             loop_find_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["stage"] + "\\" + self.stage_info["id"] + ".png",
                 click_zoom=self.zoom,
+                target_path=PATHS["picture"]["stage"] + "\\" + self.stage_info["id"] + ".png",
                 target_tolerance=0.95,
                 target_sleep=1,
                 click=True)
@@ -740,8 +740,7 @@ class FAA:
                 loop_find_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
-                    target_path="{}\\EX-Ship.png".format(paths["picture"]["stage"]),
-                    click_zoom=self.zoom,
+                    target_path="{}\\EX-Ship.png".format(PATHS["picture"]["stage"]),
                     target_sleep=1.5,
                     click=True)
 
@@ -749,8 +748,7 @@ class FAA:
                 loop_find_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
-                    target_path="{}\\EX-{}.png".format(paths["picture"]["stage"], stage_1),
-                    click_zoom=self.zoom,
+                    target_path="{}\\EX-{}.png".format(PATHS["picture"]["stage"], stage_1),
                     target_sleep=1.5,
                     click=True)
 
@@ -760,7 +758,7 @@ class FAA:
             # 仅限主角色创建关卡
             if room_creator:
                 # 选择关卡
-                my_path = "{}\\{}.png".format(paths["picture"]["stage"], self.stage_info["id"])
+                my_path = "{}\\{}.png".format(PATHS["picture"]["stage"], self.stage_info["id"])
                 loop_find_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
@@ -773,7 +771,7 @@ class FAA:
                 click_set_password()
 
                 # 创建队伍
-                my_path = "{}\\战斗\\战斗前_创建房间.png".format(paths["picture"]["common"])
+                my_path = "{}\\战斗\\战斗前_创建房间.png".format(PATHS["picture"]["common"])
                 loop_find_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
@@ -880,7 +878,7 @@ class FAA:
                         find = loop_find_p_in_w(
                             raw_w_handle=handle,
                             raw_range=[335, 120, 420, 545],
-                            target_path=paths["picture"]["common"] + "\\任务_完成.png",
+                            target_path=PATHS["picture"]["common"] + "\\任务_完成.png",
                             target_tolerance=0.95,
                             target_failed_check=1,
                             target_sleep=0.5,
@@ -908,14 +906,14 @@ class FAA:
             loop_find_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["quest_guild"] + "\\ui_quest_list.png",
+                target_path=PATHS["picture"]["quest_guild"] + "\\ui_quest_list.png",
                 target_sleep=0.5,
                 click=True,
                 click_zoom=self.zoom)
             result = loop_find_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["quest_guild"] + "\\completed.png",
+                target_path=PATHS["picture"]["quest_guild"] + "\\completed.png",
                 target_tolerance=0.99,
                 click_zoom=self.zoom,
                 click=True,
@@ -925,7 +923,7 @@ class FAA:
                 loop_find_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
-                    target_path=paths["picture"]["quest_guild"] + "\\gather.png",
+                    target_path=PATHS["picture"]["quest_guild"] + "\\gather.png",
                     target_tolerance=0.99,
                     click_zoom=self.zoom,
                     click=True,
@@ -944,7 +942,7 @@ class FAA:
             result = loop_find_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["quest_spouse"] + "\\completed.png",
+                target_path=PATHS["picture"]["quest_spouse"] + "\\completed.png",
                 target_tolerance=0.99,
                 click_zoom=self.zoom,
                 click=True,
@@ -965,7 +963,7 @@ class FAA:
             result = loop_find_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["common"] + "\\悬赏任务_领取奖励.png",
+                target_path=PATHS["picture"]["common"] + "\\悬赏任务_领取奖励.png",
                 target_tolerance=0.99,
                 target_failed_check=2,
                 click_zoom=self.zoom,
@@ -997,7 +995,7 @@ class FAA:
                     find = loop_find_p_in_w(
                         raw_w_handle=handle,
                         raw_range=[0, 0, 950, 600],
-                        target_path=paths["picture"]["common"] + "\\美食大赛_领取.png",
+                        target_path=PATHS["picture"]["common"] + "\\美食大赛_领取.png",
                         target_tolerance=0.95,
                         target_failed_check=1,
                         target_sleep=0.5,
@@ -1123,7 +1121,7 @@ class FAA:
         def read_json_to_battle_plan():
             battle_plan_list = get_list_battle_plan(with_extension=True)
             battle_plan_path = "{}\\{}".format(
-                paths["battle_plan"],
+                PATHS["battle_plan"],
                 battle_plan_list[battle_plan_index]
             )
             with open(battle_plan_path, "r", encoding="UTF-8") as file:
@@ -1888,7 +1886,7 @@ class FAA:
                             find = loop_find_p_in_w(
                                 raw_w_handle=handle,
                                 raw_range=[380, 175, 925, 420],
-                                target_path=paths["picture"]["card"] + "\\房间\\" + quest_card_n + ".png",
+                                target_path=PATHS["picture"]["card"] + "\\房间\\" + quest_card_n + ".png",
                                 target_tolerance=0.95,
                                 target_failed_check=0.4,
                                 target_sleep=0.2,
@@ -1921,7 +1919,7 @@ class FAA:
                 loop_find_p_in_w(
                     raw_w_handle=handle,
                     raw_range=[380, 40, 915, 105],
-                    target_path=paths["picture"]["card"] + "\\房间\\" + card + ".png",
+                    target_path=PATHS["picture"]["card"] + "\\房间\\" + card + ".png",
                     target_tolerance=0.95,
                     target_interval=0.2,
                     target_failed_check=0.6,
@@ -1966,7 +1964,7 @@ class FAA:
             find = loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[796, 413, 950, 485],
-                target_path=paths["picture"]["common"] + "\\战斗\\战斗前_开始按钮.png",
+                target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_开始按钮.png",
                 target_interval=1,
                 target_failed_check=10,
                 target_sleep=0.3,
@@ -1994,7 +1992,7 @@ class FAA:
             find = loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[796, 413, 950, 485],
-                target_path=paths["picture"]["common"] + "\\战斗\\战斗前_开始按钮.png",
+                target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_开始按钮.png",
                 target_tolerance=0.95,
                 target_interval=1,
                 target_failed_check=10,
@@ -2009,7 +2007,7 @@ class FAA:
             find = find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["common"] + "\\战斗\\战斗前_系统提示.png",
+                target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_系统提示.png",
                 target_tolerance=0.98)
             if find:
                 mouse_left_click(handle=handle, x=int(427 * zoom), y=int(353 * zoom))
@@ -2092,7 +2090,7 @@ class FAA:
             find = loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[202, 419, 306, 461],
-                target_path=paths["picture"]["common"] + "\\战斗\\战斗后_1_战利品.png",
+                target_path=PATHS["picture"]["common"] + "\\战斗\\战斗后_1_战利品.png",
                 target_failed_check=2,
                 target_tolerance=0.99,
                 click=False)
@@ -2106,7 +2104,7 @@ class FAA:
 
                 # 定义保存路径和文件名格式
                 img_path = "{}\\{}_{}P_{}.png".format(
-                    paths["logs"] + "\\loots_picture",
+                    PATHS["logs"] + "\\loots_picture",
                     self.stage_info["id"],
                     player,
                     time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
@@ -2130,7 +2128,7 @@ class FAA:
             find = loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[400, 35, 550, 75],
-                target_path=paths["picture"]["common"] + "\\战斗\\战斗后_4_翻宝箱.png",
+                target_path=PATHS["picture"]["common"] + "\\战斗\\战斗后_4_翻宝箱.png",
                 target_failed_check=15,
                 target_sleep=2,
                 click=False,
@@ -2173,7 +2171,7 @@ class FAA:
 
                 # 定义保存路径和文件名格式
                 img_path = "{}\\{}_{}P_{}.png".format(
-                    paths["logs"] + "\\chests_picture",
+                    PATHS["logs"] + "\\chests_picture",
                     self.stage_info["id"],
                     player,
                     time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
@@ -2367,11 +2365,11 @@ class FAA:
             target_opts=[
                 {
                     "raw_range": [796, 413, 950, 485],
-                    "target_path": paths["picture"]["common"] + "\\战斗\\战斗前_开始按钮.png",
+                    "target_path": PATHS["picture"]["common"] + "\\战斗\\战斗前_开始按钮.png",
                     "target_tolerance": 0.99},
                 {
                     "raw_range": [200, 0, 750, 100],
-                    "target_path": paths["picture"]["common"] + "\\魔塔蛋糕_ui.png",
+                    "target_path": PATHS["picture"]["common"] + "\\魔塔蛋糕_ui.png",
                     "target_tolerance": 0.99
                 }],
             target_return_mode="or",
@@ -2394,7 +2392,7 @@ class FAA:
         find = loop_find_p_in_w(
             raw_w_handle=handle,
             raw_range=[0, 0, 400, 100],
-            target_path=paths["picture"]["common"] + "\\登录\\0_刷新.png",
+            target_path=PATHS["picture"]["common"] + "\\登录\\0_刷新.png",
             target_tolerance=0.9,
             target_sleep=3,
             click=True,
@@ -2404,7 +2402,7 @@ class FAA:
             find = loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[0, 0, 400, 100],
-                target_path=paths["picture"]["common"] + "\\登录\\0_刷新_被选中.png",
+                target_path=PATHS["picture"]["common"] + "\\登录\\0_刷新_被选中.png",
                 target_tolerance=0.98,
                 target_sleep=3,
                 click=True,
@@ -2415,7 +2413,7 @@ class FAA:
                 find = loop_find_p_in_w(
                     raw_w_handle=handle,
                     raw_range=[0, 0, 400, 100],
-                    target_path=paths["picture"]["common"] + "\\登录\\0_刷新_被点击.png",
+                    target_path=PATHS["picture"]["common"] + "\\登录\\0_刷新_被点击.png",
                     target_tolerance=0.98,
                     target_sleep=3,
                     click=True,
@@ -2452,7 +2450,7 @@ class FAA:
                 result = loop_find_p_in_w(
                     raw_w_handle=self.handle_browser,
                     raw_range=[0, 0, 2000, 2000],
-                    target_path=paths["picture"]["common"] + "\\用户自截\\空间服登录界面_{}P.png".format(self.player),
+                    target_path=PATHS["picture"]["common"] + "\\用户自截\\空间服登录界面_{}P.png".format(self.player),
                     target_tolerance=0.95,
                     target_interval=0.5,
                     target_failed_check=5,
@@ -2567,7 +2565,7 @@ class FAA:
             loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["common"] + "\\签到\\每日签到_确定.png",
+                target_path=PATHS["picture"]["common"] + "\\签到\\每日签到_确定.png",
                 target_tolerance=0.99,
                 target_failed_check=1,
                 target_sleep=1,
@@ -2584,7 +2582,7 @@ class FAA:
             loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["common"] + "\\签到\\美食活动_确定.png",
+                target_path=PATHS["picture"]["common"] + "\\签到\\美食活动_确定.png",
                 target_tolerance=0.99,
                 target_failed_check=1,
                 target_sleep=1,
@@ -2600,7 +2598,7 @@ class FAA:
             loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["common"] + "\\签到\\塔罗寻宝_确定.png",
+                target_path=PATHS["picture"]["common"] + "\\签到\\塔罗寻宝_确定.png",
                 target_tolerance=0.99,
                 target_failed_check=1,
                 target_sleep=1,
@@ -2610,7 +2608,7 @@ class FAA:
             loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["common"] + "\\签到\\塔罗寻宝_退出.png",
+                target_path=PATHS["picture"]["common"] + "\\签到\\塔罗寻宝_退出.png",
                 target_tolerance=0.99,
                 target_failed_check=1,
                 target_sleep=1,
@@ -2624,7 +2622,7 @@ class FAA:
             find = loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["common"] + "\\签到\\法老宝藏_确定.png",
+                target_path=PATHS["picture"]["common"] + "\\签到\\法老宝藏_确定.png",
                 target_tolerance=0.99,
                 target_failed_check=1,
                 target_sleep=1,
@@ -2650,7 +2648,7 @@ class FAA:
             find = loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[73, 31, 173, 78],
-                target_path=paths["picture"]["common"] + "\\签到\\公会会长_发布任务.png",
+                target_path=PATHS["picture"]["common"] + "\\签到\\公会会长_发布任务.png",
                 target_tolerance=0.99,
                 target_failed_check=1,
                 target_sleep=1,
@@ -2660,7 +2658,7 @@ class FAA:
                 loop_find_p_in_w(
                     raw_w_handle=handle,
                     raw_range=[422, 415, 544, 463],
-                    target_path=paths["picture"]["common"] + "\\签到\\公会会长_发布任务_确定.png",
+                    target_path=PATHS["picture"]["common"] + "\\签到\\公会会长_发布任务_确定.png",
                     target_tolerance=0.99,
                     target_failed_check=1,
                     target_sleep=3,
@@ -2720,7 +2718,7 @@ class FAA:
                 find = loop_find_p_in_w(
                     raw_w_handle=handle,
                     raw_range=[0, 0, 950, 600],
-                    target_path=paths["picture"]["quest_guild"] + "\\ui_quest_list.png",
+                    target_path=PATHS["picture"]["quest_guild"] + "\\ui_quest_list.png",
                     target_tolerance=0.95,
                     target_failed_check=1,
                     target_sleep=0.5,
@@ -2748,7 +2746,7 @@ class FAA:
                 find = loop_find_p_in_w(
                     raw_w_handle=handle,
                     raw_range=[0, 0, 950, 600],
-                    target_path=paths["picture"]["quest_guild"] + "\\ui_fed.png",
+                    target_path=PATHS["picture"]["quest_guild"] + "\\ui_fed.png",
                     target_tolerance=0.95,
                     target_failed_check=1,
                     target_sleep=0.5,
@@ -2815,7 +2813,7 @@ class FAA:
             loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["common"] + "\\退出.png",
+                target_path=PATHS["picture"]["common"] + "\\退出.png",
                 target_tolerance=0.95,
                 target_failed_check=7,
                 target_sleep=1,
@@ -2837,7 +2835,7 @@ class FAA:
             loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["common"] + "\\退出.png",
+                target_path=PATHS["picture"]["common"] + "\\退出.png",
                 target_tolerance=0.95,
                 target_failed_check=7,
                 target_sleep=1,
@@ -2867,19 +2865,19 @@ class FAA:
                 target_opts=[
                     {
                         "raw_range": [75, 80, 430, 560],
-                        "target_path": paths["picture"]["quest_guild"] + "\\fed_0.png",
+                        "target_path": PATHS["picture"]["quest_guild"] + "\\fed_0.png",
                         "target_tolerance": 0.98
                     }, {
                         "raw_range": [75, 80, 430, 560],
-                        "target_path": paths["picture"]["quest_guild"] + "\\fed_1.png",
+                        "target_path": PATHS["picture"]["quest_guild"] + "\\fed_1.png",
                         "target_tolerance": 0.98
                     }, {
                         "raw_range": [75, 80, 430, 560],
-                        "target_path": paths["picture"]["quest_guild"] + "\\fed_2.png",
+                        "target_path": PATHS["picture"]["quest_guild"] + "\\fed_2.png",
                         "target_tolerance": 0.98,
                     }, {
                         "raw_range": [75, 80, 430, 560],
-                        "target_path": paths["picture"]["quest_guild"] + "\\fed_3.png",
+                        "target_path": PATHS["picture"]["quest_guild"] + "\\fed_3.png",
                         "target_tolerance": 0.98,
                     }
                 ],
@@ -2940,7 +2938,7 @@ class FAA:
         handle = self.handle
         zoom = self.zoom
         # 获取所有图片资源
-        my_list = os.listdir(paths["picture"]["item"] + "\\背包\\")
+        items_list = os.listdir(PATHS["picture"]["item"] + "\\背包\\")
         print_g(text="开启使用物品功能", player=self.player, garde=1)
 
         # 打开背包
@@ -2971,7 +2969,7 @@ class FAA:
                     loop_find_p_in_w(
                         raw_w_handle=handle,
                         raw_range=[0, 0, 750, 300],
-                        target_path=paths["picture"]["common"] + "\\退出.png",
+                        target_path=PATHS["picture"]["common"] + "\\退出.png",
                         target_tolerance=0.95,
                         target_interval=0.2,
                         target_failed_check=1,
@@ -2983,7 +2981,7 @@ class FAA:
                     find = loop_find_p_in_w(
                         raw_w_handle=handle,
                         raw_range=[466, 86, 891, 435],
-                        target_path=paths["picture"]["item"] + "\\背包\\" + item,
+                        target_path=PATHS["picture"]["item"] + "\\背包\\" + item,
                         target_tolerance=0.95,
                         target_interval=0.2,
                         target_failed_check=1,
@@ -2996,7 +2994,7 @@ class FAA:
                         find = loop_find_p_in_w(
                             raw_w_handle=handle,
                             raw_range=[466, 86, 950, 500],
-                            target_path=paths["picture"]["item"] + "\\背包_使用.png",
+                            target_path=PATHS["picture"]["item"] + "\\背包_使用.png",
                             target_tolerance=0.95,
                             target_interval=0.2,
                             target_failed_check=1,
@@ -3009,7 +3007,7 @@ class FAA:
                             loop_find_p_in_w(
                                 raw_w_handle=handle,
                                 raw_range=[466, 86, 950, 500],
-                                target_path=paths["picture"]["item"] + "\\背包_使用_被选中.png",
+                                target_path=PATHS["picture"]["item"] + "\\背包_使用_被选中.png",
                                 target_tolerance=0.95,
                                 target_interval=0.2,
                                 target_failed_check=1,
@@ -3072,7 +3070,7 @@ class FAA:
             find = loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[796, 413, 950, 485],
-                target_path=paths["picture"]["common"] + "\\战斗\\战斗前_开始按钮.png",
+                target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_开始按钮.png",
                 target_tolerance=0.95,
                 target_interval=1,
                 target_failed_check=30,
@@ -3094,7 +3092,7 @@ class FAA:
             find = find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["common"] + "\\战斗\\战斗前_系统提示.png",
+                target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_系统提示.png",
                 target_tolerance=0.98)
             if find:
                 mouse_left_click(
@@ -3112,7 +3110,7 @@ class FAA:
             find = loop_find_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["common"] + "\\战斗\\战斗中_火苗能量.png",
+                target_path=PATHS["picture"]["common"] + "\\战斗\\战斗中_火苗能量.png",
                 target_interval=1,
                 target_failed_check=30,
                 target_sleep=1,

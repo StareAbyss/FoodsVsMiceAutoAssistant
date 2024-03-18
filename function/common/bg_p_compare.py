@@ -1,11 +1,11 @@
-from time import sleep
+import time
 
 import cv2
 import numpy as np
 
-from function.common.bg_mouse import mouse_left_click
 from function.common.bg_p_screenshot import capture_picture_png, png_cropping
-from function.get_paths import paths
+from function.globals.get_paths import PATHS
+from function.globals.thread_click_queue import T_CLICK_QUEUE_TIMER
 
 
 def find_p_in_w(
@@ -267,7 +267,7 @@ if __name__ == '__main__':
         # handle = faa_get_handle("锑食", mode="browser")
         handle = faa_get_handle(channel="深渊之下 | 锑食", mode="browser")
 
-        target_path = paths["picture"]["common"] + "\\战斗\\战斗前_创建房间.png"
+        target_path = PATHS["picture"]["common"] + "\\战斗\\战斗前_创建房间.png"
 
         # result = loop_find_p_in_w(raw_w_handle=handle,
         #                           raw_range=[0, 0, 950, 600],

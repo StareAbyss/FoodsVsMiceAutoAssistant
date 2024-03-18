@@ -1,15 +1,12 @@
 import cProfile
 import os
 import random
-import sys
 
 import cv2
 import numpy as np
 
-sys.path.append('c:/192/FAA/FoodsVsMouses_AutoAssistant')
-
 from function.common.match import match_histogram
-from function.get_paths import paths
+from function.globals.get_paths import PATHS
 
 """
 战斗结果logs分析器
@@ -36,6 +33,7 @@ def preload_target_images(items_dir):
 
 
 def templateMatch(block, target_images):
+
     # 遍历预加载的目标图像
     for item_name, target_image in target_images.items():
 
@@ -51,10 +49,10 @@ def templateMatch(block, target_images):
                 return item_name
 
     # 识图失败 把block保存到resource-picture-item-未编码索引中
-    print(f'该道具未能识别, 已在resource-picture-item-未编码索引中生成文件, 请检查')
+    print(f'该道具未能识别, 已在 [ resource / picture /  item / 未编码索引中 ] 生成文件, 请检查')
     # 随便编码
     filename = "{}\\未编码索引\\{}.png".format(
-        paths["picture"]["item"],
+        PATHS["picture"]["item"],
         random.randint(1, 1000)
     )
     # 保存图片
@@ -63,8 +61,9 @@ def templateMatch(block, target_images):
     return "识别失败"
 
 
-def matchImage(img_path, img, mode='loots',  test_print=False):
+def matchImage(img_path, img, mode='loots', test_print=False):
     """
+    分析图片，获取战利品字典，尽可能不要输出None
     :param img_path:
     :param img:
     :param mode:
@@ -73,7 +72,7 @@ def matchImage(img_path, img, mode='loots',  test_print=False):
     """
 
     cv2.imencode('.png', img)[1].tofile(img_path)
-    block_list =[]
+    block_list = []
     if mode == 'loots':
         # 把每张图片分割成35 * 35像素的块，间隔的x与y都是49
         rows = 5
@@ -95,7 +94,7 @@ def matchImage(img_path, img, mode='loots',  test_print=False):
     best_match_items = {}
 
     # 预加载图像
-    items_dir = paths["picture"]["item"] + "\\战斗"
+    items_dir = PATHS["picture"]["item"] + "\\战斗"
     target_images = preload_target_images(items_dir)
 
     # 按照分割规则，遍历分割每一块，然后依次识图
@@ -103,7 +102,7 @@ def matchImage(img_path, img, mode='loots',  test_print=False):
     for block in block_list:
         # 执行模板匹配并获取最佳匹配的文件名
         best_match_item = templateMatch(block, target_images)
-        if best_match_item in ['0','1','2']:
+        if best_match_item in ['0', '1', '2']:
             break
         if best_match_item:
             # 如果道具ID已存在，则增加数量，否则初始化数量为1
@@ -114,7 +113,7 @@ def matchImage(img_path, img, mode='loots',  test_print=False):
 
     if test_print:
         # 把识别结果显示到界面上
-        print("战利品识别结果：")
+        print("matchImage方法 战利品识别结果：")
         print(best_match_items)
 
     # 返回识别结果
@@ -123,8 +122,8 @@ def matchImage(img_path, img, mode='loots',  test_print=False):
 
 if __name__ == '__main__':
     def main():
-        img = cv2.imread(paths["logs"] + "\\img.png")
-        matchImage(img_path="{}\\img.png".format(paths["logs"]), img=img)
+        img = cv2.imread(PATHS["logs"] + "\\img.png")
+        matchImage(img_path="{}\\img.png".format(PATHS["logs"]), img=img)
 
 
     cProfile.run("main()")
