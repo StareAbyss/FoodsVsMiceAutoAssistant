@@ -1,7 +1,7 @@
 import cProfile
 
 from function.common.bg_mouse import mouse_left_click
-from function.script.scattered.gat_handle import faa_get_handle
+from function.scattered.gat_handle import faa_get_handle
 
 
 def f_test():

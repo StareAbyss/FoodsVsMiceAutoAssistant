@@ -2,10 +2,10 @@ import cProfile
 
 import cv2
 import numpy as np
+from function.global_paths import PATHS
 
 from function.common.bg_p_compare import find_p_in_w
-from function.get_paths import paths
-from function.script.scattered.gat_handle import faa_get_handle
+from function.scattered.gat_handle import faa_get_handle
 
 
 def f_test():

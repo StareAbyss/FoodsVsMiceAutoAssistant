@@ -1,7 +1,7 @@
 from cv2 import imwrite
 
 from function.common.bg_p_screenshot import capture_picture_png
-from function.script.common import FAA
+from function.script.FAA import FAA
 
 if __name__ == '__main__':
     def main():

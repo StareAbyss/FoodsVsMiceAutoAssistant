@@ -1,7 +1,7 @@
 import cProfile
 
 from function.common.bg_p_screenshot import capture_picture_png
-from function.script.scattered.gat_handle import faa_get_handle
+from function.scattered.gat_handle import faa_get_handle
 
 
 def f_test():
