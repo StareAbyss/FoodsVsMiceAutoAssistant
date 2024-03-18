@@ -27,34 +27,30 @@ def find_p_in_w(
 
 
     """
+    # 根据 路径 或者 numpy.array 选择是否读取
     if type(target_path) is np.ndarray:
         tar_img = target_path
     else:
         # 读取目标图像,中文路径兼容方案
-        tar_img = cv2.imdecode(
-            buf=np.fromfile(
-                file=target_path,
-                dtype=np.uint8),
-            flags=-1)
+        tar_img = cv2.imdecode(buf=np.fromfile(file=target_path, dtype=np.uint8), flags=-1)
 
-    raw_img = capture_picture_png(
-        handle=raw_w_handle,
-        raw_range=raw_range)  # 截取原始图像(windows窗口)
+    if tar_img.shape[2] == 4:
+        tar_img = tar_img[:, :, :3]
 
+    # 截取原始图像(windows窗口) BGRA -> BGR
+    raw_img = capture_picture_png(handle=raw_w_handle, raw_range=raw_range)
+    raw_img = raw_img[:, :, :3]
     # 执行模板匹配，采用的匹配方式cv2.TM_SQDIFF_NORMED, 仅匹配BGR不匹配A
-    """
-    函数:对应方法-匹配良好输出->匹配不好输出
-    CV_TM_SQDIFF:平方差匹配法 [1]->[0]；
-    CV_TM_SQDIFF_NORMED:归一化平方差匹配法 [0]->[1]；
-    CV_TM_CCORR:相关匹配法 [较大值]->[0]；
-    CV_TM_CCORR_NORMED:归一化相关匹配法 [1]->[0]；
-    CV_TM_CCOEFF:系数匹配法；
-    CV_TM_CCOEFF_NORMED:归一化相关系数匹配法 [1]->[0]->[-1]
-    """
-    result = cv2.matchTemplate(
-        image=tar_img[:, :, :-1],
-        templ=raw_img[:, :, :-1],
-        method=cv2.TM_SQDIFF_NORMED)
+
+    # 函数:对应方法-匹配良好输出->匹配不好输出
+    # CV_TM_SQDIFF:平方差匹配法 [1]->[0]；
+    # CV_TM_SQDIFF_NORMED:归一化平方差匹配法 [0]->[1]；
+    # CV_TM_CCORR:相关匹配法 [较大值]->[0]；
+    # CV_TM_CCORR_NORMED:归一化相关匹配法 [1]->[0]；
+    # CV_TM_CCOEFF:系数匹配法；
+    # CV_TM_CCOEFF_NORMED:归一化相关系数匹配法 [1]->[0]->[-1]
+
+    result = cv2.matchTemplate(image=tar_img, templ=raw_img, method=cv2.TM_SQDIFF_NORMED)
 
     (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(src=result)
 
