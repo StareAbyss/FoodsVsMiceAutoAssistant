@@ -32,9 +32,9 @@ class MyMainWindow0(QMainWindow):
         self.zoom = get_system_dpi() / 96
 
         # 设定字体
-        QFontDatabase.addApplicationFont(paths["font"] + "\\金山云技术体.ttf")
+        QFontDatabase.addApplicationFont(paths["font"] + "\\汉仪文黑-85W Heavy.ttf")
         font = QFont()
-        font.setFamily("金山云技术体")
+        font.setFamily("汉仪文黑-85W")
         font.setPointSize(10)
         self.setFont(font)
 
