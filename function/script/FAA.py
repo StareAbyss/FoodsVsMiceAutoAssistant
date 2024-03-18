@@ -2996,7 +2996,7 @@ class FAA:
                         find = loop_find_p_in_w(
                             raw_w_handle=handle,
                             raw_range=[466, 86, 950, 500],
-                            target_path=paths["picture"]["item"] + "\\背包\\使用.png",
+                            target_path=paths["picture"]["item"] + "\\背包_使用.png",
                             target_tolerance=0.95,
                             target_interval=0.2,
                             target_failed_check=1,
@@ -3009,7 +3009,7 @@ class FAA:
                             loop_find_p_in_w(
                                 raw_w_handle=handle,
                                 raw_range=[466, 86, 950, 500],
-                                target_path=paths["picture"]["item"] + "\\背包\\使用_被选中.png",
+                                target_path=paths["picture"]["item"] + "\\背包_使用_被选中.png",
                                 target_tolerance=0.95,
                                 target_interval=0.2,
                                 target_failed_check=1,
