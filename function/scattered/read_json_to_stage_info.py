@@ -1,11 +1,11 @@
 import json
 
-from function.get_paths import paths
+from function.globals.get_paths import PATHS
 
 
 def read_json_to_stage_info(stage_id):
     """读取文件中是否存在预设"""
-    with open(paths["config"] + "//opt_stage_info.json", "r", encoding="UTF-8") as file:
+    with open(PATHS["config"] + "//opt_stage_info.json", "r", encoding="UTF-8") as file:
         f_my_dict = json.load(file)
 
     # 初始化

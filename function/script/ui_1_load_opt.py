@@ -3,9 +3,9 @@ import sys
 
 from PyQt5.QtWidgets import QApplication
 
-from function.get_paths import paths
-from function.script.scattered.get_customize_todo_list import get_customize_todo_list
-from function.script.scattered.get_list_battle_plan import get_list_battle_plan
+from function.globals.get_paths import PATHS
+from function.scattered.get_customize_todo_list import get_customize_todo_list
+from function.scattered.get_list_battle_plan import get_list_battle_plan
 from function.script.ui_0_load_ui_file import MyMainWindow0
 
 

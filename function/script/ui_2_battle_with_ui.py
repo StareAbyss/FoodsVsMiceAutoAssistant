@@ -1,5 +1,6 @@
 import datetime
 import json
+import random
 import sys
 import time
 from time import sleep
@@ -8,14 +9,15 @@ from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QApplication
 
-from function.common.bg_mouse import mouse_left_click
+from function.battle.CardManager import CardManager
 from function.common.bg_p_compare import loop_find_p_in_w
 from function.common.thread_with_exception import ThreadWithException
-from function.get_paths import paths
-from function.script.common import FAA
-from function.script.scattered.gat_handle import faa_get_handle
-from function.script.scattered.get_channel_name import get_channel_name
-from function.script.scattered.get_customize_todo_list import get_customize_todo_list
+from function.globals.get_paths import PATHS
+from function.globals.thread_click_queue import T_CLICK_QUEUE_TIMER
+from function.scattered.gat_handle import faa_get_handle
+from function.scattered.get_channel_name import get_channel_name
+from function.scattered.get_customize_todo_list import get_customize_todo_list
+from function.script.FAA import FAA
 from function.script.ui_1_load_opt import MyMainWindow1
 
 

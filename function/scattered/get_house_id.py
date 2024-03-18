@@ -1,8 +1,8 @@
 from cv2 import imwrite, imread, IMREAD_UNCHANGED, matchTemplate, TM_SQDIFF_NORMED, minMaxLoc
+from function.global_paths import PATHS
 
 from function.common.bg_p_screenshot import capture_picture_png
-from function.get_paths import paths
-from function.script.scattered.gat_handle import faa_get_handle
+from function.scattered.gat_handle import faa_get_handle
 
 
 def get_house_id(handle):
@@ -16,7 +16,7 @@ def get_house_id(handle):
               image_0[28:36, 173:173 + 6]]
     for image in images:
         for i in range(10):
-            target_img = imread(filename=paths["picture"]["number"] + "\\" + str(i) + ".png",
+            target_img = imread(filename=PATHS["picture"]["number"] + "\\" + str(i) + ".png",
                                 flags=IMREAD_UNCHANGED)
 
             # 执行模板匹配，采用的匹配方式cv2.TM_SQDIFF_NORMED
@@ -35,7 +35,7 @@ def get_house_id(handle):
                   image_0[28:36, 173 + 3:173 + 3 + 6]]
         for image in images:
             for i in range(10):
-                target_img = imread(filename=paths["picture"]["number"] + "\\" + str(i) + ".png",
+                target_img = imread(filename=PATHS["picture"]["number"] + "\\" + str(i) + ".png",
                                     flags=IMREAD_UNCHANGED)
 
                 # 执行模板匹配，采用的匹配方式cv2.TM_SQDIFF_NORMED

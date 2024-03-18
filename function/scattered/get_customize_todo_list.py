@@ -1,6 +1,6 @@
 import os
 
-from function.get_paths import paths
+from function.globals.get_paths import PATHS
 
 
 def get_customize_todo_list(with_extension):
@@ -8,7 +8,7 @@ def get_customize_todo_list(with_extension):
     :param with_extension: Include extension name
     :return: a list of battle plan
     """
-    my_list = os.listdir(paths["customize_todo"] + "\\")
+    my_list = os.listdir(PATHS["customize_todo"] + "\\")
 
     # 只保留json
     new_list = []

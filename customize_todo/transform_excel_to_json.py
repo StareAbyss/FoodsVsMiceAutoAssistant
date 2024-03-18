@@ -4,7 +4,7 @@ from pprint import pprint
 import numpy as np
 import pandas as pd
 
-from function.script.scattered.read_json_to_stage_info import read_json_to_stage_info
+from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 
 ImportFilePath = "美食大赛.xlsx"
 ExportFilePath = "大赛240201-240229.json"

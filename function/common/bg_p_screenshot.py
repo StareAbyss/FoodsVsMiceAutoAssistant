@@ -5,7 +5,7 @@ from ctypes.wintypes import RECT, HWND
 from cv2 import imwrite, imshow, waitKey
 from numpy import uint8, frombuffer
 
-from function.script.scattered.gat_handle import faa_get_handle
+from function.scattered.gat_handle import faa_get_handle
 
 # 如果没有依赖
 # pip install opencv-contrib-python

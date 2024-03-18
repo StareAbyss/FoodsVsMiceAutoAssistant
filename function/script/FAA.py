@@ -1,25 +1,26 @@
 import copy
 import json
 import os
+import random
 import time
 
 import cv2
 import numpy as np
-from PyQt5 import QtCore
 
+from function.battle.FAABattle import Battle
+from function.battle.get_position_in_battle import get_position_card_deck_in_battle, get_position_card_cell_in_battle
 from function.common.bg_keyboard import key_down_up
-from function.common.bg_mouse import mouse_left_click, mouse_left_moveto
-from function.common.bg_p_compare import find_p_in_w, loop_find_p_in_w, loop_find_ps_in_w, find_ps_in_w
+from function.common.bg_p_compare import find_p_in_w, loop_find_p_in_w, loop_find_ps_in_w
 from function.common.bg_p_screenshot import capture_picture_png
-from function.get_paths import paths
-from function.script.scattered.gat_handle import faa_get_handle
-from function.script.scattered.get_list_battle_plan import get_list_battle_plan
-from function.script.scattered.get_list_card_battle import get_list_card_battle
-from function.script.scattered.get_list_card_room import get_list_card_room
-from function.script.scattered.print_grade import print_g
-from function.script.scattered.read_json_to_stage_info import read_json_to_stage_info
+from function.globals.get_paths import PATHS
+from function.globals.thread_click_queue import T_CLICK_QUEUE_TIMER
+from function.scattered.gat_handle import faa_get_handle
+from function.scattered.get_list_battle_plan import get_list_battle_plan
+from function.scattered.get_list_card_battle import get_list_card_battle
+from function.scattered.get_list_card_room import get_list_card_room
+from function.scattered.print_grade import print_g
+from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 from function.tools.analyzer_of_loot_logs import matchImage
-from function.tools.get_battle_coordinates import create_battle_coordinates
 
 
 class FAA:

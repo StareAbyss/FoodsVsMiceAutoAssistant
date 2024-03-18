@@ -1,6 +1,6 @@
 from pandas import DataFrame
 
-from function.script.scattered.read_json_to_stage_info import read_json_to_stage_info
+from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 
 stage_list_1 = ["NO", "EX", "CS"]
 
