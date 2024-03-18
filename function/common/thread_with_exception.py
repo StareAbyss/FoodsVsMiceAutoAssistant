@@ -50,6 +50,7 @@ class ThreadWithException(threading.Thread):
         try:
             return self.return_value
         except Exception:
+            print(Exception)
             return None
 
     def raise_exception(self):
