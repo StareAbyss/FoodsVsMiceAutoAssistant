@@ -55,7 +55,7 @@
             ]
         },
         {
-            "id": 5,
+            "id": 8,
             "name": "雷电长棍面包",
             "ergodic": true,
             "queue": false,
@@ -65,19 +65,24 @@
             ]
         },
         {
-            "id": 3,
-            "name": "糖葫芦炮弹",
+            "id": 5,
+            "name": "狮子座精灵",
             "ergodic": true,
             "queue": false,
             "location": [
-                "1-5",
-                "1-6",
-                "1-7",
+                "6-3",
+                "6-5"
+            ]
+        },
+        {
+            "id": 3,
+            "name": "防漏卡",
+            "ergodic": true,
+            "queue": false,
+            "location": [
                 "2-5",
                 "2-6",
-                "2-7",
-                "3-6",
-                "3-7"
+                "2-7"
             ]
         },
         {
@@ -96,7 +101,7 @@
             ]
         },
         {
-            "id": 6,
+            "id": 9,
             "name": "冰淇淋",
             "ergodic": true,
             "queue": false,
@@ -105,20 +110,14 @@
             ]
         },
         {
-            "id": 7,
-            "name": "防漏卡",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-            ]
-        },
-        {
-            "id": 8,
+            "id": 6,
             "name": "清明肉松粿",
             "ergodic": true,
             "queue": false,
             "location": [
-                "3-5"
+                "1-4",
+                "2-4",
+                "3-4"
             ]
         }
     ]
