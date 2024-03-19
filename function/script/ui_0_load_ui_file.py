@@ -54,6 +54,7 @@ class MyMainWindow0(QMainWindow):
     def start_print(self):
         """打印默认输出提示"""
         self.printf("嗷呜, 欢迎使用FAA-美食大战老鼠自动放卡作战小助手~")
+        self.printf("当前版本: 1.2.0-beta.1")
         self.printf("使用安全说明")
         self.printf("[1] 务必有二级密码")
         self.printf("[2] 有一定的礼卷防翻牌异常")
