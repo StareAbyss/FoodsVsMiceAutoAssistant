@@ -31,6 +31,7 @@ class FAA:
             character_level=1,
             is_auto_battle=True,
             is_auto_pickup=False,
+            random_seed=0
     ):
 
         # 获取窗口句柄
@@ -39,13 +40,13 @@ class FAA:
         self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
         self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
 
-        # 缩放
-        self.zoom = zoom  # float 1.0 即百分百
+        # 随机种子
+        self.random_seed = random_seed
 
         # 角色|等级|是否使用钥匙|卡片|收集战利品
         self.player = player
         self.character_level = character_level
-        self.is_use_key = is_use_key
+
         self.is_auto_battle = is_auto_battle
         self.is_auto_pickup = is_auto_pickup
 
