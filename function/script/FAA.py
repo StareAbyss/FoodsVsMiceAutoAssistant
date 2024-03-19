@@ -2971,8 +2971,9 @@ class FAA:
             T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=333, y=333)
             time.sleep(0.05)
 
-            # 休息60.5s 等待完成
-            time.sleep(59.5)
+            # 休息60s 等待完成
+            for i in range(60):
+                time.sleep(1)
 
             # 游戏内退出
             self.action_exit(mode="游戏内退出")
