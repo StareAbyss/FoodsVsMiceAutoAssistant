@@ -1209,11 +1209,11 @@ class FAA:
             for i in range(num_mat_card):
                 dict_mat = {
                     "name": "承载卡",
-                    "id": 1,
+                    "id": mat_card_position[i]["id"],
                     "location": location[i::num_mat_card],
                     "ergodic": True,
                     "queue": True,
-                    "location_from": mat_card_position[i],
+                    "location_from": mat_card_position[i]["location_from"],
                     "location_to": []}
                 # 首位插入
                 list_cell_all.insert(0, dict_mat)
@@ -1276,29 +1276,21 @@ class FAA:
             将 id:int 变为 location_from:[x:int,y:int]
             将 location:str 变为 location_to:[[x:int,y:int],...]"""
 
-            # 注意 bp_cell 和 bp_card 已经根据缩放转化过坐标了
-            # 不要二次转化
-
-            # 为每个字典添加未预设字段
             for card in list_cell_all:
-                if "location_from" not in card:
-                    card["location_from"] = []
-                if "location_to" not in card:
-                    card["location_to"] = []
+                # 为每个字典添加未预设字段
+                card["location_from"] = []
+                card["location_to"] = []
 
-            # 根据字段值, 判断是否完成写入, 并进行转换
-            for card in list_cell_all:
-                if not card["location_from"]:
-                    coordinate = copy.deepcopy(bp_card[card["id"]])
-                    coordinate = [coordinate[0], coordinate[1]]
-                    card["location_from"] = coordinate
+                # 根据字段值, 判断是否完成写入, 并进行转换
+                coordinate = copy.deepcopy(bp_card[card["id"]])
+                coordinate = [coordinate[0], coordinate[1]]
+                card["location_from"] = [coordinate[0], coordinate[1]]
 
-                if not card["location_to"]:
-                    new_list = []
-                    for location in card["location"]:
-                        coordinate = copy.deepcopy(bp_cell[location])
-                        new_list.append([coordinate[0], coordinate[1]])
-                    card["location_to"] = copy.deepcopy(new_list)
+                new_list = []
+                for location in card["location"]:
+                    coordinate = copy.deepcopy(bp_cell[location])
+                    new_list.append([coordinate[0], coordinate[1]])
+                card["location_to"] = copy.deepcopy(new_list)
 
             new_list = []
             for location in list_shovel:
