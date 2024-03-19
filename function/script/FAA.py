@@ -63,9 +63,33 @@ class FAA:
         self.card_recorded_battle = get_list_card_battle(with_extension=False)
         self.card_recorded_room = get_list_card_room(with_extension=False)
 
-        # 调用战斗中 卡牌 和 格子位置 字典
-        # bp -> battle position
-        self.bp_card, self.bp_cell = create_battle_coordinates(zoom)
+        # 初始化战斗中 卡片位置 字典 bp -> battle position
+        self.bp_card = None
+        # 调用战斗中 格子位置 字典 bp -> battle position
+        self.bp_cell = get_position_card_cell_in_battle()
+        # FAA 战斗实例
+        self.faa_battle = None
+        # 经过处理后的战斗方案, 由战斗类相关动作函数直接调用, 其中的各种操作都包含坐标
+        self.battle_plan_1 = {}
+        # 承载卡的位置
+        self.mat_card_position = None
+
+    def print_g(self, text, garde=1):
+        """
+        分级print函数
+        :param text: 正文
+        :param garde: 级别, 1-[Info]默认 2-[Warning] 3或其他-[Error]
+        :return: None
+        """
+        if garde == 1:
+            garde_text = "Info"
+        elif garde == 2:
+            garde_text = "Warning"
+        else:
+            garde_text = "Error"
+
+        if self.player == 1:
+            print("[{}] [{}P] {}".format(garde_text, self.player, text))
 
     """通用对flash界面的基础操作"""
 
@@ -377,7 +401,6 @@ class FAA:
         self.action_top_menu(mode="大地图")
 
         # 点击对应的地图
-        my_path = paths["picture"]["map"] + "\\" + str(map_id) + ".png"
         find = loop_find_p_in_w(
             raw_w_handle=self.handle,
             raw_range=[0, 0, 950, 600],
@@ -385,8 +408,7 @@ class FAA:
             target_tolerance=0.99,
             target_failed_check=5,
             target_sleep=2,
-            click=True,
-            click_zoom=self.zoom,
+            click=True
         )
         return find
 
@@ -406,16 +428,10 @@ class FAA:
 
         def click_set_password():
             """设置进队密码"""
-            mouse_left_click(
-                handle=self.handle,
-                x=int(491 * self.zoom),
-                y=int(453 * self.zoom),
-                sleep_time=0.5)
-            mouse_left_click(
-                handle=self.handle,
-                x=int(600 * self.zoom),
-                y=int(453 * self.zoom),
-                sleep_time=0.5)
+            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=491, y=453)
+            time.sleep(0.5)
+            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=600, y=453)
+            time.sleep(0.5)
             key_down_up(
                 handle=self.handle,
                 key="backspace")
@@ -424,27 +440,24 @@ class FAA:
                 key="1")
             time.sleep(1)
 
-        def change_to_region(region_id: int = 2):
-            mouse_left_click(
-                handle=self.handle,
-                x=int(820 * self.zoom),
-                y=int(85 * self.zoom),
-                sleep_time=0.5)
+        def change_to_region(region_list):
+            random.seed(self.random_seed)
+            region_id = random.randint(region_list[0], region_list[1])
+
+            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=820, y=85)
+            time.sleep(0.5)
 
             my_list = [85, 110, 135, 160, 185, 210, 235, 260, 285, 310, 335]
-            mouse_left_click(
-                handle=self.handle,
-                x=int(779 * self.zoom),
-                y=int(my_list[region_id - 1] * self.zoom),
-                sleep_time=2)
+            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=779, y=my_list[region_id - 1])
+            time.sleep(2.0)
 
         def main_no():
             # 进入对应地图
             self.action_goto_map(map_id=stage_1)
 
             # 切区
-            my_dict = {"1": 8, "2": 2, "3": 1, "4": 2, "5": 2}
-            change_to_region(region_id=my_dict[stage_1])
+            my_dict = {"1": [3, 11], "2": [1, 2], "3": [1, 1], "4": [1, 2], "5": [1, 2]}
+            change_to_region(region_list=my_dict[stage_1])
 
             # 仅限主角色创建关卡
             if room_creator:
@@ -455,7 +468,6 @@ class FAA:
                 loop_find_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
-                    click_zoom=self.zoom,
                     target_path=PATHS["picture"]["stage"] + "\\" + self.stage_info["id"] + ".png",
                     target_tolerance=0.995,
                     target_sleep=1,
@@ -468,18 +480,18 @@ class FAA:
                 loop_find_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
-                    click_zoom=self.zoom,
                     target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_创建房间.png",
                     target_sleep=1,
                     click=True)
 
         def main_mt():
+
             if mt_first_time:
                 # 前往海底
                 self.action_goto_map(map_id=5)
 
                 # 选区
-                change_to_region(region_id=2)
+                change_to_region(region_list=[1, 2])
 
             if room_creator and mt_first_time:
                 # 进入魔塔
@@ -489,17 +501,14 @@ class FAA:
                     target_path=PATHS["picture"]["stage"] + "\\MT.png",
                     target_failed_check=5,
                     target_sleep=2,
-                    click=True,
-                    click_zoom=self.zoom
+                    click=True
                 )
 
                 # 根据模式进行选择
                 my_dict = {"1": 46, "2": 115, "3": 188}
-                mouse_left_click(
-                    handle=self.handle,
-                    x=int(my_dict[stage_1] * self.zoom),
-                    y=int(66 * self.zoom),
-                    sleep_time=0.5)
+
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=my_dict[stage_1], y=66)
+                time.sleep(0.5)
 
             if room_creator:
                 # 选择了密室
