@@ -58,7 +58,7 @@ class Todo(QThread):
             kwargs={})
 
         self.thread_1p.start()
-        sleep(0.5)
+        time.sleep(1)
         self.thread_2p.start()
         self.thread_1p.join()
         self.thread_2p.join()
@@ -80,7 +80,6 @@ class Todo(QThread):
             name="2P Thread - Reload",
             kwargs={})
         self.thread_1p.start()
-        sleep(0.5)
         self.thread_2p.start()
         self.thread_1p.join()
         self.thread_2p.join()
@@ -802,7 +801,7 @@ class Todo(QThread):
                     "[{}] [多本轮战] 事项{},{},{},{}次,带卡:{},Ban卡:{}".format(
                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         quest["battle_id"] if "battle_id" in quest else (i + 1),
-                        "组队" if quest["battle_plan_2p"] else "单人",
+                        "组队" if len(quest["player"]) == 2 else "单人",
                         quest["stage_id"],
                         quest["max_times"],
                         quest["quest_card"],
@@ -867,9 +866,53 @@ class Todo(QThread):
             }]
         self.n_n_battle(
             quest_list=quest_list,
-            list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU"])
+            list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"])
 
         # 战斗结束
+        self.sin_out.emit(
+            "[{}] {} Completed!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
+
+    def offer_reward(
+            self, text_, max_times_1, max_times_2, max_times_3,
+            deck,
+            battle_plan_1p, battle_plan_2p):
+
+        self.sin_out.emit(
+            "\n[{}] {} Link Start!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
+
+        self.sin_out.emit(
+            "[{}] {}开始[多本轮战]...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
+
+        quest_list = []
+        for i in range(3):
+            quest_list.append({
+                "deck": deck,
+                "player": [2, 1],
+                "is_use_key": True,
+                "battle_plan_1p": battle_plan_1p,
+                "battle_plan_2p": battle_plan_2p,
+                "stage_id": "OR-0-" + str(i + 1),
+                "max_times": [max_times_1, max_times_2, max_times_3][i],
+                "quest_card": "None",
+                "list_ban_card": [],
+                "dict_exit": {
+                    "other_time_player_a": [],
+                    "other_time_player_b": [],
+                    "last_time_player_a": ["竞技岛"],
+                    "last_time_player_b": ["竞技岛"]}
+            })
+        self.n_n_battle(quest_list=quest_list, list_type=["OR"])
+
+        # 领取奖励
+        self.faa[1].action_quest_receive_rewards(mode="悬赏任务")
+        self.faa[2].action_quest_receive_rewards(mode="悬赏任务")
+
         self.sin_out.emit(
             "[{}] {} Completed!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -898,18 +941,29 @@ class Todo(QThread):
             "[{}] {} 获取任务列表...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
-        quest_list = self.faa[1].action_get_quest(mode=quest_mode)
+
+        quest_list = self.faa[1].action_get_quest(mode=quest_mode, qg_cs=stage)
+
         for i in quest_list:
             self.sin_out.emit(
                 "[{}] 副本:{},额外带卡:{}".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     i["stage_id"],
                     i["quest_card"]))
+
         for i in range(len(quest_list)):
             quest_list[i]["is_use_key"] = True
             quest_list[i]["deck"] = deck
             quest_list[i]["battle_plan_1p"] = battle_plan_1p
             quest_list[i]["battle_plan_2p"] = battle_plan_2p
+            quest_list[i]["max_times"] = 1
+            quest_list[i]["list_ban_card"] = []
+            quest_list[i]["dict_exit"] = {
+                "other_time_player_a": ["none"],
+                "other_time_player_b": ["none"],
+                "last_time_player_a": ["竞技岛"],
+                "last_time_player_b": ["竞技岛"]
+            }
 
         self.n_n_battle(
             quest_list=quest_list,
@@ -928,13 +982,13 @@ class Todo(QThread):
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
-    def double_offer_reward(
-            self, text_, max_times,
+    def guild_dungeon(
+            self, text_,
             deck,
             battle_plan_1p, battle_plan_2p):
 
         self.sin_out.emit(
-            "\n[{}] {}Link Start!".format(
+            "\n[{}] {} Link Start!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
@@ -946,12 +1000,13 @@ class Todo(QThread):
         quest_list = []
         for i in range(3):
             quest_list.append({
+                "deck": deck,
                 "player": [2, 1],
                 "is_use_key": True,
                 "battle_plan_1p": battle_plan_1p,
                 "battle_plan_2p": battle_plan_2p,
-                "stage_id": "OR-0-" + str(i + 1),
-                "max_times": max_times,
+                "stage_id": "GD-0-" + str(i + 1),
+                "max_times": 3,
                 "quest_card": "None",
                 "list_ban_card": [],
                 "dict_exit": {
@@ -960,14 +1015,10 @@ class Todo(QThread):
                     "last_time_player_a": ["竞技岛"],
                     "last_time_player_b": ["竞技岛"]}
             })
-        self.n_n_battle(quest_list=quest_list, list_type=["OR"])
-
-        # 领取奖励
-        self.faa[1].action_quest_receive_rewards(mode="悬赏任务")
-        self.faa[2].action_quest_receive_rewards(mode="悬赏任务")
+        self.n_n_battle(quest_list=quest_list, list_type=["GD"])
 
         self.sin_out.emit(
-            "[{}] {}Completed!".format(
+            "[{}] {} Completed!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
@@ -1059,13 +1110,98 @@ class Todo(QThread):
         # 开始战斗
         self.n_n_battle(
             quest_list=quest_list,
-            list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU"])
+            list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"])
 
         # 战斗结束
         self.sin_out.emit(
             "[{}] {} Completed!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
+
+    def auto_food(self, deck):
+
+        text_ = "全自动大赛"
+
+        def a_round():
+
+            # 两个号分别读取任务
+            quest_list_1 = self.faa[1].action_get_quest(mode="美食大赛")
+            quest_list_2 = self.faa[2].action_get_quest(mode="美食大赛")
+            quest_list = quest_list_1 + quest_list_2
+
+            if not quest_list:
+                return False
+
+            # 去重
+            unique_data = []
+            for d in quest_list:
+                if d not in unique_data:
+                    unique_data.append(d)
+            quest_list = unique_data
+
+            print("去重后")
+            print(quest_list)
+
+            for i in range(len(quest_list)):
+                self.sin_out.emit(
+                    "[{}] [多本轮战] 事项{},{},{},{}次,带卡:{},Ban卡:{}".format(
+                        datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        i + 1,
+                        "组队" if len(quest_list[i]["player"]) == 2 else
+                        ("单人1P" if quest_list[i]["player"] == [1] else "单人2P"),
+                        quest_list[i]["stage_id"],
+                        quest_list[i]["max_times"],
+                        quest_list[i]["quest_card"],
+                        quest_list[i]["list_ban_card"]))
+
+            for i in range(len(quest_list)):
+                quest_list[i]["deck"] = deck
+                quest_list[i]["battle_plan_1p"] = 0
+                quest_list[i]["battle_plan_2p"] = 1
+
+            self.n_n_battle(
+                quest_list=quest_list,
+                list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"])
+
+        def auto_food_main():
+
+            # 开始链接
+            self.sin_out.emit(
+                "[{}] [{}] Link Start!".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    text_))
+
+            # 先领一下已经完成的大赛任务
+            self.faa[1].action_get_quest(mode="美食大赛")
+            self.faa[2].action_get_quest(mode="美食大赛")
+
+            i = 0
+            while True:
+                i += 1
+                self.sin_out.emit("[{}] [{}] 第{}次循环，开始".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    text_,
+                    i))
+                round_result = a_round()
+
+                self.sin_out.emit("[{}] [{}] 第{}次循环，结束".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    text_,
+                    i))
+                if not round_result:
+                    break
+
+            self.sin_out.emit("[{}] [{}] 所有被记录的任务已完成!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                text_))
+
+            # 开始链接
+            self.sin_out.emit(
+                "[{}] [{}] Completed!".format(
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    text_))
+
+        auto_food_main()
 
     """主要线程"""
 
@@ -1078,33 +1214,30 @@ class Todo(QThread):
         need_reload = False
         need_reload = need_reload or self.opt["sign_in"]["active"]
         need_reload = need_reload or self.opt["fed_and_watered"]["active"]
-        need_reload = need_reload or self.opt["normal_battle"]["active"]
+        need_reload = need_reload or self.opt["warrior"]["active"]
         if need_reload:
             self.reload_game()
 
         my_opt = self.opt["sign_in"]
         if my_opt["active"]:
-            self.sin_out.emit(
-                "[{}] 每日签到检查中...".format(
-                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-            self.faa[1].sign_in()
-            if my_opt["is_group"]:
-                self.faa[2].sign_in()
+            self.all_sign_in(
+                is_group=my_opt["is_group"]
+            )
 
         my_opt = self.opt["fed_and_watered"]
         if my_opt["active"]:
             self.sin_out.emit(
-                "[{}] 公会浇水施肥摘果子中, 领取奖励需激活[公会任务], 否则只完成不领取奖励...".format(
+                "[{}] [浇水 施肥 摘果 领取] 执行中...".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
             self.faa[1].fed_and_watered()
             if my_opt["is_group"]:
                 self.faa[2].fed_and_watered()
 
-        my_opt = self.opt["normal_battle"]
+        my_opt = self.opt["warrior"]
         if my_opt["active"]:
             self.easy_battle(
-                text_="[常规刷本]",
-                stage_id=my_opt["stage"],
+                text_="[勇士挑战]",
+                stage_id="NO-2-17",
                 player=[2, 1] if my_opt["is_group"] else [1],
                 max_times=int(my_opt["max_times"]),
                 deck=my_opt["deck"],
@@ -1117,44 +1250,17 @@ class Todo(QThread):
                     "last_time_player_b": ["竞技岛"]
                 })
 
+            # 勇士挑战在全部完成后, [进入竞技岛], 创建房间者[有概率]会保留勇士挑战选择关卡的界面.
+            # 对于创建房间者, 在触发后, 需要设定完成后退出方案为[进入竞技岛 → 点X] 才能完成退出.
+            # 对于非创建房间者, 由于号1不会出现选择关卡界面, 会因为找不到[X]而卡死.
+            # 无论如何都会出现卡死的可能性.
+            # 因此此处选择退出方案直接选择[进入竞技岛], 并将勇士挑战选择放在本大类的最后进行, 依靠下一个大类开始后的重启游戏刷新.
+
         need_reload = False
-        need_reload = need_reload or self.opt["quest_guild"]["active"]
-        need_reload = need_reload or self.opt["quest_spouse"]["active"]
+        need_reload = need_reload or self.opt["normal_battle"]["active"]
         need_reload = need_reload or self.opt["offer_reward"]["active"]
-        if need_reload:
-            self.reload_game()
-
-        my_opt = self.opt["quest_guild"]
-        if my_opt["active"]:
-            self.guild_or_spouse_quest(
-                text_="[公会任务]",
-                quest_mode="公会任务",
-                deck=my_opt["deck"],
-                battle_plan_1p=my_opt["battle_plan_1p"],
-                battle_plan_2p=my_opt["battle_plan_2p"])
-
-        my_opt = self.opt["quest_spouse"]
-        if my_opt["active"]:
-            self.guild_or_spouse_quest(
-                text_="[情侣任务]",
-                quest_mode="情侣任务",
-                deck=self.opt["quest_guild"]["deck"],
-                battle_plan_1p=self.opt["quest_guild"]["battle_plan_1p"],
-                battle_plan_2p=self.opt["quest_guild"]["battle_plan_2p"])
-
-        my_opt = self.opt["offer_reward"]
-        if my_opt["active"]:
-            self.double_offer_reward(
-                text_="[悬赏任务]",
-                deck=my_opt["deck"],
-                max_times=my_opt["max_times"],
-                battle_plan_1p=my_opt["battle_plan_1p"],
-                battle_plan_2p=my_opt["battle_plan_2p"])
-
-        need_reload = False
-        need_reload = need_reload or self.opt["relic"]["active"]
         need_reload = need_reload or self.opt["cross_server"]["active"]
-        need_reload = need_reload or self.opt["warrior"]["active"]
+
         if need_reload:
             self.reload_game()
 

@@ -548,7 +548,6 @@ class FAA:
                     loop_find_p_in_w(
                         raw_w_handle=self.handle,
                         raw_range=[0, 0, 950, 600],
-                        click_zoom=self.zoom,
                         target_path=PATHS["picture"]["stage"] + "\\" + self.stage_info["id"] + ".png",
                         target_sleep=0.3,
                         click=True)
@@ -557,97 +556,77 @@ class FAA:
                     # 等于0则为爬塔模式 即选择最高层 从下到上遍历所有层数
                     if stage_2 == "0":
                         # 到魔塔最低一层
-                        mouse_left_click(
-                            handle=self.handle,
-                            x=int(47 * self.zoom),
-                            y=int(579 * self.zoom),
-                            sleep_time=0.3)
+                        T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=47, y=579)
+                        time.sleep(0.3)
 
                         for i in range(11):
                             # 下一页
-                            mouse_left_click(
-                                handle=self.handle,
-                                x=int(152 * self.zoom),
-                                y=int(577 * self.zoom),
-                                sleep_time=0.1)
+                            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=152, y=577)
+                            time.sleep(0.1)
 
                             for j in range(15):
-                                mouse_left_click(
-                                    handle=self.handle,
-                                    x=int(110 * self.zoom),
-                                    y=int(int(542 - (30.8 * j)) * self.zoom),
-                                    sleep_time=0.1)
+                                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=110, y=542 - 30.8 * j)
+                                time.sleep(0.1)
 
                     else:
                         # 到魔塔最低一层
-                        mouse_left_click(
-                            handle=self.handle,
-                            x=int(47 * self.zoom),
-                            y=int(579 * self.zoom),
-                            sleep_time=0.3)
+                        T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=47, y=579)
+                        time.sleep(0.3)
+
                         # 向右到对应位置
                         my_left = int((int(stage_2) - 1) / 15)
                         for i in range(my_left):
-                            mouse_left_click(
-                                handle=self.handle,
-                                x=int(152 * self.zoom),
-                                y=int(577 * self.zoom),
-                                sleep_time=0.3)
+                            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=152, y=577)
+                            time.sleep(0.3)
+
                         # 点击对应层数
-                        mouse_left_click(
+                        T_CLICK_QUEUE_TIMER.add_click_to_queue(
                             handle=self.handle,
-                            x=int(110 * self.zoom),
-                            y=int(int(542 - (30.8 * (int(stage_2) - my_left * 15 - 1))) * self.zoom),
-                            sleep_time=0.3)
+                            x=110,
+                            y=542 - (30.8 * (int(stage_2) - my_left * 15 - 1)))
+                        time.sleep(0.3)
 
                 # 创建房间
                 loop_find_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
-                    click_zoom=self.zoom,
                     target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_魔塔_创建房间.png",
                     target_sleep=1,
                     click=True)
 
         def main_cs():
+
             # 进入跨服远征界面
             self.action_top_menu(mode="跨服远征")
 
             if room_creator:
                 # 创建房间
-                mouse_left_click(
-                    handle=self.handle,
-                    x=int(853 * self.zoom),
-                    y=int(553 * self.zoom),
-                    sleep_time=0.5)
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=853, y=553)
+                time.sleep(0.5)
 
                 # 选择地图
-                my_x = int(stage_1) * 101 - 36
-                mouse_left_click(
-                    handle=self.handle,
-                    x=int(my_x * self.zoom),
-                    y=int(70 * self.zoom),
-                    sleep_time=1)
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=int(stage_1) * 101 - 36, y=70)
+                time.sleep(1)
 
                 # 选择关卡
                 my_dict = {
                     "1": [124, 248], "2": [349, 248], "3": [576, 248], "4": [803, 248],
                     "5": [124, 469], "6": [349, 469], "7": [576, 469], "8": [803, 469]}
-                mouse_left_click(
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
-                    x=int(my_dict[stage_2][0] * self.zoom),
-                    y=int(my_dict[stage_2][1] * self.zoom),
-                    sleep_time=0.5)
+                    x=my_dict[stage_2][0],
+                    y=my_dict[stage_2][1])
+                time.sleep(0.5)
 
                 # 选择密码输入框
                 my_dict = {
                     "1": [194, 248], "2": [419, 248], "3": [646, 248], "4": [873, 248],
                     "5": [194, 467], "6": [419, 467], "7": [646, 467], "8": [873, 467]}
-                mouse_left_click(
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
-                    x=int(my_dict[stage_2][0] * self.zoom),
-                    y=int(my_dict[stage_2][1] * self.zoom),
-                    sleep_time=0.5)
+                    x=my_dict[stage_2][0],
+                    y=my_dict[stage_2][1])
+                time.sleep(0.5)
 
                 # 输入密码
                 key_down_up(
@@ -659,31 +638,24 @@ class FAA:
                 my_dict = {  # X+225 Y+221
                     "1": [176, 286], "2": [401, 286], "3": [629, 286], "4": [855, 286],
                     "5": [176, 507], "6": [401, 507], "7": [629, 507], "8": [855, 507]}
-                mouse_left_click(
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
-                    x=int(my_dict[stage_2][0] * self.zoom),
-                    y=int(my_dict[stage_2][1] * self.zoom),
-                    sleep_time=0.5)
+                    x=my_dict[stage_2][0],
+                    y=my_dict[stage_2][1])
+                time.sleep(0.5)
             else:
                 # 刷新
-                mouse_left_click(
-                    handle=self.handle,
-                    x=int(895 * self.zoom),
-                    y=int(80 * self.zoom),
-                    sleep_time=3)
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=895, y=80)
+                time.sleep(3)
 
                 # 复位
-                mouse_left_click(
-                    handle=self.handle,
-                    x=int(602 * self.zoom),
-                    y=int(490 * self.zoom),
-                    sleep_time=0.2)
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=602, y=490)
+                time.sleep(0.2)
 
                 for i in range(20):
                     find = loop_find_p_in_w(
                         raw_w_handle=self.handle,
                         raw_range=[0, 0, 950, 600],
-                        click_zoom=self.zoom,
                         target_path=PATHS["picture"]["common"] + "\\用户自截\\跨服远征_1p.png",
                         click=True,
                         target_sleep=1.0,
@@ -691,32 +663,24 @@ class FAA:
                     if find:
                         break
                     else:
-                        mouse_left_click(
-                            handle=self.handle,
-                            x=int(700 * self.zoom),
-                            y=int(490 * self.zoom),
-                            sleep_time=0.2)
                         # 下一页
+                        T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=700, y=490)
+                        time.sleep(0.2)
 
                 # 点击密码框 输入密码 确定进入
-                mouse_left_click(
-                    handle=self.handle,
-                    x=int(490 * self.zoom),
-                    y=int(300 * self.zoom),
-                    sleep_time=0.5)
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=490, y=300)
+                time.sleep(0.5)
 
                 key_down_up(
                     handle=self.handle,
                     key="1",
                     sleep_time=0.5)
 
-                mouse_left_click(
-                    handle=self.handle,
-                    x=int(490 * self.zoom),
-                    y=int(360 * self.zoom),
-                    sleep_time=0.5)
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=490, y=360)
+                time.sleep(0.5)
 
         def main_or():
+
             # 进入X年活动界面
             self.action_top_menu(mode="X年活动")
 
@@ -724,31 +688,25 @@ class FAA:
             loop_find_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
-                click_zoom=self.zoom,
                 target_path=PATHS["picture"]["stage"] + "\\" + self.stage_info["id"] + ".png",
                 target_tolerance=0.95,
                 target_sleep=1,
                 click=True)
 
             # 切区
-            my_dict = {
-                "1": 8,
-                "2": 2,
-                "3": 2}
-            change_to_region(region_id=my_dict[stage_2])
+            my_dict = {"1": [3, 11], "2": [1, 2], "3": [1, 2]}
+            change_to_region(region_list=my_dict[stage_2])
 
             # 仅限创房间的人
             if room_creator:
                 # 设置密码
                 click_set_password()
                 # 创建队伍
-                mouse_left_click(
-                    handle=self.handle,
-                    x=int(583 * self.zoom),
-                    y=int(500 * self.zoom),
-                    sleep_time=0.5)
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle,x=583,y=500)
+                time.sleep(0.5)
 
         def main_ex():
+
             # 防止被活动列表遮住
             self.change_activity_list(2)
 
@@ -774,7 +732,7 @@ class FAA:
                     click=True)
 
             # 切区
-            change_to_region(region_id=2)
+            change_to_region(region_list=[1, 2])
 
             # 仅限主角色创建关卡
             if room_creator:
@@ -784,7 +742,6 @@ class FAA:
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=my_path,
-                    click_zoom=self.zoom,
                     target_sleep=0.5,
                     click=True)
 
@@ -865,8 +822,6 @@ class FAA:
 
     def AQRR_normal(self):
         """领取普通任务奖励"""
-        handle = self.handle
-        zoom = self.zoom
 
         while True:
             # 点任务
@@ -874,41 +829,31 @@ class FAA:
 
             if find:
                 # 复位滑块
-                mouse_left_click(
-                    handle=handle,
-                    x=int(413 * zoom),
-                    y=int(155 * zoom),
-                    sleep_time=0.25)
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=413, y=155)
+                time.sleep(0.25)
 
                 for i in range(8):
 
                     # 不是第一次滑块向下移动3次
                     if i != 0:
                         for j in range(3):
-                            mouse_left_click(
-                                handle=handle,
-                                x=int(413 * zoom),
-                                y=int(524 * zoom),
-                                sleep_time=0.05)
+                            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=413, y=524)
+                            time.sleep(0.05)
 
                     # 找到就点一下, 找不到就跳过
                     while True:
                         find = loop_find_p_in_w(
-                            raw_w_handle=handle,
+                            raw_w_handle=self.handle,
                             raw_range=[335, 120, 420, 545],
                             target_path=PATHS["picture"]["common"] + "\\任务_完成.png",
                             target_tolerance=0.95,
                             target_failed_check=1,
                             target_sleep=0.5,
-                            click_zoom=zoom,
                             click=True)
                         if find:
                             # 领取奖励
-                            mouse_left_click(
-                                handle=handle,
-                                x=int(643 * zoom),
-                                y=int(534 * zoom),
-                                sleep_time=0.2)
+                            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=643, y=534)
+                            time.sleep(0.2)
                         else:
                             break
 
@@ -926,14 +871,12 @@ class FAA:
                 raw_range=[0, 0, 950, 600],
                 target_path=PATHS["picture"]["quest_guild"] + "\\ui_quest_list.png",
                 target_sleep=0.5,
-                click=True,
-                click_zoom=self.zoom)
+                click=True)
             result = loop_find_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=PATHS["picture"]["quest_guild"] + "\\completed.png",
                 target_tolerance=0.99,
-                click_zoom=self.zoom,
                 click=True,
                 target_failed_check=5,  # 1+4s 因为偶尔会弹出美食大赛完成动画4s 需要充足时间！这个确实脑瘫...
                 target_sleep=0.5)
@@ -943,7 +886,6 @@ class FAA:
                     raw_range=[0, 0, 950, 600],
                     target_path=PATHS["picture"]["quest_guild"] + "\\gather.png",
                     target_tolerance=0.99,
-                    click_zoom=self.zoom,
                     click=True,
                     target_failed_check=2,
                     target_sleep=2)  # 2s 完成任务有显眼动画
@@ -962,7 +904,6 @@ class FAA:
                 raw_range=[0, 0, 950, 600],
                 target_path=PATHS["picture"]["quest_spouse"] + "\\completed.png",
                 target_tolerance=0.99,
-                click_zoom=self.zoom,
                 click=True,
                 target_failed_check=2,
                 target_sleep=2)  # 2s 完成任务有显眼动画)
@@ -984,7 +925,6 @@ class FAA:
                 target_path=PATHS["picture"]["common"] + "\\悬赏任务_领取奖励.png",
                 target_tolerance=0.99,
                 target_failed_check=2,
-                click_zoom=self.zoom,
                 click=True,
                 target_sleep=2)
             if not result:
@@ -995,8 +935,6 @@ class FAA:
 
     def AQRR_food_competition(self):
 
-        handle = self.handle
-        zoom = self.zoom
         found_flag = False  # 记录是否有完成任何一次任务
 
         # 进入美食大赛界面
@@ -1006,8 +944,11 @@ class FAA:
 
             my_dict = {0: 362, 1: 405, 2: 448, 3: 491, 4: 534, 5: 570}
             for i in range(6):
+
                 # 先移动一次位置
-                mouse_left_click(handle=handle, x=int(536 * zoom), y=int(my_dict[i] * zoom), sleep_time=0.1)
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=my_dict[i])
+                time.sleep(0.1)
+
                 # 找到就点一下领取, 1s内找不到就跳过
                 while True:
                     find = loop_find_p_in_w(
@@ -1142,7 +1083,6 @@ class FAA:
         Return:卡片的部署方案字典
             example = [
                 {
-
                     来自配置文件
                     "name": str,  名称 用于ban卡
                     "id": int, 卡片从哪取 代号 (卡片在战斗中, 在卡组的的从左到右序号 )
@@ -1153,7 +1093,6 @@ class FAA:
                     函数计算得出
                     "location_from": [x:int, y:int]  卡片从哪取 坐标
                     "location_to": [[x:int, y:int],[x:int, y:int],[x:int, y:int],...] 卡片放到哪 坐标
-
                 },
                 ...
             ]
@@ -1741,7 +1680,7 @@ class FAA:
                         time.sleep(check_invite)
                     time.sleep((round_max_time - time_spend_a_round) % check_invite)  # 补充余数
                 else:
-                    """一轮放卡循环>7s 检查时间设定间隔 检测战斗间隔"""
+                    # 一轮放卡循环>7s 检查时间设定间隔 检测战斗间隔
                     if time.time() - check_last_one_time > check_invite:
 
                         # 测试用时
@@ -1750,7 +1689,8 @@ class FAA:
                         # 更新上次检测时间 + 更新flag + 中止休息循环
                         check_last_one_time = time.time()
 
-                        if use_key_and_check_end():
+                        if self.faa_battle.use_key_and_check_end():
+                            end_flag = True
                             break
 
                 if end_flag:
@@ -1834,35 +1774,25 @@ class FAA:
         :return: 0-正常结束 1-重启本次 2-跳过本次
         """
 
-        """调用类参数"""
-        zoom = self.zoom
-        handle = self.handle
-        player = self.player
-
-        """调用类参数-战斗前生成"""
-        deck = self.deck
-        quest_card = self.quest_card
-        ban_card_list = self.ban_card_list
-
         def action_add_quest_card():
             # 由于公会任务的卡组特性, 当任务卡为[苏打气泡]时, 不需要额外选择带卡.
             my_bool = False
-            my_bool = my_bool or quest_card == "None"
-            my_bool = my_bool or quest_card == "苏打气泡-0"
-            my_bool = my_bool or quest_card == "苏打气泡-1"
-            my_bool = my_bool or quest_card == "苏打气泡"
+            my_bool = my_bool or self.quest_card == "None"
+            my_bool = my_bool or self.quest_card == "苏打气泡-0"
+            my_bool = my_bool or self.quest_card == "苏打气泡-1"
+            my_bool = my_bool or self.quest_card == "苏打气泡"
             if my_bool:
-                print_g(text="不需要额外带卡,跳过", player=player, garde=1)
+                self.print_g(text="不需要额外带卡,跳过", garde=1)
             else:
-                print_g(text="寻找任务卡, 开始", player=player, garde=1)
+                self.print_g(text="寻找任务卡, 开始", garde=1)
 
                 # 对于名称带-的卡, 就对应的写入, 如果不带-, 就查找其所有变种
                 quest_card_s = []
-                if "-" in quest_card:
-                    quest_card_s.append("{}".format(quest_card))
+                if "-" in self.quest_card:
+                    quest_card_s.append("{}".format(self.quest_card))
                 else:
                     for i in range(9):  # i代表一张卡能有的最高变种 姑且认为是3*3 = 9
-                        quest_card_s.append("{}-{}".format(quest_card, i))
+                        quest_card_s.append("{}-{}".format(self.quest_card, i))
 
                 # 读取所有记录了的卡的图片名, 只携带被记录图片的卡
                 my_list = []
@@ -1875,11 +1805,8 @@ class FAA:
 
                 for quest_card_n in quest_card_s:
                     # 复位滑块
-                    mouse_left_click(
-                        handle=handle,
-                        x=int(931 * zoom),
-                        y=int(209 * zoom),
-                        sleep_time=0.25)
+                    T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=931, y=209)
+                    time.sleep(0.25)
 
                     # 最多向下点3*7次滑块
                     for i in range(7):
@@ -1888,13 +1815,12 @@ class FAA:
                         if not flag_find_quest_card:
 
                             find = loop_find_p_in_w(
-                                raw_w_handle=handle,
+                                raw_w_handle=self.handle,
                                 raw_range=[380, 175, 925, 420],
                                 target_path=PATHS["picture"]["card"] + "\\房间\\" + quest_card_n + ".png",
                                 target_tolerance=0.95,
                                 target_failed_check=0.4,
                                 target_sleep=0.2,
-                                click_zoom=zoom,
                                 click=True)
                             if find:
                                 flag_find_quest_card = True
@@ -1902,44 +1828,38 @@ class FAA:
 
                             # 滑块向下移动3次
                             for j in range(3):
-                                mouse_left_click(
-                                    handle=handle,
-                                    x=int(931 * zoom),
-                                    y=int(400 * zoom),
-                                    sleep_time=0.05)
+                                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=931, y=400)
+                                time.sleep(0.05)
 
                     if flag_find_quest_card:
                         break
 
-                print_g(
-                    text="寻找任务卡, 完成, 结果:{}".format("成功" if flag_find_quest_card else "失败"),
-                    player=player,
-                    garde=1)
+                self.print_g(text="寻找任务卡, 完成, 结果:{}".format("成功" if flag_find_quest_card else "失败"),
+                             garde=1)
 
-        def action_ban_card_loop_a_round(ban_card_s):
+        def screen_ban_card_loop_a_round(ban_card_s):
 
             for card in ban_card_s:
                 # 只ban被记录了图片的变种卡
                 loop_find_p_in_w(
-                    raw_w_handle=handle,
+                    raw_w_handle=self.handle,
                     raw_range=[380, 40, 915, 105],
                     target_path=PATHS["picture"]["card"] + "\\房间\\" + card + ".png",
                     target_tolerance=0.95,
                     target_interval=0.2,
                     target_failed_check=0.6,
                     target_sleep=1,
-                    click=True,
-                    click_zoom=zoom)
+                    click=True)
 
         def action_remove_ban_card():
             """寻找并移除需要ban的卡, 现已支持跨页ban"""
 
             # 只有ban卡数组非空, 继续进行
-            if ban_card_list:
+            if self.ban_card_list:
 
                 # 处理需要ban的卡片,
                 ban_card_s = []
-                for ban_card in ban_card_list:
+                for ban_card in self.ban_card_list:
                     # 对于名称带-的卡, 就对应的写入, 如果不带-, 就查找其所有变种
                     if "-" in ban_card:
                         ban_card_s.append("{}".format(ban_card))
@@ -1955,18 +1875,21 @@ class FAA:
                 ban_card_s = my_list
 
                 # 第一页
-                action_ban_card_loop_a_round(ban_card_s=ban_card_s)
+                screen_ban_card_loop_a_round(ban_card_s=ban_card_s)
+
                 # 翻页到第二页
                 for i in range(5):
-                    mouse_left_click(handle=handle, x=int(930 * zoom), y=int(85 * zoom))
+                    T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=930, y=85)
+                    time.sleep(0.05)
+
                 # 第二页
-                action_ban_card_loop_a_round(ban_card_s=ban_card_s)
+                screen_ban_card_loop_a_round(ban_card_s=ban_card_s)
 
         def main():
             # 循环查找开始按键
-            print_g(text="寻找开始或准备按钮", player=player, garde=1)
+            self.print_g(text="寻找开始或准备按钮", garde=1)
             find = loop_find_p_in_w(
-                raw_w_handle=handle,
+                raw_w_handle=self.handle,
                 raw_range=[796, 413, 950, 485],
                 target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_开始按钮.png",
                 target_interval=1,
@@ -1974,17 +1897,17 @@ class FAA:
                 target_sleep=0.3,
                 click=False)
             if not find:
-                print_g(text="创建房间后, 10s找不到[开始/准备]字样! 创建房间可能失败!", player=player, garde=2)
+                self.print_g(text="创建房间后, 10s找不到[开始/准备]字样! 创建房间可能失败!", garde=2)
                 # 可能是由于: 服务器抽风无法创建房间 or 点击被吞 or 次数用尽
                 return 2  # 2-跳过本次
 
             # 选择卡组
-            print_g(text="选择卡组, 并开始加入新卡和ban卡", player=player, garde=1)
-            mouse_left_click(
-                handle=handle,
-                x=int({1: 425, 2: 523, 3: 588, 4: 666, 5: 756, 6: 837}[deck] * zoom),
-                y=int(121 * zoom),
-                sleep_time=0.7)
+            self.print_g(text="选择卡组, 并开始加入新卡和ban卡", garde=1)
+            T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                handle=self.handle,
+                x={1: 425, 2: 523, 3: 588, 4: 666, 5: 756, 6: 837}[self.deck],
+                y=121)
+            time.sleep(0.7)
 
             """寻找并添加任务所需卡片"""
             action_add_quest_card()
@@ -1994,37 +1917,59 @@ class FAA:
 
             # 点击开始
             find = loop_find_p_in_w(
-                raw_w_handle=handle,
+                raw_w_handle=self.handle,
                 raw_range=[796, 413, 950, 485],
                 target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_开始按钮.png",
                 target_tolerance=0.95,
                 target_interval=1,
                 target_failed_check=10,
                 target_sleep=1,
-                click=True,
-                click_zoom=zoom)
+                click=True)
             if not find:
-                print_g(text="选择卡组后, 10s找不到[开始/准备]字样! 创建房间可能失败!", player=player, garde=2)
+                self.print_g(text="选择卡组后, 10s找不到[开始/准备]字样! 创建房间可能失败!", garde=2)
                 return 1  # 1-重启本次
 
             # 防止被 [没有带xx卡] or []包已满 卡住
             find = find_p_in_w(
-                raw_w_handle=handle,
+                raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_系统提示.png",
                 target_tolerance=0.98)
             if find:
-                mouse_left_click(handle=handle, x=int(427 * zoom), y=int(353 * zoom))
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle,
+                    x=427,
+                    y=353)
+                time.sleep(0.05)
+
+            # 刷新ui: 状态文本
+            self.print_g(text="查找火苗标识物, 等待进入战斗, 限时30s", garde=1)
+
+            # 循环查找火苗图标 找到战斗开始
+            find = loop_find_p_in_w(
+                raw_w_handle=self.handle,
+                raw_range=[0, 0, 950, 600],
+                target_path=PATHS["picture"]["common"] + "\\战斗\\战斗中_火苗能量.png",
+                target_interval=0.5,
+                target_failed_check=30,
+                target_sleep=0.1,
+                click=False)
+
+            # 刷新ui: 状态文本
+            if find:
+                self.print_g(text="找到火苗标识物, 战斗进行中...", garde=1)
+
+            else:
+                self.print_g(text="未能找到火苗标识物, 进入战斗失败, 可能是次数不足或服务器卡顿", garde=2)
+                return 2  # 2-跳过本次
 
             return 0  # 0-一切顺利
 
         return main()
 
     def action_round_of_battle_self(self):
-
         """
         关卡内战斗过程
-        返回值 0-正常结束 1-重启本次 2-跳过本次
         """
 
         handle = self.handle
@@ -2035,24 +1980,18 @@ class FAA:
             """
             :return: 捕获的战利品dict
             """
+
             # 记录战利品 tip 一张图49x49 是完美规整的
             images = []
 
             for i in range(3):
-                mouse_left_click(
-                    handle=handle,
-                    x=int(708 * zoom),
-                    y=int(484 * zoom),
-                    interval_time=0.05,
-                    sleep_time=0.05)
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=484)
+                time.sleep(0.05)
+            time.sleep(0.25)
+            images.append(capture_picture_png(handle=self.handle,raw_range=[209, 454, 699, 552]))
+            time.sleep(0.25)
 
-            QtCore.QThread.msleep(500)
-
-            images.append(
-                capture_picture_png(
-                    handle=handle,
-                    raw_range=[209, 454, 699, 552]))
-
+            # 3 4 行 取3行
             for i in range(3):
                 T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=510)
                 time.sleep(0.05)
@@ -2131,26 +2070,17 @@ class FAA:
                 time.sleep(6)
 
                 # 翻牌 1+2
-                mouse_left_click(
-                    handle=handle,
-                    x=int(550 * zoom),
-                    y=int(170 * zoom),
-                    interval_time=0.05,
-                    sleep_time=0.5)
-                mouse_left_click(
-                    handle=handle,
-                    x=int(708 * zoom),
-                    y=int(170 * zoom),
-                    interval_time=0.05,
-                    sleep_time=0.5)
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=550, y=170)
+                time.sleep(0.5)
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=170)
+                time.sleep(1.5)
 
-                QtCore.QThread.msleep(1000)
                 img = [
                     capture_picture_png(
-                        handle=handle,
+                        handle=self.handle,
                         raw_range=[249, 89, 293, 133]),
                     capture_picture_png(
-                        handle=handle,
+                        handle=self.handle,
                         raw_range=[317, 89, 361, 133])
                 ]
 
@@ -2160,30 +2090,26 @@ class FAA:
                 img_path = "{}\\{}_{}P_{}.png".format(
                     PATHS["logs"] + "\\chests_picture",
                     self.stage_info["id"],
-                    player,
+                    self.player,
                     time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
                 )
 
                 # 分析图片，获取战利品字典
-                drop_dict = matchImage(img_path=img_path, img=img, mode="chests")
-                print_g(text="[翻宝箱] 宝箱已 捕获/识别/保存".format(drop_dict), player=player, garde=1)
+                drop_dict = matchImage(img_path=img_path, img=img, mode="chests", test_print=True)
+                self.print_g(text="[翻宝箱] 宝箱已 捕获/识别/保存".format(drop_dict), garde=1)
 
                 # 组队2P慢点结束翻牌 保证双人魔塔后自己是房主
-                if self.is_group and player == 2:
-                    QtCore.QThread.msleep(2000)
+                if self.is_group and self.player == 2:
+                    time.sleep(2)
 
                 # 结束翻牌
-                mouse_left_click(
-                    handle=handle,
-                    x=int(708 * zoom),
-                    y=int(502 * zoom),
-                    interval_time=0.05,
-                    sleep_time=3)
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=502)
+                time.sleep(3)
 
                 return drop_dict
 
             else:
-                print_g(text="[翻宝箱UI] 15s未能捕获正确标志, 出问题了!", player=player, garde=2)
+                self.print_g(text="[翻宝箱UI] 15s未能捕获正确标志, 出问题了!", garde=2)
                 return {}
 
         def main():
@@ -2216,48 +2142,46 @@ class FAA:
 
                 """战斗结束后, 一般流程为 (潜在的任务完成黑屏) -> 战利品 -> 战斗结算 -> 翻宝箱, 之后会回到房间, 魔塔会回到其他界面"""
 
-                # 战利品部分, 会先检测是否在对应界面
-                loots_dict = screen_loot_logs()
+        # 战利品部分, 会先检测是否在对应界面
+        loots_dict = screen_loot_logs()
 
-                # 战斗结算部分, 等待跳过就好了
+        # 翻宝箱部分, 会先检测是否在对应界面
+        chests_dict = action_flip_treasure_chest()
 
-                # 翻宝箱部分, 会先检测是否在对应界面
-                chests_dict = action_flip_treasure_chest()
+        result_dict = {
+            "loots": loots_dict,
+            "chests": chests_dict
+        }
 
-                result_dict = {
-                    "loots": loots_dict,
-                    "chests": chests_dict
-                }
+        def statistics():
+            """分P，在目录下保存战利品字典"""
 
-                def statistics():
+            file_path = "{}\\result_json\\{}P掉落汇总.json".format(PATHS["logs"], self.player)
+            stage_name = self.stage_info["id"]
 
-                    # 分P，在目录下保存战利品字典
-                    file_path = "{}\\result_json\\{}P掉落汇总.json".format(paths["logs"], player)
-                    stage_name = self.stage_info["id"]
+            if os.path.exists(file_path):
+                # 尝试读取现有的JSON文件
+                with open(file_path, "r", encoding="utf-8") as json_file:
+                    json_data = json.load(json_file)
+            else:
+                # 如果文件不存在，初始化
+                json_data = {}
 
-                    if os.path.exists(file_path):
-                        # 尝试读取现有的JSON文件
-                        with open(file_path, "r", encoding="utf-8") as json_file:
-                            json_data = json.load(json_file)
+            if stage_name in json_data:
+                # 更新现有数据
+                for item_str, count in loots_dict.items():
+                    if item_str in json_data[stage_name]["loots"]:
+                        json_data[stage_name]["loots"][item_str] += count  # 更新数量
                     else:
-                        # 如果文件不存在，初始化
-                        json_data = {}
+                        json_data[stage_name]["loots"][item_str] = count  # 新增道具
+                # 更新现有数据
+                for item_str, count in chests_dict.items():
+                    if item_str in json_data[stage_name]["chests"]:
+                        json_data[stage_name]["chests"][item_str] += count  # 更新数量
+                    else:
+                        json_data[stage_name]["chests"][item_str] = count  # 新增道具
 
-                    if stage_name in json_data:
-                        # 更新现有数据
-                        for item_str, count in loots_dict.items():
-                            if item_str in json_data[stage_name]["loots"]:
-                                json_data[stage_name]["loots"][item_str] += count  # 更新数量
-                            else:
-                                json_data[stage_name]["loots"][item_str] = count  # 新增道具
-                        # 更新现有数据
-                        for item_str, count in chests_dict.items():
-                            if item_str in json_data[stage_name]["chests"]:
-                                json_data[stage_name]["chests"][item_str] += count  # 更新数量
-                            else:
-                                json_data[stage_name]["chests"][item_str] = count  # 新增道具
-
-                        json_data[stage_name]["times"] += 1  # 更新次数
+                json_data[stage_name]["times"] += 1  # 更新次数
 
                     else:
                         # 初始化新数据
@@ -2267,34 +2191,33 @@ class FAA:
                             "times": 1
                         }
 
-                    # 保存或更新后的战利品字典到JSON文件
-                    with open(file_path, "w", encoding="utf-8") as json_file:
-                        json.dump(json_data, json_file, ensure_ascii=False, indent=4)
+            # 保存或更新后的战利品字典到JSON文件
+            with open(file_path, "w", encoding="utf-8") as json_file:
+                json.dump(json_data, json_file, ensure_ascii=False, indent=4)
 
-                def detail():
+        def detail():
+            """分P，在目录下保存战利品字典"""
+            file_path = "{}\\result_json\\{}P掉落明细.json".format(PATHS["logs"], self.player)
+            stage_name = self.stage_info["id"]
 
-                    # 分P，在目录下保存战利品字典。
-                    file_path = "{}\\result_json\\{}P掉落明细.json".format(paths["logs"], player)
-                    stage_name = self.stage_info["id"]
+            if os.path.exists(file_path):
+                # 读取现有的JSON文件
+                with open(file_path, "r", encoding="utf-8") as json_file:
+                    json_data = json.load(json_file)
+            else:
+                # 如果文件不存在，初始化
+                json_data = {"data": []}
 
-                    if os.path.exists(file_path):
-                        # 读取现有的JSON文件
-                        with open(file_path, "r", encoding="utf-8") as json_file:
-                            json_data = json.load(json_file)
-                    else:
-                        # 如果文件不存在，初始化
-                        json_data = {"data": []}
+            json_data["data"].append({
+                "timestamp": time.time(),
+                "stage": stage_name,
+                "loots": loots_dict,
+                "chests": chests_dict
+            })
 
-                    json_data["data"].append({
-                        "timestamp": time.time(),
-                        "stage": stage_name,
-                        "loots": loots_dict,
-                        "chests": chests_dict
-                    })
-
-                    # 保存或更新后的战利品字典到JSON文件
-                    with open(file_path, "w", encoding="utf-8") as json_file:
-                        json.dump(json_data, json_file, ensure_ascii=False, indent=4)
+            # 保存或更新后的战利品字典到JSON文件
+            with open(file_path, "w", encoding="utf-8") as json_file:
+                json.dump(json_data, json_file, ensure_ascii=False, indent=4)
 
                 statistics()
                 detail()
@@ -2372,7 +2295,7 @@ class FAA:
 
         # 点击刷新按钮 该按钮在360窗口上
         find = loop_find_p_in_w(
-            raw_w_handle=handle,
+            raw_w_handle=self.handle_360,
             raw_range=[0, 0, 400, 100],
             target_path=PATHS["picture"]["common"] + "\\登录\\0_刷新.png",
             target_tolerance=0.9,
@@ -2381,7 +2304,7 @@ class FAA:
 
         if not find:
             find = loop_find_p_in_w(
-                raw_w_handle=handle,
+                raw_w_handle=self.handle_360,
                 raw_range=[0, 0, 400, 100],
                 target_path=PATHS["picture"]["common"] + "\\登录\\0_刷新_被选中.png",
                 target_tolerance=0.98,
@@ -2391,7 +2314,7 @@ class FAA:
             if not find:
 
                 find = loop_find_p_in_w(
-                    raw_w_handle=handle,
+                    raw_w_handle=self.handle_360,
                     raw_range=[0, 0, 400, 100],
                     target_path=PATHS["picture"]["common"] + "\\登录\\0_刷新_被点击.png",
                     target_tolerance=0.98,
@@ -2484,97 +2407,54 @@ class FAA:
 
                 continue
 
-            else:
-                """尝试根据QQ空间或4399的不同ui 进入最近进入的服务器"""
-                # 4399
-                result = find_p_in_w(
-                    raw_w_handle=self.handle_browser,
-                    raw_range=[0, 0, 2000, 2000],
-                    target_path=paths["picture"]["common"] + "\\登录\\1_我最近玩过的服务器_4399.png",
-                    target_tolerance=0.9
-                )
-                if result:
-                    # 点击进入服务器
-                    mouse_left_click(
-                        handle=self.handle_browser,
-                        x=int(result[0] * zoom),
-                        y=int((result[1] + 30) * zoom),
-                        sleep_time=0.5)
+            """查找大地图确认进入游戏"""
+            # 查找顶部大地图
+            result = loop_find_p_in_w(
+                raw_w_handle=self.handle_browser,
+                raw_range=[0, 0, 2000, 2000],
+                target_path=PATHS["picture"]["common"] + "\\顶部菜单\\大地图.png",
+                target_tolerance=0.97,
+                target_failed_check=30,
+                target_sleep=1,
+                click=False)
 
-                # QQ空间
-                result = find_p_in_w(
-                    raw_w_handle=self.handle_browser,
-                    raw_range=[0, 0, 2000, 2000],
-                    target_path=paths["picture"]["common"] + "\\登录\\1_我最近玩过的服务器_qq.png",
-                    target_tolerance=0.9
-                )
-                if result:
-                    # 点击进入服务器
-                    mouse_left_click(
-                        handle=self.handle_browser,
-                        x=int(result[0] * zoom),
-                        y=int((result[1] + 30) * zoom),
-                        sleep_time=0.5)
+            if result:
+                # 重新获取句柄, 此时游戏界面的句柄已经改变
+                self.handle = faa_get_handle(channel=self.channel, mode="flash")
 
-                """查找 - 关闭 健康游戏公告"""
-                # 查找健康游戏公告
-                result = loop_find_p_in_w(
-                    raw_w_handle=self.handle_browser,
-                    raw_range=[0, 0, 2000, 2000],
-                    target_path=paths["picture"]["common"] + "\\登录\\2_健康游戏公告.png",
+                # [4399] [QQ空间]关闭健康游戏公告
+                loop_find_p_in_w(
+                    raw_w_handle=self.handle,
+                    raw_range=[0, 0, 950, 600],
+                    target_path=PATHS["picture"]["common"] + "\\登录\\3_健康游戏公告_确定.png",
                     target_tolerance=0.97,
-                    target_failed_check=30,
-                    target_sleep=0.5,
-                    click=False)
-                if not result:
-                    print_g(text="未找到健康游戏公告, 重新刷新", player=self.player, garde=2)
-                    continue
-                else:
-                    # 重新获取句柄, 此时游戏界面的句柄已经改变
-                    self.handle = faa_get_handle(channel=self.channel, mode="flash")
+                    target_failed_check=5,
+                    target_sleep=1,
+                    click=True)
 
-                    # 关闭健康游戏公告
-                    loop_find_p_in_w(
-                        raw_w_handle=self.handle,
-                        raw_range=[0, 0, 950, 600],
-                        target_path=paths["picture"]["common"] + "\\登录\\3_健康游戏公告_确定.png",
-                        target_tolerance=0.97,
-                        target_failed_check=15,
-                        click=True,
-                        click_zoom=zoom)
-
-                    # [可能发生] 每日必充界面关闭
-                    loop_find_p_in_w(
-                        raw_w_handle=self.handle,
-                        raw_range=[0, 0, 950, 600],
-                        target_path=paths["picture"]["common"] + "\\登录\\4_退出每日必充.png",
-                        target_tolerance=0.99,
-                        target_failed_check=2,
-                        click=True,
-                        click_zoom=zoom)
-
-                    break
+                # [每天第一次登陆] 每日必充界面关闭
+                loop_find_p_in_w(
+                    raw_w_handle=self.handle,
+                    raw_range=[0, 0, 950, 600],
+                    target_path=PATHS["picture"]["common"] + "\\登录\\4_退出每日必充.png",
+                    target_tolerance=0.99,
+                    target_failed_check=3,
+                    target_sleep=1,
+                    click=True)
+                self.random_seed += 1
+                return
 
     def sign_in(self):
-
-        handle = self.handle
-        zoom = self.zoom
 
         def sign_in_vip():
             """VIP签到"""
             self.action_top_menu(mode="VIP签到")
 
-            mouse_left_click(
-                handle=handle,
-                x=int(740 * zoom),
-                y=int(190 * zoom),
-                sleep_time=0.5)
+            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle,x=740,y=190)
+            time.sleep(0.5)
 
-            mouse_left_click(
-                handle=handle,
-                x=int(225 * zoom),
-                y=int(280 * zoom),
-                sleep_time=0.5)
+            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle,x=225,y=280)
+            time.sleep(0.5)
 
             self.action_exit(mode="普通红叉")
 
@@ -2583,14 +2463,13 @@ class FAA:
             self.action_top_menu(mode="每日签到")
 
             loop_find_p_in_w(
-                raw_w_handle=handle,
+                raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=PATHS["picture"]["common"] + "\\签到\\每日签到_确定.png",
                 target_tolerance=0.99,
                 target_failed_check=1,
                 target_sleep=1,
-                click=True,
-                click_zoom=zoom)
+                click=True)
 
             self.action_exit(mode="普通红叉")
 
@@ -2600,14 +2479,13 @@ class FAA:
             self.action_top_menu(mode="美食活动")
 
             loop_find_p_in_w(
-                raw_w_handle=handle,
+                raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=PATHS["picture"]["common"] + "\\签到\\美食活动_确定.png",
                 target_tolerance=0.99,
                 target_failed_check=1,
                 target_sleep=1,
-                click=True,
-                click_zoom=zoom)
+                click=True)
 
             self.action_exit(mode="普通红叉")
 
@@ -2616,17 +2494,16 @@ class FAA:
             self.action_top_menu(mode="塔罗寻宝")
 
             loop_find_p_in_w(
-                raw_w_handle=handle,
+                raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=PATHS["picture"]["common"] + "\\签到\\塔罗寻宝_确定.png",
                 target_tolerance=0.99,
                 target_failed_check=1,
                 target_sleep=1,
-                click=True,
-                click_zoom=zoom)
+                click=True)
 
             loop_find_p_in_w(
-                raw_w_handle=handle,
+                raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=PATHS["picture"]["common"] + "\\签到\\塔罗寻宝_退出.png",
                 target_tolerance=0.99,
