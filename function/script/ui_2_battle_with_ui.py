@@ -37,6 +37,7 @@ class Todo(QThread):
         self.opt = opt
         self.thread_1p = None
         self.thread_2p = None
+        self.battle_mode = 0  # 1 或 0 0则代表使用老版战斗方案; 1则达标使用新版战斗方案, 新版处于测试之中. 开发者请更改为0再用
 
     """业务代码, 不直接调用opt设定, 会向输出窗口传参"""
 
@@ -534,7 +535,7 @@ class Todo(QThread):
 
         # 填入战斗方案和关卡信息
         faa_a.set_config_for_battle(
-            battle_mode=0,
+            battle_mode=self.battle_mode,
             is_group=is_group,
             is_use_key=is_use_key,
             deck=deck,
@@ -543,7 +544,7 @@ class Todo(QThread):
             battle_plan_index=battle_plan_a,
             stage_id=stage_id)
         faa_b.set_config_for_battle(
-            battle_mode=0,
+            battle_mode=self.battle_mode,
             is_group=is_group,
             is_use_key=is_use_key,
             deck=deck,

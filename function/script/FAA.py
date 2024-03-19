@@ -1775,9 +1775,6 @@ class FAA:
             # 退出关卡
             self.action_exit(mode="游戏内退出")
 
-        """主函数"""
-
-        def main():
             mat_card_position = self.get_mat_card_position()
 
             list_cell_all, list_shovel = self.calculation_cell_all_card(mat_card_position=mat_card_position)
@@ -1785,30 +1782,26 @@ class FAA:
             # 放人物
             for i in battle_plan["player"]:
                 use_player(i)
+        if self.battle_mode == 0:
+            use_card_loop_0()
 
             time.sleep(1)
+        elif self.battle_mode == 1:
+            use_card_loop_1()
 
             # 铲自带的卡
             if player == 1:
                 use_shovel(positions=list_shovel)
 
             time.sleep(1)
+        elif self.battle_mode == 3:
+            use_card_loop_skill()
 
-            # 战斗循环
-            if battle_mode == 0:
-                use_card_loop_0(list_cell_all=list_cell_all)
+        else:
+            self.print_g(text="不战斗 输出 self.battle_plan_1", garde=1)
+            self.print_g(text=self.battle_plan_1, garde=1)
 
-            elif battle_mode == 1:
-                use_card_loop_1(list_cell_all=list_cell_all)
-
-            elif battle_mode == 3:
-                use_card_loop_skill()
-
-            else:
-                print(list_cell_all, list_shovel)
-                print("不战斗 用于测试战斗数组的计算")
-
-        main()
+    """战斗流程函数"""
 
     def action_round_of_battle_before(self):
 
