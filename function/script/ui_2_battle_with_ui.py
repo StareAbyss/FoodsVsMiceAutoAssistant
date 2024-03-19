@@ -1315,12 +1315,6 @@ class Todo(QThread):
                     "last_time_player_b": ["竞技岛"]
                 })
 
-            # 勇士挑战在全部完成后, [进入竞技岛], 创建房间者[有概率]会保留勇士挑战选择关卡的界面.
-            # 对于创建房间者, 在触发后, 需要设定完成后退出方案为[进入竞技岛 → 点X] 才能完成退出.
-            # 对于非创建房间者, 由于号1不会出现选择关卡界面, 会因为找不到[X]而卡死.
-            # 无论如何都会出现卡死的可能性.
-            # 因此此处选择退出方案直接选择[进入竞技岛], 并将勇士挑战选择放在本大类的最后进行, 依靠下一个大类开始后的重启游戏刷新.
-
         need_reload = False
         need_reload = need_reload or self.opt["magic_tower_alone_1"]["active"]
         need_reload = need_reload or self.opt["magic_tower_alone_2"]["active"]
@@ -1408,8 +1402,9 @@ class Todo(QThread):
         need_reload = False
         need_reload = need_reload or self.opt["receive_awards"]["active"]
         need_reload = need_reload or self.opt["use_items"]["active"]
-        need_reload = need_reload or self.opt["cross_server_reputation"]["active"]
+        need_reload = need_reload or self.opt["loop_cross_server"]["active"]
         need_reload = need_reload or self.opt["customize"]["active"]
+        need_reload = need_reload or self.opt["auto_food"]["active"]
 
         if need_reload:
             self.reload_game()
@@ -1425,9 +1420,9 @@ class Todo(QThread):
             self.use_items(
                 is_group=my_opt["is_group"])
 
-        my_opt = self.opt["cross_server_reputation"]
+        my_opt = self.opt["loop_cross_server"]
         if my_opt["active"]:
-            self.cross_server_reputation(
+            self.loop_cross_server(
                 is_group=my_opt["is_group"],
                 deck=self.opt["quest_guild"]["deck"])
 
@@ -1453,12 +1448,17 @@ class Todo(QThread):
         if my_opt["active"]:
             self.customize_todo(
                 text_="[高级自定义]",
-                stage_begin = my_opt["stage"],
+                stage_begin=my_opt["stage"],
                 customize_todo_index=my_opt["battle_plan_1p"])
 
+        my_opt = self.opt["auto_food"]
+        if my_opt["active"]:
+            self.auto_food(
+                deck=my_opt["deck"],
+            )
         # 全部完成了刷新一下
         self.sin_out.emit(
-            "\n[{}] 已完成所有事项, 刷新游戏回到登录界面, 防止长期运行flash导致卡顿".format(
+            "\n[{}] 已完成所有事项！建议勾选刷新游戏回到登录界面, 防止长期运行flash导致卡顿".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
         self.reload_to_login_ui()
 
@@ -1507,6 +1507,9 @@ class MyMainWindow2(MyMainWindow1):
         self.TextBrowser.clear()
         self.start_print()
         self.printf("\n>>> 链接开始 线程开启 <<<\n")
+        # 启动点击处理
+        # 预备全局线程
+        T_CLICK_QUEUE_TIMER.start()
 
     def click_btn_start(self):
         """战斗开始函数"""
@@ -1523,18 +1526,17 @@ class MyMainWindow2(MyMainWindow1):
                 channel=channel_1p,
                 player=1,
                 character_level=self.opt["level_1p"],
-                is_use_key=True,  # boolean 是否使用钥匙 做任务必须选择 是
                 is_auto_battle=self.opt["auto_use_card"],  # boolean 是否使用自动战斗 做任务必须选择 是
-                is_auto_pickup=self.opt["auto_pickup_1p"])
+                is_auto_pickup=self.opt["auto_pickup_1p"],
+                random_seed=random_seed)
 
             faa[2] = FAA(
                 channel=channel_2p,
-                zoom=zoom_ratio,
                 player=2,
                 character_level=self.opt["level_2p"],
-                is_use_key=True,
                 is_auto_battle=self.opt["auto_use_card"],
-                is_auto_pickup=self.opt["auto_pickup_2p"])
+                is_auto_pickup=self.opt["auto_pickup_2p"],
+                random_seed=random_seed)
 
             self.todo_start()
 
