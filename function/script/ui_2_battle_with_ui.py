@@ -354,14 +354,41 @@ class Todo(QThread):
             player_b: {}
         }
 
-        # 分开进行战前准备
+        """同时进行战前准备"""
         if result_id == 0:
+
+            # 初始化多线程
+            self.thread_1p = ThreadWithException(
+                target=self.faa[player_a].action_round_of_battle_before,
+                name="{}P Thread - Battle - Before".format(player_a),
+                kwargs={})
             if is_group:
-                result_id = max(result_id, self.faa[player_b].action_round_of_battle_before())
-            result_id = max(result_id, self.faa[player_a].action_round_of_battle_before())
+                self.thread_2p = ThreadWithException(
+                    target=self.faa[player_b].action_round_of_battle_before,
+                    name="{}P Thread - Battle - Before".format(player_b),
+                    kwargs={})
+
+            # 开始多线程
+            if is_group:
+                self.thread_2p.start()
+                time.sleep(3)
+            self.thread_1p.start()
+
+            # 阻塞进程让进程执行完再继续本循环函数
+            self.thread_1p.join()
+            if is_group:
+                self.thread_2p.join()
+
+            # 获取返回值
+            result_id = max(result_id, self.thread_1p.get_return_value())
+            if is_group:
+                result_id = max(result_id, self.thread_2p.get_return_value())
+
+        """多线程进行战斗 此处1p-ap 2p-bp 战斗部分没有返回值"""
 
         if result_id == 0:
-            # 多线程进行战斗 此处1p-ap 2p-bp
+
+            # 初始化多线程
             self.thread_1p = ThreadWithException(
                 target=self.faa[player_a].action_round_of_battle_self,
                 name="{}P Thread - Battle".format(player_a),
@@ -372,6 +399,7 @@ class Todo(QThread):
                     name="{}P Thread - Battle".format(player_b),
                     kwargs={})
 
+            # 开始多线程
             self.thread_1p.start()
             if is_group:
                 self.thread_2p.start()

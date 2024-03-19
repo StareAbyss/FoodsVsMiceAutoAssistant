@@ -1338,19 +1338,9 @@ class FAA:
 
         return main()
 
-    def get_mat_card_position(self):
-
-        stage_info = copy.deepcopy(self.stage_info)
-        handle = self.handle
-        zoom = self.zoom
-        mat_card_list = ["木盘子", "棉花糖", "苏打气泡", "麦芽糖", "魔法软糖"]
     def init_battle_object(self):
         self.faa_battle = Battle(self)
 
-        # 筛选出 对应关卡可用的卡片
-        for mat_card in mat_card_list:
-            if mat_card not in stage_info["mat_card"]:
-                mat_card_list.remove(mat_card)
         # 放人物
         self.print_g(text="开始战斗", garde=1)
         if self.player == 2:
@@ -1358,38 +1348,9 @@ class FAA:
         for i in self.battle_plan_0["player"]:
             self.faa_battle.use_player(i)
 
-        # 筛选出 被记录的卡片变种
-        new_list = []
-        for mat_card in mat_card_list:
-            for i in range(10):
-                new_card = "{}-{}".format(mat_card, i)
-                if new_card in self.card_recorded_battle:
-                    new_list.append(new_card)
         # 调用承载卡方案中，铲卡方法
         if self.player == 1:
             self.faa_battle.use_shovel()  # 因为有点击序列，所以同时操作是可行的
-
-        mat_card_list = new_list
-
-        position_list = []
-        find_list = []
-
-        # 查找对应卡片坐标 重复3次
-        for i in range(3):
-            for mat_card in mat_card_list:
-                # 需要使用0.99相似度参数 相似度阈值过低可能导致一张图片被识别为两张卡
-                find = find_p_in_w(
-                    raw_w_handle=handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=paths["picture"]["card"] + "\\战斗\\" + mat_card + ".png",
-                    target_tolerance=0.99)
-                if find:
-                    position_list.append([int(find[0] * zoom), int(find[1] * zoom)])
-                    find_list.append(mat_card)
-            mat_card_list = list(filter(lambda x: x not in find_list, mat_card_list))
-            time.sleep(0.1)
-
-        return position_list
 
     def loop_battle(self):
         """
