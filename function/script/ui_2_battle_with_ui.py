@@ -748,29 +748,37 @@ class Todo(QThread):
             关于 result_list
             """
             # 输入为
-            loots_dict = {}
-            chests_dict = {}
+            count_loots_dict = {}
+            count_chests_dict = {}
 
             # 复制key
             for _result in result_list:
-                for key in _result["loot_dict_list"][player_id]["loots"].keys():
-                    loots_dict[key] = 0
-                for key in _result["loot_dict_list"][player_id]["chests"].keys():
-                    chests_dict[key] = 0
+                loots = _result["loot_dict_list"][player_id]["loots"]
+                if loots is not None:
+                    for key in loots.keys():
+                        count_loots_dict[key] = 0
+                chests = _result["loot_dict_list"][player_id]["chests"]
+                if chests is not None:
+                    for key in chests.keys():
+                        count_chests_dict[key] = 0
 
             # 累加数据
             for _result in result_list:
-                for k, v in _result["loot_dict_list"][player_id]["loots"].items():
-                    loots_dict[k] += v
-                for k, v in _result["loot_dict_list"][player_id]["chests"].items():
-                    chests_dict[k] += v
+                loots = _result["loot_dict_list"][player_id]["loots"]
+                if loots is not None:
+                    for k, v in loots.items():
+                        count_loots_dict[k] += v
+                chests = _result["loot_dict_list"][player_id]["chests"]
+                if chests is not None:
+                    for k, v in chests.items():
+                        count_chests_dict[k] += v
 
             # 生成文本
             loots_text = ""
             chests_text = ""
-            for name, count in loots_dict.items():
+            for name, count in count_loots_dict.items():
                 loots_text += "{}[{}|{:.1f}] ".format(name, count, count / valid_time)
-            for name, count in chests_dict.items():
+            for name, count in count_chests_dict.items():
                 chests_text += "{}[{}|{:.1f}] ".format(name, count, count / valid_time)
 
             # 玩家A掉落

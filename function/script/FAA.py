@@ -2226,13 +2226,13 @@ class FAA:
 
                 json_data[stage_name]["times"] += 1  # 更新次数
 
-                    else:
-                        # 初始化新数据
-                        json_data[stage_name] = {
-                            "loots": loots_dict,
-                            "chests": chests_dict,
-                            "times": 1
-                        }
+            else:
+                # 初始化新数据
+                json_data[stage_name] = {
+                    "loots": loots_dict if loots_dict else {},  # 注意空值处理
+                    "chests": chests_dict if chests_dict else {},
+                    "times": 1
+                }
 
             # 保存或更新后的战利品字典到JSON文件
             with open(file_path, "w", encoding="utf-8") as json_file:
@@ -2262,8 +2262,9 @@ class FAA:
             with open(file_path, "w", encoding="utf-8") as json_file:
                 json.dump(json_data, json_file, ensure_ascii=False, indent=4)
 
-                statistics()
-                detail()
+        if (loots_dict is not None) and (chests_dict is not None):
+            statistics()
+            detail()
 
         # 先检是否炸服了
         find = loop_find_ps_in_w(
