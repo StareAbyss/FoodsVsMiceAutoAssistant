@@ -24,8 +24,14 @@ from function.tools.analyzer_of_loot_logs import matchImage
 
 
 class FAA:
-    def __init__(self, channel="锑食", zoom=1.0, player=1, character_level=1,
-                 is_use_key=True, is_auto_battle=True, is_auto_pickup=False):
+    def __init__(
+            self,
+            channel="锑食",
+            player=1,
+            character_level=1,
+            is_auto_battle=True,
+            is_auto_pickup=False,
+    ):
 
         # 获取窗口句柄
         self.channel = channel
@@ -3114,8 +3120,7 @@ class FAA:
                 target_interval=1,
                 target_failed_check=30,
                 target_sleep=1,
-                click=False,
-                click_zoom=zoom)
+                click=False)
             if find:
                 print_g(
                     text="找到[火苗标识物], 战斗进行中...",

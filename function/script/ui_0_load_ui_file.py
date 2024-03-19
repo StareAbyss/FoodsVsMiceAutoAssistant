@@ -32,7 +32,8 @@ class MyMainWindow0(QMainWindow):
         self.setWindowIcon(QIcon(PATHS["logo"] + "\\FetTuo-192x.png"))
 
         # 获取 dpi & zoom 仅能在类中调用
-        self.zoom = get_system_dpi() / 96
+        self.zoom_rate = get_system_dpi() / 96
+        T_CLICK_QUEUE_TIMER.set_zoom_rate(self.zoom_rate)
 
         # 设定字体
         QFontDatabase.addApplicationFont(PATHS["font"] + "\\汉仪文黑-85W Heavy.ttf")

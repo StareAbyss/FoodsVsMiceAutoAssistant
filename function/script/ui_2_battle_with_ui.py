@@ -267,12 +267,9 @@ class Todo(QThread):
         faa_a = self.faa[player_a]
         faa_b = self.faa[player_b]
 
-        zoom = self.faa[1].zoom
-
         find = loop_find_p_in_w(
             raw_w_handle=faa_a.handle,
             raw_range=[796, 413, 950, 485],
-            click_zoom=zoom,
             target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_开始按钮.png",
             target_sleep=0.3,
             click=False,
@@ -302,7 +299,6 @@ class Todo(QThread):
             y=int(157 * zoom),
             sleep_time=0.5)
 
-            click_zoom=zoom,
             # p2接受邀请
             find = loop_find_p_in_w(
                 raw_w_handle=faa_b.handle,
@@ -1408,22 +1404,9 @@ class MyMainWindow2(MyMainWindow1):
             name_1p = self.opt["name_1p"]
             name_2p = self.opt["name_2p"]
             channel_1p, channel_2p = get_channel_name(game_name, name_1p, name_2p)
-
-            # 把索引变值 需要注意的是 battle_plan均为索引 需要在FAA类中处理
-            # zoom_ratio = {
-            #     0: 1.00,
-            #     1: 1.25,
-            #     2: 1.50,
-            #     3: 1.75,
-            #     4: 2.00,
-            #     5: 2.25,
-            #     6: 2.50}
-            zoom_ratio = self.zoom
-
             faa = [None, None, None]
             faa[1] = FAA(
                 channel=channel_1p,
-                zoom=zoom_ratio,
                 player=1,
                 character_level=self.opt["level_1p"],
                 is_use_key=True,  # boolean 是否使用钥匙 做任务必须选择 是
