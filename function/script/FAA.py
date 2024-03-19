@@ -52,6 +52,7 @@ class FAA:
         # 每次战斗都不一样的参数 使用内部函数调用更改
         self.stage_info = None
         self.is_group = None
+        self.is_use_key = None
         self.deck = None
         self.quest_card = None
         self.ban_card_list = None
@@ -1074,7 +1075,7 @@ class FAA:
 
     def set_config_for_battle(
             self,
-            stage_id="NO-1-1", is_group=False,
+            stage_id="NO-1-1", is_group=False, is_use_key=True,
             deck=1, quest_card="None", ban_card_list=None,
             battle_plan_index=0, battle_mode=0):
         """
@@ -1093,6 +1094,7 @@ class FAA:
 
         self.battle_mode = battle_mode
         self.is_group = is_group
+        self.is_use_key = is_use_key
         self.deck = deck
         self.quest_card = quest_card
         self.ban_card_list = ban_card_list

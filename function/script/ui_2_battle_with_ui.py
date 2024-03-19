@@ -478,6 +478,7 @@ class Todo(QThread):
             self,
             stage_id,
             player,  # [1],[2],[1,2],[2,1]
+            is_use_key,
             max_times,
             deck,
             quest_card,
@@ -517,6 +518,7 @@ class Todo(QThread):
         faa_a.set_config_for_battle(
             battle_mode=0,
             is_group=is_group,
+            is_use_key=is_use_key,
             deck=deck,
             quest_card=quest_card,
             ban_card_list=ban_card_list,
@@ -525,6 +527,7 @@ class Todo(QThread):
         faa_b.set_config_for_battle(
             battle_mode=0,
             is_group=is_group,
+            is_use_key=is_use_key,
             deck=deck,
             quest_card=quest_card,
             ban_card_list=ban_card_list,
@@ -810,6 +813,7 @@ class Todo(QThread):
                     max_times=quest["max_times"],
                     deck=quest["deck"],
                     player=quest["player"],
+                    is_use_key=quest["is_use_key"],
                     battle_plan_1p=quest["battle_plan_1p"],
                     battle_plan_2p=quest["battle_plan_2p"],
                     quest_card=quest["quest_card"],
@@ -852,8 +856,9 @@ class Todo(QThread):
             {
                 "stage_id": stage_id,
                 "max_times": max_times,
-                "deck": deck,
                 "player": player,
+                "deck": deck,
+                "is_use_key": True,
                 "battle_plan_1p": battle_plan_1p,
                 "battle_plan_2p": battle_plan_2p,
                 "quest_card": "None",
@@ -901,6 +906,7 @@ class Todo(QThread):
                     i["stage_id"],
                     i["quest_card"]))
         for i in range(len(quest_list)):
+            quest_list[i]["is_use_key"] = True
             quest_list[i]["deck"] = deck
             quest_list[i]["battle_plan_1p"] = battle_plan_1p
             quest_list[i]["battle_plan_2p"] = battle_plan_2p
@@ -941,7 +947,7 @@ class Todo(QThread):
         for i in range(3):
             quest_list.append({
                 "player": [2, 1],
-                "deck": deck,
+                "is_use_key": True,
                 "battle_plan_1p": battle_plan_1p,
                 "battle_plan_2p": battle_plan_2p,
                 "stage_id": "OR-0-" + str(i + 1),
@@ -985,6 +991,7 @@ class Todo(QThread):
             quest_list.append(
                 {
                     "player": player,
+                    "is_use_key": True,
                     "deck": deck,
                     "battle_plan_1p": battle_plan_1p,
                     "battle_plan_2p": battle_plan_1p,
@@ -1008,7 +1015,7 @@ class Todo(QThread):
                 text_))
 
     def customize_todo(
-            self, text_, stage_begin:int, customize_todo_index: int):
+            self, text_, stage_begin: int, customize_todo_index: int):
 
         def read_json_to_customize_todo():
             customize_todo_list = get_customize_todo_list(with_extension=True)
@@ -1037,7 +1044,7 @@ class Todo(QThread):
         # 获得最高方案的id
         max_battle_id = 1
         for quest in quest_list:
-            max_battle_id = max(max_battle_id,quest["battle_id"])
+            max_battle_id = max(max_battle_id, quest["battle_id"])
 
         if stage_begin > max_battle_id:
             self.sin_out.emit(
