@@ -1152,6 +1152,7 @@ class FAA:
         ban_card_list = copy.deepcopy(self.ban_card_list)
         stage_info = copy.deepcopy(self.stage_info)
         battle_plan = copy.deepcopy(self.battle_plan_0)
+        mat_card_position = copy.deepcopy(self.mat_card_position)
 
         def calculation_card_quest(list_cell_all):
             """计算步骤一 加入任务卡的摆放坐标"""
@@ -1187,12 +1188,12 @@ class FAA:
                     "location_to": []
                 }
 
-                # 加入数组
-                new_list.append(dict_quest)
+                # 首位插入
+                list_cell_all.insert(0, dict_quest)
                 return new_list
 
         def calculation_card_mat(list_cell_all):
-            """步骤二 2张承载卡"""
+            """步骤二 承载卡"""
 
             location = stage_info["mat_cell"]  # 深拷贝 防止对配置文件数据更改
 
@@ -1214,7 +1215,8 @@ class FAA:
                     "queue": True,
                     "location_from": mat_card_position[i],
                     "location_to": []}
-                list_cell_all.append(dict_mat)
+                # 首位插入
+                list_cell_all.insert(0, dict_mat)
 
             return list_cell_all
 
