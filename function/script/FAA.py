@@ -2402,30 +2402,72 @@ class FAA:
                     self.print_g(text="未找到360大厅刷新游戏按钮, 可能导致一系列问题...", garde=2)
 
     def reload_game(self):
-        zoom = self.zoom
+
+        def try_enter_server_4399():
+            # 4399 进入服务器
+            my_result = find_p_in_w(
+                raw_w_handle=self.handle_browser,
+                raw_range=[0, 0, 2000, 2000],
+                target_path=PATHS["picture"]["common"] + "\\登录\\1_我最近玩过的服务器_4399.png",
+                target_tolerance=0.9
+            )
+            if my_result:
+                # 点击进入服务器
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle_browser,
+                    x=my_result[0],
+                    y=my_result[1] + 30)
+                return True
+            return False
+
+        def try_enter_server_qq_space():
+            # QQ空间 进入服务器
+            my_result = find_p_in_w(
+                raw_w_handle=self.handle_browser,
+                raw_range=[0, 0, 2000, 2000],
+                target_path=PATHS["picture"]["common"] + "\\登录\\1_我最近玩过的服务器_QQ空间.png",
+                target_tolerance=0.9
+            )
+            if my_result:
+                # 点击进入服务器
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle_browser,
+                    x=my_result[0],
+                    y=my_result[1] + 30)
+                return True
+            return False
+
+        def try_enter_server_qq_game_hall():
+            # QQ游戏大厅 进入服务器
+            my_result = find_p_in_w(
+                raw_w_handle=self.handle_browser,
+                raw_range=[0, 0, 2000, 2000],
+                target_path=PATHS["picture"]["common"] + "\\登录\\1_我最近玩过的服务器_QQ游戏大厅.png",
+                target_tolerance=0.9
+            )
+            if my_result:
+                # 点击进入服务器
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle_browser,
+                    x=my_result[0],
+                    y=my_result[1] + 30)
+                return True
+            return False
+
         while True:
 
             # 点击刷新按钮 该按钮在360窗口上
             self.reload_to_login_ui()
 
-            # 是否在 选择服务器界面 - 判断是否存在 最近玩过的服务器ui(4399 or qq空间)
-            result = loop_find_ps_in_w(
-                raw_w_handle=self.handle_browser,
-                target_opts=[
-                    {
-                        "raw_range": [0, 0, 2000, 2000],
-                        "target_path": paths["picture"]["common"] + "\\登录\\1_我最近玩过的服务器_4399.png",
-                        "target_tolerance": 0.9,
-                    }, {
-                        "raw_range": [0, 0, 2000, 2000],
-                        "target_path": paths["picture"]["common"] + "\\登录\\1_我最近玩过的服务器_qq.png",
-                        "target_tolerance": 0.9,
-                    }
-                ],
-                target_return_mode="or")
+            # 是否在 选择服务器界面 - 判断是否存在 最近玩过的服务器ui(4399 or qq空间) 或 开始游戏(qq游戏大厅) 并进入
+            result = False
+            result = result or try_enter_server_4399()
+            result = result or try_enter_server_qq_space()
+            result = result or try_enter_server_qq_game_hall()
 
+            # 如果未找到进入服务器，从头再来
             if not result:
-                print_g(text="未找到进入输入服务器, 可能进入未知界面, 或QQ空间需重新登录", player=self.player, garde=1)
+                self.print_g(text="未找到进入输入服务器, 可能进入未知界面, 或QQ空间需重新登录", garde=1)
                 result = loop_find_p_in_w(
                     raw_w_handle=self.handle_browser,
                     raw_range=[0, 0, 2000, 2000],
@@ -2590,15 +2632,14 @@ class FAA:
                 target_tolerance=0.99,
                 target_failed_check=1,
                 target_sleep=1,
-                click=True,
-                click_zoom=zoom)
+                click=True)
 
         def sign_in_pharaoh():
             """法老宝藏"""
             self.action_top_menu(mode="法老宝藏")
 
             find = loop_find_p_in_w(
-                raw_w_handle=handle,
+                raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=PATHS["picture"]["common"] + "\\签到\\法老宝藏_确定.png",
                 target_tolerance=0.99,
@@ -2713,12 +2754,8 @@ class FAA:
             if try_time != 0:
 
                 # 点击全部工会
-                mouse_left_click(
-                    handle=self.handle,
-                    x=int(798 * self.zoom),
-                    y=int(123 * self.zoom),
-                    sleep_time=0.5
-                )
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=798, y=123)
+                time.sleep(0.5)
 
                 # 跳转到最后
                 T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=843, y=305)
