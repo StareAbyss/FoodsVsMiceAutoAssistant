@@ -409,6 +409,15 @@ class Todo(QThread):
             if is_group:
                 self.thread_2p.join()
 
+            if self.faa[player_a].battle_mode == 1:
+                self.thread_manager = CardManager(self.faa[1], self.faa[2])
+                self.thread_manager.start()
+                self.sleep(20)
+                while not self.thread_manager.thread_check_timer_dict[1].object_check_timer.stop_flag:
+                    self.msleep(100)
+                self.thread_manager.stop()
+                print("新战斗方法已完成执行并不再阻塞Todo线程")
+
         print("战斗循环 已完成")
 
         """多线程进行战利品和宝箱检查 此处1p-ap 2p-bp"""

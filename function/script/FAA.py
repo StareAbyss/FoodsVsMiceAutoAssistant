@@ -56,7 +56,7 @@ class FAA:
         self.deck = None
         self.quest_card = None
         self.ban_card_list = None
-        self.battle_plan = None
+        self.battle_plan_0 = None  # 读取自json的初始战斗方案
         self.battle_mode = None
 
         # 部分文件夹文件名 list
@@ -1115,7 +1115,7 @@ class FAA:
             with open(battle_plan_path, "r", encoding="UTF-8") as file:
                 return json.load(file)
 
-        self.battle_plan = read_json_to_battle_plan()
+        self.battle_plan_0 = read_json_to_battle_plan()
         self.stage_info = read_json_to_stage_info(stage_id)
 
     """战斗函数"""
@@ -1151,7 +1151,7 @@ class FAA:
         quest_card = copy.deepcopy(self.quest_card)
         ban_card_list = copy.deepcopy(self.ban_card_list)
         stage_info = copy.deepcopy(self.stage_info)
-        battle_plan = copy.deepcopy(self.battle_plan)
+        battle_plan = copy.deepcopy(self.battle_plan_0)
 
         def calculation_card_quest(list_cell_all):
             """计算步骤一 加入任务卡的摆放坐标"""
@@ -1750,9 +1750,20 @@ class FAA:
         关卡内战斗过程
         """
 
-        handle = self.handle
-        zoom = self.zoom
-        player = self.player
+        # 1.识图卡片数量，确定卡片在deck中的位置
+        self.bp_card = get_position_card_deck_in_battle(handle=self.handle)
+
+        # 2.识图承载卡参数
+        self.init_mat_card_position()
+
+        # 3.计算所有坐标
+        self.init_battle_plan_1()
+
+        # 4.刷新faa放卡实例 执行战斗循环前的动作(放人物 铲卡)
+        self.init_battle_object()
+
+        # 5.战斗循环
+        self.loop_battle()
 
     def action_round_of_battle_screen(self):
 
@@ -2691,10 +2702,26 @@ class FAA:
 
 if __name__ == '__main__':
     def f_main():
-        faa = FAA(channel="锑食", zoom=1)
-        # faa = FAA(channel="深渊之下 | 锑食", zoom=1.25)
-        faa.set_config_for_battle(is_group=False, battle_plan_index=0, stage_id="PT-0-23")
-        faa.action_goto_stage()
+        faa = FAA(channel="锑食")
+        faa.set_config_for_battle(
+            stage_id="NO-1-14",
+            is_group=False,
+            battle_plan_index=0)
+
+        # 1.识图承载卡参数
+        # faa.init_mat_card_position()
+        faa.mat_card_position = [[100, 100], [100, 200]]
+
+        # 2.识图卡片数量，确定卡片在deck中的位置
+        faa.bp_card = get_position_card_deck_in_battle(handle=faa.handle)
+
+        # 3.计算所有坐标
+        faa.init_battle_plan_1()
+
+        # 4.刷新faa放卡实例
+        faa.init_battle_object()
+
+        print(faa.battle_plan_1)
 
 
     f_main()
