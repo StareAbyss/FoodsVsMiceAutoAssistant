@@ -1917,6 +1917,11 @@ class FAA:
                         my_list.append(ban_card_n)
                 ban_card_s = my_list
 
+                # 翻页回第一页
+                for i in range(5):
+                    T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=930, y=55)
+                    time.sleep(0.05)
+
                 # 第一页
                 screen_ban_card_loop_a_round(ban_card_s=ban_card_s)
 
