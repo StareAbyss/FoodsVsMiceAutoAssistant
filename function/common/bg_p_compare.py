@@ -169,8 +169,6 @@ def loop_find_p_in_w(
         target_failed_check: float = 10,
         target_sleep: float = 0.05,
         click: bool = True,
-        click_interval: float = 0.05,  # argument click interval time
-        click_zoom: float = 1.0,
         click_now_path=None
 ):
     """
@@ -185,8 +183,6 @@ def loop_find_p_in_w(
         :param target_failed_check: # 捕捉图片时间限制, 超时输出False
         :param target_sleep: 找到图/点击后 的休眠时间
         :param click: 是否点一下
-        :param click_interval: click interval 点击时的按下和抬起的间隔
-        :param click_zoom: 缩放比例, 用于点击
         :param click_now_path: 点击后进行检查, 若能找到该图片, 视为无效, 不输出True, 继承前者的精准度tolerance
 
     return:
@@ -195,21 +191,26 @@ def loop_find_p_in_w(
     """
     invite_time = 0.0
     while True:
+
         find_target = find_p_in_w(
             raw_w_handle=raw_w_handle,
             raw_range=raw_range,
             target_path=target_path,
             target_tolerance=target_tolerance)
+
         if find_target:
+
             if not click:
-                sleep(target_sleep)
+                time.sleep(target_sleep)
+
             else:
-                mouse_left_click(
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(
                     handle=raw_w_handle,
-                    x=int((find_target[0] + raw_range[0]) * click_zoom),
-                    y=int((find_target[1] + raw_range[1]) * click_zoom),
-                    interval_time=click_interval,
-                    sleep_time=target_sleep)
+                    x=find_target[0] + raw_range[0],
+                    y=find_target[1] + raw_range[1]
+                )
+                time.sleep(target_sleep)
+
                 if click_now_path:
                     find_target = find_p_in_w(
                         raw_w_handle=raw_w_handle,
@@ -218,10 +219,11 @@ def loop_find_p_in_w(
                         target_tolerance=target_tolerance)
                     if find_target:
                         continue  # 当前状态没有产生变化, 就不进行输出
+
             return True
 
         # 超时, 查找失败
-        sleep(target_interval)
+        time.sleep(target_interval)
         invite_time += target_interval
         if invite_time > target_failed_check:
             return False
@@ -254,13 +256,13 @@ def loop_find_ps_in_w(
 
         # 超时, 查找失败
         invite_time += target_interval
-        sleep(target_interval)
+        time.sleep(target_interval)
         if invite_time > target_failed_check:
             return False
 
 
 if __name__ == '__main__':
-    from function.script.common import faa_get_handle
+    from function.script.FAA import faa_get_handle
 
 
     def main():
@@ -269,15 +271,6 @@ if __name__ == '__main__':
 
         target_path = PATHS["picture"]["common"] + "\\战斗\\战斗前_创建房间.png"
 
-        # result = loop_find_p_in_w(raw_w_handle=handle,
-        #                           raw_range=[0, 0, 950, 600],
-        #                           target_path=target_path,
-        #                           target_tolerance=0.99,
-        #                           target_sleep=1,
-        #                           target_failed_check=1,
-        #                           click=True,
-        #                           click_zoom=1)
-        #
         result = find_p_in_w(raw_w_handle=handle,
                              raw_range=[0, 0, 950, 600],
                              target_path=target_path,

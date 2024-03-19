@@ -82,30 +82,25 @@ class FAA:
         if raw_range is None:
             raw_range = [0, 0, 950, 600]
 
-        handle = self.handle
-        zoom = self.zoom
-
         if mode == "回到上一级":
             self.action_bottom_menu(mode="后退")
 
         if mode == "普通红叉":
             find = loop_find_p_in_w(
-                raw_w_handle=handle,
+                raw_w_handle=self.handle,
                 raw_range=raw_range,
                 target_path=PATHS["picture"]["common"] + "\\退出.png",
                 target_failed_check=5,
                 target_sleep=1.5,
-                click=True,
-                click_zoom=zoom)
+                click=True)
             if not find:
                 find = loop_find_p_in_w(
-                    raw_w_handle=handle,
+                    raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=PATHS["picture"]["common"] + "\\退出_被选中.png",
                     target_failed_check=5,
                     target_sleep=1.5,
-                    click=True,
-                    click_zoom=zoom)
+                    click=True)
                 if not find:
                     print_g(text="未能成功找到右上红叉以退出!前面的步骤有致命错误!", player=self.player, garde=3)
 
@@ -129,18 +124,12 @@ class FAA:
 
         if mode == "游戏内退出":
             # 游戏内退出
-            mouse_left_click(
-                handle=self.handle,
-                x=int(925 * self.zoom),
-                y=int(580 * self.zoom),
-                sleep_time=0.1)
+            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=925, y=580)
+            time.sleep(0.1)
 
             # 确定游戏内退出
-            mouse_left_click(
-                handle=self.handle,
-                x=int(455 * self.zoom),
-                y=int(385 * self.zoom),
-                sleep_time=0.1)
+            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=455, y=385)
+            time.sleep(0.1)
 
     def action_top_menu(self, mode: str):
         """
@@ -160,8 +149,7 @@ class FAA:
                 target_path=PATHS["picture"]["common"] + "\\顶部菜单\\" + mode + ".png",
                 target_failed_check=3,
                 target_sleep=1.5,
-                click=True,
-                click_zoom=self.zoom)
+                click=True)
             if find:
                 print_g(text="[顶部菜单] [{}] 3s内跳转成功".format(mode), player=self.player, garde=1)
                 break
@@ -185,17 +173,11 @@ class FAA:
 
             if find:
                 # 选2区人少
-                mouse_left_click(
-                    handle=self.handle,
-                    x=int(785 * self.zoom),
-                    y=int(30 * self.zoom),
-                    sleep_time=0.5)
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=30)
+                time.sleep(0.5)
 
-                mouse_left_click(
-                    handle=self.handle,
-                    x=int(785 * self.zoom),
-                    y=int(85 * self.zoom),
-                    sleep_time=0.5)
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=85)
+                time.sleep(0.5)
 
         return find
 
@@ -211,8 +193,7 @@ class FAA:
                 target_path=PATHS["picture"]["common"] + "\\底部菜单\\" + mode + ".png",
                 target_failed_check=3,
                 target_sleep=1,
-                click=True,
-                click_zoom=self.zoom)
+                click=True)
 
         if mode == "跳转_公会任务" or mode == "跳转_公会副本" or mode == "跳转_情侣任务" or mode == "跳转_竞技场":
             loop_find_p_in_w(
@@ -221,16 +202,14 @@ class FAA:
                 target_path=PATHS["picture"]["common"] + "\\底部菜单\\跳转.png",
                 target_failed_check=3,
                 target_sleep=0.5,
-                click=True,
-                click_zoom=self.zoom)
+                click=True)
             find = loop_find_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[520, 170, 950, 600],
                 target_path=PATHS["picture"]["common"] + "\\底部菜单\\" + mode + ".png",
                 target_failed_check=3,
-                target_sleep=2,
-                click=True,
-                click_zoom=self.zoom)
+                target_sleep=0.5,
+                click=True)
 
         if not find:
             print_g(text="[底部菜单] [{}] 3s内跳转失败".format(mode), player=self.player, garde=2)
@@ -247,19 +226,13 @@ class FAA:
 
         if serial_num == 1:
             if find:
-                mouse_left_click(
-                    handle=self.handle,
-                    x=int(785 * self.zoom),
-                    y=int(30 * self.zoom),
-                    sleep_time=0.5)
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=30)
+                time.sleep(0.5)
 
         if serial_num == 2:
             if not find:
-                mouse_left_click(
-                    handle=self.handle,
-                    x=int(785 * self.zoom),
-                    y=int(30 * self.zoom),
-                    sleep_time=0.5)
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=30)
+                time.sleep(0.5)
 
     def action_get_stage_name(self):
         """在关卡备战界面 获得关卡名字"""
@@ -301,8 +274,7 @@ class FAA:
                 raw_range=[0, 0, 950, 600],
                 target_path=PATHS["picture"]["quest_guild"] + "\\ui_quest_list.png",
                 target_sleep=0.2,
-                click=True,
-                click_zoom=self.zoom)
+                click=True)
         if mode == "情侣任务":
             self.action_bottom_menu(mode="跳转_情侣任务")
 
@@ -315,10 +287,11 @@ class FAA:
                 one_page_quest = os.listdir("{}\\{}\\".format(my_path, str(i + 1)))
                 for quest in one_page_quest:
                     # 找到任务 加入任务列表
-                    find_p = find_p_in_w(raw_w_handle=self.handle,
-                                         raw_range=[0, 0, 950, 600],
-                                         target_path="{}\\{}\\{}".format(path, str(i + 1), j),
-                                         target_tolerance=0.999)
+                    find_p = find_p_in_w(
+                        raw_w_handle=self.handle,
+                        raw_range=[0, 0, 950, 600],
+                        target_path="{}\\{}\\{}".format(my_path, str(i + 1), quest),
+                        target_tolerance=0.999)
                     if find_p:
                         # 任务携带卡片默认为None
                         quest_card = "None"
@@ -361,16 +334,16 @@ class FAA:
                 find_p = find_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
-                    target_path="{}\\NO-{}.png".format(path, i),
+                    target_path="{}\\NO-{}.png".format(my_path, i),
                     target_tolerance=0.999)
                 if find_p:
                     # 遍历任务
-                    for j in os.listdir("{}\\{}\\".format(path, i)):
+                    for quest in os.listdir("{}\\{}\\".format(my_path, i)):
                         # 找到任务 加入任务列表
                         find_p = find_p_in_w(
                             raw_w_handle=self.handle,
                             raw_range=[0, 0, 950, 600],
-                            target_path="{}\\{}\\{}".format(path, i, j),
+                            target_path="{}\\{}\\{}".format(my_path, i, quest),
                             target_tolerance=0.999)
                         if find_p:
                             quest_list.append(

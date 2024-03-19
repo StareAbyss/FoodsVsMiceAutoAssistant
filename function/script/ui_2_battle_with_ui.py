@@ -1404,6 +1404,7 @@ class MyMainWindow2(MyMainWindow1):
             name_1p = self.opt["name_1p"]
             name_2p = self.opt["name_2p"]
             channel_1p, channel_2p = get_channel_name(game_name, name_1p, name_2p)
+            random_seed = random.randint(-100, 100)
             faa = [None, None, None]
             faa[1] = FAA(
                 channel=channel_1p,
