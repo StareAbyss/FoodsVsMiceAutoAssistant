@@ -1721,6 +1721,13 @@ class MyMainWindow2(MyMainWindow1):
             self.thread_todo.pause()
 
             # 中断[内部战斗线程]
+            # Q thread 线程 stop方法需要自己手写
+            thread = self.thread_todo.thread_manager
+            if thread is not None:
+                thread.stop()
+                thread.wait()
+
+            # python 默认线程 可用stop线程
             for thread in [self.thread_todo.thread_1p, self.thread_todo.thread_2p]:
                 if thread is not None:
                     thread.stop()
