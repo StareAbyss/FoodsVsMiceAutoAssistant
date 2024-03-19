@@ -351,6 +351,9 @@ class MyMainWindow1(MyMainWindow0):
         self.opt["customize"]["stage"] = self.Customize_Stage.value()
         my_transformer_c(self.Customize_1P, "customize", "battle_plan_1p")
 
+        self.opt["auto_food"]["active"] = self.AutoFood_Active.isChecked()
+        self.opt["auto_food"]["deck"] = self.AutoFood_Deck.value()
+
     def click_btn_save(self):
         """点击保存配置按钮的函数"""
         self.ui_to_opt()

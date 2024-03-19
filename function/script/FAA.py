@@ -134,14 +134,13 @@ class FAA:
 
         if mode == "关闭悬赏窗口":
             loop_find_p_in_w(
-                raw_w_handle=handle,
+                raw_w_handle=self.handle,
                 raw_range=raw_range,
                 target_path=PATHS["picture"]["common"] + "\\悬赏任务_退出.png",
                 target_tolerance=0.99,
-                target_failed_check=100,
+                target_failed_check=10,
                 target_sleep=1.5,
-                click=True,
-                click_zoom=zoom)
+                click=True)
 
         if mode == "美食大赛领取":
             # 领取奖励
@@ -302,6 +301,8 @@ class FAA:
                 click=True)
         if mode == "情侣任务":
             self.action_bottom_menu(mode="跳转_情侣任务")
+        if mode == "美食大赛":
+            self.action_top_menu(mode="美食大赛")
 
         # 读取
         quest_list = []
@@ -318,40 +319,40 @@ class FAA:
                         target_path="{}\\{}\\{}".format(my_path, str(i + 1), quest),
                         target_tolerance=0.999)
                     if find_p:
-                        # 任务携带卡片默认为None
-                        quest_card = "None"
-                        # 去除.png
-                        j = j.split(".")[0]
+
+                        quest_card = "None"  # 任务携带卡片默认为None
+
                         # 处理解析字符串
-                        num_of_line = j.count("_")
+                        quest = quest.split(".")[0]  # 去除.png
+                        num_of_line = quest.count("_")  # 分割
                         if num_of_line == 0:
-                            stage_id = j
+                            stage_id = quest
                         else:
-                            my_list = j.split("_")
+                            my_list = quest.split("_")
                             stage_id = my_list[0]
                             if num_of_line == 1:
                                 if not my_list[1].isdigit():
                                     quest_card = my_list[1]
                             elif num_of_line == 2:
                                 quest_card = my_list[2]
+
+                        player = [2, 1]
+                        # 根据关卡类型判定
+                        if stage_id.split("-")[0] == "CS":
+                            if qg_cs:
+                                player = [1, 2]
+                            else:
+                                continue
+
                         # 添加到任务列表
                         quest_list.append(
                             {
-                                "player": [2, 1],
+                                "player": player,
                                 "stage_id": stage_id,
-                                "max_times": 1,
-                                "quest_card": quest_card,
-                                "list_ban_card": [],
-                                "dict_exit": {
-                                    "other_time_player_a": [],
-                                    "other_time_player_b": [],
-                                    "last_time_player_a": ["竞技岛"],
-                                    "last_time_player_b": ["竞技岛"]
-                                }
+                                "quest_card": quest_card
                             }
                         )
 
-        # 情侣任务 spouse
         if mode == "情侣任务":
             my_path = PATHS["picture"]["quest_spouse"]
             for i in ["1", "2", "3"]:
@@ -374,21 +375,52 @@ class FAA:
                             quest_list.append(
                                 {
                                     "player": [2, 1],
-                                    "stage_id": j.split(".")[0],
-                                    "max_times": 1,
-                                    "quest_card": "None",
-                                    "list_ban_card": [],
-                                    "dict_exit": {
-                                        "other_time_player_a": ["none"],
-                                        "other_time_player_b": ["none"],
-                                        "last_time_player_a": ["竞技岛"],
-                                        "last_time_player_b": ["竞技岛"]
-                                    }
+                                    "stage_id": quest.split(".")[0],
+                                    "quest_card": "None"
                                 }
                             )
+        if mode == "美食大赛":
+            my_path = PATHS["picture"]["quest_food"]
+            all_quest = os.listdir("{}\\".format(my_path))
+            y_dict = {0: 362, 1: 405, 2: 448, 3: 491, 4: 534, 5: 570}
+            for i in range(6):
+                # 先移动到新的一页
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=y_dict[i])
+                time.sleep(0.1)
+                for quest in all_quest:
+                    find_p = find_p_in_w(
+                        raw_w_handle=self.handle,
+                        raw_range=[0, 0, 950, 600],
+                        target_path="{}\\{}".format(my_path, quest),
+                        target_tolerance=0.999)
+
+                    if find_p:
+                        # 处理解析字符串
+                        quest = quest.split(".")[0]  # 去除.png
+                        battle_sets = quest.split("_")
+                        quest_list.append(
+                            {
+                                "stage_id": battle_sets[0],
+                                "player": [self.player] if battle_sets[1] == "1" else [2, 1],  # 1 单人 2 组队
+                                "is_use_key": battle_sets[2],
+                                "max_times": 1,
+                                "quest_card": battle_sets[3],
+                                "list_ban_card": battle_sets[4].split(","),
+                                "dict_exit": {
+                                    "other_time_player_a": [],
+                                    "other_time_player_b": [],
+                                    "last_time_player_a": ["竞技岛", "美食大赛领取"],
+                                    "last_time_player_b": ["竞技岛", "美食大赛领取"]
+                                }
+                            }
+                        )
 
         # 关闭公会任务列表(红X)
-        self.action_exit(mode="普通红叉")
+        if mode == "公会任务" or mode == "情侣任务":
+            self.action_exit(mode="普通红叉")
+        if mode == "美食大赛":
+            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=888, y=53)
+            time.sleep(0.5)
 
         return quest_list
 
