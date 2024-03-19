@@ -1118,9 +1118,65 @@ class FAA:
         self.battle_plan_0 = read_json_to_battle_plan()
         self.stage_info = read_json_to_stage_info(stage_id)
 
-    """战斗函数"""
+    """战斗主要组件函数"""
 
-    def calculation_cell_all_card(self, mat_card_position):
+    def init_mat_card_position(self):
+        """
+        根据关卡名称和可用承载卡，以及游戏内识图到的承载卡取交集，返回承载卡的x-y坐标
+        :return: [[x1, y1], [x2, y2],...]
+        """
+        stage_info = copy.deepcopy(self.stage_info)
+        mat_card_list = ["木盘子", "棉花糖", "苏打气泡", "麦芽糖", "魔法软糖"]
+
+        # 筛选出 对应关卡可用的卡片
+        for mat_card in mat_card_list:
+            if mat_card not in stage_info["mat_card"]:
+                mat_card_list.remove(mat_card)
+
+        # 筛选出 被记录的卡片变种
+        new_list = []
+        for mat_card in mat_card_list:
+            for i in range(10):
+                new_card = "{}-{}".format(mat_card, i)
+                if new_card in self.card_recorded_battle:
+                    new_list.append(new_card)
+
+        mat_card_list = new_list
+
+        position_list = []
+        find_list = []
+
+        # 查找对应卡片坐标 重复3次
+        for i in range(3):
+            for mat_card in mat_card_list:
+                # 需要使用0.99相似度参数 相似度阈值过低可能导致一张图片被识别为两张卡
+                find = find_p_in_w(
+                    raw_w_handle=self.handle,
+                    raw_range=[0, 0, 950, 600],
+                    target_path=PATHS["picture"]["card"] + "\\战斗\\" + mat_card + ".png",
+                    target_tolerance=0.99)
+                if find:
+                    position_list.append([int(find[0]), int(find[1])])
+                    find_list.append(mat_card)
+            mat_card_list = list(filter(lambda x: x not in find_list, mat_card_list))
+            time.sleep(0.1)
+
+        # 根据坐标位置，判断对应的卡id
+        mat_card_list = []
+        for position in position_list:
+            for card_id, card_xy_list in self.bp_card.items():
+                x1 = card_xy_list[0] - 45
+                y1 = card_xy_list[1] - 64
+                x2 = card_xy_list[0] + 8
+                y2 = card_xy_list[1] + 6
+                if x1 <= position[0] <= x2 and y1 <= position[1] <= y2:
+                    mat_card_list.append({"id": card_id, "location_from": position})
+                    break
+
+        # 输出
+        self.mat_card_position = mat_card_list
+
+    def init_battle_plan_1(self):
         """
         计算所有卡片的部署方案
         Return:卡片的部署方案字典
@@ -1319,16 +1375,15 @@ class FAA:
             # 调用计算铲子卡
             list_shovel = calculation_shovel()
 
-            # 统一以坐标直接表示位置, 防止重复计算
+            # 统一以坐标直接表示位置, 防止重复计算 (添加location_from, location_to)
             list_cell_all, list_shovel = transform_code_to_coordinate(
                 list_cell_all=list_cell_all,
                 list_shovel=list_shovel)
 
-            # 调试print 打包前务必注释!
-            # print("调试info: 你的战斗放卡opt如下")
-            # print(list_cell_all)
-
-            return list_cell_all, list_shovel
+            # 调试print 打包前务必注释! pprint
+            self.print_g(text="调试info: 你的战斗放卡opt如下:", garde=1)
+            self.print_g(text=list_cell_all, garde=1)
+            self.battle_plan_1 = {"card": list_cell_all, "shovel": list_shovel}
 
         return main()
 
