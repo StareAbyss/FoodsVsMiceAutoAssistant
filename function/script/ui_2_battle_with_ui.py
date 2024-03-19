@@ -84,6 +84,36 @@ class Todo(QThread):
         self.thread_1p.join()
         self.thread_2p.join()
 
+    def all_sign_in(self, is_group):
+
+        self.sin_out.emit(
+            "[{}] [每日签到] 开始...".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
+        # 创建进程 -> 开始进程 -> 阻塞主进程
+        self.thread_1p = ThreadWithException(
+            target=self.faa[1].sign_in,
+            name="1P Thread - SignIn",
+            kwargs={})
+
+        if is_group:
+            self.thread_2p = ThreadWithException(
+                target=self.faa[2].sign_in,
+                name="2P Thread - SignIn",
+                kwargs={})
+
+        self.thread_1p.start()
+        if is_group:
+            self.thread_2p.start()
+
+        self.thread_1p.join()
+        if is_group:
+            self.thread_2p.join()
+
+        self.sin_out.emit(
+            "[{}] [每日签到] 结束".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
     def receive_quest_rewards(self, is_group):
 
         self.sin_out.emit(
@@ -227,27 +257,26 @@ class Todo(QThread):
             "[{}] 使用绑定消耗品和宝箱, 完成".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
-    def cross_server_reputation(self, is_group, deck):
+    def loop_cross_server(self, is_group, deck):
 
         self.sin_out.emit(
-            "[{}] 无限刷跨服启动!".format(
+            "[{}] 无限刷跨服任务威望启动!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
-            target=self.faa[1].cross_server_reputation,
+            target=self.faa[1].loop_cross_server,
             name="1P Thread",
             kwargs={"deck": deck})
 
         if is_group:
             self.thread_2p = ThreadWithException(
-                target=self.faa[2].cross_server_reputation,
+                target=self.faa[2].loop_cross_server,
                 name="2P Thread",
                 kwargs={"deck": deck})
 
         self.thread_1p.start()
         if is_group:
-            sleep(0.5)
             self.thread_2p.start()
 
         self.thread_1p.join()
@@ -277,26 +306,19 @@ class Todo(QThread):
             print("2s找不到开始游戏! 土豆服务器问题, 创建房间可能失败!")
             return False
 
-        # 点击[房间ui-邀请按钮]
-        mouse_left_click(
-            handle=faa_a.handle,
-            x=int(410 * zoom),
-            y=int(546 * zoom),
-            sleep_time=0.5)
+        if not faa_a.stage_info["id"].split("-")[0] == "GD":
 
-        # 点击[房间ui-邀请ui-好友按钮]
-        mouse_left_click(
-            handle=faa_a.handle,
-            x=int(535 * zoom),
-            y=int(130 * zoom),
-            sleep_time=0.5)
+            # 点击[房间ui-邀请按钮]
+            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=faa_a.handle, x=410, y=546)
+            time.sleep(0.5)
 
-        # 直接邀请
-        mouse_left_click(
-            handle=faa_a.handle,
-            x=int(601 * zoom),
-            y=int(157 * zoom),
-            sleep_time=0.5)
+            # 点击[房间ui-邀请ui-好友按钮]
+            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=faa_a.handle, x=535, y=130)
+            time.sleep(0.5)
+
+            # 直接邀请
+            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=faa_a.handle, x=601, y=157)
+            time.sleep(0.5)
 
             # p2接受邀请
             find = loop_find_p_in_w(
@@ -307,16 +329,13 @@ class Todo(QThread):
                 target_failed_check=2.0
             )
 
-        if not find:
-            print("2s没能组队? 土豆服务器问题, 尝试解决ing...")
-            return False
+            if not find:
+                print("2s没能组队? 土豆服务器问题, 尝试解决ing...")
+                return False
 
-        # p1关闭邀请窗口
-        mouse_left_click(
-            handle=faa_a.handle,
-            x=int(590 * zoom),
-            y=int(491 * zoom),
-            sleep_time=1)
+            # p1关闭邀请窗口
+            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=faa_a.handle, x=590, y=491)
+            time.sleep(1)
 
         return True
 
@@ -614,7 +633,7 @@ class Todo(QThread):
             print(text)
             self.sin_out.emit(text)
 
-            # 创建战斗进程 -> 开始进程
+            # 开始战斗循环
             result_id, result_loot = self.battle(
                 player_a=player_a,
                 player_b=player_b)
@@ -721,9 +740,9 @@ class Todo(QThread):
             )
         )
 
-        # 玩家掉落
         def print_player_loot(player_id):
             """
+            打印玩家掉落信息
             :param player_id:  player_a, player_b int 1 2
             :return:
             关于 result_list
@@ -967,7 +986,7 @@ class Todo(QThread):
 
         self.n_n_battle(
             quest_list=quest_list,
-            list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU"])
+            list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"])
 
         self.sin_out.emit(
             "[{}] {} 检查领取奖励中...".format(
@@ -1105,7 +1124,12 @@ class Todo(QThread):
             return
 
         # 由于任务id从1开始, 故需要减1
-        quest_list = quest_list[stage_begin-1:]
+        # 去除序号小于stage_begin的任务
+        my_list = []
+        for quest in quest_list:
+            if quest["battle_id"] >= stage_begin:
+                my_list.append(quest)
+        quest_list = my_list
 
         # 开始战斗
         self.n_n_battle(
@@ -1264,10 +1288,10 @@ class Todo(QThread):
         if need_reload:
             self.reload_game()
 
-        my_opt = self.opt["relic"]
+        my_opt = self.opt["normal_battle"]
         if my_opt["active"]:
             self.easy_battle(
-                text_="[火山遗迹]",
+                text_="[常规刷本]",
                 stage_id=my_opt["stage"],
                 player=[2, 1] if my_opt["is_group"] else [1],
                 max_times=int(my_opt["max_times"]),
@@ -1280,6 +1304,17 @@ class Todo(QThread):
                     "last_time_player_a": ["竞技岛"],
                     "last_time_player_b": ["竞技岛"]
                 })
+
+        my_opt = self.opt["offer_reward"]
+        if my_opt["active"]:
+            self.offer_reward(
+                text_="[悬赏任务]",
+                deck=my_opt["deck"],
+                max_times_1=my_opt["max_times_1"],
+                max_times_2=my_opt["max_times_2"],
+                max_times_3=my_opt["max_times_3"],
+                battle_plan_1p=my_opt["battle_plan_1p"],
+                battle_plan_2p=my_opt["battle_plan_2p"])
 
         my_opt = self.opt["cross_server"]
         if my_opt["active"]:
@@ -1298,11 +1333,47 @@ class Todo(QThread):
                     "last_time_player_b": ["竞技岛"]
                 })
 
-        my_opt = self.opt["warrior"]
+        need_reload = False
+        need_reload = need_reload or self.opt["quest_guild"]["active"]
+        need_reload = need_reload or self.opt["guild_dungeon"]["active"]
+        need_reload = need_reload or self.opt["quest_spouse"]["active"]
+        need_reload = need_reload or self.opt["relic"]["active"]
+
+        if need_reload:
+            self.reload_game()
+
+        my_opt = self.opt["quest_guild"]
+        if my_opt["active"]:
+            self.guild_or_spouse_quest(
+                text_="[公会任务]",
+                quest_mode="公会任务",
+                deck=my_opt["deck"],
+                battle_plan_1p=my_opt["battle_plan_1p"],
+                battle_plan_2p=my_opt["battle_plan_2p"],
+                stage=my_opt["stage"])
+
+        my_opt = self.opt["guild_dungeon"]
+        if my_opt["active"]:
+            self.guild_dungeon(
+                text_="[公会副本]",
+                deck=self.opt["quest_guild"]["deck"],
+                battle_plan_1p=self.opt["quest_guild"]["battle_plan_1p"],
+                battle_plan_2p=self.opt["quest_guild"]["battle_plan_2p"])
+
+        my_opt = self.opt["quest_spouse"]
+        if my_opt["active"]:
+            self.guild_or_spouse_quest(
+                text_="[情侣任务]",
+                quest_mode="情侣任务",
+                deck=self.opt["quest_guild"]["deck"],
+                battle_plan_1p=self.opt["quest_guild"]["battle_plan_1p"],
+                battle_plan_2p=self.opt["quest_guild"]["battle_plan_2p"])
+
+        my_opt = self.opt["relic"]
         if my_opt["active"]:
             self.easy_battle(
-                text_="[勇士挑战]",
-                stage_id="NO-2-17",
+                text_="[火山遗迹]",
+                stage_id=my_opt["stage"],
                 player=[2, 1] if my_opt["is_group"] else [1],
                 max_times=int(my_opt["max_times"]),
                 deck=my_opt["deck"],
