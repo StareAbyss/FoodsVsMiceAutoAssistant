@@ -1469,7 +1469,7 @@ class FAA:
 
                             # 更新上次检测时间 + 更新flag + 中止休息循环
                             check_last_one_time = time.time()
-                            if use_key_and_check_end():
+                            if self.faa_battle.use_key_and_check_end():
                                 end_flag = True
                                 break
                         time.sleep(check_invite)
@@ -1754,6 +1754,10 @@ class FAA:
         zoom = self.zoom
         player = self.player
 
+    def action_round_of_battle_screen(self):
+
+        self.print_g(text="识别到多种战斗结束标志之一, 进行收尾工作", garde=1)
+
         def screen_loots():
             """
             :return: 捕获的战利品dict
@@ -1896,35 +1900,7 @@ class FAA:
                 self.print_g(text="[翻宝箱UI] 15s未能捕获正确标志, 出问题了!", garde=2)
                 return {}
 
-        def main():
-
-            # 刷新ui: 状态文本
-            print_g(text="查找火苗标识物, 等待进入战斗, 限时30s", player=player, garde=1)
-
-            # 循环查找火苗图标 找到战斗开始
-            find = loop_find_p_in_w(
-                raw_w_handle=handle,
-                raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["common"] + "\\战斗\\战斗中_火苗能量.png",
-                target_interval=0.5,
-                target_failed_check=30,
-                target_sleep=0.1,
-                click=False,
-                click_zoom=zoom)
-
-            # 刷新ui: 状态文本
-            if find:
-                print_g(text="找到火苗标识物, 战斗进行中...", player=player, garde=1)
-
-                # 非1P晚一点点开始 这是必须的!!!! 否则人物都放不下来
-                time.sleep(0 if player == 1 else 0.33333)
-
-                # 战斗循环
-                self.action_in_battle()
-
-                print_g(text="识别到五种战斗结束标志之一, 进行收尾工作", player=player, garde=1)
-
-                """战斗结束后, 一般流程为 (潜在的任务完成黑屏) -> 战利品 -> 战斗结算 -> 翻宝箱, 之后会回到房间, 魔塔会回到其他界面"""
+        """战斗结束后, 一般流程为 (潜在的任务完成黑屏) -> 战利品 -> 战斗结算 -> 翻宝箱, 之后会回到房间, 魔塔会回到其他界面"""
 
         # 战利品部分, 会先检测是否在对应界面
         loots_dict = screen_loot_logs()
@@ -2035,13 +2011,7 @@ class FAA:
             self.print_g(text="检测到 断开连接 or 登录超时 or Flash爆炸, 炸服了", garde=1)
             return 1, None  # 1-重启本次
 
-            else:
-                print_g(text="未能找到火苗标识物, 进入战斗失败, 可能是次数不足或服务器卡顿", player=player, garde=2)
-                return 2, None  # 2-跳过本次
-
-            return 0, result_dict  # 0-正常结束
-
-        return main()
+        return 0, result_dict
 
     def action_round_of_battle_after(self):
 

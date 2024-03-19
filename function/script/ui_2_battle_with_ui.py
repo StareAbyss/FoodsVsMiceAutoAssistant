@@ -409,26 +409,50 @@ class Todo(QThread):
             if is_group:
                 self.thread_2p.join()
 
-            # result = (result_id, result_loot_dict)
+        print("战斗循环 已完成")
+
+        """多线程进行战利品和宝箱检查 此处1p-ap 2p-bp"""
+
+        if result_id == 0:
+
+            # 初始化多线程
+            self.thread_1p = ThreadWithException(
+                target=self.faa[player_a].action_round_of_battle_screen,
+                name="{}P Thread - Battle - Screen".format(player_a),
+                kwargs={})
+            if is_group:
+                self.thread_2p = ThreadWithException(
+                    target=self.faa[player_b].action_round_of_battle_screen,
+                    name="{}P Thread - Battle - Screen".format(player_b),
+                    kwargs={})
+
+            # 开始多线程
+            self.thread_1p.start()
+            if is_group:
+                self.thread_2p.start()
+
+            # 阻塞进程让进程执行完再继续本循环函数
+            self.thread_1p.join()
+            if is_group:
+                self.thread_2p.join()
+
             result = self.thread_1p.get_return_value()
             result_id = max(result_id, result[0])
             result_loot[player_a] = result[1]
-
             if is_group:
                 result = self.thread_2p.get_return_value()
                 result_id = max(result_id, result[0])
                 result_loot[player_b] = result[1]
 
-            # 测试
-            print(result)
-            print(result_loot)
+        print("多线程进行战利品和宝箱检查 已完成")
 
+        """分开进行战后检查"""
         if result_id == 0:
-            # 分开进行战后检查
             result_id = self.faa[player_a].action_round_of_battle_after()
             if is_group:
                 result_id = self.faa[player_b].action_round_of_battle_after()
 
+        print("战后检查完成 battle 函数执行结束")
         return result_id, result_loot
 
     def goto_stage_and_invite(
