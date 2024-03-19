@@ -940,7 +940,7 @@ class Todo(QThread):
     def guild_or_spouse_quest(
             self, text_, quest_mode,
             deck,
-            battle_plan_1p, battle_plan_2p
+            battle_plan_1p, battle_plan_2p, stage=False
     ):
         """完成公会or情侣任务"""
 

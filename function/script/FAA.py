@@ -276,10 +276,11 @@ class FAA:
                 break
         return stage_id
 
-    def action_get_quest(self, mode: str):
+    def action_get_quest(self, mode: str, qg_cs=False):
         """
         获取公会任务列表
         :param mode:
+        :param qg_cs: 公会任务模式下 是否需要跨服
         :return: [
             {
                 "stage_id":str,
@@ -762,37 +763,77 @@ class FAA:
             # 进入海底旋涡
             self.action_goto_map(map_id=5)
 
-            # 点击进入萌宠神殿
-            self.action_top_menu(mode="萌宠神殿")
+            # 仅限主角色创建关卡
+            if room_creator:
 
-            # 到魔塔最低一层
-            mouse_left_click(
-                handle=self.handle,
-                x=int(192 * self.zoom),
-                y=int(579 * self.zoom),
-                sleep_time=0.3)
-            # 向右到对应位置
-            my_left = int((int(stage_2) - 1) / 15)
-            for i in range(my_left):
-                mouse_left_click(
+                # 点击进入萌宠神殿
+                self.action_top_menu(mode="萌宠神殿")
+
+                # 到最低一层
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=192, y=579)
+                time.sleep(0.3)
+
+                # 向右到对应位置
+                my_left = int((int(stage_2) - 1) / 15)
+                for i in range(my_left):
+                    T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=297, y=577)
+                    time.sleep(0.3)
+
+                # 点击对应层数
+                T_CLICK_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
-                    x=int(297 * self.zoom),
-                    y=int(577 * self.zoom),
-                    sleep_time=0.3)
-            # 点击对应层数
-            mouse_left_click(
+                    x=225,
+                    y=int(542 - (30.8 * (int(stage_2) - my_left * 15 - 1))))
+                time.sleep(0.3)
+
+                # 创建房间
+                loop_find_p_in_w(
+                    raw_w_handle=self.handle,
+                    raw_range=[0, 0, 950, 600],
+                    target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_魔塔_创建房间.png",
+                    target_sleep=1,
+                    click=True)
+
+        def main_gd():
+            # 进入工会副本页
+            self.action_bottom_menu(mode="跳转_公会副本")
+            # 选关卡 1 2 3
+            T_CLICK_QUEUE_TIMER.add_click_to_queue(
                 handle=self.handle,
-                x=int(225 * self.zoom),
-                y=int(int(542 - (30.8 * (int(stage_2) - my_left * 15 - 1))) * self.zoom),
-                sleep_time=0.3)
-            # 创建房间
-            loop_find_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=[0, 0, 950, 600],
-                target_path=paths["picture"]["common"] + "\\战斗\\战斗前_魔塔_创建房间.png",
-                click_zoom=self.zoom,
-                target_sleep=1,
-                click=True)
+                x={"1": 155, "2": 360, "3": 580}[stage_2],
+                y=417)
+            time.sleep(2)
+            change_to_region(region_list=[3, 11])
+
+            # 仅限主角色创建关卡
+            if room_creator:
+                # 创建队伍
+                loop_find_p_in_w(
+                    raw_w_handle=self.handle,
+                    raw_range=[515, 477, 658, 513],
+                    target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_创建房间.png",
+                    target_sleep=0.05,
+                    click=True)
+            else:
+                # 识图，寻找需要邀请目标的位置
+                result = find_p_in_w(
+                    raw_w_handle=self.handle,
+                    raw_range=[0, 0, 950, 600],
+                    target_path=PATHS["picture"]["common"] + "\\战斗\\房间图标_男.png",
+                    target_tolerance=0.95)
+                if not result:
+                    result = find_p_in_w(
+                        raw_w_handle=self.handle,
+                        raw_range=[0, 0, 950, 600],
+                        target_path=PATHS["picture"]["common"] + "\\战斗\\房间图标_女.png",
+                        target_tolerance=0.95)
+                if result:
+                    # 直接进入
+                    T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                        handle=self.handle,
+                        x=result[0], y=result[1])
+
+                    time.sleep(0.5)
 
         if stage_0 == "NO":
             main_no()
@@ -806,6 +847,8 @@ class FAA:
             main_ex()
         elif stage_0 == "PT":
             main_pt()
+        elif stage_0 == "GD":
+            main_gd()
         else:
             self.print_g(text="请输入正确的关卡名称！", garde=3)
 
