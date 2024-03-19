@@ -2027,6 +2027,12 @@ class FAA:
             # 记录战利品 tip 一张图49x49 是完美规整的
             images = []
 
+            # 防止 已有选中的卡片, 先点击空白
+            T_CLICK_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
+            time.sleep(0.025)
+
+            # 1 2 行
             for i in range(3):
                 T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=484)
                 time.sleep(0.05)
@@ -2079,7 +2085,7 @@ class FAA:
                 img_path = "{}\\{}_{}P_{}.png".format(
                     PATHS["logs"] + "\\loots_picture",
                     self.stage_info["id"],
-                    player,
+                    self.player,
                     time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
                 )
 
