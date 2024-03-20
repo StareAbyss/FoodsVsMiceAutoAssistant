@@ -823,10 +823,14 @@ class Todo(QThread):
             # 生成文本
             loots_text = ""
             chests_text = ""
+            # for name, count in count_loots_dict.items():
+            #     loots_text += "{}[{}|{:.1f}] ".format(name, count, count / valid_time)
+            # for name, count in count_chests_dict.items():
+            #     chests_text += "{}[{}|{:.1f}] ".format(name, count, count / valid_time)
             for name, count in count_loots_dict.items():
-                loots_text += "{}[{}|{:.1f}] ".format(name, count, count / valid_time)
+                loots_text += "{}x{:.1f} ".format(name, count / valid_time)
             for name, count in count_chests_dict.items():
-                chests_text += "{}[{}|{:.1f}] ".format(name, count, count / valid_time)
+                chests_text += "{}x{:.1f} ".format(name, count / valid_time)
 
             # 玩家A掉落
             self.signal_printf.emit(
