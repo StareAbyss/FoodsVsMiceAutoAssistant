@@ -1639,107 +1639,119 @@ class MyMainWindow2(MyMainWindow1):
         self.error_signal.connect(self.show_dialog)
 
     def todo_completed(self):
-        self.thread_states = False  # 设置flag
-        self.Button_Start.setText("开始\nLink Start")  # 设置按钮文本
+        # 设置flag
+        self.thread_states = False
+        # 设置按钮文本
+        self.Button_Start.setText("开始\nLink Start")
         # 设置输出文本
         self.printf("\n>>> 全部完成 线程关闭 <<<\n")
+        # 中止点击处理
+        T_CLICK_QUEUE_TIMER.stop()
 
     def todo_start(self):
-
-        self.thread_states = True  # 设置flag
-        self.Button_Start.setText("终止\nEnd")  # 设置按钮文本
+        # 设置flag
+        self.thread_states = True
+        # 设置按钮文本
+        self.Button_Start.setText("终止\nEnd")
         # 设置输出文本
         self.TextBrowser.clear()
         self.start_print()
         self.printf("\n>>> 链接开始 线程开启 <<<\n")
         # 启动点击处理
-        # 预备全局线程
         T_CLICK_QUEUE_TIMER.start()
+
+    def start_all(self):
+
+        channel_1p, channel_2p = get_channel_name(
+            game_name=self.opt["game_name"],
+            name_1p=self.opt["name_1p"],
+            name_2p=self.opt["name_2p"])
+
+        self.todo_start()
+
+        # 防呆测试
+        handles = {
+            1: faa_get_handle(channel=channel_1p, mode="360"),
+            2: faa_get_handle(channel=channel_2p, mode="360")}
+
+        for player, handle in handles.items():
+
+            if handle is None or handle == 0:
+                # 报错弹窗
+                self.signal_dialog.emit(
+                    "出错！(╬◣д◢)",
+                    f"{player}P存在错误的窗口名或游戏名称, 请参考 [使用前看我!.pdf] 或 [README.md]")
+                # 还原文本结束输出
+                self.todo_completed()
+                return
+
+        random_seed = random.randint(-100, 100)
+
+        faa = [None, None, None]
+
+        faa[1] = FAA(
+            channel=channel_1p,
+            player=1,
+            character_level=self.opt["level_1p"],
+            is_auto_battle=self.opt["auto_use_card"],  # boolean 是否使用自动战斗 做任务必须选择 是
+            is_auto_pickup=self.opt["auto_pickup_1p"],
+            random_seed=random_seed,
+            signal_dict=self.signal_dict)
+
+        faa[2] = FAA(
+            channel=channel_2p,
+            player=2,
+            character_level=self.opt["level_2p"],
+            is_auto_battle=self.opt["auto_use_card"],
+            is_auto_pickup=self.opt["auto_pickup_2p"],
+            random_seed=random_seed,
+            signal_dict=self.signal_dict)
+
+        # 创造todo线程
+        self.thread_todo = Todo(faa=faa, opt=self.opt, signal_dict=self.signal_dict)
+        # 绑定手动结束线程
+        self.thread_todo.sin_out_completed.connect(self.todo_completed)
+        # 开始线程
+        self.thread_todo.start()
+
+    def stop_all(self):
+        """
+                  线程已经激活 则从外到内中断,再从内到外销毁
+                  thread_todo (QThread)
+                      |-- thread_1p (ThreadWithException)
+                      |-- thread_2p (ThreadWithException)
+                  """
+        # 暂停外部线程
+        self.thread_todo.pause()
+
+        # 中断[内部战斗线程]
+        # Q thread 线程 stop方法需要自己手写
+        thread = self.thread_todo.thread_manager
+        if thread is not None:
+            thread.stop()
+            thread.wait()
+
+        # python 默认线程 可用stop线程
+        for thread in [self.thread_todo.thread_1p, self.thread_todo.thread_2p]:
+            if thread is not None:
+                thread.stop()
+                thread.join()  # 等待线程确实中断
+
+        # 中断 销毁 [任务线程]
+        self.thread_todo.terminate()
+        self.thread_todo.wait()  # 等待线程确实中断
+        self.thread_todo.deleteLater()
+
+        # 结束线程后的ui处理
+        self.todo_completed()
 
     def click_btn_start(self):
         """战斗开始函数"""
         # 线程没有激活
         if not self.thread_states:
-            self.ui_to_opt()
-            game_name = self.opt["game_name"]
-            name_1p = self.opt["name_1p"]
-            name_2p = self.opt["name_2p"]
-            channel_1p, channel_2p = get_channel_name(game_name, name_1p, name_2p)
-            random_seed = random.randint(-100, 100)
-            faa = [None, None, None]
-            faa[1] = FAA(
-                channel=channel_1p,
-                player=1,
-                character_level=self.opt["level_1p"],
-                is_auto_battle=self.opt["auto_use_card"],  # boolean 是否使用自动战斗 做任务必须选择 是
-                is_auto_pickup=self.opt["auto_pickup_1p"],
-                random_seed=random_seed)
-
-            faa[2] = FAA(
-                channel=channel_2p,
-                player=2,
-                character_level=self.opt["level_2p"],
-                is_auto_battle=self.opt["auto_use_card"],
-                is_auto_pickup=self.opt["auto_pickup_2p"],
-                random_seed=random_seed)
-
-            self.todo_start()
-
-            # 防呆测试
-            handle_1 = faa_get_handle(channel=channel_1p, mode="360")
-            handle_2 = faa_get_handle(channel=channel_2p, mode="360")
-            if handle_1 is None or handle_1 == 0:
-                # 报错弹窗
-                self.error_signal.emit("出错！(╬◣д◢)",
-                                       "1P存在错误的窗口名或游戏名称, 请参考 [使用前看我!.pdf] 或 [README.md]")
-                # 还原文本结束输出
-                self.todo_completed()
-            elif handle_2 is None or handle_2 == 0:
-                # 报错弹窗
-                self.error_signal.emit("出错！(╬◣д◢)",
-                                       "2P存在错误的窗口名或游戏名称, 单人运行请将2P角色名同1P一致, 更多信息请参考 [使用前看我!.pdf] 或 [README.md]")
-                # 还原文本结束输出
-                self.todo_completed()
-            else:
-                # 创造todo线程
-                self.thread_todo = Todo(faa=faa, opt=self.opt)
-                # 绑定手动结束线程
-                self.thread_todo.sin_out_completed.connect(self.todo_completed)
-                # 绑定文本输出
-                self.thread_todo.sin_out.connect(self.printf)
-                # 开始线程
-                self.thread_todo.start()
-
+            self.start_all()
         else:
-            """
-            线程已经激活 则从外到内中断,再从内到外销毁
-            thread_todo (QThread)
-                |-- thread_1p (ThreadWithException)
-                |-- thread_2p (ThreadWithException)
-            """
-            # 暂停外部线程
-            self.thread_todo.pause()
-
-            # 中断[内部战斗线程]
-            # Q thread 线程 stop方法需要自己手写
-            thread = self.thread_todo.thread_manager
-            if thread is not None:
-                thread.stop()
-                thread.wait()
-
-            # python 默认线程 可用stop线程
-            for thread in [self.thread_todo.thread_1p, self.thread_todo.thread_2p]:
-                if thread is not None:
-                    thread.stop()
-                    thread.join()  # 等待线程确实中断
-
-            # 中断 销毁 [任务线程]
-            self.thread_todo.terminate()
-            self.thread_todo.wait()  # 等待线程确实中断
-            self.thread_todo.deleteLater()
-
-            # 结束线程后的ui处理
-            self.todo_completed()
+            self.stop_all()
 
     @QtCore.pyqtSlot(str, str)
     def show_dialog(self, title, message):

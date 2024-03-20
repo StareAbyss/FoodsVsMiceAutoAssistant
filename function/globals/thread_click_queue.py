@@ -24,11 +24,13 @@ class ThreadClickQueueTimer(QThread):
     def run(self):
         self.click_queue_timer = QTimer()  # 不能放在init方法里，否则无效果
         self.click_queue_timer.timeout.connect(self.execute_click_queue)
-        self.click_queue_timer.start(10)
+        self.click_queue_timer.start(15)
         self.exec()  # 开始事件循环
 
-    def clear_click_queue(self):
+    def stop(self):
         self.click_queue.queue.clear()
+        self.click_queue_timer.stop()
+        self.quit()
 
     def execute_click_queue(self):
         if not self.click_queue.empty():
