@@ -23,21 +23,20 @@ from function.tools.analyzer_of_loot_logs import matchImage
 
 
 class FAA:
-    def __init__(
-            self,
-            channel="锑食",
-            player=1,
-            character_level=1,
-            is_auto_battle=True,
-            is_auto_pickup=False,
-            random_seed=0
-    ):
+    def __init__(self, channel="锑食", player=1, character_level=1,
+                 is_auto_battle=True, is_auto_pickup=False, random_seed=0, signal_dict=None):
 
         # 获取窗口句柄
         self.channel = channel
         self.handle = faa_get_handle(channel=self.channel, mode="flash")
         self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
         self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
+
+        # 好用的信号
+        self.signal_dict = signal_dict
+        self.signal_printf = self.signal_dict["printf"]
+        self.signal_dialog = self.signal_dict["dialog"]
+        self.signal_end = self.signal_dict["end"]
 
         # 随机种子
         self.random_seed = random_seed
