@@ -48,11 +48,10 @@ class CardManager(QThread):
         for i in players:
             self.thread_check_timer_dict[i] = ThreadCheckTimer(
                 card_queue=self.card_queue_dict[i],
-                faa=self.faa_dict[i]
-            )
+                faa=self.faa_dict[i])
             self.thread_use_card_timer_dict[i] = ThreadUseCardTimer(
-                card_queue=self.card_queue_dict[i]
-            )
+                card_queue=self.card_queue_dict[i],
+                faa=self.faa_dict[i])
 
         print("线程已全部实例化")
         print(self.thread_check_timer_dict)
@@ -162,9 +161,8 @@ class ObjectCheckTimer(QObject):
 
 class ThreadCheckTimer(QThread):
 
-    def __init__(self, card_queue, faa, parent=None):
-        super(ThreadCheckTimer, self).__init__(parent)
-
+    def __init__(self, card_queue, faa):
+        super().__init__()
         self.card_queue = card_queue
         self.faa = faa
         self.object_check_timer = None
@@ -195,9 +193,10 @@ class ObjectUseCardTimer(QObject):
 
 class ThreadUseCardTimer(QThread):
 
-    def __init__(self, card_queue, parent=None):
-        super(ThreadUseCardTimer, self).__init__(parent)
+    def __init__(self, card_queue, faa):
+        super().__init__()
         self.card_queue = card_queue
+        self.faa = faa
         self.object_use_card_timer = None
 
     def run(self):

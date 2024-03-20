@@ -9,7 +9,7 @@ def get_position_card_deck_in_battle(handle):
     find = find_p_in_w(
         raw_w_handle=handle,
         raw_range=[0, 0, 950, 600],
-        target_path=PATHS["picture"]["common"] + "\\战斗\\战斗中_火苗能量.png")
+        target_path=RESOURCE_P["common"]["战斗"]["战斗中_火苗能量.png"])
     if find == [175, 36]:
         my_dict = {
             1: [257, 74],

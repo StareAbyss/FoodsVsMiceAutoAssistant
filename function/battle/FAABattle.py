@@ -78,8 +78,7 @@ class Battle:
         :param mode:
             the mode of use key.
             0: click on the location of "next UI".
-            1: if you find the picture of "next UI", click it.
-            3
+            1: if you find the picture of "next UI", click it. else no click and time sleep.
         :return:
             None
         """

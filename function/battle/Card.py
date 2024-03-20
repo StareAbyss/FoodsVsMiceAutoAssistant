@@ -25,6 +25,14 @@ class Card:
         # 优先级
         self.priority = priority
 
+        """直接从FAA类读取的属性"""
+        self.handle = faa.handle
+        self.is_use_key = faa.is_use_key
+        self.is_auto_battle = faa.is_auto_battle
+        self.faa_battle = faa.faa_battle
+        self.player = faa.player
+
+        """从FAA类的battle_plan_1中读取的属性"""
         # 根据优先级（也是在战斗方案中的index）直接读取faa
         self.name = faa.battle_plan_1["card"][priority]["name"]
         self.id = faa.battle_plan_1["card"][priority]["id"]
@@ -36,6 +44,7 @@ class Card:
         # dict {"1-1": [x,y],....}
         self.location_to = faa.battle_plan_1["card"][priority]["location_to"]
 
+        """用于完成放卡的额外类属性"""
         # 状态 冷却完成 默认已完成
         self.status_cd = False
         # 状态 可用
@@ -48,55 +57,53 @@ class Card:
 
     def use_card(self):
 
-        if not self.faa.is_auto_battle:
+        if not self.is_auto_battle:
             return
-        if self.is_smoothie and not self.faa.faa_battle.fire_elemental_1000:
+        if self.is_smoothie and not self.faa_battle.fire_elemental_1000:
             return
         if self.status_cd or self.status_ban:
             return
 
-        handle = self.faa.handle
-        is_use_key = self.faa.is_use_key
-
         # 点击 选中卡片
         T_CLICK_QUEUE_TIMER.add_click_to_queue(
-            handle=handle,
+            handle=self.handle,
             x=self.location_from[0],
             y=self.location_from[1])
 
         if self.ergodic:
             # 遍历模式: True 遍历该卡每一个可以放的位置
             my_len = len(self.location)
+            my_to_list = range(my_len)
         else:
-            # 遍历模式: False 只放第一张
-            my_len = 1
+            # 遍历模式: False 只放第一张, 为保证放下去, 同一个位置点两次
+            my_len = 2
+            my_to_list = [0, 0]
 
-        for j in range(my_len):
-
-            # 防止误触
-            if is_use_key and (self.location[j] in self.warning_cell):
-                self.faa.faa_battle.use_key(mode=1)
-
+        for j in my_to_list:
+            # 防止误触, 仅需识图, 不消耗时间
+            if self.is_use_key and (self.location[j] in self.warning_cell):
+                self.faa_battle.use_key(mode=1)
             # 点击 放下卡片
             T_CLICK_QUEUE_TIMER.add_click_to_queue(
-                handle=handle,
+                handle=self.handle,
                 x=self.location_to[j][0],
                 y=self.location_to[j][1])
 
         # 放卡后点一下空白
-        T_CLICK_QUEUE_TIMER.add_move_to_queue(handle=handle, x=200, y=350)
-        T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=handle, x=200, y=350)
+        T_CLICK_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+        T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
 
-        time.sleep(0.025 * (2+my_len))
+        # 统一计算点击间隔时间
+        time.sleep(self.faa_battle.click_sleep * (2 + my_len))
 
-        # 如果放卡后还可用,自ban 15s
+        # 如果放卡后还可用,自ban 若干s
         # 判断可用 如果不知道其还可用。会导致不自ban，导致无意义点击出现，后果更小。1轮扫描后纠正。
         # 判断冷却 如果不知道其进入了冷却。会导致错误的额外的自ban，导致放卡逻辑错乱。ban描述后纠正。
         self.fresh_status()
         if self.status_usable and (self.name not in self.ban_white_list):
             self.status_ban = 7
 
-        # 用一次后，将第一个位置挪到后面
+        # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
         if self.queue:
             self.location.append(self.location[0])
             self.location.remove(self.location[0])
@@ -106,7 +113,7 @@ class Card:
     def fresh_status(self):
         """判断颜色来更改自身冷却和可用属性"""
         img = capture_picture_png(
-            handle=self.faa.handle,
+            handle=self.handle,
             raw_range=[
                 self.location_from[0] - 45,
                 self.location_from[1] - 64,
