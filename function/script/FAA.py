@@ -304,8 +304,8 @@ class FAA:
         quest_list = []
         if mode == "公会任务":
 
-            for i in range(7):
-                for quest, img in RESOURCE_P["quest_guild"][str(i + 1)].items:
+            for i in [1,2,3,4,5,6,7]:
+                for quest, img in RESOURCE_P["quest_guild"][str(i)].items():
                     # 找到任务 加入任务列表
                     find_p = find_p_in_w(
                         raw_w_handle=self.handle,
@@ -2193,6 +2193,7 @@ class FAA:
             # 如果未找到进入服务器，从头再来
             if not result:
                 self.print_g(text="未找到进入输入服务器, 可能进入未知界面, 或QQ空间需重新登录", garde=1)
+
                 result = loop_find_p_in_w(
                     raw_w_handle=self.handle_browser,
                     raw_range=[0, 0, 2000, 2000],
