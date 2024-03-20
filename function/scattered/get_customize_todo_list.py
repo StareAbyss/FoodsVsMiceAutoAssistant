@@ -25,9 +25,11 @@ def get_customize_todo_list(with_extension):
             my_list[i] = my_list[i].split(".")[0]
         return my_list
 
+
 if __name__ == '__main__':
     def main():
         my_list = get_customize_todo_list(with_extension=False)
         print(my_list)
+
 
     main()

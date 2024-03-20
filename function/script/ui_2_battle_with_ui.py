@@ -13,6 +13,7 @@ from function.battle.CardManager import CardManager
 from function.common.bg_p_compare import loop_find_p_in_w
 from function.common.thread_with_exception import ThreadWithException
 from function.globals.get_paths import PATHS
+from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_click_queue import T_CLICK_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
@@ -300,7 +301,7 @@ class Todo(QThread):
         find = loop_find_p_in_w(
             raw_w_handle=faa_a.handle,
             raw_range=[796, 413, 950, 485],
-            target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_开始按钮.png",
+            target_path=RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
             target_sleep=0.3,
             click=False,
             target_failed_check=2.0)
@@ -326,7 +327,7 @@ class Todo(QThread):
             find = loop_find_p_in_w(
                 raw_w_handle=faa_b.handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=PATHS["picture"]["common"] + "\\战斗\\战斗前_接受邀请.png",
+                target_path=RESOURCE_P["common"]["战斗"]["战斗前_接受邀请.png"],
                 target_sleep=2.0,
                 target_failed_check=2.0
             )

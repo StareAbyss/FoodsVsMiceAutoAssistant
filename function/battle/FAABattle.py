@@ -5,7 +5,7 @@ import numpy as np
 from function.common.bg_keyboard import key_down_up
 from function.common.bg_p_compare import find_p_in_w, find_ps_in_w
 from function.common.bg_p_screenshot import capture_picture_png
-from function.globals.get_paths import PATHS
+from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_click_queue import T_CLICK_QUEUE_TIMER
 
 
@@ -50,7 +50,7 @@ class Battle:
 
     """ 战斗内的子函数 """
 
-    def use_player(self,num_cell):
+    def use_player(self, num_cell):
         T_CLICK_QUEUE_TIMER.add_click_to_queue(
             handle=self.handle,
             x=self.bp_cell[num_cell][0],
@@ -72,7 +72,7 @@ class Battle:
             key_down_up(handle=self.handle, key="1")
             T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=position[0], y=position[1])
 
-    def use_key(self,mode: int = 0):
+    def use_key(self, mode: int = 0):
         """
         使用钥匙的函数,
         :param mode:
@@ -93,10 +93,11 @@ class Battle:
                 time.sleep(self.click_sleep)
 
             if mode == 1:
-                if find_p_in_w(
-                        raw_w_handle=self.handle,
-                        raw_range=[0, 0, 950, 600],
-                        target_path=PATHS["picture"]["common"] + "\\战斗\\战斗中_继续作战.png"):
+                find = find_p_in_w(
+                    raw_w_handle=self.handle,
+                    raw_range=[0, 0, 950, 600],
+                    target_path=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
+                if find:
                     T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=427, y=360)
                     time.sleep(self.click_sleep)
                     T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=427, y=360)
@@ -112,44 +113,45 @@ class Battle:
             target_opts=[
                 {
                     "raw_range": [202, 419, 306, 461],
-                    "target_path": PATHS["picture"]["common"] + "\\战斗\\战斗后_1_战利品.png",
+                    "target_path": RESOURCE_P["common"]["战斗"]["战斗后_1_战利品.png"],
+
                     "target_tolerance": 0.999
                 },
                 {
                     "raw_range": [202, 419, 306, 461],
-                    "target_path": PATHS["picture"]["common"] + "\\战斗\\战斗后_2_战利品阴影版.png",
+                    "target_path": RESOURCE_P["common"]["战斗"]["战斗后_2_战利品阴影版.png"],
                     "target_tolerance": 0.999
                 },
                 {
                     "raw_range": [400, 47, 550, 88],
-                    "target_path": PATHS["picture"]["common"] + "\\战斗\\战斗后_3_战斗结算.png",
+                    "target_path": RESOURCE_P["common"]["战斗"]["战斗后_3_战斗结算.png"],
                     "target_tolerance": 0.999
                 },
                 {
                     "raw_range": [400, 35, 550, 75],
-                    "target_path": PATHS["picture"]["common"] + "\\战斗\\战斗后_4_翻宝箱.png",
+                    "target_path": RESOURCE_P["common"]["战斗"]["战斗后_4_翻宝箱.png"],
                     "target_tolerance": 0.999
                 },
                 {
                     "raw_range": [350, 275, 600, 360],
-                    "target_path": PATHS["picture"]["error"] + "\\登录超时.png",
+                    "target_path": RESOURCE_P["error"]["登录超时.png"],
                     "target_tolerance": 0.999
                 },
                 {
                     "raw_range": [350, 275, 600, 360],
-                    "target_path": PATHS["picture"]["error"] + "\\断开连接.png",
+                    "target_path": RESOURCE_P["error"]["断开连接.png"],
                     "target_tolerance": 0.999
                 },
                 {
                     "raw_range": [350, 275, 600, 360],
-                    "target_path": PATHS["picture"]["error"] + "\\Flash爆炸.png",
+                    "target_path": RESOURCE_P["error"]["Flash爆炸.png"],
                     "target_tolerance": 0.999
                 },
             ],
             return_mode="or")
         return result
 
-    def use_card_once(self,num_card: int, num_cell: str, click_space=True):
+    def use_card_once(self, num_card: int, num_cell: str, click_space=True):
         """
         Args:
             num_card: 使用的卡片的序号
@@ -192,11 +194,9 @@ class Battle:
 
     def update_fire_elemental_1000(self):
         image = capture_picture_png(handle=self.handle, raw_range=[161, 75, 164, 85])
-        image = image[:,:,:3]
+        image = image[:, :, :3]
         image = image.reshape(-1, image.shape[-1])  # 减少一个多余的维度
-        self.fire_elemental_1000 = np.any(image == [0,0,0])
+        self.fire_elemental_1000 = np.any(image == [0, 0, 0])
 
         if self.player == 1:
-            print("1p火苗>1000:",self.fire_elemental_1000)
-
-
+            print("1p火苗>1000:", self.fire_elemental_1000)

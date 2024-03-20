@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from function.common.bg_p_screenshot import capture_picture_png, png_cropping
-from function.globals.get_paths import PATHS
+from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_click_queue import T_CLICK_QUEUE_TIMER
 
 
@@ -269,11 +269,9 @@ if __name__ == '__main__':
         # handle = faa_get_handle("锑食", mode="browser")
         handle = faa_get_handle(channel="深渊之下 | 锑食", mode="browser")
 
-        target_path = PATHS["picture"]["common"] + "\\战斗\\战斗前_创建房间.png"
-
         result = find_p_in_w(raw_w_handle=handle,
                              raw_range=[0, 0, 950, 600],
-                             target_path=target_path,
+                             target_path=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
                              target_tolerance=0.99)
 
         print(result)
