@@ -582,7 +582,7 @@ class FAA:
                 loop_find_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
-                    target_path=self.stage_info["id"]["picture"]["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
+                    target_path=RESOURCE_P["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
                     target_sleep=1,
                     click=True)
 
