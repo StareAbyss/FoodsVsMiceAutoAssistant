@@ -1,5 +1,5 @@
 from function.common.bg_p_compare import find_p_in_w
-from function.globals.get_paths import PATHS
+from function.globals.init_resources import RESOURCE_P
 from function.scattered.gat_handle import faa_get_handle
 
 

@@ -60,7 +60,7 @@ class MyMainWindow0(QMainWindow):
         self.printf("[2] 有一定的礼卷防翻牌异常")
         self.printf("[3] 高星或珍贵不绑卡挂拍卖/提前转移")
         self.printf("")
-        self.printf("用户请认真阅读[FAA从入门到神殿.pdf], 以解决[运行直接闪退][开始后没反应][缩放炸裂]等多数问题")
+        self.printf("用户请认真阅读[FAA从入门到神殿.pdf], 以解决[运行闪退][开始后没反应][UI缩放异常]等多数问题")
         self.printf("开发者和深入使用, 请参考[README.md]")
         self.printf("[Github] https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant")
         self.printf("[B站][UP直视深淵][老版宣传视频]https://www.bilibili.com/video/BV1fS421N7zf")

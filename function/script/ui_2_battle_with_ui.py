@@ -36,7 +36,7 @@ class Todo(QThread):
         self.thread_1p = None
         self.thread_2p = None
         self.thread_manager = None
-        self.battle_mode = 1  # 1 或 0 0则代表使用老版战斗方案; 1则达标使用新版战斗方案, 新版处于测试之中. 开发者请更改为0再用
+        self.battle_mode = 0  # 1 或 0 0则代表使用老版战斗方案; 1则达标使用新版战斗方案, 新版处于测试之中. 开发者请更改为0再用
         self.card_manager = None
         # 好用的信号~
         self.signal_dict = signal_dict
