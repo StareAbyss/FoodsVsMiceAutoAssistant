@@ -848,9 +848,13 @@ class Todo(QThread):
 
             # 玩家A掉落
             self.signal_printf.emit(
-                "[{}P掉落/场]\n{}\n[{}P宝箱/场]\n{}".format(
+                "[{}P掉落/场]  {}".format(
                     player_id,
                     loots_text,
+                )
+            )
+            self.signal_printf.emit(
+                "[{}P宝箱/场]  {}".format(
                     player_id,
                     chests_text
                 )
@@ -1650,7 +1654,7 @@ class MyMainWindow2(MyMainWindow1):
         self.signal_printf_1.connect(self.printf)
         self.signal_printf_2.connect(self.printf)
         # 链接中止函数
-        self.signal_end.connect(self.todo_completed)
+        self.signal_end.connect(self.todo_end)
         # 储存所有信号
         self.signal_dict = {
             "printf": self.signal_printf,
@@ -1672,7 +1676,7 @@ class MyMainWindow2(MyMainWindow1):
             else:
                 self.signal_1.emit(text)
 
-    def todo_completed(self):
+    def todo_end(self):
         # 设置flag
         self.thread_states = False
         # 设置按钮文本
@@ -1696,20 +1700,18 @@ class MyMainWindow2(MyMainWindow1):
 
     def start_all(self):
 
+        # 先读取界面上的方案
+        self.ui_to_opt()
+
         channel_1p, channel_2p = get_channel_name(
             game_name=self.opt["game_name"],
             name_1p=self.opt["name_1p"],
             name_2p=self.opt["name_2p"])
-
-        self.todo_start()
-
-        # 防呆测试
+        # 防呆测试 不通过就直接结束弹窗
         handles = {
             1: faa_get_handle(channel=channel_1p, mode="360"),
             2: faa_get_handle(channel=channel_2p, mode="360")}
-
         for player, handle in handles.items():
-
             if handle is None or handle == 0:
                 # 报错弹窗
                 self.signal_dialog.emit(
@@ -1719,10 +1721,13 @@ class MyMainWindow2(MyMainWindow1):
                 self.todo_completed()
                 return
 
+        self.todo_start()
+
+        # 生成随机数种子
         random_seed = random.randint(-100, 100)
 
+        # 开始创建faa
         faa = [None, None, None]
-
         faa[1] = FAA(
             channel=channel_1p,
             player=1,
@@ -1731,7 +1736,6 @@ class MyMainWindow2(MyMainWindow1):
             is_auto_pickup=self.opt["auto_pickup_1p"],
             random_seed=random_seed,
             signal_dict=self.signal_dict)
-
         faa[2] = FAA(
             channel=channel_2p,
             player=2,
@@ -1776,7 +1780,7 @@ class MyMainWindow2(MyMainWindow1):
         self.thread_todo.deleteLater()
 
         # 结束线程后的ui处理
-        self.todo_completed()
+        self.todo_end()
 
     def click_btn_start(self):
         """战斗开始函数"""

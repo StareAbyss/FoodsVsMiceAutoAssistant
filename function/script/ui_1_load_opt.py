@@ -20,13 +20,14 @@ class MyMainWindow1(MyMainWindow0):
         self.opt_path = PATHS["root"] + "\\config\\settings.json"
 
         # 从json文件中读取opt 并刷新ui
-        self.opt = self.json_to_opt()
+        self.opt = None
+        self.json_to_opt()
         self.opt_to_ui()
 
     def json_to_opt(self):
         with open(self.opt_path) as json_file:
             opt = json.load(json_file)
-        return opt
+        self.opt = opt
 
     def opt_to_json(self):
         # dict → str 转换True和true
