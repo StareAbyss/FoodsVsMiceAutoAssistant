@@ -10,7 +10,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QApplication
 
 from function.battle.CardManager import CardManager
-from function.common.bg_p_compare import loop_find_p_in_w
+from function.common.bg_p_match import loop_match_p_in_w
 from function.common.thread_with_exception import ThreadWithException
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
@@ -301,7 +301,7 @@ class Todo(QThread):
         faa_a = self.faa[player_a]
         faa_b = self.faa[player_b]
 
-        find = loop_find_p_in_w(
+        find = loop_match_p_in_w(
             raw_w_handle=faa_a.handle,
             raw_range=[796, 413, 950, 485],
             target_path=RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
@@ -327,7 +327,7 @@ class Todo(QThread):
             time.sleep(0.5)
 
             # p2接受邀请
-            find = loop_find_p_in_w(
+            find = loop_match_p_in_w(
                 raw_w_handle=faa_b.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=RESOURCE_P["common"]["战斗"]["战斗前_接受邀请.png"],
@@ -688,8 +688,6 @@ class Todo(QThread):
 
                 self.reload_game()
 
-            timer_begin = time.time()
-
             print("=" * 50)
             text = "[{}] [单本轮战] 第{}次, 开始".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -698,9 +696,7 @@ class Todo(QThread):
             self.signal_printf.emit(text)
 
             # 开始战斗循环
-            result_id, result_loot = self.battle(
-                player_a=player_a,
-                player_b=player_b)
+            result_id, result_loot, result_spend_time = self.battle(player_a=player_a, player_b=player_b)
 
             if result_id == 0:
                 # 战斗成功 计数+1
@@ -1238,13 +1234,19 @@ class Todo(QThread):
             print(quest_list)
 
             for i in range(len(quest_list)):
+
+                if len(quest_list[i]["player"]) == 2:
+                    player_text = "组队"
+                else:
+                    player_text = "单人1P" if quest_list[i]["player"] == [1] else "单人2P"
+
                 self.signal_printf.emit(
                     "[{}] [多本轮战] 事项{},{},{},{}次,带卡:{},Ban卡:{}".format(
                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         i + 1,
-                        "组队" if len(quest_list[i]["player"]) == 2 else
-                        ("单人1P" if quest_list[i]["player"] == [1] else "单人2P"),
+                        player_text,
                         quest_list[i]["stage_id"],
+                        "用钥匙" if quest_list[i]["stage_id"] else "无钥匙",
                         quest_list[i]["max_times"],
                         quest_list[i]["quest_card"],
                         quest_list[i]["list_ban_card"]))

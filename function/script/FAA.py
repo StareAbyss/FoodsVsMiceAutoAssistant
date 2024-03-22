@@ -10,7 +10,7 @@ import numpy as np
 from function.battle.FAABattle import Battle
 from function.battle.get_position_in_battle import get_position_card_deck_in_battle, get_position_card_cell_in_battle
 from function.common.bg_keyboard import key_down_up
-from function.common.bg_p_compare import find_p_in_w, loop_find_p_in_w, loop_find_ps_in_w
+from function.common.bg_p_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
 from function.common.bg_p_screenshot import capture_picture_png
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
@@ -18,7 +18,7 @@ from function.globals.thread_click_queue import T_CLICK_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_list_battle_plan import get_list_battle_plan
 from function.scattered.read_json_to_stage_info import read_json_to_stage_info
-from function.tools.analyzer_of_loot_logs import matchImage
+from function.script.analyzer_of_loot_logs import matchImage
 
 
 class FAA:
@@ -105,7 +105,7 @@ class FAA:
             self.action_bottom_menu(mode="后退")
 
         if mode == "普通红叉":
-            find = loop_find_p_in_w(
+            find = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=raw_range,
                 target_path=RESOURCE_P["common"]["退出.png"],
@@ -113,7 +113,7 @@ class FAA:
                 target_sleep=1.5,
                 click=True)
             if not find:
-                find = loop_find_p_in_w(
+                find = loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["common"]["退出_被选中.png"],
@@ -127,7 +127,7 @@ class FAA:
             self.action_bottom_menu(mode="跳转_竞技场")
 
         if mode == "关闭悬赏窗口":
-            loop_find_p_in_w(
+            loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=raw_range,
                 target_path=RESOURCE_P["common"]["悬赏任务_退出.png"],
@@ -161,7 +161,7 @@ class FAA:
         l_id = 1
         while True:
             self.change_activity_list(serial_num=l_id)
-            find = loop_find_p_in_w(
+            find = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[250, 0, 925, 110],
                 target_path=RESOURCE_P["common"]["顶部菜单"]["{}.png".format(mode)],
@@ -182,7 +182,7 @@ class FAA:
         if mode == "跨服远征":
 
             # 确认已经跨服进房间
-            find = loop_find_p_in_w(
+            find = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 200],
                 target_path=RESOURCE_P["common"]["跨服副本_ui.png"],
@@ -205,7 +205,7 @@ class FAA:
         find = False
 
         if mode == "任务" or mode == "后退" or mode == "背包" or mode == "公会":
-            find = loop_find_p_in_w(
+            find = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[520, 530, 950, 600],
                 target_path=RESOURCE_P["common"]["底部菜单"]["{}.png".format(mode)],
@@ -214,14 +214,14 @@ class FAA:
                 click=True)
 
         if mode == "跳转_公会任务" or mode == "跳转_公会副本" or mode == "跳转_情侣任务" or mode == "跳转_竞技场":
-            loop_find_p_in_w(
+            loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[520, 530, 950, 600],
                 target_path=RESOURCE_P["common"]["底部菜单"]["跳转.png"],
                 target_failed_check=3,
                 target_sleep=0.5,
                 click=True)
-            find = loop_find_p_in_w(
+            find = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[520, 170, 950, 600],
                 target_path=RESOURCE_P["common"]["底部菜单"]["{}.png".format(mode)],
@@ -237,7 +237,7 @@ class FAA:
     def change_activity_list(self, serial_num: int):
         """检测顶部的活动清单, 1为第一页, 2为第二页(有举报图标的一页)"""
 
-        find = find_p_in_w(
+        find = match_p_in_w(
             raw_w_handle=self.handle,
             raw_range=[0, 0, 950, 600],
             target_path=RESOURCE_P["common"]["顶部菜单"]["举报.png"])
@@ -289,7 +289,7 @@ class FAA:
         if mode == "公会任务":
             self.action_bottom_menu(mode="跳转_公会任务")
             # 点一下 让左边的选中任务颜色消失
-            loop_find_p_in_w(
+            loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=RESOURCE_P["quest_guild"]["ui_quest_list.png"],
@@ -304,10 +304,10 @@ class FAA:
         quest_list = []
         if mode == "公会任务":
 
-            for i in [1,2,3,4,5,6,7]:
+            for i in [1, 2, 3, 4, 5, 6, 7]:
                 for quest, img in RESOURCE_P["quest_guild"][str(i)].items():
                     # 找到任务 加入任务列表
-                    find_p = find_p_in_w(
+                    find_p = match_p_in_w(
                         raw_w_handle=self.handle,
                         raw_range=[0, 0, 950, 600],
                         target_path=img,
@@ -346,12 +346,11 @@ class FAA:
                                 "quest_card": quest_card
                             }
                         )
-
         if mode == "情侣任务":
 
             for i in ["1", "2", "3"]:
                 # 任务未完成
-                find_p = find_p_in_w(
+                find_p = match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["quest_spouse"]["NO-{}.png".format(i)],
@@ -360,7 +359,7 @@ class FAA:
                     # 遍历任务
                     for quest, img in RESOURCE_P["quest_spouse"][i].items():
                         # 找到任务 加入任务列表
-                        find_p = find_p_in_w(
+                        find_p = match_p_in_w(
                             raw_w_handle=self.handle,
                             raw_range=[0, 0, 950, 600],
                             target_path=img,
@@ -380,7 +379,7 @@ class FAA:
                 T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=y_dict[i])
                 time.sleep(0.1)
                 for quest, img in RESOURCE_P["quest_food"].items():
-                    find_p = find_p_in_w(
+                    find_p = match_p_in_w(
                         raw_w_handle=self.handle,
                         raw_range=[0, 0, 950, 600],
                         target_path=img,
@@ -425,7 +424,7 @@ class FAA:
         self.action_top_menu(mode="大地图")
 
         # 点击对应的地图
-        find = loop_find_p_in_w(
+        find = loop_match_p_in_w(
             raw_w_handle=self.handle,
             raw_range=[0, 0, 950, 600],
             target_path=RESOURCE_P["map"]["{}.png".format(map_id)],
@@ -489,7 +488,7 @@ class FAA:
                 self.change_activity_list(serial_num=2)
 
                 # 选择关卡
-                loop_find_p_in_w(
+                loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
@@ -501,7 +500,7 @@ class FAA:
                 click_set_password()
 
                 # 创建队伍
-                loop_find_p_in_w(
+                loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
@@ -519,7 +518,7 @@ class FAA:
 
             if room_creator and mt_first_time:
                 # 进入魔塔
-                loop_find_p_in_w(
+                loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["stage"]["MT.png"],
@@ -537,7 +536,7 @@ class FAA:
             if room_creator:
                 # 选择了密室
                 if stage_1 == "3":
-                    loop_find_p_in_w(
+                    loop_match_p_in_w(
                         raw_w_handle=self.handle,
                         raw_range=[0, 0, 950, 600],
                         target_path=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
@@ -579,7 +578,7 @@ class FAA:
                         time.sleep(0.3)
 
                 # 创建房间
-                loop_find_p_in_w(
+                loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
@@ -645,7 +644,7 @@ class FAA:
                 time.sleep(0.2)
 
                 for i in range(20):
-                    find = loop_find_p_in_w(
+                    find = loop_match_p_in_w(
                         raw_w_handle=self.handle,
                         raw_range=[0, 0, 950, 600],
                         target_path=RESOURCE_P["common"]["用户自截"]["跨服远征_1p.png"],
@@ -677,7 +676,7 @@ class FAA:
             self.action_top_menu(mode="X年活动")
 
             # 选择关卡
-            loop_find_p_in_w(
+            loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
@@ -708,7 +707,7 @@ class FAA:
             # 不是营地
             if stage_1 != "1":
                 # 找船
-                loop_find_p_in_w(
+                loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["stage"]["EX-Ship.png"],
@@ -716,7 +715,7 @@ class FAA:
                     click=True)
 
                 # 找地图图标
-                loop_find_p_in_w(
+                loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["stage"]["EX-{}.png".format(stage_1)],
@@ -729,7 +728,7 @@ class FAA:
             # 仅限主角色创建关卡
             if room_creator:
                 # 选择关卡
-                loop_find_p_in_w(
+                loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
@@ -740,7 +739,7 @@ class FAA:
                 click_set_password()
 
                 # 创建队伍
-                loop_find_p_in_w(
+                loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
@@ -776,7 +775,7 @@ class FAA:
                 time.sleep(0.3)
 
                 # 创建房间
-                loop_find_p_in_w(
+                loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
@@ -797,7 +796,7 @@ class FAA:
             # 仅限主角色创建关卡
             if room_creator:
                 # 创建队伍
-                loop_find_p_in_w(
+                loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[515, 477, 658, 513],
                     target_path=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
@@ -805,13 +804,13 @@ class FAA:
                     click=True)
             else:
                 # 识图，寻找需要邀请目标的位置
-                result = find_p_in_w(
+                result = match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["common"]["战斗"]["房间图标_男.png"],
                     target_tolerance=0.95)
                 if not result:
-                    result = find_p_in_w(
+                    result = match_p_in_w(
                         raw_w_handle=self.handle,
                         raw_range=[0, 0, 950, 600],
                         target_path=RESOURCE_P["common"]["战斗"]["房间图标_女.png"],
@@ -874,7 +873,7 @@ class FAA:
 
                     # 找到就点一下, 找不到就跳过
                     while True:
-                        find = loop_find_p_in_w(
+                        find = loop_match_p_in_w(
                             raw_w_handle=self.handle,
                             raw_range=[335, 120, 420, 545],
                             target_path=RESOURCE_P["common"]["任务_完成.png"],
@@ -898,13 +897,13 @@ class FAA:
         # 循环遍历点击完成
         while True:
             # 点一下 让左边的选中任务颜色消失
-            loop_find_p_in_w(
+            loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=RESOURCE_P["quest_guild"]["ui_quest_list.png"],
                 target_sleep=0.5,
                 click=True)
-            result = loop_find_p_in_w(
+            result = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=RESOURCE_P["quest_guild"]["completed.png"],
@@ -913,7 +912,7 @@ class FAA:
                 target_failed_check=5,  # 1+4s 因为偶尔会弹出美食大赛完成动画4s 需要充足时间！这个确实脑瘫...
                 target_sleep=0.5)
             if result:
-                loop_find_p_in_w(
+                loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["quest_guild"]["gather.png"],
@@ -931,7 +930,7 @@ class FAA:
         self.action_bottom_menu(mode="跳转_情侣任务")
         # 循环遍历点击完成
         while True:
-            result = loop_find_p_in_w(
+            result = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=RESOURCE_P["quest_spouse"]["completed.png"],
@@ -951,7 +950,7 @@ class FAA:
 
         # 循环遍历点击完成
         while True:
-            result = loop_find_p_in_w(
+            result = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=RESOURCE_P["common"]["悬赏任务_领取奖励.png"],
@@ -979,16 +978,16 @@ class FAA:
 
                 # 先移动一次位置
                 T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=my_dict[i])
-                time.sleep(0.1)
+                time.sleep(0.2)
 
                 # 找到就点一下领取, 1s内找不到就跳过
                 while True:
-                    find = loop_find_p_in_w(
+                    find = loop_match_p_in_w(
                         raw_w_handle=self.handle,
                         raw_range=[0, 0, 950, 600],
                         target_path=RESOURCE_P["common"]["美食大赛_领取.png"],
                         target_tolerance=0.95,
-                        target_failed_check=1,
+                        target_failed_check=0.5,
                         target_sleep=0.5,
                         click=True)
                     if find:
@@ -1134,7 +1133,7 @@ class FAA:
 
             for mat_card in mat_resource_exist_list:
                 # 需要使用0.99相似度参数 相似度阈值过低可能导致一张图片被识别为两张卡
-                find = find_p_in_w(
+                find = match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["card"]["战斗"][mat_card],
@@ -1620,7 +1619,7 @@ class FAA:
                         # 找到就点一下, 任何一次寻找成功 中断循环
                         if not flag_find_quest_card:
 
-                            find = loop_find_p_in_w(
+                            find = loop_match_p_in_w(
                                 raw_w_handle=self.handle,
                                 raw_range=[380, 175, 925, 420],
                                 target_path=RESOURCE_P["card"]["房间"][quest_card],
@@ -1647,7 +1646,7 @@ class FAA:
 
             for card in ban_card_s:
                 # 只ban被记录了图片的变种卡
-                loop_find_p_in_w(
+                loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[380, 40, 915, 105],
                     target_path=RESOURCE_P["card"]["房间"][card],
@@ -1699,7 +1698,7 @@ class FAA:
         def main():
             # 循环查找开始按键
             self.print_g(text="寻找开始或准备按钮", garde=1)
-            find = loop_find_p_in_w(
+            find = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[796, 413, 950, 485],
                 target_path=RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
@@ -1727,7 +1726,7 @@ class FAA:
             """点击开始"""
 
             # 点击开始
-            find = loop_find_p_in_w(
+            find = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[796, 413, 950, 485],
                 target_path=RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
@@ -1741,7 +1740,7 @@ class FAA:
                 return 1  # 1-重启本次
 
             # 防止被 [没有带xx卡] or []包已满 卡住
-            find = find_p_in_w(
+            find = match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=RESOURCE_P["common"]["战斗"]["战斗前_系统提示.png"],
@@ -1757,7 +1756,7 @@ class FAA:
             self.print_g(text="查找火苗标识物, 等待进入战斗, 限时30s", garde=1)
 
             # 循环查找火苗图标 找到战斗开始
-            find = loop_find_p_in_w(
+            find = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=RESOURCE_P["common"]["战斗"]["战斗中_火苗能量.png"],
@@ -1849,7 +1848,7 @@ class FAA:
             :return: 捕获的战利品dict
             """
             # 是否还在战利品ui界面
-            find = loop_find_p_in_w(
+            find = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[202, 419, 306, 461],
                 target_path=RESOURCE_P["common"]["战斗"]["战斗后_1_战利品.png"],
@@ -1887,7 +1886,7 @@ class FAA:
                 return None
 
         def action_flip_treasure_chest():
-            find = loop_find_p_in_w(
+            find = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[400, 35, 550, 75],
                 target_path=RESOURCE_P["common"]["战斗"]["战斗后_4_翻宝箱.png"],
@@ -2028,7 +2027,7 @@ class FAA:
             detail()
 
         # 先检是否炸服了
-        find = loop_find_ps_in_w(
+        find = loop_match_ps_in_w(
             raw_w_handle=self.handle,
             target_opts=[
                 {
@@ -2066,7 +2065,7 @@ class FAA:
 
         # 查找战斗结束 来兜底正确完成了战斗
         self.print_g(text="[开始/准备/魔塔蛋糕UI] 尝试捕获正确标志, 以完成战斗流程.", garde=1)
-        find = loop_find_ps_in_w(
+        find = loop_match_ps_in_w(
             raw_w_handle=self.handle,
             target_opts=[
                 {
@@ -2093,7 +2092,7 @@ class FAA:
     def reload_to_login_ui(self):
 
         # 点击刷新按钮 该按钮在360窗口上
-        find = loop_find_p_in_w(
+        find = loop_match_p_in_w(
             raw_w_handle=self.handle_360,
             raw_range=[0, 0, 400, 100],
             target_path=RESOURCE_P["common"]["登录"]["0_刷新.png"],
@@ -2102,7 +2101,7 @@ class FAA:
             click=True)
 
         if not find:
-            find = loop_find_p_in_w(
+            find = loop_match_p_in_w(
                 raw_w_handle=self.handle_360,
                 raw_range=[0, 0, 400, 100],
                 target_path=RESOURCE_P["common"]["登录"]["0_刷新_被选中.png"],
@@ -2112,7 +2111,7 @@ class FAA:
 
             if not find:
 
-                find = loop_find_p_in_w(
+                find = loop_match_p_in_w(
                     raw_w_handle=self.handle_360,
                     raw_range=[0, 0, 400, 100],
                     target_path=RESOURCE_P["common"]["登录"]["0_刷新_被点击.png"],
@@ -2127,7 +2126,7 @@ class FAA:
 
         def try_enter_server_4399():
             # 4399 进入服务器
-            my_result = find_p_in_w(
+            my_result = match_p_in_w(
                 raw_w_handle=self.handle_browser,
                 raw_range=[0, 0, 2000, 2000],
                 target_path=RESOURCE_P["common"]["登录"]["1_我最近玩过的服务器_4399.png"],
@@ -2144,7 +2143,7 @@ class FAA:
 
         def try_enter_server_qq_space():
             # QQ空间 进入服务器
-            my_result = find_p_in_w(
+            my_result = match_p_in_w(
                 raw_w_handle=self.handle_browser,
                 raw_range=[0, 0, 2000, 2000],
                 target_path=RESOURCE_P["common"]["登录"]["1_我最近玩过的服务器_QQ空间.png"],
@@ -2161,7 +2160,7 @@ class FAA:
 
         def try_enter_server_qq_game_hall():
             # QQ游戏大厅 进入服务器
-            my_result = find_p_in_w(
+            my_result = match_p_in_w(
                 raw_w_handle=self.handle_browser,
                 raw_range=[0, 0, 2000, 2000],
                 target_path=RESOURCE_P["common"]["登录"]["1_我最近玩过的服务器_QQ游戏大厅.png"],
@@ -2191,7 +2190,7 @@ class FAA:
             if not result:
                 self.print_g(text="未找到进入输入服务器, 可能进入未知界面, 或QQ空间需重新登录", garde=1)
 
-                result = loop_find_p_in_w(
+                result = loop_match_p_in_w(
                     raw_w_handle=self.handle_browser,
                     raw_range=[0, 0, 2000, 2000],
                     target_path=RESOURCE_P["common"]["用户自截"]["空间服登录界面_{}P.png".format(self.player)],
@@ -2209,7 +2208,7 @@ class FAA:
 
             """查找大地图确认进入游戏"""
             # 查找顶部大地图
-            result = loop_find_p_in_w(
+            result = loop_match_p_in_w(
                 raw_w_handle=self.handle_browser,
                 raw_range=[0, 0, 2000, 2000],
                 target_path=RESOURCE_P["common"]["顶部菜单"]["大地图.png"],
@@ -2223,7 +2222,7 @@ class FAA:
                 self.handle = faa_get_handle(channel=self.channel, mode="flash")
 
                 # [4399] [QQ空间]关闭健康游戏公告
-                loop_find_p_in_w(
+                loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["common"]["登录"]["3_健康游戏公告_确定.png"],
@@ -2233,7 +2232,7 @@ class FAA:
                     click=True)
 
                 # [每天第一次登陆] 每日必充界面关闭
-                loop_find_p_in_w(
+                loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["common"]["登录"]["4_退出每日必充.png"],
@@ -2262,7 +2261,7 @@ class FAA:
             """每日签到"""
             self.action_top_menu(mode="每日签到")
 
-            loop_find_p_in_w(
+            loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=RESOURCE_P["common"]["签到"]["每日签到_确定.png"],
@@ -2278,7 +2277,7 @@ class FAA:
 
             self.action_top_menu(mode="美食活动")
 
-            loop_find_p_in_w(
+            loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=RESOURCE_P["common"]["签到"]["美食活动_确定.png"],
@@ -2293,7 +2292,7 @@ class FAA:
             """塔罗寻宝"""
             self.action_top_menu(mode="塔罗寻宝")
 
-            loop_find_p_in_w(
+            loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=RESOURCE_P["common"]["签到"]["塔罗寻宝_确定.png"],
@@ -2302,7 +2301,7 @@ class FAA:
                 target_sleep=1,
                 click=True)
 
-            loop_find_p_in_w(
+            loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=RESOURCE_P["common"]["签到"]["塔罗寻宝_退出.png"],
@@ -2315,7 +2314,7 @@ class FAA:
             """法老宝藏"""
             self.action_top_menu(mode="法老宝藏")
 
-            find = loop_find_p_in_w(
+            find = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=RESOURCE_P["common"]["签到"]["法老宝藏_确定.png"],
@@ -2335,7 +2334,7 @@ class FAA:
             """会长发布任务"""
             self.action_bottom_menu(mode="跳转_公会任务")
 
-            find = loop_find_p_in_w(
+            find = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[73, 31, 173, 78],
                 target_path=RESOURCE_P["common"]["签到"]["公会会长_发布任务.png"],
@@ -2344,7 +2343,7 @@ class FAA:
                 target_sleep=1,
                 click=True)
             if find:
-                loop_find_p_in_w(
+                loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[422, 415, 544, 463],
                     target_path=RESOURCE_P["common"]["签到"]["公会会长_发布任务_确定.png"],
@@ -2392,7 +2391,7 @@ class FAA:
                 T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=700, y=350)
                 time.sleep(2)
 
-                find = loop_find_p_in_w(
+                find = loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["quest_guild"]["ui_quest_list.png"],
@@ -2414,7 +2413,7 @@ class FAA:
                 T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=800, y=350)
                 time.sleep(2)
 
-                find = loop_find_p_in_w(
+                find = loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["quest_guild"]["ui_fed.png"],
@@ -2463,7 +2462,7 @@ class FAA:
             time.sleep(1)
 
             # 等待一下 确保没有完成的黑屏
-            loop_find_p_in_w(
+            loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=RESOURCE_P["common"]["退出.png"],
@@ -2481,7 +2480,7 @@ class FAA:
             time.sleep(1)
 
             # 等待一下 确保没有完成的黑屏
-            loop_find_p_in_w(
+            loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=RESOURCE_P["common"]["退出.png"],
@@ -2503,7 +2502,7 @@ class FAA:
             from_guild_to_quest_guild()
 
             # 检测施肥任务完成情况 任务是进行中的话为True
-            find = loop_find_ps_in_w(
+            find = loop_match_ps_in_w(
                 raw_w_handle=self.handle,
                 target_opts=[
                     {
@@ -2592,7 +2591,7 @@ class FAA:
                 while True:
 
                     # 在限定范围内 找红叉点掉
-                    loop_find_p_in_w(
+                    loop_match_p_in_w(
                         raw_w_handle=self.handle,
                         raw_range=[0, 0, 750, 300],
                         target_path=RESOURCE_P["common"]["退出.png"],
@@ -2603,7 +2602,7 @@ class FAA:
                         click=True)
 
                     # 在限定范围内 找物品
-                    find = loop_find_p_in_w(
+                    find = loop_match_p_in_w(
                         raw_w_handle=self.handle,
                         raw_range=[466, 86, 891, 435],
                         target_path=item_image,
@@ -2615,7 +2614,7 @@ class FAA:
 
                     if find:
                         # 在限定范围内 找到并点击物品 使用它
-                        find = loop_find_p_in_w(
+                        find = loop_match_p_in_w(
                             raw_w_handle=self.handle,
                             raw_range=[466, 86, 950, 500],
                             target_path=RESOURCE_P["item"]["背包_使用.png"],
@@ -2627,7 +2626,7 @@ class FAA:
 
                         # 鼠标选中 使用按钮 会有色差, 第一次找不到则再来一次
                         if not find:
-                            loop_find_p_in_w(
+                            loop_match_p_in_w(
                                 raw_w_handle=self.handle,
                                 raw_range=[466, 86, 950, 500],
                                 target_path=RESOURCE_P["item"]["背包_使用_被选中.png"],
@@ -2676,7 +2675,7 @@ class FAA:
             time.sleep(0.2)
 
             # 点击开始
-            find = loop_find_p_in_w(
+            find = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[796, 413, 950, 485],
                 target_path=RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
@@ -2692,7 +2691,7 @@ class FAA:
                 continue
 
             # 防止被 [没有带xx卡] or 包满 的提示卡死
-            find = find_p_in_w(
+            find = match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=RESOURCE_P["common"]["战斗"]["战斗前_系统提示.png"],
@@ -2705,7 +2704,7 @@ class FAA:
             self.print_g(text="查找火苗标识物, 等待loading完成", garde=1)
 
             # 循环查找火苗图标 找到战斗开始
-            find = loop_find_p_in_w(
+            find = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
                 target_path=RESOURCE_P["common"]["战斗"]["战斗中_火苗能量.png"],

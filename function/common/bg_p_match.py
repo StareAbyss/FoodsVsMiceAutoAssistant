@@ -8,7 +8,7 @@ from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_click_queue import T_CLICK_QUEUE_TIMER
 
 
-def find_p_in_w(
+def match_p_in_w(
         raw_w_handle,  # 句柄
         raw_range: list,  # 原始图像生效的范围
         target_path,
@@ -88,7 +88,7 @@ def find_p_in_w(
     return center_point
 
 
-def find_ps_in_w(
+def match_ps_in_w(
         raw_w_handle,  # 句柄
         target_opts: list,
         return_mode: str
@@ -160,7 +160,7 @@ def find_ps_in_w(
             return result_list
 
 
-def loop_find_p_in_w(
+def loop_match_p_in_w(
         raw_w_handle,
         raw_range: list,
         target_path,
@@ -192,7 +192,7 @@ def loop_find_p_in_w(
     invite_time = 0.0
     while True:
 
-        find_target = find_p_in_w(
+        find_target = match_p_in_w(
             raw_w_handle=raw_w_handle,
             raw_range=raw_range,
             target_path=target_path,
@@ -212,7 +212,7 @@ def loop_find_p_in_w(
                 time.sleep(target_sleep)
 
                 if click_now_path:
-                    find_target = find_p_in_w(
+                    find_target = match_p_in_w(
                         raw_w_handle=raw_w_handle,
                         raw_range=raw_range,
                         target_path=click_now_path,
@@ -229,7 +229,7 @@ def loop_find_p_in_w(
             return False
 
 
-def loop_find_ps_in_w(
+def loop_match_ps_in_w(
         raw_w_handle,
         target_opts: list,
         target_return_mode: str,
@@ -248,9 +248,9 @@ def loop_find_ps_in_w(
     # 截屏
     invite_time = 0.0
     while True:
-        find_target = find_ps_in_w(raw_w_handle=raw_w_handle,
-                                   target_opts=target_opts,
-                                   return_mode=target_return_mode)
+        find_target = match_ps_in_w(raw_w_handle=raw_w_handle,
+                                    target_opts=target_opts,
+                                    return_mode=target_return_mode)
         if find_target:
             return True
 
@@ -269,10 +269,10 @@ if __name__ == '__main__':
         # handle = faa_get_handle("锑食", mode="browser")
         handle = faa_get_handle(channel="深渊之下 | 锑食", mode="browser")
 
-        result = find_p_in_w(raw_w_handle=handle,
-                             raw_range=[0, 0, 950, 600],
-                             target_path=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                             target_tolerance=0.99)
+        result = match_p_in_w(raw_w_handle=handle,
+                              raw_range=[0, 0, 950, 600],
+                              target_path=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
+                              target_tolerance=0.99)
 
         print(result)
         result = (1, 2)

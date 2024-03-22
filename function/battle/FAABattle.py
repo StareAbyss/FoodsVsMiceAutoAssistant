@@ -3,7 +3,7 @@ import time
 import numpy as np
 
 from function.common.bg_keyboard import key_down_up
-from function.common.bg_p_compare import find_p_in_w, find_ps_in_w
+from function.common.bg_p_match import match_p_in_w, match_ps_in_w
 from function.common.bg_p_screenshot import capture_picture_png
 from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_click_queue import T_CLICK_QUEUE_TIMER
@@ -24,6 +24,7 @@ class Battle:
 
         """战斗专用属性"""
         self.fire_elemental_1000 = False
+        self.smoothie_usable = self.player == 1
 
         """老方法其他手动内部参数"""
         # 每次点击时 按下和抬起之间的间隔 秒
@@ -71,6 +72,7 @@ class Battle:
         for position in positions:
             key_down_up(handle=self.handle, key="1")
             T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=position[0], y=position[1])
+            time.sleep(self.click_sleep)
 
     def use_key(self, mode: int = 0):
         """
@@ -92,7 +94,7 @@ class Battle:
                 time.sleep(self.click_sleep)
 
             if mode == 1:
-                find = find_p_in_w(
+                find = match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
                     target_path=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
@@ -107,7 +109,7 @@ class Battle:
     def use_key_and_check_end(self):
         # 找到战利品字样(被黑色透明物遮挡,会看不到)
         self.use_key(mode=1)
-        result = find_ps_in_w(
+        result = match_ps_in_w(
             raw_w_handle=self.handle,
             target_opts=[
                 {

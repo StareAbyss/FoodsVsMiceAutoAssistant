@@ -53,7 +53,7 @@ def templateMatch(block, target_images):
     # 随便编码
     filename = "{}\\未编码索引\\{}.png".format(
         PATHS["picture"]["item"],
-        random.randint(1, 1000)
+        random.randint(1, 100)
     )
     # 保存图片
     cv2.imencode('.png', block)[1].tofile(filename)

@@ -1,4 +1,4 @@
-from function.common.bg_p_compare import find_p_in_w
+from function.common.bg_p_match import match_p_in_w
 from function.globals.init_resources import RESOURCE_P
 from function.scattered.gat_handle import faa_get_handle
 
@@ -6,7 +6,7 @@ from function.scattered.gat_handle import faa_get_handle
 def get_position_card_deck_in_battle(handle):
     """识别火苗偏移 True 代表13+张卡 否则 12-张卡"""
     # 循环查找火苗图标 找到战斗开始
-    find = find_p_in_w(
+    find = match_p_in_w(
         raw_w_handle=handle,
         raw_range=[0, 0, 950, 600],
         target_path=RESOURCE_P["common"]["战斗"]["战斗中_火苗能量.png"])

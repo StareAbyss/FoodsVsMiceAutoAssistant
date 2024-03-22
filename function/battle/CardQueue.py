@@ -46,7 +46,7 @@ class CardQueue(queue.PriorityQueue):
         # 恢复队列的原始状态
         for priority, item in items:
             self.put((priority, item))
-        # print(items_name)
+        print(items_name)
 
     def use_top_card(self):
 
@@ -77,8 +77,8 @@ class CardQueue(queue.PriorityQueue):
 
 if __name__ == '__main__':
     def test():
-        faa_1 = FAA(channel="锑食", zoom_rate=1)
-        faa_2 = FAA(channel="锑食", zoom_rate=1)
+        faa_1 = FAA(channel="锑食")
+        faa_2 = FAA(channel="锑食")
 
         faa_1.set_config_for_battle(
             stage_id="NO-1-14",
