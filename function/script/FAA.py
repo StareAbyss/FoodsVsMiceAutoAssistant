@@ -1200,30 +1200,27 @@ class FAA:
             """计算步骤一 加入任务卡的摆放坐标"""
 
             # 任务卡 大号小号开始位置不同 任务卡id = 0 则为没有
-            locations = ["6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7"]
+            quest_card_locations = ["6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7"]
 
             if quest_card == "None":
                 return list_cell_all
 
             else:
 
-                # 遍历删除 主要卡中 占用了任务卡摆放的坐标
-                new_list = []
-                for card in list_cell_all:
-                    card["location"] = list(filter(lambda x: x not in locations, card["location"]))
-                    new_list.append(card)
+                # 遍历删除 方案的放卡中 占用了任务卡摆放的棋盘位置
+                list_cell_all = [
+                    {**card, "location": list(filter(lambda x: x not in quest_card_locations, card["location"]))}
+                    for card in list_cell_all
+                ]
 
-                # 计算任务卡的id
-                card_id_list = []
-                for card in list_cell_all:
-                    card_id_list.append(card["id"])
-                quest_card_id = max(card_id_list) + 1  # 取其中最大的卡片id + 1
+                # 计算任务卡的id 最大的卡片id + 1
+                quest_card_id = max(card["id"] for card in list_cell_all) + 1
 
                 # 设定任务卡dict
                 dict_quest = {
                     "name": quest_card,
                     "id": quest_card_id,
-                    "location": locations,
+                    "location": quest_card_locations,
                     "ergodic": True,
                     "queue": True,
                     "location_from": [],
@@ -1232,7 +1229,7 @@ class FAA:
 
                 # 首位插入
                 list_cell_all.insert(0, dict_quest)
-                return new_list
+                return list_cell_all
 
         def calculation_card_mat(list_cell_all):
             """步骤二 承载卡"""
