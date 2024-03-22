@@ -394,7 +394,7 @@ class FAA:
                             {
                                 "stage_id": battle_sets[0],
                                 "player": [self.player] if battle_sets[1] == "1" else [2, 1],  # 1 单人 2 组队
-                                "is_use_key": battle_sets[2],
+                                "is_use_key": bool(battle_sets[2]),  # 注意类型转化
                                 "max_times": 1,
                                 "quest_card": battle_sets[3],
                                 "list_ban_card": battle_sets[4].split(","),
