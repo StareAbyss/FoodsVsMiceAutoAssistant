@@ -93,8 +93,8 @@ class Todo(QThread):
     def all_sign_in(self, is_group):
 
         self.signal_printf.emit(
-            "[{}] [每日签到] 开始...".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            "[{}] [每日签到] 开始...".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            color="red")
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -117,14 +117,14 @@ class Todo(QThread):
             self.thread_2p.join()
 
         self.signal_printf.emit(
-            "[{}] [每日签到] 结束".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            "[{}] [每日签到] 结束".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            , color="red")
 
     def receive_quest_rewards(self, is_group):
 
         self.signal_printf.emit(
-            "[{}] [领取奖励] 开始...".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            "[{}] [领取奖励] 开始...".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            color="red")
 
         """普通任务"""
         self.signal_printf.emit(
@@ -225,8 +225,9 @@ class Todo(QThread):
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
         self.signal_printf.emit(
-            "[{}] 领取所有[任务]奖励, 完成".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            text="[{}] 领取所有[任务]奖励, 完成".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            color="red")
 
     def use_items(self, is_group):
 
@@ -260,14 +261,16 @@ class Todo(QThread):
             self.thread_2p.join()
 
         self.signal_printf.emit(
-            "[{}] 使用绑定消耗品和宝箱, 完成".format(
+            text="[{}] 使用绑定消耗品和宝箱, 完成".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
     def loop_cross_server(self, is_group, deck):
 
         self.signal_printf.emit(
-            "[{}] 无限刷跨服任务威望启动!".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            text="[{}] 无限刷跨服任务威望启动!".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            color="red"
+        )
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -922,7 +925,8 @@ class Todo(QThread):
         self.signal_printf.emit(
             "\n[{}] {} Link Start!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                text_))
+                text_),
+            color="red")
 
         quest_list = [
             {
@@ -945,7 +949,8 @@ class Todo(QThread):
         self.signal_printf.emit(
             "[{}] {} Completed!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                text_))
+                text_),
+            color="red")
 
     def offer_reward(self, text_, max_times_1, max_times_2, max_times_3,
                      deck, battle_plan_1p, battle_plan_2p):
@@ -953,7 +958,8 @@ class Todo(QThread):
         self.signal_printf.emit(
             "\n[{}] {} Link Start!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                text_))
+                text_),
+            color="red")
 
         self.signal_printf.emit(
             "[{}] {}开始[多本轮战]...".format(
@@ -987,7 +993,8 @@ class Todo(QThread):
         self.signal_printf.emit(
             "[{}] {} Completed!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                text_))
+                text_),
+            color="red")
 
     def guild_or_spouse_quest(self, text_, quest_mode,
                               deck, battle_plan_1p, battle_plan_2p, stage=False):
@@ -996,7 +1003,8 @@ class Todo(QThread):
         self.signal_printf.emit(
             "\n[{}] {} Link Start!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                text_))
+                text_),
+            color="red")
 
         self.signal_printf.emit(
             "[{}] {} 检查领取奖励...".format(
@@ -1048,14 +1056,16 @@ class Todo(QThread):
         self.signal_printf.emit(
             "[{}] {} Completed!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                text_))
+                text_),
+            color="red")
 
     def guild_dungeon(self, text_, deck, battle_plan_1p, battle_plan_2p):
 
         self.signal_printf.emit(
             "\n[{}] {} Link Start!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                text_))
+                text_),
+            color="red")
 
         self.signal_printf.emit(
             "[{}] {}开始[多本轮战]...".format(
@@ -1085,14 +1095,16 @@ class Todo(QThread):
         self.signal_printf.emit(
             "[{}] {} Completed!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                text_))
+                text_),
+            color="red")
 
     def alone_magic_tower_prison(self, text_, player, deck, battle_plan_1p, sutra_pavilion):
 
         self.signal_printf.emit(
             "\n[{}] {} Link Start!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                text_))
+                text_),
+            color="red")
 
         if sutra_pavilion:
             stage_list = ["MT-3-1", "MT-3-2", "MT-3-3", "MT-3-4"]
@@ -1125,7 +1137,8 @@ class Todo(QThread):
         self.signal_printf.emit(
             "[{}] {} Completed!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                text_))
+                text_),
+            color="red")
 
     def customize_todo(self, text_, stage_begin: int, customize_todo_index: int):
 
@@ -1142,7 +1155,8 @@ class Todo(QThread):
         self.signal_printf.emit(
             "[{}] {} Link Start!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                text_))
+                text_),
+            color="red")
 
         # 战斗开始
         self.signal_printf.emit(
@@ -1182,7 +1196,8 @@ class Todo(QThread):
         self.signal_printf.emit(
             "[{}] {} Completed!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                text_))
+                text_),
+            color="red")
 
     def auto_food(self, deck):
 
@@ -1235,7 +1250,8 @@ class Todo(QThread):
             self.signal_printf.emit(
                 "[{}] [{}] Link Start!".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    text_))
+                    text_),
+                color="red")
 
             # 先领一下已经完成的大赛任务
             self.faa[1].action_get_quest(mode="美食大赛")
@@ -1265,7 +1281,8 @@ class Todo(QThread):
             self.signal_printf.emit(
                 "[{}] [{}] Completed!".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    text_))
+                    text_),
+                color="red")
 
         auto_food_main()
 
@@ -1596,8 +1613,9 @@ class Todo(QThread):
 
 class MyMainWindow2(MyMainWindow1):
     signal_dialog = pyqtSignal(str, str)  # 标题, 正文
-    signal_printf = pyqtSignal(str)  # 正文
     signal_end = pyqtSignal()
+    signal_printf_1 = pyqtSignal(str)
+    signal_printf_2 = pyqtSignal(str, str)
 
     def __init__(self):
         # 继承父类构造方法
@@ -1610,7 +1628,9 @@ class MyMainWindow2(MyMainWindow1):
         # 链接防呆弹窗
         self.signal_dialog.connect(self.show_dialog)
         # 链接日志输入
-        self.signal_printf.connect(self.printf)
+        self.signal_printf = self.SignalPrintf(signal_1=self.signal_printf_1, signal_2=self.signal_printf_2)
+        self.signal_printf_1.connect(self.printf)
+        self.signal_printf_2.connect(self.printf)
         # 链接中止函数
         self.signal_end.connect(self.todo_completed)
         # 储存所有信号
@@ -1619,6 +1639,20 @@ class MyMainWindow2(MyMainWindow1):
             "dialog": self.signal_dialog,
             "end": self.signal_end
         }
+
+    class SignalPrintf(QObject):
+
+        def __init__(self, signal_1, signal_2):
+            super().__init__()
+            self.signal_1 = signal_1
+            self.signal_2 = signal_2
+
+        def emit(self, text, color=None):
+            # 根据提供的参数数量发射不同的信号
+            if color is not None:
+                self.signal_2.emit(text, color)
+            else:
+                self.signal_1.emit(text)
 
     def todo_completed(self):
         # 设置flag

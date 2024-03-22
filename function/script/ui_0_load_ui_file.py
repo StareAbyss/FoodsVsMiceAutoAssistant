@@ -45,9 +45,9 @@ class MyMainWindow0(QMainWindow):
         # 打印默认输出提示
         self.start_print()
 
-    def printf(self, mes):
+    def printf(self, text, color="black"):
         """打印文本到输出框 """
-        self.TextBrowser.append(mes)  # 在TextBrowser显示提示信息
+        self.TextBrowser.append(f'<span style="color: {color};">{text}</span>')  # 在TextBrowser显示提示信息
         self.TextBrowser.moveCursor(self.TextBrowser.textCursor().End)
         QtWidgets.QApplication.processEvents()  # 实时输出
 
@@ -55,10 +55,11 @@ class MyMainWindow0(QMainWindow):
         """打印默认输出提示"""
         self.printf("嗷呜, 欢迎使用FAA-美食大战老鼠自动放卡作战小助手~")
         self.printf("当前版本: 1.2.0-beta.1")
-        self.printf("使用安全说明")
+        self.printf("")
+        self.printf("使用安全说明",color="red")
         self.printf("[1] 务必有二级密码")
         self.printf("[2] 有一定的礼卷防翻牌异常")
-        self.printf("[3] 高星或珍贵不绑卡挂拍卖/提前转移")
+        self.printf("[3] 高星或珍贵不绑卡挂拍卖/提前转移",)
         self.printf("")
         self.printf("用户请认真阅读[FAA从入门到神殿.pdf], 以解决[运行闪退][开始后没反应][UI缩放异常]等多数问题")
         self.printf("开发者和深入使用, 请参考[README.md]")
