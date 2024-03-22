@@ -346,6 +346,14 @@ class Todo(QThread):
         return True
 
     def battle(self, player_a, player_b):
+        """
+        从进入房间到回到房间的流程
+        :param player_a: 玩家A
+        :param player_b: 玩家B
+        :return:
+            result_id 结束id 用于判定战斗是否成功 或 失败原因
+            result_loot 战利品dict 包含多号的战利品和宝箱识别情况
+        """
 
         is_group = self.faa[player_a].is_group
         result_id = 0
@@ -353,6 +361,7 @@ class Todo(QThread):
             player_a: {},
             player_b: {}
         }
+        result_spend_time = 0
 
         """同时进行战前准备"""
         if result_id == 0:
@@ -388,6 +397,8 @@ class Todo(QThread):
 
         if result_id == 0:
 
+            battle_start_time = time.time()
+
             # 初始化多线程
             self.thread_1p = ThreadWithException(
                 target=self.faa[player_a].action_round_of_battle_self,
@@ -417,6 +428,8 @@ class Todo(QThread):
                     self.msleep(100)
                 self.thread_manager.stop()
                 print("新战斗方法已完成执行并不再阻塞Todo线程")
+
+            result_spend_time = time.time() - battle_start_time
 
         print("战斗循环 已完成")
 
@@ -462,7 +475,7 @@ class Todo(QThread):
                 result_id = self.faa[player_b].action_round_of_battle_after()
 
         print("战后检查完成 battle 函数执行结束")
-        return result_id, result_loot
+        return result_id, result_loot, result_spend_time
 
     def goto_stage_and_invite(self, stage_id, mt_first_time, player_a, player_b):
 
@@ -709,18 +722,19 @@ class Todo(QThread):
                         for j in dict_exit["last_time_player_b"]:
                             faa_b.action_exit(mode=j)
 
-                # 结束提示文本
-                time_spend = time.time() - timer_begin
+                # 加入结果统计列表
                 result_list.append({
-                    "time_spend": time_spend,
+                    "time_spend": result_spend_time,
                     "loot_dict_list": result_loot  # result_loot_dict_list = {a:{掉落}, b:{掉落}}
                 })
 
                 # 时间
-                text = "[{}] [单本轮战] 第{}次, 正常结束, 耗时:{:.0f}s".format(
+                text = "[{}] [单本轮战] 第{}次, 正常结束, 耗时:{}分{}秒".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     success_battle_time,
-                    time_spend)
+                    *divmod(int(result_spend_time), 60)
+                )
+
                 print(text)
                 self.signal_printf.emit(text)
 
@@ -770,13 +784,13 @@ class Todo(QThread):
         valid_time = len(result_list)
 
         # 时间
-        sum_time = 0
+        sum_time_spend = 0
         average_time_spend = 0
 
         if valid_time != 0:
             for result in result_list:
-                sum_time += result["time_spend"]
-            average_time_spend = sum_time / valid_time
+                sum_time_spend += result["time_spend"]
+            average_time_spend = sum_time_spend / valid_time
 
         self.signal_printf.emit(
             "[{}] [单本轮战] {} {}次 结束 ".format(
@@ -786,8 +800,8 @@ class Todo(QThread):
             )
         )
         self.signal_printf.emit(
-            "正常场次:{} 耗时:总{:.0f}s/均{:.0f}s".format(
-                valid_time, sum_time, average_time_spend
+            "正常场次:{}次 总耗时:{}分{}秒 场均耗时:{}分{}秒".format(
+                valid_time, *divmod(int(sum_time_spend), 60), *divmod(int(average_time_spend), 60)
             )
         )
 
