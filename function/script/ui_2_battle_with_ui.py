@@ -1260,6 +1260,8 @@ class Todo(QThread):
                 quest_list=quest_list,
                 list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"])
 
+            return True
+
         def auto_food_main():
 
             # 开始链接
