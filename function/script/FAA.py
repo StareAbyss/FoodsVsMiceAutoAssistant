@@ -331,18 +331,14 @@ class FAA:
                             elif num_of_line == 2:
                                 quest_card = my_list[2]
 
-                        player = [2, 1]
-                        # 根据关卡类型判定
-                        if stage_id.split("-")[0] == "CS":
-                            if qg_cs:
-                                player = [1, 2]
-                            else:
-                                continue
+                        # 如果不打 跳过
+                        if stage_id.split("-")[0] == "CS" and (not qg_cs):
+                            continue
 
                         # 添加到任务列表
                         quest_list.append(
                             {
-                                "player": player,
+                                "player": [2, 1],
                                 "stage_id": stage_id,
                                 "quest_card": quest_card
                             }
@@ -436,11 +432,10 @@ class FAA:
         )
         return find
 
-    def action_goto_stage(self, room_creator: bool = True, mt_first_time: bool = False):
+    def action_goto_stage(self, mt_first_time: bool = False):
         """
         只要右上能看到地球 就可以到目标关卡
         Args:
-            room_creator: 是房主；仅房主创建关卡；
             mt_first_time: 魔塔关卡下 是否是第一次打(第一次塔需要进塔 第二次只需要选关卡序号)
         """
 

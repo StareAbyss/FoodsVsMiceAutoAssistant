@@ -499,13 +499,13 @@ class Todo(QThread):
             while True:
                 if not is_mt:
                     # 非魔塔进入
-                    faa_a.action_goto_stage(room_creator=True)
-                    faa_b.action_goto_stage(room_creator=False)
+                    faa_a.action_goto_stage()
+                    faa_b.action_goto_stage()
                 else:
                     # 魔塔进入
-                    faa_a.action_goto_stage(room_creator=True, mt_first_time=mt_first_time)
+                    faa_a.action_goto_stage(mt_first_time=mt_first_time)
                     if mt_first_time:
-                        faa_b.action_goto_stage(room_creator=False, mt_first_time=mt_first_time)
+                        faa_b.action_goto_stage(mt_first_time=mt_first_time)
 
                 sleep(3)
 
@@ -574,29 +574,27 @@ class Todo(QThread):
         # 判断是不是打魔塔 或 自建房
         is_mt = "MT" in stage_id
         is_cu = "CU" in stage_id
+        is_cs = "CS" in stage_id
 
-        # 处理多人信息
-        player_a = player[0]
-        player_b = 1 if player_a == 2 else 2
-
+        # 判断是不是组队
         if len(player) == 1:
             is_group = False
         else:
             is_group = True
 
+        # 如果是多人跨服 防呆重写 2,1 为 1,2
+        if is_cs and is_group:
+            player = [1,2]
+
+        # 处理多人信息 (这些信息只影响函数内, 所以不判断是否组队)
+        player_a = player[0]  # 房主 创建房间者
+        player_b = 1 if player_a == 2 else 2  # 非房主
         faa_a = self.faa[player_a]
         faa_b = self.faa[player_b]
-
         battle_plan_a = battle_plan_1p if player_a == 1 else battle_plan_2p
         battle_plan_b = battle_plan_1p if player_b == 1 else battle_plan_2p
 
-        self.signal_printf.emit(
-            "[{}] [单本轮战] {} {}次 开始".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                stage_id,
-                max_times))
-
-        # 填入战斗方案和关卡信息
+        # 填入战斗方案和关卡信息, 之后会大量动作和更改类属性, 所以需要判断是否组队
         faa_a.set_config_for_battle(
             battle_mode=self.battle_mode,
             is_main=True,
@@ -619,7 +617,14 @@ class Todo(QThread):
                 battle_plan_index=battle_plan_b,
                 stage_id=stage_id)
 
+        self.signal_printf.emit(
+            "[{}] [单本轮战] {} {}次 开始".format(
+                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                stage_id,
+                max_times))
+
         # 检查人物等级 先检查 player_a 组队额外检查 player_b
+
         if not faa_a.check_level():
             self.signal_printf.emit(
                 "[{}] [单本轮战] {}P等级不足, 跳过".format(
@@ -627,6 +632,7 @@ class Todo(QThread):
                     player_a
                 ))
             return False
+
         if is_group:
             if not faa_b.check_level():
                 self.signal_printf.emit(
@@ -690,7 +696,7 @@ class Todo(QThread):
 
                 self.reload_game()
 
-            print("=" * 50)
+            print("=" * 150)
             text = "[{}] [单本轮战] 第{}次, 开始".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 success_battle_time + 1)
@@ -723,7 +729,7 @@ class Todo(QThread):
                 # 加入结果统计列表
                 result_list.append({
                     "time_spend": result_spend_time,
-                    "loot_dict_list": result_loot  # result_loot_dict_list = {a:{掉落}, b:{掉落}}
+                    "loot_dict_list": result_loot  # result_loot_dict_list = [{a掉落}, {b掉落}]
                 })
 
                 # 时间
@@ -1247,7 +1253,7 @@ class Todo(QThread):
                     player_text = "单人1P" if quest_list[i]["player"] == [1] else "单人2P"
 
                 self.signal_printf.emit(
-                    "[{}] [多本轮战] 事项{},{},{},{}次,带卡:{},Ban卡:{}".format(
+                    "[{}] [多本轮战] 事项{},{},{},{},{}次,带卡:{},Ban卡:{}".format(
                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         i + 1,
                         player_text,
@@ -1719,8 +1725,6 @@ class MyMainWindow2(MyMainWindow1):
                 self.signal_dialog.emit(
                     "出错！(╬◣д◢)",
                     f"{player}P存在错误的窗口名或游戏名称, 请参考 [使用前看我!.pdf] 或 [README.md]")
-                # 还原文本结束输出
-                self.todo_completed()
                 return
 
         self.todo_start()
