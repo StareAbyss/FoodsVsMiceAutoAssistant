@@ -1,12 +1,11 @@
 import cProfile
-import os
 import random
 
 import cv2
-import numpy as np
 
-from function.common.match import match_histogram
+from function.common.match import match
 from function.globals.get_paths import PATHS
+from function.globals.init_resources import RESOURCE_P
 
 """
 战斗结果logs分析器
@@ -14,47 +13,26 @@ from function.globals.get_paths import PATHS
 """
 
 
-# 比较两个图像是否完全相同
-def compare(imageA, imageB):
-    # 直接比较图像数组
-    return np.array_equal(imageA, imageB)
-
-
-# 预加载图像
-def preload_target_images(items_dir):
-    target_images = {}
-    for target_filename in os.listdir(items_dir):
-        target_path = os.path.join(items_dir, target_filename)
-        target_image = cv2.imdecode(np.fromfile(target_path, dtype=np.uint8), -1)
-        if target_image is not None:
-            # 存储图像和它的文件名（去掉扩展名）
-            target_images[target_filename.replace(".png", "")] = target_image
-    return target_images
-
-
-def templateMatch(block, target_images):
+def item_match(block):
 
     # 遍历预加载的目标图像
-    for item_name, target_image in target_images.items():
+    for item_name, item_img in RESOURCE_P["item"]["战斗"].items():
 
         # 跳过大小不相等的图片
-        if target_image is not None and target_image.shape == block.shape:
-            # 对比 block 和 target_image
-            result_bool = match_histogram(
-                block=block[:, :, :-1],
-                target_image=target_image[:, :, :-1])
+        if item_img.shape != block.shape:
+            continue
 
-            if result_bool:
-                # 识图成功 返回识别的道具名称
-                return item_name
+        # 对比 block 和 target_image
+        if match(block=block[:, :, :-1], tar_img=item_img[:, :, :-1], mode="match_template"):
+            # 识图成功 返回识别的道具名称(不含扩展名)
+            return item_name.replace(".png", "")
 
     # 识图失败 把block保存到resource-picture-item-未编码索引中
     print(f'该道具未能识别, 已在 [ resource / picture /  item / 未编码索引中 ] 生成文件, 请检查')
+
     # 随便编码
-    filename = "{}\\未编码索引\\{}.png".format(
-        PATHS["picture"]["item"],
-        random.randint(1, 100)
-    )
+    filename = "{}\\未编码索引\\{}.png".format(PATHS["picture"]["item"],random.randint(1, 100))
+
     # 保存图片
     cv2.imencode('.png', block)[1].tofile(filename)
 
@@ -73,8 +51,10 @@ def matchImage(img_path, img, mode='loots', test_print=False):
 
     cv2.imencode('.png', img)[1].tofile(img_path)
     block_list = []
+
+    # 按模式分割图片
     if mode == 'loots':
-        # 把每张图片分割成35 * 35像素的块，间隔的x与y都是49
+        # 战利品模式 把每张图片分割成35 * 35像素的块，间隔的x与y都是49
         rows = 5
         column = 10
 
@@ -85,24 +65,21 @@ def matchImage(img_path, img, mode='loots', test_print=False):
                 # 切分为 30x36
                 block = block[5:41, 5:35]
                 block_list.append(block)
-
     elif mode == 'chests':
+        # 开宝箱模式
         block_list.append(img[4:-4, 4:-54])
         block_list.append(img[4:-4, 48:-10])
 
     # 保存最佳匹配道具的识图数据
     best_match_items = {}
 
-    # 预加载图像
-    items_dir = PATHS["picture"]["item"] + "\\战斗"
-    target_images = preload_target_images(items_dir)
-
     # 按照分割规则，遍历分割每一块，然后依次识图
 
     for block in block_list:
         # 执行模板匹配并获取最佳匹配的文件名
-        best_match_item = templateMatch(block, target_images)
-        if best_match_item in ['0', '1', '2']:
+        best_match_item = item_match(block)
+        if best_match_item in ['None-0', 'None-1', 'None-2']:
+            # 识别为无
             break
         if best_match_item:
             # 如果道具ID已存在，则增加数量，否则初始化数量为1
