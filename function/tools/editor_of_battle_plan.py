@@ -198,6 +198,18 @@ class JsonEditor(QMainWindow):
         """先刷新一下数据"""
         self.load_data_to_ui_list()
 
+    def highlight_chessboard(self, card_locations):
+        """根据卡片的位置list，将对应元素的按钮进行高亮"""
+        # 清除所有按钮的高亮
+        for row in self.chessboard_buttons:
+            for btn in row:
+                btn.setStyleSheet("")
+
+        # 高亮显示选中卡片的位置
+        for location in card_locations:
+            x, y = map(int, location.split('-'))
+            self.chessboard_buttons[y - 1][x - 1].setStyleSheet("background-color: orange;")
+
     def UICss(self):
         # 窗口名
         self.setWindowTitle('战斗方案编辑器')
@@ -216,6 +228,7 @@ class JsonEditor(QMainWindow):
             self.w_name_input.setText("玩家")
             self.w_ergodic_input.setCurrentIndex(0)
             self.queue_input.setCurrentIndex(0)
+            self.highlight_chessboard(self.json_data["player"])
         else:
             # 卡片
             index = index - 1  # 可能需要深拷贝？也许是被保护的特性 不需要
@@ -225,6 +238,8 @@ class JsonEditor(QMainWindow):
             self.w_name_input.setText(card['name'])
             self.w_ergodic_input.setCurrentText(str(card['ergodic']).lower())
             self.queue_input.setCurrentText(str(card['queue']).lower())
+            # 设置高亮
+            self.highlight_chessboard(card["location"])
 
     def load_data_to_ui_list(self):
         """从 [内部数据表] 载入数据到 [ui的list]"""
@@ -388,8 +403,7 @@ class JsonEditor(QMainWindow):
                         cards_in_this_location.append(card)
 
                 for card in cards_in_this_location:
-                    c_name_str = card['name']
-                    text += '\n' + c_name_str
+                    text += '\n' + card['name']
                     c_index_list = card["location"].index(location_key) + 1
                     if type(c_index_list) == "list":
                         for location_index in c_index_list:
