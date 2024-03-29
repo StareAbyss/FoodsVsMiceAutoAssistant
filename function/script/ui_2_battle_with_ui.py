@@ -599,6 +599,7 @@ class Todo(QThread):
         # 填入战斗方案和关卡信息
         faa_a.set_config_for_battle(
             battle_mode=self.battle_mode,
+            is_main=True,
             is_group=is_group,
             is_use_key=is_use_key,
             deck=deck,
@@ -606,15 +607,17 @@ class Todo(QThread):
             ban_card_list=ban_card_list,
             battle_plan_index=battle_plan_a,
             stage_id=stage_id)
-        faa_b.set_config_for_battle(
-            battle_mode=self.battle_mode,
-            is_group=is_group,
-            is_use_key=is_use_key,
-            deck=deck,
-            quest_card=quest_card,
-            ban_card_list=ban_card_list,
-            battle_plan_index=battle_plan_b,
-            stage_id=stage_id)
+        if is_group:
+            faa_b.set_config_for_battle(
+                battle_mode=self.battle_mode,
+                is_main=False,
+                is_group=is_group,
+                is_use_key=is_use_key,
+                deck=deck,
+                quest_card=quest_card,
+                ban_card_list=ban_card_list,
+                battle_plan_index=battle_plan_b,
+                stage_id=stage_id)
 
         # 检查人物等级 先检查 player_a 组队额外检查 player_b
         if not faa_a.check_level():
@@ -648,8 +651,7 @@ class Todo(QThread):
                 if need_goto_stage:
                     if not is_group:
                         # 单人前往副本
-                        faa_a.action_goto_stage(
-                            room_creator=True)
+                        faa_a.action_goto_stage()
                     else:
                         # 多人前往副本
                         result_id = self.goto_stage_and_invite(
@@ -663,7 +665,7 @@ class Todo(QThread):
                 # 魔塔
                 if not is_group:
                     # 单人前往副本
-                    faa_a.action_goto_stage(room_creator=True, mt_first_time=need_goto_stage)
+                    faa_a.action_goto_stage(mt_first_time=need_goto_stage)
                 else:
                     # 多人前往副本
                     result_id = self.goto_stage_and_invite(

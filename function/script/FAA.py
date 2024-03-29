@@ -49,6 +49,7 @@ class FAA:
 
         # 每次战斗都不一样的参数 使用内部函数调用更改
         self.stage_info = None
+        self.is_main = None
         self.is_group = None
         self.is_use_key = None
         self.deck = None
@@ -483,7 +484,7 @@ class FAA:
             change_to_region(region_list=my_dict[stage_1])
 
             # 仅限主角色创建关卡
-            if room_creator:
+            if self.is_main:
                 # 防止被活动列表遮住
                 self.change_activity_list(serial_num=2)
 
@@ -516,7 +517,7 @@ class FAA:
                 # 选区
                 change_to_region(region_list=[1, 2])
 
-            if room_creator and mt_first_time:
+            if self.is_main and mt_first_time:
                 # 进入魔塔
                 loop_match_p_in_w(
                     raw_w_handle=self.handle,
@@ -533,7 +534,7 @@ class FAA:
                 T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=my_dict[stage_1], y=66)
                 time.sleep(0.5)
 
-            if room_creator:
+            if self.is_main:
                 # 选择了密室
                 if stage_1 == "3":
                     loop_match_p_in_w(
@@ -590,7 +591,7 @@ class FAA:
             # 进入跨服远征界面
             self.action_top_menu(mode="跨服远征")
 
-            if room_creator:
+            if self.is_main:
                 # 创建房间
                 T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=853, y=553)
                 time.sleep(0.5)
@@ -689,7 +690,7 @@ class FAA:
             change_to_region(region_list=my_dict[stage_2])
 
             # 仅限创房间的人
-            if room_creator:
+            if self.is_main:
                 # 设置密码
                 click_set_password()
                 # 创建队伍
@@ -726,7 +727,7 @@ class FAA:
             change_to_region(region_list=[1, 2])
 
             # 仅限主角色创建关卡
-            if room_creator:
+            if self.is_main:
                 # 选择关卡
                 loop_match_p_in_w(
                     raw_w_handle=self.handle,
@@ -752,7 +753,7 @@ class FAA:
             self.action_goto_map(map_id=5)
 
             # 仅限主角色创建关卡
-            if room_creator:
+            if self.is_main:
 
                 # 点击进入萌宠神殿
                 self.action_top_menu(mode="萌宠神殿")
@@ -794,7 +795,7 @@ class FAA:
             change_to_region(region_list=[3, 11])
 
             # 仅限主角色创建关卡
-            if room_creator:
+            if self.is_main:
                 # 创建队伍
                 loop_match_p_in_w(
                     raw_w_handle=self.handle,
@@ -1069,12 +1070,13 @@ class FAA:
 
     def set_config_for_battle(
             self,
-            stage_id="NO-1-1", is_group=False, is_use_key=True,
+            stage_id="NO-1-1", is_group=False, is_main=True, is_use_key=True,
             deck=1, quest_card="None", ban_card_list=None,
             battle_plan_index=0, battle_mode=0):
         """
         :param battle_mode:
         :param is_group: 是否组队
+        :param is_main: 是否是主要账号(单人为True 双人房主为True)
         :param is_use_key: 是否使用钥匙
         :param deck:
         :param quest_card:
@@ -1088,6 +1090,7 @@ class FAA:
             ban_card_list = []
 
         self.battle_mode = battle_mode
+        self.is_main = is_main
         self.is_group = is_group
         self.is_use_key = is_use_key
         self.deck = deck
@@ -1237,7 +1240,7 @@ class FAA:
 
             # p1p2分别摆一半
             if is_group:
-                if player == 1:
+                if self.is_main:
                     location = location[::2]  # 奇数
                 else:
                     location = location[1::2]  # 偶数
@@ -1380,7 +1383,7 @@ class FAA:
             self.faa_battle.use_player(i)
 
         # 调用承载卡方案中，铲卡方法
-        if self.player == 1:
+        if self.is_main:
             self.faa_battle.use_shovel()  # 因为有点击序列，所以同时操作是可行的
 
     def loop_battle(self):
