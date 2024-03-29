@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1600</width>
-    <height>700</height>
+    <width>1680</width>
+    <height>660</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -21,14 +21,14 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>1600</width>
-    <height>700</height>
+    <width>1680</width>
+    <height>660</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>1600</width>
-    <height>700</height>
+    <width>1680</width>
+    <height>660</height>
    </size>
   </property>
   <property name="tabletTracking">
@@ -67,8 +67,8 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>1581</width>
-      <height>681</height>
+      <width>1661</width>
+      <height>679</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="LayMain">
@@ -4230,7 +4230,7 @@ Link Start</string>
          </property>
          <property name="minimumSize">
           <size>
-           <width>180</width>
+           <width>250</width>
            <height>0</height>
           </size>
          </property>
@@ -4997,7 +4997,7 @@ Link Start</string>
             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
            <property name="minimum">
-            <number>1</number>
+            <number>0</number>
            </property>
            <property name="maximum">
             <number>3</number>
@@ -5031,7 +5031,7 @@ Link Start</string>
             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
            <property name="minimum">
-            <number>1</number>
+            <number>0</number>
            </property>
            <property name="maximum">
             <number>3</number>
@@ -5065,7 +5065,7 @@ Link Start</string>
             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
            <property name="minimum">
-            <number>1</number>
+            <number>0</number>
            </property>
            <property name="maximum">
             <number>3</number>
@@ -5941,7 +5941,7 @@ Link Start</string>
          </property>
          <property name="minimumSize">
           <size>
-           <width>180</width>
+           <width>250</width>
            <height>0</height>
           </size>
          </property>
