@@ -13,6 +13,7 @@ class Battle:
     def __init__(self, faa):
         """FAA的战斗类，包含了各种战斗中专用的方法"""
         """调用faa属性"""
+        self.faa = faa
         self.handle = faa.handle
         self.player = faa.player
         self.is_auto_battle = faa.is_auto_battle
@@ -32,8 +33,6 @@ class Battle:
         # 每次点击时 按下和抬起之间的间隔 秒
         self.click_sleep = 0.025
 
-        # the locations of cell easy touch the use-key UI by mistake
-        self.warning_cell = ["4-4", "4-5"]
         self.auto_collect_cells = [
             "1-1", "2-1", "8-1", "9-1",
             "1-2", "2-2", "8-2", "9-2",
@@ -43,7 +42,8 @@ class Battle:
             "1-6", "2-6", "8-6", "9-6",
             "1-7", "2-7", "8-7", "9-7"
         ]
-        self.auto_collect_cells = [i for i in self.auto_collect_cells if i not in self.warning_cell]
+
+        # self.auto_collect_cells = [i for i in self.auto_collect_cells if i not in self.warning_cell]
 
         self.auto_collect_cells_coordinate = []
         for i in self.auto_collect_cells:

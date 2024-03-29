@@ -1360,9 +1360,9 @@ class FAA:
                 list_cell_all=list_cell_all,
                 list_shovel=list_shovel)
 
-            # 调试print 打包前务必注释! pprint
-            self.print_g(text="调试info: 你的战斗放卡opt如下:", garde=1)
-            self.print_g(text=list_cell_all, garde=1)
+            # 不常用调试print
+            # self.print_g(text="调试info: 你的战斗放卡opt如下:", garde=1)
+            # self.print_g(text=list_cell_all, garde=1)
             self.battle_plan_1 = {"card": list_cell_all, "shovel": list_shovel}
 
         return main()
@@ -1416,10 +1416,9 @@ class FAA:
                         my_len = 1
 
                     for j in range(my_len):
-
                         # 防止误触
-                        if self.is_use_key and (a_card["location"][j] in self.faa_battle.warning_cell):
-                            self.faa_battle.use_key(mode=1)
+                        # if a_card["location"][j] in self.faa_battle.warning_cell:
+                        #     self.faa_battle.use_key(mode=1)
 
                         # 点击 放下卡片
                         T_CLICK_QUEUE_TIMER.add_click_to_queue(
@@ -1460,9 +1459,6 @@ class FAA:
 
                     """每放完一张卡片的所有位置 检查时间设定间隔 检测战斗间隔"""
                     if time.time() - check_last_one_time > check_invite:
-
-                        # 测试用时
-                        # print("[{}][放卡间进行了战斗结束检测] {:.2f}s".format(player, time.time()- check_last_one_time))
 
                         # 更新上次检测时间 + 更新flag + 中止休息循环
                         check_last_one_time = time.time()
