@@ -3,6 +3,10 @@ from ctypes.wintypes import HWND
 from string import printable
 from time import sleep
 
+# 详情可查阅
+# https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
+# https://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes
+
 PostMessageW = windll.user32.PostMessageW
 MapVirtualKeyW = windll.user32.MapVirtualKeyW
 VkKeyScanA = windll.user32.VkKeyScanA
@@ -10,9 +14,6 @@ VkKeyScanA = windll.user32.VkKeyScanA
 WM_KEYDOWN = 0x100  # 按下操作
 WM_KEYUP = 0x101  # 松开操作
 
-# 详情可查阅
-# https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
-# https://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes
 VkCode = {
     "l_button": 0x01,  # 鼠标左键
     "r_button": 0x02,  # 鼠标右键
@@ -143,15 +144,18 @@ def key_down_up(handle: HWND, key: str, interval_time: float = 0.05, sleep_time:
 
 # 测试代码
 if __name__ == "__main__":
-    # 需要和目标窗口同一权限，游戏窗口通常是管理员权限 不是管理员就提权
-    import sys
+    def main():
+        # 需要和目标窗口同一权限，游戏窗口通常是管理员权限 不是管理员就提权
+        import sys
 
-    if not windll.shell32.IsUserAnAdmin():
-        windll.shell32.ShellExecuteW(
-            None, "runas", sys.executable, __file__, None, 1)
-    handle = windll.user32.FindWindowW(None, "魔兽世界")
+        if not windll.shell32.IsUserAnAdmin():
+            windll.shell32.ShellExecuteW(
+                None, "runas", sys.executable, __file__, None, 1)
+        handle = windll.user32.FindWindowW(None, "魔兽世界")
 
-    # 控制角色向前移动两秒
-    key_down(handle, 'w')
-    sleep(2)
-    key_up(handle, 'w')
+        # 控制角色向前移动两秒
+        key_down(handle, 'w')
+        sleep(2)
+        key_up(handle, 'w')
+
+    main()

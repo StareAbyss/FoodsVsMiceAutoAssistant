@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication
 
 from function.common.get_system_dpi import get_system_dpi
 from function.globals.get_paths import PATHS
-from function.globals.thread_click_queue import T_CLICK_QUEUE_TIMER
+from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 ZOOM_RATE = None
 
@@ -33,7 +33,7 @@ class MyMainWindow0(QMainWindow):
 
         # 获取 dpi & zoom 仅能在类中调用
         self.zoom_rate = get_system_dpi() / 96
-        T_CLICK_QUEUE_TIMER.set_zoom_rate(self.zoom_rate)
+        T_ACTION_QUEUE_TIMER.set_zoom_rate(self.zoom_rate)
 
         # 设定字体
         QFontDatabase.addApplicationFont(PATHS["font"] + "\\汉仪文黑-85W Heavy.ttf")
@@ -54,7 +54,7 @@ class MyMainWindow0(QMainWindow):
     def start_print(self):
         """打印默认输出提示"""
         self.printf("嗷呜, 欢迎使用FAA-美食大战老鼠自动放卡作战小助手~")
-        self.printf("当前版本: 1.2.0-beta.1")
+        self.printf("当前版本: 1.1.3-beta 调试版")
         self.printf("")
         self.printf("使用安全说明",color="red")
         self.printf("[1] 务必有二级密码")

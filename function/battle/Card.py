@@ -3,7 +3,7 @@ import time
 import numpy as np
 
 from function.common.bg_p_screenshot import capture_picture_png
-from function.globals.thread_click_queue import T_CLICK_QUEUE_TIMER
+from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
 def compare_pixels(pixels, reference):
@@ -65,7 +65,7 @@ class Card:
             return
 
         # 点击 选中卡片
-        T_CLICK_QUEUE_TIMER.add_click_to_queue(
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(
             handle=self.handle,
             x=self.location_from[0],
             y=self.location_from[1])
@@ -84,14 +84,14 @@ class Card:
             if self.is_use_key and (self.location[j] in self.warning_cell):
                 self.faa_battle.use_key(mode=1)
             # 点击 放下卡片
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(
                 handle=self.handle,
                 x=self.location_to[j][0],
                 y=self.location_to[j][1])
 
         # 放卡后点一下空白
-        T_CLICK_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-        T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
+        T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
 
         # 统一计算点击间隔时间
         time.sleep(self.faa_battle.click_sleep * (2 + my_len))

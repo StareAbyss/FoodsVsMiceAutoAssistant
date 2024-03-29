@@ -9,12 +9,11 @@ import numpy as np
 
 from function.battle.FAABattle import Battle
 from function.battle.get_position_in_battle import get_position_card_deck_in_battle, get_position_card_cell_in_battle
-from function.common.bg_keyboard import key_down_up
 from function.common.bg_p_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
 from function.common.bg_p_screenshot import capture_picture_png
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
-from function.globals.thread_click_queue import T_CLICK_QUEUE_TIMER
+from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_list_battle_plan import get_list_battle_plan
 from function.scattered.read_json_to_stage_info import read_json_to_stage_info
@@ -69,9 +68,10 @@ class FAA:
         # 承载卡的位置
         self.mat_card_position = None
 
-    def print_g(self, text, garde=1):
+    def print_g(self, text, garde=1, player=1):
         """
         分级print函数
+        :param player: 哪个角色需要这个print
         :param text: 正文
         :param garde: 级别, 1-[Info]默认 2-[Warning] 3或其他-[Error]
         :return: None
@@ -83,7 +83,7 @@ class FAA:
         else:
             garde_text = "Error"
 
-        if self.player == 1:
+        if self.player == player:
             print("[{}] [{}P] {}".format(garde_text, self.player, text))
 
     """通用对flash界面的基础操作"""
@@ -143,11 +143,11 @@ class FAA:
 
         if mode == "游戏内退出":
             # 游戏内退出
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=925, y=580)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=925, y=580)
             time.sleep(0.1)
 
             # 确定游戏内退出
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=455, y=385)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=455, y=385)
             time.sleep(0.1)
 
     def action_top_menu(self, mode: str):
@@ -192,10 +192,10 @@ class FAA:
 
             if find:
                 # 选2区人少
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=30)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=30)
                 time.sleep(0.5)
 
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=85)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=85)
                 time.sleep(0.5)
 
         return find
@@ -245,12 +245,12 @@ class FAA:
 
         if serial_num == 1:
             if find:
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=30)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=30)
                 time.sleep(0.5)
 
         if serial_num == 2:
             if not find:
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=30)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=30)
                 time.sleep(0.5)
 
     def action_get_stage_name(self):
@@ -373,7 +373,7 @@ class FAA:
             y_dict = {0: 362, 1: 405, 2: 448, 3: 491, 4: 534, 5: 570}
             for i in range(6):
                 # 先移动到新的一页
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=y_dict[i])
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=y_dict[i])
                 time.sleep(0.1)
                 for quest, img in RESOURCE_P["quest_food"].items():
                     find_p = match_p_in_w(
@@ -407,7 +407,7 @@ class FAA:
         if mode == "公会任务" or mode == "情侣任务":
             self.action_exit(mode="普通红叉")
         if mode == "美食大赛":
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=888, y=53)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=888, y=53)
             time.sleep(0.5)
 
         return quest_list
@@ -447,27 +447,24 @@ class FAA:
 
         def click_set_password():
             """设置进队密码"""
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=491, y=453)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=491, y=453)
             time.sleep(0.5)
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=600, y=453)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=600, y=453)
             time.sleep(0.5)
-            key_down_up(
-                handle=self.handle,
-                key="backspace")
-            key_down_up(
-                handle=self.handle,
-                key="1")
+            T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle, key="backspace")
+            time.sleep(0.5)
+            T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle, key="1")
             time.sleep(1)
 
         def change_to_region(region_list):
             random.seed(self.random_seed)
             region_id = random.randint(region_list[0], region_list[1])
 
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=820, y=85)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=820, y=85)
             time.sleep(0.5)
 
             my_list = [85, 110, 135, 160, 185, 210, 235, 260, 285, 310, 335]
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=779, y=my_list[region_id - 1])
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=779, y=my_list[region_id - 1])
             time.sleep(2.0)
 
         def main_no():
@@ -526,7 +523,7 @@ class FAA:
                 # 根据模式进行选择
                 my_dict = {"1": 46, "2": 115, "3": 188}
 
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=my_dict[stage_1], y=66)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=my_dict[stage_1], y=66)
                 time.sleep(0.5)
 
             if self.is_main:
@@ -543,31 +540,31 @@ class FAA:
                     # 等于0则为爬塔模式 即选择最高层 从下到上遍历所有层数
                     if stage_2 == "0":
                         # 到魔塔最低一层
-                        T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=47, y=579)
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=47, y=579)
                         time.sleep(0.3)
 
                         for i in range(11):
                             # 下一页
-                            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=152, y=577)
+                            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=152, y=577)
                             time.sleep(0.1)
 
                             for j in range(15):
-                                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=110, y=542 - 30.8 * j)
+                                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=110, y=542 - 30.8 * j)
                                 time.sleep(0.1)
 
                     else:
                         # 到魔塔最低一层
-                        T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=47, y=579)
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=47, y=579)
                         time.sleep(0.3)
 
                         # 向右到对应位置
                         my_left = int((int(stage_2) - 1) / 15)
                         for i in range(my_left):
-                            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=152, y=577)
+                            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=152, y=577)
                             time.sleep(0.3)
 
                         # 点击对应层数
-                        T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
                             handle=self.handle,
                             x=110,
                             y=542 - (30.8 * (int(stage_2) - my_left * 15 - 1)))
@@ -588,18 +585,18 @@ class FAA:
 
             if self.is_main:
                 # 创建房间
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=853, y=553)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=853, y=553)
                 time.sleep(0.5)
 
                 # 选择地图
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=int(stage_1) * 101 - 36, y=70)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=int(stage_1) * 101 - 36, y=70)
                 time.sleep(1)
 
                 # 选择关卡
                 my_dict = {
                     "1": [124, 248], "2": [349, 248], "3": [576, 248], "4": [803, 248],
                     "5": [124, 469], "6": [349, 469], "7": [576, 469], "8": [803, 469]}
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
                     x=my_dict[stage_2][0],
                     y=my_dict[stage_2][1])
@@ -609,34 +606,32 @@ class FAA:
                 my_dict = {
                     "1": [194, 248], "2": [419, 248], "3": [646, 248], "4": [873, 248],
                     "5": [194, 467], "6": [419, 467], "7": [646, 467], "8": [873, 467]}
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
                     x=my_dict[stage_2][0],
                     y=my_dict[stage_2][1])
                 time.sleep(0.5)
 
                 # 输入密码
-                key_down_up(
-                    handle=self.handle,
-                    key="1",
-                    sleep_time=0.5)
+                T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle, key="1")
+                time.sleep(0.5)
 
                 # 创建关卡
                 my_dict = {  # X+225 Y+221
                     "1": [176, 286], "2": [401, 286], "3": [629, 286], "4": [855, 286],
                     "5": [176, 507], "6": [401, 507], "7": [629, 507], "8": [855, 507]}
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
                     x=my_dict[stage_2][0],
                     y=my_dict[stage_2][1])
                 time.sleep(0.5)
             else:
                 # 刷新
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=895, y=80)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=895, y=80)
                 time.sleep(3)
 
                 # 复位
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=602, y=490)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=602, y=490)
                 time.sleep(0.2)
 
                 for i in range(20):
@@ -651,19 +646,17 @@ class FAA:
                         break
                     else:
                         # 下一页
-                        T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=700, y=490)
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=700, y=490)
                         time.sleep(0.2)
 
                 # 点击密码框 输入密码 确定进入
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=490, y=300)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=490, y=300)
                 time.sleep(0.5)
 
-                key_down_up(
-                    handle=self.handle,
-                    key="1",
-                    sleep_time=0.5)
+                T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle, key="1")
+                time.sleep(0.5)
 
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=490, y=360)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=490, y=360)
                 time.sleep(0.5)
 
         def main_or():
@@ -689,7 +682,7 @@ class FAA:
                 # 设置密码
                 click_set_password()
                 # 创建队伍
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=583, y=500)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=583, y=500)
                 time.sleep(0.5)
 
         def main_ex():
@@ -754,17 +747,17 @@ class FAA:
                 self.action_top_menu(mode="萌宠神殿")
 
                 # 到最低一层
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=192, y=579)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=192, y=579)
                 time.sleep(0.3)
 
                 # 向右到对应位置
                 my_left = int((int(stage_2) - 1) / 15)
                 for i in range(my_left):
-                    T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=297, y=577)
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=297, y=577)
                     time.sleep(0.3)
 
                 # 点击对应层数
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
                     x=225,
                     y=int(542 - (30.8 * (int(stage_2) - my_left * 15 - 1))))
@@ -782,7 +775,7 @@ class FAA:
             # 进入工会副本页
             self.action_bottom_menu(mode="跳转_公会副本")
             # 选关卡 1 2 3
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(
                 handle=self.handle,
                 x={"1": 155, "2": 360, "3": 580}[stage_2],
                 y=417)
@@ -813,7 +806,7 @@ class FAA:
                         target_tolerance=0.95)
                 if result:
                     # 直接进入
-                    T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(
                         handle=self.handle,
                         x=result[0], y=result[1])
 
@@ -856,7 +849,7 @@ class FAA:
 
             if find:
                 # 复位滑块
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=413, y=155)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=413, y=155)
                 time.sleep(0.25)
 
                 for i in range(8):
@@ -864,7 +857,7 @@ class FAA:
                     # 不是第一次滑块向下移动3次
                     if i != 0:
                         for j in range(3):
-                            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=413, y=524)
+                            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=413, y=524)
                             time.sleep(0.05)
 
                     # 找到就点一下, 找不到就跳过
@@ -879,7 +872,7 @@ class FAA:
                             click=True)
                         if find:
                             # 领取奖励
-                            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=643, y=534)
+                            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=643, y=534)
                             time.sleep(0.2)
                         else:
                             break
@@ -973,7 +966,7 @@ class FAA:
             for i in range(6):
 
                 # 先移动一次位置
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=my_dict[i])
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=my_dict[i])
                 time.sleep(0.2)
 
                 # 找到就点一下领取, 1s内找不到就跳过
@@ -996,7 +989,7 @@ class FAA:
                         break
 
             # 退出美食大赛界面
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=888, y=53)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=888, y=53)
             time.sleep(0.5)
 
         else:
@@ -1025,16 +1018,16 @@ class FAA:
 
                 if i > 0:
                     # 下一页
-                    T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=878, y=458)
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=878, y=458)
                     time.sleep(0.5)
 
                 # 点击每一个有效位置
                 for j in range(6):
-                    T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=768, y=y_dict[j])
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=768, y=y_dict[j])
                     time.sleep(0.1)
 
             # 退出界面
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=928, y=16)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=928, y=16)
             time.sleep(0.5)
 
     def action_quest_receive_rewards(self, mode: str):
@@ -1181,7 +1174,6 @@ class FAA:
         """
 
         """调用类参数"""
-        player = self.player
         is_group = self.is_group
         bp_cell = copy.deepcopy(self.bp_cell)
         bp_card = copy.deepcopy(self.bp_card)
@@ -1293,14 +1285,6 @@ class FAA:
 
             return new_list
 
-        def calculation_alt_transformer(list_cell_all):
-            """[非]1P, 队列模式, 就颠倒坐标数组, [非]队列模式代表着优先级很重要的卡片, 所以不颠倒"""
-            if player == 2:
-                for i in range(len(list_cell_all)):
-                    if list_cell_all[i]["queue"]:
-                        list_cell_all[i]["location"] = list_cell_all[i]["location"][::-1]
-            return list_cell_all
-
         def calculation_shovel():
             """铲子位置 """
             list_shovel = stage_info["shovel"]
@@ -1402,7 +1386,7 @@ class FAA:
                 if self.is_auto_battle:  # 启动了自动战斗
 
                     # 点击 选中卡片
-                    T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(
                         handle=self.handle,
                         x=a_card["location_from"][0],
                         y=a_card["location_from"][1])
@@ -1421,15 +1405,15 @@ class FAA:
                         #     self.faa_battle.use_key(mode=1)
 
                         # 点击 放下卡片
-                        T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
                             handle=self.handle,
                             x=a_card["location_to"][j][0],
                             y=a_card["location_to"][j][1])
                         time.sleep(click_sleep)
 
                     """放卡后点一下空白"""
-                    T_CLICK_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-                    T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
+                    T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
                     time.sleep(click_sleep)
 
             # 读取点击相关部分参数
@@ -1448,6 +1432,7 @@ class FAA:
             end_flag = False  # 用flag值来停止循环
             check_last_one_time = time.time()  # 记录上一次检测的时间
 
+            """战斗主循环"""
             while True:
 
                 time_round_begin = time.time()  # 每一轮开始的时间
@@ -1604,7 +1589,7 @@ class FAA:
                 for quest_card in quest_card_list:
 
                     # 复位滑块
-                    T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=931, y=209)
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=931, y=209)
                     time.sleep(0.25)
 
                     # 最多向下点3*7次滑块
@@ -1627,7 +1612,7 @@ class FAA:
 
                             # 滑块向下移动3次
                             for j in range(3):
-                                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=931, y=400)
+                                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=931, y=400)
                                 time.sleep(0.05)
 
                     if flag_find_quest_card:
@@ -1675,7 +1660,7 @@ class FAA:
 
                 # 翻页回第一页
                 for i in range(5):
-                    T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=930, y=55)
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=930, y=55)
                     time.sleep(0.05)
 
                 # 第一页
@@ -1683,7 +1668,7 @@ class FAA:
 
                 # 翻页到第二页
                 for i in range(5):
-                    T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=930, y=85)
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=930, y=85)
                     time.sleep(0.05)
 
                 # 第二页
@@ -1707,7 +1692,7 @@ class FAA:
 
             # 选择卡组
             self.print_g(text="选择卡组, 并开始加入新卡和ban卡", garde=1)
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(
                 handle=self.handle,
                 x={1: 425, 2: 523, 3: 588, 4: 666, 5: 756, 6: 837}[self.deck],
                 y=121)
@@ -1740,7 +1725,7 @@ class FAA:
                 target_path=RESOURCE_P["common"]["战斗"]["战斗前_系统提示.png"],
                 target_tolerance=0.98)
             if find:
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
                     x=427,
                     y=353)
@@ -1804,13 +1789,13 @@ class FAA:
             images = []
 
             # 防止 已有选中的卡片, 先点击空白
-            T_CLICK_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
+            T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
             time.sleep(0.025)
 
             # 1 2 行
             for i in range(3):
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=484)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=484)
                 time.sleep(0.05)
             time.sleep(0.25)
             images.append(capture_picture_png(handle=self.handle, raw_range=[209, 454, 699, 552]))
@@ -1818,7 +1803,7 @@ class FAA:
 
             # 3 4 行 取3行
             for i in range(3):
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=510)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=510)
                 time.sleep(0.05)
             time.sleep(0.25)
             images.append(capture_picture_png(handle=self.handle, raw_range=[209, 456, 699, 505]))
@@ -1826,7 +1811,7 @@ class FAA:
 
             # 4 5 行
             for i in range(3):
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=529)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=529)
                 time.sleep(0.05)
             time.sleep(0.25)
             images.append(capture_picture_png(handle=self.handle, raw_range=[209, 454, 699, 552]))
@@ -1891,13 +1876,13 @@ class FAA:
             if find:
                 self.print_g(text="[翻宝箱UI] 捕获到正确标志, 翻牌并退出...", garde=1)
                 # 开始洗牌
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=502)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=502)
                 time.sleep(6)
 
                 # 翻牌 1+2
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=550, y=170)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=550, y=170)
                 time.sleep(0.5)
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=170)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=170)
                 time.sleep(1.5)
 
                 img = [
@@ -1928,7 +1913,7 @@ class FAA:
                     time.sleep(2)
 
                 # 结束翻牌
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=502)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=502)
                 time.sleep(3)
 
                 return drop_dict
@@ -2128,7 +2113,7 @@ class FAA:
             )
             if my_result:
                 # 点击进入服务器
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle_browser,
                     x=my_result[0],
                     y=my_result[1] + 30)
@@ -2145,7 +2130,7 @@ class FAA:
             )
             if my_result:
                 # 点击进入服务器
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle_browser,
                     x=my_result[0],
                     y=my_result[1] + 30)
@@ -2162,7 +2147,7 @@ class FAA:
             )
             if my_result:
                 # 点击进入服务器
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle_browser,
                     x=my_result[0],
                     y=my_result[1] + 30)
@@ -2172,12 +2157,19 @@ class FAA:
         while True:
 
             # 点击刷新按钮 该按钮在360窗口上
+            self.print_g(text="[刷新游戏] 点击刷新按钮...", garde=1)
             self.reload_to_login_ui()
 
             # 是否在 选择服务器界面 - 判断是否存在 最近玩过的服务器ui(4399 or qq空间) 或 开始游戏(qq游戏大厅) 并进入
             result = False
+
+            self.print_g(text="[刷新游戏] 判定4399平台...", garde=1)
             result = result or try_enter_server_4399()
+
+            self.print_g(text="[刷新游戏] 判定QQ空间平台...", garde=1)
             result = result or try_enter_server_qq_space()
+
+            self.print_g(text="[刷新游戏] 判定QQ游戏大厅平台...", garde=1)
             result = result or try_enter_server_qq_game_hall()
 
             # 如果未找到进入服务器，从头再来
@@ -2194,14 +2186,13 @@ class FAA:
                     target_sleep=5,
                     click=True)
                 if result:
-                    self.print_g(text="找到QQ空间服一键登录, 正在登录", garde=0)
+                    self.print_g(text="找到QQ空间服一键登录, 正在登录, 即将刷新重来", garde=0)
                 else:
-                    self.print_g(text="未找到QQ空间服一键登录, 非qq服或其他原因", garde=1)
-
+                    self.print_g(text="未找到QQ空间服一键登录, 非qq服或其他原因, 即将刷新重来", garde=1)
                 continue
 
             """查找大地图确认进入游戏"""
-            # 查找顶部大地图
+            self.print_g(text="[刷新游戏] 查找大地图确认进入游戏中...", garde=1)
             result = loop_match_p_in_w(
                 raw_w_handle=self.handle_browser,
                 raw_range=[0, 0, 2000, 2000],
@@ -2216,6 +2207,7 @@ class FAA:
                 self.handle = faa_get_handle(channel=self.channel, mode="flash")
 
                 # [4399] [QQ空间]关闭健康游戏公告
+                self.print_g(text="[刷新游戏] [4399] [QQ空间]关闭健康游戏公告", garde=1)
                 loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
@@ -2235,7 +2227,12 @@ class FAA:
                     target_sleep=1,
                     click=True)
                 self.random_seed += 1
+
+                self.print_g(text="[刷新游戏] 已完成", garde=1)
+
                 return
+            else:
+                self.print_g(text="[刷新游戏] 查找大地图失败, 点击服务器后未能成功进入游戏, 刷新重来", garde=2)
 
     def sign_in(self):
 
@@ -2243,10 +2240,10 @@ class FAA:
             """VIP签到"""
             self.action_top_menu(mode="VIP签到")
 
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=740, y=190)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=740, y=190)
             time.sleep(0.5)
 
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=225, y=280)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=225, y=280)
             time.sleep(0.5)
 
             self.action_exit(mode="普通红叉")
@@ -2318,10 +2315,10 @@ class FAA:
                 click=False)
 
             if find:
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=300, y=250)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=300, y=250)
                 time.sleep(1)
 
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=791, y=98)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=791, y=98)
             time.sleep(1)
 
         def sign_in_release_quest_guild():
@@ -2358,7 +2355,7 @@ class FAA:
 
             if find:
                 # 领取钥匙
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=400, y=445)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=400, y=445)
                 time.sleep(0.5)
 
         def main():
@@ -2379,10 +2376,10 @@ class FAA:
             """进入任务界面, 正确进入就跳出循环"""
             while True:
 
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=745, y=430)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=745, y=430)
                 time.sleep(0.001)
 
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=700, y=350)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=700, y=350)
                 time.sleep(2)
 
                 find = loop_match_p_in_w(
@@ -2401,10 +2398,10 @@ class FAA:
             """进入施肥界面, 正确进入就跳出循环"""
             while True:
 
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=745, y=430)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=745, y=430)
                 time.sleep(0.001)
 
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=800, y=350)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=800, y=350)
                 time.sleep(2)
 
                 find = loop_match_p_in_w(
@@ -2424,22 +2421,22 @@ class FAA:
             if try_time != 0:
 
                 # 点击全部工会
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=798, y=123)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=798, y=123)
                 time.sleep(0.5)
 
                 # 跳转到最后
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=843, y=305)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=843, y=305)
                 time.sleep(0.5)
 
                 # 以倒数第二页从上到下为1-4, 第二页为5-8次尝试对应的公会 以此类推
                 for i in range((try_time - 1) // 4 + 1):
                     # 向上翻的页数
-                    T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=843, y=194)
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=843, y=194)
                     time.sleep(0.5)
 
                 # 点第几个
                 my_dict = {1: 217, 2: 244, 3: 271, 4: 300}
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
                     x=810,
                     y=my_dict[(try_time - 1) % 4 + 1])
@@ -2448,11 +2445,11 @@ class FAA:
         def do_something_and_exit(try_time):
             """完成素质三连并退出公会花园界面"""
             # 采摘一次
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=471)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=471)
             time.sleep(1)
 
             # 浇水一次
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=362)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=362)
             time.sleep(1)
 
             # 等待一下 确保没有完成的黑屏
@@ -2470,7 +2467,7 @@ class FAA:
                 garde=1)
 
             # 施肥一次
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=418)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=418)
             time.sleep(1)
 
             # 等待一下 确保没有完成的黑屏
@@ -2485,7 +2482,7 @@ class FAA:
             self.print_g(text="{}次尝试, 施肥后, 已确认无任务完成黑屏".format(try_time + 1), garde=1)
 
             # 点X回退一次
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=854, y=55)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=854, y=55)
             time.sleep(1.5)
 
         def fed_and_watered_one_action(try_time):
@@ -2521,7 +2518,7 @@ class FAA:
                 target_failed_check=2)
 
             # 退出任务界面
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=854, y=55)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=854, y=55)
             time.sleep(0.5)
 
             if not find:
@@ -2577,7 +2574,7 @@ class FAA:
             # 第一次以外, 下滑4*5次
             if i != 0:
                 for j in range(5):
-                    T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=920, y=422)
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=920, y=422)
                     time.sleep(0.2)
 
             for item_name, item_image in RESOURCE_P["item"]["背包"].items():
@@ -2650,19 +2647,19 @@ class FAA:
                 first_time = False
 
             # 创建房间-右下角
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=853, y=553)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=853, y=553)
             time.sleep(0.5)
 
             # 选择地图-巫毒
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=469, y=70)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=469, y=70)
             time.sleep(0.5)
 
             # 选择关卡-第二关
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=401, y=286)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=401, y=286)
             time.sleep(0.5)
 
             # 随便公会任务卡组
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(
                 handle=self.handle,
                 x={1: 425, 2: 523, 3: 588, 4: 666, 5: 756, 6: 837}[deck],
                 y=121)
@@ -2691,7 +2688,7 @@ class FAA:
                 target_path=RESOURCE_P["common"]["战斗"]["战斗前_系统提示.png"],
                 target_tolerance=0.98)
             if find:
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=427, y=353)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=427, y=353)
                 time.sleep(0.5)
 
             # 刷新ui: 状态文本
@@ -2715,7 +2712,7 @@ class FAA:
                 continue
 
             # 放人物
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=333, y=333)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=333, y=333)
             time.sleep(0.05)
 
             # 休息60s 等待完成

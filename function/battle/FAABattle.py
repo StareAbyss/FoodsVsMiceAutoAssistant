@@ -2,11 +2,10 @@ import time
 
 import numpy as np
 
-from function.common.bg_keyboard import key_down_up
-from function.common.bg_p_match import match_p_in_w, match_ps_in_w
+from function.common.bg_p_match import match_p_in_w, match_ps_in_w, loop_match_p_in_w
 from function.common.bg_p_screenshot import capture_picture_png
 from function.globals.init_resources import RESOURCE_P
-from function.globals.thread_click_queue import T_CLICK_QUEUE_TIMER
+from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
 class Battle:
@@ -52,7 +51,7 @@ class Battle:
     """ 战斗内的子函数 """
 
     def use_player(self, num_cell):
-        T_CLICK_QUEUE_TIMER.add_click_to_queue(
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(
             handle=self.handle,
             x=self.bp_cell[num_cell][0],
             y=self.bp_cell[num_cell][1])
@@ -70,8 +69,9 @@ class Battle:
             positions.append(position)
 
         for position in positions:
-            key_down_up(handle=self.handle, key="1")
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=position[0], y=position[1])
+            T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle, key="1")
+            time.sleep(self.click_sleep / 2)  # 必须的间隔
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=position[0], y=position[1])
             time.sleep(self.click_sleep)
 
     def use_key(self, mode: int = 0):
@@ -86,25 +86,35 @@ class Battle:
         """
         if self.is_use_key:
             if mode == 0:
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=427, y=360)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=427, y=360)
                 time.sleep(self.click_sleep)
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=427, y=360)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=427, y=360)
                 time.sleep(self.click_sleep)
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=427, y=360)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=427, y=360)
                 time.sleep(self.click_sleep)
 
             if mode == 1:
                 find = match_p_in_w(
                     raw_w_handle=self.handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
+                    raw_range=[302,263,396,289],
+                    target_tolerance=0.95,
+                    target_path=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
                 if find:
-                    T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=427, y=360)
-                    time.sleep(self.click_sleep)
-                    T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=427, y=360)
-                    time.sleep(self.click_sleep)
-                    T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=427, y=360)
-                    time.sleep(self.click_sleep)
+                    self.faa.print_g(text="找到了 [精英鼠军]", player=2)
+                    while find:
+                        loop_match_p_in_w(
+                            raw_w_handle=self.handle,
+                            raw_range=[386,332,463,362],
+                            target_tolerance=0.95,
+                            target_path=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"],
+                            target_sleep=0.5,
+                            click=True)
+                        find = match_p_in_w(
+                            raw_w_handle=self.handle,
+                            raw_range=[302,263,396,289],
+                            target_tolerance=0.95,
+                            target_path=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
+                    self.faa.print_g(text="已查找到 [继续作战] 图标并点击", player=2)
 
     def use_key_and_check_end(self):
         # 找到战利品字样(被黑色透明物遮挡,会看不到)
@@ -160,13 +170,13 @@ class Battle:
             click_space:  是否点一下空白地区防卡住
         """
         # 注 美食大战老鼠中 放卡动作 需要按下一下 然后拖动 然后按下并松开 才能完成 整个动作
-        T_CLICK_QUEUE_TIMER.add_click_to_queue(
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(
             handle=self.handle,
             x=self.bp_card[num_card][0],
             y=self.bp_card[num_card][1])
         time.sleep(self.click_sleep)
 
-        T_CLICK_QUEUE_TIMER.add_click_to_queue(
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(
             handle=self.handle,
             x=self.bp_cell[num_cell][0],
             y=self.bp_cell[num_cell][1])
@@ -174,23 +184,23 @@ class Battle:
 
         # 点一下空白
         if click_space:
-            T_CLICK_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
+            T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
             time.sleep(self.click_sleep)
 
     def use_weapon_skill(self):
         """使用武器技能"""
-        T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=23, y=200)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=23, y=200)
         time.sleep(self.click_sleep)
-        T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=23, y=250)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=23, y=250)
         time.sleep(self.click_sleep)
-        T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=23, y=297)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=23, y=297)
         time.sleep(self.click_sleep)
 
     def auto_pickup(self):
         if self.is_auto_pickup:
             for coordinate in self.auto_collect_cells_coordinate:
-                T_CLICK_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=coordinate[0], y=coordinate[1])
+                T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=coordinate[0], y=coordinate[1])
                 time.sleep(self.click_sleep)
 
     def update_fire_elemental_1000(self):

@@ -14,7 +14,7 @@ from function.common.bg_p_match import loop_match_p_in_w
 from function.common.thread_with_exception import ThreadWithException
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
-from function.globals.thread_click_queue import T_CLICK_QUEUE_TIMER
+from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
 from function.scattered.get_customize_todo_list import get_customize_todo_list
@@ -315,15 +315,15 @@ class Todo(QThread):
         if not faa_a.stage_info["id"].split("-")[0] == "GD":
 
             # 点击[房间ui-邀请按钮]
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=faa_a.handle, x=410, y=546)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa_a.handle, x=410, y=546)
             time.sleep(0.5)
 
             # 点击[房间ui-邀请ui-好友按钮]
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=faa_a.handle, x=535, y=130)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa_a.handle, x=535, y=130)
             time.sleep(0.5)
 
             # 直接邀请
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=faa_a.handle, x=601, y=157)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa_a.handle, x=601, y=157)
             time.sleep(0.5)
 
             # p2接受邀请
@@ -340,7 +340,7 @@ class Todo(QThread):
                 return False
 
             # p1关闭邀请窗口
-            T_CLICK_QUEUE_TIMER.add_click_to_queue(handle=faa_a.handle, x=590, y=491)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa_a.handle, x=590, y=491)
             time.sleep(1)
 
         return True
@@ -1692,7 +1692,7 @@ class MyMainWindow2(MyMainWindow1):
         # 设置输出文本
         self.printf("\n>>> 全部完成 线程关闭 <<<\n")
         # 中止点击处理
-        T_CLICK_QUEUE_TIMER.stop()
+        T_ACTION_QUEUE_TIMER.stop()
 
     def todo_start(self):
         # 设置flag
@@ -1704,7 +1704,7 @@ class MyMainWindow2(MyMainWindow1):
         self.start_print()
         self.printf("\n>>> 链接开始 线程开启 <<<\n")
         # 启动点击处理
-        T_CLICK_QUEUE_TIMER.start()
+        T_ACTION_QUEUE_TIMER.start()
 
     def start_all(self):
 

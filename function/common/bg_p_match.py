@@ -5,7 +5,7 @@ import numpy as np
 
 from function.common.bg_p_screenshot import capture_picture_png, png_cropping
 from function.globals.init_resources import RESOURCE_P
-from function.globals.thread_click_queue import T_CLICK_QUEUE_TIMER
+from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
 def match_p_in_w(
@@ -204,7 +204,7 @@ def loop_match_p_in_w(
                 time.sleep(target_sleep)
 
             else:
-                T_CLICK_QUEUE_TIMER.add_click_to_queue(
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=raw_w_handle,
                     x=find_target[0] + raw_range[0],
                     y=find_target[1] + raw_range[1]
