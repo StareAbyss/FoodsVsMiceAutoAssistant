@@ -83,8 +83,9 @@ class FAA:
         else:
             garde_text = "Error"
 
-        if self.player == player:
-            print("[{}] [{}P] {}".format(garde_text, self.player, text))
+        # if self.player == player:
+        #     print("[{}] [{}P] {}".format(garde_text, self.player, text))
+        print("[{}] [{}P] {}".format(garde_text, self.player, text))
 
     """通用对flash界面的基础操作"""
 
@@ -1345,8 +1346,9 @@ class FAA:
                 list_shovel=list_shovel)
 
             # 不常用调试print
-            # self.print_g(text="调试info: 你的战斗放卡opt如下:", garde=1)
-            # self.print_g(text=list_cell_all, garde=1)
+            self.print_g(text="调试info: 你的战斗放卡opt如下:", garde=1)
+            self.print_g(text=list_cell_all, garde=1)
+
             self.battle_plan_1 = {"card": list_cell_all, "shovel": list_shovel}
 
         return main()
@@ -2132,7 +2134,7 @@ class FAA:
                 # 点击进入服务器
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle_browser,
-                    x=my_result[0],
+                    x=my_result[0] + 20,
                     y=my_result[1] + 30)
                 return True
             return False
@@ -2193,14 +2195,28 @@ class FAA:
 
             """查找大地图确认进入游戏"""
             self.print_g(text="[刷新游戏] 查找大地图确认进入游戏中...", garde=1)
-            result = loop_match_p_in_w(
+            # 更严格的匹配 防止登录界面有相似图案组合
+            result = loop_match_ps_in_w(
                 raw_w_handle=self.handle_browser,
-                raw_range=[0, 0, 2000, 2000],
-                target_path=RESOURCE_P["common"]["顶部菜单"]["大地图.png"],
-                target_tolerance=0.97,
+                target_opts=[
+                    {
+                        "raw_range": [840, 525, 2000, 2000],
+                        "target_path": RESOURCE_P["common"]["底部菜单"]["跳转.png"],
+                        "target_tolerance": 0.98,
+                    },{
+                        "raw_range": [610, 525, 2000, 2000],
+                        "target_path": RESOURCE_P["common"]["底部菜单"]["任务.png"],
+                        "target_tolerance": 0.98,
+                    },{
+                        "raw_range": [890, 525, 2000, 2000],
+                        "target_path": RESOURCE_P["common"]["底部菜单"]["后退.png"],
+                        "target_tolerance": 0.98,
+                    }
+                ],
+                target_return_mode="and",
                 target_failed_check=30,
-                target_sleep=1,
-                click=False)
+                target_interval=1
+            )
 
             if result:
                 # 重新获取句柄, 此时游戏界面的句柄已经改变

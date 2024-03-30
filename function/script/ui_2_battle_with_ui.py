@@ -52,6 +52,8 @@ class Todo(QThread):
             "[{}] Refresh Game...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
+        print("刷新两个游戏窗口 开始")
+
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
             target=self.faa[1].reload_game,
@@ -68,6 +70,8 @@ class Todo(QThread):
         self.thread_2p.start()
         self.thread_1p.join()
         self.thread_2p.join()
+
+        print("刷新两个游戏窗口 结束")
 
     def reload_to_login_ui(self):
 
