@@ -3,7 +3,7 @@ import cProfile
 import cv2
 import numpy as np
 
-from function.common.bg_p_compare import find_p_in_w
+from function.common.bg_p_match import match_p_in_w
 from function.globals.get_paths import PATHS
 from function.scattered.gat_handle import faa_get_handle
 
@@ -14,7 +14,7 @@ def f_test():
     target_path = cv2.imdecode(np.fromfile(target_path, dtype=np.uint8), -1)
     print(target_path)
     # for i in range(100):
-    find_p_in_w(
+    match_p_in_w(
         raw_w_handle=handle,
         raw_range=[0, 0, 950, 600],
         target_path=target_path,

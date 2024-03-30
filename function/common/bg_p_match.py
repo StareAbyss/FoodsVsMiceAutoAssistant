@@ -63,6 +63,7 @@ def match_p_in_w(
 
     # 测试时绘制边框
     if __name__ == '__main__':
+        raw_img = raw_img.astype(np.uint8)
         # 确定起点和终点的(x，y)坐标边界框
         end_x = start_x + tar_img.shape[1]
         end_y = start_y + tar_img.shape[0]
@@ -189,7 +190,7 @@ def loop_match_p_in_w(
         是否在限定时间内找到图片
 
     """
-    invite_time = 0.0
+    spend_time = 0.0
     while True:
 
         find_target = match_p_in_w(
@@ -224,8 +225,8 @@ def loop_match_p_in_w(
 
         # 超时, 查找失败
         time.sleep(target_interval)
-        invite_time += target_interval
-        if invite_time > target_failed_check:
+        spend_time += target_interval
+        if spend_time > target_failed_check:
             return False
 
 
@@ -266,13 +267,12 @@ if __name__ == '__main__':
 
 
     def main():
-        # handle = faa_get_handle("锑食", mode="browser")
-        handle = faa_get_handle(channel="深渊之下 | 锑食", mode="browser")
+        handle = faa_get_handle(channel="锑食", mode="browser")
 
         result = match_p_in_w(raw_w_handle=handle,
-                              raw_range=[0, 0, 950, 600],
-                              target_path=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                              target_tolerance=0.99)
+                              raw_range=[0, 0, 2000, 2000],
+                              target_path=RESOURCE_P["common"]["顶部菜单"]["大地图.png"],
+                              target_tolerance=0.87)
 
         print(result)
         result = (1, 2)

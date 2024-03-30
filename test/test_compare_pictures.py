@@ -1,6 +1,6 @@
 import cProfile
 
-from function.common.bg_p_compare import find_ps_in_w
+from function.common.bg_p_match import match_ps_in_w
 from function.globals.get_paths import PATHS
 from function.scattered.gat_handle import faa_get_handle
 
@@ -25,7 +25,7 @@ def f_test():
         }
     ]
     for i in range(100):
-        find_ps_in_w(
+        match_ps_in_w(
             raw_w_handle=handle,
             target_opts=target_opts,
             return_mode="or"
