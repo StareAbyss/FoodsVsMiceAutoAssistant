@@ -23,7 +23,7 @@ class MyMainWindow0(QMainWindow):
         super().__init__()
 
         # 加载 ui文件
-        uic.loadUi(PATHS["root"] + '\\resource\\ui\\fvm_2.0.ui', self)
+        uic.loadUi(PATHS["root"] + '\\resource\\ui\\FAA_3.0.ui', self)
 
         # 设置窗口名称
         self.setWindowTitle("FAA - 本软件免费且开源 - 反馈交流: 786921130")
