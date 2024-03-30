@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>1680</width>
-    <height>660</height>
+    <height>740</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -20,12 +20,6 @@
    </sizepolicy>
   </property>
   <property name="minimumSize">
-   <size>
-    <width>1680</width>
-    <height>660</height>
-   </size>
-  </property>
-  <property name="maximumSize">
    <size>
     <width>1680</width>
     <height>660</height>
@@ -67,8 +61,8 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>1661</width>
-      <height>641</height>
+      <width>1703</width>
+      <height>726</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="LayMain">
@@ -624,10 +618,13 @@
        </item>
        <item>
         <layout class="QHBoxLayout" name="LayLeftBottom">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetDefaultConstraint</enum>
+         </property>
          <item>
           <widget class="QPushButton" name="Button_Save">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
@@ -646,6 +643,31 @@
            </property>
            <property name="text">
             <string>保存配置</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="Button_AdvancedSettings">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>高级设置</string>
            </property>
           </widget>
          </item>
@@ -7466,7 +7488,7 @@ Link Start</string>
           </size>
          </property>
          <property name="text">
-          <string>VIP签到/每日签到/美食活动</string>
+          <string>VIP签到/每日签到/美食活动/天知领温馨礼包</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
