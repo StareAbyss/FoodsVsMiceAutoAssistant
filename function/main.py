@@ -1,4 +1,8 @@
 # coding:utf-8
+
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from function.script.ui_2_battle_with_ui import main
 
 

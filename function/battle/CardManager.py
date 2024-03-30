@@ -1,6 +1,6 @@
 import sys
 
-from PyQt5.QtCore import QThread, QTimer, QObject
+from PyQt5.QtCore import QThread, QTimer, QObject, QRunnable, QThreadPool
 from PyQt5.QtWidgets import QMainWindow, QApplication
 
 from function.battle.Card import Card
@@ -68,16 +68,6 @@ class CardManager(QThread):
             my_thread.start()
         print("use_card线程已开始")
 
-        # 让check线程阻塞运行
-        for k, my_thread in self.thread_check_timer_dict.items():
-            my_thread.wait()
-        print("check线程已完成运行")
-
-        # check线程结束后, use card 线程也结束
-        for k, my_thread in self.thread_use_card_timer_dict.items():
-            my_thread.quit()
-        print("use_card线程已完成运行")
-
     def use_kun(self, kun, card):
         # 如果幻幻鸡卡片在冷却，就return
         if kun.status_cd > 0:
@@ -100,13 +90,6 @@ class CardManager(QThread):
         # 开始线程
         self.start_all_thread()
 
-        # 自我终结
-        print("CardManager线程已完成运行")
-        self.quit()
-
-        # Q thread 的 run return 过后才可以真正结束循环
-        return
-
     def stop(self):
         print("CardManager stop方法已激活")
         # 中止已经存在的子线程
@@ -118,6 +101,8 @@ class CardManager(QThread):
                 my_thread.stop()
         # 中止自身
         self.quit()
+        self.wait() # 等待彻底退出
+        self.deleteLater() # 删除占用的资源
 
 
 class ObjectCheckTimer(QObject):
@@ -174,7 +159,9 @@ class ThreadCheckTimer(QThread):
 
     def stop(self):
         print("{}P ThreadCheckTimer stop方法已激活".format(self.faa.player))
-        self.quit()  # 退出线程的事件循环
+        self.quit() # 退出线程的事件循环
+        self.wait() # 等待彻底退出
+        self.deleteLater() # 删除占用的资源
 
 
 class ObjectUseCardTimer(QObject):
@@ -208,6 +195,8 @@ class ThreadUseCardTimer(QThread):
     def stop(self):
         print("{}P ThreadUseCardTimer stop方法已激活".format(self.faa.player))
         self.quit()
+        self.wait() # 等待彻底退出
+        self.deleteLater() # 删除占用的资源
 
 
 if __name__ == '__main__':

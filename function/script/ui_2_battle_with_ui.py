@@ -3,6 +3,7 @@ import json
 import random
 import sys
 import time
+import requests
 from time import sleep
 
 from PyQt5 import QtWidgets, QtCore
@@ -36,7 +37,7 @@ class Todo(QThread):
         self.thread_1p = None
         self.thread_2p = None
         self.thread_manager = None
-        self.battle_mode = 0  # 1 或 0 0则代表使用老版战斗方案; 1则达标使用新版战斗方案, 新版处于测试之中. 开发者请更改为0再用
+        self.battle_mode = 1  # 1 或 0 0则代表使用老版战斗方案; 1则达标使用新版战斗方案, 新版处于测试之中. 开发者请更改为0再用
         self.card_manager = None
         # 好用的信号~
         self.signal_dict = signal_dict
@@ -99,6 +100,18 @@ class Todo(QThread):
         self.signal_printf.emit(
             "[{}] [每日签到] 开始...".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
             color="red")
+        
+        # 领取温馨礼包
+        for i in range(1, 3):
+            openid = self.opt[f'gift_{i}p']
+            if openid == "":
+                continue
+            url = 'http://meishi.wechat.123u.com/meishi/gift?openid=' + openid
+            r = requests.get(url)
+            message = r.json()['msg']
+            text = f'ID{i}领取温馨礼包情况:' + message
+            self.signal_printf.emit(text, color="green")
+
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -430,7 +443,8 @@ class Todo(QThread):
                 self.sleep(20)
                 while not self.thread_manager.thread_check_timer_dict[1].object_check_timer.stop_flag:
                     self.msleep(100)
-                self.thread_manager.stop()
+                if self.thread_manager is not None:
+                    self.thread_manager.stop()
                 print("新战斗方法已完成执行并不再阻塞Todo线程")
 
             result_spend_time = time.time() - battle_start_time
@@ -1818,11 +1832,12 @@ def main():
     # 实例化 主窗口
     window = MyMainWindow2()
 
-    # 注册函数：开始/结束按钮
+    # 注册函数：开始/结束/高级设置按钮
     window.Button_Start.clicked.connect(lambda: window.click_btn_start())
 
     window.Button_Save.clicked.connect(lambda: window.click_btn_save())
 
+    window.Button_AdvancedSettings.clicked.connect(lambda: window.click_btn_advanced_settings())
     # 主窗口 实现
     window.show()
 
