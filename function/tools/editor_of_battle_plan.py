@@ -71,88 +71,88 @@ class JsonEditor(QMainWindow):
         """布局和控件放置"""
 
         # 主布局
-        self.main_layout = QVBoxLayout()
+        self.LayMain = QVBoxLayout()
 
         # 加载 JSON 按钮
-        self.load_json_button = QPushButton('加载战斗方案')
-        self.main_layout.addWidget(self.load_json_button)
+        self.ButtonLoadJson = QPushButton('加载战斗方案')
+        self.LayMain.addWidget(self.ButtonLoadJson)
 
         # 玩家位置编辑器
-        self.player_editor_layout = QHBoxLayout()
-        self.w_player_position_input = QComboBox()
+        self.LayPlayerEditor = QHBoxLayout()
+        self.WeiPlayerPositionInput = QComboBox()
 
         # 生成棋盘上所有可能的位置 Item名称"x-y"
         for i in range(9):
             for j in range(7):
-                self.w_player_position_input.addItem(f"{i + 1}-{j + 1}")
+                self.WeiPlayerPositionInput.addItem(f"{i + 1}-{j + 1}")
 
         """提示编辑器"""
-        self.main_layout.addWidget(QLabel('方案信息:'))
+        self.LayMain.addWidget(QLabel('方案信息:'))
 
-        self.w_tips_editor = QTextEdit()
-        self.w_tips_editor.setPlaceholderText('在这里编辑提示文本...')
-        self.main_layout.addWidget(self.w_tips_editor)
+        self.WeiTipsEditor = QTextEdit()
+        self.WeiTipsEditor.setPlaceholderText('在这里编辑提示文本...')
+        self.LayMain.addWidget(self.WeiTipsEditor)
         """操作教学文本"""
-        self.print_layout = QHBoxLayout()
-        self.main_layout.addLayout(self.print_layout)
+        self.LayPrint = QHBoxLayout()
+        self.LayMain.addLayout(self.LayPrint)
 
-        self.print_layout.addWidget(QLabel('正在编辑对象:'))
+        self.LayPrint.addWidget(QLabel('正在编辑对象:'))
 
-        self.w_current_edit = QLabel("无")
-        self.print_layout.addWidget(self.w_current_edit)
+        self.WeiCurrentEdit = QLabel("无")
+        self.LayPrint.addWidget(self.WeiCurrentEdit)
 
-        self.print_layout.addWidget(QLabel(
+        self.LayPrint.addWidget(QLabel(
             '双击左侧列表, 选中对象进行编辑 | 点击格子添加到该位置, 再点一下取消位置 | 列表从上到下 是一轮放卡的优先级(人物除外)'))
         """卡片编辑器"""
-        self.card_editor_layout = QHBoxLayout()
-        self.main_layout.addLayout(self.card_editor_layout)
+        self.LayCardEditor = QHBoxLayout()
+        self.LayMain.addLayout(self.LayCardEditor)
 
-        self.card_editor_layout.addWidget(QLabel('ID:'))
+        self.LayCardEditor.addWidget(QLabel('ID:'))
 
-        self.w_id_input = QLineEdit()
-        self.card_editor_layout.addWidget(self.w_id_input)
-        self.w_id_input.setToolTip("id代表卡在卡组中的顺序")
+        self.WeiIdInput = QLineEdit()
+        self.LayCardEditor.addWidget(self.WeiIdInput)
+        self.WeiIdInput.setToolTip("id代表卡在卡组中的顺序")
 
-        self.card_editor_layout.addWidget(QLabel('名称:'))
+        self.LayCardEditor.addWidget(QLabel('名称:'))
 
-        self.w_name_input = QLineEdit()
-        self.card_editor_layout.addWidget(self.w_name_input)
-        self.w_name_input.setToolTip("名称仅用来标识和Ban卡(美食大赛用) 一般可以乱填")
+        self.WeiNameInput = QLineEdit()
+        self.LayCardEditor.addWidget(self.WeiNameInput)
+        self.WeiNameInput.setToolTip("名称仅用来标识和Ban卡(美食大赛用) 一般可以乱填")
 
-        self.card_editor_layout.addWidget(QLabel('遍历:'))
+        self.LayCardEditor.addWidget(QLabel('遍历:'))
 
-        self.w_ergodic_input = QComboBox()
-        self.w_ergodic_input.addItems(['true', 'false'])
-        self.card_editor_layout.addWidget(self.w_ergodic_input)
-        self.w_ergodic_input.setToolTip("队列和遍历不知道是什么可以全true, 具体请参见详细文档")
+        self.WeiErgodicInput = QComboBox()
+        self.WeiErgodicInput.addItems(['true', 'false'])
+        self.LayCardEditor.addWidget(self.WeiErgodicInput)
+        self.WeiErgodicInput.setToolTip("队列和遍历不知道是什么可以全true, 具体请参见详细文档")
 
-        self.card_editor_layout.addWidget(QLabel('队列:'))
+        self.LayCardEditor.addWidget(QLabel('队列:'))
 
-        self.queue_input = QComboBox()
-        self.queue_input.addItems(['true', 'false'])
-        self.card_editor_layout.addWidget(self.queue_input)
-        self.queue_input.setToolTip("队列和遍历不知道是什么可以全true, 具体请参见详细文档")
+        self.QueueInput = QComboBox()
+        self.QueueInput.addItems(['true', 'false'])
+        self.LayCardEditor.addWidget(self.QueueInput)
+        self.QueueInput.setToolTip("队列和遍历不知道是什么可以全true, 具体请参见详细文档")
 
-        self.w_add_card_button = QPushButton('添加 一张卡片')
-        self.card_editor_layout.addWidget(self.w_add_card_button)
+        self.WeiAddCardButton = QPushButton('添加 一张卡片')
+        self.LayCardEditor.addWidget(self.WeiAddCardButton)
 
-        self.w_update_card_button = QPushButton('更新 选中卡片')
-        self.card_editor_layout.addWidget(self.w_update_card_button)
+        self.WeiUpdateCardButton = QPushButton('更新 选中卡片')
+        self.LayCardEditor.addWidget(self.WeiUpdateCardButton)
 
-        self.w_delete_card_button = QPushButton('删除 选中卡片')
-        self.card_editor_layout.addWidget(self.w_delete_card_button)
+        self.WeiDeleteCardButton = QPushButton('删除 选中卡片')
+        self.LayCardEditor.addWidget(self.WeiDeleteCardButton)
 
         """card列表+棋盘 横向布局"""
-        self.card_list_and_cell_layout = QHBoxLayout()
-        self.main_layout.addLayout(self.card_list_and_cell_layout)
+        self.LayCardListAndCell = QHBoxLayout()
+        self.LayMain.addLayout(self.LayCardListAndCell)
 
         """卡片列表"""
-        self.w_card_list = QListWidgetDraggable(drop_function=self.card_list_be_dropped)
-        self.card_list_and_cell_layout.addWidget(self.w_card_list)
+        self.WeiCardList = QListWidgetDraggable(drop_function=self.card_list_be_dropped)
+        self.LayCardListAndCell.addWidget(self.WeiCardList)
 
         """棋盘布局"""
         self.chessboard_layout = QGridLayout()
-        self.card_list_and_cell_layout.addLayout(self.chessboard_layout)
+        self.LayCardListAndCell.addLayout(self.chessboard_layout)
         # 生成棋盘布局中的元素
         self.chessboard_buttons = []
         for i in range(7):
@@ -167,30 +167,30 @@ class JsonEditor(QMainWindow):
 
         """保存按钮"""
         self.save_button = QPushButton('保存战斗方案')
-        self.main_layout.addWidget(self.save_button)
+        self.LayMain.addWidget(self.save_button)
 
         """设置主控件"""
         self.central_widget = QWidget()
-        self.central_widget.setLayout(self.main_layout)
+        self.central_widget.setLayout(self.LayMain)
         self.setCentralWidget(self.central_widget)
 
         """信号和槽函数链接"""
         # 读取josn
-        self.load_json_button.clicked.connect(self.load_json)
+        self.ButtonLoadJson.clicked.connect(self.load_json)
 
         # 保存json
         self.save_button.clicked.connect(self.save_json)
 
         # 添加卡片
-        self.w_add_card_button.clicked.connect(self.add_card)
+        self.WeiAddCardButton.clicked.connect(self.add_card)
 
         # 更新卡片
-        self.w_update_card_button.clicked.connect(self.update_card)
+        self.WeiUpdateCardButton.clicked.connect(self.update_card)
 
         # 删除卡片
-        self.w_delete_card_button.clicked.connect(self.delete_card)
+        self.WeiDeleteCardButton.clicked.connect(self.delete_card)
         # 双击列表更改当前card
-        self.w_card_list.itemDoubleClicked.connect(self.current_card_change)
+        self.WeiCardList.itemDoubleClicked.connect(self.current_card_change)
 
         """外观"""
         self.UICss()
@@ -216,34 +216,34 @@ class JsonEditor(QMainWindow):
 
     def current_card_change(self, item):
         """被双击后, 被选中的卡片改变了"""
-        index = self.w_card_list.indexFromItem(item).row()  # list的index 是 QModelIndex 此处还需要获取到行号
+        index = self.WeiCardList.indexFromItem(item).row()  # list的index 是 QModelIndex 此处还需要获取到行号
 
         self.current_edit_index = index
 
         if index == 0:
             # 玩家 直接清空它们
-            self.w_current_edit.setText("玩家")
-            self.w_id_input.clear()
-            self.w_name_input.clear()
-            self.w_name_input.setText("玩家")
-            self.w_ergodic_input.setCurrentIndex(0)
-            self.queue_input.setCurrentIndex(0)
+            self.WeiCurrentEdit.setText("玩家")
+            self.WeiIdInput.clear()
+            self.WeiNameInput.clear()
+            self.WeiNameInput.setText("玩家")
+            self.WeiErgodicInput.setCurrentIndex(0)
+            self.QueueInput.setCurrentIndex(0)
             self.highlight_chessboard(self.json_data["player"])
         else:
             # 卡片
             index = index - 1  # 可能需要深拷贝？也许是被保护的特性 不需要
             card = self.json_data["card"][index]
-            self.w_current_edit.setText("索引-{} 名称-{}".format(index, card["name"]))
-            self.w_id_input.setText(str(card['id']))
-            self.w_name_input.setText(card['name'])
-            self.w_ergodic_input.setCurrentText(str(card['ergodic']).lower())
-            self.queue_input.setCurrentText(str(card['queue']).lower())
+            self.WeiCurrentEdit.setText("索引-{} 名称-{}".format(index, card["name"]))
+            self.WeiIdInput.setText(str(card['id']))
+            self.WeiNameInput.setText(card['name'])
+            self.WeiErgodicInput.setCurrentText(str(card['ergodic']).lower())
+            self.QueueInput.setCurrentText(str(card['queue']).lower())
             # 设置高亮
             self.highlight_chessboard(card["location"])
 
     def load_data_to_ui_list(self):
         """从 [内部数据表] 载入数据到 [ui的list]"""
-        self.w_card_list.clear()
+        self.WeiCardList.clear()
         my_list = ["玩家"]
         for card in self.json_data["card"]:
             my_list.append(
@@ -254,9 +254,9 @@ class JsonEditor(QMainWindow):
                     card["name"]
                 )
             )
-        self.w_card_list.addItems(my_list)
+        self.WeiCardList.addItems(my_list)
         self.current_edit_index = None  # 正在编辑者选为None
-        self.w_current_edit.setText("无")
+        self.WeiCurrentEdit.setText("无")
         print(my_list)
 
     def card_list_be_dropped(self, index_from, index_to):
@@ -269,12 +269,12 @@ class JsonEditor(QMainWindow):
             print("正常操作 内部数据表已更新: {}".format(cards))
         else:
             # 试图移动到第一个
-            self.w_card_list.clear()
+            self.WeiCardList.clear()
             self.load_data_to_ui_list()
 
     def add_card(self):
-        id_ = self.w_id_input.text()
-        name_ = self.w_name_input.text()
+        id_ = self.WeiIdInput.text()
+        name_ = self.WeiNameInput.text()
 
         if not id_.isdigit():
             QMessageBox.information(self, "操作错误！", "卡片id必须是正整数!")
@@ -286,8 +286,8 @@ class JsonEditor(QMainWindow):
             {
                 "id": int(id_),
                 "name": name_,
-                "ergodic": self.w_ergodic_input.currentText() == 'true',  # 转化bool
-                "queue": self.queue_input.currentText() == 'true',  # 转化bool
+                "ergodic": bool(self.WeiErgodicInput.currentText() == 'true'),  # 转化bool
+                "queue": bool(self.QueueInput.currentText() == 'true'),  # 转化bool
                 "location": []
             }
         )
@@ -306,10 +306,10 @@ class JsonEditor(QMainWindow):
             return False
 
         index -= 1
-        self.json_data["card"][index]["id"] = int(self.w_id_input.text())
-        self.json_data["card"][index]["name"] = self.w_name_input.text()
-        self.json_data["card"][index]["ergodic"] = self.w_ergodic_input.currentText() == 'true'  # 转化bool
-        self.json_data["card"][index]["queue"] = self.queue_input.currentText() == 'true',  # 转化bool
+        self.json_data["card"][index]["id"] = int(self.WeiIdInput.text())
+        self.json_data["card"][index]["name"] = self.WeiNameInput.text()
+        self.json_data["card"][index]["ergodic"] = bool(self.WeiErgodicInput.currentText() == 'true')  # 转化bool
+        self.json_data["card"][index]["queue"] = bool(self.QueueInput.currentText() == 'true')  # 转化bool
         self.load_data_to_ui_list()
         self.refresh_chessboard()
 
@@ -354,7 +354,7 @@ class JsonEditor(QMainWindow):
                 self.refresh_chessboard()
 
     def save_json(self):
-        self.json_data['tips'] = self.w_tips_editor.toPlainText()
+        self.json_data['tips'] = self.WeiTipsEditor.toPlainText()
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getSaveFileName(self, "保存 JSON 文件", "", "JSON Files (*.json)", options=options)
         if file_name:
@@ -370,15 +370,15 @@ class JsonEditor(QMainWindow):
         if file_name:
             with open(file_name, 'r', encoding='utf-8') as file:
                 self.json_data = json.load(file)
-                self.w_tips_editor.setPlainText(self.json_data.get('tips', ''))
+                self.WeiTipsEditor.setPlainText(self.json_data.get('tips', ''))
 
                 # 初始化
                 self.current_edit_index = None  # 初始化当前选中
-                self.w_current_edit.setText("无")
-                self.w_id_input.clear()
-                self.w_name_input.clear()
-                self.w_ergodic_input.setCurrentIndex(0)
-                self.queue_input.setCurrentIndex(0)
+                self.WeiCurrentEdit.setText("无")
+                self.WeiIdInput.clear()
+                self.WeiNameInput.clear()
+                self.WeiErgodicInput.setCurrentIndex(0)
+                self.QueueInput.setCurrentIndex(0)
 
                 # 根据数据绘制视图
                 self.load_data_to_ui_list()
