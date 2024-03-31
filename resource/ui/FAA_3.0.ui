@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>1100</width>
-    <height>700</height>
+    <height>750</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -22,13 +22,13 @@
   <property name="minimumSize">
    <size>
     <width>1100</width>
-    <height>700</height>
+    <height>750</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>1100</width>
-    <height>700</height>
+    <height>750</height>
    </size>
   </property>
   <property name="tabletTracking">
@@ -65,10 +65,10 @@
    <widget class="QWidget" name="horizontalLayoutWidget_2">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>1081</width>
-      <height>681</height>
+      <x>0</x>
+      <y>0</y>
+      <width>1101</width>
+      <height>751</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="LayMain">
@@ -107,8 +107,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>1061</width>
-           <height>641</height>
+           <width>1081</width>
+           <height>711</height>
           </rect>
          </property>
          <layout class="QHBoxLayout" name="Lay_Tab1" stretch="4,0">
@@ -169,7 +169,7 @@
            </layout>
           </item>
           <item>
-           <layout class="QVBoxLayout" name="Lay_Tab1_Right" stretch="1,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,1,2">
+           <layout class="QVBoxLayout" name="Lay_Tab1_Right" stretch="1,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,1,0,0,2">
             <property name="leftMargin">
              <number>5</number>
             </property>
@@ -702,7 +702,7 @@
                  <number>5</number>
                 </property>
                 <item>
-                 <widget class="QCheckBox" name="Timer1_Enter">
+                 <widget class="QCheckBox" name="Timer1_Active">
                   <property name="enabled">
                    <bool>true</bool>
                   </property>
@@ -730,7 +730,13 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="Timer1_H">
+                 <widget class="QSpinBox" name="Timer1_H">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
                   <property name="minimumSize">
                    <size>
                     <width>50</width>
@@ -743,14 +749,14 @@
                     <height>16777215</height>
                    </size>
                   </property>
-                  <property name="tabletTracking">
-                   <bool>false</bool>
+                  <property name="minimum">
+                   <number>0</number>
                   </property>
-                  <property name="autoFillBackground">
-                   <bool>false</bool>
+                  <property name="maximum">
+                   <number>23</number>
                   </property>
-                  <property name="text">
-                   <string/>
+                  <property name="value">
+                   <number>23</number>
                   </property>
                  </widget>
                 </item>
@@ -768,7 +774,13 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="Timer1_M">
+                 <widget class="QSpinBox" name="Timer1_M">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
                   <property name="minimumSize">
                    <size>
                     <width>50</width>
@@ -781,14 +793,14 @@
                     <height>16777215</height>
                    </size>
                   </property>
-                  <property name="tabletTracking">
-                   <bool>false</bool>
+                  <property name="minimum">
+                   <number>0</number>
                   </property>
-                  <property name="autoFillBackground">
-                   <bool>false</bool>
+                  <property name="maximum">
+                   <number>59</number>
                   </property>
-                  <property name="text">
-                   <string/>
+                  <property name="value">
+                   <number>59</number>
                   </property>
                  </widget>
                 </item>
@@ -876,7 +888,7 @@
                  <number>5</number>
                 </property>
                 <item>
-                 <widget class="QCheckBox" name="Timer2_Enter">
+                 <widget class="QCheckBox" name="Timer2_Active">
                   <property name="enabled">
                    <bool>true</bool>
                   </property>
@@ -904,7 +916,13 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="Timer2_H">
+                 <widget class="QSpinBox" name="Timer2_H">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
                   <property name="minimumSize">
                    <size>
                     <width>50</width>
@@ -917,14 +935,14 @@
                     <height>16777215</height>
                    </size>
                   </property>
-                  <property name="tabletTracking">
-                   <bool>false</bool>
+                  <property name="minimum">
+                   <number>0</number>
                   </property>
-                  <property name="autoFillBackground">
-                   <bool>false</bool>
+                  <property name="maximum">
+                   <number>23</number>
                   </property>
-                  <property name="text">
-                   <string/>
+                  <property name="value">
+                   <number>23</number>
                   </property>
                  </widget>
                 </item>
@@ -942,7 +960,13 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="Timer2_M">
+                 <widget class="QSpinBox" name="Timer2_M">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
                   <property name="minimumSize">
                    <size>
                     <width>50</width>
@@ -955,14 +979,14 @@
                     <height>16777215</height>
                    </size>
                   </property>
-                  <property name="tabletTracking">
-                   <bool>false</bool>
+                  <property name="minimum">
+                   <number>0</number>
                   </property>
-                  <property name="autoFillBackground">
-                   <bool>false</bool>
+                  <property name="maximum">
+                   <number>59</number>
                   </property>
-                  <property name="text">
-                   <string/>
+                  <property name="value">
+                   <number>59</number>
                   </property>
                  </widget>
                 </item>
@@ -1050,7 +1074,7 @@
                  <number>5</number>
                 </property>
                 <item>
-                 <widget class="QCheckBox" name="Timer3_Enter">
+                 <widget class="QCheckBox" name="Timer3_Active">
                   <property name="enabled">
                    <bool>true</bool>
                   </property>
@@ -1078,7 +1102,13 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="Timer3_H">
+                 <widget class="QSpinBox" name="Timer3_H">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
                   <property name="minimumSize">
                    <size>
                     <width>50</width>
@@ -1091,14 +1121,14 @@
                     <height>16777215</height>
                    </size>
                   </property>
-                  <property name="tabletTracking">
-                   <bool>false</bool>
+                  <property name="minimum">
+                   <number>0</number>
                   </property>
-                  <property name="autoFillBackground">
-                   <bool>false</bool>
+                  <property name="maximum">
+                   <number>23</number>
                   </property>
-                  <property name="text">
-                   <string/>
+                  <property name="value">
+                   <number>23</number>
                   </property>
                  </widget>
                 </item>
@@ -1116,7 +1146,13 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="Timer3_M">
+                 <widget class="QSpinBox" name="Timer3_M">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
                   <property name="minimumSize">
                    <size>
                     <width>50</width>
@@ -1129,14 +1165,14 @@
                     <height>16777215</height>
                    </size>
                   </property>
-                  <property name="tabletTracking">
-                   <bool>false</bool>
+                  <property name="minimum">
+                   <number>0</number>
                   </property>
-                  <property name="autoFillBackground">
-                   <bool>false</bool>
+                  <property name="maximum">
+                   <number>59</number>
                   </property>
-                  <property name="text">
-                   <string/>
+                  <property name="value">
+                   <number>59</number>
                   </property>
                  </widget>
                 </item>
@@ -1224,7 +1260,7 @@
                  <number>5</number>
                 </property>
                 <item>
-                 <widget class="QCheckBox" name="Timer4_Enter">
+                 <widget class="QCheckBox" name="Timer4_Active">
                   <property name="enabled">
                    <bool>true</bool>
                   </property>
@@ -1252,7 +1288,13 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="Timer4_H">
+                 <widget class="QSpinBox" name="Timer4_H">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
                   <property name="minimumSize">
                    <size>
                     <width>50</width>
@@ -1265,14 +1307,14 @@
                     <height>16777215</height>
                    </size>
                   </property>
-                  <property name="tabletTracking">
-                   <bool>false</bool>
+                  <property name="minimum">
+                   <number>0</number>
                   </property>
-                  <property name="autoFillBackground">
-                   <bool>false</bool>
+                  <property name="maximum">
+                   <number>23</number>
                   </property>
-                  <property name="text">
-                   <string/>
+                  <property name="value">
+                   <number>23</number>
                   </property>
                  </widget>
                 </item>
@@ -1290,7 +1332,13 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="Timer4_M">
+                 <widget class="QSpinBox" name="Timer4_M">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
                   <property name="minimumSize">
                    <size>
                     <width>50</width>
@@ -1303,14 +1351,14 @@
                     <height>16777215</height>
                    </size>
                   </property>
-                  <property name="tabletTracking">
-                   <bool>false</bool>
+                  <property name="minimum">
+                   <number>0</number>
                   </property>
-                  <property name="autoFillBackground">
-                   <bool>false</bool>
+                  <property name="maximum">
+                   <number>59</number>
                   </property>
-                  <property name="text">
-                   <string/>
+                  <property name="value">
+                   <number>59</number>
                   </property>
                  </widget>
                 </item>
@@ -1398,7 +1446,7 @@
                  <number>5</number>
                 </property>
                 <item>
-                 <widget class="QCheckBox" name="Timer5_Enter">
+                 <widget class="QCheckBox" name="Timer5_Active">
                   <property name="enabled">
                    <bool>true</bool>
                   </property>
@@ -1426,7 +1474,13 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="Timer5_H">
+                 <widget class="QSpinBox" name="Timer5_H">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
                   <property name="minimumSize">
                    <size>
                     <width>50</width>
@@ -1439,14 +1493,14 @@
                     <height>16777215</height>
                    </size>
                   </property>
-                  <property name="tabletTracking">
-                   <bool>false</bool>
+                  <property name="minimum">
+                   <number>0</number>
                   </property>
-                  <property name="autoFillBackground">
-                   <bool>false</bool>
+                  <property name="maximum">
+                   <number>23</number>
                   </property>
-                  <property name="text">
-                   <string/>
+                  <property name="value">
+                   <number>23</number>
                   </property>
                  </widget>
                 </item>
@@ -1464,7 +1518,13 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="Timer5_M">
+                 <widget class="QSpinBox" name="Timer5_M">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
                   <property name="minimumSize">
                    <size>
                     <width>50</width>
@@ -1477,14 +1537,14 @@
                     <height>16777215</height>
                    </size>
                   </property>
-                  <property name="tabletTracking">
-                   <bool>false</bool>
+                  <property name="minimum">
+                   <number>0</number>
                   </property>
-                  <property name="autoFillBackground">
-                   <bool>false</bool>
+                  <property name="maximum">
+                   <number>59</number>
                   </property>
-                  <property name="text">
-                   <string/>
+                  <property name="value">
+                   <number>59</number>
                   </property>
                  </widget>
                 </item>
@@ -1577,6 +1637,16 @@
              </spacer>
             </item>
             <item>
+             <widget class="QLabel" name="Label_CurrentPlan">
+              <property name="text">
+               <string>选择当前方案</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
              <layout class="QHBoxLayout" name="Lay_CurrentPlan" stretch="2,6">
               <property name="sizeConstraint">
                <enum>QLayout::SetDefaultConstraint</enum>
@@ -1596,7 +1666,7 @@
               <item>
                <layout class="QVBoxLayout" name="LayCurrentPlan_Text">
                 <item>
-                 <widget class="QLabel" name="CurrentPlan_Text">
+                 <widget class="QPushButton" name="Button_DeletePlan">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                     <horstretch>0</horstretch>
@@ -1616,7 +1686,7 @@
                    </size>
                   </property>
                   <property name="text">
-                   <string>当前方案</string>
+                   <string>删除此方案</string>
                   </property>
                  </widget>
                 </item>
@@ -1643,6 +1713,160 @@
                     <width>16777215</width>
                     <height>16777215</height>
                    </size>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="Lay_CurrentPlan_2" stretch="2,6">
+              <property name="sizeConstraint">
+               <enum>QLayout::SetDefaultConstraint</enum>
+              </property>
+              <property name="leftMargin">
+               <number>5</number>
+              </property>
+              <property name="topMargin">
+               <number>5</number>
+              </property>
+              <property name="rightMargin">
+               <number>5</number>
+              </property>
+              <property name="bottomMargin">
+               <number>5</number>
+              </property>
+              <item>
+               <layout class="QVBoxLayout" name="LayCurrentPlan_Text_2">
+                <item>
+                 <widget class="QPushButton" name="Button_RenamePlan">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>重命名方案</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout">
+                <item>
+                 <widget class="QLineEdit" name="RenamePlan_Input">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="tabletTracking">
+                   <bool>false</bool>
+                  </property>
+                  <property name="autoFillBackground">
+                   <bool>false</bool>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="Lay_CurrentPlan_3" stretch="2,6">
+              <property name="sizeConstraint">
+               <enum>QLayout::SetDefaultConstraint</enum>
+              </property>
+              <property name="leftMargin">
+               <number>5</number>
+              </property>
+              <property name="topMargin">
+               <number>5</number>
+              </property>
+              <property name="rightMargin">
+               <number>5</number>
+              </property>
+              <property name="bottomMargin">
+               <number>5</number>
+              </property>
+              <item>
+               <layout class="QVBoxLayout" name="LayCurrentPlan_Text_3">
+                <item>
+                 <widget class="QPushButton" name="Button_CreatePlan">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>创建新方案</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_2">
+                <item>
+                 <widget class="QLineEdit" name="CreatePlan_Input">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="tabletTracking">
+                   <bool>false</bool>
+                  </property>
+                  <property name="autoFillBackground">
+                   <bool>false</bool>
+                  </property>
+                  <property name="text">
+                   <string/>
                   </property>
                  </widget>
                 </item>
@@ -1718,10 +1942,10 @@ Link Start</string>
         <widget class="QWidget" name="layoutWidget">
          <property name="geometry">
           <rect>
-           <x>10</x>
-           <y>10</y>
-           <width>1051</width>
-           <height>669</height>
+           <x>0</x>
+           <y>0</y>
+           <width>1081</width>
+           <height>711</height>
           </rect>
          </property>
          <layout class="QGridLayout" name="Lay_Tab2">
@@ -7086,7 +7310,7 @@ Link Start</string>
              </size>
             </property>
             <property name="text">
-             <string>塔罗/法老/会长发任务/营地钥匙</string>
+             <string>塔罗 / 法老 / 会长发任务 / 营地钥匙</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -8503,7 +8727,7 @@ Link Start</string>
              </size>
             </property>
             <property name="text">
-             <string>VIP签到/每日签到/美食活动</string>
+             <string>温馨礼包 / VIP签到 / 每日签到 / 美食活动</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -8965,8 +9189,8 @@ Link Start</string>
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>1061</width>
-           <height>641</height>
+           <width>1081</width>
+           <height>711</height>
           </rect>
          </property>
          <layout class="QHBoxLayout" name="Lay_Tab3" stretch="1,0,2">
@@ -9174,7 +9398,7 @@ Link Start</string>
              </widget>
             </item>
             <item>
-             <layout class="QVBoxLayout" name="Lay_AutoGetWarmGift" stretch="0,0,0">
+             <layout class="QVBoxLayout" name="Lay_GetWarmGift" stretch="0,0,0">
               <property name="leftMargin">
                <number>5</number>
               </property>
@@ -9188,9 +9412,9 @@ Link Start</string>
                <number>5</number>
               </property>
               <item>
-               <widget class="QLabel" name="AutoGetWarmGift_Text">
+               <widget class="QLabel" name="GetWarmGift_Text">
                 <property name="text">
-                 <string>自动领取温馨礼包</string>
+                 <string>领取温馨礼包</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
@@ -9198,7 +9422,7 @@ Link Start</string>
                </widget>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="Lay_AutoGetWarmGift_1P">
+               <layout class="QHBoxLayout" name="Lay_GetWarmGift_1P">
                 <property name="leftMargin">
                  <number>5</number>
                 </property>
@@ -9212,7 +9436,7 @@ Link Start</string>
                  <number>5</number>
                 </property>
                 <item>
-                 <widget class="QCheckBox" name="Lay_AutoGetWarmGift_1P_Enter">
+                 <widget class="QCheckBox" name="GetWarmGift_1P_Active">
                   <property name="enabled">
                    <bool>true</bool>
                   </property>
@@ -9240,7 +9464,7 @@ Link Start</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLabel" name="Lay_AutoGetWarmGift_1P_Text">
+                 <widget class="QLabel" name="GetWarmGift_1P_Text">
                   <property name="text">
                    <string>链接：</string>
                   </property>
@@ -9250,7 +9474,7 @@ Link Start</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="Lay_AutoGetWarmGift_1P_Link">
+                 <widget class="QLineEdit" name="GetWarmGift_1P_Link">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                     <horstretch>0</horstretch>
@@ -9283,7 +9507,7 @@ Link Start</string>
                </layout>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="Lay_AutoGetWarmGift_2P">
+               <layout class="QHBoxLayout" name="Lay_GetWarmGift_2P">
                 <property name="leftMargin">
                  <number>5</number>
                 </property>
@@ -9297,7 +9521,7 @@ Link Start</string>
                  <number>5</number>
                 </property>
                 <item>
-                 <widget class="QCheckBox" name="Lay_AutoGetWarmGift_2P_Enter">
+                 <widget class="QCheckBox" name="GetWarmGift_2P_Active">
                   <property name="enabled">
                    <bool>true</bool>
                   </property>
@@ -9325,7 +9549,7 @@ Link Start</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLabel" name="Lay_AutoGetWarmGift_2P_Text">
+                 <widget class="QLabel" name="GetWarmGift_2P_Text">
                   <property name="text">
                    <string>链接：</string>
                   </property>
@@ -9335,7 +9559,7 @@ Link Start</string>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QLineEdit" name="Lay_AutoGetWarmGift_2P_Link">
+                 <widget class="QLineEdit" name="GetWarmGift_2P_Link">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                     <horstretch>0</horstretch>

@@ -3,9 +3,9 @@ import json
 import random
 import sys
 import time
-import requests
 from time import sleep
 
+import requests
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import QApplication
@@ -37,7 +37,7 @@ class Todo(QThread):
         self.thread_1p = None
         self.thread_2p = None
         self.thread_manager = None
-        self.battle_mode = 1  # 1 或 0 0则代表使用老版战斗方案; 1则达标使用新版战斗方案, 新版处于测试之中. 开发者请更改为0再用
+        self.battle_mode = 0  # 1 或 0 0则代表使用老版战斗方案; 1则达标使用新版战斗方案, 新版处于测试之中. 开发者请更改为0再用
         self.card_manager = None
         # 好用的信号~
         self.signal_dict = signal_dict
@@ -100,18 +100,19 @@ class Todo(QThread):
         self.signal_printf.emit(
             "[{}] [每日签到] 开始...".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
             color="red")
-        
-        # 领取温馨礼包
-        for i in range(1, 3):
-            openid = self.opt[f'gift_{i}p']
-            if openid == "":
-                continue
-            url = 'http://meishi.wechat.123u.com/meishi/gift?openid=' + openid
-            r = requests.get(url)
-            message = r.json()['msg']
-            text = f'ID{i}领取温馨礼包情况:' + message
-            self.signal_printf.emit(text, color="green")
 
+        # 领取温馨礼包
+        for i in [1, 2]:
+            if self.opt["get_warm_gift"][f'{i}p']["active"]:
+                openid = self.opt["get_warm_gift"][f'{i}p']["link"]
+                if openid == "":
+                    continue
+                url = 'http://meishi.wechat.123u.com/meishi/gift?openid=' + openid
+                r = requests.get(url)
+                message = r.json()['msg']
+                self.signal_printf.emit(f'[{i}P] 领取温馨礼包情况:' + message, color="green")
+            else:
+                self.signal_printf.emit(f"[{i}P] 未激活领取温馨礼包", color="red")
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -607,7 +608,7 @@ class Todo(QThread):
 
         # 如果是多人跨服 防呆重写 2,1 为 1,2
         if is_cs and is_group:
-            player = [1,2]
+            player = [1, 2]
 
         # 处理多人信息 (这些信息只影响函数内, 所以不判断是否组队)
         player_a = player[0]  # 房主 创建房间者
@@ -1343,24 +1344,27 @@ class Todo(QThread):
 
     def run(self):
 
+        # current todo plan option
+        c_opt = self.opt["todo_plans"][self.opt["current_plan"]]
+
         self.signal_printf.emit(
             "每一个大类的任务开始前均会重启游戏以防止bug...")
         start_time = datetime.datetime.now()
 
         need_reload = False
-        need_reload = need_reload or self.opt["sign_in"]["active"]
-        need_reload = need_reload or self.opt["fed_and_watered"]["active"]
-        need_reload = need_reload or self.opt["warrior"]["active"]
+        need_reload = need_reload or c_opt["sign_in"]["active"]
+        need_reload = need_reload or c_opt["fed_and_watered"]["active"]
+        need_reload = need_reload or c_opt["warrior"]["active"]
         if need_reload:
             self.reload_game()
 
-        my_opt = self.opt["sign_in"]
+        my_opt = c_opt["sign_in"]
         if my_opt["active"]:
             self.all_sign_in(
                 is_group=my_opt["is_group"]
             )
 
-        my_opt = self.opt["fed_and_watered"]
+        my_opt = c_opt["fed_and_watered"]
         if my_opt["active"]:
             self.signal_printf.emit(
                 "[{}] [浇水 施肥 摘果 领取] 执行中...".format(
@@ -1369,7 +1373,7 @@ class Todo(QThread):
             if my_opt["is_group"]:
                 self.faa[2].fed_and_watered()
 
-        my_opt = self.opt["warrior"]
+        my_opt = c_opt["warrior"]
         if my_opt["active"]:
             self.easy_battle(
                 text_="[勇士挑战]",
@@ -1393,14 +1397,14 @@ class Todo(QThread):
             # 因此此处选择退出方案直接选择[进入竞技岛], 并将勇士挑战选择放在本大类的最后进行, 依靠下一个大类开始后的重启游戏刷新.
 
         need_reload = False
-        need_reload = need_reload or self.opt["normal_battle"]["active"]
-        need_reload = need_reload or self.opt["offer_reward"]["active"]
-        need_reload = need_reload or self.opt["cross_server"]["active"]
+        need_reload = need_reload or c_opt["normal_battle"]["active"]
+        need_reload = need_reload or c_opt["offer_reward"]["active"]
+        need_reload = need_reload or c_opt["cross_server"]["active"]
 
         if need_reload:
             self.reload_game()
 
-        my_opt = self.opt["normal_battle"]
+        my_opt = c_opt["normal_battle"]
         if my_opt["active"]:
             self.easy_battle(
                 text_="[常规刷本]",
@@ -1417,7 +1421,7 @@ class Todo(QThread):
                     "last_time_player_b": ["竞技岛"]
                 })
 
-        my_opt = self.opt["offer_reward"]
+        my_opt = c_opt["offer_reward"]
         if my_opt["active"]:
             self.offer_reward(
                 text_="[悬赏任务]",
@@ -1428,7 +1432,7 @@ class Todo(QThread):
                 battle_plan_1p=my_opt["battle_plan_1p"],
                 battle_plan_2p=my_opt["battle_plan_2p"])
 
-        my_opt = self.opt["cross_server"]
+        my_opt = c_opt["cross_server"]
         if my_opt["active"]:
             self.easy_battle(
                 text_="[跨服副本]",
@@ -1446,15 +1450,15 @@ class Todo(QThread):
                 })
 
         need_reload = False
-        need_reload = need_reload or self.opt["quest_guild"]["active"]
-        need_reload = need_reload or self.opt["guild_dungeon"]["active"]
-        need_reload = need_reload or self.opt["quest_spouse"]["active"]
-        need_reload = need_reload or self.opt["relic"]["active"]
+        need_reload = need_reload or c_opt["quest_guild"]["active"]
+        need_reload = need_reload or c_opt["guild_dungeon"]["active"]
+        need_reload = need_reload or c_opt["quest_spouse"]["active"]
+        need_reload = need_reload or c_opt["relic"]["active"]
 
         if need_reload:
             self.reload_game()
 
-        my_opt = self.opt["quest_guild"]
+        my_opt = c_opt["quest_guild"]
         if my_opt["active"]:
             self.guild_or_spouse_quest(
                 text_="[公会任务]",
@@ -1464,24 +1468,24 @@ class Todo(QThread):
                 battle_plan_2p=my_opt["battle_plan_2p"],
                 stage=my_opt["stage"])
 
-        my_opt = self.opt["guild_dungeon"]
+        my_opt = c_opt["guild_dungeon"]
         if my_opt["active"]:
             self.guild_dungeon(
                 text_="[公会副本]",
-                deck=self.opt["quest_guild"]["deck"],
-                battle_plan_1p=self.opt["quest_guild"]["battle_plan_1p"],
-                battle_plan_2p=self.opt["quest_guild"]["battle_plan_2p"])
+                deck=c_opt["quest_guild"]["deck"],
+                battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
+                battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"])
 
-        my_opt = self.opt["quest_spouse"]
+        my_opt = c_opt["quest_spouse"]
         if my_opt["active"]:
             self.guild_or_spouse_quest(
                 text_="[情侣任务]",
                 quest_mode="情侣任务",
-                deck=self.opt["quest_guild"]["deck"],
-                battle_plan_1p=self.opt["quest_guild"]["battle_plan_1p"],
-                battle_plan_2p=self.opt["quest_guild"]["battle_plan_2p"])
+                deck=c_opt["quest_guild"]["deck"],
+                battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
+                battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"])
 
-        my_opt = self.opt["relic"]
+        my_opt = c_opt["relic"]
         if my_opt["active"]:
             self.easy_battle(
                 text_="[火山遗迹]",
@@ -1499,18 +1503,18 @@ class Todo(QThread):
                 })
 
         need_reload = False
-        need_reload = need_reload or self.opt["magic_tower_alone_1"]["active"]
-        need_reload = need_reload or self.opt["magic_tower_alone_2"]["active"]
-        need_reload = need_reload or self.opt["magic_tower_prison_1"]["active"]
-        need_reload = need_reload or self.opt["magic_tower_prison_2"]["active"]
-        need_reload = need_reload or self.opt["magic_tower_double"]["active"]
-        need_reload = need_reload or self.opt["pet_temple_1"]["active"]
-        need_reload = need_reload or self.opt["pet_temple_2"]["active"]
+        need_reload = need_reload or c_opt["magic_tower_alone_1"]["active"]
+        need_reload = need_reload or c_opt["magic_tower_alone_2"]["active"]
+        need_reload = need_reload or c_opt["magic_tower_prison_1"]["active"]
+        need_reload = need_reload or c_opt["magic_tower_prison_2"]["active"]
+        need_reload = need_reload or c_opt["magic_tower_double"]["active"]
+        need_reload = need_reload or c_opt["pet_temple_1"]["active"]
+        need_reload = need_reload or c_opt["pet_temple_2"]["active"]
         if need_reload:
             self.reload_game()
 
         for player_id in [1, 2]:
-            my_opt = self.opt["magic_tower_alone_{}".format(player_id)]
+            my_opt = c_opt["magic_tower_alone_{}".format(player_id)]
             if my_opt["active"]:
                 self.easy_battle(
                     text_="[魔塔单人_{}P]".format(player_id),
@@ -1529,7 +1533,7 @@ class Todo(QThread):
                 )
 
         for player_id in [1, 2]:
-            my_opt = self.opt["magic_tower_prison_{}".format(player_id)]
+            my_opt = c_opt["magic_tower_prison_{}".format(player_id)]
             if my_opt["active"]:
                 self.alone_magic_tower_prison(
                     text_="[魔塔密室_{}P]".format(player_id),
@@ -1538,7 +1542,7 @@ class Todo(QThread):
                     battle_plan_1p=my_opt["battle_plan_1p"],
                     sutra_pavilion=my_opt["stage"])
 
-        my_opt = self.opt["magic_tower_double"]
+        my_opt = c_opt["magic_tower_double"]
         if my_opt["active"]:
             self.easy_battle(
                 text_="[魔塔双人]",
@@ -1557,7 +1561,7 @@ class Todo(QThread):
             )
 
         for player_id in [1, 2]:
-            my_opt = self.opt["pet_temple_{}".format(player_id)]
+            my_opt = c_opt["pet_temple_{}".format(player_id)]
             if my_opt["active"]:
                 self.easy_battle(
                     text_="[萌宠神殿_{}P]".format(player_id),
@@ -1583,33 +1587,33 @@ class Todo(QThread):
         )
 
         need_reload = False
-        need_reload = need_reload or self.opt["receive_awards"]["active"]
-        need_reload = need_reload or self.opt["use_items"]["active"]
-        need_reload = need_reload or self.opt["loop_cross_server"]["active"]
-        need_reload = need_reload or self.opt["customize"]["active"]
-        need_reload = need_reload or self.opt["auto_food"]["active"]
+        need_reload = need_reload or c_opt["receive_awards"]["active"]
+        need_reload = need_reload or c_opt["use_items"]["active"]
+        need_reload = need_reload or c_opt["loop_cross_server"]["active"]
+        need_reload = need_reload or c_opt["customize"]["active"]
+        need_reload = need_reload or c_opt["auto_food"]["active"]
 
         if need_reload:
             self.reload_game()
 
-        my_opt = self.opt["receive_awards"]
+        my_opt = c_opt["receive_awards"]
         if my_opt["active"]:
             self.receive_quest_rewards(
                 is_group=my_opt["is_group"]
             )
 
-        my_opt = self.opt["use_items"]
+        my_opt = c_opt["use_items"]
         if my_opt["active"]:
             self.use_items(
                 is_group=my_opt["is_group"])
 
-        my_opt = self.opt["loop_cross_server"]
+        my_opt = c_opt["loop_cross_server"]
         if my_opt["active"]:
             self.loop_cross_server(
                 is_group=my_opt["is_group"],
-                deck=self.opt["quest_guild"]["deck"])
+                deck=c_opt["quest_guild"]["deck"])
 
-        my_opt = self.opt["customize_battle"]
+        my_opt = c_opt["customize_battle"]
         if my_opt["active"]:
             self.easy_battle(
                 text_="[自建房战斗]",
@@ -1627,14 +1631,14 @@ class Todo(QThread):
                 }
             )
 
-        my_opt = self.opt["customize"]
+        my_opt = c_opt["customize"]
         if my_opt["active"]:
             self.customize_todo(
                 text_="[高级自定义]",
                 stage_begin=my_opt["stage"],
                 customize_todo_index=my_opt["battle_plan_1p"])
 
-        my_opt = self.opt["auto_food"]
+        my_opt = c_opt["auto_food"]
         if my_opt["active"]:
             self.auto_food(
                 deck=my_opt["deck"],
@@ -1644,7 +1648,7 @@ class Todo(QThread):
             "\n[{}] 已完成所有事项！建议勾选刷新游戏回到登录界面, 防止长期运行flash导致卡顿".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
-        if self.opt["end_exit_game"]:
+        if c_opt["end_exit_game"]:
             self.reload_to_login_ui()
 
         # 全部完成了发个信号
@@ -1735,9 +1739,9 @@ class MyMainWindow2(MyMainWindow1):
         self.ui_to_opt()
 
         channel_1p, channel_2p = get_channel_name(
-            game_name=self.opt["game_name"],
-            name_1p=self.opt["name_1p"],
-            name_2p=self.opt["name_2p"])
+            game_name=self.opt["base_settings"]["game_name"],
+            name_1p=self.opt["base_settings"]["name_1p"],
+            name_2p=self.opt["base_settings"]["name_2p"])
         # 防呆测试 不通过就直接结束弹窗
         handles = {
             1: faa_get_handle(channel=channel_1p, mode="360"),
@@ -1760,17 +1764,17 @@ class MyMainWindow2(MyMainWindow1):
         faa[1] = FAA(
             channel=channel_1p,
             player=1,
-            character_level=self.opt["level_1p"],
-            is_auto_battle=self.opt["auto_use_card"],  # boolean 是否使用自动战斗 做任务必须选择 是
-            is_auto_pickup=self.opt["auto_pickup_1p"],
+            character_level=self.opt["base_settings"]["level_1p"],
+            is_auto_battle=self.opt["advanced_settings"]["auto_use_card"],  # bool 自动战斗
+            is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_1p"],
             random_seed=random_seed,
             signal_dict=self.signal_dict)
         faa[2] = FAA(
             channel=channel_2p,
             player=2,
-            character_level=self.opt["level_2p"],
-            is_auto_battle=self.opt["auto_use_card"],
-            is_auto_pickup=self.opt["auto_pickup_2p"],
+            character_level=self.opt["base_settings"]["level_2p"],
+            is_auto_battle=self.opt["advanced_settings"]["auto_use_card"],
+            is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_2p"],
             random_seed=random_seed,
             signal_dict=self.signal_dict)
 
@@ -1839,10 +1843,14 @@ def main():
 
     # 注册函数：开始/结束/高级设置按钮
     window.Button_Start.clicked.connect(lambda: window.click_btn_start())
-
     window.Button_Save.clicked.connect(lambda: window.click_btn_save())
+    window.Button_DeletePlan.clicked.connect(lambda: window.delete_current_plan())
+    window.Button_RenamePlan.clicked.connect(lambda: window.rename_current_plan())
+    window.Button_CreatePlan.clicked.connect(lambda: window.create_new_plan())
+    window.CurrentPlan.currentIndexChanged.connect(lambda: window.opt_to_ui_todo_plans())
 
-    window.Button_AdvancedSettings.clicked.connect(lambda: window.click_btn_advanced_settings())
+    # window.Button_AdvancedSettings.clicked.connect(lambda: window.click_btn_advanced_settings())
+
     # 主窗口 实现
     window.show()
 

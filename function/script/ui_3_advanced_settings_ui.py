@@ -1,8 +1,11 @@
 # 设置高级设置的临时窗口
+import json
+
 from PyQt5 import uic
 from PyQt5.QtWidgets import QWidget
+
 from function.globals.get_paths import PATHS
-import json
+
 
 class AdvancedSettingsWindow(QWidget):
     # 高级设置窗口
@@ -30,9 +33,9 @@ class AdvancedSettingsWindow(QWidget):
         self.advanced_settings["gift_2p"] = self.gift_2p_input.text()
 
         # 保存字典数据    
-        with open (self.advanced_settings_path, 'w', encoding='utf-8') as json_file:
+        with open(self.advanced_settings_path, 'w', encoding='utf-8') as json_file:
             json.dump(self.advanced_settings, json_file, indent=4, ensure_ascii=False)
-        
+
     def load_settings(self):
         # 读取设置
         with open(self.advanced_settings_path) as json_file:
