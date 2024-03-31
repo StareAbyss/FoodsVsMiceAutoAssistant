@@ -440,9 +440,9 @@ class Todo(QThread):
             if self.faa[player_a].battle_mode == 1:
                 self.thread_manager = CardManager(self.faa[1], self.faa[2])
                 self.msleep(500)
-                self.thread_manager.start()
-                self.msleep(500)
-                while self.thread_manager.is_running:    
+                self.thread_manager.run()
+                self.msleep(2000)
+                while not self.thread_manager.thread_dict[1].stop_flag:    
                     print('启动上层事件循环')
                     self.exec_()
                 self.thread_manager.stop()
@@ -1792,7 +1792,6 @@ class MyMainWindow2(MyMainWindow1):
         thread = self.thread_todo.thread_manager
         if thread is not None:
             thread.stop()
-            thread.wait()
 
         # python 默认线程 可用stop线程
         for thread in [self.thread_todo.thread_1p, self.thread_todo.thread_2p]:
