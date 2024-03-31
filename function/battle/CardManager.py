@@ -1,6 +1,7 @@
 import sys
+from threading import Timer
 
-from PyQt5.QtCore import QThread, QTimer, QObject, pyqtSignal
+from PyQt5.QtCore import QThread, QTimer
 from PyQt5.QtWidgets import QMainWindow, QApplication
 
 from function.battle.Card import Card
@@ -9,22 +10,28 @@ from function.battle.get_position_in_battle import get_position_card_deck_in_bat
 from function.script.FAA import FAA
 
 
-class CardManager(QThread):
-    stopped = pyqtSignal()
+class CardManager():
 
     def __init__(self, faa_1, faa_2):
         super().__init__()
         self.card_list_dict = {}
         self.card_queue_dict = {}
-        self.thread_check_timer_dict = None
-        self.thread_use_card_timer_dict = None
+        self.thread_dict = {}
 
         self.faa_dict = {1: faa_1, 2: faa_2}
 
         self.stop_mode = 0 # 停止模式，如果是直接调用的stop方法，会先设置这个标识，避免重复杀死线程
+        self.is_running = False
 
         # 直接从faa中获取
         self.is_group = faa_1.is_group
+
+        # 先创建 card_list_dict
+        self.init_card_list_dict()
+        # 根据 card_list_dict 创建 card_queue_dict
+        self.init_card_queue_dict()
+        # 实例化线程
+        self.init_all_thread()
 
     def init_card_list_dict(self):
         for i in ([1, 2] if self.is_group else [1]):
@@ -50,27 +57,21 @@ class CardManager(QThread):
             players = [1]
         # 实例化 检测线程 + 用卡线程
         for i in players:
-            self.thread_check_timer_dict[i] = ThreadCheckTimer(
+            self.thread_dict[i] = ThreadCheckTimer(
                 card_queue=self.card_queue_dict[i],
                 faa=self.faa_dict[i])
-            self.thread_use_card_timer_dict[i] = ThreadUseCardTimer(
+            self.thread_dict[i+2] = ThreadUseCardTimer(
                 card_queue=self.card_queue_dict[i],
                 faa=self.faa_dict[i])
 
         print("线程已全部实例化")
-        print(self.thread_check_timer_dict)
-        print(self.thread_use_card_timer_dict)
+        print(self.thread_dict)
 
     def start_all_thread(self):
-
         # 开始线程
-        for k, my_thread in self.thread_check_timer_dict.items():
+        for k, my_thread in self.thread_dict.items():
             my_thread.start()
-        print("check线程已开始")
-
-        for k, my_thread in self.thread_use_card_timer_dict.items():
-            my_thread.start()
-        print("use_card线程已开始")
+        print("所有线程已开始")
 
     def use_kun(self, kun, card):
         # 如果幻幻鸡卡片在冷却，就return
@@ -81,56 +82,44 @@ class CardManager(QThread):
         # 将幻幻鸡添加到点击队列中
 
     def run(self):
-
-        # 先创建 card_list_dict
-        self.init_card_list_dict()
-
-        # 根据 card_list_dict 创建 card_queue_dict
-        self.init_card_queue_dict()
-
-        # 实例化 线程
-        self.init_all_thread()
-
         # 开始线程
         self.start_all_thread()
 
-        # 将停止放在线程创建后
-        self.msleep(2000)
-        while not self.thread_check_timer_dict[1].object_check_timer.stop_flag:
-            self.msleep(100)
-        if self.stop_mode == 0:
-            self.stopped.emit()  # 当stop_flag为True时发送stopped信号
+
+        
 
     def stop(self):
         print("CardManager stop方法已激活")
         self.stop_mode = 1
-        self.thread_check_timer_dict[1].object_check_timer.stop_flag = True
         # 中止已经存在的子线程
-        for k, my_thread in self.thread_check_timer_dict.items():
+        for k, my_thread in self.thread_dict.items():
             if my_thread is not None:
                 my_thread.stop()
-        for k, my_thread in self.thread_use_card_timer_dict.items():
-            if my_thread is not None:
-                my_thread.stop()
-        # 中止自身
-        print("CardManager 内部线程已停止，现在停止自身")
-        self.quit()
-        self.wait() # 等待彻底退出
-        self.deleteLater() # 删除占用的资源
+        print("CardManager 内部线程已停止")
 
 
-class ObjectCheckTimer(QObject):
-    stop_signal = pyqtSignal()
-
+class ThreadCheckTimer(QThread):
     def __init__(self, card_queue, faa):
         super().__init__()
-        self.stop_flag = False
         self.card_queue = card_queue
         self.faa = faa
-        self.timer = QTimer()  # 不能放在init方法里，否则无效果
-        self.timer.timeout.connect(self.check)
         self.running_round = 0
-        self.stop_signal.connect(self.stop)
+        self.stop_flag = True
+
+    def run(self):
+        self.stop_flag = False
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.check)
+        self.timer.start(1000)  # 设置定时器每1000毫秒触发一次
+        while not self.stop_flag:
+            print('启动下层事件循环')
+            self.exec_()
+        self.timer.stop()  # 停止定时器
+    
+    def stop(self):
+        print("{}P ThreadCheckTimer stop方法已激活".format(self.faa.player))
+        self.stop_flag = True
+        self.quit()  # 退出事件循环
 
     def check(self):
         """先检查是否出现战斗完成或需要使用钥匙，如果完成，至二级"""
@@ -138,7 +127,6 @@ class ObjectCheckTimer(QObject):
 
         if self.faa.faa_battle.use_key_and_check_end():
             self.stop_flag = True
-            return
 
         if self.faa.is_auto_battle:
             # 先清空现有队列
@@ -158,75 +146,37 @@ class ObjectCheckTimer(QObject):
         if self.running_round % 10 == 0:
             self.faa.faa_battle.use_weapon_skill()
             self.faa.faa_battle.auto_pickup()
-    
-    def stop(self):
-        self.timer.stop()
-        self.timer.deleteLater()
-        self.deleteLater()
-
-
-class ThreadCheckTimer(QThread):
-
-    def __init__(self, card_queue, faa):
-        super().__init__()
-        self.card_queue = card_queue
-        self.faa = faa
-        self.object_check_timer = None
-
-    def run(self):
-        self.object_check_timer = ObjectCheckTimer(card_queue=self.card_queue, faa=self.faa)
-        self.object_check_timer.timer.start(1000)
-        self.exec()
-
-    def stop(self):
-        print("{}P ThreadCheckTimer stop方法已激活".format(self.faa.player))
-        self.object_check_timer.stop_signal.emit()
-        self.quit() # 退出线程的事件循环
-        self.wait() # 等待彻底退出
-        self.deleteLater() # 删除占用的资源
-
-
-class ObjectUseCardTimer(QObject):
-    stop_signal = pyqtSignal()
-
-    def __init__(self, card_queue):
-        super().__init__()
-        self.card_queue = card_queue
-        self.timer = QTimer()  # 不能放在init方法里，否则无效果
-        self.timer.timeout.connect(self.use_card)
-        self.stop_signal.connect(self.stop)
-
-    def use_card(self):
-        """只用无脑的试试用队列顶的第一张卡就好啦~"""
-        self.card_queue.use_top_card()
-        return
-    
-    def stop(self):
-        self.card_queue.queue.clear()
-        self.timer.stop()
-        self.timer.deleteLater()
-        self.deleteLater()
-
+        
 
 class ThreadUseCardTimer(QThread):
-
     def __init__(self, card_queue, faa):
         super().__init__()
         self.card_queue = card_queue
         self.faa = faa
         self.object_use_card_timer = None
+        self.stop_flag = True
 
     def run(self):
-        self.object_use_card_timer = ObjectUseCardTimer(card_queue=self.card_queue)
-        self.object_use_card_timer.timer.start(20)
-        self.exec()
+        self.stop_flag = False
+        self.timer = Timer(0.02, self.use_card)
+        self.timer.start()
+        print('启动下层事件循环2')
+        while not self.stop_flag:
+            QThread.msleep(100)
+        self.timer.cancel()
+
+    def use_card(self):
+        self.card_queue.use_top_card()
+        if not self.stop_flag:
+            self.timer = Timer(0.02, self.use_card)
+            self.timer.start()
 
     def stop(self):
         print("{}P ThreadUseCardTimer stop方法已激活".format(self.faa.player))
-        self.object_use_card_timer.stop_signal.emit()
+        self.stop_flag = True
+        # 退出线程的事件循环
         self.quit()
-        self.wait() # 等待彻底退出
-        self.deleteLater() # 删除占用的资源
+        
 
 
 if __name__ == '__main__':

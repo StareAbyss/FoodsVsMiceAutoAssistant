@@ -440,15 +440,12 @@ class Todo(QThread):
 
             if self.faa[player_a].battle_mode == 1:
                 self.thread_manager = CardManager(self.faa[1], self.faa[2])
-                # 创建一个事件循环
-                loop = QEventLoop()
-                # 连接CardManager的stopped信号到事件循环的quit槽
-                self.thread_manager.stopped.connect(loop.quit)
-                # 启动CardManager
-                self.thread_manager.start()
-                # 执行事件循环,阻塞等待stopped信号
-                loop.exec()
-                # 收到信号后，循环终止，使用stop方法
+                self.msleep(500)
+                self.thread_manager.run()
+                self.msleep(2000)
+                while not self.thread_manager.thread_dict[1].stop_flag:    
+                    print('启动上层事件循环')
+                    self.exec_()
                 self.thread_manager.stop()
                 self.thread_manager = None
                 print("新战斗方法已完成执行并不再阻塞Todo线程")
@@ -1799,7 +1796,6 @@ class MyMainWindow2(MyMainWindow1):
         thread = self.thread_todo.thread_manager
         if thread is not None:
             thread.stop()
-            thread.wait()
 
         # python 默认线程 可用stop线程
         for thread in [self.thread_todo.thread_1p, self.thread_todo.thread_2p]:
