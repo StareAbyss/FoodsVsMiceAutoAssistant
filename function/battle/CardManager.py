@@ -10,17 +10,19 @@ from function.battle.get_position_in_battle import get_position_card_deck_in_bat
 from function.script.FAA import FAA
 
 
-class CardManager():
+class CardManager:
 
     def __init__(self, faa_1, faa_2):
         super().__init__()
+        self.thread_check_timer_dict = {}
+        self.thread_use_card_timer_dict = {}
         self.card_list_dict = {}
         self.card_queue_dict = {}
         self.thread_dict = {}
 
         self.faa_dict = {1: faa_1, 2: faa_2}
 
-        self.stop_mode = 0 # 停止模式，如果是直接调用的stop方法，会先设置这个标识，避免重复杀死线程
+        self.stop_mode = 0  # 停止模式，如果是直接调用的stop方法，会先设置这个标识，避免重复杀死线程
         self.is_running = False
 
         # 直接从faa中获取
@@ -49,8 +51,6 @@ class CardManager():
             print(self.card_queue_dict)
 
     def init_all_thread(self):
-        self.thread_check_timer_dict = {}
-        self.thread_use_card_timer_dict = {}
         if self.is_group:
             players = [1, 2]
         else:
@@ -104,6 +104,7 @@ class ThreadCheckTimer(QThread):
         self.faa = faa
         self.running_round = 0
         self.stop_flag = True
+        self.timer = None
 
     def run(self):
         self.stop_flag = False
@@ -113,7 +114,7 @@ class ThreadCheckTimer(QThread):
         print('启动下层事件循环')
         self.exec_()
         self.timer.stop()  # 停止定时器
-    
+
     def stop(self):
         print("{}P ThreadCheckTimer stop方法已激活".format(self.faa.player))
         self.stop_flag = True
@@ -146,7 +147,7 @@ class ThreadCheckTimer(QThread):
         if self.running_round % 10 == 0:
             self.faa.faa_battle.use_weapon_skill()
             self.faa.faa_battle.auto_pickup()
-        
+
 
 class ThreadUseCardTimer(QThread):
     def __init__(self, card_queue, faa):
@@ -155,6 +156,7 @@ class ThreadUseCardTimer(QThread):
         self.faa = faa
         self.object_use_card_timer = None
         self.stop_flag = True
+        self.timer = None
 
     def run(self):
         self.stop_flag = False
@@ -176,7 +178,6 @@ class ThreadUseCardTimer(QThread):
         self.stop_flag = True
         # 退出线程的事件循环
         self.quit()
-        
 
 
 if __name__ == '__main__':
@@ -189,8 +190,8 @@ if __name__ == '__main__':
             self.card_manager = None
 
         def run(self):
-            faa_1 = FAA(channel="锑食", zoom_rate=1)
-            faa_2 = FAA(channel="深渊之下 | 锑食", zoom_rate=1)
+            faa_1 = FAA(channel="锑食")
+            faa_2 = FAA(channel="深渊之下 | 锑食")
 
             faa_1.set_config_for_battle(
                 stage_id="NO-1-14",

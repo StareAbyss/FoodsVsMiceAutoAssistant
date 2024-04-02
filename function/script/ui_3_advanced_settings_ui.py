@@ -8,6 +8,7 @@ from function.globals.get_paths import PATHS
 
 
 class AdvancedSettingsWindow(QWidget):
+
     # 高级设置窗口
     def __init__(self):
         super().__init__()

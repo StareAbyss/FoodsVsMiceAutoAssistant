@@ -1645,7 +1645,7 @@ class Todo(QThread):
             "\n[{}] 已完成所有事项！建议勾选刷新游戏回到登录界面, 防止长期运行flash导致卡顿".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
-        if c_opt["end_exit_game"]:
+        if c_opt["advanced_settings"]["end_exit_game"]:
             self.reload_to_login_ui()
 
         # 全部完成了发个信号
