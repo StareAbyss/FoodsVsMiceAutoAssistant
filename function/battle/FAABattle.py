@@ -96,11 +96,11 @@ class Battle:
             if mode == 1:
                 find = match_p_in_w(
                     raw_w_handle=self.handle,
-                    raw_range=[302,263,396,289],
+                    raw_range=[386,332,463,362],
                     target_tolerance=0.95,
-                    target_path=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
+                    target_path=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
                 if find:
-                    self.faa.print_g(text="找到了 [精英鼠军]", player=2)
+                    self.faa.print_g(text="找到了 [继续作战]", player=2)
                     while find:
                         loop_match_p_in_w(
                             raw_w_handle=self.handle,

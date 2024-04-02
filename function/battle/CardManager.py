@@ -1,7 +1,7 @@
 import sys
 from threading import Timer
 
-from PyQt5.QtCore import QThread, QTimer
+from PyQt5.QtCore import QThread, QTimer, pyqtSignal
 from PyQt5.QtWidgets import QMainWindow, QApplication
 
 from function.battle.Card import Card
@@ -85,9 +85,6 @@ class CardManager():
         # 开始线程
         self.start_all_thread()
 
-
-        
-
     def stop(self):
         print("CardManager stop方法已激活")
         self.stop_mode = 1
@@ -99,6 +96,8 @@ class CardManager():
 
 
 class ThreadCheckTimer(QThread):
+    stop_signal = pyqtSignal()
+
     def __init__(self, card_queue, faa):
         super().__init__()
         self.card_queue = card_queue
@@ -111,9 +110,8 @@ class ThreadCheckTimer(QThread):
         self.timer = QTimer()
         self.timer.timeout.connect(self.check)
         self.timer.start(1000)  # 设置定时器每1000毫秒触发一次
-        while not self.stop_flag:
-            print('启动下层事件循环')
-            self.exec_()
+        print('启动下层事件循环')
+        self.exec_()
         self.timer.stop()  # 停止定时器
     
     def stop(self):
@@ -127,6 +125,8 @@ class ThreadCheckTimer(QThread):
 
         if self.faa.faa_battle.use_key_and_check_end():
             self.stop_flag = True
+            print('检测到战斗结束')
+            self.stop_signal.emit()
 
         if self.faa.is_auto_battle:
             # 先清空现有队列

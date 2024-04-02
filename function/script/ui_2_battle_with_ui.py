@@ -37,7 +37,7 @@ class Todo(QThread):
         self.thread_1p = None
         self.thread_2p = None
         self.thread_manager = None
-        self.battle_mode = 0  # 1 或 0 0则代表使用老版战斗方案; 1则达标使用新版战斗方案, 新版处于测试之中. 开发者请更改为0再用
+        self.battle_mode = 1  # 1 或 0 0则代表使用老版战斗方案; 1则达标使用新版战斗方案, 新版处于测试之中. 开发者请更改为0再用
         self.card_manager = None
         # 好用的信号~
         self.signal_dict = signal_dict
@@ -442,11 +442,11 @@ class Todo(QThread):
                 self.thread_manager = CardManager(self.faa[1], self.faa[2])
                 self.msleep(500)
                 self.thread_manager.run()
-                self.msleep(2000)
-                while not self.thread_manager.thread_dict[1].stop_flag:    
-                    print('启动上层事件循环')
-                    self.exec_()
-                self.thread_manager.stop()
+                self.msleep(1000)
+                self.thread_manager.thread_dict[1].stop_signal.connect(self.thread_manager.stop)
+                self.thread_manager.thread_dict[1].stop_signal.connect(self.quit)
+                print('启动上层事件循环')
+                self.exec_()
                 self.thread_manager = None
                 print("新战斗方法已完成执行并不再阻塞Todo线程")
 
