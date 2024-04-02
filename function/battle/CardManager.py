@@ -2,27 +2,26 @@ import sys
 from threading import Timer
 
 from PyQt5.QtCore import QThread, QTimer, pyqtSignal
-from PyQt5.QtWidgets import QMainWindow, QApplication
+from PyQt5.QtWidgets import QMainWindow
 
 from function.battle.Card import Card
 from function.battle.CardQueue import CardQueue
 from function.battle.get_position_in_battle import get_position_card_deck_in_battle
 from function.script.FAA import FAA
 
+import objgraph
 
-class CardManager:
+class CardManager():
 
     def __init__(self, faa_1, faa_2):
         super().__init__()
-        self.thread_check_timer_dict = {}
-        self.thread_use_card_timer_dict = {}
         self.card_list_dict = {}
         self.card_queue_dict = {}
         self.thread_dict = {}
 
         self.faa_dict = {1: faa_1, 2: faa_2}
 
-        self.stop_mode = 0  # 停止模式，如果是直接调用的stop方法，会先设置这个标识，避免重复杀死线程
+        self.stop_mode = 0 # 停止模式，如果是直接调用的stop方法，会先设置这个标识，避免重复杀死线程
         self.is_running = False
 
         # 直接从faa中获取
@@ -34,6 +33,10 @@ class CardManager:
         self.init_card_queue_dict()
         # 实例化线程
         self.init_all_thread()
+
+        # 对象分析
+        objgraph.show_most_common_types()
+        objgraph.show_growth()
 
     def init_card_list_dict(self):
         for i in ([1, 2] if self.is_group else [1]):
@@ -92,6 +95,15 @@ class CardManager:
         for k, my_thread in self.thread_dict.items():
             if my_thread is not None:
                 my_thread.stop()
+                my_thread = None
+        for key, cardlist in self.card_list_dict.items():
+            for card in cardlist:
+                card = None
+        for key, cardqueue in self.card_queue_dict.items():
+            cardqueue = None
+        self.card_list_dict.clear()
+        self.card_queue_dict.clear()
+        self.thread_dict.clear()
         print("CardManager 内部线程已停止")
 
 
@@ -104,7 +116,6 @@ class ThreadCheckTimer(QThread):
         self.faa = faa
         self.running_round = 0
         self.stop_flag = True
-        self.timer = None
 
     def run(self):
         self.stop_flag = False
@@ -114,11 +125,13 @@ class ThreadCheckTimer(QThread):
         print('启动下层事件循环')
         self.exec_()
         self.timer.stop()  # 停止定时器
-
+    
     def stop(self):
         print("{}P ThreadCheckTimer stop方法已激活".format(self.faa.player))
         self.stop_flag = True
         self.quit()  # 退出事件循环
+        self.wait()
+        self.deleteLater()
 
     def check(self):
         """先检查是否出现战斗完成或需要使用钥匙，如果完成，至二级"""
@@ -128,6 +141,7 @@ class ThreadCheckTimer(QThread):
             self.stop_flag = True
             print('检测到战斗结束')
             self.stop_signal.emit()
+            return
 
         if self.faa.is_auto_battle:
             # 先清空现有队列
@@ -147,7 +161,7 @@ class ThreadCheckTimer(QThread):
         if self.running_round % 10 == 0:
             self.faa.faa_battle.use_weapon_skill()
             self.faa.faa_battle.auto_pickup()
-
+        
 
 class ThreadUseCardTimer(QThread):
     def __init__(self, card_queue, faa):
@@ -156,7 +170,6 @@ class ThreadUseCardTimer(QThread):
         self.faa = faa
         self.object_use_card_timer = None
         self.stop_flag = True
-        self.timer = None
 
     def run(self):
         self.stop_flag = False
@@ -178,7 +191,8 @@ class ThreadUseCardTimer(QThread):
         self.stop_flag = True
         # 退出线程的事件循环
         self.quit()
-
+        self.wait()
+        self.deleteLater()
 
 if __name__ == '__main__':
     class Todo(QMainWindow):
@@ -190,8 +204,8 @@ if __name__ == '__main__':
             self.card_manager = None
 
         def run(self):
-            faa_1 = FAA(channel="锑食")
-            faa_2 = FAA(channel="深渊之下 | 锑食")
+            faa_1 = FAA(channel="锑食", zoom_rate=1)
+            faa_2 = FAA(channel="深渊之下 | 锑食", zoom_rate=1)
 
             faa_1.set_config_for_battle(
                 stage_id="NO-1-14",
