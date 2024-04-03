@@ -102,10 +102,10 @@ class ThreadActionQueueTimer(QThread):
         self.action_timer.timeout.connect(self.execute_click_queue)
         self.action_timer.start(15)
         self.exec()  # 开始事件循环
+        self.action_timer.stop()
 
     def stop(self):
         self.action_queue.queue.clear()
-        self.action_timer.stop()
         self.quit()
 
     def execute_click_queue(self):

@@ -162,3 +162,19 @@ class Card:
         #         "bottom:", pixels_bottom[0],
         #         "可用", self.status_usable,
         #         "cd", self.status_cd)
+    
+    def destroy(self):
+        self.faa = None
+        self.priority = None
+        self.handle = None
+        self.is_use_key = None
+        self.is_auto_battle = None
+        self.faa_battle = None
+        self.player = None
+        self.name = None
+        self.id = None
+        self.location = None
+        self.ergodic = None
+        self.queue = None
+        self.location_from = None
+        self.location_to = None

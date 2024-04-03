@@ -95,15 +95,18 @@ class CardManager():
         for k, my_thread in self.thread_dict.items():
             if my_thread is not None:
                 my_thread.stop()
-                my_thread = None
+        self.thread_dict.clear()  # 清空线程字典
         for key, cardlist in self.card_list_dict.items():
             for card in cardlist:
-                card = None
+                card.destroy()  # 释放卡片内存
+            cardlist.clear()  # 清空卡片列表
+        self.card_list_dict.clear()  # 清空卡片列表字典
+        # 释放卡片队列内存
         for key, cardqueue in self.card_queue_dict.items():
-            cardqueue = None
-        self.card_list_dict.clear()
-        self.card_queue_dict.clear()
-        self.thread_dict.clear()
+            cardqueue.queue.clear()  # 清空卡片队列
+        self.card_queue_dict.clear()  # 清空卡片队列字典
+        self.faa_dict.clear()  # 清空faa字典
+        self.is_group = None
         print("CardManager 内部线程已停止")
 
 
@@ -129,6 +132,8 @@ class ThreadCheckTimer(QThread):
     def stop(self):
         print("{}P ThreadCheckTimer stop方法已激活".format(self.faa.player))
         self.stop_flag = True
+        self.faa = None
+        self.card_queue = None
         self.quit()  # 退出事件循环
         self.wait()
         self.deleteLater()
@@ -189,6 +194,8 @@ class ThreadUseCardTimer(QThread):
     def stop(self):
         print("{}P ThreadUseCardTimer stop方法已激活".format(self.faa.player))
         self.stop_flag = True
+        self.faa = None
+        self.card_queue = None
         # 退出线程的事件循环
         self.quit()
         self.wait()

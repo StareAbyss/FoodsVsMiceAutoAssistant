@@ -447,7 +447,7 @@ class Todo(QThread):
                 self.thread_manager.thread_dict[1].stop_signal.connect(self.quit)
                 print('启动上层事件循环')
                 self.exec_()
-                self.thread_manager = None
+                del self.thread_manager
                 print("新战斗方法已完成执行并不再阻塞Todo线程")
 
             result_spend_time = time.time() - battle_start_time
