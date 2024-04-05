@@ -7,10 +7,10 @@ from PyQt5.QtWidgets import QApplication, QMessageBox
 from function.globals.get_paths import PATHS
 from function.scattered.get_customize_todo_list import get_customize_todo_list
 from function.scattered.get_list_battle_plan import get_list_battle_plan
-from function.script.ui_0_load_ui_file import MyMainWindow0
+from function.script.QMW_0_load_ui_file import QMainWindowLoadUI
 
 
-class MyMainWindow1(MyMainWindow0):
+class QMainWindowLoadSettings(QMainWindowLoadUI):
     """将读取配置的方法封装在此处"""
 
     def __init__(self):
@@ -564,7 +564,7 @@ if __name__ == "__main__":
         app = QApplication(sys.argv)
 
         # 实例化 主窗口
-        window = MyMainWindow1()
+        window = QMainWindowLoadSettings()
 
         # 建立槽连接 注意 多线程中 槽连接必须写在主函数
         # 注册函数：开始/结束按钮

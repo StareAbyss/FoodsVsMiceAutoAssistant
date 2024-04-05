@@ -12,7 +12,7 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 ZOOM_RATE = None
 
 
-class MyMainWindow0(QMainWindow):
+class QMainWindowLoadUI(QMainWindow):
     """读取.ui文件创建类 并加上一些常用方法"""
 
     # 注意：
@@ -63,7 +63,7 @@ class MyMainWindow0(QMainWindow):
         self.printf("")
         self.printf("用户请认真阅读[FAA从入门到神殿.pdf], 以解决[运行闪退][开始后没反应][UI缩放异常]等多数问题")
         self.printf("开发者和深入使用, 请参考[README.md]")
-        self.printf("[Github] https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant")
+        self.printf("[Github] https://github.com/StareAbyss/FoodsVsMiceAutoAssistant")
         self.printf("[B站][UP直视深淵][老版宣传视频]https://www.bilibili.com/video/BV1fS421N7zf")
         self.printf("[反馈&交流QQ] 786921130 欢迎加入获取帮助")
         self.printf("[开源][免费][绿色] 请为我在 Github点个Star/B站三连评论弹幕支持吧")
@@ -84,7 +84,7 @@ if __name__ == "__main__":
         app = QApplication(sys.argv)
 
         # 实例化 主窗口
-        my_main_window = MyMainWindow0()
+        my_main_window = QMainWindowLoadUI()
 
         my_main_window.show()
 

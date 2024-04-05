@@ -20,7 +20,7 @@ from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
 from function.scattered.get_customize_todo_list import get_customize_todo_list
 from function.script.FAA import FAA
-from function.script.ui_1_load_opt import MyMainWindow1
+from function.script.QMW_1_load_settings import QMainWindowLoadSettings
 
 
 class Todo(QThread):
@@ -439,7 +439,7 @@ class Todo(QThread):
                 self.thread_2p.join()
 
             if self.faa[player_a].battle_mode == 1:
-                self.thread_manager = CardManager(self.faa[1], self.faa[2])
+                self.thread_manager = CardManager(self.faa[player_a], self.faa[player_b])
                 self.msleep(500)
                 self.thread_manager.run()
                 self.msleep(1000)
@@ -1645,7 +1645,7 @@ class Todo(QThread):
             "\n[{}] 已完成所有事项！建议勾选刷新游戏回到登录界面, 防止长期运行flash导致卡顿".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
-        if c_opt["advanced_settings"]["end_exit_game"]:
+        if self.opt["advanced_settings"]["end_exit_game"]:
             self.reload_to_login_ui()
 
         # 全部完成了发个信号
@@ -1665,7 +1665,7 @@ class Todo(QThread):
         self.mutex.unlock()
 
 
-class MyMainWindow2(MyMainWindow1):
+class QMainWindowService(QMainWindowLoadSettings):
     signal_dialog = pyqtSignal(str, str)  # 标题, 正文
     signal_end = pyqtSignal()
     signal_printf_1 = pyqtSignal(str)
@@ -1835,7 +1835,7 @@ def main():
     app = QApplication(sys.argv)
 
     # 实例化 主窗口
-    window = MyMainWindow2()
+    window = QMainWindowService()
 
     # 注册函数：开始/结束/高级设置按钮
     window.Button_Start.clicked.connect(lambda: window.click_btn_start())
