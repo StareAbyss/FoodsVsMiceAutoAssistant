@@ -332,7 +332,7 @@
                    <bool>false</bool>
                   </property>
                   <property name="text">
-                   <string>锑食</string>
+                   <string/>
                   </property>
                  </widget>
                 </item>
@@ -477,7 +477,7 @@
                    <bool>false</bool>
                   </property>
                   <property name="text">
-                   <string>深渊之下</string>
+                   <string/>
                   </property>
                  </widget>
                 </item>
@@ -622,7 +622,7 @@
                    <number>60</number>
                   </property>
                   <property name="value">
-                   <number>50</number>
+                   <number>60</number>
                   </property>
                  </widget>
                 </item>
