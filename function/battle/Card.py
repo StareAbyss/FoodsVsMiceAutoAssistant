@@ -26,23 +26,23 @@ class Card:
         self.priority = priority
 
         """直接从FAA类读取的属性"""
-        self.handle = faa.handle
-        self.is_use_key = faa.is_use_key
-        self.is_auto_battle = faa.is_auto_battle
-        self.faa_battle = faa.faa_battle
-        self.player = faa.player
+        self.handle = self.faa.handle
+        self.is_use_key = self.faa.is_use_key
+        self.is_auto_battle = self.faa.is_auto_battle
+        self.faa_battle = self.faa.faa_battle
+        self.player = self.faa.player
 
         """从FAA类的battle_plan_1中读取的属性"""
         # 根据优先级（也是在战斗方案中的index）直接读取faa
-        self.name = faa.battle_plan_1["card"][priority]["name"]
-        self.id = faa.battle_plan_1["card"][priority]["id"]
-        self.location = faa.battle_plan_1["card"][priority]["location"]
-        self.ergodic = faa.battle_plan_1["card"][priority]["ergodic"]
-        self.queue = faa.battle_plan_1["card"][priority]["queue"]
+        self.name = self.faa.battle_plan_1["card"][priority]["name"]
+        self.id = self.faa.battle_plan_1["card"][priority]["id"]
+        self.location = self.faa.battle_plan_1["card"][priority]["location"]
+        self.ergodic = self.faa.battle_plan_1["card"][priority]["ergodic"]
+        self.queue = self.faa.battle_plan_1["card"][priority]["queue"]
         # 坐标 [x,y]
-        self.location_from = faa.battle_plan_1["card"][priority]["location_from"]
+        self.location_from = self.faa.battle_plan_1["card"][priority]["location_from"]
         # dict {"1-1": [x,y],....}
-        self.location_to = faa.battle_plan_1["card"][priority]["location_to"]
+        self.location_to = self.faa.battle_plan_1["card"][priority]["location_to"]
 
         """用于完成放卡的额外类属性"""
         # 状态 冷却完成 默认已完成
@@ -162,19 +162,7 @@ class Card:
         #         "bottom:", pixels_bottom[0],
         #         "可用", self.status_usable,
         #         "cd", self.status_cd)
-    
+
     def destroy(self):
         self.faa = None
         self.priority = None
-        self.handle = None
-        self.is_use_key = None
-        self.is_auto_battle = None
-        self.faa_battle = None
-        self.player = None
-        self.name = None
-        self.id = None
-        self.location = None
-        self.ergodic = None
-        self.queue = None
-        self.location_from = None
-        self.location_to = None
