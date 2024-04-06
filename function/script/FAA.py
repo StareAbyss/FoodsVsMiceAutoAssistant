@@ -64,8 +64,10 @@ class FAA:
         self.bp_cell = get_position_card_cell_in_battle()
         # 经过处理后的战斗方案, 由战斗类相关动作函数直接调用, 其中的各种操作都包含坐标
         self.battle_plan_1 = {}
-        # 承载卡的位置
-        self.mat_card_position = None
+        # 承载卡/冰沙/坤的位置
+        self.mat_card_positions = None  # list [{},{},...]
+        self.smoothie_position = None  # dict {}
+        self.kun_position = None  # dict {}
         # FAA_Battle 实例 均为FAA类属性引用 其中绝大多数方法需要在set_config_for_battle后使用
         self.faa_battle = Battle(faa=self)
 
@@ -1152,7 +1154,71 @@ class FAA:
                     break
 
         # 输出
-        self.mat_card_position = mat_card_list
+        self.mat_card_positions = mat_card_list
+
+    def init_smoothie_card_position(self):
+
+        # 初始化为None
+        self.smoothie_position = None
+
+        position = None
+        # 查找对应卡片坐标 重复3次
+        for i in range(3):
+            for j in ["2", "5"]:
+                # 需要使用0.99相似度参数 相似度阈值过低可能导致一张图片被识别为两张卡
+                find = match_p_in_w(
+                    raw_w_handle=self.handle,
+                    raw_range=[0, 0, 950, 600],
+                    target_path=RESOURCE_P["card"]["战斗"][f"冰淇淋-{j}.png"],
+                    target_tolerance=0.99)
+                if find:
+                    position = [int(find[0]), int(find[1])]
+                    break
+                # 防止卡片正好被某些特效遮挡, 所以等待一下
+                time.sleep(0.1)
+
+        # 根据坐标位置，判断对应的卡id
+        if position:
+            for card_id, card_xy_list in self.bp_card.items():
+                x1 = card_xy_list[0] - 45
+                y1 = card_xy_list[1] - 64
+                x2 = card_xy_list[0] + 8
+                y2 = card_xy_list[1] + 6
+                if x1 <= position[0] <= x2 and y1 <= position[1] <= y2:
+                    self.smoothie_position = {"id": card_id, "location_from": position}
+                    break
+
+    def init_kun_card_position(self):
+
+        # 初始化为None
+        self.kun_position = None
+
+        position = None
+        # 查找对应卡片坐标 重复3次
+        for i in range(3):
+            for j in range(6):
+                # 需要使用0.99相似度参数 相似度阈值过低可能导致一张图片被识别为两张卡
+                find = match_p_in_w(
+                    raw_w_handle=self.handle,
+                    raw_range=[0, 0, 950, 600],
+                    target_path=RESOURCE_P["card"]["战斗"][f"幻幻鸡-{j}.png"],
+                    target_tolerance=0.99)
+                if find:
+                    position = [int(find[0]), int(find[1])]
+                    break
+                # 防止卡片正好被某些特效遮挡, 所以等待一下
+                time.sleep(0.1)
+
+        # 根据坐标位置，判断对应的卡id
+        if position:
+            for card_id, card_xy_list in self.bp_card.items():
+                x1 = card_xy_list[0] - 45
+                y1 = card_xy_list[1] - 64
+                x2 = card_xy_list[0] + 8
+                y2 = card_xy_list[1] + 6
+                if x1 <= position[0] <= x2 and y1 <= position[1] <= y2:
+                    self.kun_position = {"id": card_id, "location_from": position}
+                    break
 
     def init_battle_plan_1(self):
         """
@@ -1185,7 +1251,9 @@ class FAA:
         ban_card_list = copy.deepcopy(self.ban_card_list)
         stage_info = copy.deepcopy(self.stage_info)
         battle_plan = copy.deepcopy(self.battle_plan_0)
-        mat_card_position = copy.deepcopy(self.mat_card_position)
+        mat_card_position = copy.deepcopy(self.mat_card_positions)
+        smoothie_position = copy.deepcopy(self.smoothie_position)
+        kun_position = copy.deepcopy(self.kun_position)
 
         def calculation_card_quest(list_cell_all):
             """计算步骤一 加入任务卡的摆放坐标"""
@@ -1270,6 +1338,45 @@ class FAA:
 
             return list_new
 
+        def calculation_card_extra(list_cell_all):
+
+            if smoothie_position:
+                # 仅该卡确定存在后执行添加
+                card_dict = {
+                    "name": "极寒冰沙",
+                    "id": smoothie_position["id"],
+                    "location": ["1-1"],
+                    "ergodic": True,
+                    "queue": True,
+                    "location_from": smoothie_position["location_from"],
+                    "location_to": []
+                }
+                list_cell_all.append(card_dict)
+
+            if kun_position:
+                # 仅该卡确定存在后执行添加
+                max_kun = 0
+                max_kun_index = None
+                for i in range(len(list_cell_all)):
+                    card = list_cell_all[i]
+                    max_kun = max(card["kun"], max_kun)
+                    max_kun_index = i
+
+                if max_kun != 0:
+                    max_kun_card = list_cell_all[max_kun_index]
+                    card_dict = {
+                        "name": "幻幻鸡",
+                        "id": kun_position["id"],
+                        "location": max_kun_card["location"],
+                        "ergodic": max_kun_card["ergodic"],
+                        "queue": max_kun_card["queue"],
+                        "location_from": kun_position["location_from"],
+                        "location_to": []
+                    }
+                    list_cell_all.insert(max_kun_index + 1, card_dict)
+
+            return list_cell_all
+
         def calculation_obstacle(list_cell_all):
             """去除有障碍的位置的放卡"""
 
@@ -1335,6 +1442,9 @@ class FAA:
             # 调用ban掉某些卡(不使用该卡)
             list_cell_all = calculation_card_ban(list_cell_all=list_cell_all)
 
+            # 调用冰沙和坤函数
+            list_cell_all = calculation_card_extra(list_cell_all=list_cell_all)
+
             # 调用去掉障碍位置
             list_cell_all = calculation_obstacle(list_cell_all=list_cell_all)
 
@@ -1353,20 +1463,6 @@ class FAA:
             self.battle_plan_1 = {"card": list_cell_all, "shovel": list_shovel}
 
         return main()
-
-    def init_battle_object(self):
-        self.faa_battle = Battle(self)
-
-        # 放人物
-        self.print_g(text="开始战斗", garde=1)
-        if self.player == 2:
-            time.sleep(1.333)
-        for i in self.battle_plan_0["player"]:
-            self.faa_battle.use_player(i)
-
-        # 调用承载卡方案中，铲卡方法
-        if self.is_main:
-            self.faa_battle.use_shovel()  # 因为有点击序列，所以同时操作是可行的
 
     def loop_battle(self):
         """
