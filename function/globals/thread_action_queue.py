@@ -3,8 +3,9 @@ import queue
 import sys
 from ctypes import windll
 from string import printable
+from threading import Timer
 
-from PyQt5.QtCore import QTimer, QThread
+from PyQt5.QtCore import QThread
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
 from function.scattered.gat_handle import faa_get_handle
@@ -98,15 +99,27 @@ class ThreadActionQueueTimer(QThread):
         }
 
     def run(self):
-        self.action_timer = QTimer()  # 不能放在init方法里，否则无效果
-        self.action_timer.timeout.connect(self.execute_click_queue)
-        self.action_timer.start(15)
+        self.action_timer = Timer(0.015, self.execute_click_queue)
+        self.action_timer.start()
         self.exec()  # 开始事件循环
-        self.action_timer.stop()
+        self.action_timer.cancel()
+        self.action_timer = None
 
     def stop(self):
         self.action_queue.queue.clear()
         self.quit()
+
+    def print_queue(self):
+        """线程不安全的方式查看队列内容"""
+        items = []
+        while not self.action_queue.empty():
+            item = self.action_queue.get()
+            items.append(item)
+        # 将元素放回队列
+        for item in items:
+            self.action_queue.put(item)
+
+        print(f"打印点击列表:{items}")
 
     def execute_click_queue(self):
         if not self.action_queue.empty():
@@ -116,6 +129,8 @@ class ThreadActionQueueTimer(QThread):
             self.do_something(d_type=d_type, handle=handle, args=args)
             # 标记任务已完成
             self.action_queue.task_done()
+        self.action_timer = Timer(0.015, self.execute_click_queue)
+        self.action_timer.start()
 
     def add_click_to_queue(self, handle, x, y):
         self.action_queue.put(("click", handle, [x, y]))

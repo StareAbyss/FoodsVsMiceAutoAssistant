@@ -119,29 +119,32 @@ class ThreadCheckTimer(QThread):
 
     def run(self):
         self.stop_flag = False
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.check)
-        self.timer.start(1000)  # 设置定时器每1000毫秒触发一次
+        self.timer = Timer(1, self.check)
+        self.timer.start()
         print('启动下层事件循环')
-        self.exec_()
-        self.timer.stop()  # 停止定时器
+        while not self.stop_flag:
+            QThread.msleep(100)
+        self.timer.cancel()  # 停止定时器
         self.timer = None
 
     def stop(self):
         print("{}P ThreadCheckTimer stop方法已激活".format(self.faa.player))
+        # 设置Flag
         self.stop_flag = True
-        self.faa = None
-        self.card_queue = None
-        self.quit()  # 退出事件循环
+        # 退出事件循环
+        self.quit()
         self.wait()
         self.deleteLater()
+        # 清除引用; 释放内存
+        self.faa = None
+        self.card_queue = None
 
     def check(self):
         """先检查是否出现战斗完成或需要使用钥匙，如果完成，至二级"""
         self.running_round += 1
 
-        if self.faa.faa_battle.use_key_and_check_end():
-            self.stop_flag = True
+        self.stop_flag = self.faa.faa_battle.use_key_and_check_end()
+        if self.stop_flag:
             print('检测到战斗结束')
             self.stop_signal.emit()
             return
@@ -164,6 +167,10 @@ class ThreadCheckTimer(QThread):
         if self.running_round % 10 == 0:
             self.faa.faa_battle.use_weapon_skill()
             self.faa.faa_battle.auto_pickup()
+
+        if not self.stop_flag:
+            self.timer = Timer(1, self.check)
+            self.timer.start()
 
 
 class ThreadUseCardTimer(QThread):
