@@ -36,7 +36,7 @@ class Todo(QThread):
         self.opt = opt
         self.thread_1p = None
         self.thread_2p = None
-        self.thread_manager = None
+        self.thread_card_manager = None
         self.battle_mode = 1  # 1 或 0 0则代表使用老版战斗方案; 1则达标使用新版战斗方案, 新版处于测试之中. 开发者请更改为0再用
         self.card_manager = None
         # 好用的信号~
@@ -439,15 +439,17 @@ class Todo(QThread):
                 self.thread_2p.join()
 
             if self.faa[player_a].battle_mode == 1:
-                self.thread_manager = CardManager(self.faa[player_a], self.faa[player_b])
+                self.thread_card_manager = CardManager(self.faa[player_a], self.faa[player_b])
                 self.msleep(500)
-                self.thread_manager.run()
+                self.thread_card_manager.run()
                 self.msleep(1000)
-                self.thread_manager.thread_dict[1].stop_signal.connect(self.thread_manager.stop)
-                self.thread_manager.thread_dict[1].stop_signal.connect(self.quit)
+                self.thread_card_manager.thread_dict[1].stop_signal.connect(self.thread_card_manager.stop)
+                self.thread_card_manager.thread_dict[1].stop_signal.connect(self.quit)
                 print('启动上层事件循环')
                 self.exec_()
-                del self.thread_manager
+                del self.thread_card_manager
+                # 此处的重新变为None是为了让中止todo实例时时该属性仍存在
+                self.thread_card_manager = None
                 print("新战斗方法已完成执行并不再阻塞Todo线程")
 
             result_spend_time = time.time() - battle_start_time
@@ -1675,10 +1677,10 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 继承父类构造方法
         super().__init__()
         self.thread_todo = None
+        self.thread_todo_active = False
+
         self.reply = None
         self.faa = [None, None, None]
-        # 线程激活即为True
-        self.thread_states = False
         # 链接防呆弹窗
         self.signal_dialog.connect(self.show_dialog)
         # 链接日志输入
@@ -1710,7 +1712,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def todo_end(self):
         # 设置flag
-        self.thread_states = False
+        self.thread_todo_active = False
         # 设置按钮文本
         self.Button_Start.setText("开始\nLink Start")
         # 设置输出文本
@@ -1720,7 +1722,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def todo_start(self):
         # 设置flag
-        self.thread_states = True
+        self.thread_todo_active = True
         # 设置按钮文本
         self.Button_Start.setText("终止\nEnd")
         # 设置输出文本
@@ -1793,7 +1795,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 中断[内部战斗线程]
         # Q thread 线程 stop方法需要自己手写
-        thread = self.thread_todo.thread_manager
+        thread = self.thread_todo.thread_card_manager
         if thread is not None:
             thread.stop()
 
@@ -1815,7 +1817,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         """战斗开始函数"""
 
         # 线程没有激活
-        if not self.thread_states:
+        if not self.thread_todo_active:
             self.start_all()
         else:
             self.stop_all()

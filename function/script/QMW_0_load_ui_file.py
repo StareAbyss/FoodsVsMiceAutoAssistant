@@ -63,6 +63,7 @@ class QMainWindowLoadUI(QMainWindow):
         self.printf("")
         self.printf("用户请认真阅读[FAA从入门到神殿.pdf], 以解决[运行闪退][开始后没反应][UI缩放异常]等多数问题")
         self.printf("开发者和深入使用, 请参考[README.md]")
+        self.printf("鼠标悬停在文字或按钮上会显示部分提示信息~")
         self.printf("[Github] https://github.com/StareAbyss/FoodsVsMiceAutoAssistant")
         self.printf("[B站][UP直视深淵][老版宣传视频]https://www.bilibili.com/video/BV1fS421N7zf")
         self.printf("[反馈&交流QQ] 786921130 欢迎加入获取帮助")
