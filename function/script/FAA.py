@@ -25,6 +25,7 @@ class FAA:
                  is_auto_battle=True, is_auto_pickup=False, random_seed=0, signal_dict=None):
 
         # 获取窗口句柄
+
         self.channel = channel
         self.handle = faa_get_handle(channel=self.channel, mode="flash")
         self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
@@ -61,12 +62,12 @@ class FAA:
         self.bp_card = None
         # 调用战斗中 格子位置 字典 bp -> battle position
         self.bp_cell = get_position_card_cell_in_battle()
-        # FAA 战斗实例
-        self.faa_battle = None
         # 经过处理后的战斗方案, 由战斗类相关动作函数直接调用, 其中的各种操作都包含坐标
         self.battle_plan_1 = {}
         # 承载卡的位置
         self.mat_card_position = None
+        # FAA_Battle 实例 均为FAA类属性引用 其中绝大多数方法需要在set_config_for_battle后使用
+        self.faa_battle = Battle(faa=self)
 
     def print_g(self, text, garde=1, player=1):
         """
@@ -1762,20 +1763,30 @@ class FAA:
         """
         关卡内战斗过程
         """
+        # 0.刷新faa_battle实例的部分属性
+        self.faa_battle.re_init()
 
-        # 1.识图卡片数量，确定卡片在deck中的位置
+        # 1.把人物放下来
+        time.sleep(0.333)
+        if not self.is_main:
+            time.sleep(0.666)
+
+        self.faa_battle.use_player_all()
+
+        # 2.识图卡片数量，确定卡片在deck中的位置
         self.bp_card = get_position_card_deck_in_battle(handle=self.handle)
 
-        # 2.识图承载卡参数
+        # 3.识图承载卡参数
         self.init_mat_card_position()
 
-        # 3.计算所有坐标
+        # 4.计算所有坐标
         self.init_battle_plan_1()
 
-        # 4.刷新faa放卡实例 执行战斗循环前的动作(放人物 铲卡)
-        self.init_battle_object()
+        # 5.铲卡
+        if self.is_main:
+            self.faa_battle.use_shovel()  # 因为有点击序列，所以同时操作是可行的
 
-        # 5.战斗循环
+        # 6.战斗循环
         self.loop_battle()
 
     def action_round_of_battle_screen(self):
@@ -2203,11 +2214,11 @@ class FAA:
                         "raw_range": [840, 525, 2000, 2000],
                         "target_path": RESOURCE_P["common"]["底部菜单"]["跳转.png"],
                         "target_tolerance": 0.98,
-                    },{
+                    }, {
                         "raw_range": [610, 525, 2000, 2000],
                         "target_path": RESOURCE_P["common"]["底部菜单"]["任务.png"],
                         "target_tolerance": 0.98,
-                    },{
+                    }, {
                         "raw_range": [890, 525, 2000, 2000],
                         "target_path": RESOURCE_P["common"]["底部菜单"]["后退.png"],
                         "target_tolerance": 0.98,
@@ -2749,7 +2760,7 @@ if __name__ == '__main__':
 
         # 1.识图承载卡参数
         # faa.init_mat_card_position()
-        faa.mat_card_position = [[100, 100], [100, 200]]
+        faa.mat_card_positions = [[100, 100], [100, 200]]
 
         # 2.识图卡片数量，确定卡片在deck中的位置
         faa.bp_card = get_position_card_deck_in_battle(handle=faa.handle)

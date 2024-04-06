@@ -11,27 +11,23 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 class Battle:
     def __init__(self, faa):
         """FAA的战斗类，包含了各种战斗中专用的方法"""
-        """调用faa属性"""
+        # 复制faa实例的属性
+        # 如果直接调用该类可以从faa实例中获取动态变化的其属性值, 但如果赋值到本类内部属性则会固定为静态
         self.faa = faa
-        self.handle = faa.handle
-        self.player = faa.player
-        self.is_auto_battle = faa.is_auto_battle
-        self.is_auto_pickup = faa.is_auto_pickup
-        self.is_use_key = faa.is_use_key
-        self.bp_cell = faa.bp_cell
-        self.bp_card = faa.bp_card
-        self.battle_plan_1 = faa.battle_plan_1
 
-        """战斗专用属性"""
-        self.fire_elemental_1000 = False
-        self.smoothie_usable = self.player == 1
+        # 战斗专用私有属性 - 每次战斗刷新
+        self.fire_elemental_1000 = None
+        self.smoothie_usable = None
 
-        """老方法其他手动内部参数"""
+        # 战斗专用私有属性 - 静态
+
         # 每次点击时 按下和抬起之间的间隔 秒
         self.click_interval = 0.025
+
         # 每次点击时 按下和抬起之间的间隔 秒
         self.click_sleep = 0.025
 
+        # 自动拾取的格子
         self.auto_collect_cells = [
             "1-1", "2-1", "8-1", "9-1",
             "1-2", "2-2", "8-2", "9-2",
@@ -42,26 +38,36 @@ class Battle:
             "1-7", "2-7", "8-7", "9-7"
         ]
 
-        # self.auto_collect_cells = [i for i in self.auto_collect_cells if i not in self.warning_cell]
-
+        # 自动拾取的坐标
         self.auto_collect_cells_coordinate = []
         for i in self.auto_collect_cells:
-            self.auto_collect_cells_coordinate.append(self.bp_cell[i])
+            self.auto_collect_cells_coordinate.append(self.faa.bp_cell[i])
 
     """ 战斗内的子函数 """
+    def re_init(self):
+        """战斗前调用, 重新初始化部分每场战斗都要重新刷新的该内私有属性"""
+        self.fire_elemental_1000 = False
+        self.smoothie_usable = self.faa.player == 1
 
-    def use_player(self, num_cell):
+    def use_player_once(self, num_cell):
+        print(f'{num_cell}')
         T_ACTION_QUEUE_TIMER.add_click_to_queue(
-            handle=self.handle,
-            x=self.bp_cell[num_cell][0],
-            y=self.bp_cell[num_cell][1])
-        time.sleep(self.click_sleep)
+            handle=self.faa.handle,
+            x=self.faa.bp_cell[num_cell][0],
+            y=self.faa.bp_cell[num_cell][1])
+
+    def use_player_all(self):
+        self.faa.print_g(text="[战斗] 开始放置玩家:{}".format(self.faa.battle_plan_0["player"]))
+        for i in self.faa.battle_plan_0["player"]:
+            self.use_player_once(i)
+            time.sleep(self.click_sleep)
+        print(T_ACTION_QUEUE_TIMER.print_queue())
 
     def use_shovel(self, position=None):
         """
         根据战斗方案用铲子
         """
-        positions = self.battle_plan_1["shovel"]
+        positions = self.faa.battle_plan_1["shovel"]
         if positions is None:
             positions = []
 
@@ -69,9 +75,9 @@ class Battle:
             positions.append(position)
 
         for position in positions:
-            T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle, key="1")
+            T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
             time.sleep(self.click_sleep / 2)  # 必须的间隔
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=position[0], y=position[1])
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=position[0], y=position[1])
             time.sleep(self.click_sleep)
 
     def use_key(self, mode: int = 0):
@@ -84,18 +90,18 @@ class Battle:
         :return:
             None
         """
-        if self.is_use_key:
+        if self.faa.is_use_key:
             if mode == 0:
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=427, y=360)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=427, y=360)
                 time.sleep(self.click_sleep)
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=427, y=360)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=427, y=360)
                 time.sleep(self.click_sleep)
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=427, y=360)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=427, y=360)
                 time.sleep(self.click_sleep)
 
             if mode == 1:
                 find = match_p_in_w(
-                    raw_w_handle=self.handle,
+                    raw_w_handle=self.faa.handle,
                     raw_range=[386,332,463,362],
                     target_tolerance=0.95,
                     target_path=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
@@ -103,14 +109,14 @@ class Battle:
                     self.faa.print_g(text="找到了 [继续作战]", player=2)
                     while find:
                         loop_match_p_in_w(
-                            raw_w_handle=self.handle,
+                            raw_w_handle=self.faa.handle,
                             raw_range=[386,332,463,362],
                             target_tolerance=0.95,
                             target_path=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"],
                             target_sleep=0.5,
                             click=True)
                         find = match_p_in_w(
-                            raw_w_handle=self.handle,
+                            raw_w_handle=self.faa.handle,
                             raw_range=[302,263,396,289],
                             target_tolerance=0.95,
                             target_path=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
@@ -120,7 +126,7 @@ class Battle:
         # 找到战利品字样(被黑色透明物遮挡,会看不到)
         self.use_key(mode=1)
         result = match_ps_in_w(
-            raw_w_handle=self.handle,
+            raw_w_handle=self.faa.handle,
             target_opts=[
                 {
                     "raw_range": [202, 419, 306, 461],
@@ -171,43 +177,43 @@ class Battle:
         """
         # 注 美食大战老鼠中 放卡动作 需要按下一下 然后拖动 然后按下并松开 才能完成 整个动作
         T_ACTION_QUEUE_TIMER.add_click_to_queue(
-            handle=self.handle,
-            x=self.bp_card[num_card][0],
-            y=self.bp_card[num_card][1])
+            handle=self.faa.handle,
+            x=self.faa.bp_card[num_card][0],
+            y=self.faa.bp_card[num_card][1])
         time.sleep(self.click_sleep)
 
         T_ACTION_QUEUE_TIMER.add_click_to_queue(
-            handle=self.handle,
-            x=self.bp_cell[num_cell][0],
-            y=self.bp_cell[num_cell][1])
+            handle=self.faa.handle,
+            x=self.faa.bp_cell[num_cell][0],
+            y=self.faa.bp_cell[num_cell][1])
         time.sleep(self.click_sleep)
 
         # 点一下空白
         if click_space:
-            T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
+            T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.faa.handle, x=200, y=350)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=200, y=350)
             time.sleep(self.click_sleep)
 
     def use_weapon_skill(self):
         """使用武器技能"""
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=23, y=200)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=200)
         time.sleep(self.click_sleep)
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=23, y=250)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=250)
         time.sleep(self.click_sleep)
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=23, y=297)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=297)
         time.sleep(self.click_sleep)
 
     def auto_pickup(self):
-        if self.is_auto_pickup:
+        if self.faa.is_auto_pickup:
             for coordinate in self.auto_collect_cells_coordinate:
-                T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=coordinate[0], y=coordinate[1])
+                T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.faa.handle, x=coordinate[0], y=coordinate[1])
                 time.sleep(self.click_sleep)
 
     def update_fire_elemental_1000(self):
-        image = capture_picture_png(handle=self.handle, raw_range=[161, 75, 164, 85])
+        image = capture_picture_png(handle=self.faa.handle, raw_range=[161, 75, 164, 85])
         image = image[:, :, :3]
         image = image.reshape(-1, image.shape[-1])  # 减少一个多余的维度
         self.fire_elemental_1000 = np.any(image == [0, 0, 0])
 
-        if self.player == 1:
+        if self.faa.player == 1:
             print("1p火苗>1000:", self.fire_elemental_1000)
