@@ -1,9 +1,4 @@
 import queue
-import time
-
-from function.battle.Card import Card
-from function.battle.get_position_in_battle import get_position_card_deck_in_battle
-from function.script.FAA import FAA
 
 
 class CardQueue(queue.PriorityQueue):
@@ -73,51 +68,3 @@ class CardQueue(queue.PriorityQueue):
         # 去使用这张卡
         card.use_card()
         self.card_using = False
-
-
-if __name__ == '__main__':
-    def test():
-        faa_1 = FAA(channel="锑食")
-        faa_2 = FAA(channel="锑食")
-
-        faa_1.set_config_for_battle(
-            stage_id="NO-1-14",
-            is_group=True,
-            battle_plan_index=0)
-
-        faa_2.set_config_for_battle(
-            stage_id="NO-1-14",
-            is_group=True,
-            battle_plan_index=0)
-
-        # 1.识图卡片数量，确定卡片在deck中的位置
-        faa_1.bp_card = get_position_card_deck_in_battle(handle=faa_1.handle)
-        faa_2.bp_card = get_position_card_deck_in_battle(handle=faa_2.handle)
-
-        # 2.识图承载卡参数
-        faa_1.init_mat_card_position()
-        faa_2.init_mat_card_position()
-
-        # 3.计算所有坐标
-        faa_1.init_battle_plan_1()
-        faa_2.init_battle_plan_1()
-
-        # 4.刷新faa放卡实例
-        faa_1.init_battle_object()
-        faa_2.init_battle_object()
-
-        card_list = []
-        for j in range(len(faa_1.battle_plan_1["card"])):
-            # 按从前到后顺序，作为优先级顺序，从0开始
-            card_list.append(Card(faa=faa_1, priority=j))
-
-        card_queue = CardQueue(card_list=card_list)
-        card_queue.init_card_queue()
-
-        for i in range(20):
-            print(card_queue.peek()[1].name)
-            card_queue.use_top_card()
-            time.sleep(2)
-
-
-    test()

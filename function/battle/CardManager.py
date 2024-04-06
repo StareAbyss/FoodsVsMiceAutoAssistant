@@ -1,14 +1,10 @@
-import sys
 from threading import Timer
 
 import objgraph
-from PyQt5.QtCore import QThread, QTimer, pyqtSignal
-from PyQt5.QtWidgets import QMainWindow, QApplication
+from PyQt5.QtCore import QThread, pyqtSignal
 
 from function.battle.Card import Card
 from function.battle.CardQueue import CardQueue
-from function.battle.get_position_in_battle import get_position_card_deck_in_battle
-from function.script.FAA import FAA
 
 
 class CardManager:
@@ -117,9 +113,9 @@ class ThreadCheckTimer(QThread):
         super().__init__()
         self.card_queue = card_queue
         self.faa = faa
-        self.running_round = 0
         self.stop_flag = True
         self.timer = None
+        self.running_round = 0
 
     def run(self):
         self.stop_flag = False
@@ -175,7 +171,6 @@ class ThreadUseCardTimer(QThread):
         super().__init__()
         self.card_queue = card_queue
         self.faa = faa
-        self.object_use_card_timer = None
         self.stop_flag = True
         self.timer = None
 
@@ -197,80 +192,12 @@ class ThreadUseCardTimer(QThread):
 
     def stop(self):
         print("{}P ThreadUseCardTimer stop方法已激活".format(self.faa.player))
+        # 设置Flag
         self.stop_flag = True
-        self.faa = None
-        self.card_queue = None
         # 退出线程的事件循环
         self.quit()
         self.wait()
         self.deleteLater()
-
-
-if __name__ == '__main__':
-    class Todo(QMainWindow):
-        """模拟todo类"""
-
-        def __init__(self):
-            super().__init__()
-            self.t1 = None
-            self.card_manager = None
-
-        def run(self):
-            faa_1 = FAA(channel="锑食")
-            faa_2 = FAA(channel="深渊之下 | 锑食")
-
-            faa_1.set_config_for_battle(
-                stage_id="NO-1-14",
-                is_group=True,
-                battle_plan_index=0)
-            faa_2.set_config_for_battle(
-                stage_id="NO-1-14",
-                is_group=True,
-                battle_plan_index=0)
-
-            # 1.识图承载卡参数
-            faa_1.init_mat_card_position()
-            faa_2.init_mat_card_position()
-
-            # 2.识图卡片数量，确定卡片在deck中的位置
-            faa_1.bp_card = get_position_card_deck_in_battle(handle=faa_1.handle)
-            faa_2.bp_card = get_position_card_deck_in_battle(handle=faa_2.handle)
-
-            # 3.计算所有坐标
-            faa_1.init_battle_plan_1()
-            faa_2.init_battle_plan_1()
-
-            # 4.刷新faa放卡实例
-            faa_1.init_battle_object()
-            faa_2.init_battle_object()
-
-            print("准备工作完成")
-            self.card_manager = CardManager(faa_1=faa_1, faa_2=faa_2)
-            self.card_manager.run()
-
-
-    class MainWindow(QMainWindow):
-        """模拟窗口主线程"""
-
-        def __init__(self):
-            super().__init__()
-            self.initUI()
-            self.t1 = Todo()
-            self.t1.run()
-
-        def initUI(self):
-            self.setWindowTitle('计时器示例')
-            self.setGeometry(300, 300, 250, 150)
-
-        def do_something(self):
-            todo = Todo()
-            todo.start()
-
-
-    """模拟启动"""
-    app = QApplication(sys.argv)
-
-    main_win = MainWindow()
-    main_win.show()
-
-    sys.exit(app.exec())
+        # 清除引用; 释放内存
+        self.faa = None
+        self.card_queue = None
