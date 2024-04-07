@@ -13,6 +13,7 @@ from function.common.bg_p_match import match_p_in_w, loop_match_p_in_w, loop_mat
 from function.common.bg_p_screenshot import capture_picture_png
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
+from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_list_battle_plan import get_list_battle_plan
@@ -33,7 +34,7 @@ class FAA:
 
         # 好用的信号
         self.signal_dict = signal_dict
-        self.signal_printf = self.signal_dict["printf"]
+        self.signal_print_to_ui = self.signal_dict["print_to_ui"]
         self.signal_dialog = self.signal_dict["dialog"]
         self.signal_end = self.signal_dict["end"]
 
@@ -71,24 +72,25 @@ class FAA:
         # FAA_Battle 实例 均为FAA类属性引用 其中绝大多数方法需要在set_config_for_battle后使用
         self.faa_battle = Battle(faa=self)
 
-    def print_g(self, text, garde=1, player=1):
+    def print_g(self, text, garde=0, player=None):
         """
         分级print函数
         :param player: 哪个角色需要这个print
         :param text: 正文
-        :param garde: 级别, 1-[Info]默认 2-[Warning] 3或其他-[Error]
+        :param garde: 级别, 0-[Debug]默认 1-[Info] 2-[Warning] 3或其他-[Error]
         :return: None
         """
-        if garde == 1:
-            garde_text = "Info"
-        elif garde == 2:
-            garde_text = "Warning"
-        else:
-            garde_text = "Error"
+        if not player:
+            player = self.player
 
-        # if self.player == player:
-        #     print("[{}] [{}P] {}".format(garde_text, self.player, text))
-        print("[{}] [{}P] {}".format(garde_text, self.player, text))
+        if garde == 0:
+            CUS_LOGGER.debug("[{}P] {}".format(player, text))
+        if garde == 1:
+            CUS_LOGGER.info("[{}P] {}".format(player, text))
+        elif garde == 2:
+            CUS_LOGGER.warning("[{}P] {}".format(player, text))
+        else:
+            CUS_LOGGER.error("[{}P] {}".format(player, text))
 
     """通用对flash界面的基础操作"""
 
@@ -1158,6 +1160,8 @@ class FAA:
 
     def init_smoothie_card_position(self):
 
+        self.print_g(text="战斗中识图查找冰沙位置, 开始")
+
         # 初始化为None
         self.smoothie_position = None
 
@@ -1223,6 +1227,8 @@ class FAA:
                 if x1 <= position[0] <= x2 and y1 <= position[1] <= y2:
                     self.kun_position = {"id": card_id, "location_from": position}
                     break
+
+        self.print_g(text="战斗中识图查找幻幻鸡位置, 结果：{}".format(self.smoothie_position))
 
     def init_battle_plan_1(self):
         """

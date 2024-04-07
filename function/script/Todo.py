@@ -1,14 +1,10 @@
 import datetime
 import json
-import random
-import sys
 import time
 from time import sleep
 
 import requests
-from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import *
-from PyQt5.QtWidgets import QApplication
 
 from function.battle.CardManager import CardManager
 from function.common.bg_p_match import loop_match_p_in_w
@@ -16,11 +12,7 @@ from function.common.thread_with_exception import ThreadWithException
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
-from function.scattered.gat_handle import faa_get_handle
-from function.scattered.get_channel_name import get_channel_name
 from function.scattered.get_customize_todo_list import get_customize_todo_list
-from function.script.FAA import FAA
-from function.script.QMW_1_load_settings import QMainWindowLoadSettings
 
 
 class Todo(QThread):
@@ -41,7 +33,7 @@ class Todo(QThread):
         self.card_manager = None
         # 好用的信号~
         self.signal_dict = signal_dict
-        self.signal_printf = self.signal_dict["printf"]
+        self.signal_print_to_ui = self.signal_dict["print_to_ui"]
         self.signal_dialog = self.signal_dict["dialog"]
         self.signal_end = self.signal_dict["end"]
 
@@ -49,7 +41,7 @@ class Todo(QThread):
 
     def reload_game(self):
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] Refresh Game...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
@@ -76,9 +68,7 @@ class Todo(QThread):
 
     def reload_to_login_ui(self):
 
-        self.signal_printf.emit(
-            "[{}] Refresh Game...".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        self.signal_print_to_ui.emit("Refresh Game...")
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -97,9 +87,7 @@ class Todo(QThread):
 
     def all_sign_in(self, is_group):
 
-        self.signal_printf.emit(
-            "[{}] [每日签到] 开始...".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-            color="red")
+        self.signal_print_to_ui.emit("[每日签到] 开始...",color="red")
 
         # 领取温馨礼包
         for i in [1, 2]:
@@ -110,9 +98,9 @@ class Todo(QThread):
                 url = 'http://meishi.wechat.123u.com/meishi/gift?openid=' + openid
                 r = requests.get(url)
                 message = r.json()['msg']
-                self.signal_printf.emit(f'[{i}P] 领取温馨礼包情况:' + message, color="green")
+                self.signal_print_to_ui.emit(f'[{i}P] 领取温馨礼包情况:' + message, color="green")
             else:
-                self.signal_printf.emit(f"[{i}P] 未激活领取温馨礼包", color="red")
+                self.signal_print_to_ui.emit(f"[{i}P] 未激活领取温馨礼包", color="red")
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -134,20 +122,14 @@ class Todo(QThread):
         if is_group:
             self.thread_2p.join()
 
-        self.signal_printf.emit(
-            "[{}] [每日签到] 结束".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-            , color="red")
+        self.signal_print_to_ui.emit("[每日签到] 结束", color="red")
 
     def receive_quest_rewards(self, is_group):
 
-        self.signal_printf.emit(
-            "[{}] [领取奖励] 开始...".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-            color="red")
+        self.signal_print_to_ui.emit("[领取奖励] 开始...", color="red")
 
         """普通任务"""
-        self.signal_printf.emit(
-            "[{}] [领取奖励] [普通任务] 开始...".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        self.signal_print_to_ui.emit("[领取奖励] [普通任务] 开始...")
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -175,15 +157,11 @@ class Todo(QThread):
         if is_group:
             self.thread_2p.join()
 
-        self.signal_printf.emit(
-            "[{}] [领取奖励] [普通任务] 结束".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        self.signal_print_to_ui.emit("[领取奖励] [普通任务] 结束")
 
         """美食大赛"""
 
-        self.signal_printf.emit(
-            "[{}] [领取奖励] [美食大赛] 开始...".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        self.signal_print_to_ui.emit("[领取奖励] [美食大赛] 开始...")
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -207,14 +185,10 @@ class Todo(QThread):
         self.thread_1p.join()
         self.thread_2p.join()
 
-        self.signal_printf.emit(
-            "[{}] [领取奖励] [美食大赛] 结束...".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        self.signal_print_to_ui.emit("[领取奖励] [美食大赛] 结束...")
 
         """大富翁"""
-        self.signal_printf.emit(
-            "[{}] [领取奖励] [大富翁] 开始...".format(
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        self.signal_print_to_ui.emit("[领取奖励] [大富翁] 开始...")
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -238,22 +212,22 @@ class Todo(QThread):
         self.thread_1p.join()
         self.thread_2p.join()
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] [领取奖励] [大富翁] 结束...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             text="[{}] 领取所有[任务]奖励, 完成".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
             color="red")
 
     def use_items(self, is_group):
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] 使用绑定消耗品和宝箱, 开始".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] 领取一般任务奖励...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
@@ -278,13 +252,13 @@ class Todo(QThread):
         if is_group:
             self.thread_2p.join()
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             text="[{}] 使用绑定消耗品和宝箱, 完成".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
     def loop_cross_server(self, is_group, deck):
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             text="[{}] 无限刷跨服任务威望启动!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
             color="red"
@@ -542,7 +516,7 @@ class Todo(QThread):
                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         failed_time)
                     print(text)
-                    self.signal_printf.emit(text)
+                    self.signal_print_to_ui.emit(text)
                     # 邀请成功 返回退出
                     return 0
 
@@ -554,14 +528,14 @@ class Todo(QThread):
                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         failed_time)
                     print(text)
-                    self.signal_printf.emit(text)
+                    self.signal_print_to_ui.emit(text)
 
                     if failed_time == 3:
                         text = "[{}] [单本轮战] 服务器抽风过头, 刷新游戏!".format(
                             datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                             failed_time)
                         print(text)
-                        self.signal_printf.emit(text)
+                        self.signal_print_to_ui.emit(text)
                         failed_round += 1
                         self.reload_game()
                         break
@@ -574,7 +548,7 @@ class Todo(QThread):
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     failed_time)
                 print(text)
-                self.signal_printf.emit(text)
+                self.signal_print_to_ui.emit(text)
                 return 2
 
     def n_battle_customize_battle_error_print(self, success_battle_time):
@@ -583,7 +557,7 @@ class Todo(QThread):
             datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             success_battle_time)
         print(text)
-        self.signal_printf.emit(text)
+        self.signal_print_to_ui.emit(text)
         self.reload_game()
         sleep(60 * 60 * 24)
 
@@ -640,7 +614,7 @@ class Todo(QThread):
                 battle_plan_index=battle_plan_b,
                 stage_id=stage_id)
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] [单本轮战] {} {}次 开始".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 stage_id,
@@ -649,7 +623,7 @@ class Todo(QThread):
         # 检查人物等级 先检查 player_a 组队额外检查 player_b
 
         if not faa_a.check_level():
-            self.signal_printf.emit(
+            self.signal_print_to_ui.emit(
                 "[{}] [单本轮战] {}P等级不足, 跳过".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     player_a
@@ -658,7 +632,7 @@ class Todo(QThread):
 
         if is_group:
             if not faa_b.check_level():
-                self.signal_printf.emit(
+                self.signal_print_to_ui.emit(
                     "[{}] [单本轮战] {}P等级不足, 跳过".format(
                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         player_b
@@ -715,7 +689,7 @@ class Todo(QThread):
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     success_battle_time)
                 print(text)
-                self.signal_printf.emit(text)
+                self.signal_print_to_ui.emit(text)
 
                 self.reload_game()
 
@@ -724,7 +698,7 @@ class Todo(QThread):
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 success_battle_time + 1)
             print(text)
-            self.signal_printf.emit(text)
+            self.signal_print_to_ui.emit(text)
 
             # 开始战斗循环
             result_id, result_loot, result_spend_time = self.battle(player_a=player_a, player_b=player_b)
@@ -763,7 +737,7 @@ class Todo(QThread):
                 )
 
                 print(text)
-                self.signal_printf.emit(text)
+                self.signal_print_to_ui.emit(text)
 
             if result_id == 1:
 
@@ -780,7 +754,7 @@ class Todo(QThread):
                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         success_battle_time + 1)
                     print(text)
-                    self.signal_printf.emit(text)
+                    self.signal_print_to_ui.emit(text)
 
                     self.reload_game()
 
@@ -801,7 +775,7 @@ class Todo(QThread):
                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         success_battle_time)
                     print(text)
-                    self.signal_printf.emit(text)
+                    self.signal_print_to_ui.emit(text)
 
                     self.reload_game()
 
@@ -819,14 +793,14 @@ class Todo(QThread):
                 sum_time_spend += result["time_spend"]
             average_time_spend = sum_time_spend / valid_time
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] [单本轮战] {} {}次 结束 ".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 stage_id,
                 max_times
             )
         )
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "正常场次:{}次 总耗时:{}分{}秒 场均耗时:{}分{}秒".format(
                 valid_time, *divmod(int(sum_time_spend), 60), *divmod(int(average_time_spend), 60)
             )
@@ -878,13 +852,13 @@ class Todo(QThread):
                 chests_text += "{}x{:.1f} ".format(name, count / valid_time)
 
             # 玩家A掉落
-            self.signal_printf.emit(
+            self.signal_print_to_ui.emit(
                 "[{}P掉落/场]  {}".format(
                     player_id,
                     loots_text,
                 )
             )
-            self.signal_printf.emit(
+            self.signal_print_to_ui.emit(
                 "[{}P宝箱/场]  {}".format(
                     player_id,
                     chests_text
@@ -899,7 +873,7 @@ class Todo(QThread):
             print_player_loot(player_id=1)
             print_player_loot(player_id=2)
 
-        self.signal_printf.emit("")
+        self.signal_print_to_ui.emit("")
 
     def n_n_battle(self, quest_list, list_type):
         """
@@ -909,7 +883,7 @@ class Todo(QThread):
         """
 
         # 战斗开始
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] [多本轮战] 开始...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             ))
@@ -920,7 +894,7 @@ class Todo(QThread):
             # 判断不打的任务
             if quest["stage_id"].split("-")[0] in list_type:
 
-                self.signal_printf.emit(
+                self.signal_print_to_ui.emit(
                     "[{}] [多本轮战] 事项{},{},{},{}次,带卡:{},Ban卡:{}".format(
                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         quest["battle_id"] if "battle_id" in quest else (i + 1),
@@ -944,7 +918,7 @@ class Todo(QThread):
 
             else:
 
-                self.signal_printf.emit(
+                self.signal_print_to_ui.emit(
                     "[{}] [多本轮战] 事项{},{},{},{}次,带卡:{},Ban卡:{},不打的地图Skip".format(
                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         quest["battle_id"] if "battle_id" in quest else (i + 1),
@@ -956,7 +930,7 @@ class Todo(QThread):
                 continue
 
         # 战斗结束
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] [多本轮战] 结束".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             ))
@@ -967,7 +941,7 @@ class Todo(QThread):
                     deck, battle_plan_1p, battle_plan_2p, dict_exit):
         """仅调用 n_battle的简易作战"""
         # 战斗开始
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "\n[{}] {} Link Start!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_),
@@ -991,7 +965,7 @@ class Todo(QThread):
             list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"])
 
         # 战斗结束
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] {} Completed!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_),
@@ -1000,13 +974,13 @@ class Todo(QThread):
     def offer_reward(self, text_, max_times_1, max_times_2, max_times_3,
                      deck, battle_plan_1p, battle_plan_2p):
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "\n[{}] {} Link Start!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_),
             color="red")
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] {}开始[多本轮战]...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
@@ -1035,7 +1009,7 @@ class Todo(QThread):
         self.faa[1].action_quest_receive_rewards(mode="悬赏任务")
         self.faa[2].action_quest_receive_rewards(mode="悬赏任务")
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] {} Completed!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_),
@@ -1045,20 +1019,20 @@ class Todo(QThread):
                               deck, battle_plan_1p, battle_plan_2p, stage=False):
         """完成公会or情侣任务"""
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "\n[{}] {} Link Start!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_),
             color="red")
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] {} 检查领取奖励...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
         self.faa[1].action_quest_receive_rewards(mode=quest_mode)
         self.faa[2].action_quest_receive_rewards(mode=quest_mode)
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] {} 获取任务列表...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
@@ -1066,7 +1040,7 @@ class Todo(QThread):
         quest_list = self.faa[1].action_get_quest(mode=quest_mode, qg_cs=stage)
 
         for i in quest_list:
-            self.signal_printf.emit(
+            self.signal_print_to_ui.emit(
                 "[{}] 副本:{},额外带卡:{}".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     i["stage_id"],
@@ -1090,7 +1064,7 @@ class Todo(QThread):
             quest_list=quest_list,
             list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"])
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] {} 检查领取奖励中...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
@@ -1098,7 +1072,7 @@ class Todo(QThread):
         self.faa[1].action_quest_receive_rewards(mode=quest_mode)
         self.faa[2].action_quest_receive_rewards(mode=quest_mode)
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] {} Completed!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_),
@@ -1106,13 +1080,13 @@ class Todo(QThread):
 
     def guild_dungeon(self, text_, deck, battle_plan_1p, battle_plan_2p):
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "\n[{}] {} Link Start!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_),
             color="red")
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] {}开始[多本轮战]...".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
@@ -1137,7 +1111,7 @@ class Todo(QThread):
             })
         self.n_n_battle(quest_list=quest_list, list_type=["GD"])
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] {} Completed!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_),
@@ -1145,7 +1119,7 @@ class Todo(QThread):
 
     def alone_magic_tower_prison(self, text_, player, deck, battle_plan_1p, sutra_pavilion):
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "\n[{}] {} Link Start!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_),
@@ -1179,7 +1153,7 @@ class Todo(QThread):
             )
         self.n_n_battle(quest_list=quest_list, list_type=["MT"])
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] {} Completed!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_),
@@ -1197,14 +1171,14 @@ class Todo(QThread):
                 return json.load(file)
 
         # 开始链接
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] {} Link Start!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_),
             color="red")
 
         # 战斗开始
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] {} 开始[多本论战]".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
@@ -1218,7 +1192,7 @@ class Todo(QThread):
             max_battle_id = max(max_battle_id, quest["battle_id"])
 
         if stage_begin > max_battle_id:
-            self.signal_printf.emit(
+            self.signal_print_to_ui.emit(
                 "[{}] {} 任务序号超过了该方案最高序号! 将直接跳过!".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     text_))
@@ -1238,7 +1212,7 @@ class Todo(QThread):
             list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"])
 
         # 战斗结束
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] {} Completed!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_),
@@ -1275,7 +1249,7 @@ class Todo(QThread):
                 else:
                     player_text = "单人1P" if quest_list[i]["player"] == [1] else "单人2P"
 
-                self.signal_printf.emit(
+                self.signal_print_to_ui.emit(
                     "[{}] [多本轮战] 事项{},{},{},{},{}次,带卡:{},Ban卡:{}".format(
                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         i + 1,
@@ -1300,7 +1274,7 @@ class Todo(QThread):
         def auto_food_main():
 
             # 开始链接
-            self.signal_printf.emit(
+            self.signal_print_to_ui.emit(
                 "[{}] [{}] Link Start!".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     text_),
@@ -1313,25 +1287,25 @@ class Todo(QThread):
             i = 0
             while True:
                 i += 1
-                self.signal_printf.emit("[{}] [{}] 第{}次循环，开始".format(
+                self.signal_print_to_ui.emit("[{}] [{}] 第{}次循环，开始".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     text_,
                     i))
                 round_result = a_round()
 
-                self.signal_printf.emit("[{}] [{}] 第{}次循环，结束".format(
+                self.signal_print_to_ui.emit("[{}] [{}] 第{}次循环，结束".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     text_,
                     i))
                 if not round_result:
                     break
 
-            self.signal_printf.emit("[{}] [{}] 所有被记录的任务已完成!".format(
+            self.signal_print_to_ui.emit("[{}] [{}] 所有被记录的任务已完成!".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 text_))
 
             # 开始链接
-            self.signal_printf.emit(
+            self.signal_print_to_ui.emit(
                 "[{}] [{}] Completed!".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     text_),
@@ -1346,7 +1320,7 @@ class Todo(QThread):
         # current todo plan option
         c_opt = self.opt["todo_plans"][self.opt["current_plan"]]
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "每一个大类的任务开始前均会重启游戏以防止bug...")
         start_time = datetime.datetime.now()
 
@@ -1365,7 +1339,7 @@ class Todo(QThread):
 
         my_opt = c_opt["fed_and_watered"]
         if my_opt["active"]:
-            self.signal_printf.emit(
+            self.signal_print_to_ui.emit(
                 "[{}] [浇水 施肥 摘果 领取] 执行中...".format(
                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
             self.faa[1].fed_and_watered()
@@ -1578,7 +1552,7 @@ class Todo(QThread):
                     }
                 )
 
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "[{}] 全部主要事项已完成! 耗时:{}".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 datetime.datetime.now() - start_time
@@ -1643,7 +1617,7 @@ class Todo(QThread):
                 deck=my_opt["deck"],
             )
         # 全部完成了刷新一下
-        self.signal_printf.emit(
+        self.signal_print_to_ui.emit(
             "\n[{}] 已完成所有事项！建议勾选刷新游戏回到登录界面, 防止长期运行flash导致卡顿".format(
                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
@@ -1665,196 +1639,3 @@ class Todo(QThread):
         self.is_paused = False
         self.condition.wakeAll()
         self.mutex.unlock()
-
-
-class QMainWindowService(QMainWindowLoadSettings):
-    signal_dialog = pyqtSignal(str, str)  # 标题, 正文
-    signal_end = pyqtSignal()
-    signal_printf_1 = pyqtSignal(str)
-    signal_printf_2 = pyqtSignal(str, str)
-
-    def __init__(self):
-        # 继承父类构造方法
-        super().__init__()
-        self.thread_todo = None
-        self.thread_todo_active = False
-
-        self.reply = None
-        self.faa = [None, None, None]
-        # 链接防呆弹窗
-        self.signal_dialog.connect(self.show_dialog)
-        # 链接日志输入
-        self.signal_printf = self.SignalPrintf(signal_1=self.signal_printf_1, signal_2=self.signal_printf_2)
-        self.signal_printf_1.connect(self.printf)
-        self.signal_printf_2.connect(self.printf)
-        # 链接中止函数
-        self.signal_end.connect(self.todo_end)
-        # 储存所有信号
-        self.signal_dict = {
-            "printf": self.signal_printf,
-            "dialog": self.signal_dialog,
-            "end": self.signal_end
-        }
-
-    class SignalPrintf(QObject):
-
-        def __init__(self, signal_1, signal_2):
-            super().__init__()
-            self.signal_1 = signal_1
-            self.signal_2 = signal_2
-
-        def emit(self, text, color=None):
-            # 根据提供的参数数量发射不同的信号
-            if color is not None:
-                self.signal_2.emit(text, color)
-            else:
-                self.signal_1.emit(text)
-
-    def todo_end(self):
-        # 设置flag
-        self.thread_todo_active = False
-        # 设置按钮文本
-        self.Button_Start.setText("开始\nLink Start")
-        # 设置输出文本
-        self.printf("\n>>> 全部完成 线程关闭 <<<\n")
-        # 中止点击处理
-        T_ACTION_QUEUE_TIMER.stop()
-
-    def todo_start(self):
-        # 设置flag
-        self.thread_todo_active = True
-        # 设置按钮文本
-        self.Button_Start.setText("终止\nEnd")
-        # 设置输出文本
-        self.TextBrowser.clear()
-        self.start_print()
-        self.printf("\n>>> 链接开始 线程开启 <<<\n")
-        # 启动点击处理
-        T_ACTION_QUEUE_TIMER.start()
-
-    def start_all(self):
-
-        # 先读取界面上的方案
-        self.ui_to_opt()
-
-        channel_1p, channel_2p = get_channel_name(
-            game_name=self.opt["base_settings"]["game_name"],
-            name_1p=self.opt["base_settings"]["name_1p"],
-            name_2p=self.opt["base_settings"]["name_2p"])
-        # 防呆测试 不通过就直接结束弹窗
-        handles = {
-            1: faa_get_handle(channel=channel_1p, mode="360"),
-            2: faa_get_handle(channel=channel_2p, mode="360")}
-        for player, handle in handles.items():
-            if handle is None or handle == 0:
-                # 报错弹窗
-                self.signal_dialog.emit(
-                    "出错！(╬◣д◢)",
-                    f"{player}P存在错误的窗口名或游戏名称, 请参考 [使用前看我!.pdf] 或 [README.md]")
-                return
-
-        self.todo_start()
-
-        # 生成随机数种子
-        random_seed = random.randint(-100, 100)
-
-        # 开始创建faa
-        faa = [None, None, None]
-        faa[1] = FAA(
-            channel=channel_1p,
-            player=1,
-            character_level=self.opt["base_settings"]["level_1p"],
-            is_auto_battle=self.opt["advanced_settings"]["auto_use_card"],  # bool 自动战斗
-            is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_1p"],
-            random_seed=random_seed,
-            signal_dict=self.signal_dict)
-        faa[2] = FAA(
-            channel=channel_2p,
-            player=2,
-            character_level=self.opt["base_settings"]["level_2p"],
-            is_auto_battle=self.opt["advanced_settings"]["auto_use_card"],
-            is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_2p"],
-            random_seed=random_seed,
-            signal_dict=self.signal_dict)
-
-        # 创造todo线程
-        self.thread_todo = Todo(faa=faa, opt=self.opt, signal_dict=self.signal_dict)
-
-        # 开始线程
-        self.thread_todo.start()
-
-    def stop_all(self):
-        """
-                  线程已经激活 则从外到内中断,再从内到外销毁
-                  thread_todo (QThread)
-                      |-- thread_1p (ThreadWithException)
-                      |-- thread_2p (ThreadWithException)
-                  """
-        # 暂停外部线程
-        self.thread_todo.pause()
-
-        # 中断[内部战斗线程]
-        # Q thread 线程 stop方法需要自己手写
-        thread = self.thread_todo.thread_card_manager
-        if thread is not None:
-            thread.stop()
-
-        # python 默认线程 可用stop线程
-        for thread in [self.thread_todo.thread_1p, self.thread_todo.thread_2p]:
-            if thread is not None:
-                thread.stop()
-                thread.join()  # 等待线程确实中断
-
-        # 中断 销毁 [任务线程]
-        self.thread_todo.terminate()
-        self.thread_todo.wait()  # 等待线程确实中断
-        self.thread_todo.deleteLater()
-
-        # 结束线程后的ui处理
-        self.todo_end()
-
-    def click_btn_start(self):
-        """战斗开始函数"""
-
-        # 线程没有激活
-        if not self.thread_todo_active:
-            self.start_all()
-        else:
-            self.stop_all()
-
-    @QtCore.pyqtSlot(str, str)
-    def show_dialog(self, title, message):
-        msg = QtWidgets.QMessageBox()
-        msg.setIcon(QtWidgets.QMessageBox.Icon.Warning)
-        msg.setWindowTitle(title)
-        msg.setText(message)
-        msg.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
-        msg.exec_()
-
-
-def main():
-    # 实例化 PyQt后台管理
-    app = QApplication(sys.argv)
-
-    # 实例化 主窗口
-    window = QMainWindowService()
-
-    # 注册函数：开始/结束/高级设置按钮
-    window.Button_Start.clicked.connect(lambda: window.click_btn_start())
-    window.Button_Save.clicked.connect(lambda: window.click_btn_save())
-    window.Button_DeletePlan.clicked.connect(lambda: window.delete_current_plan())
-    window.Button_RenamePlan.clicked.connect(lambda: window.rename_current_plan())
-    window.Button_CreatePlan.clicked.connect(lambda: window.create_new_plan())
-    window.CurrentPlan.currentIndexChanged.connect(lambda: window.opt_to_ui_todo_plans())
-
-    # window.Button_AdvancedSettings.clicked.connect(lambda: window.click_btn_advanced_settings())
-
-    # 主窗口 实现
-    window.show()
-
-    # 运行主循环，必须调用此函数才可以开始事件处理
-    sys.exit(app.exec_())
-
-
-if __name__ == "__main__":
-    main()
