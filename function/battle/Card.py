@@ -3,18 +3,17 @@ import time
 import numpy as np
 
 from function.common.bg_p_screenshot import capture_picture_png
+from function.globals.extra import EXTRA_GLOBALS
+from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
-def compare_pixels(pixels, reference):
+def compare_pixels(img, tar_img):
     """为抵消游戏蒙版色，导致的差距，用于对比识别目标像素和标准像素的函数"""
-    # 计算每个像素与参照物之间的差异
-    diff = np.abs(pixels - reference)
-    # 计算每个像素的差异之和
-    diff_sum = np.sum(diff, axis=-1)
-    # 判断差异之和是否小于等于20
-    result = any(diff_sum <= 20)
-    return result
+    for i in range(len(img[0])):
+        if np.sum(img[0][i] - tar_img[0][i]) < 25:
+            return True
+    return False
 
 
 class Card:
@@ -94,12 +93,13 @@ class Card:
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
 
         # 统一计算点击间隔时间
-        time.sleep(self.faa_battle.click_sleep * (2 + my_len))
+        time.sleep(0.05 + self.faa_battle.click_sleep * my_len)
 
         # 如果放卡后还可用,自ban 若干s
         # 判断可用 如果不知道其还可用。会导致不自ban，导致无意义点击出现，后果更小。1轮扫描后纠正。
         # 判断冷却 如果不知道其进入了冷却。会导致错误的额外的自ban，导致放卡逻辑错乱。ban描述后纠正。
         self.fresh_status()
+
         if self.status_usable and (self.name not in self.ban_white_list):
             self.status_ban = 7
 
@@ -123,45 +123,23 @@ class Card:
 
         # 注意 y x bgr 和 rgb是翻过来的！
         # 将三维数组转换为二维数组
-        pixels_top_left = img[0:1, 3:20, :3]
-        pixels_top_right = img[0:1, 33:51, :3]
-        pixels_top_left_2d = pixels_top_left.reshape(-1, pixels_top_left.shape[-1])
-        pixels_top_right_2d = pixels_top_right.reshape(-1, pixels_top_right.shape[-1])
-        # 使用vstack垂直堆叠
-        pixels_top = np.vstack((pixels_top_left_2d, pixels_top_right_2d))
-        pixels_bottom = np.squeeze(img[69:70, 2:51, :3])
+        pixels_top_left = np.squeeze(img[0:1, 2:20, :3])  # 18个像素
+        pixels_top_right = np.squeeze(img[0:1, 33:51, :3])  # 18个像素
+        pixels_bottom = np.squeeze(img[69:70, 2:51, :3])  # 49个像素
 
-        # 可用卡 不同地图有蒙版色 需要用容差来做判断，目前设定 三个加起来不超过20
-        # 普通卡 rgb 顶部 38 147 155 底部 25 66 69
-        # 夜间卡 rgb 顶部 103 38 157 底部 51 24 68
-        # 金卡 rgb 顶部 ？ ？ ？ 底部 ？ ？ ？
-        self.status_usable = (
-                compare_pixels(pixels_top, [157, 149, 38]) or
-                compare_pixels(pixels_bottom, [69, 66, 25]) or
-                compare_pixels(pixels_top, [157, 38, 103]) or
-                compare_pixels(pixels_bottom, [68, 24, 51]) or
-                compare_pixels(pixels_top, [155, 147, 38]) or
-                compare_pixels(pixels_bottom, [69, 66, 25])
-        )
+        pixels_all = [[]]
+        for axis_0 in [pixels_top_left, pixels_top_right, pixels_bottom]:
+            for pixel in axis_0:
+                pixels_all[0].append(pixel)
+        pixels_all = np.array(pixels_all)
 
-        # 普通卡 rgb 顶部 35 117 124 底部 48 64 68
-        # 夜间卡 rgb 顶部 84 35 125 底部 58 47 68
-        # 金卡 rgb 顶部 ？ ？ ？ 底部 ？ ？ ？
-        self.status_cd = (
-                (compare_pixels(pixels_top, [125, 118, 35]) and
-                 compare_pixels(pixels_bottom, [68, 64, 48])) or
-                (compare_pixels(pixels_top, [125, 35, 84]) and
-                 compare_pixels(pixels_bottom, [68, 47, 58])) or
-                (compare_pixels(pixels_top, [124, 117, 35]) and
-                 compare_pixels(pixels_bottom, [68, 64, 48]))
-        )
-        #
-        # if self.faa.player == 1 and self.name == "炭烧海星":
-        #     print(
-        #         "top:", pixels_top[0],
-        #         "bottom:", pixels_bottom[0],
-        #         "可用", self.status_usable,
-        #         "cd", self.status_cd)
+        self.status_usable = (compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_0.png"]) or
+                              compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_1.png"]) or
+                              compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_2.png"]))
+
+        self.status_cd = (compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["冷却状态_0.png"]) or
+                          compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["冷却状态_1.png"]) or
+                          compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["冷却状态_2.png"]))
 
     def destroy(self):
         self.faa = None

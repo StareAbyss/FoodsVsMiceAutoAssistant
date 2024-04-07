@@ -47,9 +47,8 @@ class CardQueue(queue.PriorityQueue):
 
         if self.card_using:
             return
-        # self.print_self()
-
         self.card_using = True
+
         card = self.peek()[1]
         card.fresh_status()
 
