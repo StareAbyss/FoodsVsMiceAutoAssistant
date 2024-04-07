@@ -1174,8 +1174,8 @@ class FAA:
                 if find:
                     position = [int(find[0]), int(find[1])]
                     break
-                # 防止卡片正好被某些特效遮挡, 所以等待一下
-                time.sleep(0.1)
+            # 防止卡片正好被某些特效遮挡, 所以等待一下
+            time.sleep(0.1)
 
         # 根据坐标位置，判断对应的卡id
         if position:
@@ -1188,7 +1188,11 @@ class FAA:
                     self.smoothie_position = {"id": card_id, "location_from": position}
                     break
 
+        self.print_g(text="战斗中识图查找冰沙位置, 结果：{}".format(self.smoothie_position))
+
     def init_kun_card_position(self):
+
+        self.print_g(text="战斗中识图查找幻幻鸡位置, 开始")
 
         # 初始化为None
         self.kun_position = None
@@ -1358,9 +1362,12 @@ class FAA:
                 max_kun = 0
                 max_kun_index = None
                 for i in range(len(list_cell_all)):
+                    # 遍历已有卡片
                     card = list_cell_all[i]
-                    max_kun = max(card["kun"], max_kun)
-                    max_kun_index = i
+                    if "kun" in card.keys():
+                        # 没有kun参数也可以允许
+                        max_kun = max(card["kun"], max_kun)
+                        max_kun_index = i
 
                 if max_kun != 0:
                     max_kun_card = list_cell_all[max_kun_index]
@@ -1608,7 +1615,7 @@ class FAA:
 
         def use_card_loop_skill():
             # 放人
-            self.faa_battle.use_player("5-4")
+            # self.faa_battle.use_player_all("5-4")
 
             # 计算目标位置 1-14
             cell_list = []
@@ -1872,8 +1879,10 @@ class FAA:
         # 2.识图卡片数量，确定卡片在deck中的位置
         self.bp_card = get_position_card_deck_in_battle(handle=self.handle)
 
-        # 3.识图承载卡参数
+        # 3.识图各种卡参数
         self.init_mat_card_position()
+        self.init_smoothie_card_position()
+        self.init_kun_card_position()
 
         # 4.计算所有坐标
         self.init_battle_plan_1()
@@ -2853,21 +2862,6 @@ if __name__ == '__main__':
             stage_id="NO-1-14",
             is_group=False,
             battle_plan_index=0)
-
-        # 1.识图承载卡参数
-        # faa.init_mat_card_position()
-        faa.mat_card_positions = [[100, 100], [100, 200]]
-
-        # 2.识图卡片数量，确定卡片在deck中的位置
-        faa.bp_card = get_position_card_deck_in_battle(handle=faa.handle)
-
-        # 3.计算所有坐标
-        faa.init_battle_plan_1()
-
-        # 4.刷新faa放卡实例
-        faa.init_battle_object()
-
-        print(faa.battle_plan_1)
 
 
     f_main()

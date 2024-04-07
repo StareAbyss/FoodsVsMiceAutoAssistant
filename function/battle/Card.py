@@ -51,15 +51,19 @@ class Card:
         # 状态 被ban时间 当放卡，但已完成所有指定位置的放卡导致放卡后立刻检测到冷却完成，则进入该ban状态8s
         self.status_ban = 0
         self.warning_cell = ["4-4", "4-5"]
-        self.is_smoothie = self.name in ["冰淇淋", "极寒冰沙", "冰沙"]
-        self.ban_white_list = ["冰淇淋", "极寒冰沙", "冰沙"]
+        self.is_smoothie = self.name in ["极寒冰沙", "冰沙"]
+        self.ban_white_list = ["极寒冰沙", "冰沙"]
 
     def use_card(self):
 
         if not self.is_auto_battle:
             return
-        if self.is_smoothie and not self.faa_battle.fire_elemental_1000:
-            return
+        if self.is_smoothie:
+            if not self.faa_battle.fire_elemental_1000:
+                return
+            if EXTRA_GLOBALS.smoothie_lock_time != 0:
+                return
+            EXTRA_GLOBALS.smoothie_lock_time = 7
         if self.status_cd or self.status_ban:
             return
 

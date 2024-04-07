@@ -5,6 +5,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 
 from function.battle.Card import Card
 from function.battle.CardQueue import CardQueue
+from function.globals.extra import EXTRA_GLOBALS
 
 
 class CardManager:
@@ -14,6 +15,8 @@ class CardManager:
         self.card_list_dict = {}
         self.card_queue_dict = {}
         self.thread_dict = {}
+        self.smoothie_usable_player = []
+
         # 此处的 faa_1 和 faa_2 实例代表的是 多人战斗中作为队长 或 单人战斗中作为目标的 角色
         self.faa_dict = {1: faa_1, 2: faa_2}
 
@@ -25,10 +28,15 @@ class CardManager:
 
         # 先创建 card_list_dict
         self.init_card_list_dict()
+
         # 根据 card_list_dict 创建 card_queue_dict
         self.init_card_queue_dict()
+
         # 实例化线程
         self.init_all_thread()
+
+        # 刷新全局冰沙锁
+        EXTRA_GLOBALS.smoothie_lock_time = 0
 
         # 对象分析
         objgraph.show_most_common_types()
@@ -41,6 +49,13 @@ class CardManager:
             for j in range(len(cards_plan)):
                 # 按从前到后顺序，作为优先级顺序，从0开始
                 self.card_list_dict[i].append(Card(faa=self.faa_dict[i], priority=j))
+
+        # 将包含了极寒冰沙卡片的号筛选出来
+        for player in ([1, 2] if self.is_group else [1]):
+            for card in self.card_list_dict[player]:
+                if card.is_smoothie:
+                    self.smoothie_usable_player.append(player)
+
 
     def init_card_queue_dict(self):
         for i in ([1, 2] if self.is_group else [1]):
@@ -116,10 +131,11 @@ class ThreadCheckTimer(QThread):
         self.stop_flag = True
         self.timer = None
         self.running_round = 0
+        self.interval = 1 # s
 
     def run(self):
         self.stop_flag = False
-        self.timer = Timer(1, self.check)
+        self.timer = Timer(self.interval, self.check)
         self.timer.start()
         print('启动下层事件循环')
         while not self.stop_flag:
@@ -164,13 +180,23 @@ class ThreadCheckTimer(QThread):
                         card.name, card.status_cd, card.status_usable, card.status_ban)
                 print(text)
 
+        # 刷新全局冰沙锁的状态
+        if EXTRA_GLOBALS.smoothie_lock_time != 0:
+            EXTRA_GLOBALS.smoothie_lock_time -= self.interval
+
+
+
+        # 定时使用武器技能和检测是否继续
         if self.running_round % 10 == 0:
             self.faa.faa_battle.use_weapon_skill()
             self.faa.faa_battle.auto_pickup()
 
+        # 回调
         if not self.stop_flag:
-            self.timer = Timer(1, self.check)
+            self.timer = Timer(self.interval, self.check)
             self.timer.start()
+
+
 
 
 class ThreadUseCardTimer(QThread):
