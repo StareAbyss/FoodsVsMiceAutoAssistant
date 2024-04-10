@@ -57,13 +57,13 @@ class Battle:
             y=self.faa.bp_cell[num_cell][1])
 
     def use_player_all(self):
-        self.faa.print_g(text="[战斗] 开始放置玩家:{}".format(self.faa.battle_plan_0["player"]))
+        self.faa.print_debug(text="[战斗] 开始放置玩家:{}".format(self.faa.battle_plan_0["player"]))
         for i in self.faa.battle_plan_0["player"]:
             self.use_player_once(i)
             time.sleep(self.click_sleep)
         print(T_ACTION_QUEUE_TIMER.print_queue())
 
-    def use_shovel(self, position=None):
+    def use_shovel_all(self, position=None):
         """
         根据战斗方案用铲子
         """
@@ -106,7 +106,7 @@ class Battle:
                     target_tolerance=0.95,
                     target_path=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
                 if find:
-                    self.faa.print_g(text="找到了 [继续作战]", player=2)
+                    self.faa.print_debug(text="找到了 [继续作战]")
                     while find:
                         loop_match_p_in_w(
                             raw_w_handle=self.faa.handle,
@@ -120,7 +120,7 @@ class Battle:
                             raw_range=[302,263,396,289],
                             target_tolerance=0.95,
                             target_path=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
-                    self.faa.print_g(text="已查找到 [继续作战] 图标并点击", player=2)
+                    self.faa.print_debug(text="已查找到 [继续作战] 图标并点击")
 
     def use_key_and_check_end(self):
         # 找到战利品字样(被黑色透明物遮挡,会看不到)

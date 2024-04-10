@@ -68,29 +68,29 @@ class FAA:
         # 承载卡/冰沙/坤的位置
         self.mat_card_positions = None  # list [{},{},...]
         self.smoothie_position = None  # dict {}
-        self.kun_position = None  # dict {}
+        self.kun_position = None  # dict {} 也用于标记本场战斗是否需需要激活坤函数
         # FAA_Battle 实例 均为FAA类属性引用 其中绝大多数方法需要在set_config_for_battle后使用
         self.faa_battle = Battle(faa=self)
 
-    def print_g(self, text, garde=0, player=None):
-        """
-        分级print函数
-        :param player: 哪个角色需要这个print
-        :param text: 正文
-        :param garde: 级别, 0-[Debug]默认 1-[Info] 2-[Warning] 3或其他-[Error]
-        :return: None
-        """
+    def print_debug(self, text, player=None):
         if not player:
             player = self.player
+        CUS_LOGGER.debug("[{}P] {}".format(player, text))
 
-        if garde == 0:
-            CUS_LOGGER.debug("[{}P] {}".format(player, text))
-        if garde == 1:
-            CUS_LOGGER.info("[{}P] {}".format(player, text))
-        elif garde == 2:
-            CUS_LOGGER.warning("[{}P] {}".format(player, text))
-        else:
-            CUS_LOGGER.error("[{}P] {}".format(player, text))
+    def print_info(self, text, player=None):
+        if not player:
+            player = self.player
+        CUS_LOGGER.info("[{}P] {}".format(player, text))
+
+    def print_warning(self, text, player=None):
+        if not player:
+            player = self.player
+        CUS_LOGGER.warning("[{}P] {}".format(player, text))
+
+    def print_error(self, text, player=None):
+        if not player:
+            player = self.player
+        CUS_LOGGER.error("[{}P] {}".format(player, text))
 
     """通用对flash界面的基础操作"""
 
@@ -128,7 +128,7 @@ class FAA:
                     target_sleep=1.5,
                     click=True)
                 if not find:
-                    self.print_g(text="未能成功找到右上红叉以退出!前面的步骤有致命错误!", garde=3)
+                    self.print_error(text="未能成功找到右上红叉以退出!前面的步骤有致命错误!")
 
         if mode == "竞技岛":
             self.action_bottom_menu(mode="跳转_竞技场")
@@ -176,14 +176,14 @@ class FAA:
                 target_sleep=1.5,
                 click=True)
             if find:
-                self.print_g(text="[顶部菜单] [{}] 3s内跳转成功".format(mode), garde=1)
+                self.print_debug(text="[顶部菜单] [{}] 3s内跳转成功".format(mode))
                 break
             else:
                 l_id = 1 if l_id == 2 else 2
                 failed_time += 1
 
             if failed_time == 5:
-                self.print_g(text="[顶部菜单] [{}] 3s内跳转失败".format(mode), garde=2)
+                self.print_warning(text="[顶部菜单] [{}] 3s内跳转失败".format(mode))
                 break
 
         if mode == "跨服远征":
@@ -237,7 +237,7 @@ class FAA:
                 click=True)
 
         if not find:
-            self.print_g(text="[底部菜单] [{}] 3s内跳转失败".format(mode), garde=2)
+            self.print_warning(text="[底部菜单] [{}] 3s内跳转失败".format(mode))
 
         return find
 
@@ -833,7 +833,7 @@ class FAA:
         elif stage_0 == "GD":
             main_gd()
         else:
-            self.print_g(text="请输入正确的关卡名称！", garde=3)
+            self.print_error(text="请输入正确的关卡名称！")
 
     """其他基础函数"""
 
@@ -987,7 +987,7 @@ class FAA:
                         click=True)
                     if find:
                         # 领取升级有动画
-                        self.print_g(text="[收取奖励] [美食大赛] 完成1个任务", garde=1)
+                        self.print_debug(text="[收取奖励] [美食大赛] 完成1个任务")
                         time.sleep(6)
                         # 更新是否找到flag
                         found_flag = True
@@ -999,10 +999,10 @@ class FAA:
             time.sleep(0.5)
 
         else:
-            self.print_g(text="[领取奖励] [美食大赛] 未打开界面, 可能大赛未刷新", garde=2)
+            self.print_warning(text="[领取奖励] [美食大赛] 未打开界面, 可能大赛未刷新")
 
         if not found_flag:
-            self.print_g(text="[领取奖励] [美食大赛] 未完成任意任务", garde=1)
+            self.print_debug(text="[领取奖励] [美食大赛] 未完成任意任务")
 
     def AQRR_monopoly(self):
 
@@ -1043,7 +1043,7 @@ class FAA:
         :return:None
         """
 
-        self.print_g(text="[领取奖励] [{}] 开始".format(mode), garde=1)
+        self.print_debug(text="[领取奖励] [{}] 开始".format(mode))
 
         if mode == "普通任务":
             self.AQRR_normal()
@@ -1058,7 +1058,7 @@ class FAA:
         if mode == "大富翁":
             self.AQRR_monopoly()
 
-        self.print_g(text="[领取奖励] [{}] 结束".format(mode), garde=1)
+        self.print_debug(text="[领取奖励] [{}] 结束".format(mode))
 
     """调用输入关卡配置和战斗配置, 在战斗前必须进行该操作"""
 
@@ -1160,7 +1160,7 @@ class FAA:
 
     def init_smoothie_card_position(self):
 
-        self.print_g(text="战斗中识图查找冰沙位置, 开始")
+        self.print_debug(text="战斗中识图查找冰沙位置, 开始")
 
         # 初始化为None
         self.smoothie_position = None
@@ -1192,11 +1192,11 @@ class FAA:
                     self.smoothie_position = {"id": card_id, "location_from": position}
                     break
 
-        self.print_g(text="战斗中识图查找冰沙位置, 结果：{}".format(self.smoothie_position))
+        self.print_debug(text="战斗中识图查找冰沙位置, 结果：{}".format(self.smoothie_position))
 
     def init_kun_card_position(self):
 
-        self.print_g(text="战斗中识图查找幻幻鸡位置, 开始")
+        self.print_debug(text="战斗中识图查找幻幻鸡位置, 开始")
 
         # 初始化为None
         self.kun_position = None
@@ -1228,7 +1228,7 @@ class FAA:
                     self.kun_position = {"id": card_id, "location_from": position}
                     break
 
-        self.print_g(text="战斗中识图查找幻幻鸡位置, 结果：{}".format(self.smoothie_position))
+        self.print_debug(text="战斗中识图查找幻幻鸡位置, 结果：{}".format(self.kun_position))
 
     def init_battle_plan_1(self):
         """
@@ -1263,7 +1263,6 @@ class FAA:
         battle_plan = copy.deepcopy(self.battle_plan_0)
         mat_card_position = copy.deepcopy(self.mat_card_positions)
         smoothie_position = copy.deepcopy(self.smoothie_position)
-        kun_position = copy.deepcopy(self.kun_position)
 
         def calculation_card_quest(list_cell_all):
             """计算步骤一 加入任务卡的摆放坐标"""
@@ -1363,30 +1362,24 @@ class FAA:
                 }
                 list_cell_all.append(card_dict)
 
-            if kun_position:
-                # 仅该卡确定存在后执行添加
-                max_kun = 0
-                max_kun_index = None
-                for i in range(len(list_cell_all)):
+            if self.kun_position:
+                # 确认卡片在卡组 且 有至少一个kun参数设定
+                kun_already_set = False
+                for card in list_cell_all:
                     # 遍历已有卡片
-                    card = list_cell_all[i]
                     if "kun" in card.keys():
-                        # 没有kun参数也可以允许
-                        max_kun = max(card["kun"], max_kun)
-                        max_kun_index = i
+                        kun_already_set = True
+                        break
+                if not kun_already_set:
+                    # 没有设置 那么也视坤位置标记不存在
+                    self.kun_position = None
 
-                if max_kun != 0:
-                    max_kun_card = list_cell_all[max_kun_index]
-                    card_dict = {
-                        "name": "幻幻鸡",
-                        "id": kun_position["id"],
-                        "location": max_kun_card["location"],
-                        "ergodic": max_kun_card["ergodic"],
-                        "queue": max_kun_card["queue"],
-                        "location_from": kun_position["location_from"],
-                        "location_to": []
-                    }
-                    list_cell_all.insert(max_kun_index + 1, card_dict)
+            # 为没有kun参数的方案 默认添加0
+            for card in list_cell_all:
+                if "kun" not in card.keys():
+                    card["kun"] = 0
+
+
 
             return list_cell_all
 
@@ -1440,6 +1433,13 @@ class FAA:
                 new_list.append([coordinate[0], coordinate[1]])
             list_shovel = copy.deepcopy(new_list)  # 因为重新注册list容器了, 可以不用深拷贝 但为了方便理解用一下
 
+            # 为幻鸡单独转化
+            # 根据字段值, 判断是否完成写入, 并进行转换
+            if self.kun_position:
+                coordinate = copy.deepcopy(bp_card[self.kun_position["id"]])
+                coordinate = [coordinate[0], coordinate[1]]
+                self.kun_position["location_from"] = [coordinate[0], coordinate[1]]
+
             return list_cell_all, list_shovel
 
         def main():
@@ -1470,8 +1470,8 @@ class FAA:
                 list_shovel=list_shovel)
 
             # 不常用调试print
-            self.print_g(text="调试info: 你的战斗放卡opt如下:", garde=1)
-            self.print_g(text=list_cell_all, garde=1)
+            self.print_debug(text="你的战斗放卡opt如下:")
+            self.print_debug(text=list_cell_all)
 
             self.battle_plan_1 = {"card": list_cell_all, "shovel": list_shovel}
 
@@ -1615,9 +1615,7 @@ class FAA:
 
         def use_card_loop_1():
 
-            self.print_g(
-                text="测试方法1",
-                garde=1)
+            self.print_debug(text="测试方法1")
 
         def use_card_loop_skill():
             # 放人
@@ -1657,8 +1655,8 @@ class FAA:
             use_card_loop_skill()
 
         else:
-            self.print_g(text="不战斗 输出 self.battle_plan_1", garde=1)
-            self.print_g(text=self.battle_plan_1, garde=1)
+            self.print_debug(text="不战斗 输出 self.battle_plan_1")
+            self.print_debug(text=self.battle_plan_1)
 
     """战斗流程函数"""
 
@@ -1677,9 +1675,9 @@ class FAA:
             my_bool = my_bool or self.quest_card == "苏打气泡-1"
             my_bool = my_bool or self.quest_card == "苏打气泡"
             if my_bool:
-                self.print_g(text="不需要额外带卡,跳过", garde=1)
+                self.print_debug(text="不需要额外带卡,跳过")
             else:
-                self.print_g(text="寻找任务卡, 开始", garde=1)
+                self.print_debug(text="寻找任务卡, 开始")
 
                 # 对于名称带-的卡, 就对应的写入, 如果不带-, 就查找其所有变种
                 quest_card_list = []
@@ -1730,8 +1728,7 @@ class FAA:
                     if flag_find_quest_card:
                         break
 
-                self.print_g(text="寻找任务卡, 完成, 结果:{}".format("成功" if flag_find_quest_card else "失败"),
-                             garde=1)
+                self.print_debug(text="寻找任务卡, 完成, 结果:{}".format("成功" if flag_find_quest_card else "失败"))
 
         def screen_ban_card_loop_a_round(ban_card_s):
 
@@ -1788,7 +1785,7 @@ class FAA:
 
         def main():
             # 循环查找开始按键
-            self.print_g(text="寻找开始或准备按钮", garde=1)
+            self.print_debug(text="寻找开始或准备按钮")
             find = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[796, 413, 950, 485],
@@ -1798,12 +1795,12 @@ class FAA:
                 target_sleep=0.3,
                 click=False)
             if not find:
-                self.print_g(text="创建房间后, 10s找不到[开始/准备]字样! 创建房间可能失败!", garde=2)
+                self.print_warning(text="创建房间后, 10s找不到[开始/准备]字样! 创建房间可能失败!")
                 # 可能是由于: 服务器抽风无法创建房间 or 点击被吞 or 次数用尽
                 return 2  # 2-跳过本次
 
             # 选择卡组
-            self.print_g(text="选择卡组, 并开始加入新卡和ban卡", garde=1)
+            self.print_debug(text="选择卡组, 并开始加入新卡和ban卡")
             T_ACTION_QUEUE_TIMER.add_click_to_queue(
                 handle=self.handle,
                 x={1: 425, 2: 523, 3: 588, 4: 666, 5: 756, 6: 837}[self.deck],
@@ -1827,7 +1824,7 @@ class FAA:
                 target_sleep=1,
                 click=True)
             if not find:
-                self.print_g(text="选择卡组后, 10s找不到[开始/准备]字样! 创建房间可能失败!", garde=2)
+                self.print_warning(text="选择卡组后, 10s找不到[开始/准备]字样! 创建房间可能失败!")
                 return 1  # 1-重启本次
 
             # 防止被 [没有带xx卡] or []包已满 卡住
@@ -1844,7 +1841,7 @@ class FAA:
                 time.sleep(0.05)
 
             # 刷新ui: 状态文本
-            self.print_g(text="查找火苗标识物, 等待进入战斗, 限时30s", garde=1)
+            self.print_debug(text="查找火苗标识物, 等待进入战斗, 限时30s")
 
             # 循环查找火苗图标 找到战斗开始
             find = loop_match_p_in_w(
@@ -1858,10 +1855,10 @@ class FAA:
 
             # 刷新ui: 状态文本
             if find:
-                self.print_g(text="找到火苗标识物, 战斗进行中...", garde=1)
+                self.print_debug(text="找到火苗标识物, 战斗进行中...")
 
             else:
-                self.print_g(text="未能找到火苗标识物, 进入战斗失败, 可能是次数不足或服务器卡顿", garde=2)
+                self.print_warning(text="未能找到火苗标识物, 进入战斗失败, 可能是次数不足或服务器卡顿")
                 return 2  # 2-跳过本次
 
             return 0  # 0-一切顺利
@@ -1895,14 +1892,14 @@ class FAA:
 
         # 5.铲卡
         if self.is_main:
-            self.faa_battle.use_shovel()  # 因为有点击序列，所以同时操作是可行的
+            self.faa_battle.use_shovel_all()  # 因为有点击序列，所以同时操作是可行的
 
         # 6.战斗循环
         self.loop_battle()
 
     def action_round_of_battle_screen(self):
 
-        self.print_g(text="识别到多种战斗结束标志之一, 进行收尾工作", garde=1)
+        self.print_debug(text="识别到多种战斗结束标志之一, 进行收尾工作")
 
         def screen_loots():
             """
@@ -1960,7 +1957,7 @@ class FAA:
                 click=False)
 
             if find:
-                self.print_g(text="[战利品UI] 正常结束, 尝试捕获战利品截图", garde=1)
+                self.print_debug(text="[战利品UI] 正常结束, 尝试捕获战利品截图")
 
                 # 错开一下, 避免卡住
                 if self.player == 2:
@@ -1979,12 +1976,12 @@ class FAA:
 
                 # 分析图片，获取战利品字典
                 drop_dict = matchImage(img_path=img_path, img=img, test_print=True)
-                self.print_g(text="[战利品UI] 战利品已 捕获/识别/保存".format(drop_dict), garde=1)
+                self.print_debug(text="[战利品UI] 战利品已 捕获/识别/保存".format(drop_dict))
 
                 return drop_dict
 
             else:
-                self.print_g(text="[非战利品UI] 正常结束, 可能由于延迟未能捕获战利品, 继续流程", garde=1)
+                self.print_debug(text="[非战利品UI] 正常结束, 可能由于延迟未能捕获战利品, 继续流程")
 
                 return None
 
@@ -1998,7 +1995,7 @@ class FAA:
                 click=False
             )
             if find:
-                self.print_g(text="[翻宝箱UI] 捕获到正确标志, 翻牌并退出...", garde=1)
+                self.print_debug(text="[翻宝箱UI] 捕获到正确标志, 翻牌并退出...")
                 # 开始洗牌
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=502)
                 time.sleep(6)
@@ -2030,7 +2027,7 @@ class FAA:
 
                 # 分析图片，获取战利品字典
                 drop_dict = matchImage(img_path=img_path, img=img, mode="chests", test_print=True)
-                self.print_g(text="[翻宝箱] 宝箱已 捕获/识别/保存".format(drop_dict), garde=1)
+                self.print_debug(text="[翻宝箱] 宝箱已 捕获/识别/保存".format(drop_dict))
 
                 # 组队2P慢点结束翻牌 保证双人魔塔后自己是房主
                 if self.is_group and self.player == 2:
@@ -2043,7 +2040,7 @@ class FAA:
                 return drop_dict
 
             else:
-                self.print_g(text="[翻宝箱UI] 15s未能捕获正确标志, 出问题了!", garde=2)
+                self.print_warning(text="[翻宝箱UI] 15s未能捕获正确标志, 出问题了!")
                 return {}
 
         """战斗结束后, 一般流程为 (潜在的任务完成黑屏) -> 战利品 -> 战斗结算 -> 翻宝箱, 之后会回到房间, 魔塔会回到其他界面"""
@@ -2154,7 +2151,7 @@ class FAA:
             target_interval=0.2)
 
         if find:
-            self.print_g(text="检测到 断开连接 or 登录超时 or Flash爆炸, 炸服了", garde=1)
+            self.print_warning(text="检测到 断开连接 or 登录超时 or Flash爆炸, 炸服了")
             return 1, None  # 1-重启本次
 
         return 0, result_dict
@@ -2167,7 +2164,7 @@ class FAA:
         """
 
         # 查找战斗结束 来兜底正确完成了战斗
-        self.print_g(text="[开始/准备/魔塔蛋糕UI] 尝试捕获正确标志, 以完成战斗流程.", garde=1)
+        self.print_debug(text="[开始/准备/魔塔蛋糕UI] 尝试捕获正确标志, 以完成战斗流程.")
         find = loop_match_ps_in_w(
             raw_w_handle=self.handle,
             target_opts=[
@@ -2184,10 +2181,10 @@ class FAA:
             target_failed_check=10,
             target_interval=0.2)
         if find:
-            self.print_g(text="成功捕获[开始/准备/魔塔蛋糕UI], 完成战斗流程.", garde=1)
+            self.print_debug(text="成功捕获[开始/准备/魔塔蛋糕UI], 完成战斗流程.")
             return 0  # 0-正常结束
         else:
-            self.print_g(text="10s没能捕获[开始/准备/魔塔蛋糕UI], 出现意外错误, 直接跳过本次", garde=3)
+            self.print_error(text="10s没能捕获[开始/准备/魔塔蛋糕UI], 出现意外错误, 直接跳过本次")
             return 2  # 2-跳过本次
 
     """其他非战斗功能"""
@@ -2223,7 +2220,7 @@ class FAA:
                     click=True)
 
                 if not find:
-                    self.print_g(text="未找到360大厅刷新游戏按钮, 可能导致一系列问题...", garde=2)
+                    self.print_error(text="未找到360大厅刷新游戏按钮, 可能导致一系列问题...")
 
     def reload_game(self):
 
@@ -2278,27 +2275,28 @@ class FAA:
                 return True
             return False
 
+
         while True:
 
             # 点击刷新按钮 该按钮在360窗口上
-            self.print_g(text="[刷新游戏] 点击刷新按钮...", garde=1)
+            self.print_debug(text="[刷新游戏] 点击刷新按钮...")
             self.reload_to_login_ui()
 
             # 是否在 选择服务器界面 - 判断是否存在 最近玩过的服务器ui(4399 or qq空间) 或 开始游戏(qq游戏大厅) 并进入
             result = False
 
-            self.print_g(text="[刷新游戏] 判定4399平台...", garde=1)
+            self.print_debug(text="[刷新游戏] 判定4399平台...")
             result = result or try_enter_server_4399()
 
-            self.print_g(text="[刷新游戏] 判定QQ空间平台...", garde=1)
+            self.print_debug(text="[刷新游戏] 判定QQ空间平台...")
             result = result or try_enter_server_qq_space()
 
-            self.print_g(text="[刷新游戏] 判定QQ游戏大厅平台...", garde=1)
+            self.print_debug(text="[刷新游戏] 判定QQ游戏大厅平台...")
             result = result or try_enter_server_qq_game_hall()
 
             # 如果未找到进入服务器，从头再来
             if not result:
-                self.print_g(text="未找到进入输入服务器, 可能进入未知界面, 或QQ空间需重新登录", garde=1)
+                self.print_debug(text="[刷新游戏] 未找到进入服务器, 可能 1.QQ空间需重新登录 2.360X4399微端 3.意外情况")
 
                 result = loop_match_p_in_w(
                     raw_w_handle=self.handle_browser,
@@ -2310,13 +2308,12 @@ class FAA:
                     target_sleep=5,
                     click=True)
                 if result:
-                    self.print_g(text="找到QQ空间服一键登录, 正在登录, 即将刷新重来", garde=0)
+                    self.print_debug(text="[刷新游戏] 找到QQ空间服一键登录, 正在登录")
                 else:
-                    self.print_g(text="未找到QQ空间服一键登录, 非qq服或其他原因, 即将刷新重来", garde=1)
-                continue
+                    self.print_debug(text="[刷新游戏] 未找到QQ空间服一键登录, 可能 1.360X4399微端 2.意外情况, 继续")
 
             """查找大地图确认进入游戏"""
-            self.print_g(text="[刷新游戏] 查找大地图确认进入游戏中...", garde=1)
+            self.print_debug(text="[刷新游戏] 循环识图中, 以确认进入游戏...")
             # 更严格的匹配 防止登录界面有相似图案组合
             result = loop_match_ps_in_w(
                 raw_w_handle=self.handle_browser,
@@ -2341,11 +2338,13 @@ class FAA:
             )
 
             if result:
+                self.print_debug(text="[刷新游戏] 循环识图成功, 确认进入游戏! 即将刷新Flash句柄")
+
                 # 重新获取句柄, 此时游戏界面的句柄已经改变
                 self.handle = faa_get_handle(channel=self.channel, mode="flash")
 
                 # [4399] [QQ空间]关闭健康游戏公告
-                self.print_g(text="[刷新游戏] [4399] [QQ空间]关闭健康游戏公告", garde=1)
+                self.print_debug(text="[刷新游戏] [4399] [QQ空间] 尝试关闭健康游戏公告")
                 loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
@@ -2355,6 +2354,7 @@ class FAA:
                     target_sleep=1,
                     click=True)
 
+                self.print_debug(text="[刷新游戏] 尝试关闭每日必充界面")
                 # [每天第一次登陆] 每日必充界面关闭
                 loop_match_p_in_w(
                     raw_w_handle=self.handle,
@@ -2366,11 +2366,11 @@ class FAA:
                     click=True)
                 self.random_seed += 1
 
-                self.print_g(text="[刷新游戏] 已完成", garde=1)
+                self.print_debug(text="[刷新游戏] 已完成")
 
                 return
             else:
-                self.print_g(text="[刷新游戏] 查找大地图失败, 点击服务器后未能成功进入游戏, 刷新重来", garde=2)
+                self.print_warning(text="[刷新游戏] 查找大地图失败, 点击服务器后未能成功进入游戏, 刷新重来")
 
     def sign_in(self):
 
@@ -2600,9 +2600,7 @@ class FAA:
                 target_sleep=1,
                 click=False
             )
-            self.print_g(
-                text="{}次尝试, 浇水后, 已确认无任务完成黑屏".format(try_time + 1),
-                garde=1)
+            self.print_debug(text="{}次尝试, 浇水后, 已确认无任务完成黑屏".format(try_time + 1))
 
             # 施肥一次
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=418)
@@ -2617,7 +2615,7 @@ class FAA:
                 target_failed_check=7,
                 target_sleep=1,
                 click=False)
-            self.print_g(text="{}次尝试, 施肥后, 已确认无任务完成黑屏".format(try_time + 1), garde=1)
+            self.print_debug(text="{}次尝试, 施肥后, 已确认无任务完成黑屏".format(try_time + 1))
 
             # 点X回退一次
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=854, y=55)
@@ -2660,7 +2658,7 @@ class FAA:
             time.sleep(0.5)
 
             if not find:
-                self.print_g(text="已完成公会浇水施肥, 尝试次数:{}".format(try_time), garde=1)
+                self.print_debug(text="已完成公会浇水施肥, 尝试次数:{}".format(try_time))
                 return True
             else:
                 # 进入施肥界面, 正确进入就跳出循环
@@ -2675,7 +2673,7 @@ class FAA:
                 return False
 
         def fed_and_watered_main():
-            self.print_g(text="开始公会浇水施肥", garde=1)
+            self.print_debug(text="开始公会浇水施肥")
 
             # 进入公会
             self.action_bottom_menu(mode="公会")
@@ -2696,10 +2694,10 @@ class FAA:
 
     def use_item(self):
         # 获取所有图片资源
-        self.print_g(text="开启使用物品功能", garde=1)
+        self.print_debug(text="开启使用物品功能")
 
         # 打开背包
-        self.print_g(text="打开背包", garde=1)
+        self.print_debug(text="打开背包")
         self.action_bottom_menu(mode="背包")
 
         # 升到最顶, 不需要, 打开背包会自动重置
@@ -2707,7 +2705,7 @@ class FAA:
         # 四次循环查找所有正确图标
         for i in range(4):
 
-            self.print_g(text="第{}页物品".format(i + 1), garde=1)
+            self.print_debug(text="第{}页物品".format(i + 1))
 
             # 第一次以外, 下滑4*5次
             if i != 0:
@@ -2767,7 +2765,7 @@ class FAA:
 
                     else:
                         # 没有找到对应物品 skip
-                        self.print_g(text="物品:{}本页已全部找到".format(item_name), garde=1)
+                        self.print_debug(text="物品:{}本页已全部找到".format(item_name))
                         break
 
         # 关闭背包
@@ -2814,7 +2812,7 @@ class FAA:
                 target_sleep=0.2,
                 click=True)
             if not find:
-                self.print_g(text="30s找不到[开始/准备]字样! 创建房间可能失败! 直接reload游戏防止卡死", garde=2)
+                self.print_warning(text="30s找不到[开始/准备]字样! 创建房间可能失败! 直接reload游戏防止卡死")
                 self.reload_game()
                 first_time = True
                 continue
@@ -2830,7 +2828,7 @@ class FAA:
                 time.sleep(0.5)
 
             # 刷新ui: 状态文本
-            self.print_g(text="查找火苗标识物, 等待loading完成", garde=1)
+            self.print_debug(text="查找火苗标识物, 等待loading完成")
 
             # 循环查找火苗图标 找到战斗开始
             find = loop_match_p_in_w(
@@ -2842,9 +2840,9 @@ class FAA:
                 target_sleep=1,
                 click=False)
             if find:
-                self.print_g(text="找到[火苗标识物], 战斗进行中...", garde=1)
+                self.print_debug(text="找到[火苗标识物], 战斗进行中...")
             else:
-                self.print_g(text="30s找不到[火苗标识物]! 进入游戏! 直接reload游戏防止卡死", garde=2)
+                self.print_warning(text="30s找不到[火苗标识物]! 进入游戏! 直接reload游戏防止卡死")
                 self.reload_game()
                 first_time = True
                 continue
