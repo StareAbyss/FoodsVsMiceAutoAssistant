@@ -1,5 +1,7 @@
 import logging
 
+import colorlog
+
 from function.globals.get_paths import PATHS
 
 
@@ -10,7 +12,6 @@ class CusLogger(logging.Logger):
         super().__init__(name)  # 调用父类的构造函数，并传递name参数
         # 设置日志记录的最低级别
         self.setLevel(logging.DEBUG)
-
         # 保存路径
         log_path = PATHS["logs"] + '\\running_log.log'
 
@@ -21,9 +22,10 @@ class CusLogger(logging.Logger):
         file_handler.setFormatter(formatter)  # 应用formatter
         self.addHandler(file_handler)  # 添加到logger
 
-        # 输出到运行框
-        stream_handler = logging.StreamHandler()
+        # 输出到运行框 标准输出流
+        stream_handler = colorlog.StreamHandler()
         stream_handler.setLevel(logging.DEBUG)
+        formatter = colorlog.ColoredFormatter('%(log_color)s%(asctime)s - %(levelname)s - %(message)s')  # 创建一个formatter来定义日志的格式
         stream_handler.setFormatter(formatter)  # 应用formatter
         self.addHandler(stream_handler)
 
