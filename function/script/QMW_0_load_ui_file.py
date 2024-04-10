@@ -36,11 +36,11 @@ class QMainWindowLoadUI(QMainWindow):
         T_ACTION_QUEUE_TIMER.set_zoom_rate(self.zoom_rate)
 
         # 设定字体
-        QFontDatabase.addApplicationFont(PATHS["font"] + "\\汉仪文黑-85W Heavy.ttf")
-        font = QFont()
-        font.setFamily("汉仪文黑-85W")
-        font.setPointSize(10)
-        self.setFont(font)
+        font_id = QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
+        if font_id != -1:
+            font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
+            self.font = QFont(font_family, 11)
+            self.setFont( self.font)
 
     def closeEvent(self, event):
         """
