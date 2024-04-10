@@ -1,9 +1,8 @@
 from threading import Timer
 
-import objgraph
 from PyQt5.QtCore import QThread, pyqtSignal
 
-from function.battle.Card import Card
+from function.battle.Card import Card, CardKun
 from function.battle.CardQueue import CardQueue
 from function.globals.extra import EXTRA_GLOBALS
 
@@ -13,6 +12,7 @@ class CardManager:
     def __init__(self, faa_1, faa_2):
         super().__init__()
         self.card_list_dict = {}
+        self.card_kun_dict = {}
         self.card_queue_dict = {}
         self.thread_dict = {}
         self.smoothie_usable_player = []
@@ -38,9 +38,9 @@ class CardManager:
         # 刷新全局冰沙锁
         EXTRA_GLOBALS.smoothie_lock_time = 0
 
-        # 对象分析
-        objgraph.show_most_common_types()
-        objgraph.show_growth()
+        # 对象分析 打包务必注释掉！
+        # objgraph.show_most_common_types()
+        # objgraph.show_growth()
 
     def init_card_list_dict(self):
         for i in ([1, 2] if self.is_group else [1]):
@@ -56,6 +56,10 @@ class CardManager:
                 if card.is_smoothie:
                     self.smoothie_usable_player.append(player)
 
+        # 添加坤
+        for player in ([1, 2] if self.is_group else [1]):
+            if self.faa_dict[player].kun_position:
+                self.card_kun_dict[player] = CardKun(faa=self.faa_dict[player])
 
     def init_card_queue_dict(self):
         for i in ([1, 2] if self.is_group else [1]):
@@ -73,6 +77,7 @@ class CardManager:
         for i in players:
             self.thread_dict[i] = ThreadCheckTimer(
                 card_queue=self.card_queue_dict[i],
+                card_kun=self.card_kun_dict[i] if (i in self.card_kun_dict.keys()) else None,
                 faa=self.faa_dict[i])
             self.thread_dict[i + 2] = ThreadUseCardTimer(
                 card_queue=self.card_queue_dict[i],
@@ -87,14 +92,6 @@ class CardManager:
             my_thread.start()
         print("所有线程已开始")
 
-    def use_kun(self, kun, card):
-        # 如果幻幻鸡卡片在冷却，就return
-        if kun.status_cd > 0:
-            return
-        # 使用幻幻鸡，队列卡片就下一位，遍历卡片就下一位遍历
-        kun_position = card.position[1, ""]
-        # 将幻幻鸡添加到点击队列中
-
     def run(self):
         # 开始线程
         self.start_all_thread()
@@ -102,19 +99,28 @@ class CardManager:
     def stop(self):
         print("CardManager stop方法已激活")
         self.stop_mode = 1
+
         # 中止已经存在的子线程
         for k, my_thread in self.thread_dict.items():
             if my_thread is not None:
                 my_thread.stop()
         self.thread_dict.clear()  # 清空线程字典
-        for key, cardlist in self.card_list_dict.items():
-            for card in cardlist:
+
+        # 释放卡片列表中的卡片的内存
+        for key, card_list in self.card_list_dict.items():
+            for card in card_list:
                 card.destroy()  # 释放卡片内存
-            cardlist.clear()  # 清空卡片列表
+            card_list.clear()  # 清空卡片列表
         self.card_list_dict.clear()  # 清空卡片列表字典
+
+        # 释放坤坤卡的内存
+        for key, card in self.card_kun_dict.items():
+            card.destroy()  # 释放卡片内存
+
         # 释放卡片队列内存
-        for key, cardqueue in self.card_queue_dict.items():
-            cardqueue.queue.clear()  # 清空卡片队列
+        for key, card_queue in self.card_queue_dict.items():
+            card_queue.queue.clear()  # 清空卡片队列
+
         self.card_queue_dict.clear()  # 清空卡片队列字典
         self.faa_dict.clear()  # 清空faa字典
         self.is_group = None
@@ -124,14 +130,15 @@ class CardManager:
 class ThreadCheckTimer(QThread):
     stop_signal = pyqtSignal()
 
-    def __init__(self, card_queue, faa):
+    def __init__(self, card_queue, faa, card_kun):
         super().__init__()
         self.card_queue = card_queue
+        self.card_kun = card_kun
         self.faa = faa
         self.stop_flag = True
         self.timer = None
         self.running_round = 0
-        self.interval = 1 # s
+        self.interval = 1  # s
 
     def run(self):
         self.stop_flag = False
@@ -144,7 +151,7 @@ class ThreadCheckTimer(QThread):
         self.timer = None
 
     def stop(self):
-        print("{}P ThreadCheckTimer stop方法已激活".format(self.faa.player))
+        self.faa.print_info(text=f"{self.faa.player}P ThreadCheckTimer stop方法已激活")
         # 设置Flag
         self.stop_flag = True
         # 退出事件循环
@@ -161,7 +168,7 @@ class ThreadCheckTimer(QThread):
 
         self.stop_flag = self.faa.faa_battle.use_key_and_check_end()
         if self.stop_flag:
-            print('检测到战斗结束')
+            self.faa.print_info(text='检测到战斗结束')
             self.stop_signal.emit()
             return
 
@@ -172,19 +179,39 @@ class ThreadCheckTimer(QThread):
             self.card_queue.init_card_queue()
             # 更新火苗
             self.faa.faa_battle.update_fire_elemental_1000()
+
+            # 根据情况判断是否加入执行坤函数的动作
+            if self.card_kun:
+                # 先刷新坤卡状态
+                self.card_kun.fresh_status()
+                if self.faa.faa_battle.fire_elemental_1000 and self.card_kun.status_usable:
+                    # 要求该窗口被找到坤位置, 并且火苗1000+, 且坤可用
+                    kun_tar_index = 0
+                    max_card = None
+                    for i in range(len(self.card_queue.card_list)):
+                        card = self.card_queue.card_list[i]
+                        # 先将所有卡片的is_kun_target设置为False
+                        card.is_kun_target = False
+                        if not card.status_ban:
+                            # 从没有被ban的卡中找出优先级最高的卡片
+                            if card.kun > kun_tar_index:
+                                kun_tar_index = card.kun
+                                max_card = card
+                    # 设置优先级最高的卡片为kun目标
+                    if max_card:
+                        max_card.is_kun_target = True
+
             # 调试打印目前list状态
             if self.faa.player == 1:
                 text = ""
                 for card in self.card_queue.card_list:
-                    text += "[name:{}|cd:{}|usable:{}|ban:{}]".format(
-                        card.name, card.status_cd, card.status_usable, card.status_ban)
-                print(text)
+                    text += "[name:{}|cd:{}|usable:{}|ban:{}|kun_tar:{}]".format(
+                        card.name, card.status_cd, card.status_usable, card.status_ban, card.is_kun_target)
+                self.faa.print_debug(text)
 
         # 刷新全局冰沙锁的状态
         if EXTRA_GLOBALS.smoothie_lock_time != 0:
             EXTRA_GLOBALS.smoothie_lock_time -= self.interval
-
-
 
         # 定时使用武器技能和检测是否继续
         if self.running_round % 10 == 0:
@@ -195,8 +222,6 @@ class ThreadCheckTimer(QThread):
         if not self.stop_flag:
             self.timer = Timer(self.interval, self.check)
             self.timer.start()
-
-
 
 
 class ThreadUseCardTimer(QThread):

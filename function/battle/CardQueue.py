@@ -10,14 +10,17 @@ class CardQueue(queue.PriorityQueue):
 
     # 初始化card队列
     def init_card_queue(self):
+
         for card in self.card_list:
             # 更新 status_ban
             card.status_ban -= 1
             if card.status_ban < 0:
                 card.status_ban = 0
+
             # 更新 cd情况
             card.fresh_status()
-            # 重新装填卡片入队
+
+            # 重新装填卡片入队, 幻坤除外
             self.put((card.priority, card))
 
     def put_card_queue(self, card):
