@@ -375,7 +375,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             my_opt = self.opt["get_warm_gift"]
             my_opt["1p"]["active"] = self.GetWarmGift_1P_Active.isChecked()
             my_opt["1p"]["link"] = self.GetWarmGift_1P_Link.text()
-            my_opt["1p"]["active"] = self.GetWarmGift_1P_Active.isChecked()
+            my_opt["2p"]["active"] = self.GetWarmGift_2P_Active.isChecked()
             my_opt["2p"]["link"] = self.GetWarmGift_2P_Link.text()
 
         def todo_plans():
