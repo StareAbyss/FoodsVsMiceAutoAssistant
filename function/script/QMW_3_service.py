@@ -1,4 +1,3 @@
-
 import random
 import sys
 
@@ -11,10 +10,10 @@ from function.scattered.get_channel_name import get_channel_name
 from function.script.FAA import FAA
 from function.script.QMW_2_log import QMainWindowLog
 from function.script.Todo import Todo
+from function.tools.editor_of_battle_plan import JsonEditor
 
 
 class QMainWindowService(QMainWindowLog):
-
     signal_end = pyqtSignal()
 
     def __init__(self):
@@ -164,14 +163,6 @@ def main():
 
     # 实例化 主窗口
     window = QMainWindowService()
-
-    # 注册函数：开始/结束/高级设置按钮
-    window.Button_Start.clicked.connect(lambda: window.click_btn_start())
-    window.Button_Save.clicked.connect(lambda: window.click_btn_save())
-    window.Button_DeletePlan.clicked.connect(lambda: window.delete_current_plan())
-    window.Button_RenamePlan.clicked.connect(lambda: window.rename_current_plan())
-    window.Button_CreatePlan.clicked.connect(lambda: window.create_new_plan())
-    window.CurrentPlan.currentIndexChanged.connect(lambda: window.opt_to_ui_todo_plans())
 
     # 主窗口 实现
     window.show()
