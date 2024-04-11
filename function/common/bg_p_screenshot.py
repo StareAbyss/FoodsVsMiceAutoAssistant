@@ -1,11 +1,7 @@
-import time
 from ctypes import windll, byref, c_ubyte
 from ctypes.wintypes import RECT, HWND
 
-from cv2 import imwrite, imshow, waitKey
 from numpy import uint8, frombuffer
-
-from function.scattered.gat_handle import faa_get_handle
 
 # 如果没有依赖
 # pip install opencv-contrib-python
@@ -57,25 +53,3 @@ def png_cropping(image, raw_range: list):
     return image[raw_range[1]:raw_range[3], raw_range[0]:raw_range[2], :]
 
 
-def main():
-    handle = faa_get_handle(channel="锑食", mode="flash")
-    handle_browser = faa_get_handle(channel="锑食", mode="browser")
-    # handle = faa_get_handle(channel="深渊之下 | 锑食", mode="flash")
-    # handle = faa_get_handle(channel="深渊之下 | 锑食", mode="360")
-
-    # 调用截图
-    # image = capture_picture_png(handle=handle, raw_range=[257-45, 74-64, 257+8, 74+6])
-    # image = capture_picture_png(handle=handle, raw_range=[0, 0, 950, 600])
-    image = capture_picture_png(handle=handle_browser, raw_range=[0, 0, 2000, 2000])
-    # image = capture_picture_png(handle=handle, raw_range=[161, 75, 164, 85])
-
-    # 保存图片
-    imwrite(time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + ".png", image)
-
-    # 暂时显示
-    imshow(winname="Capture Test.png", mat=image)
-    waitKey()
-
-
-if __name__ == "__main__":
-    main()
