@@ -29,6 +29,18 @@ class QMainWindowService(QMainWindowLog):
         # 链接中止函数
         self.signal_end.connect(self.todo_end)
 
+        # 编辑器窗口
+        self.window_editor = JsonEditor()
+
+        # 注册函数：开始/结束/高级设置按钮
+        self.Button_Start.clicked.connect(self.click_btn_start)
+        self.Button_Save.clicked.connect(self.click_btn_save)
+        self.Button_DeletePlan.clicked.connect(self.delete_current_plan)
+        self.Button_RenamePlan.clicked.connect(self.rename_current_plan)
+        self.Button_CreatePlan.clicked.connect(self.create_new_plan)
+        self.CurrentPlan.currentIndexChanged.connect(self.opt_to_ui_todo_plans)
+        self.OpenEditorOfBattlePlan_Button.clicked.connect(self.click_btn_open_editor)
+
     def todo_end(self):
         # 设置flag
         self.thread_todo_active = False
@@ -140,6 +152,11 @@ class QMainWindowService(QMainWindowLog):
             self.start_all()
         else:
             self.stop_all()
+
+    def click_btn_open_editor(self):
+        self.window_editor.set_my_font(self.font)
+        self.window_editor.show()
+
 
 def main():
     # 实例化 PyQt后台管理
