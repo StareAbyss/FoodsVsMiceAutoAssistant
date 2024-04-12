@@ -96,7 +96,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="Tab1">
         <attribute name="title">
@@ -666,7 +666,7 @@
             <item>
              <widget class="QLabel" name="Label_Timer">
               <property name="toolTip">
-               <string>达咩！这个功能还没做好！只做好了ui！</string>
+               <string>达咩！这个功能还没做好！</string>
               </property>
               <property name="text">
                <string>定时启动</string>
@@ -726,6 +726,9 @@
                     <width>60</width>
                     <height>16777215</height>
                    </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>达咩！这个功能还没做好！</string>
                   </property>
                   <property name="text">
                    <string>定时1</string>
@@ -913,6 +916,9 @@
                     <height>16777215</height>
                    </size>
                   </property>
+                  <property name="toolTip">
+                   <string>达咩！这个功能还没做好！</string>
+                  </property>
                   <property name="text">
                    <string>定时2</string>
                   </property>
@@ -1098,6 +1104,9 @@
                     <width>60</width>
                     <height>16777215</height>
                    </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>达咩！这个功能还没做好！</string>
                   </property>
                   <property name="text">
                    <string>定时3</string>
@@ -1285,6 +1294,9 @@
                     <height>16777215</height>
                    </size>
                   </property>
+                  <property name="toolTip">
+                   <string>达咩！这个功能还没做好！</string>
+                  </property>
                   <property name="text">
                    <string>定时4</string>
                   </property>
@@ -1470,6 +1482,9 @@
                     <width>60</width>
                     <height>16777215</height>
                    </size>
+                  </property>
+                  <property name="toolTip">
+                   <string>达咩！这个功能还没做好！</string>
                   </property>
                   <property name="text">
                    <string>定时5</string>
@@ -1933,6 +1948,9 @@ Save Config</string>
                   <width>16777215</width>
                   <height>16777215</height>
                  </size>
+                </property>
+                <property name="toolTip">
+                 <string>达咩! 这个功能还没做好口牙!</string>
                 </property>
                 <property name="text">
                  <string>启动定时任务
@@ -7925,7 +7943,7 @@ Link Start</string>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>达咩！这个按钮还没做好！</string>
+                 <string>只用点一下就够了!</string>
                 </property>
                 <property name="text">
                  <string>点此启动

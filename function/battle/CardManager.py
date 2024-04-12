@@ -5,6 +5,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from function.battle.Card import Card, CardKun
 from function.battle.CardQueue import CardQueue
 from function.globals.extra import EXTRA_GLOBALS
+from function.globals.log import CUS_LOGGER
 
 
 class CardManager:
@@ -65,9 +66,6 @@ class CardManager:
         for i in ([1, 2] if self.is_group else [1]):
             self.card_queue_dict[i] = CardQueue(card_list=self.card_list_dict[i])
 
-        if __name__ == '__main__':
-            print(self.card_queue_dict)
-
     def init_all_thread(self):
         if self.is_group:
             players = [1, 2]
@@ -83,21 +81,21 @@ class CardManager:
                 card_queue=self.card_queue_dict[i],
                 faa=self.faa_dict[i])
 
-        print("线程已全部实例化")
-        print(self.thread_dict)
+        CUS_LOGGER.debug("线程已全部实例化")
+        CUS_LOGGER.debug(self.thread_dict)
 
     def start_all_thread(self):
         # 开始线程
         for k, my_thread in self.thread_dict.items():
             my_thread.start()
-        print("所有线程已开始")
+        CUS_LOGGER.debug("所有线程已开始")
 
     def run(self):
         # 开始线程
         self.start_all_thread()
 
     def stop(self):
-        print("CardManager stop方法已激活")
+        CUS_LOGGER.debug("CardManager stop方法已激活")
         self.stop_mode = 1
 
         # 中止已经存在的子线程
@@ -124,7 +122,7 @@ class CardManager:
         self.card_queue_dict.clear()  # 清空卡片队列字典
         self.faa_dict.clear()  # 清空faa字典
         self.is_group = None
-        print("CardManager 内部线程已停止")
+        CUS_LOGGER.debug("CardManager 内部线程已停止")
 
 
 class ThreadCheckTimer(QThread):
@@ -144,7 +142,7 @@ class ThreadCheckTimer(QThread):
         self.stop_flag = False
         self.timer = Timer(self.interval, self.check)
         self.timer.start()
-        print('启动下层事件循环')
+        self.faa.print_debug('启动下层事件循环')
         while not self.stop_flag:
             QThread.msleep(100)
         self.timer.cancel()  # 停止定时器
@@ -236,7 +234,7 @@ class ThreadUseCardTimer(QThread):
         self.stop_flag = False
         self.timer = Timer(0.02, self.use_card)
         self.timer.start()
-        print('启动下层事件循环2')
+        self.faa.print_debug('启动下层事件循环2')
         while not self.stop_flag:
             QThread.msleep(100)
         self.timer.cancel()
@@ -249,7 +247,7 @@ class ThreadUseCardTimer(QThread):
             self.timer.start()
 
     def stop(self):
-        print("{}P ThreadUseCardTimer stop方法已激活".format(self.faa.player))
+        self.faa.print_debug("{}P ThreadUseCardTimer stop方法已激活".format(self.faa.player))
         # 设置Flag
         self.stop_flag = True
         # 退出线程的事件循环

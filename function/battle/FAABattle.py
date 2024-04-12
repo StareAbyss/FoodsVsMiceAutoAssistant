@@ -50,7 +50,6 @@ class Battle:
         self.smoothie_usable = self.faa.player == 1
 
     def use_player_once(self, num_cell):
-        print(f'{num_cell}')
         T_ACTION_QUEUE_TIMER.add_click_to_queue(
             handle=self.faa.handle,
             x=self.faa.bp_cell[num_cell][0],
@@ -61,7 +60,6 @@ class Battle:
         for i in self.faa.battle_plan_0["player"]:
             self.use_player_once(i)
             time.sleep(self.click_sleep)
-        print(T_ACTION_QUEUE_TIMER.print_queue())
 
     def use_shovel_all(self, position=None):
         """
@@ -216,4 +214,4 @@ class Battle:
         self.fire_elemental_1000 = np.any(image == [0, 0, 0])
 
         if self.faa.player == 1:
-            print("1p火苗>1000:", self.fire_elemental_1000)
+            self.faa.print_debug("战斗火苗能量>1000:", self.fire_elemental_1000)
