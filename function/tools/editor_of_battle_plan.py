@@ -124,9 +124,10 @@ class JsonEditor(QMainWindow):
 
         self.LayCardEditor.addWidget(QLabel('ID:'))
 
-        self.WeiIdInput = QLineEdit()
+        self.WeiIdInput = QSpinBox()
         self.LayCardEditor.addWidget(self.WeiIdInput)
         self.WeiIdInput.setToolTip("id代表卡在卡组中的顺序")
+        self.WeiIdInput.setRange(0,21)
 
         self.LayCardEditor.addWidget(QLabel('名称:'))
 
@@ -154,10 +155,10 @@ class JsonEditor(QMainWindow):
         self.LayCardEditor.addWidget(self.KunInput)
         self.KunInput.setToolTip("卡片是否使用幻幻鸡, 0代表不使用，越高使用优先级越高")
 
-        self.WeiAddCardButton = QPushButton('添加 一张卡片')
+        self.WeiAddCardButton = QPushButton('添加一张新卡')
         self.LayCardEditor.addWidget(self.WeiAddCardButton)
 
-        self.WeiDeleteCardButton = QPushButton('删除 选中卡片')
+        self.WeiDeleteCardButton = QPushButton('删除选中卡片')
         self.LayCardEditor.addWidget(self.WeiDeleteCardButton)
 
         """card列表+棋盘 横向布局"""
@@ -225,7 +226,7 @@ class JsonEditor(QMainWindow):
         # 单击列表更改当前card
         self.WeiCardList.itemClicked.connect(self.current_card_change)
         # id，名称,遍历，队列控件的更改都连接上更新卡片
-        self.WeiIdInput.textChanged.connect(self.update_card)
+        self.WeiIdInput.valueChanged.connect(self.update_card)
         self.WeiNameInput.textChanged.connect(self.update_card)
         self.WeiErgodicInput.currentIndexChanged.connect(self.update_card)
         self.QueueInput.currentIndexChanged.connect(self.update_card)
@@ -285,7 +286,7 @@ class JsonEditor(QMainWindow):
             index = self.index - 1  # 可能需要深拷贝？也许是被保护的特性 不需要
             card = self.json_data["card"][index]
             self.WeiCurrentEdit.setText("索引-{} 名称-{}".format(index, card["name"]))
-            self.WeiIdInput.setText(str(card['id']))
+            self.WeiIdInput.setValue((card['id']))
             self.WeiNameInput.setText(card['name'])
             self.WeiErgodicInput.setCurrentText(str(card['ergodic']).lower())
             self.QueueInput.setCurrentText(str(card['queue']).lower())
@@ -343,18 +344,12 @@ class JsonEditor(QMainWindow):
             self.load_data_to_ui_list()
 
     def add_card(self):
-        id_ = self.WeiIdInput.text()
-        name_ = self.WeiNameInput.text()
+        id_ = 0
+        name_ = "新的卡片"
 
-        if not id_.isdigit():
-            QMessageBox.information(self, "操作错误！", "卡片id必须是正整数!")
-            return False
-        if id_ == "" or name_ == "":
-            QMessageBox.information(self, "操作错误！", "卡片id和名称必须填写不得为空!")
-            return False
         self.json_data["card"].append(
             {
-                "id": int(id_),
+                "id": id_,
                 "name": name_,
                 "ergodic": bool(self.WeiErgodicInput.currentText() == 'true'),  # 转化bool
                 "queue": bool(self.QueueInput.currentText() == 'true'),  # 转化bool
@@ -380,7 +375,7 @@ class JsonEditor(QMainWindow):
 
         index -= 1
         card = self.json_data["card"][index]
-        id = int(self.WeiIdInput.text())
+        id = int(self.WeiIdInput.value())
         card["id"] = id
         card["name"] = self.WeiNameInput.text()
         card["ergodic"] = bool(self.WeiErgodicInput.currentText() == 'true')  # 转化bool
