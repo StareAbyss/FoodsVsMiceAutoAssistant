@@ -9,9 +9,9 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
 def compare_pixels(img, tar_img):
-    """为抵消游戏蒙版色，导致的差距，用于对比识别目标像素和标准像素的函数"""
+    """为抵消游戏蒙版色，导致的差距，用于对比识别目标像素和标准像素的函数, 只要有一个像素颜色正确就视为True """
     for i in range(len(img[0])):
-        if np.sum(img[0][i] - tar_img[0][i]) < 25:
+        if abs(np.sum(img[0][i] - tar_img[0][i])) < 15:
             return True
     return False
 
@@ -189,11 +189,13 @@ class Card:
 
         self.status_usable = (compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_0.png"]) or
                               compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_1.png"]) or
-                              compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_2.png"]))
+                              compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_2.png"]) or
+                              compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_3.png"]))
 
         self.status_cd = (compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["冷却状态_0.png"]) or
                           compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["冷却状态_1.png"]) or
-                          compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["冷却状态_2.png"]))
+                          compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["冷却状态_2.png"]) or
+                          compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["冷却状态_3.png"]))
 
     def destroy(self):
         self.faa = None
@@ -232,7 +234,6 @@ class CardKun:
         pixels_top_left = np.squeeze(img[0:1, 2:20, :3])  # 18个像素
         pixels_top_right = np.squeeze(img[0:1, 33:51, :3])  # 18个像素
         pixels_bottom = np.squeeze(img[69:70, 2:51, :3])  # 49个像素
-
 
         pixels_all = [[]]
         for axis_0 in [pixels_top_left, pixels_top_right, pixels_bottom]:
