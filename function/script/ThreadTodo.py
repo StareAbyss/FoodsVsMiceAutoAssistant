@@ -1,3 +1,4 @@
+import copy
 import datetime
 import json
 import time
@@ -11,13 +12,16 @@ from function.common.bg_p_match import loop_match_p_in_w
 from function.common.thread_with_exception import ThreadWithException
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
+from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.get_customize_todo_list import get_customize_todo_list
 
 
-class Todo(QThread):
+class ThreadTodo(QThread):
+    signal_start_todo_2_easy_battle_with_lock = pyqtSignal(dict)
+    signal_todo_lock = pyqtSignal(bool)
 
-    def __init__(self, faa, opt, signal_dict):
+    def __init__(self, faa, opt, signal_dict, todo_id):
         super().__init__()
 
         # 用于暂停恢复
@@ -33,6 +37,8 @@ class Todo(QThread):
         self.thread_card_manager = None
         self.battle_mode = 1  # 1 或 0 0则代表使用老版战斗方案; 1则达标使用新版战斗方案, 新版处于测试之中. 开发者请更改为0再用
         self.card_manager = None
+        self.lock = False
+        self.todo_id = todo_id  # id == 1 默认 id==2 处理双单人多线程
 
         # 好用的信号~
         self.signal_dict = signal_dict
@@ -40,7 +46,14 @@ class Todo(QThread):
         self.signal_dialog = self.signal_dict["dialog"]
         self.signal_end = self.signal_dict["end"]
 
+    def change_lock(self, my_bool):
+        self.lock = my_bool
+
     """业务代码, 不直接调用opt设定, 会向输出窗口传参"""
+
+    def cus_quit(self):
+        CUS_LOGGER.debug("已激活ThreadTodo quit")
+        self.quit()
 
     def reload_game(self):
 
@@ -403,14 +416,15 @@ class Todo(QThread):
                 self.msleep(500)
                 self.thread_card_manager.run()
                 self.msleep(1000)
+                self.thread_card_manager.thread_dict[1].stop_signal.connect(self.cus_quit)
                 self.thread_card_manager.thread_dict[1].stop_signal.connect(self.thread_card_manager.stop)
-                self.thread_card_manager.thread_dict[1].stop_signal.connect(self.quit)
-                print('启动上层事件循环')
+
+                CUS_LOGGER.debug('启动Todo中的事件循环, 用以战斗')
                 self.exec_()
-                del self.thread_card_manager
+
                 # 此处的重新变为None是为了让中止todo实例时时该属性仍存在
+                CUS_LOGGER.debug('销毁thread_card_manager的调用')
                 self.thread_card_manager = None
-                print("新战斗方法已完成执行并不再阻塞Todo线程")
 
             result_spend_time = time.time() - battle_start_time
 
@@ -773,10 +787,6 @@ class Todo(QThread):
             # 生成文本
             loots_text = ""
             chests_text = ""
-            # for name, count in count_loots_dict.items():
-            #     loots_text += "{}[{}|{:.1f}] ".format(name, count, count / valid_time)
-            # for name, count in count_chests_dict.items():
-            #     chests_text += "{}[{}|{:.1f}] ".format(name, count, count / valid_time)
             for name, count in count_loots_dict.items():
                 loots_text += "{}x{:.1f} ".format(name, count / valid_time)
             for name, count in count_chests_dict.items():
@@ -803,8 +813,6 @@ class Todo(QThread):
             # 多人
             print_player_loot(player_id=1)
             print_player_loot(player_id=2)
-
-        self.signal_print_to_ui.emit("")
 
     def n_n_battle(self, quest_list, list_type):
         """
@@ -860,6 +868,82 @@ class Todo(QThread):
 
     """使用n_n_battle为核心的变种函数"""
 
+    def alone_magic_tower(self, c_opt):
+
+        def one_player():
+            for player_id in [1, 2]:
+                my_opt = c_opt["magic_tower_alone_{}".format(player_id)]
+                if my_opt["active"]:
+                    self.easy_battle(
+                        text_="[魔塔单人_{}P]".format(player_id),
+                        stage_id="MT-1-" + str(my_opt["stage"]),
+                        player=[player_id],
+                        max_times=int(my_opt["max_times"]),
+                        deck=my_opt["deck"],
+                        battle_plan_1p=my_opt["battle_plan_1p"],
+                        battle_plan_2p=my_opt["battle_plan_1p"],
+                        dict_exit={
+                            "other_time_player_a": [],
+                            "other_time_player_b": [],
+                            "last_time_player_a": ["普通红叉"],
+                            "last_time_player_b": []
+                        }
+                    )
+
+        def multi_player():
+            player_id = 1
+            my_opt = c_opt[f"magic_tower_alone_{player_id}"]
+            opts_dict = {
+                "text_": "[魔塔单人_{}P]".format(player_id),
+                "stage_id": "MT-1-{}" + str(my_opt["stage"]),
+                "player": [player_id],
+                "max_times": int(my_opt["max_times"]),
+                "deck": my_opt["deck"],
+                "battle_plan_1p": my_opt["battle_plan_1p"],
+                "battle_plan_2p": my_opt["battle_plan_1p"],  # 假设这里应该是battle_plan_2p
+                "dict_exit": {
+                    "other_time_player_a": [],
+                    "other_time_player_b": [],
+                    "last_time_player_a": ["普通红叉"],
+                    "last_time_player_b": []
+                }
+            }
+            self.easy_battle_with_lock(opts_dict)
+
+            player_id = 2
+            my_opt = c_opt[f"magic_tower_alone_{player_id}"]
+            opts_dict = {
+                "text_": "[魔塔单人_{}P]".format(player_id),
+                "stage_id": "MT-1-" + str(my_opt["stage"]),
+                "player": [player_id],
+                "max_times": int(my_opt["max_times"]),
+                "deck": my_opt["deck"],
+                "battle_plan_1p": my_opt["battle_plan_2p"],
+                "battle_plan_2p": my_opt["battle_plan_2p"],  # 假设这里应该是battle_plan_2p
+                "dict_exit": {
+                    "other_time_player_a": [],
+                    "other_time_player_b": [],
+                    "last_time_player_a": ["普通红叉"],
+                    "last_time_player_b": []
+                }
+            }
+
+            self.signal_start_todo_2_easy_battle_with_lock.emit(opts_dict)
+
+        active_player_count = 0
+        for player_id in [1, 2]:
+            my_opt = c_opt["magic_tower_alone_{}".format(player_id)]
+            if my_opt["active"]:
+                active_player_count += 1
+
+        if active_player_count == 1:
+            # 单人情况 以easy battle 完成即可
+            one_player()
+
+        if active_player_count == 2:
+            # 多人情况 直接调用以lock battle 完成1P 以信号调用另一个todo 完成2P
+            multi_player()
+
     def easy_battle(self, text_, stage_id, player, max_times,
                     deck, battle_plan_1p, battle_plan_2p, dict_exit):
         """仅调用 n_battle的简易作战"""
@@ -885,6 +969,46 @@ class Todo(QThread):
 
         # 战斗结束
         self.signal_print_to_ui.emit(text=f"{text_} Completed!", color="red")
+
+    def easy_battle_with_lock(self, opt_dict):
+        """仅限单人作战"""
+        text_ = opt_dict["text_"]
+        stage_id = opt_dict["stage_id"]
+        player = opt_dict["player"]
+        max_times = opt_dict["max_times"]
+        deck = opt_dict["deck"]
+        battle_plan_1p = opt_dict["battle_plan_1p"]
+        battle_plan_2p = opt_dict["battle_plan_2p"]
+        dict_exit = opt_dict["dict_exit"]
+        # 上锁
+        self.lock = True
+        # 战斗开始
+        self.signal_print_to_ui.emit(text=f"{text_} [{player}] Link Start!", color="red")
+
+        quest_list = [
+            {
+                "stage_id": stage_id,
+                "max_times": max_times,
+                "player": player,
+                "deck": deck,
+                "is_use_key": True,
+                "battle_plan_1p": battle_plan_1p,
+                "battle_plan_2p": battle_plan_2p,
+                "quest_card": "None",
+                "list_ban_card": [],
+                "dict_exit": dict_exit
+            }]
+        self.n_n_battle(
+            quest_list=quest_list,
+            list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"])
+
+        # 战斗结束
+        self.signal_print_to_ui.emit(text=f"{text_} [{player}] Completed!", color="red")
+        # 为另一个todo解锁
+        self.signal_todo_lock.emit(False)
+
+        while self.lock:
+            sleep(1)
 
     def offer_reward(self, text_, max_times_1, max_times_2, max_times_3,
                      deck, battle_plan_1p, battle_plan_2p):
@@ -1151,7 +1275,13 @@ class Todo(QThread):
 
     """主要线程"""
 
-    def run(self):
+    def run(self, extra_opt=None):
+        if self.todo_id == 1:
+            self.run_1()
+        if self.todo_id == 2:
+            self.run_2(extra_opt)
+
+    def run_1(self):
 
         # current todo plan option
         c_opt = self.opt["todo_plans"][self.opt["current_plan"]]
@@ -1320,24 +1450,7 @@ class Todo(QThread):
         if need_reload:
             self.reload_game()
 
-        for player_id in [1, 2]:
-            my_opt = c_opt["magic_tower_alone_{}".format(player_id)]
-            if my_opt["active"]:
-                self.easy_battle(
-                    text_="[魔塔单人_{}P]".format(player_id),
-                    stage_id="MT-1-" + str(my_opt["stage"]),
-                    player=[player_id],
-                    max_times=int(my_opt["max_times"]),
-                    deck=my_opt["deck"],
-                    battle_plan_1p=my_opt["battle_plan_1p"],
-                    battle_plan_2p=my_opt["battle_plan_1p"],
-                    dict_exit={
-                        "other_time_player_a": [],
-                        "other_time_player_b": [],
-                        "last_time_player_a": ["普通红叉"],
-                        "last_time_player_b": []
-                    }
-                )
+        self.alone_magic_tower(c_opt)
 
         for player_id in [1, 2]:
             my_opt = c_opt["magic_tower_prison_{}".format(player_id)]
@@ -1453,6 +1566,9 @@ class Todo(QThread):
 
         # 全部完成了发个信号
         self.signal_end.emit()
+
+    def run_2(self, extra_opt):
+        self.easy_battle_with_lock(extra_opt)
 
     def pause(self):
         """暂停"""
