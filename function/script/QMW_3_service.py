@@ -24,6 +24,7 @@ class QMainWindowService(QMainWindowLog):
         super().__init__()
         # 线程或线程管理实例
         self.thread_todo_1 = None
+        self.thread_todo_2 = None  # 仅用于单人多线程时, 运行2P任务
         self.todo_timer_manager = TodoTimerManager(
             opt=self.opt,
             function_change_current_todo_plan=self.signal_change_current_todo_plan,
@@ -133,35 +134,44 @@ class QMainWindowService(QMainWindowLog):
 
         # 创建新的todo并启动线程
         self.thread_todo_1 = ThreadTodo(faa=faa, opt=self.opt, signal_dict=self.signal_dict,todo_id=1)
+        self.thread_todo_2 = ThreadTodo(faa=faa, opt=self.opt, signal_dict=self.signal_dict,todo_id=2)  # 用于双人多线程
 
+        # 链接信号以进行多线程单人
+        self.thread_todo_1.signal_start_todo_2_easy_battle_with_lock.connect(self.thread_todo_2.start)
+        self.thread_todo_2.signal_todo_lock.connect(self.thread_todo_1.change_lock)
+        self.thread_todo_1.signal_todo_lock.connect(self.thread_todo_2.change_lock)
         self.thread_todo_1.start()
 
     def todo_end(self):
         """
-                  线程已经激活 则从外到内中断,再从内到外销毁
-                  thread_todo (QThread)
-                      |-- thread_1p (ThreadWithException)
-                      |-- thread_2p (ThreadWithException)
-                  """
-        # 暂停外部线程
-        self.thread_todo.pause()
+            线程已经激活 则从外到内中断,再从内到外销毁
+            thread_todo (QThread)
+               |- thread_1p (ThreadWithException)
+               |- thread_2p (ThreadWithException)
+        """
 
-        # 中断[内部战斗线程]
-        # Q thread 线程 stop方法需要自己手写
-        thread = self.thread_todo.thread_card_manager
-        if thread is not None:
-            thread.stop()
+        """线程处理"""
+        for thread_0 in [self.thread_todo_1, self.thread_todo_2]:
+            # 暂停外部线程
+            thread_0.pause()
 
-        # python 默认线程 可用stop线程
-        for thread in [self.thread_todo.thread_1p, self.thread_todo.thread_2p]:
-            if thread is not None:
-                thread.stop()
-                thread.join()  # 等待线程确实中断
+            # 中断[内部战斗线程]
+            # Q thread 线程 stop方法需要自己手写
 
-        # 中断 销毁 [任务线程]
-        self.thread_todo.terminate()
-        self.thread_todo.wait()  # 等待线程确实中断
-        self.thread_todo.deleteLater()
+            manager = thread_0.thread_card_manager
+            if manager is not None:
+                manager.stop()
+
+            # python 默认线程 可用stop线程
+            for thread in [thread_0.thread_1p, thread_0.thread_2p]:
+                if thread is not None:
+                    thread.stop()
+                    thread.join()  # 等待线程确实中断 Threading
+
+            # 中断 销毁 [任务线程]
+            thread_0.terminate()
+            thread_0.wait()  # 等待线程确实中断 QThread
+            thread_0.deleteLater()
 
         # 中止[动作处理线程]
         T_ACTION_QUEUE_TIMER.stop()
