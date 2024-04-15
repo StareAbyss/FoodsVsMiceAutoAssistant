@@ -27,7 +27,7 @@ class Todo(QThread):
 
         # 功能需要
         self.faa = faa
-        self.opt = opt
+        self.opt = copy.deepcopy(opt)  # 深拷贝 在作战中如果进行更改, 不会生效
         self.thread_1p = None
         self.thread_2p = None
         self.thread_card_manager = None

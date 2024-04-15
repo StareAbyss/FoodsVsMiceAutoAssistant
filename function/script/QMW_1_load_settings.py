@@ -43,7 +43,11 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         return None
 
     def opt_to_ui_todo_plans(self):
-
+        """
+        先从ui上读取目前todo plan index, 然后从opt读取对应的设置到todo plan 配置界面
+        :return:
+        """
+        # 先重新获取ui上的 选项
         self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
 
         battle_plan_list = get_list_battle_plan(with_extension=False)
