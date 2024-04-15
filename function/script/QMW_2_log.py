@@ -52,10 +52,11 @@ class QMainWindowLog(QMainWindowLoadSettings):
         self.signal_print_to_ui.emit("[2] 有一定的礼卷防翻牌异常", time=False)
         self.signal_print_to_ui.emit("[3] 高星或珍贵不绑卡挂拍卖/提前转移", time=False)
         self.signal_print_to_ui.emit("", time=False)
-        self.signal_print_to_ui.emit(
-            "用户请认真阅读[FAA从入门到神殿.pdf], 以解决[运行闪退][开始后没反应][UI缩放异常]等多数问题", time=False)
+        self.signal_print_to_ui.emit("用户请认真阅读[FAA从入门到神殿.pdf], 以解决[闪退][没反应][UI缩放异常]等多数问题", time=False)
         self.signal_print_to_ui.emit("开发者和深入使用, 请参考[README.md]", time=False)
         self.signal_print_to_ui.emit("鼠标悬停在文字或按钮上会显示部分提示信息~", time=False)
+        self.signal_print_to_ui.emit("任务或定时器开始运行后, 将以点击运行时的配置进行工作", time=False)
+        self.signal_print_to_ui.emit("", time=False)
         self.signal_print_to_ui.emit("[Github] https://github.com/StareAbyss/FoodsVsMiceAutoAssistant", time=False)
         self.signal_print_to_ui.emit("[B站][UP直视深淵][老版宣传视频]https://www.bilibili.com/video/BV1fS421N7zf",
                                      time=False)
