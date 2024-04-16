@@ -98,6 +98,7 @@ class QMainWindowService(QMainWindowLog):
         # 设置按钮文本
         self.Button_Start.setText("终止任务\nStop")
         if self.todo_timer_running:
+            self.signal_print_to_ui.emit("",time=False)
             self.signal_print_to_ui.emit("[定时任务] 本次启动为 定时自启动 不清屏", color="blue")
         else:
             # 清屏并输出(仅限手动)
@@ -137,7 +138,7 @@ class QMainWindowService(QMainWindowLog):
         self.thread_todo_2 = ThreadTodo(faa=faa, opt=self.opt, signal_dict=self.signal_dict,todo_id=2)  # 用于双人多线程
 
         # 链接信号以进行多线程单人
-        self.thread_todo_1.signal_start_todo_2_easy_battle_with_lock.connect(self.thread_todo_2.start)
+        self.thread_todo_1.signal_start_todo_2_battle.connect(self.thread_todo_2.set_extra_opt_and_start)
         self.thread_todo_2.signal_todo_lock.connect(self.thread_todo_1.change_lock)
         self.thread_todo_1.signal_todo_lock.connect(self.thread_todo_2.change_lock)
         self.thread_todo_1.start()

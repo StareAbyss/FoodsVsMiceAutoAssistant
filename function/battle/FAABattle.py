@@ -213,5 +213,6 @@ class Battle:
         image = image.reshape(-1, image.shape[-1])  # 减少一个多余的维度
         self.fire_elemental_1000 = np.any(image == [0, 0, 0])
 
-        if self.faa.player == 1:
-            self.faa.print_debug("战斗火苗能量>1000:", self.fire_elemental_1000)
+        # 调试打印
+        # if self.faa.player == 1:
+        #     self.faa.print_debug("战斗火苗能量>1000:", self.fire_elemental_1000)
