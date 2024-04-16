@@ -7,7 +7,7 @@
         {
             "id": 1,
             "tips": "生产卡",
-            "name": "Unknown",
+            "name": "小火炉",
             "ergodic": true,
             "queue": false,
             "location": [
@@ -19,12 +19,37 @@
                 "2-5",
                 "4-3",
                 "4-5"
-            ]
+            ],
+            "kun": 0
+        },
+        {
+            "tips": "清明果",
+            "id": 6,
+            "name": "肉松清明粿",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "9-2",
+                "9-6"
+            ],
+            "kun": 0
+        },
+        {
+            "id": 10,
+            "tips": "辣椒粉",
+            "name": "辣椒粉",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "9-2",
+                "9-6"
+            ],
+            "kun": 0
         },
         {
             "id": 2,
             "tips": "海星",
-            "name": "Unknown",
+            "name": "炭烧海星",
             "ergodic": true,
             "queue": false,
             "location": [
@@ -36,12 +61,25 @@
                 "4-6",
                 "4-4",
                 "5-4"
-            ]
+            ],
+            "kun": 2
+        },
+        {
+            "id": 5,
+            "tips": "狮子座",
+            "name": "狮子座精灵",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "7-2",
+                "7-6"
+            ],
+            "kun": 3
         },
         {
             "id": 3,
             "tips": "糖葫芦",
-            "name": "Unknown",
+            "name": "糖葫芦炮弹",
             "ergodic": true,
             "queue": false,
             "location": [
@@ -54,12 +92,13 @@
                 "3-7",
                 "3-6",
                 "2-6"
-            ]
+            ],
+            "kun": 1
         },
         {
             "id": 4,
             "tips": "瓜皮",
-            "name": "Unknown",
+            "name": "瓜皮护罩",
             "ergodic": true,
             "queue": false,
             "location": [
@@ -67,55 +106,27 @@
                 "8-6",
                 "7-2",
                 "7-6"
-            ]
+            ],
+            "kun": 0
         },
         {
-            "tips": "冰沙",
-            "id": 5,
-            "name": "Unknown",
+            "id": 8,
+            "tips": "其他瓜皮类卡",
+            "name": "处女座精灵",
             "ergodic": true,
             "queue": false,
             "location": [
-                "7-2"
-            ]
-        },
-        {
-            "id": 6,
-            "tips": "狮子座",
-            "name": "Unknown",
-            "ergodic": true,
-            "queue": false,
-            "location": [
+                "8-2",
+                "8-6",
                 "7-2",
                 "7-6"
-            ]
-        },
-        {
-            "id": 7,
-            "tips": "辣椒粉",
-            "name": "Unknown",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "9-2",
-                "9-6"
-            ]
-        },
-        {
-            "tips": "清明果",
-            "id": 8,
-            "name": "Unknown",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "9-2",
-                "9-6"
-            ]
+            ],
+            "kun": 0
         },
         {
             "id": 9,
             "tips": "其他瓜皮类卡",
-            "name": "Unknown",
+            "name": "扑克牌护罩",
             "ergodic": true,
             "queue": false,
             "location": [
@@ -123,20 +134,16 @@
                 "8-6",
                 "7-2",
                 "7-6"
-            ]
+            ],
+            "kun": 0
         },
         {
-            "id": 10,
-            "tips": "其他瓜皮类卡",
-            "name": "Unknown",
+            "id": 4,
+            "name": "任意卡",
             "ergodic": true,
             "queue": false,
-            "location": [
-                "8-2",
-                "8-6",
-                "7-2",
-                "7-6"
-            ]
+            "location": [],
+            "kun": 0
         }
     ]
 }
