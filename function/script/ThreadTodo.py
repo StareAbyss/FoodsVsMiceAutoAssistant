@@ -18,7 +18,7 @@ from function.scattered.get_customize_todo_list import get_customize_todo_list
 
 
 class ThreadTodo(QThread):
-    signal_start_todo_2_easy_battle_with_lock = pyqtSignal(dict)
+    signal_start_todo_2_battle = pyqtSignal(dict)
     signal_todo_lock = pyqtSignal(bool)
 
     def __init__(self, faa, opt, signal_dict, todo_id):
@@ -39,6 +39,7 @@ class ThreadTodo(QThread):
         self.card_manager = None
         self.lock = False
         self.todo_id = todo_id  # id == 1 默认 id==2 处理双单人多线程
+        self.extra_opt = None  # 用来给双单人多线程的2P传递参数
 
         # 好用的信号~
         self.signal_dict = signal_dict
@@ -543,11 +544,14 @@ class ThreadTodo(QThread):
         sleep(60 * 60 * 24)
 
     def n_battle(self, stage_id, player, is_use_key, max_times, dict_exit,
-                 deck, quest_card, ban_card_list, battle_plan_1p, battle_plan_2p):
+                 deck, quest_card, ban_card_list, battle_plan_1p, battle_plan_2p, title_text):
         """
         [单本轮战]1次 副本外 → 副本内n次战斗 → 副本外
         player: [1],[2],[1,2],[2,1]
         """
+
+        # 组合完整的title
+        title = f"[单本轮战] {title_text}"
 
         # 判断是不是打魔塔 或 自建房
         is_mt = "MT" in stage_id
@@ -595,17 +599,17 @@ class ThreadTodo(QThread):
                 battle_plan_index=battle_plan_b,
                 stage_id=stage_id)
 
-        self.signal_print_to_ui.emit(text=f"[单本轮战] {stage_id} {max_times}次 开始")
+        self.signal_print_to_ui.emit(text=f"{title}{stage_id} {max_times}次 开始")
 
         # 检查人物等级 先检查 player_a 组队额外检查 player_b
 
         if not faa_a.check_level():
-            self.signal_print_to_ui.emit(text=f"[单本轮战] {player_a}P等级不足, 跳过")
+            self.signal_print_to_ui.emit(text=f"{title}{player_a}P等级不足, 跳过")
             return False
 
         if is_group:
             if not faa_b.check_level():
-                self.signal_print_to_ui.emit(text=f"[单本轮战] {player_b}P等级不足, 跳过")
+                self.signal_print_to_ui.emit(text=f"{title}{player_b}P等级不足, 跳过")
                 return False
 
         # 标记是否需要进入副本
@@ -654,12 +658,12 @@ class ThreadTodo(QThread):
                 # 进入异常, 跳过
                 need_goto_stage = True
                 # 结束提示文本
-                self.signal_print_to_ui.emit(text=f"[单本轮战] 第{success_battle_time}次, 创建房间多次异常, 重启跳过")
+                self.signal_print_to_ui.emit(text=f"{title}第{success_battle_time}次, 创建房间多次异常, 重启跳过")
 
                 self.reload_game()
 
             print("=" * 150)
-            self.signal_print_to_ui.emit(text=f"[单本轮战] 第{success_battle_time + 1}次, 开始")
+            self.signal_print_to_ui.emit(text=f"{title}第{success_battle_time + 1}次, 开始")
 
             # 开始战斗循环
             result_id, result_loot, result_spend_time = self.battle(player_a=player_a, player_b=player_b)
@@ -692,7 +696,8 @@ class ThreadTodo(QThread):
 
                 # 时间
                 self.signal_print_to_ui.emit(
-                    text="[单本轮战] 第{}次, 正常结束, 耗时:{}分{}秒".format(
+                    text="{}第{}次, 正常结束, 耗时:{}分{}秒".format(
+                        title,
                         success_battle_time,
                         *divmod(int(result_spend_time), 60)
                     )
@@ -709,7 +714,7 @@ class ThreadTodo(QThread):
                     need_goto_stage = True
 
                     # 结束提示文本
-                    self.signal_print_to_ui.emit(text=f"[单本轮战] 第{success_battle_time + 1}次, 异常结束, 重启再来")
+                    self.signal_print_to_ui.emit(text=f"{title}第{success_battle_time + 1}次, 异常结束, 重启再来")
 
                     self.reload_game()
 
@@ -726,7 +731,7 @@ class ThreadTodo(QThread):
                     need_goto_stage = True
 
                     # 结束提示文本
-                    self.signal_print_to_ui.emit(text=f"[单本轮战] 第{success_battle_time}次, 开始游戏异常, 重启跳过")
+                    self.signal_print_to_ui.emit(text=f"{title}第{success_battle_time}次, 开始游戏异常, 重启跳过")
 
                     self.reload_game()
 
@@ -744,7 +749,7 @@ class ThreadTodo(QThread):
                 sum_time_spend += result["time_spend"]
             average_time_spend = sum_time_spend / valid_time
 
-        self.signal_print_to_ui.emit(text=f" [单本轮战] {stage_id} {max_times}次 结束 ")
+        self.signal_print_to_ui.emit(text=f"{title}{stage_id} {max_times}次 结束 ")
         self.signal_print_to_ui.emit(text="正常场次:{}次 总耗时:{}分{}秒 场均耗时:{}分{}秒".format(
             valid_time,
             *divmod(int(sum_time_spend), 60),
@@ -794,16 +799,18 @@ class ThreadTodo(QThread):
 
             # 玩家A掉落
             self.signal_print_to_ui.emit(
-                "[{}P掉落/场]  {}".format(
+                text="[{}P掉落/场]  {}".format(
                     player_id,
                     loots_text,
-                )
+                ),
+                time=False
             )
             self.signal_print_to_ui.emit(
-                "[{}P宝箱/场]  {}".format(
+                text="[{}P宝箱/场]  {}".format(
                     player_id,
                     chests_text
-                )
+                ),
+                time=False
             )
 
         if len(player) == 1:
@@ -814,24 +821,35 @@ class ThreadTodo(QThread):
             print_player_loot(player_id=1)
             print_player_loot(player_id=2)
 
-    def n_n_battle(self, quest_list, list_type):
+    def n_n_battle(self, quest_list, extra_title=None, need_lock=False):
         """
         [多本战斗]n次 副本外 -> 副本内n次战斗 -> 副本外
-        :param quest_list: 任务清单
-        :param list_type: 打哪些类型的副本 比如 ["NO","CS"]
-        """
 
+        :param quest_list: 任务清单
+        :param extra_title: 输出中的额外文本 会自动加上 [ ]
+        :param need_lock:  用于多线程单人作战时设定为True 以进行上锁解锁
+        """
+        # 输出文本的title
+        extra_title = f"[{extra_title}] " if extra_title else ""
+        title = f"[多本轮战] {extra_title}"
+
+        if need_lock:
+            # 上锁
+            self.lock = True
+
+        self.lock = True
         # 战斗开始
-        self.signal_print_to_ui.emit(text="[多本轮战] 开始...")
+        self.signal_print_to_ui.emit(text=f"{title}开始...")
 
         # 遍历完成每一个任务
         for i in range(len(quest_list)):
             quest = quest_list[i]
-            # 判断不打的任务
-            if quest["stage_id"].split("-")[0] in list_type:
+            # 判断显著错误的关卡名称
+            if quest["stage_id"].split("-")[0] in ["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"]:
 
                 self.signal_print_to_ui.emit(
-                    text="[多本轮战] 事项{},{},{},{}次,带卡:{},Ban卡:{}".format(
+                    text="{}事项{},{},{},{}次,带卡:{},Ban卡:{}".format(
+                        title,
                         quest["battle_id"] if "battle_id" in quest else (i + 1),
                         "组队" if len(quest["player"]) == 2 else "单人",
                         quest["stage_id"],
@@ -849,100 +867,28 @@ class ThreadTodo(QThread):
                     battle_plan_2p=quest["battle_plan_2p"],
                     quest_card=quest["quest_card"],
                     ban_card_list=quest["list_ban_card"],
-                    dict_exit=quest["dict_exit"])
+                    dict_exit=quest["dict_exit"],
+                    title_text=extra_title)
 
             else:
-
-                self.signal_print_to_ui.emit(
-                    text="[多本轮战] 事项{},{},{},{}次,带卡:{},Ban卡:{},不打的地图Skip".format(
-                        quest["battle_id"] if "battle_id" in quest else (i + 1),
-                        "组队" if quest["battle_plan_2p"] else "单人",
-                        quest["stage_id"],
-                        quest["max_times"],
-                        quest["quest_card"],
-                        quest["list_ban_card"]))
+                self.signal_print_to_ui.emit(text="{}事项{},{},错误的关卡名称!跳过".format(
+                    title,
+                    quest["battle_id"] if "battle_id" in quest else (i + 1),
+                    quest["stage_id"]
+                ))
                 continue
 
         # 战斗结束
-        self.signal_print_to_ui.emit(text="[多本轮战] 结束")
+        self.signal_print_to_ui.emit(text=f"{title}结束")
+
+        if need_lock:
+            # 为另一个todo解锁
+            self.signal_todo_lock.emit(False)
+            # 如果未被解锁, 循环等待
+            while self.lock:
+                sleep(1)
 
     """使用n_n_battle为核心的变种函数"""
-
-    def alone_magic_tower(self, c_opt):
-
-        def one_player():
-            for player_id in [1, 2]:
-                my_opt = c_opt["magic_tower_alone_{}".format(player_id)]
-                if my_opt["active"]:
-                    self.easy_battle(
-                        text_="[魔塔单人_{}P]".format(player_id),
-                        stage_id="MT-1-" + str(my_opt["stage"]),
-                        player=[player_id],
-                        max_times=int(my_opt["max_times"]),
-                        deck=my_opt["deck"],
-                        battle_plan_1p=my_opt["battle_plan_1p"],
-                        battle_plan_2p=my_opt["battle_plan_1p"],
-                        dict_exit={
-                            "other_time_player_a": [],
-                            "other_time_player_b": [],
-                            "last_time_player_a": ["普通红叉"],
-                            "last_time_player_b": []
-                        }
-                    )
-
-        def multi_player():
-            player_id = 1
-            my_opt = c_opt[f"magic_tower_alone_{player_id}"]
-            opts_dict = {
-                "text_": "[魔塔单人_{}P]".format(player_id),
-                "stage_id": "MT-1-{}" + str(my_opt["stage"]),
-                "player": [player_id],
-                "max_times": int(my_opt["max_times"]),
-                "deck": my_opt["deck"],
-                "battle_plan_1p": my_opt["battle_plan_1p"],
-                "battle_plan_2p": my_opt["battle_plan_1p"],  # 假设这里应该是battle_plan_2p
-                "dict_exit": {
-                    "other_time_player_a": [],
-                    "other_time_player_b": [],
-                    "last_time_player_a": ["普通红叉"],
-                    "last_time_player_b": []
-                }
-            }
-            self.easy_battle_with_lock(opts_dict)
-
-            player_id = 2
-            my_opt = c_opt[f"magic_tower_alone_{player_id}"]
-            opts_dict = {
-                "text_": "[魔塔单人_{}P]".format(player_id),
-                "stage_id": "MT-1-" + str(my_opt["stage"]),
-                "player": [player_id],
-                "max_times": int(my_opt["max_times"]),
-                "deck": my_opt["deck"],
-                "battle_plan_1p": my_opt["battle_plan_2p"],
-                "battle_plan_2p": my_opt["battle_plan_2p"],  # 假设这里应该是battle_plan_2p
-                "dict_exit": {
-                    "other_time_player_a": [],
-                    "other_time_player_b": [],
-                    "last_time_player_a": ["普通红叉"],
-                    "last_time_player_b": []
-                }
-            }
-
-            self.signal_start_todo_2_easy_battle_with_lock.emit(opts_dict)
-
-        active_player_count = 0
-        for player_id in [1, 2]:
-            my_opt = c_opt["magic_tower_alone_{}".format(player_id)]
-            if my_opt["active"]:
-                active_player_count += 1
-
-        if active_player_count == 1:
-            # 单人情况 以easy battle 完成即可
-            one_player()
-
-        if active_player_count == 2:
-            # 多人情况 直接调用以lock battle 完成1P 以信号调用另一个todo 完成2P
-            multi_player()
 
     def easy_battle(self, text_, stage_id, player, max_times,
                     deck, battle_plan_1p, battle_plan_2p, dict_exit):
@@ -963,52 +909,10 @@ class ThreadTodo(QThread):
                 "list_ban_card": [],
                 "dict_exit": dict_exit
             }]
-        self.n_n_battle(
-            quest_list=quest_list,
-            list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"])
+        self.n_n_battle(quest_list=quest_list)
 
         # 战斗结束
         self.signal_print_to_ui.emit(text=f"{text_} Completed!", color="red")
-
-    def easy_battle_with_lock(self, opt_dict):
-        """仅限单人作战"""
-        text_ = opt_dict["text_"]
-        stage_id = opt_dict["stage_id"]
-        player = opt_dict["player"]
-        max_times = opt_dict["max_times"]
-        deck = opt_dict["deck"]
-        battle_plan_1p = opt_dict["battle_plan_1p"]
-        battle_plan_2p = opt_dict["battle_plan_2p"]
-        dict_exit = opt_dict["dict_exit"]
-        # 上锁
-        self.lock = True
-        # 战斗开始
-        self.signal_print_to_ui.emit(text=f"{text_} [{player}] Link Start!", color="red")
-
-        quest_list = [
-            {
-                "stage_id": stage_id,
-                "max_times": max_times,
-                "player": player,
-                "deck": deck,
-                "is_use_key": True,
-                "battle_plan_1p": battle_plan_1p,
-                "battle_plan_2p": battle_plan_2p,
-                "quest_card": "None",
-                "list_ban_card": [],
-                "dict_exit": dict_exit
-            }]
-        self.n_n_battle(
-            quest_list=quest_list,
-            list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"])
-
-        # 战斗结束
-        self.signal_print_to_ui.emit(text=f"{text_} [{player}] Completed!", color="red")
-        # 为另一个todo解锁
-        self.signal_todo_lock.emit(False)
-
-        while self.lock:
-            sleep(1)
 
     def offer_reward(self, text_, max_times_1, max_times_2, max_times_3,
                      deck, battle_plan_1p, battle_plan_2p):
@@ -1035,7 +939,7 @@ class ThreadTodo(QThread):
                     "last_time_player_a": ["竞技岛"],
                     "last_time_player_b": ["竞技岛"]}
             })
-        self.n_n_battle(quest_list=quest_list, list_type=["OR"])
+        self.n_n_battle(quest_list=quest_list)
 
         # 领取奖励
         self.faa[1].action_quest_receive_rewards(mode="悬赏任务")
@@ -1077,9 +981,7 @@ class ThreadTodo(QThread):
                 "last_time_player_b": ["竞技岛"]
             }
 
-        self.n_n_battle(
-            quest_list=quest_list,
-            list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"])
+        self.n_n_battle(quest_list=quest_list)
 
         self.signal_print_to_ui.emit(text=f"{text_} 检查领取奖励中...")
 
@@ -1112,41 +1014,7 @@ class ThreadTodo(QThread):
                     "last_time_player_a": ["竞技岛"],
                     "last_time_player_b": ["竞技岛"]}
             })
-        self.n_n_battle(quest_list=quest_list, list_type=["GD"])
-
-        self.signal_print_to_ui.emit(text=f"{text_} Completed!", color="red")
-
-    def alone_magic_tower_prison(self, text_, player, deck, battle_plan_1p, sutra_pavilion):
-
-        self.signal_print_to_ui.emit(text=f"{text_} Link Start!", color="red")
-
-        if sutra_pavilion:
-            stage_list = ["MT-3-1", "MT-3-2", "MT-3-3", "MT-3-4"]
-        else:
-            stage_list = ["MT-3-1", "MT-3-3", "MT-3-4"]
-
-        quest_list = []
-        for stage in stage_list:
-            quest_list.append(
-                {
-                    "player": player,
-                    "is_use_key": True,
-                    "deck": deck,
-                    "battle_plan_1p": battle_plan_1p,
-                    "battle_plan_2p": battle_plan_1p,
-                    "stage_id": stage,
-                    "max_times": 1,
-                    "quest_card": "None",
-                    "list_ban_card": [],
-                    "dict_exit": {
-                        "other_time_player_a": [],
-                        "other_time_player_b": [],
-                        "last_time_player_a": ["普通红叉"],
-                        "last_time_player_b": ["普通红叉"]
-                    }
-                }
-            )
-        self.n_n_battle(quest_list=quest_list, list_type=["MT"])
+        self.n_n_battle(quest_list=quest_list)
 
         self.signal_print_to_ui.emit(text=f"{text_} Completed!", color="red")
 
@@ -1188,9 +1056,7 @@ class ThreadTodo(QThread):
         quest_list = my_list
 
         # 开始战斗
-        self.n_n_battle(
-            quest_list=quest_list,
-            list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"])
+        self.n_n_battle(quest_list=quest_list)
 
         # 战斗结束
         self.signal_print_to_ui.emit(text=f"{text_} Completed!", color="red")
@@ -1241,9 +1107,7 @@ class ThreadTodo(QThread):
                 quest_list[i]["battle_plan_1p"] = 0
                 quest_list[i]["battle_plan_2p"] = 1
 
-            self.n_n_battle(
-                quest_list=quest_list,
-                list_type=["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"])
+            self.n_n_battle(quest_list=quest_list)
 
             return True
 
@@ -1273,13 +1137,259 @@ class ThreadTodo(QThread):
 
         auto_food_main()
 
+    """特别的 n_n_battle为核心 的 双线程单人函数"""
+
+    def alone_magic_tower(self):
+
+        c_opt = self.opt["todo_plans"][self.opt["current_plan"]]
+
+        def one_player():
+            for player in [1, 2]:
+                my_opt = c_opt[f"magic_tower_alone_{player}"]
+                if my_opt["active"]:
+                    self.easy_battle(
+                        text_="[魔塔单人] [多线程{}P]".format(player),
+                        stage_id="MT-1-" + str(my_opt["stage"]),
+                        player=[player],
+                        max_times=int(my_opt["max_times"]),
+                        deck=my_opt["deck"],
+                        battle_plan_1p=my_opt["battle_plan_1p"],
+                        battle_plan_2p=my_opt["battle_plan_1p"],
+                        dict_exit={
+                            "other_time_player_a": [],
+                            "other_time_player_b": [],
+                            "last_time_player_a": ["普通红叉"],
+                            "last_time_player_b": []
+                        }
+                    )
+
+        def multi_player():
+            quest_lists = {}
+            for player in [1, 2]:
+                my_opt = c_opt[f"magic_tower_alone_{player}"]
+                quest_lists[player] = [
+                    {
+                        "player": [player],
+                        "is_use_key": True,
+                        "deck": my_opt["deck"],
+                        "battle_plan_1p": my_opt["battle_plan_1p"],
+                        "battle_plan_2p": my_opt["battle_plan_1p"],
+                        "stage_id": "MT-1-" + str(my_opt["stage"]),
+                        "max_times": int(my_opt["max_times"]),
+                        "quest_card": "None",
+                        "list_ban_card": [],
+                        "dict_exit": {
+                            "other_time_player_a": [],
+                            "other_time_player_b": [],
+                            "last_time_player_a": ["普通红叉"],
+                            "last_time_player_b": []
+                        }
+                    }
+                ]
+
+            # 信号无法使用 具名参数
+            self.signal_start_todo_2_battle.emit({
+                "quest_list": quest_lists[2],
+                "extra_title": "多线程单人2P",
+                "need_lock": True
+            })
+            self.n_n_battle(
+                quest_list=quest_lists[1],
+                extra_title="多线程单人1P",
+                need_lock=True)
+
+        def main():
+            active_player_count = 0
+            for player_id in [1, 2]:
+                my_opt = c_opt[f"magic_tower_alone_{player_id}"]
+                if my_opt["active"]:
+                    active_player_count += 1
+            if active_player_count == 1:
+                # 单人情况 以easy battle 完成即可
+                one_player()
+            if active_player_count == 2:
+                # 多人情况 直接调用以lock battle 完成1P 以信号调用另一个todo 完成2P
+                multi_player()
+
+        main()
+
+    def alone_magic_tower_prison(self):
+
+        c_opt = self.opt["todo_plans"][self.opt["current_plan"]]
+
+        def one_player():
+            for player in [1, 2]:
+                my_opt = c_opt[f"magic_tower_prison_{player}"]
+                if my_opt["stage"]:
+                    stage_list = ["MT-3-1", "MT-3-2", "MT-3-3", "MT-3-4"]
+                else:
+                    stage_list = ["MT-3-1", "MT-3-3", "MT-3-4"]
+
+                if my_opt["active"]:
+                    quest_list = []
+                    for stage in stage_list:
+                        quest_list.append(
+                            {
+                                "player": [player],
+                                "is_use_key": True,
+                                "deck": my_opt["deck"],
+                                "battle_plan_1p": my_opt["battle_plan_1p"],
+                                "battle_plan_2p": my_opt["battle_plan_1p"],
+                                "stage_id": stage,
+                                "max_times": 1,
+                                "quest_card": "None",
+                                "list_ban_card": [],
+                                "dict_exit": {
+                                    "other_time_player_a": [],
+                                    "other_time_player_b": [],
+                                    "last_time_player_a": ["普通红叉"],
+                                    "last_time_player_b": ["普通红叉"]
+                                }
+                            }
+                        )
+                    self.n_n_battle(quest_list=quest_list)
+
+        def multi_player():
+            quest_lists = {}
+            for player in [1, 2]:
+                my_opt = c_opt[f"magic_tower_prison_{player}"]
+                if my_opt["stage"]:
+                    stage_list = ["MT-3-1", "MT-3-2", "MT-3-3", "MT-3-4"]
+                else:
+                    stage_list = ["MT-3-1", "MT-3-3", "MT-3-4"]
+                quest_lists[player] = []
+                for stage in stage_list:
+                    quest_lists[player].append(
+                        {
+                            "player": [player],
+                            "is_use_key": True,
+                            "deck": my_opt["deck"],
+                            "battle_plan_1p": my_opt["battle_plan_1p"],
+                            "battle_plan_2p": my_opt["battle_plan_1p"],
+                            "stage_id": stage,
+                            "max_times": 1,
+                            "quest_card": "None",
+                            "list_ban_card": [],
+                            "dict_exit": {
+                                "other_time_player_a": [],
+                                "other_time_player_b": [],
+                                "last_time_player_a": ["普通红叉"],
+                                "last_time_player_b": ["普通红叉"]
+                            }
+                        }
+                    )
+
+            # 信号无法使用 具名参数
+            self.signal_start_todo_2_battle.emit({
+                "quest_list": quest_lists[2],
+                "extra_title": "多线程单人2P",
+                "need_lock": True})
+            self.n_n_battle(
+                quest_list=quest_lists[1],
+                extra_title="多线程单人1P",
+                need_lock=True)
+
+        def main():
+            active_player_count = 0
+            for player_id in [1, 2]:
+                my_opt = c_opt[f"magic_tower_prison_{player_id}"]
+                if my_opt["active"]:
+                    active_player_count += 1
+            if active_player_count == 1:
+                # 单人情况 以easy battle 完成即可
+                one_player()
+            if active_player_count == 2:
+                # 多人情况 直接调用以lock battle 完成1P 以信号调用另一个todo 完成2P
+                multi_player()
+
+        main()
+
+    def pet_temple(self):
+
+        c_opt = self.opt["todo_plans"][self.opt["current_plan"]]
+
+        def one_player():
+            for player in [1, 2]:
+                my_opt = c_opt[f"pet_temple_{player}"]
+                if my_opt["active"]:
+                    self.easy_battle(
+                        text_=f"[萌宠神殿] [{player}P]",
+                        stage_id="PT-0-" + str(my_opt["stage"]),
+                        player=[player],
+                        max_times=1,
+                        deck=my_opt["deck"],
+                        battle_plan_1p=my_opt["battle_plan_1p"],
+                        battle_plan_2p=my_opt["battle_plan_1p"],
+                        dict_exit={
+                            "other_time_player_a": [],
+                            "other_time_player_b": [],
+                            "last_time_player_a": [], # "回到上一级","普通红叉" 但之后刷新 所以空
+                            "last_time_player_b": []
+                        }
+                    )
+
+        def multi_player():
+            quest_lists = {}
+            for player in [1, 2]:
+                my_opt = c_opt[f"pet_temple_{player}"]
+                quest_lists[player] = [
+                    {
+                        "player": [player],
+                        "is_use_key": True,
+                        "deck": my_opt["deck"],
+                        "battle_plan_1p": my_opt["battle_plan_1p"],
+                        "battle_plan_2p": my_opt["battle_plan_1p"],
+                        "stage_id": "PT-0-" + str(my_opt["stage"]),
+                        "max_times": 1,
+                        "quest_card": "None",
+                        "list_ban_card": [],
+                        "dict_exit": {
+                            "other_time_player_a": [],
+                            "other_time_player_b": [],
+                            "last_time_player_a": [],  # "回到上一级","普通红叉" 但之后刷新 所以空
+                            "last_time_player_b": []
+                        }
+                    }
+                ]
+
+            # 信号无法使用 具名参数
+            self.signal_start_todo_2_battle.emit({
+                "quest_list": quest_lists[2],
+                "extra_title": "多线程单人2P",
+                "need_lock": True
+            })
+            self.n_n_battle(
+                quest_list=quest_lists[1],
+                extra_title="多线程单人1P",
+                need_lock=True)
+
+        def main():
+
+            active_player_count = 0
+            for player_id in [1, 2]:
+                my_opt = c_opt[f"pet_temple_{player_id}"]
+                if my_opt["active"]:
+                    active_player_count += 1
+            if active_player_count == 1:
+                # 单人情况 以easy battle 完成即可
+                one_player()
+            if active_player_count == 2:
+                # 多人情况 直接调用以lock battle 完成1P 以信号调用另一个todo 完成2P
+                multi_player()
+
+        main()
+
     """主要线程"""
 
-    def run(self, extra_opt=None):
+    def set_extra_opt_and_start(self, extra_opt):
+        self.extra_opt = extra_opt
+        self.start()
+
+    def run(self):
         if self.todo_id == 1:
             self.run_1()
         if self.todo_id == 2:
-            self.run_2(extra_opt)
+            self.run_2()
 
     def run_1(self):
 
@@ -1450,17 +1560,9 @@ class ThreadTodo(QThread):
         if need_reload:
             self.reload_game()
 
-        self.alone_magic_tower(c_opt)
+        self.alone_magic_tower()
 
-        for player_id in [1, 2]:
-            my_opt = c_opt["magic_tower_prison_{}".format(player_id)]
-            if my_opt["active"]:
-                self.alone_magic_tower_prison(
-                    text_="[魔塔密室_{}P]".format(player_id),
-                    player=[player_id],
-                    deck=my_opt["deck"],
-                    battle_plan_1p=my_opt["battle_plan_1p"],
-                    sutra_pavilion=my_opt["stage"])
+        self.alone_magic_tower_prison()
 
         my_opt = c_opt["magic_tower_double"]
         if my_opt["active"]:
@@ -1480,24 +1582,7 @@ class ThreadTodo(QThread):
                 }
             )
 
-        for player_id in [1, 2]:
-            my_opt = c_opt["pet_temple_{}".format(player_id)]
-            if my_opt["active"]:
-                self.easy_battle(
-                    text_="[萌宠神殿_{}P]".format(player_id),
-                    stage_id="PT-0-" + str(my_opt["stage"]),
-                    player=[player_id],
-                    max_times=1,
-                    deck=my_opt["deck"],
-                    battle_plan_1p=my_opt["battle_plan_1p"],
-                    battle_plan_2p=my_opt["battle_plan_1p"],
-                    dict_exit={
-                        "other_time_player_a": [],
-                        "other_time_player_b": [],
-                        "last_time_player_a": [],  # "回到上一级","普通红叉" 但之后会刷新 所以不管了
-                        "last_time_player_b": []
-                    }
-                )
+        self.pet_temple()
 
         self.signal_print_to_ui.emit(text=f"全部主要事项已完成! 耗时:{datetime.datetime.now() - start_time}")
 
@@ -1567,8 +1652,11 @@ class ThreadTodo(QThread):
         # 全部完成了发个信号
         self.signal_end.emit()
 
-    def run_2(self, extra_opt):
-        self.easy_battle_with_lock(extra_opt)
+    def run_2(self):
+        self.n_n_battle(
+            quest_list=self.extra_opt["quest_list"],
+            extra_title=self.extra_opt["extra_title"],
+            need_lock=self.extra_opt["need_lock"])
 
     def pause(self):
         """暂停"""
