@@ -51,7 +51,8 @@
                 "7-5",
                 "7-6",
                 "7-7"
-            ]
+            ],
+            "kun": 2
         },
         {
             "id": 3,
@@ -71,9 +72,10 @@
                 "4-6",
                 "5-6",
                 "6-6"
-            ]
+            ],
+            "kun": 1
         },
-                {
+        {
             "id": 5,
             "name": "狮子座",
             "ergodic": true,
@@ -81,10 +83,23 @@
             "location": [
                 "6-3",
                 "6-5"
-            ]
+            ],
+            "kun": 3
         },
         {
             "id": 7,
+            "name": "樱桃反弹布丁",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "4-3",
+                "4-4",
+                "4-5"
+            ],
+            "kun": 0
+        },
+        {
+            "id": 4,
             "name": "瓜皮护罩",
             "ergodic": true,
             "queue": false,
@@ -97,7 +112,8 @@
                 "5-3",
                 "5-4",
                 "5-5"
-            ]
+            ],
+            "kun": 0
         },
         {
             "id": 8,
@@ -132,38 +148,19 @@
             ]
         },
         {
-            "id":6,
-            "name": "樱桃反弹布丁",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "4-3",
-                "4-4",
-                "4-5"
-            ]
-        },
-        {
-            "id":4,
-            "name": "冰淇淋",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "7-2"
-            ]
-        },
-        {
-            "id":10,
-            "name": "辣椒粉",
+            "id": 6,
+            "name": "肉松清明粿",
             "ergodic": true,
             "queue": false,
             "location": [
                 "6-2",
                 "7-2",
                 "8-2"
-            ]
+            ],
+            "kun": 0
         },
         {
-            "id":11,
+            "id": 11,
             "name": "辣椒粉",
             "ergodic": true,
             "queue": false,
@@ -173,15 +170,16 @@
             ]
         },
         {
-            "id":12,
-            "name": "辣椒粉",
+            "id": 12,
+            "name": "爆炸汪",
             "ergodic": true,
             "queue": false,
             "location": [
                 "8-4",
                 "8-5",
                 "8-6"
-            ]
+            ],
+            "kun": 0
         }
     ]
 }
