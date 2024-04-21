@@ -47,8 +47,41 @@ class ThreadTodo(QThread):
         self.signal_dialog = self.signal_dict["dialog"]
         self.signal_end = self.signal_dict["end"]
 
+    """辅助代码"""
+
     def change_lock(self, my_bool):
         self.lock = my_bool
+
+    def set_is_used_key_true(self):
+        self.faa[1].faa_battle.is_used_key = True
+        self.faa[2].faa_battle.is_used_key = True
+
+    def remove_outdated_log_images(self):
+        self.signal_print_to_ui.emit("正在清理超过3天的log图片...")
+
+        now = datetime.datetime.now()
+        expiration_period = datetime.timedelta(days=3)
+        deleted_files_count = 0
+
+        directory_path = PATHS["logs"] + "\\loots_picture"
+        for filename in os.listdir(directory_path):
+            file_path = os.path.join(directory_path, filename)
+            file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
+
+            if now - file_mod_time > expiration_period and filename.lower().endswith('.png'):
+                os.remove(file_path)
+                deleted_files_count += 1
+
+        directory_path = PATHS["logs"] + "\\chests_picture"
+        for filename in os.listdir(directory_path):
+            file_path = os.path.join(directory_path, filename)
+            file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
+
+            if now - file_mod_time > expiration_period and filename.lower().endswith('.png'):
+                os.remove(file_path)
+                deleted_files_count += 1
+
+        self.signal_print_to_ui.emit(f"清理完成... {deleted_files_count}张图片已清理.")
 
     """业务代码, 不直接调用opt设定, 会向输出窗口传参"""
 
@@ -1401,9 +1434,12 @@ class ThreadTodo(QThread):
         # current todo plan option
         c_opt = self.opt["todo_plans"][self.opt["current_plan"]]
 
-        self.signal_print_to_ui.emit(
-            "每一个大类的任务开始前均会重启游戏以防止bug...")
         start_time = datetime.datetime.now()
+
+        self.signal_print_to_ui.emit("每一个大类的任务开始前均会重启游戏以防止bug...")
+
+        if self.opt["advanced_settings"]["auto_delete_old_images"]:
+            self.remove_outdated_log_images()
 
         need_reload = False
         need_reload = need_reload or c_opt["sign_in"]["active"]
