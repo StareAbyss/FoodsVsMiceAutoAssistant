@@ -35,7 +35,6 @@ class ThreadTodo(QThread):
         self.thread_1p = None
         self.thread_2p = None
         self.thread_card_manager = None
-        self.battle_mode = 1  # 1 或 0 0则代表使用老版战斗方案; 1则达标使用新版战斗方案, 新版处于测试之中. 开发者请更改为0再用
         self.card_manager = None
         self.lock = False
         self.todo_id = todo_id  # id == 1 默认 id==2 处理双单人多线程
@@ -445,13 +444,15 @@ class ThreadTodo(QThread):
             if is_group:
                 self.thread_2p.join()
 
-            if self.faa[player_a].battle_mode == 1:
-                self.thread_card_manager = CardManager(self.faa[player_a], self.faa[player_b])
-                self.msleep(500)
-                self.thread_card_manager.run()
-                self.msleep(1000)
-                self.thread_card_manager.thread_dict[1].stop_signal.connect(self.cus_quit)
-                self.thread_card_manager.thread_dict[1].stop_signal.connect(self.thread_card_manager.stop)
+            # 实例化放卡管理器
+            self.thread_card_manager = CardManager(self.faa[player_a], self.faa[player_b])
+            self.msleep(500)
+            self.thread_card_manager.run()
+            self.msleep(1000)
+
+            # 绑定结束信号
+            self.thread_card_manager.thread_dict[1].stop_signal.connect(self.cus_quit)
+            self.thread_card_manager.thread_dict[1].stop_signal.connect(self.thread_card_manager.stop)
 
             # 绑定使用钥匙信号
             for i in [1, 2]:
@@ -461,9 +462,9 @@ class ThreadTodo(QThread):
             CUS_LOGGER.debug('启动Todo中的事件循环, 用以战斗')
             self.exec_()
 
-                # 此处的重新变为None是为了让中止todo实例时时该属性仍存在
-                CUS_LOGGER.debug('销毁thread_card_manager的调用')
-                self.thread_card_manager = None
+            # 此处的重新变为None是为了让中止todo实例时时该属性仍存在
+            CUS_LOGGER.debug('销毁thread_card_manager的调用')
+            self.thread_card_manager = None
 
             result_spend_time = time.time() - battle_start_time
 
@@ -616,7 +617,6 @@ class ThreadTodo(QThread):
 
         # 填入战斗方案和关卡信息, 之后会大量动作和更改类属性, 所以需要判断是否组队
         faa_a.set_config_for_battle(
-            battle_mode=self.battle_mode,
             is_main=True,
             is_group=is_group,
             is_use_key=is_use_key,
@@ -627,7 +627,6 @@ class ThreadTodo(QThread):
             stage_id=stage_id)
         if is_group:
             faa_b.set_config_for_battle(
-                battle_mode=self.battle_mode,
                 is_main=False,
                 is_group=is_group,
                 is_use_key=is_use_key,
