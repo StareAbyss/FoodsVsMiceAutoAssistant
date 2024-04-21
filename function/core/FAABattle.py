@@ -78,7 +78,7 @@ class Battle:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=position[0], y=position[1])
             time.sleep(self.click_sleep)
 
-    def use_key(self, mode: int = 0):
+    def use_key(self):
         """
         使用钥匙的函数,
         :param mode:
@@ -88,42 +88,34 @@ class Battle:
         :return:
             None
         """
-        if self.faa.is_use_key:
-            if mode == 0:
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=427, y=360)
-                time.sleep(self.click_sleep)
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=427, y=360)
-                time.sleep(self.click_sleep)
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=427, y=360)
-                time.sleep(self.click_sleep)
-
-            if mode == 1:
-                find = match_p_in_w(
+        used_key = False
+        find = match_p_in_w(
+            raw_w_handle=self.faa.handle,
+            raw_range=[386,332,463,362],
+            target_tolerance=0.95,
+            target_path=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
+        if find:
+            self.faa.print_debug(text="找到了 [继续作战]")
+            while find:
+                loop_match_p_in_w(
                     raw_w_handle=self.faa.handle,
                     raw_range=[386,332,463,362],
                     target_tolerance=0.95,
-                    target_path=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
-                if find:
-                    self.faa.print_debug(text="找到了 [继续作战]")
-                    while find:
-                        loop_match_p_in_w(
-                            raw_w_handle=self.faa.handle,
-                            raw_range=[386,332,463,362],
-                            target_tolerance=0.95,
-                            target_path=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"],
-                            target_sleep=0.5,
-                            click=True)
-                        find = match_p_in_w(
-                            raw_w_handle=self.faa.handle,
-                            raw_range=[302,263,396,289],
-                            target_tolerance=0.95,
-                            target_path=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
-                    self.faa.print_debug(text="已查找到 [继续作战] 图标并点击")
+                    target_path=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"],
+                    target_sleep=0.5,
+                    click=True)
+                find = match_p_in_w(
+                    raw_w_handle=self.faa.handle,
+                    raw_range=[302,263,396,289],
+                    target_tolerance=0.95,
+                    target_path=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
+            self.faa.print_debug(text="已查找到 [继续作战] 图标并点击")
+            used_key = True
+        return used_key
 
-    def use_key_and_check_end(self):
+    def check_end(self):
         # 找到战利品字样(被黑色透明物遮挡,会看不到)
-        self.use_key(mode=1)
-        result = match_ps_in_w(
+        result_is_end = match_ps_in_w(
             raw_w_handle=self.faa.handle,
             target_opts=[
                 {
@@ -164,7 +156,7 @@ class Battle:
                 },
             ],
             return_mode="or")
-        return result
+        return result_is_end
 
     def use_card_once(self, num_card: int, num_cell: str, click_space=True):
         """
