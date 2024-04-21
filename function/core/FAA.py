@@ -1996,12 +1996,12 @@ class FAA:
 
                 # 分析图片，获取战利品字典
                 drop_dict = matchImage(img_path=img_path, img=img, test_print=True)
-                self.print_debug(text="[战利品UI] 战利品已 捕获/识别/保存".format(drop_dict))
+                self.print_debug(text="[捕获战利品] 处在战利品UI 战利品已 捕获/识别/保存".format(drop_dict))
 
                 return drop_dict
 
             else:
-                self.print_debug(text="[非战利品UI] 正常结束, 可能由于延迟未能捕获战利品, 继续流程")
+                self.print_debug(text="[捕获战利品] 未在战利品UI 可能由于延迟未能捕获战利品, 继续流程")
 
                 return None
 
@@ -2063,21 +2063,10 @@ class FAA:
                 self.print_warning(text="[翻宝箱UI] 15s未能捕获正确标志, 出问题了!")
                 return {}
 
-        """战斗结束后, 一般流程为 (潜在的任务完成黑屏) -> 战利品 -> 战斗结算 -> 翻宝箱, 之后会回到房间, 魔塔会回到其他界面"""
-
-        # 战利品部分, 会先检测是否在对应界面
-        loots_dict = screen_loot_logs()
-
-        # 翻宝箱部分, 会先检测是否在对应界面
-        chests_dict = action_flip_treasure_chest()
-
-        result_dict = {
-            "loots": loots_dict,
-            "chests": chests_dict
-        }
-
-        def statistics():
-            """分P，在目录下保存战利品字典"""
+        def log_loots_statistics_to_json(loots_dict, chests_dict):
+            """
+            保存战利品汇总.json
+            """
 
             file_path = "{}\\result_json\\{}P掉落汇总.json".format(PATHS["logs"], self.player)
             stage_name = self.stage_info["id"]
@@ -2090,35 +2079,25 @@ class FAA:
                 # 如果文件不存在，初始化
                 json_data = {}
 
-            if stage_name in json_data:
-                # 更新现有数据
-                for item_str, count in loots_dict.items():
-                    if item_str in json_data[stage_name]["loots"]:
-                        json_data[stage_name]["loots"][item_str] += count  # 更新数量
-                    else:
-                        json_data[stage_name]["loots"][item_str] = count  # 新增道具
-                # 更新现有数据
-                for item_str, count in chests_dict.items():
-                    if item_str in json_data[stage_name]["chests"]:
-                        json_data[stage_name]["chests"][item_str] += count  # 更新数量
-                    else:
-                        json_data[stage_name]["chests"][item_str] = count  # 新增道具
+            # 检查键 不存在添加
+            json_data_stage = json_data.setdefault(stage_name, {})
+            json_data_used_key = json_data_stage.setdefault(used_key_str, {})
+            json_data_loots = json_data_used_key.setdefault("loots", {})
+            json_data_chests = json_data_used_key.setdefault("chests", {})
+            json_data_count = json_data_used_key.setdefault("count", 0)
 
-                json_data[stage_name]["times"] += 1  # 更新次数
-
-            else:
-                # 初始化新数据
-                json_data[stage_name] = {
-                    "loots": loots_dict if loots_dict else {},  # 注意空值处理
-                    "chests": chests_dict if chests_dict else {},
-                    "times": 1
-                }
+            # 更新现有数据
+            for item_str, count in loots_dict.items():
+                json_data_loots[item_str] = json_data_loots.get(item_str, 0) + count
+            for item_str, count in chests_dict.items():
+                json_data_chests[item_str] = json_data_loots.get(item_str, 0) + count
+            json_data_count += 1  # 更新次数
 
             # 保存或更新后的战利品字典到JSON文件
             with open(file_path, "w", encoding="utf-8") as json_file:
                 json.dump(json_data, json_file, ensure_ascii=False, indent=4)
 
-        def detail():
+        def log_loots_detail_to_json(loots_dict, chests_dict):
             """分P，在目录下保存战利品字典"""
             file_path = "{}\\result_json\\{}P掉落明细.json".format(PATHS["logs"], self.player)
             stage_name = self.stage_info["id"]
@@ -2129,7 +2108,10 @@ class FAA:
                     json_data = json.load(json_file)
             else:
                 # 如果文件不存在，初始化
-                json_data = {"data": []}
+                json_data = {}
+
+            # 检查"data"字段是否存在
+            json_data.setdefault("data", [])
 
             json_data["data"].append({
                 "timestamp": time.time(),
@@ -2142,9 +2124,20 @@ class FAA:
             with open(file_path, "w", encoding="utf-8") as json_file:
                 json.dump(json_data, json_file, ensure_ascii=False, indent=4)
 
-        if (loots_dict is not None) and (chests_dict is not None):
-            statistics()
-            detail()
+        def main():
+            self.print_debug(text="识别到多种战斗结束标志之一, 进行收尾工作")
+
+            # 战利品部分, 会先检测是否在对应界面
+            loots_dict = screen_loot_logs()
+
+            # 翻宝箱部分, 会先检测是否在对应界面
+            chests_dict = action_flip_treasure_chest()
+
+            result_loot = {"loots": loots_dict, "chests": chests_dict}
+
+            if (loots_dict is not None) and (chests_dict is not None):
+                log_loots_statistics_to_json(loots_dict=loots_dict, chests_dict=chests_dict)
+                log_loots_detail_to_json(loots_dict=loots_dict, chests_dict=chests_dict)
 
         # 先检是否炸服了
         find = loop_match_ps_in_w(
@@ -2174,7 +2167,7 @@ class FAA:
             self.print_warning(text="检测到 断开连接 or 登录超时 or Flash爆炸, 炸服了")
             return 1, None  # 1-重启本次
 
-        return 0, result_dict
+        return main()
 
     def action_round_of_battle_after(self):
 
