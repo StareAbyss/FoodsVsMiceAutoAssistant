@@ -1,6 +1,7 @@
 import copy
 import datetime
 import json
+import os
 import time
 from time import sleep
 
@@ -375,8 +376,9 @@ class ThreadTodo(QThread):
         :param player_a: 玩家A
         :param player_b: 玩家B
         :return:
-            result_id 结束id 用于判定战斗是否成功 或 失败原因
-            result_loot 战利品dict 包含多号的战利品和宝箱识别情况
+            int id 用于判定战斗是 成功 或某种原因的失败 1-成功 2-服务器卡顿,需要重来 3-玩家设置的次数不足,跳过;
+            dict 包含player_a和player_b的[战利品]和[宝箱]识别到的情况;
+            int 战斗消耗时间(秒);
         """
 
         is_group = self.faa[player_a].is_group
@@ -468,7 +470,7 @@ class ThreadTodo(QThread):
 
             result_spend_time = time.time() - battle_start_time
 
-        print("战斗循环 已完成")
+        CUS_LOGGER.debug("战斗循环 已完成")
 
         """多线程进行战利品和宝箱检查 此处1p-ap 2p-bp"""
 
@@ -503,7 +505,7 @@ class ThreadTodo(QThread):
                 result_id = max(result_id, result[0])
                 result_loot[player_b] = result[1]
 
-        print("多线程进行战利品和宝箱检查 已完成")
+        CUS_LOGGER.debug("多线程进行战利品和宝箱检查 已完成")
 
         """分开进行战后检查"""
         if result_id == 0:
@@ -511,7 +513,8 @@ class ThreadTodo(QThread):
             if is_group:
                 result_id = self.faa[player_b].action_round_of_battle_after()
 
-        print("战后检查完成 battle 函数执行结束")
+        CUS_LOGGER.debug("战后检查完成 battle 函数执行结束")
+
         return result_id, result_loot, result_spend_time
 
     def goto_stage_and_invite(self, stage_id, mt_first_time, player_a, player_b):
@@ -638,225 +641,264 @@ class ThreadTodo(QThread):
 
         self.signal_print_to_ui.emit(text=f"{title}{stage_id} {max_times}次 开始")
 
-        # 检查人物等级 先检查 player_a 组队额外检查 player_b
+        # 检查人物等级和次数
 
-        if not faa_a.check_level():
-            self.signal_print_to_ui.emit(text=f"{title}{player_a}P等级不足, 跳过")
-            return False
-
-        if is_group:
-            if not faa_b.check_level():
-                self.signal_print_to_ui.emit(text=f"{title}{player_b}P等级不足, 跳过")
+        def check_level_and_times():
+            """
+            检查人物等级和次数是否充足
+            """
+            if not faa_a.check_level():
+                self.signal_print_to_ui.emit(text=f"{title}{player_a}P等级不足, 跳过")
                 return False
 
-        # 标记是否需要进入副本
-        need_goto_stage = not is_cu
+            if is_group:
+                if not faa_b.check_level():
+                    self.signal_print_to_ui.emit(text=f"{title}{player_b}P等级不足, 跳过")
+                    return False
 
-        success_battle_time = 0  # 记录成功战斗次数
-        result_list = []  # 记录成功场次
-        # 轮次作战
-        while success_battle_time < max_times:
+            if max_times < 1:
+                self.signal_print_to_ui.emit(text=f"{title}{stage_id} 设置次数不足 跳过")
+                return False
 
-            # 前往副本
-            result_id = 0
-            if not is_mt:
-                # 非魔塔
-                if need_goto_stage:
+            return True
+
+        def multi_round_battle():
+            # 标记是否需要进入副本
+            need_goto_stage = not is_cu
+
+            battle_count = 0  # 记录成功的次数
+            result_list = []  # 记录成功场次的战斗结果记录
+
+            # 轮次作战
+            while battle_count < max_times:
+
+                # 初始
+                result_id = 0
+
+                # 前往副本
+                if not is_mt:
+                    # 非魔塔
+                    if need_goto_stage:
+                        if not is_group:
+                            # 单人前往副本
+                            faa_a.action_goto_stage()
+                        else:
+                            # 多人前往副本
+                            result_id = self.goto_stage_and_invite(
+                                stage_id=stage_id,
+                                mt_first_time=False,
+                                player_a=player_a,
+                                player_b=player_b)
+
+                        need_goto_stage = False  # 进入后Flag变化
+                else:
+                    # 魔塔
                     if not is_group:
                         # 单人前往副本
-                        faa_a.action_goto_stage()
+                        faa_a.action_goto_stage(mt_first_time=need_goto_stage)
                     else:
                         # 多人前往副本
                         result_id = self.goto_stage_and_invite(
                             stage_id=stage_id,
-                            mt_first_time=False,
+                            mt_first_time=need_goto_stage,
                             player_a=player_a,
                             player_b=player_b)
 
                     need_goto_stage = False  # 进入后Flag变化
-            else:
-                # 魔塔
-                if not is_group:
-                    # 单人前往副本
-                    faa_a.action_goto_stage(mt_first_time=need_goto_stage)
-                else:
-                    # 多人前往副本
-                    result_id = self.goto_stage_and_invite(
-                        stage_id=stage_id,
-                        mt_first_time=need_goto_stage,
-                        player_a=player_a,
-                        player_b=player_b)
 
-                need_goto_stage = False  # 进入后Flag变化
-
-            if result_id == 2:
-                # 跳过本次 计数+1
-                success_battle_time += 1
-                # 进入异常, 跳过
-                need_goto_stage = True
-                # 结束提示文本
-                self.signal_print_to_ui.emit(text=f"{title}第{success_battle_time}次, 创建房间多次异常, 重启跳过")
-
-                self.reload_game()
-
-            print("=" * 150)
-            self.signal_print_to_ui.emit(text=f"{title}第{success_battle_time + 1}次, 开始")
-
-            # 开始战斗循环
-            result_id, result_loot, result_spend_time = self.battle(player_a=player_a, player_b=player_b)
-
-            if result_id == 0:
-                # 战斗成功 计数+1
-                success_battle_time += 1
-
-                # 退出函数
-                if success_battle_time < max_times:
-                    # 常规退出方式
-                    for j in dict_exit["other_time_player_a"]:
-                        faa_a.action_exit(mode=j)
-                    if is_group:
-                        for j in dict_exit["other_time_player_b"]:
-                            faa_b.action_exit(mode=j)
-                else:
-                    # 最后一次退出方式
-                    for j in dict_exit["last_time_player_a"]:
-                        faa_a.action_exit(mode=j)
-                    if is_group:
-                        for j in dict_exit["last_time_player_b"]:
-                            faa_b.action_exit(mode=j)
-
-                # 加入结果统计列表
-                result_list.append({
-                    "time_spend": result_spend_time,
-                    "loot_dict_list": result_loot  # result_loot_dict_list = [{a掉落}, {b掉落}]
-                })
-
-                # 时间
-                self.signal_print_to_ui.emit(
-                    text="{}第{}次, 正常结束, 耗时:{}分{}秒".format(
-                        title,
-                        success_battle_time,
-                        *divmod(int(result_spend_time), 60)
-                    )
-                )
-
-            if result_id == 1:
-
-                if "CU" in stage_id:
-                    # 进入异常 但是自定义
-                    self.n_battle_customize_battle_error_print(success_battle_time=success_battle_time)
-
-                else:
-                    # 进入异常, 重启再来
-                    need_goto_stage = True
-
-                    # 结束提示文本
-                    self.signal_print_to_ui.emit(text=f"{title}第{success_battle_time + 1}次, 异常结束, 重启再来")
-
-                    self.reload_game()
-
-            if result_id == 2:
-
-                if "CU" in stage_id:
-                    # 进入异常 但是自定义
-                    self.n_battle_customize_battle_error_print(success_battle_time=success_battle_time)
-                else:
+                if result_id == 2:
                     # 跳过本次 计数+1
-                    success_battle_time += 1
-
+                    battle_count += 1
                     # 进入异常, 跳过
                     need_goto_stage = True
-
                     # 结束提示文本
-                    self.signal_print_to_ui.emit(text=f"{title}第{success_battle_time}次, 开始游戏异常, 重启跳过")
+                    self.signal_print_to_ui.emit(text=f"{title}第{battle_count}次, 创建房间多次异常, 重启跳过")
 
                     self.reload_game()
 
-        """结束后进行统计和输出"""
-        print("result_list:")
-        print(result_list)
+                self.signal_print_to_ui.emit(text=f"{title}第{battle_count + 1}次, 开始")
+
+                # 开始战斗循环
+                result_id, result_loot, result_spend_time = self.battle(player_a=player_a, player_b=player_b)
+
+                if result_id == 0:
+                    # 战斗成功 计数+1
+                    battle_count += 1
+                    # 计数战斗是否使用了钥匙
+                    this_time_of_battle_is_used_key = faa_a.faa_battle.is_used_key
+                    if is_group:
+                        this_time_of_battle_is_used_key = this_time_of_battle_is_used_key or faa_b.faa_battle.is_used_key
+
+                    if battle_count < max_times:
+                        # 常规退出方式
+                        for j in dict_exit["other_time_player_a"]:
+                            faa_a.action_exit(mode=j)
+                        if is_group:
+                            for j in dict_exit["other_time_player_b"]:
+                                faa_b.action_exit(mode=j)
+                    else:
+                        # 最后一次退出方式
+                        for j in dict_exit["last_time_player_a"]:
+                            faa_a.action_exit(mode=j)
+                        if is_group:
+                            for j in dict_exit["last_time_player_b"]:
+                                faa_b.action_exit(mode=j)
+
+                    # 加入结果统计列表
+                    result_list.append({
+                        "time_spend": result_spend_time,
+                        "is_used_key": this_time_of_battle_is_used_key,
+                        "loot_dict_list": result_loot  # result_loot_dict_list = [{a掉落}, {b掉落}]
+                    })
+
+                    # 时间
+                    self.signal_print_to_ui.emit(
+                        text="{}第{}次, {}, 正常结束, 耗时:{}分{}秒".format(
+                            title,
+                            battle_count,
+                            "使用钥匙" if this_time_of_battle_is_used_key else "未使用钥匙",
+                            *divmod(int(result_spend_time), 60)
+                        )
+                    )
+
+                if result_id == 1:
+
+                    if is_cu:
+                        # 进入异常 但是自定义
+                        self.n_battle_customize_battle_error_print(success_battle_time=battle_count)
+
+                    else:
+                        # 进入异常, 重启再来
+                        need_goto_stage = True
+
+                        # 结束提示文本
+                        self.signal_print_to_ui.emit(text=f"{title}第{battle_count + 1}次, 异常结束, 重启再来")
+
+                        self.reload_game()
+
+                if result_id == 2:
+
+                    if is_cu:
+                        # 进入异常 但是自定义
+                        self.n_battle_customize_battle_error_print(success_battle_time=battle_count)
+                    else:
+                        # 跳过本次 计数+1
+                        battle_count += 1
+
+                        # 进入异常, 跳过
+                        need_goto_stage = True
+
+                        # 结束提示文本
+                        self.signal_print_to_ui.emit(text=f"{title}第{battle_count}次, 开始游戏异常, 重启跳过")
+
+                        self.reload_game()
+
+            return result_list
+
+        def end_statistic_print(result_list):
+            """
+            结束后进行统计和输出
+            """
+
+            CUS_LOGGER.debug("result_list:")
+            CUS_LOGGER.debug(str(result_list))
+            valid_time = len(result_list)
+
+            # 时间
+            sum_time_spend = 0
+            count_used_key = 0
+            average_time_spend = 0
+
+            if valid_time != 0:
+                for result in result_list:
+                    # 合计时间
+                    sum_time_spend += result["time_spend"]
+                    # 合计消耗钥匙的次数
+                    if result["is_used_key"]:
+                        count_used_key += 1
+                average_time_spend = sum_time_spend / valid_time
+
+            self.signal_print_to_ui.emit(text=f"{title}{stage_id} {max_times}次 结束 ")
+            self.signal_print_to_ui.emit(text="正常场次:{}次 使用钥匙:{}次 总耗时:{}分{}秒  场均耗时:{}分{}秒".format(
+                valid_time,
+                count_used_key,
+                *divmod(int(sum_time_spend), 60),
+                *divmod(int(average_time_spend), 60)
+            ))
+
+            if len(player) == 1:
+                # 单人
+                self.print_player_loot(player_id=player_a, result_list=result_list)
+            else:
+                # 多人
+                self.print_player_loot(player_id=1, result_list=result_list)
+                self.print_player_loot(player_id=2, result_list=result_list)
+
+        if not check_level_and_times():
+            return False
+        result_list = multi_round_battle()
+        end_statistic_print(result_list=result_list)
+
+    def print_player_loot(self, player_id, result_list):
+        """
+        打印玩家掉落信息
+
+        :param player_id:  player_a, player_b int 1 2
+        :param result_list: list, result of b
+        :return:
+        关于 result_list
+        """
         valid_time = len(result_list)
 
-        # 时间
-        sum_time_spend = 0
-        average_time_spend = 0
+        # 输入为
+        count_loots_dict = {}
+        count_chests_dict = {}
 
-        if valid_time != 0:
-            for result in result_list:
-                sum_time_spend += result["time_spend"]
-            average_time_spend = sum_time_spend / valid_time
+        # 复制key
+        for result_ in result_list:
+            loots = result_["loot_dict_list"][player_id]["loots"]
+            if loots is not None:
+                for key in loots.keys():
+                    count_loots_dict[key] = 0
+            chests = result_["loot_dict_list"][player_id]["chests"]
+            if chests is not None:
+                for key in chests.keys():
+                    count_chests_dict[key] = 0
 
-        self.signal_print_to_ui.emit(text=f"{title}{stage_id} {max_times}次 结束 ")
-        self.signal_print_to_ui.emit(text="正常场次:{}次 总耗时:{}分{}秒 场均耗时:{}分{}秒".format(
-            valid_time,
-            *divmod(int(sum_time_spend), 60),
-            *divmod(int(average_time_spend), 60)
-        ))
+        # 累加数据
+        for result_ in result_list:
+            loots = result_["loot_dict_list"][player_id]["loots"]
+            if loots is not None:
+                for k, v in loots.items():
+                    count_loots_dict[k] += v
+            chests = result_["loot_dict_list"][player_id]["chests"]
+            if chests is not None:
+                for k, v in chests.items():
+                    count_chests_dict[k] += v
 
-        def print_player_loot(player_id):
-            """
-            打印玩家掉落信息
-            :param player_id:  player_a, player_b int 1 2
-            :return:
-            关于 result_list
-            """
-            # 输入为
-            count_loots_dict = {}
-            count_chests_dict = {}
+        # 生成文本
+        loots_text = ""
+        chests_text = ""
+        for name, count in count_loots_dict.items():
+            loots_text += "{}x{:.1f}; ".format(name, count / valid_time)
+        for name, count in count_chests_dict.items():
+            chests_text += "{}x{:.1f}; ".format(name, count / valid_time)
 
-            # 复制key
-            for _result in result_list:
-                loots = _result["loot_dict_list"][player_id]["loots"]
-                if loots is not None:
-                    for key in loots.keys():
-                        count_loots_dict[key] = 0
-                chests = _result["loot_dict_list"][player_id]["chests"]
-                if chests is not None:
-                    for key in chests.keys():
-                        count_chests_dict[key] = 0
-
-            # 累加数据
-            for _result in result_list:
-                loots = _result["loot_dict_list"][player_id]["loots"]
-                if loots is not None:
-                    for k, v in loots.items():
-                        count_loots_dict[k] += v
-                chests = _result["loot_dict_list"][player_id]["chests"]
-                if chests is not None:
-                    for k, v in chests.items():
-                        count_chests_dict[k] += v
-
-            # 生成文本
-            loots_text = ""
-            chests_text = ""
-            for name, count in count_loots_dict.items():
-                loots_text += "{}x{:.1f} ".format(name, count / valid_time)
-            for name, count in count_chests_dict.items():
-                chests_text += "{}x{:.1f} ".format(name, count / valid_time)
-
-            # 玩家A掉落
-            self.signal_print_to_ui.emit(
-                text="[{}P掉落/场]  {}".format(
-                    player_id,
-                    loots_text,
-                ),
-                time=False
-            )
-            self.signal_print_to_ui.emit(
-                text="[{}P宝箱/场]  {}".format(
-                    player_id,
-                    chests_text
-                ),
-                time=False
-            )
-
-        if len(player) == 1:
-            # 单人
-            print_player_loot(player_id=player_a)
-        else:
-            # 多人
-            print_player_loot(player_id=1)
-            print_player_loot(player_id=2)
+        # 玩家A掉落
+        self.signal_print_to_ui.emit(
+            text="[{}P掉落/场]  {}".format(
+                player_id,
+                loots_text,
+            ),
+            time=False
+        )
+        self.signal_print_to_ui.emit(
+            text="[{}P宝箱/场]  {}".format(
+                player_id,
+                chests_text
+            ),
+            time=False
+        )
 
     def n_n_battle(self, quest_list, extra_title=None, need_lock=False):
         """
@@ -996,7 +1038,7 @@ class ThreadTodo(QThread):
 
         self.signal_print_to_ui.emit(text=f"{text_} 获取任务列表...")
 
-        quest_list = self.faa[1].action_get_quest(mode=quest_mode, qg_cs=stage)
+        quest_list = self.faa[1].get_quests(mode=quest_mode, qg_cs=stage)
 
         for i in quest_list:
             self.signal_print_to_ui.emit(
@@ -1105,8 +1147,8 @@ class ThreadTodo(QThread):
         def a_round():
 
             # 两个号分别读取任务
-            quest_list_1 = self.faa[1].action_get_quest(mode="美食大赛")
-            quest_list_2 = self.faa[2].action_get_quest(mode="美食大赛")
+            quest_list_1 = self.faa[1].get_quests(mode="美食大赛")
+            quest_list_2 = self.faa[2].get_quests(mode="美食大赛")
             quest_list = quest_list_1 + quest_list_2
 
             if not quest_list:
@@ -1154,8 +1196,8 @@ class ThreadTodo(QThread):
             self.signal_print_to_ui.emit(text=f"[{text_}] Link Start!", color="red")
 
             # 先领一下已经完成的大赛任务
-            self.faa[1].action_get_quest(mode="美食大赛")
-            self.faa[2].action_get_quest(mode="美食大赛")
+            self.faa[1].get_quests(mode="美食大赛")
+            self.faa[2].get_quests(mode="美食大赛")
 
             i = 0
             while True:
@@ -1360,7 +1402,7 @@ class ThreadTodo(QThread):
                         dict_exit={
                             "other_time_player_a": [],
                             "other_time_player_b": [],
-                            "last_time_player_a": [], # "回到上一级","普通红叉" 但之后刷新 所以空
+                            "last_time_player_a": [],  # "回到上一级","普通红叉" 但之后刷新 所以空
                             "last_time_player_b": []
                         }
                     )
@@ -1683,11 +1725,13 @@ class ThreadTodo(QThread):
             self.auto_food(
                 deck=my_opt["deck"],
             )
-        # 全部完成了刷新一下
-        self.signal_print_to_ui.emit(text="已完成所有事项！建议勾选刷新游戏回到登录界面, 防止长期运行flash导致卡顿")
 
         if self.opt["advanced_settings"]["end_exit_game"]:
+            self.signal_print_to_ui.emit(text="已完成所有额外事项！及将刷新游戏")
             self.reload_to_login_ui()
+        else:
+            self.signal_print_to_ui.emit(
+                text="已完成所有额外事项！推荐勾选高级设置-完成后刷新游戏, 防止长期运行flash导致卡顿")
 
         # 全部完成了发个信号
         self.signal_end.emit()
