@@ -54,8 +54,6 @@ class Card:
         self.status_ban = 0
         # 是否是当前角色的坤目标
         self.is_kun_target = False
-        # 危险的区域 防止点到继续战斗
-        self.warning_cell = ["4-4", "4-5"]
         # 判定自身是不是极寒冰沙
         self.is_smoothie = self.name in ["极寒冰沙", "冰沙"]
         # 不进入放满自ban的 白名单
@@ -90,9 +88,6 @@ class Card:
             my_to_list = [0, 0]
 
         for j in my_to_list:
-            # 防止误触, 仅需识图, 不消耗时间
-            if self.is_use_key and (self.location[j] in self.warning_cell):
-                self.faa_battle.use_key(mode=1)
             # 点击 放下卡片
             T_ACTION_QUEUE_TIMER.add_click_to_queue(
                 handle=self.handle,
@@ -141,9 +136,6 @@ class Card:
                     my_to_list = [0, 0]
 
                 for j in my_to_list:
-                    # 防止误触, 仅需识图, 不消耗时间
-                    if self.is_use_key and (self.location[j] in self.warning_cell):
-                        self.faa_battle.use_key(mode=1)
                     # 点击 放下卡片
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(
                         handle=self.handle,
