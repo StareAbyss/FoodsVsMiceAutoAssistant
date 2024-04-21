@@ -3,8 +3,8 @@ import datetime
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal
 
+from function.core.QMW_1_load_settings import QMainWindowLoadSettings
 from function.globals.log import CUS_LOGGER
-from function.script.QMW_1_load_settings import QMainWindowLoadSettings
 
 
 class QMainWindowLog(QMainWindowLoadSettings):

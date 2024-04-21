@@ -8,7 +8,7 @@ from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
 
 """
-战斗结果logs分析器
+战斗结果logs分析模块
 致谢：八重垣天知
 """
 

@@ -4,10 +4,10 @@ import sys
 
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
+from function.core.QMW_0_load_ui_file import QMainWindowLoadUI
 from function.globals.get_paths import PATHS
 from function.scattered.get_customize_todo_list import get_customize_todo_list
 from function.scattered.get_list_battle_plan import get_list_battle_plan
-from function.script.QMW_0_load_ui_file import QMainWindowLoadUI
 
 
 class QMainWindowLoadSettings(QMainWindowLoadUI):
@@ -19,7 +19,6 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
 
         # opt路径
         self.opt_path = PATHS["root"] + "\\config\\settings.json"
-        self.opt1_path = PATHS["root"] + "\\config\\advanced_settings.json"
 
         # 从json文件中读取opt 并刷新ui
         self.opt = None
@@ -30,9 +29,6 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         with open(self.opt_path) as json_file:
             opt = json.load(json_file)
         self.opt = opt
-        with open(self.opt1_path) as json_file:
-            opt1 = json.load(json_file)
-        self.opt.update(opt1)
 
     def opt_to_json(self):
         # dict → str 转换True和true
@@ -292,6 +288,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.AutoUseCard.setChecked(my_opt["auto_use_card"])
             self.AutoPickUp_1P.setChecked(my_opt["auto_pickup_1p"])
             self.AutoPickUp_2P.setChecked(my_opt["auto_pickup_2p"])
+            self.AutoDeleteOldImages.setChecked(my_opt["auto_delete_old_images"])
 
         def get_warm_gift_settings():
             my_opt = self.opt["get_warm_gift"]
@@ -374,6 +371,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
             my_opt["auto_pickup_1p"] = self.AutoPickUp_1P.isChecked()
             my_opt["auto_pickup_2p"] = self.AutoPickUp_2P.isChecked()
+            my_opt["auto_delete_old_images"] = self.AutoDeleteOldImages.isChecked()
 
         def get_warm_gift_settings():
             my_opt = self.opt["get_warm_gift"]

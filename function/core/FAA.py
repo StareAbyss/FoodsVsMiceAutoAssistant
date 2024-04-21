@@ -1,16 +1,18 @@
 import copy
 import json
 import os
-import random
 import time
 
 import cv2
 import numpy as np
 
-from function.battle.FAABattle import Battle
 from function.battle.get_position_in_battle import get_position_card_deck_in_battle, get_position_card_cell_in_battle
 from function.common.bg_p_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
 from function.common.bg_p_screenshot import capture_picture_png
+from function.core.FAAActionInterfaceJump import FAAActionInterfaceJump
+from function.core.FAAActionQuestReceiveRewards import FAAActionQuestReceiveRewards
+from function.core.FAABattle import Battle
+from function.core.analyzer_of_loot_logs import matchImage
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
 from function.globals.log import CUS_LOGGER
@@ -18,13 +20,17 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_list_battle_plan import get_list_battle_plan
 from function.scattered.read_json_to_stage_info import read_json_to_stage_info
-from function.script.analyzer_of_loot_logs import matchImage
 
 
 class FAA:
+    """
+    FAA类是项目的核心类
+    用于封装 [所有对单个游戏窗口进行执行的操作]
+    """
 
     def __init__(self, channel="锑食", player=1, character_level=1,
-                 is_auto_battle=True, is_auto_pickup=False, random_seed=0, signal_dict=None):
+                 is_auto_battle=True, is_auto_pickup=False, random_seed=0,
+                 signal_dict=None):
 
         # 获取窗口句柄
 
@@ -45,7 +51,6 @@ class FAA:
         # 角色|等级|是否使用钥匙|卡片|收集战利品
         self.player = player
         self.character_level = character_level
-
         self.is_auto_battle = is_auto_battle
         self.is_auto_pickup = is_auto_pickup
 
@@ -62,16 +67,28 @@ class FAA:
 
         # 初始化战斗中 卡片位置 字典 bp -> battle position
         self.bp_card = None
+
         # 调用战斗中 格子位置 字典 bp -> battle position
         self.bp_cell = get_position_card_cell_in_battle()
+
         # 经过处理后的战斗方案, 由战斗类相关动作函数直接调用, 其中的各种操作都包含坐标
         self.battle_plan_1 = {}
+
         # 承载卡/冰沙/坤的位置
         self.mat_card_positions = None  # list [{},{},...]
         self.smoothie_position = None  # dict {}
         self.kun_position = None  # dict {} 也用于标记本场战斗是否需需要激活坤函数
-        # FAA_Battle 实例 均为FAA类属性引用 其中绝大多数方法需要在set_config_for_battle后使用
+
+        """被拆分为子实例的模块"""
+
+        # 战斗实例 其中绝大多数方法需要在set_config_for_battle后使用
         self.faa_battle = Battle(faa=self)
+
+        # 领取奖励实例 基本只调用一个main方法
+        self.object_action_quest_receive_rewards = FAAActionQuestReceiveRewards(faa=self)
+
+        # 界面跳转实例 用于实现
+        self.object_action_interface_jump = FAAActionInterfaceJump(faa=self)
 
     def print_debug(self, text, player=None):
         if not player:
@@ -93,185 +110,69 @@ class FAA:
             player = self.player
         CUS_LOGGER.error("[{}P] {}".format(player, text))
 
-    """通用对flash界面的基础操作"""
+    """界面跳转动作的接口"""
 
     def action_exit(self, mode: str = "None", raw_range=None):
-        """
-        游戏中的各种退出操作
-        "普通红叉"
-        "回到上一级"
-        "竞技岛"
-        "关闭悬赏窗口"
-        "美食大赛领取"
-        "游戏内退出"
-        """
-
-        if raw_range is None:
-            raw_range = [0, 0, 950, 600]
-
-        if mode == "回到上一级":
-            self.action_bottom_menu(mode="后退")
-
-        if mode == "普通红叉":
-            find = loop_match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=raw_range,
-                target_path=RESOURCE_P["common"]["退出.png"],
-                target_failed_check=5,
-                target_sleep=1.5,
-                click=True)
-            if not find:
-                find = loop_match_p_in_w(
-                    raw_w_handle=self.handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["common"]["退出_被选中.png"],
-                    target_failed_check=5,
-                    target_sleep=1.5,
-                    click=True)
-                if not find:
-                    self.print_error(text="未能成功找到右上红叉以退出!前面的步骤有致命错误!")
-
-        if mode == "竞技岛":
-            self.action_bottom_menu(mode="跳转_竞技场")
-
-        if mode == "关闭悬赏窗口":
-            # 有被选中和未选中两种图标
-            result = loop_match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=raw_range,
-                target_path=RESOURCE_P["common"]["悬赏任务_退出_未选中.png"],
-                target_tolerance=0.99,
-                target_failed_check=3,
-                target_sleep=1.5,
-                click=True)
-            if not result:
-                loop_match_p_in_w(
-                    raw_w_handle=self.handle,
-                    raw_range=raw_range,
-                    target_path=RESOURCE_P["common"]["悬赏任务_退出_被选中.png"],
-                    target_tolerance=0.99,
-                    target_failed_check=3,
-                    target_sleep=1.5,
-                    click=True)
-
-        if mode == "美食大赛领取":
-            # 领取奖励
-            self.action_quest_receive_rewards(mode="美食大赛")
-
-        if mode == "游戏内退出":
-            # 游戏内退出
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=925, y=580)
-            time.sleep(0.1)
-
-            # 确定游戏内退出
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=455, y=385)
-            time.sleep(0.1)
+        return self.object_action_interface_jump.exit(mode=mode, raw_range=raw_range)
 
     def action_top_menu(self, mode: str):
-        """
-        点击上方菜单栏, 包含:
-        VIP签到|X年活动|塔罗寻宝|大地图|大富翁|欢乐假期|每日签到|美食大赛|美食活动|萌宠神殿|跨服远征
-        其中跨服会跳转到二区
-        :return bool 是否进入成功
-        """
-
-        failed_time = 0
-        l_id = 1
-        while True:
-            self.change_activity_list(serial_num=l_id)
-            find = loop_match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=[250, 0, 925, 110],
-                target_path=RESOURCE_P["common"]["顶部菜单"]["{}.png".format(mode)],
-                target_failed_check=3,
-                target_sleep=1.5,
-                click=True)
-            if find:
-                self.print_debug(text="[顶部菜单] [{}] 3s内跳转成功".format(mode))
-                break
-            else:
-                l_id = 1 if l_id == 2 else 2
-                failed_time += 1
-
-            if failed_time == 5:
-                self.print_warning(text="[顶部菜单] [{}] 3s内跳转失败".format(mode))
-                break
-
-        if mode == "跨服远征":
-
-            # 确认已经跨服进房间
-            find = loop_match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=[0, 0, 950, 200],
-                target_path=RESOURCE_P["common"]["跨服副本_ui.png"],
-                target_failed_check=10
-            )
-
-            if find:
-                # 选2区人少
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=30)
-                time.sleep(0.5)
-
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=85)
-                time.sleep(0.5)
-
-        return find
+        return self.object_action_interface_jump.top_menu(mode=mode)
 
     def action_bottom_menu(self, mode: str):
-        """点击下方菜单栏, 包含:任务/后退/背包/跳转_公会任务/跳转_公会副本/跳转_情侣任务/跳转_竞技场"""
+        return self.object_action_interface_jump.bottom_menu(mode=mode)
 
-        find = False
+    def action_change_activity_list(self, serial_num: int):
+        return self.object_action_interface_jump.change_activity_list(serial_num=serial_num)
 
-        if mode == "任务" or mode == "后退" or mode == "背包" or mode == "公会":
-            find = loop_match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=[520, 530, 950, 600],
-                target_path=RESOURCE_P["common"]["底部菜单"]["{}.png".format(mode)],
-                target_failed_check=3,
-                target_sleep=1,
-                click=True)
+    def action_goto_map(self, map_id):
+        return self.object_action_interface_jump.goto_map(map_id=map_id)
 
-        if mode == "跳转_公会任务" or mode == "跳转_公会副本" or mode == "跳转_情侣任务" or mode == "跳转_竞技场":
-            loop_match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=[520, 530, 950, 600],
-                target_path=RESOURCE_P["common"]["底部菜单"]["跳转.png"],
-                target_failed_check=3,
-                target_sleep=0.5,
-                click=True)
-            find = loop_match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=[520, 170, 950, 600],
-                target_path=RESOURCE_P["common"]["底部菜单"]["{}.png".format(mode)],
-                target_failed_check=3,
-                target_sleep=0.5,
-                click=True)
+    def action_goto_stage(self, mt_first_time: bool = False):
+        return self.object_action_interface_jump.goto_stage(mt_first_time=mt_first_time)
 
-        if not find:
-            self.print_warning(text="[底部菜单] [{}] 3s内跳转失败".format(mode))
+    """"对flash游戏界面或自身参数的最基础 [检测]"""
+
+    def check_level(self):
+        """检测角色等级和关卡等级(调用于输入关卡信息之后)"""
+        if self.character_level < self.stage_info["level"]:
+            return False
+        else:
+            return True
+
+    def screen_check_server_boom(self):
+        """
+        检测是不是炸服了
+        :return: bool 炸了 True 没炸 False
+        """
+        find = loop_match_ps_in_w(
+            raw_w_handle=self.handle,
+            target_opts=[
+                {
+                    "raw_range": [350, 275, 600, 360],
+                    "target_path": RESOURCE_P["error"]["登录超时.png"],
+                    "target_tolerance": 0.999
+                },
+                {
+                    "raw_range": [350, 275, 600, 360],
+                    "target_path": RESOURCE_P["error"]["断开连接.png"],
+                    "target_tolerance": 0.999
+                },
+                {
+                    "raw_range": [350, 275, 600, 360],
+                    "target_path": RESOURCE_P["error"]["Flash爆炸.png"],
+                    "target_tolerance": 0.999
+                }
+            ],
+            target_return_mode="or",
+            target_failed_check=1,
+            target_interval=0.2)
 
         return find
 
-    def change_activity_list(self, serial_num: int):
-        """检测顶部的活动清单, 1为第一页, 2为第二页(有举报图标的一页)"""
-
-        find = match_p_in_w(
-            raw_w_handle=self.handle,
-            raw_range=[0, 0, 950, 600],
-            target_path=RESOURCE_P["common"]["顶部菜单"]["举报.png"])
-
-        if serial_num == 1:
-            if find:
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=30)
-                time.sleep(0.5)
-
-        if serial_num == 2:
-            if not find:
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=30)
-                time.sleep(0.5)
-
-    def action_get_stage_name(self):
-        """在关卡备战界面 获得关卡名字"""
+    def screen_get_stage_name(self):
+        """
+        在关卡备战界面 获得关卡名字 该函数未完工
+        """
         stage_id = "Unknown"  # 默认名称
         img1 = capture_picture_png(handle=self.handle, raw_range=[0, 0, 950, 600])[468:484, 383:492, :3]
         # 关卡名称集 从资源文件夹自动获取, 资源文件命名格式：关卡名称.png
@@ -289,797 +190,14 @@ class FAA:
 
         return stage_id
 
-    def action_get_quest(self, mode: str, qg_cs=False):
-        """
-        获取公会任务列表
-        :param mode:
-        :param qg_cs: 公会任务模式下 是否需要跨服
-        :return: [
-            {
-                "stage_id":str,
-                "max_times":,
-                "quest_card":str,
-                "ban_card":None
-            },
-        ]
-        """
-        # 跳转到对应界面
-        if mode == "公会任务":
-            self.action_bottom_menu(mode="跳转_公会任务")
-            # 点一下 让左边的选中任务颜色消失
-            loop_match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=[0, 0, 950, 600],
-                target_path=RESOURCE_P["quest_guild"]["ui_quest_list.png"],
-                target_sleep=0.2,
-                click=True)
-        if mode == "情侣任务":
-            self.action_bottom_menu(mode="跳转_情侣任务")
-        if mode == "美食大赛":
-            self.action_top_menu(mode="美食大赛")
-
-        # 读取
-        quest_list = []
-        if mode == "公会任务":
-
-            for i in [1, 2, 3, 4, 5, 6, 7]:
-                for quest, img in RESOURCE_P["quest_guild"][str(i)].items():
-                    # 找到任务 加入任务列表
-                    find_p = match_p_in_w(
-                        raw_w_handle=self.handle,
-                        raw_range=[0, 0, 950, 600],
-                        target_path=img,
-                        target_tolerance=0.999)
-                    if find_p:
-
-                        quest_card = "None"  # 任务携带卡片默认为None
-
-                        # 处理解析字符串
-                        quest = quest.split(".")[0]  # 去除.png
-                        num_of_line = quest.count("_")  # 分割
-                        if num_of_line == 0:
-                            stage_id = quest
-                        else:
-                            my_list = quest.split("_")
-                            stage_id = my_list[0]
-                            if num_of_line == 1:
-                                if not my_list[1].isdigit():
-                                    quest_card = my_list[1]
-                            elif num_of_line == 2:
-                                quest_card = my_list[2]
-
-                        # 如果不打 跳过
-                        if stage_id.split("-")[0] == "CS" and (not qg_cs):
-                            continue
-
-                        # 添加到任务列表
-                        quest_list.append(
-                            {
-                                "player": [2, 1],
-                                "stage_id": stage_id,
-                                "quest_card": quest_card
-                            }
-                        )
-        if mode == "情侣任务":
-
-            for i in ["1", "2", "3"]:
-                # 任务未完成
-                find_p = match_p_in_w(
-                    raw_w_handle=self.handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["quest_spouse"]["NO-{}.png".format(i)],
-                    target_tolerance=0.999)
-                if find_p:
-                    # 遍历任务
-                    for quest, img in RESOURCE_P["quest_spouse"][i].items():
-                        # 找到任务 加入任务列表
-                        find_p = match_p_in_w(
-                            raw_w_handle=self.handle,
-                            raw_range=[0, 0, 950, 600],
-                            target_path=img,
-                            target_tolerance=0.999)
-                        if find_p:
-                            quest_list.append(
-                                {
-                                    "player": [2, 1],
-                                    "stage_id": quest.split(".")[0],
-                                    "quest_card": "None"
-                                }
-                            )
-        if mode == "美食大赛":
-            y_dict = {0: 362, 1: 405, 2: 448, 3: 491, 4: 534, 5: 570}
-            for i in range(6):
-                # 先移动到新的一页
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=y_dict[i])
-                time.sleep(0.1)
-                for quest, img in RESOURCE_P["quest_food"].items():
-                    find_p = match_p_in_w(
-                        raw_w_handle=self.handle,
-                        raw_range=[0, 0, 950, 600],
-                        target_path=img,
-                        target_tolerance=0.999)
-
-                    if find_p:
-                        # 处理解析字符串
-                        quest = quest.split(".")[0]  # 去除.png
-                        battle_sets = quest.split("_")
-                        quest_list.append(
-                            {
-                                "stage_id": battle_sets[0],
-                                "player": [self.player] if battle_sets[1] == "1" else [2, 1],  # 1 单人 2 组队
-                                "is_use_key": bool(battle_sets[2]),  # 注意类型转化
-                                "max_times": 1,
-                                "quest_card": battle_sets[3],
-                                "list_ban_card": battle_sets[4].split(","),
-                                "dict_exit": {
-                                    "other_time_player_a": [],
-                                    "other_time_player_b": [],
-                                    "last_time_player_a": ["竞技岛", "美食大赛领取"],
-                                    "last_time_player_b": ["竞技岛", "美食大赛领取"]
-                                }
-                            }
-                        )
-
-        # 关闭公会任务列表(红X)
-        if mode == "公会任务" or mode == "情侣任务":
-            self.action_exit(mode="普通红叉")
-        if mode == "美食大赛":
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=888, y=53)
-            time.sleep(0.5)
-
-        return quest_list
-
-    def action_goto_map(self, map_id):
-        """
-        用于前往各地图,0.美味阵,1.美味岛,2.火山岛,3.火山遗迹,4.浮空岛,5.海底,6.营地
-        """
-
-        # 点击世界地图
-        self.action_top_menu(mode="大地图")
-
-        # 点击对应的地图
-        find = loop_match_p_in_w(
-            raw_w_handle=self.handle,
-            raw_range=[0, 0, 950, 600],
-            target_path=RESOURCE_P["map"]["{}.png".format(map_id)],
-            target_tolerance=0.99,
-            target_failed_check=5,
-            target_sleep=2,
-            click=True
-        )
-        return find
-
-    def action_goto_stage(self, mt_first_time: bool = False):
-        """
-        只要右上能看到地球 就可以到目标关卡
-        Args:
-            mt_first_time: 魔塔关卡下 是否是第一次打(第一次塔需要进塔 第二次只需要选关卡序号)
-        """
-
-        # 拆成数组["关卡类型","地图id","关卡id"]
-        stage_list = self.stage_info["id"].split("-")
-        stage_0 = stage_list[0]  # type
-        stage_1 = stage_list[1]  # map
-        stage_2 = stage_list[2]  # stage
-
-        def click_set_password():
-            """设置进队密码"""
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=491, y=453)
-            time.sleep(0.5)
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=600, y=453)
-            time.sleep(0.5)
-            T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle, key="backspace")
-            time.sleep(0.5)
-            T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle, key="1")
-            time.sleep(1)
-
-        def change_to_region(region_list):
-            random.seed(self.random_seed)
-            region_id = random.randint(region_list[0], region_list[1])
-
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=820, y=85)
-            time.sleep(0.5)
-
-            my_list = [85, 110, 135, 160, 185, 210, 235, 260, 285, 310, 335]
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=779, y=my_list[region_id - 1])
-            time.sleep(2.0)
-
-        def main_no():
-            # 进入对应地图
-            self.action_goto_map(map_id=stage_1)
-
-            # 切区
-            my_dict = {"1": [3, 11], "2": [1, 2], "3": [1, 1], "4": [1, 2], "5": [1, 2]}
-            change_to_region(region_list=my_dict[stage_1])
-
-            # 仅限主角色创建关卡
-            if self.is_main:
-                # 防止被活动列表遮住
-                self.change_activity_list(serial_num=2)
-
-                # 选择关卡
-                loop_match_p_in_w(
-                    raw_w_handle=self.handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
-                    target_tolerance=0.995,
-                    target_sleep=1,
-                    click=True)
-
-                # 设置密码
-                click_set_password()
-
-                # 创建队伍
-                loop_match_p_in_w(
-                    raw_w_handle=self.handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                    target_sleep=1,
-                    click=True)
-
-        def main_mt():
-
-            if mt_first_time:
-                # 前往海底
-                self.action_goto_map(map_id=5)
-
-                # 选区
-                change_to_region(region_list=[1, 2])
-
-            if self.is_main and mt_first_time:
-                # 进入魔塔
-                loop_match_p_in_w(
-                    raw_w_handle=self.handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["stage"]["MT.png"],
-                    target_failed_check=5,
-                    target_sleep=2,
-                    click=True
-                )
-
-                # 根据模式进行选择
-                my_dict = {"1": 46, "2": 115, "3": 188}
-
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=my_dict[stage_1], y=66)
-                time.sleep(0.5)
-
-            if self.is_main:
-                # 选择了密室
-                if stage_1 == "3":
-                    loop_match_p_in_w(
-                        raw_w_handle=self.handle,
-                        raw_range=[0, 0, 950, 600],
-                        target_path=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
-                        target_sleep=0.3,
-                        click=True)
-                # 选择了单双人爬塔
-                else:
-                    # 等于0则为爬塔模式 即选择最高层 从下到上遍历所有层数
-                    if stage_2 == "0":
-                        # 到魔塔最低一层
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=47, y=579)
-                        time.sleep(0.3)
-
-                        for i in range(11):
-                            # 下一页
-                            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=152, y=577)
-                            time.sleep(0.1)
-
-                            for j in range(15):
-                                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=110, y=542 - 30.8 * j)
-                                time.sleep(0.1)
-
-                    else:
-                        # 到魔塔最低一层
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=47, y=579)
-                        time.sleep(0.3)
-
-                        # 向右到对应位置
-                        my_left = int((int(stage_2) - 1) / 15)
-                        for i in range(my_left):
-                            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=152, y=577)
-                            time.sleep(0.3)
-
-                        # 点击对应层数
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                            handle=self.handle,
-                            x=110,
-                            y=542 - (30.8 * (int(stage_2) - my_left * 15 - 1)))
-                        time.sleep(0.3)
-
-                # 创建房间
-                loop_match_p_in_w(
-                    raw_w_handle=self.handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
-                    target_sleep=1,
-                    click=True)
-
-        def main_cs():
-
-            # 进入跨服远征界面
-            self.action_top_menu(mode="跨服远征")
-
-            if self.is_main:
-                # 创建房间
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=853, y=553)
-                time.sleep(0.5)
-
-                # 选择地图
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=int(stage_1) * 101 - 36, y=70)
-                time.sleep(1)
-
-                # 选择关卡
-                my_dict = {
-                    "1": [124, 248], "2": [349, 248], "3": [576, 248], "4": [803, 248],
-                    "5": [124, 469], "6": [349, 469], "7": [576, 469], "8": [803, 469]}
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                    handle=self.handle,
-                    x=my_dict[stage_2][0],
-                    y=my_dict[stage_2][1])
-                time.sleep(0.5)
-
-                # 选择密码输入框
-                my_dict = {
-                    "1": [194, 248], "2": [419, 248], "3": [646, 248], "4": [873, 248],
-                    "5": [194, 467], "6": [419, 467], "7": [646, 467], "8": [873, 467]}
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                    handle=self.handle,
-                    x=my_dict[stage_2][0],
-                    y=my_dict[stage_2][1])
-                time.sleep(0.5)
-
-                # 输入密码
-                T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle, key="1")
-                time.sleep(0.5)
-
-                # 创建关卡
-                my_dict = {  # X+225 Y+221
-                    "1": [176, 286], "2": [401, 286], "3": [629, 286], "4": [855, 286],
-                    "5": [176, 507], "6": [401, 507], "7": [629, 507], "8": [855, 507]}
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                    handle=self.handle,
-                    x=my_dict[stage_2][0],
-                    y=my_dict[stage_2][1])
-                time.sleep(0.5)
-            else:
-                # 刷新
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=895, y=80)
-                time.sleep(3)
-
-                # 复位
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=602, y=490)
-                time.sleep(0.2)
-
-                for i in range(20):
-                    find = loop_match_p_in_w(
-                        raw_w_handle=self.handle,
-                        raw_range=[0, 0, 950, 600],
-                        target_path=RESOURCE_P["common"]["用户自截"]["跨服远征_1p.png"],
-                        click=True,
-                        target_sleep=1.0,
-                        target_failed_check=1.0)
-                    if find:
-                        break
-                    else:
-                        # 下一页
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=700, y=490)
-                        time.sleep(0.2)
-
-                # 点击密码框 输入密码 确定进入
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=490, y=300)
-                time.sleep(0.5)
-
-                T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle, key="1")
-                time.sleep(0.5)
-
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=490, y=360)
-                time.sleep(0.5)
-
-        def main_or():
-
-            # 进入X年活动界面
-            self.action_top_menu(mode="X年活动")
-
-            # 选择关卡
-            loop_match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=[0, 0, 950, 600],
-                target_path=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
-                target_tolerance=0.95,
-                target_sleep=1,
-                click=True)
-
-            # 切区
-            my_dict = {"1": [3, 11], "2": [1, 2], "3": [1, 2]}
-            change_to_region(region_list=my_dict[stage_2])
-
-            # 仅限创房间的人
-            if self.is_main:
-                # 设置密码
-                click_set_password()
-                # 创建队伍
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=583, y=500)
-                time.sleep(0.5)
-
-        def main_ex():
-
-            # 防止被活动列表遮住
-            self.change_activity_list(2)
-
-            # 进入对应地图
-            self.action_goto_map(map_id=6)
-
-            # 不是营地
-            if stage_1 != "1":
-                # 找船
-                loop_match_p_in_w(
-                    raw_w_handle=self.handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["stage"]["EX-Ship.png"],
-                    target_sleep=1.5,
-                    click=True)
-
-                # 找地图图标
-                loop_match_p_in_w(
-                    raw_w_handle=self.handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["stage"]["EX-{}.png".format(stage_1)],
-                    target_sleep=1.5,
-                    click=True)
-
-            # 切区
-            change_to_region(region_list=[1, 2])
-
-            # 仅限主角色创建关卡
-            if self.is_main:
-                # 选择关卡
-                loop_match_p_in_w(
-                    raw_w_handle=self.handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
-                    target_sleep=0.5,
-                    click=True)
-
-                # 设置密码
-                click_set_password()
-
-                # 创建队伍
-                loop_match_p_in_w(
-                    raw_w_handle=self.handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                    target_sleep=0.5,
-                    click=True)
-
-        def main_pt():
-
-            # 进入海底旋涡
-            self.action_goto_map(map_id=5)
-
-            # 仅限主角色创建关卡
-            if self.is_main:
-
-                # 点击进入萌宠神殿
-                self.action_top_menu(mode="萌宠神殿")
-
-                # 到最低一层
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=192, y=579)
-                time.sleep(0.3)
-
-                # 向右到对应位置
-                my_left = int((int(stage_2) - 1) / 15)
-                for i in range(my_left):
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=297, y=577)
-                    time.sleep(0.3)
-
-                # 点击对应层数
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                    handle=self.handle,
-                    x=225,
-                    y=int(542 - (30.8 * (int(stage_2) - my_left * 15 - 1))))
-                time.sleep(0.3)
-
-                # 创建房间
-                loop_match_p_in_w(
-                    raw_w_handle=self.handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
-                    target_sleep=1,
-                    click=True)
-
-        def main_gd():
-            # 进入工会副本页
-            self.action_bottom_menu(mode="跳转_公会副本")
-            # 选关卡 1 2 3
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                handle=self.handle,
-                x={"1": 155, "2": 360, "3": 580}[stage_2],
-                y=417)
-            time.sleep(2)
-            change_to_region(region_list=[3, 11])
-
-            # 仅限主角色创建关卡
-            if self.is_main:
-                # 创建队伍
-                loop_match_p_in_w(
-                    raw_w_handle=self.handle,
-                    raw_range=[515, 477, 658, 513],
-                    target_path=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                    target_sleep=0.05,
-                    click=True)
-            else:
-                # 识图，寻找需要邀请目标的位置
-                result = match_p_in_w(
-                    raw_w_handle=self.handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["common"]["战斗"]["房间图标_男.png"],
-                    target_tolerance=0.95)
-                if not result:
-                    result = match_p_in_w(
-                        raw_w_handle=self.handle,
-                        raw_range=[0, 0, 950, 600],
-                        target_path=RESOURCE_P["common"]["战斗"]["房间图标_女.png"],
-                        target_tolerance=0.95)
-                if result:
-                    # 直接进入
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                        handle=self.handle,
-                        x=result[0], y=result[1])
-
-                    time.sleep(0.5)
-
-        if stage_0 == "NO":
-            main_no()
-        elif stage_0 == "MT":
-            main_mt()
-        elif stage_0 == "CS":
-            main_cs()
-        elif stage_0 == "OR":
-            main_or()
-        elif stage_0 == "EX":
-            main_ex()
-        elif stage_0 == "PT":
-            main_pt()
-        elif stage_0 == "GD":
-            main_gd()
-        else:
-            self.print_error(text="请输入正确的关卡名称！")
-
-    """其他基础函数"""
-
-    def check_level(self):
-        """检测角色等级和关卡等级(调用于输入关卡信息之后)"""
-        if self.character_level < self.stage_info["level"]:
-            return False
-        else:
-            return True
-
-    """领取任务奖励"""
-
-    def AQRR_normal(self):
-        """领取普通任务奖励"""
-
-        while True:
-            # 点任务
-            find = self.action_bottom_menu(mode="任务")
-
-            if find:
-                # 复位滑块
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=413, y=155)
-                time.sleep(0.25)
-
-                for i in range(8):
-
-                    # 不是第一次滑块向下移动3次
-                    if i != 0:
-                        for j in range(3):
-                            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=413, y=524)
-                            time.sleep(0.05)
-
-                    # 找到就点一下, 找不到就跳过
-                    while True:
-                        find = loop_match_p_in_w(
-                            raw_w_handle=self.handle,
-                            raw_range=[335, 120, 420, 545],
-                            target_path=RESOURCE_P["common"]["任务_完成.png"],
-                            target_tolerance=0.95,
-                            target_failed_check=1,
-                            target_sleep=0.5,
-                            click=True)
-                        if find:
-                            # 领取奖励
-                            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=643, y=534)
-                            time.sleep(0.2)
-                        else:
-                            break
-
-                self.action_exit(mode="普通红叉")
-                break
-
-    def AQRR_guild(self):
-        # 跳转到任务界面
-        self.action_bottom_menu(mode="跳转_公会任务")
-        # 循环遍历点击完成
-        while True:
-            # 点一下 让左边的选中任务颜色消失
-            loop_match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=[0, 0, 950, 600],
-                target_path=RESOURCE_P["quest_guild"]["ui_quest_list.png"],
-                target_sleep=0.5,
-                click=True)
-            result = loop_match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=[0, 0, 950, 600],
-                target_path=RESOURCE_P["quest_guild"]["completed.png"],
-                target_tolerance=0.99,
-                click=True,
-                target_failed_check=5,  # 1+4s 因为偶尔会弹出美食大赛完成动画4s 需要充足时间！这个确实脑瘫...
-                target_sleep=0.5)
-            if result:
-                loop_match_p_in_w(
-                    raw_w_handle=self.handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["quest_guild"]["gather.png"],
-                    target_tolerance=0.99,
-                    click=True,
-                    target_failed_check=2,
-                    target_sleep=2)  # 2s 完成任务有显眼动画
-            else:
-                break
-        # 退出任务界面
-        self.action_exit(mode="普通红叉")
-
-    def AQRR_spouse(self):
-        # 跳转到任务界面
-        self.action_bottom_menu(mode="跳转_情侣任务")
-        # 循环遍历点击完成
-        while True:
-            result = loop_match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=[0, 0, 950, 600],
-                target_path=RESOURCE_P["quest_spouse"]["completed.png"],
-                target_tolerance=0.99,
-                click=True,
-                target_failed_check=2,
-                target_sleep=2)  # 2s 完成任务有显眼动画)
-            if not result:
-                break
-        # 退出任务界面
-        self.action_exit(mode="普通红叉")
-
-    def AQRR_offer_reward(self):
-
-        # 进入X年活动界面
-        self.action_top_menu(mode="X年活动")
-
-        # 循环遍历点击完成
-        while True:
-            result = loop_match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=[0, 0, 950, 600],
-                target_path=RESOURCE_P["common"]["悬赏任务_领取奖励.png"],
-                target_tolerance=0.99,
-                target_failed_check=2,
-                click=True,
-                target_sleep=2)
-            if not result:
-                break
-
-        # 退出任务界面
-        self.action_exit(mode="关闭悬赏窗口")
-
-    def AQRR_food_competition(self):
-
-        found_flag = False  # 记录是否有完成任何一次任务
-
-        # 进入美食大赛界面
-        find = self.action_top_menu(mode="美食大赛")
-
-        if find:
-
-            my_dict = {0: 362, 1: 405, 2: 448, 3: 491, 4: 534, 5: 570}
-            for i in range(6):
-
-                # 先移动一次位置
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=my_dict[i])
-                time.sleep(0.2)
-
-                # 找到就点一下领取, 1s内找不到就跳过
-                while True:
-                    find = loop_match_p_in_w(
-                        raw_w_handle=self.handle,
-                        raw_range=[0, 0, 950, 600],
-                        target_path=RESOURCE_P["common"]["美食大赛_领取.png"],
-                        target_tolerance=0.95,
-                        target_failed_check=0.5,
-                        target_sleep=0.5,
-                        click=True)
-                    if find:
-                        # 领取升级有动画
-                        self.print_debug(text="[收取奖励] [美食大赛] 完成1个任务")
-                        time.sleep(6)
-                        # 更新是否找到flag
-                        found_flag = True
-                    else:
-                        break
-
-            # 退出美食大赛界面
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=888, y=53)
-            time.sleep(0.5)
-
-        else:
-            self.print_warning(text="[领取奖励] [美食大赛] 未打开界面, 可能大赛未刷新")
-
-        if not found_flag:
-            self.print_debug(text="[领取奖励] [美食大赛] 未完成任意任务")
-
-    def AQRR_monopoly(self):
-
-        # 进入对应地图
-        find = self.action_top_menu(mode="大富翁")
-
-        if find:
-
-            y_dict = {
-                0: 167,
-                1: 217,
-                2: 266,
-                3: 320,
-                4: 366,
-                5: 417
-            }
-
-            for i in range(3):
-
-                if i > 0:
-                    # 下一页
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=878, y=458)
-                    time.sleep(0.5)
-
-                # 点击每一个有效位置
-                for j in range(6):
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=768, y=y_dict[j])
-                    time.sleep(0.1)
-
-            # 退出界面
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=928, y=16)
-            time.sleep(0.5)
-
-    def action_quest_receive_rewards(self, mode: str):
-        """
-        领取奖励
-        :param mode: 普通任务/公会任务/情侣任务/悬赏任务/美食大赛/大富翁
-        :return:None
-        """
-
-        self.print_debug(text="[领取奖励] [{}] 开始".format(mode))
-
-        if mode == "普通任务":
-            self.AQRR_normal()
-        if mode == "公会任务":
-            self.AQRR_guild()
-        if mode == "情侣任务":
-            self.AQRR_spouse()
-        if mode == "悬赏任务":
-            self.AQRR_offer_reward()
-        if mode == "美食大赛":
-            self.AQRR_food_competition()
-        if mode == "大富翁":
-            self.AQRR_monopoly()
-
-        self.print_debug(text="[领取奖励] [{}] 结束".format(mode))
-
     """调用输入关卡配置和战斗配置, 在战斗前必须进行该操作"""
 
     def set_config_for_battle(
             self,
             stage_id="NO-1-1", is_group=False, is_main=True, is_use_key=True,
             deck=1, quest_card="None", ban_card_list=None,
-            battle_plan_index=0, battle_mode=0):
+            battle_plan_index=0):
         """
-        :param battle_mode:
         :param is_group: 是否组队
         :param is_main: 是否是主要账号(单人为True 双人房主为True)
         :param is_use_key: 是否使用钥匙
@@ -1094,7 +212,6 @@ class FAA:
         if ban_card_list is None:
             ban_card_list = []
 
-        self.battle_mode = battle_mode
         self.is_main = is_main
         self.is_group = is_group
         self.is_use_key = is_use_key
@@ -1114,7 +231,7 @@ class FAA:
         self.battle_plan_0 = read_json_to_battle_plan()
         self.stage_info = read_json_to_stage_info(stage_id)
 
-    """战斗主要组件函数"""
+    """战斗开始时的初始化函数"""
 
     def init_mat_card_position(self):
         """
@@ -1568,7 +685,6 @@ class FAA:
 
                 self.print_debug(text="寻找任务卡, 完成, 结果:{}".format("成功" if already_find else "失败"))
 
-
         def screen_ban_card_loop_a_round(ban_card_s):
 
             for card in ban_card_s:
@@ -1734,8 +850,9 @@ class FAA:
             self.faa_battle.use_shovel_all()  # 因为有点击序列，所以同时操作是可行的
 
     def action_round_of_battle_screen(self):
-
-        self.print_debug(text="识别到多种战斗结束标志之一, 进行收尾工作")
+        """
+        战斗结束后, 完成下述流程: 潜在的任务完成黑屏-> 战利品 -> 战斗结算 -> 翻宝箱 -> 回到房间/魔塔会回到其他界面
+        """
 
         def screen_loots():
             """
@@ -1783,7 +900,7 @@ class FAA:
             """
             :return: 捕获的战利品dict
             """
-            # 是否还在战利品ui界面
+            # 是否在战利品ui界面
             find = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[202, 419, 306, 461],
@@ -1887,6 +1004,12 @@ class FAA:
             file_path = "{}\\result_json\\{}P掉落汇总.json".format(PATHS["logs"], self.player)
             stage_name = self.stage_info["id"]
 
+            # 获取本次战斗是否使用了钥匙
+            if self.faa_battle.is_used_key:
+                used_key_str = "is_used_key"
+            else:
+                used_key_str = "is_not_used_key"
+
             if os.path.exists(file_path):
                 # 尝试读取现有的JSON文件
                 with open(file_path, "r", encoding="utf-8") as json_file:
@@ -1932,6 +1055,7 @@ class FAA:
             json_data["data"].append({
                 "timestamp": time.time(),
                 "stage": stage_name,
+                "is_used_key": self.faa_battle.is_used_key,
                 "loots": loots_dict,
                 "chests": chests_dict
             })
@@ -1955,33 +1079,11 @@ class FAA:
                 log_loots_statistics_to_json(loots_dict=loots_dict, chests_dict=chests_dict)
                 log_loots_detail_to_json(loots_dict=loots_dict, chests_dict=chests_dict)
 
-        # 先检是否炸服了
-        find = loop_match_ps_in_w(
-            raw_w_handle=self.handle,
-            target_opts=[
-                {
-                    "raw_range": [350, 275, 600, 360],
-                    "target_path": RESOURCE_P["error"]["登录超时.png"],
-                    "target_tolerance": 0.999
-                },
-                {
-                    "raw_range": [350, 275, 600, 360],
-                    "target_path": RESOURCE_P["error"]["断开连接.png"],
-                    "target_tolerance": 0.999
-                },
-                {
-                    "raw_range": [350, 275, 600, 360],
-                    "target_path": RESOURCE_P["error"]["Flash爆炸.png"],
-                    "target_tolerance": 0.999
-                }
-            ],
-            target_return_mode="or",
-            target_failed_check=1,
-            target_interval=0.2)
-
-        if find:
-            self.print_warning(text="检测到 断开连接 or 登录超时 or Flash爆炸, 炸服了")
-            return 1, None  # 1-重启本次
+            if self.screen_check_server_boom():
+                self.print_warning(text="检测到 断开连接 or 登录超时 or Flash爆炸, 炸服了")
+                return 1, None  # 1-重启本次
+            else:
+                return 0, result_loot
 
         return main()
 
@@ -2017,6 +1119,149 @@ class FAA:
             return 2  # 2-跳过本次
 
     """其他非战斗功能"""
+
+    def action_quest_receive_rewards(self,mode:str):
+        return self.object_action_quest_receive_rewards.main(mode=mode)
+
+    def get_quests(self, mode: str, qg_cs=False):
+        """
+        获取公会任务列表
+        :param mode:
+        :param qg_cs: 公会任务模式下 是否需要跨服
+        :return: [
+            {
+                "stage_id":str,
+                "max_times":,
+                "quest_card":str,
+                "ban_card":None
+            },
+        ]
+        """
+        # 跳转到对应界面
+        if mode == "公会任务":
+            self.action_bottom_menu(mode="跳转_公会任务")
+            # 点一下 让左边的选中任务颜色消失
+            loop_match_p_in_w(
+                raw_w_handle=self.handle,
+                raw_range=[0, 0, 950, 600],
+                target_path=RESOURCE_P["quest_guild"]["ui_quest_list.png"],
+                target_sleep=0.2,
+                click=True)
+        if mode == "情侣任务":
+            self.action_bottom_menu(mode="跳转_情侣任务")
+        if mode == "美食大赛":
+            self.action_top_menu(mode="美食大赛")
+
+        # 读取
+        quest_list = []
+        if mode == "公会任务":
+
+            for i in [1, 2, 3, 4, 5, 6, 7]:
+                for quest, img in RESOURCE_P["quest_guild"][str(i)].items():
+                    # 找到任务 加入任务列表
+                    find_p = match_p_in_w(
+                        raw_w_handle=self.handle,
+                        raw_range=[0, 0, 950, 600],
+                        target_path=img,
+                        target_tolerance=0.999)
+                    if find_p:
+
+                        quest_card = "None"  # 任务携带卡片默认为None
+
+                        # 处理解析字符串
+                        quest = quest.split(".")[0]  # 去除.png
+                        num_of_line = quest.count("_")  # 分割
+                        if num_of_line == 0:
+                            stage_id = quest
+                        else:
+                            my_list = quest.split("_")
+                            stage_id = my_list[0]
+                            if num_of_line == 1:
+                                if not my_list[1].isdigit():
+                                    quest_card = my_list[1]
+                            elif num_of_line == 2:
+                                quest_card = my_list[2]
+
+                        # 如果不打 跳过
+                        if stage_id.split("-")[0] == "CS" and (not qg_cs):
+                            continue
+
+                        # 添加到任务列表
+                        quest_list.append(
+                            {
+                                "player": [2, 1],
+                                "stage_id": stage_id,
+                                "quest_card": quest_card
+                            }
+                        )
+        if mode == "情侣任务":
+
+            for i in ["1", "2", "3"]:
+                # 任务未完成
+                find_p = match_p_in_w(
+                    raw_w_handle=self.handle,
+                    raw_range=[0, 0, 950, 600],
+                    target_path=RESOURCE_P["quest_spouse"]["NO-{}.png".format(i)],
+                    target_tolerance=0.999)
+                if find_p:
+                    # 遍历任务
+                    for quest, img in RESOURCE_P["quest_spouse"][i].items():
+                        # 找到任务 加入任务列表
+                        find_p = match_p_in_w(
+                            raw_w_handle=self.handle,
+                            raw_range=[0, 0, 950, 600],
+                            target_path=img,
+                            target_tolerance=0.999)
+                        if find_p:
+                            quest_list.append(
+                                {
+                                    "player": [2, 1],
+                                    "stage_id": quest.split(".")[0],
+                                    "quest_card": "None"
+                                }
+                            )
+        if mode == "美食大赛":
+            y_dict = {0: 362, 1: 405, 2: 448, 3: 491, 4: 534, 5: 570}
+            for i in range(6):
+                # 先移动到新的一页
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=y_dict[i])
+                time.sleep(0.1)
+                for quest, img in RESOURCE_P["quest_food"].items():
+                    find_p = match_p_in_w(
+                        raw_w_handle=self.handle,
+                        raw_range=[0, 0, 950, 600],
+                        target_path=img,
+                        target_tolerance=0.999)
+
+                    if find_p:
+                        # 处理解析字符串
+                        quest = quest.split(".")[0]  # 去除.png
+                        battle_sets = quest.split("_")
+                        quest_list.append(
+                            {
+                                "stage_id": battle_sets[0],
+                                "player": [self.player] if battle_sets[1] == "1" else [2, 1],  # 1 单人 2 组队
+                                "is_use_key": bool(battle_sets[2]),  # 注意类型转化
+                                "max_times": 1,
+                                "quest_card": battle_sets[3],
+                                "list_ban_card": battle_sets[4].split(","),
+                                "dict_exit": {
+                                    "other_time_player_a": [],
+                                    "other_time_player_b": [],
+                                    "last_time_player_a": ["竞技岛", "美食大赛领取"],
+                                    "last_time_player_b": ["竞技岛", "美食大赛领取"]
+                                }
+                            }
+                        )
+
+        # 关闭公会任务列表(红X)
+        if mode == "公会任务" or mode == "情侣任务":
+            self.action_exit(mode="普通红叉")
+        if mode == "美食大赛":
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=888, y=53)
+            time.sleep(0.5)
+
+        return quest_list
 
     def reload_to_login_ui(self):
 
@@ -2518,7 +1763,7 @@ class FAA:
             self.action_exit(mode="普通红叉")
 
         fed_and_watered_main()
-        self.action_quest_receive_rewards(mode="公会任务")
+        self.object_action_quest_receive_rewards.main(mode="公会任务")
 
     def use_item(self):
         # 获取所有图片资源
