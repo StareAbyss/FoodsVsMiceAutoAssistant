@@ -45,7 +45,7 @@ class QMainWindowLog(QMainWindowLoadSettings):
     def start_print(self):
         """打印默认输出提示"""
         self.signal_print_to_ui.emit("嗷呜, 欢迎使用FAA-美食大战老鼠自动放卡作战小助手~", time=False)
-        self.signal_print_to_ui.emit("当前版本: 1.3.0", time=False)
+        self.signal_print_to_ui.emit("当前版本: 1.3.1", time=False)
         self.signal_print_to_ui.emit("", time=False)
         self.signal_print_to_ui.emit("使用安全说明", color="red", time=False)
         self.signal_print_to_ui.emit("[1] 务必有二级密码", time=False)
