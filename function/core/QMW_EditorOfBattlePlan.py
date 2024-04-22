@@ -18,45 +18,7 @@ double_click_card_list = pyqtSignal(object)
 """
 
 
-class QListWidgetDraggable(QListWidget):
-
-    def __init__(self, drop_function):
-        super(QListWidgetDraggable, self).__init__()
-
-        # 定义数据变化函数
-        self.drop_function = drop_function
-
-        # 允许内部拖拽
-        self.setDragDropMode(self.InternalMove)
-
-    def dropEvent(self, e):
-        print("拖拽事件触发")
-        index_from = self.currentRow()
-        super(QListWidgetDraggable, self).dropEvent(e)  # 如果不调用父类的构造方法，拖拽操作将无法正常进行
-        index_to = self.currentRow()
-
-        source_Widget = e.source()  # 获取拖入item的父组件
-        items = source_Widget.selectedItems()  # 获取所有的拖入item
-        item = items[0]  # 不允许多选 所以只有一个
-
-        print("text:{} from {} to {} memory:{}".format(item.text(), index_from, index_to, self.currentRow()))
-
-        # 执行更改函数
-        self.drop_function(index_from=index_from, index_to=index_to)
-
-    def mousePressEvent(self, e):
-        super().mousePressEvent(e)
-        # print("鼠标点击事件触发")
-        current_row = self.currentRow()
-        if current_row == 0:
-            # 禁止拖拽
-            self.setDragDropMode(self.NoDragDrop)
-        else:
-            # 允许内部拖拽
-            self.setDragDropMode(self.InternalMove)
-
-
-class JsonEditor(QMainWindow):
+class QMWEditorOfBattlePlan(QMainWindow):
 
     def __init__(self):
         super().__init__()
@@ -127,7 +89,7 @@ class JsonEditor(QMainWindow):
         self.WeiIdInput = QSpinBox()
         self.LayCardEditor.addWidget(self.WeiIdInput)
         self.WeiIdInput.setToolTip("id代表卡在卡组中的顺序")
-        self.WeiIdInput.setRange(0,21)
+        self.WeiIdInput.setRange(0, 21)
 
         self.LayCardEditor.addWidget(QLabel('名称:'))
 
@@ -246,13 +208,11 @@ class JsonEditor(QMainWindow):
                 # 去除高亮
                 btn.setStyleSheet("")
 
-
         # 高亮显示选中卡片的位置
         for location in card_locations:
             x, y = map(int, location.split('-'))
-             # 添加背景颜色到现有样式
+            # 添加背景颜色到现有样式
             self.chessboard_frames[y - 1][x - 1].setStyleSheet("background-color: rgba(255, 255, 0, 127);")
-
 
     def UICss(self):
         # 窗口名
@@ -560,9 +520,47 @@ class JsonEditor(QMainWindow):
             self.load_data_to_ui_list()
             self.refresh_chessboard()
 
-    def set_my_font(self,my_font):
+    def set_my_font(self, my_font):
         self.my_font = my_font
         self.setFont(self.my_font)
+
+
+class QListWidgetDraggable(QListWidget):
+
+    def __init__(self, drop_function):
+        super(QListWidgetDraggable, self).__init__()
+
+        # 定义数据变化函数
+        self.drop_function = drop_function
+
+        # 允许内部拖拽
+        self.setDragDropMode(self.InternalMove)
+
+    def dropEvent(self, e):
+        print("拖拽事件触发")
+        index_from = self.currentRow()
+        super(QListWidgetDraggable, self).dropEvent(e)  # 如果不调用父类的构造方法，拖拽操作将无法正常进行
+        index_to = self.currentRow()
+
+        source_Widget = e.source()  # 获取拖入item的父组件
+        items = source_Widget.selectedItems()  # 获取所有的拖入item
+        item = items[0]  # 不允许多选 所以只有一个
+
+        print("text:{} from {} to {} memory:{}".format(item.text(), index_from, index_to, self.currentRow()))
+
+        # 执行更改函数
+        self.drop_function(index_from=index_from, index_to=index_to)
+
+    def mousePressEvent(self, e):
+        super().mousePressEvent(e)
+        # print("鼠标点击事件触发")
+        current_row = self.currentRow()
+        if current_row == 0:
+            # 禁止拖拽
+            self.setDragDropMode(self.NoDragDrop)
+        else:
+            # 允许内部拖拽
+            self.setDragDropMode(self.InternalMove)
 
 
 class ChessButton(QPushButton):
@@ -581,6 +579,6 @@ class ChessButton(QPushButton):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = JsonEditor()
+    ex = QMWEditorOfBattlePlan()
     ex.show()
     sys.exit(app.exec_())

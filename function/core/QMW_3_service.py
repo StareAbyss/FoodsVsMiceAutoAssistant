@@ -4,9 +4,11 @@ import sys
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QApplication
 
-from function.core.EditorOfBattlePlan import JsonEditor
 from function.core.FAA import FAA
 from function.core.QMW_2_log import QMainWindowLog
+from function.core.QMW_EditorOfBattlePlan import QMWEditorOfBattlePlan
+from function.core.QMW_TipStageID import QMWTipStageID
+from function.core.QMW_TipWarmGift import QMWTipWarmGift
 from function.core.Todo import ThreadTodo
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.TodoTimerManager import TodoTimerManager
@@ -41,10 +43,16 @@ class QMainWindowService(QMainWindowLog):
         # 链接中止函数
         self.signal_end.connect(self.todo_end)
 
-        # 编辑器窗口
-        self.window_editor = JsonEditor()
+        # 更多额外窗口
+        self.window_editor = QMWEditorOfBattlePlan()
+        self.OpenEditorOfBattlePlan_Button.clicked.connect(self.click_btn_open_editor)
 
-        #
+        self.window_tip_warm_gift = QMWTipWarmGift()
+        self.GetWarmGift_Button.clicked.connect(self.click_btn_tip_warm_gift)
+
+        self.window_tip_stage_id = QMWTipStageID()
+        self.TipStageID_Button.clicked.connect(self.click_btn_tip_stage_id)
+
         self.signal_change_current_todo_plan.connect(self.change_current_todo_plan)
         self.signal_todo_start.connect(self.todo_start)
 
@@ -60,7 +68,7 @@ class QMainWindowService(QMainWindowLog):
 
         # 当前方案变化 函数绑定
         self.CurrentPlan.currentIndexChanged.connect(self.opt_to_ui_todo_plans)
-        self.OpenEditorOfBattlePlan_Button.clicked.connect(self.click_btn_open_editor)
+
 
     def todo_start(self):
         """todo线程的启动函数"""
@@ -98,7 +106,7 @@ class QMainWindowService(QMainWindowLog):
         # 设置按钮文本
         self.Button_Start.setText("终止任务\nStop")
         if self.todo_timer_running:
-            self.signal_print_to_ui.emit("",time=False)
+            self.signal_print_to_ui.emit("", time=False)
             self.signal_print_to_ui.emit("[定时任务] 本次启动为 定时自启动 不清屏", color="blue")
         else:
             # 清屏并输出(仅限手动)
@@ -134,8 +142,8 @@ class QMainWindowService(QMainWindowLog):
             signal_dict=self.signal_dict)
 
         # 创建新的todo并启动线程
-        self.thread_todo_1 = ThreadTodo(faa=faa, opt=self.opt, signal_dict=self.signal_dict,todo_id=1)
-        self.thread_todo_2 = ThreadTodo(faa=faa, opt=self.opt, signal_dict=self.signal_dict,todo_id=2)  # 用于双人多线程
+        self.thread_todo_1 = ThreadTodo(faa=faa, opt=self.opt, signal_dict=self.signal_dict, todo_id=1)
+        self.thread_todo_2 = ThreadTodo(faa=faa, opt=self.opt, signal_dict=self.signal_dict, todo_id=2)  # 用于双人多线程
 
         # 链接信号以进行多线程单人
         self.thread_todo_1.signal_start_todo_2_battle.connect(self.thread_todo_2.set_extra_opt_and_start)
@@ -239,6 +247,14 @@ class QMainWindowService(QMainWindowLog):
     def click_btn_open_editor(self):
         self.window_editor.set_my_font(self.font)
         self.window_editor.show()
+
+    def click_btn_tip_warm_gift(self):
+        self.window_tip_warm_gift.setFont(self.font)
+        self.window_tip_warm_gift.show()
+
+    def click_btn_tip_stage_id(self):
+        self.window_tip_stage_id.setFont(self.font)
+        self.window_tip_stage_id.show()
 
 
 def main():
