@@ -1,6 +1,6 @@
 import time
 
-from function.common.bg_p_match import loop_match_p_in_w
+from function.common.bg_img_match import loop_match_p_in_w
 from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 

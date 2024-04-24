@@ -2,7 +2,7 @@ import time
 
 import numpy as np
 
-from function.common.bg_p_screenshot import capture_picture_png
+from function.common.bg_img_screenshot import capture_picture_png
 from function.globals.extra import EXTRA_GLOBALS
 from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER

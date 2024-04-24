@@ -2,8 +2,8 @@ import time
 
 import numpy as np
 
-from function.common.bg_p_match import match_p_in_w, match_ps_in_w, loop_match_p_in_w
-from function.common.bg_p_screenshot import capture_picture_png
+from function.common.bg_img_match import match_p_in_w, match_ps_in_w, loop_match_p_in_w
+from function.common.bg_img_screenshot import capture_picture_png
 from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
@@ -94,8 +94,8 @@ class Battle:
         find = match_p_in_w(
             raw_w_handle=self.faa.handle,
             raw_range=[386,332,463,362],
-            target_tolerance=0.95,
-            target_path=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
+            tolerance=0.95,
+            template=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
         if find:
             self.faa.print_debug(text="找到了 [继续作战]")
             while find:
@@ -109,8 +109,8 @@ class Battle:
                 find = match_p_in_w(
                     raw_w_handle=self.faa.handle,
                     raw_range=[302,263,396,289],
-                    target_tolerance=0.95,
-                    target_path=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
+                    tolerance=0.95,
+                    template=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
             self.faa.print_debug(text="已查找到 [继续作战] 图标并点击")
             used_key = True
         return used_key

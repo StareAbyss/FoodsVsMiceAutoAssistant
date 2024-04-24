@@ -7,8 +7,8 @@ import cv2
 import numpy as np
 
 from function.battle.get_position_in_battle import get_position_card_deck_in_battle, get_position_card_cell_in_battle
-from function.common.bg_p_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
-from function.common.bg_p_screenshot import capture_picture_png
+from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
+from function.common.bg_img_screenshot import capture_picture_png
 from function.core.FAAActionInterfaceJump import FAAActionInterfaceJump
 from function.core.FAAActionQuestReceiveRewards import FAAActionQuestReceiveRewards
 from function.core.FAABattle import Battle
@@ -85,7 +85,7 @@ class FAA:
         self.faa_battle = Battle(faa=self)
 
         # 领取奖励实例 基本只调用一个main方法
-        self.object_action_quest_receive_rewards = FAAActionQuestReceiveRewards(faa=self)
+        self.object_action_receive_quest_rewards = FAAActionQuestReceiveRewards(faa=self)
 
         # 界面跳转实例 用于实现
         self.object_action_interface_jump = FAAActionInterfaceJump(faa=self)
@@ -261,8 +261,8 @@ class FAA:
                 find = match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["card"]["战斗"][mat_card],
-                    target_tolerance=0.99)
+                    template=RESOURCE_P["card"]["战斗"][mat_card],
+                    tolerance=0.99)
                 if find:
                     position_list.append([int(find[0]), int(find[1])])
                     # 从资源中去除已经找到的卡片
@@ -301,8 +301,8 @@ class FAA:
                 find = match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["card"]["战斗"][f"冰淇淋-{j}.png"],
-                    target_tolerance=0.99)
+                    template=RESOURCE_P["card"]["战斗"][f"冰淇淋-{j}.png"],
+                    tolerance=0.99)
                 if find:
                     position = [int(find[0]), int(find[1])]
                     break
@@ -337,8 +337,8 @@ class FAA:
                 find = match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["card"]["战斗"][f"幻幻鸡-{j}.png"],
-                    target_tolerance=0.99)
+                    template=RESOURCE_P["card"]["战斗"][f"幻幻鸡-{j}.png"],
+                    tolerance=0.99)
                 if find:
                     position = [int(find[0]), int(find[1])]
                     break
@@ -786,8 +786,8 @@ class FAA:
             find = match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=RESOURCE_P["common"]["战斗"]["战斗前_系统提示.png"],
-                target_tolerance=0.98)
+                template=RESOURCE_P["common"]["战斗"]["战斗前_系统提示.png"],
+                tolerance=0.98)
             if find:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
@@ -1120,10 +1120,10 @@ class FAA:
 
     """其他非战斗功能"""
 
-    def action_quest_receive_rewards(self,mode:str):
-        return self.object_action_quest_receive_rewards.main(mode=mode)
+    def receive_quest_rewards(self, mode: str):
+        return self.object_action_receive_quest_rewards.main(mode=mode)
 
-    def get_quests(self, mode: str, qg_cs=False):
+    def match_quests(self, mode: str, qg_cs=False):
         """
         获取公会任务列表
         :param mode:
@@ -1147,8 +1147,10 @@ class FAA:
                 target_path=RESOURCE_P["quest_guild"]["ui_quest_list.png"],
                 target_sleep=0.2,
                 click=True)
+
         if mode == "情侣任务":
             self.action_bottom_menu(mode="跳转_情侣任务")
+
         if mode == "美食大赛":
             self.action_top_menu(mode="美食大赛")
 
@@ -1162,8 +1164,8 @@ class FAA:
                     find_p = match_p_in_w(
                         raw_w_handle=self.handle,
                         raw_range=[0, 0, 950, 600],
-                        target_path=img,
-                        target_tolerance=0.999)
+                        template=img,
+                        tolerance=0.999)
                     if find_p:
 
                         quest_card = "None"  # 任务携带卡片默认为None
@@ -1201,8 +1203,8 @@ class FAA:
                 find_p = match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["quest_spouse"]["NO-{}.png".format(i)],
-                    target_tolerance=0.999)
+                    template=RESOURCE_P["quest_spouse"]["NO-{}.png".format(i)],
+                    tolerance=0.999)
                 if find_p:
                     # 遍历任务
                     for quest, img in RESOURCE_P["quest_spouse"][i].items():
@@ -1210,8 +1212,8 @@ class FAA:
                         find_p = match_p_in_w(
                             raw_w_handle=self.handle,
                             raw_range=[0, 0, 950, 600],
-                            target_path=img,
-                            target_tolerance=0.999)
+                            template=img,
+                            tolerance=0.999)
                         if find_p:
                             quest_list.append(
                                 {
@@ -1229,9 +1231,9 @@ class FAA:
                 for quest, img in RESOURCE_P["quest_food"].items():
                     find_p = match_p_in_w(
                         raw_w_handle=self.handle,
-                        raw_range=[0, 0, 950, 600],
-                        target_path=img,
-                        target_tolerance=0.999)
+                        raw_range=[130, 350, 470, 585],
+                        template=img,
+                        tolerance=0.999)
 
                     if find_p:
                         # 处理解析字符串
@@ -1263,7 +1265,7 @@ class FAA:
 
         return quest_list
 
-    def reload_to_login_ui(self):
+    def click_refresh_btn(self):
 
         # 点击刷新按钮 该按钮在360窗口上
         find = loop_match_p_in_w(
@@ -1303,8 +1305,8 @@ class FAA:
             my_result = match_p_in_w(
                 raw_w_handle=self.handle_browser,
                 raw_range=[0, 0, 2000, 2000],
-                target_path=RESOURCE_P["common"]["登录"]["1_我最近玩过的服务器_4399.png"],
-                target_tolerance=0.9
+                template=RESOURCE_P["common"]["登录"]["1_我最近玩过的服务器_4399.png"],
+                tolerance=0.9
             )
             if my_result:
                 # 点击进入服务器
@@ -1320,8 +1322,8 @@ class FAA:
             my_result = match_p_in_w(
                 raw_w_handle=self.handle_browser,
                 raw_range=[0, 0, 2000, 2000],
-                target_path=RESOURCE_P["common"]["登录"]["1_我最近玩过的服务器_QQ空间.png"],
-                target_tolerance=0.9
+                template=RESOURCE_P["common"]["登录"]["1_我最近玩过的服务器_QQ空间.png"],
+                tolerance=0.9
             )
             if my_result:
                 # 点击进入服务器
@@ -1337,8 +1339,8 @@ class FAA:
             my_result = match_p_in_w(
                 raw_w_handle=self.handle_browser,
                 raw_range=[0, 0, 2000, 2000],
-                target_path=RESOURCE_P["common"]["登录"]["1_我最近玩过的服务器_QQ游戏大厅.png"],
-                target_tolerance=0.9
+                template=RESOURCE_P["common"]["登录"]["1_我最近玩过的服务器_QQ游戏大厅.png"],
+                tolerance=0.9
             )
             if my_result:
                 # 点击进入服务器
@@ -1353,7 +1355,7 @@ class FAA:
 
             # 点击刷新按钮 该按钮在360窗口上
             self.print_debug(text="[刷新游戏] 点击刷新按钮...")
-            self.reload_to_login_ui()
+            self.click_refresh_btn()
 
             # 是否在 选择服务器界面 - 判断是否存在 最近玩过的服务器ui(4399 or qq空间) 或 开始游戏(qq游戏大厅) 并进入
             result = False
@@ -1763,19 +1765,16 @@ class FAA:
             self.action_exit(mode="普通红叉")
 
         fed_and_watered_main()
-        self.object_action_quest_receive_rewards.main(mode="公会任务")
+        self.object_action_receive_quest_rewards.main(mode="公会任务")
 
-    def use_item(self):
-        # 获取所有图片资源
+    def use_items_consumables(self):
         self.print_debug(text="开启使用物品功能")
 
         # 打开背包
         self.print_debug(text="打开背包")
         self.action_bottom_menu(mode="背包")
 
-        # 升到最顶, 不需要, 打开背包会自动重置
-
-        # 四次循环查找所有正确图标
+        # 四次循环查找所有正确图标 升到最顶, 不需要, 打开背包会自动重置
         for i in range(4):
 
             self.print_debug(text="第{}页物品".format(i + 1))
@@ -1806,9 +1805,9 @@ class FAA:
                         raw_w_handle=self.handle,
                         raw_range=[466, 86, 891, 435],
                         target_path=item_image,
-                        target_tolerance=0.90,
-                        target_interval=0.2,
-                        target_failed_check=0.2,
+                        target_tolerance=0.95,
+                        target_interval=0,
+                        target_failed_check=0,
                         target_sleep=0.05,
                         click=True)
 
@@ -1818,7 +1817,7 @@ class FAA:
                             raw_w_handle=self.handle,
                             raw_range=[466, 86, 950, 500],
                             target_path=RESOURCE_P["item"]["背包_使用.png"],
-                            target_tolerance=0.90,
+                            target_tolerance=0.95,
                             target_interval=0.2,
                             target_failed_check=1,
                             target_sleep=0.5,
@@ -1840,6 +1839,13 @@ class FAA:
                         # 没有找到对应物品 skip
                         self.print_debug(text="物品:{}本页已全部找到".format(item_name))
                         break
+
+        # 关闭背包
+        self.action_exit(mode="普通红叉")
+
+
+
+
 
         # 关闭背包
         self.action_exit(mode="普通红叉")
@@ -1894,8 +1900,8 @@ class FAA:
             find = match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=[0, 0, 950, 600],
-                target_path=RESOURCE_P["common"]["战斗"]["战斗前_系统提示.png"],
-                target_tolerance=0.98)
+                template=RESOURCE_P["common"]["战斗"]["战斗前_系统提示.png"],
+                tolerance=0.98)
             if find:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=427, y=353)
                 time.sleep(0.5)
