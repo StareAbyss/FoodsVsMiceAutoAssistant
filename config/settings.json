@@ -10,8 +10,8 @@
     "timer": {
         "1": {
             "active": true,
-            "h": 3,
-            "m": 50,
+            "h": 2,
+            "m": 55,
             "plan": 2
         },
         "2": {
@@ -39,20 +39,25 @@
             "plan": 6
         }
     },
-    "current_plan": 2,
+    "current_plan": 0,
     "todo_plans": [
         {
             "name": "Default",
             "sign_in": {
-                "active": true,
+                "active": false,
                 "is_group": true
             },
             "fed_and_watered": {
                 "active": false,
                 "is_group": true
             },
+            "use_double_card": {
+                "active": false,
+                "is_group": true,
+                "max_times": 2
+            },
             "warrior": {
-                "active": true,
+                "active": false,
                 "is_group": true,
                 "max_times": 8,
                 "deck": 1,
@@ -60,7 +65,7 @@
                 "battle_plan_2p": 3
             },
             "normal_battle": {
-                "active": true,
+                "active": false,
                 "is_group": true,
                 "max_times": 20,
                 "stage": "EX-5-7",
@@ -69,7 +74,7 @@
                 "battle_plan_2p": 29
             },
             "offer_reward": {
-                "active": true,
+                "active": false,
                 "max_times_1": 1,
                 "max_times_2": 1,
                 "max_times_3": 2,
@@ -78,7 +83,7 @@
                 "battle_plan_2p": 1
             },
             "cross_server": {
-                "active": true,
+                "active": false,
                 "is_group": true,
                 "max_times": 11,
                 "stage": "CS-5-4",
@@ -94,7 +99,7 @@
                 "battle_plan_2p": 1
             },
             "guild_dungeon": {
-                "active": true
+                "active": false
             },
             "quest_spouse": {
                 "active": true
@@ -150,16 +155,16 @@
             },
             "pet_temple_2": {
                 "active": true,
-                "stage": 21,
-                "deck": 1,
-                "battle_plan_1p": 0
+                "stage": 22,
+                "deck": 4,
+                "battle_plan_1p": 14
             },
             "use_items": {
-                "active": true,
+                "active": false,
                 "is_group": true
             },
             "receive_awards": {
-                "active": true,
+                "active": false,
                 "is_group": true
             },
             "loop_cross_server": {
@@ -176,7 +181,7 @@
             },
             "customize": {
                 "active": false,
-                "battle_plan_1p": 3,
+                "battle_plan_1p": -1,
                 "stage": 1
             },
             "auto_food": {
@@ -193,6 +198,11 @@
             "fed_and_watered": {
                 "active": false,
                 "is_group": true
+            },
+            "use_double_card": {
+                "active": false,
+                "is_group": true,
+                "max_times": 2
             },
             "warrior": {
                 "active": false,
@@ -230,7 +240,7 @@
                 "battle_plan_2p": 3
             },
             "quest_guild": {
-                "active": true,
+                "active": false,
                 "stage": true,
                 "deck": 1,
                 "battle_plan_1p": 0,
@@ -302,7 +312,7 @@
                 "is_group": false
             },
             "receive_awards": {
-                "active": true,
+                "active": false,
                 "is_group": false
             },
             "loop_cross_server": {
@@ -318,8 +328,8 @@
                 "battle_plan_2p": 1
             },
             "customize": {
-                "active": false,
-                "battle_plan_1p": 3,
+                "active": true,
+                "battle_plan_1p": -1,
                 "stage": 1
             },
             "auto_food": {
@@ -337,6 +347,11 @@
                 "active": true,
                 "is_group": true
             },
+            "use_double_card": {
+                "active": false,
+                "is_group": true,
+                "max_times": 2
+            },
             "warrior": {
                 "active": false,
                 "is_group": true,
@@ -348,11 +363,11 @@
             "normal_battle": {
                 "active": true,
                 "is_group": true,
-                "max_times": 20,
-                "stage": "EX-5-6",
+                "max_times": 35,
+                "stage": "EX-5-8",
                 "deck": 5,
-                "battle_plan_1p": 15,
-                "battle_plan_2p": 15
+                "battle_plan_1p": 24,
+                "battle_plan_2p": 24
             },
             "offer_reward": {
                 "active": false,
@@ -480,8 +495,13 @@
                 "active": false,
                 "is_group": true
             },
+            "use_double_card": {
+                "active": false,
+                "is_group": true,
+                "max_times": 2
+            },
             "warrior": {
-                "active": true,
+                "active": false,
                 "is_group": true,
                 "max_times": 8,
                 "deck": 1,
@@ -622,6 +642,11 @@
             "fed_and_watered": {
                 "active": false,
                 "is_group": true
+            },
+            "use_double_card": {
+                "active": false,
+                "is_group": true,
+                "max_times": 2
             },
             "warrior": {
                 "active": false,
@@ -766,6 +791,11 @@
                 "active": false,
                 "is_group": true
             },
+            "use_double_card": {
+                "active": false,
+                "is_group": true,
+                "max_times": 2
+            },
             "warrior": {
                 "active": false,
                 "is_group": true,
@@ -908,6 +938,11 @@
             "fed_and_watered": {
                 "active": true,
                 "is_group": true
+            },
+            "use_double_card": {
+                "active": false,
+                "is_group": true,
+                "max_times": 2
             },
             "warrior": {
                 "active": false,

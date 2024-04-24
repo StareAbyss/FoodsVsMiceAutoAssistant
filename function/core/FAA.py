@@ -1843,9 +1843,81 @@ class FAA:
         # 关闭背包
         self.action_exit(mode="普通红叉")
 
+    def use_items_double_card(self, max_times):
+        self.print_debug(text="[使用双暴卡] 开始")
 
+        # 打开背包
+        self.print_debug(text="打开背包")
+        self.action_bottom_menu(mode="背包")
 
+        used_success = 0
 
+        # 四次循环查找所有正确图标 升到最顶, 不需要, 打开背包会自动重置
+        for i in range(4):
+
+            self.print_debug(text=f"[使用双暴卡] 第{i + 1}页物品 开始查找")
+
+            # 第一次以外, 下滑4*5次
+            if i != 0:
+                for j in range(5):
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=920, y=422)
+                    time.sleep(0.2)
+
+            while True:
+
+                if used_success == max_times:
+                    break
+
+                # 在限定范围内 找物品
+                find = loop_match_p_in_w(
+                    raw_w_handle=self.handle,
+                    raw_range=[466, 86, 891, 435],
+                    target_path=RESOURCE_P["item"]["双暴卡"],
+                    target_tolerance=0.95,
+                    target_interval=0,
+                    target_failed_check=0,
+                    target_sleep=0.05,
+                    click=True)
+
+                if find:
+                    self.print_debug(text="[使用双暴卡] 成功使用一张双暴卡")
+                    used_success += 1
+
+                    # 在限定范围内 找到并点击物品 使用它
+                    find = loop_match_p_in_w(
+                        raw_w_handle=self.handle,
+                        raw_range=[466, 86, 950, 500],
+                        target_path=RESOURCE_P["item"]["背包_使用.png"],
+                        target_tolerance=0.95,
+                        target_interval=0.2,
+                        target_failed_check=1,
+                        target_sleep=0.5,
+                        click=True)
+
+                    # 鼠标选中 使用按钮 会有色差, 第一次找不到则再来一次
+                    if not find:
+                        loop_match_p_in_w(
+                            raw_w_handle=self.handle,
+                            raw_range=[466, 86, 950, 500],
+                            target_path=RESOURCE_P["item"]["背包_使用_被选中.png"],
+                            target_tolerance=0.90,
+                            target_interval=0.2,
+                            target_failed_check=1,
+                            target_sleep=0.5,
+                            click=True)
+
+                else:
+                    # 没有找到对应物品 skip
+                    self.print_debug(text=f"[使用双暴卡] 第{i + 1}页物品 未找到")
+                    break
+
+            if used_success == max_times:
+                break
+
+        if used_success == max_times:
+            self.print_debug(text=f"[使用双暴卡] 成功使用{used_success}张双暴卡")
+        else:
+            self.print_debug(text=f"[使用双暴卡] 成功使用{used_success}张双暴卡 数量不达标")
 
         # 关闭背包
         self.action_exit(mode="普通红叉")
