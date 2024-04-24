@@ -3,7 +3,7 @@ import time
 import cv2
 import numpy as np
 
-from function.common.bg_p_screenshot import capture_picture_png, png_cropping
+from function.common.bg_img_screenshot import capture_picture_png, png_cropping
 from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
@@ -17,74 +17,61 @@ def match_p_in_w(
     """
     find target in template
     catch an image by a handle, find a smaller image(target) in this bigger one, return center relative position
-
     :param raw_w_handle: 窗口句柄
     :param raw_range: 原始图像生效的范围,为 [左上X, 左上Y,右下X, 右下Y], 右下位置超出范围取最大(不会报错)
-    :param target_path: 目标图片的文件路径
-    :param target_tolerance: 捕捉准确度阈值 0-1
+    :param template: 目标图片的文件路径
+    :param tolerance: 捕捉准确度阈值 0-1
+    :param is_test: 仅单例测试使用, 显示匹配到的最右图像位置框
 
     Returns: 识别到的目标的中心坐标(相对于截图)
-
-
     """
-    # 根据 路径 或者 numpy.array 选择是否读取
-    if type(target_path) is np.ndarray:
-        tar_img = target_path
-    else:
-        # 读取目标图像,中文路径兼容方案
-        tar_img = cv2.imdecode(buf=np.fromfile(file=target_path, dtype=np.uint8), flags=-1)
-
-    if tar_img.shape[2] == 4:
-        tar_img = tar_img[:, :, :3]
 
     # 截取原始图像(windows窗口) BGRA -> BGR
-    raw_img = capture_picture_png(handle=raw_w_handle, raw_range=raw_range)
-    raw_img = raw_img[:, :, :3]
-    # 执行模板匹配，采用的匹配方式cv2.TM_SQDIFF_NORMED, 仅匹配BGR不匹配A
+    img_source = capture_picture_png(handle=raw_w_handle, raw_range=raw_range)
+    img_source = img_source[:, :, :3]
 
-    # 函数:对应方法-匹配良好输出->匹配不好输出
-    # CV_TM_SQDIFF:平方差匹配法 [1]->[0]；
-    # CV_TM_SQDIFF_NORMED:归一化平方差匹配法 [0]->[1]；
-    # CV_TM_CCORR:相关匹配法 [较大值]->[0]；
-    # CV_TM_CCORR_NORMED:归一化相关匹配法 [1]->[0]；
-    # CV_TM_CCOEFF:系数匹配法；
-    # CV_TM_CCOEFF_NORMED:归一化相关系数匹配法 [1]->[0]->[-1]
+    # 根据 路径 或者 numpy.array 选择是否读取
+    if type(template) is np.ndarray:
+        img_template = template
+    else:
+        # 读取目标图像,中文路径兼容方案
+        img_template = cv2.imdecode(buf=np.fromfile(file=template, dtype=np.uint8), flags=-1)
 
-    result = cv2.matchTemplate(image=tar_img, templ=raw_img, method=cv2.TM_SQDIFF_NORMED)
-
+    # 自定义的模板匹配
+    result = match_template_with_optional_mask(img_source=img_source, img_template=img_template)
     (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(src=result)
 
     # 如果匹配度<阈值，就认为没有找到
-    if minVal > 1 - target_tolerance:
+    if minVal >= 1 - tolerance:
         return None
 
     # 最优匹配的左上坐标
     (start_x, start_y) = minLoc
 
+    # 输出识别到的中心
+    center_point = [
+        start_x + int(img_template.shape[1] / 2),
+        start_y + int(img_template.shape[0] / 2)
+    ]
+
     # 测试时绘制边框
-    if __name__ == '__main__':
-        raw_img = raw_img.astype(np.uint8)
+    if is_test:
+        img_source = img_source.astype(np.uint8)
         # 确定起点和终点的(x，y)坐标边界框
-        end_x = start_x + tar_img.shape[1]
-        end_y = start_y + tar_img.shape[0]
+        end_x = start_x + img_template.shape[1]
+        end_y = start_y + img_template.shape[0]
         # 在图像上绘制边框
         cv2.rectangle(
-            img=raw_img,
+            img=img_source,
             pt1=(start_x, start_y),
             pt2=(end_x, end_y),
             color=(0, 0, 255),
             thickness=1)
         # 显示输出图像
         cv2.imshow(
-            winname="Output.jpg",
-            mat=raw_img)
+            winname="SourceImg.png",
+            mat=img_source)
         cv2.waitKey(0)
-
-    # 输出识别到的中心
-    center_point = [
-        start_x + int(tar_img.shape[1] / 2),
-        start_y + int(tar_img.shape[0] / 2)
-    ]
 
     return center_point
 
@@ -196,8 +183,8 @@ def loop_match_p_in_w(
         find_target = match_p_in_w(
             raw_w_handle=raw_w_handle,
             raw_range=raw_range,
-            target_path=target_path,
-            target_tolerance=target_tolerance)
+            template=target_path,
+            tolerance=target_tolerance)
 
         if find_target:
 
@@ -216,8 +203,8 @@ def loop_match_p_in_w(
                     find_target = match_p_in_w(
                         raw_w_handle=raw_w_handle,
                         raw_range=raw_range,
-                        target_path=click_now_path,
-                        target_tolerance=target_tolerance)
+                        template=click_now_path,
+                        tolerance=target_tolerance)
                     if find_target:
                         continue  # 当前状态没有产生变化, 就不进行输出
 
@@ -263,7 +250,7 @@ def loop_match_ps_in_w(
 
 
 if __name__ == '__main__':
-    from function.script.FAA import faa_get_handle
+    from function.core.FAA import faa_get_handle
 
 
     def main():
@@ -271,8 +258,8 @@ if __name__ == '__main__':
 
         result = match_p_in_w(raw_w_handle=handle,
                               raw_range=[0, 0, 2000, 2000],
-                              target_path=RESOURCE_P["common"]["顶部菜单"]["大地图.png"],
-                              target_tolerance=0.87)
+                              template=RESOURCE_P["common"]["顶部菜单"]["大地图.png"],
+                              tolerance=0.87)
 
         print(result)
         result = (1, 2)

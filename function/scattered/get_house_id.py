@@ -1,7 +1,7 @@
 from cv2 import imwrite, imread, IMREAD_UNCHANGED, matchTemplate, TM_SQDIFF_NORMED, minMaxLoc
-from function.global_paths import PATHS
 
-from function.common.bg_p_screenshot import capture_picture_png
+from function.common.bg_img_screenshot import capture_picture_png
+from function.globals.get_paths import PATHS
 from function.scattered.gat_handle import faa_get_handle
 
 
