@@ -1,0 +1,27 @@
+[
+    {
+        "deck": 1,
+        "is_use_key": false,
+        "max_times": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级"
+            ],
+            "last_time_player_b": [
+                "回到上一级"
+            ]
+        },
+        "stage_id": "NO-1-12",
+        "battle_id": 13,
+        "quest_card": "换气扇",
+        "player": [
+            2,
+            1
+        ],
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "list_ban_card": []
+    }
+]
