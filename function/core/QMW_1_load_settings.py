@@ -234,7 +234,6 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         # comboBox.clear时 会把所有选项设定为默认选项
 
         todo_plan_name_list = [plan["name"] for plan in self.opt["todo_plans"]]
-        print(todo_plan_name_list)
 
         def base_settings():
             my_opt = self.opt["base_settings"]
