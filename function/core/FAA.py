@@ -1872,8 +1872,8 @@ class FAA:
                 find = loop_match_p_in_w(
                     raw_w_handle=self.handle,
                     raw_range=[466, 86, 891, 435],
-                    target_path=RESOURCE_P["item"]["双暴卡"],
-                    target_tolerance=0.95,
+                    target_path=RESOURCE_P["item"]["双暴卡.png"],
+                    target_tolerance=0.98,
                     target_interval=0,
                     target_failed_check=0,
                     target_sleep=0.05,

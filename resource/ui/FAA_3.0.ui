@@ -5502,7 +5502,7 @@ Link Start</string>
             <item row="4" column="1">
              <widget class="QCheckBox" name="UseDoubleCard_Group">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
@@ -6243,7 +6243,7 @@ Link Start</string>
             <item row="4" column="0">
              <widget class="QCheckBox" name="UseDoubleCard_Active">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
@@ -6374,7 +6374,7 @@ Link Start</string>
             <item row="4" column="2">
              <widget class="QSpinBox" name="UseDoubleCard_MaxTimes">
               <property name="enabled">
-               <bool>false</bool>
+               <bool>true</bool>
               </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
