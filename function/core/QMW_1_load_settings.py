@@ -60,6 +60,10 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.FedAndWatered_Active.setChecked(my_opt["fed_and_watered"]["active"])
         self.FedAndWatered_Group.setChecked(my_opt["fed_and_watered"]["is_group"])
 
+        self.UseDoubleCard_Active.setChecked(my_opt["use_double_card"]["active"])
+        self.UseDoubleCard_Group.setChecked(my_opt["use_double_card"]["is_group"])
+        self.UseDoubleCard_MaxTimes.setValue(my_opt["use_double_card"]["max_times"])
+
         self.Warrior_Active.setChecked(my_opt["warrior"]["active"])
         self.Warrior_Group.setChecked(my_opt["warrior"]["is_group"])
         self.Warrior_MaxTimes.setValue(my_opt["warrior"]["max_times"])
@@ -391,6 +395,10 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
 
             my_opt["fed_and_watered"]["active"] = self.FedAndWatered_Active.isChecked()
             my_opt["fed_and_watered"]["is_group"] = self.FedAndWatered_Group.isChecked()
+
+            my_opt["use_double_card"]["active"] = self.UseDoubleCard_Active.isChecked()
+            my_opt["use_double_card"]["is_group"] = self.UseDoubleCard_Group.isChecked()
+            my_opt["use_double_card"]["max_times"] = self.UseDoubleCard_MaxTimes.value()
 
             my_opt["warrior"]["active"] = self.Warrior_Active.isChecked()
             my_opt["warrior"]["is_group"] = self.Warrior_Group.isChecked()
