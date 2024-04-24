@@ -8,9 +8,9 @@ from time import sleep
 import requests
 from PyQt5.QtCore import *
 
-from function.battle.CardManager import CardManager
 from function.common.bg_img_match import loop_match_p_in_w
 from function.common.thread_with_exception import ThreadWithException
+from function.core_battle.CardManager import CardManager
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
 from function.globals.log import CUS_LOGGER
@@ -93,7 +93,7 @@ class ThreadTodo(QThread):
 
         self.signal_print_to_ui.emit("Refresh Game...")
 
-        print("刷新两个游戏窗口 开始")
+        CUS_LOGGER.debug("刷新两个游戏窗口 开始")
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -112,7 +112,7 @@ class ThreadTodo(QThread):
         self.thread_1p.join()
         self.thread_2p.join()
 
-        print("刷新两个游戏窗口 结束")
+        CUS_LOGGER.debug("刷新两个游戏窗口 结束")
 
     def batch_click_refresh_btn(self):
 
@@ -361,7 +361,7 @@ class ThreadTodo(QThread):
             click=False,
             target_failed_check=2.0)
         if not find:
-            print("2s找不到开始游戏! 土豆服务器问题, 创建房间可能失败!")
+            CUS_LOGGER.warning("2s找不到开始游戏! 土豆服务器问题, 创建房间可能失败!")
             return False
 
         if not faa_a.stage_info["id"].split("-")[0] == "GD":
@@ -388,7 +388,7 @@ class ThreadTodo(QThread):
             )
 
             if not find:
-                print("2s没能组队? 土豆服务器问题, 尝试解决ing...")
+                CUS_LOGGER.warning("2s没能组队? 土豆服务器问题, 尝试解决ing...")
                 return False
 
             # p1关闭邀请窗口
@@ -1185,8 +1185,8 @@ class ThreadTodo(QThread):
                     unique_data.append(d)
             quest_list = unique_data
 
-            print("去重后")
-            print(quest_list)
+            CUS_LOGGER.debug("去重后")
+            CUS_LOGGER.debug(quest_list)
 
             for i in range(len(quest_list)):
 
