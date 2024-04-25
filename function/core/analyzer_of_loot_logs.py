@@ -6,6 +6,7 @@ import cv2
 from function.common.match import match
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
+from function.globals.log import CUS_LOGGER
 
 """
 战斗结果logs分析模块
@@ -90,8 +91,8 @@ def matchImage(img_path, img, mode='loots', test_print=False):
 
     if test_print:
         # 把识别结果显示到界面上
-        print("matchImage方法 战利品识别结果：")
-        print(best_match_items)
+        CUS_LOGGER.debug("matchImage方法 战利品识别结果：")
+        CUS_LOGGER.debug(best_match_items)
 
     # 返回识别结果
     return best_match_items
