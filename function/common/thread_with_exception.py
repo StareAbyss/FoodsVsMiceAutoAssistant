@@ -1,6 +1,8 @@
 import ctypes
 import threading
 
+from function.globals.log import CUS_LOGGER
+
 
 class ThreadWithException(threading.Thread):
     def __init__(self, target, kwargs=None, name="My Thread", is_print=True):
@@ -30,11 +32,11 @@ class ThreadWithException(threading.Thread):
     def run(self):
         try:
             if self.is_print:
-                print("[{}] start".format(self.name))
+                CUS_LOGGER.debug("[{}] start".format(self.name))
             self.return_value = self.target(**self.kwargs)
         finally:
             if self.is_print:
-                print("[{}] end".format(self.name))
+                CUS_LOGGER.debug("[{}] end".format(self.name))
 
     def get_id(self):
         """获取进程的唯一id"""
@@ -50,18 +52,17 @@ class ThreadWithException(threading.Thread):
         try:
             return self.return_value
         except Exception:
-            print(Exception)
+            CUS_LOGGER.debug(Exception)
             return None
 
     def raise_exception(self):
         """发送错误 终止线程"""
         thread_id = self.get_id()
         # 精髓就是这句话，给线程发过去一个exceptions，线程就那边响应完就停了
-        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id,
-                                                         ctypes.py_object(SystemExit))
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id,ctypes.py_object(SystemExit))
         if res > 1:
             ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0)
-            print('Exception raise failure')
+            CUS_LOGGER.debug('Exception raise failure')
 
     def stop(self):
         """等效的终止线程"""
