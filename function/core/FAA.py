@@ -2,9 +2,11 @@ import copy
 import json
 import os
 import time
+from datetime import datetime
 
 import cv2
 import numpy as np
+import pytz
 
 from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
 from function.common.bg_img_screenshot import capture_picture_png
@@ -219,6 +221,9 @@ class FAA:
         self.deck = deck
         self.quest_card = quest_card
         self.ban_card_list = ban_card_list
+        if self.ban_card_list:
+            self.ban_card_list.append("冰淇淋")
+            self.ban_card_list.append("幻幻鸡")
 
         def read_json_to_battle_plan():
             battle_plan_list = get_list_battle_plan(with_extension=True)
@@ -1845,83 +1850,112 @@ class FAA:
         self.action_exit(mode="普通红叉")
 
     def use_items_double_card(self, max_times):
-        self.print_debug(text="[使用双暴卡] 开始")
 
-        # 打开背包
-        self.print_debug(text="打开背包")
-        self.action_bottom_menu(mode="背包")
+        def is_saturday_or_sunday():
+            # 设置北京时区
+            beijing_tz = pytz.timezone('Asia/Shanghai')
 
-        used_success = 0
+            # 获取当前的北京时间
+            now_in_beijing = datetime.now(beijing_tz)
 
-        # 四次循环查找所有正确图标 升到最顶, 不需要, 打开背包会自动重置
-        for i in range(4):
+            # 获取今天是星期几（0=星期一，1=星期二，...，5=星期六，6=星期日）
+            weekday = now_in_beijing.weekday()
 
-            self.print_debug(text=f"[使用双暴卡] 第{i + 1}页物品 开始查找")
+            # 判断今天是否是星期六或星期日
+            if weekday == 5:
+                return True
+            elif weekday == 6:
+                return True
+            else:
+                return False
 
-            # 第一次以外, 下滑4*5次
-            if i != 0:
-                for j in range(5):
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=920, y=422)
-                    time.sleep(0.2)
+        def loop_use_double_card():
+            used_success = 0
 
-            while True:
+            # 四次循环查找所有正确图标 升到最顶, 不需要, 打开背包会自动重置
+            for i in range(4):
 
-                if used_success == max_times:
-                    break
+                self.print_debug(text=f"[使用双暴卡] 第{i + 1}页物品 开始查找")
 
-                # 在限定范围内 找物品
-                find = loop_match_p_in_w(
-                    raw_w_handle=self.handle,
-                    raw_range=[466, 86, 891, 435],
-                    target_path=RESOURCE_P["item"]["双暴卡.png"],
-                    target_tolerance=0.98,
-                    target_interval=0,
-                    target_failed_check=0,
-                    target_sleep=0.05,
-                    click=True)
+                # 第一次以外, 下滑4*5次
+                if i != 0:
+                    for j in range(5):
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=920, y=422)
+                        time.sleep(0.2)
 
-                if find:
-                    self.print_debug(text="[使用双暴卡] 成功使用一张双暴卡")
-                    used_success += 1
+                while True:
 
-                    # 在限定范围内 找到并点击物品 使用它
+                    if used_success == max_times:
+                        break
+
+                    # 在限定范围内 找物品
                     find = loop_match_p_in_w(
                         raw_w_handle=self.handle,
-                        raw_range=[466, 86, 950, 500],
-                        target_path=RESOURCE_P["item"]["背包_使用.png"],
-                        target_tolerance=0.95,
-                        target_interval=0.2,
-                        target_failed_check=1,
-                        target_sleep=0.5,
+                        raw_range=[466, 86, 891, 435],
+                        target_path=RESOURCE_P["item"]["双暴卡.png"],
+                        target_tolerance=0.98,
+                        target_interval=0,
+                        target_failed_check=0,
+                        target_sleep=0.05,
                         click=True)
 
-                    # 鼠标选中 使用按钮 会有色差, 第一次找不到则再来一次
-                    if not find:
-                        loop_match_p_in_w(
+                    if find:
+                        self.print_debug(text="[使用双暴卡] 成功使用一张双暴卡")
+                        used_success += 1
+
+                        # 在限定范围内 找到并点击物品 使用它
+                        find = loop_match_p_in_w(
                             raw_w_handle=self.handle,
                             raw_range=[466, 86, 950, 500],
-                            target_path=RESOURCE_P["item"]["背包_使用_被选中.png"],
-                            target_tolerance=0.90,
+                            target_path=RESOURCE_P["item"]["背包_使用.png"],
+                            target_tolerance=0.95,
                             target_interval=0.2,
                             target_failed_check=1,
                             target_sleep=0.5,
                             click=True)
 
-                else:
-                    # 没有找到对应物品 skip
-                    self.print_debug(text=f"[使用双暴卡] 第{i + 1}页物品 未找到")
+                        # 鼠标选中 使用按钮 会有色差, 第一次找不到则再来一次
+                        if not find:
+                            loop_match_p_in_w(
+                                raw_w_handle=self.handle,
+                                raw_range=[466, 86, 950, 500],
+                                target_path=RESOURCE_P["item"]["背包_使用_被选中.png"],
+                                target_tolerance=0.90,
+                                target_interval=0.2,
+                                target_failed_check=1,
+                                target_sleep=0.5,
+                                click=True)
+
+                    else:
+                        # 没有找到对应物品 skip
+                        self.print_debug(text=f"[使用双暴卡] 第{i + 1}页物品 未找到")
+                        break
+
+                if used_success == max_times:
                     break
 
             if used_success == max_times:
-                break
+                self.print_debug(text=f"[使用双暴卡] 成功使用{used_success}张双暴卡")
+            else:
+                self.print_debug(text=f"[使用双暴卡] 成功使用{used_success}张双暴卡 数量不达标")
 
-        if used_success == max_times:
-            self.print_debug(text=f"[使用双暴卡] 成功使用{used_success}张双暴卡")
-        else:
-            self.print_debug(text=f"[使用双暴卡] 成功使用{used_success}张双暴卡 数量不达标")
+        def main():
+            self.print_debug(text="[使用双暴卡] 开始")
 
-        # 关闭背包
-        self.action_exit(mode="普通红叉")
+            if is_saturday_or_sunday():
+                self.signal_print_to_ui(text="[使用双暴卡] 今天是星期六 / 星期日, 跳过")
+                return
+
+            # 打开背包
+            self.print_debug(text="打开背包")
+            self.action_bottom_menu(mode="背包")
+
+            loop_use_double_card()
+
+            # 关闭背包
+            self.action_exit(mode="普通红叉")
+
+        main()
 
     def loop_cross_server(self, deck):
 
