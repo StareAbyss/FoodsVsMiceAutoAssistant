@@ -249,7 +249,7 @@ class FAA:
         # 本关可用的所有承载卡
         mat_available_list = stage_info["mat_card"]
 
-        # 筛选出所有有图片资源的卡片包含变种
+        # 筛选出所有 有图片资源的卡片 包含变种
         mat_resource_exist_list = []
         for mat_card in mat_available_list:
             for i in range(6):
@@ -332,24 +332,37 @@ class FAA:
 
         self.print_debug(text="战斗中识图查找幻幻鸡位置, 开始")
 
-        # 初始化为None
+        # 重新初始化为None
         self.kun_position = None
 
-        position = None
         # 查找对应卡片坐标 重复3次
-        for i in range(3):
-            for j in range(6):
-                # 需要使用0.99相似度参数 相似度阈值过低可能导致一张图片被识别为两张卡
-                find = match_p_in_w(
-                    raw_w_handle=self.handle,
-                    raw_range=[0, 0, 950, 600],
-                    template=RESOURCE_P["card"]["战斗"][f"幻幻鸡-{j}.png"],
-                    tolerance=0.99)
-                if find:
-                    position = [int(find[0]), int(find[1])]
-                    break
+        def action_find_card():
+
+            # 筛选出所有 有图片资源的卡片 包含变种
+            resource_exist_list = []
+            for i in range(20):
+                new_card = f"幻幻鸡-{i}.png"
+                if new_card in RESOURCE_P["card"]["战斗"].keys():
+                    resource_exist_list.append(new_card)
+
+            for try_time in range(3):
+
+                for img_card in resource_exist_list:
+                    # 需要使用0.99相似度参数 相似度阈值过低可能导致一张图片被识别为两张卡
+                    find = match_p_in_w(
+                        raw_w_handle=self.handle,
+                        raw_range=[0, 0, 950, 600],
+                        template=RESOURCE_P["card"]["战斗"][img_card],
+                        tolerance=0.99)
+                    if find:
+                        return [int(find[0]), int(find[1])]
+
                 # 防止卡片正好被某些特效遮挡, 所以等待一下
                 time.sleep(0.1)
+
+            return None
+
+        position = action_find_card()
 
         # 根据坐标位置，判断对应的卡id
         if position:
