@@ -33,6 +33,7 @@ class ThreadTodo(QThread):
         # 功能需要
         self.faa = faa
         self.opt = copy.deepcopy(opt)  # 深拷贝 在作战中如果进行更改, 不会生效
+        self.opt_todo_plans = self.opt["todo_plans"][running_todo_plan_index]  # 选择运行的 opt 的 todo plan 部分
         self.thread_1p = None
         self.thread_2p = None
         self.thread_card_manager = None
@@ -48,6 +49,14 @@ class ThreadTodo(QThread):
         self.signal_end = self.signal_dict["end"]
 
     """非脚本操作的业务代码"""
+
+    def model_start_print(self, text):
+        # 在函数执行前发送的信号
+        self.signal_print_to_ui.emit(text="", time=False)
+        self.signal_print_to_ui.emit(text=f"[{text}] Link Start!", color="red")
+
+    def model_end_print(self, text):
+        self.signal_print_to_ui.emit(text=f"[{text}] Completed!", color="red")
 
     def change_lock(self, my_bool):
         self.lock = my_bool
@@ -135,7 +144,8 @@ class ThreadTodo(QThread):
 
     def batch_sign_in(self, is_group):
 
-        self.signal_print_to_ui.emit("[每日签到] 开始...", color="red")
+        text = "每日签到"
+        self.model_start_print(text=text)
 
         # 领取温馨礼包
         for i in [1, 2]:
@@ -148,7 +158,9 @@ class ThreadTodo(QThread):
                 message = r.json()['msg']
                 self.signal_print_to_ui.emit(f'[{i}P] 领取温馨礼包情况:' + message, color="green")
             else:
-                self.signal_print_to_ui.emit(f"[{i}P] 未激活领取温馨礼包", color="red")
+                self.signal_print_to_ui.emit(f"[{i}P] 未激活领取温馨礼包", color="green")
+
+        self.signal_print_to_ui.emit(f"开始 VIP签到/每日签到/美食活动/塔罗/法老/会长发任务/营地领钥匙")
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -170,11 +182,13 @@ class ThreadTodo(QThread):
         if is_group:
             self.thread_2p.join()
 
-        self.signal_print_to_ui.emit("[每日签到] 结束", color="red")
+        self.model_end_print(text=text)
 
     def batch_receive_all_quest_rewards(self, is_group):
 
-        self.signal_print_to_ui.emit("[领取奖励] 开始...", color="red")
+        title_text = "领取奖励"
+        self.model_start_print(text=title_text)
+
         """激活了删除物品高危功能"""
         # 在该动作前已经完成了游戏刷新 可以尽可能保证欢乐互娱不作妖
         if self.opt["level_2"]["1p"]["active"] or self.opt["level_2"]["2p"]["active"]:
@@ -197,7 +211,7 @@ class ThreadTodo(QThread):
             self.batch_reload_game()
 
         """普通任务"""
-        self.signal_print_to_ui.emit("[领取奖励] [普通任务] 开始...")
+        self.signal_print_to_ui.emit(text=f"[{title_text}] [普通任务] 开始...")
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -225,11 +239,11 @@ class ThreadTodo(QThread):
         if is_group:
             self.thread_2p.join()
 
-        self.signal_print_to_ui.emit("[领取奖励] [普通任务] 结束")
+        self.signal_print_to_ui.emit(text=f"[{title_text}] [普通任务] 结束")
 
         """美食大赛"""
 
-        self.signal_print_to_ui.emit("[领取奖励] [美食大赛] 开始...")
+        self.signal_print_to_ui.emit(text=f"[{title_text}] [美食大赛] 开始...")
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -253,10 +267,10 @@ class ThreadTodo(QThread):
         self.thread_1p.join()
         self.thread_2p.join()
 
-        self.signal_print_to_ui.emit("[领取奖励] [美食大赛] 结束...")
+        self.signal_print_to_ui.emit(text=f"[{title_text}] [美食大赛] 结束...")
 
         """大富翁"""
-        self.signal_print_to_ui.emit("[领取奖励] [大富翁] 开始...")
+        self.signal_print_to_ui.emit(text=f"[{title_text}] [大富翁] 开始...")
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -280,13 +294,14 @@ class ThreadTodo(QThread):
         self.thread_1p.join()
         self.thread_2p.join()
 
-        self.signal_print_to_ui.emit("[领取奖励] [大富翁] 结束...")
+        self.signal_print_to_ui.emit(text=f"[{title_text}] [大富翁] 结束...")
 
-        self.signal_print_to_ui.emit(text="领取所有[任务]奖励, 完成", color="red")
+        self.model_end_print(text=title_text)
 
     def batch_use_items_consumables(self, is_group):
 
-        self.signal_print_to_ui.emit("使用绑定消耗品和宝箱, 开始")
+        title_text = "使用绑定消耗品"
+        self.model_start_print(text=title_text)
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -309,23 +324,24 @@ class ThreadTodo(QThread):
         if is_group:
             self.thread_2p.join()
 
-        self.signal_print_to_ui.emit(text="使用绑定消耗品和宝箱, 完成")
+        self.model_end_print(text=title_text)
 
     def batch_use_items_double_card(self, is_group, max_times):
 
-        self.signal_print_to_ui.emit("使用双爆卡, 开始")
+        title_text = "使用双爆卡"
+        self.model_start_print(text=title_text)
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
             target=self.faa[1].use_items_double_card,
             name="1P Thread - UseItems",
-            kwargs={"max_times":max_times})
+            kwargs={"max_times": max_times})
 
         if is_group:
             self.thread_2p = ThreadWithException(
                 target=self.faa[2].use_items_double_card,
                 name="2P Thread - UseItems",
-                kwargs={"max_times":max_times})
+                kwargs={"max_times": max_times})
 
         # 涉及键盘抢夺, 容错低, 最好分开执行
         self.thread_1p.start()
@@ -336,11 +352,12 @@ class ThreadTodo(QThread):
         if is_group:
             self.thread_2p.join()
 
-        self.signal_print_to_ui.emit(text="使用双爆卡, 完成")
+        self.model_end_print(text=title_text)
 
     def batch_loop_cross_server(self, is_group, deck):
 
-        self.signal_print_to_ui.emit(text="无限刷跨服任务威望启动!", color="red")
+        title_text = "无限跨服刷威望"
+        self.model_start_print(text=title_text)
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -502,12 +519,12 @@ class ThreadTodo(QThread):
 
             # 初始化多线程
             self.thread_1p = ThreadWithException(
-                target=self.faa[player_a].action_round_of_battle_before,
+                target=self.faa[player_a].battle_a_round_room_preparatory,
                 name="{}P Thread - Battle - Before".format(player_a),
                 kwargs={})
             if is_group:
                 self.thread_2p = ThreadWithException(
-                    target=self.faa[player_b].action_round_of_battle_before,
+                    target=self.faa[player_b].battle_a_round_room_preparatory,
                     name="{}P Thread - Battle - Before".format(player_b),
                     kwargs={})
 
@@ -535,12 +552,12 @@ class ThreadTodo(QThread):
 
             # 初始化多线程
             self.thread_1p = ThreadWithException(
-                target=self.faa[player_a].action_round_of_battle_self,
+                target=self.faa[player_a].battle_a_round_init_battle_plan,
                 name="{}P Thread - Battle".format(player_a),
                 kwargs={})
             if is_group:
                 self.thread_2p = ThreadWithException(
-                    target=self.faa[player_b].action_round_of_battle_self,
+                    target=self.faa[player_b].battle_a_round_init_battle_plan,
                     name="{}P Thread - Battle".format(player_b),
                     kwargs={})
 
@@ -586,12 +603,12 @@ class ThreadTodo(QThread):
 
             # 初始化多线程
             self.thread_1p = ThreadWithException(
-                target=self.faa[player_a].action_round_of_battle_screen,
+                target=self.faa[player_a].battle_a_round_loots,
                 name="{}P Thread - Battle - Screen".format(player_a),
                 kwargs={})
             if is_group:
                 self.thread_2p = ThreadWithException(
-                    target=self.faa[player_b].action_round_of_battle_screen,
+                    target=self.faa[player_b].battle_a_round_loots,
                     name="{}P Thread - Battle - Screen".format(player_b),
                     kwargs={})
 
@@ -617,9 +634,9 @@ class ThreadTodo(QThread):
 
         """分开进行战后检查"""
         if result_id == 0:
-            result_id = self.faa[player_a].action_round_of_battle_after()
+            result_id = self.faa[player_a].battle_a_round_warp_up()
             if is_group:
-                result_id = self.faa[player_b].action_round_of_battle_after()
+                result_id = self.faa[player_b].battle_a_round_warp_up()
 
         CUS_LOGGER.debug("战后检查完成 battle 函数执行结束")
 
@@ -1016,8 +1033,7 @@ class ThreadTodo(QThread):
     def easy_battle(self, text_, stage_id, player, max_times,
                     deck, battle_plan_1p, battle_plan_2p, dict_exit):
         """仅调用 n_battle的简易作战"""
-        # 战斗开始
-        self.signal_print_to_ui.emit(text=f"{text_} Link Start!", color="red")
+        self.model_start_print(text=text_)
 
         quest_list = [
             {
@@ -1034,15 +1050,14 @@ class ThreadTodo(QThread):
             }]
         self.n_n_battle(quest_list=quest_list)
 
-        # 战斗结束
-        self.signal_print_to_ui.emit(text=f"{text_} Completed!", color="red")
+        self.model_end_print(text=text_)
 
     def offer_reward(self, text_, max_times_1, max_times_2, max_times_3,
                      deck, battle_plan_1p, battle_plan_2p):
 
-        self.signal_print_to_ui.emit(text=f"{text_} Link Start!", color="red")
+        self.model_start_print(text=text_)
 
-        self.signal_print_to_ui.emit(text=f"{text_} 开始[多本轮战]...")
+        self.signal_print_to_ui.emit(text=f"[{text_}] 开始[多本轮战]...")
 
         quest_list = []
         for i in range(3):
@@ -1068,19 +1083,19 @@ class ThreadTodo(QThread):
         self.faa[1].receive_quest_rewards(mode="悬赏任务")
         self.faa[2].receive_quest_rewards(mode="悬赏任务")
 
-        self.signal_print_to_ui.emit(text=f"{text_} Completed!", color="red")
+        self.model_end_print(text=text_)
 
     def guild_or_spouse_quest(self, text_, quest_mode,
                               deck, battle_plan_1p, battle_plan_2p, stage=False):
         """完成公会or情侣任务"""
 
-        self.signal_print_to_ui.emit(text=f"{text_} Link Start!", color="red")
+        self.model_start_print(text=text_)
 
-        self.signal_print_to_ui.emit(text=f"{text_} 检查领取奖励...")
+        self.signal_print_to_ui.emit(text=f"[{text_}] 检查领取奖励...")
         self.faa[1].receive_quest_rewards(mode=quest_mode)
         self.faa[2].receive_quest_rewards(mode=quest_mode)
 
-        self.signal_print_to_ui.emit(text=f"{text_} 获取任务列表...")
+        self.signal_print_to_ui.emit(text=f"[{text_}] 获取任务列表...")
 
         quest_list = self.faa[1].match_quests(mode=quest_mode, qg_cs=stage)
 
@@ -1106,18 +1121,18 @@ class ThreadTodo(QThread):
 
         self.n_n_battle(quest_list=quest_list)
 
-        self.signal_print_to_ui.emit(text=f"{text_} 检查领取奖励中...")
+        self.signal_print_to_ui.emit(text=f"[{text_}] 检查领取奖励中...")
 
         self.faa[1].receive_quest_rewards(mode=quest_mode)
         self.faa[2].receive_quest_rewards(mode=quest_mode)
 
-        self.signal_print_to_ui.emit(text=f"{text_} Completed!", color="red")
+        self.model_end_print(text=text_)
 
     def guild_dungeon(self, text_, deck, battle_plan_1p, battle_plan_2p):
 
-        self.signal_print_to_ui.emit(text=f"{text_} Link Start!", color="red")
+        self.model_start_print(text=text_)
 
-        self.signal_print_to_ui.emit(text=f"{text_} 开始[多本轮战]...")
+        self.signal_print_to_ui.emit(text=f"[{text_}] 开始[多本轮战]...")
 
         quest_list = []
         for i in range(3):
@@ -1139,7 +1154,7 @@ class ThreadTodo(QThread):
             })
         self.n_n_battle(quest_list=quest_list)
 
-        self.signal_print_to_ui.emit(text=f"{text_} Completed!", color="red")
+        self.model_end_print(text=text_)
 
     def customize_todo(self, text_, stage_begin: int, customize_todo_index: int):
 
@@ -1152,11 +1167,10 @@ class ThreadTodo(QThread):
             with open(customize_todo_path, "r", encoding="UTF-8") as file:
                 return json.load(file)
 
-        # 开始链接
-        self.signal_print_to_ui.emit(text=f"{text_} Link Start!", color="red")
+        self.model_start_print(text=text_)
 
         # 战斗开始
-        self.signal_print_to_ui.emit(text=f"{text_} 开始[多本论战]")
+        self.signal_print_to_ui.emit(text=f"[{text_}] 开始[多本论战]")
 
         # 读取json文件
         quest_list = read_json_to_customize_todo()
@@ -1167,7 +1181,7 @@ class ThreadTodo(QThread):
             max_battle_id = max(max_battle_id, quest["battle_id"])
 
         if stage_begin > max_battle_id:
-            self.signal_print_to_ui.emit(text=f"{text_} 任务序号超过了该方案最高序号! 将直接跳过!")
+            self.signal_print_to_ui.emit(text=f"[{text_}] 任务序号超过了该方案最高序号! 将直接跳过!")
             return
 
         # 由于任务id从1开始, 故需要减1
@@ -1182,11 +1196,9 @@ class ThreadTodo(QThread):
         self.n_n_battle(quest_list=quest_list)
 
         # 战斗结束
-        self.signal_print_to_ui.emit(text=f"{text_} Completed!", color="red")
+        self.model_end_print(text=text_)
 
     def auto_food(self, deck):
-
-        text_ = "全自动大赛"
 
         def a_round():
 
@@ -1235,9 +1247,8 @@ class ThreadTodo(QThread):
             return True
 
         def auto_food_main():
-
-            # 开始链接
-            self.signal_print_to_ui.emit(text=f"[{text_}] Link Start!", color="red")
+            text_ = "全自动大赛"
+            self.model_start_print(text=text_)
 
             # 先领一下已经完成的大赛任务
             self.faa[1].receive_quest_rewards(mode="美食大赛")
@@ -1255,8 +1266,7 @@ class ThreadTodo(QThread):
 
             self.signal_print_to_ui.emit(text=f"[{text_}] 所有被记录的任务已完成!")
 
-            # 开始链接
-            self.signal_print_to_ui.emit(text=f"[{text_}] Completed!", color="red")
+            self.model_end_print(text=text_)
 
         auto_food_main()
 
@@ -1557,7 +1567,7 @@ class ThreadTodo(QThread):
         my_opt = c_opt["warrior"]
         if my_opt["active"]:
             self.easy_battle(
-                text_="[勇士挑战]",
+                text_="勇士挑战",
                 stage_id="NO-2-17",
                 player=[2, 1] if my_opt["is_group"] else [1],
                 max_times=int(my_opt["max_times"]),
@@ -1588,7 +1598,7 @@ class ThreadTodo(QThread):
         my_opt = c_opt["normal_battle"]
         if my_opt["active"]:
             self.easy_battle(
-                text_="[常规刷本]",
+                text_="常规刷本",
                 stage_id=my_opt["stage"],
                 player=[2, 1] if my_opt["is_group"] else [1],
                 max_times=int(my_opt["max_times"]),
@@ -1605,7 +1615,7 @@ class ThreadTodo(QThread):
         my_opt = c_opt["offer_reward"]
         if my_opt["active"]:
             self.offer_reward(
-                text_="[悬赏任务]",
+                text_="悬赏任务",
                 deck=my_opt["deck"],
                 max_times_1=my_opt["max_times_1"],
                 max_times_2=my_opt["max_times_2"],
@@ -1616,7 +1626,7 @@ class ThreadTodo(QThread):
         my_opt = c_opt["cross_server"]
         if my_opt["active"]:
             self.easy_battle(
-                text_="[跨服副本]",
+                text_="跨服副本",
                 stage_id=my_opt["stage"],
                 player=[1, 2] if my_opt["is_group"] else [1],
                 max_times=int(my_opt["max_times"]),
@@ -1642,7 +1652,7 @@ class ThreadTodo(QThread):
         my_opt = c_opt["quest_guild"]
         if my_opt["active"]:
             self.guild_or_spouse_quest(
-                text_="[公会任务]",
+                text_="公会任务",
                 quest_mode="公会任务",
                 deck=my_opt["deck"],
                 battle_plan_1p=my_opt["battle_plan_1p"],
@@ -1652,7 +1662,7 @@ class ThreadTodo(QThread):
         my_opt = c_opt["guild_dungeon"]
         if my_opt["active"]:
             self.guild_dungeon(
-                text_="[公会副本]",
+                text_="公会副本",
                 deck=c_opt["quest_guild"]["deck"],
                 battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
                 battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"])
@@ -1660,7 +1670,7 @@ class ThreadTodo(QThread):
         my_opt = c_opt["quest_spouse"]
         if my_opt["active"]:
             self.guild_or_spouse_quest(
-                text_="[情侣任务]",
+                text_="情侣任务",
                 quest_mode="情侣任务",
                 deck=c_opt["quest_guild"]["deck"],
                 battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
@@ -1669,7 +1679,7 @@ class ThreadTodo(QThread):
         my_opt = c_opt["relic"]
         if my_opt["active"]:
             self.easy_battle(
-                text_="[火山遗迹]",
+                text_="火山遗迹",
                 stage_id=my_opt["stage"],
                 player=[2, 1] if my_opt["is_group"] else [1],
                 max_times=int(my_opt["max_times"]),
@@ -1701,7 +1711,7 @@ class ThreadTodo(QThread):
         my_opt = c_opt["magic_tower_double"]
         if my_opt["active"]:
             self.easy_battle(
-                text_="[魔塔双人]",
+                text_="魔塔双人",
                 stage_id="MT-2-" + str(my_opt["stage"]),
                 player=[2, 1],
                 max_times=int(my_opt["max_times"]),
@@ -1750,7 +1760,7 @@ class ThreadTodo(QThread):
         my_opt = c_opt["customize_battle"]
         if my_opt["active"]:
             self.easy_battle(
-                text_="[自建房战斗]",
+                text_="自建房战斗",
                 stage_id="CU-0-0",
                 player=[[1, 2], [2, 1], [1], [2]][my_opt["is_group"]],
                 max_times=int(my_opt["max_times"]),
@@ -1768,7 +1778,7 @@ class ThreadTodo(QThread):
         my_opt = c_opt["customize"]
         if my_opt["active"]:
             self.customize_todo(
-                text_="[高级自定义]",
+                text_="高级自定义",
                 stage_begin=my_opt["stage"],
                 customize_todo_index=my_opt["battle_plan_1p"])
 
