@@ -1515,6 +1515,145 @@ class FAA:
 
         main()
 
+    def get_dark_crystal(self, password):
+        # 打开公会副本界面
+        self.print_debug(text="跳转到工会副本界面")
+        self.action_bottom_menu(mode="跳转_公会副本")
+
+        # 打开暗晶商店
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=800, y=485)
+        time.sleep(1)
+
+        # 进入暗晶兑换
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=180, y=70)
+        time.sleep(1)
+
+        # 先点击一次兑换准备输入二级密码
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=405, y=190)
+        time.sleep(1)
+
+        # 输入二级密码
+        for key in password:
+            T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle, key=key)
+            time.sleep(0.5)
+        time.sleep(1)
+
+        # 确定二级密码
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=435, y=388)
+        time.sleep(1)
+
+        # 3x3次点击 确认兑换
+        for i in range(3):
+            for location in [[405, 190], [405, 320], [860, 190]]:
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=location[0], y=location[1])
+                # 这个破商店点快了兑换不了
+                time.sleep(0.333)
+
+        # 退出商店界面
+        for i in range(2):
+            self.action_exit(mode="普通红叉")
+
+    def delete_items(self):
+        """用于删除多余的技能书类消耗品, 使用前需要输入二级或无二级密码"""
+
+        def find_img_s(i_name, i_image):
+
+            # 截取原始图像(windows窗口) BGRA -> BGR
+            img_source = capture_picture_png(handle=self.handle, raw_range=[466, 88, 910, 435])
+            img_source = img_source[:, :, :3]
+
+            img_template = i_image
+            # 检查模板图像是否包含Alpha通道
+            if img_template.shape[2] == 4:
+                # 移除Alpha通道，保留RGB部分
+                img_template = img_template[:, :, :3]
+
+            mask = RESOURCE_P["item"]["mask.png"][:, :, :3]
+
+            # 使用matchTemplate函数和掩模进行匹配
+            # 纯黑即灰度为0的部分被无视 非0部分则被认为是匹配区域
+            result = cv2.matchTemplate(image=img_source, templ=img_template, method=cv2.TM_SQDIFF_NORMED, mask=mask)
+
+            # 找到最优匹配的位置
+            (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(src=result)
+
+            # 如果匹配度 < 容差阈值，就认为没有找到
+            matching_degree = 1 - minVal
+            if matching_degree > 0.99:
+                self.print_info(f"物品:{i_name} 查找完成, 找到该物品, 最高匹配度:{matching_degree:.4f}")
+            else:
+                self.print_debug(
+                    f"物品:{i_name} 查找完成, 未找到该物品, 最高匹配度:{matching_degree:.4f} (需0.99+匹配度)")
+                return False
+
+            # 获取中心点坐标 = 最优匹配左上 + 截图范围左上 + 目标图片对应大小 / 2
+            end_x = minLoc[0] + 466 + int(img_template.shape[1] / 2)
+            end_y = minLoc[1] + 88 + int(img_template.shape[0] / 2)
+
+            # 点击删除物品按钮
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=end_x, y=end_y)
+
+            return True
+
+        self.print_debug(text="开启删除物品高危功能")
+
+        # 打开背包
+        self.print_debug(text="打开背包")
+        self.action_bottom_menu(mode="背包")
+        time.sleep(1)
+
+        # 点击到物品栏目
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=777, y=65)
+        time.sleep(1)
+
+        # 点击整理物品按钮
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=905, y=475)
+        time.sleep(2)
+
+        # 点击删除物品按钮
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=845, y=475)
+        time.sleep(1)
+
+        for i_name, i_image in RESOURCE_P["item"]["背包_道具_需删除的"].items():
+
+            # 在限定范围内 找物品 点一下
+            find = find_img_s(i_name=i_name, i_image=i_image)
+
+            if find:
+                # 点击确定 删除按钮
+                loop_match_p_in_w(
+                    raw_w_handle=self.handle,
+                    raw_range=[425, 339, 450, 367],
+                    target_path=RESOURCE_P["common"]["通用_确定.png"],
+                    target_tolerance=0.95,
+                    target_interval=0.2,
+                    target_failed_check=2,
+                    target_sleep=2,
+                    click=True)
+
+                # 鼠标选中 使用按钮 会有色差, 第一次找不到则再来一次
+                if not find:
+                    loop_match_p_in_w(
+                        raw_w_handle=self.handle,
+                        raw_range=[466, 86, 950, 500],
+                        target_path=RESOURCE_P["item"]["通用_确定_被选中.png"],
+                        target_tolerance=0.95,
+                        target_interval=0.2,
+                        target_failed_check=2,
+                        target_sleep=2,
+                        click=True)
+
+                self.print_info(f"物品:{i_name} 已确定删除该物品...")
+
+        # 点击整理物品按钮
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=905, y=475)
+        time.sleep(2)
+
+        self.print_debug(text="第一页的指定物品已全部删除!")
+
+        # 关闭背包
+        self.action_exit(mode="普通红叉")
+
     def loop_cross_server(self, deck):
 
         first_time = True

@@ -300,10 +300,18 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.GetWarmGift_2P_Active.setChecked(my_opt["2p"]["active"])
             self.GetWarmGift_2P_Link.setText(my_opt["2p"]["link"])
 
+        def level_2():
+            my_opt = self.opt["level_2"]
+            self.Level2_1P_Active.setChecked(my_opt["1p"]["active"])
+            self.Level2_1P_Password.setText(my_opt["1p"]["password"])
+            self.Level2_2P_Active.setChecked(my_opt["2p"]["active"])
+            self.Level2_2P_Password.setText(my_opt["2p"]["password"])
+
         base_settings()
         timer_settings()
         advanced_settings()
         get_warm_gift_settings()
+        level_2()
         self.CurrentPlan.clear()
         self.CurrentPlan.addItems(todo_plan_name_list)
         self.CurrentPlan.setCurrentIndex(self.opt["current_plan"])
@@ -382,6 +390,13 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             my_opt["1p"]["link"] = self.GetWarmGift_1P_Link.text()
             my_opt["2p"]["active"] = self.GetWarmGift_2P_Active.isChecked()
             my_opt["2p"]["link"] = self.GetWarmGift_2P_Link.text()
+
+        def level_2():
+            my_opt = self.opt["level_2"]
+            my_opt["1p"]["active"] = self.Level2_1P_Active.isChecked()
+            my_opt["1p"]["password"] = self.Level2_1P_Password.text()
+            my_opt["2p"]["active"] = self.Level2_2P_Active.isChecked()
+            my_opt["2p"]["password"] = self.Level2_2P_Password.text()
 
         def todo_plans():
             # 获取前半部分
@@ -523,6 +538,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         timer_settings()
         advanced_settings()
         get_warm_gift_settings()
+        level_2()
         self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
         todo_plans()
 
