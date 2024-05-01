@@ -28,35 +28,41 @@ class FAA:
     """
     FAA类是项目的核心类
     用于封装 [所有对单个游戏窗口进行执行的操作]
+    其中部分较麻烦的模块的实现被分发在了其他的类里, 此处只留下了接口以供调用
     """
 
-    def __init__(self, channel="锑食", player=1, character_level=1,
-                 is_auto_battle=True, is_auto_pickup=False, random_seed=0,
+    def __init__(self, channel="锑食", player=1,
+                 character_level=1, is_auto_battle=True, is_auto_pickup=False, random_seed=0,
                  signal_dict=None):
 
         # 获取窗口句柄
-
-        self.channel = channel
+        self.channel = channel  # 在刷新窗口后会需要再重新获取flash的句柄, 故保留
         self.handle = faa_get_handle(channel=self.channel, mode="flash")
         self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
         self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
 
-        # 好用的信号
+        # 外部信号集 用于根据窗口逻辑, 控制UI和整体的Todo类, 做出相应改变
         self.signal_dict = signal_dict
-        self.signal_print_to_ui = self.signal_dict["print_to_ui"]
-        self.signal_dialog = self.signal_dict["dialog"]
-        self.signal_end = self.signal_dict["end"]
+        # 为了单例调试可用
+        if self.signal_dict:
+            self.signal_print_to_ui = self.signal_dict["print_to_ui"]
+            self.signal_dialog = self.signal_dict["dialog"]
+            self.signal_end = self.signal_dict["end"]
 
         # 随机种子
         self.random_seed = random_seed
 
-        # 角色|等级|是否使用钥匙|卡片|收集战利品
+        """每次战斗中都保持一致的参数"""
+        # 角色的index 为 1或2
         self.player = player
+        # 角色的等级 为 1 to 60
         self.character_level = character_level
+        # 是否自动战斗 bool
         self.is_auto_battle = is_auto_battle
+        # 是否鼠标模拟收集战利品 bool
         self.is_auto_pickup = is_auto_pickup
 
-        # 每次战斗都不一样的参数 使用内部函数调用更改
+        """每次战斗都不一样的参数 使用内部函数调用更改"""
         self.stage_info = None
         self.is_main = None
         self.is_group = None
@@ -89,7 +95,7 @@ class FAA:
         # 领取奖励实例 基本只调用一个main方法
         self.object_action_receive_quest_rewards = FAAActionQuestReceiveRewards(faa=self)
 
-        # 界面跳转实例 用于实现
+        # 界面跳转实例
         self.object_action_interface_jump = FAAActionInterfaceJump(faa=self)
 
         # 战前战后实例 用于实现战斗前的ban卡, 战斗后的战利品图像截取识别 和 判断战斗正确结束
@@ -198,8 +204,7 @@ class FAA:
     """调用输入关卡配置和战斗配置, 在战斗前必须进行该操作"""
 
     def set_config_for_battle(
-            self,
-            stage_id="NO-1-1", is_group=False, is_main=True, is_use_key=True,
+            self, stage_id="NO-1-1", is_group=False, is_main=True, is_use_key=True,
             deck=1, quest_card="None", ban_card_list=None,
             battle_plan_index=0):
         """
@@ -1338,7 +1343,7 @@ class FAA:
         self.print_debug(text="打开背包")
         self.action_bottom_menu(mode="背包")
 
-        # 四次循环查找所有正确图标 升到最顶, 不需要, 打开背包会自动重置
+        # 四次循环查找所有正确图标 不需要升到最顶, 打开背包会自动重置
         for i in range(4):
 
             self.print_debug(text="第{}页物品".format(i + 1))
@@ -1351,6 +1356,8 @@ class FAA:
 
             for item_name, item_image in RESOURCE_P["item"]["背包"].items():
 
+                self.print_debug(text="物品:{}本页 开始查找".format(item_name))
+
                 while True:
 
                     # 在限定范围内 找红叉点掉
@@ -1358,9 +1365,9 @@ class FAA:
                         raw_w_handle=self.handle,
                         raw_range=[0, 0, 750, 300],
                         target_path=RESOURCE_P["common"]["退出.png"],
-                        target_tolerance=0.95,
+                        target_tolerance=0.98,
                         target_interval=0.2,
-                        target_failed_check=1,
+                        target_failed_check=0,
                         target_sleep=0.5,
                         click=True)
 
@@ -1369,8 +1376,8 @@ class FAA:
                         raw_w_handle=self.handle,
                         raw_range=[466, 86, 891, 435],
                         target_path=item_image,
-                        target_tolerance=0.95,
-                        target_interval=0,
+                        target_tolerance=0.98,
+                        target_interval=0.2,
                         target_failed_check=0,
                         target_sleep=0.05,
                         click=True)
@@ -1381,7 +1388,7 @@ class FAA:
                             raw_w_handle=self.handle,
                             raw_range=[466, 86, 950, 500],
                             target_path=RESOURCE_P["item"]["背包_使用.png"],
-                            target_tolerance=0.95,
+                            target_tolerance=0.98,
                             target_interval=0.2,
                             target_failed_check=1,
                             target_sleep=0.5,
@@ -1393,7 +1400,7 @@ class FAA:
                                 raw_w_handle=self.handle,
                                 raw_range=[466, 86, 950, 500],
                                 target_path=RESOURCE_P["item"]["背包_使用_被选中.png"],
-                                target_tolerance=0.90,
+                                target_tolerance=0.98,
                                 target_interval=0.2,
                                 target_failed_check=1,
                                 target_sleep=0.5,
@@ -1401,8 +1408,9 @@ class FAA:
 
                     else:
                         # 没有找到对应物品 skip
-                        self.print_debug(text="物品:{}本页已全部找到".format(item_name))
                         break
+
+                self.print_debug(text="物品:{}本页 已全部找到".format(item_name))
 
         # 关闭背包
         self.action_exit(mode="普通红叉")
@@ -1452,8 +1460,8 @@ class FAA:
                         raw_range=[466, 86, 891, 435],
                         target_path=RESOURCE_P["item"]["双暴卡.png"],
                         target_tolerance=0.98,
-                        target_interval=0,
-                        target_failed_check=0,
+                        target_interval=0.2,
+                        target_failed_check=0.5,
                         target_sleep=0.05,
                         click=True)
 
@@ -1501,7 +1509,7 @@ class FAA:
             self.print_debug(text="[使用双暴卡] 开始")
 
             if is_saturday_or_sunday():
-                self.signal_print_to_ui(text="[使用双暴卡] 今天是星期六 / 星期日, 跳过")
+                self.signal_print_to_ui.emit(text="[使用双暴卡] 今天是星期六 / 星期日, 跳过")
                 return
 
             # 打开背包
