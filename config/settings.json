@@ -10,8 +10,8 @@
     "timer": {
         "1": {
             "active": true,
-            "h": 2,
-            "m": 55,
+            "h": 0,
+            "m": 30,
             "plan": 2
         },
         "2": {
@@ -39,16 +39,16 @@
             "plan": 6
         }
     },
-    "current_plan": 0,
+    "current_plan": 6,
     "todo_plans": [
         {
             "name": "Default",
             "sign_in": {
-                "active": false,
+                "active": true,
                 "is_group": true
             },
             "fed_and_watered": {
-                "active": false,
+                "active": true,
                 "is_group": true
             },
             "use_double_card": {
@@ -67,14 +67,14 @@
             "normal_battle": {
                 "active": false,
                 "is_group": true,
-                "max_times": 20,
-                "stage": "EX-5-7",
-                "deck": 5,
-                "battle_plan_1p": 29,
-                "battle_plan_2p": 29
+                "max_times": 45,
+                "stage": "NO-2-14",
+                "deck": 2,
+                "battle_plan_1p": 7,
+                "battle_plan_2p": 8
             },
             "offer_reward": {
-                "active": false,
+                "active": true,
                 "max_times_1": 1,
                 "max_times_2": 1,
                 "max_times_3": 2,
@@ -83,7 +83,7 @@
                 "battle_plan_2p": 1
             },
             "cross_server": {
-                "active": false,
+                "active": true,
                 "is_group": true,
                 "max_times": 11,
                 "stage": "CS-5-4",
@@ -99,7 +99,7 @@
                 "battle_plan_2p": 1
             },
             "guild_dungeon": {
-                "active": false
+                "active": true
             },
             "quest_spouse": {
                 "active": true
@@ -160,11 +160,11 @@
                 "battle_plan_1p": 14
             },
             "use_items": {
-                "active": false,
+                "active": true,
                 "is_group": true
             },
             "receive_awards": {
-                "active": false,
+                "active": true,
                 "is_group": true
             },
             "loop_cross_server": {
@@ -206,45 +206,45 @@
             },
             "warrior": {
                 "active": false,
-                "is_group": false,
+                "is_group": true,
                 "max_times": 8,
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 24,
+                "battle_plan_2p": 25
             },
             "normal_battle": {
                 "active": false,
                 "is_group": true,
-                "max_times": 20,
-                "stage": "EX-5-8",
-                "deck": 5,
-                "battle_plan_1p": 24,
-                "battle_plan_2p": 24
+                "max_times": 30,
+                "stage": "NO-4-10",
+                "deck": 1,
+                "battle_plan_1p": 26,
+                "battle_plan_2p": 27
             },
             "offer_reward": {
                 "active": false,
-                "max_times_1": 0,
-                "max_times_2": 0,
+                "max_times_1": 1,
+                "max_times_2": 1,
                 "max_times_3": 1,
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 24,
+                "battle_plan_2p": 25
             },
             "cross_server": {
                 "active": false,
                 "is_group": true,
-                "max_times": 10,
-                "stage": "CS-5-4",
+                "max_times": 1,
+                "stage": "CS-5-5",
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 24,
+                "battle_plan_2p": 25
             },
             "quest_guild": {
                 "active": false,
                 "stage": true,
                 "deck": 1,
-                "battle_plan_1p": 0,
-                "battle_plan_2p": 1
+                "battle_plan_1p": 24,
+                "battle_plan_2p": 25
             },
             "guild_dungeon": {
                 "active": false
@@ -258,15 +258,15 @@
                 "max_times": 5,
                 "stage": "NO-3-6",
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 24,
+                "battle_plan_2p": 25
             },
             "magic_tower_alone_1": {
-                "active": false,
-                "max_times": 5,
-                "stage": 149,
+                "active": true,
+                "max_times": 1,
+                "stage": 154,
                 "deck": 3,
-                "battle_plan_1p": 11
+                "battle_plan_1p": 12
             },
             "magic_tower_alone_2": {
                 "active": false,
@@ -279,7 +279,7 @@
                 "active": false,
                 "stage": true,
                 "deck": 1,
-                "battle_plan_1p": 2
+                "battle_plan_1p": 26
             },
             "magic_tower_prison_2": {
                 "active": false,
@@ -292,8 +292,8 @@
                 "max_times": 5,
                 "stage": 100,
                 "deck": 4,
-                "battle_plan_1p": 12,
-                "battle_plan_2p": 13
+                "battle_plan_1p": 13,
+                "battle_plan_2p": 14
             },
             "pet_temple_1": {
                 "active": false,
@@ -303,21 +303,21 @@
             },
             "pet_temple_2": {
                 "active": false,
-                "stage": 22,
+                "stage": 21,
                 "deck": 4,
-                "battle_plan_1p": 14
+                "battle_plan_1p": 15
             },
             "use_items": {
                 "active": false,
-                "is_group": false
+                "is_group": true
             },
             "receive_awards": {
                 "active": false,
-                "is_group": false
+                "is_group": true
             },
             "loop_cross_server": {
                 "active": false,
-                "is_group": false
+                "is_group": true
             },
             "customize_battle": {
                 "active": false,
@@ -328,8 +328,8 @@
                 "battle_plan_2p": 1
             },
             "customize": {
-                "active": true,
-                "battle_plan_1p": -1,
+                "active": false,
+                "battle_plan_1p": 0,
                 "stage": 1
             },
             "auto_food": {
@@ -348,7 +348,7 @@
                 "is_group": true
             },
             "use_double_card": {
-                "active": false,
+                "active": true,
                 "is_group": true,
                 "max_times": 2
             },
@@ -357,17 +357,17 @@
                 "is_group": true,
                 "max_times": 8,
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "normal_battle": {
                 "active": true,
                 "is_group": true,
-                "max_times": 35,
-                "stage": "EX-5-8",
-                "deck": 5,
+                "max_times": 45,
+                "stage": "NO-1-7",
+                "deck": 2,
                 "battle_plan_1p": 24,
-                "battle_plan_2p": 24
+                "battle_plan_2p": 25
             },
             "offer_reward": {
                 "active": false,
@@ -375,8 +375,8 @@
                 "max_times_2": 1,
                 "max_times_3": 1,
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "cross_server": {
                 "active": false,
@@ -384,15 +384,15 @@
                 "max_times": 10,
                 "stage": "CS-5-4",
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "quest_guild": {
                 "active": true,
                 "stage": true,
                 "deck": 1,
-                "battle_plan_1p": 0,
-                "battle_plan_2p": 1
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "guild_dungeon": {
                 "active": false
@@ -406,15 +406,15 @@
                 "max_times": 5,
                 "stage": "NO-3-6",
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "magic_tower_alone_1": {
                 "active": false,
                 "max_times": 5,
-                "stage": 149,
+                "stage": 154,
                 "deck": 3,
-                "battle_plan_1p": 11
+                "battle_plan_1p": 10
             },
             "magic_tower_alone_2": {
                 "active": false,
@@ -427,33 +427,33 @@
                 "active": false,
                 "stage": true,
                 "deck": 1,
-                "battle_plan_1p": 2
+                "battle_plan_1p": 22
             },
             "magic_tower_prison_2": {
                 "active": false,
                 "stage": true,
                 "deck": 1,
-                "battle_plan_1p": 2
+                "battle_plan_1p": 0
             },
             "magic_tower_double": {
                 "active": false,
                 "max_times": 5,
                 "stage": 100,
                 "deck": 4,
-                "battle_plan_1p": 12,
-                "battle_plan_2p": 13
+                "battle_plan_1p": 14,
+                "battle_plan_2p": 15
             },
             "pet_temple_1": {
                 "active": false,
                 "stage": 25,
                 "deck": 4,
-                "battle_plan_1p": 12
+                "battle_plan_1p": 13
             },
             "pet_temple_2": {
                 "active": false,
                 "stage": 21,
                 "deck": 1,
-                "battle_plan_1p": 0
+                "battle_plan_1p": 13
             },
             "use_items": {
                 "active": false,
@@ -477,7 +477,7 @@
             },
             "customize": {
                 "active": false,
-                "battle_plan_1p": 3,
+                "battle_plan_1p": 0,
                 "stage": 1
             },
             "auto_food": {
@@ -505,8 +505,8 @@
                 "is_group": true,
                 "max_times": 8,
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "normal_battle": {
                 "active": false,
@@ -514,8 +514,8 @@
                 "max_times": 20,
                 "stage": "NO-4-10",
                 "deck": 2,
-                "battle_plan_1p": 7,
-                "battle_plan_2p": 8
+                "battle_plan_1p": 24,
+                "battle_plan_2p": 25
             },
             "offer_reward": {
                 "active": true,
@@ -523,8 +523,8 @@
                 "max_times_2": 1,
                 "max_times_3": 2,
                 "deck": 1,
-                "battle_plan_1p": 0,
-                "battle_plan_2p": 1
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "cross_server": {
                 "active": true,
@@ -532,15 +532,15 @@
                 "max_times": 10,
                 "stage": "CS-5-4",
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "quest_guild": {
                 "active": false,
                 "stage": true,
                 "deck": 1,
-                "battle_plan_1p": 0,
-                "battle_plan_2p": 1
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "guild_dungeon": {
                 "active": false
@@ -554,28 +554,28 @@
                 "max_times": 5,
                 "stage": "NO-3-6",
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "magic_tower_alone_1": {
                 "active": false,
                 "max_times": 5,
-                "stage": 149,
+                "stage": 154,
                 "deck": 3,
-                "battle_plan_1p": 11
+                "battle_plan_1p": 10
             },
             "magic_tower_alone_2": {
                 "active": false,
                 "max_times": 4,
                 "stage": 120,
                 "deck": 1,
-                "battle_plan_1p": 0
+                "battle_plan_1p": 7
             },
             "magic_tower_prison_1": {
                 "active": false,
                 "stage": true,
                 "deck": 1,
-                "battle_plan_1p": 2
+                "battle_plan_1p": 22
             },
             "magic_tower_prison_2": {
                 "active": false,
@@ -588,27 +588,27 @@
                 "max_times": 5,
                 "stage": 100,
                 "deck": 4,
-                "battle_plan_1p": 12,
-                "battle_plan_2p": 13
+                "battle_plan_1p": 14,
+                "battle_plan_2p": 15
             },
             "pet_temple_1": {
                 "active": false,
                 "stage": 25,
                 "deck": 4,
-                "battle_plan_1p": 12
+                "battle_plan_1p": 13
             },
             "pet_temple_2": {
                 "active": false,
                 "stage": 20,
                 "deck": 1,
-                "battle_plan_1p": 0
+                "battle_plan_1p": 13
             },
             "use_items": {
                 "active": false,
                 "is_group": true
             },
             "receive_awards": {
-                "active": true,
+                "active": false,
                 "is_group": true
             },
             "loop_cross_server": {
@@ -620,12 +620,12 @@
                 "is_group": 1,
                 "max_times": 2,
                 "deck": 6,
-                "battle_plan_1p": 7,
-                "battle_plan_2p": 8
+                "battle_plan_1p": 0,
+                "battle_plan_2p": 1
             },
             "customize": {
                 "active": false,
-                "battle_plan_1p": 3,
+                "battle_plan_1p": 0,
                 "stage": 1
             },
             "auto_food": {
@@ -653,8 +653,8 @@
                 "is_group": true,
                 "max_times": 8,
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 23,
+                "battle_plan_2p": 24
             },
             "normal_battle": {
                 "active": false,
@@ -662,8 +662,8 @@
                 "max_times": 10,
                 "stage": "NO-1-7",
                 "deck": 2,
-                "battle_plan_1p": 7,
-                "battle_plan_2p": 8
+                "battle_plan_1p": 25,
+                "battle_plan_2p": -1
             },
             "offer_reward": {
                 "active": false,
@@ -671,8 +671,8 @@
                 "max_times_2": 1,
                 "max_times_3": 2,
                 "deck": 1,
-                "battle_plan_1p": 0,
-                "battle_plan_2p": 1
+                "battle_plan_1p": 23,
+                "battle_plan_2p": 24
             },
             "cross_server": {
                 "active": false,
@@ -680,15 +680,15 @@
                 "max_times": 10,
                 "stage": "CS-5-4",
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 23,
+                "battle_plan_2p": 24
             },
             "quest_guild": {
                 "active": true,
                 "stage": true,
                 "deck": 1,
-                "battle_plan_1p": 0,
-                "battle_plan_2p": 1
+                "battle_plan_1p": 23,
+                "battle_plan_2p": 24
             },
             "guild_dungeon": {
                 "active": true
@@ -702,13 +702,13 @@
                 "max_times": 5,
                 "stage": "NO-3-6",
                 "deck": 1,
-                "battle_plan_1p": -1,
-                "battle_plan_2p": -1
+                "battle_plan_1p": 23,
+                "battle_plan_2p": 24
             },
             "magic_tower_alone_1": {
                 "active": false,
                 "max_times": 5,
-                "stage": 149,
+                "stage": 154,
                 "deck": 3,
                 "battle_plan_1p": 11
             },
@@ -736,20 +736,20 @@
                 "max_times": 5,
                 "stage": 100,
                 "deck": 4,
-                "battle_plan_1p": 12,
-                "battle_plan_2p": 13
+                "battle_plan_1p": 14,
+                "battle_plan_2p": 15
             },
             "pet_temple_1": {
                 "active": false,
                 "stage": 25,
                 "deck": 4,
-                "battle_plan_1p": 12
+                "battle_plan_1p": 13
             },
             "pet_temple_2": {
                 "active": false,
                 "stage": 20,
                 "deck": 1,
-                "battle_plan_1p": 0
+                "battle_plan_1p": 13
             },
             "use_items": {
                 "active": false,
@@ -773,7 +773,7 @@
             },
             "customize": {
                 "active": false,
-                "battle_plan_1p": 3,
+                "battle_plan_1p": 0,
                 "stage": 1
             },
             "auto_food": {
@@ -801,8 +801,8 @@
                 "is_group": true,
                 "max_times": 8,
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "normal_battle": {
                 "active": false,
@@ -810,8 +810,8 @@
                 "max_times": 10,
                 "stage": "NO-4-10",
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "offer_reward": {
                 "active": false,
@@ -819,8 +819,8 @@
                 "max_times_2": 1,
                 "max_times_3": 2,
                 "deck": 1,
-                "battle_plan_1p": 0,
-                "battle_plan_2p": 1
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "cross_server": {
                 "active": false,
@@ -828,15 +828,15 @@
                 "max_times": 10,
                 "stage": "CS-5-4",
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "quest_guild": {
                 "active": false,
                 "stage": true,
                 "deck": 1,
-                "battle_plan_1p": 0,
-                "battle_plan_2p": 1
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "guild_dungeon": {
                 "active": false
@@ -850,15 +850,15 @@
                 "max_times": 5,
                 "stage": "NO-3-6",
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "magic_tower_alone_1": {
                 "active": true,
                 "max_times": 5,
-                "stage": 149,
+                "stage": 154,
                 "deck": 3,
-                "battle_plan_1p": 11
+                "battle_plan_1p": 10
             },
             "magic_tower_alone_2": {
                 "active": true,
@@ -871,7 +871,7 @@
                 "active": true,
                 "stage": true,
                 "deck": 1,
-                "battle_plan_1p": 2
+                "battle_plan_1p": 22
             },
             "magic_tower_prison_2": {
                 "active": true,
@@ -884,20 +884,20 @@
                 "max_times": 5,
                 "stage": 100,
                 "deck": 4,
-                "battle_plan_1p": 12,
-                "battle_plan_2p": 13
+                "battle_plan_1p": 14,
+                "battle_plan_2p": 15
             },
             "pet_temple_1": {
                 "active": true,
                 "stage": 25,
                 "deck": 4,
-                "battle_plan_1p": 12
+                "battle_plan_1p": 14
             },
             "pet_temple_2": {
                 "active": true,
                 "stage": 20,
                 "deck": 1,
-                "battle_plan_1p": 0
+                "battle_plan_1p": 13
             },
             "use_items": {
                 "active": false,
@@ -916,12 +916,12 @@
                 "is_group": 1,
                 "max_times": 2,
                 "deck": 6,
-                "battle_plan_1p": 7,
-                "battle_plan_2p": 8
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "customize": {
                 "active": false,
-                "battle_plan_1p": 3,
+                "battle_plan_1p": 0,
                 "stage": 1
             },
             "auto_food": {
@@ -949,8 +949,8 @@
                 "is_group": true,
                 "max_times": 8,
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "normal_battle": {
                 "active": false,
@@ -958,8 +958,8 @@
                 "max_times": 20,
                 "stage": "NO-4-10",
                 "deck": 2,
-                "battle_plan_1p": 7,
-                "battle_plan_2p": 8
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "offer_reward": {
                 "active": false,
@@ -967,8 +967,8 @@
                 "max_times_2": 1,
                 "max_times_3": 2,
                 "deck": 1,
-                "battle_plan_1p": 0,
-                "battle_plan_2p": 1
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "cross_server": {
                 "active": false,
@@ -976,15 +976,15 @@
                 "max_times": 10,
                 "stage": "CS-5-4",
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "quest_guild": {
                 "active": true,
                 "stage": true,
                 "deck": 1,
-                "battle_plan_1p": 0,
-                "battle_plan_2p": 1
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "guild_dungeon": {
                 "active": false
@@ -998,15 +998,15 @@
                 "max_times": 5,
                 "stage": "NO-3-6",
                 "deck": 1,
-                "battle_plan_1p": 2,
-                "battle_plan_2p": 3
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "magic_tower_alone_1": {
                 "active": false,
                 "max_times": 5,
-                "stage": 149,
+                "stage": 154,
                 "deck": 3,
-                "battle_plan_1p": 11
+                "battle_plan_1p": 10
             },
             "magic_tower_alone_2": {
                 "active": false,
@@ -1032,20 +1032,20 @@
                 "max_times": 5,
                 "stage": 100,
                 "deck": 4,
-                "battle_plan_1p": 12,
-                "battle_plan_2p": 13
+                "battle_plan_1p": 14,
+                "battle_plan_2p": 15
             },
             "pet_temple_1": {
                 "active": false,
                 "stage": 25,
                 "deck": 4,
-                "battle_plan_1p": 12
+                "battle_plan_1p": 13
             },
             "pet_temple_2": {
                 "active": false,
                 "stage": 20,
                 "deck": 1,
-                "battle_plan_1p": 0
+                "battle_plan_1p": 13
             },
             "use_items": {
                 "active": true,
@@ -1064,12 +1064,12 @@
                 "is_group": 1,
                 "max_times": 2,
                 "deck": 6,
-                "battle_plan_1p": 7,
-                "battle_plan_2p": 8
+                "battle_plan_1p": 22,
+                "battle_plan_2p": 23
             },
             "customize": {
                 "active": false,
-                "battle_plan_1p": 3,
+                "battle_plan_1p": 0,
                 "stage": 1
             },
             "auto_food": {
@@ -1079,7 +1079,7 @@
         }
     ],
     "advanced_settings": {
-        "end_exit_game": true,
+        "end_exit_game": false,
         "auto_use_card": true,
         "auto_pickup_1p": false,
         "auto_pickup_2p": true,
@@ -1093,6 +1093,16 @@
         "2p": {
             "active": false,
             "link": ""
+        }
+    },
+    "level_2": {
+        "1p": {
+            "active": false,
+            "password": ""
+        },
+        "2p": {
+            "active": false,
+            "password": ""
         }
     }
 }
