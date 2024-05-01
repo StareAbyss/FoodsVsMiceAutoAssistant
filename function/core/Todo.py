@@ -22,7 +22,7 @@ class ThreadTodo(QThread):
     signal_start_todo_2_battle = pyqtSignal(dict)
     signal_todo_lock = pyqtSignal(bool)
 
-    def __init__(self, faa, opt, signal_dict, todo_id):
+    def __init__(self, faa, opt, running_todo_plan_index, signal_dict, todo_id):
         super().__init__()
 
         # 用于暂停恢复
@@ -1274,7 +1274,7 @@ class ThreadTodo(QThread):
 
     def alone_magic_tower(self):
 
-        c_opt = self.opt["todo_plans"][self.opt["current_plan"]]
+        c_opt = self.opt_todo_plans
 
         def one_player():
             for player in [1, 2]:
@@ -1348,7 +1348,7 @@ class ThreadTodo(QThread):
 
     def alone_magic_tower_prison(self):
 
-        c_opt = self.opt["todo_plans"][self.opt["current_plan"]]
+        c_opt = self.opt_todo_plans
 
         def one_player():
             for player in [1, 2]:
@@ -1439,7 +1439,7 @@ class ThreadTodo(QThread):
 
     def pet_temple(self):
 
-        c_opt = self.opt["todo_plans"][self.opt["current_plan"]]
+        c_opt = self.opt_todo_plans
 
         def one_player():
             for player in [1, 2]:
@@ -1527,7 +1527,7 @@ class ThreadTodo(QThread):
     def run_1(self):
 
         # current todo plan option
-        c_opt = self.opt["todo_plans"][self.opt["current_plan"]]
+        c_opt = self.opt_todo_plans
 
         start_time = datetime.datetime.now()
 

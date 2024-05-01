@@ -18,8 +18,7 @@ from function.scattered.get_channel_name import get_channel_name
 
 class QMainWindowService(QMainWindowLog):
     signal_end = pyqtSignal()
-    signal_todo_start = pyqtSignal()
-    signal_change_current_todo_plan = pyqtSignal(int)
+    signal_todo_start = pyqtSignal(int)
 
     def __init__(self):
         # 继承父类构造方法
@@ -29,8 +28,7 @@ class QMainWindowService(QMainWindowLog):
         self.thread_todo_2 = None  # 仅用于单人多线程时, 运行2P任务
         self.todo_timer_manager = TodoTimerManager(
             opt=self.opt,
-            function_change_current_todo_plan=self.signal_change_current_todo_plan,
-            function_thread_todo_start=self.signal_todo_start
+            func_thread_todo_start=self.signal_todo_start
         )
 
         # 线程状态
@@ -53,7 +51,6 @@ class QMainWindowService(QMainWindowLog):
         self.window_tip_stage_id = QMWTipStageID()
         self.TipStageID_Button.clicked.connect(self.click_btn_tip_stage_id)
 
-        self.signal_change_current_todo_plan.connect(self.change_current_todo_plan)
         self.signal_todo_start.connect(self.todo_start)
 
         # 启动按钮函数绑定
@@ -69,9 +66,18 @@ class QMainWindowService(QMainWindowLog):
         # 当前方案变化 函数绑定
         self.CurrentPlan.currentIndexChanged.connect(self.opt_to_ui_todo_plans)
 
+    def todo_start(self, plan_index=None):
+        """
+        todo线程的启动函数
+        手动启动时 plan_index为 none
+        自动启动时 plan_index为 int 即对应的战斗方案的值
+        """
 
-    def todo_start(self):
-        """todo线程的启动函数"""
+        # 根据输入判断当前需要运行的方案的index
+        if plan_index:
+            running_todo_plan_index = plan_index
+        else:
+            running_todo_plan_index = self.CurrentPlan.currentIndex()
 
         # 先检测是否已经在启动状态, 如果是, 立刻关闭 然后继续执行
         if self.thread_todo_running:
@@ -113,7 +119,11 @@ class QMainWindowService(QMainWindowLog):
             self.TextBrowser.clear()
             self.start_print()
         # 设置输出文本
+        self.signal_print_to_ui.emit("", time=False)
         self.signal_print_to_ui.emit("[任务事项] 链接开始 Todo线程开启", color="blue")
+        # 当前正在运行 的 文本 修改
+        running_todo_plan_name = self.opt["todo_plans"][running_todo_plan_index]["name"]
+        self.Label_RunningState.setText(f"任务事项线程状态: 正在运行       运行方案: {running_todo_plan_name}")
 
         """线程处理"""
         # 启动点击处理线程
@@ -142,8 +152,19 @@ class QMainWindowService(QMainWindowLog):
             signal_dict=self.signal_dict)
 
         # 创建新的todo并启动线程
-        self.thread_todo_1 = ThreadTodo(faa=faa, opt=self.opt, signal_dict=self.signal_dict, todo_id=1)
-        self.thread_todo_2 = ThreadTodo(faa=faa, opt=self.opt, signal_dict=self.signal_dict, todo_id=2)  # 用于双人多线程
+        self.thread_todo_1 = ThreadTodo(
+            faa=faa,
+            opt=self.opt,
+            running_todo_plan_index = running_todo_plan_index,
+            signal_dict=self.signal_dict,
+            todo_id=1)
+        # 用于双人多线程的todo
+        self.thread_todo_2 = ThreadTodo(
+            faa=faa,
+            opt=self.opt,
+            running_todo_plan_index = running_todo_plan_index,
+            signal_dict=self.signal_dict,
+            todo_id=2)
 
         # 链接信号以进行多线程单人
         self.thread_todo_1.signal_start_todo_2_battle.connect(self.thread_todo_2.set_extra_opt_and_start)
@@ -192,6 +213,8 @@ class QMainWindowService(QMainWindowLog):
         self.Button_Start.setText("开始任务\nLink Start")
         # 设置输出文本
         self.signal_print_to_ui.emit("[任务事项] 已关闭全部线程", color="blue")
+        # 当前正在运行 的 文本 修改
+        self.Label_RunningState.setText(f"任务事项线程状态: 未运行")
 
     def todo_click_btn(self):
         """战斗开始函数"""
@@ -202,12 +225,6 @@ class QMainWindowService(QMainWindowLog):
         else:
             self.todo_end()
 
-    def change_current_todo_plan(self, plan_index):
-        # 先更改ui中的当前选中方案
-        self.CurrentPlan.setCurrentIndex(plan_index)
-        # 再加载ui的设定到程序
-        self.ui_to_opt()
-
     def todo_timer_start(self):
         # 先读取界面上的方案
         self.ui_to_opt()
@@ -217,6 +234,7 @@ class QMainWindowService(QMainWindowLog):
         # 设置按钮文本
         self.Button_StartTimer.setText("关闭定时任务\nTimer Stop")
         # 设置输出文本
+        self.signal_print_to_ui.emit("", time=False)
         self.signal_print_to_ui.emit("[定时任务] 已启动!", color="blue")
         # 设置Flag
         self.todo_timer_running = True
@@ -229,11 +247,16 @@ class QMainWindowService(QMainWindowLog):
         # 设置按钮文本
         self.Button_StartTimer.setText("启动定时任务\nTimer Start")
         # 设置输出文本
+        self.signal_print_to_ui.emit("", time=False)
         self.signal_print_to_ui.emit("[定时任务] 定时作战已关闭!", color="blue")
         # 设置Flag
         self.todo_timer_running = False
         # 关闭线程群
         self.todo_timer_manager.stop()
+        # 解锁相关设置的ui
+        for i in range(1, 6):
+            for comp in ['Active', 'H', 'M', 'Plan']:
+                getattr(self, f'Timer{i}_{comp}').setEnabled(True)
 
     def todo_timer_click_btn(self):
         """开始计时器"""

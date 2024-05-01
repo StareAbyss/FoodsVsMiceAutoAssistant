@@ -1744,11 +1744,8 @@ class FAA:
 
 if __name__ == '__main__':
     def f_main():
-        faa = FAA(channel="锑食")
-        faa.set_config_for_battle(
-            stage_id="NO-1-14",
-            is_group=False,
-            battle_plan_index=0)
+        faa = FAA(channel="锑食-微端")
+        faa.delete_items()
 
 
     f_main()

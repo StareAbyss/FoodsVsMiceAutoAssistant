@@ -23,7 +23,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         # 从json文件中读取opt 并刷新ui
         self.opt = None
         self.json_to_opt()
-        self.opt_to_ui()
+        self.init_opt_to_ui()
 
     def json_to_opt(self):
         with open(self.opt_path) as json_file:
@@ -43,8 +43,10 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         先从ui上读取目前todo plan index, 然后从opt读取对应的设置到todo plan 配置界面
         :return:
         """
-        # 先重新获取ui上的 选项
+        # 先重新获取ui上的 当前方案选项
         self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
+        # 修改当前方案文本
+        self.CurrentPlan_Label_Change.setText(self.CurrentPlan.currentText())
 
         battle_plan_list = get_list_battle_plan(with_extension=False)
         customize_todo_list = get_customize_todo_list(with_extension=False)
@@ -229,7 +231,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.AutoFood_Active.setChecked(my_opt["auto_food"]["active"])
         self.AutoFood_Deck.setValue(my_opt["auto_food"]["deck"])
 
-    def opt_to_ui(self):
+    def init_opt_to_ui(self):
         # comboBox.setCurrentIndex时 如果超过了已有预设 会显示为空 不会报错
         # comboBox.clear时 会把所有选项设定为默认选项
 
@@ -554,7 +556,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             return
         del self.opt["todo_plans"][self.CurrentPlan.currentIndex()]
         # 重载ui
-        self.opt_to_ui()
+        self.init_opt_to_ui()
 
     def rename_current_plan(self):
         """用来重命名当前被选中的 todo plan 但不能重命名默认方案"""
@@ -563,7 +565,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             return
         self.opt["todo_plans"][self.CurrentPlan.currentIndex()]["name"] = copy.deepcopy(self.RenamePlan_Input.text())
         # 重载ui
-        self.opt_to_ui()
+        self.init_opt_to_ui()
 
     def create_new_plan(self):
         """新建一个 todo plan, 但不能取名为Default"""
@@ -574,13 +576,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.opt["todo_plans"].append(copy.deepcopy(self.opt["todo_plans"][0]))
         self.opt["todo_plans"][-1]["name"] = copy.deepcopy(self.CreatePlan_Input.text())
         # 重载ui
-        self.opt_to_ui()
-
-    # def click_btn_advanced_settings(self):
-    #     # 高级设置的槽函数
-    #     self.AdvancedSettings = AdvancedSettingsWindow()
-    #     # 显示临时窗口
-    #     self.AdvancedSettings.show()
+        self.init_opt_to_ui()
 
 
 if __name__ == "__main__":
