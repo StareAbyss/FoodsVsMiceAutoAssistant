@@ -85,6 +85,9 @@ class FAAActionInterfaceJump:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=455, y=385)
             time.sleep(0.1)
 
+        # 安全时延
+        time.sleep(0.25)
+
     def top_menu(self, mode: str):
         """
         点击上方菜单栏, 包含:
@@ -252,7 +255,7 @@ class FAAActionInterfaceJump:
             random.seed(random_seed)
             region_id = random.randint(region_list[0], region_list[1])
 
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=820, y=85)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=803, y=84)
             time.sleep(0.5)
 
             my_list = [85, 110, 135, 160, 185, 210, 235, 260, 285, 310, 335]

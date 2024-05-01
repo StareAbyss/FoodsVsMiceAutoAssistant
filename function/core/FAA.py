@@ -1,6 +1,5 @@
 import copy
 import json
-import os
 import time
 from datetime import datetime
 
@@ -10,10 +9,10 @@ import pytz
 
 from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
 from function.common.bg_img_screenshot import capture_picture_png
-from function.core.FAAActionInterfaceJump import FAAActionInterfaceJump
-from function.core.FAAActionQuestReceiveRewards import FAAActionQuestReceiveRewards
 from function.core.FAABattle import Battle
-from function.core.analyzer_of_loot_logs import matchImage
+from function.core.FAA_ActionInterfaceJump import FAAActionInterfaceJump
+from function.core.FAA_ActionQuestReceiveRewards import FAAActionQuestReceiveRewards
+from function.core.FAA_BattleARoundPreparation import BattleARoundPreparation
 from function.core_battle.get_position_in_battle import get_position_card_deck_in_battle, \
     get_position_card_cell_in_battle
 from function.globals.get_paths import PATHS
@@ -92,6 +91,9 @@ class FAA:
 
         # 界面跳转实例 用于实现
         self.object_action_interface_jump = FAAActionInterfaceJump(faa=self)
+
+        # 战前战后实例 用于实现战斗前的ban卡, 战斗后的战利品图像截取识别 和 判断战斗正确结束
+        self.object_battle_a_round_preparation = BattleARoundPreparation(faa=self)
 
     def print_debug(self, text, player=None):
         if not player:
@@ -624,222 +626,16 @@ class FAA:
 
     """战斗完整的过程中的任务函数"""
 
-    def action_round_of_battle_before(self):
+    def battle_a_round_room_preparatory(self):
 
         """
-        房间内战前准备
+        房间内战前准备 包括ban卡和选任务卡
+        已模块化到外部实现
         :return: 0-正常结束 1-重启本次 2-跳过本次
         """
+        return self.object_battle_a_round_preparation.before()
 
-        def action_add_quest_card():
-            # 由于公会任务的卡组特性, 当任务卡为[苏打气泡]时, 不需要额外选择带卡.
-            my_bool = False
-            my_bool = my_bool or self.quest_card == "None"
-            my_bool = my_bool or self.quest_card == "苏打气泡-0"
-            my_bool = my_bool or self.quest_card == "苏打气泡-1"
-            my_bool = my_bool or self.quest_card == "苏打气泡"
-
-            if my_bool:
-                self.print_debug(text="不需要额外带卡,跳过")
-            else:
-                self.print_debug(text="寻找任务卡, 开始")
-
-                """处理ban卡列表"""
-
-                # 对于名称带-的卡, 就对应的写入, 如果不带-, 就查找其所有变种
-                quest_card_list = []
-                if "-" in self.quest_card:
-                    quest_card_list.append("{}.png".format(self.quest_card))
-                else:
-                    for i in range(9):  # i代表一张卡能有的最高变种 姑且认为是3*3 = 9
-                        quest_card_list.append("{}-{}.png".format(self.quest_card, i))
-
-                # 读取所有记录了的卡的图片名, 只携带被记录图片的卡
-                my_list = []
-                for quest_card in quest_card_list:
-                    if quest_card in RESOURCE_P["card"]["房间"].keys():
-                        my_list.append(quest_card)
-                quest_card_list = my_list
-
-                """选卡动作"""
-                already_find = False
-
-                # 复位滑块
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=931, y=209)
-                time.sleep(0.25)
-
-                # 向下点3*7次滑块 强制要求全部走完, 防止12P的同步出问题
-                for i in range(7):
-
-                    for quest_card in quest_card_list:
-
-                        if already_find:
-                            # 如果已经刚找到了 就直接休息一下
-                            time.sleep(0.4)
-                        else:
-                            # 如果还没找到 就试试查找点击 添加卡片
-                            find = loop_match_p_in_w(
-                                raw_w_handle=self.handle,
-                                raw_range=[380, 175, 925, 420],
-                                target_path=RESOURCE_P["card"]["房间"][quest_card],
-                                target_tolerance=0.95,
-                                target_failed_check=0.4,
-                                target_interval=0.2,
-                                target_sleep=0.4,  # 和总计检测时间一致 以同步时间
-                                click=True)
-                            if find:
-                                already_find = True
-
-                    # 滑块向下移动3次
-                    for j in range(3):
-                        if not already_find:
-                            # 仅还没找到继续下滑
-                            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=931, y=400)
-                        # 找没找到都要休息一下以同步时间
-                        time.sleep(0.05)
-
-                if not already_find:
-                    # 如果没有找到 战斗方案也就不需要对应调整了 修改一下
-                    self.quest_card = "None"
-
-                self.print_debug(text="寻找任务卡, 完成, 结果:{}".format("成功" if already_find else "失败"))
-
-        def screen_ban_card_loop_a_round(ban_card_s):
-
-            for card in ban_card_s:
-                # 只ban被记录了图片的变种卡
-                loop_match_p_in_w(
-                    raw_w_handle=self.handle,
-                    raw_range=[380, 40, 915, 105],
-                    target_path=RESOURCE_P["card"]["房间"][card],
-                    target_tolerance=0.95,
-                    target_interval=0.2,
-                    target_failed_check=0.6,
-                    target_sleep=1,
-                    click=True)
-
-        def action_remove_ban_card():
-            """寻找并移除需要ban的卡, 现已支持跨页ban"""
-
-            # 只有ban卡数组非空, 继续进行
-            if self.ban_card_list:
-
-                # 处理需要ban的卡片,
-                ban_card_list = []
-                for ban_card in self.ban_card_list:
-                    # 对于名称带-的卡, 就对应的写入, 如果不带-, 就查找其所有变种
-                    if "-" in ban_card:
-                        ban_card_list.append("{}.png".format(ban_card))
-                    else:
-                        for i in range(21):  # i代表一张卡能有的最高变种 姑且认为是3*7 = 21
-                            ban_card_list.append("{}-{}.png".format(ban_card, i))
-
-                # 读取所有已记录的卡片文件名, 并去除没有记录的卡片
-                my_list = []
-                for ban_card in ban_card_list:
-                    if ban_card in RESOURCE_P["card"]["房间"].keys():
-                        my_list.append(ban_card)
-                ban_card_list = my_list
-
-                # 翻页回第一页
-                for i in range(5):
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=930, y=55)
-                    time.sleep(0.05)
-
-                # 第一页
-                screen_ban_card_loop_a_round(ban_card_s=ban_card_list)
-
-                # 翻页到第二页
-                for i in range(5):
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=930, y=85)
-                    time.sleep(0.05)
-
-                # 第二页
-                screen_ban_card_loop_a_round(ban_card_s=ban_card_list)
-
-        def main():
-            # 循环查找开始按键
-            self.print_debug(text="寻找开始或准备按钮")
-            find = loop_match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=[796, 413, 950, 485],
-                target_path=RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
-                target_interval=1,
-                target_failed_check=10,
-                target_sleep=0.3,
-                click=False)
-            if not find:
-                self.print_warning(text="创建房间后, 10s找不到[开始/准备]字样! 创建房间可能失败!")
-                # 可能是由于: 服务器抽风无法创建房间 or 点击被吞 or 次数用尽
-                return 2  # 2-跳过本次
-
-            # 选择卡组
-            self.print_debug(text="选择卡组, 并开始加入新卡和ban卡")
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                handle=self.handle,
-                x={1: 425, 2: 523, 3: 588, 4: 666, 5: 756, 6: 837}[self.deck],
-                y=121)
-            time.sleep(0.7)
-
-            """寻找并添加任务所需卡片"""
-            action_add_quest_card()
-            action_remove_ban_card()
-
-            """点击开始"""
-
-            # 点击开始
-            find = loop_match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=[796, 413, 950, 485],
-                target_path=RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
-                target_tolerance=0.95,
-                target_interval=1,
-                target_failed_check=10,
-                target_sleep=1,
-                click=True)
-            if not find:
-                self.print_warning(text="选择卡组后, 10s找不到[开始/准备]字样! 创建房间可能失败!")
-                return 1  # 1-重启本次
-
-            # 防止被 [没有带xx卡] or []包已满 卡住
-            find = match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=[0, 0, 950, 600],
-                template=RESOURCE_P["common"]["战斗"]["战斗前_系统提示.png"],
-                tolerance=0.98)
-            if find:
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                    handle=self.handle,
-                    x=427,
-                    y=353)
-                time.sleep(0.05)
-
-            # 刷新ui: 状态文本
-            self.print_debug(text="查找火苗标识物, 等待进入战斗, 限时30s")
-
-            # 循环查找火苗图标 找到战斗开始
-            find = loop_match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=[0, 0, 950, 600],
-                target_path=RESOURCE_P["common"]["战斗"]["战斗中_火苗能量.png"],
-                target_interval=0.5,
-                target_failed_check=30,
-                target_sleep=0.1,
-                click=False)
-
-            # 刷新ui: 状态文本
-            if find:
-                self.print_debug(text="找到火苗标识物, 战斗进行中...")
-
-            else:
-                self.print_warning(text="未能找到火苗标识物, 进入战斗失败, 可能是次数不足或服务器卡顿")
-                return 2  # 2-跳过本次
-
-            return 0  # 0-一切顺利
-
-        return main()
-
-    def action_round_of_battle_self(self):
+    def battle_a_round_init_battle_plan(self):
         """
         关卡内战斗过程
         """
@@ -868,274 +664,23 @@ class FAA:
         if self.is_main:
             self.faa_battle.use_shovel_all()  # 因为有点击序列，所以同时操作是可行的
 
-    def action_round_of_battle_screen(self):
+    def battle_a_round_loots(self):
         """
         战斗结束后, 完成下述流程: 潜在的任务完成黑屏-> 战利品 -> 战斗结算 -> 翻宝箱 -> 回到房间/魔塔会回到其他界面
+        已模块化到外部实现
+        :return: 0-正常结束 1-重启本次 2-跳过本次
         """
 
-        def screen_loots():
-            """
-            :return: 捕获的战利品dict
-            """
+        return self.object_battle_a_round_preparation.perform_action_capture_match_for_loots_and_chests()
 
-            # 记录战利品 tip 一张图49x49 是完美规整的
-            images = []
-
-            # 防止 已有选中的卡片, 先点击空白
-            T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
-            time.sleep(0.025)
-
-            # 1 2 行
-            for i in range(3):
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=484)
-                time.sleep(0.05)
-            time.sleep(0.25)
-            images.append(capture_picture_png(handle=self.handle, raw_range=[209, 454, 699, 552]))
-            time.sleep(0.25)
-
-            # 3 4 行 取3行
-            for i in range(3):
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=510)
-                time.sleep(0.05)
-            time.sleep(0.25)
-            images.append(capture_picture_png(handle=self.handle, raw_range=[209, 456, 699, 505]))
-            time.sleep(0.25)
-
-            # 4 5 行
-            for i in range(3):
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=529)
-                time.sleep(0.05)
-            time.sleep(0.25)
-            images.append(capture_picture_png(handle=self.handle, raw_range=[209, 454, 699, 552]))
-            time.sleep(0.25)
-
-            # 垂直拼接
-            image = cv2.vconcat(images)
-
-            return image
-
-        def screen_loot_logs():
-            """
-            :return: 捕获的战利品dict
-            """
-            # 是否在战利品ui界面
-            find = loop_match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=[202, 419, 306, 461],
-                target_path=RESOURCE_P["common"]["战斗"]["战斗后_1_战利品.png"],
-                target_failed_check=2,
-                target_tolerance=0.99,
-                click=False)
-
-            if find:
-                self.print_debug(text="[战利品UI] 正常结束, 尝试捕获战利品截图")
-
-                # 错开一下, 避免卡住
-                if self.player == 2:
-                    time.sleep(0.333)
-
-                # 定义保存路径和文件名格式
-                img_path = "{}\\{}_{}P_{}.png".format(
-                    PATHS["logs"] + "\\loots_picture",
-                    self.stage_info["id"],
-                    self.player,
-                    time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
-                )
-
-                # 截图并保存
-                img = screen_loots()
-
-                # 分析图片，获取战利品字典
-                drop_dict = matchImage(img_path=img_path, img=img, test_print=True)
-                self.print_debug(text="[捕获战利品] 处在战利品UI 战利品已 捕获/识别/保存".format(drop_dict))
-
-                return drop_dict
-
-            else:
-                self.print_debug(text="[捕获战利品] 未在战利品UI 可能由于延迟未能捕获战利品, 继续流程")
-
-                return None
-
-        def action_flip_treasure_chest():
-            find = loop_match_p_in_w(
-                raw_w_handle=self.handle,
-                raw_range=[400, 35, 550, 75],
-                target_path=RESOURCE_P["common"]["战斗"]["战斗后_4_翻宝箱.png"],
-                target_failed_check=15,
-                target_sleep=2,
-                click=False
-            )
-            if find:
-                self.print_debug(text="[翻宝箱UI] 捕获到正确标志, 翻牌并退出...")
-                # 开始洗牌
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=502)
-                time.sleep(6)
-
-                # 翻牌 1+2
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=550, y=170)
-                time.sleep(0.5)
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=170)
-                time.sleep(1.5)
-
-                img = [
-                    capture_picture_png(
-                        handle=self.handle,
-                        raw_range=[249, 89, 293, 133]),
-                    capture_picture_png(
-                        handle=self.handle,
-                        raw_range=[317, 89, 361, 133])
-                ]
-
-                img = cv2.hconcat(img)
-
-                # 定义保存路径和文件名格式
-                img_path = "{}\\{}_{}P_{}.png".format(
-                    PATHS["logs"] + "\\chests_picture",
-                    self.stage_info["id"],
-                    self.player,
-                    time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
-                )
-
-                # 分析图片，获取战利品字典
-                drop_dict = matchImage(img_path=img_path, img=img, mode="chests", test_print=True)
-                self.print_debug(text="[翻宝箱] 宝箱已 捕获/识别/保存".format(drop_dict))
-
-                # 组队2P慢点结束翻牌 保证双人魔塔后自己是房主
-                if self.is_group and self.player == 2:
-                    time.sleep(2)
-
-                # 结束翻牌
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=708, y=502)
-                time.sleep(3)
-
-                return drop_dict
-
-            else:
-                self.print_warning(text="[翻宝箱UI] 15s未能捕获正确标志, 出问题了!")
-                return {}
-
-        def log_loots_statistics_to_json(loots_dict, chests_dict):
-            """
-            保存战利品汇总.json
-            """
-
-            file_path = "{}\\result_json\\{}P掉落汇总.json".format(PATHS["logs"], self.player)
-            stage_name = self.stage_info["id"]
-
-            # 获取本次战斗是否使用了钥匙
-            if self.faa_battle.is_used_key:
-                used_key_str = "is_used_key"
-            else:
-                used_key_str = "is_not_used_key"
-
-            if os.path.exists(file_path):
-                # 尝试读取现有的JSON文件
-                with open(file_path, "r", encoding="utf-8") as json_file:
-                    json_data = json.load(json_file)
-            else:
-                # 如果文件不存在，初始化
-                json_data = {}
-
-            # 检查键 不存在添加
-            json_data_stage = json_data.setdefault(stage_name, {})
-            json_data_used_key = json_data_stage.setdefault(used_key_str, {})
-            json_data_loots = json_data_used_key.setdefault("loots", {})
-            json_data_chests = json_data_used_key.setdefault("chests", {})
-            json_data_count = json_data_used_key.setdefault("count", 0)
-
-            # 更新现有数据
-            for item_str, count in loots_dict.items():
-                json_data_loots[item_str] = json_data_loots.get(item_str, 0) + count
-            for item_str, count in chests_dict.items():
-                json_data_chests[item_str] = json_data_loots.get(item_str, 0) + count
-            json_data_count += 1  # 更新次数
-
-            # 保存或更新后的战利品字典到JSON文件
-            with open(file_path, "w", encoding="utf-8") as json_file:
-                json.dump(json_data, json_file, ensure_ascii=False, indent=4)
-
-        def log_loots_detail_to_json(loots_dict, chests_dict):
-            """分P，在目录下保存战利品字典"""
-            file_path = "{}\\result_json\\{}P掉落明细.json".format(PATHS["logs"], self.player)
-            stage_name = self.stage_info["id"]
-
-            if os.path.exists(file_path):
-                # 读取现有的JSON文件
-                with open(file_path, "r", encoding="utf-8") as json_file:
-                    json_data = json.load(json_file)
-            else:
-                # 如果文件不存在，初始化
-                json_data = {}
-
-            # 检查"data"字段是否存在
-            json_data.setdefault("data", [])
-
-            json_data["data"].append({
-                "timestamp": time.time(),
-                "stage": stage_name,
-                "is_used_key": self.faa_battle.is_used_key,
-                "loots": loots_dict,
-                "chests": chests_dict
-            })
-
-            # 保存或更新后的战利品字典到JSON文件
-            with open(file_path, "w", encoding="utf-8") as json_file:
-                json.dump(json_data, json_file, ensure_ascii=False, indent=4)
-
-        def main():
-            self.print_debug(text="识别到多种战斗结束标志之一, 进行收尾工作")
-
-            # 战利品部分, 会先检测是否在对应界面
-            loots_dict = screen_loot_logs()
-
-            # 翻宝箱部分, 会先检测是否在对应界面
-            chests_dict = action_flip_treasure_chest()
-
-            result_loot = {"loots": loots_dict, "chests": chests_dict}
-
-            if (loots_dict is not None) and (chests_dict is not None):
-                log_loots_statistics_to_json(loots_dict=loots_dict, chests_dict=chests_dict)
-                log_loots_detail_to_json(loots_dict=loots_dict, chests_dict=chests_dict)
-
-            if self.screen_check_server_boom():
-                self.print_warning(text="检测到 断开连接 or 登录超时 or Flash爆炸, 炸服了")
-                return 1, None  # 1-重启本次
-            else:
-                return 0, result_loot
-
-        return main()
-
-    def action_round_of_battle_after(self):
+    def battle_a_round_warp_up(self):
 
         """
         房间内或其他地方 战斗结束
         :return: 0-正常结束 1-重启本次 2-跳过本次
         """
 
-        # 查找战斗结束 来兜底正确完成了战斗
-        self.print_debug(text="[开始/准备/魔塔蛋糕UI] 尝试捕获正确标志, 以完成战斗流程.")
-        find = loop_match_ps_in_w(
-            raw_w_handle=self.handle,
-            target_opts=[
-                {
-                    "raw_range": [796, 413, 950, 485],
-                    "target_path": RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
-                    "target_tolerance": 0.99},
-                {
-                    "raw_range": [200, 0, 750, 100],
-                    "target_path": RESOURCE_P["common"]["魔塔蛋糕_ui.png"],
-                    "target_tolerance": 0.99
-                }],
-            target_return_mode="or",
-            target_failed_check=10,
-            target_interval=0.2)
-        if find:
-            self.print_debug(text="成功捕获[开始/准备/魔塔蛋糕UI], 完成战斗流程.")
-            return 0  # 0-正常结束
-        else:
-            self.print_error(text="10s没能捕获[开始/准备/魔塔蛋糕UI], 出现意外错误, 直接跳过本次")
-            return 2  # 2-跳过本次
+        return self.object_battle_a_round_preparation.wrap_up()
 
     """其他非战斗功能"""
 
