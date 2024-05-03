@@ -3,6 +3,8 @@ from ctypes.wintypes import RECT, HWND
 
 from numpy import uint8, frombuffer
 
+from function.scattered.restore_window_if_minimized import restore_window_if_minimized
+
 # 如果没有依赖
 # pip install opencv-contrib-python
 
@@ -10,16 +12,21 @@ from numpy import uint8, frombuffer
 windll.user32.SetProcessDPIAware()
 
 
-def capture_picture_png(handle: HWND, raw_range: list):
+def capture_image_png(handle: HWND, raw_range: list, root_handle: HWND = None):
     """
     窗口客户区截图
     Args:
         handle (HWND): 要截图的窗口句柄
         raw_range: 裁剪, 为 [左上X, 左上Y,右下X, 右下Y], 右下位置超出范围取最大(不会报错)
+        root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层 可空置
 
     Returns:
         numpy.array: 截图数据 3D array (高度,宽度,[B G R A四通道])
     """
+
+    # 检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层
+    if root_handle:
+        restore_window_if_minimized(handle=root_handle)
 
     # 获取窗口客户区的大小
     r = RECT()
@@ -45,8 +52,8 @@ def capture_picture_png(handle: HWND, raw_range: list):
 
     # 清理资源
     windll.gdi32.DeleteObject(bitmap)  # 删除位图对象
-    windll.gdi32.DeleteObject(cdc)    # 删除内存设备上下文
-    windll.user32.ReleaseDC(handle, dc)   # 释放窗口的设备上下文
+    windll.gdi32.DeleteObject(cdc)  # 删除内存设备上下文
+    windll.user32.ReleaseDC(handle, dc)  # 释放窗口的设备上下文
 
     # 将缓冲区数据转换为numpy数组，并重塑为图像的形状 (高度,宽度,[B G R A四通道])
     image = frombuffer(buffer, dtype=uint8).reshape(height, width, 4)
@@ -59,5 +66,3 @@ def capture_picture_png(handle: HWND, raw_range: list):
 
 def png_cropping(image, raw_range: list):
     return image[raw_range[1]:raw_range[3], raw_range[0]:raw_range[2], :]
-
-

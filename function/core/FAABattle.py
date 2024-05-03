@@ -3,7 +3,7 @@ import time
 import numpy as np
 
 from function.common.bg_img_match import match_p_in_w, match_ps_in_w, loop_match_p_in_w
-from function.common.bg_img_screenshot import capture_picture_png
+from function.common.bg_img_screenshot import capture_image_png
 from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
@@ -45,6 +45,7 @@ class Battle:
             self.auto_collect_cells_coordinate.append(self.faa.bp_cell[i])
 
     """ 战斗内的子函数 """
+
     def re_init(self):
         """战斗前调用, 重新初始化部分每场战斗都要重新刷新的该内私有属性"""
         self.is_used_key = False
@@ -82,34 +83,32 @@ class Battle:
 
     def use_key(self):
         """
-        使用钥匙的函数,
-        :param mode:
-            the mode of use key.
-            0: click on the location of "next UI".
-            1: if you find the picture of "next UI", click it. else no click and time sleep.
+        使用钥匙的函数
         :return:
             None
         """
         used_key = False
         find = match_p_in_w(
-            raw_w_handle=self.faa.handle,
-            raw_range=[386,332,463,362],
-            tolerance=0.95,
+            source_handle=self.faa.handle,
+            source_range=[386, 332, 463, 362],
+            match_tolerance=0.95,
             template=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
         if find:
             self.faa.print_debug(text="找到了 [继续作战]")
             while find:
                 loop_match_p_in_w(
-                    raw_w_handle=self.faa.handle,
-                    raw_range=[386,332,463,362],
-                    target_tolerance=0.95,
-                    target_path=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"],
-                    target_sleep=0.5,
+                    source_handle=self.faa.handle,
+                    source_root_handle=self.faa.handle_360,
+                    source_range=[386, 332, 463, 362],
+                    match_tolerance=0.95,
+                    template=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"],
+                    after_sleep=0.5,
                     click=True)
                 find = match_p_in_w(
-                    raw_w_handle=self.faa.handle,
-                    raw_range=[302,263,396,289],
-                    tolerance=0.95,
+                    source_handle=self.faa.handle,
+                    source_root_handle=self.faa.handle_360,
+                    source_range=[302, 263, 396, 289],
+                    match_tolerance=0.95,
                     template=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
             self.faa.print_debug(text="已查找到 [继续作战] 图标并点击")
             used_key = True
@@ -118,43 +117,43 @@ class Battle:
     def check_end(self):
         # 找到战利品字样(被黑色透明物遮挡,会看不到)
         result_is_end = match_ps_in_w(
-            raw_w_handle=self.faa.handle,
-            target_opts=[
+            source_handle=self.faa.handle,
+            source_root_handle=self.faa.handle_360,
+            template_opts=[
                 {
-                    "raw_range": [202, 419, 306, 461],
-                    "target_path": RESOURCE_P["common"]["战斗"]["战斗后_1_战利品.png"],
-
-                    "target_tolerance": 0.999
+                    "source_range": [202, 419, 306, 461],
+                    "template": RESOURCE_P["common"]["战斗"]["战斗后_1_战利品.png"],
+                    "match_tolerance": 0.999
                 },
                 {
-                    "raw_range": [202, 419, 306, 461],
-                    "target_path": RESOURCE_P["common"]["战斗"]["战斗后_2_战利品阴影版.png"],
-                    "target_tolerance": 0.999
+                    "source_range": [202, 419, 306, 461],
+                    "template": RESOURCE_P["common"]["战斗"]["战斗后_2_战利品阴影版.png"],
+                    "match_tolerance": 0.999
                 },
                 {
-                    "raw_range": [400, 47, 550, 88],
-                    "target_path": RESOURCE_P["common"]["战斗"]["战斗后_3_战斗结算.png"],
-                    "target_tolerance": 0.999
+                    "source_range": [400, 47, 550, 88],
+                    "template": RESOURCE_P["common"]["战斗"]["战斗后_3_战斗结算.png"],
+                    "match_tolerance": 0.999
                 },
                 {
-                    "raw_range": [400, 35, 550, 75],
-                    "target_path": RESOURCE_P["common"]["战斗"]["战斗后_4_翻宝箱.png"],
-                    "target_tolerance": 0.999
+                    "source_range": [400, 35, 550, 75],
+                    "template": RESOURCE_P["common"]["战斗"]["战斗后_4_翻宝箱.png"],
+                    "match_tolerance": 0.999
                 },
                 {
-                    "raw_range": [350, 275, 600, 360],
-                    "target_path": RESOURCE_P["error"]["登录超时.png"],
-                    "target_tolerance": 0.999
+                    "source_range": [350, 275, 600, 360],
+                    "template": RESOURCE_P["error"]["登录超时.png"],
+                    "match_tolerance": 0.999
                 },
                 {
-                    "raw_range": [350, 275, 600, 360],
-                    "target_path": RESOURCE_P["error"]["断开连接.png"],
-                    "target_tolerance": 0.999
+                    "source_range": [350, 275, 600, 360],
+                    "template": RESOURCE_P["error"]["断开连接.png"],
+                    "match_tolerance": 0.999
                 },
                 {
-                    "raw_range": [350, 275, 600, 360],
-                    "target_path": RESOURCE_P["error"]["Flash爆炸.png"],
-                    "target_tolerance": 0.999
+                    "source_range": [350, 275, 600, 360],
+                    "template": RESOURCE_P["error"]["Flash爆炸.png"],
+                    "match_tolerance": 0.999
                 },
             ],
             return_mode="or")
@@ -202,7 +201,7 @@ class Battle:
                 time.sleep(self.click_sleep)
 
     def update_fire_elemental_1000(self):
-        image = capture_picture_png(handle=self.faa.handle, raw_range=[161, 75, 164, 85])
+        image = capture_image_png(handle=self.faa.handle, raw_range=[161, 75, 164, 85])
         image = image[:, :, :3]
         image = image.reshape(-1, image.shape[-1])  # 减少一个多余的维度
         self.fire_elemental_1000 = np.any(image == [0, 0, 0])

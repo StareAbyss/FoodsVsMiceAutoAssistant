@@ -1,12 +1,12 @@
 from cv2 import imwrite, imread, IMREAD_UNCHANGED, matchTemplate, TM_SQDIFF_NORMED, minMaxLoc
 
-from function.common.bg_img_screenshot import capture_picture_png
+from function.common.bg_img_screenshot import capture_image_png
 from function.globals.get_paths import PATHS
 from function.scattered.gat_handle import faa_get_handle
 
 
 def get_house_id(handle):
-    image_0 = capture_picture_png(handle=handle, raw_range=[0, 0, 950, 600])
+    image_0 = capture_image_png(handle=handle, raw_range=[0, 0, 950, 600])
     image_0[image_0 != 255] = 0
     my_number = ""
 
@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
         handle = faa_get_handle(channel="深渊之下 | 锑食", mode="flash")
 
-        image_0 = capture_picture_png(handle=handle, raw_range=[0, 0, 950, 600])
+        image_0 = capture_image_png(handle=handle, raw_range=[0, 0, 950, 600])
         images = [image_0[28:36, 152 + 3:152 + 3 + 6],
                   image_0[28:36, 159 + 3:159 + 3 + 6],
                   image_0[28:36, 166 + 3:166 + 3 + 6],
