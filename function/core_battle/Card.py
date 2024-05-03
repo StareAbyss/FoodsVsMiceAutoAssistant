@@ -2,7 +2,7 @@ import time
 
 import numpy as np
 
-from function.common.bg_img_screenshot import capture_picture_png
+from function.common.bg_img_screenshot import capture_image_png
 from function.globals.extra import EXTRA_GLOBALS
 from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
@@ -10,7 +10,6 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 def compare_pixels(img_source, img_template):
     """
-
     :param img_source: 目标图像 三维numpy数组 不能包含Alpha
     :param img_template: 模板图像 三维numpy数组 不能包含Alpha
 
@@ -185,7 +184,7 @@ class Card:
 
     def fresh_status(self):
         """判断颜色来更改自身冷却和可用属性"""
-        img = capture_picture_png(
+        img = capture_image_png(
             handle=self.handle,
             raw_range=[
                 self.location_from[0] - 45,
@@ -239,7 +238,7 @@ class CardKun:
     def fresh_status(self):
         """判断颜色来更改自身冷却和可用属性"""
         print(self.location_from)
-        img = capture_picture_png(
+        img = capture_image_png(
             handle=self.handle,
             raw_range=[
                 self.location_from[0] - 45,

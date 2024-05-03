@@ -91,9 +91,7 @@ def matchImage(img_path, img, mode='loots', test_print=False):
 
     if test_print:
         # 把识别结果显示到界面上
-        CUS_LOGGER.debug("matchImage方法 战利品识别结果：")
-        CUS_LOGGER.debug(best_match_items)
-
+        CUS_LOGGER.debug(f"matchImage方法 战利品识别结果：{best_match_items}")
     # 返回识别结果
     return best_match_items
 

@@ -5,7 +5,7 @@ import time
 import cv2
 
 from function.common.bg_img_match import loop_match_ps_in_w, loop_match_p_in_w, match_p_in_w
-from function.common.bg_img_screenshot import capture_picture_png
+from function.common.bg_img_screenshot import capture_image_png
 from function.core.analyzer_of_loot_logs import matchImage
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
@@ -24,6 +24,7 @@ class BattleARoundPreparation:
     def add_quest_card(self):
 
         handle = self.faa.handle
+        handle_360 = self.faa.handle_360
         quest_card = self.faa.quest_card
         print_debug = self.faa.print_debug
 
@@ -74,13 +75,14 @@ class BattleARoundPreparation:
                     else:
                         # 如果还没找到 就试试查找点击 添加卡片
                         find = loop_match_p_in_w(
-                            raw_w_handle=handle,
-                            raw_range=[380, 175, 925, 420],
-                            target_path=RESOURCE_P["card"]["房间"][quest_card],
-                            target_tolerance=0.95,
-                            target_failed_check=0.4,
-                            target_interval=0.2,
-                            target_sleep=0.4,  # 和总计检测时间一致 以同步时间
+                            source_handle=handle,
+                            source_root_handle=handle_360,
+                            source_range=[380, 175, 925, 420],
+                            template=RESOURCE_P["card"]["房间"][quest_card],
+                            match_tolerance=0.95,
+                            match_failed_check=0.4,
+                            match_interval=0.2,
+                            after_sleep=0.4,  # 和总计检测时间一致 以同步时间
                             click=True)
                         if find:
                             already_find = True
@@ -144,17 +146,18 @@ class BattleARoundPreparation:
     def screen_ban_card_loop_a_round(self, ban_card_s):
 
         handle = self.faa.handle
-
+        handle_360 = self.faa.handle_360
         for card in ban_card_s:
             # 只ban被记录了图片的变种卡
             loop_match_p_in_w(
-                raw_w_handle=handle,
-                raw_range=[380, 40, 915, 105],
-                target_path=RESOURCE_P["card"]["房间"][card],
-                target_tolerance=0.95,
-                target_interval=0.2,
-                target_failed_check=0.6,
-                target_sleep=1,
+                source_handle=handle,
+                source_root_handle=handle_360,
+                source_range=[380, 40, 915, 105],
+                template=RESOURCE_P["card"]["房间"][card],
+                match_tolerance=0.95,
+                match_interval=0.2,
+                match_failed_check=0.6,
+                after_sleep=1,
                 click=True)
 
     def before(self):
@@ -163,6 +166,7 @@ class BattleARoundPreparation:
         :return: 0-正常结束 1-重启本次 2-跳过本次
         """
         handle = self.faa.handle
+        handle_360 = self.faa.handle_360
         deck = self.faa.deck
         print_debug = self.faa.print_debug
         print_warning = self.faa.print_warning
@@ -170,12 +174,13 @@ class BattleARoundPreparation:
         # 循环查找开始按键
         print_debug(text="寻找开始或准备按钮")
         find = loop_match_p_in_w(
-            raw_w_handle=handle,
-            raw_range=[796, 413, 950, 485],
-            target_path=RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
-            target_interval=1,
-            target_failed_check=10,
-            target_sleep=0.3,
+            source_handle=handle,
+            source_root_handle=handle_360,
+            source_range=[796, 413, 950, 485],
+            template=RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
+            match_interval=1,
+            match_failed_check=10,
+            after_sleep=0.3,
             click=False)
         if not find:
             print_warning(text="创建房间后, 10s找不到[开始/准备]字样! 创建房间可能失败!")
@@ -198,13 +203,14 @@ class BattleARoundPreparation:
 
         # 点击开始
         find = loop_match_p_in_w(
-            raw_w_handle=handle,
-            raw_range=[796, 413, 950, 485],
-            target_path=RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
-            target_tolerance=0.95,
-            target_interval=1,
-            target_failed_check=10,
-            target_sleep=1,
+            source_handle=handle,
+            source_root_handle=handle_360,
+            source_range=[796, 413, 950, 485],
+            template=RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
+            match_tolerance=0.95,
+            match_interval=1,
+            match_failed_check=10,
+            after_sleep=1,
             click=True)
         if not find:
             print_warning(text="选择卡组后, 10s找不到[开始/准备]字样! 创建房间可能失败!")
@@ -212,10 +218,11 @@ class BattleARoundPreparation:
 
         # 防止被 [没有带xx卡] or []包已满 卡住
         find = match_p_in_w(
-            raw_w_handle=handle,
-            raw_range=[0, 0, 950, 600],
+            source_handle=handle,
+            source_root_handle=handle_360,
+            source_range=[0, 0, 950, 600],
             template=RESOURCE_P["common"]["战斗"]["战斗前_系统提示.png"],
-            tolerance=0.98)
+            match_tolerance=0.98)
         if find:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(
                 handle=handle,
@@ -228,12 +235,13 @@ class BattleARoundPreparation:
 
         # 循环查找火苗图标 找到战斗开始
         find = loop_match_p_in_w(
-            raw_w_handle=handle,
-            raw_range=[0, 0, 950, 600],
-            target_path=RESOURCE_P["common"]["战斗"]["战斗中_火苗能量.png"],
-            target_interval=0.5,
-            target_failed_check=30,
-            target_sleep=0.1,
+            source_handle=handle,
+            source_root_handle=handle_360,
+            source_range=[0, 0, 950, 600],
+            template=RESOURCE_P["common"]["战斗"]["战斗中_火苗能量.png"],
+            match_interval=0.5,
+            match_failed_check=30,
+            after_sleep=0.1,
             click=False)
 
         # 刷新ui: 状态文本
@@ -272,7 +280,7 @@ class BattleARoundPreparation:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=484)
             time.sleep(0.05)
         time.sleep(0.25)
-        images.append(capture_picture_png(handle=handle, raw_range=[209, 454, 699, 552]))
+        images.append(capture_image_png(handle=handle, raw_range=[209, 454, 699, 552]))
         time.sleep(0.25)
 
         # 3 4 行 取3行
@@ -280,7 +288,7 @@ class BattleARoundPreparation:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=510)
             time.sleep(0.05)
         time.sleep(0.25)
-        images.append(capture_picture_png(handle=handle, raw_range=[209, 456, 699, 505]))
+        images.append(capture_image_png(handle=handle, raw_range=[209, 456, 699, 505]))
         time.sleep(0.25)
 
         # 4 5 行
@@ -288,7 +296,7 @@ class BattleARoundPreparation:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=529)
             time.sleep(0.05)
         time.sleep(0.25)
-        images.append(capture_picture_png(handle=handle, raw_range=[209, 454, 699, 552]))
+        images.append(capture_image_png(handle=handle, raw_range=[209, 454, 699, 552]))
         time.sleep(0.25)
 
         # 垂直拼接
@@ -302,17 +310,19 @@ class BattleARoundPreparation:
         """
 
         handle = self.faa.handle
+        handle_360 = self.faa.handle_360
         print_debug = self.faa.print_debug
         player = self.faa.player
         stage_info = self.faa.stage_info
 
         # 是否在战利品ui界面
         find = loop_match_p_in_w(
-            raw_w_handle=handle,
-            raw_range=[202, 419, 306, 461],
-            target_path=RESOURCE_P["common"]["战斗"]["战斗后_1_战利品.png"],
-            target_failed_check=2,
-            target_tolerance=0.99,
+            source_handle=handle,
+            source_root_handle=handle_360,
+            source_range=[202, 419, 306, 461],
+            template=RESOURCE_P["common"]["战斗"]["战斗后_1_战利品.png"],
+            match_failed_check=2,
+            match_tolerance=0.99,
             click=False)
 
         if find:
@@ -347,6 +357,7 @@ class BattleARoundPreparation:
     def capture_and_match_treasure_chests(self):
 
         handle = self.faa.handle
+        handle_360 = self.faa.handle_360
         stage_info = self.faa.stage_info
         player = self.faa.player
         is_group = self.faa.is_group
@@ -354,11 +365,12 @@ class BattleARoundPreparation:
         print_warning = self.faa.print_warning
 
         find = loop_match_p_in_w(
-            raw_w_handle=handle,
-            raw_range=[400, 35, 550, 75],
-            target_path=RESOURCE_P["common"]["战斗"]["战斗后_4_翻宝箱.png"],
-            target_failed_check=15,
-            target_sleep=2,
+            source_handle=handle,
+            source_root_handle=handle_360,
+            source_range=[400, 35, 550, 75],
+            template=RESOURCE_P["common"]["战斗"]["战斗后_4_翻宝箱.png"],
+            match_failed_check=15,
+            after_sleep=2,
             click=False
         )
         if find:
@@ -374,10 +386,10 @@ class BattleARoundPreparation:
             time.sleep(1.5)
 
             img = [
-                capture_picture_png(
+                capture_image_png(
                     handle=handle,
                     raw_range=[249, 89, 293, 133]),
-                capture_picture_png(
+                capture_image_png(
                     handle=handle,
                     raw_range=[317, 89, 361, 133])
             ]
@@ -527,25 +539,27 @@ class BattleARoundPreparation:
         """
 
         handle = self.faa.handle
+        handle_360 = self.faa.handle_360
         print_debug = self.faa.print_debug
         print_error = self.faa.print_error
 
         print_debug(text="[开始/准备/魔塔蛋糕UI] 尝试捕获正确标志, 以完成战斗流程.")
         find = loop_match_ps_in_w(
-            raw_w_handle=handle,
-            target_opts=[
+            source_handle=handle,
+            source_root_handle=handle_360,
+            template_opts=[
                 {
-                    "raw_range": [796, 413, 950, 485],
-                    "target_path": RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
-                    "target_tolerance": 0.99},
+                    "source_range": [796, 413, 950, 485],
+                    "template": RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
+                    "match_tolerance": 0.99},
                 {
-                    "raw_range": [200, 0, 750, 100],
-                    "target_path": RESOURCE_P["common"]["魔塔蛋糕_ui.png"],
-                    "target_tolerance": 0.99
+                    "source_range": [200, 0, 750, 100],
+                    "template": RESOURCE_P["common"]["魔塔蛋糕_ui.png"],
+                    "match_tolerance": 0.99
                 }],
-            target_return_mode="or",
-            target_failed_check=10,
-            target_interval=0.2)
+            return_mode="or",
+            match_failed_check=10,
+            match_interval=0.2)
         if find:
             print_debug(text="成功捕获[开始/准备/魔塔蛋糕UI], 完成战斗流程.")
             return 0  # 0-正常结束
