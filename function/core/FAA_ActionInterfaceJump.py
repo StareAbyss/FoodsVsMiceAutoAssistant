@@ -21,6 +21,7 @@ class FAAActionInterfaceJump:
         "游戏内退出"
         """
         handle = self.faa.handle
+        handle_360 = self.faa.handle_360
         print_error = self.faa.print_error
         receive_quest_rewards = self.faa.receive_quest_rewards
 
@@ -32,19 +33,21 @@ class FAAActionInterfaceJump:
 
         if mode == "普通红叉":
             find = loop_match_p_in_w(
-                raw_w_handle=handle,
-                raw_range=raw_range,
-                target_path=RESOURCE_P["common"]["退出.png"],
-                target_failed_check=5,
-                target_sleep=1.5,
+                source_handle=handle,
+                source_root_handle=handle_360,
+                source_range=raw_range,
+                template=RESOURCE_P["common"]["退出.png"],
+                match_failed_check=5,
+                after_sleep=1.5,
                 click=True)
             if not find:
                 find = loop_match_p_in_w(
-                    raw_w_handle=handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["common"]["退出_被选中.png"],
-                    target_failed_check=5,
-                    target_sleep=1.5,
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[0, 0, 950, 600],
+                    template=RESOURCE_P["common"]["退出_被选中.png"],
+                    match_failed_check=5,
+                    after_sleep=1.5,
                     click=True)
                 if not find:
                     print_error(text="未能成功找到右上红叉以退出!前面的步骤有致命错误!")
@@ -55,21 +58,23 @@ class FAAActionInterfaceJump:
         if mode == "关闭悬赏窗口":
             # 有被选中和未选中两种图标
             result = loop_match_p_in_w(
-                raw_w_handle=handle,
-                raw_range=raw_range,
-                target_path=RESOURCE_P["common"]["悬赏任务_退出_未选中.png"],
-                target_tolerance=0.99,
-                target_failed_check=3,
-                target_sleep=1.5,
+                source_handle=handle,
+                source_root_handle=handle_360,
+                source_range=raw_range,
+                template=RESOURCE_P["common"]["悬赏任务_退出_未选中.png"],
+                match_tolerance=0.99,
+                match_failed_check=3,
+                after_sleep=1.5,
                 click=True)
             if not result:
                 loop_match_p_in_w(
-                    raw_w_handle=handle,
-                    raw_range=raw_range,
-                    target_path=RESOURCE_P["common"]["悬赏任务_退出_被选中.png"],
-                    target_tolerance=0.99,
-                    target_failed_check=3,
-                    target_sleep=1.5,
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=raw_range,
+                    template=RESOURCE_P["common"]["悬赏任务_退出_被选中.png"],
+                    match_tolerance=0.99,
+                    match_failed_check=3,
+                    after_sleep=1.5,
                     click=True)
 
         if mode == "美食大赛领取":
@@ -85,6 +90,9 @@ class FAAActionInterfaceJump:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=455, y=385)
             time.sleep(0.1)
 
+        # 安全时延
+        time.sleep(0.25)
+
     def top_menu(self, mode: str):
         """
         点击上方菜单栏, 包含:
@@ -94,6 +102,7 @@ class FAAActionInterfaceJump:
         """
 
         handle = self.faa.handle
+        handle_360 = self.faa.handle_360
         print_debug = self.faa.print_debug
         print_warning = self.faa.print_warning
 
@@ -102,11 +111,12 @@ class FAAActionInterfaceJump:
         while True:
             self.change_activity_list(serial_num=tar_menu_page)
             find = loop_match_p_in_w(
-                raw_w_handle=handle,
-                raw_range=[250, 0, 925, 110],
-                target_path=RESOURCE_P["common"]["顶部菜单"]["{}.png".format(mode)],
-                target_failed_check=3,
-                target_sleep=1.5,
+                source_handle=handle,
+                source_root_handle=handle_360,
+                source_range=[250, 0, 925, 110],
+                template=RESOURCE_P["common"]["顶部菜单"]["{}.png".format(mode)],
+                match_failed_check=3,
+                after_sleep=1.5,
                 click=True)
             if find:
                 print_debug(text="[顶部菜单] [{}] 3s内跳转成功".format(mode))
@@ -123,10 +133,11 @@ class FAAActionInterfaceJump:
 
             # 确认已经跨服进房间
             find = loop_match_p_in_w(
-                raw_w_handle=handle,
-                raw_range=[0, 0, 950, 200],
-                target_path=RESOURCE_P["common"]["跨服副本_ui.png"],
-                target_failed_check=10
+                source_handle=handle,
+                source_root_handle=handle_360,
+                source_range=[0, 0, 950, 200],
+                template=RESOURCE_P["common"]["跨服副本_ui.png"],
+                match_failed_check=10
             )
 
             if find:
@@ -143,33 +154,37 @@ class FAAActionInterfaceJump:
         """点击下方菜单栏, 包含:任务/后退/背包/跳转_公会任务/跳转_公会副本/跳转_情侣任务/跳转_竞技场"""
 
         handle = self.faa.handle
+        handle_360 = self.faa.handle_360
         print_warning = self.faa.print_warning
 
         find = False
 
         if mode == "任务" or mode == "后退" or mode == "背包" or mode == "公会":
             find = loop_match_p_in_w(
-                raw_w_handle=handle,
-                raw_range=[520, 530, 950, 600],
-                target_path=RESOURCE_P["common"]["底部菜单"]["{}.png".format(mode)],
-                target_failed_check=3,
-                target_sleep=1,
+                source_handle=handle,
+                source_root_handle=handle_360,
+                source_range=[520, 530, 950, 600],
+                template=RESOURCE_P["common"]["底部菜单"]["{}.png".format(mode)],
+                match_failed_check=3,
+                after_sleep=1,
                 click=True)
 
         if mode == "跳转_公会任务" or mode == "跳转_公会副本" or mode == "跳转_情侣任务" or mode == "跳转_竞技场":
             loop_match_p_in_w(
-                raw_w_handle=handle,
-                raw_range=[520, 530, 950, 600],
-                target_path=RESOURCE_P["common"]["底部菜单"]["跳转.png"],
-                target_failed_check=3,
-                target_sleep=0.5,
+                source_handle=handle,
+                source_root_handle=handle_360,
+                source_range=[520, 530, 950, 600],
+                template=RESOURCE_P["common"]["底部菜单"]["跳转.png"],
+                match_failed_check=3,
+                after_sleep=0.5,
                 click=True)
             find = loop_match_p_in_w(
-                raw_w_handle=handle,
-                raw_range=[520, 170, 950, 600],
-                target_path=RESOURCE_P["common"]["底部菜单"]["{}.png".format(mode)],
-                target_failed_check=3,
-                target_sleep=0.5,
+                source_handle=handle,
+                source_root_handle=handle_360,
+                source_range=[520, 170, 950, 600],
+                template=RESOURCE_P["common"]["底部菜单"]["{}.png".format(mode)],
+                match_failed_check=3,
+                after_sleep=0.5,
                 click=True)
 
         if not find:
@@ -181,10 +196,12 @@ class FAAActionInterfaceJump:
         """检测顶部的活动清单, 1为第一页, 2为第二页(有举报图标的一页)"""
 
         handle = self.faa.handle
+        handle_360 = self.faa.handle_360
 
         find = match_p_in_w(
-            raw_w_handle=handle,
-            raw_range=[0, 0, 950, 600],
+            source_handle=handle,
+            source_root_handle=handle_360,
+            source_range=[0, 0, 950, 600],
             template=RESOURCE_P["common"]["顶部菜单"]["举报.png"])
 
         if serial_num == 1:
@@ -202,18 +219,20 @@ class FAAActionInterfaceJump:
         用于前往各地图,0.美味阵,1.美味岛,2.火山岛,3.火山遗迹,4.浮空岛,5.海底,6.营地
         """
         handle = self.faa.handle
+        handle_360 = self.faa.handle_360
 
         # 点击世界地图
         self.top_menu(mode="大地图")
 
         # 点击对应的地图
         find = loop_match_p_in_w(
-            raw_w_handle=handle,
-            raw_range=[0, 0, 950, 600],
-            target_path=RESOURCE_P["map"]["{}.png".format(map_id)],
-            target_tolerance=0.99,
-            target_failed_check=5,
-            target_sleep=2,
+            source_handle=handle,
+            source_root_handle=handle_360,
+            source_range=[0, 0, 950, 600],
+            template=RESOURCE_P["map"]["{}.png".format(map_id)],
+            match_tolerance=0.99,
+            match_failed_check=5,
+            after_sleep=2,
             click=True
         )
         return find
@@ -226,6 +245,7 @@ class FAAActionInterfaceJump:
         """
 
         handle = self.faa.handle
+        handle_360 = self.faa.handle_360
         print_error = self.faa.print_error
         stage_info = self.faa.stage_info
         random_seed = self.faa.random_seed
@@ -252,7 +272,7 @@ class FAAActionInterfaceJump:
             random.seed(random_seed)
             region_id = random.randint(region_list[0], region_list[1])
 
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=820, y=85)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=803, y=84)
             time.sleep(0.5)
 
             my_list = [85, 110, 135, 160, 185, 210, 235, 260, 285, 310, 335]
@@ -274,11 +294,12 @@ class FAAActionInterfaceJump:
 
                 # 选择关卡
                 loop_match_p_in_w(
-                    raw_w_handle=handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["stage"]["{}.png".format(stage_info["id"])],
-                    target_tolerance=0.995,
-                    target_sleep=1,
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[0, 0, 950, 600],
+                    template=RESOURCE_P["stage"]["{}.png".format(stage_info["id"])],
+                    match_tolerance=0.995,
+                    after_sleep=1,
                     click=True)
 
                 # 设置密码
@@ -286,10 +307,11 @@ class FAAActionInterfaceJump:
 
                 # 创建队伍
                 loop_match_p_in_w(
-                    raw_w_handle=handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                    target_sleep=1,
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[0, 0, 950, 600],
+                    template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
+                    after_sleep=1,
                     click=True)
 
         def main_mt():
@@ -304,11 +326,12 @@ class FAAActionInterfaceJump:
             if is_main and mt_first_time:
                 # 进入魔塔
                 loop_match_p_in_w(
-                    raw_w_handle=handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["stage"]["MT.png"],
-                    target_failed_check=5,
-                    target_sleep=2,
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[0, 0, 950, 600],
+                    template=RESOURCE_P["stage"]["MT.png"],
+                    match_failed_check=5,
+                    after_sleep=2,
                     click=True
                 )
 
@@ -322,10 +345,11 @@ class FAAActionInterfaceJump:
                 # 选择了密室
                 if stage_1 == "3":
                     loop_match_p_in_w(
-                        raw_w_handle=handle,
-                        raw_range=[0, 0, 950, 600],
-                        target_path=RESOURCE_P["stage"]["{}.png".format(stage_info["id"])],
-                        target_sleep=0.3,
+                        source_handle=handle,
+                        source_root_handle=handle_360,
+                        source_range=[0, 0, 950, 600],
+                        template=RESOURCE_P["stage"]["{}.png".format(stage_info["id"])],
+                        after_sleep=0.3,
                         click=True)
                 # 选择了单双人爬塔
                 else:
@@ -364,10 +388,11 @@ class FAAActionInterfaceJump:
 
                 # 创建房间
                 loop_match_p_in_w(
-                    raw_w_handle=handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
-                    target_sleep=1,
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[0, 0, 950, 600],
+                    template=RESOURCE_P["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
+                    after_sleep=1,
                     click=True)
 
         def main_cs():
@@ -428,12 +453,13 @@ class FAAActionInterfaceJump:
 
                 for i in range(20):
                     find = loop_match_p_in_w(
-                        raw_w_handle=handle,
-                        raw_range=[0, 0, 950, 600],
-                        target_path=RESOURCE_P["common"]["用户自截"]["跨服远征_1p.png"],
+                        source_handle=handle,
+                        source_root_handle=handle_360,
+                        source_range=[0, 0, 950, 600],
+                        template=RESOURCE_P["common"]["用户自截"]["跨服远征_1p.png"],
                         click=True,
-                        target_sleep=1.0,
-                        target_failed_check=1.0)
+                        after_sleep=1.0,
+                        match_failed_check=1.0)
                     if find:
                         break
                     else:
@@ -458,11 +484,12 @@ class FAAActionInterfaceJump:
 
             # 选择关卡
             loop_match_p_in_w(
-                raw_w_handle=handle,
-                raw_range=[0, 0, 950, 600],
-                target_path=RESOURCE_P["stage"]["{}.png".format(stage_info["id"])],
-                target_tolerance=0.95,
-                target_sleep=1,
+                source_handle=handle,
+                source_root_handle=handle_360,
+                source_range=[0, 0, 950, 600],
+                template=RESOURCE_P["stage"]["{}.png".format(stage_info["id"])],
+                match_tolerance=0.95,
+                after_sleep=1,
                 click=True)
 
             # 切区
@@ -489,18 +516,20 @@ class FAAActionInterfaceJump:
             if stage_1 != "1":
                 # 找船
                 loop_match_p_in_w(
-                    raw_w_handle=handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["stage"]["EX-Ship.png"],
-                    target_sleep=1.5,
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[0, 0, 950, 600],
+                    template=RESOURCE_P["stage"]["EX-Ship.png"],
+                    after_sleep=1.5,
                     click=True)
 
                 # 找地图图标
                 loop_match_p_in_w(
-                    raw_w_handle=handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["stage"]["EX-{}.png".format(stage_1)],
-                    target_sleep=1.5,
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[0, 0, 950, 600],
+                    template=RESOURCE_P["stage"]["EX-{}.png".format(stage_1)],
+                    after_sleep=1.5,
                     click=True)
 
             # 切区
@@ -510,10 +539,11 @@ class FAAActionInterfaceJump:
             if is_main:
                 # 选择关卡
                 loop_match_p_in_w(
-                    raw_w_handle=handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["stage"]["{}.png".format(stage_info["id"])],
-                    target_sleep=0.5,
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[0, 0, 950, 600],
+                    template=RESOURCE_P["stage"]["{}.png".format(stage_info["id"])],
+                    after_sleep=0.5,
                     click=True)
 
                 # 设置密码
@@ -521,10 +551,11 @@ class FAAActionInterfaceJump:
 
                 # 创建队伍
                 loop_match_p_in_w(
-                    raw_w_handle=handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                    target_sleep=0.5,
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[0, 0, 950, 600],
+                    template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
+                    after_sleep=0.5,
                     click=True)
 
         def main_pt():
@@ -557,10 +588,11 @@ class FAAActionInterfaceJump:
 
                 # 创建房间
                 loop_match_p_in_w(
-                    raw_w_handle=handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
-                    target_sleep=1,
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[0, 0, 950, 600],
+                    template=RESOURCE_P["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
+                    after_sleep=1,
                     click=True)
 
         def main_gd():
@@ -578,24 +610,27 @@ class FAAActionInterfaceJump:
             if is_main:
                 # 创建队伍
                 loop_match_p_in_w(
-                    raw_w_handle=handle,
-                    raw_range=[515, 477, 658, 513],
-                    target_path=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                    target_sleep=0.05,
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[515, 477, 658, 513],
+                    template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
+                    after_sleep=0.05,
                     click=True)
             else:
                 # 识图，寻找需要邀请目标的位置
                 result = match_p_in_w(
-                    raw_w_handle=handle,
-                    raw_range=[0, 0, 950, 600],
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["common"]["战斗"]["房间图标_男.png"],
-                    tolerance=0.95)
+                    match_tolerance=0.95)
                 if not result:
                     result = match_p_in_w(
-                        raw_w_handle=handle,
-                        raw_range=[0, 0, 950, 600],
+                        source_handle=handle,
+                        source_root_handle=handle_360,
+                        source_range=[0, 0, 950, 600],
                         template=RESOURCE_P["common"]["战斗"]["房间图标_女.png"],
-                        tolerance=0.95)
+                        match_tolerance=0.95)
                 if result:
                     # 直接进入
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(

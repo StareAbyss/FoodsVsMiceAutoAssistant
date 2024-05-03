@@ -13,6 +13,7 @@ class FAAActionQuestReceiveRewards:
         """领取普通任务奖励"""
 
         handle = self.faa.handle
+        handle_360 = self.faa.handle_360
         action_bottom_menu = self.faa.action_bottom_menu
         action_exit = self.faa.action_exit
 
@@ -36,12 +37,13 @@ class FAAActionQuestReceiveRewards:
                     # 找到就点一下, 找不到就跳过
                     while True:
                         find = loop_match_p_in_w(
-                            raw_w_handle=handle,
-                            raw_range=[335, 120, 420, 545],
-                            target_path=RESOURCE_P["common"]["任务_完成.png"],
-                            target_tolerance=0.95,
-                            target_failed_check=1,
-                            target_sleep=0.5,
+                            source_handle=handle,
+                            source_root_handle=handle_360,
+                            source_range=[335, 120, 420, 545],
+                            template=RESOURCE_P["common"]["任务_完成.png"],
+                            match_tolerance=0.95,
+                            match_failed_check=1,
+                            after_sleep=0.5,
                             click=True)
                         if find:
                             # 领取奖励
@@ -56,6 +58,7 @@ class FAAActionQuestReceiveRewards:
     def guild(self):
 
         handle = self.faa.handle
+        handle_360 = self.faa.handle_360
         action_bottom_menu = self.faa.action_bottom_menu
         action_exit = self.faa.action_exit
 
@@ -65,28 +68,31 @@ class FAAActionQuestReceiveRewards:
         while True:
             # 点一下 让左边的选中任务颜色消失
             loop_match_p_in_w(
-                raw_w_handle=handle,
-                raw_range=[0, 0, 950, 600],
-                target_path=RESOURCE_P["quest_guild"]["ui_quest_list.png"],
-                target_sleep=0.5,
+                source_handle=handle,
+                source_root_handle=handle_360,
+                source_range=[0, 0, 950, 600],
+                template=RESOURCE_P["quest_guild"]["ui_quest_list.png"],
+                after_sleep=0.5,
                 click=True)
             result = loop_match_p_in_w(
-                raw_w_handle=handle,
-                raw_range=[0, 0, 950, 600],
-                target_path=RESOURCE_P["quest_guild"]["completed.png"],
-                target_tolerance=0.99,
+                source_handle=handle,
+                source_root_handle=handle_360,
+                source_range=[0, 0, 950, 600],
+                template=RESOURCE_P["quest_guild"]["completed.png"],
+                match_tolerance=0.99,
                 click=True,
-                target_failed_check=5,  # 1+4s 因为偶尔会弹出美食大赛完成动画4s 需要充足时间！这个确实脑瘫...
-                target_sleep=0.5)
+                match_failed_check=5,  # 1+4s 因为偶尔会弹出美食大赛完成动画4s 需要充足时间！这个确实脑瘫...
+                after_sleep=0.5)
             if result:
                 loop_match_p_in_w(
-                    raw_w_handle=handle,
-                    raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["quest_guild"]["gather.png"],
-                    target_tolerance=0.99,
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[0, 0, 950, 600],
+                    template=RESOURCE_P["quest_guild"]["gather.png"],
+                    match_tolerance=0.99,
                     click=True,
-                    target_failed_check=2,
-                    target_sleep=2)  # 2s 完成任务有显眼动画
+                    match_failed_check=2,
+                    after_sleep=2)  # 2s 完成任务有显眼动画
             else:
                 break
         # 退出任务界面
@@ -95,6 +101,7 @@ class FAAActionQuestReceiveRewards:
     def spouse(self):
 
         handle = self.faa.handle
+        handle_360 = self.faa.handle_360
         action_bottom_menu = self.faa.action_bottom_menu
         action_exit = self.faa.action_exit
 
@@ -103,13 +110,14 @@ class FAAActionQuestReceiveRewards:
         # 循环遍历点击完成
         while True:
             result = loop_match_p_in_w(
-                raw_w_handle=handle,
-                raw_range=[0, 0, 950, 600],
-                target_path=RESOURCE_P["quest_spouse"]["completed.png"],
-                target_tolerance=0.99,
+                source_handle=handle,
+                source_root_handle=handle_360,
+                source_range=[0, 0, 950, 600],
+                template=RESOURCE_P["quest_spouse"]["completed.png"],
+                match_tolerance=0.99,
                 click=True,
-                target_failed_check=2,
-                target_sleep=2)  # 2s 完成任务有显眼动画)
+                match_failed_check=2,
+                after_sleep=2)  # 2s 完成任务有显眼动画)
             if not result:
                 break
         # 退出任务界面
@@ -118,6 +126,7 @@ class FAAActionQuestReceiveRewards:
     def offer_reward(self):
 
         handle = self.faa.handle
+        handle_360 = self.faa.handle_360
         action_top_menu = self.faa.action_top_menu
         action_exit = self.faa.action_exit
 
@@ -127,13 +136,14 @@ class FAAActionQuestReceiveRewards:
         # 循环遍历点击完成
         while True:
             result = loop_match_p_in_w(
-                raw_w_handle=handle,
-                raw_range=[0, 0, 950, 600],
-                target_path=RESOURCE_P["common"]["悬赏任务_领取奖励.png"],
-                target_tolerance=0.99,
-                target_failed_check=2,
+                source_handle=handle,
+                source_root_handle=handle_360,
+                source_range=[0, 0, 950, 600],
+                template=RESOURCE_P["common"]["悬赏任务_领取奖励.png"],
+                match_tolerance=0.99,
+                match_failed_check=2,
                 click=True,
-                target_sleep=2)
+                after_sleep=2)
             if not result:
                 break
 
@@ -143,6 +153,7 @@ class FAAActionQuestReceiveRewards:
     def food_competition(self):
 
         handle = self.faa.handle
+        handle_360 = self.faa.handle_360
         action_top_menu = self.faa.action_top_menu
         print_debug = self.faa.print_debug
         print_warning = self.faa.print_warning
@@ -164,12 +175,13 @@ class FAAActionQuestReceiveRewards:
                 # 找到就点一下领取, 1s内找不到就跳过
                 while True:
                     find = loop_match_p_in_w(
-                        raw_w_handle=handle,
-                        raw_range=[0, 0, 950, 600],
-                        target_path=RESOURCE_P["common"]["美食大赛_领取.png"],
-                        target_tolerance=0.95,
-                        target_failed_check=0.5,
-                        target_sleep=0.5,
+                        source_handle=handle,
+                        source_root_handle=handle_360,
+                        source_range=[0, 0, 950, 600],
+                        template=RESOURCE_P["common"]["美食大赛_领取.png"],
+                        match_tolerance=0.95,
+                        match_failed_check=0.5,
+                        after_sleep=0.5,
                         click=True)
                     if find:
                         # 领取升级有动画
@@ -224,7 +236,7 @@ class FAAActionQuestReceiveRewards:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=928, y=16)
             time.sleep(0.5)
 
-    def main(self,mode):
+    def main(self, mode):
         print_debug = self.faa.print_debug
 
         print_debug(text="[领取奖励] [{}] 开始".format(mode))

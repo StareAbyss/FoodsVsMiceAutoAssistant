@@ -10,13 +10,16 @@ from function.globals.log import CUS_LOGGER
 
 class CardManager:
 
-    def __init__(self, faa_1, faa_2):
+    def __init__(self, faa_1, faa_2, round_interval=1):
         super().__init__()
         self.card_list_dict = {}
         self.card_kun_dict = {}
         self.card_queue_dict = {}
         self.thread_dict = {}
         self.smoothie_usable_player = []
+
+        # 一轮检测的时间 单位s, 该时间的1/20则是尝试使用一张卡的间隔, 该时间的10倍则是使用武器技能/自动拾取动作的间隔 推荐默认值 1s
+        self.round_interval = round_interval
 
         # 此处的 faa_1 和 faa_2 实例代表的是 多人战斗中作为队长 或 单人战斗中作为目标的 角色
         self.faa_dict = {1: faa_1, 2: faa_2}
@@ -76,10 +79,14 @@ class CardManager:
             self.thread_dict[i] = ThreadCheckTimer(
                 card_queue=self.card_queue_dict[i],
                 card_kun=self.card_kun_dict[i] if (i in self.card_kun_dict.keys()) else None,
-                faa=self.faa_dict[i])
+                faa=self.faa_dict[i],
+                round_interval=self.round_interval
+            )
             self.thread_dict[i + 2] = ThreadUseCardTimer(
                 card_queue=self.card_queue_dict[i],
-                faa=self.faa_dict[i])
+                faa=self.faa_dict[i],
+                round_interval=self.round_interval
+            )
 
         CUS_LOGGER.debug("线程已全部实例化")
         CUS_LOGGER.debug(self.thread_dict)
@@ -129,7 +136,7 @@ class ThreadCheckTimer(QThread):
     stop_signal = pyqtSignal()
     used_key_signal = pyqtSignal()
 
-    def __init__(self, card_queue, faa, card_kun):
+    def __init__(self, card_queue, faa, card_kun, round_interval):
         super().__init__()
         self.card_queue = card_queue
         self.card_kun = card_kun
@@ -138,10 +145,10 @@ class ThreadCheckTimer(QThread):
         self.stopped = False
         self.timer = None
         self.running_round = 0
-        self.interval = 1  # s
+        self.round_interval = round_interval  # s
 
     def run(self):
-        self.timer = Timer(self.interval, self.check)
+        self.timer = Timer(self.round_interval, self.check)
         self.timer.start()
         self.faa.print_debug('启动下层事件循环')
         while not self.stop_flag:
@@ -208,39 +215,40 @@ class ThreadCheckTimer(QThread):
                         max_card.is_kun_target = True
 
             # 调试打印目前list状态
-            # if self.faa.player == 1:
+            # if self.faa.player == 2:
             #     text = ""
             #     for card in self.card_queue.card_list:
-            #         text += "[name:{}|cd:{}|usable:{}|ban:{}|kun_tar:{}]".format(
+            #         text += "[名:{}|CD:{}|用:{}|禁:{}|坤:{}]".format(
             #             card.name, card.status_cd, card.status_usable, card.status_ban, card.is_kun_target)
             #     self.faa.print_debug(text)
 
         # 刷新全局冰沙锁的状态
         if EXTRA_GLOBALS.smoothie_lock_time != 0:
-            EXTRA_GLOBALS.smoothie_lock_time -= self.interval
+            EXTRA_GLOBALS.smoothie_lock_time -= self.round_interval
 
-        # 定时使用武器技能和检测是否继续
+        # 定时 使用武器技能 自动拾取
         if self.running_round % 10 == 0:
             self.faa.faa_battle.use_weapon_skill()
             self.faa.faa_battle.auto_pickup()
 
         # 回调
         if not self.stop_flag:
-            self.timer = Timer(self.interval, self.check)
+            self.timer = Timer(self.round_interval, self.check)
             self.timer.start()
 
 
 class ThreadUseCardTimer(QThread):
-    def __init__(self, card_queue, faa):
+    def __init__(self, card_queue, faa, round_interval):
         super().__init__()
         self.card_queue = card_queue
         self.faa = faa
         self.stop_flag = True
         self.timer = None
+        self.round_interval = float(round_interval / 50)
 
     def run(self):
         self.stop_flag = False
-        self.timer = Timer(0.02, self.use_card)
+        self.timer = Timer(self.round_interval, self.use_card)
         self.timer.start()
         self.faa.print_debug('启动下层事件循环2')
         while not self.stop_flag:
@@ -251,7 +259,7 @@ class ThreadUseCardTimer(QThread):
     def use_card(self):
         self.card_queue.use_top_card()
         if not self.stop_flag:
-            self.timer = Timer(0.02, self.use_card)
+            self.timer = Timer(self.round_interval, self.use_card)
             self.timer.start()
 
     def stop(self):

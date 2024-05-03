@@ -6,11 +6,10 @@ from function.globals.log import CUS_LOGGER
 
 
 class TodoTimerManager:
-    def __init__(self, opt, function_change_current_todo_plan, function_thread_todo_start):
+    def __init__(self, opt, func_thread_todo_start):
         self.todo_timers = {}
 
-        self.change_current_todo_plan = function_change_current_todo_plan
-        self.thread_todo_start = function_thread_todo_start
+        self.thread_todo_start = func_thread_todo_start
 
         self.opt = copy.deepcopy(opt)  # 深拷贝 意味着开始运行后再配置不会有反应
 
@@ -51,10 +50,8 @@ class TodoTimerManager:
         self.todo_timers[timer_index] = timer
 
     def call_back(self, timer_index, plan_index, tar_time):
-        # 修改当前计划
-        self.change_current_todo_plan.emit(plan_index)
         # 启动线程
-        self.thread_todo_start.emit()
+        self.thread_todo_start.emit(plan_index)
         # 动态校准时间
         delta_seconds = 0
         while delta_seconds < 60:
