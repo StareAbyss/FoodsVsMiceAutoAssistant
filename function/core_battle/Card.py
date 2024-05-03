@@ -8,10 +8,37 @@ from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
-def compare_pixels(img, tar_img):
-    """为抵消游戏蒙版色，导致的差距，用于对比识别目标像素和标准像素的函数, 只要有一个像素颜色正确就视为True """
-    for i in range(len(img[0])):
-        if abs(np.sum(img[0][i] - tar_img[0][i])) < 15:
+def compare_pixels(img_source, img_template):
+    """
+
+    :param img_source: 目标图像 三维numpy数组 不能包含Alpha
+    :param img_template: 模板图像 三维numpy数组 不能包含Alpha
+
+    为抵消游戏蒙版色，导致的差距，用于对比识别目标像素和标准像素的函数, 只要上半和下半均有一个像素颜色正确就视为True
+    上半: 0-35 共计36像素 下半: 36-84 共计49像素
+    正确的标准:
+    对应位置的两个像素 RGB三通道 的 颜色差的绝对值 之和 小于15
+    需要注意 颜色数组是int8类型, 所以需要转成int32类型以做减法
+    """
+
+    # 将图片的数字转化为int32 而非int8 防止做减法溢出
+    img_source = img_source.astype(np.int32)
+
+    # 将图片的数字转化为int32 而非int8 防止做减法溢出
+    img_template = img_template.astype(np.int32)
+
+    flag1 = check_pixel_similarity(img_source, img_template, 0, 36)
+    flag2 = check_pixel_similarity(img_source, img_template, 36, 85)
+
+    return flag1 and flag2
+
+
+def check_pixel_similarity(img_source, img_template, start, end, threshold=16):
+    """
+    检查在指定水平区域内，两幅高度仅1的图像是否有至少一个像素点的差异在阈值以内。
+    """
+    for x in range(start, end):
+        if np.sum(abs(img_source[0, x] - img_template[0, x])) <= threshold:
             return True
     return False
 
@@ -179,15 +206,15 @@ class Card:
                 pixels_all[0].append(pixel)
         pixels_all = np.array(pixels_all)
 
-        self.status_usable = (compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_0.png"]) or
-                              compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_1.png"]) or
-                              compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_2.png"]) or
-                              compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_3.png"]))
+        self.status_usable = (compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_0.png"][:, :, :3]) or
+                              compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_1.png"][:, :, :3]) or
+                              compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_2.png"][:, :, :3]) or
+                              compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_3.png"][:, :, :3]))
 
-        self.status_cd = (compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["冷却状态_0.png"]) or
-                          compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["冷却状态_1.png"]) or
-                          compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["冷却状态_2.png"]) or
-                          compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["冷却状态_3.png"]))
+        self.status_cd = (compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["冷却状态_0.png"][:, :, :3]) or
+                          compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["冷却状态_1.png"][:, :, :3]) or
+                          compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["冷却状态_2.png"][:, :, :3]) or
+                          compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["冷却状态_3.png"][:, :, :3]))
 
     def destroy(self):
         self.faa = None
@@ -232,7 +259,7 @@ class CardKun:
             for pixel in axis_0:
                 pixels_all[0].append(pixel)
         pixels_all = np.array(pixels_all)
-        self.status_usable = compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_0.png"])
+        self.status_usable = compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_0.png"][:, :, :3])
 
     def destroy(self):
         self.faa = None
