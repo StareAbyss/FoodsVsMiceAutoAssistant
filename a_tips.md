@@ -16,12 +16,12 @@
 ## 下载python安装程序 v3.7.9
     https://www.python.org/ftp/python/3.7.9/python-3.7.9.exe
 
-## 生成配置文件 → 导入配置文件
+## 生成配置文件
+    cd "F:\My Project\Python\FoodsVsMousesAutoAssistant"
     pip freeze > requirements.txt
 
 ## 导入配置文件
     pip install -r requirements.txt
-    pycharm 自动
 
 # git抽风无法提交到github
 ## 在git仓库打开终端 并输入下文
