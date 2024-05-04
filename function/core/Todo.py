@@ -38,10 +38,12 @@ class ThreadTodo(QThread):
         self.thread_2p = None
         self.thread_card_manager = None
         self.card_manager = None
-        self.lock = False
+        self.battle_check_interval = 1  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
+
+        # 多人双线程相关
+        self.lock = False  # 多人单线程的互锁, 需要彼此完成方可解除对方的锁
         self.todo_id = todo_id  # id == 1 默认 id==2 处理双单人多线程
         self.extra_opt = None  # 用来给双单人多线程的2P传递参数
-        self.battle_check_interval = 1,  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
 
         # 好用的信号~
         self.signal_dict = signal_dict
@@ -576,7 +578,10 @@ class ThreadTodo(QThread):
 
             # 实例化放卡管理器
             self.thread_card_manager = CardManager(
-                faa_1=self.faa[player_a], faa_2=self.faa[player_b], round_interval=self.battle_check_interval)
+                faa_1=self.faa[player_a],
+                faa_2=self.faa[player_b],
+                round_interval=self.battle_check_interval
+            )
             self.msleep(500)
             self.thread_card_manager.run()
             self.msleep(1000)
@@ -654,7 +659,7 @@ class ThreadTodo(QThread):
         sleep(60 * 60 * 24)
 
     def n_battle(self, stage_id, player, is_use_key, max_times, dict_exit,
-                 deck, quest_card, ban_card_list, battle_plan_1p, battle_plan_2p, title_text):
+                 deck, quest_card, ban_card_list, battle_plan_1p, battle_plan_2p, title_text, need_lock=False):
         """
         [单本轮战]1次 副本外 → 副本内n次战斗 → 副本外
         player: [1],[2],[1,2],[2,1]
@@ -813,7 +818,12 @@ class ThreadTodo(QThread):
                         # 结束提示文本
                         self.signal_print_to_ui.emit(text=f"{title}第{battle_count + 1}次, 异常结束, 重启再来")
 
-                        self.batch_reload_game()
+                        if not need_lock:
+                            # 非单人多线程
+                            self.batch_reload_game()
+                        else:
+                            # 单人多线程 只reload自己
+                            faa_a.reload_game()
 
                 if result_id == 2:
 
@@ -830,7 +840,12 @@ class ThreadTodo(QThread):
                         # 结束提示文本
                         self.signal_print_to_ui.emit(text=f"{title}第{battle_count}次, 开始游戏异常, 重启跳过")
 
-                        self.batch_reload_game()
+                        if not need_lock:
+                            # 非单人多线程
+                            self.batch_reload_game()
+                        else:
+                            # 单人多线程 只reload自己
+                            faa_a.reload_game()
 
             return result_list
 
@@ -842,6 +857,10 @@ class ThreadTodo(QThread):
             CUS_LOGGER.debug("result_list:")
             CUS_LOGGER.debug(str(result_list))
             valid_time = len(result_list)
+
+            # 如果没有正常完成的场次, 直接跳过统计输出的部分
+            if valid_time == 0:
+                return
 
             # 时间
             sum_time_spend = 0
@@ -981,7 +1000,6 @@ class ThreadTodo(QThread):
             # 上锁
             self.lock = True
 
-        self.lock = True
         # 战斗开始
         self.signal_print_to_ui.emit(text=f"{title}开始...")
 
@@ -1012,7 +1030,9 @@ class ThreadTodo(QThread):
                     quest_card=quest["quest_card"],
                     ban_card_list=quest["list_ban_card"],
                     dict_exit=quest["dict_exit"],
-                    title_text=extra_title)
+                    title_text=extra_title,
+                    need_lock=need_lock
+                )
 
             else:
                 self.signal_print_to_ui.emit(text="{}事项{},{},错误的关卡名称!跳过".format(

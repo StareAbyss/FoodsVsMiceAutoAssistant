@@ -143,14 +143,14 @@ class FAA:
 
     """"对flash游戏界面或自身参数的最基础 [检测]"""
 
-    def check_level(self):
+    def check_level(self) -> bool:
         """检测角色等级和关卡等级(调用于输入关卡信息之后)"""
         if self.character_level < self.stage_info["level"]:
             return False
         else:
             return True
 
-    def screen_check_server_boom(self):
+    def screen_check_server_boom(self) -> bool:
         """
         检测是不是炸服了
         :return: bool 炸了 True 没炸 False
@@ -181,7 +181,7 @@ class FAA:
 
         return find
 
-    def screen_get_stage_name(self):
+    def screen_get_stage_name(self) -> str:
         """
         在关卡备战界面 获得关卡名字 该函数未完工
         """
@@ -207,7 +207,7 @@ class FAA:
     def set_config_for_battle(
             self, stage_id="NO-1-1", is_group=False, is_main=True, is_use_key=True,
             deck=1, quest_card="None", ban_card_list=None,
-            battle_plan_index=0):
+            battle_plan_index=0) -> None:
         """
         :param is_group: 是否组队
         :param is_main: 是否是主要账号(单人为True 双人房主为True)
@@ -247,11 +247,14 @@ class FAA:
 
     """战斗开始时的初始化函数"""
 
-    def init_mat_card_position(self):
+    def init_mat_card_position(self) -> None:
         """
         根据关卡名称和可用承载卡，以及游戏内识图到的承载卡取交集，返回承载卡的x-y坐标
         :return: [[x1, y1], [x2, y2],...]
         """
+
+        self.print_info("战斗中识图查找承载卡位置, 开始")
+
         stage_info = copy.deepcopy(self.stage_info)
 
         # 本关可用的所有承载卡
@@ -275,11 +278,11 @@ class FAA:
                 find = match_p_in_w(
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 950, 600],
+                    source_range=[150, 0, 950, 600],
                     template=RESOURCE_P["card"]["战斗"][mat_card],
                     match_tolerance=0.99)
                 if find:
-                    position_list.append([int(find[0]), int(find[1])])
+                    position_list.append([int(150+find[0]), int(find[1])])
                     # 从资源中去除已经找到的卡片
                     mat_resource_exist_list.remove(mat_card)
 
@@ -301,9 +304,11 @@ class FAA:
         # 输出
         self.mat_card_positions = mat_card_list
 
-    def init_smoothie_card_position(self):
+        self.print_info("战斗中识图查找承载卡位置, 结果: {}".format(mat_card_list))
 
-        self.print_debug(text="战斗中识图查找冰沙位置, 开始")
+    def init_smoothie_card_position(self) -> None:
+
+        self.print_info(text="战斗中识图查找冰沙位置, 开始")
 
         # 初始化为None
         self.smoothie_position = None
@@ -316,11 +321,11 @@ class FAA:
                 find = match_p_in_w(
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 950, 600],
+                    source_range=[150, 0, 950, 600],
                     template=RESOURCE_P["card"]["战斗"][f"冰淇淋-{j}.png"],
                     match_tolerance=0.99)
                 if find:
-                    position = [int(find[0]), int(find[1])]
+                    position = [150+int(find[0]), int(find[1])]
                     break
             # 防止卡片正好被某些特效遮挡, 所以等待一下
             time.sleep(0.1)
@@ -336,11 +341,11 @@ class FAA:
                     self.smoothie_position = {"id": card_id, "location_from": position}
                     break
 
-        self.print_debug(text="战斗中识图查找冰沙位置, 结果：{}".format(self.smoothie_position))
+        self.print_info(text="战斗中识图查找冰沙位置, 结果：{}".format(self.smoothie_position))
 
-    def init_kun_card_position(self):
+    def init_kun_card_position(self) -> None:
 
-        self.print_debug(text="战斗中识图查找幻幻鸡位置, 开始")
+        self.print_info(text="战斗中识图查找幻幻鸡位置, 开始")
 
         # 重新初始化为None
         self.kun_position = None
@@ -362,11 +367,11 @@ class FAA:
                     find = match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
-                        source_range=[0, 0, 950, 600],
+                        source_range=[150, 0, 950, 600],
                         template=RESOURCE_P["card"]["战斗"][img_card],
                         match_tolerance=0.99)
                     if find:
-                        return [int(find[0]), int(find[1])]
+                        return [int(150+find[0]), int(find[1])]
 
                 # 防止卡片正好被某些特效遮挡, 所以等待一下
                 time.sleep(0.1)
@@ -386,9 +391,9 @@ class FAA:
                     self.kun_position = {"id": card_id, "location_from": position}
                     break
 
-        self.print_debug(text="战斗中识图查找幻幻鸡位置, 结果：{}".format(self.kun_position))
+        self.print_info(text="战斗中识图查找幻幻鸡位置, 结果：{}".format(self.kun_position))
 
-    def init_battle_plan_1(self):
+    def init_battle_plan_1(self) -> None:
         """
         计算所有卡片的部署方案
         Return:卡片的部署方案字典
@@ -879,7 +884,7 @@ class FAA:
                 if not find:
                     self.print_error(text="未找到360大厅刷新游戏按钮, 可能导致一系列问题...")
 
-    def reload_game(self):
+    def reload_game(self) -> None:
 
         def try_enter_server_4399():
             # 4399 进入服务器
@@ -935,107 +940,110 @@ class FAA:
                 return True
             return False
 
-        while True:
+        def main():
+            while True:
 
-            # 点击刷新按钮 该按钮在360窗口上
-            self.print_debug(text="[刷新游戏] 点击刷新按钮...")
-            self.click_refresh_btn()
+                # 点击刷新按钮 该按钮在360窗口上
+                self.print_debug(text="[刷新游戏] 点击刷新按钮...")
+                self.click_refresh_btn()
 
-            # 是否在 选择服务器界面 - 判断是否存在 最近玩过的服务器ui(4399 or qq空间) 或 开始游戏(qq游戏大厅) 并进入
-            result = False
+                # 是否在 选择服务器界面 - 判断是否存在 最近玩过的服务器ui(4399 or qq空间) 或 开始游戏(qq游戏大厅) 并进入
+                result = False
 
-            self.print_debug(text="[刷新游戏] 判定4399平台...")
-            result = result or try_enter_server_4399()
+                self.print_debug(text="[刷新游戏] 判定4399平台...")
+                result = result or try_enter_server_4399()
 
-            self.print_debug(text="[刷新游戏] 判定QQ空间平台...")
-            result = result or try_enter_server_qq_space()
+                self.print_debug(text="[刷新游戏] 判定QQ空间平台...")
+                result = result or try_enter_server_qq_space()
 
-            self.print_debug(text="[刷新游戏] 判定QQ游戏大厅平台...")
-            result = result or try_enter_server_qq_game_hall()
+                self.print_debug(text="[刷新游戏] 判定QQ游戏大厅平台...")
+                result = result or try_enter_server_qq_game_hall()
 
-            # 如果未找到进入服务器，从头再来
-            if not result:
-                self.print_debug(text="[刷新游戏] 未找到进入服务器, 可能 1.QQ空间需重新登录 2.360X4399微端 3.意外情况")
+                # 如果未找到进入服务器，从头再来
+                if not result:
+                    self.print_debug(text="[刷新游戏] 未找到进入服务器, 可能 1.QQ空间需重新登录 2.360X4399微端 3.意外情况")
 
-                result = loop_match_p_in_w(
+                    result = loop_match_p_in_w(
+                        source_handle=self.handle_browser,
+                        source_root_handle=self.handle_360,
+                        source_range=[0, 0, 2000, 2000],
+                        template=RESOURCE_P["common"]["用户自截"]["空间服登录界面_{}P.png".format(self.player)],
+                        match_tolerance=0.95,
+                        match_interval=0.5,
+                        match_failed_check=5,
+                        after_sleep=5,
+                        click=True)
+                    if result:
+                        self.print_debug(text="[刷新游戏] 找到QQ空间服一键登录, 正在登录")
+                    else:
+                        self.print_debug(text="[刷新游戏] 未找到QQ空间服一键登录, 可能 1.360X4399微端 2.意外情况, 继续")
+
+                """查找大地图确认进入游戏"""
+                self.print_debug(text="[刷新游戏] 循环识图中, 以确认进入游戏...")
+                # 更严格的匹配 防止登录界面有相似图案组合
+                result = loop_match_ps_in_w(
                     source_handle=self.handle_browser,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 2000, 2000],
-                    template=RESOURCE_P["common"]["用户自截"]["空间服登录界面_{}P.png".format(self.player)],
-                    match_tolerance=0.95,
-                    match_interval=0.5,
-                    match_failed_check=5,
-                    after_sleep=5,
-                    click=True)
+                    template_opts=[
+                        {
+                            "source_range": [840, 525, 2000, 2000],
+                            "template": RESOURCE_P["common"]["底部菜单"]["跳转.png"],
+                            "match_tolerance": 0.98,
+                        }, {
+                            "source_range": [610, 525, 2000, 2000],
+                            "template": RESOURCE_P["common"]["底部菜单"]["任务.png"],
+                            "match_tolerance": 0.98,
+                        }, {
+                            "source_range": [890, 525, 2000, 2000],
+                            "template": RESOURCE_P["common"]["底部菜单"]["后退.png"],
+                            "match_tolerance": 0.98,
+                        }
+                    ],
+                    return_mode="and",
+                    match_failed_check=30,
+                    match_interval=1
+                )
+
                 if result:
-                    self.print_debug(text="[刷新游戏] 找到QQ空间服一键登录, 正在登录")
+                    self.print_debug(text="[刷新游戏] 循环识图成功, 确认进入游戏! 即将刷新Flash句柄")
+
+                    # 重新获取句柄, 此时游戏界面的句柄已经改变
+                    self.handle = faa_get_handle(channel=self.channel, mode="flash")
+
+                    # [4399] [QQ空间]关闭健康游戏公告
+                    self.print_debug(text="[刷新游戏] [4399] [QQ空间] 尝试关闭健康游戏公告")
+                    loop_match_p_in_w(
+                        source_handle=self.handle,
+                        source_root_handle=self.handle_360,
+                        source_range=[0, 0, 950, 600],
+                        template=RESOURCE_P["common"]["登录"]["3_健康游戏公告_确定.png"],
+                        match_tolerance=0.97,
+                        match_failed_check=5,
+                        after_sleep=1,
+                        click=True)
+
+                    self.print_debug(text="[刷新游戏] 尝试关闭每日必充界面")
+                    # [每天第一次登陆] 每日必充界面关闭
+                    loop_match_p_in_w(
+                        source_handle=self.handle,
+                        source_root_handle=self.handle_360,
+                        source_range=[0, 0, 950, 600],
+                        template=RESOURCE_P["common"]["登录"]["4_退出每日必充.png"],
+                        match_tolerance=0.99,
+                        match_failed_check=3,
+                        after_sleep=1,
+                        click=True)
+                    self.random_seed += 1
+
+                    self.print_debug(text="[刷新游戏] 已完成")
+
+                    return
                 else:
-                    self.print_debug(text="[刷新游戏] 未找到QQ空间服一键登录, 可能 1.360X4399微端 2.意外情况, 继续")
+                    self.print_warning(text="[刷新游戏] 查找大地图失败, 点击服务器后未能成功进入游戏, 刷新重来")
 
-            """查找大地图确认进入游戏"""
-            self.print_debug(text="[刷新游戏] 循环识图中, 以确认进入游戏...")
-            # 更严格的匹配 防止登录界面有相似图案组合
-            result = loop_match_ps_in_w(
-                source_handle=self.handle_browser,
-                source_root_handle=self.handle_360,
-                template_opts=[
-                    {
-                        "source_range": [840, 525, 2000, 2000],
-                        "template": RESOURCE_P["common"]["底部菜单"]["跳转.png"],
-                        "match_tolerance": 0.98,
-                    }, {
-                        "source_range": [610, 525, 2000, 2000],
-                        "template": RESOURCE_P["common"]["底部菜单"]["任务.png"],
-                        "match_tolerance": 0.98,
-                    }, {
-                        "source_range": [890, 525, 2000, 2000],
-                        "template": RESOURCE_P["common"]["底部菜单"]["后退.png"],
-                        "match_tolerance": 0.98,
-                    }
-                ],
-                return_mode="and",
-                match_failed_check=30,
-                match_interval=1
-            )
+        main()
 
-            if result:
-                self.print_debug(text="[刷新游戏] 循环识图成功, 确认进入游戏! 即将刷新Flash句柄")
-
-                # 重新获取句柄, 此时游戏界面的句柄已经改变
-                self.handle = faa_get_handle(channel=self.channel, mode="flash")
-
-                # [4399] [QQ空间]关闭健康游戏公告
-                self.print_debug(text="[刷新游戏] [4399] [QQ空间] 尝试关闭健康游戏公告")
-                loop_match_p_in_w(
-                    source_handle=self.handle,
-                    source_root_handle=self.handle_360,
-                    source_range=[0, 0, 950, 600],
-                    template=RESOURCE_P["common"]["登录"]["3_健康游戏公告_确定.png"],
-                    match_tolerance=0.97,
-                    match_failed_check=5,
-                    after_sleep=1,
-                    click=True)
-
-                self.print_debug(text="[刷新游戏] 尝试关闭每日必充界面")
-                # [每天第一次登陆] 每日必充界面关闭
-                loop_match_p_in_w(
-                    source_handle=self.handle,
-                    source_root_handle=self.handle_360,
-                    source_range=[0, 0, 950, 600],
-                    template=RESOURCE_P["common"]["登录"]["4_退出每日必充.png"],
-                    match_tolerance=0.99,
-                    match_failed_check=3,
-                    after_sleep=1,
-                    click=True)
-                self.random_seed += 1
-
-                self.print_debug(text="[刷新游戏] 已完成")
-
-                return
-            else:
-                self.print_warning(text="[刷新游戏] 查找大地图失败, 点击服务器后未能成功进入游戏, 刷新重来")
-
-    def sign_in(self):
+    def sign_in(self) -> None:
 
         def sign_in_vip():
             """VIP签到"""
@@ -1175,9 +1183,9 @@ class FAA:
             sign_in_release_quest_guild()
             sign_in_camp_key()
 
-        main()
+        return main()
 
-    def fed_and_watered(self):
+    def fed_and_watered(self) -> None:
         """公会施肥浇水功能"""
 
         def from_guild_to_quest_guild():
@@ -1219,7 +1227,7 @@ class FAA:
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["quest_guild"]["ui_fed.png"],
                     match_tolerance=0.95,
-                    match_failed_check=1,
+                    match_failed_check=2,
                     after_sleep=0.5,
                     click=True
                 )
@@ -1232,17 +1240,17 @@ class FAA:
 
                 # 点击全部工会
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=798, y=123)
-                time.sleep(0.5)
+                time.sleep(1)
 
                 # 跳转到最后
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=843, y=305)
-                time.sleep(0.5)
+                time.sleep(1)
 
                 # 以倒数第二页从上到下为1-4, 第二页为5-8次尝试对应的公会 以此类推
                 for i in range((try_time - 1) // 4 + 1):
                     # 向上翻的页数
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=843, y=194)
-                    time.sleep(0.5)
+                    time.sleep(1)
 
                 # 点第几个
                 my_dict = {1: 217, 2: 244, 3: 271, 4: 300}
@@ -1250,7 +1258,7 @@ class FAA:
                     handle=self.handle,
                     x=810,
                     y=my_dict[(try_time - 1) % 4 + 1])
-                time.sleep(0.5)
+                time.sleep(1)
 
         def do_something_and_exit(try_time):
             """完成素质三连并退出公会花园界面"""
@@ -1367,7 +1375,7 @@ class FAA:
         fed_and_watered_main()
         self.object_action_receive_quest_rewards.main(mode="公会任务")
 
-    def use_items_consumables(self):
+    def use_items_consumables(self) -> None:
         self.print_debug(text="开启使用物品功能")
 
         # 打开背包
@@ -1450,7 +1458,7 @@ class FAA:
         # 关闭背包
         self.action_exit(mode="普通红叉")
 
-    def use_items_double_card(self, max_times):
+    def use_items_double_card(self, max_times) -> None:
 
         def is_saturday_or_sunday():
             # 设置北京时区
