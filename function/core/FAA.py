@@ -282,7 +282,7 @@ class FAA:
                     template=RESOURCE_P["card"]["战斗"][mat_card],
                     match_tolerance=0.99)
                 if find:
-                    position_list.append([int(150+find[0]), int(find[1])])
+                    position_list.append([int(150 + find[0]), int(find[1])])
                     # 从资源中去除已经找到的卡片
                     mat_resource_exist_list.remove(mat_card)
 
@@ -325,7 +325,7 @@ class FAA:
                     template=RESOURCE_P["card"]["战斗"][f"冰淇淋-{j}.png"],
                     match_tolerance=0.99)
                 if find:
-                    position = [150+int(find[0]), int(find[1])]
+                    position = [150 + int(find[0]), int(find[1])]
                     break
             # 防止卡片正好被某些特效遮挡, 所以等待一下
             time.sleep(0.1)
@@ -371,7 +371,7 @@ class FAA:
                         template=RESOURCE_P["card"]["战斗"][img_card],
                         match_tolerance=0.99)
                     if find:
-                        return [int(150+find[0]), int(find[1])]
+                        return [int(150 + find[0]), int(find[1])]
 
                 # 防止卡片正好被某些特效遮挡, 所以等待一下
                 time.sleep(0.1)
@@ -961,7 +961,8 @@ class FAA:
 
                 # 如果未找到进入服务器，从头再来
                 if not result:
-                    self.print_debug(text="[刷新游戏] 未找到进入服务器, 可能 1.QQ空间需重新登录 2.360X4399微端 3.意外情况")
+                    self.print_debug(
+                        text="[刷新游戏] 未找到进入服务器, 可能 1.QQ空间需重新登录 2.360X4399微端 3.意外情况")
 
                     result = loop_match_p_in_w(
                         source_handle=self.handle_browser,
@@ -1569,6 +1570,34 @@ class FAA:
 
         main()
 
+    def input_level_2_password(self, password) -> bool:
+
+        need_level2_password = match_p_in_w(
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=[374, 181, 422, 209],
+            template=RESOURCE_P["common"]["二级密码.png"],
+            match_tolerance=0.99,
+        )
+        if need_level2_password:
+            self.print_info(f"需要输入二级密码. 正在输入...")
+
+            # 输入二级密码
+            for key in password:
+                T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle, key=key)
+                time.sleep(0.5)
+            time.sleep(1)
+
+            # 确定二级密码
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=435, y=388)
+            time.sleep(1)
+
+            self.print_info(f"输入完成输入...")
+
+            return True
+
+        return False
+
     def get_dark_crystal(self, password):
         # 打开公会副本界面
         self.print_debug(text="跳转到工会副本界面")
@@ -1582,33 +1611,26 @@ class FAA:
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=180, y=70)
         time.sleep(1)
 
-        # 先点击一次兑换准备输入二级密码
+        # 触发输入二级的框体 本次兑换不会完成
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=405, y=190)
         time.sleep(1)
-
-        # 输入二级密码
-        for key in password:
-            T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle, key=key)
-            time.sleep(0.5)
-        time.sleep(1)
-
-        # 确定二级密码
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=435, y=388)
-        time.sleep(1)
+        self.input_level_2_password(password=password)
 
         # 3x3次点击 确认兑换
         for i in range(3):
             for location in [[405, 190], [405, 320], [860, 190]]:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=location[0], y=location[1])
+
                 # 这个破商店点快了兑换不了
-                time.sleep(0.333)
+                time.sleep(1)
 
-        # 退出商店界面
-        for i in range(2):
-            self.action_exit(mode="普通红叉")
 
-    def delete_items(self):
-        """用于删除多余的技能书类消耗品, 使用前需要输入二级或无二级密码"""
+
+        # 直接刷新游戏
+        self.reload_game()
+
+    def delete_items(self, password):
+        """用于删除多余的技能书类消耗品, 输入二级密码动作被包含在此"""
 
         def find_img_s(i_name, i_image):
 
@@ -1649,33 +1671,13 @@ class FAA:
 
             return True
 
-        self.print_debug(text="开启删除物品高危功能")
-
-        # 打开背包
-        self.print_debug(text="打开背包")
-        self.action_bottom_menu(mode="背包")
-        time.sleep(1)
-
-        # 点击到物品栏目
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=777, y=65)
-        time.sleep(1)
-
-        # 点击整理物品按钮
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=905, y=475)
-        time.sleep(2)
-
-        # 点击删除物品按钮
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=845, y=475)
-        time.sleep(1)
-
-        for i_name, i_image in RESOURCE_P["item"]["背包_道具_需删除的"].items():
-
+        def delete_a_item(i_name,i_image):
             # 在限定范围内 找物品 点一下
             find = find_img_s(i_name=i_name, i_image=i_image)
 
             if find:
                 # 点击确定 删除按钮
-                loop_match_p_in_w(
+                find = loop_match_p_in_w(
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
                     source_range=[425, 339, 450, 367],
@@ -1698,6 +1700,36 @@ class FAA:
                         match_failed_check=2,
                         after_sleep=2,
                         click=True)
+                return True
+            else:
+                return False
+
+        self.print_debug(text="开启删除物品高危功能")
+
+        # 打开背包
+        self.print_debug(text="打开背包")
+        self.action_bottom_menu(mode="背包")
+        time.sleep(1)
+
+        # 点击到物品栏目
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=777, y=65)
+        time.sleep(1)
+
+        # 点击整理物品按钮
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=905, y=475)
+        time.sleep(2)
+
+        # 点击删除物品按钮
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=845, y=475)
+        time.sleep(1)
+
+        for i_name, i_image in RESOURCE_P["item"]["背包_道具_需删除的"].items():
+
+            if delete_a_item(i_name=i_name,i_image=i_image):
+
+                if self.input_level_2_password(password=password):
+                    # 本次删除用于输入密码, 再来一次!
+                    delete_a_item(i_name=i_name, i_image=i_image)
 
                 self.print_info(f"物品:{i_name} 已确定删除该物品...")
 
@@ -1707,8 +1739,8 @@ class FAA:
 
         self.print_debug(text="第一页的指定物品已全部删除!")
 
-        # 关闭背包
-        self.action_exit(mode="普通红叉")
+        # 直接刷新游戏
+        self.reload_game()
 
     def loop_cross_server(self, deck):
 
