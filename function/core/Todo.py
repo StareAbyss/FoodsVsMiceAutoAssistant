@@ -196,21 +196,22 @@ class ThreadTodo(QThread):
         # 在该动作前已经完成了游戏刷新 可以尽可能保证欢乐互娱不作妖
         if self.opt["level_2"]["1p"]["active"] or self.opt["level_2"]["2p"]["active"]:
             self.signal_print_to_ui.emit(
-                text=f"[{title_text}] [删除多余道具/兑换暗晶] 您输入了二级激活了该功能...", color="green")
+                text=f"[{title_text}] [删除多余技能书道具] 您输入了二级激活了该功能...", color="green")
 
         # 高危动作 慢慢执行
         if self.opt["level_2"]["1p"]["active"]:
             self.faa[1].get_dark_crystal(password=self.opt["level_2"]["1p"]["password"])
-            self.faa[1].delete_items(password=self.opt["level_2"]["1p"]["password"])
+            self.faa[1].delete_items()
 
         if is_group and self.opt["level_2"]["2p"]["active"]:
             self.faa[2].get_dark_crystal(password=self.opt["level_2"]["2p"]["password"])
-            self.faa[2].delete_items(password=self.opt["level_2"]["2p"]["password"])
+            self.faa[2].delete_items()
 
         # 执行完毕后立刻刷新游戏 以清除二级输入状态
         if self.opt["level_2"]["1p"]["active"] or self.opt["level_2"]["2p"]["active"]:
             self.signal_print_to_ui.emit(
-                text=f"[{title_text}] [删除多余道具/兑换暗晶] 功能完成, 二级状态已完成刷新...", color="green")
+                text=f"[{title_text}] [删除多余技能书道具] 结束, 即将刷新游戏以清除二级输入的状态...", color="green")
+            self.batch_reload_game()
 
         """普通任务"""
         self.signal_print_to_ui.emit(text=f"[{title_text}] [普通任务] 开始...")
