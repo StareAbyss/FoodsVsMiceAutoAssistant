@@ -22,7 +22,14 @@ The original intention of developing this tool is to fulfill a childhood wish te
 
 # 预览
 
-![BE(7{WB{E %6JNR@G}C 53X](https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant/assets/112901226/6f7278f1-3f24-46bf-9f68-1b1aa7a2f3ed)
+* 运行主页
+![image](https://github.com/StareAbyss/FoodsVsMiceAutoAssistant/assets/112901226/9ac6e0c5-1182-45da-b3ae-bc19e67335d0)
+* 流程配置
+![image](https://github.com/StareAbyss/FoodsVsMiceAutoAssistant/assets/112901226/505e4291-69a1-4e3a-8743-25a2590e1cb7)
+* 高级选项
+![image](https://github.com/StareAbyss/FoodsVsMiceAutoAssistant/assets/112901226/d4f3fc71-9b8f-4c00-8b9f-b2caa1431128)
+* 战斗方案编辑器
+![image](https://github.com/StareAbyss/FoodsVsMiceAutoAssistant/assets/112901226/d6a411a2-bc43-4388-943b-30e7304ba0dd)
 
 # 主要功能 Main
 
