@@ -1,11 +1,14 @@
 import copy
 import json
+import os
+import shutil
 import sys
 
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
 from function.core.QMW_0_load_ui_file import QMainWindowLoadUI
 from function.globals.get_paths import PATHS
+from function.globals.log import CUS_LOGGER
 from function.scattered.get_customize_todo_list import get_customize_todo_list
 from function.scattered.get_list_battle_plan import get_list_battle_plan
 
@@ -19,11 +22,31 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
 
         # opt路径
         self.opt_path = PATHS["root"] + "\\config\\settings.json"
+        # opt模板路径
+        self.opt_template_path = PATHS["root"] + "\\config\\settings_template.json"
+        # 检测opt是否存在
+        self.check_opt_exist()
 
         # 从json文件中读取opt 并刷新ui
         self.opt = None
         self.json_to_opt()
         self.init_opt_to_ui()
+
+    def check_opt_exist(self):
+
+        settings_file = self.opt_path
+        template_file = self.opt_template_path
+
+        # 检查settings.json是否存在
+        if not os.path.exists(settings_file):
+            # 如果不存在，从模板文件复制
+            try:
+                shutil.copyfile(template_file, settings_file)
+                CUS_LOGGER.warning(f"'{settings_file}' 不存在，已从模板 '{template_file}' 创建。")
+            except IOError as e:
+                CUS_LOGGER.error(f"无法创建 '{settings_file}' 从 '{template_file}'。错误: {e}")
+        else:
+            CUS_LOGGER.info(f"'{settings_file}' 已存在。")
 
     def json_to_opt(self):
         with open(self.opt_path) as json_file:
