@@ -462,8 +462,28 @@ class FAA:
                 list_cell_all.insert(0, dict_quest)
                 return list_cell_all
 
+        def calculation_card_ban(list_cell_all):
+            """步骤二 ban掉某些卡, 依据[卡组信息中的name字段] 和 ban卡信息中的字符串 是否重复"""
+
+            list_new = []
+            for card in list_cell_all:
+                if not (card["name"] in ban_card_list):
+                    list_new.append(card)
+
+            # 遍历更改删卡后的位置
+            for card in list_new:
+                cum_card_left = 0
+                for ban_card in ban_card_list:
+                    for c_card in list_cell_all:
+                        if c_card["name"] == ban_card:
+                            if card["id"] > c_card["id"]:
+                                cum_card_left += 1
+                card["id"] -= cum_card_left
+
+            return list_new
+
         def calculation_card_mat(list_cell_all):
-            """步骤二 承载卡"""
+            """步骤三 承载卡"""
 
             location = stage_info["mat_cell"]  # 深拷贝 防止对配置文件数据更改
 
@@ -489,26 +509,6 @@ class FAA:
                 list_cell_all.insert(0, dict_mat)
 
             return list_cell_all
-
-        def calculation_card_ban(list_cell_all):
-            """步骤三 ban掉某些卡, 依据[卡组信息中的name字段] 和 ban卡信息中的字符串 是否重复"""
-
-            list_new = []
-            for card in list_cell_all:
-                if not (card["name"] in ban_card_list):
-                    list_new.append(card)
-
-            # 遍历更改删卡后的位置
-            for card in list_new:
-                cum_card_left = 0
-                for ban_card in ban_card_list:
-                    for c_card in list_cell_all:
-                        if c_card["name"] == ban_card:
-                            if card["id"] > c_card["id"]:
-                                cum_card_left += 1
-                card["id"] -= cum_card_left
-
-            return list_new
 
         def calculation_card_extra(list_cell_all):
 
@@ -610,13 +610,13 @@ class FAA:
             # 调用计算任务卡
             list_cell_all = calculation_card_quest(list_cell_all=list_cell_all)
 
-            # 调用计算承载卡
-            list_cell_all = calculation_card_mat(list_cell_all=list_cell_all)
-
             # 调用ban掉某些卡(不使用该卡)
             list_cell_all = calculation_card_ban(list_cell_all=list_cell_all)
 
-            # 调用冰沙和坤函数
+            # 调用计算承载卡 - 因为是直接识别的战斗中的位置, 所以应该放在后面
+            list_cell_all = calculation_card_mat(list_cell_all=list_cell_all)
+
+            # 调用冰沙和坤函数 - 因为是直接识别的战斗中的位置, 所以应该放在后面
             list_cell_all = calculation_card_extra(list_cell_all=list_cell_all)
 
             # 调用去掉障碍位置
