@@ -40,11 +40,12 @@ class QMainWindowLog(QMainWindowLoadSettings):
         该类的emit方法是 一个可以输入缺省的颜色或时间参数来生成文本的方法
         并调用信号发送真正的信息
         """
+
         def __init__(self, signal_1):
             super().__init__()
             self.signal_1 = signal_1
 
-        def emit(self, text, color="black", time=True):
+        def emit(self, text, color="#333333", time=True):
             # 处理缺省参数
             self.signal_1.emit(text, color, time)
 
@@ -53,15 +54,15 @@ class QMainWindowLog(QMainWindowLoadSettings):
         self.signal_print_to_ui.emit("嗷呜, 欢迎使用FAA-美食大战老鼠自动放卡作战小助手~", time=False)
         self.signal_print_to_ui.emit("本软件 [开源][免费][绿色] 当前版本: 1.3.1", time=False)
         self.signal_print_to_ui.emit("", time=False)
-        self.signal_print_to_ui.emit("使用安全说明", color="red", time=False)
+        self.signal_print_to_ui.emit("使用安全说明", color="#C80000", time=False)
         self.signal_print_to_ui.emit("[1] 务必有二级密码", time=False)
         self.signal_print_to_ui.emit("[2] 有一定的礼卷防翻牌异常", time=False)
         self.signal_print_to_ui.emit("[3] 高星或珍贵不绑卡挂拍卖/提前转移", time=False)
         self.signal_print_to_ui.emit("", time=False)
-        self.signal_print_to_ui.emit("使用疑难解决", color="red", time=False)
+        self.signal_print_to_ui.emit("使用疑难解决", color="#C80000", time=False)
         self.signal_print_to_ui.emit(
             text="用户请认真阅读[FAA从入门到神殿.pdf], 以解决[闪退][没反应][UI缩放异常]等多数问题",
-            color="blue",
+            color="#E67800",
             time=False)
         self.signal_print_to_ui.emit("开发者和深入使用, 请参考[README.md]", time=False)
         self.signal_print_to_ui.emit("鼠标悬停在文字或按钮上会显示部分提示信息~", time=False)
@@ -69,7 +70,7 @@ class QMainWindowLog(QMainWindowLoadSettings):
             text="任务或定时器开始运行后, 将锁定点击按钮时的配置文件, 进行工作, 更改后的应用需重新点击开始即可应用",
             time=False)
         self.signal_print_to_ui.emit("", time=False)
-        self.signal_print_to_ui.emit("相关链接", color="red", time=False)
+        self.signal_print_to_ui.emit("相关链接", color="#C80000", time=False)
         self.signal_print_to_ui.emit("[爱发电]  https://afdian.net/a/zssy_faa ", time=False)
         self.signal_print_to_ui.emit(
             text="[爱发电]  小目标  100份  x  1.28¥ = 大群升级2k人  你们的支持是FAA持(不)续(跑)开(路)发的最大动力",
@@ -93,21 +94,14 @@ class QMainWindowLog(QMainWindowLoadSettings):
 
     def print_to_ui(self, text, color, time):
         """打印文本到输出框 """
-        if time:
-            # 在TextBrowser显示提示信息
-            self.TextBrowser.append('<span style="color: {};">[{}] {}</span>'.format(
-                color,
-                datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                text)
-            )
-        else:
-            # 在TextBrowser显示提示信息
-            self.TextBrowser.append('<span style="color: {};">{}</span>'.format(
-                color,
-                text)
-            )
+        # 时间文本
+        text_time = "[{}] ".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) if time else ""
+        # 颜色文本
+        text_all = f'<span style="color:{color};">{text_time}{text}</span>'
+        # 输出到输出框
+        self.TextBrowser.append(text_all)
+        # 实时输出
         self.TextBrowser.moveCursor(self.TextBrowser.textCursor().End)
-        QtWidgets.QApplication.processEvents()  # 实时输出
-
-        # 输出到日志
+        QtWidgets.QApplication.processEvents()
+        # 输出到日志和运行框
         CUS_LOGGER.info(text)

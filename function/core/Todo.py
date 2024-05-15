@@ -56,10 +56,10 @@ class ThreadTodo(QThread):
     def model_start_print(self, text):
         # 在函数执行前发送的信号
         self.signal_print_to_ui.emit(text="", time=False)
-        self.signal_print_to_ui.emit(text=f"[{text}] Link Start!", color="red")
+        self.signal_print_to_ui.emit(text=f"[{text}] Link Start!", color="#C80000")
 
     def model_end_print(self, text):
-        self.signal_print_to_ui.emit(text=f"[{text}] Completed!", color="red")
+        self.signal_print_to_ui.emit(text=f"[{text}] Completed!", color="#C80000")
 
     def change_lock(self, my_bool):
         self.lock = my_bool
@@ -159,9 +159,9 @@ class ThreadTodo(QThread):
                 url = 'http://meishi.wechat.123u.com/meishi/gift?openid=' + openid
                 r = requests.get(url)
                 message = r.json()['msg']
-                self.signal_print_to_ui.emit(f'[{i}P] 领取温馨礼包情况:' + message, color="green")
+                self.signal_print_to_ui.emit(f'[{i}P] 领取温馨礼包情况:' + message, color="E67800")
             else:
-                self.signal_print_to_ui.emit(f"[{i}P] 未激活领取温馨礼包", color="green")
+                self.signal_print_to_ui.emit(f"[{i}P] 未激活领取温馨礼包", color="E67800")
 
         self.signal_print_to_ui.emit(f"开始 VIP签到/每日签到/美食活动/塔罗/法老/会长发任务/营地领钥匙")
 
@@ -196,7 +196,7 @@ class ThreadTodo(QThread):
         # 在该动作前已经完成了游戏刷新 可以尽可能保证欢乐互娱不作妖
         if self.opt["level_2"]["1p"]["active"] or self.opt["level_2"]["2p"]["active"]:
             self.signal_print_to_ui.emit(
-                text=f"[{title_text}] [删除多余技能书道具] 您输入了二级激活了该功能...", color="green")
+                text=f"[{title_text}] [删除多余技能书道具] 您输入了二级激活了该功能...", color="E67800")
 
         # 高危动作 慢慢执行
         if self.opt["level_2"]["1p"]["active"]:
@@ -210,7 +210,7 @@ class ThreadTodo(QThread):
         # 执行完毕后立刻刷新游戏 以清除二级输入状态
         if self.opt["level_2"]["1p"]["active"] or self.opt["level_2"]["2p"]["active"]:
             self.signal_print_to_ui.emit(
-                text=f"[{title_text}] [删除多余技能书道具] 结束, 即将刷新游戏以清除二级输入的状态...", color="green")
+                text=f"[{title_text}] [删除多余技能书道具] 结束, 即将刷新游戏以清除二级输入的状态...", color="E67800")
             self.batch_reload_game()
 
         """普通任务"""
@@ -658,11 +658,12 @@ class ThreadTodo(QThread):
         self.batch_reload_game()
         sleep(60 * 60 * 24)
 
-    def n_battle(self, stage_id, player, is_use_key, max_times, dict_exit,
-                 deck, quest_card, ban_card_list, battle_plan_1p, battle_plan_2p, title_text, need_lock=False):
+    def battle_1_1_n(self, stage_id, player, is_use_key, max_times, dict_exit,
+                     deck, quest_card, ban_card_list, battle_plan_1p, battle_plan_2p, title_text, need_lock=False):
         """
-        [单本轮战]1次 副本外 → 副本内n次战斗 → 副本外
-        player: [1],[2],[1,2],[2,1]
+        1轮次 1关卡 n次数
+        副本外 -> (副本内战斗 * n次) -> 副本外
+        player: [1], [2], [1,2], [2,1] 分别代表 1P单人 2P单人 1P队长 2P队长
         """
 
         # 组合完整的title
@@ -984,10 +985,10 @@ class ThreadTodo(QThread):
             time=False
         )
 
-    def n_n_battle(self, quest_list, extra_title=None, need_lock=False):
+    def battle_1_n_n(self, quest_list, extra_title=None, need_lock=False):
         """
-        [多本战斗]n次 副本外 -> 副本内n次战斗 -> 副本外
-
+        1轮次 n关卡 n次数
+        (副本外 -> (副本内战斗 * n次) -> 副本外) * 重复n次
         :param quest_list: 任务清单
         :param extra_title: 输出中的额外文本 会自动加上 [ ]
         :param need_lock:  用于多线程单人作战时设定为True 以进行上锁解锁
@@ -1000,8 +1001,7 @@ class ThreadTodo(QThread):
             # 上锁
             self.lock = True
 
-        # 战斗开始
-        self.signal_print_to_ui.emit(text=f"{title}开始...")
+        self.signal_print_to_ui.emit(text=f"{title}开始...",color="#009688")
 
         # 遍历完成每一个任务
         for i in range(len(quest_list)):
@@ -1010,16 +1010,19 @@ class ThreadTodo(QThread):
             if quest["stage_id"].split("-")[0] in ["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"]:
 
                 self.signal_print_to_ui.emit(
-                    text="{}事项{},{},{},{}次,带卡:{},Ban卡:{}".format(
+                    text="{}事项{}, 开始,{},{},{}次,带卡:{},Ban卡:{}".format(
                         title,
                         quest["battle_id"] if "battle_id" in quest else (i + 1),
                         "组队" if len(quest["player"]) == 2 else "单人",
                         quest["stage_id"],
                         quest["max_times"],
                         quest["quest_card"],
-                        quest["list_ban_card"]))
+                        quest["list_ban_card"]
+                    ),
+                    color="#006400"
+                )
 
-                self.n_battle(
+                self.battle_1_1_n(
                     stage_id=quest["stage_id"],
                     max_times=quest["max_times"],
                     deck=quest["deck"],
@@ -1034,16 +1037,26 @@ class ThreadTodo(QThread):
                     need_lock=need_lock
                 )
 
+                self.signal_print_to_ui.emit(
+                    text="{}事项{}, 结束".format(
+                        title,
+                        quest["battle_id"] if "battle_id" in quest else (i + 1)
+                    ),
+                    color="#006400"
+                )
+
             else:
-                self.signal_print_to_ui.emit(text="{}事项{},{},错误的关卡名称!跳过".format(
-                    title,
-                    quest["battle_id"] if "battle_id" in quest else (i + 1),
-                    quest["stage_id"]
-                ))
+                self.signal_print_to_ui.emit(
+                    text="{}事项{},{},错误的关卡名称!跳过".format(
+                        title,
+                        quest["battle_id"] if "battle_id" in quest else (i + 1),
+                        quest["stage_id"]),
+                    color="#C80000"
+                    )
                 continue
 
-        # 战斗结束
-        self.signal_print_to_ui.emit(text=f"{title}结束")
+        # 多本轮战 战斗开始
+        self.signal_print_to_ui.emit(text=f"{title}结束",color="#009688")
 
         if need_lock:
             # 为另一个todo解锁
@@ -1072,7 +1085,7 @@ class ThreadTodo(QThread):
                 "list_ban_card": [],
                 "dict_exit": dict_exit
             }]
-        self.n_n_battle(quest_list=quest_list)
+        self.battle_1_n_n(quest_list=quest_list)
 
         self.model_end_print(text=text_)
 
@@ -1101,7 +1114,7 @@ class ThreadTodo(QThread):
                     "last_time_player_a": ["竞技岛"],
                     "last_time_player_b": ["竞技岛"]}
             })
-        self.n_n_battle(quest_list=quest_list)
+        self.battle_1_n_n(quest_list=quest_list)
 
         # 领取奖励
         self.faa[1].receive_quest_rewards(mode="悬赏任务")
@@ -1143,7 +1156,7 @@ class ThreadTodo(QThread):
                 "last_time_player_b": ["竞技岛"]
             }
 
-        self.n_n_battle(quest_list=quest_list)
+        self.battle_1_n_n(quest_list=quest_list)
 
         self.signal_print_to_ui.emit(text=f"[{text_}] 检查领取奖励中...")
 
@@ -1176,7 +1189,7 @@ class ThreadTodo(QThread):
                     "last_time_player_a": ["竞技岛"],
                     "last_time_player_b": ["竞技岛"]}
             })
-        self.n_n_battle(quest_list=quest_list)
+        self.battle_1_n_n(quest_list=quest_list)
 
         self.model_end_print(text=text_)
 
@@ -1217,7 +1230,7 @@ class ThreadTodo(QThread):
         quest_list = my_list
 
         # 开始战斗
-        self.n_n_battle(quest_list=quest_list)
+        self.battle_1_n_n(quest_list=quest_list)
 
         # 战斗结束
         self.model_end_print(text=text_)
@@ -1244,6 +1257,11 @@ class ThreadTodo(QThread):
             CUS_LOGGER.debug("去重后")
             CUS_LOGGER.debug(quest_list)
 
+            self.signal_print_to_ui.emit(
+                text="[全自动大赛] 已完成任务获取, 结果如下:",
+                color="#009688"
+            )
+
             for i in range(len(quest_list)):
 
                 if len(quest_list[i]["player"]) == 2:
@@ -1252,21 +1270,23 @@ class ThreadTodo(QThread):
                     player_text = "单人1P" if quest_list[i]["player"] == [1] else "单人2P"
 
                 self.signal_print_to_ui.emit(
-                    text="[多本轮战] 事项{},{},{},{},{}次,带卡:{},Ban卡:{}".format(
+                    text="[全自动大赛] 事项{},{},{},{},{}次,带卡:{},Ban卡:{}".format(
                         i + 1,
                         player_text,
                         quest_list[i]["stage_id"],
                         "用钥匙" if quest_list[i]["stage_id"] else "无钥匙",
                         quest_list[i]["max_times"],
                         quest_list[i]["quest_card"],
-                        quest_list[i]["list_ban_card"]))
+                        quest_list[i]["list_ban_card"]),
+                    color="#009688"
+                )
 
             for i in range(len(quest_list)):
                 quest_list[i]["deck"] = deck
                 quest_list[i]["battle_plan_1p"] = 0
                 quest_list[i]["battle_plan_2p"] = 1
 
-            self.n_n_battle(quest_list=quest_list)
+            self.battle_1_n_n(quest_list=quest_list)
 
             return True
 
@@ -1281,14 +1301,14 @@ class ThreadTodo(QThread):
             i = 0
             while True:
                 i += 1
-                self.signal_print_to_ui.emit(text=f"[{text_}] 第{i}次循环，开始")
+                self.signal_print_to_ui.emit(text=f"[{text_}] 第{i}次循环，开始",color="#0074D9")
                 round_result = a_round()
 
-                self.signal_print_to_ui.emit(text=f"[{text_}] 第{i}次循环，结束")
+                self.signal_print_to_ui.emit(text=f"[{text_}] 第{i}次循环，结束",color="#0074D9")
                 if not round_result:
                     break
 
-            self.signal_print_to_ui.emit(text=f"[{text_}] 所有被记录的任务已完成!")
+            self.signal_print_to_ui.emit(text=f"[{text_}] 所有被记录的任务已完成!",color="#C80000")
 
             self.model_end_print(text=text_)
 
@@ -1350,7 +1370,7 @@ class ThreadTodo(QThread):
                 "extra_title": "多线程单人2P",
                 "need_lock": True
             })
-            self.n_n_battle(
+            self.battle_1_n_n(
                 quest_list=quest_lists[1],
                 extra_title="多线程单人1P",
                 need_lock=True)
@@ -1404,7 +1424,7 @@ class ThreadTodo(QThread):
                                 }
                             }
                         )
-                    self.n_n_battle(quest_list=quest_list)
+                    self.battle_1_n_n(quest_list=quest_list)
 
         def multi_player():
             quest_lists = {}
@@ -1441,7 +1461,7 @@ class ThreadTodo(QThread):
                 "quest_list": quest_lists[2],
                 "extra_title": "多线程单人2P",
                 "need_lock": True})
-            self.n_n_battle(
+            self.battle_1_n_n(
                 quest_list=quest_lists[1],
                 extra_title="多线程单人1P",
                 need_lock=True)
@@ -1515,7 +1535,7 @@ class ThreadTodo(QThread):
                 "extra_title": "多线程单人2P",
                 "need_lock": True
             })
-            self.n_n_battle(
+            self.battle_1_n_n(
                 quest_list=quest_lists[1],
                 extra_title="多线程单人1P",
                 need_lock=True)
@@ -1823,7 +1843,7 @@ class ThreadTodo(QThread):
         self.signal_end.emit()
 
     def run_2(self):
-        self.n_n_battle(
+        self.battle_1_n_n(
             quest_list=self.extra_opt["quest_list"],
             extra_title=self.extra_opt["extra_title"],
             need_lock=self.extra_opt["need_lock"])
