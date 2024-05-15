@@ -1,33 +1,12 @@
-import queue
-from time import sleep
+from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
+from function.scattered.gat_handle import faa_get_handle
 
-# 创建一个队列来存储点击事件
-click_queue_timer = queue.PriorityQueue()
+handle = faa_get_handle(channel="锑食-微端", mode="flash")
 
+T_ACTION_QUEUE_TIMER.set_zoom_rate(1.0)
 
-# 定义一个点击事件类
-class ClickEvent:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+for i in range(1000):
+    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=1, y=1)
 
 
-# 添加点击事件到队列中
-click_queue_timer.put(ClickEvent(10, 20))
-click_queue_timer.put(ClickEvent(30, 40))
 
-
-# 定义一个函数来处理队列中的点击事件
-def handle_click_queue():
-    # 循环处理点击队列中的事件 先判断队列中是否有事件
-    while not click_queue_timer.empty():
-        # 从队列中取出一个点击事件
-        click = click_queue_timer.get()
-        # 处理点击事件
-        print(f"Handling click at x={click.x}, y={click.y}")
-
-        sleep(0.1)
-
-
-# 调用函数处理点击队列
-handle_click_queue()
