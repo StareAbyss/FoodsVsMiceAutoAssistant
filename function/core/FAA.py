@@ -282,7 +282,7 @@ class FAA:
                     template=RESOURCE_P["card"]["战斗"][mat_card],
                     match_tolerance=0.99)
                 if find:
-                    position_list.append([int(150+find[0]), int(find[1])])
+                    position_list.append([int(150 + find[0]), int(find[1])])
                     # 从资源中去除已经找到的卡片
                     mat_resource_exist_list.remove(mat_card)
 
@@ -325,7 +325,7 @@ class FAA:
                     template=RESOURCE_P["card"]["战斗"][f"冰淇淋-{j}.png"],
                     match_tolerance=0.99)
                 if find:
-                    position = [150+int(find[0]), int(find[1])]
+                    position = [150 + int(find[0]), int(find[1])]
                     break
             # 防止卡片正好被某些特效遮挡, 所以等待一下
             time.sleep(0.1)
@@ -371,7 +371,7 @@ class FAA:
                         template=RESOURCE_P["card"]["战斗"][img_card],
                         match_tolerance=0.99)
                     if find:
-                        return [int(150+find[0]), int(find[1])]
+                        return [int(150 + find[0]), int(find[1])]
 
                 # 防止卡片正好被某些特效遮挡, 所以等待一下
                 time.sleep(0.1)
@@ -462,8 +462,28 @@ class FAA:
                 list_cell_all.insert(0, dict_quest)
                 return list_cell_all
 
+        def calculation_card_ban(list_cell_all):
+            """步骤二 ban掉某些卡, 依据[卡组信息中的name字段] 和 ban卡信息中的字符串 是否重复"""
+
+            list_new = []
+            for card in list_cell_all:
+                if not (card["name"] in ban_card_list):
+                    list_new.append(card)
+
+            # 遍历更改删卡后的位置
+            for card in list_new:
+                cum_card_left = 0
+                for ban_card in ban_card_list:
+                    for c_card in list_cell_all:
+                        if c_card["name"] == ban_card:
+                            if card["id"] > c_card["id"]:
+                                cum_card_left += 1
+                card["id"] -= cum_card_left
+
+            return list_new
+
         def calculation_card_mat(list_cell_all):
-            """步骤二 承载卡"""
+            """步骤三 承载卡"""
 
             location = stage_info["mat_cell"]  # 深拷贝 防止对配置文件数据更改
 
@@ -489,26 +509,6 @@ class FAA:
                 list_cell_all.insert(0, dict_mat)
 
             return list_cell_all
-
-        def calculation_card_ban(list_cell_all):
-            """步骤三 ban掉某些卡, 依据[卡组信息中的name字段] 和 ban卡信息中的字符串 是否重复"""
-
-            list_new = []
-            for card in list_cell_all:
-                if not (card["name"] in ban_card_list):
-                    list_new.append(card)
-
-            # 遍历更改删卡后的位置
-            for card in list_new:
-                cum_card_left = 0
-                for ban_card in ban_card_list:
-                    for c_card in list_cell_all:
-                        if c_card["name"] == ban_card:
-                            if card["id"] > c_card["id"]:
-                                cum_card_left += 1
-                card["id"] -= cum_card_left
-
-            return list_new
 
         def calculation_card_extra(list_cell_all):
 
@@ -610,13 +610,13 @@ class FAA:
             # 调用计算任务卡
             list_cell_all = calculation_card_quest(list_cell_all=list_cell_all)
 
-            # 调用计算承载卡
-            list_cell_all = calculation_card_mat(list_cell_all=list_cell_all)
-
             # 调用ban掉某些卡(不使用该卡)
             list_cell_all = calculation_card_ban(list_cell_all=list_cell_all)
 
-            # 调用冰沙和坤函数
+            # 调用计算承载卡 - 因为是直接识别的战斗中的位置, 所以应该放在后面
+            list_cell_all = calculation_card_mat(list_cell_all=list_cell_all)
+
+            # 调用冰沙和坤函数 - 因为是直接识别的战斗中的位置, 所以应该放在后面
             list_cell_all = calculation_card_extra(list_cell_all=list_cell_all)
 
             # 调用去掉障碍位置
@@ -961,7 +961,8 @@ class FAA:
 
                 # 如果未找到进入服务器，从头再来
                 if not result:
-                    self.print_debug(text="[刷新游戏] 未找到进入服务器, 可能 1.QQ空间需重新登录 2.360X4399微端 3.意外情况")
+                    self.print_debug(
+                        text="[刷新游戏] 未找到进入服务器, 可能 1.QQ空间需重新登录 2.360X4399微端 3.意外情况")
 
                     result = loop_match_p_in_w(
                         source_handle=self.handle_browser,
