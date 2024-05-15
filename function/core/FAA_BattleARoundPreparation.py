@@ -29,124 +29,122 @@ class BattleARoundPreparation:
         print_debug = self.faa.print_debug
 
         # 由于公会任务的卡组特性, 当任务卡为[苏打气泡]时, 不需要额外选择带卡.
-        my_bool = False
-        my_bool = my_bool or quest_card == "None"
-        my_bool = my_bool or quest_card == "苏打气泡-0"
-        my_bool = my_bool or quest_card == "苏打气泡-1"
-        my_bool = my_bool or quest_card == "苏打气泡"
+        need_add = False
+        need_add = need_add or quest_card == "None"
+        need_add = need_add or quest_card == "苏打气泡-0"
+        need_add = need_add or quest_card == "苏打气泡-1"
+        need_add = need_add or quest_card == "苏打气泡"
 
-        if my_bool:
-            print_debug(text="不需要额外带卡,跳过")
+        if need_add:
+            print_debug(text=f" [添加任务卡] 不需要,跳过")
+            return
         else:
-            print_debug(text="寻找任务卡, 开始")
+            print_debug(text=f" [添加任务卡] 开始, 目标:{quest_card}")
 
-            """处理ban卡列表"""
+        """处理ban卡列表"""
 
-            # 对于名称带-的卡, 就对应的写入, 如果不带-, 就查找其所有变种
-            quest_card_list = []
-            if "-" in quest_card:
-                quest_card_list.append("{}.png".format(quest_card))
-            else:
-                for i in range(9):  # i代表一张卡能有的最高变种 姑且认为是3*3 = 9
-                    quest_card_list.append("{}-{}.png".format(quest_card, i))
+        # 对于名称带-的卡, 就对应的写入, 如果不带-, 就查找其所有变种
+        if "-" in quest_card:
+            quest_card_list = [f"{quest_card}.png"]
+        else:
+            # i代表一张卡能有的最高变种 姑且认为是3*7 = 21
+            quest_card_list = [f"{quest_card}-{i}.png" for i in range(21)]
 
-            # 读取所有记录了的卡的图片名, 只携带被记录图片的卡
-            my_list = []
+        # 读取所有记录了的卡的图片名, 只携带被记录图片的卡
+        quest_card_list = [card for card in quest_card_list if card in RESOURCE_P["card"]["房间"]]
+
+        """选卡动作"""
+        already_found = False
+
+        # 复位滑块
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=209)
+        time.sleep(0.5)
+
+        # 向下点3*7次滑块 强制要求全部走完, 防止12P的同步出问题
+        for i in range(7):
+
             for quest_card in quest_card_list:
-                if quest_card in RESOURCE_P["card"]["房间"].keys():
-                    my_list.append(quest_card)
-            quest_card_list = my_list
 
-            """选卡动作"""
-            already_find = False
+                if already_found:
+                    # 如果已经刚找到了 就直接休息一下
+                    time.sleep(0.4)
+                else:
+                    # 如果还没找到 就试试查找点击 添加卡片
+                    find = loop_match_p_in_w(
+                        source_handle=handle,
+                        source_root_handle=handle_360,
+                        source_range=[380, 175, 925, 420],
+                        template=RESOURCE_P["card"]["房间"][quest_card],
+                        match_tolerance=0.95,
+                        match_failed_check=0.4,
+                        match_interval=0.2,
+                        after_sleep=0.4,  # 和总计检测时间一致 以同步时间
+                        click=True)
+                    if find:
+                        already_found = True
 
-            # 复位滑块
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=209)
-            time.sleep(0.25)
+            # 滑块向下移动3次
+            for j in range(3):
+                if not already_found:
+                    # 仅还没找到继续下滑
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=400)
+                # 找没找到都要休息一下以同步时间
+                time.sleep(0.05)
 
-            # 向下点3*7次滑块 强制要求全部走完, 防止12P的同步出问题
-            for i in range(7):
+        if not already_found:
+            # 如果没有找到 类属性 战斗方案 需要调整为None, 防止在战斗中使用对应卡片的动作序列出现
+            self.faa.quest_card = "None"
 
-                for quest_card in quest_card_list:
-
-                    if already_find:
-                        # 如果已经刚找到了 就直接休息一下
-                        time.sleep(0.4)
-                    else:
-                        # 如果还没找到 就试试查找点击 添加卡片
-                        find = loop_match_p_in_w(
-                            source_handle=handle,
-                            source_root_handle=handle_360,
-                            source_range=[380, 175, 925, 420],
-                            template=RESOURCE_P["card"]["房间"][quest_card],
-                            match_tolerance=0.95,
-                            match_failed_check=0.4,
-                            match_interval=0.2,
-                            after_sleep=0.4,  # 和总计检测时间一致 以同步时间
-                            click=True)
-                        if find:
-                            already_find = True
-
-                # 滑块向下移动3次
-                for j in range(3):
-                    if not already_find:
-                        # 仅还没找到继续下滑
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=400)
-                    # 找没找到都要休息一下以同步时间
-                    time.sleep(0.05)
-
-            if not already_find:
-                # 如果没有找到 类属性 战斗方案 需要调整为None, 防止在战斗中使用对应卡片的动作序列出现
-                self.faa.quest_card = "None"
-
-            print_debug(text="寻找任务卡, 完成, 结果:{}".format("成功" if already_find else "失败"))
+        print_debug(text=" [添加任务卡] 完成, 结果:{}".format("成功" if already_found else "失败"))
 
     def remove_ban_card(self):
         """寻找并移除需要ban的卡, 现已支持跨页ban"""
 
         handle = self.faa.handle
         ban_card_list = self.faa.ban_card_list
+        print_debug = self.faa.print_debug
 
-        # 只有ban卡数组非空, 继续进行
         if ban_card_list:
+            print_debug(text=f" [移除卡片] 开始, 目标:{ban_card_list}")
+        else:
+            print_debug(text=f" [移除卡片] 不需要,跳过")
+            return
 
-            # 处理需要ban的卡片,
-            ban_card_list = []
-            for ban_card in ban_card_list:
+        # 由于ban卡的特性, 要先将所有ban卡的变种都加入列表中, 再进行ban
+        my_list = []
+        for ban_card in ban_card_list:
+            if "-" in ban_card:
                 # 对于名称带-的卡, 就对应的写入, 如果不带-, 就查找其所有变种
-                if "-" in ban_card:
-                    ban_card_list.append("{}.png".format(ban_card))
-                else:
-                    for i in range(21):  # i代表一张卡能有的最高变种 姑且认为是3*7 = 21
-                        ban_card_list.append("{}-{}.png".format(ban_card, i))
+                my_list.append(f"{ban_card}.png")
+            else:
+                # 对于不包含"-"的ban_card，添加其所有21种变种到列表中
+                my_list.extend([f"{ban_card}-{i}.png" for i in range(21)])
+        ban_card_list = my_list
 
-            # 读取所有已记录的卡片文件名, 并去除没有记录的卡片
-            my_list = []
-            for ban_card in ban_card_list:
-                if ban_card in RESOURCE_P["card"]["房间"].keys():
-                    my_list.append(ban_card)
-            ban_card_list = my_list
+        # 读取所有已记录的卡片文件名, 并去除没有记录的卡片
+        ban_card_list = [ban_card for ban_card in ban_card_list if ban_card in RESOURCE_P["card"]["房间"]]
 
-            # 翻页回第一页
-            for i in range(5):
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=930, y=55)
-                time.sleep(0.05)
+        # 翻页回第一页
+        for i in range(5):
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=930, y=55)
+            time.sleep(0.05)
 
-            # 第一页
-            self.screen_ban_card_loop_a_round(ban_card_s=ban_card_list)
+        # 第一页
+        self.screen_ban_card_loop_a_round(ban_card_s=ban_card_list)
 
-            # 翻页到第二页
-            for i in range(5):
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=930, y=85)
-                time.sleep(0.05)
+        # 翻页到第二页
+        for i in range(5):
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=930, y=85)
+            time.sleep(0.05)
 
-            # 第二页
-            self.screen_ban_card_loop_a_round(ban_card_s=ban_card_list)
+        # 第二页
+        self.screen_ban_card_loop_a_round(ban_card_s=ban_card_list)
 
     def screen_ban_card_loop_a_round(self, ban_card_s):
 
         handle = self.faa.handle
         handle_360 = self.faa.handle_360
+
         for card in ban_card_s:
             # 只ban被记录了图片的变种卡
             loop_match_p_in_w(
