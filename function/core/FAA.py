@@ -1512,7 +1512,7 @@ class FAA:
                         template=RESOURCE_P["item"]["双暴卡.png"],
                         match_tolerance=0.98,
                         match_interval=0.2,
-                        match_failed_check=0.5,
+                        match_failed_check=1.5,
                         after_sleep=0.05,
                         click=True)
 
@@ -1579,21 +1579,33 @@ class FAA:
 
         main()
 
-    def get_dark_crystal(self, password):
-        # 打开公会副本界面
-        self.print_debug(text="跳转到工会副本界面")
-        self.action_bottom_menu(mode="跳转_公会副本")
-
-        # 打开暗晶商店
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=800, y=485)
+    def input_level_2_password_and_gift_flower(self, password):
+        """如果背包已满 通过兑换暗晶激活二级密码就用不了了! 那么 用缘分树送花给是最稳当的!"""
+        # 打开缘分树界面
+        self.print_debug(text="跳转到缘分树界面")
+        self.action_bottom_menu(mode="跳转_缘分树")
         time.sleep(1)
 
-        # 进入暗晶兑换
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=180, y=70)
+        # 点击到倒数第二页 以确保目标不会已经满魅力 为防止极端情况最后一页只有一个人且是自己的情况发生 故不选倒数第一页
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=774, y=558)
+        time.sleep(1)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=628, y=558)
         time.sleep(1)
 
-        # 先点击一次兑换准备输入二级密码
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=405, y=190)
+        # 点击排名第一的人
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=500, y=300)
+        time.sleep(1)
+
+        # 点击送花按钮
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=50, y=260)
+        time.sleep(1)
+
+        # 选择礼卷
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=500, y=300)
+        time.sleep(1)
+
+        # 点击送出
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=500, y=400)
         time.sleep(1)
 
         # 输入二级密码
@@ -1604,6 +1616,32 @@ class FAA:
 
         # 确定二级密码
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=435, y=388)
+        time.sleep(1)
+
+        # 选择免费送花
+        # T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=350, y=300)
+        # time.sleep(1)
+
+        # 点击送出
+        # T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=500, y=400)
+        # time.sleep(1)
+
+        # 退出送花
+        for i in range(2):
+            self.action_exit(mode="普通红叉")
+            time.sleep(1)
+
+    def get_dark_crystal(self):
+        # 打开公会副本界面
+        self.print_debug(text="跳转到工会副本界面")
+        self.action_bottom_menu(mode="跳转_公会副本")
+
+        # 打开暗晶商店
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=800, y=485)
+        time.sleep(1)
+
+        # 进入暗晶兑换
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=180, y=70)
         time.sleep(1)
 
         # 3x3次点击 确认兑换
