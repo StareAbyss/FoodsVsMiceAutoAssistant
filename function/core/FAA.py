@@ -3,12 +3,12 @@ import json
 import time
 from datetime import datetime
 
-import cv2
 import numpy as np
 import pytz
 
 from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
 from function.common.bg_img_screenshot import capture_image_png
+from function.common.overlay_images import overlay_images
 from function.core.FAA_ActionInterfaceJump import FAAActionInterfaceJump
 from function.core.FAA_ActionQuestReceiveRewards import FAAActionQuestReceiveRewards
 from function.core.FAA_Battle import Battle
@@ -1398,6 +1398,11 @@ class FAA:
 
                 self.print_debug(text="物品:{}本页 开始查找".format(item_name))
 
+                # 添加绑定角标
+                item_image = overlay_images(
+                    img_background=item_image,
+                    img_overlay=RESOURCE_P["item"]["绑定角标-不透明部分.png"])
+
                 while True:
 
                     # 在限定范围内 找红叉点掉
@@ -1413,18 +1418,19 @@ class FAA:
                         click=True)
 
                     # 在限定范围内 找物品
-                    find = loop_match_p_in_w(
+                    find = match_p_in_w(
                         source_handle=self.handle,
-                        source_root_handle=self.handle_360,
-                        source_range=[466, 86, 891, 435],
+                        source_range=[466, 88, 910, 435],
                         template=item_image,
-                        match_tolerance=0.98,
-                        match_interval=0.2,
-                        match_failed_check=0,
-                        after_sleep=0.05,
-                        click=True)
+                        template_name=item_name,
+                        mask=RESOURCE_P["item"]["item_mask_tradable.png"],
+                        match_tolerance=0.99,
+                        test_print=True)
 
                     if find:
+                        # 点击物品图标 以使用
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=find[0] + 466, y=find[1] + 88)
+
                         # 在限定范围内 找到并点击物品 使用它
                         find = loop_match_p_in_w(
                             source_handle=self.handle,
@@ -1563,6 +1569,9 @@ class FAA:
             self.print_debug(text="打开背包")
             self.action_bottom_menu(mode="背包")
 
+            self.signal_print_to_ui.emit(text="[使用双暴卡] 为防止卡加载, 等待10s")
+            time.sleep(10)
+
             loop_use_double_card()
 
             # 关闭背包
@@ -1611,45 +1620,6 @@ class FAA:
     def delete_items(self):
         """用于删除多余的技能书类消耗品, 使用前需要输入二级或无二级密码"""
 
-        def find_img_s(i_name, i_image):
-
-            # 截取原始图像(windows窗口) BGRA -> BGR
-            img_source = capture_image_png(handle=self.handle, raw_range=[466, 88, 910, 435])
-            img_source = img_source[:, :, :3]
-
-            img_template = i_image
-            # 检查模板图像是否包含Alpha通道
-            if img_template.shape[2] == 4:
-                # 移除Alpha通道，保留RGB部分
-                img_template = img_template[:, :, :3]
-
-            mask = RESOURCE_P["item"]["mask.png"][:, :, :3]
-
-            # 使用matchTemplate函数和掩模进行匹配
-            # 纯黑即灰度为0的部分被无视 非0部分则被认为是匹配区域
-            result = cv2.matchTemplate(image=img_source, templ=img_template, method=cv2.TM_SQDIFF_NORMED, mask=mask)
-
-            # 找到最优匹配的位置
-            (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(src=result)
-
-            # 如果匹配度 < 容差阈值，就认为没有找到
-            matching_degree = 1 - minVal
-            if matching_degree > 0.99:
-                self.print_info(f"物品:{i_name} 查找完成, 找到该物品, 最高匹配度:{matching_degree:.4f}")
-            else:
-                self.print_debug(
-                    f"物品:{i_name} 查找完成, 未找到该物品, 最高匹配度:{matching_degree:.4f} (需0.99+匹配度)")
-                return False
-
-            # 获取中心点坐标 = 最优匹配左上 + 截图范围左上 + 目标图片对应大小 / 2
-            end_x = minLoc[0] + 466 + int(img_template.shape[1] / 2)
-            end_y = minLoc[1] + 88 + int(img_template.shape[0] / 2)
-
-            # 点击删除物品按钮
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=end_x, y=end_y)
-
-            return True
-
         self.print_debug(text="开启删除物品高危功能")
 
         # 打开背包
@@ -1671,10 +1641,20 @@ class FAA:
 
         for i_name, i_image in RESOURCE_P["item"]["背包_道具_需删除的"].items():
 
-            # 在限定范围内 找物品 点一下
-            find = find_img_s(i_name=i_name, i_image=i_image)
+            # 在限定范围内 找物品
+            find = match_p_in_w(
+                source_handle=self.handle,
+                source_range=[466, 88, 910, 435],
+                template=i_image,
+                template_name=i_name,
+                mask=RESOURCE_P["item"]["item_mask_tradable.png"],
+                match_tolerance=0.99,
+                test_print=True)
 
             if find:
+                # 点击物品图标 以删除
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=find[0] + 466, y=find[1] + 88)
+
                 # 点击确定 删除按钮
                 loop_match_p_in_w(
                     source_handle=self.handle,
