@@ -3,15 +3,15 @@ import json
 import time
 from datetime import datetime
 
-import cv2
 import numpy as np
 import pytz
 
 from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
 from function.common.bg_img_screenshot import capture_image_png
-from function.core.FAABattle import Battle
+from function.common.overlay_images import overlay_images
 from function.core.FAA_ActionInterfaceJump import FAAActionInterfaceJump
 from function.core.FAA_ActionQuestReceiveRewards import FAAActionQuestReceiveRewards
+from function.core.FAA_Battle import Battle
 from function.core.FAA_BattleARoundPreparation import BattleARoundPreparation
 from function.core_battle.get_position_in_battle import get_position_card_deck_in_battle, \
     get_position_card_cell_in_battle
@@ -282,7 +282,7 @@ class FAA:
                     template=RESOURCE_P["card"]["战斗"][mat_card],
                     match_tolerance=0.99)
                 if find:
-                    position_list.append([int(150+find[0]), int(find[1])])
+                    position_list.append([int(150 + find[0]), int(find[1])])
                     # 从资源中去除已经找到的卡片
                     mat_resource_exist_list.remove(mat_card)
 
@@ -325,7 +325,7 @@ class FAA:
                     template=RESOURCE_P["card"]["战斗"][f"冰淇淋-{j}.png"],
                     match_tolerance=0.99)
                 if find:
-                    position = [150+int(find[0]), int(find[1])]
+                    position = [150 + int(find[0]), int(find[1])]
                     break
             # 防止卡片正好被某些特效遮挡, 所以等待一下
             time.sleep(0.1)
@@ -371,7 +371,7 @@ class FAA:
                         template=RESOURCE_P["card"]["战斗"][img_card],
                         match_tolerance=0.99)
                     if find:
-                        return [int(150+find[0]), int(find[1])]
+                        return [int(150 + find[0]), int(find[1])]
 
                 # 防止卡片正好被某些特效遮挡, 所以等待一下
                 time.sleep(0.1)
@@ -462,8 +462,28 @@ class FAA:
                 list_cell_all.insert(0, dict_quest)
                 return list_cell_all
 
+        def calculation_card_ban(list_cell_all):
+            """步骤二 ban掉某些卡, 依据[卡组信息中的name字段] 和 ban卡信息中的字符串 是否重复"""
+
+            list_new = []
+            for card in list_cell_all:
+                if not (card["name"] in ban_card_list):
+                    list_new.append(card)
+
+            # 遍历更改删卡后的位置
+            for card in list_new:
+                cum_card_left = 0
+                for ban_card in ban_card_list:
+                    for c_card in list_cell_all:
+                        if c_card["name"] == ban_card:
+                            if card["id"] > c_card["id"]:
+                                cum_card_left += 1
+                card["id"] -= cum_card_left
+
+            return list_new
+
         def calculation_card_mat(list_cell_all):
-            """步骤二 承载卡"""
+            """步骤三 承载卡"""
 
             location = stage_info["mat_cell"]  # 深拷贝 防止对配置文件数据更改
 
@@ -489,26 +509,6 @@ class FAA:
                 list_cell_all.insert(0, dict_mat)
 
             return list_cell_all
-
-        def calculation_card_ban(list_cell_all):
-            """步骤三 ban掉某些卡, 依据[卡组信息中的name字段] 和 ban卡信息中的字符串 是否重复"""
-
-            list_new = []
-            for card in list_cell_all:
-                if not (card["name"] in ban_card_list):
-                    list_new.append(card)
-
-            # 遍历更改删卡后的位置
-            for card in list_new:
-                cum_card_left = 0
-                for ban_card in ban_card_list:
-                    for c_card in list_cell_all:
-                        if c_card["name"] == ban_card:
-                            if card["id"] > c_card["id"]:
-                                cum_card_left += 1
-                card["id"] -= cum_card_left
-
-            return list_new
 
         def calculation_card_extra(list_cell_all):
 
@@ -610,13 +610,13 @@ class FAA:
             # 调用计算任务卡
             list_cell_all = calculation_card_quest(list_cell_all=list_cell_all)
 
-            # 调用计算承载卡
-            list_cell_all = calculation_card_mat(list_cell_all=list_cell_all)
-
             # 调用ban掉某些卡(不使用该卡)
             list_cell_all = calculation_card_ban(list_cell_all=list_cell_all)
 
-            # 调用冰沙和坤函数
+            # 调用计算承载卡 - 因为是直接识别的战斗中的位置, 所以应该放在后面
+            list_cell_all = calculation_card_mat(list_cell_all=list_cell_all)
+
+            # 调用冰沙和坤函数 - 因为是直接识别的战斗中的位置, 所以应该放在后面
             list_cell_all = calculation_card_extra(list_cell_all=list_cell_all)
 
             # 调用去掉障碍位置
@@ -961,7 +961,8 @@ class FAA:
 
                 # 如果未找到进入服务器，从头再来
                 if not result:
-                    self.print_debug(text="[刷新游戏] 未找到进入服务器, 可能 1.QQ空间需重新登录 2.360X4399微端 3.意外情况")
+                    self.print_debug(
+                        text="[刷新游戏] 未找到进入服务器, 可能 1.QQ空间需重新登录 2.360X4399微端 3.意外情况")
 
                     result = loop_match_p_in_w(
                         source_handle=self.handle_browser,
@@ -1397,6 +1398,11 @@ class FAA:
 
                 self.print_debug(text="物品:{}本页 开始查找".format(item_name))
 
+                # 添加绑定角标
+                item_image = overlay_images(
+                    img_background=item_image,
+                    img_overlay=RESOURCE_P["item"]["绑定角标-不透明部分.png"])
+
                 while True:
 
                     # 在限定范围内 找红叉点掉
@@ -1412,18 +1418,19 @@ class FAA:
                         click=True)
 
                     # 在限定范围内 找物品
-                    find = loop_match_p_in_w(
+                    find = match_p_in_w(
                         source_handle=self.handle,
-                        source_root_handle=self.handle_360,
-                        source_range=[466, 86, 891, 435],
+                        source_range=[466, 88, 910, 435],
                         template=item_image,
-                        match_tolerance=0.98,
-                        match_interval=0.2,
-                        match_failed_check=0,
-                        after_sleep=0.05,
-                        click=True)
+                        template_name=item_name,
+                        mask=RESOURCE_P["item"]["item_mask_tradable.png"],
+                        match_tolerance=0.99,
+                        test_print=True)
 
                     if find:
+                        # 点击物品图标 以使用
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=find[0] + 466, y=find[1] + 88)
+
                         # 在限定范围内 找到并点击物品 使用它
                         find = loop_match_p_in_w(
                             source_handle=self.handle,
@@ -1505,7 +1512,7 @@ class FAA:
                         template=RESOURCE_P["item"]["双暴卡.png"],
                         match_tolerance=0.98,
                         match_interval=0.2,
-                        match_failed_check=0.5,
+                        match_failed_check=1.5,
                         after_sleep=0.05,
                         click=True)
 
@@ -1562,6 +1569,9 @@ class FAA:
             self.print_debug(text="打开背包")
             self.action_bottom_menu(mode="背包")
 
+            self.signal_print_to_ui.emit(text="[使用双暴卡] 为防止卡加载, 等待10s")
+            time.sleep(10)
+
             loop_use_double_card()
 
             # 关闭背包
@@ -1569,21 +1579,33 @@ class FAA:
 
         main()
 
-    def get_dark_crystal(self, password):
-        # 打开公会副本界面
-        self.print_debug(text="跳转到工会副本界面")
-        self.action_bottom_menu(mode="跳转_公会副本")
-
-        # 打开暗晶商店
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=800, y=485)
+    def input_level_2_password_and_gift_flower(self, password):
+        """如果背包已满 通过兑换暗晶激活二级密码就用不了了! 那么 用缘分树送花给是最稳当的!"""
+        # 打开缘分树界面
+        self.print_debug(text="跳转到缘分树界面")
+        self.action_bottom_menu(mode="跳转_缘分树")
         time.sleep(1)
 
-        # 进入暗晶兑换
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=180, y=70)
+        # 点击到倒数第二页 以确保目标不会已经满魅力 为防止极端情况最后一页只有一个人且是自己的情况发生 故不选倒数第一页
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=774, y=558)
+        time.sleep(1)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=628, y=558)
         time.sleep(1)
 
-        # 先点击一次兑换准备输入二级密码
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=405, y=190)
+        # 点击排名第一的人
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=500, y=300)
+        time.sleep(1)
+
+        # 点击送花按钮
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=50, y=260)
+        time.sleep(1)
+
+        # 选择礼卷
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=500, y=300)
+        time.sleep(1)
+
+        # 点击送出
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=500, y=400)
         time.sleep(1)
 
         # 输入二级密码
@@ -1594,6 +1616,32 @@ class FAA:
 
         # 确定二级密码
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=435, y=388)
+        time.sleep(1)
+
+        # 选择免费送花
+        # T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=350, y=300)
+        # time.sleep(1)
+
+        # 点击送出
+        # T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=500, y=400)
+        # time.sleep(1)
+
+        # 退出送花
+        for i in range(2):
+            self.action_exit(mode="普通红叉")
+            time.sleep(1)
+
+    def get_dark_crystal(self):
+        # 打开公会副本界面
+        self.print_debug(text="跳转到工会副本界面")
+        self.action_bottom_menu(mode="跳转_公会副本")
+
+        # 打开暗晶商店
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=800, y=485)
+        time.sleep(1)
+
+        # 进入暗晶兑换
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=180, y=70)
         time.sleep(1)
 
         # 3x3次点击 确认兑换
@@ -1609,45 +1657,6 @@ class FAA:
 
     def delete_items(self):
         """用于删除多余的技能书类消耗品, 使用前需要输入二级或无二级密码"""
-
-        def find_img_s(i_name, i_image):
-
-            # 截取原始图像(windows窗口) BGRA -> BGR
-            img_source = capture_image_png(handle=self.handle, raw_range=[466, 88, 910, 435])
-            img_source = img_source[:, :, :3]
-
-            img_template = i_image
-            # 检查模板图像是否包含Alpha通道
-            if img_template.shape[2] == 4:
-                # 移除Alpha通道，保留RGB部分
-                img_template = img_template[:, :, :3]
-
-            mask = RESOURCE_P["item"]["mask.png"][:, :, :3]
-
-            # 使用matchTemplate函数和掩模进行匹配
-            # 纯黑即灰度为0的部分被无视 非0部分则被认为是匹配区域
-            result = cv2.matchTemplate(image=img_source, templ=img_template, method=cv2.TM_SQDIFF_NORMED, mask=mask)
-
-            # 找到最优匹配的位置
-            (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(src=result)
-
-            # 如果匹配度 < 容差阈值，就认为没有找到
-            matching_degree = 1 - minVal
-            if matching_degree > 0.99:
-                self.print_info(f"物品:{i_name} 查找完成, 找到该物品, 最高匹配度:{matching_degree:.4f}")
-            else:
-                self.print_debug(
-                    f"物品:{i_name} 查找完成, 未找到该物品, 最高匹配度:{matching_degree:.4f} (需0.99+匹配度)")
-                return False
-
-            # 获取中心点坐标 = 最优匹配左上 + 截图范围左上 + 目标图片对应大小 / 2
-            end_x = minLoc[0] + 466 + int(img_template.shape[1] / 2)
-            end_y = minLoc[1] + 88 + int(img_template.shape[0] / 2)
-
-            # 点击删除物品按钮
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=end_x, y=end_y)
-
-            return True
 
         self.print_debug(text="开启删除物品高危功能")
 
@@ -1670,10 +1679,20 @@ class FAA:
 
         for i_name, i_image in RESOURCE_P["item"]["背包_道具_需删除的"].items():
 
-            # 在限定范围内 找物品 点一下
-            find = find_img_s(i_name=i_name, i_image=i_image)
+            # 在限定范围内 找物品
+            find = match_p_in_w(
+                source_handle=self.handle,
+                source_range=[466, 88, 910, 435],
+                template=i_image,
+                template_name=i_name,
+                mask=RESOURCE_P["item"]["item_mask_tradable.png"],
+                match_tolerance=0.99,
+                test_print=True)
 
             if find:
+                # 点击物品图标 以删除
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=find[0] + 466, y=find[1] + 88)
+
                 # 点击确定 删除按钮
                 loop_match_p_in_w(
                     source_handle=self.handle,

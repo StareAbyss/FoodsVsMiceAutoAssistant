@@ -1,6 +1,7 @@
 from ctypes import windll, byref, c_ubyte
 from ctypes.wintypes import RECT, HWND
 
+import numpy as np
 from numpy import uint8, frombuffer
 
 from function.scattered.restore_window_if_minimized import restore_window_if_minimized
@@ -24,10 +25,59 @@ def capture_image_png(handle: HWND, raw_range: list, root_handle: HWND = None):
         numpy.array: 截图数据 3D array (高度,宽度,[B G R A四通道])
     """
 
-    # 检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层
-    if root_handle:
-        restore_window_if_minimized(handle=root_handle)
+    # 尝试截图一次
+    image = capture_image_png_once(handle=handle)
 
+    # image == [], 句柄错误, 返回一个对应大小的全0图像
+    if image is None:
+        return np.zeros((raw_range[3] - raw_range[1], raw_range[2] - raw_range[0], 3), dtype=np.uint8)
+
+    # 检查是否为全黑 如果全0 大概率是最小化了
+    if is_mostly_black(image=image, sample_points=9):
+        # 检查窗口是否最小化
+        if root_handle:
+            # 尝试恢复至激活窗口的底层
+            if restore_window_if_minimized(handle=root_handle):
+                # 如果恢复成功, 再次尝试截图一次
+                image = capture_image_png_once(handle=handle)
+
+    # 裁剪图像到指定区域
+    image = png_cropping(image=image, raw_range=raw_range)
+
+    return image
+
+
+def is_mostly_black(image, sample_points=9):
+    """
+    检查图像是否主要是黑色, 通过抽样像素来判断, 能减少占用.
+    :param image: NumPy数组表示的图像.
+    :param sample_points: 要检查的像素点数, 默认为9.
+    :return: 如果抽样的像素都是黑色,则返回True; 否则返回False.
+    """
+    height, width = image.shape[:2]
+
+    # 定义要检查的像素位置
+    positions = [(0, 0),
+                 (0, width - 1),
+                 (height - 1, 0),
+                 (height - 1, width - 1),
+                 (height // 2, width // 2),
+                 (0, width // 2),
+                 (height // 2, 0),
+                 (height - 1, width // 2),
+                 (height // 2, width - 1)]
+
+    # 仅使用前sample_points个位置
+    positions = positions[:sample_points]
+
+    # 检查每个位置的像素是否都是黑色
+    for y, x in positions:
+        if np.any(image[y, x] != 0):  # 如果任何一个像素不是全黑
+            return False
+    return True
+
+
+def capture_image_png_once(handle: HWND):
     # 获取窗口客户区的大小
     r = RECT()
     windll.user32.GetClientRect(handle, byref(r))  # 获取指定窗口句柄的客户区大小
@@ -57,9 +107,6 @@ def capture_image_png(handle: HWND, raw_range: list, root_handle: HWND = None):
 
     # 将缓冲区数据转换为numpy数组，并重塑为图像的形状 (高度,宽度,[B G R A四通道])
     image = frombuffer(buffer, dtype=uint8).reshape(height, width, 4)
-
-    # 裁剪图像到指定区域
-    image = png_cropping(image=image, raw_range=raw_range)
 
     return image
 

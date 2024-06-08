@@ -6,6 +6,7 @@ from function.core_battle.Card import Card, CardKun
 from function.core_battle.CardQueue import CardQueue
 from function.globals.extra import EXTRA_GLOBALS
 from function.globals.log import CUS_LOGGER
+from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
 class CardManager:
@@ -102,7 +103,7 @@ class CardManager:
         self.start_all_thread()
 
     def stop(self):
-        CUS_LOGGER.debug("CardManager stop方法已激活")
+        CUS_LOGGER.debug("CardManager stop方法已激活, 战斗放卡 全线程 将中止")
         self.stop_mode = 1
 
         # 中止已经存在的子线程
@@ -129,7 +130,7 @@ class CardManager:
         self.card_queue_dict.clear()  # 清空卡片队列字典
         self.faa_dict.clear()  # 清空faa字典
         self.is_group = None
-        CUS_LOGGER.debug("CardManager 内部线程已停止")
+        CUS_LOGGER.debug("CardManager stop方法已完成, 战斗放卡 全线程 已停止")
 
 
 class ThreadCheckTimer(QThread):
@@ -157,7 +158,7 @@ class ThreadCheckTimer(QThread):
         self.timer = None
 
     def stop(self):
-        self.faa.print_info(text="ThreadCheckTimer stop方法已激活")
+        self.faa.print_info(text="ThreadCheckTimer stop方法已激活, 将关闭战斗中检测线程")
         # 设置Flag
         self.stop_flag = True
         # 退出事件循环
@@ -172,11 +173,15 @@ class ThreadCheckTimer(QThread):
         """先检查是否出现战斗完成或需要使用钥匙，如果完成，至二级"""
         self.running_round += 1
 
+        # 打印点击队列目前的状态
+        if self.faa.player == 1:
+            T_ACTION_QUEUE_TIMER.print_queue_statue()
+
         # 看看是不是结束了
         self.stop_flag = self.faa.faa_battle.check_end()
         if self.stop_flag:
             if not self.stopped:
-                self.faa.print_info(text='检测到战斗结束')
+                self.faa.print_info(text='检测到战斗结束标志, 即将关闭战斗中放卡的线程')
                 self.stop_signal.emit()
                 self.stopped = True  # 防止stop后再次调用
             return
@@ -215,12 +220,11 @@ class ThreadCheckTimer(QThread):
                         max_card.is_kun_target = True
 
             # 调试打印目前list状态
-            # if self.faa.player == 2:
-            #     text = ""
-            #     for card in self.card_queue.card_list:
-            #         text += "[名:{}|CD:{}|用:{}|禁:{}|坤:{}]".format(
-            #             card.name, card.status_cd, card.status_usable, card.status_ban, card.is_kun_target)
-            #     self.faa.print_debug(text)
+            # text = ""
+            # for card in self.card_queue.card_list:
+            #     text += "[名:{}|CD:{}|用:{}|禁:{}|坤:{}]".format(
+            #         card.name, card.status_cd, card.status_usable, card.status_ban, card.is_kun_target)
+            # self.faa.print_debug(text)
 
         # 刷新全局冰沙锁的状态
         if EXTRA_GLOBALS.smoothie_lock_time != 0:

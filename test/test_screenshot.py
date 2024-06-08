@@ -9,16 +9,19 @@ from function.scattered.gat_handle import faa_get_handle
 
 def test_screenshot_once():
     def main():
-        handle = faa_get_handle(channel="小号4 | 锑食", mode="flash")
+        handle = 0
+        handle_360 = faa_get_handle(channel="锑食-微端", mode="360")
         # handle_browser = faa_get_handle(channel="锑食", mode="browser")
         # handle = faa_get_handle(channel="深渊之下 | 锑食", mode="flash")
         # handle = faa_get_handle(channel="深渊之下 | 锑食", mode="360")
 
         # 调用截图
-        image = capture_image_png(handle=handle, raw_range=[257 - 45, 74 - 64, 257 + 8, 74 + 6])
-        # image = capture_picture_png(handle=handle, raw_range=[0, 0, 950, 600])
-        # image = capture_picture_png(handle=handle_browser, raw_range=[0, 0, 2000, 2000])
-        # image = capture_picture_png(handle=handle, raw_range=[161, 75, 164, 85])
+        # image = capture_image_png(handle=handle, raw_range=[257 - 45, 74 - 64, 257 + 8, 74 + 6])
+        image = capture_image_png(handle=handle, raw_range=[0, 0, 900, 600], root_handle=handle_360)
+        # image = capture_image_png(handle=handle_browser, raw_range=[0, 0, 2000, 2000])
+        # image = capture_image_png(handle=handle, raw_range=[161, 75, 164, 85])
+
+        print(image)
 
         # 保存图片
         imwrite(time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime()) + ".png", image)
@@ -32,12 +35,13 @@ def test_screenshot_once():
 
 
 def test_some_times():
-    handle = faa_get_handle(channel="深渊之下 | 锑食", mode="flash")
+    handle = faa_get_handle(channel="锑食-微端", mode="flash")
+    handle_360 = faa_get_handle(channel="锑食-微端", mode="360")
     for i in range(1000):
-        image = capture_image_png(handle=handle, raw_range=[0, 0, 950, 600])
+        image = capture_image_png(handle=handle, raw_range=[0, 0, 900, 600],root_handle=handle_360)
 
 
-cProfile.run("f_test()")
+cProfile.run("test_screenshot_once()")
 
 """
 ncalls	表示函数调用的次数

@@ -72,6 +72,8 @@ class Card:
         self.kun = self.faa.battle_plan_1["card"][priority]["kun"]
 
         """用于完成放卡的额外类属性"""
+        # 放卡间隔
+        self.click_sleep = self.faa_battle.click_sleep
         # 状态 冷却完成 默认已完成
         self.status_cd = False
         # 状态 可用
@@ -99,18 +101,14 @@ class Card:
             return
 
         # 点击 选中卡片
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(
-            handle=self.handle,
-            x=self.location_from[0],
-            y=self.location_from[1])
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=self.location_from[0], y=self.location_from[1])
+        time.sleep(self.click_sleep)
 
         if self.ergodic:
             # 遍历模式: True 遍历该卡每一个可以放的位置
-            my_len = len(self.location)
-            my_to_list = range(my_len)
+            my_to_list = range(len(self.location))
         else:
             # 遍历模式: False 只放第一张, 为保证放下去, 同一个位置点两次
-            my_len = 2
             my_to_list = [0, 0]
 
         for j in my_to_list:
@@ -119,13 +117,12 @@ class Card:
                 handle=self.handle,
                 x=self.location_to[j][0],
                 y=self.location_to[j][1])
-
+            time.sleep(self.click_sleep)
         # 放卡后点一下空白
         T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+        time.sleep(self.click_sleep)
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
-
-        # 统一计算点击间隔时间
-        time.sleep(0.05 + self.faa_battle.click_sleep * my_len)
+        time.sleep(self.click_sleep)
 
         # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
         if self.queue:
@@ -133,6 +130,9 @@ class Card:
             self.location.remove(self.location[0])
             self.location_to.append(self.location_to[0])
             self.location_to.remove(self.location_to[0])
+
+        # 额外时延
+        time.sleep(0.05)
 
         # 如果放卡后还可用,自ban 若干s
         # 判断可用 如果不知道其还可用。会导致不自ban，导致无意义点击出现，后果更小。1轮扫描后纠正。
@@ -151,14 +151,13 @@ class Card:
                     handle=self.handle,
                     x=self.faa.kun_position["location_from"][0],
                     y=self.faa.kun_position["location_from"][1])
+                time.sleep(self.click_sleep)
 
                 if self.ergodic:
                     # 遍历模式: True 遍历该卡每一个可以放的位置
-                    my_len = len(self.location)
-                    my_to_list = range(my_len)
+                    my_to_list = range(len(self.location))
                 else:
                     # 遍历模式: False 只放第一张, 为保证放下去, 同一个位置点两次
-                    my_len = 2
                     my_to_list = [0, 0]
 
                 for j in my_to_list:
@@ -167,13 +166,13 @@ class Card:
                         handle=self.handle,
                         x=self.location_to[j][0],
                         y=self.location_to[j][1])
+                    time.sleep(self.click_sleep)
 
                 # 放卡后点一下空白
                 T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+                time.sleep(self.click_sleep)
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
-
-                # 统一计算点击间隔时间
-                time.sleep(0.05 + self.faa_battle.click_sleep * my_len)
+                time.sleep(self.click_sleep)
 
                 # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
                 if self.queue:
@@ -181,6 +180,9 @@ class Card:
                     self.location.remove(self.location[0])
                     self.location_to.append(self.location_to[0])
                     self.location_to.remove(self.location_to[0])
+
+                # 额外时延
+                time.sleep(0.05)
 
     def fresh_status(self):
         """判断颜色来更改自身冷却和可用属性"""

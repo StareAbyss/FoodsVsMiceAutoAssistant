@@ -6,6 +6,8 @@ from threading import Timer
 
 from PyQt5.QtCore import QThread
 
+from function.globals.log import CUS_LOGGER
+
 
 class ThreadActionQueueTimer(QThread):
     """
@@ -18,7 +20,10 @@ class ThreadActionQueueTimer(QThread):
         self.action_timer = None
         self.zoom_rate = None
         self.action_queue = queue.Queue()
-        self.PostMessageW = windll.user32.PostMessageW
+        self.interval_time = 0.015
+        # 计数每次统计间隔期间, 分别增减了多少次点击, 以查看消费者是否跟得上生产者
+        self.count_addition = 0
+        self.count_subtraction = 0
         # 按键名称和虚拟键码对应表
         self.VkCode = {
             "l_button": 0x01,  # 鼠标左键
@@ -95,7 +100,7 @@ class ThreadActionQueueTimer(QThread):
         }
 
     def run(self):
-        self.action_timer = Timer(0.015, self.execute_click_queue)
+        self.action_timer = Timer(self.interval_time, self.execute_click_queue)
         self.action_timer.start()
         self.exec()  # 开始事件循环
         self.action_timer.cancel()
@@ -115,34 +120,49 @@ class ThreadActionQueueTimer(QThread):
         for item in items:
             self.action_queue.put(item)
 
-        print(f"打印点击列表:{items}")
+        CUS_LOGGER.debug(f"点击列表:{items}")
 
-    def execute_click_queue(self):
+    def print_queue_size(self) -> int:
+        """线程安全的方式查看队列长度, 打印并返回"""
+        CUS_LOGGER.debug(f"点击列表长度:{self.action_queue.qsize()}")
+        return self.action_queue.qsize()
+
+    def print_queue_statue(self) -> int:
+        q_size = self.action_queue.qsize()
+        CUS_LOGGER.debug(f"点击列表长度:{q_size}, +{self.count_addition}, -{self.count_subtraction}")
+        self.count_addition = 0
+        self.count_subtraction = 0
+        return q_size
+
+    def execute_click_queue(self) -> None:
+        """用于执行队列中的任务. 即消费者"""
         if not self.action_queue.empty():
+            self.count_subtraction += 1
             # 获取任务
             d_type, handle, args = self.action_queue.get()
             # 执行任务
             self.do_something(d_type=d_type, handle=handle, args=args)
             # 标记任务已完成
             self.action_queue.task_done()
-        self.action_timer = Timer(0.015, self.execute_click_queue)
+
+        # 回调
+        self.action_timer = Timer(self.interval_time, self.execute_click_queue)
         self.action_timer.start()
 
     def add_click_to_queue(self, handle, x, y):
         self.action_queue.put(("click", handle, [x, y]))
-
         # print("鼠标左键点击添加到队列")
 
     def add_move_to_queue(self, handle, x, y):
         self.action_queue.put(("move_to", handle, [x, y]))
-
         # print("鼠标移动添加到队列")
 
     def add_keyboard_up_down_to_queue(self, handle, key):
         self.action_queue.put(("keyboard_up_down", handle, [key]))
 
-    def do_something(self, d_type, handle, args):
-        """执行动作任务函数"""
+    def do_something(self, d_type, handle, args) -> None:
+        self.count_addition += 1
+        """执行动作任务函数, 即生产者"""
         if d_type == "click":
             self.do_left_mouse_click(handle=handle, x=args[0], y=args[1])
         elif d_type == "move_to":
@@ -154,14 +174,14 @@ class ThreadActionQueueTimer(QThread):
         """执行动作函数 子函数"""
         x = int(x * self.zoom_rate)
         y = int(y * self.zoom_rate)
-        self.PostMessageW(handle, 0x0201, 0, y << 16 | x)
-        self.PostMessageW(handle, 0x0202, 0, y << 16 | x)
+        windll.user32.PostMessageW(handle, 0x0201, 0, y << 16 | x)
+        windll.user32.PostMessageW(handle, 0x0202, 0, y << 16 | x)
 
     def do_left_mouse_move_to(self, handle, x, y):
         """执行动作函数 子函数"""
         x = int(x * self.zoom_rate)
         y = int(y * self.zoom_rate)
-        self.PostMessageW(handle, 0x0200, 0, y << 16 | x)
+        windll.user32.PostMessageW(handle, 0x0200, 0, y << 16 | x)
 
     def do_keyboard_up_down(self, handle, key):
         """执行动作函数 子函数"""
@@ -175,9 +195,9 @@ class ThreadActionQueueTimer(QThread):
         scan_code = windll.user32.MapVirtualKeyW(vk_code, 0)
 
         # 按下
-        self.PostMessageW(handle, 0x100, vk_code, (scan_code << 16) | 1)
+        windll.user32.PostMessageW(handle, 0x100, vk_code, (scan_code << 16) | 1)
         # 松开
-        self.PostMessageW(handle, 0x101, vk_code, (scan_code << 16) | 0XC0000001)
+        windll.user32.PostMessageW(handle, 0x101, vk_code, (scan_code << 16) | 0XC0000001)
 
     def set_zoom_rate(self, zoom_rate):
         if __name__ == '__main__':

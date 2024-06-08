@@ -57,6 +57,7 @@ class Battle:
             handle=self.faa.handle,
             x=self.faa.bp_cell[num_cell][0],
             y=self.faa.bp_cell[num_cell][1])
+        time.sleep(self.click_sleep)
 
     def use_player_all(self):
         self.faa.print_debug(text="[战斗] 开始放置玩家:{}".format(self.faa.battle_plan_0["player"]))
@@ -94,7 +95,7 @@ class Battle:
             match_tolerance=0.95,
             template=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
         if find:
-            self.faa.print_debug(text="找到了 [继续作战]")
+            self.faa.print_debug(text="找到了 [继续作战] 图标")
             while find:
                 loop_match_p_in_w(
                     source_handle=self.faa.handle,
@@ -110,7 +111,7 @@ class Battle:
                     source_range=[302, 263, 396, 289],
                     match_tolerance=0.95,
                     template=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
-            self.faa.print_debug(text="已查找到 [继续作战] 图标并点击")
+            self.faa.print_debug(text="点击了 [继续作战] 图标")
             used_key = True
         return used_key
 
@@ -182,6 +183,7 @@ class Battle:
         # 点一下空白
         if click_space:
             T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.faa.handle, x=200, y=350)
+            time.sleep(self.click_sleep)
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=200, y=350)
             time.sleep(self.click_sleep)
 
