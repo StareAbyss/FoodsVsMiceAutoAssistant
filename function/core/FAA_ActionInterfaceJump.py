@@ -151,7 +151,7 @@ class FAAActionInterfaceJump:
         return find
 
     def bottom_menu(self, mode: str):
-        """点击下方菜单栏, 包含:任务/后退/背包/跳转_公会任务/跳转_公会副本/跳转_情侣任务/跳转_竞技场"""
+        """点击下方菜单栏, 包含:任务/后退/背包/跳转_公会任务/跳转_公会副本/跳转_情侣任务/跳转_竞技场/跳转_缘分树"""
 
         handle = self.faa.handle
         handle_360 = self.faa.handle_360
@@ -159,7 +159,12 @@ class FAAActionInterfaceJump:
 
         find = False
 
-        if mode == "任务" or mode == "后退" or mode == "背包" or mode == "公会":
+        if (
+                mode == "任务" or
+                mode == "后退" or
+                mode == "背包" or
+                mode == "公会"
+        ):
             find = loop_match_p_in_w(
                 source_handle=handle,
                 source_root_handle=handle_360,
@@ -169,7 +174,14 @@ class FAAActionInterfaceJump:
                 after_sleep=1,
                 click=True)
 
-        if mode == "跳转_公会任务" or mode == "跳转_公会副本" or mode == "跳转_情侣任务" or mode == "跳转_竞技场":
+        if (
+                mode == "跳转_公会任务" or
+                mode == "跳转_公会副本" or
+                mode == "跳转_情侣任务" or
+                mode == "跳转_竞技场" or
+                mode == "跳转_缘分树"
+        ):
+
             loop_match_p_in_w(
                 source_handle=handle,
                 source_root_handle=handle_360,

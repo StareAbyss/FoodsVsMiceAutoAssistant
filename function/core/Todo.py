@@ -101,6 +101,33 @@ class ThreadTodo(QThread):
 
     """业务代码 - 战斗以外"""
 
+    def batch_level_2_action(self, title_text, is_group, dark_crystal=False):
+
+        # 在该动作前已经完成了游戏刷新 可以尽可能保证欢乐互娱不作妖
+        if self.opt["level_2"]["1p"]["active"] or self.opt["level_2"]["2p"]["active"]:
+            self.signal_print_to_ui.emit(
+                text=f"[{title_text}] [二级功能] 您输入二级激活了该功能. 将送免费花 + 兑换暗晶 + 删除多余技能书",
+                color="E67800")
+
+        # 高危动作 慢慢执行
+        if self.opt["level_2"]["1p"]["active"]:
+            self.faa[1].input_level_2_password_and_gift_flower(password=self.opt["level_2"]["1p"]["password"])
+            if dark_crystal:
+                self.faa[1].get_dark_crystal()
+            self.faa[1].delete_items()
+
+        if is_group and self.opt["level_2"]["2p"]["active"]:
+            self.faa[2].input_level_2_password_and_gift_flower(password=self.opt["level_2"]["2p"]["password"])
+            if dark_crystal:
+                self.faa[2].get_dark_crystal()
+            self.faa[2].delete_items()
+
+        # 执行完毕后立刻刷新游戏 以清除二级输入状态
+        if self.opt["level_2"]["1p"]["active"] or self.opt["level_2"]["2p"]["active"]:
+            self.signal_print_to_ui.emit(
+                text=f"[{title_text}] [二级功能] 结束, 即将刷新游戏以清除二级输入的状态...", color="E67800")
+            self.batch_reload_game()
+
     def batch_reload_game(self):
 
         self.signal_print_to_ui.emit("Refresh Game...")
@@ -147,8 +174,11 @@ class ThreadTodo(QThread):
 
     def batch_sign_in(self, is_group):
 
-        text = "每日签到"
-        self.model_start_print(text=text)
+        title_text = "每日签到"
+        self.model_start_print(text=title_text)
+
+        # 激活删除物品高危功能(可选) + 领取奖励一次
+        self.batch_level_2_action(is_group=is_group, title_text=title_text, dark_crystal=False)
 
         # 领取温馨礼包
         for i in [1, 2]:
@@ -185,7 +215,7 @@ class ThreadTodo(QThread):
         if is_group:
             self.thread_2p.join()
 
-        self.model_end_print(text=text)
+        self.model_end_print(text=title_text)
 
     def batch_receive_all_quest_rewards(self, is_group):
 
@@ -193,25 +223,7 @@ class ThreadTodo(QThread):
         self.model_start_print(text=title_text)
 
         """激活了删除物品高危功能"""
-        # 在该动作前已经完成了游戏刷新 可以尽可能保证欢乐互娱不作妖
-        if self.opt["level_2"]["1p"]["active"] or self.opt["level_2"]["2p"]["active"]:
-            self.signal_print_to_ui.emit(
-                text=f"[{title_text}] [删除多余技能书道具] 您输入了二级激活了该功能...", color="E67800")
-
-        # 高危动作 慢慢执行
-        if self.opt["level_2"]["1p"]["active"]:
-            self.faa[1].get_dark_crystal(password=self.opt["level_2"]["1p"]["password"])
-            self.faa[1].delete_items()
-
-        if is_group and self.opt["level_2"]["2p"]["active"]:
-            self.faa[2].get_dark_crystal(password=self.opt["level_2"]["2p"]["password"])
-            self.faa[2].delete_items()
-
-        # 执行完毕后立刻刷新游戏 以清除二级输入状态
-        if self.opt["level_2"]["1p"]["active"] or self.opt["level_2"]["2p"]["active"]:
-            self.signal_print_to_ui.emit(
-                text=f"[{title_text}] [删除多余技能书道具] 结束, 即将刷新游戏以清除二级输入的状态...", color="E67800")
-            self.batch_reload_game()
+        self.batch_level_2_action(is_group=is_group, title_text=title_text, dark_crystal=True)
 
         """普通任务"""
         self.signal_print_to_ui.emit(text=f"[{title_text}] [普通任务] 开始...")
@@ -922,6 +934,7 @@ class ThreadTodo(QThread):
             end_statistic_print(result_list=result_list)
 
             self.signal_print_to_ui.emit(text=f"{title}{stage_id} {max_times}次 结束 ", color="#0056A6")
+
         main()
 
     def output_player_loot(self, player_id, result_list):
@@ -1122,26 +1135,27 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=text_)
 
-    def guild_or_spouse_quest(self, text_, quest_mode,
+    def guild_or_spouse_quest(self, title_text, quest_mode,
                               deck, battle_plan_1p, battle_plan_2p, stage=False):
         """完成公会or情侣任务"""
 
-        self.model_start_print(text=text_)
+        self.model_start_print(text=title_text)
 
-        self.signal_print_to_ui.emit(text=f"[{text_}] 检查领取奖励...")
+        # 激活删除物品高危功能(可选) + 领取奖励一次
+        if quest_mode == "公会任务":
+            self.batch_level_2_action(is_group=True, title_text=title_text, dark_crystal=False)
+        self.signal_print_to_ui.emit(text=f"[{title_text}] 检查领取奖励...")
         self.faa[1].receive_quest_rewards(mode=quest_mode)
         self.faa[2].receive_quest_rewards(mode=quest_mode)
 
-        self.signal_print_to_ui.emit(text=f"[{text_}] 获取任务列表...")
-
+        # 获取任务
+        self.signal_print_to_ui.emit(text=f"[{title_text}] 获取任务列表...")
         quest_list = self.faa[1].match_quests(mode=quest_mode, qg_cs=stage)
-
         for i in quest_list:
             self.signal_print_to_ui.emit(
                 text="副本:{},额外带卡:{}".format(
                     i["stage_id"],
                     i["quest_card"]))
-
         for i in range(len(quest_list)):
             quest_list[i]["is_use_key"] = True
             quest_list[i]["deck"] = deck
@@ -1156,14 +1170,17 @@ class ThreadTodo(QThread):
                 "last_time_player_b": ["竞技岛"]
             }
 
+        # 完成任务
         self.battle_1_n_n(quest_list=quest_list)
 
-        self.signal_print_to_ui.emit(text=f"[{text_}] 检查领取奖励中...")
-
+        # 激活删除物品高危功能(可选) + 领取奖励一次
+        if quest_mode == "公会任务":
+            self.batch_level_2_action(is_group=True, title_text=title_text, dark_crystal=False)
+        self.signal_print_to_ui.emit(text=f"[{title_text}] 检查领取奖励中...")
         self.faa[1].receive_quest_rewards(mode=quest_mode)
         self.faa[2].receive_quest_rewards(mode=quest_mode)
 
-        self.model_end_print(text=text_)
+        self.model_end_print(text=title_text)
 
     def guild_dungeon(self, text_, deck, battle_plan_1p, battle_plan_2p):
 
@@ -1696,7 +1713,7 @@ class ThreadTodo(QThread):
         my_opt = c_opt["quest_guild"]
         if my_opt["active"]:
             self.guild_or_spouse_quest(
-                text_="公会任务",
+                title_text="公会任务",
                 quest_mode="公会任务",
                 deck=my_opt["deck"],
                 battle_plan_1p=my_opt["battle_plan_1p"],
@@ -1714,7 +1731,7 @@ class ThreadTodo(QThread):
         my_opt = c_opt["quest_spouse"]
         if my_opt["active"]:
             self.guild_or_spouse_quest(
-                text_="情侣任务",
+                title_text="情侣任务",
                 quest_mode="情侣任务",
                 deck=c_opt["quest_guild"]["deck"],
                 battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
