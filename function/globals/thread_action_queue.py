@@ -150,19 +150,24 @@ class ThreadActionQueueTimer(QThread):
         self.action_timer.start()
 
     def add_click_to_queue(self, handle, x, y):
+        """添加动作任务函数, 即生产者"""
+        self.count_addition += 1
         self.action_queue.put(("click", handle, [x, y]))
         # print("鼠标左键点击添加到队列")
 
     def add_move_to_queue(self, handle, x, y):
+        """添加动作任务函数, 即生产者"""
+        self.count_addition += 1
         self.action_queue.put(("move_to", handle, [x, y]))
         # print("鼠标移动添加到队列")
 
     def add_keyboard_up_down_to_queue(self, handle, key):
+        """添加动作任务函数, 即生产者"""
+        self.count_addition += 1
         self.action_queue.put(("keyboard_up_down", handle, [key]))
 
     def do_something(self, d_type, handle, args) -> None:
-        self.count_addition += 1
-        """执行动作任务函数, 即生产者"""
+        """聚合多种消费策略的执行"""
         if d_type == "click":
             self.do_left_mouse_click(handle=handle, x=args[0], y=args[1])
         elif d_type == "move_to":
