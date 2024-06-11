@@ -41,7 +41,7 @@ class ThreadTodo(QThread):
         self.battle_check_interval = 1  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
 
         # 多人双线程相关
-        self.lock = False  # 多人单线程的互锁, 需要彼此完成方可解除对方的锁
+        self.my_lock = False  # 多人单线程的互锁, 需要彼此完成方可解除对方的锁
         self.todo_id = todo_id  # id == 1 默认 id==2 处理双单人多线程
         self.extra_opt = None  # 用来给双单人多线程的2P传递参数
 
@@ -62,7 +62,7 @@ class ThreadTodo(QThread):
         self.signal_print_to_ui.emit(text=f"[{text}] Completed!", color="#C80000")
 
     def change_lock(self, my_bool):
-        self.lock = my_bool
+        self.my_lock = my_bool
 
     def set_is_used_key_true(self):
         self.faa[1].faa_battle.is_used_key = True
@@ -1012,7 +1012,8 @@ class ThreadTodo(QThread):
 
         if need_lock:
             # 上锁
-            self.lock = True
+            CUS_LOGGER.info(f"[双线程单人] {self.todo_id}P已开始任务! 进行自锁!")
+            self.my_lock = True
 
         self.signal_print_to_ui.emit(text=f"{title}开始...", color="#006400")
 
@@ -1072,10 +1073,11 @@ class ThreadTodo(QThread):
         self.signal_print_to_ui.emit(text=f"{title}结束", color="#006400")
 
         if need_lock:
+            CUS_LOGGER.info(f"双线程单人功能中, {self.todo_id}P已完成所有任务! 正在等待另一线程完成所有任务!")
             # 为另一个todo解锁
             self.signal_todo_lock.emit(False)
             # 如果未被解锁, 循环等待
-            while self.lock:
+            while self.my_lock:
                 sleep(1)
 
     """使用n_n_battle为核心的变种 [单线程][单人或双人]"""
@@ -1393,17 +1395,19 @@ class ThreadTodo(QThread):
                 need_lock=True)
 
         def main():
-            active_player_count = 0
-            for player_id in [1, 2]:
-                my_opt = c_opt[f"magic_tower_alone_{player_id}"]
-                if my_opt["active"]:
-                    active_player_count += 1
+            text_ = "单人魔塔"
+            # 计算需使用该功能的玩家数
+            active_player_count = sum(c_opt[f"magic_tower_alone_{player_id}"]["active"] for player_id in [1, 2])
             if active_player_count == 1:
                 # 单人情况 以easy battle 完成即可
+                self.model_start_print(text=text_)
                 one_player()
+                self.model_end_print(text=text_)
             if active_player_count == 2:
                 # 多人情况 直接调用以lock battle 完成1P 以信号调用另一个todo 完成2P
+                self.model_start_print(text=text_)
                 multi_player()
+                self.model_end_print(text=text_)
 
         main()
 
@@ -1456,7 +1460,7 @@ class ThreadTodo(QThread):
                     quest_lists[player].append(
                         {
                             "player": [player],
-                            "is_use_key": True,
+                            "is_use_key": False,
                             "deck": my_opt["deck"],
                             "battle_plan_1p": my_opt["battle_plan_1p"],
                             "battle_plan_2p": my_opt["battle_plan_1p"],
@@ -1484,17 +1488,19 @@ class ThreadTodo(QThread):
                 need_lock=True)
 
         def main():
-            active_player_count = 0
-            for player_id in [1, 2]:
-                my_opt = c_opt[f"magic_tower_prison_{player_id}"]
-                if my_opt["active"]:
-                    active_player_count += 1
+            text_ = "魔塔密室"
+            # 计算需使用该功能的玩家数
+            active_player_count = sum(c_opt[f"magic_tower_prison_{player_id}"]["active"] for player_id in [1, 2])
             if active_player_count == 1:
                 # 单人情况 以easy battle 完成即可
+                self.model_start_print(text=text_)
                 one_player()
+                self.model_end_print(text=text_)
             if active_player_count == 2:
                 # 多人情况 直接调用以lock battle 完成1P 以信号调用另一个todo 完成2P
+                self.model_start_print(text=text_)
                 multi_player()
+                self.model_end_print(text=text_)
 
         main()
 
@@ -1864,6 +1870,7 @@ class ThreadTodo(QThread):
             quest_list=self.extra_opt["quest_list"],
             extra_title=self.extra_opt["extra_title"],
             need_lock=self.extra_opt["need_lock"])
+        self.extra_opt = None
 
     def pause(self):
         """暂停"""
