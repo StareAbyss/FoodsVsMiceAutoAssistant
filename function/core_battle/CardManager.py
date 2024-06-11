@@ -75,6 +75,9 @@ class CardManager:
             players = [1, 2]
         else:
             players = [1]
+        # 在每个号开打前 打印上一次战斗到这一次战斗之间, 累计的点击队列状态
+        CUS_LOGGER.info(f"在两场战斗之间, 点击队列变化状态如下, 可判断是否出现点击队列积压的情况")
+        T_ACTION_QUEUE_TIMER.print_queue_statue()
         # 实例化 检测线程 + 用卡线程
         for i in players:
             self.thread_dict[i] = ThreadCheckTimer(
@@ -132,6 +135,10 @@ class CardManager:
         self.is_group = None
         CUS_LOGGER.debug("CardManager stop方法已完成, 战斗放卡 全线程 已停止")
 
+        # 在战斗结束后 打印上一次战斗到这一次战斗之间, 累计的点击队列状态
+        CUS_LOGGER.info(f"在本场战斗中, 点击队列变化状态如下, 可判断是否出现点击队列积压的情况")
+        T_ACTION_QUEUE_TIMER.print_queue_statue()
+
 
 class ThreadCheckTimer(QThread):
     stop_signal = pyqtSignal()
@@ -173,9 +180,9 @@ class ThreadCheckTimer(QThread):
         """先检查是否出现战斗完成或需要使用钥匙，如果完成，至二级"""
         self.running_round += 1
 
-        # 打印点击队列目前的状态
-        if self.faa.player == 1:
-            T_ACTION_QUEUE_TIMER.print_queue_statue()
+        # 实时 打印点击队列目前的状态
+        # if self.faa.player == 1:
+        #     T_ACTION_QUEUE_TIMER.print_queue_statue()
 
         # 看看是不是结束了
         self.stop_flag = self.faa.faa_battle.check_end()
