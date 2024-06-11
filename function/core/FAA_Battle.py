@@ -88,7 +88,6 @@ class Battle:
         :return:
             None
         """
-        used_key = False
         find = match_p_in_w(
             source_handle=self.faa.handle,
             source_range=[386, 332, 463, 362],
@@ -112,8 +111,8 @@ class Battle:
                     match_tolerance=0.95,
                     template=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
             self.faa.print_debug(text="点击了 [继续作战] 图标")
-            used_key = True
-        return used_key
+            return True
+        return False
 
     def check_end(self):
         # 找到战利品字样(被黑色透明物遮挡,会看不到)

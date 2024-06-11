@@ -6,7 +6,7 @@ import cv2
 
 from function.common.bg_img_match import loop_match_ps_in_w, loop_match_p_in_w, match_p_in_w
 from function.common.bg_img_screenshot import capture_image_png
-from function.core.analyzer_of_loot_logs import matchImage
+from function.core.analyzer_of_loot_logs import match_items_from_image
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
@@ -326,9 +326,14 @@ class BattleARoundPreparation:
         if find:
             print_debug(text="[战利品UI] 正常结束, 尝试捕获战利品截图")
 
-            # 错开一下, 避免卡住
+            # 让2P总在1P后开始运行该功能, 防止1P清空了2P的动作操作
             if player == 2:
-                time.sleep(0.333)
+                time.sleep(0.666)
+
+            # 清空队列
+            if player == 1:
+                T_ACTION_QUEUE_TIMER.action_queue.queue.clear()
+                print_debug(text="战斗结束, 成功清空所有点击队列残留!")
 
             # 定义保存路径和文件名格式
             img_path = "{}\\{}_{}P_{}.png".format(
@@ -342,7 +347,7 @@ class BattleARoundPreparation:
             img = self.action_and_capture_loots()
 
             # 分析图片，获取战利品字典
-            drop_dict = matchImage(img_path=img_path, img=img, test_print=True)
+            drop_dict = match_items_from_image(img_save_path=img_path, img=img, test_print=True)
             print_debug(text="[捕获战利品] 处在战利品UI 战利品已 捕获/识别/保存".format(drop_dict))
 
             return drop_dict
@@ -403,7 +408,7 @@ class BattleARoundPreparation:
             )
 
             # 分析图片，获取战利品字典
-            drop_dict = matchImage(img_path=img_path, img=img, mode="chests", test_print=True)
+            drop_dict = match_items_from_image(img_save_path=img_path, img=img, mode="chests", test_print=True)
             print_debug(text="[翻宝箱] 宝箱已 捕获/识别/保存".format(drop_dict))
 
             # 组队2P慢点结束翻牌 保证双人魔塔后自己是房主
