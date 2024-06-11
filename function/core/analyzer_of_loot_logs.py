@@ -14,7 +14,7 @@ from function.globals.log import CUS_LOGGER
 """
 
 
-def item_match(block):
+def match_what_item_img_is(block):
 
     # 遍历预加载的目标图像
     for item_name, item_img in RESOURCE_P["item"]["战斗"].items():
@@ -24,7 +24,7 @@ def item_match(block):
             continue
 
         # 对比 block 和 target_image
-        if match(block=block[:, :, :-1], tar_img=item_img[:, :, :-1], mode="match_template"):
+        if match(img_block=block, img_tar=item_img, mode="match_template"):
             # 识图成功 返回识别的道具名称(不含扩展名)
             return item_name.replace(".png", "")
 
@@ -40,25 +40,26 @@ def item_match(block):
     return "识别失败"
 
 
-def matchImage(img_path, img, mode='loots', test_print=False):
+def match_items_from_image(img_save_path, img, mode='loots', test_print=False):
     """
     分析图片，获取战利品字典，尽可能不要输出None
-    :param img_path:
-    :param img:
-    :param mode:
-    :param test_print:
+    :param img_save_path: 图片保存路径
+    :param img: 图片文件  numpy.ndarray
+    :param mode: 识别模式
+    :param test_print: 是否输出调试信息
     :return:
     """
 
-    cv2.imencode('.png', img)[1].tofile(img_path)
-    block_list = []
+    # 保存图片
+    cv2.imencode('.png', img)[1].tofile(img_save_path)
 
+    # 单个图片的列表
+    block_list = []
     # 按模式分割图片
     if mode == 'loots':
         # 战利品模式 把每张图片分割成35 * 35像素的块，间隔的x与y都是49
         rows = 5
         column = 10
-
         for i in range(rows):
             for j in range(column):
                 # 切分为 49x49
@@ -78,7 +79,7 @@ def matchImage(img_path, img, mode='loots', test_print=False):
 
     for block in block_list:
         # 执行模板匹配并获取最佳匹配的文件名
-        best_match_item = item_match(block)
+        best_match_item = match_what_item_img_is(block)
         if best_match_item in ['None-0', 'None-1', 'None-2']:
             # 识别为无
             break
@@ -99,7 +100,7 @@ def matchImage(img_path, img, mode='loots', test_print=False):
 if __name__ == '__main__':
     def main():
         img = cv2.imread(PATHS["logs"] + "\\img.png")
-        matchImage(img_path="{}\\img.png".format(PATHS["logs"]), img=img)
+        match_items_from_image(img_save_path="{}\\img.png".format(PATHS["logs"]), img=img)
 
 
     cProfile.run("main()")
