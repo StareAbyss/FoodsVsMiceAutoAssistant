@@ -112,15 +112,15 @@ class ThreadTodo(QThread):
         # 高危动作 慢慢执行
         if self.opt["level_2"]["1p"]["active"]:
             self.faa[1].input_level_2_password_and_gift_flower(password=self.opt["level_2"]["1p"]["password"])
+            self.faa[1].delete_items()
             if dark_crystal:
                 self.faa[1].get_dark_crystal()
-            self.faa[1].delete_items()
 
         if is_group and self.opt["level_2"]["2p"]["active"]:
             self.faa[2].input_level_2_password_and_gift_flower(password=self.opt["level_2"]["2p"]["password"])
+            self.faa[2].delete_items()
             if dark_crystal:
                 self.faa[2].get_dark_crystal()
-            self.faa[2].delete_items()
 
         # 执行完毕后立刻刷新游戏 以清除二级输入状态
         if self.opt["level_2"]["1p"]["active"] or self.opt["level_2"]["2p"]["active"]:
@@ -1012,7 +1012,9 @@ class ThreadTodo(QThread):
 
         if need_lock:
             # 上锁
-            CUS_LOGGER.info(f"[双线程单人] {self.todo_id}P已开始任务! 进行自锁!")
+            self.signal_print_to_ui.emit(
+                text=f"[双线程单人] {self.todo_id}P已开始任务! 进行自锁!",
+                color="#006400")
             self.my_lock = True
 
         self.signal_print_to_ui.emit(text=f"{title}开始...", color="#006400")
@@ -1073,12 +1075,17 @@ class ThreadTodo(QThread):
         self.signal_print_to_ui.emit(text=f"{title}结束", color="#006400")
 
         if need_lock:
-            CUS_LOGGER.info(f"双线程单人功能中, {self.todo_id}P已完成所有任务! 正在等待另一线程完成所有任务!")
+            self.signal_print_to_ui.emit(
+                text=f"双线程单人功能中, {self.todo_id}P已完成所有任务! 已解锁另一线程!",
+                color="#006400"
+            )
+
             # 为另一个todo解锁
             self.signal_todo_lock.emit(False)
-            # 如果未被解锁, 循环等待
-            while self.my_lock:
-                sleep(1)
+            # 如果自身是主线程, 且未被解锁, 循环等待
+            if self.todo_id == 1:
+                while self.my_lock:
+                    sleep(1)
 
     """使用n_n_battle为核心的变种 [单线程][单人或双人]"""
 
@@ -1408,6 +1415,8 @@ class ThreadTodo(QThread):
                 self.model_start_print(text=text_)
                 multi_player()
                 self.model_end_print(text=text_)
+                # 休息五秒, 防止1P后完成任务, 跨线程解锁2P需要一定时间, 却在1P线程中再次激发start2P线程, 导致2P线程瘫痪
+                sleep(5)
 
         main()
 
@@ -1501,6 +1510,8 @@ class ThreadTodo(QThread):
                 self.model_start_print(text=text_)
                 multi_player()
                 self.model_end_print(text=text_)
+                # 休息五秒, 防止1P后完成任务, 跨线程解锁2P需要一定时间, 却在1P线程中再次激发start2P线程, 导致2P线程瘫痪
+                sleep(5)
 
         main()
 
@@ -1564,7 +1575,7 @@ class ThreadTodo(QThread):
                 need_lock=True)
 
         def main():
-
+            text_ = "萌宠神殿"
             active_player_count = 0
             for player_id in [1, 2]:
                 my_opt = c_opt[f"pet_temple_{player_id}"]
@@ -1572,10 +1583,16 @@ class ThreadTodo(QThread):
                     active_player_count += 1
             if active_player_count == 1:
                 # 单人情况 以easy battle 完成即可
+                self.model_start_print(text=text_)
                 one_player()
+                self.model_end_print(text=text_)
             if active_player_count == 2:
                 # 多人情况 直接调用以lock battle 完成1P 以信号调用另一个todo 完成2P
+                self.model_start_print(text=text_)
                 multi_player()
+                self.model_end_print(text=text_)
+                # 休息五秒, 防止1P后完成任务, 跨线程解锁2P需要一定时间, 却在1P线程中再次激发start2P线程, 导致2P线程瘫痪
+                sleep(5)
 
         main()
 

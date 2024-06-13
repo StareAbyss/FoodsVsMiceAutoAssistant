@@ -10,20 +10,23 @@ from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
-def mask_transform_color_to_black(mask) -> np.ndarray:
+def mask_transform_color_to_black(mask, quick_method=True) -> np.ndarray:
     """
     将掩模板处理 把非白色都变黑色 三通道->单通道
+    如果使用quick_method 将直接取 第一个颜色通道, 这要求使用的手动掩模为 的前三通道是黑白的(每个像素的BGR值都相等)
     """
-    # 创建一个布尔掩码,标记出所有非白色像素
-    non_white_mask = (mask[:, :, :3] != [255, 255, 255]).any(axis=2)
-    # 将非白色像素的RGB值设置为黑色
-    mask[non_white_mask] = [0, 0, 0]
+
+    if not quick_method:
+        # 创建一个布尔掩码,标记出所有非白色像素
+        non_white_mask = (mask[:, :, :3] != [255, 255, 255]).any(axis=2)
+        # 将非白色像素的RGB值设置为黑色
+        mask[non_white_mask] = [0, 0, 0]
+
     # 保留一个通道
-    mask = mask[:, :, 0]
-    return mask
+    return mask[:, :, 0]
 
 
-def match_template_with_optional_mask(source, template, mask=None) -> np.ndarray:
+def match_template_with_optional_mask(source, template, mask=None, quick_method=True, test_show=False) -> np.ndarray:
     """
     使用可选掩模进行模板匹配, 步骤如下.
     1. 生成 mask_from_template 将根据template图像是否存在Alpha通道, 取颜色为纯白的部分作为掩模纯白, 其他色均为黑.
@@ -33,9 +36,11 @@ def match_template_with_optional_mask(source, template, mask=None) -> np.ndarray
     5. 调用 cv2.matchTemplate 进行匹配, 并返回匹配结果.
 
     Args:
-        :param source: numpy.ndarray 源图像.
+        :param source: numpy.ndarray 源图像. 3 or 4通道 会处理至3通道再匹配.
         :param template: numpy.ndarray 模板图像，可能包含Alpha通道作为掩模.
         :param mask: 原始掩模. 四通道图像, 透明区域将不生效, 掩模需要与template的大小完全一致.
+        :param quick_method: 快速匹配方法, 取mask的第一个颜色通道作快速处理, 要求mask的前三通道是黑白的(每个像素的BGR值都相等)
+        :param test_show: 测试显示
     Returns:
         numpy.ndarray: 匹配结果.
 
@@ -51,13 +56,24 @@ def match_template_with_optional_mask(source, template, mask=None) -> np.ndarray
     """
     method = cv2.TM_SQDIFF_NORMED
 
+    # 确保source为三通道
+    if source.shape[2] == 4:
+        source = source[:, :, :3]
+
     if template.shape[2] == 4:
-        # 模板图像包含Alpha通道
 
         # 提取Alpha通道作为掩模 单通道
         mask_from_template = template[:, :, 3]
+
         # 以254分割, 即白色->白色 灰色和黑色->黑色 即 透明区域完全不识别, 而不是作为权重
         _, mask_from_template = cv2.threshold(mask_from_template, 254, 255, cv2.THRESH_BINARY)
+
+        # 模板图像包含Alpha通道
+        if test_show:
+            cv2.imshow(winname="template", mat=template)
+            cv2.imshow(winname="mask_from_template", mat=mask_from_template)
+            cv2.waitKey(0)
+
         # 移除Alpha通道，保留RGB部分
         template = template[:, :, :3]
     else:
@@ -71,9 +87,7 @@ def match_template_with_optional_mask(source, template, mask=None) -> np.ndarray
             # 有三个通道 RGB的掩模 直接覆盖识别template的透明度得到的mask
 
             # 处理彩色为黑白 (三通道->单通道, 非白色均视为黑色)
-            mask = mask_transform_color_to_black(mask=mask)
-            # 保留一个通道
-            mask = mask[:, :, 0]
+            mask = mask_transform_color_to_black(mask=mask,quick_method=quick_method)
 
         else:
             # 有四个通道 RGBA的掩模
@@ -84,18 +98,19 @@ def match_template_with_optional_mask(source, template, mask=None) -> np.ndarray
             _, mask_alpha_channel = cv2.threshold(mask_alpha_channel, 254, 255, cv2.THRESH_BINARY)
 
             # 去除Alpha通道 处理彩色为黑白 (三通道->单通道, 非白色均视为黑色)
-            mask = mask_transform_color_to_black(mask=mask[:, :, :3])
+            mask = mask_transform_color_to_black(mask=mask[:, :, :3],quick_method=quick_method)
 
-            # 根据Alpha通道将PNG图像叠加到灰度图像上
-            # for i in range(mask.shape[0]):
-            #     for j in range(mask.shape[1]):
-            #         if mask_alpha_channel[i, j] != 255:
-            #             mask[i, j] = mask_from_template[i, j]
+            # 根据mask保留的阿尔法通道, 在其透明的区域, 取mask_from_template的对应区域进行合并
             mask[mask_alpha_channel != 255] = mask_from_template[mask_alpha_channel != 255]
 
     else:
-        # 没有默认掩模或和template大小不一而不使用
-        pass
+        # 没有默认掩模或和template大小不一而不使用掩模
+        result = cv2.matchTemplate(image=source, templ=template, method=method)
+        return result
+
+    if test_show:
+        cv2.imshow(winname="final_mask", mat=mask)
+        cv2.waitKey(0)
 
     # 检查掩模是否为纯白
     if np.all(mask == 255):
@@ -175,16 +190,9 @@ def match_p_in_w(
         end_x = start_x + template.shape[1]
         end_y = start_y + template.shape[0]
         # 在图像上绘制边框
-        cv2.rectangle(
-            img=img_source,
-            pt1=(start_x, start_y),
-            pt2=(end_x, end_y),
-            color=(0, 0, 255),
-            thickness=1)
+        cv2.rectangle(img=img_source, pt1=(start_x, start_y), pt2=(end_x, end_y), color=(0, 0, 255), thickness=1)
         # 显示输出图像
-        cv2.imshow(
-            winname="SourceImg.png",
-            mat=img_source)
+        cv2.imshow(winname="SourceImg.png", mat=img_source)
         cv2.waitKey(0)
 
     return center_point
