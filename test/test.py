@@ -1,27 +1,30 @@
-import win32con
-import win32gui
+import requests
 
-from function.scattered.gat_handle import faa_get_handle
-
-
-def restore_window_if_minimized(handle):
-
-    # 检查窗口是否最小化
-    if win32gui.IsIconic(handle):
-        print("确认处于最小化状态，尝试恢复...")
-
-        # 恢复窗口（但不会将其置于最前面）
-        win32gui.ShowWindow(handle, win32con.SW_RESTORE)
-    else:
-        print("确认窗口激活...")
-    # 将窗口置于Z序的底部，但不改变活动状态
-    win32gui.SetWindowPos(handle, win32con.HWND_BOTTOM, 0, 0, 0, 0,
-                          win32con.SWP_NOMOVE | win32con.SWP_NOSIZE | win32con.SWP_NOACTIVATE)
-
-
-# 示例：找到记事本窗口并尝试恢复
-hwnd = faa_get_handle(channel="锑食-微端", mode="360")
-if hwnd:
-    restore_window_if_minimized(hwnd)
-else:
-    print("未找到窗口")
+data = {
+    "timestamp": 1718298801.1952991,
+    "stage": "OR-0-1",
+    "is_used_key": True,
+    "loots": {
+        "1级四叶草": 1,
+        "秘制香料": 2,
+        "上等香料": 1,
+        "天然香料": 4,
+        "礼盒": 1,
+        "白砂糖": 2,
+        "小蒸笼": 3,
+        "葡萄": 2,
+        "牛肉": 5,
+        "奶酪": 3,
+        "包子": 2,
+        "冰块": 1,
+        "煮蛋器": 1,
+        "生鸡蛋": 1,
+        "烤炉": 3,
+        "小麦粉": 3
+    },
+    "chests": {
+        "棉花糖-初级技能书": 1,
+        "识别失败": 1
+    }
+}
+response = requests.post(url='http://47.108.167.141:5000/faa_server', json=data)
