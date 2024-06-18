@@ -365,7 +365,7 @@ class BattleARoundPreparation:
         stage_info = self.faa.stage_info
         player = self.faa.player
         is_group = self.faa.is_group
-        print_debug = self.faa.print_debug
+        print_info = self.faa.print_info
         print_warning = self.faa.print_warning
 
         find = loop_match_p_in_w(
@@ -501,8 +501,14 @@ class BattleARoundPreparation:
 
         # 保存到字典数据
         json_data["data"].append(new_data)
-        # 输出到FAA数据中心(其实是白嫖的云服务器)
-        requests.post(url='http://47.108.167.141:5000/faa_server', json=new_data)
+
+        try:
+            # 输出到FAA数据中心(其实是白嫖的云服务器) 5s超时
+            response = requests.post(url='http://47.108.167.141:5000/faa_server', json=new_data, timeout=5)
+            # 检查响应状态码,如果不是2xx则引发异常 会被log捕获
+            response.raise_for_status()
+        except RequestException as e:
+            CUS_LOGGER.warning("向服务器发送战斗信息超时! 可能是服务器炸了...")
 
         # 保存或更新后的战利品字典到JSON文件
         with open(file_path, "w", encoding="utf-8") as json_file:
