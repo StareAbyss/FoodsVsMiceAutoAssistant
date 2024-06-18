@@ -28,7 +28,7 @@ class FAA:
     """
     FAA类是项目的核心类
     用于封装 [所有对单个游戏窗口进行执行的操作]
-    其中部分较麻烦的模块的实现被分发在了其他的类里, 此处只留下了接口以供调用
+    其中部分较麻烦的模块的实现被分散在了其他的类里, 此处只留下了接口以供调用
     """
 
     def __init__(self, channel="锑食", player=1,
@@ -698,22 +698,20 @@ class FAA:
 
     """其他非战斗功能"""
 
-    def receive_quest_rewards(self, mode: str):
+    def receive_quest_rewards(self, mode: str) -> None:
+        """
+        领取任务奖励, 从当前界面开始, 从当前界面结束
+        :param mode: "普通任务" "公会任务" "情侣任务" "悬赏任务" "美食大赛" "大富翁"
+        :return: None
+        """
         return self.object_action_receive_quest_rewards.main(mode=mode)
 
-    def match_quests(self, mode: str, qg_cs=False):
+    def match_quests(self, mode: str, qg_cs=False) -> list:
         """
-        获取公会任务列表
-        :param mode:
+        获取任务列表 -> 需要的完成的关卡步骤
+        :param mode: "公会任务" "情侣任务" "美食大赛"
         :param qg_cs: 公会任务模式下 是否需要跨服
-        :return: [
-            {
-                "stage_id":str,
-                "max_times":,
-                "quest_card":str,
-                "ban_card":None
-            },
-        ]
+        :return: [{"stage_id":str, "max_times":int, "quest_card":str, "ban_card":None},...]
         """
         # 跳转到对应界面
         if mode == "公会任务":
@@ -848,7 +846,11 @@ class FAA:
 
         return quest_list
 
-    def click_refresh_btn(self):
+    def click_refresh_btn(self) -> bool:
+        """
+        点击360游戏大厅的刷新游戏按钮
+        :return: bool 是否成功点击
+        """
 
         # 点击刷新按钮 该按钮在360窗口上
         find = loop_match_p_in_w(
@@ -883,6 +885,8 @@ class FAA:
 
                 if not find:
                     self.print_error(text="未找到360大厅刷新游戏按钮, 可能导致一系列问题...")
+                    return False
+        return True
 
     def reload_game(self) -> None:
 
@@ -1374,7 +1378,7 @@ class FAA:
             self.action_exit(mode="普通红叉")
 
         fed_and_watered_main()
-        self.object_action_receive_quest_rewards.main(mode="公会任务")
+        self.receive_quest_rewards(mode="公会任务")
 
     def use_items_consumables(self) -> None:
         self.print_debug(text="开启使用物品功能")

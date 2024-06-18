@@ -57,15 +57,17 @@ def is_mostly_black(image, sample_points=9):
     height, width = image.shape[:2]
 
     # 定义要检查的像素位置
-    positions = [(0, 0),
-                 (0, width - 1),
-                 (height - 1, 0),
-                 (height - 1, width - 1),
-                 (height // 2, width // 2),
-                 (0, width // 2),
-                 (height // 2, 0),
-                 (height - 1, width // 2),
-                 (height // 2, width - 1)]
+    positions = [
+        (0, 0),
+        (0, width - 1),
+        (height - 1, 0),
+        (height - 1, width - 1),
+        (height // 2, width // 2),
+        (0, width // 2),
+        (height // 2, 0),
+        (height - 1, width // 2),
+        (height // 2, width - 1)
+    ]
 
     # 仅使用前sample_points个位置
     positions = positions[:sample_points]
