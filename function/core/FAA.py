@@ -53,9 +53,9 @@ class FAA:
         self.random_seed = random_seed
 
         """每次战斗中都保持一致的参数"""
-        # 角色的index 为 1或2
+        # 角色的index int 1 or 2
         self.player = player
-        # 角色的等级 为 1 to 60
+        # 角色的等级 int 1 to 60
         self.character_level = character_level
         # 是否自动战斗 bool
         self.is_auto_battle = is_auto_battle
