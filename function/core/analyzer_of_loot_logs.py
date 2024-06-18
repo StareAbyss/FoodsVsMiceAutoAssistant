@@ -200,16 +200,13 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
     return "识别失败", list_iter, False
 
 
-def update_dag_graph(item_list_new):
+def update_dag_graph(item_list_new) -> bool:
     """
     根据list中各个物品(str格式)的排序 来保存成一个json文件
     会根据本次输入, 和保存的之前的图比较, 以排序, 最终获得几乎所有物品的物品的结果表
     使用有向无环图, 保留无法区分前后的数据
     :param item_list_new 物品顺序 list 仅一维
-    :return: 也就是json的格式
-    {
-        "ranking": ["物品1", "物品2","物品4", "物品5",...] // 去括号方便直接被调用
-    }
+    :return: 是否成功更新, 也是判断数据输入是否有效
     """
 
     CUS_LOGGER.debug("[有向无环图] [更新] 正在进行...")
@@ -220,7 +217,7 @@ def update_dag_graph(item_list_new):
 
     """根据输入列表, 构造有向无环图"""
     # 继承老数据 图表 用 { x : [a,b,c] , ... } 代表多个有向边 也就是 出度
-    graph = data.get('graph') if not data.get('graph') else dict()
+    graph = data.get('graph') if data.get('graph') else dict()
 
     # seq 一组数据 例如: ["物品1", "物品2","物品4", "物品5",...]
     for i in range(len(item_list_new)):
@@ -236,12 +233,15 @@ def update_dag_graph(item_list_new):
             if item_2 not in graph[item_1]:
                 # 图中 item 1 -> item 2
                 graph[item_1].append(item_2)
-    data['graph'] = graph
 
-    # 保存更新后的 JSON 文件
-    ranking_save_data(json_path=json_path, data=data)
-
-    return data['graph']
+    # 使用 is_directed_acyclic_graph 函数判断 G 是否为 DAG
+    if nx.is_directed_acyclic_graph(nx.DiGraph(graph)):
+        data['graph'] = graph
+        # 保存更新后的 JSON 文件
+        ranking_save_data(json_path=json_path, data=data)
+        return True
+    else:
+        return False
 
 
 def find_longest_path_from_dag():
@@ -279,7 +279,7 @@ def ranking_read_data(json_path):
             data = json.load(f)
             if "ranking" in data:
                 return data
-    return {'ranking': [], 'graph': []}
+    return {'ranking': [], 'graph': {}}
 
 
 def ranking_save_data(json_path, data):
