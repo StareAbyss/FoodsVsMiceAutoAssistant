@@ -178,31 +178,50 @@ def match_items_from_image(img_save_path, img, mode='loots', test_print=False, m
     return best_match_items
 
 
-def update_ranking(item_list):
+
+
+def update_dag_graph(item_list_new):
     """
     根据list中各个物品(str格式)的排序 来保存成一个json文件
     会根据本次输入, 和保存的之前的图比较, 以排序, 最终获得几乎所有物品的物品的结果表
     使用有向无环图, 保留无法区分前后的数据
-    :param item_list 物品顺序 list 仅一维
+    :param item_list_new 物品顺序 list 仅一维
     :return: 也就是json的格式
     {
-        "ranking": [["物品1"], ["物品2","物品4"], ["物品5"],...] //在ranking中, 0维度代表顺序, 第1维度是无法区分前后的同一级元素
-        "ranking_easy": ["物品1", "物品2","物品4", "物品5",...] // 去括号方便直接被调用
+        "ranking": ["物品1", "物品2","物品4", "物品5",...] // 去括号方便直接被调用
     }
     """
-    # 读取现 JSON 文件
-    json_path = PATHS["logs"] + "\\item_ranking.json"
+
+    CUS_LOGGER.debug("[有向无环图] [更新] 正在进行...")
+
+    # 读取现 JSON Ranking 文件
+    json_path = PATHS["logs"] + "\\item_ranking_dag_graph.json"
     data = ranking_read_data(json_path=json_path)
-    # 把一维输入更新为统一的二维
-    item_list = [[x] for x in item_list]
-    # 更新 ranking 有向图
-    data['ranking'] = find_total_order(sequences_old=data['ranking'], sequences_new=item_list)
-    # 更新 easy 版
-    data['ranking_easy'] = [char for level in data['ranking'] for char in level]
+
+    """根据输入列表, 构造有向无环图"""
+    # 继承老数据 图表 用 { x : [a,b,c] , ... } 代表多个有向边 也就是 出度
+    graph = data.get('graph') if not data.get('graph') else dict()
+
+    # seq 一组数据 例如: ["物品1", "物品2","物品4", "物品5",...]
+    for i in range(len(item_list_new)):
+        # 例如: "物品1"
+        item_1 = item_list_new[i]
+        # 首次添加 入度0
+        if item_1 not in graph.keys():
+            graph[item_1] = []
+        # 仅两两一组进行创建边
+        if i < len(item_list_new) - 1:
+            item_2 = item_list_new[i + 1]
+            # 首次添加 入度0
+            if item_2 not in graph[item_1]:
+                # 图中 item 1 -> item 2
+                graph[item_1].append(item_2)
+    data['graph'] = graph
 
     # 保存更新后的 JSON 文件
     ranking_save_data(json_path=json_path, data=data)
-    return data
+
+    return data['graph']
 
 
 def ranking_read_data(json_path):
