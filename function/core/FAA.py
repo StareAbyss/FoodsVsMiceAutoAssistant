@@ -1197,6 +1197,25 @@ class FAA:
     def fed_and_watered(self) -> None:
         """公会施肥浇水功能"""
 
+        def goto_guild_and_in_guild():
+            """
+            :return: 是否出现bug
+            """
+
+            self.action_bottom_menu(mode="公会")
+
+            find = loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=[760, 35, 860, 80],
+                template=RESOURCE_P["quest_guild"]["ui_guild.png"],
+                match_tolerance=0.95,
+                match_failed_check=3,
+                after_sleep=1,
+                click=False)
+
+            return not find
+
         def exit_to_guild_page_and_in_guild():
             """
             :return: 是否出现bug
@@ -1396,6 +1415,8 @@ class FAA:
 
             # 进入公会
             self.action_bottom_menu(mode="公会")
+                # 进入公会
+                is_bug = goto_guild_and_in_guild()
 
             # 循环到任务完成
             try_time = 0
