@@ -53,18 +53,22 @@ class QMainWindowService(QMainWindowLog):
 
         self.signal_todo_start.connect(self.todo_start)
 
-        # 启动按钮函数绑定
+        # 启动按钮 函数绑定
         self.Button_Start.clicked.connect(self.todo_click_btn)
         self.Button_StartTimer.clicked.connect(self.todo_timer_click_btn)
         self.Button_Save.clicked.connect(self.click_btn_save)
 
-        # 方案修改按钮函数绑定
+        # 方案修改按钮 函数绑定
         self.Button_DeletePlan.clicked.connect(self.delete_current_plan)
         self.Button_RenamePlan.clicked.connect(self.rename_current_plan)
         self.Button_CreatePlan.clicked.connect(self.create_new_plan)
 
         # 当前方案变化 函数绑定
         self.CurrentPlan.currentIndexChanged.connect(self.opt_to_ui_todo_plans)
+
+        # 隐藏(拖动)窗口到屏幕视图外 函数绑定
+        self.Button_Hide.clicked.connect(self.click_btn_hide_window)
+        self.game_window_is_hide = False
 
     def todo_start(self, plan_index=None):
         """
@@ -155,14 +159,14 @@ class QMainWindowService(QMainWindowLog):
         self.thread_todo_1 = ThreadTodo(
             faa=faa,
             opt=self.opt,
-            running_todo_plan_index = running_todo_plan_index,
+            running_todo_plan_index=running_todo_plan_index,
             signal_dict=self.signal_dict,
             todo_id=1)
         # 用于双人多线程的todo
         self.thread_todo_2 = ThreadTodo(
             faa=faa,
             opt=self.opt,
-            running_todo_plan_index = running_todo_plan_index,
+            running_todo_plan_index=running_todo_plan_index,
             signal_dict=self.signal_dict,
             todo_id=2)
 
@@ -282,6 +286,65 @@ class QMainWindowService(QMainWindowLog):
     def click_btn_tip_stage_id(self):
         self.window_tip_stage_id.setFont(self.font)
         self.window_tip_stage_id.show()
+
+    def click_btn_hide_window(self):
+        """因为 Flash 在窗口外无法正常渲染画面(Chrome可以), 所以老板键只能做成z轴设为最低级"""
+        # 获取窗口名称
+        channel_1p, channel_2p = get_channel_name(
+            game_name=self.opt["base_settings"]["game_name"],
+            name_1p=self.opt["base_settings"]["name_1p"],
+            name_2p=self.opt["base_settings"]["name_2p"])
+
+        # 不通过就直接结束弹窗
+        handles = {
+            1: faa_get_handle(channel=channel_1p, mode="360"),
+            2: faa_get_handle(channel=channel_2p, mode="360")}
+        for player, handle in handles.items():
+            if handle is None or handle == 0:
+                # 报错弹窗
+                self.signal_dialog.emit(
+                    "出错！(╬◣д◢)",
+                    f"{player}P存在错误的窗口名或游戏名称, 请参考 [使用前看我!.pdf] 或 [README.md]")
+                return
+
+        if self.game_window_is_hide:
+            for p_id in [1, 2]:
+                handle = handles[p_id]
+                # 激活目标窗口
+                win32gui.SetForegroundWindow(handle)
+                # 将窗口置于顶部
+                win32gui.SetWindowPos(
+                    handle,
+                    win32con.HWND_TOP,
+                    0, 0, 0, 0,
+                    win32con.SWP_NOMOVE | win32con.SWP_NOSIZE
+                )
+                # win32gui.ShowWindow(handle, win32con.SW_SHOW)
+                # 也许有一天能写出真正的老板键 大概
+            # 把FAA窗口置顶
+            # 激活目标窗口
+            handle = self.winId()
+            win32gui.SetForegroundWindow(handle)
+            # 将窗口置于顶部
+            win32gui.SetWindowPos(
+                handle,
+                win32con.HWND_TOP,
+                0, 0, 0, 0,
+                win32con.SWP_NOMOVE | win32con.SWP_NOSIZE
+            )
+            self.game_window_is_hide = False
+        else:
+            for p_id in [1, 2]:
+                handle = handles[p_id]
+                # 将窗口置于Z序的底部，但不改变活动状态
+                win32gui.SetWindowPos(
+                    handle,
+                    win32con.HWND_BOTTOM,
+                    0, 0, 0, 0,
+                    win32con.SWP_NOMOVE | win32con.SWP_NOSIZE | win32con.SWP_NOACTIVATE)
+                # win32gui.ShowWindow(handle,0)
+                # 也许有一天能写出真正的老板键 大概
+            self.game_window_is_hide = True
 
 
 def main():
