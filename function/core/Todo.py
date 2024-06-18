@@ -18,6 +18,8 @@ from function.globals.init_resources import RESOURCE_P
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.get_customize_todo_list import get_customize_todo_list
+from function.scattered.loots_and_chest_data_save_and_post import loots_and_chests_detail_to_json, \
+    loots_and_chests_data_post_to_sever, loots_and_chests_statistics_to_json
 
 
 class ThreadTodo(QThread):
@@ -658,26 +660,65 @@ class ThreadTodo(QThread):
                 if result[1]:
                     result_loot[player_b] = result[1]  # 可能是None 或 dict 故判空
 
-            """处理 ranking"""
+            """构建有向无环图, 校验数据准确度, 并酌情发送至服务器和更新至Ranking"""
             # result_loot = {
             #   1:{"loots":{"物品":数量,...},"chests":{"物品":数量,...}}
             #   2:{"loots":{"物品":数量,...},"chests":{"物品":数量,...}} //可能不存在
             #   }
-            for _, player_data in result_loot.items():
-                # 仅包含战利品
+            update_dag_result_dict = False
+
+            for player_index, player_data in result_loot.items():
+                # 两种战利品的数据
+                loots_dict = player_data["loots"]
+                chests_dict = player_data["chests"]
+
+                # 仅使用战利品更新item_dag_graph文件
                 best_match_items_success = copy.deepcopy(list(player_data["loots"].keys()))
                 # 不包含失败的识别
                 if "识别失败" in best_match_items_success:
                     best_match_items_success.remove("识别失败")
                 # 更新 item_dag_graph 文件
-                update_dag_graph(item_list_new=best_match_items_success)
+                update_dag_result = update_dag_graph(item_list_new=best_match_items_success)
+                # 更新成功, 记录
+                update_dag_result_dict = update_dag_result or update_dag_result_dict
 
-            # 根据更新完成的 item_dag_graph.json, 更新ranking 成功返回更新后的ranking 失败返回None
-            ranking_new = find_longest_path_from_dag()
-            if ranking_new:
-                CUS_LOGGER.info(f"[根据有向无环图寻找最长链] item_ranking_dag_graph.json 已更新 , 结果:{ranking_new}")
+                if update_dag_result:
+                    CUS_LOGGER.debug(f"[战利品识别] [有向无环图] [更新] [{player_index}P] 成功! 成功构筑 DAG.")
+
+                    # 保存详细数据到json
+                    loots_and_chests_statistics_to_json(
+                        faa=self.faa[player_index],
+                        loots_dict=loots_dict,
+                        chests_dict=chests_dict)
+                    CUS_LOGGER.info(f"[战利品识别] [保存日志] [{player_index}P] 成功保存一条详细数据!")
+
+                    # 保存汇总统计数据到json
+                    detail_data = loots_and_chests_detail_to_json(
+                        faa=self.faa[player_index],
+                        loots_dict=loots_dict,
+                        chests_dict=chests_dict)
+                    CUS_LOGGER.info(f"[战利品识别] [保存日志] [{player_index}P] 成功保存至统计数据!")
+
+                    # 发送到服务器
+                    if loots_and_chests_data_post_to_sever(detail_data=detail_data):
+                        CUS_LOGGER.info(f"[战利品识别] [发送服务器] [{player_index}P] 成功发送一条数据!")
+                    else:
+                        CUS_LOGGER.warning(f"[战利品识别] [发送服务器] [{player_index}P] 超时! 可能是服务器炸了...")
+
+                else:
+                    CUS_LOGGER.debug(
+                        "[战利品识别] [有向无环图] [更新] [{player_index}P] 失败! 本次数据无法构筑 DAG，存在环.")
+
+            if update_dag_result_dict:
+                # 如果成功更新了 item_dag_graph.json, 更新ranking
+                ranking_new = find_longest_path_from_dag() # 成功返回更新后的 ranking 失败返回None
+                if ranking_new:
+                    CUS_LOGGER.info(f"[根据有向无环图寻找最长链] item_ranking_dag_graph.json 已更新 , 结果:{ranking_new}")
+                else:
+                    CUS_LOGGER.warning(f"[根据有向无环图寻找最长链] item_ranking_dag_graph.json 更新失败!")
             else:
-                CUS_LOGGER.info(f"[根据有向无环图寻找最长链] item_ranking_dag_graph.json 更新失败!")
+                CUS_LOGGER.warning(
+                    f"[根据有向无环图寻找最长链] item_ranking_dag_graph.json 更新失败! 本次未获得任何有效数据!")
 
         CUS_LOGGER.debug("多线程进行战利品和宝箱检查 已完成")
 
