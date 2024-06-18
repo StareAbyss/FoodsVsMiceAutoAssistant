@@ -32,6 +32,10 @@ def match_items_from_image(img_save_path, image, mode='loots', test_print=False)
     :return:
     """
 
+    # 统计耗时
+    if test_print and mode == 'loots':
+        time_start = time.time()
+
     # 判断mode和method正确:
     if mode not in ["loots", "chests"]:
         raise ValueError("mode参数错误")
@@ -127,6 +131,9 @@ def match_items_from_image(img_save_path, image, mode='loots', test_print=False)
         # chests
         if test_print:
             CUS_LOGGER.debug(f"获取 chests, 不更新 ranking.json")
+    # 统计耗时
+    if mode == 'loots' and test_print:
+        CUS_LOGGER.debug(f"一次战利品识别耗时:{time.time() - time_start}s")
 
     # 返回识别结果
     return best_match_items
