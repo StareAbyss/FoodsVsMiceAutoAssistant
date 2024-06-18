@@ -243,6 +243,7 @@ class FAA:
                 return json.load(file)
 
         self.battle_plan_0 = read_json_to_battle_plan()
+
         self.stage_info = read_json_to_stage_info(stage_id)
 
     """战斗开始时的初始化函数"""
@@ -744,9 +745,9 @@ class FAA:
                     find_p = match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
-                        source_range=[0, 0, 950, 600],
+                        source_range=[100, 125, 410, 500],
                         template=img,
-                        match_tolerance=0.999)
+                        match_tolerance=0.995)
                     if find_p:
 
                         quest_card = "None"  # 任务携带卡片默认为None
