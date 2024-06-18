@@ -305,7 +305,7 @@ class BattleARoundPreparation:
 
         return image
 
-    def capture_and_match_loots(self):
+    def capture_and_match_loots(self) -> dict:
         """
         :return: 捕获的战利品dict
         """
@@ -358,9 +358,9 @@ class BattleARoundPreparation:
         else:
             print_info(text="[捕获战利品] 未在战利品UI 可能由于延迟未能捕获战利品, 继续流程")
 
-            return None
+            return {}
 
-    def capture_and_match_treasure_chests(self):
+    def capture_and_match_treasure_chests(self) -> dict:
 
         handle = self.faa.handle
         handle_360 = self.faa.handle_360
@@ -519,6 +519,7 @@ class BattleARoundPreparation:
     def perform_action_capture_match_for_loots_and_chests(self):
         """
         战斗结束后, 完成下述流程: 潜在的任务完成黑屏-> 战利品 -> 战斗结算 -> 翻宝箱 -> 回到房间/魔塔会回到其他界面
+        :return: int 状态码; None或dict, 该dict格式一定是 {"loots": {...}, "chests": {...}}
         """
 
         print_debug = self.faa.print_debug
@@ -533,11 +534,8 @@ class BattleARoundPreparation:
         # 翻宝箱部分, 会先检测是否在对应界面
         chests_dict = self.capture_and_match_treasure_chests()
 
+        # 重整化 loots_dict 和 chests_dict 一定是dict()
         result_loot = {"loots": loots_dict, "chests": chests_dict}
-
-        if (loots_dict is not None) and (chests_dict is not None):
-            self.loots_and_chests_statistics_to_json(loots_dict=loots_dict, chests_dict=chests_dict)
-            self.loots_and_chests_detail_to_json(loots_dict=loots_dict, chests_dict=chests_dict)
 
         if screen_check_server_boom():
             print_warning(text="检测到 断开连接 or 登录超时 or Flash爆炸, 炸服了")
