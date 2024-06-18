@@ -7,6 +7,7 @@ from time import sleep
 
 import requests
 from PyQt5.QtCore import *
+from requests import RequestException
 
 from function.common.bg_img_match import loop_match_p_in_w
 from function.common.thread_with_exception import ThreadWithException
@@ -188,9 +189,15 @@ class ThreadTodo(QThread):
                 if openid == "":
                     continue
                 url = 'http://meishi.wechat.123u.com/meishi/gift?openid=' + openid
-                r = requests.get(url)
-                message = r.json()['msg']
-                self.signal_print_to_ui.emit(f'[{i}P] 领取温馨礼包情况:' + message, color="E67800")
+
+                try:
+                    r = requests.get(url, timeout=10)  # 设置超时
+                    r.raise_for_status()  # 如果响应状态不是200，将抛出HTTPError异常
+                    message = r.json()['msg']
+                    self.signal_print_to_ui.emit(f'[{i}P] 领取温馨礼包情况:' + message, color="E67800")
+                except RequestException as e:
+                    # 这里处理请求发生的任何错误，如网络问题、超时、服务器无响应等
+                    self.signal_print_to_ui.emit(f'[{i}P] 领取温馨礼包情况: 失败, 欢乐互娱的服务器炸了, {e}', color="E67800")
             else:
                 self.signal_print_to_ui.emit(f"[{i}P] 未激活领取温馨礼包", color="E67800")
 
