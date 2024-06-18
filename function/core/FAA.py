@@ -1672,12 +1672,13 @@ class FAA:
         # 打开背包
         self.print_debug(text="打开背包")
         self.action_bottom_menu(mode="背包")
-        self.signal_print_to_ui.emit(text="[删除物品] 背包图标可能需要加载, 等待10s")
-        time.sleep(10)
 
         # 点击到物品栏目
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=777, y=65)
         time.sleep(1)
+
+        self.signal_print_to_ui.emit(text="[删除物品] 背包图标可能需要加载, 等待10s")
+        time.sleep(10)
 
         # 点击整理物品按钮
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=905, y=475)
