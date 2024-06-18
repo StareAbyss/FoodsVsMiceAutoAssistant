@@ -1,6 +1,8 @@
 import random
 import sys
 
+import win32con
+import win32gui
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QApplication
 
