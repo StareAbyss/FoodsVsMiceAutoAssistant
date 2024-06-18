@@ -1197,6 +1197,25 @@ class FAA:
     def fed_and_watered(self) -> None:
         """公会施肥浇水功能"""
 
+        def exit_to_guild_page_and_in_guild():
+            """
+            :return: 是否出现bug
+            """
+
+            # 点X回退一次
+            self.action_exit(mode="普通红叉", raw_range=[835, 30, 875, 80])
+
+            find = loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=[760, 35, 860, 80],
+                template=RESOURCE_P["quest_guild"]["ui_guild.png"],
+                match_tolerance=0.95,
+                match_failed_check=3,
+                after_sleep=1,
+                click=False)
+            return not find
+
         def from_guild_to_quest_guild():
             """进入任务界面, 正确进入就跳出循环"""
             for count_time in range(50):
@@ -1360,7 +1379,8 @@ class FAA:
                 return True
             else:
                 # 进入施肥界面, 正确进入就跳出循环
-                from_guild_to_guild_garden()
+                if not from_guild_to_guild_garden():
+                    return False, True
 
                 # 根据目前尝试次数, 到达不同的公会
                 switch_guild_garden_by_try_times(try_time=try_time)
@@ -1368,7 +1388,8 @@ class FAA:
                 # 完成素质三连并退出公会花园界面
                 do_something_and_exit(try_time=try_time)
 
-                return False
+                if exit_to_guild_page_and_in_guild():
+                    return False, True
 
         def fed_and_watered_main():
             self.print_debug(text="开始公会浇水施肥")
