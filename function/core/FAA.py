@@ -1248,12 +1248,12 @@ class FAA:
                 find = loop_match_p_in_w(
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 950, 600],
+                    source_range=[215, 95, 308, 133],
                     template=RESOURCE_P["quest_guild"]["ui_quest_list.png"],
                     match_tolerance=0.95,
                     match_failed_check=1,
                     after_sleep=0.5,
-                    click=True
+                    click=False
                 )
                 if find:
                     # 次数限制内完成 进入施肥界面
@@ -1274,12 +1274,12 @@ class FAA:
                 find = loop_match_p_in_w(
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 950, 600],
+                    source_range=[400, 30, 585, 80],
                     template=RESOURCE_P["quest_guild"]["ui_fed.png"],
                     match_tolerance=0.95,
                     match_failed_check=2,
                     after_sleep=0.5,
-                    click=True
+                    click=False
                 )
                 if find:
                     # 次数限制内完成 进入施肥界面
@@ -1327,7 +1327,7 @@ class FAA:
             loop_match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
-                source_range=[0, 0, 950, 600],
+                source_range=[835, 35, 875, 75],
                 template=RESOURCE_P["common"]["退出.png"],
                 match_tolerance=0.95,
                 match_failed_check=7,
@@ -1344,7 +1344,7 @@ class FAA:
             loop_match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
-                source_range=[0, 0, 950, 600],
+                source_range=[835, 35, 875, 75],
                 template=RESOURCE_P["common"]["退出.png"],
                 match_tolerance=0.95,
                 match_failed_check=7,
@@ -1369,19 +1369,19 @@ class FAA:
                 source_root_handle=self.handle_360,
                 template_opts=[
                     {
-                        "source_range": [75, 80, 430, 560],
+                        "source_range": [75, 80, 430, 500],
                         "template": RESOURCE_P["quest_guild"]["fed_0.png"],
                         "match_tolerance": 0.98
                     }, {
-                        "source_range": [75, 80, 430, 560],
+                        "source_range": [75, 80, 430, 500],
                         "template": RESOURCE_P["quest_guild"]["fed_1.png"],
                         "match_tolerance": 0.98
                     }, {
-                        "source_range": [75, 80, 430, 560],
+                        "source_range": [75, 80, 430, 500],
                         "template": RESOURCE_P["quest_guild"]["fed_2.png"],
                         "match_tolerance": 0.98,
                     }, {
-                        "source_range": [75, 80, 430, 560],
+                        "source_range": [75, 80, 430, 500],
                         "template": RESOURCE_P["quest_guild"]["fed_3.png"],
                         "match_tolerance": 0.98,
                     }
@@ -1413,10 +1413,19 @@ class FAA:
         def fed_and_watered_main():
             self.print_debug(text="开始公会浇水施肥")
 
-            # 进入公会
-            self.action_bottom_menu(mode="公会")
                 # 进入公会
                 is_bug = goto_guild_and_in_guild()
+                if is_bug:
+                    if reload_time != 3:
+                        self.signal_print_to_ui.emit(
+                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入工会页失败... 刷新再试({reload_time}/3)")
+                        self.reload_game()
+                        continue
+                    else:
+                        self.signal_print_to_ui.emit(
+                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入工会页失败... 刷新跳过({reload_time}/3)")
+                        self.reload_game()
+                        break
 
             # 循环到任务完成
             try_time = 0
