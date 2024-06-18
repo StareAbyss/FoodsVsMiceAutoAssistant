@@ -178,6 +178,78 @@ def match_items_from_image(img_save_path, img, mode='loots', test_print=False, m
     return best_match_items
 
 
+def split_image_to_blocks(image, mode):
+    # 单个图片的列表
+    block_list = []
+    # 按模式分割图片
+    if mode == 'loots':
+        # 战利品模式 把每张图片分割成35 * 35像素的块，间隔的x与y都是49
+        rows = 5
+        column = 10
+        for i in range(rows):
+            for j in range(column):
+                # 切分为 49x49 block = img[i * 49:(i + 1) * 49, j * 49:(j + 1) * 49, :]
+                # 切分为 44x44 block = block[1:-4, 1:-4, :]
+                block_list.append(image[i * 49 + 1: (i + 1) * 49 - 4, j * 49 + 1: (j + 1) * 49 - 4, :])
+    if mode == 'chests':
+        # 开宝箱模式 先切分为 44x44
+        for i in range(0, image.shape[1], 44):
+            block_list.append(image[:, i:i + 44, :])
+    return block_list
+
+
+def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
+    # 如果上次识图成功, 则再试一次, 看看是不是同一张图
+    if last_name is not None:
+        item_img = RESOURCE_P["item"]["战利品"][last_name + ".png"]
+
+        # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
+        if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask"):
+            return last_name, list_iter, False
+
+        # 部分物品可能绑定
+        if may_locked and last_name in ["4级四叶草", "5级四叶草", "威望币", "遗迹古卷", "金币", "小金币袋", "大金币袋"]:
+            if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_locked"):
+                return last_name, list_iter, True
+
+    # 先按照顺序表遍历, 极大减少耗时(如果有顺序表)
+    if list_iter:
+        for item_name in list_iter:
+            item_img = RESOURCE_P["item"]["战利品"][item_name + ".png"]
+
+            # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
+            if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable"):
+                return item_name, list_iter, False
+            # 部分物品可能绑定
+            if may_locked and item_name in ["4级四叶草", "5级四叶草", "威望币", "遗迹古卷", "金币", "小金币袋",
+                                            "大金币袋"]:
+                if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_locked"):
+                    return item_name, list_iter, True
+
+    # 如果在json中按顺序查找没有找到, 全部遍历
+    for item_name, item_img in RESOURCE_P["item"]["战利品"].items():
+        item_name = item_name.replace(".png", "")
+
+        # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
+        if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable"):
+            return item_name, list_iter, False
+
+        # 部分物品可能绑定
+        if may_locked and item_name in ["异次元空间袋", "法老王的黄金棺材盒", "4级四叶草", "5级四叶草", "威望币",
+                                        "遗迹古卷", "金币", "小金币袋", "大金币袋"]:
+            if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_locked"):
+                return item_name, list_iter, True
+
+    # 还是找不到, 识图失败 把block保存到resource-picture-item-未编码索引中
+    CUS_LOGGER.warning(f'该道具未能识别, 已在 [ resource / picture /  item / 未编码索引中 ] 生成文件, 请检查')
+
+    # 随便编码
+    filename = "{}\\未编码索引\\{}.png".format(PATHS["picture"]["item"], random.randint(1, 100))
+
+    # 保存图片
+    imencode('.png', block)[1].tofile(filename)
+
+    return "识别失败", list_iter, False
 
 
 def update_dag_graph(item_list_new):
@@ -224,104 +296,44 @@ def update_dag_graph(item_list_new):
     return data['graph']
 
 
+def find_longest_path_from_dag():
+    CUS_LOGGER.debug("[有向无环图] [寻找最长链] 正在进行...")
+
+    # 读取现 JSON Ranking 文件
+    json_path = PATHS["logs"] + "\\item_ranking_dag_graph.json"
+    data = ranking_read_data(json_path=json_path)
+
+    G = nx.DiGraph()
+
+    # 添加边到图中
+    for node, neighbors in data.get('graph').items():
+        for neighbor in neighbors:
+            G.add_edge(node, neighbor)
+
+    # 寻找最长路径
+    try:
+        # nx.dag_longest_path 返回的是节点序列，如果图中存在环，则此函数会抛出错误
+        data["ranking"] = nx.dag_longest_path(G)
+        CUS_LOGGER.debug("[有向无环图] [寻找最长链] 成功")
+        # 保存更新后的 JSON 文件
+        ranking_save_data(json_path=json_path, data=data)
+        return data["ranking"]
+
+    except nx.NetworkXError:
+        # 如果图不是DAG（有向无环图），则无法找到最长路径
+        CUS_LOGGER.error("[有向无环图] [寻找最长链] 图中存在环，无法确定最长路径。")
+        return None
+
+
 def ranking_read_data(json_path):
     if os.path.exists(json_path):
         with open(json_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
-            if "ranking" in data and "ranking_easy" in data:
+            if "ranking" in data:
                 return data
-    return {'ranking': [], "ranking_easy": []}
+    return {'ranking': [], 'graph': []}
 
 
 def ranking_save_data(json_path, data):
     with open(json_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
-
-
-def build_graph(sequences):
-    """根据输入列表, 构造有向无环图"""
-    graph = defaultdict(list)  # 图标
-    indegree = defaultdict(int)  # 入度
-    nodes = set()  # 节点
-
-    # 防止添加重复的边
-    seen_relations = set()
-    # seq 一组数据 例如: [["物品1"], ["物品2","物品4"], ["物品5"],...]
-    for seq in sequences:
-        for i in range(len(seq)):
-            # 例如:  seq[i] => ["物品1"]
-            for item_1 in seq[i]:
-                # 首次添加 入度0
-                if item_1 not in indegree:
-                    indegree[item_1] = 0
-                nodes.add(item_1)
-                # 仅两两一组进行创建边
-                if i < len(seq) - 1:
-                    # 例如:  seq[i] => ["物品2","物品4"]
-                    for item_2 in seq[i + 1]:
-                        relation = (item_1, item_2)
-                        # 防止添加重复的边
-                        if relation not in seen_relations:
-                            seen_relations.add(relation)
-                            graph[item_1].append(item_2)
-                            indegree[item_2] += 1
-    return graph, indegree, nodes
-
-
-def topological_sort(graph, indegree, nodes):
-    # 找出所有没有传入的边的节点
-    zero_indegree_queue = deque([node for node in nodes if indegree[node] == 0])
-    sorted_order = []
-
-    while zero_indegree_queue:
-        # 收集所有当前零度节点
-        current_level = list(zero_indegree_queue)
-        zero_indegree_queue.clear()
-        sorted_order.append(list(current_level))
-
-        for node in current_level:
-            # 减少每个节点的度
-            for neighbor in graph[node]:
-                indegree[neighbor] -= 1
-                if indegree[neighbor] == 0:
-                    zero_indegree_queue.append(neighbor)
-
-    if sum(len(level) for level in sorted_order) != len(nodes):
-        CUS_LOGGER.error(
-            "战利品截图发现序列中存在循环，没有有效的拓扑排序?! 看来锑食的排序过于随机了! 本次不做物品ranking更新")
-        return False
-    return sorted_order
-
-
-def find_total_order(sequences_old, sequences_new):
-    """
-    构造有向无环图, 并计算新顺序
-    :param sequences_old:  example: [["物品1"], ["物品3","物品4"]]
-    :param sequences_new:  同上
-    :return: example: [["物品1"], ["物品2"],["物品3","物品4"], ["物品5","物品7"]]
-    """
-    # 拼合新老数据
-    sequences = [sequences_old, sequences_new]
-    # 构造有向无环图
-    graph, indegree, nodes = build_graph(sequences)
-    # 计算新顺序
-    result = topological_sort(graph, indegree, nodes)
-    if result:
-        return result
-    else:
-        # 没有有效的拓扑排序 直接返回输入旧记录...
-        return sequences_old
-
-
-if __name__ == '__main__':
-    # Example usage:
-    def main():
-        sequences = [
-            ['a', 'b', 'd', 'f'],
-            ['a', 'c', 'e', 'f']
-        ]
-        for item_list in sequences:
-            print(update_ranking(item_list))
-
-
-    cProfile.run("main()")
