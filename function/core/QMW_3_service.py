@@ -349,7 +349,7 @@ class QMainWindowService(QMainWindowLog):
             self.game_window_is_hide = True
 
 
-def main():
+def faa_start_main():
     # 实例化 PyQt后台管理
     app = QApplication(sys.argv)
 
@@ -364,4 +364,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    faa_start_main()
