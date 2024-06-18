@@ -21,7 +21,6 @@ def read_json_to_stage_info(stage_id):
     # 如果找到预设
     for information in [stages_info, stages_info_extra]:
         try_stage_info = information.get(stage_0, {}).get(stage_1, {}).get(stage_2, None)
-        print(try_stage_info)
         if try_stage_info:
             stage_info = {**stage_info, **try_stage_info}
             break

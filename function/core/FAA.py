@@ -28,7 +28,7 @@ class FAA:
     """
     FAA类是项目的核心类
     用于封装 [所有对单个游戏窗口进行执行的操作]
-    其中部分较麻烦的模块的实现被分发在了其他的类里, 此处只留下了接口以供调用
+    其中部分较麻烦的模块的实现被分散在了其他的类里, 此处只留下了接口以供调用
     """
 
     def __init__(self, channel="锑食", player=1,
@@ -243,6 +243,7 @@ class FAA:
                 return json.load(file)
 
         self.battle_plan_0 = read_json_to_battle_plan()
+
         self.stage_info = read_json_to_stage_info(stage_id)
 
     """战斗开始时的初始化函数"""
@@ -444,8 +445,11 @@ class FAA:
                     for card in list_cell_all
                 ]
 
-                # 计算任务卡的id 最大的卡片id + 1
-                quest_card_id = max(card["id"] for card in list_cell_all) + 1
+                # 计算任务卡的id 最大的卡片id + 1 注意判空!!!
+                if list_cell_all:
+                    quest_card_id = max(card["id"] for card in list_cell_all) + 1
+                else:
+                    quest_card_id = 1
 
                 # 设定任务卡dict
                 dict_quest = {
@@ -698,22 +702,20 @@ class FAA:
 
     """其他非战斗功能"""
 
-    def receive_quest_rewards(self, mode: str):
+    def receive_quest_rewards(self, mode: str) -> None:
+        """
+        领取任务奖励, 从当前界面开始, 从当前界面结束
+        :param mode: "普通任务" "公会任务" "情侣任务" "悬赏任务" "美食大赛" "大富翁"
+        :return: None
+        """
         return self.object_action_receive_quest_rewards.main(mode=mode)
 
-    def match_quests(self, mode: str, qg_cs=False):
+    def match_quests(self, mode: str, qg_cs=False) -> list:
         """
-        获取公会任务列表
-        :param mode:
+        获取任务列表 -> 需要的完成的关卡步骤
+        :param mode: "公会任务" "情侣任务" "美食大赛"
         :param qg_cs: 公会任务模式下 是否需要跨服
-        :return: [
-            {
-                "stage_id":str,
-                "max_times":,
-                "quest_card":str,
-                "ban_card":None
-            },
-        ]
+        :return: [{"stage_id":str, "max_times":int, "quest_card":str, "ban_card":None},...]
         """
         # 跳转到对应界面
         if mode == "公会任务":
@@ -743,9 +745,9 @@ class FAA:
                     find_p = match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
-                        source_range=[0, 0, 950, 600],
+                        source_range=[100, 125, 410, 500],
                         template=img,
-                        match_tolerance=0.999)
+                        match_tolerance=0.995)
                     if find_p:
 
                         quest_card = "None"  # 任务携带卡片默认为None
@@ -848,7 +850,11 @@ class FAA:
 
         return quest_list
 
-    def click_refresh_btn(self):
+    def click_refresh_btn(self) -> bool:
+        """
+        点击360游戏大厅的刷新游戏按钮
+        :return: bool 是否成功点击
+        """
 
         # 点击刷新按钮 该按钮在360窗口上
         find = loop_match_p_in_w(
@@ -883,6 +889,8 @@ class FAA:
 
                 if not find:
                     self.print_error(text="未找到360大厅刷新游戏按钮, 可能导致一系列问题...")
+                    return False
+        return True
 
     def reload_game(self) -> None:
 
@@ -1374,7 +1382,7 @@ class FAA:
             self.action_exit(mode="普通红叉")
 
         fed_and_watered_main()
-        self.object_action_receive_quest_rewards.main(mode="公会任务")
+        self.receive_quest_rewards(mode="公会任务")
 
     def use_items_consumables(self) -> None:
         self.print_debug(text="开启使用物品功能")
@@ -1382,6 +1390,8 @@ class FAA:
         # 打开背包
         self.print_debug(text="打开背包")
         self.action_bottom_menu(mode="背包")
+        self.signal_print_to_ui.emit(text="[使用绑定消耗品] 背包图标可能需要加载, 等待10s")
+        time.sleep(10)
 
         # 四次循环查找所有正确图标 不需要升到最顶, 打开背包会自动重置
         for i in range(4):
@@ -1568,8 +1578,7 @@ class FAA:
             # 打开背包
             self.print_debug(text="打开背包")
             self.action_bottom_menu(mode="背包")
-
-            self.signal_print_to_ui.emit(text="[使用双暴卡] 为防止卡加载, 等待10s")
+            self.signal_print_to_ui.emit(text="[使用双暴卡] 背包图标可能需要加载, 等待10s")
             time.sleep(10)
 
             loop_use_double_card()
@@ -1663,11 +1672,13 @@ class FAA:
         # 打开背包
         self.print_debug(text="打开背包")
         self.action_bottom_menu(mode="背包")
-        time.sleep(1)
 
         # 点击到物品栏目
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=777, y=65)
         time.sleep(1)
+
+        self.signal_print_to_ui.emit(text="[删除物品] 背包图标可能需要加载, 等待10s")
+        time.sleep(10)
 
         # 点击整理物品按钮
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=905, y=475)
