@@ -118,19 +118,6 @@ def match_items_from_image(img_save_path, image, mode='loots', test_print=False)
     if test_print:
         CUS_LOGGER.info(f"match_items_from_image方法 战利品识别结果：{best_match_items}")
 
-    if mode == 'loots':
-        # loots
-        # 去掉result里面的识别失败给去掉
-        best_match_items_no_failed = list(best_match_items.keys())
-        if "识别失败" in best_match_items_no_failed:
-            best_match_items_no_failed.remove("识别失败")
-        ranking_new = update_ranking(best_match_items_no_failed)
-        if test_print:
-            CUS_LOGGER.debug(f"获取 loots 后, 更新 ranking.json 方法, 更新后结果：{ranking_new}")
-    else:
-        # chests
-        if test_print:
-            CUS_LOGGER.debug(f"获取 chests, 不更新 ranking.json")
     # 统计耗时
     if mode == 'loots' and test_print:
         CUS_LOGGER.debug(f"一次战利品识别耗时:{time.time() - time_start}s")

@@ -10,6 +10,7 @@ from PyQt5.QtCore import *
 
 from function.common.bg_img_match import loop_match_p_in_w
 from function.common.thread_with_exception import ThreadWithException
+from function.core.analyzer_of_loot_logs import update_dag_graph, find_longest_path_from_dag
 from function.core_battle.CardManager import CardManager
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
@@ -650,6 +651,27 @@ class ThreadTodo(QThread):
                 result = self.thread_2p.get_return_value()
                 result_id = max(result_id, result[0])
                 result_loot[player_b] = result[1]
+
+            """处理 ranking"""
+            # result_loot = {
+            #   1:{"loots":{"物品":数量,...},"chests":{"物品":数量,...}}
+            #   2:{"loots":{"物品":数量,...},"chests":{"物品":数量,...}} //可能不存在
+            #   }
+            for _, player_data in result_loot.items():
+                # 仅包含战利品
+                best_match_items_success = copy.deepcopy(list(player_data["loots"].keys()))
+                # 不包含失败的识别
+                if "识别失败" in best_match_items_success:
+                    best_match_items_success.remove("识别失败")
+                # 更新 item_dag_graph 文件
+                update_dag_graph(item_list_new=best_match_items_success)
+
+            # 根据更新完成的 item_dag_graph.json, 更新ranking 成功返回更新后的ranking 失败返回None
+            ranking_new = find_longest_path_from_dag()
+            if ranking_new:
+                CUS_LOGGER.info(f"[根据有向无环图寻找最长链] item_ranking_dag_graph.json 已更新 , 结果:{ranking_new}")
+            else:
+                CUS_LOGGER.info(f"[根据有向无环图寻找最长链] item_ranking_dag_graph.json 更新失败!")
 
         CUS_LOGGER.debug("多线程进行战利品和宝箱检查 已完成")
 
