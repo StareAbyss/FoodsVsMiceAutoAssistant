@@ -76,7 +76,7 @@ def one_item_match(img_block, img_tar, mode="equal"):
 
     if mode == "match_template_with_mask_tradable":
         match_tolerance = 0.98
-        mask = RESOURCE_P["item"]["item_mask_tradable.png"]
+        mask = RESOURCE_P["item"]["物品-掩模-不绑定.png"]
         result = match_template_with_optional_mask(
             source=img_block[2:-10:2, 2:-10:2, :],
             template=img_tar[2:-10:2, 2:-10:2, :],
@@ -91,10 +91,10 @@ def one_item_match(img_block, img_tar, mode="equal"):
 
     if mode == "match_template_with_mask_locked":
         match_tolerance = 0.98
-        mask = RESOURCE_P["item"]["item_mask_locked.png"]
+        mask = RESOURCE_P["item"]["物品-掩模-绑定.png"]
         img_tar = overlay_images(
             img_background=img_tar,
-            img_overlay=RESOURCE_P["item"]["绑定角标-不透明部分.png"],
+            img_overlay=RESOURCE_P["item"]["物品-绑定角标.png"],
             test_show=False)
         result = match_template_with_optional_mask(
             source=img_block[2:-10:2, 2:-10:2, :],

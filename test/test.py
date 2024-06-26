@@ -1,30 +1,19 @@
-import requests
+import cv2
 
-data = {
-    "timestamp": 1718298801.1952991,
-    "stage": "OR-0-1",
-    "is_used_key": True,
-    "loots": {
-        "1级四叶草": 1,
-        "秘制香料": 2,
-        "上等香料": 1,
-        "天然香料": 4,
-        "礼盒": 1,
-        "白砂糖": 2,
-        "小蒸笼": 3,
-        "葡萄": 2,
-        "牛肉": 5,
-        "奶酪": 3,
-        "包子": 2,
-        "冰块": 1,
-        "煮蛋器": 1,
-        "生鸡蛋": 1,
-        "烤炉": 3,
-        "小麦粉": 3
-    },
-    "chests": {
-        "棉花糖-初级技能书": 1,
-        "识别失败": 1
-    }
-}
-response = requests.post(url='http://47.108.167.141:5000/faa_server', json=data)
+
+def read_image_with_error():
+    # 假设图片路径是错误的，或者文件根本不存在
+    incorrect_image_path = "nonexistent_image.jpg"
+
+
+    # 尝试以错误的方式（二进制读取模式）打开图像文件
+    with open(incorrect_image_path, 'rb') as file:
+        # 这里直接读取二进制内容然后尝试转换为cv2.imread能处理的对象，显然是错误的做法
+        binary_data = file.read()
+        # 尝试将二进制数据直接当作图像处理
+        image = cv2.imread(binary_data)
+
+
+
+# 调用函数
+read_image_with_error()

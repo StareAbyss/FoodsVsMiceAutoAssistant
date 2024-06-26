@@ -816,7 +816,7 @@ class FAA:
                                 }
                             )
         if mode == "美食大赛":
-            y_dict = {0: 362, 1: 405, 2: 448, 3: 491, 4: 534, 5: 570}
+            y_dict = {0: 359, 1: 405, 2: 448, 3: 491, 4: 534, 5: 570}
             for i in range(6):
                 # 先移动到新的一页
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=y_dict[i])
@@ -1497,7 +1497,7 @@ class FAA:
         # 打开背包
         self.print_debug(text="打开背包")
         self.action_bottom_menu(mode="背包")
-        self.signal_print_to_ui.emit(text="[使用绑定消耗品] 背包图标可能需要加载, 等待10s")
+        self.signal_print_to_ui.emit(text=f"[使用绑定消耗品] [{self.player}P] 背包图标可能需要加载, 等待10s")
         time.sleep(10)
 
         # 四次循环查找所有正确图标 不需要升到最顶, 打开背包会自动重置
@@ -1518,7 +1518,7 @@ class FAA:
                 # 添加绑定角标
                 item_image = overlay_images(
                     img_background=item_image,
-                    img_overlay=RESOURCE_P["item"]["绑定角标-不透明部分.png"])
+                    img_overlay=RESOURCE_P["item"]["物品-绑定角标.png"])
 
                 while True:
 
@@ -1540,7 +1540,7 @@ class FAA:
                         source_range=[466, 88, 910, 435],
                         template=item_image,
                         template_name=item_name,
-                        mask=RESOURCE_P["item"]["item_mask_tradable.png"],
+                        mask=RESOURCE_P["item"]["物品-掩模-不绑定.png"],
                         match_tolerance=0.99,
                         test_print=True)
 
@@ -1553,7 +1553,7 @@ class FAA:
                             source_handle=self.handle,
                             source_root_handle=self.handle_360,
                             source_range=[466, 86, 950, 500],
-                            template=RESOURCE_P["item"]["背包_使用.png"],
+                            template=RESOURCE_P["item"]["物品-背包-使用.png"],
                             match_tolerance=0.98,
                             match_interval=0.2,
                             match_failed_check=1,
@@ -1566,7 +1566,7 @@ class FAA:
                                 source_handle=self.handle,
                                 source_root_handle=self.handle_360,
                                 source_range=[466, 86, 950, 500],
-                                template=RESOURCE_P["item"]["背包_使用_被选中.png"],
+                                template=RESOURCE_P["item"]["物品-背包-使用-被选中.png"],
                                 match_tolerance=0.98,
                                 match_interval=0.2,
                                 match_failed_check=1,
@@ -1626,7 +1626,7 @@ class FAA:
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
                         source_range=[466, 86, 891, 435],
-                        template=RESOURCE_P["item"]["双暴卡.png"],
+                        template=RESOURCE_P["item"]["物品-双暴卡.png"],
                         match_tolerance=0.98,
                         match_interval=0.2,
                         match_failed_check=1.5,
@@ -1642,7 +1642,7 @@ class FAA:
                             source_handle=self.handle,
                             source_root_handle=self.handle_360,
                             source_range=[466, 86, 950, 500],
-                            template=RESOURCE_P["item"]["背包_使用.png"],
+                            template=RESOURCE_P["item"]["物品-背包-使用.png"],
                             match_tolerance=0.95,
                             match_interval=0.2,
                             match_failed_check=1,
@@ -1655,7 +1655,7 @@ class FAA:
                                 source_handle=self.handle,
                                 source_root_handle=self.handle_360,
                                 source_range=[466, 86, 950, 500],
-                                template=RESOURCE_P["item"]["背包_使用_被选中.png"],
+                                template=RESOURCE_P["item"]["物品-背包-使用-被选中.png"],
                                 match_tolerance=0.90,
                                 match_interval=0.2,
                                 match_failed_check=1,
@@ -1803,7 +1803,7 @@ class FAA:
                 source_range=[466, 88, 910, 435],
                 template=i_image,
                 template_name=i_name,
-                mask=RESOURCE_P["item"]["item_mask_tradable.png"],
+                mask=RESOURCE_P["item"]["物品-掩模-不绑定.png"],
                 match_tolerance=0.99,
                 test_print=True)
 
