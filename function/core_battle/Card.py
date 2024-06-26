@@ -97,12 +97,9 @@ class Card:
             if EXTRA_GLOBALS.smoothie_lock_time != 0:
                 return
             EXTRA_GLOBALS.smoothie_lock_time = 7
-        if self.status_cd or self.status_ban:
-            return
 
         # 点击 选中卡片
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=self.location_from[0], y=self.location_from[1])
-        time.sleep(self.click_sleep)
 
         if self.ergodic:
             # 遍历模式: True 遍历该卡每一个可以放的位置
@@ -117,7 +114,7 @@ class Card:
                 handle=self.handle,
                 x=self.location_to[j][0],
                 y=self.location_to[j][1])
-            time.sleep(self.click_sleep)
+        time.sleep(self.click_sleep * j+1)
 
         # 放卡后点一下空白
         T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
@@ -146,7 +143,7 @@ class Card:
 
         if self.status_usable and (self.name not in self.ban_white_list):
             # 放置失败 说明放满了 如果不在白名单 就自ban
-            self.status_ban = 7
+            self.status_ban = 10
         else:
             if self.is_kun_target:
                 # 放置成功 如果是坤目标, 复制自身放卡的逻辑
