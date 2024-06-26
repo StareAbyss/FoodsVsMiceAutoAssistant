@@ -227,12 +227,12 @@ class ThreadCheckTimer(QThread):
                         max_card.is_kun_target = True
 
             # 调试打印 - 目前 <战斗管理器> 的状态
-            # if self.faa.player == 2:
-            #     text = ""
-            #     for card in self.card_queue.card_list:
-            #         text += "[名:{}|CD:{}|用:{}|禁:{}|坤:{}]".format(
-            #             card.name, card.status_cd, card.status_usable, card.status_ban, card.is_kun_target)
-            #     self.faa.print_debug(text)
+            if self.faa.player == 1:
+                text = ""
+                for card in self.card_queue.card_list:
+                    text += "[名:{}|CD:{}|用:{}|禁:{}|坤:{}]".format(
+                        card.name, card.status_cd, card.status_usable, card.status_ban, card.is_kun_target)
+                self.faa.print_debug(text)
 
         # 刷新全局冰沙锁的状态
         if EXTRA_GLOBALS.smoothie_lock_time != 0:
