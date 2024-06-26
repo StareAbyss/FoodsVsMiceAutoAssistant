@@ -229,9 +229,18 @@ class FAA:
         self.deck = deck
         self.quest_card = quest_card
         self.ban_card_list = ban_card_list
+
+        # 一旦存在ban卡追加ban掉这几位
         if self.ban_card_list:
             self.ban_card_list.append("冰淇淋")
             self.ban_card_list.append("幻幻鸡")
+        # 双倍ban承载 ban软糖
+        if "木盘子" in self.ban_card_list:
+            self.ban_card_list.append("魔法软糖")
+        if "麦芽糖" in self.ban_card_list:
+            self.ban_card_list.append("魔法软糖")
+        if "苏打气泡" in self.ban_card_list:
+            self.ban_card_list.append("魔法软糖")
 
         def read_json_to_battle_plan():
             battle_plan_list = get_list_battle_plan(with_extension=True)
