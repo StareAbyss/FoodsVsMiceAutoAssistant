@@ -18,6 +18,8 @@ from function.globals.init_resources import RESOURCE_P
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.get_customize_todo_list import get_customize_todo_list
+from function.scattered.loots_and_chest_data_save_and_post import loots_and_chests_detail_to_json, \
+    loots_and_chests_data_post_to_sever, loots_and_chests_statistics_to_json
 
 
 class ThreadTodo(QThread):
@@ -197,7 +199,8 @@ class ThreadTodo(QThread):
                     self.signal_print_to_ui.emit(f'[{i}P] 领取温馨礼包情况:' + message, color="E67800")
                 except RequestException as e:
                     # 这里处理请求发生的任何错误，如网络问题、超时、服务器无响应等
-                    self.signal_print_to_ui.emit(f'[{i}P] 领取温馨礼包情况: 失败, 欢乐互娱的服务器炸了, {e}', color="E67800")
+                    self.signal_print_to_ui.emit(f'[{i}P] 领取温馨礼包情况: 失败, 欢乐互娱的服务器炸了, {e}',
+                                                 color="E67800")
             else:
                 self.signal_print_to_ui.emit(f"[{i}P] 未激活领取温馨礼包", color="E67800")
 
@@ -533,10 +536,7 @@ class ThreadTodo(QThread):
 
         is_group = self.faa[player_a].is_group
         result_id = 0
-        result_loot = {
-            player_a: {},
-            player_b: {}
-        }
+        result_loot = {}
         result_spend_time = 0
 
         """同时进行战前准备"""
@@ -653,32 +653,73 @@ class ThreadTodo(QThread):
 
             result = self.thread_1p.get_return_value()
             result_id = max(result_id, result[0])
-            result_loot[player_a] = result[1]
+            if result[1]:
+                result_loot[player_a] = result[1]  # 可能是None 或 dict 故判空
             if is_group:
                 result = self.thread_2p.get_return_value()
                 result_id = max(result_id, result[0])
-                result_loot[player_b] = result[1]
+                if result[1]:
+                    result_loot[player_b] = result[1]  # 可能是None 或 dict 故判空
 
-            """处理 ranking"""
+            """构建有向无环图, 校验数据准确度, 并酌情发送至服务器和更新至Ranking"""
             # result_loot = {
-            #   1:{"loots":{"物品":数量,...},"chests":{"物品":数量,...}}
-            #   2:{"loots":{"物品":数量,...},"chests":{"物品":数量,...}} //可能不存在
+            #   1:{"loots":{"物品":数量,...},"chests":{"物品":数量,...}} //数据 可能不存在 None
+            #   2:{"loots":{"物品":数量,...},"chests":{"物品":数量,...}} //数据 可能不存在 None或不组队
             #   }
-            for _, player_data in result_loot.items():
-                # 仅包含战利品
+            update_dag_result_dict = False
+
+            for player_index, player_data in result_loot.items():
+                # 两种战利品的数据
+                loots_dict = player_data["loots"]
+                chests_dict = player_data["chests"]
+
+                # 仅使用战利品更新item_dag_graph文件
                 best_match_items_success = copy.deepcopy(list(player_data["loots"].keys()))
                 # 不包含失败的识别
                 if "识别失败" in best_match_items_success:
                     best_match_items_success.remove("识别失败")
                 # 更新 item_dag_graph 文件
-                update_dag_graph(item_list_new=best_match_items_success)
+                update_dag_result = update_dag_graph(item_list_new=best_match_items_success)
+                # 更新成功, 记录
+                update_dag_result_dict = update_dag_result or update_dag_result_dict
 
-            # 根据更新完成的 item_dag_graph.json, 更新ranking 成功返回更新后的ranking 失败返回None
-            ranking_new = find_longest_path_from_dag()
-            if ranking_new:
-                CUS_LOGGER.info(f"[根据有向无环图寻找最长链] item_ranking_dag_graph.json 已更新 , 结果:{ranking_new}")
+                if update_dag_result:
+                    CUS_LOGGER.debug(f"[战利品识别] [有向无环图] [更新] [{player_index}P] 成功! 成功构筑 DAG.")
+
+                    # 保存详细数据到json
+                    loots_and_chests_statistics_to_json(
+                        faa=self.faa[player_index],
+                        loots_dict=loots_dict,
+                        chests_dict=chests_dict)
+                    CUS_LOGGER.info(f"[战利品识别] [保存日志] [{player_index}P] 成功保存一条详细数据!")
+
+                    # 保存汇总统计数据到json
+                    detail_data = loots_and_chests_detail_to_json(
+                        faa=self.faa[player_index],
+                        loots_dict=loots_dict,
+                        chests_dict=chests_dict)
+                    CUS_LOGGER.info(f"[战利品识别] [保存日志] [{player_index}P] 成功保存至统计数据!")
+
+                    # 发送到服务器
+                    if loots_and_chests_data_post_to_sever(detail_data=detail_data):
+                        CUS_LOGGER.info(f"[战利品识别] [发送服务器] [{player_index}P] 成功发送一条数据!")
+                    else:
+                        CUS_LOGGER.warning(f"[战利品识别] [发送服务器] [{player_index}P] 超时! 可能是服务器炸了...")
+
+                else:
+                    CUS_LOGGER.debug(
+                        "[战利品识别] [有向无环图] [更新] [{player_index}P] 失败! 本次数据无法构筑 DAG，存在环.")
+
+            if update_dag_result_dict:
+                # 如果成功更新了 item_dag_graph.json, 更新ranking
+                ranking_new = find_longest_path_from_dag() # 成功返回更新后的 ranking 失败返回None
+                if ranking_new:
+                    CUS_LOGGER.info(f"[根据有向无环图寻找最长链] item_ranking_dag_graph.json 已更新 , 结果:{ranking_new}")
+                else:
+                    CUS_LOGGER.warning(f"[根据有向无环图寻找最长链] item_ranking_dag_graph.json 更新失败!")
             else:
-                CUS_LOGGER.info(f"[根据有向无环图寻找最长链] item_ranking_dag_graph.json 更新失败!")
+                CUS_LOGGER.warning(
+                    f"[根据有向无环图寻找最长链] item_ranking_dag_graph.json 更新失败! 本次未获得任何有效数据!")
 
         CUS_LOGGER.debug("多线程进行战利品和宝箱检查 已完成")
 
@@ -898,6 +939,7 @@ class ThreadTodo(QThread):
 
             CUS_LOGGER.debug("result_list:")
             CUS_LOGGER.debug(str(result_list))
+
             valid_time = len(result_list)
 
             # 如果没有正常完成的场次, 直接跳过统计输出的部分
@@ -1665,7 +1707,6 @@ class ThreadTodo(QThread):
 
         my_opt = c_opt["fed_and_watered"]
         if my_opt["active"]:
-            self.signal_print_to_ui.emit("[浇水 施肥 摘果 领取] 执行中...")
             self.faa[1].fed_and_watered()
             if my_opt["is_group"]:
                 self.faa[2].fed_and_watered()

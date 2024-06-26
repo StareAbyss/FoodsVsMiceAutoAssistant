@@ -53,9 +53,9 @@ class FAA:
         self.random_seed = random_seed
 
         """每次战斗中都保持一致的参数"""
-        # 角色的index 为 1或2
+        # 角色的index int 1 or 2
         self.player = player
-        # 角色的等级 为 1 to 60
+        # 角色的等级 int 1 to 60
         self.character_level = character_level
         # 是否自动战斗 bool
         self.is_auto_battle = is_auto_battle
@@ -229,9 +229,18 @@ class FAA:
         self.deck = deck
         self.quest_card = quest_card
         self.ban_card_list = ban_card_list
+
+        # 一旦存在ban卡追加ban掉这几位
         if self.ban_card_list:
             self.ban_card_list.append("冰淇淋")
             self.ban_card_list.append("幻幻鸡")
+        # 双倍ban承载 ban软糖
+        if "木盘子" in self.ban_card_list:
+            self.ban_card_list.append("魔法软糖")
+        if "麦芽糖" in self.ban_card_list:
+            self.ban_card_list.append("魔法软糖")
+        if "苏打气泡" in self.ban_card_list:
+            self.ban_card_list.append("魔法软糖")
 
         def read_json_to_battle_plan():
             battle_plan_list = get_list_battle_plan(with_extension=True)
@@ -686,7 +695,7 @@ class FAA:
         """
         战斗结束后, 完成下述流程: 潜在的任务完成黑屏-> 战利品 -> 战斗结算 -> 翻宝箱 -> 回到房间/魔塔会回到其他界面
         已模块化到外部实现
-        :return: 0-正常结束 1-重启本次 2-跳过本次
+        :return: 输出1 int, 状态码, 0-正常结束 1-重启本次 2-跳过本次, 输出2 None或者dict, 战利品识别结果
         """
 
         return self.object_battle_a_round_preparation.perform_action_capture_match_for_loots_and_chests()
@@ -807,7 +816,7 @@ class FAA:
                                 }
                             )
         if mode == "美食大赛":
-            y_dict = {0: 362, 1: 405, 2: 448, 3: 491, 4: 534, 5: 570}
+            y_dict = {0: 359, 1: 405, 2: 448, 3: 491, 4: 534, 5: 570}
             for i in range(6):
                 # 先移动到新的一页
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=y_dict[i])
@@ -1197,9 +1206,47 @@ class FAA:
     def fed_and_watered(self) -> None:
         """公会施肥浇水功能"""
 
+        def goto_guild_and_in_guild():
+            """
+            :return: 是否出现bug
+            """
+
+            self.action_bottom_menu(mode="公会")
+
+            find = loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=[760, 35, 860, 80],
+                template=RESOURCE_P["quest_guild"]["ui_guild.png"],
+                match_tolerance=0.95,
+                match_failed_check=3,
+                after_sleep=1,
+                click=False)
+
+            return not find
+
+        def exit_to_guild_page_and_in_guild():
+            """
+            :return: 是否出现bug
+            """
+
+            # 点X回退一次
+            self.action_exit(mode="普通红叉", raw_range=[835, 30, 875, 80])
+
+            find = loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=[760, 35, 860, 80],
+                template=RESOURCE_P["quest_guild"]["ui_guild.png"],
+                match_tolerance=0.95,
+                match_failed_check=3,
+                after_sleep=1,
+                click=False)
+            return not find
+
         def from_guild_to_quest_guild():
             """进入任务界面, 正确进入就跳出循环"""
-            while True:
+            for count_time in range(50):
 
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=745, y=430)
                 time.sleep(0.001)
@@ -1210,19 +1257,22 @@ class FAA:
                 find = loop_match_p_in_w(
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 950, 600],
+                    source_range=[215, 95, 308, 133],
                     template=RESOURCE_P["quest_guild"]["ui_quest_list.png"],
                     match_tolerance=0.95,
                     match_failed_check=1,
                     after_sleep=0.5,
-                    click=True
+                    click=False
                 )
                 if find:
-                    break
+                    # 次数限制内完成 进入施肥界面
+                    return True
+            # 次数限制内失败 进入施肥界面
+            return False
 
         def from_guild_to_guild_garden():
             """进入施肥界面, 正确进入就跳出循环"""
-            while True:
+            for count_time in range(50):
 
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=745, y=430)
                 time.sleep(0.001)
@@ -1233,15 +1283,18 @@ class FAA:
                 find = loop_match_p_in_w(
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 950, 600],
+                    source_range=[400, 30, 585, 80],
                     template=RESOURCE_P["quest_guild"]["ui_fed.png"],
                     match_tolerance=0.95,
                     match_failed_check=2,
                     after_sleep=0.5,
-                    click=True
+                    click=False
                 )
                 if find:
-                    break
+                    # 次数限制内完成 进入施肥界面
+                    return True
+            # 次数限制内失败 进入施肥界面
+            return False
 
         def switch_guild_garden_by_try_times(try_time):
             """根据目前尝试次数, 到达不同的公会"""
@@ -1283,14 +1336,14 @@ class FAA:
             loop_match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
-                source_range=[0, 0, 950, 600],
+                source_range=[835, 35, 875, 75],
                 template=RESOURCE_P["common"]["退出.png"],
                 match_tolerance=0.95,
                 match_failed_check=7,
                 after_sleep=1,
                 click=False
             )
-            self.print_debug(text="{}次尝试, 浇水后, 已确认无任务完成黑屏".format(try_time + 1))
+            self.print_debug(text=f"{try_time + 1}/100 次尝试, 浇水后, 已确认无任务完成黑屏")
 
             # 施肥一次
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=418)
@@ -1300,24 +1353,21 @@ class FAA:
             loop_match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
-                source_range=[0, 0, 950, 600],
+                source_range=[835, 35, 875, 75],
                 template=RESOURCE_P["common"]["退出.png"],
                 match_tolerance=0.95,
                 match_failed_check=7,
-                after_sleep=1,
+                after_sleep=2,
                 click=False)
-            self.print_debug(text="{}次尝试, 施肥后, 已确认无任务完成黑屏".format(try_time + 1))
-
-            # 点X回退一次
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=854, y=55)
-            time.sleep(1.5)
+            self.print_debug(text=f"{try_time + 1}/100 次尝试, 施肥后, 已确认无任务完成黑屏")
 
         def fed_and_watered_one_action(try_time):
             """
-            :return: bool completed True else False
+            :return: bool is completed  , bool is bugged
             """
-            # 进入任务界面, 正确进入就跳出循环
-            from_guild_to_quest_guild()
+            # 进入任务界面
+            if not from_guild_to_quest_guild():
+                return False, True
 
             # 检测施肥任务完成情况 任务是进行中的话为True
             find = loop_match_ps_in_w(
@@ -1325,19 +1375,19 @@ class FAA:
                 source_root_handle=self.handle_360,
                 template_opts=[
                     {
-                        "source_range": [75, 80, 430, 560],
+                        "source_range": [75, 80, 430, 500],
                         "template": RESOURCE_P["quest_guild"]["fed_0.png"],
                         "match_tolerance": 0.98
                     }, {
-                        "source_range": [75, 80, 430, 560],
+                        "source_range": [75, 80, 430, 500],
                         "template": RESOURCE_P["quest_guild"]["fed_1.png"],
                         "match_tolerance": 0.98
                     }, {
-                        "source_range": [75, 80, 430, 560],
+                        "source_range": [75, 80, 430, 500],
                         "template": RESOURCE_P["quest_guild"]["fed_2.png"],
                         "match_tolerance": 0.98,
                     }, {
-                        "source_range": [75, 80, 430, 560],
+                        "source_range": [75, 80, 430, 500],
                         "template": RESOURCE_P["quest_guild"]["fed_3.png"],
                         "match_tolerance": 0.98,
                     }
@@ -1350,11 +1400,12 @@ class FAA:
             time.sleep(0.5)
 
             if not find:
-                self.print_debug(text="已完成公会浇水施肥, 尝试次数:{}".format(try_time))
-                return True
+                self.print_debug(text="已完成公会浇水施肥, 尝试次数: {}/100".format(try_time))
+                return True, False
             else:
                 # 进入施肥界面, 正确进入就跳出循环
-                from_guild_to_guild_garden()
+                if not from_guild_to_guild_garden():
+                    return False, True
 
                 # 根据目前尝试次数, 到达不同的公会
                 switch_guild_garden_by_try_times(try_time=try_time)
@@ -1362,27 +1413,83 @@ class FAA:
                 # 完成素质三连并退出公会花园界面
                 do_something_and_exit(try_time=try_time)
 
-                return False
+                if exit_to_guild_page_and_in_guild():
+                    return False, True
 
-        def fed_and_watered_main():
-            self.print_debug(text="开始公会浇水施肥")
+                return False, False
 
-            # 进入公会
-            self.action_bottom_menu(mode="公会")
-
+        def fed_and_watered_multi_action():
+            """
+            :return: 完成的尝试次数, 是否是bug
+            """
             # 循环到任务完成
             try_time = 0
             while True:
-                completed_flag = fed_and_watered_one_action(try_time)
+
+                completed_flag, is_bug = fed_and_watered_one_action(try_time)
                 try_time += 1
+
+                if try_time == 100 or is_bug:
+                    # 次数过多, 或 遇上bug
+                    return completed_flag, try_time, True
+
                 if completed_flag:
+                    return completed_flag, try_time, False
+
+        def fed_and_watered_main():
+
+            self.signal_print_to_ui.emit(f"[浇水 施肥 摘果 领取] [{self.player}p] 开始执行...")
+            self.print_debug(text="开始公会浇水施肥")
+
+            for reload_time in range(1, 4):
+
+                # 进入公会
+                is_bug = goto_guild_and_in_guild()
+                if is_bug:
+                    if reload_time != 3:
+                        self.signal_print_to_ui.emit(
+                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入工会页失败... 刷新再试({reload_time}/3)")
+                        self.reload_game()
+                        continue
+                    else:
+                        self.signal_print_to_ui.emit(
+                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入工会页失败... 刷新跳过({reload_time}/3)")
+                        self.reload_game()
+                        break
+
+                # 循环到任务完成或出现bug或超次数
+                completed, try_time, is_bug = fed_and_watered_multi_action()
+
+                if is_bug:
+                    if reload_time != 3:
+                        self.signal_print_to_ui.emit(
+                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住 "
+                            f"本轮循环施肥尝试:{try_time}次 刷新再试({reload_time}/3)")
+                        self.reload_game()
+                        continue
+                    else:
+                        self.signal_print_to_ui.emit(
+                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住 "
+                            f"本轮循环施肥尝试:{try_time}次  刷新跳过({reload_time}/3)")
+                        self.reload_game()
+                        break
+
+                if try_time == 100:
+                    self.signal_print_to_ui.emit(
+                        f"[浇水 施肥 摘果 领取] [{self.player}p] 尝试100次, 直接刷新跳过")
+                    self.reload_game()
                     break
 
-            # 退出工会
-            self.action_exit(mode="普通红叉")
+                if completed:
+                    # 正常完成
+                    self.signal_print_to_ui.emit(
+                        f"[浇水 施肥 摘果 领取] [{self.player}p] 正确完成 ~")
+                    # 退出工会
+                    self.action_exit(mode="普通红叉")
+                    self.receive_quest_rewards(mode="公会任务")
+                    break
 
         fed_and_watered_main()
-        self.receive_quest_rewards(mode="公会任务")
 
     def use_items_consumables(self) -> None:
         self.print_debug(text="开启使用物品功能")
@@ -1390,7 +1497,7 @@ class FAA:
         # 打开背包
         self.print_debug(text="打开背包")
         self.action_bottom_menu(mode="背包")
-        self.signal_print_to_ui.emit(text="[使用绑定消耗品] 背包图标可能需要加载, 等待10s")
+        self.signal_print_to_ui.emit(text=f"[使用绑定消耗品] [{self.player}P] 背包图标可能需要加载, 等待10s")
         time.sleep(10)
 
         # 四次循环查找所有正确图标 不需要升到最顶, 打开背包会自动重置
@@ -1411,7 +1518,7 @@ class FAA:
                 # 添加绑定角标
                 item_image = overlay_images(
                     img_background=item_image,
-                    img_overlay=RESOURCE_P["item"]["绑定角标-不透明部分.png"])
+                    img_overlay=RESOURCE_P["item"]["物品-绑定角标.png"])
 
                 while True:
 
@@ -1433,7 +1540,7 @@ class FAA:
                         source_range=[466, 88, 910, 435],
                         template=item_image,
                         template_name=item_name,
-                        mask=RESOURCE_P["item"]["item_mask_tradable.png"],
+                        mask=RESOURCE_P["item"]["物品-掩模-不绑定.png"],
                         match_tolerance=0.99,
                         test_print=True)
 
@@ -1446,7 +1553,7 @@ class FAA:
                             source_handle=self.handle,
                             source_root_handle=self.handle_360,
                             source_range=[466, 86, 950, 500],
-                            template=RESOURCE_P["item"]["背包_使用.png"],
+                            template=RESOURCE_P["item"]["物品-背包-使用.png"],
                             match_tolerance=0.98,
                             match_interval=0.2,
                             match_failed_check=1,
@@ -1459,7 +1566,7 @@ class FAA:
                                 source_handle=self.handle,
                                 source_root_handle=self.handle_360,
                                 source_range=[466, 86, 950, 500],
-                                template=RESOURCE_P["item"]["背包_使用_被选中.png"],
+                                template=RESOURCE_P["item"]["物品-背包-使用-被选中.png"],
                                 match_tolerance=0.98,
                                 match_interval=0.2,
                                 match_failed_check=1,
@@ -1519,7 +1626,7 @@ class FAA:
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
                         source_range=[466, 86, 891, 435],
-                        template=RESOURCE_P["item"]["双暴卡.png"],
+                        template=RESOURCE_P["item"]["物品-双暴卡.png"],
                         match_tolerance=0.98,
                         match_interval=0.2,
                         match_failed_check=1.5,
@@ -1535,7 +1642,7 @@ class FAA:
                             source_handle=self.handle,
                             source_root_handle=self.handle_360,
                             source_range=[466, 86, 950, 500],
-                            template=RESOURCE_P["item"]["背包_使用.png"],
+                            template=RESOURCE_P["item"]["物品-背包-使用.png"],
                             match_tolerance=0.95,
                             match_interval=0.2,
                             match_failed_check=1,
@@ -1548,7 +1655,7 @@ class FAA:
                                 source_handle=self.handle,
                                 source_root_handle=self.handle_360,
                                 source_range=[466, 86, 950, 500],
-                                template=RESOURCE_P["item"]["背包_使用_被选中.png"],
+                                template=RESOURCE_P["item"]["物品-背包-使用-被选中.png"],
                                 match_tolerance=0.90,
                                 match_interval=0.2,
                                 match_failed_check=1,
@@ -1696,7 +1803,7 @@ class FAA:
                 source_range=[466, 88, 910, 435],
                 template=i_image,
                 template_name=i_name,
-                mask=RESOURCE_P["item"]["item_mask_tradable.png"],
+                mask=RESOURCE_P["item"]["物品-掩模-不绑定.png"],
                 match_tolerance=0.99,
                 test_print=True)
 

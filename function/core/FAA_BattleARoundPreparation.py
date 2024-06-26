@@ -1,17 +1,13 @@
-import json
-import os
 import time
 
 import cv2
-import requests
-from requests import RequestException
 
 from function.common.bg_img_match import loop_match_ps_in_w, loop_match_p_in_w, match_p_in_w
 from function.common.bg_img_screenshot import capture_image_png
+from function.common.overlay_images import overlay_images
 from function.core.analyzer_of_loot_logs import match_items_from_image
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
-from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
@@ -54,7 +50,7 @@ class BattleARoundPreparation:
             quest_card_list = [f"{quest_card}-{i}.png" for i in range(21)]
 
         # 读取所有记录了的卡的图片名, 只携带被记录图片的卡
-        quest_card_list = [card for card in quest_card_list if card in RESOURCE_P["card"]["房间"]]
+        quest_card_list = [card for card in quest_card_list if card in RESOURCE_P["card"]["准备房间"]]
 
         """选卡动作"""
         already_found = False
@@ -73,11 +69,17 @@ class BattleARoundPreparation:
                     time.sleep(0.4)
                 else:
                     # 如果还没找到 就试试查找点击 添加卡片
+                    img_tar = overlay_images(
+                        img_background=RESOURCE_P["card"]["准备房间"][quest_card],
+                        img_overlay=RESOURCE_P["card"]["卡片-房间-绑定角标.png"],
+                        test_show=False)
+
                     find = loop_match_p_in_w(
                         source_handle=handle,
                         source_root_handle=handle_360,
                         source_range=[380, 175, 925, 420],
-                        template=RESOURCE_P["card"]["房间"][quest_card],
+                        template=img_tar,
+                        template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
                         match_tolerance=0.95,
                         match_failed_check=0.4,
                         match_interval=0.2,
@@ -125,7 +127,7 @@ class BattleARoundPreparation:
         ban_card_list = my_list
 
         # 读取所有已记录的卡片文件名, 并去除没有记录的卡片
-        ban_card_list = [ban_card for ban_card in ban_card_list if ban_card in RESOURCE_P["card"]["房间"]]
+        ban_card_list = [ban_card for ban_card in ban_card_list if ban_card in RESOURCE_P["card"]["准备房间"]]
 
         # 翻页回第一页
         for i in range(5):
@@ -149,13 +151,19 @@ class BattleARoundPreparation:
         handle_360 = self.faa.handle_360
 
         for card in ban_card_s:
+            img_tar = overlay_images(
+                img_background=RESOURCE_P["card"]["准备房间"][card],
+                img_overlay=RESOURCE_P["card"]["卡片-房间-绑定角标.png"],
+                test_show=False)
+
             # 只ban被记录了图片的变种卡
             loop_match_p_in_w(
                 source_handle=handle,
                 source_root_handle=handle_360,
                 source_range=[380, 40, 915, 105],
-                template=RESOURCE_P["card"]["房间"][card],
-                match_tolerance=0.95,
+                template=img_tar,
+                template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
+                match_tolerance=0.98,
                 match_interval=0.2,
                 match_failed_check=0.6,
                 after_sleep=1,
@@ -305,7 +313,7 @@ class BattleARoundPreparation:
 
         return image
 
-    def capture_and_match_loots(self):
+    def capture_and_match_loots(self) -> dict:
         """
         :return: 捕获的战利品dict
         """
@@ -358,9 +366,9 @@ class BattleARoundPreparation:
         else:
             print_info(text="[捕获战利品] 未在战利品UI 可能由于延迟未能捕获战利品, 继续流程")
 
-            return None
+            return {}
 
-    def capture_and_match_treasure_chests(self):
+    def capture_and_match_treasure_chests(self) -> dict:
 
         handle = self.faa.handle
         handle_360 = self.faa.handle_360
@@ -428,97 +436,10 @@ class BattleARoundPreparation:
             print_warning(text="[翻宝箱UI] 15s未能捕获正确标志, 出问题了!")
             return {}
 
-    def loots_and_chests_statistics_to_json(self, loots_dict, chests_dict):
-        """
-        保存战利品汇总.json
-        """
-
-        stage_info = self.faa.stage_info
-        faa_battle = self.faa.faa_battle
-        player = self.faa.player
-
-        file_path = "{}\\result_json\\{}P掉落汇总.json".format(PATHS["logs"], player)
-        stage_name = stage_info["id"]
-
-        # 获取本次战斗是否使用了钥匙
-        if faa_battle.is_used_key:
-            used_key_str = "is_used_key"
-        else:
-            used_key_str = "is_not_used_key"
-
-        if os.path.exists(file_path):
-            # 尝试读取现有的JSON文件
-            with open(file_path, "r", encoding="utf-8") as json_file:
-                json_data = json.load(json_file)
-        else:
-            # 如果文件不存在，初始化
-            json_data = {}
-
-        # 检查键 不存在添加
-        json_data_stage = json_data.setdefault(stage_name, {})
-        json_data_used_key = json_data_stage.setdefault(used_key_str, {})
-        json_data_loots = json_data_used_key.setdefault("loots", {})
-        json_data_chests = json_data_used_key.setdefault("chests", {})
-        json_data_count = json_data_used_key.setdefault("count", 0)
-
-        # 更新现有数据
-        for item_str, count in loots_dict.items():
-            json_data_loots[item_str] = json_data_loots.get(item_str, 0) + count
-        for item_str, count in chests_dict.items():
-            json_data_chests[item_str] = json_data_loots.get(item_str, 0) + count
-        json_data_count += 1  # 更新次数
-
-        # 保存或更新后的战利品字典到JSON文件
-        with open(file_path, "w", encoding="utf-8") as json_file:
-            json.dump(json_data, json_file, ensure_ascii=False, indent=4)
-
-    def loots_and_chests_detail_to_json(self, loots_dict, chests_dict):
-        """分P，在目录下保存战利品字典"""
-
-        player = self.faa.player
-        stage_info = self.faa.stage_info
-        faa_battle = self.faa.faa_battle
-
-        file_path = "{}\\result_json\\{}P掉落明细.json".format(PATHS["logs"], player)
-        stage_name = stage_info["id"]
-
-        if os.path.exists(file_path):
-            # 读取现有的JSON文件
-            with open(file_path, "r", encoding="utf-8") as json_file:
-                json_data = json.load(json_file)
-        else:
-            # 如果文件不存在，初始化
-            json_data = {}
-
-        # 检查"data"字段是否存在
-        json_data.setdefault("data", [])
-
-        new_data = {
-            "timestamp": time.time(),
-            "stage": stage_name,
-            "is_used_key": faa_battle.is_used_key,
-            "loots": loots_dict,
-            "chests": chests_dict
-        }
-
-        # 保存到字典数据
-        json_data["data"].append(new_data)
-
-        try:
-            # 输出到FAA数据中心(其实是白嫖的云服务器) 5s超时
-            response = requests.post(url='http://47.108.167.141:5000/faa_server', json=new_data, timeout=5)
-            # 检查响应状态码,如果不是2xx则引发异常 会被log捕获
-            response.raise_for_status()
-        except RequestException as e:
-            CUS_LOGGER.warning("向服务器发送战斗信息超时! 可能是服务器炸了...")
-
-        # 保存或更新后的战利品字典到JSON文件
-        with open(file_path, "w", encoding="utf-8") as json_file:
-            json.dump(json_data, json_file, ensure_ascii=False, indent=4)
-
     def perform_action_capture_match_for_loots_and_chests(self):
         """
         战斗结束后, 完成下述流程: 潜在的任务完成黑屏-> 战利品 -> 战斗结算 -> 翻宝箱 -> 回到房间/魔塔会回到其他界面
+        :return: int 状态码; None或dict, 该dict格式一定是 {"loots": {...}, "chests": {...}}
         """
 
         print_debug = self.faa.print_debug
@@ -533,11 +454,8 @@ class BattleARoundPreparation:
         # 翻宝箱部分, 会先检测是否在对应界面
         chests_dict = self.capture_and_match_treasure_chests()
 
+        # 重整化 loots_dict 和 chests_dict 一定是dict()
         result_loot = {"loots": loots_dict, "chests": chests_dict}
-
-        if (loots_dict is not None) and (chests_dict is not None):
-            self.loots_and_chests_statistics_to_json(loots_dict=loots_dict, chests_dict=chests_dict)
-            self.loots_and_chests_detail_to_json(loots_dict=loots_dict, chests_dict=chests_dict)
 
         if screen_check_server_boom():
             print_warning(text="检测到 断开连接 or 登录超时 or Flash爆炸, 炸服了")
