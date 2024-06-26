@@ -61,12 +61,14 @@ class CardQueue(queue.PriorityQueue):
             self.card_using = False
             return
 
-        if card.status_cd:
-            # 如果这张还在冷却 直接滚出去
-            self.get()
+        if not card.status_usable:
+            # 如果卡片不可用,且在cd中, 直接滚出去
+            if card.status_cd:
+                self.get()
             self.card_using = False
             return
 
         # 去使用这张卡
+        print(f"使用卡片：{card.name}")
         card.use_card()
         self.card_using = False
