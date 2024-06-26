@@ -367,6 +367,8 @@ class QMainWindowService(QMainWindowLog):
 def faa_start_main():
     # 实例化 PyQt后台管理
     app = QApplication(sys.argv)
+    app.setAttribute(Qt.AA_EnableHighDpiScaling, True)  # 启用高DPI缩放
+    app.setAttribute(Qt.AA_UseHighDpiPixmaps, True)  # 使用高DPI图标和图像
 
     # 实例化 主窗口
     window = QMainWindowService()
