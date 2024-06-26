@@ -4,6 +4,7 @@ import cv2
 
 from function.common.bg_img_match import loop_match_ps_in_w, loop_match_p_in_w, match_p_in_w
 from function.common.bg_img_screenshot import capture_image_png
+from function.common.overlay_images import overlay_images
 from function.core.analyzer_of_loot_logs import match_items_from_image
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
@@ -49,7 +50,7 @@ class BattleARoundPreparation:
             quest_card_list = [f"{quest_card}-{i}.png" for i in range(21)]
 
         # 读取所有记录了的卡的图片名, 只携带被记录图片的卡
-        quest_card_list = [card for card in quest_card_list if card in RESOURCE_P["card"]["房间"]]
+        quest_card_list = [card for card in quest_card_list if card in RESOURCE_P["card"]["准备房间"]]
 
         """选卡动作"""
         already_found = False
@@ -68,11 +69,17 @@ class BattleARoundPreparation:
                     time.sleep(0.4)
                 else:
                     # 如果还没找到 就试试查找点击 添加卡片
+                    img_tar = overlay_images(
+                        img_background=RESOURCE_P["card"]["准备房间"][quest_card],
+                        img_overlay=RESOURCE_P["card"]["卡片-房间-绑定角标.png"],
+                        test_show=False)
+
                     find = loop_match_p_in_w(
                         source_handle=handle,
                         source_root_handle=handle_360,
                         source_range=[380, 175, 925, 420],
-                        template=RESOURCE_P["card"]["房间"][quest_card],
+                        template=img_tar,
+                        template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
                         match_tolerance=0.95,
                         match_failed_check=0.4,
                         match_interval=0.2,
@@ -120,7 +127,7 @@ class BattleARoundPreparation:
         ban_card_list = my_list
 
         # 读取所有已记录的卡片文件名, 并去除没有记录的卡片
-        ban_card_list = [ban_card for ban_card in ban_card_list if ban_card in RESOURCE_P["card"]["房间"]]
+        ban_card_list = [ban_card for ban_card in ban_card_list if ban_card in RESOURCE_P["card"]["准备房间"]]
 
         # 翻页回第一页
         for i in range(5):
@@ -144,13 +151,19 @@ class BattleARoundPreparation:
         handle_360 = self.faa.handle_360
 
         for card in ban_card_s:
+            img_tar = overlay_images(
+                img_background=RESOURCE_P["card"]["准备房间"][card],
+                img_overlay=RESOURCE_P["card"]["卡片-房间-绑定角标.png"],
+                test_show=False)
+
             # 只ban被记录了图片的变种卡
             loop_match_p_in_w(
                 source_handle=handle,
                 source_root_handle=handle_360,
                 source_range=[380, 40, 915, 105],
-                template=RESOURCE_P["card"]["房间"][card],
-                match_tolerance=0.95,
+                template=img_tar,
+                template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
+                match_tolerance=0.98,
                 match_interval=0.2,
                 match_failed_check=0.6,
                 after_sleep=1,
@@ -423,7 +436,7 @@ class BattleARoundPreparation:
             print_warning(text="[翻宝箱UI] 15s未能捕获正确标志, 出问题了!")
             return {}
 
-    def perform_action_capture_match_for_loots_and_chests(self) :
+    def perform_action_capture_match_for_loots_and_chests(self):
         """
         战斗结束后, 完成下述流程: 潜在的任务完成黑屏-> 战利品 -> 战斗结算 -> 翻宝箱 -> 回到房间/魔塔会回到其他界面
         :return: int 状态码; None或dict, 该dict格式一定是 {"loots": {...}, "chests": {...}}
