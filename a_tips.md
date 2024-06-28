@@ -3,9 +3,9 @@
     cd "F:\My Project\Python\_ExeWorkSpace"
 
 ## 打包开始
-    pyinstaller -i "F:\My Project\Python\FoodsVsMousesAutoAssistant\resource\logo\FetTuo-64x.ico" -w -D "F:\My Project\Python\FoodsVsMousesAutoAssistant\function\main.py" 
+    pyinstaller -i "F:\My Project\Python\FoodsVsMousesAutoAssistant\resource\logo\FetTuo-64x.ico" -w -D "F:\My Project\Python\FoodsVsMousesAutoAssistant\function\faa_main.py" 
 ## 打包开始(调试版)
-    pyinstaller -i "F:\My Project\Python\FoodsVsMousesAutoAssistant\resource\logo\FetTuo-64x.ico" -D "F:\My Project\Python\FoodsVsMousesAutoAssistant\function\main.py" 
+    pyinstaller -i "F:\My Project\Python\FoodsVsMousesAutoAssistant\resource\logo\FetTuo-64x.ico" -D "F:\My Project\Python\FoodsVsMousesAutoAssistant\function\faa_main.py" 
 ## 其他tip
     `-D` 产生完整目录作为可执行文件
     `-w` 不显示黑框
