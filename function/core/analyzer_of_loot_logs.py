@@ -99,7 +99,7 @@ def match_items_from_image(img_save_path, image, mode='loots', test_print=False)
                 break
 
             if is_locked:
-                best_match_item_with_locked = f"{best_match_item} - 绑定"
+                best_match_item_with_locked = f"{best_match_item}-绑定"
             else:
                 best_match_item_with_locked = best_match_item
 
@@ -147,6 +147,13 @@ def split_image_to_blocks(image, mode):
 
 
 def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
+    """
+    :param block: 44x44的 numpy.array 图片
+    :param list_iter: 迭代器
+    :param last_name: 上次名称
+    :param may_locked: 是否检测潜在的绑定物品
+    :return: 优秀匹配结果, 迭代器, 是否是绑定的
+    """
     # 如果上次识图成功, 则再试一次, 看看是不是同一张图
     if last_name is not None:
         item_img = RESOURCE_P["item"]["战利品"][last_name + ".png"]
@@ -154,11 +161,6 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
         # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
         if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask"):
             return last_name, list_iter, False
-
-        # 部分物品可能绑定
-        if may_locked and last_name in ["4级四叶草", "5级四叶草", "威望币", "遗迹古卷", "金币", "小金币袋", "大金币袋"]:
-            if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_locked"):
-                return last_name, list_iter, True
 
     # 先按照顺序表遍历, 极大减少耗时(如果有顺序表)
     if list_iter:
@@ -168,9 +170,9 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
             # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
             if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable"):
                 return item_name, list_iter, False
-            # 部分物品可能绑定
-            if may_locked and item_name in ["4级四叶草", "5级四叶草", "威望币", "遗迹古卷", "金币", "小金币袋",
-                                            "大金币袋"]:
+
+            # 额外识别一下 这玩意是否是绑定的某个物品
+            if may_locked:
                 if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_locked"):
                     return item_name, list_iter, True
 
@@ -182,9 +184,8 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
         if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable"):
             return item_name, list_iter, False
 
-        # 部分物品可能绑定
-        if may_locked and item_name in ["异次元空间袋", "法老王的黄金棺材盒", "4级四叶草", "5级四叶草", "威望币",
-                                        "遗迹古卷", "金币", "小金币袋", "大金币袋"]:
+        # 额外识别一下 这玩意是否是绑定的某个物品
+        if may_locked:
             if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_locked"):
                 return item_name, list_iter, True
 
