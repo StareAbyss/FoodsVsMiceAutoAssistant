@@ -1,5 +1,7 @@
 import queue
 
+from function.globals.log import CUS_LOGGER
+
 
 class CardQueue(queue.PriorityQueue):
     def __init__(self, card_list):
@@ -44,7 +46,7 @@ class CardQueue(queue.PriorityQueue):
         # 恢复队列的原始状态
         for priority, item in items:
             self.put((priority, item))
-        print(items_name)
+        CUS_LOGGER.debug(items_name)
 
     def use_top_card(self):
 
@@ -69,6 +71,7 @@ class CardQueue(queue.PriorityQueue):
             return
 
         # 去使用这张卡
-        print(f"使用卡片：{card.name}")
+        # CUS_LOGGER.debug(f"[战斗执行器] 使用卡片：{card.name}")
+
         card.use_card()
         self.card_using = False
