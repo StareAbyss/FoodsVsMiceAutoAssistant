@@ -23,10 +23,10 @@ class Battle:
         # 战斗专用私有属性 - 静态
 
         # 每次点击时 按下和抬起之间的间隔 秒
-        self.click_interval = 0.012
+        self.click_interval = 0.016
 
         # 每次点击时 按下和抬起之间的间隔 秒
-        self.click_sleep = 0.012
+        self.click_sleep = 0.016
 
         # 自动拾取的格子
         self.auto_collect_cells = [
