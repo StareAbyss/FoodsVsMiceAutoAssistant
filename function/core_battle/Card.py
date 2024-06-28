@@ -114,14 +114,13 @@ class Card:
                 handle=self.handle,
                 x=self.location_to[j][0],
                 y=self.location_to[j][1])
-        time.sleep(self.click_sleep * j+1)
 
         # 放卡后点一下空白
         T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-        time.sleep(self.click_sleep)
-
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
-        time.sleep(self.click_sleep)
+
+        # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
+        time.sleep(self.click_sleep * (j + 3))
 
         # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
         if self.queue:
@@ -131,15 +130,12 @@ class Card:
             self.location_to.remove(self.location_to[0])
 
         # 额外时延
-        time.sleep(0.1)
+        time.sleep(0.2)
 
         # 如果放卡后还可用,自ban 若干s
         # 判断可用 如果不知道其还可用。会导致不自ban，导致无意义点击出现，后果更小。1轮扫描后纠正。
         # 判断冷却 如果不知道其进入了冷却。会导致错误的额外的自ban，导致放卡逻辑错乱。ban描述后纠正。
         self.fresh_status()
-
-        # 额外时延
-        time.sleep(0.1)
 
         if self.status_usable and (self.name not in self.ban_white_list):
             # 放置失败 说明放满了 如果不在白名单 就自ban

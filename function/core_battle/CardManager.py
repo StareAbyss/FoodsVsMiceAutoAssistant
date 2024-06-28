@@ -181,7 +181,7 @@ class ThreadCheckTimer(QThread):
         self.running_round += 1
 
         # 实时 打印 <点击队列> 目前的状态
-        # if self.faa.player == 2:
+        # if self.faa.player == 1:
         #     T_ACTION_QUEUE_TIMER.print_queue_statue()
 
         # 看看是不是结束了
