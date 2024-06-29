@@ -848,7 +848,7 @@ class FAA:
                                 "is_use_key": bool(battle_sets[2]),  # 注意类型转化
                                 "max_times": 1,
                                 "quest_card": battle_sets[3],
-                                "list_ban_card": battle_sets[4].split(","),
+                                "ban_card_list": ban_card_list,
                                 "dict_exit": {
                                     "other_time_player_a": [],
                                     "other_time_player_b": [],
