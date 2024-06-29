@@ -426,6 +426,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
             with open(file=file_name, mode='w', encoding='utf-8') as file:
                 json.dump(self.json_data, file, ensure_ascii=False, indent=4)
+            EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
 
     def load_json(self):
         """打开窗口 读取josn文件"""
