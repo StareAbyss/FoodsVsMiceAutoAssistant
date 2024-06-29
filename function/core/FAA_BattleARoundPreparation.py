@@ -110,9 +110,9 @@ class BattleARoundPreparation:
         print_debug = self.faa.print_debug
 
         if ban_card_list:
-            print_debug(text=f" [移除卡片] 开始, 目标:{ban_card_list}")
+            print_debug(text=f"[移除卡片] 开始, 目标:{ban_card_list}")
         else:
-            print_debug(text=f" [移除卡片] 不需要,跳过")
+            print_debug(text=f"[移除卡片] 不需要,跳过")
             return
 
         # 由于ban卡的特性, 要先将所有ban卡的变种都加入列表中, 再进行ban

@@ -1,5 +1,6 @@
 import queue
 
+from function.globals.extra import EXTRA_GLOBALS
 from function.globals.log import CUS_LOGGER
 
 
@@ -70,8 +71,9 @@ class CardQueue(queue.PriorityQueue):
             self.card_using = False
             return
 
-        # 去使用这张卡
-        # CUS_LOGGER.debug(f"[战斗执行器] 使用卡片：{card.name}")
+        if EXTRA_GLOBALS.battle_extra_log:
+            CUS_LOGGER.debug(f"[战斗执行器] 使用卡片：{card.name}")
 
+        # 去使用这张卡
         card.use_card()
         self.card_using = False

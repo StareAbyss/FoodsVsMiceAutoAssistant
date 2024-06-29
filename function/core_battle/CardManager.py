@@ -227,16 +227,17 @@ class ThreadCheckTimer(QThread):
                         max_card.is_kun_target = True
 
             # 调试打印 - 目前 <战斗管理器> 的状态
-            if self.faa.player == 1:
-                text = ""
-                for card in self.card_queue.card_list:
-                    text += "[战斗执行器] [{}|CD:{}|用:{}|禁:{}|坤:{}] ".format(
-                        card.name[:2] if len(card.name) >= 2 else card.name,
-                        'T' if card.status_cd else 'F',
-                        'T' if card.status_usable else 'F',
-                        'T' if card.status_ban else 'F',
-                        'T' if card.is_kun_target else 'F')
-                self.faa.print_debug(text)
+            if EXTRA_GLOBALS.battle_extra_log:
+                if self.faa.player == 1:
+                    text = "[战斗执行器] "
+                    for card in self.card_queue.card_list:
+                        text += "[{}|CD:{}|用:{}|禁:{}|坤:{}] ".format(
+                            card.name[:2] if len(card.name) >= 2 else card.name,
+                            'T' if card.status_cd else 'F',
+                            'T' if card.status_usable else 'F',
+                            card.status_ban if card.status_ban else 'F',
+                            'T' if card.is_kun_target else 'F')
+                    self.faa.print_debug(text)
 
         # 刷新全局冰沙锁的状态
         if EXTRA_GLOBALS.smoothie_lock_time != 0:

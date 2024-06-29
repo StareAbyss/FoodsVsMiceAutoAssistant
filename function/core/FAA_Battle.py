@@ -60,7 +60,7 @@ class Battle:
         time.sleep(self.click_sleep)
 
     def use_player_all(self):
-        self.faa.print_debug(text="[战斗] 开始放置玩家:{}".format(self.faa.battle_plan_0["player"]))
+        self.faa.print_info(text="[战斗] 开始放置玩家:{}".format(self.faa.battle_plan_0["player"]))
         for i in self.faa.battle_plan_0["player"]:
             self.use_player_once(i)
             time.sleep(self.click_sleep)
@@ -98,7 +98,7 @@ class Battle:
             match_tolerance=0.95,
             template=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
         if find:
-            self.faa.print_debug(text="找到了 [继续作战] 图标")
+            self.faa.print_info(text="找到了 [继续作战] 图标")
             while find:
                 loop_match_p_in_w(
                     source_handle=self.faa.handle,
@@ -114,7 +114,7 @@ class Battle:
                     source_range=[302, 263, 396, 289],
                     match_tolerance=0.95,
                     template=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
-            self.faa.print_debug(text="点击了 [继续作战] 图标")
+            self.faa.print_info(text="点击了 [继续作战] 图标")
             return True
         return False
 

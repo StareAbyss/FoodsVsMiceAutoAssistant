@@ -235,6 +235,7 @@ class FAA:
         if self.ban_card_list:
             self.ban_card_list.append("冰淇淋")
             self.ban_card_list.append("幻幻鸡")
+
         # 双倍ban承载 ban软糖
         if "木盘子" in self.ban_card_list:
             self.ban_card_list.append("魔法软糖")
@@ -790,11 +791,24 @@ class FAA:
                         # 添加到任务列表
                         quest_list.append(
                             {
-                                "player": [2, 1],
                                 "stage_id": stage_id,
-                                "quest_card": quest_card
+                                "player": [2, 1],
+                                "need_key": True,
+                                "max_times": 1,
+                                "dict_exit": {
+                                    "other_time_player_a": [],
+                                    "other_time_player_b": [],
+                                    "last_time_player_a": ["竞技岛"],
+                                    "last_time_player_b": ["竞技岛"]
+                                },
+                                "deck": None,  # 外部输入
+                                "quest_card": quest_card,
+                                "ban_card_list": [],
+                                "battle_plan_1p": None,  # 外部输入
+                                "battle_plan_2p": None,  # 外部输入
                             }
                         )
+
         if mode == "情侣任务":
 
             for i in ["1", "2", "3"]:
@@ -818,11 +832,24 @@ class FAA:
                         if find_p:
                             quest_list.append(
                                 {
+                                    "stage_id": quest.split(".")[0],  # 去掉.png
                                     "player": [2, 1],
-                                    "stage_id": quest.split(".")[0],
-                                    "quest_card": "None"
+                                    "need_key": True,
+                                    "max_times": 1,
+                                    "dict_exit": {
+                                        "other_time_player_a": [],
+                                        "other_time_player_b": [],
+                                        "last_time_player_a": ["竞技岛"],
+                                        "last_time_player_b": ["竞技岛"]
+                                    },
+                                    "deck": None,  # 外部输入
+                                    "quest_card": "None",
+                                    "ban_card_list": [],
+                                    "battle_plan_1p": None,  # 外部输入
+                                    "battle_plan_2p": None,  # 外部输入
                                 }
                             )
+
         if mode == "美食大赛":
             y_dict = {0: 359, 1: 405, 2: 448, 3: 491, 4: 534, 5: 570}
             for i in range(6):
@@ -841,20 +868,28 @@ class FAA:
                         # 处理解析字符串
                         quest = quest.split(".")[0]  # 去除.png
                         battle_sets = quest.split("_")
+                        ban_card_list = battle_sets[4].split(",")
+                        # 如果 ['None'] -> []
+                        if ban_card_list == ['None']:
+                            ban_card_list = []
+
                         quest_list.append(
                             {
                                 "stage_id": battle_sets[0],
                                 "player": [self.player] if battle_sets[1] == "1" else [2, 1],  # 1 单人 2 组队
                                 "need_key": bool(battle_sets[2]),  # 注意类型转化
                                 "max_times": 1,
-                                "quest_card": battle_sets[3],
-                                "ban_card_list": ban_card_list,
                                 "dict_exit": {
                                     "other_time_player_a": [],
                                     "other_time_player_b": [],
                                     "last_time_player_a": ["竞技岛", "美食大赛领取"],
                                     "last_time_player_b": ["竞技岛", "美食大赛领取"]
-                                }
+                                },
+                                "deck": None,  # 外部输入
+                                "quest_card": battle_sets[3],
+                                "ban_card_list": ban_card_list,
+                                "battle_plan_1p": None,  # 外部输入
+                                "battle_plan_2p": None,  # 外部输入
                             }
                         )
 
