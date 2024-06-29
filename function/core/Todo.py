@@ -850,12 +850,14 @@ class ThreadTodo(QThread):
                 result_id, result_loot, result_spend_time = self.battle(player_a=player_a, player_b=player_b)
 
                 if result_id == 0:
+
                     # 战斗成功 计数+1
                     battle_count += 1
-                    # 计数战斗是否使用了钥匙
-                    this_time_of_battle_is_used_key = faa_a.faa_battle.is_used_key
-                    if is_group:
-                        this_time_of_battle_is_used_key = this_time_of_battle_is_used_key or faa_b.faa_battle.is_used_key
+
+                    # 计数战斗是否使用了钥匙, 由于一个号用过后两个号都会被修改为用过, 故不需要多余的判断
+                    # this_battle_is_used_key = faa_a.faa_battle.is_used_key
+                    # if is_group:
+                    #     this_battle_is_used_key = this_battle_is_used_key or faa_b.faa_battle.is_used_key
 
                     if battle_count < max_times:
                         # 常规退出方式
@@ -872,10 +874,13 @@ class ThreadTodo(QThread):
                             for j in dict_exit["last_time_player_b"]:
                                 faa_b.action_exit(mode=j)
 
+                    # 获取是否使用了钥匙 仅查看房主(任意一个号用了钥匙都会更改为两个号都用了)
+                    is_used_key = faa_a.faa_battle.is_used_key
+
                     # 加入结果统计列表
                     result_list.append({
                         "time_spend": result_spend_time,
-                        "is_used_key": this_time_of_battle_is_used_key,
+                        "is_used_key": is_used_key,
                         "loot_dict_list": result_loot  # result_loot_dict_list = [{a掉落}, {b掉落}]
                     })
 
@@ -884,7 +889,7 @@ class ThreadTodo(QThread):
                         text="{}第{}次, {}, 正常结束, 耗时:{}分{}秒".format(
                             title,
                             battle_count,
-                            "使用钥匙" if this_time_of_battle_is_used_key else "未使用钥匙",
+                            "使用钥匙" if is_used_key else "未使用钥匙",
                             *divmod(int(result_spend_time), 60)
                         )
                     )

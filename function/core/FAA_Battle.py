@@ -88,6 +88,10 @@ class Battle:
         :return:
             None
         """
+        # 如果不需要使用钥匙 或者 已经用过钥匙 直接输出
+        if not self.faa.need_key or self.is_used_key:
+            return False
+
         find = match_p_in_w(
             source_handle=self.faa.handle,
             source_range=[386, 332, 463, 362],
