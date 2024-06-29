@@ -29,7 +29,7 @@ class QMainWindowLoadUI(QMainWindow):
         self.setWindowTitle("FAA - 本软件免费且开源 - 反馈交流: 786921130")
 
         # 设置窗口图标
-        self.setWindowIcon(QIcon(PATHS["logo"] + "\\FetTuo-192x.png"))
+        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetTuo-192x.png"))
 
         # 获取 dpi & zoom 仅能在类中调用
         self.zoom_rate = get_system_dpi() / 96
