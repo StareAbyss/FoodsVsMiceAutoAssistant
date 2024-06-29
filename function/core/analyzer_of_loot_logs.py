@@ -8,6 +8,7 @@ import networkx as nx
 from cv2 import imencode
 
 from function.common.one_time_match import one_item_match
+from function.globals.extra import EXTRA_GLOBALS
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
 from function.globals.log import CUS_LOGGER
@@ -276,13 +277,26 @@ def find_longest_path_from_dag():
 
 def ranking_read_data(json_path):
     if os.path.exists(json_path):
-        with open(json_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            if "ranking" in data:
-                return data
-    return {'ranking': [], 'graph': {}}
+
+        # 自旋锁读写, 防止多线程读写问题
+        while EXTRA_GLOBALS.file_is_reading_or_writing:
+            time.sleep(0.1)
+        EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+        with open(file=json_path, mode="r", encoding="UTF-8") as file:
+            data = json.load(file)
+        EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
+
+        if "ranking" in data:
+            return data
+        else:
+            return {'ranking': [], 'graph': {}}
 
 
 def ranking_save_data(json_path, data):
-    with open(json_path, 'w', encoding='utf-8') as f:
+    # 自旋锁读写, 防止多线程读写问题
+    while EXTRA_GLOBALS.file_is_reading_or_writing:
+        time.sleep(0.1)
+    EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+    with open(file=json_path, mode='w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
+    EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁

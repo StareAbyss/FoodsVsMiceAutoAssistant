@@ -1,15 +1,22 @@
 import json
+import time
 
+from function.globals.extra import EXTRA_GLOBALS
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 
 
 def read_json_to_stage_info(stage_id):
     """读取文件中是否存在预设"""
-    with open(PATHS["config"] + "//stage_info.json", "r", encoding="UTF-8") as file:
+    # 自旋锁读写, 防止多线程读写问题
+    while EXTRA_GLOBALS.file_is_reading_or_writing:
+        time.sleep(0.1)
+    EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+    with open(file=PATHS["config"] + "//stage_info.json", mode="r", encoding="UTF-8") as file:
         stages_info = json.load(file)
-    with open(PATHS["config"] + "//stage_info_extra.json", "r", encoding="UTF-8") as file:
+    with open(file=PATHS["config"] + "//stage_info_extra.json", mode="r", encoding="UTF-8") as file:
         stages_info_extra = json.load(file)
+    EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
 
     # 初始化
     stage_info = stages_info["default"]

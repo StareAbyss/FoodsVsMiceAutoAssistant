@@ -3,10 +3,12 @@ import json
 import os
 import shutil
 import sys
+import time
 
 from PyQt5.QtWidgets import QApplication, QMessageBox
 
 from function.core.QMW_0_load_ui_file import QMainWindowLoadUI
+from function.globals.extra import EXTRA_GLOBALS
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 from function.scattered.get_customize_todo_list import get_customize_todo_list
@@ -48,17 +50,28 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         else:
             CUS_LOGGER.info(f"'{settings_file}' 已存在。")
 
-    def json_to_opt(self):
-        with open(self.opt_path) as json_file:
-            opt = json.load(json_file)
-        self.opt = opt
+    def json_to_opt(self)->None:
+        # 自旋锁读写, 防止多线程读写问题
+        while EXTRA_GLOBALS.file_is_reading_or_writing:
+            time.sleep(0.1)
+        EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+        with open(file=self.opt_path, mode="r", encoding="UTF-8") as file:
+            data = json.load(file)
+        EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
+        self.opt = data
+        return None
 
-    def opt_to_json(self):
+    def opt_to_json(self)->None:
         # dict → str 转换True和true
         json_str = json.dumps(self.opt, indent=4)
-        # 写入
-        with open(self.opt_path, 'w') as json_file:
-            json_file.write(json_str)
+
+        # 自旋锁读写, 防止多线程读写问题
+        while EXTRA_GLOBALS.file_is_reading_or_writing:
+            time.sleep(0.1)
+        EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+        with open(file=self.opt_path, mode="w", encoding="UTF-8") as file:
+            file.write(json_str)
+        EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
         return None
 
     def opt_to_ui_todo_plans(self):

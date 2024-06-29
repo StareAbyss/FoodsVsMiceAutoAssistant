@@ -13,6 +13,7 @@ from function.common.bg_img_match import loop_match_p_in_w
 from function.common.thread_with_exception import ThreadWithException
 from function.core.analyzer_of_loot_logs import update_dag_graph, find_longest_path_from_dag
 from function.core_battle.CardManager import CardManager
+from function.globals.extra import EXTRA_GLOBALS
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
 from function.globals.log import CUS_LOGGER
@@ -1298,8 +1299,15 @@ class ThreadTodo(QThread):
                 PATHS["customize_todo"],
                 customize_todo_list[customize_todo_index]
             )
-            with open(customize_todo_path, "r", encoding="UTF-8") as file:
-                return json.load(file)
+
+            # 自旋锁读写, 防止多线程读写问题
+            while EXTRA_GLOBALS.file_is_reading_or_writing:
+                time.sleep(0.1)
+            EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+            with open(file=customize_todo_path, mode="r", encoding="UTF-8") as file:
+                data = json.load(file)
+            EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
+            return data
 
         self.model_start_print(text=text_)
 

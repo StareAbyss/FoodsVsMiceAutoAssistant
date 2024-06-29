@@ -15,6 +15,7 @@ from function.core.FAA_Battle import Battle
 from function.core.FAA_BattleARoundPreparation import BattleARoundPreparation
 from function.core_battle.get_position_in_battle import get_position_card_deck_in_battle, \
     get_position_card_cell_in_battle
+from function.globals.extra import EXTRA_GLOBALS
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
 from function.globals.log import CUS_LOGGER
@@ -248,8 +249,15 @@ class FAA:
                 PATHS["battle_plan"],
                 battle_plan_list[battle_plan_index]
             )
-            with open(battle_plan_path, "r", encoding="UTF-8") as file:
-                return json.load(file)
+
+            # 自旋锁读写, 防止多线程读写问题
+            while EXTRA_GLOBALS.file_is_reading_or_writing:
+                time.sleep(0.1)
+            EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+            with open(file=battle_plan_path, mode="r", encoding="UTF-8") as file:
+                data = json.load(file)
+            EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
+            return data
 
         self.battle_plan_0 = read_json_to_battle_plan()
 

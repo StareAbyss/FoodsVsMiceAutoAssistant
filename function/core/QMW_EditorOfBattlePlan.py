@@ -1,6 +1,7 @@
 import copy
 import json
 import sys
+import time
 
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QKeySequence
@@ -8,6 +9,7 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QGridLayout, QPushButton, QWidget, QFileDialog, QVBoxLayout, QLabel, QComboBox,
     QLineEdit, QHBoxLayout, QTextEdit, QListWidget, QMessageBox, QSpinBox, QListWidgetItem, QShortcut, QFrame)
 
+from function.globals.extra import EXTRA_GLOBALS
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 
@@ -416,9 +418,13 @@ class QMWEditorOfBattlePlan(QMainWindow):
             options=options)
 
         if file_name:
-            with open(file_name, 'w', encoding='utf-8') as file:
-                # 确保玩家位置也被保存
-                self.json_data['player'] = self.json_data.get('player', [])
+            # 确保玩家位置也被保存
+            self.json_data['player'] = self.json_data.get('player', [])
+            # 自旋锁读写, 防止多线程读写问题
+            while EXTRA_GLOBALS.file_is_reading_or_writing:
+                time.sleep(0.1)
+            EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+            with open(file=file_name, mode='w', encoding='utf-8') as file:
                 json.dump(self.json_data, file, ensure_ascii=False, indent=4)
 
     def load_json(self):
@@ -440,26 +446,33 @@ class QMWEditorOfBattlePlan(QMainWindow):
             options=options)
 
         if file_name:
-            with open(file_name, 'r', encoding='utf-8') as file:
+
+            # 自旋锁读写, 防止多线程读写问题
+            while EXTRA_GLOBALS.file_is_reading_or_writing:
+                time.sleep(0.1)
+            EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+            with open(file=file_name, mode='r', encoding='utf-8') as file:
                 self.json_data = json.load(file)
-                self.WeiTipsEditor.setPlainText(self.json_data.get('tips', ''))
+            EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
 
-                # 初始化
-                self.current_edit_index = None  # 初始化当前选中
-                self.WeiCurrentEdit.setText("无")
-                self.WeiIdInput.clear()
-                self.WeiNameInput.clear()
-                self.WeiErgodicInput.setCurrentIndex(0)
-                self.QueueInput.setCurrentIndex(0)
+            self.WeiTipsEditor.setPlainText(self.json_data.get('tips', ''))
 
-                # 根据数据绘制视图
-                self.load_data_to_ui_list()
-                self.refresh_chessboard()
-                # 清除所有按钮的高亮
-                for row in self.chessboard_frames:
-                    for btn in row:
-                        # 去除高亮
-                        btn.setStyleSheet("")
+            # 初始化
+            self.current_edit_index = None  # 初始化当前选中
+            self.WeiCurrentEdit.setText("无")
+            self.WeiIdInput.clear()
+            self.WeiNameInput.clear()
+            self.WeiErgodicInput.setCurrentIndex(0)
+            self.QueueInput.setCurrentIndex(0)
+
+            # 根据数据绘制视图
+            self.load_data_to_ui_list()
+            self.refresh_chessboard()
+            # 清除所有按钮的高亮
+            for row in self.chessboard_frames:
+                for btn in row:
+                    # 去除高亮
+                    btn.setStyleSheet("")
 
         # 为输入控件信号解锁
         self.WeiCurrentEdit.blockSignals(False)

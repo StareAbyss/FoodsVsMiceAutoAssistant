@@ -56,7 +56,7 @@ class QMainWindowLog(QMainWindowLoadSettings):
     def start_print(self):
         """打印默认输出提示"""
 
-        self.image_to_ui(image=PATHS["logo"] + "\\FetTuo-192x.png")
+        self.image_to_ui(image=PATHS["logo"] + "\\圆角-FetTuo-192x.png")
         self.signal_print_to_ui.emit("嗷呜, 欢迎使用FAA-美食大战老鼠自动放卡作战小助手~", time=False)
 
         self.signal_print_to_ui.emit("本软件 [开源][免费][绿色] 当前版本: 1.4.0", time=False)
