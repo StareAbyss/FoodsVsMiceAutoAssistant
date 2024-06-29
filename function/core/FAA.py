@@ -414,7 +414,7 @@ class FAA:
 
     def init_battle_plan_1(self) -> None:
         """
-        计算所有卡片的部署方案
+        战斗方案解析器 - 用于根据战斗方案的json和关卡等多种信息, 解析计算为卡片的部署方案 供战斗方案执行器执行
         Return:卡片的部署方案字典
             example = [
                 {
@@ -449,13 +449,10 @@ class FAA:
         def calculation_card_quest(list_cell_all):
             """计算步骤一 加入任务卡的摆放坐标"""
 
-            # 任务卡 大号小号开始位置不同 任务卡id = 0 则为没有
-            quest_card_locations = ["6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7"]
+            if quest_card != "None":
 
-            if quest_card == "None":
-                return list_cell_all
-
-            else:
+                # 任务卡 位置
+                quest_card_locations = ["6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7"]
 
                 # 遍历删除 方案的放卡中 占用了任务卡摆放的棋盘位置
                 list_cell_all = [
@@ -480,9 +477,15 @@ class FAA:
                     "location_to": []
                 }
 
-                # 第二位插入
-                list_cell_all.insert(1, dict_quest)
-                return list_cell_all
+                # 可能是空列表 即花瓶
+                if len(list_cell_all) == 0:
+                    # 首位插入
+                    list_cell_all.insert(0, dict_quest)
+                else:
+                    # 第二位插入
+                    list_cell_all.insert(1, dict_quest)
+
+            return list_cell_all
 
         def calculation_card_ban(list_cell_all):
             """步骤二 ban掉某些卡, 依据[卡组信息中的name字段] 和 ban卡信息中的字符串 是否重复"""
@@ -527,8 +530,14 @@ class FAA:
                     "queue": True,
                     "location_from": mat_card_position[i]["location_from"],
                     "location_to": []}
-                # 首位插入
-                list_cell_all.insert(1, dict_mat)
+
+                # 可能是空列表 即花瓶
+                if len(list_cell_all) == 0:
+                    # 首位插入
+                    list_cell_all.insert(0, dict_mat)
+                else:
+                    # 第二位插入
+                    list_cell_all.insert(1, dict_mat)
 
             return list_cell_all
 
