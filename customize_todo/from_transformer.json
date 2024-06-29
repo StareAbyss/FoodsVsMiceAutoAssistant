@@ -1,0 +1,1730 @@
+[
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "EX-1-1",
+        "battle_id": 1,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "EX-1-2",
+        "battle_id": 2,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "EX-1-3",
+        "battle_id": 3,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-1-9",
+        "battle_id": 4,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-7",
+        "battle_id": 5,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-8",
+        "battle_id": 6,
+        "quest_card": "酒杯灯",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": [
+            "小火炉",
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-14",
+        "battle_id": 7,
+        "quest_card": "酒杯灯",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": [
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-2",
+        "battle_id": 8,
+        "quest_card": "酒杯灯",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": [
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-4-5",
+        "battle_id": 9,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": [
+            "苏打气泡",
+            "木盘子",
+            "咖啡粉",
+            "麦芽糖"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-1-7",
+        "battle_id": 10,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": [
+            "木盘子",
+            "咖啡粉",
+            "麦芽糖"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-1-8",
+        "battle_id": 11,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-1-11",
+        "battle_id": 12,
+        "quest_card": "酒杯灯",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": [
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-1-12",
+        "battle_id": 13,
+        "quest_card": "换气扇",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-1-14",
+        "battle_id": 14,
+        "quest_card": "酒杯灯",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": [
+            "小火炉",
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-6",
+        "battle_id": 15,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-9",
+        "battle_id": 16,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-10",
+        "battle_id": 17,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": [
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-11",
+        "battle_id": 18,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": [
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-12",
+        "battle_id": 19,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-13",
+        "battle_id": 20,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-14",
+        "battle_id": 21,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-15",
+        "battle_id": 22,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-4-1",
+        "battle_id": 23,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-4-2",
+        "battle_id": 24,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-4-3",
+        "battle_id": 25,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": [
+            "糖葫芦炮弹"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-4-4",
+        "battle_id": 26,
+        "quest_card": "酒杯灯",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": [
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-4-5",
+        "battle_id": 27,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-4-6",
+        "battle_id": 28,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-4-7",
+        "battle_id": 29,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-4-8",
+        "battle_id": 30,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-4-10",
+        "battle_id": 31,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-3-1",
+        "battle_id": 32,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-3-2",
+        "battle_id": 33,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-3-3",
+        "battle_id": 34,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "CS-4-1",
+        "battle_id": 35,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            1
+        ],
+        "ban_card_list": [
+            "木盘子"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "EX-1-1",
+        "battle_id": 36,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "EX-1-2",
+        "battle_id": 37,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "EX-1-3",
+        "battle_id": 38,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-1-4",
+        "battle_id": 39,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-1-6",
+        "battle_id": 40,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-1-7",
+        "battle_id": 41,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-1-9",
+        "battle_id": 42,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-1-10",
+        "battle_id": 43,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-1-12",
+        "battle_id": 44,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-1",
+        "battle_id": 45,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-4",
+        "battle_id": 46,
+        "quest_card": "酒杯灯",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": [
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-5",
+        "battle_id": 47,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": [
+            "油灯",
+            "樱桃反弹布丁",
+            "苏打气泡",
+            "木盘子",
+            "咖啡粉",
+            "麦芽糖"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-7",
+        "battle_id": 48,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": [
+            "木盘子"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-8",
+        "battle_id": 49,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-10",
+        "battle_id": 50,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": [
+            "狮子座精灵",
+            "油灯",
+            "樱桃反弹布丁",
+            "苏打气泡",
+            "木盘子",
+            "咖啡粉",
+            "麦芽糖"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-12",
+        "battle_id": 51,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-13",
+        "battle_id": 52,
+        "quest_card": "酒杯灯",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": [
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-2-15",
+        "battle_id": 53,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-4-1",
+        "battle_id": 54,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-4-5",
+        "battle_id": 55,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": [
+            "糖葫芦炮弹"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-5-1",
+        "battle_id": 56,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": [
+            "苏打气泡"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-5-2",
+        "battle_id": 57,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-5-3",
+        "battle_id": 58,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": [
+            "瓜皮护罩",
+            "狮子座精灵",
+            "油灯",
+            "樱桃反弹布丁",
+            "苏打气泡",
+            "木盘子",
+            "咖啡粉",
+            "麦芽糖"
+        ]
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "NO-5-4",
+        "battle_id": 59,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "EX-3-1",
+        "battle_id": 60,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "EX-3-3",
+        "battle_id": 61,
+        "quest_card": "None",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": []
+    },
+    {
+        "deck": 1,
+        "max_times": 1,
+        "battle_plan_1p": 0,
+        "battle_plan_2p": 1,
+        "dict_exit": {
+            "other_time_player_a": [],
+            "other_time_player_b": [],
+            "last_time_player_a": [
+                "回到上一级",
+                "美食大赛领取"
+            ],
+            "last_time_player_b": [
+                "回到上一级",
+                "美食大赛领取"
+            ]
+        },
+        "stage_id": "EX-3-4",
+        "battle_id": 62,
+        "quest_card": "酒杯灯",
+        "need_key": true,
+        "player": [
+            2,
+            1
+        ],
+        "ban_card_list": [
+            "狮子座精灵",
+            "樱桃反弹布丁",
+            "瓜皮护罩"
+        ]
+    }
+]
