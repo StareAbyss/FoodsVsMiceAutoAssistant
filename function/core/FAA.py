@@ -221,7 +221,7 @@ class FAA:
         :return:
         """
 
-        if ban_card_list is None:
+        if (ban_card_list is None) or (ban_card_list is ["None"]):
             ban_card_list = []
 
         self.is_main = is_main
