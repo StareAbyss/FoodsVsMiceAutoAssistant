@@ -741,7 +741,7 @@ class ThreadTodo(QThread):
         self.batch_reload_game()
         sleep(60 * 60 * 24)
 
-    def battle_1_1_n(self, stage_id, player, is_use_key, max_times, dict_exit,
+    def battle_1_1_n(self, stage_id, player, need_key, max_times, dict_exit,
                      deck, quest_card, ban_card_list, battle_plan_1p, battle_plan_2p, title_text, need_lock=False):
         """
         1轮次 1关卡 n次数
@@ -983,7 +983,7 @@ class ThreadTodo(QThread):
             faa_a.set_config_for_battle(
                 is_main=True,
                 is_group=is_group,
-                is_use_key=is_use_key,
+                need_key=need_key,
                 deck=deck,
                 quest_card=quest_card,
                 ban_card_list=ban_card_list,
@@ -993,7 +993,7 @@ class ThreadTodo(QThread):
                 faa_b.set_config_for_battle(
                     is_main=False,
                     is_group=is_group,
-                    is_use_key=is_use_key,
+                    need_key=need_key,
                     deck=deck,
                     quest_card=quest_card,
                     ban_card_list=ban_card_list,
@@ -1172,11 +1172,11 @@ class ThreadTodo(QThread):
                 "max_times": max_times,
                 "player": player,
                 "deck": deck,
-                "is_use_key": True,
+                "need_key": True,
                 "battle_plan_1p": battle_plan_1p,
                 "battle_plan_2p": battle_plan_2p,
                 "quest_card": "None",
-                "list_ban_card": [],
+                "ban_card_list": [],
                 "dict_exit": dict_exit
             }]
         self.battle_1_n_n(quest_list=quest_list)
@@ -1195,13 +1195,13 @@ class ThreadTodo(QThread):
             quest_list.append({
                 "deck": deck,
                 "player": [2, 1],
-                "is_use_key": True,
+                "need_key": True,
                 "battle_plan_1p": battle_plan_1p,
                 "battle_plan_2p": battle_plan_2p,
                 "stage_id": "OR-0-" + str(i + 1),
                 "max_times": [max_times_1, max_times_2, max_times_3][i],
                 "quest_card": "None",
-                "list_ban_card": [],
+                "ban_card_list": [],
                 "dict_exit": {
                     "other_time_player_a": [],
                     "other_time_player_b": [],
@@ -1274,13 +1274,13 @@ class ThreadTodo(QThread):
             quest_list.append({
                 "deck": deck,
                 "player": [2, 1],
-                "is_use_key": True,
+                "need_key": True,
                 "battle_plan_1p": battle_plan_1p,
                 "battle_plan_2p": battle_plan_2p,
                 "stage_id": "GD-0-" + str(i + 1),
                 "max_times": 3,
                 "quest_card": "None",
-                "list_ban_card": [],
+                "ban_card_list": [],
                 "dict_exit": {
                     "other_time_player_a": [],
                     "other_time_player_b": [],
@@ -1382,7 +1382,7 @@ class ThreadTodo(QThread):
                         "用钥匙" if quest_list[i]["stage_id"] else "无钥匙",
                         quest_list[i]["max_times"],
                         quest_list[i]["quest_card"],
-                        quest_list[i]["list_ban_card"]),
+                        quest_list[i]["ban_card_list"]),
                     color="#006400"
                 )
 
@@ -1407,6 +1407,7 @@ class ThreadTodo(QThread):
             while True:
                 i += 1
                 self.signal_print_to_ui.emit(text=f"[{text_}] 第{i}次循环，开始", color="#E67800")
+
                 round_result = a_round()
 
                 self.signal_print_to_ui.emit(text=f"[{text_}] 第{i}次循环，结束", color="#E67800")
@@ -1452,14 +1453,14 @@ class ThreadTodo(QThread):
                 quest_lists[player] = [
                     {
                         "player": [player],
-                        "is_use_key": True,
+                        "need_key": True,
                         "deck": my_opt["deck"],
                         "battle_plan_1p": my_opt["battle_plan_1p"],
                         "battle_plan_2p": my_opt["battle_plan_1p"],
                         "stage_id": "MT-1-" + str(my_opt["stage"]),
                         "max_times": int(my_opt["max_times"]),
                         "quest_card": "None",
-                        "list_ban_card": [],
+                        "ban_card_list": [],
                         "dict_exit": {
                             "other_time_player_a": [],
                             "other_time_player_b": [],
@@ -1517,14 +1518,14 @@ class ThreadTodo(QThread):
                         quest_list.append(
                             {
                                 "player": [player],
-                                "is_use_key": True,
+                                "need_key": True,
                                 "deck": my_opt["deck"],
                                 "battle_plan_1p": my_opt["battle_plan_1p"],
                                 "battle_plan_2p": my_opt["battle_plan_1p"],
                                 "stage_id": stage,
                                 "max_times": 1,
                                 "quest_card": "None",
-                                "list_ban_card": [],
+                                "ban_card_list": [],
                                 "dict_exit": {
                                     "other_time_player_a": [],
                                     "other_time_player_b": [],
@@ -1548,14 +1549,14 @@ class ThreadTodo(QThread):
                     quest_lists[player].append(
                         {
                             "player": [player],
-                            "is_use_key": False,
+                            "need_key": False,
                             "deck": my_opt["deck"],
                             "battle_plan_1p": my_opt["battle_plan_1p"],
                             "battle_plan_2p": my_opt["battle_plan_1p"],
                             "stage_id": stage,
                             "max_times": 1,
                             "quest_card": "None",
-                            "list_ban_card": [],
+                            "ban_card_list": [],
                             "dict_exit": {
                                 "other_time_player_a": [],
                                 "other_time_player_b": [],
@@ -1625,14 +1626,14 @@ class ThreadTodo(QThread):
                 quest_lists[player] = [
                     {
                         "player": [player],
-                        "is_use_key": True,
+                        "need_key": True,
                         "deck": my_opt["deck"],
                         "battle_plan_1p": my_opt["battle_plan_1p"],
                         "battle_plan_2p": my_opt["battle_plan_1p"],
                         "stage_id": "PT-0-" + str(my_opt["stage"]),
                         "max_times": 1,
                         "quest_card": "None",
-                        "list_ban_card": [],
+                        "ban_card_list": [],
                         "dict_exit": {
                             "other_time_player_a": [],
                             "other_time_player_b": [],
