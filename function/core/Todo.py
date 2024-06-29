@@ -44,6 +44,7 @@ class ThreadTodo(QThread):
         self.thread_card_manager = None
         self.card_manager = None
         self.battle_check_interval = 1  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
+        self.auto_food_stage_ban_list = []  # 用于防止缺乏钥匙/次数时无限重复某些关卡
 
         # 多人双线程相关
         self.my_lock = False  # 多人单线程的互锁, 需要彼此完成方可解除对方的锁
@@ -894,6 +895,25 @@ class ThreadTodo(QThread):
                         )
                     )
 
+                    # 如果使用钥匙情况和要求不符, 加入美食大赛黑名单
+                    if is_used_key == need_key:
+                        CUS_LOGGER.debug(
+                            f"{title}钥匙使用要求和实际情况一致~ 要求: {need_key}, 实际: {is_used_key}")
+                    else:
+                        CUS_LOGGER.debug(
+                            f"{title}钥匙使用要求和实际情况不同! 要求: {need_key}, 实际: {is_used_key}")
+                        self.auto_food_stage_ban_list.append(
+                            {
+                                "stage_id": stage_id,
+                                "player": player,  # 1 单人 2 组队
+                                "need_key": need_key,  # 注意类型转化
+                                "max_times": max_times,
+                                "quest_card": quest_card,
+                                "ban_card_list": ban_card_list,
+                                "dict_exit": dict_exit
+                            }
+                        )
+
                 if result_id == 1:
 
                     if is_cu:
@@ -1348,6 +1368,10 @@ class ThreadTodo(QThread):
     def auto_food(self, deck):
 
         def a_round():
+            """
+            一轮美食大赛战斗
+            :return: 是否还有任务在美食大赛中
+            """
 
             # 两个号分别读取任务
             quest_list_1 = self.faa[1].match_quests(mode="美食大赛")
@@ -1359,12 +1383,21 @@ class ThreadTodo(QThread):
 
             # 去重
             unique_data = []
-            for d in quest_list:
-                if d not in unique_data:
-                    unique_data.append(d)
+            for quest in quest_list:
+                if quest not in unique_data:
+                    unique_data.append(quest)
             quest_list = unique_data
 
-            CUS_LOGGER.debug("去重后")
+            CUS_LOGGER.debug("[全自动大赛] 去重后任务列表如下:")
+            CUS_LOGGER.debug(quest_list)
+
+            # 去被ban的任务 一般是由于 需要使用钥匙但没有使用钥匙 或 没有某些关卡的次数 但尝试进入
+            for quest in quest_list:
+                if quest in self.auto_food_stage_ban_list:
+                    CUS_LOGGER.debug(f"[全自动大赛] 该任务已经被ban, 故移出任务列表: {quest}")
+                    quest_list.remove(quest)
+
+            CUS_LOGGER.debug("[全自动大赛] 去Ban后任务列表如下:")
             CUS_LOGGER.debug(quest_list)
 
             self.signal_print_to_ui.emit(
@@ -1407,6 +1440,9 @@ class ThreadTodo(QThread):
             # 先领一下已经完成的大赛任务
             self.faa[1].receive_quest_rewards(mode="美食大赛")
             self.faa[2].receive_quest_rewards(mode="美食大赛")
+
+            # 重置美食大赛任务 ban list
+            self.auto_food_stage_ban_list = []  # 用于防止缺乏钥匙/次数时无限重复某些关卡
 
             i = 0
             while True:
