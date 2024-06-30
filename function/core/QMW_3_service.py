@@ -20,12 +20,13 @@ from function.scattered.get_channel_name import get_channel_name
 
 
 class QMainWindowService(QMainWindowLog):
-    signal_end = pyqtSignal()
-    signal_todo_start = pyqtSignal(int)
+    signal_todo_end = pyqtSignal()
+    signal_todo_start = pyqtSignal(int)  # 可通过该信号以某个 方案id 开启一趟流程
 
     def __init__(self):
         # 继承父类构造方法
         super().__init__()
+
         # 线程或线程管理实例
         self.thread_todo_1 = None
         self.thread_todo_2 = None  # 仅用于单人多线程时, 运行2P任务
@@ -41,8 +42,11 @@ class QMainWindowService(QMainWindowLog):
         self.reply = None
         self.faa = [None, None, None]
 
-        # 链接中止函数
-        self.signal_end.connect(self.todo_end)
+        # 链接todo中止函数
+        self.signal_todo_end.connect(self.todo_end)
+
+        # 链接todo开始函数
+        self.signal_todo_start.connect(self.todo_start)
 
         # 额外窗口 - 战斗方案编辑器
         self.window_editor = QMWEditorOfBattlePlan()

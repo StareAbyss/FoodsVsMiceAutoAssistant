@@ -32,7 +32,7 @@ class QMainWindowLog(QMainWindowLoadSettings):
         self.signal_dict = {
             "print_to_ui": self.signal_print_to_ui,
             "dialog": self.signal_dialog,
-            "end": self.signal_end
+            "end": self.signal_todo_end
         }
 
         # 打印默认输出提示
