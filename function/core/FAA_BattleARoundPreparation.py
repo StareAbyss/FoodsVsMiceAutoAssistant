@@ -59,8 +59,8 @@ class BattleARoundPreparation:
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=209)
         time.sleep(0.5)
 
-        # 向下点3*7次滑块 强制要求全部走完, 防止12P的同步出问题
-        for i in range(7):
+        # 向下点2*10 = 20 次滑块 强制要求全部走完, 防止12P的同步出问题, 注 其实是21次划分 点20次到底 故检测了11轮
+        for i in range(11):
 
             for quest_card in quest_card_list:
 
@@ -80,7 +80,7 @@ class BattleARoundPreparation:
                         source_range=[380, 175, 925, 420],
                         template=img_tar,
                         template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
-                        match_tolerance=0.95,
+                        match_tolerance=0.98,
                         match_failed_check=0.4,
                         match_interval=0.2,
                         after_sleep=0.4,  # 和总计检测时间一致 以同步时间
@@ -89,7 +89,7 @@ class BattleARoundPreparation:
                         already_found = True
 
             # 滑块向下移动3次
-            for j in range(3):
+            for j in range(2):
                 if not already_found:
                     # 仅还没找到继续下滑
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=400)
