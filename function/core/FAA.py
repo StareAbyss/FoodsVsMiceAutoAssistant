@@ -1133,6 +1133,9 @@ class FAA:
             """VIP签到"""
             self.action_top_menu(mode="VIP签到")
 
+            # 增加3s等待时间 以加载
+            time.sleep(3)
+
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=740, y=190)
             time.sleep(0.5)
 
@@ -1151,7 +1154,7 @@ class FAA:
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["common"]["签到"]["每日签到_确定.png"],
                 match_tolerance=0.99,
-                match_failed_check=1,
+                match_failed_check=5,
                 after_sleep=1,
                 click=True)
 
@@ -1168,7 +1171,7 @@ class FAA:
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["common"]["签到"]["美食活动_确定.png"],
                 match_tolerance=0.99,
-                match_failed_check=1,
+                match_failed_check=5,
                 after_sleep=1,
                 click=True)
 
@@ -1184,7 +1187,7 @@ class FAA:
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["common"]["签到"]["塔罗寻宝_确定.png"],
                 match_tolerance=0.99,
-                match_failed_check=1,
+                match_failed_check=5,
                 after_sleep=1,
                 click=True)
 
@@ -1194,7 +1197,7 @@ class FAA:
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["common"]["签到"]["塔罗寻宝_退出.png"],
                 match_tolerance=0.99,
-                match_failed_check=1,
+                match_failed_check=5,
                 after_sleep=1,
                 click=True)
 
@@ -1208,7 +1211,7 @@ class FAA:
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["common"]["签到"]["法老宝藏_确定.png"],
                 match_tolerance=0.99,
-                match_failed_check=1,
+                match_failed_check=5,
                 after_sleep=1,
                 click=False)
 
@@ -1229,7 +1232,7 @@ class FAA:
                 source_range=[73, 31, 173, 78],
                 template=RESOURCE_P["common"]["签到"]["公会会长_发布任务.png"],
                 match_tolerance=0.99,
-                match_failed_check=1,
+                match_failed_check=5,
                 after_sleep=1,
                 click=True)
             if find:
@@ -1239,7 +1242,7 @@ class FAA:
                     source_range=[422, 415, 544, 463],
                     template=RESOURCE_P["common"]["签到"]["公会会长_发布任务_确定.png"],
                     match_tolerance=0.99,
-                    match_failed_check=1,
+                    match_failed_check=5,
                     after_sleep=3,
                     click=True)
                 # 关闭抽奖(红X)
@@ -1255,6 +1258,7 @@ class FAA:
 
             if find:
                 # 领取钥匙
+                time.sleep(0.5)
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=400, y=445)
                 time.sleep(0.5)
 
