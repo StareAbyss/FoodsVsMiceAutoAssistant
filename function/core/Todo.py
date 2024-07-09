@@ -1730,6 +1730,7 @@ class ThreadTodo(QThread):
             self.run_2()
 
     def run_1(self):
+        """单线程作战"""
 
         # current todo plan option
         c_opt = self.opt_todo_plans
@@ -1912,6 +1913,8 @@ class ThreadTodo(QThread):
 
         self.alone_magic_tower_prison()
 
+        self.pet_temple()
+
         my_opt = c_opt["magic_tower_double"]
         if my_opt["active"]:
             self.easy_battle(
@@ -1929,8 +1932,6 @@ class ThreadTodo(QThread):
                     "last_time_player_b": ["回到上一级"]
                 }
             )
-
-        self.pet_temple()
 
         self.signal_print_to_ui.emit(text=f"全部主要事项已完成! 耗时:{datetime.datetime.now() - start_time}")
 
@@ -2003,6 +2004,8 @@ class ThreadTodo(QThread):
         self.signal_todo_end.emit()
 
     def run_2(self):
+        """多线程作战时的第二线程, 负责2P"""
+
         self.battle_1_n_n(
             quest_list=self.extra_opt["quest_list"],
             extra_title=self.extra_opt["extra_title"],
