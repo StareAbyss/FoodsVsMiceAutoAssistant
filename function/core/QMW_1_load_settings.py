@@ -34,7 +34,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.json_to_opt()
         self.init_opt_to_ui()
 
-    def check_opt_exist(self):
+    def check_opt_exist(self) -> None:
 
         settings_file = self.opt_path
         template_file = self.opt_template_path
@@ -44,13 +44,13 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             # 如果不存在，从模板文件复制
             try:
                 shutil.copyfile(template_file, settings_file)
-                CUS_LOGGER.warning(f"'{settings_file}' 不存在，已从模板 '{template_file}' 创建。")
+                CUS_LOGGER.warning(f"[读取FAA基础配置文件] '{settings_file}' 不存在，已从模板 '{template_file}' 创建。")
             except IOError as e:
-                CUS_LOGGER.error(f"无法创建 '{settings_file}' 从 '{template_file}'。错误: {e}")
+                CUS_LOGGER.error(f"[读取FAA基础配置文件] 无法创建 '{settings_file}' 从 '{template_file}'。错误: {e}")
         else:
-            CUS_LOGGER.info(f"'{settings_file}' 已存在。")
+            CUS_LOGGER.info(f"'[读取FAA基础配置文件] {settings_file}' 已存在. 直接读取.")
 
-    def json_to_opt(self)->None:
+    def json_to_opt(self) -> None:
         # 自旋锁读写, 防止多线程读写问题
         while EXTRA_GLOBALS.file_is_reading_or_writing:
             time.sleep(0.1)
@@ -61,7 +61,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.opt = data
         return None
 
-    def opt_to_json(self)->None:
+    def opt_to_json(self) -> None:
         # dict → str 转换True和true
         json_str = json.dumps(self.opt, indent=4)
 
@@ -74,7 +74,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
         return None
 
-    def opt_to_ui_todo_plans(self):
+    def opt_to_ui_todo_plans(self) -> None:
         """
         先从ui上读取目前todo plan index, 然后从opt读取对应的设置到todo plan 配置界面
         :return:
@@ -267,13 +267,13 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.AutoFood_Active.setChecked(my_opt["auto_food"]["active"])
         self.AutoFood_Deck.setValue(my_opt["auto_food"]["deck"])
 
-    def init_opt_to_ui(self):
+    def init_opt_to_ui(self) -> None:
         # comboBox.setCurrentIndex时 如果超过了已有预设 会显示为空 不会报错
         # comboBox.clear时 会把所有选项设定为默认选项
 
         todo_plan_name_list = [plan["name"] for plan in self.opt["todo_plans"]]
 
-        def base_settings():
+        def base_settings() -> None:
             my_opt = self.opt["base_settings"]
             self.GameName_Input.setText(my_opt["game_name"])
             self.Name1P_Input.setText(my_opt["name_1p"])
@@ -282,7 +282,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.Level1P_Input.setValue(my_opt["level_1p"])
             self.Level2P_Input.setValue(my_opt["level_2p"])
 
-        def timer_settings():
+        def timer_settings() -> None:
             my_opt = self.opt["timer"]["1"]
             self.Timer1_Active.setChecked(my_opt["active"])
             self.Timer1_H.setValue(my_opt["h"])
@@ -323,7 +323,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.Timer5_Plan.addItems(todo_plan_name_list)
             self.Timer5_Plan.setCurrentIndex(my_opt["plan"])
 
-        def advanced_settings():
+        def advanced_settings() -> None:
             my_opt = self.opt["advanced_settings"]
             self.EndExitGame.setChecked(my_opt["end_exit_game"])
             self.AutoUseCard.setChecked(my_opt["auto_use_card"])
@@ -331,14 +331,14 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.AutoPickUp_2P.setChecked(my_opt["auto_pickup_2p"])
             self.AutoDeleteOldImages.setChecked(my_opt["auto_delete_old_images"])
 
-        def get_warm_gift_settings():
+        def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
             self.GetWarmGift_1P_Active.setChecked(my_opt["1p"]["active"])
             self.GetWarmGift_1P_Link.setText(my_opt["1p"]["link"])
             self.GetWarmGift_2P_Active.setChecked(my_opt["2p"]["active"])
             self.GetWarmGift_2P_Link.setText(my_opt["2p"]["link"])
 
-        def level_2():
+        def level_2() -> None:
             my_opt = self.opt["level_2"]
             self.Level2_1P_Active.setChecked(my_opt["1p"]["active"])
             self.Level2_1P_Password.setText(my_opt["1p"]["password"])
@@ -355,26 +355,26 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.CurrentPlan.setCurrentIndex(self.opt["current_plan"])
         self.opt_to_ui_todo_plans()
 
-    def ui_to_opt(self):
+    def ui_to_opt(self) -> None:
         # battle_plan_list
         battle_plan_list = get_list_battle_plan(with_extension=False)
         customize_todo_list = get_customize_todo_list(with_extension=False)
 
-        def my_transformer_b(change_class: object, opt_1, opt_2):
+        def my_transformer_b(change_class: object, opt_1, opt_2) -> None:
             # 用于配置 带有选单的 战斗方案
             self.opt["todo_plans"][self.opt["current_plan"]][opt_1][opt_2] = change_class.currentIndex()
             change_class.clear()
             change_class.addItems(battle_plan_list)
             change_class.setCurrentIndex(self.opt["todo_plans"][self.opt["current_plan"]][opt_1][opt_2])
 
-        def my_transformer_c(change_class: object, opt_1, opt_2):
+        def my_transformer_c(change_class: object, opt_1, opt_2) -> None:
             # 用于配置 带有选单的 自定义目标
             self.opt["todo_plans"][self.opt["current_plan"]][opt_1][opt_2] = change_class.currentIndex()
             change_class.clear()
             change_class.addItems(customize_todo_list)
             change_class.setCurrentIndex(self.opt["todo_plans"][self.opt["current_plan"]][opt_1][opt_2])
 
-        def base_settings():
+        def base_settings() -> None:
             my_opt = self.opt["base_settings"]
             my_opt["game_name"] = self.GameName_Input.text()
             my_opt["name_1p"] = self.Name1P_Input.text()
@@ -383,7 +383,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             my_opt["level_1p"] = self.Level1P_Input.value()
             my_opt["level_2p"] = self.Level2P_Input.value()
 
-        def timer_settings():
+        def timer_settings() -> None:
             my_opt = self.opt["timer"]["1"]
             my_opt["active"] = self.Timer1_Active.isChecked()
             my_opt["h"] = self.Timer1_H.value()
@@ -414,7 +414,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             my_opt["m"] = self.Timer5_M.value()
             my_opt["plan"] = self.Timer5_Plan.currentIndex()
 
-        def advanced_settings():
+        def advanced_settings() -> None:
             my_opt = self.opt["advanced_settings"]
             my_opt["end_exit_game"] = self.EndExitGame.isChecked()
             my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
@@ -422,21 +422,21 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             my_opt["auto_pickup_2p"] = self.AutoPickUp_2P.isChecked()
             my_opt["auto_delete_old_images"] = self.AutoDeleteOldImages.isChecked()
 
-        def get_warm_gift_settings():
+        def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
             my_opt["1p"]["active"] = self.GetWarmGift_1P_Active.isChecked()
             my_opt["1p"]["link"] = self.GetWarmGift_1P_Link.text()
             my_opt["2p"]["active"] = self.GetWarmGift_2P_Active.isChecked()
             my_opt["2p"]["link"] = self.GetWarmGift_2P_Link.text()
 
-        def level_2():
+        def level_2() -> None:
             my_opt = self.opt["level_2"]
             my_opt["1p"]["active"] = self.Level2_1P_Active.isChecked()
             my_opt["1p"]["password"] = self.Level2_1P_Password.text()
             my_opt["2p"]["active"] = self.Level2_2P_Active.isChecked()
             my_opt["2p"]["password"] = self.Level2_2P_Password.text()
 
-        def todo_plans():
+        def todo_plans() -> None:
             # 获取前半部分
             my_opt = self.opt["todo_plans"][self.opt["current_plan"]]
 
@@ -580,12 +580,12 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
         todo_plans()
 
-    def click_btn_save(self):
+    def click_btn_save(self) -> None:
         """点击保存配置按钮的函数"""
         self.ui_to_opt()
         self.opt_to_json()
 
-    def delete_current_plan(self):
+    def delete_current_plan(self) -> None:
         """用来删掉当前被选中的 todo plan 但不能删掉默认方案"""
         if self.CurrentPlan.currentIndex() == 0:
             QMessageBox.information(self, "警告", "默认方案不能删除呢...")
@@ -594,7 +594,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         # 重载ui
         self.init_opt_to_ui()
 
-    def rename_current_plan(self):
+    def rename_current_plan(self) -> None:
         """用来重命名当前被选中的 todo plan 但不能重命名默认方案"""
         if self.CurrentPlan.currentIndex() == 0:
             QMessageBox.information(self, "警告", "默认方案不能重命名呢...")
@@ -603,7 +603,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         # 重载ui
         self.init_opt_to_ui()
 
-    def create_new_plan(self):
+    def create_new_plan(self) -> None:
         """新建一个 todo plan, 但不能取名为Default"""
         if self.CreatePlan_Input == "Default":
             QMessageBox.information(self, "警告", "不能使用 Default 作为新的 TodoPlan 名呢...")
@@ -616,7 +616,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
 
 
 if __name__ == "__main__":
-    def main():
+    def main() -> None:
         # 实例化 PyQt后台管理
         app = QApplication(sys.argv)
 
