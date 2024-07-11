@@ -18,6 +18,7 @@ from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
+from function.scattered.create_drops_image import create_drops_image
 from function.scattered.get_customize_todo_list import get_customize_todo_list
 from function.scattered.loots_and_chest_data_save_and_post import loots_and_chests_detail_to_json, \
     loots_and_chests_data_post_to_sever, loots_and_chests_statistics_to_json
@@ -54,6 +55,7 @@ class ThreadTodo(QThread):
         # 好用的信号~
         self.signal_dict = signal_dict
         self.signal_print_to_ui = self.signal_dict["print_to_ui"]
+        self.signal_image_to_ui = self.signal_dict["image_to_ui"]
         self.signal_dialog = self.signal_dict["dialog"]
         self.signal_todo_end = self.signal_dict["end"]
 
@@ -716,7 +718,7 @@ class ThreadTodo(QThread):
 
                 else:
                     CUS_LOGGER.debug(
-                        "[战利品识别] [有向无环图] [更新] [{player_index}P] 失败! 本次数据无法构筑 DAG，存在环.")
+                        "[战利品识别] [有向无环图] [更新] [{player_index}P] 失败! 本次数据无法构筑 DAG，存在环. 可能是截图卡住了.")
 
             if update_dag_result_dict:
                 # 如果成功更新了 item_dag_graph.json, 更新ranking
@@ -1045,14 +1047,13 @@ class ThreadTodo(QThread):
 
     def output_player_loot(self, player_id, result_list):
         """
-        打印玩家掉落信息
-
+        根据战斗的最终结果, 打印玩家战利品信息
         :param player_id:  player_a, player_b int 1 2
         :param result_list: list, result of b
         :return:
         关于 result_list
         """
-        valid_time = len(result_list)
+        # valid_time = len(result_list)
 
         # 输入为
         count_loots_dict = {}
@@ -1080,29 +1081,31 @@ class ThreadTodo(QThread):
                 for k, v in chests.items():
                     count_chests_dict[k] += v
 
-        # 生成文本
-        loots_text = ""
-        chests_text = ""
-        for name, count in count_loots_dict.items():
-            loots_text += "{}x{:.1f}; ".format(name, count / valid_time)
-        for name, count in count_chests_dict.items():
-            chests_text += "{}x{:.1f}; ".format(name, count / valid_time)
+        # 生成文本str 总计 输出到ui和日志
+        # loots_text = ""
+        # chests_text = ""
+        # for name, count in count_loots_dict.items():
+        #     loots_text += "{}x{}, ".format(name, count)
+        # for name, count in count_chests_dict.items():
+        #     chests_text += "{}x{}, ".format(name, count)
+        # self.signal_print_to_ui.emit(text="[{}P掉落]  {}".format(player_id,loots_text,),time=False)
+        # self.signal_print_to_ui.emit(text="[{}P宝箱]  {}".format(player_id,chests_text),time=False)
 
-        # 玩家A掉落
-        self.signal_print_to_ui.emit(
-            text="[{}P掉落/场]  {}".format(
-                player_id,
-                loots_text,
-            ),
-            time=False
-        )
-        self.signal_print_to_ui.emit(
-            text="[{}P宝箱/场]  {}".format(
-                player_id,
-                chests_text
-            ),
-            time=False
-        )
+        # 生成文本str 场均 输出到ui和日志
+        # loots_text = ""
+        # chests_text = ""
+        # for name, count in count_loots_dict.items():
+        #     loots_text += "{}x{:.1f}, ".format(name, count / valid_time)
+        # for name, count in count_chests_dict.items():
+        #     chests_text += "{}x{:.1f}, ".format(name, count / valid_time)
+        # self.signal_print_to_ui.emit(text="[{}P掉落/场]  {}".format(player_id,loots_text,),time=False)
+        # self.signal_print_to_ui.emit(text="[{}P宝箱/场]  {}".format(player_id,chests_text),time=False)
+
+        # 生成图片 str 总计
+        self.signal_print_to_ui.emit(text="[{}P] 战利品合计掉落".format(player_id), time=False)
+        self.signal_image_to_ui.emit(image=create_drops_image(count_dict=count_loots_dict))
+        self.signal_print_to_ui.emit(text="[{}P] 宝箱合计掉落".format(player_id), time=False)
+        self.signal_image_to_ui.emit(image=create_drops_image(count_dict=count_chests_dict))
 
     def battle_1_n_n(self, quest_list, extra_title=None, need_lock=False):
         """
