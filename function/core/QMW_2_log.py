@@ -2,6 +2,7 @@ import base64
 import datetime
 
 import cv2
+import numpy
 import numpy as np
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal
@@ -14,6 +15,7 @@ from function.globals.log import CUS_LOGGER
 class QMainWindowLog(QMainWindowLoadSettings):
     signal_dialog = pyqtSignal(str, str)  # 标题, 正文
     signal_print_to_ui_1 = pyqtSignal(str, str, bool)
+    signal_image_to_ui_1 = pyqtSignal(numpy.ndarray)
 
     def __init__(self):
         # 继承父类构造方法
@@ -22,15 +24,19 @@ class QMainWindowLog(QMainWindowLoadSettings):
         # 链接防呆弹窗
         self.signal_dialog.connect(self.show_dialog)
 
-        # 并不是直接输出 而是模仿信号类的方式 的 类, 其emit方法是 一个可以输入缺省的颜色或时间参数来生成文本, 发送信息的方法
-        self.signal_print_to_ui = self.SignalPrintf(signal_1=self.signal_print_to_ui_1)
-
-        # 真正的发送信息激活print的函数, 被链接到直接发送信息到ui的函数
+        # 是模仿信号类写法 的 类, 并不是直接输出, 其emit方法是 一个可以输入 缺省的颜色 或 时间参数 来生成文本 调用 signal_print_to_ui_1
+        self.signal_print_to_ui = self.MidSignalPrint(signal_1=self.signal_print_to_ui_1)
+        # 真正的 发送信息激活 print 的函数, 被链接到直接发送信息到ui的函数
         self.signal_print_to_ui_1.connect(self.print_to_ui)
+
+        # 类似上面, 但图片, 用于支持 输入 路径 或 numpy.ndarray
+        self.signal_image_to_ui = self.MidSignalImage(signal_1=self.signal_image_to_ui_1)
+        self.signal_image_to_ui_1.connect(self.image_to_ui)
 
         # 储存所有信号
         self.signal_dict = {
             "print_to_ui": self.signal_print_to_ui,
+            "image_to_ui": self.signal_image_to_ui,
             "dialog": self.signal_dialog,
             "end": self.signal_todo_end
         }
@@ -38,10 +44,10 @@ class QMainWindowLog(QMainWindowLoadSettings):
         # 打印默认输出提示
         self.start_print()
 
-    class SignalPrintf:
+    class MidSignalPrint:
         """
         模仿信号的类, 但其实本身完全不是信号, 是为了可以接受缺省参数而模仿的中间类,
-        该类的emit方法是 一个可以输入缺省的颜色或时间参数来生成文本的方法
+        该类的emit方法是 一个可以输入 缺省的颜色 或 时间参数 来生成文本的方法
         并调用信号发送真正的信息
         """
 
@@ -53,10 +59,31 @@ class QMainWindowLog(QMainWindowLoadSettings):
             # 处理缺省参数
             self.signal_1.emit(text, color, time)
 
+    class MidSignalImage:
+        """
+        模仿信号的类, 但其实本身完全不是信号, 是为了可以接受缺省参数而模仿的中间类,
+        该类的emit方法是 一个可以输入 numpy.ndarray 或 图片路径 并判断是否读取的方法
+        并调用信号发送真正的图片
+        """
+
+        def __init__(self, signal_1):
+            super().__init__()
+            self.signal_1 = signal_1
+
+        def emit(self, image):
+            # 根据 路径 或者 numpy.ndarray 选择是否读取
+            if type(image) is not np.ndarray:
+                # 读取目标图像,中文路径兼容方案
+                image_ndarray = cv2.imdecode(buf=np.fromfile(file=image, dtype=np.uint8), flags=-1)
+            else:
+                image_ndarray = image
+            # 处理缺省参数
+            self.signal_1.emit(image_ndarray)
+
     def start_print(self):
         """打印默认输出提示"""
 
-        self.image_to_ui(image=PATHS["logo"] + "\\圆角-FetTuo-192x.png")
+        self.signal_image_to_ui.emit(image=PATHS["logo"] + "\\圆角-FetTuo-192x.png")
         self.signal_print_to_ui.emit("嗷呜, 欢迎使用FAA-美食大战老鼠自动放卡作战小助手~", time=False)
 
         self.signal_print_to_ui.emit("本软件 [开源][免费][绿色] 当前版本: 1.4.0", time=False)
@@ -115,25 +142,24 @@ class QMainWindowLog(QMainWindowLoadSettings):
         # 输出到日志和运行框
         CUS_LOGGER.info(text)
 
-    def image_to_ui(self, image):
+    def image_to_ui(self, image_ndarray: numpy.ndarray):
         """
-        :param image:
+        :param image_ndarray: 必须是 numpy.ndarray 对象
         :return:
         """
 
-        # 根据 路径 或者 numpy.array 选择是否读取
-        if type(image) is not np.ndarray:
-            # 读取目标图像,中文路径兼容方案
-            image = cv2.imdecode(buf=np.fromfile(file=image, dtype=np.uint8), flags=-1)
-
         # 編碼字節流
-        _, img_encoded = cv2.imencode('.png', image)
+        _, img_encoded = cv2.imencode('.png', image_ndarray)
 
         # base64
         img_base64 = base64.b64encode(img_encoded).decode('utf-8')
 
         image_html = f"<img src='data:image/png;base64,{img_base64}'>"
 
-        self.TextBrowser.append("\n")
-        self.TextBrowser.insertHtml(image_html)
-        self.TextBrowser.append("\n")
+        # self.TextBrowser.insertHtml(image_html)
+
+        # 输出到输出框
+        self.TextBrowser.append(image_html)
+        # 实时输出
+        self.TextBrowser.moveCursor(self.TextBrowser.textCursor().End)
+        QtWidgets.QApplication.processEvents()
