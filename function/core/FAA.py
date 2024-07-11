@@ -1254,7 +1254,7 @@ class FAA:
         def sign_in_camp_key():
             """领取营地钥匙"""
             # 进入界面
-            find = self.action_goto_map(map_id=6)
+            find = self.action_goto_map(map_id=10)
 
             if find:
                 # 领取钥匙

@@ -228,7 +228,7 @@ class FAAActionInterfaceJump:
 
     def goto_map(self, map_id):
         """
-        用于前往各地图,0.美味阵,1.美味岛,2.火山岛,3.火山遗迹,4.浮空岛,5.海底,6.营地
+        用于前往各地图, 0.美味阵, 1.美味岛, 2.火山岛, 3.火山遗迹, 4.浮空岛, 5.海底, 6.太空, 10.营地
         """
         handle = self.faa.handle
         handle_360 = self.faa.handle_360
@@ -296,7 +296,7 @@ class FAAActionInterfaceJump:
             self.goto_map(map_id=stage_1)
 
             # 切区
-            my_dict = {"1": [3, 11], "2": [1, 2], "3": [1, 1], "4": [1, 2], "5": [1, 2]}
+            my_dict = {"1": [3, 11], "2": [1, 2], "3": [1, 1], "4": [1, 2], "5": [1, 2], "6": [1, 2]}
             change_to_region(region_list=my_dict[stage_1])
 
             # 仅限主角色创建关卡
@@ -522,7 +522,7 @@ class FAAActionInterfaceJump:
             self.change_activity_list(2)
 
             # 进入对应地图
-            self.goto_map(map_id=6)
+            self.goto_map(map_id=10)
 
             # 不是营地
             if stage_1 != "1":
