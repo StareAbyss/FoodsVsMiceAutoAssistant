@@ -133,13 +133,13 @@ class ThreadCheckTimer(QThread):
         self.card_queue = card_queue
         self.card_kun = card_kun
         self.faa = faa
-        self.stop_flag = True
+        self.stop_flag = False
+        self.stopped = False
         self.timer = None
         self.running_round = 0
         self.interval = 1  # s
 
     def run(self):
-        self.stop_flag = False
         self.timer = Timer(self.interval, self.check)
         self.timer.start()
         self.faa.print_debug('启动下层事件循环')
@@ -149,7 +149,7 @@ class ThreadCheckTimer(QThread):
         self.timer = None
 
     def stop(self):
-        self.faa.print_info(text=f"{self.faa.player}P ThreadCheckTimer stop方法已激活")
+        self.faa.print_info(text="ThreadCheckTimer stop方法已激活")
         # 设置Flag
         self.stop_flag = True
         # 退出事件循环
@@ -166,8 +166,10 @@ class ThreadCheckTimer(QThread):
 
         self.stop_flag = self.faa.faa_battle.use_key_and_check_end()
         if self.stop_flag:
-            self.faa.print_info(text='检测到战斗结束')
-            self.stop_signal.emit()
+            if not self.stopped:
+                self.faa.print_info(text='检测到战斗结束')
+                self.stop_signal.emit()
+                self.stopped = True  # 防止stop后再次调用
             return
 
         if self.faa.is_auto_battle:
@@ -200,12 +202,12 @@ class ThreadCheckTimer(QThread):
                         max_card.is_kun_target = True
 
             # 调试打印目前list状态
-            if self.faa.player == 1:
-                text = ""
-                for card in self.card_queue.card_list:
-                    text += "[name:{}|cd:{}|usable:{}|ban:{}|kun_tar:{}]".format(
-                        card.name, card.status_cd, card.status_usable, card.status_ban, card.is_kun_target)
-                self.faa.print_debug(text)
+            # if self.faa.player == 1:
+            #     text = ""
+            #     for card in self.card_queue.card_list:
+            #         text += "[name:{}|cd:{}|usable:{}|ban:{}|kun_tar:{}]".format(
+            #             card.name, card.status_cd, card.status_usable, card.status_ban, card.is_kun_target)
+            #     self.faa.print_debug(text)
 
         # 刷新全局冰沙锁的状态
         if EXTRA_GLOBALS.smoothie_lock_time != 0:
@@ -247,7 +249,7 @@ class ThreadUseCardTimer(QThread):
             self.timer.start()
 
     def stop(self):
-        self.faa.print_debug("{}P ThreadUseCardTimer stop方法已激活".format(self.faa.player))
+        self.faa.print_debug("ThreadUseCardTimer stop方法已激活")
         # 设置Flag
         self.stop_flag = True
         # 退出线程的事件循环
