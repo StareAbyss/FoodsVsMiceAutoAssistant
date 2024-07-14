@@ -22,6 +22,7 @@ from function.script.analyzer_of_loot_logs import matchImage
 
 
 class FAA:
+
     def __init__(self, channel="锑食", player=1, character_level=1,
                  is_auto_battle=True, is_auto_pickup=False, random_seed=0, signal_dict=None):
 
@@ -134,14 +135,24 @@ class FAA:
             self.action_bottom_menu(mode="跳转_竞技场")
 
         if mode == "关闭悬赏窗口":
-            loop_match_p_in_w(
+            # 有被选中和未选中两种图标
+            result = loop_match_p_in_w(
                 raw_w_handle=self.handle,
                 raw_range=raw_range,
-                target_path=RESOURCE_P["common"]["悬赏任务_退出.png"],
+                target_path=RESOURCE_P["common"]["悬赏任务_退出_未选中.png"],
                 target_tolerance=0.99,
-                target_failed_check=10,
+                target_failed_check=3,
                 target_sleep=1.5,
                 click=True)
+            if not result:
+                loop_match_p_in_w(
+                    raw_w_handle=self.handle,
+                    raw_range=raw_range,
+                    target_path=RESOURCE_P["common"]["悬赏任务_退出_被选中.png"],
+                    target_tolerance=0.99,
+                    target_failed_check=3,
+                    target_sleep=1.5,
+                    click=True)
 
         if mode == "美食大赛领取":
             # 领取奖励
@@ -2274,7 +2285,6 @@ class FAA:
                     y=my_result[1] + 30)
                 return True
             return False
-
 
         while True:
 
