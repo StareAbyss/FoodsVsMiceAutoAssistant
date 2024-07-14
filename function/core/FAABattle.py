@@ -18,6 +18,7 @@ class Battle:
         # 战斗专用私有属性 - 每次战斗刷新
         self.fire_elemental_1000 = None
         self.smoothie_usable = None
+        self.is_used_key = False  # 仅由外部信号更改, 用于标识战斗是否使用了钥匙
 
         # 战斗专用私有属性 - 静态
 
@@ -46,6 +47,7 @@ class Battle:
     """ 战斗内的子函数 """
     def re_init(self):
         """战斗前调用, 重新初始化部分每场战斗都要重新刷新的该内私有属性"""
+        self.is_used_key = False
         self.fire_elemental_1000 = False
         self.smoothie_usable = self.faa.player == 1
 

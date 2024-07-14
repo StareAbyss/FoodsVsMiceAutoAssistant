@@ -4,14 +4,14 @@ import sys
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QApplication
 
+from function.core.EditorOfBattlePlan import JsonEditor
+from function.core.FAA import FAA
+from function.core.QMW_2_log import QMainWindowLog
+from function.core.Todo import ThreadTodo
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.TodoTimerManager import TodoTimerManager
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
-from function.script.FAA import FAA
-from function.script.QMW_2_log import QMainWindowLog
-from function.script.ThreadTodo import ThreadTodo
-from function.tools.editor_of_battle_plan import JsonEditor
 
 
 class QMainWindowService(QMainWindowLog):
