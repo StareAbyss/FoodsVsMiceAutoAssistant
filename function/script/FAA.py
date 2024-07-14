@@ -1390,8 +1390,6 @@ class FAA:
                 if "kun" not in card.keys():
                     card["kun"] = 0
 
-
-
             return list_cell_all
 
         def calculation_obstacle(list_cell_all):
@@ -1685,10 +1683,13 @@ class FAA:
             my_bool = my_bool or self.quest_card == "苏打气泡-0"
             my_bool = my_bool or self.quest_card == "苏打气泡-1"
             my_bool = my_bool or self.quest_card == "苏打气泡"
+
             if my_bool:
                 self.print_debug(text="不需要额外带卡,跳过")
             else:
                 self.print_debug(text="寻找任务卡, 开始")
+
+                """处理ban卡列表"""
 
                 # 对于名称带-的卡, 就对应的写入, 如果不带-, 就查找其所有变种
                 quest_card_list = []
@@ -1705,41 +1706,49 @@ class FAA:
                         my_list.append(quest_card)
                 quest_card_list = my_list
 
-                flag_find_quest_card = False
+                """选卡动作"""
+                already_find = False
 
-                for quest_card in quest_card_list:
+                # 复位滑块
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=931, y=209)
+                time.sleep(0.25)
 
-                    # 复位滑块
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=931, y=209)
-                    time.sleep(0.25)
+                # 向下点3*7次滑块 强制要求全部走完, 防止12P的同步出问题
+                for i in range(7):
 
-                    # 最多向下点3*7次滑块
-                    for i in range(7):
+                    for quest_card in quest_card_list:
 
-                        # 找到就点一下, 任何一次寻找成功 中断循环
-                        if not flag_find_quest_card:
-
+                        if already_find:
+                            # 如果已经刚找到了 就直接休息一下
+                            time.sleep(0.4)
+                        else:
+                            # 如果还没找到 就试试查找点击 添加卡片
                             find = loop_match_p_in_w(
                                 raw_w_handle=self.handle,
                                 raw_range=[380, 175, 925, 420],
                                 target_path=RESOURCE_P["card"]["房间"][quest_card],
                                 target_tolerance=0.95,
                                 target_failed_check=0.4,
-                                target_sleep=0.2,
+                                target_interval=0.2,
+                                target_sleep=0.4,  # 和总计检测时间一致 以同步时间
                                 click=True)
                             if find:
-                                flag_find_quest_card = True
-                                break
+                                already_find = True
 
-                            # 滑块向下移动3次
-                            for j in range(3):
-                                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=931, y=400)
-                                time.sleep(0.05)
+                    # 滑块向下移动3次
+                    for j in range(3):
+                        if not already_find:
+                            # 仅还没找到继续下滑
+                            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=931, y=400)
+                        # 找没找到都要休息一下以同步时间
+                        time.sleep(0.05)
 
-                    if flag_find_quest_card:
-                        break
+                if not already_find:
+                    # 如果没有找到 战斗方案也就不需要对应调整了 修改一下
+                    self.quest_card = "None"
 
-                self.print_debug(text="寻找任务卡, 完成, 结果:{}".format("成功" if flag_find_quest_card else "失败"))
+                self.print_debug(text="寻找任务卡, 完成, 结果:{}".format("成功" if already_find else "失败"))
+
 
         def screen_ban_card_loop_a_round(ban_card_s):
 
