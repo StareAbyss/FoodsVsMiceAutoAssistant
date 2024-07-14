@@ -1019,7 +1019,7 @@ class ThreadTodo(QThread):
                 deck=deck,
                 quest_card=quest_card,
                 ban_card_list=ban_card_list,
-                battle_plan_index=battle_plan_a,
+                battle_plan_uuid=battle_plan_a,
                 stage_id=stage_id)
             if is_group:
                 faa_b.set_config_for_battle(
@@ -1029,7 +1029,7 @@ class ThreadTodo(QThread):
                     deck=deck,
                     quest_card=quest_card,
                     ban_card_list=ban_card_list,
-                    battle_plan_index=battle_plan_b,
+                    battle_plan_uuid=battle_plan_b,
                     stage_id=stage_id)
 
             if not check_level_and_times():
@@ -1429,8 +1429,8 @@ class ThreadTodo(QThread):
 
             for i in range(len(quest_list)):
                 quest_list[i]["deck"] = deck
-                quest_list[i]["battle_plan_1p"] = 0
-                quest_list[i]["battle_plan_2p"] = 1
+                quest_list[i]["battle_plan_1p"] = "00000000-0000-0000-0000-000000000000"
+                quest_list[i]["battle_plan_2p"] = "00000000-0000-0000-0000-000000000001"
 
             self.battle_1_n_n(quest_list=quest_list)
 
