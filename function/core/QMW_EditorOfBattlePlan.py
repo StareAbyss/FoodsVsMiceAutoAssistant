@@ -1,5 +1,6 @@
 import copy
 import json
+import os
 import sys
 import time
 import uuid
@@ -409,6 +410,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
     def save_json(self):
         self.json_data['tips'] = self.WeiTipsEditor.toPlainText()
+
         options = QFileDialog.Options()
 
         file_name, _ = QFileDialog.getSaveFileName(
@@ -419,6 +421,14 @@ class QMWEditorOfBattlePlan(QMainWindow):
             options=options)
 
         if file_name:
+
+            if os.path.exists(file_name):  # 检查文件是否存在
+                # 这里是覆盖现有文件的情况 若不包含了uuid 生成uuid
+                self.json_data["uuid"] = self.json_data.get('uuid', str(uuid.uuid1()))
+            else:
+                # 这里是保存新文件的情况, 需要一个新的uuid做区别
+                self.json_data["uuid"] = str(uuid.uuid1())
+
             # 确保玩家位置也被保存
             self.json_data['player'] = self.json_data.get('player', [])
             # 自旋锁读写, 防止多线程读写问题
@@ -456,11 +466,6 @@ class QMWEditorOfBattlePlan(QMainWindow):
             with open(file=file_name, mode='r', encoding='utf-8') as file:
                 self.json_data = json.load(file)
             EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
-
-            # 检查是否 不包含了uuid 或者 撞了uuid
-            uuid_v1 = self.json_data.get('uuid')
-            if uuid_v1 is None or uuid_v1 in EXTRA_GLOBALS.battle_plan_uuid_list:
-                self.json_data["uuid"] = str(uuid.uuid1())
 
             self.WeiTipsEditor.setPlainText(self.json_data.get('tips', ''))
 
