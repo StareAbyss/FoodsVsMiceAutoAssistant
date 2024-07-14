@@ -68,6 +68,8 @@ class QMainWindowService(QMainWindowLog):
         # 启动按钮 函数绑定
         self.Button_Start.clicked.connect(self.todo_click_btn)
         self.Button_StartTimer.clicked.connect(self.todo_timer_click_btn)
+
+        # 保存方案按钮 函数绑定
         self.Button_Save.clicked.connect(self.click_btn_save)
 
         # 方案修改按钮 函数绑定
