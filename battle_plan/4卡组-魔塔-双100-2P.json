@@ -1,6 +1,6 @@
 {
     "player": [
-        "3-5"
+        "3-3"
     ],
     "card": [
         {
@@ -9,6 +9,11 @@
             "ergodic": true,
             "queue": false,
             "location": [
+                "5-4",
+                "5-3",
+                "5-5",
+                "5-2",
+                "5-6",
                 "9-6"
             ]
         },
@@ -21,7 +26,6 @@
                 "7-4",
                 "7-2",
                 "7-6",
-                "7-7",
                 "8-4",
                 "8-3",
                 "8-5",
@@ -60,11 +64,6 @@
                 "2-7",
                 "3-7",
                 "4-7",
-                "5-6",
-                "5-5",
-                "5-4",
-                "5-3",
-                "5-2",
                 "4-6",
                 "4-5",
                 "4-3"
@@ -86,59 +85,81 @@
             ]
         },
         {
-            "id": 5,
-            "name": "冰淇淋",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                 "8-1"
-            ]
-        },
-        {
             "id": 6,
             "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
-            "name": "Unknown",
+            "name": "肉松清明粿",
             "ergodic": true,
             "queue": false,
             "location": [
                 "1-1",
                 "5-1",
                 "5-7"
-            ]
-        },
-        {
-            "id": 7,
-            "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
-            "name": "Unknown",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "1-1",
-                "5-1",
-                "5-7"
-            ]
+            ],
+            "kun": 0
         },
         {
             "id": 8,
             "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
-            "name": "Unknown",
+            "name": "辣椒粉",
             "ergodic": true,
             "queue": false,
             "location": [
                 "1-1",
                 "5-1",
                 "5-7"
-            ]
+            ],
+            "kun": 0
         },
         {
             "id": 9,
+            "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
+            "name": "爆炸汪",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "1-1",
+                "5-1",
+                "5-7"
+            ],
+            "kun": 0
+        },
+        {
+            "id": 10,
             "name": "雷电长棍面包",
             "ergodic": true,
             "queue": false,
             "location": [
+                "8-1",
                 "9-1",
+                "8-7",
                 "9-7"
-            ]
+            ],
+            "kun": 0
+        },
+        {
+            "id": 7,
+            "name": "樱桃反弹布丁",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "6-1",
+                "7-1",
+                "6-7",
+                "7-7"
+            ],
+            "kun": 0
+        },
+        {
+            "id": 5,
+            "name": "狮子座精灵",
+            "ergodic": true,
+            "queue": false,
+            "location": [
+                "7-3",
+                "7-5"
+            ],
+            "kun": 0
         }
-    ]
+    ],
+    "tips": ""
 }

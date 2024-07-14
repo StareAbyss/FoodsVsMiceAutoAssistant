@@ -71,25 +71,15 @@
             "queue": false,
             "location": [
                 "8-1",
-                "8-7",
                 "9-1",
+                "8-7",
                 "9-7"
             ],
-            "kun": 3
-        },
-        {
-            "id": 5,
-            "name": "狮子座精灵",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "6-3",
-                "6-5"
-            ]
+            "kun": 2
         },
         {
             "id": 7,
-            "name": "猪猪加强器",
+            "name": "投掷增幅",
             "ergodic": true,
             "queue": false,
             "location": [
@@ -101,7 +91,18 @@
                 "4-5",
                 "4-7"
             ],
-            "kun": 2
+            "kun": 0
+        },
+        {
+            "id": 5,
+            "name": "狮子座精灵",
+            "ergodic": true,
+            "queue": true,
+            "location": [
+                "6-3",
+                "6-5"
+            ],
+            "kun": 0
         },
         {
             "id": 3,
@@ -115,7 +116,8 @@
                 "3-5",
                 "3-6",
                 "3-7"
-            ]
+            ],
+            "kun": 0
         },
         {
             "id": 4,
@@ -124,33 +126,25 @@
             "queue": false,
             "location": [
                 "9-1",
-                "9-2",
+                "9-7",
                 "9-3",
-                "9-4",
                 "9-5",
-                "9-6",
-                "9-7"
-            ]
-        },
-        {
-            "id": 9,
-            "name": "冰淇淋",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "4-2"
+                "9-4",
+                "9-2",
+                "9-6"
             ]
         },
         {
             "id": 6,
-            "name": "清明肉松粿",
+            "name": "油灯",
             "ergodic": true,
             "queue": false,
             "location": [
                 "1-4",
                 "2-4",
                 "3-4"
-            ]
+            ],
+            "kun": 0
         }
     ]
 }
