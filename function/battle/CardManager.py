@@ -127,6 +127,7 @@ class CardManager:
 
 class ThreadCheckTimer(QThread):
     stop_signal = pyqtSignal()
+    used_key_signal = pyqtSignal()
 
     def __init__(self, card_queue, faa, card_kun):
         super().__init__()
@@ -164,13 +165,18 @@ class ThreadCheckTimer(QThread):
         """先检查是否出现战斗完成或需要使用钥匙，如果完成，至二级"""
         self.running_round += 1
 
-        self.stop_flag = self.faa.faa_battle.use_key_and_check_end()
+        # 看看是不是结束了
+        self.stop_flag = self.faa.faa_battle.check_end()
         if self.stop_flag:
             if not self.stopped:
                 self.faa.print_info(text='检测到战斗结束')
                 self.stop_signal.emit()
                 self.stopped = True  # 防止stop后再次调用
             return
+
+        # 看看是不是需要使用钥匙 如果使用成功 发送信号 修改faa.battle中的相关参数为True 以标识
+        if self.faa.faa_battle.use_key():
+            self.used_key_signal.emit()
 
         if self.faa.is_auto_battle:
             # 先清空现有队列
