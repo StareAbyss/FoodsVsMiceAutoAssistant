@@ -104,7 +104,9 @@ The original intention of developing this tool is to fulfill a childhood wish te
     * QQ空间渠道服
         * v0.9.1+ 支持, 需额外截图, 并在运行期间在电脑上登录对应QQ账号, 以进行快速登录.
         * 先将操作系统调整为`100%缩放倍率`.
-        * 在项目目录中的 `resource/picture/common/用户自截` 中修改空间服登录界面截图, 可通过运行 `直达用户自截.bat` 快速抵达.
+        * 在项目目录中的指定文件夹中修改空间服登录界面截图, 可通过运行 `直达用户自截.bat` 快速抵达.
+          * v1.4.1+ 在`settings/cus_images/用户自截`.
+          * 更低版本 在`resource/picture/common/用户自截`.
         * 需在快捷登录界面分别截图1P和2P上半部分QQ头像为 `.png` 格式.
     * 3366渠道服
         * 不支持. 原因如下, 该区服过于冷门, 且与QQ空间渠道服的进入方式有一定冲突, 若兼容会影响QQ空间渠道服用户的体验.
@@ -119,9 +121,11 @@ The original intention of developing this tool is to fulfill a childhood wish te
 * 跨服作战前, 由1P邀请2P.
   * 一般默认1P练度高方便创建房间.
   * 需额外截图.
-      * 先将操作系统调整为`100%缩放倍率`.
-      * 在项目目录中的 `resource/picture/common/用户自截/cross_server_1P.png` 图片进行修改, 可通过运行 `直达用户自截.bat` 快速抵达.
-      * 需1P创建跨服房间, 2P进行截图, 保存为 `.png` 格式.
+    * 先将操作系统调整为`100%缩放倍率`.
+    * 在项目目录中的指定文件夹中修改 cross_server_1P.png, 可通过运行 `直达用户自截.bat` 快速抵达.
+      * v1.4.1+ 在`settings/cus_images/用户自截`.
+      * 更低版本 在`resource/picture/common/用户自截`.
+    * 需1P创建跨服房间, 2P进行截图, 保存为 `.png` 格式.
 
 ## 软件中重要信息的填写
 
@@ -545,8 +549,6 @@ ergodic(遍历); queue(队列) 代表了自动战斗放卡实现的两种重要�
      │   │   │   └─ 房间 房间中的卡片截图, 用于携带任务卡或移除禁用卡
      │   │   │ 
      │   │   ├─ common 一些通用的界面图片
-     │   │   │   ├─ 用户自截 需要用户自己截图才能正常使用的部分, 包含两张用于在QQ大厅服进行登录的截图, 一张用于完成跨服副本的截图
-     │   │   │   └─ ... 
      │   │   │ 
      │   │   ├─ item 背包中各种物品的截图, 用于使用消耗品
      │   │   ├─ map 大地图中各个地区的图片, 用于跳转
