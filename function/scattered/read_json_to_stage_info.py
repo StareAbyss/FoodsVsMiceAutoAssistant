@@ -26,7 +26,7 @@ def read_json_to_stage_info(stage_id):
     stage_0, stage_1, stage_2 = stage_id.split("-")  # type map stage
 
     # 如果找到预设
-    for information in [stages_info, stages_info_extra]:
+    for information in [stages_info_extra, stages_info]:
         try_stage_info = information.get(stage_0, {}).get(stage_1, {}).get(stage_2, None)
         if try_stage_info:
             stage_info = {**stage_info, **try_stage_info}
