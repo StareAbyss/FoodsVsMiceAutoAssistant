@@ -10,7 +10,9 @@ from PyQt5.QtWidgets import QApplication, QMessageBox
 from function.core.QMW_0_load_ui_file import QMainWindowLoadUI
 from function.globals.extra import EXTRA_GLOBALS
 from function.globals.get_paths import PATHS
+from function.globals.init_resources import fresh_resource_b
 from function.globals.log import CUS_LOGGER
+from function.scattered.check_uuid_in_battle_plan import check_battle_plan_with_uuid
 from function.scattered.get_customize_todo_list import get_customize_todo_list
 from function.scattered.get_list_battle_plan import get_list_battle_plan
 
@@ -26,8 +28,13 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.opt_path = PATHS["root"] + "\\config\\settings.json"
         # opt模板路径
         self.opt_template_path = PATHS["root"] + "\\config\\settings_template.json"
+
         # 检测opt是否存在
         self.check_opt_exist()
+
+        # 检测uuid是否存在于battle plan 没有则添加 并将其读入到内存资源中
+        check_battle_plan_with_uuid()
+        fresh_resource_b()
 
         # 从json文件中读取opt 并刷新ui
         self.opt = None
@@ -48,7 +55,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             except IOError as e:
                 CUS_LOGGER.error(f"[读取FAA基础配置文件] 无法创建 '{settings_file}' 从 '{template_file}'。错误: {e}")
         else:
-            CUS_LOGGER.info(f"'[读取FAA基础配置文件] {settings_file}' 已存在. 直接读取.")
+            CUS_LOGGER.info(f"[读取FAA基础配置文件] '{settings_file}' 已存在. 直接读取.")
 
     def json_to_opt(self) -> None:
         # 自旋锁读写, 防止多线程读写问题
@@ -357,8 +364,14 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
 
     def ui_to_opt(self) -> None:
         # battle_plan_list
-        battle_plan_list = get_list_battle_plan(with_extension=False)
+        battle_plan_list_new = get_list_battle_plan(with_extension=False)
         customize_todo_list = get_customize_todo_list(with_extension=False)
+
+        # 深拷贝, 记录一下加入新的元素前, list index 和 uuid的映射
+        battle_plan_uuid_list_old = copy.deepcopy(EXTRA_GLOBALS.battle_plan_uuid_list)
+        # 检测uuid是否存在于 可能新加入的 battle plan 没有则添加 并将其读入到内存资源中
+        check_battle_plan_with_uuid()
+        fresh_resource_b()
 
         def my_transformer_b(change_class: object, opt_1, opt_2) -> None:
             # 用于配置 带有选单的 战斗方案

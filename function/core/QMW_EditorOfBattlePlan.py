@@ -2,6 +2,7 @@ import copy
 import json
 import sys
 import time
+import uuid
 
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QKeySequence
@@ -456,6 +457,11 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 self.json_data = json.load(file)
             EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
 
+            # 检查是否 不包含了uuid 或者 撞了uuid
+            uuid_v1 = self.json_data.get('uuid')
+            if uuid_v1 is None or uuid_v1 in EXTRA_GLOBALS.battle_plan_uuid_list:
+                self.json_data["uuid"] = str(uuid.uuid1())
+
             self.WeiTipsEditor.setPlainText(self.json_data.get('tips', ''))
 
             # 初始化
@@ -520,6 +526,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.undo_stack.pop(0)
 
     def undo(self):
+        """撤销"""
         if len(self.undo_stack) > 0:
             current_state = copy.deepcopy(self.json_data)
             self.redo_stack.append(current_state)
@@ -528,6 +535,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.refresh_chessboard()
 
     def redo(self):
+        """重做"""
         if len(self.redo_stack) > 0:
             current_state = copy.deepcopy(self.json_data)
             self.undo_stack.append(current_state)
