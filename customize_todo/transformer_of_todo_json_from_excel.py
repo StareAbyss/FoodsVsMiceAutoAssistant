@@ -13,10 +13,7 @@ from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 # 可能需要pip install openpyxl
 # 该工具可能会需要一些额外的依赖项, 用于直接用excel生成cus_todo.json
 
-def main():
-    ImportFilePath = "be_transformed.xlsx"
-    ExportFilePath = "from_transformer.json"
-
+def transformer(import_file_path, export_file_path):
     default_deck = [
         "炭烧海星",
         "小火炉",
@@ -32,7 +29,7 @@ def main():
     ]
 
     # 读取 转化
-    df = pd.read_excel(ImportFilePath)
+    df = pd.read_excel(import_file_path)
     df = df.T
     data_dict = df.to_dict()
     data_list = [a_dict for a_dict in data_dict.values()]
@@ -44,8 +41,8 @@ def main():
             # 默认参数
             "deck": 1,
             "max_times": 1,
-            "battle_plan_1p": 0,
-            "battle_plan_2p": 1,
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",  # 方案 uuid
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",  # 方案 uuid
             "dict_exit": {
                 "other_time_player_a": [],
                 "other_time_player_b": [],
@@ -106,10 +103,16 @@ def main():
     while EXTRA_GLOBALS.file_is_reading_or_writing:
         time.sleep(0.1)
     EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
-    with open(file=ExportFilePath, mode="w", encoding='utf-8') as json_file:
+    with open(file=export_file_path, mode="w", encoding='utf-8') as json_file:
         json_file.write(json.dumps(data_list_2, indent=4, ensure_ascii=False))
     EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
 
 
 if __name__ == '__main__':
+    def main():
+        ImportFilePath = "be_transformed.xlsx"
+        ExportFilePath = "from_transformer.json"
+        transformer(import_file_path=ImportFilePath, export_file_path=ExportFilePath)
+
+
     main()

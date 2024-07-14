@@ -10,8 +10,7 @@
             "ergodic": true,
             "queue": false,
             "id": 1,
-            "location": [
-            ]
+            "location": []
         },
         {
             "name": "炭烧海星",
@@ -58,8 +57,7 @@
             "ergodic": true,
             "queue": false,
             "id": 3,
-            "location": [
-            ]
+            "location": []
         },
         {
             "name": "冰淇淋",
@@ -106,5 +104,6 @@
                 "7-4"
             ]
         }
-    ]
+    ],
+    "uuid": "784e12d8-4175-11ef-8d06-f44efc5bf671"
 }

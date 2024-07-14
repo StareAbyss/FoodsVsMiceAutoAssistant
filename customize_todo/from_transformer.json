@@ -2,8 +2,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -28,8 +28,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -54,8 +54,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -80,8 +80,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -106,8 +106,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -132,8 +132,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -163,8 +163,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -193,8 +193,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -223,8 +223,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -254,8 +254,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -284,8 +284,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -310,8 +310,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -340,8 +340,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -366,8 +366,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -397,8 +397,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -423,8 +423,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -449,8 +449,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -479,8 +479,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -509,8 +509,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -535,8 +535,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -561,8 +561,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -587,8 +587,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -613,8 +613,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -639,8 +639,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -665,8 +665,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -693,8 +693,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -723,8 +723,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -749,8 +749,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -775,8 +775,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -801,8 +801,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -827,8 +827,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -853,8 +853,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -879,8 +879,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -905,8 +905,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -931,8 +931,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -959,8 +959,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -986,8 +986,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1013,8 +1013,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1040,8 +1040,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1067,8 +1067,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1094,8 +1094,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1121,8 +1121,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1148,8 +1148,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1175,8 +1175,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1202,8 +1202,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1229,8 +1229,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1260,8 +1260,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1294,8 +1294,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1323,8 +1323,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1350,8 +1350,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1385,8 +1385,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1412,8 +1412,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1443,8 +1443,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1470,8 +1470,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1497,8 +1497,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1526,8 +1526,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1555,8 +1555,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1582,8 +1582,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1618,8 +1618,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1645,8 +1645,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1672,8 +1672,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
@@ -1699,8 +1699,8 @@
     {
         "deck": 1,
         "max_times": 1,
-        "battle_plan_1p": 0,
-        "battle_plan_2p": 1,
+        "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+        "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
         "dict_exit": {
             "other_time_player_a": [],
             "other_time_player_b": [],
