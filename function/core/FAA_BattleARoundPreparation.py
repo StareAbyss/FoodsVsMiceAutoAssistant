@@ -182,8 +182,8 @@ class BattleARoundPreparation:
             click=False)
         if not find:
             print_warning(text="创建房间后, 10s找不到[开始/准备]字样! 创建房间可能失败!")
-            # 可能是由于: 服务器抽风无法创建房间 or 点击被吞 or 次数用尽
-            return 2  # 2-跳过本次
+            # 2-跳过本次 可能是由于: 服务器抽风无法创建房间 or 点击被吞 or 次数用尽
+            return 2
 
         # 选择卡组
         print_debug(text="选择卡组, 并开始加入新卡和ban卡")
