@@ -242,6 +242,10 @@ class QMainWindowService(QMainWindowLog):
         self.todo_timer_manager.set_opt(self.opt)
         # 启动线程群
         self.todo_timer_manager.start()
+        # 锁定相关设置的ui
+        for i in range(1, 6):
+            for comp in ['Active', 'H', 'M', 'Plan']:
+                getattr(self, f'Timer{i}_{comp}').setEnabled(False)
 
     def todo_timer_stop(self):
         # 设置按钮文本
