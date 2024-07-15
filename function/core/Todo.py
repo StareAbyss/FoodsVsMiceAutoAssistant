@@ -1509,6 +1509,7 @@ class ThreadTodo(QThread):
         need_reload = False
         need_reload = need_reload or c_opt["sign_in"]["active"]
         need_reload = need_reload or c_opt["fed_and_watered"]["active"]
+        need_reload = need_reload or c_opt["use_double_card"]["active"]
         need_reload = need_reload or c_opt["warrior"]["active"]
         if need_reload:
             self.batch_reload_game()
