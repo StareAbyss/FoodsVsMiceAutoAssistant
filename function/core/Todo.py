@@ -38,10 +38,12 @@ class ThreadTodo(QThread):
         self.thread_2p = None
         self.thread_card_manager = None
         self.card_manager = None
-        self.lock = False
+        self.battle_check_interval = 1  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
+
+        # 多人双线程相关
+        self.lock = False  # 多人单线程的互锁, 需要彼此完成方可解除对方的锁
         self.todo_id = todo_id  # id == 1 默认 id==2 处理双单人多线程
         self.extra_opt = None  # 用来给双单人多线程的2P传递参数
-        self.battle_check_interval = 1,  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
 
         # 好用的信号~
         self.signal_dict = signal_dict
@@ -576,7 +578,10 @@ class ThreadTodo(QThread):
 
             # 实例化放卡管理器
             self.thread_card_manager = CardManager(
-                faa_1=self.faa[player_a], faa_2=self.faa[player_b], round_interval=self.battle_check_interval)
+                faa_1=self.faa[player_a],
+                faa_2=self.faa[player_b],
+                round_interval=self.battle_check_interval
+            )
             self.msleep(500)
             self.thread_card_manager.run()
             self.msleep(1000)

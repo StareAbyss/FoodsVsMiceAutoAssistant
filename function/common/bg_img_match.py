@@ -1,4 +1,5 @@
 import time
+from typing import Union
 
 import cv2
 import numpy as np
@@ -8,7 +9,7 @@ from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
-def match_template_with_optional_mask(img_source, img_template):
+def match_template_with_optional_mask(img_source, img_template) -> np.ndarray:
     """
     使用可选掩模进行模板匹配。
 
@@ -57,7 +58,7 @@ def match_p_in_w(
         template,
         match_tolerance: float = 0.95,
         is_test=False,
-        source_root_handle=None):
+        source_root_handle=None) -> Union[None, list]:
     """
     find target in template
     catch an image by a handle, find a smaller image(target) in this bigger one, return center relative position
@@ -68,7 +69,7 @@ def match_p_in_w(
     :param is_test: 仅单例测试使用, 显示匹配到的最右图像位置框
     :param source_root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层 可空置
 
-    Returns: 识别到的目标的中心坐标(相对于截图)
+    Returns: 识别到的目标的中心坐标(相对于截图后)
     """
 
     # 截取原始图像(windows窗口) BGRA -> BGR
@@ -125,7 +126,7 @@ def match_ps_in_w(
         source_handle,
         template_opts: list,
         return_mode: str,
-        source_root_handle=None):
+        source_root_handle=None) -> Union[None, list]:
     """
     一次截图中找复数的图片, 性能更高的写法
     :param source_handle: 窗口句柄
@@ -202,7 +203,7 @@ def loop_match_p_in_w(
         click: bool = True,
         after_click_template=None,
         source_root_handle=None,
-):
+) -> bool:
     """
     catch a resource by a handle, find a smaller resource in the bigger one,
     click the center of the smaller one in the bigger one by handle(relative position)
@@ -271,7 +272,7 @@ def loop_match_ps_in_w(
         match_failed_check: float = 10,
         match_interval: float = 0.2,
         source_root_handle=None,
-):
+) -> bool:
     """
         :param source_handle: 截图句柄
         :param template_opts: [{"template":str,"source_range": [x1:int,y1:int,x2:int,y2:int],"match_tolerance":float},...]
