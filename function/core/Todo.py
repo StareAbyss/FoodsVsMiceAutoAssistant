@@ -1564,7 +1564,7 @@ class ThreadTodo(QThread):
                 need_lock=True)
 
         def main():
-
+            text_ = "萌宠神殿"
             active_player_count = 0
             for player_id in [1, 2]:
                 my_opt = c_opt[f"pet_temple_{player_id}"]
@@ -1572,10 +1572,16 @@ class ThreadTodo(QThread):
                     active_player_count += 1
             if active_player_count == 1:
                 # 单人情况 以easy battle 完成即可
+                self.model_start_print(text=text_)
                 one_player()
+                self.model_end_print(text=text_)
             if active_player_count == 2:
                 # 多人情况 直接调用以lock battle 完成1P 以信号调用另一个todo 完成2P
+                self.model_start_print(text=text_)
                 multi_player()
+                self.model_end_print(text=text_)
+                # 休息五秒, 防止1P后完成任务, 跨线程解锁2P需要一定时间, 却在1P线程中再次激发start2P线程, 导致2P线程瘫痪
+                sleep(5)
 
         main()
 
