@@ -291,6 +291,34 @@ class ThreadTodo(QThread):
 
         self.signal_print_to_ui.emit(text="使用绑定消耗品和宝箱, 完成")
 
+    def batch_use_items_double_card(self, is_group, max_times):
+
+        self.signal_print_to_ui.emit("使用双爆卡, 开始")
+
+        # 创建进程 -> 开始进程 -> 阻塞主进程
+        self.thread_1p = ThreadWithException(
+            target=self.faa[1].use_items_double_card,
+            name="1P Thread - UseItems",
+            kwargs={"max_times":max_times})
+
+        if is_group:
+            self.thread_2p = ThreadWithException(
+                target=self.faa[2].use_items_double_card,
+                name="2P Thread - UseItems",
+                kwargs={"max_times":max_times})
+
+        # 涉及键盘抢夺, 容错低, 最好分开执行
+        self.thread_1p.start()
+        if is_group:
+            sleep(0.333)
+            self.thread_2p.start()
+        self.thread_1p.join()
+        if is_group:
+            self.thread_2p.join()
+
+        self.signal_print_to_ui.emit(text="使用双爆卡, 完成")
+
+    def batch_loop_cross_server(self, is_group, deck):
 
         self.signal_print_to_ui.emit(text="无限刷跨服任务威望启动!", color="red")
 
@@ -1497,6 +1525,13 @@ class ThreadTodo(QThread):
             self.faa[1].fed_and_watered()
             if my_opt["is_group"]:
                 self.faa[2].fed_and_watered()
+
+        my_opt = c_opt["use_double_card"]
+        if my_opt["active"]:
+            self.batch_use_items_double_card(
+                max_times=my_opt["max_times"],
+                is_group=my_opt["is_group"]
+            )
 
         my_opt = c_opt["warrior"]
         if my_opt["active"]:
