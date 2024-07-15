@@ -1386,6 +1386,8 @@ class FAA:
         # 打开背包
         self.print_debug(text="打开背包")
         self.action_bottom_menu(mode="背包")
+        self.signal_print_to_ui.emit(text="[使用绑定消耗品] 背包图标可能需要加载, 等待10s")
+        time.sleep(10)
 
         # 四次循环查找所有正确图标 不需要升到最顶, 打开背包会自动重置
         for i in range(4):
@@ -1572,8 +1574,7 @@ class FAA:
             # 打开背包
             self.print_debug(text="打开背包")
             self.action_bottom_menu(mode="背包")
-
-            self.signal_print_to_ui.emit(text="[使用双暴卡] 为防止卡加载, 等待10s")
+            self.signal_print_to_ui.emit(text="[使用双暴卡] 背包图标可能需要加载, 等待10s")
             time.sleep(10)
 
             loop_use_double_card()
@@ -1667,7 +1668,8 @@ class FAA:
         # 打开背包
         self.print_debug(text="打开背包")
         self.action_bottom_menu(mode="背包")
-        time.sleep(1)
+        self.signal_print_to_ui.emit(text="[删除物品] 背包图标可能需要加载, 等待10s")
+        time.sleep(10)
 
         # 点击到物品栏目
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=777, y=65)
