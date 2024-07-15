@@ -45,23 +45,35 @@ class QMainWindowLog(QMainWindowLoadSettings):
     def start_print(self):
         """打印默认输出提示"""
         self.signal_print_to_ui.emit("嗷呜, 欢迎使用FAA-美食大战老鼠自动放卡作战小助手~", time=False)
-        self.signal_print_to_ui.emit("当前版本: 1.3.1", time=False)
+        self.signal_print_to_ui.emit("本软件 [开源][免费][绿色] 当前版本: 1.3.1", time=False)
         self.signal_print_to_ui.emit("", time=False)
         self.signal_print_to_ui.emit("使用安全说明", color="red", time=False)
         self.signal_print_to_ui.emit("[1] 务必有二级密码", time=False)
         self.signal_print_to_ui.emit("[2] 有一定的礼卷防翻牌异常", time=False)
         self.signal_print_to_ui.emit("[3] 高星或珍贵不绑卡挂拍卖/提前转移", time=False)
         self.signal_print_to_ui.emit("", time=False)
-        self.signal_print_to_ui.emit("用户请认真阅读[FAA从入门到神殿.pdf], 以解决[闪退][没反应][UI缩放异常]等多数问题", time=False)
+        self.signal_print_to_ui.emit("使用疑难解决", color="red", time=False)
+        self.signal_print_to_ui.emit(
+            text="用户请认真阅读[FAA从入门到神殿.pdf], 以解决[闪退][没反应][UI缩放异常]等多数问题",
+            color="blue",
+            time=False)
         self.signal_print_to_ui.emit("开发者和深入使用, 请参考[README.md]", time=False)
         self.signal_print_to_ui.emit("鼠标悬停在文字或按钮上会显示部分提示信息~", time=False)
-        self.signal_print_to_ui.emit("任务或定时器开始运行后, 将以点击运行时的配置进行工作", time=False)
+        self.signal_print_to_ui.emit(
+            text="任务或定时器开始运行后, 将锁定点击按钮时的配置文件, 进行工作, 更改后的应用需重新点击开始即可应用",
+            time=False)
         self.signal_print_to_ui.emit("", time=False)
-        self.signal_print_to_ui.emit("[Github] https://github.com/StareAbyss/FoodsVsMiceAutoAssistant", time=False)
-        self.signal_print_to_ui.emit("[B站][UP直视深淵][老版宣传视频]https://www.bilibili.com/video/BV1fS421N7zf",
-                                     time=False)
-        self.signal_print_to_ui.emit("[反馈&交流QQ] 786921130 欢迎加入获取帮助", time=False)
-        self.signal_print_to_ui.emit("[开源][免费][绿色] 请为我在 Github点个Star/B站三连评论弹幕支持吧", time=False)
+        self.signal_print_to_ui.emit("相关链接", color="red", time=False)
+        self.signal_print_to_ui.emit("[爱发电]  https://afdian.net/a/zssy_faa ", time=False)
+        self.signal_print_to_ui.emit(
+            text="[爱发电]  小目标  100份  x  1.28¥ = 大群升级2k人  你们的支持是FAA持(不)续(跑)开(路)发的最大动力",
+            time=False)
+        self.signal_print_to_ui.emit("[Github]  https://github.com/StareAbyss/FoodsVsMiceAutoAssistant", time=False)
+        self.signal_print_to_ui.emit("[Github]  开源不易, 为我点个Star吧! 发送Issues是最有效的问题反馈渠道", time=False)
+        self.signal_print_to_ui.emit("[B站][UP直视深淵][宣传]  https://www.bilibili.com/video/BV1fS421N7zf", time=False)
+        self.signal_print_to_ui.emit("[B站]  速速一键三连辣!", time=False)
+        self.signal_print_to_ui.emit("[交流QQ群]  1群(暂满): 786921130  2群: 142272678 ", time=False)
+        self.signal_print_to_ui.emit("[交流QQ群]  欢迎加入交流讨论游戏相关和自动化相关问题 & 获取使用帮助", time=False)
 
     # 用于展示弹窗信息的方法
     @QtCore.pyqtSlot(str, str)
