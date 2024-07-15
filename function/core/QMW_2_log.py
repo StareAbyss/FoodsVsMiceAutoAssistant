@@ -18,8 +18,10 @@ class QMainWindowLog(QMainWindowLoadSettings):
         # 链接防呆弹窗
         self.signal_dialog.connect(self.show_dialog)
 
-        # 链接日志输入信号
+        # 并不是直接输出 而是模仿信号类的方式 的 类, 其emit方法是 一个可以输入缺省的颜色或时间参数来生成文本, 发送信息的方法
         self.signal_print_to_ui = self.SignalPrintf(signal_1=self.signal_print_to_ui_1)
+
+        # 真正的发送信息激活print的函数, 被链接到直接发送信息到ui的函数
         self.signal_print_to_ui_1.connect(self.print_to_ui)
 
         # 储存所有信号
@@ -33,7 +35,11 @@ class QMainWindowLog(QMainWindowLoadSettings):
         self.start_print()
 
     class SignalPrintf:
-
+        """
+        模仿信号的类, 但其实本身完全不是信号, 是为了可以接受缺省参数而模仿的中间类,
+        该类的emit方法是 一个可以输入缺省的颜色或时间参数来生成文本的方法
+        并调用信号发送真正的信息
+        """
         def __init__(self, signal_1):
             super().__init__()
             self.signal_1 = signal_1
