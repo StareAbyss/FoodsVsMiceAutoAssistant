@@ -654,7 +654,7 @@ class ThreadTodo(QThread):
         sleep(60 * 60 * 24)
 
     def n_battle(self, stage_id, player, is_use_key, max_times, dict_exit,
-                 deck, quest_card, ban_card_list, battle_plan_1p, battle_plan_2p, title_text):
+                 deck, quest_card, ban_card_list, battle_plan_1p, battle_plan_2p, title_text, need_lock=False):
         """
         [单本轮战]1次 副本外 → 副本内n次战斗 → 副本外
         player: [1],[2],[1,2],[2,1]
@@ -813,7 +813,12 @@ class ThreadTodo(QThread):
                         # 结束提示文本
                         self.signal_print_to_ui.emit(text=f"{title}第{battle_count + 1}次, 异常结束, 重启再来")
 
-                        self.batch_reload_game()
+                        if not need_lock:
+                            # 非单人多线程
+                            self.batch_reload_game()
+                        else:
+                            # 单人多线程 只reload自己
+                            faa_a.reload_game()
 
                 if result_id == 2:
 
@@ -830,7 +835,12 @@ class ThreadTodo(QThread):
                         # 结束提示文本
                         self.signal_print_to_ui.emit(text=f"{title}第{battle_count}次, 开始游戏异常, 重启跳过")
 
-                        self.batch_reload_game()
+                        if not need_lock:
+                            # 非单人多线程
+                            self.batch_reload_game()
+                        else:
+                            # 单人多线程 只reload自己
+                            faa_a.reload_game()
 
             return result_list
 
@@ -981,7 +991,6 @@ class ThreadTodo(QThread):
             # 上锁
             self.lock = True
 
-        self.lock = True
         # 战斗开始
         self.signal_print_to_ui.emit(text=f"{title}开始...")
 
@@ -1012,7 +1021,9 @@ class ThreadTodo(QThread):
                     quest_card=quest["quest_card"],
                     ban_card_list=quest["list_ban_card"],
                     dict_exit=quest["dict_exit"],
-                    title_text=extra_title)
+                    title_text=extra_title,
+                    need_lock=need_lock
+                )
 
             else:
                 self.signal_print_to_ui.emit(text="{}事项{},{},错误的关卡名称!跳过".format(
