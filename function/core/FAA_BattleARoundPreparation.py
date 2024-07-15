@@ -3,6 +3,7 @@ import os
 import time
 
 import cv2
+import requests
 
 from function.common.bg_img_match import loop_match_ps_in_w, loop_match_p_in_w, match_p_in_w
 from function.common.bg_img_screenshot import capture_image_png
@@ -347,7 +348,7 @@ class BattleARoundPreparation:
             img = self.action_and_capture_loots()
 
             # 分析图片，获取战利品字典
-            drop_dict = match_items_from_image(img_save_path=img_path, img=img, test_print=True)
+            drop_dict = match_items_from_image(img_save_path=img_path, img=img, mode='loots', test_print=True)
             print_debug(text="[捕获战利品] 处在战利品UI 战利品已 捕获/识别/保存".format(drop_dict))
 
             return drop_dict
