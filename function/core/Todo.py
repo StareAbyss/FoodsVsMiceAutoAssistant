@@ -853,6 +853,10 @@ class ThreadTodo(QThread):
             CUS_LOGGER.debug(str(result_list))
             valid_time = len(result_list)
 
+            # 如果没有正常完成的场次, 直接跳过统计输出的部分
+            if valid_time == 0:
+                return
+
             # 时间
             sum_time_spend = 0
             count_used_key = 0
