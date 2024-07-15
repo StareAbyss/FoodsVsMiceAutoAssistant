@@ -23,10 +23,10 @@ class Battle:
         # 战斗专用私有属性 - 静态
 
         # 每次点击时 按下和抬起之间的间隔 秒
-        self.click_interval = 0.033
+        self.click_interval = 0.025
 
         # 每次点击时 按下和抬起之间的间隔 秒
-        self.click_sleep = 0.033
+        self.click_sleep = 0.025
 
         # 自动拾取的格子
         self.auto_collect_cells = [
@@ -57,6 +57,7 @@ class Battle:
             handle=self.faa.handle,
             x=self.faa.bp_cell[num_cell][0],
             y=self.faa.bp_cell[num_cell][1])
+        time.sleep(self.click_sleep)
 
     def use_player_all(self):
         self.faa.print_debug(text="[战斗] 开始放置玩家:{}".format(self.faa.battle_plan_0["player"]))
@@ -182,6 +183,7 @@ class Battle:
         # 点一下空白
         if click_space:
             T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.faa.handle, x=200, y=350)
+            time.sleep(self.click_sleep)
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=200, y=350)
             time.sleep(self.click_sleep)
 
