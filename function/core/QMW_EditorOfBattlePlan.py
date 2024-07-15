@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
     QLineEdit, QHBoxLayout, QTextEdit, QListWidget, QMessageBox, QSpinBox, QListWidgetItem, QShortcut, QFrame)
 
 from function.globals.get_paths import PATHS
+from function.globals.log import CUS_LOGGER
 
 double_click_card_list = pyqtSignal(object)
 
@@ -295,9 +296,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.append_undo_stack()
 
             change_card = cards.pop(index_from - 1)
-            print(change_card)
+            CUS_LOGGER.debug(change_card)
             cards.insert(index_to - 1, change_card)
-            print("正常操作 内部数据表已更新: {}".format(cards))
+            CUS_LOGGER.debug("正常操作 内部数据表已更新: {}".format(cards))
         else:
             # 试图移动到第一个
             self.WeiCardList.clear()
@@ -537,7 +538,7 @@ class QListWidgetDraggable(QListWidget):
         self.setDragDropMode(self.InternalMove)
 
     def dropEvent(self, e):
-        print("拖拽事件触发")
+        CUS_LOGGER.debug("拖拽事件触发")
         index_from = self.currentRow()
         super(QListWidgetDraggable, self).dropEvent(e)  # 如果不调用父类的构造方法，拖拽操作将无法正常进行
         index_to = self.currentRow()
@@ -546,14 +547,13 @@ class QListWidgetDraggable(QListWidget):
         items = source_Widget.selectedItems()  # 获取所有的拖入item
         item = items[0]  # 不允许多选 所以只有一个
 
-        print("text:{} from {} to {} memory:{}".format(item.text(), index_from, index_to, self.currentRow()))
+        CUS_LOGGER.debug("text:{} from {} to {} memory:{}".format(item.text(), index_from, index_to, self.currentRow()))
 
         # 执行更改函数
         self.drop_function(index_from=index_from, index_to=index_to)
 
     def mousePressEvent(self, e):
         super().mousePressEvent(e)
-        # print("鼠标点击事件触发")
         current_row = self.currentRow()
         if current_row == 0:
             # 禁止拖拽

@@ -2,8 +2,8 @@ from threading import Timer
 
 from PyQt5.QtCore import QThread, pyqtSignal
 
-from function.battle.Card import Card, CardKun
-from function.battle.CardQueue import CardQueue
+from function.core_battle.Card import Card, CardKun
+from function.core_battle.CardQueue import CardQueue
 from function.globals.extra import EXTRA_GLOBALS
 from function.globals.log import CUS_LOGGER
 

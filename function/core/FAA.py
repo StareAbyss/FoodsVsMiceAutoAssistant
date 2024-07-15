@@ -6,13 +6,14 @@ import time
 import cv2
 import numpy as np
 
-from function.battle.get_position_in_battle import get_position_card_deck_in_battle, get_position_card_cell_in_battle
 from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
 from function.common.bg_img_screenshot import capture_picture_png
 from function.core.FAAActionInterfaceJump import FAAActionInterfaceJump
 from function.core.FAAActionQuestReceiveRewards import FAAActionQuestReceiveRewards
 from function.core.FAABattle import Battle
 from function.core.analyzer_of_loot_logs import matchImage
+from function.core_battle.get_position_in_battle import get_position_card_deck_in_battle, \
+    get_position_card_cell_in_battle
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
 from function.globals.log import CUS_LOGGER
