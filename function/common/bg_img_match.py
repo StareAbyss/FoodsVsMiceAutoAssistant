@@ -6,22 +6,39 @@ import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png, png_cropping
 from function.globals.init_resources import RESOURCE_P
+from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
-def match_template_with_optional_mask(img_source, img_template) -> np.ndarray:
+def mask_transform_color_to_black(mask) -> np.ndarray:
     """
-    使用可选掩模进行模板匹配。
+    将掩模板处理 把非白色都变黑色 三通道->单通道
+    """
+    # 创建一个布尔掩码,标记出所有非白色像素
+    non_white_mask = (mask[:, :, :3] != [255, 255, 255]).any(axis=2)
+    # 将非白色像素的RGB值设置为黑色
+    mask[non_white_mask] = [0, 0, 0]
+    # 保留一个通道
+    mask = mask[:, :, 0]
+    return mask
 
-    如果模板图像包含Alpha通道且不是纯白，则使用该Alpha通道作为掩模进行匹配。
-    如果模板图像不包含Alpha通道或Alpha通道为纯白，则直接进行匹配。
+
+def match_template_with_optional_mask(source, template, mask=None) -> np.ndarray:
+    """
+    使用可选掩模进行模板匹配, 步骤如下.
+    1. 生成 mask_from_template 将根据template图像是否存在Alpha通道, 取颜色为纯白的部分作为掩模纯白, 其他色均为黑.
+    2. 处理 mask 根据输入的参数mask, 如果mask不为None的处理, 则将mask作为原始掩模, 否则将mask_from_template作为原始掩模.
+    3. 如果 mask 不为None, 取颜色为纯白的部分作为掩模纯白, 其他色均为黑, 但保留其Alpha通道.
+    4. 如果 mask 不为None, 将 mask和mask_from_template 合并, 若mask Alpha通道为255 该像素取mask, 否则取mask_from_template.
+    5. 调用 cv2.matchTemplate 进行匹配, 并返回匹配结果.
 
     Args:
-        img_source (numpy.ndarray): 源图像。
-        img_template (numpy.ndarray): 模板图像，可能包含Alpha通道作为掩模。
-
+        :param source: numpy.ndarray 源图像.
+        :param template: numpy.ndarray 模板图像，可能包含Alpha通道作为掩模.
+        :param mask: 原始掩模. 四通道图像, 透明区域将不生效, 掩模需要与template的大小完全一致.
     Returns:
-        numpy.ndarray: 匹配结果。
+        numpy.ndarray: 匹配结果.
+
     """
     """
     函数:对应方法 匹配良好输出->匹配不好输出
@@ -34,42 +51,87 @@ def match_template_with_optional_mask(img_source, img_template) -> np.ndarray:
     """
     method = cv2.TM_SQDIFF_NORMED
 
-    # 检查模板图像是否包含Alpha通道
-    if img_template.shape[2] == 4:
-        # 提取Alpha通道作为掩模
-        mask = img_template[:, :, 3]
+    if template.shape[2] == 4:
+        # 模板图像包含Alpha通道
+
+        # 提取Alpha通道作为掩模 单通道
+        mask_from_template = template[:, :, 3]
+        # 以254分割, 即白色->白色 灰色和黑色->黑色 即 透明区域完全不识别, 而不是作为权重
+        _, mask_from_template = cv2.threshold(mask_from_template, 254, 255, cv2.THRESH_BINARY)
         # 移除Alpha通道，保留RGB部分
-        img_template = img_template[:, :, :3]
+        template = template[:, :, :3]
+    else:
+        # 否则以纯白等大小单通道图像 作为掩模
+        mask_from_template = np.ones((template.shape[:2]), dtype=np.uint8) * 255
 
-        # 检查掩模是否为纯白
-        if not np.all(mask == 255):
-            # 掩模非纯白，使用掩模进行匹配
-            result = cv2.matchTemplate(image=img_source, templ=img_template, method=method, mask=mask)
-            return result
+    if (mask is not None) and (template.shape[0] == mask.shape[0]) and (template.shape[1] == mask.shape[1]):
+        # 如果有原始的掩模 且掩模与template大小一致
 
-    # 对于不包含Alpha通道或Alpha通道为纯白的情况，直接进行匹配
-    result = cv2.matchTemplate(image=img_source, templ=img_template, method=method)
-    return result
+        if mask.shape[2] == 3:
+            # 有三个通道 RGB的掩模 直接覆盖识别template的透明度得到的mask
+
+            # 处理彩色为黑白 (三通道->单通道, 非白色均视为黑色)
+            mask = mask_transform_color_to_black(mask=mask)
+            # 保留一个通道
+            mask = mask[:, :, 0]
+
+        else:
+            # 有四个通道 RGBA的掩模
+
+            # 获取PNG图像的Alpha通道
+            mask_alpha_channel = mask[:, :, 3]
+            # 以254分割, 即白色->白色 灰色和黑色->黑色 即 透明区域完全不识别, 而不是作为权重
+            _, mask_alpha_channel = cv2.threshold(mask_alpha_channel, 254, 255, cv2.THRESH_BINARY)
+
+            # 去除Alpha通道 处理彩色为黑白 (三通道->单通道, 非白色均视为黑色)
+            mask = mask_transform_color_to_black(mask=mask[:, :, :3])
+
+            # 根据Alpha通道将PNG图像叠加到灰度图像上
+            # for i in range(mask.shape[0]):
+            #     for j in range(mask.shape[1]):
+            #         if mask_alpha_channel[i, j] != 255:
+            #             mask[i, j] = mask_from_template[i, j]
+            mask[mask_alpha_channel != 255] = mask_from_template[mask_alpha_channel != 255]
+
+    else:
+        # 没有默认掩模或和template大小不一而不使用
+        pass
+
+    # 检查掩模是否为纯白
+    if np.all(mask == 255):
+        # 对于不包含Alpha通道或Alpha通道为纯白的情况，直接进行匹配
+        result = cv2.matchTemplate(image=source, templ=template, method=method)
+        return result
+    else:
+        # 掩模非纯白，使用掩模进行匹配
+        result = cv2.matchTemplate(image=source, templ=template, method=method, mask=mask)
+        return result
 
 
 def match_p_in_w(
         source_handle,
         source_range: list,
         template,
+        mask=None,
+        template_name="Unknown",
         match_tolerance: float = 0.95,
-        is_test=False,
+        test_print=False,
+        test_show=False,
         source_root_handle=None) -> Union[None, list]:
     """
     find target in template
     catch an image by a handle, find a smaller image(target) in this bigger one, return center relative position
     :param source_handle: 窗口句柄
     :param source_range: 原始图像生效的范围,为 [左上X, 左上Y,右下X, 右下Y], 右下位置超出范围取最大(不会报错)
-    :param template: 目标图片的文件路径
+    :param template: 目标图片的文件路径或numpy.ndarray
+    :param template_name: 目标图像名称, 用于test_print
+    :param mask: 目标图片掩模, 若为None, 则不使用掩模
     :param match_tolerance: 捕捉准确度阈值 0-1
-    :param is_test: 仅单例测试使用, 显示匹配到的最右图像位置框
+    :param test_print: 仅单例测试使用, 显示匹配到的最右图像位置框
+    :param test_show: 是否展示识别结果, 仅单例测试使用, 显示匹配到的最右图像位置框
     :param source_root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层 可空置
 
-    Returns: 识别到的目标的中心坐标(相对于截图后)
+    Returns: 识别到的目标的中心坐标(相对于截图区域左上)
     """
 
     # 截取原始图像(windows窗口) BGRA -> BGR
@@ -77,18 +139,23 @@ def match_p_in_w(
     img_source = img_source[:, :, :3]
 
     # 根据 路径 或者 numpy.array 选择是否读取
-    if type(template) is np.ndarray:
-        img_template = template
-    else:
+    if type(template) is not np.ndarray:
+        # 未规定输出名称
+        if template_name is "Unknown" and test_print is True:
+            template_name = template
         # 读取目标图像,中文路径兼容方案
-        img_template = cv2.imdecode(buf=np.fromfile(file=template, dtype=np.uint8), flags=-1)
+        template = cv2.imdecode(buf=np.fromfile(file=template, dtype=np.uint8), flags=-1)
 
-    # 自定义的模板匹配
-    result = match_template_with_optional_mask(img_source=img_source, img_template=img_template)
+    # 自定义的复杂模板匹配
+    result = match_template_with_optional_mask(source=img_source, template=template, mask=mask)
     (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(src=result)
 
     # 如果匹配度<阈值，就认为没有找到
-    if minVal >= 1 - match_tolerance:
+    matching_degree = 1 - minVal
+    if matching_degree <= match_tolerance:
+        if test_print:
+            CUS_LOGGER.debug(
+                f"识别目标:{template_name}, 匹配度:{matching_degree}, 目标阈值:{match_tolerance}, 结果:失败")
         return None
 
     # 最优匹配的左上坐标
@@ -96,16 +163,17 @@ def match_p_in_w(
 
     # 输出识别到的中心
     center_point = [
-        start_x + int(img_template.shape[1] / 2),
-        start_y + int(img_template.shape[0] / 2)
+        start_x + int(template.shape[1] / 2),
+        start_y + int(template.shape[0] / 2)
     ]
-
+    if test_print:
+        CUS_LOGGER.debug(f"识别目标:{template_name}, 匹配度:{matching_degree}, 目标阈值:{match_tolerance}, 结果:成功")
     # 测试时绘制边框
-    if is_test:
+    if test_show:
         img_source = img_source.astype(np.uint8)
         # 确定起点和终点的(x，y)坐标边界框
-        end_x = start_x + img_template.shape[1]
-        end_y = start_y + img_template.shape[0]
+        end_x = start_x + template.shape[1]
+        end_y = start_y + template.shape[0]
         # 在图像上绘制边框
         cv2.rectangle(
             img=img_source,
@@ -196,12 +264,14 @@ def loop_match_p_in_w(
         source_handle,
         source_range: list,
         template,
+        template_mask=None,
         match_tolerance: float = 0.95,
         match_interval: float = 0.2,
         match_failed_check: float = 10,
         after_sleep: float = 0.05,
         click: bool = True,
         after_click_template=None,
+        after_click_template_mask=None,
         source_root_handle=None,
 ) -> bool:
     """
@@ -211,12 +281,14 @@ def loop_match_p_in_w(
         :param source_handle: 截图句柄
         :param source_range: 截图后截取范围 [左上x,左上y,右下x,右下y]
         :param template: 目标图片路径
+        :param template_mask: 目标图片掩模, 若为None, 则不使用掩模
         :param match_tolerance: 捕捉准确度阈值 0-1
         :param match_interval: 捕捉图片的间隔
         :param match_failed_check: # 捕捉图片时间限制, 超时输出False
         :param after_sleep: 找到图/点击后 的休眠时间
         :param click: 是否点一下
         :param after_click_template: 点击后进行检查, 若能找到该图片, 视为无效, 不输出True, 继承前者的精准度tolerance
+        :param after_click_template_mask: 检查掩模
         :param source_root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层 可空置
 
     return:
@@ -230,6 +302,7 @@ def loop_match_p_in_w(
             source_handle=source_handle,
             source_range=source_range,
             template=template,
+            mask=template_mask,
             match_tolerance=match_tolerance,
             source_root_handle=source_root_handle)
 
@@ -251,6 +324,7 @@ def loop_match_p_in_w(
                         source_handle=source_handle,
                         source_range=source_range,
                         template=after_click_template,
+                        mask=after_click_template_mask,
                         match_tolerance=match_tolerance,
                         source_root_handle=source_root_handle)
                     if find_target:
