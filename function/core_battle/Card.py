@@ -237,7 +237,6 @@ class CardKun:
 
     def fresh_status(self):
         """判断颜色来更改自身冷却和可用属性"""
-        print(self.location_from)
         img = capture_image_png(
             handle=self.handle,
             raw_range=[
@@ -258,7 +257,9 @@ class CardKun:
             for pixel in axis_0:
                 pixels_all[0].append(pixel)
         pixels_all = np.array(pixels_all)
-        self.status_usable = compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_0.png"][:, :, :3])
+
+        self.status_usable = (compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_0.png"][:, :, :3]) or
+                              compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_2.png"][:, :, :3]))
 
     def destroy(self):
         self.faa = None
