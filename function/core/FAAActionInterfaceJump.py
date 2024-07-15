@@ -1,7 +1,7 @@
 import random
 import time
 
-from function.common.bg_p_match import loop_match_p_in_w, match_p_in_w
+from function.common.bg_img_match import loop_match_p_in_w, match_p_in_w
 from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
@@ -22,7 +22,7 @@ class FAAActionInterfaceJump:
         """
         handle = self.faa.handle
         print_error = self.faa.print_error
-        action_quest_receive_rewards = self.faa.action_quest_receive_rewards
+        receive_quest_rewards = self.faa.receive_quest_rewards
 
         if raw_range is None:
             raw_range = [0, 0, 950, 600]
@@ -74,7 +74,7 @@ class FAAActionInterfaceJump:
 
         if mode == "美食大赛领取":
             # 领取奖励
-            action_quest_receive_rewards.main(mode="美食大赛")
+            receive_quest_rewards(mode="美食大赛")
 
         if mode == "游戏内退出":
             # 游戏内退出
@@ -98,9 +98,9 @@ class FAAActionInterfaceJump:
         print_warning = self.faa.print_warning
 
         failed_time = 0
-        l_id = 1
+        tar_menu_page = 1
         while True:
-            self.change_activity_list(serial_num=l_id)
+            self.change_activity_list(serial_num=tar_menu_page)
             find = loop_match_p_in_w(
                 raw_w_handle=handle,
                 raw_range=[250, 0, 925, 110],
@@ -112,7 +112,7 @@ class FAAActionInterfaceJump:
                 print_debug(text="[顶部菜单] [{}] 3s内跳转成功".format(mode))
                 break
             else:
-                l_id = 1 if l_id == 2 else 2
+                tar_menu_page = 1 if tar_menu_page == 2 else 2
                 failed_time += 1
 
             if failed_time == 5:
@@ -185,7 +185,7 @@ class FAAActionInterfaceJump:
         find = match_p_in_w(
             raw_w_handle=handle,
             raw_range=[0, 0, 950, 600],
-            target_path=RESOURCE_P["common"]["顶部菜单"]["举报.png"])
+            template=RESOURCE_P["common"]["顶部菜单"]["举报.png"])
 
         if serial_num == 1:
             if find:
@@ -588,14 +588,14 @@ class FAAActionInterfaceJump:
                 result = match_p_in_w(
                     raw_w_handle=handle,
                     raw_range=[0, 0, 950, 600],
-                    target_path=RESOURCE_P["common"]["战斗"]["房间图标_男.png"],
-                    target_tolerance=0.95)
+                    template=RESOURCE_P["common"]["战斗"]["房间图标_男.png"],
+                    tolerance=0.95)
                 if not result:
                     result = match_p_in_w(
                         raw_w_handle=handle,
                         raw_range=[0, 0, 950, 600],
-                        target_path=RESOURCE_P["common"]["战斗"]["房间图标_女.png"],
-                        target_tolerance=0.95)
+                        template=RESOURCE_P["common"]["战斗"]["房间图标_女.png"],
+                        tolerance=0.95)
                 if result:
                     # 直接进入
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(

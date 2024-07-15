@@ -9,7 +9,7 @@ import requests
 from PyQt5.QtCore import *
 
 from function.battle.CardManager import CardManager
-from function.common.bg_p_match import loop_match_p_in_w
+from function.common.bg_img_match import loop_match_p_in_w
 from function.common.thread_with_exception import ThreadWithException
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
@@ -47,7 +47,7 @@ class ThreadTodo(QThread):
         self.signal_dialog = self.signal_dict["dialog"]
         self.signal_end = self.signal_dict["end"]
 
-    """辅助代码"""
+    """非脚本操作的业务代码"""
 
     def change_lock(self, my_bool):
         self.lock = my_bool
@@ -83,13 +83,13 @@ class ThreadTodo(QThread):
 
         self.signal_print_to_ui.emit(f"清理完成... {deleted_files_count}张图片已清理.")
 
-    """业务代码, 不直接调用opt设定, 会向输出窗口传参"""
-
     def cus_quit(self):
         CUS_LOGGER.debug("已激活ThreadTodo quit")
         self.quit()
 
-    def reload_game(self):
+    """业务代码 - 战斗以外"""
+
+    def batch_reload_game(self):
 
         self.signal_print_to_ui.emit("Refresh Game...")
 
@@ -114,18 +114,18 @@ class ThreadTodo(QThread):
 
         print("刷新两个游戏窗口 结束")
 
-    def reload_to_login_ui(self):
+    def batch_click_refresh_btn(self):
 
         self.signal_print_to_ui.emit("Refresh Game...")
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
-            target=self.faa[1].reload_to_login_ui,
+            target=self.faa[1].click_refresh_btn,
             name="1P Thread - Reload",
             kwargs={})
 
         self.thread_2p = ThreadWithException(
-            target=self.faa[2].reload_to_login_ui,
+            target=self.faa[2].click_refresh_btn,
             name="2P Thread - Reload",
             kwargs={})
         self.thread_1p.start()
@@ -133,7 +133,7 @@ class ThreadTodo(QThread):
         self.thread_1p.join()
         self.thread_2p.join()
 
-    def all_sign_in(self, is_group):
+    def batch_sign_in(self, is_group):
 
         self.signal_print_to_ui.emit("[每日签到] 开始...", color="red")
 
@@ -172,7 +172,7 @@ class ThreadTodo(QThread):
 
         self.signal_print_to_ui.emit("[每日签到] 结束", color="red")
 
-    def receive_quest_rewards(self, is_group):
+    def batch_receive_all_quest_rewards(self, is_group):
 
         self.signal_print_to_ui.emit("[领取奖励] 开始...", color="red")
 
@@ -181,7 +181,7 @@ class ThreadTodo(QThread):
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
-            target=self.faa[1].action_quest_receive_rewards,
+            target=self.faa[1].receive_quest_rewards,
             name="1P Thread - ReceiveQuest",
             kwargs={
                 "mode": "普通任务"
@@ -189,7 +189,7 @@ class ThreadTodo(QThread):
 
         if is_group:
             self.thread_2p = ThreadWithException(
-                target=self.faa[2].action_quest_receive_rewards,
+                target=self.faa[2].receive_quest_rewards,
                 name="2P Thread - ReceiveQuest",
                 kwargs={
                     "mode": "普通任务"
@@ -213,14 +213,14 @@ class ThreadTodo(QThread):
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
-            target=self.faa[1].action_quest_receive_rewards,
+            target=self.faa[1].receive_quest_rewards,
             name="1P Thread - Quest",
             kwargs={
                 "mode": "美食大赛"
             })
 
         self.thread_2p = ThreadWithException(
-            target=self.faa[2].action_quest_receive_rewards,
+            target=self.faa[2].receive_quest_rewards,
             name="2P Thread - Quest",
             kwargs={
                 "mode": "美食大赛"
@@ -240,14 +240,14 @@ class ThreadTodo(QThread):
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
-            target=self.faa[1].action_quest_receive_rewards,
+            target=self.faa[1].receive_quest_rewards,
             name="1P Thread - Quest",
             kwargs={
                 "mode": "大富翁"
             })
 
         self.thread_2p = ThreadWithException(
-            target=self.faa[2].action_quest_receive_rewards,
+            target=self.faa[2].receive_quest_rewards,
             name="2P Thread - Quest",
             kwargs={
                 "mode": "大富翁"
@@ -264,21 +264,19 @@ class ThreadTodo(QThread):
 
         self.signal_print_to_ui.emit(text="领取所有[任务]奖励, 完成", color="red")
 
-    def use_items(self, is_group):
+    def batch_use_items_consumables(self, is_group):
 
         self.signal_print_to_ui.emit("使用绑定消耗品和宝箱, 开始")
 
-        self.signal_print_to_ui.emit("领取一般任务奖励...")
-
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
-            target=self.faa[1].use_item,
+            target=self.faa[1].use_items_consumables,
             name="1P Thread - UseItems",
             kwargs={})
 
         if is_group:
             self.thread_2p = ThreadWithException(
-                target=self.faa[2].use_item,
+                target=self.faa[2].use_items_consumables,
                 name="2P Thread - UseItems",
                 kwargs={})
 
@@ -293,7 +291,6 @@ class ThreadTodo(QThread):
 
         self.signal_print_to_ui.emit(text="使用绑定消耗品和宝箱, 完成")
 
-    def loop_cross_server(self, is_group, deck):
 
         self.signal_print_to_ui.emit(text="无限刷跨服任务威望启动!", color="red")
 
@@ -316,6 +313,8 @@ class ThreadTodo(QThread):
         self.thread_1p.join()
         if is_group:
             self.thread_2p.join()
+
+    """业务代码 - 战斗相关"""
 
     def invite(self, player_a, player_b):
         """
@@ -369,6 +368,67 @@ class ThreadTodo(QThread):
             time.sleep(1)
 
         return True
+
+    def goto_stage_and_invite(self, stage_id, mt_first_time, player_a, player_b):
+
+        # 自定义作战直接调出
+        is_cu = "CU" in stage_id
+        if is_cu:
+            return 0
+
+        is_cs = "CS" in stage_id
+        is_mt = "MT" in stage_id
+
+        faa_a = self.faa[player_a]
+        faa_b = self.faa[player_b]
+
+        failed_round = 0  # 计数失败轮次
+
+        while True:
+
+            failed_time = 0  # 计数失败次数
+
+            while True:
+                if not is_mt:
+                    # 非魔塔进入
+                    faa_a.action_goto_stage()
+                    faa_b.action_goto_stage()
+                else:
+                    # 魔塔进入
+                    faa_a.action_goto_stage(mt_first_time=mt_first_time)
+                    if mt_first_time:
+                        faa_b.action_goto_stage(mt_first_time=mt_first_time)
+
+                sleep(3)
+
+                if is_cs:
+                    # 跨服副本 直接退出
+                    return 0
+                invite_success = self.invite(player_a=player_a, player_b=player_b)
+
+                if invite_success:
+                    self.signal_print_to_ui.emit(text="[单本轮战] 邀请成功")
+                    # 邀请成功 返回退出
+                    return 0
+
+                else:
+                    failed_time += 1
+                    mt_first_time = True
+
+                    self.signal_print_to_ui.emit(text=f"[单本轮战] 服务器抽风,进入竞技岛重新邀请...({failed_time}/3)")
+
+                    if failed_time == 3:
+                        self.signal_print_to_ui.emit(text="[单本轮战] 服务器抽风过头, 刷新游戏!")
+                        failed_round += 1
+                        self.batch_reload_game()
+                        break
+
+                    faa_a.action_exit(mode="竞技岛")
+                    faa_b.action_exit(mode="竞技岛")
+
+            if failed_round == 3:
+                self.signal_print_to_ui.emit(text=f"[单本轮战] 刷新游戏次数过多")
+                return 2
 
     def battle(self, player_a, player_b):
         """
@@ -517,72 +577,11 @@ class ThreadTodo(QThread):
 
         return result_id, result_loot, result_spend_time
 
-    def goto_stage_and_invite(self, stage_id, mt_first_time, player_a, player_b):
-
-        # 自定义作战直接调出
-        is_cu = "CU" in stage_id
-        if is_cu:
-            return 0
-
-        is_cs = "CS" in stage_id
-        is_mt = "MT" in stage_id
-
-        faa_a = self.faa[player_a]
-        faa_b = self.faa[player_b]
-
-        failed_round = 0  # 计数失败轮次
-
-        while True:
-
-            failed_time = 0  # 计数失败次数
-
-            while True:
-                if not is_mt:
-                    # 非魔塔进入
-                    faa_a.action_goto_stage()
-                    faa_b.action_goto_stage()
-                else:
-                    # 魔塔进入
-                    faa_a.action_goto_stage(mt_first_time=mt_first_time)
-                    if mt_first_time:
-                        faa_b.action_goto_stage(mt_first_time=mt_first_time)
-
-                sleep(3)
-
-                if is_cs:
-                    # 跨服副本 直接退出
-                    return 0
-                invite_success = self.invite(player_a=player_a, player_b=player_b)
-
-                if invite_success:
-                    self.signal_print_to_ui.emit(text="[单本轮战] 邀请成功")
-                    # 邀请成功 返回退出
-                    return 0
-
-                else:
-                    failed_time += 1
-                    mt_first_time = True
-
-                    self.signal_print_to_ui.emit(text=f"[单本轮战] 服务器抽风,进入竞技岛重新邀请...({failed_time}/3)")
-
-                    if failed_time == 3:
-                        self.signal_print_to_ui.emit(text="[单本轮战] 服务器抽风过头, 刷新游戏!")
-                        failed_round += 1
-                        self.reload_game()
-                        break
-
-                    faa_a.action_exit(mode="竞技岛")
-                    faa_b.action_exit(mode="竞技岛")
-
-            if failed_round == 3:
-                self.signal_print_to_ui.emit(text=f"[单本轮战] 刷新游戏次数过多")
-                return 2
-
     def n_battle_customize_battle_error_print(self, success_battle_time):
         # 结束提示文本
         self.signal_print_to_ui.emit(
             text=f"[单本轮战] 第{success_battle_time}次, 出现未知异常! 刷新后卡死, 以防止更多问题, 出现此问题可上报作者")
-        self.reload_game()
+        self.batch_reload_game()
         sleep(60 * 60 * 24)
 
     def n_battle(self, stage_id, player, is_use_key, max_times, dict_exit,
@@ -601,10 +600,7 @@ class ThreadTodo(QThread):
         is_cs = "CS" in stage_id
 
         # 判断是不是组队
-        if len(player) == 1:
-            is_group = False
-        else:
-            is_group = True
+        is_group = len(player) > 1
 
         # 如果是多人跨服 防呆重写 2,1 为 1,2
         if is_cs and is_group:
@@ -613,35 +609,9 @@ class ThreadTodo(QThread):
         # 处理多人信息 (这些信息只影响函数内, 所以不判断是否组队)
         player_a = player[0]  # 房主 创建房间者
         player_b = 1 if player_a == 2 else 2  # 非房主
-        faa_a = self.faa[player_a]
-        faa_b = self.faa[player_b]
+        faa_a, faa_b = self.faa[player_a], self.faa[player_b]
         battle_plan_a = battle_plan_1p if player_a == 1 else battle_plan_2p
         battle_plan_b = battle_plan_1p if player_b == 1 else battle_plan_2p
-
-        # 填入战斗方案和关卡信息, 之后会大量动作和更改类属性, 所以需要判断是否组队
-        faa_a.set_config_for_battle(
-            is_main=True,
-            is_group=is_group,
-            is_use_key=is_use_key,
-            deck=deck,
-            quest_card=quest_card,
-            ban_card_list=ban_card_list,
-            battle_plan_index=battle_plan_a,
-            stage_id=stage_id)
-        if is_group:
-            faa_b.set_config_for_battle(
-                is_main=False,
-                is_group=is_group,
-                is_use_key=is_use_key,
-                deck=deck,
-                quest_card=quest_card,
-                ban_card_list=ban_card_list,
-                battle_plan_index=battle_plan_b,
-                stage_id=stage_id)
-
-        self.signal_print_to_ui.emit(text=f"{title}{stage_id} {max_times}次 开始")
-
-        # 检查人物等级和次数
 
         def check_level_and_times():
             """
@@ -714,7 +684,7 @@ class ThreadTodo(QThread):
                     # 结束提示文本
                     self.signal_print_to_ui.emit(text=f"{title}第{battle_count}次, 创建房间多次异常, 重启跳过")
 
-                    self.reload_game()
+                    self.batch_reload_game()
 
                 self.signal_print_to_ui.emit(text=f"{title}第{battle_count + 1}次, 开始")
 
@@ -774,7 +744,7 @@ class ThreadTodo(QThread):
                         # 结束提示文本
                         self.signal_print_to_ui.emit(text=f"{title}第{battle_count + 1}次, 异常结束, 重启再来")
 
-                        self.reload_game()
+                        self.batch_reload_game()
 
                 if result_id == 2:
 
@@ -791,7 +761,7 @@ class ThreadTodo(QThread):
                         # 结束提示文本
                         self.signal_print_to_ui.emit(text=f"{title}第{battle_count}次, 开始游戏异常, 重启跳过")
 
-                        self.reload_game()
+                        self.batch_reload_game()
 
             return result_list
 
@@ -828,18 +798,44 @@ class ThreadTodo(QThread):
 
             if len(player) == 1:
                 # 单人
-                self.print_player_loot(player_id=player_a, result_list=result_list)
+                self.output_player_loot(player_id=player_a, result_list=result_list)
             else:
                 # 多人
-                self.print_player_loot(player_id=1, result_list=result_list)
-                self.print_player_loot(player_id=2, result_list=result_list)
+                self.output_player_loot(player_id=1, result_list=result_list)
+                self.output_player_loot(player_id=2, result_list=result_list)
 
-        if not check_level_and_times():
-            return False
-        result_list = multi_round_battle()
-        end_statistic_print(result_list=result_list)
+        def main():
+            self.signal_print_to_ui.emit(text=f"{title}{stage_id} {max_times}次 开始")
 
-    def print_player_loot(self, player_id, result_list):
+            # 填入战斗方案和关卡信息, 之后会大量动作和更改类属性, 所以需要判断是否组队
+            faa_a.set_config_for_battle(
+                is_main=True,
+                is_group=is_group,
+                is_use_key=is_use_key,
+                deck=deck,
+                quest_card=quest_card,
+                ban_card_list=ban_card_list,
+                battle_plan_index=battle_plan_a,
+                stage_id=stage_id)
+            if is_group:
+                faa_b.set_config_for_battle(
+                    is_main=False,
+                    is_group=is_group,
+                    is_use_key=is_use_key,
+                    deck=deck,
+                    quest_card=quest_card,
+                    ban_card_list=ban_card_list,
+                    battle_plan_index=battle_plan_b,
+                    stage_id=stage_id)
+
+            if not check_level_and_times():
+                return False
+            result_list = multi_round_battle()
+            end_statistic_print(result_list=result_list)
+
+        main()
+
+    def output_player_loot(self, player_id, result_list):
         """
         打印玩家掉落信息
 
@@ -967,7 +963,7 @@ class ThreadTodo(QThread):
             while self.lock:
                 sleep(1)
 
-    """使用n_n_battle为核心的变种函数"""
+    """使用n_n_battle为核心的变种 [单线程][单人或双人]"""
 
     def easy_battle(self, text_, stage_id, player, max_times,
                     deck, battle_plan_1p, battle_plan_2p, dict_exit):
@@ -1021,8 +1017,8 @@ class ThreadTodo(QThread):
         self.n_n_battle(quest_list=quest_list)
 
         # 领取奖励
-        self.faa[1].action_quest_receive_rewards(mode="悬赏任务")
-        self.faa[2].action_quest_receive_rewards(mode="悬赏任务")
+        self.faa[1].receive_quest_rewards(mode="悬赏任务")
+        self.faa[2].receive_quest_rewards(mode="悬赏任务")
 
         self.signal_print_to_ui.emit(text=f"{text_} Completed!", color="red")
 
@@ -1033,12 +1029,12 @@ class ThreadTodo(QThread):
         self.signal_print_to_ui.emit(text=f"{text_} Link Start!", color="red")
 
         self.signal_print_to_ui.emit(text=f"{text_} 检查领取奖励...")
-        self.faa[1].action_quest_receive_rewards(mode=quest_mode)
-        self.faa[2].action_quest_receive_rewards(mode=quest_mode)
+        self.faa[1].receive_quest_rewards(mode=quest_mode)
+        self.faa[2].receive_quest_rewards(mode=quest_mode)
 
         self.signal_print_to_ui.emit(text=f"{text_} 获取任务列表...")
 
-        quest_list = self.faa[1].get_quests(mode=quest_mode, qg_cs=stage)
+        quest_list = self.faa[1].match_quests(mode=quest_mode, qg_cs=stage)
 
         for i in quest_list:
             self.signal_print_to_ui.emit(
@@ -1064,8 +1060,8 @@ class ThreadTodo(QThread):
 
         self.signal_print_to_ui.emit(text=f"{text_} 检查领取奖励中...")
 
-        self.faa[1].action_quest_receive_rewards(mode=quest_mode)
-        self.faa[2].action_quest_receive_rewards(mode=quest_mode)
+        self.faa[1].receive_quest_rewards(mode=quest_mode)
+        self.faa[2].receive_quest_rewards(mode=quest_mode)
 
         self.signal_print_to_ui.emit(text=f"{text_} Completed!", color="red")
 
@@ -1147,8 +1143,8 @@ class ThreadTodo(QThread):
         def a_round():
 
             # 两个号分别读取任务
-            quest_list_1 = self.faa[1].get_quests(mode="美食大赛")
-            quest_list_2 = self.faa[2].get_quests(mode="美食大赛")
+            quest_list_1 = self.faa[1].match_quests(mode="美食大赛")
+            quest_list_2 = self.faa[2].match_quests(mode="美食大赛")
             quest_list = quest_list_1 + quest_list_2
 
             if not quest_list:
@@ -1196,8 +1192,8 @@ class ThreadTodo(QThread):
             self.signal_print_to_ui.emit(text=f"[{text_}] Link Start!", color="red")
 
             # 先领一下已经完成的大赛任务
-            self.faa[1].get_quests(mode="美食大赛")
-            self.faa[2].get_quests(mode="美食大赛")
+            self.faa[1].receive_quest_rewards(mode="美食大赛")
+            self.faa[2].receive_quest_rewards(mode="美食大赛")
 
             i = 0
             while True:
@@ -1216,7 +1212,7 @@ class ThreadTodo(QThread):
 
         auto_food_main()
 
-    """特别的 n_n_battle为核心 的 双线程单人函数"""
+    """使用n_n_battle为核心的变种 [双线程][单人]"""
 
     def alone_magic_tower(self):
 
@@ -1487,11 +1483,11 @@ class ThreadTodo(QThread):
         need_reload = need_reload or c_opt["fed_and_watered"]["active"]
         need_reload = need_reload or c_opt["warrior"]["active"]
         if need_reload:
-            self.reload_game()
+            self.batch_reload_game()
 
         my_opt = c_opt["sign_in"]
         if my_opt["active"]:
-            self.all_sign_in(
+            self.batch_sign_in(
                 is_group=my_opt["is_group"]
             )
 
@@ -1531,7 +1527,7 @@ class ThreadTodo(QThread):
         need_reload = need_reload or c_opt["cross_server"]["active"]
 
         if need_reload:
-            self.reload_game()
+            self.batch_reload_game()
 
         my_opt = c_opt["normal_battle"]
         if my_opt["active"]:
@@ -1585,7 +1581,7 @@ class ThreadTodo(QThread):
         need_reload = need_reload or c_opt["relic"]["active"]
 
         if need_reload:
-            self.reload_game()
+            self.batch_reload_game()
 
         my_opt = c_opt["quest_guild"]
         if my_opt["active"]:
@@ -1640,7 +1636,7 @@ class ThreadTodo(QThread):
         need_reload = need_reload or c_opt["pet_temple_1"]["active"]
         need_reload = need_reload or c_opt["pet_temple_2"]["active"]
         if need_reload:
-            self.reload_game()
+            self.batch_reload_game()
 
         self.alone_magic_tower()
 
@@ -1676,22 +1672,22 @@ class ThreadTodo(QThread):
         need_reload = need_reload or c_opt["auto_food"]["active"]
 
         if need_reload:
-            self.reload_game()
+            self.batch_reload_game()
 
         my_opt = c_opt["receive_awards"]
         if my_opt["active"]:
-            self.receive_quest_rewards(
+            self.batch_receive_all_quest_rewards(
                 is_group=my_opt["is_group"]
             )
 
         my_opt = c_opt["use_items"]
         if my_opt["active"]:
-            self.use_items(
+            self.batch_use_items_consumables(
                 is_group=my_opt["is_group"])
 
         my_opt = c_opt["loop_cross_server"]
         if my_opt["active"]:
-            self.loop_cross_server(
+            self.batch_loop_cross_server(
                 is_group=my_opt["is_group"],
                 deck=c_opt["quest_guild"]["deck"])
 
@@ -1728,7 +1724,7 @@ class ThreadTodo(QThread):
 
         if self.opt["advanced_settings"]["end_exit_game"]:
             self.signal_print_to_ui.emit(text="已完成所有额外事项！及将刷新游戏")
-            self.reload_to_login_ui()
+            self.batch_click_refresh_btn()
         else:
             self.signal_print_to_ui.emit(
                 text="已完成所有额外事项！推荐勾选高级设置-完成后刷新游戏, 防止长期运行flash导致卡顿")
