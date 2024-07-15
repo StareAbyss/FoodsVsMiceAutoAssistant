@@ -52,7 +52,7 @@ class QMainWindowLog(QMainWindowLoadSettings):
     def start_print(self):
         """打印默认输出提示"""
         self.signal_print_to_ui.emit("嗷呜, 欢迎使用FAA-美食大战老鼠自动放卡作战小助手~", time=False)
-        self.signal_print_to_ui.emit("本软件 [开源][免费][绿色] 当前版本: 1.3.1", time=False)
+        self.signal_print_to_ui.emit("本软件 [开源][免费][绿色] 当前版本: 1.4.0", time=False)
         self.signal_print_to_ui.emit("", time=False)
         self.signal_print_to_ui.emit("使用安全说明", color="#C80000", time=False)
         self.signal_print_to_ui.emit("[1] 务必有二级密码", time=False)
@@ -69,6 +69,7 @@ class QMainWindowLog(QMainWindowLoadSettings):
         self.signal_print_to_ui.emit(
             text="任务或定时器开始运行后, 将锁定点击按钮时的配置文件, 进行工作, 更改后的应用需重新点击开始即可应用",
             time=False)
+        self.signal_print_to_ui.emit("该版本的FAA会向服务器发送你的战利品掉落记录以做掉落统计, 不会传输<任何>其他内容", time=False)
         self.signal_print_to_ui.emit("", time=False)
         self.signal_print_to_ui.emit("相关链接", color="#C80000", time=False)
         self.signal_print_to_ui.emit("[爱发电]  https://afdian.net/a/zssy_faa ", time=False)
