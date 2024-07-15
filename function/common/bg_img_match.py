@@ -8,12 +8,50 @@ from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
-def match_p_in_w(
-        raw_w_handle,  # 句柄
-        raw_range: list,  # 原始图像生效的范围
-        target_path,
-        target_tolerance: float = 0.95
-):
+def match_template_with_optional_mask(img_source, img_template):
+    """
+    使用可选掩模进行模板匹配。
+
+    如果模板图像包含Alpha通道且不是纯白，则使用该Alpha通道作为掩模进行匹配。
+    如果模板图像不包含Alpha通道或Alpha通道为纯白，则直接进行匹配。
+
+    Args:
+        img_source (numpy.ndarray): 源图像。
+        img_template (numpy.ndarray): 模板图像，可能包含Alpha通道作为掩模。
+
+    Returns:
+        numpy.ndarray: 匹配结果。
+    """
+    """
+    函数:对应方法 匹配良好输出->匹配不好输出
+    CV_TM_SQDIFF:平方差匹配法 [1]->[0]；
+    CV_TM_SQDIFF_NORMED:归一化平方差匹配法 [0]->[1]；
+    CV_TM_CCORR:相关匹配法 [较大值]->[0]；
+    CV_TM_CCORR_NORMED:归一化相关匹配法 [1]->[0]；
+    CV_TM_CCOEFF:系数匹配法；
+    CV_TM_CCOEFF_NORMED:归一化相关系数匹配法 [1]->[0]->[-1]
+    """
+    method = cv2.TM_SQDIFF_NORMED
+
+    # 检查模板图像是否包含Alpha通道
+    if img_template.shape[2] == 4:
+        # 提取Alpha通道作为掩模
+        mask = img_template[:, :, 3]
+        # 移除Alpha通道，保留RGB部分
+        img_template = img_template[:, :, :3]
+
+        # 检查掩模是否为纯白
+        if not np.all(mask == 255):
+            # 掩模非纯白，使用掩模进行匹配
+            result = cv2.matchTemplate(image=img_source, templ=img_template, method=method, mask=mask)
+            return result
+
+    # 对于不包含Alpha通道或Alpha通道为纯白的情况，直接进行匹配
+    result = cv2.matchTemplate(image=img_source, templ=img_template, method=method)
+    return result
+
+
+def match_p_in_w(raw_w_handle, raw_range: list, template, tolerance: float = 0.95, is_test=False):
     """
     find target in template
     catch an image by a handle, find a smaller image(target) in this bigger one, return center relative position
