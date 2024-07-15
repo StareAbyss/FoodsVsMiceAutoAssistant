@@ -236,7 +236,7 @@ class FAAActionQuestReceiveRewards:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=928, y=16)
             time.sleep(0.5)
 
-    def main(self, mode):
+    def main(self, mode) -> None:
         print_debug = self.faa.print_debug
 
         print_debug(text="[领取奖励] [{}] 开始".format(mode))

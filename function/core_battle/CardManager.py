@@ -180,8 +180,8 @@ class ThreadCheckTimer(QThread):
         """先检查是否出现战斗完成或需要使用钥匙，如果完成，至二级"""
         self.running_round += 1
 
-        # 实时 打印点击队列目前的状态
-        # if self.faa.player == 1:
+        # 实时 打印 <点击队列> 目前的状态
+        # if self.faa.player == 2:
         #     T_ACTION_QUEUE_TIMER.print_queue_statue()
 
         # 看看是不是结束了
@@ -226,12 +226,13 @@ class ThreadCheckTimer(QThread):
                     if max_card:
                         max_card.is_kun_target = True
 
-            # 调试打印目前list状态
-            # text = ""
-            # for card in self.card_queue.card_list:
-            #     text += "[名:{}|CD:{}|用:{}|禁:{}|坤:{}]".format(
-            #         card.name, card.status_cd, card.status_usable, card.status_ban, card.is_kun_target)
-            # self.faa.print_debug(text)
+            # 调试打印 - 目前 <战斗管理器> 的状态
+            # if self.faa.player == 2:
+            #     text = ""
+            #     for card in self.card_queue.card_list:
+            #         text += "[名:{}|CD:{}|用:{}|禁:{}|坤:{}]".format(
+            #             card.name, card.status_cd, card.status_usable, card.status_ban, card.is_kun_target)
+            #     self.faa.print_debug(text)
 
         # 刷新全局冰沙锁的状态
         if EXTRA_GLOBALS.smoothie_lock_time != 0:
