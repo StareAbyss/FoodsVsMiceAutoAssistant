@@ -118,9 +118,11 @@ class Card:
                 x=self.location_to[j][0],
                 y=self.location_to[j][1])
             time.sleep(self.click_sleep)
+
         # 放卡后点一下空白
         T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
         time.sleep(self.click_sleep)
+
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
         time.sleep(self.click_sleep)
 
@@ -132,12 +134,15 @@ class Card:
             self.location_to.remove(self.location_to[0])
 
         # 额外时延
-        time.sleep(0.05)
+        time.sleep(0.1)
 
         # 如果放卡后还可用,自ban 若干s
         # 判断可用 如果不知道其还可用。会导致不自ban，导致无意义点击出现，后果更小。1轮扫描后纠正。
         # 判断冷却 如果不知道其进入了冷却。会导致错误的额外的自ban，导致放卡逻辑错乱。ban描述后纠正。
         self.fresh_status()
+
+        # 额外时延
+        time.sleep(0.1)
 
         if self.status_usable and (self.name not in self.ban_white_list):
             # 放置失败 说明放满了 如果不在白名单 就自ban
@@ -182,7 +187,7 @@ class Card:
                     self.location_to.remove(self.location_to[0])
 
                 # 额外时延
-                time.sleep(0.05)
+                time.sleep(0.1)
 
     def fresh_status(self):
         """判断颜色来更改自身冷却和可用属性"""
