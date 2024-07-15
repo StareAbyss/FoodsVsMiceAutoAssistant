@@ -112,15 +112,15 @@ class ThreadTodo(QThread):
         # 高危动作 慢慢执行
         if self.opt["level_2"]["1p"]["active"]:
             self.faa[1].input_level_2_password_and_gift_flower(password=self.opt["level_2"]["1p"]["password"])
+            self.faa[1].delete_items()
             if dark_crystal:
                 self.faa[1].get_dark_crystal()
-            self.faa[1].delete_items()
 
         if is_group and self.opt["level_2"]["2p"]["active"]:
             self.faa[2].input_level_2_password_and_gift_flower(password=self.opt["level_2"]["2p"]["password"])
+            self.faa[2].delete_items()
             if dark_crystal:
                 self.faa[2].get_dark_crystal()
-            self.faa[2].delete_items()
 
         # 执行完毕后立刻刷新游戏 以清除二级输入状态
         if self.opt["level_2"]["1p"]["active"] or self.opt["level_2"]["2p"]["active"]:
