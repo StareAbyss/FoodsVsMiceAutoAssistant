@@ -19,6 +19,7 @@ class ThreadActionQueueTimer(QThread):
         self.zoom_rate = None
         self.action_queue = queue.Queue()
         self.PostMessageW = windll.user32.PostMessageW
+        self.interval_time = 0.01
         # 按键名称和虚拟键码对应表
         self.VkCode = {
             "l_button": 0x01,  # 鼠标左键
@@ -95,7 +96,7 @@ class ThreadActionQueueTimer(QThread):
         }
 
     def run(self):
-        self.action_timer = Timer(0.015, self.execute_click_queue)
+        self.action_timer = Timer(self.interval_time, self.execute_click_queue)
         self.action_timer.start()
         self.exec()  # 开始事件循环
         self.action_timer.cancel()
@@ -125,7 +126,7 @@ class ThreadActionQueueTimer(QThread):
             self.do_something(d_type=d_type, handle=handle, args=args)
             # 标记任务已完成
             self.action_queue.task_done()
-        self.action_timer = Timer(0.015, self.execute_click_queue)
+        self.action_timer = Timer(self.interval_time, self.execute_click_queue)
         self.action_timer.start()
 
     def add_click_to_queue(self, handle, x, y):
