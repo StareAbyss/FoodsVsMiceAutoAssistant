@@ -3,12 +3,13 @@ from function.globals.init_resources import RESOURCE_P
 from function.scattered.gat_handle import faa_get_handle
 
 
-def get_position_card_deck_in_battle(handle):
+def get_position_card_deck_in_battle(handle,handle_360):
     """识别火苗偏移 True 代表13+张卡 否则 12-张卡"""
     # 循环查找火苗图标 找到战斗开始
     find = match_p_in_w(
-        raw_w_handle=handle,
-        raw_range=[0, 0, 950, 600],
+        source_handle=handle,
+        source_root_handle=handle_360,
+        source_range=[0, 0, 950, 600],
         template=RESOURCE_P["common"]["战斗"]["战斗中_火苗能量.png"])
     if find == [175, 36]:
         my_dict = {

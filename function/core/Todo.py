@@ -391,12 +391,13 @@ class ThreadTodo(QThread):
         faa_b = self.faa[player_b]
 
         find = loop_match_p_in_w(
-            raw_w_handle=faa_a.handle,
-            raw_range=[796, 413, 950, 485],
-            target_path=RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
-            target_sleep=0.3,
+            source_handle=faa_a.handle,
+            source_root_handle=faa_a.handle_360,
+            source_range=[796, 413, 950, 485],
+            template=RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
+            after_sleep=0.3,
             click=False,
-            target_failed_check=2.0)
+            match_failed_check=2.0)
         if not find:
             CUS_LOGGER.warning("2s找不到开始游戏! 土豆服务器问题, 创建房间可能失败!")
             return False
@@ -417,11 +418,12 @@ class ThreadTodo(QThread):
 
             # p2接受邀请
             find = loop_match_p_in_w(
-                raw_w_handle=faa_b.handle,
-                raw_range=[0, 0, 950, 600],
-                target_path=RESOURCE_P["common"]["战斗"]["战斗前_接受邀请.png"],
-                target_sleep=2.0,
-                target_failed_check=2.0
+                source_handle=faa_b.handle,
+                source_root_handle=faa_a.handle_360,
+                source_range=[0, 0, 950, 600],
+                template=RESOURCE_P["common"]["战斗"]["战斗前_接受邀请.png"],
+                after_sleep=2.0,
+                match_failed_check=2.0
             )
 
             if not find:
