@@ -40,23 +40,25 @@ def match_histogram(img_a, img_b):
         return False
 
 
-def match(block, tar_img, mode="equal"):
+def match(img_block, img_tar, mode="equal"):
     """
-    :param block: array 被查找图片
-    :param tar_img: array
+    :param img_block: array 目标对象 包含alpha通道
+    :param img_tar: array 游戏素材 包含alpha通道
     :param mode: str equal:相等  histogram:直方图匹配  match_template:模板匹配
     :return: bool 是否满足匹配条件
     """
+    img_block = img_block[:, :, :-1]
+    img_tar = img_tar[:, :, -1]
     if mode == "equal":
-        return np.array_equal(block, tar_img)
+        return np.array_equal(img_block, img_tar)
 
     if mode == "histogram":
-        return match_histogram(img_a=block, img_b=tar_img)
+        return match_histogram(img_a=img_block, img_b=img_tar)
 
     if mode == "match_template":
         # 被检查者 目标 目标缩小一圈来检查
         target_tolerance = 0.98
-        result = cv2.matchTemplate(image=tar_img, templ=block[2:-2, 2:-2, :], method=cv2.TM_SQDIFF_NORMED)
+        result = cv2.matchTemplate(image=img_tar, templ=img_block[2:-2, 2:-2, :], method=cv2.TM_SQDIFF_NORMED)
         (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(src=result)
         # 如果匹配度<阈值，就认为没有找到
         if minVal > 1 - target_tolerance:
