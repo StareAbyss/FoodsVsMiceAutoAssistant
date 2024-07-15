@@ -37,10 +37,10 @@ class BattleARoundPreparation:
         need_add = need_add or quest_card == "苏打气泡"
 
         if need_add:
-            print_debug(text=f" [添加任务卡] 不需要,跳过")
+            print_debug(text=f"[添加任务卡] 不需要,跳过")
             return
         else:
-            print_debug(text=f" [添加任务卡] 开始, 目标:{quest_card}")
+            print_debug(text=f"[添加任务卡] 开始, 目标:{quest_card}")
 
         """处理ban卡列表"""
 
@@ -491,13 +491,18 @@ class BattleARoundPreparation:
         # 检查"data"字段是否存在
         json_data.setdefault("data", [])
 
-        json_data["data"].append({
+        new_data = {
             "timestamp": time.time(),
             "stage": stage_name,
             "is_used_key": faa_battle.is_used_key,
             "loots": loots_dict,
             "chests": chests_dict
-        })
+        }
+
+        # 保存到字典数据
+        json_data["data"].append(new_data)
+        # 输出到FAA数据中心(其实是白嫖的云服务器)
+        requests.post(url='http://47.108.167.141:5000/faa_server', json=new_data)
 
         # 保存或更新后的战利品字典到JSON文件
         with open(file_path, "w", encoding="utf-8") as json_file:

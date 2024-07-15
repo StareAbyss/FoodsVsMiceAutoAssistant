@@ -1649,7 +1649,7 @@ class FAA:
             for location in [[405, 190], [405, 320], [860, 190]]:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=location[0], y=location[1])
                 # 这个破商店点快了兑换不了
-                time.sleep(0.333)
+                time.sleep(1.333)
 
         # 退出商店界面
         for i in range(2):
