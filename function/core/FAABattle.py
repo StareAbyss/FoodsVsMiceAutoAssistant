@@ -23,10 +23,10 @@ class Battle:
         # 战斗专用私有属性 - 静态
 
         # 每次点击时 按下和抬起之间的间隔 秒
-        self.click_interval = 0.025
+        self.click_interval = 0.033
 
         # 每次点击时 按下和抬起之间的间隔 秒
-        self.click_sleep = 0.025
+        self.click_sleep = 0.033
 
         # 自动拾取的格子
         self.auto_collect_cells = [
@@ -94,7 +94,7 @@ class Battle:
             match_tolerance=0.95,
             template=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
         if find:
-            self.faa.print_debug(text="找到了 [继续作战]")
+            self.faa.print_debug(text="找到了 [继续作战] 图标")
             while find:
                 loop_match_p_in_w(
                     source_handle=self.faa.handle,
@@ -110,7 +110,7 @@ class Battle:
                     source_range=[302, 263, 396, 289],
                     match_tolerance=0.95,
                     template=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
-            self.faa.print_debug(text="已查找到 [继续作战] 图标并点击")
+            self.faa.print_debug(text="点击了 [继续作战] 图标")
             used_key = True
         return used_key
 
