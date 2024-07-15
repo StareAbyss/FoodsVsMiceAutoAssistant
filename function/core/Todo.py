@@ -877,7 +877,6 @@ class ThreadTodo(QThread):
                         count_used_key += 1
                 average_time_spend = sum_time_spend / valid_time
 
-            self.signal_print_to_ui.emit(text=f"{title}{stage_id} {max_times}次 结束 ")
             self.signal_print_to_ui.emit(text="正常场次:{}次 使用钥匙:{}次 总耗时:{}分{}秒  场均耗时:{}分{}秒".format(
                 valid_time,
                 count_used_key,
@@ -894,7 +893,7 @@ class ThreadTodo(QThread):
                 self.output_player_loot(player_id=2, result_list=result_list)
 
         def main():
-            self.signal_print_to_ui.emit(text=f"{title}{stage_id} {max_times}次 开始")
+            self.signal_print_to_ui.emit(text=f"{title}{stage_id} {max_times}次 开始", color="#0056A6")
 
             # 填入战斗方案和关卡信息, 之后会大量动作和更改类属性, 所以需要判断是否组队
             faa_a.set_config_for_battle(
@@ -922,6 +921,7 @@ class ThreadTodo(QThread):
             result_list = multi_round_battle()
             end_statistic_print(result_list=result_list)
 
+            self.signal_print_to_ui.emit(text=f"{title}{stage_id} {max_times}次 结束 ", color="#0056A6")
         main()
 
     def output_player_loot(self, player_id, result_list):
@@ -1001,7 +1001,7 @@ class ThreadTodo(QThread):
             # 上锁
             self.lock = True
 
-        self.signal_print_to_ui.emit(text=f"{title}开始...",color="#009688")
+        self.signal_print_to_ui.emit(text=f"{title}开始...", color="#006400")
 
         # 遍历完成每一个任务
         for i in range(len(quest_list)):
@@ -1019,7 +1019,7 @@ class ThreadTodo(QThread):
                         quest["quest_card"],
                         quest["list_ban_card"]
                     ),
-                    color="#006400"
+                    color="#009688"
                 )
 
                 self.battle_1_1_n(
@@ -1042,7 +1042,7 @@ class ThreadTodo(QThread):
                         title,
                         quest["battle_id"] if "battle_id" in quest else (i + 1)
                     ),
-                    color="#006400"
+                    color="#009688"
                 )
 
             else:
@@ -1052,11 +1052,11 @@ class ThreadTodo(QThread):
                         quest["battle_id"] if "battle_id" in quest else (i + 1),
                         quest["stage_id"]),
                     color="#C80000"
-                    )
+                )
                 continue
 
         # 多本轮战 战斗开始
-        self.signal_print_to_ui.emit(text=f"{title}结束",color="#009688")
+        self.signal_print_to_ui.emit(text=f"{title}结束", color="#006400")
 
         if need_lock:
             # 为另一个todo解锁
@@ -1259,7 +1259,7 @@ class ThreadTodo(QThread):
 
             self.signal_print_to_ui.emit(
                 text="[全自动大赛] 已完成任务获取, 结果如下:",
-                color="#009688"
+                color="#006400"
             )
 
             for i in range(len(quest_list)):
@@ -1278,7 +1278,7 @@ class ThreadTodo(QThread):
                         quest_list[i]["max_times"],
                         quest_list[i]["quest_card"],
                         quest_list[i]["list_ban_card"]),
-                    color="#009688"
+                    color="#006400"
                 )
 
             for i in range(len(quest_list)):
@@ -1301,14 +1301,14 @@ class ThreadTodo(QThread):
             i = 0
             while True:
                 i += 1
-                self.signal_print_to_ui.emit(text=f"[{text_}] 第{i}次循环，开始",color="#0074D9")
+                self.signal_print_to_ui.emit(text=f"[{text_}] 第{i}次循环，开始", color="#E67800")
                 round_result = a_round()
 
-                self.signal_print_to_ui.emit(text=f"[{text_}] 第{i}次循环，结束",color="#0074D9")
+                self.signal_print_to_ui.emit(text=f"[{text_}] 第{i}次循环，结束", color="#E67800")
                 if not round_result:
                     break
 
-            self.signal_print_to_ui.emit(text=f"[{text_}] 所有被记录的任务已完成!",color="#C80000")
+            self.signal_print_to_ui.emit(text=f"[{text_}] 所有被记录的任务已完成!", color="#E67800")
 
             self.model_end_print(text=text_)
 

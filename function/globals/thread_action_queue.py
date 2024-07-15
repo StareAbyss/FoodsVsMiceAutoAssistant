@@ -127,10 +127,12 @@ class ThreadActionQueueTimer(QThread):
         CUS_LOGGER.debug(f"点击列表长度:{self.action_queue.qsize()}")
         return self.action_queue.qsize()
 
-    def print_queue_statue(self) -> None:
-        CUS_LOGGER.debug(f"点击列表长度:{self.action_queue.qsize()}, +{self.count_addition}, -{self.count_subtraction}")
+    def print_queue_statue(self) -> int:
+        q_size = self.action_queue.qsize()
+        CUS_LOGGER.debug(f"点击列表长度:{q_size}, +{self.count_addition}, -{self.count_subtraction}")
         self.count_addition = 0
         self.count_subtraction = 0
+        return q_size
 
     def execute_click_queue(self) -> None:
         """用于执行队列中的任务. 即消费者"""
@@ -149,12 +151,10 @@ class ThreadActionQueueTimer(QThread):
 
     def add_click_to_queue(self, handle, x, y):
         self.action_queue.put(("click", handle, [x, y]))
-
         # print("鼠标左键点击添加到队列")
 
     def add_move_to_queue(self, handle, x, y):
         self.action_queue.put(("move_to", handle, [x, y]))
-
         # print("鼠标移动添加到队列")
 
     def add_keyboard_up_down_to_queue(self, handle, key):
