@@ -199,7 +199,8 @@ class ThreadTodo(QThread):
                     self.signal_print_to_ui.emit(f'[{i}P] 领取温馨礼包情况:' + message, color="E67800")
                 except RequestException as e:
                     # 这里处理请求发生的任何错误，如网络问题、超时、服务器无响应等
-                    self.signal_print_to_ui.emit(f'[{i}P] 领取温馨礼包情况: 失败, 欢乐互娱的服务器炸了, {e}', color="E67800")
+                    self.signal_print_to_ui.emit(f'[{i}P] 领取温馨礼包情况: 失败, 欢乐互娱的服务器炸了, {e}',
+                                                 color="E67800")
             else:
                 self.signal_print_to_ui.emit(f"[{i}P] 未激活领取温馨礼包", color="E67800")
 
@@ -662,8 +663,8 @@ class ThreadTodo(QThread):
 
             """构建有向无环图, 校验数据准确度, 并酌情发送至服务器和更新至Ranking"""
             # result_loot = {
-            #   1:{"loots":{"物品":数量,...},"chests":{"物品":数量,...}}
-            #   2:{"loots":{"物品":数量,...},"chests":{"物品":数量,...}} //可能不存在
+            #   1:{"loots":{"物品":数量,...},"chests":{"物品":数量,...}} //数据 可能不存在 None
+            #   2:{"loots":{"物品":数量,...},"chests":{"物品":数量,...}} //数据 可能不存在 None或不组队
             #   }
             update_dag_result_dict = False
 
@@ -938,6 +939,7 @@ class ThreadTodo(QThread):
 
             CUS_LOGGER.debug("result_list:")
             CUS_LOGGER.debug(str(result_list))
+
             valid_time = len(result_list)
 
             # 如果没有正常完成的场次, 直接跳过统计输出的部分
@@ -1705,7 +1707,6 @@ class ThreadTodo(QThread):
 
         my_opt = c_opt["fed_and_watered"]
         if my_opt["active"]:
-            self.signal_print_to_ui.emit("[浇水 施肥 摘果 领取] 执行中...")
             self.faa[1].fed_and_watered()
             if my_opt["is_group"]:
                 self.faa[2].fed_and_watered()
