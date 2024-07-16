@@ -96,7 +96,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="Tab1">
         <attribute name="title">
@@ -2092,7 +2092,7 @@ Link Start</string>
            <number>5</number>
           </property>
           <item>
-           <layout class="QHBoxLayout" name="_2" stretch="1,2,1">
+           <layout class="QHBoxLayout" name="_2" stretch="1,2,0,1">
             <property name="leftMargin">
              <number>5</number>
             </property>
@@ -2137,6 +2137,34 @@ Link Start</string>
              </widget>
             </item>
             <item>
+             <widget class="QPushButton" name="TipBattle_Button">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>只用点一下就够了!</string>
+              </property>
+              <property name="text">
+               <string>战斗逻辑介绍</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QPushButton" name="TipStageID_Button">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -2160,7 +2188,7 @@ Link Start</string>
                <string>只用点一下就够了!</string>
               </property>
               <property name="text">
-               <string>点击查看关卡代号一览</string>
+               <string>关卡代号一览</string>
               </property>
              </widget>
             </item>
@@ -8337,7 +8365,7 @@ Link Start</string>
               <item>
                <widget class="QLabel" name="Lay_Level2_Text">
                 <property name="text">
-                 <string>免费送花一朵 / 兑换公会副本暗晶 / 删除多余消耗品</string>
+                 <string>兑换公会副本暗晶 / 删除多余消耗品</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
