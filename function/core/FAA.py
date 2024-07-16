@@ -444,8 +444,11 @@ class FAA:
                     for card in list_cell_all
                 ]
 
-                # 计算任务卡的id 最大的卡片id + 1
-                quest_card_id = max(card["id"] for card in list_cell_all) + 1
+                # 计算任务卡的id 最大的卡片id + 1 注意判空!!!
+                if list_cell_all:
+                    quest_card_id = max(card["id"] for card in list_cell_all) + 1
+                else:
+                    quest_card_id = 1
 
                 # 设定任务卡dict
                 dict_quest = {
