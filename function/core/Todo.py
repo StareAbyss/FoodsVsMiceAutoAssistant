@@ -533,10 +533,7 @@ class ThreadTodo(QThread):
 
         is_group = self.faa[player_a].is_group
         result_id = 0
-        result_loot = {
-            player_a: {},
-            player_b: {}
-        }
+        result_loot = {}
         result_spend_time = 0
 
         """同时进行战前准备"""
@@ -653,11 +650,13 @@ class ThreadTodo(QThread):
 
             result = self.thread_1p.get_return_value()
             result_id = max(result_id, result[0])
-            result_loot[player_a] = result[1]
+            if result[1]:
+                result_loot[player_a] = result[1]  # 可能是None 或 dict 故判空
             if is_group:
                 result = self.thread_2p.get_return_value()
                 result_id = max(result_id, result[0])
-                result_loot[player_b] = result[1]
+                if result[1]:
+                    result_loot[player_b] = result[1]  # 可能是None 或 dict 故判空
 
             """处理 ranking"""
             # result_loot = {
