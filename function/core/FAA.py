@@ -1199,7 +1199,7 @@ class FAA:
 
         def from_guild_to_quest_guild():
             """进入任务界面, 正确进入就跳出循环"""
-            while True:
+            for count_time in range(50):
 
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=745, y=430)
                 time.sleep(0.001)
@@ -1218,11 +1218,14 @@ class FAA:
                     click=True
                 )
                 if find:
-                    break
+                    # 次数限制内完成 进入施肥界面
+                    return True
+            # 次数限制内失败 进入施肥界面
+            return False
 
         def from_guild_to_guild_garden():
             """进入施肥界面, 正确进入就跳出循环"""
-            while True:
+            for count_time in range(50):
 
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=745, y=430)
                 time.sleep(0.001)
@@ -1241,7 +1244,10 @@ class FAA:
                     click=True
                 )
                 if find:
-                    break
+                    # 次数限制内完成 进入施肥界面
+                    return True
+            # 次数限制内失败 进入施肥界面
+            return False
 
         def switch_guild_garden_by_try_times(try_time):
             """根据目前尝试次数, 到达不同的公会"""
