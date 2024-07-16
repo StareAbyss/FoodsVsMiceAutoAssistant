@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import QApplication
 from function.core.FAA import FAA
 from function.core.QMW_2_log import QMainWindowLog
 from function.core.QMW_EditorOfBattlePlan import QMWEditorOfBattlePlan
+from function.core.QMW_TipBattle import QMWTipBattle
 from function.core.QMW_TipStageID import QMWTipStageID
 from function.core.QMW_TipWarmGift import QMWTipWarmGift
 from function.core.Todo import ThreadTodo
@@ -43,20 +44,22 @@ class QMainWindowService(QMainWindowLog):
         # 链接中止函数
         self.signal_end.connect(self.todo_end)
 
-        # 額外窗口 - 戰斗方案編輯器
+        # 额外窗口 - 战斗方案编辑器
         self.window_editor = QMWEditorOfBattlePlan()
         self.OpenEditorOfBattlePlan_Button.clicked.connect(self.click_btn_open_editor)
 
-        # 額外窗口 - 溫馨禮包提示
+        # 额外窗口 - 温馨礼包提示
         self.window_tip_warm_gift = QMWTipWarmGift()
         self.GetWarmGift_Button.clicked.connect(self.click_btn_tip_warm_gift)
 
-        # 額外窗口 - 關卡代號提示
+        # 额外窗口 - 关卡代号提示
         self.window_tip_stage_id = QMWTipStageID()
         self.TipStageID_Button.clicked.connect(self.click_btn_tip_stage_id)
 
-        # 額外窗口 - 戰斗模式介紹
-        self.signal_todo_start.connect(self.todo_start)
+        # 额外窗口 - 战斗模式介绍
+        self.window_tip_battle_is_show = False
+        self.window_tip_battle = QMWTipBattle()
+        self.TipBattle_Button.clicked.connect(self.click_btn_tip_battle)
 
         # 启动按钮 函数绑定
         self.Button_Start.clicked.connect(self.todo_click_btn)
@@ -291,6 +294,15 @@ class QMainWindowService(QMainWindowLog):
     def click_btn_tip_stage_id(self):
         self.window_tip_stage_id.setFont(self.font)
         self.window_tip_stage_id.show()
+
+    def click_btn_tip_battle(self):
+        self.window_tip_battle.setFont(self.font)
+        if self.window_tip_battle_is_show:
+            self.window_tip_battle.hide()
+            self.window_tip_battle_is_show = False
+        else:
+            self.window_tip_battle.show()
+            self.window_tip_battle_is_show = True
 
     def click_btn_hide_window(self):
         """因为 Flash 在窗口外无法正常渲染画面(Chrome可以), 所以老板键只能做成z轴设为最低级"""

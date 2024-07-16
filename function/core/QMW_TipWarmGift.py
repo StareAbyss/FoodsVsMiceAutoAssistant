@@ -7,8 +7,8 @@ class QMWTipWarmGift(QMainWindow):
         self.setWindowTitle('温馨礼包教学')
         self.text_edit = None
         # 设置窗口大小
-        self.setMinimumSize(650, 200)
-        self.setMaximumSize(650, 200)
+        self.setMinimumSize(650, 400)
+        self.setMaximumSize(650, 400)
         self.initUI()
 
     def initUI(self):
