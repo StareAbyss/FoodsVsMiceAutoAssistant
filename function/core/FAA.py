@@ -686,7 +686,7 @@ class FAA:
         """
         战斗结束后, 完成下述流程: 潜在的任务完成黑屏-> 战利品 -> 战斗结算 -> 翻宝箱 -> 回到房间/魔塔会回到其他界面
         已模块化到外部实现
-        :return: 0-正常结束 1-重启本次 2-跳过本次
+        :return: 输出1 int, 状态码, 0-正常结束 1-重启本次 2-跳过本次, 输出2 None或者dict, 战利品识别结果
         """
 
         return self.object_battle_a_round_preparation.perform_action_capture_match_for_loots_and_chests()
@@ -1334,7 +1334,7 @@ class FAA:
                 after_sleep=1,
                 click=False
             )
-            self.print_debug(text="{}次尝试, 浇水后, 已确认无任务完成黑屏".format(try_time + 1))
+            self.print_debug(text=f"{try_time + 1}/100 次尝试, 浇水后, 已确认无任务完成黑屏")
 
             # 施肥一次
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=418)
@@ -1348,20 +1348,17 @@ class FAA:
                 template=RESOURCE_P["common"]["退出.png"],
                 match_tolerance=0.95,
                 match_failed_check=7,
-                after_sleep=1,
+                after_sleep=2,
                 click=False)
-            self.print_debug(text="{}次尝试, 施肥后, 已确认无任务完成黑屏".format(try_time + 1))
-
-            # 点X回退一次
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=854, y=55)
-            time.sleep(1.5)
+            self.print_debug(text=f"{try_time + 1}/100 次尝试, 施肥后, 已确认无任务完成黑屏")
 
         def fed_and_watered_one_action(try_time):
             """
-            :return: bool completed True else False
+            :return: bool is completed  , bool is bugged
             """
-            # 进入任务界面, 正确进入就跳出循环
-            from_guild_to_quest_guild()
+            # 进入任务界面
+            if not from_guild_to_quest_guild():
+                return False, True
 
             # 检测施肥任务完成情况 任务是进行中的话为True
             find = loop_match_ps_in_w(
@@ -1394,8 +1391,8 @@ class FAA:
             time.sleep(0.5)
 
             if not find:
-                self.print_debug(text="已完成公会浇水施肥, 尝试次数:{}".format(try_time))
-                return True
+                self.print_debug(text="已完成公会浇水施肥, 尝试次数: {}/100".format(try_time))
+                return True, False
             else:
                 # 进入施肥界面, 正确进入就跳出循环
                 if not from_guild_to_guild_garden():
@@ -1410,8 +1407,32 @@ class FAA:
                 if exit_to_guild_page_and_in_guild():
                     return False, True
 
+                return False, False
+
+        def fed_and_watered_multi_action():
+            """
+            :return: 完成的尝试次数, 是否是bug
+            """
+            # 循环到任务完成
+            try_time = 0
+            while True:
+
+                completed_flag, is_bug = fed_and_watered_one_action(try_time)
+                try_time += 1
+
+                if try_time == 100 or is_bug:
+                    # 次数过多, 或 遇上bug
+                    return completed_flag, try_time, True
+
+                if completed_flag:
+                    return completed_flag, try_time, False
+
         def fed_and_watered_main():
+
+            self.signal_print_to_ui.emit(f"[浇水 施肥 摘果 领取] [{self.player}p] 开始执行...")
             self.print_debug(text="开始公会浇水施肥")
+
+            for reload_time in range(1, 4):
 
                 # 进入公会
                 is_bug = goto_guild_and_in_guild()
@@ -1427,19 +1448,39 @@ class FAA:
                         self.reload_game()
                         break
 
-            # 循环到任务完成
-            try_time = 0
-            while True:
-                completed_flag = fed_and_watered_one_action(try_time)
-                try_time += 1
-                if completed_flag:
+                # 循环到任务完成或出现bug或超次数
+                completed, try_time, is_bug = fed_and_watered_multi_action()
+
+                if is_bug:
+                    if reload_time != 3:
+                        self.signal_print_to_ui.emit(
+                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住 "
+                            f"本轮循环施肥尝试:{try_time}次 刷新再试({reload_time}/3)")
+                        self.reload_game()
+                        continue
+                    else:
+                        self.signal_print_to_ui.emit(
+                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住 "
+                            f"本轮循环施肥尝试:{try_time}次  刷新跳过({reload_time}/3)")
+                        self.reload_game()
+                        break
+
+                if try_time == 100:
+                    self.signal_print_to_ui.emit(
+                        f"[浇水 施肥 摘果 领取] [{self.player}p] 尝试100次, 直接刷新跳过")
+                    self.reload_game()
                     break
 
-            # 退出工会
-            self.action_exit(mode="普通红叉")
+                if completed:
+                    # 正常完成
+                    self.signal_print_to_ui.emit(
+                        f"[浇水 施肥 摘果 领取] [{self.player}p] 正确完成 ~")
+                    # 退出工会
+                    self.action_exit(mode="普通红叉")
+                    self.receive_quest_rewards(mode="公会任务")
+                    break
 
         fed_and_watered_main()
-        self.receive_quest_rewards(mode="公会任务")
 
     def use_items_consumables(self) -> None:
         self.print_debug(text="开启使用物品功能")
