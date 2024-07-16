@@ -17,7 +17,7 @@ def f_test():
     #     source_handle=handle,
     #     source_range=[0, 0, 950, 600],
     #     template=template,
-    #     mask=RESOURCE_P["item"]["item_mask_tradable.png"],
+    #     mask=RESOURCE_P["item"]["物品-掩模-不绑定.png"],
     #     match_tolerance=0.99,
     #     test_print=True,
     #     test_show=True,
@@ -26,14 +26,14 @@ def f_test():
         # 匹配绑定
         template = overlay_images(
             img_background=template,
-            img_overlay=RESOURCE_P["item"]["绑定角标-不透明部分.png"],
+            img_overlay=RESOURCE_P["item"]["物品-绑定角标.png"],
             test_show=False)
         match_p_in_w(
             source_handle=handle,
             source_range=[0, 0, 950, 600],
             template=template,
             template_name="炭烧海星-初级技能书",
-            mask=RESOURCE_P["item"]["item_mask_locked.png"],
+            mask=RESOURCE_P["item"]["物品-掩模-绑定.png"],
             match_tolerance=0.99,
             test_print=True,
             test_show=True,

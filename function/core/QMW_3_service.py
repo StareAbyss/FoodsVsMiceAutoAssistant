@@ -3,7 +3,7 @@ import sys
 
 import win32con
 import win32gui
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QApplication
 
 from function.core.FAA import FAA
@@ -43,16 +43,19 @@ class QMainWindowService(QMainWindowLog):
         # 链接中止函数
         self.signal_end.connect(self.todo_end)
 
-        # 更多额外窗口
+        # 額外窗口 - 戰斗方案編輯器
         self.window_editor = QMWEditorOfBattlePlan()
         self.OpenEditorOfBattlePlan_Button.clicked.connect(self.click_btn_open_editor)
 
+        # 額外窗口 - 溫馨禮包提示
         self.window_tip_warm_gift = QMWTipWarmGift()
         self.GetWarmGift_Button.clicked.connect(self.click_btn_tip_warm_gift)
 
+        # 額外窗口 - 關卡代號提示
         self.window_tip_stage_id = QMWTipStageID()
         self.TipStageID_Button.clicked.connect(self.click_btn_tip_stage_id)
 
+        # 額外窗口 - 戰斗模式介紹
         self.signal_todo_start.connect(self.todo_start)
 
         # 启动按钮 函数绑定
