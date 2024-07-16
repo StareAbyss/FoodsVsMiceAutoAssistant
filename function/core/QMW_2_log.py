@@ -1,9 +1,13 @@
+import base64
 import datetime
 
+import cv2
+import numpy as np
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal
 
 from function.core.QMW_1_load_settings import QMainWindowLoadSettings
+from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 
 
@@ -51,7 +55,10 @@ class QMainWindowLog(QMainWindowLoadSettings):
 
     def start_print(self):
         """打印默认输出提示"""
+
+        self.image_to_ui(image=PATHS["logo"] + "\\FetTuo-192x.png")
         self.signal_print_to_ui.emit("嗷呜, 欢迎使用FAA-美食大战老鼠自动放卡作战小助手~", time=False)
+
         self.signal_print_to_ui.emit("本软件 [开源][免费][绿色] 当前版本: 1.4.0", time=False)
         self.signal_print_to_ui.emit("", time=False)
         self.signal_print_to_ui.emit("使用安全说明", color="#C80000", time=False)
@@ -69,7 +76,8 @@ class QMainWindowLog(QMainWindowLoadSettings):
         self.signal_print_to_ui.emit(
             text="任务或定时器开始运行后, 将锁定点击按钮时的配置文件, 进行工作, 更改后的应用需重新点击开始即可应用",
             time=False)
-        self.signal_print_to_ui.emit("该版本的FAA会向服务器发送你的战利品掉落记录以做掉落统计, 不会传输<任何>其他内容", time=False)
+        self.signal_print_to_ui.emit("该版本的FAA会向服务器发送你的战利品掉落记录以做掉落统计, 不会传输<任何>其他内容",
+                                     time=False)
         self.signal_print_to_ui.emit("", time=False)
         self.signal_print_to_ui.emit("相关链接", color="#C80000", time=False)
         self.signal_print_to_ui.emit("[爱发电]  https://afdian.net/a/zssy_faa ", time=False)
@@ -80,7 +88,7 @@ class QMainWindowLog(QMainWindowLoadSettings):
         self.signal_print_to_ui.emit("[Github]  开源不易, 为我点个Star吧! 发送Issues是最有效的问题反馈渠道", time=False)
         self.signal_print_to_ui.emit("[B站][UP直视深淵][宣传]  https://www.bilibili.com/video/BV1fS421N7zf", time=False)
         self.signal_print_to_ui.emit("[B站]  速速一键三连辣!", time=False)
-        self.signal_print_to_ui.emit("[交流QQ群]  1群(暂满): 786921130  2群: 142272678 ", time=False)
+        self.signal_print_to_ui.emit("[交流QQ群]  1群: 786921130  2群: 142272678 ", time=False)
         self.signal_print_to_ui.emit("[交流QQ群]  欢迎加入交流讨论游戏相关和自动化相关问题 & 获取使用帮助", time=False)
 
     # 用于展示弹窗信息的方法
@@ -106,3 +114,26 @@ class QMainWindowLog(QMainWindowLoadSettings):
         QtWidgets.QApplication.processEvents()
         # 输出到日志和运行框
         CUS_LOGGER.info(text)
+
+    def image_to_ui(self, image):
+        """
+        :param image:
+        :return:
+        """
+
+        # 根据 路径 或者 numpy.array 选择是否读取
+        if type(image) is not np.ndarray:
+            # 读取目标图像,中文路径兼容方案
+            image = cv2.imdecode(buf=np.fromfile(file=image, dtype=np.uint8), flags=-1)
+
+        # 編碼字節流
+        _, img_encoded = cv2.imencode('.png', image)
+
+        # base64
+        img_base64 = base64.b64encode(img_encoded).decode('utf-8')
+
+        image_html = f"<img src='data:image/png;base64,{img_base64}'>"
+
+        self.TextBrowser.append("\n")
+        self.TextBrowser.insertHtml(image_html)
+        self.TextBrowser.append("\n")
