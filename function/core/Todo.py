@@ -44,6 +44,7 @@ class ThreadTodo(QThread):
         self.thread_card_manager = None
         self.card_manager = None
         self.battle_check_interval = 1  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
+        self.auto_food_stage_ban_list = []  # 用于防止缺乏钥匙/次数时无限重复某些关卡
 
         # 多人双线程相关
         self.my_lock = False  # 多人单线程的互锁, 需要彼此完成方可解除对方的锁
@@ -70,6 +71,12 @@ class ThreadTodo(QThread):
         self.my_lock = my_bool
 
     def set_is_used_key_true(self):
+        """
+        在作战时, 只要有任何一方 使用了钥匙, 都设置两个号在本场作战均是用了钥匙
+        在战斗结束进行通报汇总分类 各个faa都依赖自身的该参数, 因此需要对两者都做更改
+        此外, 双人双线程时, 有两个本线程的实例控制的均为同样的faa实例, 若一方用钥匙,另一方也会悲改为用, 但魔塔不会存在该问题, 故暂时不管.
+        """
+
         self.faa[1].faa_battle.is_used_key = True
         self.faa[2].faa_battle.is_used_key = True
 
@@ -713,9 +720,10 @@ class ThreadTodo(QThread):
 
             if update_dag_result_dict:
                 # 如果成功更新了 item_dag_graph.json, 更新ranking
-                ranking_new = find_longest_path_from_dag() # 成功返回更新后的 ranking 失败返回None
+                ranking_new = find_longest_path_from_dag()  # 成功返回更新后的 ranking 失败返回None
                 if ranking_new:
-                    CUS_LOGGER.info(f"[根据有向无环图寻找最长链] item_ranking_dag_graph.json 已更新 , 结果:{ranking_new}")
+                    CUS_LOGGER.info(
+                        f"[根据有向无环图寻找最长链] item_ranking_dag_graph.json 已更新 , 结果:{ranking_new}")
                 else:
                     CUS_LOGGER.warning(f"[根据有向无环图寻找最长链] item_ranking_dag_graph.json 更新失败!")
             else:
@@ -894,6 +902,25 @@ class ThreadTodo(QThread):
                         )
                     )
 
+                    # 如果使用钥匙情况和要求不符, 加入美食大赛黑名单
+                    if is_used_key == need_key:
+                        CUS_LOGGER.debug(
+                            f"{title}钥匙使用要求和实际情况一致~ 要求: {need_key}, 实际: {is_used_key}")
+                    else:
+                        CUS_LOGGER.debug(
+                            f"{title}钥匙使用要求和实际情况不同! 要求: {need_key}, 实际: {is_used_key}")
+                        self.auto_food_stage_ban_list.append(
+                            {
+                                "stage_id": stage_id,
+                                "player": player,  # 1 单人 2 组队
+                                "need_key": need_key,  # 注意类型转化
+                                "max_times": max_times,
+                                "quest_card": quest_card,
+                                "ban_card_list": ban_card_list,
+                                "dict_exit": dict_exit
+                            }
+                        )
+
                 if result_id == 1:
 
                     if is_cu:
@@ -940,34 +967,32 @@ class ThreadTodo(QThread):
 
         def end_statistic_print(result_list):
             """
-            结束后进行统计和输出
+            结束后进行 本次 多本轮战的 战利品 统计和输出, 由于其统计为本次多本轮战, 故不能改变其位置
             """
 
             CUS_LOGGER.debug("result_list:")
             CUS_LOGGER.debug(str(result_list))
 
-            valid_time = len(result_list)
+            valid_total_count = len(result_list)
 
             # 如果没有正常完成的场次, 直接跳过统计输出的部分
-            if valid_time == 0:
+            if valid_total_count == 0:
                 return
 
             # 时间
             sum_time_spend = 0
             count_used_key = 0
-            average_time_spend = 0
 
-            if valid_time != 0:
-                for result in result_list:
-                    # 合计时间
-                    sum_time_spend += result["time_spend"]
-                    # 合计消耗钥匙的次数
-                    if result["is_used_key"]:
-                        count_used_key += 1
-                average_time_spend = sum_time_spend / valid_time
+            for result in result_list:
+                # 合计时间
+                sum_time_spend += result["time_spend"]
+                # 合计消耗钥匙的次数
+                if result["is_used_key"]:
+                    count_used_key += 1
+            average_time_spend = sum_time_spend / valid_total_count
 
             self.signal_print_to_ui.emit(text="正常场次:{}次 使用钥匙:{}次 总耗时:{}分{}秒  场均耗时:{}分{}秒".format(
-                valid_time,
+                valid_total_count,
                 count_used_key,
                 *divmod(int(sum_time_spend), 60),
                 *divmod(int(average_time_spend), 60)
@@ -1007,7 +1032,11 @@ class ThreadTodo(QThread):
 
             if not check_level_and_times():
                 return False
+
+            # 进行 1本n次 返回 成功的每次战斗结果组成的list
             result_list = multi_round_battle()
+
+            # 根据多次战斗结果组成的list 打印 1本n次 的汇总结果
             end_statistic_print(result_list=result_list)
 
             self.signal_print_to_ui.emit(text=f"{title}{stage_id} {max_times}次 结束 ", color="#0056A6")
@@ -1098,10 +1127,21 @@ class ThreadTodo(QThread):
 
         # 遍历完成每一个任务
         for i in range(len(quest_list)):
-            quest = quest_list[i]
-            # 判断显著错误的关卡名称
-            if quest["stage_id"].split("-")[0] in ["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"]:
 
+            quest = quest_list[i]
+
+            # 判断显著错误的关卡名称
+            if quest["stage_id"].split("-")[0] not in ["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"]:
+                self.signal_print_to_ui.emit(
+                    text="{}事项{},{},错误的关卡名称!跳过".format(
+                        title,
+                        quest["battle_id"] if "battle_id" in quest else (i + 1),
+                        quest["stage_id"]),
+                    color="#C80000"
+                )
+                continue
+
+            else:
                 self.signal_print_to_ui.emit(
                     text="{}事项{}, 开始,{},{},{}次,带卡:{},Ban卡:{}".format(
                         title,
@@ -1110,7 +1150,7 @@ class ThreadTodo(QThread):
                         quest["stage_id"],
                         quest["max_times"],
                         quest["quest_card"],
-                        quest["list_ban_card"]
+                        quest["ban_card_list"]
                     ),
                     color="#009688"
                 )
@@ -1120,11 +1160,11 @@ class ThreadTodo(QThread):
                     max_times=quest["max_times"],
                     deck=quest["deck"],
                     player=quest["player"],
-                    is_use_key=quest["is_use_key"],
+                    need_key=quest["need_key"],
                     battle_plan_1p=quest["battle_plan_1p"],
                     battle_plan_2p=quest["battle_plan_2p"],
                     quest_card=quest["quest_card"],
-                    ban_card_list=quest["list_ban_card"],
+                    ban_card_list=quest["ban_card_list"],
                     dict_exit=quest["dict_exit"],
                     title_text=extra_title,
                     need_lock=need_lock
@@ -1138,17 +1178,6 @@ class ThreadTodo(QThread):
                     color="#009688"
                 )
 
-            else:
-                self.signal_print_to_ui.emit(
-                    text="{}事项{},{},错误的关卡名称!跳过".format(
-                        title,
-                        quest["battle_id"] if "battle_id" in quest else (i + 1),
-                        quest["stage_id"]),
-                    color="#C80000"
-                )
-                continue
-
-        # 多本轮战 战斗开始
         self.signal_print_to_ui.emit(text=f"{title}结束", color="#006400")
 
         if need_lock:
@@ -1243,18 +1272,9 @@ class ThreadTodo(QThread):
                     i["stage_id"],
                     i["quest_card"]))
         for i in range(len(quest_list)):
-            quest_list[i]["is_use_key"] = True
             quest_list[i]["deck"] = deck
             quest_list[i]["battle_plan_1p"] = battle_plan_1p
             quest_list[i]["battle_plan_2p"] = battle_plan_2p
-            quest_list[i]["max_times"] = 1
-            quest_list[i]["list_ban_card"] = []
-            quest_list[i]["dict_exit"] = {
-                "other_time_player_a": ["none"],
-                "other_time_player_b": ["none"],
-                "last_time_player_a": ["竞技岛"],
-                "last_time_player_b": ["竞技岛"]
-            }
 
         # 完成任务
         self.battle_1_n_n(quest_list=quest_list)
@@ -1348,6 +1368,10 @@ class ThreadTodo(QThread):
     def auto_food(self, deck):
 
         def a_round():
+            """
+            一轮美食大赛战斗
+            :return: 是否还有任务在美食大赛中
+            """
 
             # 两个号分别读取任务
             quest_list_1 = self.faa[1].match_quests(mode="美食大赛")
@@ -1359,12 +1383,21 @@ class ThreadTodo(QThread):
 
             # 去重
             unique_data = []
-            for d in quest_list:
-                if d not in unique_data:
-                    unique_data.append(d)
+            for quest in quest_list:
+                if quest not in unique_data:
+                    unique_data.append(quest)
             quest_list = unique_data
 
-            CUS_LOGGER.debug("去重后")
+            CUS_LOGGER.debug("[全自动大赛] 去重后任务列表如下:")
+            CUS_LOGGER.debug(quest_list)
+
+            # 去被ban的任务 一般是由于 需要使用钥匙但没有使用钥匙 或 没有某些关卡的次数 但尝试进入
+            for quest in quest_list:
+                if quest in self.auto_food_stage_ban_list:
+                    CUS_LOGGER.debug(f"[全自动大赛] 该任务已经被ban, 故移出任务列表: {quest}")
+                    quest_list.remove(quest)
+
+            CUS_LOGGER.debug("[全自动大赛] 去Ban后任务列表如下:")
             CUS_LOGGER.debug(quest_list)
 
             self.signal_print_to_ui.emit(
@@ -1407,6 +1440,9 @@ class ThreadTodo(QThread):
             # 先领一下已经完成的大赛任务
             self.faa[1].receive_quest_rewards(mode="美食大赛")
             self.faa[2].receive_quest_rewards(mode="美食大赛")
+
+            # 重置美食大赛任务 ban list
+            self.auto_food_stage_ban_list = []  # 用于防止缺乏钥匙/次数时无限重复某些关卡
 
             i = 0
             while True:
