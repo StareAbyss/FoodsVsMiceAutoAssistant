@@ -67,7 +67,7 @@ class FAA:
         self.stage_info = None
         self.is_main = None
         self.is_group = None
-        self.is_use_key = None
+        self.need_key = None
         self.deck = None
         self.quest_card = None
         self.ban_card_list = None
@@ -206,13 +206,13 @@ class FAA:
     """调用输入关卡配置和战斗配置, 在战斗前必须进行该操作"""
 
     def set_config_for_battle(
-            self, stage_id="NO-1-1", is_group=False, is_main=True, is_use_key=True,
+            self, stage_id="NO-1-1", is_group=False, is_main=True, need_key=True,
             deck=1, quest_card="None", ban_card_list=None,
             battle_plan_index=0) -> None:
         """
         :param is_group: 是否组队
         :param is_main: 是否是主要账号(单人为True 双人房主为True)
-        :param is_use_key: 是否使用钥匙
+        :param need_key: 是否使用钥匙
         :param deck:
         :param quest_card:
         :param ban_card_list:
@@ -226,7 +226,7 @@ class FAA:
 
         self.is_main = is_main
         self.is_group = is_group
-        self.is_use_key = is_use_key
+        self.need_key = need_key
         self.deck = deck
         self.quest_card = quest_card
         self.ban_card_list = ban_card_list
@@ -845,7 +845,7 @@ class FAA:
                             {
                                 "stage_id": battle_sets[0],
                                 "player": [self.player] if battle_sets[1] == "1" else [2, 1],  # 1 单人 2 组队
-                                "is_use_key": bool(battle_sets[2]),  # 注意类型转化
+                                "need_key": bool(battle_sets[2]),  # 注意类型转化
                                 "max_times": 1,
                                 "quest_card": battle_sets[3],
                                 "ban_card_list": ban_card_list,

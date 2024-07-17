@@ -193,7 +193,7 @@ class ThreadCheckTimer(QThread):
                 self.stopped = True  # 防止stop后再次调用
             return
 
-        # 看看是不是需要使用钥匙 如果使用成功 发送信号 修改faa.battle中的相关参数为True 以标识
+        # 尝试使用钥匙 如成功 发送信号 修改faa.battle中的is_used_key为True 以标识用过了, 如果不需要使用或用过了, 会直接False
         if self.faa.faa_battle.use_key():
             self.used_key_signal.emit()
 
