@@ -52,7 +52,7 @@ class Card:
 
         """直接从FAA类读取的属性"""
         self.handle = self.faa.handle
-        self.is_use_key = self.faa.is_use_key
+        self.need_key = self.faa.need_key
         self.is_auto_battle = self.faa.is_auto_battle
         self.faa_battle = self.faa.faa_battle
         self.player = self.faa.player
