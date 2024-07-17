@@ -42,34 +42,50 @@ def load_image(item_name):
             return return_img
     else:
         # 找不到 在中间添加问号
-        text_size = cv2.getTextSize(text="?", fontFace=FONT, fontScale=0.8, thickness=5)[0]
+        text = "?"
+        font_size = 0.8
+        font_thickness = 2
+
+        text_size = cv2.getTextSize(text=text, fontFace=FONT, fontScale=font_size, thickness=font_thickness)[0]
         text_x = (IMAGE_SIZE[0] - text_size[0]) // 2
         text_y = (IMAGE_SIZE[1] + text_size[1]) // 2
-        cv2.putText(
-            img=img_black,
-            text="?",
-            org=(text_x, text_y),
-            fontFace=FONT,
-            fontScale=0.8,
-            color=(255, 255, 255),
-            thickness=2,
-            lineType=-1
-        )
+
+        # 黑色文本边缘
+        cv2.putText(img=img_black, text=text, org=(text_x, text_y), fontFace=FONT, fontScale=font_size,
+                    color=(0, 0, 0, 255), thickness=font_thickness + 1, lineType=-1)
+        # 文本本体
+        cv2.putText(img=img_black, text=text, org=(text_x, text_y), fontFace=FONT, fontScale=font_size,
+                    color=(255, 255, 255, 255), thickness=font_thickness, lineType=-1)
         return img_black
 
 
 def create_drops_image(count_dict):
+    images = []
 
     if not count_dict:
-        # 空值 塞个黑块 不然会报错
-        images = [np.full(IMAGE_SIZE, BG_COLOR, dtype=np.uint8)]
-    else:
-        images = []
+        # 空值 塞个无字样 不然会报错
+        image_none = np.full(IMAGE_SIZE, BG_COLOR, dtype=np.uint8)
 
-    font_size = 0.45
-    font_thickness = 1
+        text = "None"
+        font_size = 0.5
+        font_thickness = 1
+
+        text_size = cv2.getTextSize(text=text, fontFace=FONT, fontScale=font_size, thickness=font_thickness)[0]
+        text_x = (IMAGE_SIZE[0] - text_size[0]) // 2
+        text_y = (IMAGE_SIZE[1] + text_size[1]) // 2
+
+        # 黑色文本边缘
+        cv2.putText(img=image_none, text=text, org=(text_x, text_y), fontFace=FONT, fontScale=font_size,
+                    color=(0, 0, 0, 255), thickness=font_thickness + 1, lineType=-1)
+        # 文本本体
+        cv2.putText(img=image_none, text=text, org=(text_x, text_y), fontFace=FONT, fontScale=font_size,
+                    color=(255, 255, 255, 255), thickness=font_thickness, lineType=-1)
+        images.append(image_none)
 
     for name, count in count_dict.items():
+        font_size = 0.45
+        font_thickness = 1
+
         item_img = load_image(name)
 
         # 使用cv2.getTextSize来获取文本的宽度和高度
@@ -89,27 +105,11 @@ def create_drops_image(count_dict):
 
         # 在右下角添加掉落的数量
         # 黑色文本边缘
-        cv2.putText(
-            img=item_img,
-            text=str(count),
-            org=right_align_org,
-            fontFace=FONT,
-            fontScale=font_size,
-            color=(0, 0, 0, 255),
-            thickness=font_thickness + 1,
-            lineType=-1
-        )
+        cv2.putText(img=item_img, text=str(count), org=right_align_org, fontFace=FONT, fontScale=font_size,
+                    color=(0, 0, 0, 255), thickness=font_thickness + 1, lineType=-1)
         # 文本本体
-        cv2.putText(
-            img=item_img,
-            text=str(count),
-            org=right_align_org,
-            fontFace=FONT,
-            fontScale=font_size,
-            color=(255, 255, 255, 255),
-            thickness=font_thickness,
-            lineType=-1
-        )
+        cv2.putText(img=item_img, text=str(count), org=right_align_org, fontFace=FONT, fontScale=font_size,
+                    color=(255, 255, 255, 255), thickness=font_thickness, lineType=-1)
 
         images.append(item_img)
 
