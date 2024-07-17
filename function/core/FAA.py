@@ -471,8 +471,8 @@ class FAA:
                     "location_to": []
                 }
 
-                # 首位插入
-                list_cell_all.insert(0, dict_quest)
+                # 第二位插入
+                list_cell_all.insert(1, dict_quest)
                 return list_cell_all
 
         def calculation_card_ban(list_cell_all):
@@ -519,7 +519,7 @@ class FAA:
                     "location_from": mat_card_position[i]["location_from"],
                     "location_to": []}
                 # 首位插入
-                list_cell_all.insert(0, dict_mat)
+                list_cell_all.insert(1, dict_mat)
 
             return list_cell_all
 
