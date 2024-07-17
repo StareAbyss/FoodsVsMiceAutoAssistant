@@ -55,7 +55,7 @@ class ThreadTodo(QThread):
         self.signal_dict = signal_dict
         self.signal_print_to_ui = self.signal_dict["print_to_ui"]
         self.signal_dialog = self.signal_dict["dialog"]
-        self.signal_end = self.signal_dict["end"]
+        self.signal_todo_end = self.signal_dict["end"]
 
     """非脚本操作的业务代码"""
 
@@ -2000,7 +2000,7 @@ class ThreadTodo(QThread):
                 text="已完成所有额外事项！推荐勾选高级设置-完成后刷新游戏, 防止长期运行flash导致卡顿")
 
         # 全部完成了发个信号
-        self.signal_end.emit()
+        self.signal_todo_end.emit()
 
     def run_2(self):
         self.battle_1_n_n(
