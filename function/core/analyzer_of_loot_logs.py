@@ -190,11 +190,11 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
             if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_locked"):
                 return item_name, list_iter, True
 
-    # 还是找不到, 识图失败 把block保存到resource-picture-item-未编码索引中
-    CUS_LOGGER.warning(f'该道具未能识别, 已在 [ resource / picture /  item / 未编码索引中 ] 生成文件, 请检查')
+    # 还是找不到, 识图失败 把block保存到 logs / match_failed / 中
+    CUS_LOGGER.warning(f'该道具未能识别, 已在 [ logs / match_failed ] 生成文件, 请检查')
 
     # 随便编码
-    filename = "{}\\未编码索引\\{}.png".format(PATHS["picture"]["item"], random.randint(1, 100))
+    filename = "{}\\match_failed\\{}.png".format(PATHS["logs"], random.randint(1, 100))
 
     # 保存图片
     imencode('.png', block)[1].tofile(filename)

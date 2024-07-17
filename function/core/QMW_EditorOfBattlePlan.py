@@ -1,7 +1,9 @@
 import copy
 import json
+import os
 import sys
 import time
+import uuid
 
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QKeySequence
@@ -408,6 +410,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
     def save_json(self):
         self.json_data['tips'] = self.WeiTipsEditor.toPlainText()
+
         options = QFileDialog.Options()
 
         file_name, _ = QFileDialog.getSaveFileName(
@@ -418,6 +421,14 @@ class QMWEditorOfBattlePlan(QMainWindow):
             options=options)
 
         if file_name:
+
+            if os.path.exists(file_name):  # 检查文件是否存在
+                # 这里是覆盖现有文件的情况 若不包含了uuid 生成uuid
+                self.json_data["uuid"] = self.json_data.get('uuid', str(uuid.uuid1()))
+            else:
+                # 这里是保存新文件的情况, 需要一个新的uuid做区别
+                self.json_data["uuid"] = str(uuid.uuid1())
+
             # 确保玩家位置也被保存
             self.json_data['player'] = self.json_data.get('player', [])
             # 自旋锁读写, 防止多线程读写问题
@@ -520,6 +531,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.undo_stack.pop(0)
 
     def undo(self):
+        """撤销"""
         if len(self.undo_stack) > 0:
             current_state = copy.deepcopy(self.json_data)
             self.redo_stack.append(current_state)
@@ -528,6 +540,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.refresh_chessboard()
 
     def redo(self):
+        """重做"""
         if len(self.redo_stack) > 0:
             current_state = copy.deepcopy(self.json_data)
             self.undo_stack.append(current_state)

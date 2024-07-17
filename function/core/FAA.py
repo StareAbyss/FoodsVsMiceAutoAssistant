@@ -204,7 +204,7 @@ class FAA:
     def set_config_for_battle(
             self, stage_id="NO-1-1", is_group=False, is_main=True, need_key=True,
             deck=1, quest_card="None", ban_card_list=None,
-            battle_plan_index=0) -> None:
+            battle_plan_uuid="00000000-0000-0000-0000-000000000000") -> None:
         """
         :param is_group: 是否组队
         :param is_main: 是否是主要账号(单人为True 双人房主为True)
@@ -212,7 +212,7 @@ class FAA:
         :param deck:
         :param quest_card:
         :param ban_card_list:
-        :param battle_plan_index: 战斗方案的索引
+        :param battle_plan_uuid: 战斗方案的uuid
         :param stage_id: 关卡的id
         :return:
         """
@@ -240,23 +240,7 @@ class FAA:
         if "苏打气泡" in self.ban_card_list:
             self.ban_card_list.append("魔法软糖")
 
-        def read_json_to_battle_plan():
-            battle_plan_list = get_list_battle_plan(with_extension=True)
-            battle_plan_path = "{}\\{}".format(
-                PATHS["battle_plan"],
-                battle_plan_list[battle_plan_index]
-            )
-
-            # 自旋锁读写, 防止多线程读写问题
-            while EXTRA_GLOBALS.file_is_reading_or_writing:
-                time.sleep(0.1)
-            EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
-            with open(file=battle_plan_path, mode="r", encoding="UTF-8") as file:
-                data = json.load(file)
-            EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
-            return data
-
-        self.battle_plan_0 = read_json_to_battle_plan()
+        self.battle_plan_0 = RESOURCE_B[battle_plan_uuid]
 
         self.stage_info = read_json_to_stage_info(stage_id)
 

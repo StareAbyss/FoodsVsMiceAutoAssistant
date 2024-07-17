@@ -117,16 +117,15 @@
             "name": "雷电长棍面包",
             "ergodic": true,
             "queue": false,
-            "location": [
-            ]
+            "location": []
         },
         {
             "id": 10,
             "name": "樱桃反弹布丁",
             "ergodic": true,
             "queue": false,
-            "location": [
-            ]
+            "location": []
         }
-    ]
+    ],
+    "uuid": "784e8be6-4175-11ef-9131-f44efc5bf671"
 }

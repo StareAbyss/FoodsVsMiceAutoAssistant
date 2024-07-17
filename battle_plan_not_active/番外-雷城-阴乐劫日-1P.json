@@ -141,8 +141,7 @@
             "name": "雷电长棍面包",
             "ergodic": true,
             "queue": false,
-            "location": [
-            ]
+            "location": []
         },
         {
             "id": 10,
@@ -156,5 +155,6 @@
                 "1-7"
             ]
         }
-    ]
+    ],
+    "uuid": "784f4492-4175-11ef-b374-f44efc5bf671"
 }

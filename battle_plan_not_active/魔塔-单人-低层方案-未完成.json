@@ -16,7 +16,6 @@
     ],
     "card": [
         {
-
             "name": "小火炉",
             "ergodic": true,
             "queue": false,
@@ -42,7 +41,6 @@
             ]
         },
         {
-
             "name": "炭烧海星",
             "ergodic": true,
             "queue": false,
@@ -76,7 +74,7 @@
             "name": "糖葫芦炮弹",
             "ergodic": true,
             "queue": false,
-             "id": 3,
+            "id": 3,
             "location": [
                 "2-2",
                 "2-6",
@@ -87,7 +85,6 @@
             ]
         },
         {
-
             "name": "瓜皮护罩",
             "ergodic": true,
             "queue": false,
@@ -103,7 +100,6 @@
             ]
         },
         {
-
             "name": "油灯",
             "ergodic": true,
             "queue": false,
@@ -125,5 +121,6 @@
                 "1-5"
             ]
         }
-    ]
+    ],
+    "uuid": "78515558-4175-11ef-a9ca-f44efc5bf671"
 }

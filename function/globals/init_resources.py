@@ -1,9 +1,13 @@
+import json
 import os
+import time
 
 import cv2
 import numpy as np
 
+from function.globals.extra import EXTRA_GLOBALS
 from function.globals.get_paths import PATHS
+from function.scattered.check_uuid_in_battle_plan import check_battle_plan_with_uuid
 
 RESOURCE_P = {}
 RESOURCE_CP = {}
@@ -62,9 +66,30 @@ def fresh_resource_ci():
                 add_to_resource_cp(relative_path, img)
 
 
+def fresh_resource_b():
+    for b_uuid, b_path in EXTRA_GLOBALS.battle_plan_uuid_to_path.items():
+
+        # 自旋锁读写, 防止多线程读写问题
+        while EXTRA_GLOBALS.file_is_reading_or_writing:
+            time.sleep(0.1)
+        EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+        with open(file=b_path, mode='r', encoding='utf-8') as file:
+            json_data = json.load(file)
+        EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
+
+        RESOURCE_B[b_uuid] = json_data
+
+
+fresh_resource_i()
+fresh_resource_ci()
 
 if __name__ == '__main__':
-    image = RESOURCE_P["common"]["任务_完成.png"]
-    cv2.imshow('Image', image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # image = RESOURCE_P["common"]["任务_完成.png"]
+    # cv2.imshow('Image', image)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+
+    check_battle_plan_with_uuid()
+    fresh_resource_b()
+    print(RESOURCE_B)
+    pass

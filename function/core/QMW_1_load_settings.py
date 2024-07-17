@@ -10,7 +10,9 @@ from PyQt5.QtWidgets import QApplication, QMessageBox
 from function.core.QMW_0_load_ui_file import QMainWindowLoadUI
 from function.globals.extra import EXTRA_GLOBALS
 from function.globals.get_paths import PATHS
+from function.globals.init_resources import fresh_resource_b
 from function.globals.log import CUS_LOGGER
+from function.scattered.check_uuid_in_battle_plan import check_battle_plan_with_uuid
 from function.scattered.get_customize_todo_list import get_customize_todo_list
 from function.scattered.get_list_battle_plan import get_list_battle_plan
 
@@ -26,8 +28,13 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.opt_path = PATHS["root"] + "\\config\\settings.json"
         # opt模板路径
         self.opt_template_path = PATHS["root"] + "\\config\\settings_template.json"
+
         # 检测opt是否存在
         self.check_opt_exist()
+
+        # 检测uuid是否存在于battle plan 没有则添加 并将其读入到内存资源中
+        check_battle_plan_with_uuid()
+        fresh_resource_b()
 
         # 从json文件中读取opt 并刷新ui
         self.opt = None
@@ -48,7 +55,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             except IOError as e:
                 CUS_LOGGER.error(f"[读取FAA基础配置文件] 无法创建 '{settings_file}' 从 '{template_file}'。错误: {e}")
         else:
-            CUS_LOGGER.info(f"'[读取FAA基础配置文件] {settings_file}' 已存在. 直接读取.")
+            CUS_LOGGER.info(f"[读取FAA基础配置文件] '{settings_file}' 已存在. 直接读取.")
 
     def json_to_opt(self) -> None:
         # 自旋锁读写, 防止多线程读写问题
@@ -79,6 +86,11 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         先从ui上读取目前todo plan index, 然后从opt读取对应的设置到todo plan 配置界面
         :return:
         """
+
+        def set_list_current_index(widget, opt):
+            # 将uuid 转化为 index
+            widget.setCurrentIndex(EXTRA_GLOBALS.battle_plan_uuid_list.index(opt))
+
         # 先重新获取ui上的 当前方案选项
         self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
         # 修改当前方案文本
@@ -110,8 +122,8 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.Warrior_2P.clear()
         self.Warrior_1P.addItems(battle_plan_list)
         self.Warrior_2P.addItems(battle_plan_list)
-        self.Warrior_1P.setCurrentIndex(my_opt["warrior"]["battle_plan_1p"])
-        self.Warrior_2P.setCurrentIndex(my_opt["warrior"]["battle_plan_2p"])
+        set_list_current_index(self.Warrior_1P, my_opt["warrior"]["battle_plan_1p"])
+        set_list_current_index(self.Warrior_2P, my_opt["warrior"]["battle_plan_2p"])
 
         # 常规单本 悬赏任务 跨服任务
 
@@ -124,8 +136,8 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.NormalBattle_2P.clear()
         self.NormalBattle_1P.addItems(battle_plan_list)
         self.NormalBattle_2P.addItems(battle_plan_list)
-        self.NormalBattle_1P.setCurrentIndex(my_opt["normal_battle"]["battle_plan_1p"])
-        self.NormalBattle_2P.setCurrentIndex(my_opt["normal_battle"]["battle_plan_2p"])
+        set_list_current_index(self.NormalBattle_1P, my_opt["normal_battle"]["battle_plan_1p"])
+        set_list_current_index(self.NormalBattle_2P, my_opt["normal_battle"]["battle_plan_2p"])
 
         self.OfferReward_Active.setChecked(my_opt["offer_reward"]["active"])
         self.OfferReward_MaxTimes_1.setValue(my_opt["offer_reward"]["max_times_1"])
@@ -136,8 +148,8 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.OfferReward_2P.clear()
         self.OfferReward_1P.addItems(battle_plan_list)
         self.OfferReward_2P.addItems(battle_plan_list)
-        self.OfferReward_1P.setCurrentIndex(my_opt["offer_reward"]["battle_plan_1p"])
-        self.OfferReward_2P.setCurrentIndex(my_opt["offer_reward"]["battle_plan_2p"])
+        set_list_current_index(self.OfferReward_1P, my_opt["offer_reward"]["battle_plan_1p"])
+        set_list_current_index(self.OfferReward_2P, my_opt["offer_reward"]["battle_plan_2p"])
 
         self.CrossServer_Active.setChecked(my_opt["cross_server"]["active"])
         self.CrossServer_Group.setChecked(my_opt["cross_server"]["is_group"])
@@ -148,8 +160,8 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.CrossServer_2P.clear()
         self.CrossServer_1P.addItems(battle_plan_list)
         self.CrossServer_2P.addItems(battle_plan_list)
-        self.CrossServer_1P.setCurrentIndex(my_opt["cross_server"]["battle_plan_1p"])
-        self.CrossServer_2P.setCurrentIndex(my_opt["cross_server"]["battle_plan_2p"])
+        set_list_current_index(self.CrossServer_1P, my_opt["cross_server"]["battle_plan_1p"])
+        set_list_current_index(self.CrossServer_2P, my_opt["cross_server"]["battle_plan_2p"])
 
         # 公会任务 工会副本 情侣任务 火山遗迹
 
@@ -160,8 +172,8 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.QuestGuild_2P.clear()
         self.QuestGuild_1P.addItems(battle_plan_list)
         self.QuestGuild_2P.addItems(battle_plan_list)
-        self.QuestGuild_1P.setCurrentIndex(my_opt["quest_guild"]["battle_plan_1p"])
-        self.QuestGuild_2P.setCurrentIndex(my_opt["quest_guild"]["battle_plan_2p"])
+        set_list_current_index(self.QuestGuild_1P, my_opt["quest_guild"]["battle_plan_1p"])
+        set_list_current_index(self.QuestGuild_2P, my_opt["quest_guild"]["battle_plan_2p"])
 
         self.GuildDungeon_Active.setChecked(my_opt["guild_dungeon"]["active"])
 
@@ -176,8 +188,8 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.Relic_2P.clear()
         self.Relic_1P.addItems(battle_plan_list)
         self.Relic_2P.addItems(battle_plan_list)
-        self.Relic_1P.setCurrentIndex(my_opt["relic"]["battle_plan_1p"])
-        self.Relic_2P.setCurrentIndex(my_opt["relic"]["battle_plan_2p"])
+        set_list_current_index(self.Relic_1P, my_opt["relic"]["battle_plan_1p"])
+        set_list_current_index(self.Relic_2P, my_opt["relic"]["battle_plan_2p"])
 
         # 魔塔 萌宠神殿
 
@@ -187,7 +199,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.MagicTowerAlone1_Deck.setValue(my_opt["magic_tower_alone_1"]["deck"])
         self.MagicTowerAlone1_1P.clear()
         self.MagicTowerAlone1_1P.addItems(battle_plan_list)
-        self.MagicTowerAlone1_1P.setCurrentIndex(my_opt["magic_tower_alone_1"]["battle_plan_1p"])
+        set_list_current_index(self.MagicTowerAlone1_1P, my_opt["magic_tower_alone_1"]["battle_plan_1p"])
 
         self.MagicTowerAlone2_Active.setChecked(my_opt["magic_tower_alone_2"]["active"])
         self.MagicTowerAlone2_MaxTimes.setValue(my_opt["magic_tower_alone_2"]["max_times"])
@@ -195,21 +207,21 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.MagicTowerAlone2_Deck.setValue(my_opt["magic_tower_alone_2"]["deck"])
         self.MagicTowerAlone2_1P.clear()
         self.MagicTowerAlone2_1P.addItems(battle_plan_list)
-        self.MagicTowerAlone2_1P.setCurrentIndex(my_opt["magic_tower_alone_2"]["battle_plan_1p"])
+        set_list_current_index(self.MagicTowerAlone2_1P, my_opt["magic_tower_alone_2"]["battle_plan_1p"])
 
         self.MagicTowerPrison1_Active.setChecked(my_opt["magic_tower_prison_1"]["active"])
         self.MagicTowerPrison1_Stage.setChecked(my_opt["magic_tower_prison_1"]["stage"])
         self.MagicTowerPrison1_Deck.setValue(my_opt["magic_tower_prison_1"]["deck"])
         self.MagicTowerPrison1_1P.clear()
         self.MagicTowerPrison1_1P.addItems(battle_plan_list)
-        self.MagicTowerPrison1_1P.setCurrentIndex(my_opt["magic_tower_prison_1"]["battle_plan_1p"])
+        set_list_current_index(self.MagicTowerPrison1_1P, my_opt["magic_tower_prison_1"]["battle_plan_1p"])
 
         self.MagicTowerPrison2_Active.setChecked(my_opt["magic_tower_prison_2"]["active"])
         self.MagicTowerPrison2_Stage.setChecked(my_opt["magic_tower_prison_2"]["stage"])
         self.MagicTowerPrison2_Deck.setValue(my_opt["magic_tower_prison_2"]["deck"])
         self.MagicTowerPrison2_1P.clear()
         self.MagicTowerPrison2_1P.addItems(battle_plan_list)
-        self.MagicTowerPrison2_1P.setCurrentIndex(my_opt["magic_tower_prison_2"]["battle_plan_1p"])
+        set_list_current_index(self.MagicTowerPrison2_1P, my_opt["magic_tower_prison_2"]["battle_plan_1p"])
 
         self.MagicTowerDouble_Active.setChecked(my_opt["magic_tower_double"]["active"])
         self.MagicTowerDouble_Stage.setValue(my_opt["magic_tower_double"]["stage"])
@@ -217,24 +229,24 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.MagicTowerDouble_Deck.setValue(my_opt["magic_tower_double"]["deck"])
         self.MagicTowerDouble_1P.clear()
         self.MagicTowerDouble_1P.addItems(battle_plan_list)
-        self.MagicTowerDouble_1P.setCurrentIndex(my_opt["magic_tower_double"]["battle_plan_1p"])
+        set_list_current_index(self.MagicTowerDouble_1P, my_opt["magic_tower_double"]["battle_plan_1p"])
         self.MagicTowerDouble_2P.clear()
         self.MagicTowerDouble_2P.addItems(battle_plan_list)
-        self.MagicTowerDouble_2P.setCurrentIndex(my_opt["magic_tower_double"]["battle_plan_2p"])
+        set_list_current_index(self.MagicTowerDouble_2P, my_opt["magic_tower_double"]["battle_plan_2p"])
 
         self.PetTemple1_Active.setChecked(my_opt["pet_temple_1"]["active"])
         self.PetTemple1_Stage.setValue(my_opt["pet_temple_1"]["stage"])
         self.PetTemple1_Deck.setValue(my_opt["pet_temple_1"]["deck"])
         self.PetTemple1_1P.clear()
         self.PetTemple1_1P.addItems(battle_plan_list)
-        self.PetTemple1_1P.setCurrentIndex(my_opt["pet_temple_1"]["battle_plan_1p"])
+        set_list_current_index(self.PetTemple1_1P, my_opt["pet_temple_1"]["battle_plan_1p"])
 
         self.PetTemple2_Active.setChecked(my_opt["pet_temple_2"]["active"])
         self.PetTemple2_Stage.setValue(my_opt["pet_temple_2"]["stage"])
         self.PetTemple2_Deck.setValue(my_opt["pet_temple_2"]["deck"])
         self.PetTemple2_1P.clear()
         self.PetTemple2_1P.addItems(battle_plan_list)
-        self.PetTemple2_1P.setCurrentIndex(my_opt["pet_temple_2"]["battle_plan_1p"])
+        set_list_current_index(self.PetTemple2_1P, my_opt["pet_temple_2"]["battle_plan_1p"])
 
         # 附加功能
 
@@ -255,9 +267,10 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.CustomizeBattle_2P.clear()
         self.CustomizeBattle_1P.addItems(battle_plan_list)
         self.CustomizeBattle_2P.addItems(battle_plan_list)
-        self.CustomizeBattle_1P.setCurrentIndex(my_opt["customize_battle"]["battle_plan_1p"])
-        self.CustomizeBattle_2P.setCurrentIndex(my_opt["customize_battle"]["battle_plan_2p"])
+        set_list_current_index(self.CustomizeBattle_1P, my_opt["customize_battle"]["battle_plan_1p"])
+        set_list_current_index(self.CustomizeBattle_2P, my_opt["customize_battle"]["battle_plan_2p"])
 
+        # 自定义作战序列
         self.Customize_Active.setChecked(my_opt["customize"]["active"])
         self.Customize_Stage.setValue(my_opt["customize"]["stage"])
         self.Customize_1P.clear()
@@ -357,18 +370,34 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
 
     def ui_to_opt(self) -> None:
         # battle_plan_list
-        battle_plan_list = get_list_battle_plan(with_extension=False)
+        battle_plan_list_new = get_list_battle_plan(with_extension=False)
         customize_todo_list = get_customize_todo_list(with_extension=False)
 
+        # 深拷贝, 记录一下加入新的元素前, list index 和 uuid的映射
+        battle_plan_uuid_list_old = copy.deepcopy(EXTRA_GLOBALS.battle_plan_uuid_list)
+        # 检测uuid是否存在于 可能新加入的 battle plan 没有则添加 并将其读入到内存资源中
+        check_battle_plan_with_uuid()
+        fresh_resource_b()
+
         def my_transformer_b(change_class: object, opt_1, opt_2) -> None:
+
             # 用于配置 带有选单的 战斗方案
-            self.opt["todo_plans"][self.opt["current_plan"]][opt_1][opt_2] = change_class.currentIndex()
+            # 根据更新前的数据, 获取index对应的正确uuid 并写入到opt
+            ui_index = change_class.currentIndex()
+            ui_uuid = battle_plan_uuid_list_old[ui_index]
+            self.opt["todo_plans"][self.opt["current_plan"]][opt_1][opt_2] = ui_uuid
+
+            # 根据新的数据, 重新生成每一个列表的元素 和uuid应该指向的index
+            # 重新填充元素
             change_class.clear()
-            change_class.addItems(battle_plan_list)
-            change_class.setCurrentIndex(self.opt["todo_plans"][self.opt["current_plan"]][opt_1][opt_2])
+            change_class.addItems(battle_plan_list_new)
+            # 根据uuid 找到其文件夹中一致的index
+            new_index = EXTRA_GLOBALS.battle_plan_uuid_list.index(ui_uuid)
+            # 让对应的元素选定对应的index
+            change_class.setCurrentIndex(new_index)
 
         def my_transformer_c(change_class: object, opt_1, opt_2) -> None:
-            # 用于配置 带有选单的 自定义目标
+            # 用于配置 带有选单的 自定义作战序列
             self.opt["todo_plans"][self.opt["current_plan"]][opt_1][opt_2] = change_class.currentIndex()
             change_class.clear()
             change_class.addItems(customize_todo_list)
@@ -565,6 +594,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             my_transformer_b(self.CustomizeBattle_1P, "customize_battle", "battle_plan_1p")
             my_transformer_b(self.CustomizeBattle_2P, "customize_battle", "battle_plan_2p")
 
+            # 自定义作战
             my_opt["customize"]["active"] = self.Customize_Active.isChecked()
             my_opt["customize"]["stage"] = self.Customize_Stage.value()
             my_transformer_c(self.Customize_1P, "customize", "battle_plan_1p")
