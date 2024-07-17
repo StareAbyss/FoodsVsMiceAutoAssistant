@@ -5,6 +5,7 @@ import time
 import requests
 from requests import RequestException
 
+from function.globals.extra import EXTRA_GLOBALS
 from function.globals.get_paths import PATHS
 
 
@@ -31,9 +32,13 @@ def loots_and_chests_statistics_to_json(faa, loots_dict, chests_dict) -> None:
         used_key_str = "is_not_used_key"
 
     if os.path.exists(file_path):
-        # 尝试读取现有的JSON文件
-        with open(file_path, "r", encoding="utf-8") as json_file:
+        # 尝试读取现有的JSON文件 自旋锁读写, 防止多线程读写问题
+        while EXTRA_GLOBALS.file_is_reading_or_writing:
+            time.sleep(0.1)
+        EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+        with open(file=file_path, mode="r", encoding="utf-8") as json_file:
             json_data = json.load(json_file)
+        EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
     else:
         # 如果文件不存在，初始化
         json_data = {}
@@ -52,9 +57,13 @@ def loots_and_chests_statistics_to_json(faa, loots_dict, chests_dict) -> None:
         json_data_chests[item_str] = json_data_loots.get(item_str, 0) + count
     json_data_count += 1  # 更新次数
 
-    # 保存或更新后的战利品字典到JSON文件
-    with open(file_path, "w", encoding="utf-8") as json_file:
+    # 保存或更新后的战利品字典到JSON文件  自旋锁读写, 防止多线程读写问题
+    while EXTRA_GLOBALS.file_is_reading_or_writing:
+        time.sleep(0.1)
+    EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+    with open(file=file_path, mode="w", encoding="utf-8") as json_file:
         json.dump(json_data, json_file, ensure_ascii=False, indent=4)
+    EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
 
 
 def loots_and_chests_detail_to_json(faa, loots_dict, chests_dict) -> dict:
@@ -74,9 +83,14 @@ def loots_and_chests_detail_to_json(faa, loots_dict, chests_dict) -> dict:
     stage_name = stage_info["id"]
 
     if os.path.exists(file_path):
-        # 读取现有的JSON文件
-        with open(file_path, "r", encoding="utf-8") as json_file:
+        # 读取现有的JSON文件 自旋锁读写, 防止多线程读写问题
+        while EXTRA_GLOBALS.file_is_reading_or_writing:
+            time.sleep(0.1)
+        EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+        with open(file=file_path, mode="r", encoding="utf-8") as json_file:
             json_data = json.load(json_file)
+        EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
+
     else:
         # 如果文件不存在，初始化
         json_data = {}
@@ -95,9 +109,13 @@ def loots_and_chests_detail_to_json(faa, loots_dict, chests_dict) -> dict:
     # 保存到字典数据
     json_data["data"].append(new_data)
 
-    # 保存或更新后的战利品字典到JSON文件
-    with open(file_path, "w", encoding="utf-8") as json_file:
+    # 保存或更新后的战利品字典到JSON文件 自旋锁读写, 防止多线程读写问题
+    while EXTRA_GLOBALS.file_is_reading_or_writing:
+        time.sleep(0.1)
+    EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+    with open(file=file_path, mode="w", encoding="utf-8") as json_file:
         json.dump(json_data, json_file, ensure_ascii=False, indent=4)
+    EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
 
     return new_data
 

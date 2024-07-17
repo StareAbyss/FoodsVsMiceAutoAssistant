@@ -1,9 +1,11 @@
 import json
+import time
 from pprint import pprint
 
 import numpy as np
 import pandas as pd
 
+from function.globals.extra import EXTRA_GLOBALS
 from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 
 
@@ -106,10 +108,13 @@ def main():
 
     pprint(data_list)
 
-    # 将list 保存为 json
-    with open(ExportFilePath, "w", encoding='utf-8') as json_file:
+    # 将list 保存为 json 自旋锁读写, 防止多线程读写问题
+    while EXTRA_GLOBALS.file_is_reading_or_writing:
+        time.sleep(0.1)
+    EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+    with open(file=ExportFilePath, mode="w", encoding='utf-8') as json_file:
         json_file.write(json.dumps(data_list, indent=4, ensure_ascii=False))
-
+    EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
 
 if __name__ == '__main__':
     main()

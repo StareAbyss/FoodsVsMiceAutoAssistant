@@ -1,8 +1,10 @@
 import json
+import time
 
 from PyQt5 import uic
 from PyQt5.QtWidgets import QWidget
 
+from function.globals.extra import EXTRA_GLOBALS
 from function.globals.get_paths import PATHS
 
 
@@ -32,14 +34,22 @@ class AdvancedSettingsWindow(QWidget):
         self.advanced_settings["gift_1p"] = self.gift_1p_input.text()
         self.advanced_settings["gift_2p"] = self.gift_2p_input.text()
 
-        # 保存字典数据
-        with open(self.advanced_settings_path, 'w', encoding='utf-8') as json_file:
+        # 保存字典数据 自旋锁读写, 防止多线程读写问题
+        while EXTRA_GLOBALS.file_is_reading_or_writing:
+            time.sleep(0.1)
+        EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+        with open(file=self.advanced_settings_path, mode='w', encoding='utf-8') as json_file:
             json.dump(self.advanced_settings, json_file, indent=4, ensure_ascii=False)
+        EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
 
     def load_settings(self):
-        # 读取设置
-        with open(self.advanced_settings_path) as json_file:
+        # 读取设置 自旋锁读写, 防止多线程读写问题
+        while EXTRA_GLOBALS.file_is_reading_or_writing:
+            time.sleep(0.1)
+        EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+        with open(file=self.advanced_settings_path, mode='r', encoding='utf-8') as json_file:
             self.advanced_settings = json.load(json_file)
+        EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
 
     def init_settings(self):
         # 根据读取到的数据来初始化GUI
