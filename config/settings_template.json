@@ -39,7 +39,7 @@
             "plan": 6
         }
     },
-    "current_plan": 2,
+    "current_plan": 1,
     "todo_plans": [
         {
             "name": "Default",
@@ -213,20 +213,20 @@
                 "battle_plan_2p": 11
             },
             "normal_battle": {
-                "active": false,
+                "active": true,
                 "is_group": true,
                 "max_times": 1,
-                "stage": "EX-5-8",
-                "deck": 5,
-                "battle_plan_1p": 5,
-                "battle_plan_2p": 9
+                "stage": "EX-2-1",
+                "deck": 2,
+                "battle_plan_1p": 12,
+                "battle_plan_2p": 13
             },
             "offer_reward": {
-                "active": true,
+                "active": false,
                 "max_times_1": 1,
                 "max_times_2": 1,
                 "max_times_3": 1,
-                "deck": 6,
+                "deck": 1,
                 "battle_plan_1p": 10,
                 "battle_plan_2p": 11
             },
@@ -298,13 +298,13 @@
             "pet_temple_1": {
                 "active": false,
                 "stage": 20,
-                "deck": 4,
+                "deck": 1,
                 "battle_plan_1p": 10
             },
             "pet_temple_2": {
                 "active": false,
                 "stage": 20,
-                "deck": 4,
+                "deck": 1,
                 "battle_plan_1p": 0
             },
             "use_items": {
@@ -412,8 +412,8 @@
             "magic_tower_alone_1": {
                 "active": false,
                 "max_times": 5,
-                "stage": 154,
-                "deck": 3,
+                "stage": 120,
+                "deck": 1,
                 "battle_plan_1p": 10
             },
             "magic_tower_alone_2": {
@@ -439,14 +439,14 @@
                 "active": false,
                 "max_times": 5,
                 "stage": 100,
-                "deck": 4,
+                "deck": 3,
                 "battle_plan_1p": 8,
                 "battle_plan_2p": 9
             },
             "pet_temple_1": {
                 "active": false,
                 "stage": 25,
-                "deck": 4,
+                "deck": 1,
                 "battle_plan_1p": 10
             },
             "pet_temple_2": {
@@ -471,7 +471,7 @@
                 "active": false,
                 "is_group": 0,
                 "max_times": 1,
-                "deck": 4,
+                "deck": 1,
                 "battle_plan_1p": 10,
                 "battle_plan_2p": 11
             },
@@ -513,18 +513,18 @@
                 "is_group": true,
                 "max_times": 45,
                 "stage": "NO-4-3",
-                "deck": 2,
-                "battle_plan_1p": 25,
-                "battle_plan_2p": 26
+                "deck": 1,
+                "battle_plan_1p": 10,
+                "battle_plan_2p": 11
             },
             "offer_reward": {
                 "active": true,
                 "max_times_1": 1,
                 "max_times_2": 1,
                 "max_times_3": 1,
-                "deck": 6,
-                "battle_plan_1p": 27,
-                "battle_plan_2p": 28
+                "deck": 1,
+                "battle_plan_1p": 10,
+                "battle_plan_2p": 11
             },
             "cross_server": {
                 "active": true,
@@ -560,9 +560,9 @@
             "magic_tower_alone_1": {
                 "active": false,
                 "max_times": 5,
-                "stage": 154,
-                "deck": 3,
-                "battle_plan_1p": 11
+                "stage": 120,
+                "deck": 1,
+                "battle_plan_1p": 10
             },
             "magic_tower_alone_2": {
                 "active": false,
@@ -575,7 +575,7 @@
                 "active": false,
                 "stage": true,
                 "deck": 1,
-                "battle_plan_1p": 17
+                "battle_plan_1p": 10
             },
             "magic_tower_prison_2": {
                 "active": false,
@@ -587,21 +587,21 @@
                 "active": false,
                 "max_times": 5,
                 "stage": 100,
-                "deck": 4,
-                "battle_plan_1p": 15,
-                "battle_plan_2p": 16
+                "deck": 3,
+                "battle_plan_1p": 10,
+                "battle_plan_2p": 11
             },
             "pet_temple_1": {
                 "active": false,
                 "stage": 25,
-                "deck": 4,
-                "battle_plan_1p": 14
+                "deck": 1,
+                "battle_plan_1p": 10
             },
             "pet_temple_2": {
                 "active": false,
                 "stage": 20,
                 "deck": 1,
-                "battle_plan_1p": 14
+                "battle_plan_1p": 0
             },
             "use_items": {
                 "active": false,
@@ -619,7 +619,7 @@
                 "active": false,
                 "is_group": 1,
                 "max_times": 2,
-                "deck": 6,
+                "deck": 1,
                 "battle_plan_1p": 0,
                 "battle_plan_2p": 1
             },
@@ -661,7 +661,7 @@
                 "is_group": true,
                 "max_times": 10,
                 "stage": "NO-1-7",
-                "deck": 2,
+                "deck": 1,
                 "battle_plan_1p": 10,
                 "battle_plan_2p": 11
             },
@@ -708,8 +708,8 @@
             "magic_tower_alone_1": {
                 "active": false,
                 "max_times": 5,
-                "stage": 154,
-                "deck": 3,
+                "stage": 120,
+                "deck": 1,
                 "battle_plan_1p": 10
             },
             "magic_tower_alone_2": {
@@ -735,14 +735,14 @@
                 "active": false,
                 "max_times": 5,
                 "stage": 100,
-                "deck": 4,
-                "battle_plan_1p": 14,
-                "battle_plan_2p": 15
+                "deck": 3,
+                "battle_plan_1p": 8,
+                "battle_plan_2p": 9
             },
             "pet_temple_1": {
                 "active": false,
                 "stage": 25,
-                "deck": 4,
+                "deck": 1,
                 "battle_plan_1p": 10
             },
             "pet_temple_2": {
@@ -767,7 +767,7 @@
                 "active": false,
                 "is_group": 1,
                 "max_times": 2,
-                "deck": 6,
+                "deck": 1,
                 "battle_plan_1p": 10,
                 "battle_plan_2p": 11
             },
@@ -809,7 +809,7 @@
                 "is_group": true,
                 "max_times": 10,
                 "stage": "NO-4-10",
-                "deck": 1,
+                "deck": 2,
                 "battle_plan_1p": 12,
                 "battle_plan_2p": 13
             },
@@ -883,14 +883,14 @@
                 "active": true,
                 "max_times": 5,
                 "stage": 100,
-                "deck": 4,
-                "battle_plan_1p": 10,
-                "battle_plan_2p": 11
+                "deck": 3,
+                "battle_plan_1p": 8,
+                "battle_plan_2p": 9
             },
             "pet_temple_1": {
                 "active": true,
                 "stage": 25,
-                "deck": 4,
+                "deck": 1,
                 "battle_plan_1p": 10
             },
             "pet_temple_2": {
@@ -915,7 +915,7 @@
                 "active": false,
                 "is_group": 1,
                 "max_times": 2,
-                "deck": 6,
+                "deck": 1,
                 "battle_plan_1p": 10,
                 "battle_plan_2p": 11
             },
@@ -958,8 +958,8 @@
                 "max_times": 45,
                 "stage": "NO-4-3",
                 "deck": 2,
-                "battle_plan_1p": 10,
-                "battle_plan_2p": 11
+                "battle_plan_1p": 12,
+                "battle_plan_2p": 13
             },
             "offer_reward": {
                 "active": false,
@@ -1005,8 +1005,8 @@
                 "active": false,
                 "max_times": 5,
                 "stage": 120,
-                "deck": 3,
-                "battle_plan_1p": 11
+                "deck": 1,
+                "battle_plan_1p": 10
             },
             "magic_tower_alone_2": {
                 "active": false,
@@ -1031,14 +1031,14 @@
                 "active": false,
                 "max_times": 5,
                 "stage": 100,
-                "deck": 4,
+                "deck": 3,
                 "battle_plan_1p": 8,
                 "battle_plan_2p": 9
             },
             "pet_temple_1": {
                 "active": false,
                 "stage": 25,
-                "deck": 4,
+                "deck": 1,
                 "battle_plan_1p": 10
             },
             "pet_temple_2": {
@@ -1063,7 +1063,7 @@
                 "active": false,
                 "is_group": 1,
                 "max_times": 2,
-                "deck": 6,
+                "deck": 1,
                 "battle_plan_1p": 10,
                 "battle_plan_2p": 11
             },
