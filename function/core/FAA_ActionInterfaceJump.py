@@ -610,12 +610,17 @@ class FAAActionInterfaceJump:
         def main_gd():
             # 进入工会副本页
             self.bottom_menu(mode="跳转_公会副本")
+
+            # 给一点加载时间
+            time.sleep(2)
+
             # 选关卡 1 2 3
             T_ACTION_QUEUE_TIMER.add_click_to_queue(
                 handle=handle,
                 x={"1": 155, "2": 360, "3": 580}[stage_2],
                 y=417)
             time.sleep(2)
+
             change_to_region(region_list=[3, 11])
 
             # 仅限主角色创建关卡
