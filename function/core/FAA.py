@@ -1,5 +1,4 @@
 import copy
-import json
 import time
 from datetime import datetime
 
@@ -15,13 +14,10 @@ from function.core.FAA_Battle import Battle
 from function.core.FAA_BattleARoundPreparation import BattleARoundPreparation
 from function.core_battle.get_position_in_battle import get_position_card_deck_in_battle, \
     get_position_card_cell_in_battle
-from function.globals.extra import EXTRA_GLOBALS
-from function.globals.get_paths import PATHS
-from function.globals.init_resources import RESOURCE_P
+from function.globals.init_resources import RESOURCE_P, RESOURCE_B, RESOURCE_CP
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
-from function.scattered.get_list_battle_plan import get_list_battle_plan
 from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 
 
@@ -1051,7 +1047,7 @@ class FAA:
                         source_handle=self.handle_browser,
                         source_root_handle=self.handle_360,
                         source_range=[0, 0, 2000, 2000],
-                        template=RESOURCE_P["common"]["用户自截"]["空间服登录界面_{}P.png".format(self.player)],
+                        template=RESOURCE_CP["用户自截"]["空间服登录界面_{}P.png".format(self.player)],
                         match_tolerance=0.95,
                         match_interval=0.5,
                         match_failed_check=5,
@@ -1581,7 +1577,7 @@ class FAA:
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=920, y=422)
                     time.sleep(0.2)
 
-            for item_name, item_image in RESOURCE_P["item"]["背包"].items():
+            for item_name, item_image in RESOURCE_CP["背包_装备_需使用的"].items():
 
                 self.print_debug(text="物品:{}本页 开始查找".format(item_name))
 
@@ -1865,7 +1861,7 @@ class FAA:
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=845, y=475)
         time.sleep(1)
 
-        for i_name, i_image in RESOURCE_P["item"]["背包_道具_需删除的"].items():
+        for i_name, i_image in RESOURCE_CP["背包_道具_需删除的"].items():
 
             # 在限定范围内 找物品
             find = match_p_in_w(
