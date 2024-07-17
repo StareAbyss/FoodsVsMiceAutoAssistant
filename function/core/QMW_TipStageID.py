@@ -6,33 +6,42 @@ class QMWTipStageID(QMainWindow):
         super().__init__()
         self.setWindowTitle("关卡代号一览")
         # 设置窗口大小
-        self.setMinimumSize(1224, 594)
-        self.setMaximumSize(1224, 594)
+        self.setMinimumSize(900, 610)
+        self.setMaximumSize(900, 610)
         self.initUI()
 
     def initUI(self):
 
         table = QTableWidget()
         table.setRowCount(19)
-        table.setColumnCount(12)
+        table.setColumnCount(14)  # 宽
         table.setEditTriggers(QTableWidget.NoEditTriggers)  # 设置为不可编辑
         table.verticalHeader().setVisible(False)  # 隐藏行号
         table.horizontalHeader().setVisible(False)  # 隐藏列号
         table.setSelectionMode(QTableWidget.NoSelection)  # 禁用选择功能
 
+        # 列宽
+        for column in range(table.columnCount()):
+            if column % 2 == 0:  # 判断是否为偶数列
+                table.setColumnWidth(column, 100)  # 设置偶数列的宽度
+            else:  # 奇数列
+                table.setColumnWidth(column, 85)  # 设置奇数列的宽度
+
         # 设置表头
         table.setSpan(0, 0, 1, 2)  # 合并第一行的两个单元格
         table.setItem(0, 0, QTableWidgetItem("美味岛"))
-        table.setSpan(0, 2, 1, 2)  # 合并第三和第四列的单元格
+        table.setSpan(0, 2, 1, 2)
         table.setItem(0, 2, QTableWidgetItem("火山岛"))
-        table.setSpan(0, 4, 1, 2)  # 合并第五和第六列的单元格
+        table.setSpan(0, 4, 1, 2)
         table.setItem(0, 4, QTableWidgetItem("火山遗迹"))
-        table.setSpan(0, 6, 1, 2)  # 合并第五和第六列的单元格
+        table.setSpan(0, 6, 1, 2)
         table.setItem(0, 6, QTableWidgetItem("浮空岛"))
-        table.setSpan(0, 8, 1, 2)  # 合并第五和第六列的单元格
+        table.setSpan(0, 8, 1, 2)
         table.setItem(0, 8, QTableWidgetItem("海底旋涡"))
-        table.setSpan(0, 10, 1, 2)  # 合并第五和第六列的单元格
-        table.setItem(0, 10, QTableWidgetItem("其他"))
+        table.setSpan(0, 10, 1, 2)
+        table.setItem(0, 10, QTableWidgetItem("星际穿越"))
+        table.setSpan(0, 12, 1, 2)
+        table.setItem(0, 12, QTableWidgetItem("其他 注: 第二位不是字母是零"))
 
         # 填充表格内容
         table_data = [
@@ -142,6 +151,25 @@ class QMWTipStageID(QMainWindow):
             row += 1
 
         table_data = [
+            ["糖球空间站-日", "NO-6-1"],
+            ["糖球空间站-夜", "NO-6-2"],
+            ["苏打水星-日", "NO-6-3"],
+            ["苏打水星-夜", "NO-6-4"],
+            ["汉堡王星", "NO-6-5"],
+            ["巴旦木星-日", "NO-6-6"],
+            ["巴旦木星-夜", "NO-6-7"],
+            ["冷萃星环-日", "NO-6-8"],
+            ["冷萃星环-夜", "NO-6-9"],
+            ["多拿滋星云", "NO-6-10"]
+        ]
+
+        row = 1
+        for item1, item2 in table_data:
+            table.setItem(row, 10, QTableWidgetItem(item1))
+            table.setItem(row, 11, QTableWidgetItem(item2))
+            row += 1
+
+        table_data = [
             ["番外-营地", "EX-1-N (1-6)"],
             ["番外-沙漠", "EX-2-N (1-9)"],
             ["番外-雪山", "EX-3-N (1-5)"],
@@ -158,14 +186,14 @@ class QMWTipStageID(QMainWindow):
             ["跨服-冰跨", "CS-6-N (1-8)"],
             ["萌宠神殿", "PT-0-N (1-25)"],
             ["悬赏关卡", "OR-0-N (1-3)"],
-            ["欢乐假期", "请使用自建房"],
+            ["欢乐假期", "请自建房"],
             ["画龙点睛", "不支持"],
         ]
 
         row = 1
         for item1, item2 in table_data:
-            table.setItem(row, 10, QTableWidgetItem(item1))
-            table.setItem(row, 11, QTableWidgetItem(item2))
+            table.setItem(row, 12, QTableWidgetItem(item1))
+            table.setItem(row, 13, QTableWidgetItem(item2))
             row += 1
 
         # 设置布局
