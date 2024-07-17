@@ -20,7 +20,7 @@ class ThreadActionQueueTimer(QThread):
         self.action_timer = None
         self.zoom_rate = None
         self.action_queue = queue.Queue()
-        self.interval_time = 0.01  # 处理点击间隔, 单位: 秒
+        self.interval_time = 0.008  # 处理点击间隔, 单位: 秒
         # 计数每次统计间隔期间, 分别增减了多少次点击, 以查看消费者是否跟得上生产者
         self.count_addition = 0
         self.count_subtraction = 0
