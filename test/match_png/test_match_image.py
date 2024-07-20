@@ -1,7 +1,6 @@
 import cProfile
 
-from function.common.bg_img_match import match_p_in_w
-from function.common.overlay_images import overlay_images
+from function.common.bg_img_match import loop_match_p_in_w
 from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
 from function.scattered.gat_handle import faa_get_handle
@@ -22,22 +21,37 @@ def f_test():
     #     test_print=True,
     #     test_show=True,
     # )
-    for i in range(100):
-        # 匹配绑定
-        template = overlay_images(
-            img_background=template,
-            img_overlay=RESOURCE_P["item"]["物品-绑定角标.png"],
-            test_show=False)
-        match_p_in_w(
-            source_handle=handle,
-            source_range=[0, 0, 950, 600],
-            template=template,
-            template_name="炭烧海星-初级技能书",
-            mask=RESOURCE_P["item"]["物品-掩模-绑定.png"],
-            match_tolerance=0.99,
-            test_print=True,
-            test_show=True,
-        )
+
+    # for i in range(100):
+    #     # 匹配绑定
+    #     template = overlay_images(
+    #         img_background=template,
+    #         img_overlay=RESOURCE_P["item"]["物品-绑定角标.png"],
+    #         test_show=False)
+    #     match_p_in_w(
+    #         source_handle=handle,
+    #         source_range=[0, 0, 950, 600],
+    #         template=template,
+    #         template_name="炭烧海星-初级技能书",
+    #         mask=RESOURCE_P["item"]["物品-掩模-绑定.png"],
+    #         match_tolerance=0.99,
+    #         test_print=True,
+    #         test_show=True,
+    #     )
+
+    source_range_2 = [275, 210, 395, 265]  # 游币兑换按钮位置
+    result = loop_match_p_in_w(
+        source_handle=faa_get_handle(channel="小号2 | 锑食-微端", mode="flash"),
+        source_range=source_range_2,
+        template=RESOURCE_P["top_up_money"]["充值界面_游币兑换.png"],
+        match_tolerance=0.99,
+        match_interval=0.2,
+        match_failed_check=5,
+        after_sleep=2,
+        click=True,
+        click_handle=faa_get_handle(channel="小号2 | 锑食-微端", mode="browser")
+    )
+    print(result)
 
 
 cProfile.run("f_test()")
