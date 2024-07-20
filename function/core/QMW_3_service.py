@@ -99,7 +99,7 @@ class QMainWindowService(QMainWindowLog):
 
         # 先检测是否已经在启动状态, 如果是, 立刻关闭 然后继续执行
         if self.thread_todo_running:
-            self.signal_print_to_ui.emit("[定时任务] 检测到线程已启动, 正在关闭", color="#C80000")
+            self.signal_print_to_ui.emit("[定时任务] 检测到线程已启动, 正在关闭", color_level=1)
             self.todo_end()
 
         # 先读取界面上的方案
@@ -131,14 +131,14 @@ class QMainWindowService(QMainWindowLog):
         self.Button_Start.setText("终止任务\nStop")
         if self.todo_timer_running:
             self.signal_print_to_ui.emit("", time=False)
-            self.signal_print_to_ui.emit("[定时任务] 本次启动为 定时自启动 不清屏", color="#C80000")
+            self.signal_print_to_ui.emit("[定时任务] 本次启动为 定时自启动 不清屏", color_level=1)
         else:
             # 清屏并输出(仅限手动)
             self.TextBrowser.clear()
             self.start_print()
         # 设置输出文本
         self.signal_print_to_ui.emit("", time=False)
-        self.signal_print_to_ui.emit("[任务事项] 链接开始 Todo线程开启", color="#C80000")
+        self.signal_print_to_ui.emit("[任务事项] 链接开始 Todo线程开启", color_level=1)
         # 当前正在运行 的 文本 修改
         running_todo_plan_name = self.opt["todo_plans"][running_todo_plan_index]["name"]
         self.Label_RunningState.setText(f"任务事项线程状态: 正在运行       运行方案: {running_todo_plan_name}")
@@ -230,7 +230,7 @@ class QMainWindowService(QMainWindowLog):
         # 设置按钮文本
         self.Button_Start.setText("开始任务\nLink Start")
         # 设置输出文本
-        self.signal_print_to_ui.emit("[任务事项] 已关闭全部线程", color="#C80000")
+        self.signal_print_to_ui.emit("[任务事项] 已关闭全部线程", color_level=1)
         # 当前正在运行 的 文本 修改
         self.Label_RunningState.setText(f"任务事项线程状态: 未运行")
 
@@ -253,7 +253,7 @@ class QMainWindowService(QMainWindowLog):
         self.Button_StartTimer.setText("关闭定时任务\nTimer Stop")
         # 设置输出文本
         self.signal_print_to_ui.emit("", time=False)
-        self.signal_print_to_ui.emit("[定时任务] 已启动!", color="#C80000")
+        self.signal_print_to_ui.emit("[定时任务] 已启动!", color_level=1)
         # 设置Flag
         self.todo_timer_running = True
         # 新设todo timer manager的opt
@@ -270,7 +270,7 @@ class QMainWindowService(QMainWindowLog):
         self.Button_StartTimer.setText("启动定时任务\nTimer Start")
         # 设置输出文本
         self.signal_print_to_ui.emit("", time=False)
-        self.signal_print_to_ui.emit("[定时任务] 定时作战已关闭!", color="#C80000")
+        self.signal_print_to_ui.emit("[定时任务] 定时作战已关闭!", color_level=1)
         # 设置Flag
         self.todo_timer_running = False
         # 关闭线程群
