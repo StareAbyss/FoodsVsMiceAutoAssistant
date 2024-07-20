@@ -1253,6 +1253,171 @@ class FAA:
 
         return main()
 
+    def sign_top_up_money(self):
+        """日氪一元! 仅限4399 游币哦!"""
+
+        # 进入充值界面
+        self.action_top_menu(mode="每日充值")
+        find = loop_match_p_in_w(
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=[350, 80, 480, 180],
+            template=RESOURCE_P["top_up_money"]["每日必充_判定点.png"],
+            match_tolerance=0.99,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=2,
+            click=False)
+        if not find:
+            return "步骤出现致命失误! 请联系开发者!"
+
+        # 尝试领取 / 尝试进入充值界面 一元档
+        CUS_LOGGER.debug("尝试领取 / 尝试进入充值界面...")
+        source_range_1 = [640, 205, 740, 250]  # 充值/领取按钮位置
+        find = loop_match_p_in_w(
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=source_range_1,
+            template=RESOURCE_P["top_up_money"]["每日必充_领取.png"],
+            match_tolerance=0.99,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=2,
+            click=True)
+        if find:
+            # 退出充值界面
+            self.action_top_menu(mode="每日充值")
+            return "你今天氪过, 但未领取, 已帮忙领取, 下次别忘了哦~"
+
+        find = loop_match_p_in_w(
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=source_range_1,
+            template=RESOURCE_P["top_up_money"]["每日必充_充值.png"],
+            match_tolerance=0.99,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=2,
+            click=True)
+        if not find:
+            # 退出充值界面
+            self.action_top_menu(mode="每日充值")
+            return "今天氪过了~"
+
+        # 没有完成, 进入充值界面
+        CUS_LOGGER.debug("充值界面 点击切换为游币")
+        source_range_2 = [275, 210, 395, 265]  # 游币兑换按钮位置
+        loop_match_p_in_w(
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=source_range_2,
+            template=RESOURCE_P["top_up_money"]["充值界面_游币兑换.png"],
+            match_tolerance=0.99,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=2,
+            click=True,
+            click_handle=self.handle_browser)
+        find = loop_match_p_in_w(
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=source_range_2,
+            template=RESOURCE_P["top_up_money"]["充值界面_游币兑换√.png"],
+            match_tolerance=0.99,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=2,
+            click=False)
+        if not find:
+            return "步骤出现致命失误! 请联系开发者!"
+
+        # 切换到游币选项, 准备输入一元开氪
+        CUS_LOGGER.debug("充值界面 输入为1元")
+        source_range_2 = [580, 335, 700, 385]  # 请输入X元按钮位置
+        # 点击请输入按钮
+        find = loop_match_p_in_w(
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=source_range_2,
+            template=RESOURCE_P["top_up_money"]["充值界面_请输入.png"],
+            match_tolerance=0.99,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=2,
+            click=True,
+            click_handle=self.handle_browser)
+        if not find:
+            return "步骤出现致命失误! 请联系开发者!"
+        # 输入1
+        T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle_browser, key="1")
+        # 检查
+        find = loop_match_p_in_w(
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=source_range_2,
+            template=RESOURCE_P["top_up_money"]["充值界面_请输入√.png"],
+            match_tolerance=0.99,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=2,
+            click=False
+        )
+        if not find:
+            return "步骤出现致命失误! 请联系开发者!"
+
+        """点击氪金按钮 完成氪金"""
+        CUS_LOGGER.debug("点击氪金按钮")
+        find = loop_match_p_in_w(
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=[400, 400, 560, 470],
+            template=RESOURCE_P["top_up_money"]["充值界面_立即充值.png"],
+            match_tolerance=0.99,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=2,
+            click=True,
+            click_handle=self.handle_browser)
+        if not find:
+            return "步骤出现致命失误! 请联系开发者!"
+
+        # 退出到 每日充值界面
+        CUS_LOGGER.debug("回到 每日必充 界面")
+        find = loop_match_p_in_w(
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=[760, 100, 815, 855],
+            template=RESOURCE_P["top_up_money"]["充值界面_退出.png"],
+            match_tolerance=0.99,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=2,
+            click=True,
+            click_handle=self.handle_browser)
+        if not find:
+            return "步骤出现致命失误! 请联系开发者!"
+
+        # 退出充值界面 刷新界面状态 才有领取按钮
+        self.action_top_menu(mode="每日充值")
+        # 进入充值界面
+        self.action_top_menu(mode="每日充值")
+        # 充值成功领取
+        find = loop_match_p_in_w(
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=source_range_1,
+            template=RESOURCE_P["top_up_money"]["每日必充_领取.png"],
+            match_tolerance=0.99,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=2,
+            click=True)
+        if find:
+            return "成功氪金并领取~"
+
+        # 退出充值界面
+        self.action_top_menu(mode="每日充值")
+
     def fed_and_watered(self) -> None:
         """公会施肥浇水功能"""
 
