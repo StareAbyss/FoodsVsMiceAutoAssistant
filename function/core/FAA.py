@@ -1924,19 +1924,23 @@ class FAA:
         time.sleep(1)
 
         # 点击排名第一的人
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=500, y=300)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=500, y=290)
         time.sleep(1)
 
         # 点击送花按钮
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=50, y=260)
         time.sleep(1)
 
-        # 选择礼卷
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=500, y=300)
+        # 选择免费花
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=350, y=300)
         time.sleep(1)
 
         # 点击送出
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=500, y=400)
+        time.sleep(1)
+
+        # 点击输入框选中
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=440, y=300)
         time.sleep(1)
 
         # 输入二级密码
