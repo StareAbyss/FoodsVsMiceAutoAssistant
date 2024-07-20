@@ -218,6 +218,13 @@ class ThreadTodo(QThread):
                         text=f'[{i}P] 领取温馨礼包情况: 失败, 欢乐互娱的服务器炸了, {e}',
                         color_level=2)
 
+        """日氪"""
+        for i in [1, 2]:
+            # 1P 只要激活了高级功能 - 日氪1元 2P 还需要激活 is_group
+            if self.opt["advanced_settings"][f"top_up_money_{i}p"] and (i == 1 or (i == 2 and is_group)):
+                self.signal_print_to_ui.emit(f'[{i}P] 日氪1元开始', color_level=2)
+                money_result = self.faa[i].sign_top_up_money()
+                self.signal_print_to_ui.emit(f'[{i}P] 日氪1元结束, 结果: {money_result}', color_level=2)
             else:
                 self.signal_print_to_ui.emit(f"[{i}P] 未激活日氪", color_level=2)
 

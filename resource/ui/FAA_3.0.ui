@@ -7768,7 +7768,7 @@ Link Start</string>
              <number>5</number>
             </property>
             <item>
-             <layout class="QVBoxLayout" name="Lay_AdvancedSettings" stretch="1,1,1,1">
+             <layout class="QVBoxLayout" name="Lay_AdvancedSettings" stretch="1,1,0,1,1">
               <property name="spacing">
                <number>5</number>
               </property>
@@ -7832,7 +7832,7 @@ Link Start</string>
                    </size>
                   </property>
                   <property name="text">
-                   <string>半自动拾取-1P</string>
+                   <string>1P-半自动拾取</string>
                   </property>
                  </widget>
                 </item>
@@ -7860,7 +7860,79 @@ Link Start</string>
                    </size>
                   </property>
                   <property name="text">
-                   <string>半自动拾取-2P</string>
+                   <string>2P-半自动拾取</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="Lay_AdvancedSettings_Center_2">
+                <property name="leftMargin">
+                 <number>5</number>
+                </property>
+                <property name="topMargin">
+                 <number>5</number>
+                </property>
+                <property name="rightMargin">
+                 <number>5</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>5</number>
+                </property>
+                <item>
+                 <widget class="QCheckBox" name="TopUpMoney_1P">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>1677215</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>1P-日氪1元</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="TopUpMoney_2P">
+                  <property name="enabled">
+                   <bool>true</bool>
+                  </property>
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>1677215</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>2P-日氪1元</string>
                   </property>
                  </widget>
                 </item>

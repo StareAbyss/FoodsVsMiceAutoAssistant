@@ -393,10 +393,12 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
 
         def advanced_settings() -> None:
             my_opt = self.opt["advanced_settings"]
-            self.EndExitGame.setChecked(my_opt["end_exit_game"])
-            self.AutoUseCard.setChecked(my_opt["auto_use_card"])
             self.AutoPickUp_1P.setChecked(my_opt["auto_pickup_1p"])
             self.AutoPickUp_2P.setChecked(my_opt["auto_pickup_2p"])
+            self.TopUpMoney_1P.setChecked(my_opt["top_up_money_1p"])
+            self.TopUpMoney_2P.setChecked(my_opt["top_up_money_2p"])
+            self.EndExitGame.setChecked(my_opt["end_exit_game"])
+            self.AutoUseCard.setChecked(my_opt["auto_use_card"])
             self.AutoDeleteOldImages.setChecked(my_opt["auto_delete_old_images"])
 
         def get_warm_gift_settings() -> None:
@@ -435,7 +437,6 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         fresh_resource_b()
 
         def my_transformer_b(change_class: object, opt_1, opt_2) -> None:
-
             # 用于配置 带有选单的 战斗方案
             # 根据更新前的数据, 获取index对应的正确uuid 并写入到opt
             ui_index = change_class.currentIndex()
@@ -500,10 +501,12 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
 
         def advanced_settings() -> None:
             my_opt = self.opt["advanced_settings"]
-            my_opt["end_exit_game"] = self.EndExitGame.isChecked()
-            my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
             my_opt["auto_pickup_1p"] = self.AutoPickUp_1P.isChecked()
             my_opt["auto_pickup_2p"] = self.AutoPickUp_2P.isChecked()
+            my_opt["top_up_money_1p"] = self.TopUpMoney_1P.isChecked()
+            my_opt["top_up_money_2p"] = self.TopUpMoney_2P.isChecked()
+            my_opt["end_exit_game"] = self.EndExitGame.isChecked()
+            my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
             my_opt["auto_delete_old_images"] = self.AutoDeleteOldImages.isChecked()
 
         def get_warm_gift_settings() -> None:
