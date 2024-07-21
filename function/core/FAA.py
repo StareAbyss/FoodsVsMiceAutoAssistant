@@ -1111,6 +1111,8 @@ class FAA:
 
         def sign_in_vip():
             """VIP签到"""
+
+            CUS_LOGGER.debug(f"[{self.player}] [VIP签到] 开始")
             self.action_top_menu(mode="VIP签到")
 
             # 增加3s等待时间 以加载
@@ -1123,9 +1125,12 @@ class FAA:
             time.sleep(0.5)
 
             self.action_exit(mode="普通红叉")
+            CUS_LOGGER.debug(f"[{self.player}] [VIP签到] 结束")
 
         def sign_in_everyday():
             """每日签到"""
+
+            CUS_LOGGER.debug(f"[{self.player}] [每日签到] 开始")
             self.action_top_menu(mode="每日签到")
 
             loop_match_p_in_w(
@@ -1139,10 +1144,12 @@ class FAA:
                 click=True)
 
             self.action_exit(mode="普通红叉")
+            CUS_LOGGER.debug(f"[{self.player}] [每日签到] 结束")
 
         def sign_in_food_activity():
             """美食活动"""
 
+            CUS_LOGGER.debug(f"[{self.player}] [美食活动] 开始")
             self.action_top_menu(mode="美食活动")
 
             loop_match_p_in_w(
@@ -1156,9 +1163,13 @@ class FAA:
                 click=True)
 
             self.action_exit(mode="普通红叉")
+            CUS_LOGGER.debug(f"[{self.player}] [美食活动] 结束")
 
         def sign_in_tarot():
             """塔罗寻宝"""
+
+            CUS_LOGGER.debug(f"[{self.player}] [塔罗寻宝] 开始")
+
             self.action_top_menu(mode="塔罗寻宝")
 
             loop_match_p_in_w(
@@ -1181,8 +1192,13 @@ class FAA:
                 after_sleep=1,
                 click=True)
 
+            CUS_LOGGER.debug(f"[{self.player}] [塔罗寻宝] 结束")
+
         def sign_in_pharaoh():
             """法老宝藏"""
+
+            CUS_LOGGER.debug(f"[{self.player}] [法老宝藏] 开始")
+
             self.action_top_menu(mode="法老宝藏")
 
             find = loop_match_p_in_w(
@@ -1202,8 +1218,13 @@ class FAA:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=791, y=98)
             time.sleep(1)
 
+            CUS_LOGGER.debug(f"[{self.player}] [法老宝藏] 结束")
+
         def sign_in_release_quest_guild():
             """会长发布任务"""
+
+            CUS_LOGGER.debug(f"[{self.player}] [会长发布任务] 开始")
+
             self.action_bottom_menu(mode="跳转_公会任务")
 
             find = loop_match_p_in_w(
@@ -1231,8 +1252,17 @@ class FAA:
             # 关闭任务列表(红X)
             self.action_exit(mode="普通红叉", raw_range=[834, 35, 876, 83])
 
+            CUS_LOGGER.debug(f"[{self.player}] [会长发布任务] 结束")
+
         def sign_in_camp_key():
             """领取营地钥匙"""
+
+            if self.character_level <= 20:
+                CUS_LOGGER.debug(f"[{self.player}] [领取营地钥匙] 放弃, 角色等级不足, 最低 21 级")
+                return
+
+            CUS_LOGGER.debug(f"[{self.player}] [领取营地钥匙] 开始")
+
             # 进入界面
             find = self.action_goto_map(map_id=10)
 
@@ -1241,6 +1271,8 @@ class FAA:
                 time.sleep(0.5)
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=400, y=445)
                 time.sleep(0.5)
+
+            CUS_LOGGER.debug(f"[{self.player}] [领取营地钥匙] 结束")
 
         def main():
             sign_in_vip()
