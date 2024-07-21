@@ -40,14 +40,16 @@ class ThreadTodo(QThread):
         self.faa = faa
         self.opt = copy.deepcopy(opt)  # 深拷贝 在作战中如果进行更改, 不会生效
         self.opt_todo_plans = self.opt["todo_plans"][running_todo_plan_index]  # 选择运行的 opt 的 todo plan 部分
+        self.battle_check_interval = 1  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
+        self.auto_food_stage_ban_list = []  # 用于防止缺乏钥匙/次数时无限重复某些关卡
+
+        # 多线程管理
         self.thread_1p = None
         self.thread_2p = None
         self.thread_card_manager = None
         self.card_manager = None
-        self.battle_check_interval = 1  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
-        self.auto_food_stage_ban_list = []  # 用于防止缺乏钥匙/次数时无限重复某些关卡
 
-        # 多人双线程相关
+        # 多人双Todo线程相关
         self.my_lock = False  # 多人单线程的互锁, 需要彼此完成方可解除对方的锁
         self.todo_id = todo_id  # id == 1 默认 id==2 处理双单人多线程
         self.extra_opt = None  # 用来给双单人多线程的2P传递参数
@@ -58,6 +60,39 @@ class ThreadTodo(QThread):
         self.signal_image_to_ui = self.signal_dict["image_to_ui"]
         self.signal_dialog = self.signal_dict["dialog"]
         self.signal_todo_end = self.signal_dict["end"]
+
+    def stop(self):
+
+        # 暂停外部线程
+        # self.pause()
+
+        if self.thread_1p is not None:
+            self.thread_1p.stop()
+            self.thread_1p.join()  # 等待线程中断
+            self.thread_1p = None  # 清除调用
+
+        if self.thread_2p is not None:
+            self.thread_2p.stop()
+            self.thread_2p.join()  # 等待线程中断
+            self.thread_2p = None  # 清除调用
+
+        if self.thread_card_manager is not None:
+            self.thread_card_manager.stop()
+            self.thread_card_manager.join()  # 等待线程中断
+            self.thread_card_manager = None  # 清除调用
+
+    def pause(self):
+        """暂停"""
+        self.mutex.lock()
+        self.is_paused = True
+        self.mutex.unlock()
+
+    def resume(self):
+        """恢复暂停"""
+        self.mutex.lock()
+        self.is_paused = False
+        self.condition.wakeAll()
+        self.mutex.unlock()
 
     """非脚本操作的业务代码"""
 
@@ -2027,15 +2062,4 @@ class ThreadTodo(QThread):
             need_lock=self.extra_opt["need_lock"])
         self.extra_opt = None
 
-    def pause(self):
-        """暂停"""
-        self.mutex.lock()
-        self.is_paused = True
-        self.mutex.unlock()
 
-    def resume(self):
-        """恢复暂停"""
-        self.mutex.lock()
-        self.is_paused = False
-        self.condition.wakeAll()
-        self.mutex.unlock()
