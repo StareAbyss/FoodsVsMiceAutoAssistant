@@ -3,12 +3,18 @@ from win32gui import FindWindowEx, FindWindow
 """
 窗口结构
 Type:DUIWindow Name: channel-name # 360层级
-    |- Type: TabContentWnd
-        |- Type: CefBrowserWindow
-            |- Type: Chrome_WidgetWin_0 # 窗口浏览器层级
-                |- Type: WrapperNativeWindowClass
-                    |- Type: NativeWindowClass # Flash游戏层级
-
+    |
+    |- Type: TabContentWnd Name:"" 
+        |
+        |- Type: CefBrowserWindow Name:"" # CEF窗口
+            |
+            |- Type: Chrome_WidgetWin_0 Name:"" # 窗口浏览器层级  充值窗口所在层级
+                |
+                |- Type: WrapperNativeWindowClass Name:"" # 刷新变动
+                |   |
+                |   |- Type: NativeWindowClass Name:"" # Flash游戏层级 刷新变动
+                |   
+                |- Type: Chrome_RenderWidgetHostHWND  Name:"Chrome Legacy Window"
 """
 
 
@@ -30,7 +36,6 @@ def faa_get_handle(channel, mode="game"):
     if mode == "flash":
         handle = FindWindowEx(handle, None, "WrapperNativeWindowClass", "")
         handle = FindWindowEx(handle, None, "NativeWindowClass", "")  # game窗口
-
     return handle
 
 

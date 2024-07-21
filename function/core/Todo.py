@@ -187,6 +187,7 @@ class ThreadTodo(QThread):
         self.thread_2p.join()
 
     def batch_sign_in(self, is_group):
+        """批量完成日常功能"""
 
         title_text = "每日签到"
         self.model_start_print(text=title_text)
