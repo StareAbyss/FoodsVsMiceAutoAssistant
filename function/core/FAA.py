@@ -1233,6 +1233,11 @@ class FAA:
 
         def sign_in_camp_key():
             """领取营地钥匙"""
+
+            if self.character_level <= 20:
+                CUS_LOGGER.debug(f"[{self.player}] [领取营地钥匙] 放弃, 角色等级不足, 最低 21 级")
+                return
+
             # 进入界面
             find = self.action_goto_map(map_id=10)
 
