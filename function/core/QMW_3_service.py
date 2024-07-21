@@ -13,6 +13,7 @@ from function.core.QMW_TipBattle import QMWTipBattle
 from function.core.QMW_TipStageID import QMWTipStageID
 from function.core.QMW_TipWarmGift import QMWTipWarmGift
 from function.core.Todo import ThreadTodo
+from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.TodoTimerManager import TodoTimerManager
 from function.scattered.gat_handle import faa_get_handle
@@ -199,27 +200,14 @@ class QMainWindowService(QMainWindowLog):
         """
 
         """线程处理"""
-        for thread_0 in [self.thread_todo_1, self.thread_todo_2]:
-            # 暂停外部线程
-            thread_0.pause()
-
-            # 中断[内部战斗线程]
-            # Q thread 线程 stop方法需要自己手写
-
-            manager = thread_0.thread_card_manager
-            if manager is not None:
-                manager.stop()
-
-            # python 默认线程 可用stop线程
-            for thread in [thread_0.thread_1p, thread_0.thread_2p]:
-                if thread is not None:
-                    thread.stop()
-                    thread.join()  # 等待线程确实中断 Threading
-
-            # 中断 销毁 [任务线程]
-            thread_0.terminate()
-            thread_0.wait()  # 等待线程确实中断 QThread
-            thread_0.deleteLater()
+        for thread_todo in [self.thread_todo_1, self.thread_todo_2]:
+            CUS_LOGGER.debug(f"中止Todo线程:{thread_todo}, 开始")
+            thread_todo.stop()
+            thread_todo.terminate()
+            thread_todo.wait()  # 等待线程确实中断 QThread
+            CUS_LOGGER.debug(f"中止Todo线程:{thread_todo}, 完成")
+        self.thread_todo_1 = None
+        self.thread_todo_2 = None
 
         # 中止[动作处理线程]
         T_ACTION_QUEUE_TIMER.stop()
