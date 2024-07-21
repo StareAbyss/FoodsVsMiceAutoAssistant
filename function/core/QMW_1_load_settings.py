@@ -53,9 +53,64 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
                 shutil.copyfile(template_file, settings_file)
                 CUS_LOGGER.warning(f"[读取FAA基础配置文件] '{settings_file}' 不存在，已从模板 '{template_file}' 创建。")
             except IOError as e:
-                CUS_LOGGER.error(f"[读取FAA基础配置文件] 无法创建 '{settings_file}' 从 '{template_file}'。错误: {e}")
+                CUS_LOGGER.error(f"[读取FAA基础配置文件] 无法创建 '{settings_file}' 从 '{template_file}'. 错误: {e}")
         else:
             CUS_LOGGER.info(f"[读取FAA基础配置文件] '{settings_file}' 已存在. 直接读取.")
+
+        # 检查settings.json 是否和 template.json 各级的字段名和数据类型是否一致, 如果不一致, 应用模板
+        # 如果值为list 使用template中第一个值作为模板对照进行merge
+        def merge_settings_with_template(settings, template):
+            def merge(dict1, dict2):
+                for key, value in dict2.items():
+                    if key not in dict1:
+                        dict1[key] = copy.deepcopy(value)
+                    else:
+                        if isinstance(value, dict):
+                            if isinstance(dict1[key], dict):
+                                merge(dict1[key], value)
+                            else:
+                                dict1[key] = copy.deepcopy(value)
+                        elif isinstance(value, list):
+                            if isinstance(dict1[key], list):
+                                if len(dict1[key]) > 0 and isinstance(dict1[key][0], dict):
+                                    sample_dict = value[0]
+                                    for i, item in enumerate(dict1[key]):
+                                        if isinstance(item, dict):
+                                            merge(item, sample_dict)
+                                        else:
+                                            dict1[key] = copy.deepcopy(value)
+                                            break
+                            else:
+                                dict1[key] = copy.deepcopy(value)
+                        else:
+                            if not isinstance(dict1[key], type(value)):
+                                dict1[key] = copy.deepcopy(value)
+
+            settings_copy = copy.deepcopy(settings)
+            merge(settings_copy, template)
+            return settings_copy
+
+        CUS_LOGGER.info(f"[订正FAA基础配置文件] 订正开始.")
+
+        # 自旋锁读写, 防止多线程读写问题
+        while EXTRA_GLOBALS.file_is_reading_or_writing:
+            time.sleep(0.1)
+        EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+
+        with open(file=settings_file, mode="r", encoding="UTF-8") as file:
+            data_settings = json.load(file)
+        with open(file=template_file, mode="r", encoding="UTF-8") as file:
+            data_template = json.load(file)
+
+        data_settings = merge_settings_with_template(settings=data_settings, template=data_template)
+        with open(file=self.opt_path, mode="w", encoding="UTF-8") as file:
+            json.dump(obj=data_settings, fp=file, ensure_ascii=False, indent=4)
+
+        EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
+
+        CUS_LOGGER.info(f"[订正FAA基础配置文件] 订正完成.")
+
+        return None
 
     def json_to_opt(self) -> None:
         # 自旋锁读写, 防止多线程读写问题
@@ -338,10 +393,12 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
 
         def advanced_settings() -> None:
             my_opt = self.opt["advanced_settings"]
-            self.EndExitGame.setChecked(my_opt["end_exit_game"])
-            self.AutoUseCard.setChecked(my_opt["auto_use_card"])
             self.AutoPickUp_1P.setChecked(my_opt["auto_pickup_1p"])
             self.AutoPickUp_2P.setChecked(my_opt["auto_pickup_2p"])
+            self.TopUpMoney_1P.setChecked(my_opt["top_up_money_1p"])
+            self.TopUpMoney_2P.setChecked(my_opt["top_up_money_2p"])
+            self.EndExitGame.setChecked(my_opt["end_exit_game"])
+            self.AutoUseCard.setChecked(my_opt["auto_use_card"])
             self.AutoDeleteOldImages.setChecked(my_opt["auto_delete_old_images"])
 
         def get_warm_gift_settings() -> None:
@@ -380,7 +437,6 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         fresh_resource_b()
 
         def my_transformer_b(change_class: object, opt_1, opt_2) -> None:
-
             # 用于配置 带有选单的 战斗方案
             # 根据更新前的数据, 获取index对应的正确uuid 并写入到opt
             ui_index = change_class.currentIndex()
@@ -445,10 +501,12 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
 
         def advanced_settings() -> None:
             my_opt = self.opt["advanced_settings"]
-            my_opt["end_exit_game"] = self.EndExitGame.isChecked()
-            my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
             my_opt["auto_pickup_1p"] = self.AutoPickUp_1P.isChecked()
             my_opt["auto_pickup_2p"] = self.AutoPickUp_2P.isChecked()
+            my_opt["top_up_money_1p"] = self.TopUpMoney_1P.isChecked()
+            my_opt["top_up_money_2p"] = self.TopUpMoney_2P.isChecked()
+            my_opt["end_exit_game"] = self.EndExitGame.isChecked()
+            my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
             my_opt["auto_delete_old_images"] = self.AutoDeleteOldImages.isChecked()
 
         def get_warm_gift_settings() -> None:

@@ -64,10 +64,10 @@ class ThreadTodo(QThread):
     def model_start_print(self, text):
         # 在函数执行前发送的信号
         self.signal_print_to_ui.emit(text="", time=False)
-        self.signal_print_to_ui.emit(text=f"[{text}] Link Start!", color="#C80000")
+        self.signal_print_to_ui.emit(text=f"[{text}] Link Start!", color_level=1)
 
     def model_end_print(self, text):
-        self.signal_print_to_ui.emit(text=f"[{text}] Completed!", color="#C80000")
+        self.signal_print_to_ui.emit(text=f"[{text}] Completed!", color_level=1)
 
     def change_lock(self, my_bool):
         self.my_lock = my_bool
@@ -121,7 +121,7 @@ class ThreadTodo(QThread):
         if self.opt["level_2"]["1p"]["active"] or self.opt["level_2"]["2p"]["active"]:
             self.signal_print_to_ui.emit(
                 text=f"[{title_text}] [二级功能] 您输入二级激活了该功能. 将送免费花 + 兑换暗晶 + 删除多余技能书",
-                color="E67800")
+                color_level=2)
 
         # 高危动作 慢慢执行
         if self.opt["level_2"]["1p"]["active"]:
@@ -139,7 +139,7 @@ class ThreadTodo(QThread):
         # 执行完毕后立刻刷新游戏 以清除二级输入状态
         if self.opt["level_2"]["1p"]["active"] or self.opt["level_2"]["2p"]["active"]:
             self.signal_print_to_ui.emit(
-                text=f"[{title_text}] [二级功能] 结束, 即将刷新游戏以清除二级输入的状态...", color="E67800")
+                text=f"[{title_text}] [二级功能] 结束, 即将刷新游戏以清除二级输入的状态...", color_level=2)
             self.batch_reload_game()
 
     def batch_reload_game(self):
@@ -187,16 +187,20 @@ class ThreadTodo(QThread):
         self.thread_2p.join()
 
     def batch_sign_in(self, is_group):
+        """批量完成日常功能"""
 
         title_text = "每日签到"
         self.model_start_print(text=title_text)
 
-        # 激活删除物品高危功能(可选) + 领取奖励一次
+        """激活删除物品高危功能(可选) + 领取奖励一次"""
         self.batch_level_2_action(is_group=is_group, title_text=title_text, dark_crystal=False)
 
-        # 领取温馨礼包
+        """领取温馨礼包"""
         for i in [1, 2]:
-            if self.opt["get_warm_gift"][f'{i}p']["active"]:
+            if not (self.opt["get_warm_gift"][f'{i}p']["active"] and (i == 1 or (i == 2 and is_group))):
+                self.signal_print_to_ui.emit(f"[{i}P] 未激活领取温馨礼包", color_level=2)
+                continue
+            else:
                 openid = self.opt["get_warm_gift"][f'{i}p']["link"]
                 if openid == "":
                     continue
@@ -206,32 +210,42 @@ class ThreadTodo(QThread):
                     r = requests.get(url, timeout=10)  # 设置超时
                     r.raise_for_status()  # 如果响应状态不是200，将抛出HTTPError异常
                     message = r.json()['msg']
-                    self.signal_print_to_ui.emit(f'[{i}P] 领取温馨礼包情况:' + message, color="E67800")
+                    self.signal_print_to_ui.emit(
+                        text=f'[{i}P] 领取温馨礼包情况:' + message,
+                        color_level=2)
                 except RequestException as e:
-                    # 这里处理请求发生的任何错误，如网络问题、超时、服务器无响应等
-                    self.signal_print_to_ui.emit(f'[{i}P] 领取温馨礼包情况: 失败, 欢乐互娱的服务器炸了, {e}',
-                                                 color="E67800")
+                    # 网络问题、超时、服务器无响应
+                    self.signal_print_to_ui.emit(
+                        text=f'[{i}P] 领取温馨礼包情况: 失败, 欢乐互娱的服务器炸了, {e}',
+                        color_level=2)
+
+        """日氪"""
+        for i in [1, 2]:
+            # 1P 只要激活了高级功能 - 日氪1元 2P 还需要激活 is_group
+            if self.opt["advanced_settings"][f"top_up_money_{i}p"] and (i == 1 or (i == 2 and is_group)):
+                self.signal_print_to_ui.emit(f'[{i}P] 日氪1元开始', color_level=2)
+                money_result = self.faa[i].sign_top_up_money()
+                self.signal_print_to_ui.emit(f'[{i}P] 日氪1元结束, 结果: {money_result}', color_level=2)
             else:
-                self.signal_print_to_ui.emit(f"[{i}P] 未激活领取温馨礼包", color="E67800")
+                self.signal_print_to_ui.emit(f"[{i}P] 未激活日氪", color_level=2)
 
-        self.signal_print_to_ui.emit(f"开始 VIP签到/每日签到/美食活动/塔罗/法老/会长发任务/营地领钥匙")
-
-        # 创建进程 -> 开始进程 -> 阻塞主进程
+        """双线程常规日常"""
+        self.signal_print_to_ui.emit(f"开始双线程 VIP签到/每日签到/美食活动/塔罗/法老/会长发任务/营地钥匙")
+        # 创建进程
         self.thread_1p = ThreadWithException(
             target=self.faa[1].sign_in,
             name="1P Thread - SignIn",
             kwargs={})
-
         if is_group:
             self.thread_2p = ThreadWithException(
                 target=self.faa[2].sign_in,
                 name="2P Thread - SignIn",
                 kwargs={})
-
+        # 开始进程
         self.thread_1p.start()
         if is_group:
             self.thread_2p.start()
-
+        # 阻塞本进程
         self.thread_1p.join()
         if is_group:
             self.thread_2p.join()
@@ -1009,7 +1023,7 @@ class ThreadTodo(QThread):
                 self.output_player_loot(player_id=2, result_list=result_list)
 
         def main():
-            self.signal_print_to_ui.emit(text=f"{title}{stage_id} {max_times}次 开始", color="#0056A6")
+            self.signal_print_to_ui.emit(text=f"{title}{stage_id} {max_times}次 开始", color_level=5)
 
             # 填入战斗方案和关卡信息, 之后会大量动作和更改类属性, 所以需要判断是否组队
             faa_a.set_config_for_battle(
@@ -1041,7 +1055,7 @@ class ThreadTodo(QThread):
             # 根据多次战斗结果组成的list 打印 1本n次 的汇总结果
             end_statistic_print(result_list=result_list)
 
-            self.signal_print_to_ui.emit(text=f"{title}{stage_id} {max_times}次 结束 ", color="#0056A6")
+            self.signal_print_to_ui.emit(text=f"{title}{stage_id} {max_times}次 结束 ", color_level=5)
 
         main()
 
@@ -1121,12 +1135,10 @@ class ThreadTodo(QThread):
 
         if need_lock:
             # 上锁
-            self.signal_print_to_ui.emit(
-                text=f"[双线程单人] {self.todo_id}P已开始任务! 进行自锁!",
-                color="#006400")
+            self.signal_print_to_ui.emit(text=f"[双线程单人] {self.todo_id}P已开始任务! 进行自锁!", color_level=3)
             self.my_lock = True
 
-        self.signal_print_to_ui.emit(text=f"{title}开始...", color="#006400")
+        self.signal_print_to_ui.emit(text=f"{title}开始...", color_level=3)
 
         # 遍历完成每一个任务
         for i in range(len(quest_list)):
@@ -1140,7 +1152,7 @@ class ThreadTodo(QThread):
                         title,
                         quest["battle_id"] if "battle_id" in quest else (i + 1),
                         quest["stage_id"]),
-                    color="#C80000"
+                    color_level=1
                 )
                 continue
 
@@ -1155,7 +1167,7 @@ class ThreadTodo(QThread):
                         quest["quest_card"],
                         quest["ban_card_list"]
                     ),
-                    color="#009688"
+                    color_level=4
                 )
 
                 self.battle_1_1_n(
@@ -1178,15 +1190,15 @@ class ThreadTodo(QThread):
                         title,
                         quest["battle_id"] if "battle_id" in quest else (i + 1)
                     ),
-                    color="#009688"
+                    color_level=4
                 )
 
-        self.signal_print_to_ui.emit(text=f"{title}结束", color="#006400")
+        self.signal_print_to_ui.emit(text=f"{title}结束", color_level=3)
 
         if need_lock:
             self.signal_print_to_ui.emit(
                 text=f"双线程单人功能中, {self.todo_id}P已完成所有任务! 已解锁另一线程!",
-                color="#006400"
+                color_level=3
             )
 
             # 为另一个todo解锁
@@ -1405,7 +1417,7 @@ class ThreadTodo(QThread):
 
             self.signal_print_to_ui.emit(
                 text="[全自动大赛] 已完成任务获取, 结果如下:",
-                color="#006400"
+                color_level=3
             )
 
             for i in range(len(quest_list)):
@@ -1424,7 +1436,7 @@ class ThreadTodo(QThread):
                         quest_list[i]["max_times"],
                         quest_list[i]["quest_card"],
                         quest_list[i]["ban_card_list"]),
-                    color="#006400"
+                    color_level=3
                 )
 
             for i in range(len(quest_list)):
@@ -1450,15 +1462,15 @@ class ThreadTodo(QThread):
             i = 0
             while True:
                 i += 1
-                self.signal_print_to_ui.emit(text=f"[{text_}] 第{i}次循环，开始", color="#E67800")
+                self.signal_print_to_ui.emit(text=f"[{text_}] 第{i}次循环，开始", color_level=2)
 
                 round_result = a_round()
 
-                self.signal_print_to_ui.emit(text=f"[{text_}] 第{i}次循环，结束", color="#E67800")
+                self.signal_print_to_ui.emit(text=f"[{text_}] 第{i}次循环，结束", color_level=2)
                 if not round_result:
                     break
 
-            self.signal_print_to_ui.emit(text=f"[{text_}] 所有被记录的任务已完成!", color="#E67800")
+            self.signal_print_to_ui.emit(text=f"[{text_}] 所有被记录的任务已完成!", color_level=2)
 
             self.model_end_print(text=text_)
 
@@ -1658,8 +1670,8 @@ class ThreadTodo(QThread):
                         dict_exit={
                             "other_time_player_a": [],
                             "other_time_player_b": [],
-                            "last_time_player_a": ["回到上一级","普通红叉"],
-                            "last_time_player_b": ["回到上一级","普通红叉"]
+                            "last_time_player_a": ["回到上一级", "普通红叉"],
+                            "last_time_player_b": ["回到上一级", "普通红叉"]
                         }
                     )
 
