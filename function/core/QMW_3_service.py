@@ -84,6 +84,33 @@ class QMainWindowService(QMainWindowLog):
         self.Button_Hide.clicked.connect(self.click_btn_hide_window)
         self.game_window_is_hide = False
 
+        # 连接自定义信号到槽函数，从而修改编辑框内容
+        self.Label_drag.windowNameChanged1.connect(self.updateEditBox1)
+        self.Label_drag.windowNameChanged2.connect(self.updateEditBox2)
+        
+    def updateEditBox1(self, window_name:str):
+        
+        """更新1P编辑框内容的槽函数"""
+        if '|' in window_name:
+            names=window_name.split('|')
+            self.Name1P_Input.setText(names[0].strip())
+            self.GameName_Input.setText(names[1].strip())
+        else:
+            self.Name1P_Input.setText("")
+            self.GameName_Input.setText(window_name)
+    def updateEditBox2(self, window_name):
+        """更新2P编辑框内容的槽函数"""
+        if '|' in window_name:
+            names=window_name.split('|')
+            self.Name2P_Input.setText(names[0].strip())
+            self.GameName_Input.setText(names[1].strip())
+        else:
+            self.Name2P_Input.setText("")
+            self.GameName_Input.setText(window_name)
+        
+
+
+
     def todo_start(self, plan_index=None):
         """
         todo线程的启动函数
