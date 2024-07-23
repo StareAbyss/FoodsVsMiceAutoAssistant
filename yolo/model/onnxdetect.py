@@ -62,12 +62,12 @@ def get_mouse_position(onnx_model, input_image):
         box = boxes[index]
         draw_bounding_box(annotated_image, class_ids[index], scores[index], round(box[0] * scale), round(box[1] * scale),
                           round((box[0] + box[2]) * scale), round((box[1] + box[3]) * scale))
-
+    annotated_image=cv2.resize(annotated_image, (960,540))
     cv_show('test',annotated_image)
     need_write=True
     if need_write:
-        cv_write(input_image,original_image,result_boxes,class_ids,scores,boxes)
-def cv_write(input_image,original_image,result_boxes,class_ids,scores,boxes):
+        cv_write(input_image,original_image,result_boxes,class_ids,scores,boxes,scale)
+def cv_write(input_image,original_image,result_boxes,class_ids,scores,boxes,scale):
         output_base_path = os.getcwd()
         img_base_name = os.path.splitext(os.path.basename(input_image))[0]
         output_img_path = f"{output_base_path}/{img_base_name}.png"
@@ -79,11 +79,25 @@ def cv_write(input_image,original_image,result_boxes,class_ids,scores,boxes):
                 class_id = class_ids[index]
                 score = scores[index]
                 box = boxes[index]
-                x, y, w, h = box
-                # 写入格式：类别,x,y,w,h,置信度
+                x, y, w, h = voc_to_yolo(original_image.shape, [box[0]*scale,box[1]*scale,box[2]*scale,box[3]*scale])
+                # x, y, w, h = box[0]*scale,box[1]*scale,box[2]*scale,box[3]*scale
+                # 写入格式：类别,x,y,w,h
                 f.write(f"{class_id} {x } {y } {w } {h }\n")
 
 
+
+def voc_to_yolo(size, box):#归一化操作
+    dw = 1./size[1]
+    dh = 1./size[0]
+    x = box[0] + (0.5*box[2])
+    y = box[1] + (0.5*box[3])
+    w = box[2]
+    h = box[3]
+    x = x*dw
+    w = w*dw
+    y = y*dh
+    h = h*dh
+    return (x,y,w,h)
 
 def cv_show(name,img):#图片展示
     cv2.imshow(name, img)
@@ -99,7 +113,7 @@ def cv_show(name,img):#图片展示
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', default='mouse.onnx', help='Input your onnx model.')
-    parser.add_argument('--img', default=str('0002_10.jpg'), help='Path to input image.')
+    parser.add_argument('--img', default=str('0002_27.jpg'), help='Path to input image.')
     args = parser.parse_args()
     get_mouse_position(args.model, args.img)
 
