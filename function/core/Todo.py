@@ -78,7 +78,6 @@ class ThreadTodo(QThread):
 
         if self.thread_card_manager is not None:
             self.thread_card_manager.stop()
-            self.thread_card_manager.join()  # 等待线程中断
             self.thread_card_manager = None  # 清除调用
 
     def pause(self):
