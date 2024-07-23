@@ -1,11 +1,12 @@
 import argparse
 import cv2.dnn
 import numpy as np
+import os
 
 '''
 注意：如果你推理自己的模型，以下类别需要改成你自己的具体类别
 '''
-# coco类别
+# 老许类别
 CLASSES = {0: 'shell', 1: 'flypig', 2: 'pope', 3: 'Vali', 4: 'wave', 5: 'GodWind', 6: 'skull' }# 对应6种特殊老鼠与波次
 colors = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 
@@ -19,7 +20,7 @@ def draw_bounding_box(img, class_id, confidence, x, y, x_plus_w, y_plus_h):
     cv2.putText(img, label, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
 
-def main(onnx_model, input_image):
+def get_mouse_position(onnx_model, input_image):
     # 使用opencv读取onnx文件
     model: cv2.dnn.Net = cv2.dnn.readNetFromONNX(onnx_model)
     # 读取原图
@@ -55,21 +56,50 @@ def main(onnx_model, input_image):
             class_ids.append(maxClassIndex) # 类别
     # opencv版最极大值抑制
     result_boxes = cv2.dnn.NMSBoxes(boxes, scores, 0.25, 0.45, 0.5)
-
+    annotated_image = original_image.copy()
     for i in range(len(result_boxes)):
         index = result_boxes[i]
         box = boxes[index]
-        draw_bounding_box(original_image, class_ids[index], scores[index], round(box[0] * scale), round(box[1] * scale),
+        draw_bounding_box(annotated_image, class_ids[index], scores[index], round(box[0] * scale), round(box[1] * scale),
                           round((box[0] + box[2]) * scale), round((box[1] + box[3]) * scale))
-    cv2.imshow('image', original_image)
+
+    cv_show('test',annotated_image)
+    need_write=True
+    if need_write:
+        cv_write(input_image,original_image,result_boxes,class_ids,scores,boxes)
+def cv_write(input_image,original_image,result_boxes,class_ids,scores,boxes):
+        output_base_path = os.getcwd()
+        img_base_name = os.path.splitext(os.path.basename(input_image))[0]
+        output_img_path = f"{output_base_path}/{img_base_name}.png"
+        output_txt = f"{output_base_path}/{img_base_name}.txt"
+        cv2.imwrite(output_img_path,original_image)
+        with open(output_txt, 'w') as f:
+            for i in range(len(result_boxes)):
+                index = result_boxes[i]
+                class_id = class_ids[index]
+                score = scores[index]
+                box = boxes[index]
+                x, y, w, h = box
+                # 写入格式：类别,x,y,w,h,置信度
+                f.write(f"{class_id} {x } {y } {w } {h }\n")
+
+
+
+def cv_show(name,img):#图片展示
+    cv2.imshow(name, img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+
+
+
+
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', default='mouse.onnx', help='Input your onnx model.')
-    parser.add_argument('--img', default=str('bus.jpg'), help='Path to input image.')
+    parser.add_argument('--img', default=str('0002_10.jpg'), help='Path to input image.')
     args = parser.parse_args()
-    main(args.model, args.img)
+    get_mouse_position(args.model, args.img)
 
