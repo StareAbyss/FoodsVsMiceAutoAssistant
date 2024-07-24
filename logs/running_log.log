@@ -1,0 +1,1340 @@
+2024-07-21 20:17:17,870 - INFO - [读取FAA基础配置文件] 'I:\MyCode\FAA_Code\FoodsVsMiceAutoAssistant\config\settings.json' 已存在. 直接读取.
+2024-07-21 20:17:17,871 - INFO - [订正FAA基础配置文件] 订正开始.
+2024-07-21 20:17:17,876 - INFO - [订正FAA基础配置文件] 订正完成.
+2024-07-21 20:17:17,896 - INFO - 嗷呜, 欢迎使用FAA-美食大战老鼠自动放卡作战小助手~
+2024-07-21 20:17:17,897 - INFO - 本软件 [开源][免费][绿色] 当前版本: 1.4.0
+2024-07-21 20:17:17,897 - INFO - 
+2024-07-21 20:17:17,898 - INFO - 使用安全说明
+2024-07-21 20:17:17,898 - INFO - [1] 务必有二级密码
+2024-07-21 20:17:17,898 - INFO - [2] 有一定的礼卷防翻牌异常
+2024-07-21 20:17:17,899 - INFO - [3] 高星或珍贵不绑卡挂拍卖/提前转移
+2024-07-21 20:17:17,899 - INFO - 
+2024-07-21 20:17:17,899 - INFO - 使用疑难解决
+2024-07-21 20:17:17,899 - INFO - 用户请认真阅读[FAA从入门到神殿.pdf], 解决[闪退/没反应/UI缩放]等问题
+2024-07-21 20:17:17,900 - INFO - 开发者和深入使用, 请参考[README.md]
+2024-07-21 20:17:17,900 - INFO - 鼠标悬停在文字或按钮上会显示部分提示信息~
+2024-07-21 20:17:17,900 - INFO - 任务或定时器开始运行后, 将锁定点击按钮时的配置文件, 不应用实时更改
+2024-07-21 20:17:17,900 - INFO - 该版本的FAA会向服务器发送战利品掉落Log以做掉落统计, 不传输<任何>其他内容
+2024-07-21 20:17:17,901 - INFO - 
+2024-07-21 20:17:17,901 - INFO - 相关链接
+2024-07-21 20:17:17,901 - INFO - [爱发电]  https://afdian.net/a/zssy_faa 
+2024-07-21 20:17:17,902 - INFO - [爱发电]你们的支持是FAA持(不)续(跑)开(路)发的最大动力
+2024-07-21 20:17:17,902 - INFO - [Github]  https://github.com/StareAbyss/FoodsVsMiceAutoAssistant
+2024-07-21 20:17:17,902 - INFO - [Github]  开源不易, 为我点个Star吧! 发送Issues是最有效的问题反馈渠道
+2024-07-21 20:17:17,903 - INFO - [B站][UP直视深淵][宣传]  https://www.bilibili.com/video/BV1fS421N7zf
+2024-07-21 20:17:17,903 - INFO - [B站]  速速一键三连辣!
+2024-07-21 20:17:17,903 - INFO - [交流QQ群]  1群: 786921130  2群: 142272678 
+2024-07-21 20:17:17,903 - INFO - [交流QQ群]  欢迎加入交流讨论游戏相关和自动化相关问题 & 获取使用帮助
+QLineEdit GameName_Input
+2024-07-21 20:17:17,034 - DEBUG - pop widget QLineEdit GameName_Input
+2024-07-21 20:17:17,035 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,035 - DEBUG - pop layout QHBoxLayout horizontalLayout_6
+2024-07-21 20:17:17,035 - DEBUG - pop layout QHBoxLayout Lay_BaseConfig1
+2024-07-21 20:17:17,037 - DEBUG - push QHBoxLayout Lay_BaseConfig2
+2024-07-21 20:17:17,037 - DEBUG - push QHBoxLayout LayBaseConfig1_Left
+2024-07-21 20:17:17,038 - DEBUG - push QLabel Name1P_Text
+2024-07-21 20:17:17,039 - DEBUG - pop widget QLabel Name1P_Text
+2024-07-21 20:17:17,039 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,041 - DEBUG - push QLineEdit Name1P_Input
+2024-07-21 20:17:17,041 - DEBUG - pop widget QLineEdit Name1P_Input
+2024-07-21 20:17:17,042 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,042 - DEBUG - pop layout QHBoxLayout LayBaseConfig1_Left
+2024-07-21 20:17:17,044 - DEBUG - push QHBoxLayout LayBaseConfig1_Right
+2024-07-21 20:17:17,046 - DEBUG - push QLabel Name2P_Text
+2024-07-21 20:17:17,047 - DEBUG - pop widget QLabel Name2P_Text
+2024-07-21 20:17:17,047 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,051 - DEBUG - push QLineEdit Name2P_Input
+2024-07-21 20:17:17,051 - DEBUG - pop widget QLineEdit Name2P_Input
+2024-07-21 20:17:17,051 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,052 - DEBUG - pop layout QHBoxLayout LayBaseConfig1_Right
+2024-07-21 20:17:17,052 - DEBUG - pop layout QHBoxLayout Lay_BaseConfig2
+2024-07-21 20:17:17,054 - DEBUG - push QHBoxLayout Lay_BaseConfig3
+2024-07-21 20:17:17,055 - DEBUG - push QHBoxLayout horizontalLayout_15
+2024-07-21 20:17:17,057 - DEBUG - push QLabel Level1P_Text
+2024-07-21 20:17:17,057 - DEBUG - pop widget QLabel Level1P_Text
+2024-07-21 20:17:17,058 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,062 - DEBUG - push QSpinBox Level1P_Input
+2024-07-21 20:17:17,062 - DEBUG - pop widget QSpinBox Level1P_Input
+2024-07-21 20:17:17,062 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,063 - DEBUG - pop layout QHBoxLayout horizontalLayout_15
+2024-07-21 20:17:17,064 - DEBUG - push QHBoxLayout horizontalLayout_16
+2024-07-21 20:17:17,065 - DEBUG - push QLabel Level2P_Text
+2024-07-21 20:17:17,065 - DEBUG - pop widget QLabel Level2P_Text
+2024-07-21 20:17:17,065 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,067 - DEBUG - push QSpinBox Level2P_Input
+2024-07-21 20:17:17,068 - DEBUG - pop widget QSpinBox Level2P_Input
+2024-07-21 20:17:17,068 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,068 - DEBUG - pop layout QHBoxLayout horizontalLayout_16
+2024-07-21 20:17:17,068 - DEBUG - pop layout QHBoxLayout Lay_BaseConfig3
+2024-07-21 20:17:17,069 - DEBUG - push QHBoxLayout horizontalLayout_4
+2024-07-21 20:17:17,074 - DEBUG - push DragLabel Label_drag
+2024-07-21 20:17:17,074 - DEBUG - pop widget DragLabel Label_drag
+2024-07-21 20:17:17,074 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,076 - DEBUG - push QPushButton Button_Hide
+2024-07-21 20:17:17,076 - DEBUG - pop widget QPushButton Button_Hide
+2024-07-21 20:17:17,076 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,077 - DEBUG - pop layout QHBoxLayout horizontalLayout_4
+2024-07-21 20:17:17,078 - DEBUG - push QFrame line_99
+2024-07-21 20:17:17,078 - DEBUG - pop widget QFrame line_99
+2024-07-21 20:17:17,079 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,081 - DEBUG - push QLabel Label_Timer
+2024-07-21 20:17:17,081 - DEBUG - pop widget QLabel Label_Timer
+2024-07-21 20:17:17,082 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,083 - DEBUG - push QHBoxLayout Lay_Timer1
+2024-07-21 20:17:17,085 - DEBUG - push QHBoxLayout LayTimer1_Left
+2024-07-21 20:17:17,088 - DEBUG - push QCheckBox Timer1_Active
+2024-07-21 20:17:17,088 - DEBUG - pop widget QCheckBox Timer1_Active
+2024-07-21 20:17:17,088 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,091 - DEBUG - push QSpinBox Timer1_H
+2024-07-21 20:17:17,092 - DEBUG - pop widget QSpinBox Timer1_H
+2024-07-21 20:17:17,092 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,093 - DEBUG - push QLabel Timer1_Label
+2024-07-21 20:17:17,093 - DEBUG - pop widget QLabel Timer1_Label
+2024-07-21 20:17:17,094 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,096 - DEBUG - push QSpinBox Timer1_M
+2024-07-21 20:17:17,097 - DEBUG - pop widget QSpinBox Timer1_M
+2024-07-21 20:17:17,097 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,097 - DEBUG - pop layout QHBoxLayout LayTimer1_Left
+2024-07-21 20:17:17,099 - DEBUG - push QHBoxLayout LayTimer1_Right
+2024-07-21 20:17:17,100 - DEBUG - push QLabel Timer1_Lable2
+2024-07-21 20:17:17,100 - DEBUG - pop widget QLabel Timer1_Lable2
+2024-07-21 20:17:17,100 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,101 - DEBUG - push QComboBox Timer1_Plan
+2024-07-21 20:17:17,102 - DEBUG - pop widget QComboBox Timer1_Plan
+2024-07-21 20:17:17,102 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,102 - DEBUG - pop layout QHBoxLayout LayTimer1_Right
+2024-07-21 20:17:17,103 - DEBUG - pop layout QHBoxLayout Lay_Timer1
+2024-07-21 20:17:17,104 - DEBUG - push QHBoxLayout Lay_Timer2
+2024-07-21 20:17:17,106 - DEBUG - push QHBoxLayout LayTimer2_Left
+2024-07-21 20:17:17,109 - DEBUG - push QCheckBox Timer2_Active
+2024-07-21 20:17:17,109 - DEBUG - pop widget QCheckBox Timer2_Active
+2024-07-21 20:17:17,109 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,112 - DEBUG - push QSpinBox Timer2_H
+2024-07-21 20:17:17,112 - DEBUG - pop widget QSpinBox Timer2_H
+2024-07-21 20:17:17,113 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,114 - DEBUG - push QLabel Timer2_Label
+2024-07-21 20:17:17,114 - DEBUG - pop widget QLabel Timer2_Label
+2024-07-21 20:17:17,114 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,116 - DEBUG - push QSpinBox Timer2_M
+2024-07-21 20:17:17,116 - DEBUG - pop widget QSpinBox Timer2_M
+2024-07-21 20:17:17,116 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,117 - DEBUG - pop layout QHBoxLayout LayTimer2_Left
+2024-07-21 20:17:17,118 - DEBUG - push QHBoxLayout LayTimer2_Right
+2024-07-21 20:17:17,119 - DEBUG - push QLabel Timer2_Label2
+2024-07-21 20:17:17,119 - DEBUG - pop widget QLabel Timer2_Label2
+2024-07-21 20:17:17,119 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,120 - DEBUG - push QComboBox Timer2_Plan
+2024-07-21 20:17:17,121 - DEBUG - pop widget QComboBox Timer2_Plan
+2024-07-21 20:17:17,121 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,121 - DEBUG - pop layout QHBoxLayout LayTimer2_Right
+2024-07-21 20:17:17,121 - DEBUG - pop layout QHBoxLayout Lay_Timer2
+2024-07-21 20:17:17,123 - DEBUG - push QHBoxLayout Lay_Timer3
+2024-07-21 20:17:17,124 - DEBUG - push QHBoxLayout LayTimer3_Left
+2024-07-21 20:17:17,126 - DEBUG - push QCheckBox Timer3_Active
+2024-07-21 20:17:17,127 - DEBUG - pop widget QCheckBox Timer3_Active
+2024-07-21 20:17:17,127 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,129 - DEBUG - push QSpinBox Timer3_H
+2024-07-21 20:17:17,129 - DEBUG - pop widget QSpinBox Timer3_H
+2024-07-21 20:17:17,129 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,130 - DEBUG - push QLabel Timer3_Label
+2024-07-21 20:17:17,130 - DEBUG - pop widget QLabel Timer3_Label
+2024-07-21 20:17:17,130 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,132 - DEBUG - push QSpinBox Timer3_M
+2024-07-21 20:17:17,133 - DEBUG - pop widget QSpinBox Timer3_M
+2024-07-21 20:17:17,133 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,133 - DEBUG - pop layout QHBoxLayout LayTimer3_Left
+2024-07-21 20:17:17,135 - DEBUG - push QHBoxLayout LayTimer3_Right
+2024-07-21 20:17:17,135 - DEBUG - push QLabel Timer3_Label2
+2024-07-21 20:17:17,136 - DEBUG - pop widget QLabel Timer3_Label2
+2024-07-21 20:17:17,136 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,137 - DEBUG - push QComboBox Timer3_Plan
+2024-07-21 20:17:17,137 - DEBUG - pop widget QComboBox Timer3_Plan
+2024-07-21 20:17:17,137 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,138 - DEBUG - pop layout QHBoxLayout LayTimer3_Right
+2024-07-21 20:17:17,138 - DEBUG - pop layout QHBoxLayout Lay_Timer3
+2024-07-21 20:17:17,139 - DEBUG - push QHBoxLayout Lay_Timer4
+2024-07-21 20:17:17,140 - DEBUG - push QHBoxLayout LayTimer4_Left
+2024-07-21 20:17:17,142 - DEBUG - push QCheckBox Timer4_Active
+2024-07-21 20:17:17,142 - DEBUG - pop widget QCheckBox Timer4_Active
+2024-07-21 20:17:17,143 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,144 - DEBUG - push QSpinBox Timer4_H
+2024-07-21 20:17:17,145 - DEBUG - pop widget QSpinBox Timer4_H
+2024-07-21 20:17:17,145 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,146 - DEBUG - push QLabel Timer4_Label
+2024-07-21 20:17:17,146 - DEBUG - pop widget QLabel Timer4_Label
+2024-07-21 20:17:17,146 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,148 - DEBUG - push QSpinBox Timer4_M
+2024-07-21 20:17:17,148 - DEBUG - pop widget QSpinBox Timer4_M
+2024-07-21 20:17:17,148 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,148 - DEBUG - pop layout QHBoxLayout LayTimer4_Left
+2024-07-21 20:17:17,150 - DEBUG - push QHBoxLayout LayTimer4_Right
+2024-07-21 20:17:17,150 - DEBUG - push QLabel Timer4_Lable2
+2024-07-21 20:17:17,150 - DEBUG - pop widget QLabel Timer4_Lable2
+2024-07-21 20:17:17,151 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,152 - DEBUG - push QComboBox Timer4_Plan
+2024-07-21 20:17:17,152 - DEBUG - pop widget QComboBox Timer4_Plan
+2024-07-21 20:17:17,152 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,152 - DEBUG - pop layout QHBoxLayout LayTimer4_Right
+2024-07-21 20:17:17,153 - DEBUG - pop layout QHBoxLayout Lay_Timer4
+2024-07-21 20:17:17,154 - DEBUG - push QHBoxLayout Lay_Timer5
+2024-07-21 20:17:17,155 - DEBUG - push QHBoxLayout horizontalLayout_28
+2024-07-21 20:17:17,157 - DEBUG - push QCheckBox Timer5_Active
+2024-07-21 20:17:17,157 - DEBUG - pop widget QCheckBox Timer5_Active
+2024-07-21 20:17:17,157 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,159 - DEBUG - push QSpinBox Timer5_H
+2024-07-21 20:17:17,159 - DEBUG - pop widget QSpinBox Timer5_H
+2024-07-21 20:17:17,160 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,160 - DEBUG - push QLabel Timer5_Label
+2024-07-21 20:17:17,161 - DEBUG - pop widget QLabel Timer5_Label
+2024-07-21 20:17:17,161 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,162 - DEBUG - push QSpinBox Timer5_M
+2024-07-21 20:17:17,163 - DEBUG - pop widget QSpinBox Timer5_M
+2024-07-21 20:17:17,163 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,163 - DEBUG - pop layout QHBoxLayout horizontalLayout_28
+2024-07-21 20:17:17,164 - DEBUG - push QHBoxLayout horizontalLayout_29
+2024-07-21 20:17:17,165 - DEBUG - push QLabel Timer5_Label2
+2024-07-21 20:17:17,165 - DEBUG - pop widget QLabel Timer5_Label2
+2024-07-21 20:17:17,165 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,166 - DEBUG - push QComboBox Timer5_Plan
+2024-07-21 20:17:17,166 - DEBUG - pop widget QComboBox Timer5_Plan
+2024-07-21 20:17:17,167 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,167 - DEBUG - pop layout QHBoxLayout horizontalLayout_29
+2024-07-21 20:17:17,167 - DEBUG - pop layout QHBoxLayout Lay_Timer5
+2024-07-21 20:17:17,168 - DEBUG - push QFrame line_101
+2024-07-21 20:17:17,168 - DEBUG - pop widget QFrame line_101
+2024-07-21 20:17:17,168 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,169 - DEBUG - push QLabel Label_CurrentPlan
+2024-07-21 20:17:17,169 - DEBUG - pop widget QLabel Label_CurrentPlan
+2024-07-21 20:17:17,169 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,171 - DEBUG - push QHBoxLayout Lay_CurrentPlan
+2024-07-21 20:17:17,171 - DEBUG - push QVBoxLayout LayCurrentPlan_Text
+2024-07-21 20:17:17,173 - DEBUG - push QPushButton Button_DeletePlan
+2024-07-21 20:17:17,173 - DEBUG - pop widget QPushButton Button_DeletePlan
+2024-07-21 20:17:17,174 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,174 - DEBUG - pop layout QVBoxLayout LayCurrentPlan_Text
+2024-07-21 20:17:17,174 - DEBUG - push QVBoxLayout LayCurrentPlan_Choose
+2024-07-21 20:17:17,175 - DEBUG - push QComboBox CurrentPlan
+2024-07-21 20:17:17,176 - DEBUG - pop widget QComboBox CurrentPlan
+2024-07-21 20:17:17,176 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,176 - DEBUG - pop layout QVBoxLayout LayCurrentPlan_Choose
+2024-07-21 20:17:17,176 - DEBUG - pop layout QHBoxLayout Lay_CurrentPlan
+2024-07-21 20:17:17,178 - DEBUG - push QHBoxLayout Lay_CurrentPlan_2
+2024-07-21 20:17:17,178 - DEBUG - push QVBoxLayout LayCurrentPlan_Text_2
+2024-07-21 20:17:17,180 - DEBUG - push QPushButton Button_RenamePlan
+2024-07-21 20:17:17,180 - DEBUG - pop widget QPushButton Button_RenamePlan
+2024-07-21 20:17:17,180 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,180 - DEBUG - pop layout QVBoxLayout LayCurrentPlan_Text_2
+2024-07-21 20:17:17,181 - DEBUG - push QHBoxLayout horizontalLayout
+2024-07-21 20:17:17,182 - DEBUG - push QLineEdit RenamePlan_Input
+2024-07-21 20:17:17,182 - DEBUG - pop widget QLineEdit RenamePlan_Input
+2024-07-21 20:17:17,183 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,183 - DEBUG - pop layout QHBoxLayout horizontalLayout
+2024-07-21 20:17:17,183 - DEBUG - pop layout QHBoxLayout Lay_CurrentPlan_2
+2024-07-21 20:17:17,185 - DEBUG - push QHBoxLayout Lay_CurrentPlan_3
+2024-07-21 20:17:17,185 - DEBUG - push QVBoxLayout LayCurrentPlan_Text_3
+2024-07-21 20:17:17,186 - DEBUG - push QPushButton Button_CreatePlan
+2024-07-21 20:17:17,187 - DEBUG - pop widget QPushButton Button_CreatePlan
+2024-07-21 20:17:17,187 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,187 - DEBUG - pop layout QVBoxLayout LayCurrentPlan_Text_3
+2024-07-21 20:17:17,187 - DEBUG - push QHBoxLayout horizontalLayout_2
+2024-07-21 20:17:17,189 - DEBUG - push QLineEdit CreatePlan_Input
+2024-07-21 20:17:17,189 - DEBUG - pop widget QLineEdit CreatePlan_Input
+2024-07-21 20:17:17,190 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,190 - DEBUG - pop layout QHBoxLayout horizontalLayout_2
+2024-07-21 20:17:17,190 - DEBUG - pop layout QHBoxLayout Lay_CurrentPlan_3
+2024-07-21 20:17:17,191 - DEBUG - push QFrame line_102
+2024-07-21 20:17:17,191 - DEBUG - pop widget QFrame line_102
+2024-07-21 20:17:17,191 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,192 - DEBUG - push QLabel Label_RunningState
+2024-07-21 20:17:17,192 - DEBUG - pop widget QLabel Label_RunningState
+2024-07-21 20:17:17,192 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,193 - DEBUG - push QHBoxLayout Lay_StartButton
+2024-07-21 20:17:17,194 - DEBUG - push QPushButton Button_Save
+2024-07-21 20:17:17,194 - DEBUG - pop widget QPushButton Button_Save
+2024-07-21 20:17:17,194 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,196 - DEBUG - push QPushButton Button_StartTimer
+2024-07-21 20:17:17,196 - DEBUG - pop widget QPushButton Button_StartTimer
+2024-07-21 20:17:17,196 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,198 - DEBUG - push QPushButton Button_Start
+2024-07-21 20:17:17,198 - DEBUG - pop widget QPushButton Button_Start
+2024-07-21 20:17:17,198 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935318>
+2024-07-21 20:17:17,198 - DEBUG - pop layout QHBoxLayout Lay_StartButton
+2024-07-21 20:17:17,199 - DEBUG - pop layout QVBoxLayout Lay_Tab1_Right
+2024-07-21 20:17:17,199 - DEBUG - pop layout QHBoxLayout Lay_Tab1
+2024-07-21 20:17:17,199 - DEBUG - pop widget QWidget horizontalLayoutWidget
+2024-07-21 20:17:17,200 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995E935288>
+2024-07-21 20:17:17,200 - DEBUG - pop widget QWidget Tab1
+2024-07-21 20:17:17,200 - DEBUG - new topwidget <PyQt5.QtWidgets.QTabWidget object at 0x000002995DE4BC18>
+2024-07-21 20:17:17,201 - DEBUG - push QWidget Tab2
+2024-07-21 20:17:17,202 - DEBUG - push QWidget verticalLayoutWidget
+2024-07-21 20:17:17,204 - DEBUG - push QVBoxLayout verticalLayout
+2024-07-21 20:17:17,207 - DEBUG - push QHBoxLayout _2
+2024-07-21 20:17:17,208 - DEBUG - push QHBoxLayout horizontalLayout_3
+2024-07-21 20:17:17,209 - DEBUG - push QLabel CurrentPlan_Label_Text
+2024-07-21 20:17:17,209 - DEBUG - pop widget QLabel CurrentPlan_Label_Text
+2024-07-21 20:17:17,210 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,211 - DEBUG - push QLabel CurrentPlan_Label_Change
+2024-07-21 20:17:17,211 - DEBUG - pop widget QLabel CurrentPlan_Label_Change
+2024-07-21 20:17:17,211 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,212 - DEBUG - pop layout QHBoxLayout horizontalLayout_3
+2024-07-21 20:17:17,213 - DEBUG - push QLabel label
+2024-07-21 20:17:17,214 - DEBUG - pop widget QLabel label
+2024-07-21 20:17:17,214 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,216 - DEBUG - push QPushButton TipBattle_Button
+2024-07-21 20:17:17,216 - DEBUG - pop widget QPushButton TipBattle_Button
+2024-07-21 20:17:17,217 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,219 - DEBUG - push QPushButton TipStageID_Button
+2024-07-21 20:17:17,219 - DEBUG - pop widget QPushButton TipStageID_Button
+2024-07-21 20:17:17,219 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,220 - DEBUG - pop layout QHBoxLayout _2
+2024-07-21 20:17:17,222 - DEBUG - push QGridLayout Lay_Tab2
+2024-07-21 20:17:17,225 - DEBUG - push QCheckBox MagicTowerPrison1_Active
+2024-07-21 20:17:17,226 - DEBUG - pop widget QCheckBox MagicTowerPrison1_Active
+2024-07-21 20:17:17,226 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,228 - DEBUG - push QLineEdit Relic_Stage
+2024-07-21 20:17:17,228 - DEBUG - pop widget QLineEdit Relic_Stage
+2024-07-21 20:17:17,229 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,230 - DEBUG - push QFrame line_52
+2024-07-21 20:17:17,230 - DEBUG - pop widget QFrame line_52
+2024-07-21 20:17:17,230 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,232 - DEBUG - push QFrame line_80
+2024-07-21 20:17:17,232 - DEBUG - pop widget QFrame line_80
+2024-07-21 20:17:17,232 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,233 - DEBUG - push QLabel AutoFood_Group
+2024-07-21 20:17:17,234 - DEBUG - pop widget QLabel AutoFood_Group
+2024-07-21 20:17:17,234 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,235 - DEBUG - push QFrame line_84
+2024-07-21 20:17:17,235 - DEBUG - pop widget QFrame line_84
+2024-07-21 20:17:17,235 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,237 - DEBUG - push QLabel PetTemple1_MaxTimes
+2024-07-21 20:17:17,237 - DEBUG - pop widget QLabel PetTemple1_MaxTimes
+2024-07-21 20:17:17,237 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,238 - DEBUG - push QCheckBox Relic_Group
+2024-07-21 20:17:17,239 - DEBUG - pop widget QCheckBox Relic_Group
+2024-07-21 20:17:17,239 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,240 - DEBUG - push QFrame line_68
+2024-07-21 20:17:17,241 - DEBUG - pop widget QFrame line_68
+2024-07-21 20:17:17,241 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,243 - DEBUG - push QComboBox NormalBattle_1P
+2024-07-21 20:17:17,244 - DEBUG - pop widget QComboBox NormalBattle_1P
+2024-07-21 20:17:17,244 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,246 - DEBUG - push QCheckBox UseDoubleCard_Active
+2024-07-21 20:17:17,246 - DEBUG - pop widget QCheckBox UseDoubleCard_Active
+2024-07-21 20:17:17,246 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,248 - DEBUG - push QComboBox Warrior_2P
+2024-07-21 20:17:17,248 - DEBUG - pop widget QComboBox Warrior_2P
+2024-07-21 20:17:17,248 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,250 - DEBUG - push QComboBox Relic_2P
+2024-07-21 20:17:17,250 - DEBUG - pop widget QComboBox Relic_2P
+2024-07-21 20:17:17,251 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,254 - DEBUG - push QSpinBox MagicTowerAlone2_Deck
+2024-07-21 20:17:17,254 - DEBUG - pop widget QSpinBox MagicTowerAlone2_Deck
+2024-07-21 20:17:17,255 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,259 - DEBUG - push QCheckBox MagicTowerDouble_Active
+2024-07-21 20:17:17,259 - DEBUG - pop widget QCheckBox MagicTowerDouble_Active
+2024-07-21 20:17:17,260 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,261 - DEBUG - push QCheckBox LoopCrossServer_Group
+2024-07-21 20:17:17,262 - DEBUG - pop widget QCheckBox LoopCrossServer_Group
+2024-07-21 20:17:17,262 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,264 - DEBUG - push QFrame line_49
+2024-07-21 20:17:17,264 - DEBUG - pop widget QFrame line_49
+2024-07-21 20:17:17,264 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,265 - DEBUG - push QFrame line_51
+2024-07-21 20:17:17,266 - DEBUG - pop widget QFrame line_51
+2024-07-21 20:17:17,266 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,267 - DEBUG - push QFrame line_15
+2024-07-21 20:17:17,268 - DEBUG - pop widget QFrame line_15
+2024-07-21 20:17:17,268 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,269 - DEBUG - push QLabel MagicTowerPrison2_Group
+2024-07-21 20:17:17,269 - DEBUG - pop widget QLabel MagicTowerPrison2_Group
+2024-07-21 20:17:17,270 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,271 - DEBUG - push QComboBox CustomizeBattle_2P
+2024-07-21 20:17:17,271 - DEBUG - pop widget QComboBox CustomizeBattle_2P
+2024-07-21 20:17:17,272 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,275 - DEBUG - push QSpinBox MagicTowerAlone1_MaxTimes
+2024-07-21 20:17:17,275 - DEBUG - pop widget QSpinBox MagicTowerAlone1_MaxTimes
+2024-07-21 20:17:17,276 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,277 - DEBUG - push QLabel LoopCrossServer_MaxTimes
+2024-07-21 20:17:17,278 - DEBUG - pop widget QLabel LoopCrossServer_MaxTimes
+2024-07-21 20:17:17,278 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,279 - DEBUG - push QFrame line_90
+2024-07-21 20:17:17,280 - DEBUG - pop widget QFrame line_90
+2024-07-21 20:17:17,280 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,281 - DEBUG - push QFrame line_93
+2024-07-21 20:17:17,282 - DEBUG - pop widget QFrame line_93
+2024-07-21 20:17:17,282 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,284 - DEBUG - push QSpinBox MagicTowerAlone1_Deck
+2024-07-21 20:17:17,285 - DEBUG - pop widget QSpinBox MagicTowerAlone1_Deck
+2024-07-21 20:17:17,285 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,286 - DEBUG - push QLabel Customize_MaxTimes
+2024-07-21 20:17:17,286 - DEBUG - pop widget QLabel Customize_MaxTimes
+2024-07-21 20:17:17,287 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,288 - DEBUG - push QLabel Column_Project
+2024-07-21 20:17:17,289 - DEBUG - pop widget QLabel Column_Project
+2024-07-21 20:17:17,289 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,291 - DEBUG - push QLabel Customize_Deck
+2024-07-21 20:17:17,291 - DEBUG - pop widget QLabel Customize_Deck
+2024-07-21 20:17:17,291 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,294 - DEBUG - push QSpinBox MagicTowerDouble_MaxTimes
+2024-07-21 20:17:17,294 - DEBUG - pop widget QSpinBox MagicTowerDouble_MaxTimes
+2024-07-21 20:17:17,294 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,296 - DEBUG - push QFrame line_81
+2024-07-21 20:17:17,296 - DEBUG - pop widget QFrame line_81
+2024-07-21 20:17:17,296 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,297 - DEBUG - push QLabel PetTemple1_Group
+2024-07-21 20:17:17,297 - DEBUG - pop widget QLabel PetTemple1_Group
+2024-07-21 20:17:17,298 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,300 - DEBUG - push QSpinBox UseDoubleCard_MaxTimes
+2024-07-21 20:17:17,301 - DEBUG - pop widget QSpinBox UseDoubleCard_MaxTimes
+2024-07-21 20:17:17,301 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,302 - DEBUG - push QLabel Column_2P
+2024-07-21 20:17:17,302 - DEBUG - pop widget QLabel Column_2P
+2024-07-21 20:17:17,303 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,304 - DEBUG - push QFrame line_20
+2024-07-21 20:17:17,304 - DEBUG - pop widget QFrame line_20
+2024-07-21 20:17:17,304 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,306 - DEBUG - push QSpinBox PetTemple2_Stage
+2024-07-21 20:17:17,307 - DEBUG - pop widget QSpinBox PetTemple2_Stage
+2024-07-21 20:17:17,307 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,308 - DEBUG - push QLabel QuestSpouse_2P
+2024-07-21 20:17:17,308 - DEBUG - pop widget QLabel QuestSpouse_2P
+2024-07-21 20:17:17,309 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,310 - DEBUG - push QLabel OfferReward_Group
+2024-07-21 20:17:17,310 - DEBUG - pop widget QLabel OfferReward_Group
+2024-07-21 20:17:17,310 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,311 - DEBUG - push QFrame line_87
+2024-07-21 20:17:17,311 - DEBUG - pop widget QFrame line_87
+2024-07-21 20:17:17,312 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,313 - DEBUG - push QFrame line_72
+2024-07-21 20:17:17,313 - DEBUG - pop widget QFrame line_72
+2024-07-21 20:17:17,313 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,314 - DEBUG - push QComboBox OfferReward_2P
+2024-07-21 20:17:17,315 - DEBUG - pop widget QComboBox OfferReward_2P
+2024-07-21 20:17:17,315 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,317 - DEBUG - push QSpinBox CrossServer_Deck
+2024-07-21 20:17:17,317 - DEBUG - pop widget QSpinBox CrossServer_Deck
+2024-07-21 20:17:17,317 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,318 - DEBUG - push QLabel AutoFood_MaxTimes
+2024-07-21 20:17:17,319 - DEBUG - pop widget QLabel AutoFood_MaxTimes
+2024-07-21 20:17:17,319 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,320 - DEBUG - push QLabel MagicTowerAlone1_Group
+2024-07-21 20:17:17,320 - DEBUG - pop widget QLabel MagicTowerAlone1_Group
+2024-07-21 20:17:17,320 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,324 - DEBUG - push QSpinBox Customize_Stage
+2024-07-21 20:17:17,324 - DEBUG - pop widget QSpinBox Customize_Stage
+2024-07-21 20:17:17,325 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,327 - DEBUG - push QCheckBox QuestSpouse_Active
+2024-07-21 20:17:17,327 - DEBUG - pop widget QCheckBox QuestSpouse_Active
+2024-07-21 20:17:17,327 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,329 - DEBUG - push QFrame line_71
+2024-07-21 20:17:17,329 - DEBUG - pop widget QFrame line_71
+2024-07-21 20:17:17,330 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,332 - DEBUG - push QSpinBox MagicTowerAlone1_Stage
+2024-07-21 20:17:17,332 - DEBUG - pop widget QSpinBox MagicTowerAlone1_Stage
+2024-07-21 20:17:17,333 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,335 - DEBUG - push QFrame line_86
+2024-07-21 20:17:17,335 - DEBUG - pop widget QFrame line_86
+2024-07-21 20:17:17,335 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,337 - DEBUG - push QLabel QuestSpouse_1P
+2024-07-21 20:17:17,337 - DEBUG - pop widget QLabel QuestSpouse_1P
+2024-07-21 20:17:17,337 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,339 - DEBUG - push QCheckBox SignIn_Active
+2024-07-21 20:17:17,339 - DEBUG - pop widget QCheckBox SignIn_Active
+2024-07-21 20:17:17,340 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,342 - DEBUG - push QLineEdit CrossServer_Stage
+2024-07-21 20:17:17,342 - DEBUG - pop widget QLineEdit CrossServer_Stage
+2024-07-21 20:17:17,342 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,344 - DEBUG - push QFrame line_17
+2024-07-21 20:17:17,345 - DEBUG - pop widget QFrame line_17
+2024-07-21 20:17:17,345 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,347 - DEBUG - push QFrame line_32
+2024-07-21 20:17:17,347 - DEBUG - pop widget QFrame line_32
+2024-07-21 20:17:17,347 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,349 - DEBUG - push QLabel Column_MaxTimes
+2024-07-21 20:17:17,349 - DEBUG - pop widget QLabel Column_MaxTimes
+2024-07-21 20:17:17,350 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,351 - DEBUG - push QComboBox MagicTowerAlone2_1P
+2024-07-21 20:17:17,351 - DEBUG - pop widget QComboBox MagicTowerAlone2_1P
+2024-07-21 20:17:17,352 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,353 - DEBUG - push QFrame line_18
+2024-07-21 20:17:17,353 - DEBUG - pop widget QFrame line_18
+2024-07-21 20:17:17,353 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,355 - DEBUG - push QFrame line_67
+2024-07-21 20:17:17,355 - DEBUG - pop widget QFrame line_67
+2024-07-21 20:17:17,355 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,356 - DEBUG - push QFrame line_35
+2024-07-21 20:17:17,357 - DEBUG - pop widget QFrame line_35
+2024-07-21 20:17:17,357 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,358 - DEBUG - push QLabel GuildDungeon_Group
+2024-07-21 20:17:17,359 - DEBUG - pop widget QLabel GuildDungeon_Group
+2024-07-21 20:17:17,359 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,360 - DEBUG - push QLabel PetTemple2_Group
+2024-07-21 20:17:17,360 - DEBUG - pop widget QLabel PetTemple2_Group
+2024-07-21 20:17:17,361 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,362 - DEBUG - push QLabel MagicTowerDouble_Group
+2024-07-21 20:17:17,362 - DEBUG - pop widget QLabel MagicTowerDouble_Group
+2024-07-21 20:17:17,363 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,364 - DEBUG - push QLabel CustomizeBattle_Tip
+2024-07-21 20:17:17,364 - DEBUG - pop widget QLabel CustomizeBattle_Tip
+2024-07-21 20:17:17,364 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,366 - DEBUG - push QCheckBox PetTemple1_Active
+2024-07-21 20:17:17,366 - DEBUG - pop widget QCheckBox PetTemple1_Active
+2024-07-21 20:17:17,366 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,368 - DEBUG - push QSpinBox MagicTowerAlone2_MaxTimes
+2024-07-21 20:17:17,369 - DEBUG - pop widget QSpinBox MagicTowerAlone2_MaxTimes
+2024-07-21 20:17:17,369 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,370 - DEBUG - push QCheckBox NormalBattle_Group
+2024-07-21 20:17:17,371 - DEBUG - pop widget QCheckBox NormalBattle_Group
+2024-07-21 20:17:17,371 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,372 - DEBUG - push QFrame line_45
+2024-07-21 20:17:17,372 - DEBUG - pop widget QFrame line_45
+2024-07-21 20:17:17,373 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,374 - DEBUG - push QCheckBox MagicTowerPrison2_Stage
+2024-07-21 20:17:17,374 - DEBUG - pop widget QCheckBox MagicTowerPrison2_Stage
+2024-07-21 20:17:17,375 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,376 - DEBUG - push QFrame line_60
+2024-07-21 20:17:17,376 - DEBUG - pop widget QFrame line_60
+2024-07-21 20:17:17,377 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,378 - DEBUG - push QFrame line_48
+2024-07-21 20:17:17,378 - DEBUG - pop widget QFrame line_48
+2024-07-21 20:17:17,379 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,380 - DEBUG - push QLabel UseItems_Tip_1
+2024-07-21 20:17:17,380 - DEBUG - pop widget QLabel UseItems_Tip_1
+2024-07-21 20:17:17,381 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,382 - DEBUG - push QLabel OfferReward_Stage
+2024-07-21 20:17:17,382 - DEBUG - pop widget QLabel OfferReward_Stage
+2024-07-21 20:17:17,382 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,383 - DEBUG - push QLabel MagicTowerAlone2_Group
+2024-07-21 20:17:17,383 - DEBUG - pop widget QLabel MagicTowerAlone2_Group
+2024-07-21 20:17:17,384 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,385 - DEBUG - push QLabel Column_Option
+2024-07-21 20:17:17,385 - DEBUG - pop widget QLabel Column_Option
+2024-07-21 20:17:17,386 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,387 - DEBUG - push QFrame line_61
+2024-07-21 20:17:17,387 - DEBUG - pop widget QFrame line_61
+2024-07-21 20:17:17,387 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,388 - DEBUG - push QFrame line_96
+2024-07-21 20:17:17,388 - DEBUG - pop widget QFrame line_96
+2024-07-21 20:17:17,389 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,390 - DEBUG - push QComboBox CrossServer_2P
+2024-07-21 20:17:17,390 - DEBUG - pop widget QComboBox CrossServer_2P
+2024-07-21 20:17:17,390 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,392 - DEBUG - push QLineEdit NormalBattle_Stage
+2024-07-21 20:17:17,392 - DEBUG - pop widget QLineEdit NormalBattle_Stage
+2024-07-21 20:17:17,393 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,395 - DEBUG - push QSpinBox QuestGuild_Deck
+2024-07-21 20:17:17,395 - DEBUG - pop widget QSpinBox QuestGuild_Deck
+2024-07-21 20:17:17,395 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,397 - DEBUG - push QCheckBox MagicTowerAlone1_Active
+2024-07-21 20:17:17,397 - DEBUG - pop widget QCheckBox MagicTowerAlone1_Active
+2024-07-21 20:17:17,397 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,398 - DEBUG - push QLabel QuestGuild_Group
+2024-07-21 20:17:17,398 - DEBUG - pop widget QLabel QuestGuild_Group
+2024-07-21 20:17:17,399 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,400 - DEBUG - push QSpinBox MagicTowerPrison1_Deck
+2024-07-21 20:17:17,401 - DEBUG - pop widget QSpinBox MagicTowerPrison1_Deck
+2024-07-21 20:17:17,401 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,402 - DEBUG - push QFrame line_75
+2024-07-21 20:17:17,402 - DEBUG - pop widget QFrame line_75
+2024-07-21 20:17:17,402 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,404 - DEBUG - push QSpinBox PetTemple2_Deck
+2024-07-21 20:17:17,405 - DEBUG - pop widget QSpinBox PetTemple2_Deck
+2024-07-21 20:17:17,405 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,406 - DEBUG - push QFrame line_30
+2024-07-21 20:17:17,406 - DEBUG - pop widget QFrame line_30
+2024-07-21 20:17:17,407 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,409 - DEBUG - push QSpinBox NormalBattle_Deck
+2024-07-21 20:17:17,409 - DEBUG - pop widget QSpinBox NormalBattle_Deck
+2024-07-21 20:17:17,409 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,411 - DEBUG - push QCheckBox ReceiveAwards_Active
+2024-07-21 20:17:17,411 - DEBUG - pop widget QCheckBox ReceiveAwards_Active
+2024-07-21 20:17:17,411 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,412 - DEBUG - push QLabel ReceiveAwards_Tip_1
+2024-07-21 20:17:17,413 - DEBUG - pop widget QLabel ReceiveAwards_Tip_1
+2024-07-21 20:17:17,413 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,414 - DEBUG - push QFrame line_55
+2024-07-21 20:17:17,414 - DEBUG - pop widget QFrame line_55
+2024-07-21 20:17:17,414 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,416 - DEBUG - push QFrame line_69
+2024-07-21 20:17:17,416 - DEBUG - pop widget QFrame line_69
+2024-07-21 20:17:17,416 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,417 - DEBUG - push QFrame line_57
+2024-07-21 20:17:17,417 - DEBUG - pop widget QFrame line_57
+2024-07-21 20:17:17,418 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,419 - DEBUG - push QCheckBox GuildDungeon_Active
+2024-07-21 20:17:17,419 - DEBUG - pop widget QCheckBox GuildDungeon_Active
+2024-07-21 20:17:17,420 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,421 - DEBUG - push QComboBox MagicTowerDouble_2P
+2024-07-21 20:17:17,421 - DEBUG - pop widget QComboBox MagicTowerDouble_2P
+2024-07-21 20:17:17,421 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,422 - DEBUG - push QFrame line_66
+2024-07-21 20:17:17,423 - DEBUG - pop widget QFrame line_66
+2024-07-21 20:17:17,423 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,425 - DEBUG - push QSpinBox CustomizeBattle_MaxTimes
+2024-07-21 20:17:17,426 - DEBUG - pop widget QSpinBox CustomizeBattle_MaxTimes
+2024-07-21 20:17:17,426 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,430 - DEBUG - push QComboBox MagicTowerAlone1_1P
+2024-07-21 20:17:17,430 - DEBUG - pop widget QComboBox MagicTowerAlone1_1P
+2024-07-21 20:17:17,431 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,433 - DEBUG - push QLabel GuildDungeon_Stage
+2024-07-21 20:17:17,433 - DEBUG - pop widget QLabel GuildDungeon_Stage
+2024-07-21 20:17:17,434 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,436 - DEBUG - push QLabel ReceiveAwards_Tip_2
+2024-07-21 20:17:17,436 - DEBUG - pop widget QLabel ReceiveAwards_Tip_2
+2024-07-21 20:17:17,436 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,440 - DEBUG - push QCheckBox NormalBattle_Active
+2024-07-21 20:17:17,440 - DEBUG - pop widget QCheckBox NormalBattle_Active
+2024-07-21 20:17:17,441 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,444 - DEBUG - push QLabel Column_Stage
+2024-07-21 20:17:17,444 - DEBUG - pop widget QLabel Column_Stage
+2024-07-21 20:17:17,445 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,450 - DEBUG - push QSpinBox AutoFood_Deck
+2024-07-21 20:17:17,450 - DEBUG - pop widget QSpinBox AutoFood_Deck
+2024-07-21 20:17:17,450 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,452 - DEBUG - push QLabel GuildDungeon_Deck
+2024-07-21 20:17:17,453 - DEBUG - pop widget QLabel GuildDungeon_Deck
+2024-07-21 20:17:17,453 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,455 - DEBUG - push QFrame line_44
+2024-07-21 20:17:17,456 - DEBUG - pop widget QFrame line_44
+2024-07-21 20:17:17,457 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,460 - DEBUG - push QCheckBox Relic_Active
+2024-07-21 20:17:17,460 - DEBUG - pop widget QCheckBox Relic_Active
+2024-07-21 20:17:17,461 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,463 - DEBUG - push QComboBox QuestGuild_1P
+2024-07-21 20:17:17,463 - DEBUG - pop widget QComboBox QuestGuild_1P
+2024-07-21 20:17:17,464 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,469 - DEBUG - push QLabel QuestSpouse_Deck
+2024-07-21 20:17:17,469 - DEBUG - pop widget QLabel QuestSpouse_Deck
+2024-07-21 20:17:17,470 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,475 - DEBUG - push QCheckBox UseItems_Group
+2024-07-21 20:17:17,475 - DEBUG - pop widget QCheckBox UseItems_Group
+2024-07-21 20:17:17,475 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,477 - DEBUG - push QCheckBox PetTemple2_Active
+2024-07-21 20:17:17,477 - DEBUG - pop widget QCheckBox PetTemple2_Active
+2024-07-21 20:17:17,478 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,480 - DEBUG - push QSpinBox Warrior_Deck
+2024-07-21 20:17:17,480 - DEBUG - pop widget QSpinBox Warrior_Deck
+2024-07-21 20:17:17,481 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,483 - DEBUG - push QLabel UseItems_Tip_2
+2024-07-21 20:17:17,483 - DEBUG - pop widget QLabel UseItems_Tip_2
+2024-07-21 20:17:17,483 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,485 - DEBUG - push QFrame line_53
+2024-07-21 20:17:17,485 - DEBUG - pop widget QFrame line_53
+2024-07-21 20:17:17,486 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,487 - DEBUG - push QFrame line_65
+2024-07-21 20:17:17,487 - DEBUG - pop widget QFrame line_65
+2024-07-21 20:17:17,488 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,489 - DEBUG - push QComboBox QuestGuild_2P
+2024-07-21 20:17:17,489 - DEBUG - pop widget QComboBox QuestGuild_2P
+2024-07-21 20:17:17,490 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,491 - DEBUG - push QCheckBox MagicTowerAlone2_Active
+2024-07-21 20:17:17,492 - DEBUG - pop widget QCheckBox MagicTowerAlone2_Active
+2024-07-21 20:17:17,492 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,493 - DEBUG - push QFrame line_50
+2024-07-21 20:17:17,493 - DEBUG - pop widget QFrame line_50
+2024-07-21 20:17:17,494 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,495 - DEBUG - push QFrame line_21
+2024-07-21 20:17:17,495 - DEBUG - pop widget QFrame line_21
+2024-07-21 20:17:17,495 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,497 - DEBUG - push QFrame line_97
+2024-07-21 20:17:17,497 - DEBUG - pop widget QFrame line_97
+2024-07-21 20:17:17,497 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,498 - DEBUG - push QFrame line_73
+2024-07-21 20:17:17,499 - DEBUG - pop widget QFrame line_73
+2024-07-21 20:17:17,499 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,500 - DEBUG - push QLabel LoopCrossServer_Sdage
+2024-07-21 20:17:17,500 - DEBUG - pop widget QLabel LoopCrossServer_Sdage
+2024-07-21 20:17:17,501 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,502 - DEBUG - push QLabel AutoFood_1P_2
+2024-07-21 20:17:17,502 - DEBUG - pop widget QLabel AutoFood_1P_2
+2024-07-21 20:17:17,503 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,504 - DEBUG - push QFrame line_36
+2024-07-21 20:17:17,504 - DEBUG - pop widget QFrame line_36
+2024-07-21 20:17:17,504 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,505 - DEBUG - push QHBoxLayout Lay_OfferReward_MaxTimes
+2024-07-21 20:17:17,508 - DEBUG - push QSpinBox OfferReward_MaxTimes_1
+2024-07-21 20:17:17,508 - DEBUG - pop widget QSpinBox OfferReward_MaxTimes_1
+2024-07-21 20:17:17,509 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,511 - DEBUG - push QSpinBox OfferReward_MaxTimes_2
+2024-07-21 20:17:17,511 - DEBUG - pop widget QSpinBox OfferReward_MaxTimes_2
+2024-07-21 20:17:17,512 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,514 - DEBUG - push QSpinBox OfferReward_MaxTimes_3
+2024-07-21 20:17:17,514 - DEBUG - pop widget QSpinBox OfferReward_MaxTimes_3
+2024-07-21 20:17:17,514 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,515 - DEBUG - pop layout QHBoxLayout Lay_OfferReward_MaxTimes
+2024-07-21 20:17:17,516 - DEBUG - push QLabel Warrior_Stage
+2024-07-21 20:17:17,516 - DEBUG - pop widget QLabel Warrior_Stage
+2024-07-21 20:17:17,516 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,517 - DEBUG - push QComboBox PetTemple1_1P
+2024-07-21 20:17:17,518 - DEBUG - pop widget QComboBox PetTemple1_1P
+2024-07-21 20:17:17,518 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,520 - DEBUG - push QCheckBox SignIn_Group
+2024-07-21 20:17:17,520 - DEBUG - pop widget QCheckBox SignIn_Group
+2024-07-21 20:17:17,520 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,521 - DEBUG - push QLabel Customize_Group
+2024-07-21 20:17:17,522 - DEBUG - pop widget QLabel Customize_Group
+2024-07-21 20:17:17,522 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,523 - DEBUG - push QFrame line_28
+2024-07-21 20:17:17,524 - DEBUG - pop widget QFrame line_28
+2024-07-21 20:17:17,524 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,526 - DEBUG - push QSpinBox PetTemple1_Deck
+2024-07-21 20:17:17,526 - DEBUG - pop widget QSpinBox PetTemple1_Deck
+2024-07-21 20:17:17,526 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,528 - DEBUG - push QComboBox Relic_1P
+2024-07-21 20:17:17,528 - DEBUG - pop widget QComboBox Relic_1P
+2024-07-21 20:17:17,528 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,530 - DEBUG - push QComboBox MagicTowerDouble_1P
+2024-07-21 20:17:17,530 - DEBUG - pop widget QComboBox MagicTowerDouble_1P
+2024-07-21 20:17:17,530 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,532 - DEBUG - push QSpinBox NormalBattle_MaxTimes
+2024-07-21 20:17:17,533 - DEBUG - pop widget QSpinBox NormalBattle_MaxTimes
+2024-07-21 20:17:17,533 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,534 - DEBUG - push QCheckBox Customize_Active
+2024-07-21 20:17:17,535 - DEBUG - pop widget QCheckBox Customize_Active
+2024-07-21 20:17:17,535 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,537 - DEBUG - push QCheckBox OfferReward_Active
+2024-07-21 20:17:17,537 - DEBUG - pop widget QCheckBox OfferReward_Active
+2024-07-21 20:17:17,537 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,539 - DEBUG - push QCheckBox CrossServer_Active
+2024-07-21 20:17:17,539 - DEBUG - pop widget QCheckBox CrossServer_Active
+2024-07-21 20:17:17,540 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,541 - DEBUG - push QCheckBox MagicTowerPrison1_Stage
+2024-07-21 20:17:17,542 - DEBUG - pop widget QCheckBox MagicTowerPrison1_Stage
+2024-07-21 20:17:17,542 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,544 - DEBUG - push QLabel Column_1P
+2024-07-21 20:17:17,544 - DEBUG - pop widget QLabel Column_1P
+2024-07-21 20:17:17,544 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,545 - DEBUG - push QComboBox MagicTowerPrison1_1P
+2024-07-21 20:17:17,545 - DEBUG - pop widget QComboBox MagicTowerPrison1_1P
+2024-07-21 20:17:17,546 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,547 - DEBUG - push QCheckBox UseDoubleCard_Group
+2024-07-21 20:17:17,548 - DEBUG - pop widget QCheckBox UseDoubleCard_Group
+2024-07-21 20:17:17,548 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,549 - DEBUG - push QFrame line_33
+2024-07-21 20:17:17,549 - DEBUG - pop widget QFrame line_33
+2024-07-21 20:17:17,549 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,553 - DEBUG - push QCheckBox QuestGuild_Stage
+2024-07-21 20:17:17,554 - DEBUG - pop widget QCheckBox QuestGuild_Stage
+2024-07-21 20:17:17,554 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,555 - DEBUG - push QComboBox OfferReward_1P
+2024-07-21 20:17:17,555 - DEBUG - pop widget QComboBox OfferReward_1P
+2024-07-21 20:17:17,556 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,557 - DEBUG - push QFrame line_98
+2024-07-21 20:17:17,558 - DEBUG - pop widget QFrame line_98
+2024-07-21 20:17:17,558 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,559 - DEBUG - push QComboBox PetTemple2_1P
+2024-07-21 20:17:17,559 - DEBUG - pop widget QComboBox PetTemple2_1P
+2024-07-21 20:17:17,560 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,561 - DEBUG - push QLabel QuestSpouse_Group
+2024-07-21 20:17:17,562 - DEBUG - pop widget QLabel QuestSpouse_Group
+2024-07-21 20:17:17,562 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,563 - DEBUG - push QFrame line_54
+2024-07-21 20:17:17,564 - DEBUG - pop widget QFrame line_54
+2024-07-21 20:17:17,564 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,565 - DEBUG - push QLabel AutoFood_MaxTimes_2
+2024-07-21 20:17:17,566 - DEBUG - pop widget QLabel AutoFood_MaxTimes_2
+2024-07-21 20:17:17,566 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,567 - DEBUG - push QFrame line_23
+2024-07-21 20:17:17,567 - DEBUG - pop widget QFrame line_23
+2024-07-21 20:17:17,568 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,569 - DEBUG - push QFrame line_59
+2024-07-21 20:17:17,569 - DEBUG - pop widget QFrame line_59
+2024-07-21 20:17:17,569 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,571 - DEBUG - push QLabel GuildDungeon_1P
+2024-07-21 20:17:17,571 - DEBUG - pop widget QLabel GuildDungeon_1P
+2024-07-21 20:17:17,571 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,572 - DEBUG - push QCheckBox FedAndWatered_Active
+2024-07-21 20:17:17,573 - DEBUG - pop widget QCheckBox FedAndWatered_Active
+2024-07-21 20:17:17,573 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,574 - DEBUG - push QComboBox CrossServer_1P
+2024-07-21 20:17:17,575 - DEBUG - pop widget QComboBox CrossServer_1P
+2024-07-21 20:17:17,575 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,579 - DEBUG - push QFrame line_42
+2024-07-21 20:17:17,580 - DEBUG - pop widget QFrame line_42
+2024-07-21 20:17:17,580 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,584 - DEBUG - push QCheckBox Warrior_Active
+2024-07-21 20:17:17,585 - DEBUG - pop widget QCheckBox Warrior_Active
+2024-07-21 20:17:17,585 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,593 - DEBUG - push QFrame line_62
+2024-07-21 20:17:17,594 - DEBUG - pop widget QFrame line_62
+2024-07-21 20:17:17,594 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,598 - DEBUG - push QLabel GuildDungeon_MaxTimes
+2024-07-21 20:17:17,599 - DEBUG - pop widget QLabel GuildDungeon_MaxTimes
+2024-07-21 20:17:17,600 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,602 - DEBUG - push QCheckBox MagicTowerPrison2_Active
+2024-07-21 20:17:17,603 - DEBUG - pop widget QCheckBox MagicTowerPrison2_Active
+2024-07-21 20:17:17,603 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,605 - DEBUG - push QCheckBox QuestGuild_Active
+2024-07-21 20:17:17,606 - DEBUG - pop widget QCheckBox QuestGuild_Active
+2024-07-21 20:17:17,606 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,608 - DEBUG - push QLabel MagicTowerPrison1_Group
+2024-07-21 20:17:17,608 - DEBUG - pop widget QLabel MagicTowerPrison1_Group
+2024-07-21 20:17:17,609 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,610 - DEBUG - push QFrame line_24
+2024-07-21 20:17:17,611 - DEBUG - pop widget QFrame line_24
+2024-07-21 20:17:17,611 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,615 - DEBUG - push QSpinBox CrossServer_MaxTimes
+2024-07-21 20:17:17,616 - DEBUG - pop widget QSpinBox CrossServer_MaxTimes
+2024-07-21 20:17:17,616 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,619 - DEBUG - push QSpinBox Warrior_MaxTimes
+2024-07-21 20:17:17,620 - DEBUG - pop widget QSpinBox Warrior_MaxTimes
+2024-07-21 20:17:17,620 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,622 - DEBUG - push QFrame line_27
+2024-07-21 20:17:17,622 - DEBUG - pop widget QFrame line_27
+2024-07-21 20:17:17,622 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,624 - DEBUG - push QLabel PetTemple2_MaxTimes
+2024-07-21 20:17:17,624 - DEBUG - pop widget QLabel PetTemple2_MaxTimes
+2024-07-21 20:17:17,624 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,626 - DEBUG - push QLabel GuildDungeon_2P
+2024-07-21 20:17:17,626 - DEBUG - pop widget QLabel GuildDungeon_2P
+2024-07-21 20:17:17,626 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,628 - DEBUG - push QSpinBox PetTemple1_Stage
+2024-07-21 20:17:17,628 - DEBUG - pop widget QSpinBox PetTemple1_Stage
+2024-07-21 20:17:17,628 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,630 - DEBUG - push QFrame line_39
+2024-07-21 20:17:17,630 - DEBUG - pop widget QFrame line_39
+2024-07-21 20:17:17,631 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,632 - DEBUG - push QFrame line_89
+2024-07-21 20:17:17,633 - DEBUG - pop widget QFrame line_89
+2024-07-21 20:17:17,633 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,635 - DEBUG - push QCheckBox FedAndWatered_Group
+2024-07-21 20:17:17,635 - DEBUG - pop widget QCheckBox FedAndWatered_Group
+2024-07-21 20:17:17,635 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,637 - DEBUG - push QCheckBox CrossServer_Group
+2024-07-21 20:17:17,637 - DEBUG - pop widget QCheckBox CrossServer_Group
+2024-07-21 20:17:17,637 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,639 - DEBUG - push QFrame line_41
+2024-07-21 20:17:17,639 - DEBUG - pop widget QFrame line_41
+2024-07-21 20:17:17,639 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,641 - DEBUG - push QCheckBox LoopCrossServer_Active
+2024-07-21 20:17:17,641 - DEBUG - pop widget QCheckBox LoopCrossServer_Active
+2024-07-21 20:17:17,641 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,643 - DEBUG - push QComboBox NormalBattle_2P
+2024-07-21 20:17:17,643 - DEBUG - pop widget QComboBox NormalBattle_2P
+2024-07-21 20:17:17,643 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,645 - DEBUG - push QSpinBox MagicTowerAlone2_Stage
+2024-07-21 20:17:17,646 - DEBUG - pop widget QSpinBox MagicTowerAlone2_Stage
+2024-07-21 20:17:17,646 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,647 - DEBUG - push QComboBox CustomizeBattle_1P
+2024-07-21 20:17:17,648 - DEBUG - pop widget QComboBox CustomizeBattle_1P
+2024-07-21 20:17:17,648 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,651 - DEBUG - push QSpinBox MagicTowerPrison2_Deck
+2024-07-21 20:17:17,651 - DEBUG - pop widget QSpinBox MagicTowerPrison2_Deck
+2024-07-21 20:17:17,651 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,655 - DEBUG - push QSpinBox Relic_MaxTimes
+2024-07-21 20:17:17,655 - DEBUG - pop widget QSpinBox Relic_MaxTimes
+2024-07-21 20:17:17,655 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,658 - DEBUG - push QCheckBox UseItems_Active
+2024-07-21 20:17:17,658 - DEBUG - pop widget QCheckBox UseItems_Active
+2024-07-21 20:17:17,659 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,661 - DEBUG - push QLabel LoopCrossServer_Deck
+2024-07-21 20:17:17,662 - DEBUG - pop widget QLabel LoopCrossServer_Deck
+2024-07-21 20:17:17,663 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,665 - DEBUG - push QFrame line_58
+2024-07-21 20:17:17,665 - DEBUG - pop widget QFrame line_58
+2024-07-21 20:17:17,666 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,668 - DEBUG - push QSpinBox MagicTowerDouble_Stage
+2024-07-21 20:17:17,668 - DEBUG - pop widget QSpinBox MagicTowerDouble_Stage
+2024-07-21 20:17:17,669 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,670 - DEBUG - push QComboBox Customize_1P
+2024-07-21 20:17:17,670 - DEBUG - pop widget QComboBox Customize_1P
+2024-07-21 20:17:17,670 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,673 - DEBUG - push QSpinBox Relic_Deck
+2024-07-21 20:17:17,673 - DEBUG - pop widget QSpinBox Relic_Deck
+2024-07-21 20:17:17,674 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,677 - DEBUG - push QSpinBox MagicTowerDouble_Deck
+2024-07-21 20:17:17,677 - DEBUG - pop widget QSpinBox MagicTowerDouble_Deck
+2024-07-21 20:17:17,677 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,679 - DEBUG - push QLabel Column_Deck
+2024-07-21 20:17:17,680 - DEBUG - pop widget QLabel Column_Deck
+2024-07-21 20:17:17,680 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,682 - DEBUG - push QFrame line_29
+2024-07-21 20:17:17,682 - DEBUG - pop widget QFrame line_29
+2024-07-21 20:17:17,682 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,684 - DEBUG - push QFrame line_43
+2024-07-21 20:17:17,684 - DEBUG - pop widget QFrame line_43
+2024-07-21 20:17:17,684 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,686 - DEBUG - push QLabel AutoFood_1P
+2024-07-21 20:17:17,686 - DEBUG - pop widget QLabel AutoFood_1P
+2024-07-21 20:17:17,686 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,688 - DEBUG - push QCheckBox AutoFood_Active
+2024-07-21 20:17:17,688 - DEBUG - pop widget QCheckBox AutoFood_Active
+2024-07-21 20:17:17,688 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,690 - DEBUG - push QCheckBox ReceiveAwards_Group
+2024-07-21 20:17:17,690 - DEBUG - pop widget QCheckBox ReceiveAwards_Group
+2024-07-21 20:17:17,691 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,693 - DEBUG - push QLabel UseItems_Tip_3
+2024-07-21 20:17:17,693 - DEBUG - pop widget QLabel UseItems_Tip_3
+2024-07-21 20:17:17,693 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,695 - DEBUG - push QFrame line_56
+2024-07-21 20:17:17,695 - DEBUG - pop widget QFrame line_56
+2024-07-21 20:17:17,695 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,696 - DEBUG - push QCheckBox CustomizeBattle_Active
+2024-07-21 20:17:17,697 - DEBUG - pop widget QCheckBox CustomizeBattle_Active
+2024-07-21 20:17:17,697 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,698 - DEBUG - push QComboBox MagicTowerPrison2_1P
+2024-07-21 20:17:17,698 - DEBUG - pop widget QComboBox MagicTowerPrison2_1P
+2024-07-21 20:17:17,698 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,700 - DEBUG - push QFrame line_74
+2024-07-21 20:17:17,700 - DEBUG - pop widget QFrame line_74
+2024-07-21 20:17:17,700 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,702 - DEBUG - push QSpinBox CustomizeBattle_Deck
+2024-07-21 20:17:17,702 - DEBUG - pop widget QSpinBox CustomizeBattle_Deck
+2024-07-21 20:17:17,703 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,704 - DEBUG - push QFrame line_19
+2024-07-21 20:17:17,704 - DEBUG - pop widget QFrame line_19
+2024-07-21 20:17:17,704 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,705 - DEBUG - push QComboBox Warrior_1P
+2024-07-21 20:17:17,706 - DEBUG - pop widget QComboBox Warrior_1P
+2024-07-21 20:17:17,706 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,707 - DEBUG - push QFrame line_22
+2024-07-21 20:17:17,708 - DEBUG - pop widget QFrame line_22
+2024-07-21 20:17:17,708 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,709 - DEBUG - push QComboBox CustomizeBattle_Group
+2024-07-21 20:17:17,709 - DEBUG - pop widget QComboBox CustomizeBattle_Group
+2024-07-21 20:17:17,709 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,712 - DEBUG - push QSpinBox OfferReward_Deck
+2024-07-21 20:17:17,712 - DEBUG - pop widget QSpinBox OfferReward_Deck
+2024-07-21 20:17:17,712 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,714 - DEBUG - push QCheckBox Warrior_Group
+2024-07-21 20:17:17,714 - DEBUG - pop widget QCheckBox Warrior_Group
+2024-07-21 20:17:17,714 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,715 - DEBUG - push QFrame line_16
+2024-07-21 20:17:17,715 - DEBUG - pop widget QFrame line_16
+2024-07-21 20:17:17,716 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC38948>
+2024-07-21 20:17:17,716 - DEBUG - pop layout QGridLayout Lay_Tab2
+2024-07-21 20:17:17,716 - DEBUG - pop layout QVBoxLayout verticalLayout
+2024-07-21 20:17:17,716 - DEBUG - pop widget QWidget verticalLayoutWidget
+2024-07-21 20:17:17,717 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995EC389D8>
+2024-07-21 20:17:17,717 - DEBUG - pop widget QWidget Tab2
+2024-07-21 20:17:17,717 - DEBUG - new topwidget <PyQt5.QtWidgets.QTabWidget object at 0x000002995DE4BC18>
+2024-07-21 20:17:17,717 - DEBUG - push QWidget Tab3
+2024-07-21 20:17:17,718 - DEBUG - push QWidget horizontalLayoutWidget_16
+2024-07-21 20:17:17,720 - DEBUG - push QHBoxLayout Lay_Tab3
+2024-07-21 20:17:17,721 - DEBUG - push QVBoxLayout Lay_Tab3_Left
+2024-07-21 20:17:17,723 - DEBUG - push QVBoxLayout Lay_AdvancedSettings
+2024-07-21 20:17:17,724 - DEBUG - push QLabel AdvancedSettings_Text
+2024-07-21 20:17:17,724 - DEBUG - pop widget QLabel AdvancedSettings_Text
+2024-07-21 20:17:17,724 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,726 - DEBUG - push QHBoxLayout Lay_AdvancedSettings_Center
+2024-07-21 20:17:17,727 - DEBUG - push QCheckBox AutoPickUp_1P
+2024-07-21 20:17:17,728 - DEBUG - pop widget QCheckBox AutoPickUp_1P
+2024-07-21 20:17:17,728 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,729 - DEBUG - push QCheckBox AutoPickUp_2P
+2024-07-21 20:17:17,730 - DEBUG - pop widget QCheckBox AutoPickUp_2P
+2024-07-21 20:17:17,730 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,730 - DEBUG - pop layout QHBoxLayout Lay_AdvancedSettings_Center
+2024-07-21 20:17:17,731 - DEBUG - push QHBoxLayout Lay_AdvancedSettings_Center_2
+2024-07-21 20:17:17,733 - DEBUG - push QCheckBox TopUpMoney_1P
+2024-07-21 20:17:17,733 - DEBUG - pop widget QCheckBox TopUpMoney_1P
+2024-07-21 20:17:17,733 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,735 - DEBUG - push QCheckBox TopUpMoney_2P
+2024-07-21 20:17:17,735 - DEBUG - pop widget QCheckBox TopUpMoney_2P
+2024-07-21 20:17:17,735 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,735 - DEBUG - pop layout QHBoxLayout Lay_AdvancedSettings_Center_2
+2024-07-21 20:17:17,737 - DEBUG - push QHBoxLayout Lay_AdvancedSettings_Bottom
+2024-07-21 20:17:17,738 - DEBUG - push QCheckBox AutoUseCard
+2024-07-21 20:17:17,738 - DEBUG - pop widget QCheckBox AutoUseCard
+2024-07-21 20:17:17,738 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,741 - DEBUG - push QCheckBox EndExitGame
+2024-07-21 20:17:17,741 - DEBUG - pop widget QCheckBox EndExitGame
+2024-07-21 20:17:17,741 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,741 - DEBUG - pop layout QHBoxLayout Lay_AdvancedSettings_Bottom
+2024-07-21 20:17:17,743 - DEBUG - push QHBoxLayout Lay_AdvancedSettings_Bottom_2
+2024-07-21 20:17:17,744 - DEBUG - push QCheckBox AutoDeleteOldImages
+2024-07-21 20:17:17,745 - DEBUG - pop widget QCheckBox AutoDeleteOldImages
+2024-07-21 20:17:17,745 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,745 - DEBUG - pop layout QHBoxLayout Lay_AdvancedSettings_Bottom_2
+2024-07-21 20:17:17,745 - DEBUG - pop layout QVBoxLayout Lay_AdvancedSettings
+2024-07-21 20:17:17,746 - DEBUG - push QFrame line_2
+2024-07-21 20:17:17,746 - DEBUG - pop widget QFrame line_2
+2024-07-21 20:17:17,746 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,748 - DEBUG - push QVBoxLayout Lay_GetWarmGift
+2024-07-21 20:17:17,748 - DEBUG - push QLabel GetWarmGift_Text
+2024-07-21 20:17:17,749 - DEBUG - pop widget QLabel GetWarmGift_Text
+2024-07-21 20:17:17,749 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,750 - DEBUG - push QHBoxLayout Lay_GetWarmGift_1P
+2024-07-21 20:17:17,752 - DEBUG - push QCheckBox GetWarmGift_1P_Active
+2024-07-21 20:17:17,752 - DEBUG - pop widget QCheckBox GetWarmGift_1P_Active
+2024-07-21 20:17:17,752 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,753 - DEBUG - push QLabel GetWarmGift_1P_Text
+2024-07-21 20:17:17,753 - DEBUG - pop widget QLabel GetWarmGift_1P_Text
+2024-07-21 20:17:17,753 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,755 - DEBUG - push QLineEdit GetWarmGift_1P_Link
+2024-07-21 20:17:17,755 - DEBUG - pop widget QLineEdit GetWarmGift_1P_Link
+2024-07-21 20:17:17,756 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,756 - DEBUG - pop layout QHBoxLayout Lay_GetWarmGift_1P
+2024-07-21 20:17:17,758 - DEBUG - push QHBoxLayout Lay_GetWarmGift_2P
+2024-07-21 20:17:17,760 - DEBUG - push QCheckBox GetWarmGift_2P_Active
+2024-07-21 20:17:17,760 - DEBUG - pop widget QCheckBox GetWarmGift_2P_Active
+2024-07-21 20:17:17,760 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,761 - DEBUG - push QLabel GetWarmGift_2P_Text
+2024-07-21 20:17:17,761 - DEBUG - pop widget QLabel GetWarmGift_2P_Text
+2024-07-21 20:17:17,762 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,763 - DEBUG - push QLineEdit GetWarmGift_2P_Link
+2024-07-21 20:17:17,764 - DEBUG - pop widget QLineEdit GetWarmGift_2P_Link
+2024-07-21 20:17:17,764 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,764 - DEBUG - pop layout QHBoxLayout Lay_GetWarmGift_2P
+2024-07-21 20:17:17,766 - DEBUG - push QPushButton GetWarmGift_Button
+2024-07-21 20:17:17,766 - DEBUG - pop widget QPushButton GetWarmGift_Button
+2024-07-21 20:17:17,766 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,767 - DEBUG - pop layout QVBoxLayout Lay_GetWarmGift
+2024-07-21 20:17:17,767 - DEBUG - push QFrame line_4
+2024-07-21 20:17:17,767 - DEBUG - pop widget QFrame line_4
+2024-07-21 20:17:17,768 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,769 - DEBUG - push QHBoxLayout Lay_GetWarmGift_1P_2
+2024-07-21 20:17:17,769 - DEBUG - push QLabel GetWarmGift_1P_Text_2
+2024-07-21 20:17:17,770 - DEBUG - pop widget QLabel GetWarmGift_1P_Text_2
+2024-07-21 20:17:17,770 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,770 - DEBUG - pop layout QHBoxLayout Lay_GetWarmGift_1P_2
+2024-07-21 20:17:17,771 - DEBUG - push QFrame line_5
+2024-07-21 20:17:17,771 - DEBUG - pop widget QFrame line_5
+2024-07-21 20:17:17,771 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,772 - DEBUG - push QVBoxLayout Lay_OpenEditorOfBattlePlan
+2024-07-21 20:17:17,773 - DEBUG - push QLabel OpenEditorOfBattlePlan_Text
+2024-07-21 20:17:17,774 - DEBUG - pop widget QLabel OpenEditorOfBattlePlan_Text
+2024-07-21 20:17:17,774 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,775 - DEBUG - push QPushButton OpenEditorOfBattlePlan_Button
+2024-07-21 20:17:17,776 - DEBUG - pop widget QPushButton OpenEditorOfBattlePlan_Button
+2024-07-21 20:17:17,776 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,776 - DEBUG - pop layout QVBoxLayout Lay_OpenEditorOfBattlePlan
+2024-07-21 20:17:17,776 - DEBUG - pop layout QVBoxLayout Lay_Tab3_Left
+2024-07-21 20:17:17,777 - DEBUG - push QFrame line_11
+2024-07-21 20:17:17,777 - DEBUG - pop widget QFrame line_11
+2024-07-21 20:17:17,777 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,779 - DEBUG - push QVBoxLayout Lay_Tab3_Left_2
+2024-07-21 20:17:17,781 - DEBUG - push QVBoxLayout Lay_GetWarmGift_2
+2024-07-21 20:17:17,781 - DEBUG - push QLabel Lay_Level2_Text
+2024-07-21 20:17:17,782 - DEBUG - pop widget QLabel Lay_Level2_Text
+2024-07-21 20:17:17,782 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,783 - DEBUG - push QHBoxLayout Lay_Level2_1P
+2024-07-21 20:17:17,785 - DEBUG - push QCheckBox Level2_1P_Active
+2024-07-21 20:17:17,785 - DEBUG - pop widget QCheckBox Level2_1P_Active
+2024-07-21 20:17:17,785 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,786 - DEBUG - push QLabel Level2_1P_Text
+2024-07-21 20:17:17,786 - DEBUG - pop widget QLabel Level2_1P_Text
+2024-07-21 20:17:17,786 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,788 - DEBUG - push QLineEdit Level2_1P_Password
+2024-07-21 20:17:17,788 - DEBUG - pop widget QLineEdit Level2_1P_Password
+2024-07-21 20:17:17,789 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,789 - DEBUG - pop layout QHBoxLayout Lay_Level2_1P
+2024-07-21 20:17:17,791 - DEBUG - push QHBoxLayout Lay_Level2_2P
+2024-07-21 20:17:17,792 - DEBUG - push QCheckBox Level2_2P_Active
+2024-07-21 20:17:17,793 - DEBUG - pop widget QCheckBox Level2_2P_Active
+2024-07-21 20:17:17,793 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,794 - DEBUG - push QLabel Level2_2P_Text
+2024-07-21 20:17:17,794 - DEBUG - pop widget QLabel Level2_2P_Text
+2024-07-21 20:17:17,794 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,796 - DEBUG - push QLineEdit Level2_2P_Password
+2024-07-21 20:17:17,796 - DEBUG - pop widget QLineEdit Level2_2P_Password
+2024-07-21 20:17:17,797 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,797 - DEBUG - pop layout QHBoxLayout Lay_Level2_2P
+2024-07-21 20:17:17,798 - DEBUG - push QLabel Lay_Level2_Text_1
+2024-07-21 20:17:17,798 - DEBUG - pop widget QLabel Lay_Level2_Text_1
+2024-07-21 20:17:17,799 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,800 - DEBUG - pop layout QVBoxLayout Lay_GetWarmGift_2
+2024-07-21 20:17:17,802 - DEBUG - push QFrame line_6
+2024-07-21 20:17:17,802 - DEBUG - pop widget QFrame line_6
+2024-07-21 20:17:17,802 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,804 - DEBUG - push QVBoxLayout Lay_OpenEditorOfBattlePlan_2
+2024-07-21 20:17:17,805 - DEBUG - push QLabel GetWarmGift_1P_Text_3
+2024-07-21 20:17:17,806 - DEBUG - pop widget QLabel GetWarmGift_1P_Text_3
+2024-07-21 20:17:17,807 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,807 - DEBUG - pop layout QVBoxLayout Lay_OpenEditorOfBattlePlan_2
+2024-07-21 20:17:17,807 - DEBUG - pop layout QVBoxLayout Lay_Tab3_Left_2
+2024-07-21 20:17:17,808 - DEBUG - push QFrame line_12
+2024-07-21 20:17:17,809 - DEBUG - pop widget QFrame line_12
+2024-07-21 20:17:17,809 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,811 - DEBUG - push QVBoxLayout verticalLayout_2
+2024-07-21 20:17:17,814 - DEBUG - push QHBoxLayout Lay_Big_Picture
+2024-07-21 20:17:17,815 - DEBUG - push QLabel Big_Picture
+2024-07-21 20:17:17,815 - DEBUG - pop widget QLabel Big_Picture
+2024-07-21 20:17:17,815 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x0000029960576558>
+2024-07-21 20:17:17,816 - DEBUG - pop layout QHBoxLayout Lay_Big_Picture
+2024-07-21 20:17:17,816 - DEBUG - pop layout QVBoxLayout verticalLayout_2
+2024-07-21 20:17:17,817 - DEBUG - pop layout QHBoxLayout Lay_Tab3
+2024-07-21 20:17:17,817 - DEBUG - pop widget QWidget horizontalLayoutWidget_16
+2024-07-21 20:17:17,818 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x00000299605764C8>
+2024-07-21 20:17:17,819 - DEBUG - pop widget QWidget Tab3
+2024-07-21 20:17:17,819 - DEBUG - new topwidget <PyQt5.QtWidgets.QTabWidget object at 0x000002995DE4BC18>
+2024-07-21 20:17:17,821 - DEBUG - pop widget QTabWidget tabWidget
+2024-07-21 20:17:17,821 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995DE4BEE8>
+2024-07-21 20:17:17,822 - DEBUG - pop layout QHBoxLayout LayMain
+2024-07-21 20:17:17,823 - DEBUG - pop widget QWidget horizontalLayoutWidget_2
+2024-07-21 20:17:17,823 - DEBUG - new topwidget <PyQt5.QtWidgets.QWidget object at 0x000002995DE4B8B8>
+2024-07-21 20:17:17,823 - DEBUG - pop widget QWidget CentralWidget
+2024-07-21 20:17:17,824 - DEBUG - new topwidget <function.core.QMW_3_service.QMainWindowService object at 0x00000299420899D8>
+2024-07-21 20:17:17,825 - DEBUG - pop widget QMainWindowService MainWindow
+2024-07-21 20:17:17,825 - DEBUG - new topwidget None
+-07-21 20:17:17,699 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,699 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,699 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,699 - DEBUG - setting property orientation
+2024-07-21 20:17:17,700 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,701 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,701 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,701 - DEBUG - setting property alignment
+2024-07-21 20:17:17,701 - DEBUG - setting property minimum
+2024-07-21 20:17:17,702 - DEBUG - setting property maximum
+2024-07-21 20:17:17,702 - DEBUG - setting property value
+2024-07-21 20:17:17,703 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,703 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,703 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,704 - DEBUG - setting property orientation
+2024-07-21 20:17:17,705 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,705 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,705 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,706 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,706 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,707 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,707 - DEBUG - setting property orientation
+2024-07-21 20:17:17,708 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,708 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,709 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,710 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,710 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,710 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,711 - DEBUG - setting property alignment
+2024-07-21 20:17:17,711 - DEBUG - setting property minimum
+2024-07-21 20:17:17,711 - DEBUG - setting property maximum
+2024-07-21 20:17:17,712 - DEBUG - setting property value
+2024-07-21 20:17:17,713 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,713 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,713 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,713 - DEBUG - setting property text
+2024-07-21 20:17:17,714 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,714 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,715 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,715 - DEBUG - setting property orientation
+2024-07-21 20:17:17,718 - DEBUG - setting property geometry
+2024-07-21 20:17:17,718 - DEBUG - setting property spacing
+2024-07-21 20:17:17,718 - DEBUG - setting property sizeConstraint
+2024-07-21 20:17:17,719 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,719 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,719 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,719 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,720 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,720 - DEBUG - setting property pyuicSpacing
+2024-07-21 20:17:17,720 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,720 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,721 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,721 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,721 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,722 - DEBUG - setting property spacing
+2024-07-21 20:17:17,722 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,722 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,722 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,722 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,723 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,723 - DEBUG - setting property pyuicSpacing
+2024-07-21 20:17:17,723 - DEBUG - setting property text
+2024-07-21 20:17:17,724 - DEBUG - setting property alignment
+2024-07-21 20:17:17,725 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,725 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,725 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,725 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,726 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,726 - DEBUG - setting property enabled
+2024-07-21 20:17:17,726 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,727 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,727 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,727 - DEBUG - setting property text
+2024-07-21 20:17:17,728 - DEBUG - setting property enabled
+2024-07-21 20:17:17,728 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,729 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,729 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,729 - DEBUG - setting property text
+2024-07-21 20:17:17,730 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,730 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,731 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,731 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,731 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,732 - DEBUG - setting property enabled
+2024-07-21 20:17:17,732 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,732 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,732 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,733 - DEBUG - setting property text
+2024-07-21 20:17:17,734 - DEBUG - setting property enabled
+2024-07-21 20:17:17,734 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,734 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,734 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,734 - DEBUG - setting property text
+2024-07-21 20:17:17,736 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,736 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,736 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,736 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,736 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,737 - DEBUG - setting property enabled
+2024-07-21 20:17:17,737 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,737 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,738 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,738 - DEBUG - setting property text
+2024-07-21 20:17:17,739 - DEBUG - setting property enabled
+2024-07-21 20:17:17,739 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,739 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,740 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,740 - DEBUG - setting property mouseTracking
+2024-07-21 20:17:17,740 - DEBUG - setting property tabletTracking
+2024-07-21 20:17:17,740 - DEBUG - setting property text
+2024-07-21 20:17:17,740 - DEBUG - setting property checkable
+2024-07-21 20:17:17,742 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,742 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,742 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,742 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,743 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,743 - DEBUG - setting property enabled
+2024-07-21 20:17:17,743 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,744 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,744 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,744 - DEBUG - setting property text
+2024-07-21 20:17:17,745 - DEBUG - setting property orientation
+2024-07-21 20:17:17,746 - DEBUG - setting property spacing
+2024-07-21 20:17:17,746 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,747 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,747 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,747 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,747 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,747 - DEBUG - setting property pyuicSpacing
+2024-07-21 20:17:17,748 - DEBUG - setting property text
+2024-07-21 20:17:17,748 - DEBUG - setting property alignment
+2024-07-21 20:17:17,749 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,749 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,750 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,750 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,750 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,750 - DEBUG - setting property enabled
+2024-07-21 20:17:17,751 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,751 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,751 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,751 - DEBUG - setting property text
+2024-07-21 20:17:17,752 - DEBUG - setting property text
+2024-07-21 20:17:17,752 - DEBUG - setting property alignment
+2024-07-21 20:17:17,753 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,754 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,754 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,754 - DEBUG - setting property tabletTracking
+2024-07-21 20:17:17,755 - DEBUG - setting property autoFillBackground
+2024-07-21 20:17:17,755 - DEBUG - setting property text
+2024-07-21 20:17:17,756 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,757 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,757 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,757 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,757 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,758 - DEBUG - setting property enabled
+2024-07-21 20:17:17,759 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,759 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,759 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,759 - DEBUG - setting property text
+2024-07-21 20:17:17,761 - DEBUG - setting property text
+2024-07-21 20:17:17,761 - DEBUG - setting property alignment
+2024-07-21 20:17:17,762 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,762 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,762 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,763 - DEBUG - setting property tabletTracking
+2024-07-21 20:17:17,763 - DEBUG - setting property autoFillBackground
+2024-07-21 20:17:17,763 - DEBUG - setting property text
+2024-07-21 20:17:17,764 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,765 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,765 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,765 - DEBUG - setting property toolTip
+2024-07-21 20:17:17,766 - DEBUG - setting property text
+2024-07-21 20:17:17,767 - DEBUG - setting property orientation
+2024-07-21 20:17:17,768 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,768 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,768 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,768 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,769 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,769 - DEBUG - setting property text
+2024-07-21 20:17:17,769 - DEBUG - setting property alignment
+2024-07-21 20:17:17,770 - DEBUG - setting property orientation
+2024-07-21 20:17:17,771 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,772 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,772 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,772 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,772 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,773 - DEBUG - setting property text
+2024-07-21 20:17:17,773 - DEBUG - setting property alignment
+2024-07-21 20:17:17,774 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,774 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,775 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,775 - DEBUG - setting property toolTip
+2024-07-21 20:17:17,775 - DEBUG - setting property text
+2024-07-21 20:17:17,777 - DEBUG - setting property orientation
+2024-07-21 20:17:17,778 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,778 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,778 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,778 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,779 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,779 - DEBUG - setting property spacing
+2024-07-21 20:17:17,779 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,779 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,780 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,780 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,780 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,780 - DEBUG - setting property pyuicSpacing
+2024-07-21 20:17:17,781 - DEBUG - setting property text
+2024-07-21 20:17:17,781 - DEBUG - setting property alignment
+2024-07-21 20:17:17,782 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,782 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,783 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,783 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,783 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,783 - DEBUG - setting property enabled
+2024-07-21 20:17:17,784 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,784 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,784 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,784 - DEBUG - setting property text
+2024-07-21 20:17:17,785 - DEBUG - setting property text
+2024-07-21 20:17:17,786 - DEBUG - setting property alignment
+2024-07-21 20:17:17,787 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,787 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,787 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,787 - DEBUG - setting property tabletTracking
+2024-07-21 20:17:17,788 - DEBUG - setting property autoFillBackground
+2024-07-21 20:17:17,788 - DEBUG - setting property text
+2024-07-21 20:17:17,789 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,790 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,790 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,790 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,790 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,791 - DEBUG - setting property enabled
+2024-07-21 20:17:17,791 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,792 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,792 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,792 - DEBUG - setting property text
+2024-07-21 20:17:17,793 - DEBUG - setting property text
+2024-07-21 20:17:17,794 - DEBUG - setting property alignment
+2024-07-21 20:17:17,795 - DEBUG - setting property sizePolicy
+2024-07-21 20:17:17,795 - DEBUG - setting property minimumSize
+2024-07-21 20:17:17,795 - DEBUG - setting property maximumSize
+2024-07-21 20:17:17,796 - DEBUG - setting property tabletTracking
+2024-07-21 20:17:17,796 - DEBUG - setting property autoFillBackground
+2024-07-21 20:17:17,796 - DEBUG - setting property text
+2024-07-21 20:17:17,797 - DEBUG - setting property text
+2024-07-21 20:17:17,797 - DEBUG - setting property alignment
+2024-07-21 20:17:17,801 - DEBUG - setting property orientation
+2024-07-21 20:17:17,803 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,803 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,803 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,804 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,804 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,805 - DEBUG - setting property text
+2024-07-21 20:17:17,805 - DEBUG - setting property alignment
+2024-07-21 20:17:17,808 - DEBUG - setting property orientation
+2024-07-21 20:17:17,809 - DEBUG - setting property spacing
+2024-07-21 20:17:17,810 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,810 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,810 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,810 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,811 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,811 - DEBUG - setting property pyuicSpacing
+2024-07-21 20:17:17,812 - DEBUG - setting property sizeConstraint
+2024-07-21 20:17:17,812 - DEBUG - setting property leftMargin
+2024-07-21 20:17:17,812 - DEBUG - setting property topMargin
+2024-07-21 20:17:17,813 - DEBUG - setting property rightMargin
+2024-07-21 20:17:17,813 - DEBUG - setting property bottomMargin
+2024-07-21 20:17:17,813 - DEBUG - setting property pyuicMargins
+2024-07-21 20:17:17,814 - DEBUG - setting property text
+2024-07-21 20:17:17,814 - DEBUG - setting property alignment
+2024-07-21 20:17:17,824 - DEBUG - setting property text
+2024-07-21 20:17:17,825 - DEBUG - setting property toolTip
