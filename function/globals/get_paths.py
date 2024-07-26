@@ -27,6 +27,7 @@ PATHS = {
     # resource
     "font": None,
     "logo": None,
+    "model": None,
     "picture": {
     },
 }
@@ -38,6 +39,7 @@ PATHS["logs"] = PATHS["root"] + "\\logs"
 
 PATHS["font"] = PATHS["root"] + "\\resource\\font"
 PATHS["logo"] = PATHS["root"] + "\\resource\\logo"
+PATHS["model"] = PATHS["root"] + "\\resource\\model"
 PATHS["picture"]["current"] = PATHS["root"] + "\\resource\\picture"
 
 PATHS["picture"]["common"] = PATHS["picture"]["current"] + "\\common"

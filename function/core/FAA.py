@@ -48,6 +48,8 @@ class FAA:
 
         # 随机种子
         self.random_seed = random_seed
+        #这个参数主要用于启动时防熊，避免线程已终止faa类内仍在循环识图
+        self.should_stop = False
 
         """每次战斗中都保持一致的参数"""
         # 角色的index int 1 or 2
@@ -1004,7 +1006,7 @@ class FAA:
             return False
 
         def main():
-            while True:
+            while not self.should_stop:
 
                 # 点击刷新按钮 该按钮在360窗口上
                 self.print_debug(text="[刷新游戏] 点击刷新按钮...")
