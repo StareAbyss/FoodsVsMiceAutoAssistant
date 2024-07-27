@@ -18,6 +18,8 @@ from function.globals.init_resources import RESOURCE_P, RESOURCE_B, RESOURCE_CP
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
+from function.scattered.match_ocr_text.loop_match_ocr import food_match_ocr_text, extract_text_from_images
+from function.scattered.match_ocr_text.text_to_battle_info import food_texts_to_battle_info
 from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 
 
@@ -119,7 +121,6 @@ class FAA:
         CUS_LOGGER.error("[{}P] {}".format(player, text))
 
     """界面跳转动作的接口"""
-
     def action_exit(self, mode: str = "None", raw_range=None):
         return self.object_action_interface_jump.exit(mode=mode, raw_range=raw_range)
 
@@ -720,7 +721,7 @@ class FAA:
     def match_quests(self, mode: str, qg_cs=False) -> list:
         """
         获取任务列表 -> 需要的完成的关卡步骤
-        :param mode: "公会任务" "情侣任务" "美食大赛"
+        :param mode: "公会任务" "情侣任务" "美食大赛" "美食大赛-新"
         :param qg_cs: 公会任务模式下 是否需要跨服
         :return: [{"stage_id":str, "max_times":int, "quest_card":str, "ban_card":None},...]
         """
@@ -739,7 +740,7 @@ class FAA:
         if mode == "情侣任务":
             self.action_bottom_menu(mode="跳转_情侣任务")
 
-        if mode == "美食大赛":
+        if mode == "美食大赛" or mode=="美食大赛-新":
             self.action_top_menu(mode="美食大赛")
 
         # 读取
@@ -896,10 +897,16 @@ class FAA:
                             }
                         )
 
+        if mode == "美食大赛-新":
+            quest_imgs = food_match_ocr_text(self)
+            texts=extract_text_from_images(quest_imgs)
+            quest_list = food_texts_to_battle_info(texts,self)
+
+
         # 关闭公会任务列表(红X)
         if mode == "公会任务" or mode == "情侣任务":
             self.action_exit(mode="普通红叉")
-        if mode == "美食大赛":
+        if mode == "美食大赛" or mode=="美食大赛-新":
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=888, y=53)
             time.sleep(0.5)
 
