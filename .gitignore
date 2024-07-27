@@ -1,6 +1,9 @@
 # 忽略 __pycache__ 目录下的所有内容
 __pycache__/
 
+# 忽略pycharm文件
+.idne/
+
 # 忽略所有 .pyc 文件 即python缓存
 *.pyc
 
@@ -14,5 +17,5 @@ logs/match_failed/*.png
 logs/result_json/*.json
 logs/*.log
 
-# 忽略pycharm文件
-.idne/
+# 忽略 main.spec
+main.spec
