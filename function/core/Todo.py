@@ -1424,8 +1424,8 @@ class ThreadTodo(QThread):
             """
 
             # 两个号分别读取任务
-            quest_list_1 = self.faa[1].match_quests(mode="美食大赛")
-            quest_list_2 = self.faa[2].match_quests(mode="美食大赛")
+            quest_list_1 = self.faa[1].match_quests(mode="美食大赛-新")
+            quest_list_2 = self.faa[2].match_quests(mode="美食大赛-新")
             quest_list = quest_list_1 + quest_list_2
 
             if not quest_list:

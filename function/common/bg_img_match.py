@@ -132,7 +132,9 @@ def match_p_in_w(
         match_tolerance: float = 0.95,
         test_print=False,
         test_show=False,
-        source_root_handle=None) -> Union[None, list]:
+        source_root_handle=None,
+        return_center=True,
+) -> Union[None, list]:
     """
     find target in template
     catch an image by a handle, find a smaller image(target) in this bigger one, return center relative position
@@ -195,7 +197,10 @@ def match_p_in_w(
         cv2.imshow(winname="SourceImg.png", mat=img_source)
         cv2.waitKey(0)
 
-    return center_point
+    if return_center:
+        return center_point
+    else:
+        return [start_x,start_y]
 
 
 def match_ps_in_w(
@@ -278,7 +283,6 @@ def loop_match_p_in_w(
         match_failed_check: float = 10,
         after_sleep: float = 0.05,
         click: bool = True,
-        click_handle=None,
         after_click_template=None,
         after_click_template_mask=None,
         source_root_handle=None,
@@ -296,7 +300,6 @@ def loop_match_p_in_w(
         :param match_failed_check: # 捕捉图片时间限制, 超时输出False
         :param after_sleep: 找到图/点击后 的休眠时间
         :param click: 是否点一下
-        :param click_handle: 是否启用不一样的点击句柄
         :param after_click_template: 点击后进行检查, 若能找到该图片, 视为无效, 不输出True, 继承前者的精准度tolerance
         :param after_click_template_mask: 检查掩模
         :param source_root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层 可空置
@@ -323,7 +326,7 @@ def loop_match_p_in_w(
 
             else:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                    handle=click_handle if click_handle else source_handle,
+                    handle=source_handle,
                     x=find_target[0] + source_range[0],
                     y=find_target[1] + source_range[1]
                 )
