@@ -13,9 +13,12 @@ This software is still in the development stage and its functions have been impl
 The original intention of developing this tool is to fulfill a childhood wish ten years ago (XP)
 
 # 关于
-* 反馈交流QQ群 - 1群 - 2000人 - 786921130 - 推荐
-* 反馈交流QQ群 - 2群 - 500人  - 142272678
-* 爱发电赞助支持FAA - [点我跳转](https://afdian.net/a/zssy_faa)
+* 反馈交流QQ群 - 1群 - 2000/2000人 - 786921130 - 已满! 但仍可尝试加入...
+* 反馈交流QQ群 - 2群 - 1000/2000人 - 142272678 - 推荐
+* 爱发电赞助支持FAA - [点我跳转](https://afdian.net/a/zssy_faa) (请暂时不要使用, 爱发电因备案过期暂时无法访问!)
+* 微信赞赏码支持FAA - 请扫码下图
+
+ <img alt="image" height="300" src="md_img/FAA-赞赏码.jpg" width="300"/>
 
 # 下载
 * Github-Relese - 包含FAA的稳定发行版. [点我跳转](https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant/releases)    
