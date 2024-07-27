@@ -24,14 +24,17 @@ The original intention of developing this tool is to fulfill a childhood wish te
 
 # 预览
 
-* 运行主页
-![image](https://github.com/StareAbyss/FoodsVsMiceAutoAssistant/assets/112901226/9ac6e0c5-1182-45da-b3ae-bc19e67335d0)
-* 流程配置
-![image](https://github.com/StareAbyss/FoodsVsMiceAutoAssistant/assets/112901226/505e4291-69a1-4e3a-8743-25a2590e1cb7)
-* 高级选项
-![image](https://github.com/StareAbyss/FoodsVsMiceAutoAssistant/assets/112901226/d4f3fc71-9b8f-4c00-8b9f-b2caa1431128)
-* 战斗方案编辑器
-![image](https://github.com/StareAbyss/FoodsVsMiceAutoAssistant/assets/112901226/d6a411a2-bc43-4388-943b-30e7304ba0dd)
+## 运行主页  
+![image](md_img/运行主页.png)
+
+## 流程配置  
+![image](md_img/流程配置.png)
+
+## 高级选项  
+![image](md_img/高级选项.png)
+
+## 战斗方案编辑器  
+![image](md_img/战斗方案编辑器.png)
 
 # 主要功能 Main
 
@@ -140,7 +143,8 @@ The original intention of developing this tool is to fulfill a childhood wish te
         * 将鼠标悬停在windows任务栏中的360游戏大厅的窗口上, 启动1P和2P时可以看到. 为 角色名称 | 游戏名称 或 游戏名称.
         * 其中 仅有游戏名称, 为第一个启动的角色, 对应在软件中, 其窗口名空置.
         * 其中 角色名称 | 游戏名称, 为之后启动的角色, 对应在软件中, 填写角色名称.
-    ![image](https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant/assets/112901226/80dea34e-5c84-43ce-932b-838c168bbdbd)
+
+    ![image](md_img/窗口名和游戏名称.png)
 
 
 * 角色等级
@@ -302,7 +306,8 @@ The original intention of developing this tool is to fulfill a childhood wish te
 
 地图代号包含: 地图类型-地图序号-关卡序号!
 在1.3.1+版本将内置在软件中方便查看!(任务列表 - 点击查看关卡代号一览)
-![image](https://github.com/StareAbyss/FoodsVsMiceAutoAssistant/assets/112901226/ae7de59c-7bfa-43d2-ac38-2147555c28e9)
+
+![image](md_img/关卡一览.png)
 
 # 自定义和部分自动战斗实现的说明
 
@@ -443,8 +448,8 @@ ergodic(遍历); queue(队列) 代表了自动战斗放卡实现的两种重要�
     * 代表着该卡均匀且广泛的布局更为重要.
     * 可以防止由于地图机制导致一直在错误的位置放卡损卡.     
 
-将之组合, 可以得到玩家一般游戏过程中的四种常见策略(其中一种无意义)    
-![image](https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant/assets/112901226/99156bc9-fd39-4fe9-abe2-f42e4c1652cf)
+将之组合, 可以得到玩家一般游戏过程中的四种常见策略 (其中一种无意义)    
+![image](md_img/队列遍历.png)
 
 还是不能理解吗~ 那看图表!  
 假设你降你某卡的位置设定按顺序为 1 2 3 4
