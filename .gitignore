@@ -1,0 +1,15 @@
+# 忽略 __pycache__ 目录下的所有内容
+__pycache__/
+
+# 忽略所有 .pyc 文件 即python缓存
+*.pyc
+
+# 忽略settings.json 用户配置文件
+settings.json
+
+# 忽略运行产生的文件 主要是日志
+logs/chests_picture/*.png
+logs/loots_picture/*.png
+logs/match_failed/*.png
+logs/result_json/*.json
+logs/*.log
