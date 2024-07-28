@@ -68,12 +68,12 @@ class ThreadTodo(QThread):
 
         if self.thread_1p is not None:
             self.thread_1p.stop()
-            self.thread_1p.join()  # 等待线程中断
+            # self.thread_1p.join()  # 等待线程中断
             self.thread_1p = None  # 清除调用
 
         if self.thread_2p is not None:
             self.thread_2p.stop()
-            self.thread_2p.join()  # 等待线程中断
+            # self.thread_2p.join()  # 等待线程中断
             self.thread_2p = None  # 清除调用
 
         if self.thread_card_manager is not None:
