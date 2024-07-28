@@ -1793,7 +1793,7 @@ class FAA:
                 # 添加绑定角标
                 item_image = overlay_images(
                     img_background=item_image,
-                    img_overlay=RESOURCE_P["item"]["物品-绑定角标.png"])
+                    img_overlay=RESOURCE_P["item"]["物品-绑定角标-背包.png"])  # 特别注意 背包和战利品使用的角标不一样!!!
 
                 while True:
 

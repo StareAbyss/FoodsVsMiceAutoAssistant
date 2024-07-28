@@ -155,12 +155,43 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
     :param may_locked: 是否检测潜在的绑定物品
     :return: 优秀匹配结果, 迭代器, 是否是绑定的
     """
+
+    if may_locked:
+        if one_item_match(img_block=block,img_tar=None,mode="match_is_bind"):
+            # 识别到绑定角标
+
+            # 如果上次识图成功, 则再试一次, 看看是不是同一张图
+            if last_name is not None:
+                item_img = RESOURCE_P["item"]["战利品"][last_name + ".png"]
+
+                # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
+                if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_locked"):
+                    return last_name, list_iter, True
+
+            # 先按照顺序表遍历, 极大减少耗时(如果有顺序表)
+            if list_iter:
+                for item_name in list_iter:
+                    item_img = RESOURCE_P["item"]["战利品"][item_name + ".png"]
+
+                    # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
+                    if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_locked"):
+                        return item_name, list_iter, True
+
+            # 如果在json中按顺序查找没有找到, 全部遍历
+            for item_name, item_img in RESOURCE_P["item"]["战利品"].items():
+                item_name = item_name.replace(".png", "")
+                # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
+                if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_locked"):
+                    return item_name, list_iter, True
+
+    """未识别到绑定角标"""
+
     # 如果上次识图成功, 则再试一次, 看看是不是同一张图
     if last_name is not None:
         item_img = RESOURCE_P["item"]["战利品"][last_name + ".png"]
 
         # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
-        if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask"):
+        if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable"):
             return last_name, list_iter, False
 
     # 先按照顺序表遍历, 极大减少耗时(如果有顺序表)
@@ -172,11 +203,6 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
             if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable"):
                 return item_name, list_iter, False
 
-            # 额外识别一下 这玩意是否是绑定的某个物品
-            if may_locked:
-                if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_locked"):
-                    return item_name, list_iter, True
-
     # 如果在json中按顺序查找没有找到, 全部遍历
     for item_name, item_img in RESOURCE_P["item"]["战利品"].items():
         item_name = item_name.replace(".png", "")
@@ -184,11 +210,6 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
         # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
         if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable"):
             return item_name, list_iter, False
-
-        # 额外识别一下 这玩意是否是绑定的某个物品
-        if may_locked:
-            if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_locked"):
-                return item_name, list_iter, True
 
     # 还是找不到, 识图失败 把block保存到 logs / match_failed / 中
     CUS_LOGGER.warning(f'该道具未能识别, 已在 [ logs / match_failed ] 生成文件, 请检查')
