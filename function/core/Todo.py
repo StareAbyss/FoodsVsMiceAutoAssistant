@@ -1180,7 +1180,7 @@ class ThreadTodo(QThread):
             quest = quest_list[i]
 
             # 判断显著错误的关卡名称
-            if quest["stage_id"].split("-")[0] not in ["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"]:
+            if quest["stage_id"].split("-")[0] not in ["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD", "HH"]:
                 self.signal_print_to_ui.emit(
                     text="{}事项{},{},错误的关卡名称!跳过".format(
                         title,
