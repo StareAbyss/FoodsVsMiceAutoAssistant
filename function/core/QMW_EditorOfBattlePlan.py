@@ -56,6 +56,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.LayMain = QVBoxLayout()
 
         # 加载 JSON 按钮
+        self.file_name = None
+        self.current_plan_label = QLabel("当前编辑方案:无")
+        self.LayMain.addWidget(self.current_plan_label)
         self.ButtonLoadJson = QPushButton('加载战斗方案')
         self.LayMain.addWidget(self.ButtonLoadJson)
 
@@ -170,8 +173,13 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.chessboard_frames.append(row_frames)
 
         """保存按钮"""
-        self.save_button = QPushButton('保存战斗方案')
-        self.LayMain.addWidget(self.save_button)
+        # 创建水平布局，来容纳保存和另存为按钮
+        self.HLaySave = QHBoxLayout()
+        self.save_button = QPushButton('保存当前战斗方案')
+        self.save_as_button = QPushButton('战斗方案另存为')
+        self.HLaySave.addWidget(self.save_button)
+        self.HLaySave.addWidget(self.save_as_button)
+        self.LayMain.addLayout(self.HLaySave)
 
         """设置主控件"""
         self.central_widget = QWidget()
@@ -179,10 +187,11 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.setCentralWidget(self.central_widget)
 
         """信号和槽函数链接"""
-        # 读取josn
+        # 读取json
         self.ButtonLoadJson.clicked.connect(self.load_json)
 
         # 保存json
+        self.save_as_button.clicked.connect(self.save_json)
         self.save_button.clicked.connect(self.save_json)
 
         # 添加卡片
@@ -409,16 +418,26 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.refresh_chessboard()
 
     def save_json(self):
+        """
+        保存方法，拥有保存和另存为两种功能，还能创建uuid
+        """
         self.json_data['tips'] = self.WeiTipsEditor.toPlainText()
+        sender = self.sender()
+        if not self.file_name:
+            # 提示用户还未选择任何战斗方案
+            QMessageBox.information(self, "禁止虚空保存！", "请先选择一个战斗方案!")
+            return
+        if sender == self.save_as_button:
+            options = QFileDialog.Options()
 
-        options = QFileDialog.Options()
-
-        file_name, _ = QFileDialog.getSaveFileName(
-            parent=self,
-            caption="保存 JSON 文件",
-            directory=PATHS["battle_plan"],
-            filter="JSON Files (*.json)",
-            options=options)
+            file_name, _ = QFileDialog.getSaveFileName(
+                parent=self,
+                caption="保存 JSON 文件",
+                directory=PATHS["battle_plan"],
+                filter="JSON Files (*.json)",
+                options=options)
+        else:
+            file_name = self.file_name
 
         if file_name:
 
@@ -440,7 +459,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
 
     def load_json(self):
-        """打开窗口 读取josn文件"""
+        """打开窗口 读取json文件"""
         # 为输入控件信号上锁，在初始化时不会触发保存
         self.WeiCurrentEdit.blockSignals(True)
         self.WeiIdInput.blockSignals(True)
@@ -471,6 +490,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
             # 初始化
             self.current_edit_index = None  # 初始化当前选中
+            self.file_name = file_name  # 当前方案路径
+            # 获取当前方案的名称
+            current_plan_name = os.path.basename(file_name).replace(".json", "")
+            self.current_plan_label.setText(f"当前编辑方案: {current_plan_name}")
             self.WeiCurrentEdit.setText("无")
             self.WeiIdInput.clear()
             self.WeiNameInput.clear()
