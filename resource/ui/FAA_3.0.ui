@@ -631,18 +631,52 @@
              </layout>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,1">
+              <property name="spacing">
+               <number>5</number>
+              </property>
+              <property name="leftMargin">
+               <number>5</number>
+              </property>
+              <property name="topMargin">
+               <number>5</number>
+              </property>
+              <property name="rightMargin">
+               <number>5</number>
+              </property>
+              <property name="bottomMargin">
+               <number>5</number>
+              </property>
               <item>
                <widget class="DragLabel" name="Label_drag">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>23</height>
+                 </size>
+                </property>
+                <property name="layoutDirection">
+                 <enum>Qt::LeftToRight</enum>
+                </property>
                 <property name="styleSheet">
                  <string notr="true">QLabel {
-	border: 1px solid grey;   /* 灰色边框，宽度为2像素 */
-	border-radius: 5px;       /* 边框圆角半径为5像素 */
-	background-color: #f0f0f0; /* 背景颜色，方便查看效果 */
+	border: 1px solid grey;/* 灰色边框，宽度为2像素 */
+	border-radius: 4px;/* 边框圆角半径为5像素 */
+	border-color: #bababa;/* 边框颜色 */
+	background-color: #fdfdfd;/* 背景颜色 */
 }</string>
                 </property>
                 <property name="text">
                  <string>请拖到1P窗口</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
                 </property>
                </widget>
               </item>
@@ -657,7 +691,7 @@
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>0</height>
+                  <height>23</height>
                  </size>
                 </property>
                 <property name="maximumSize">
