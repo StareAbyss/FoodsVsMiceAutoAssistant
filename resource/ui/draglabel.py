@@ -1,17 +1,28 @@
 import win32gui
-from PyQt5.QtWidgets import QLabel, QMessageBox, QLineEdit, QVBoxLayout, QWidget, QApplication
-from PyQt5.QtCore import Qt, pyqtSignal, QObject
+from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QFontDatabase, QFont
+from PyQt5.QtWidgets import QLabel
+
+from function.globals.get_paths import PATHS
+
 
 class DragLabel(QLabel):
     # 定义一个自定义信号，信号传递一个字符串参数
-    windowNameChanged1 = pyqtSignal(str) # 发送1P窗口名的信号
-    windowNameChanged2 = pyqtSignal(str) # 发生2P窗口名的信号
-    
-    first_or_second = 1 # 用来判断当前应该发生1P窗口名还是2P窗口名
-    
+    windowNameChanged1 = pyqtSignal(str)  # 发送1P窗口名的信号
+    windowNameChanged2 = pyqtSignal(str)  # 发生2P窗口名的信号
+
+    first_or_second = 1  # 用来判断当前应该发生1P窗口名还是2P窗口名
 
     def __init__(self, parent=None):
         super().__init__(parent)
+
+        # 设定字体
+        font_id = QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
+        if font_id != -1:
+            font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
+            self.font = QFont(font_family, 11)
+            self.setFont(self.font)
+
         # self.setText("拖动鼠标到窗口上，然后松开鼠标按钮")
         self.setAlignment(Qt.AlignCenter)
         self.startPos = None
@@ -45,28 +56,26 @@ class DragLabel(QLabel):
                 window_handle = found_windows[0]
                 window_title = win32gui.GetWindowText(window_handle)
 
-                
-
                 # 获取窗口类名
                 try:
                     class_name = win32gui.GetClassName(window_handle)  # 尝试获取窗口的类名
                 except Exception as e:
                     class_name = "无法获取类名"  # 如果获取失败，设置类名为 '无法获取类名'
-                    
+
                 # 发射信号，传递窗口标题
-                if self.first_or_second==1:
+                if self.first_or_second == 1:
                     self.windowNameChanged1.emit(window_title)
-                    self.first_or_second=2
-                    self.setText("请拖到2P窗口") 
+                    self.first_or_second = 2
+                    self.setText("请拖到2P窗口")
                 else:
                     self.windowNameChanged2.emit(window_title)
-                    self.first_or_second=1
-                    self.setText("获取成功") 
-                
-                # # 显示包含窗口标题、句柄和类名的消息框
+                    self.first_or_second = 1
+                    self.setText("获取成功")
+
+                    # # 显示包含窗口标题、句柄和类名的消息框
                 # QMessageBox.information(self, "窗口信息",
                 #     f"窗口名: {window_title}\n窗口句柄: {window_handle}\n窗口类名: {class_name}")
             # else:
             #     QMessageBox.warning(self, "错误", "未找到类名为 'DUIWindow' 的窗口")
-                
+
             self.startPos = None  # 重置鼠标拖动的起始位置为 None
