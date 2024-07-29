@@ -130,6 +130,7 @@ class QMainWindowService(QMainWindowLog):
                     "出错！(╬◣д◢)",
                     f"{player}P存在错误的窗口名或游戏名称, 请参考 [使用前看我!.pdf] 或 [README.md]")
                 self.Button_Start.setText("开始任务\nLink Start")
+                self.is_start = False
                 return
 
         """UI处理"""

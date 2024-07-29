@@ -1,5 +1,5 @@
 import math
-def parse_positions(base_info, coordinates):
+def parse_positions(coordinates,base_info ):
     # 更新边界和分割数量
     x_min, x_max = 303, 839
     y_min, y_max = 110, 560
@@ -19,8 +19,8 @@ def parse_positions(base_info, coordinates):
             godwind = True
             continue
         elif base_value in [0, 1, 2, 3, 6]:
-            x = coordinates[index][0]
-            y = coordinates[index][1] + 50 if base_value == 1 else coordinates[index][1]
+            x = coordinates[index][0]+0.5*coordinates[index][2]
+            y = coordinates[index][1] +0.5*coordinates[index][3]+ 50 if base_value == 1 else coordinates[index][1]+0.5*coordinates[index][3]
 
             # 将坐标映射到分割后的格子
             if x < x_min:

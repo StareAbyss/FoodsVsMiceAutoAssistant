@@ -60,6 +60,12 @@ def get_mouse_position(input_image):
             class_ids.append(maxClassIndex) # 类别
     # opencv版最极大值抑制
     result_boxes = cv2.dnn.NMSBoxes(boxes, scores, 0.25, 0.45, 0.5)
+    if isinstance(result_boxes, np.int64):  # 检查是否为单个整数
+        result_boxes = [result_boxes]  # 转换为列表
+
+    # 从NMS结果中提取过滤后的boxes和class_ids
+    filtered_boxes = [list(np.array(boxes[i]) * scale) for i in result_boxes]
+    filtered_class_ids = [class_ids[i] for i in result_boxes]#非极大值抑制过后产生的框和类别
     # annotated_image = original_image.copy()
     # for i in range(len(result_boxes)):
     #     index = result_boxes[i]
@@ -71,7 +77,7 @@ def get_mouse_position(input_image):
     need_write=True#是否保存图片及对应标签，未来将对接前端
     if need_write or len(result_boxes) > 0:
         cv_write(original_image,result_boxes,class_ids,scores,boxes,scale)
-    return boxes,class_ids#返回边界框及类别用作进一步处理
+    return filtered_boxes,filtered_class_ids#返回边界框及类别用作进一步处理
 
 def cv_write(original_image,result_boxes,class_ids,scores,boxes,scale):#此函数用于保存标签label及对应数据图片
     output_base_path = PATHS["logs"]+"\\yolo_output"
@@ -85,7 +91,6 @@ def cv_write(original_image,result_boxes,class_ids,scores,boxes,scale):#此函�
         for i in range(len(result_boxes)):
             index = result_boxes[i]
             class_id = class_ids[index]
-            score = scores[index]
             box = boxes[index]
             x, y, w, h = voc_to_yolo(original_image.shape,
                                      [box[0] * scale, box[1] * scale, box[2] * scale, box[3] * scale])
