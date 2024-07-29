@@ -2060,5 +2060,3 @@ class ThreadTodo(QThread):
             extra_title=self.extra_opt["extra_title"],
             need_lock=self.extra_opt["need_lock"])
         self.extra_opt = None
-
-

@@ -1961,7 +1961,8 @@ class FAA:
             # 打开背包
             self.print_debug(text="打开背包")
             self.action_bottom_menu(mode="背包")
-            self.signal_print_to_ui.emit(text="[使用双暴卡] 背包图标可能需要加载, 等待10s")
+            if self.player == 1:
+                self.signal_print_to_ui.emit(text="[使用双暴卡] 背包图标可能需要加载, 等待10s")
             time.sleep(10)
 
             loop_use_double_card()
