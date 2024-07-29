@@ -21,7 +21,7 @@ def loop_battle(self):
        """
 
         # 以防万一 深拷贝一下 以免对其造成更改
-        card_plan = copy.deepcopy(self.battle_plan_1["card"])
+        card_plan = copy.deepcopy(self.battle_plan_parsed["card"])
 
         def use_card_once(a_card):
             if self.is_auto_battle:  # 启动了自动战斗
@@ -178,4 +178,4 @@ def loop_battle(self):
 
     else:
         self.print_debug(text="不战斗 输出 self.battle_plan_1")
-        self.print_debug(text=self.battle_plan_1)
+        self.print_debug(text=self.battle_plan_parsed)

@@ -53,20 +53,22 @@ class BattleARoundPreparation:
         quest_card_list = [card for card in quest_card_list if card in RESOURCE_P["card"]["准备房间"]]
 
         """选卡动作"""
-        already_found = False
+        found_card = False
 
         # 复位滑块
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=209)
         time.sleep(0.5)
 
-        # 向下点2*10 = 20 次滑块 强制要求全部走完, 防止12P的同步出问题, 注 其实是21次划分 点20次到底 故检测了11轮
-        for i in range(11):
+        # 强制要求全部走完, 防止12P的同步出问题
+        # 老板本 一共20点击到底部, 向下点 10轮 x 2次 = 20 次滑块, 识别11次
+        # 但仍然会出现识别不到的问题(我的背包太大啦), 故直接改成了最细的粒度, 希望能解决该问题.
+        for i in range(21):
 
             for quest_card in quest_card_list:
 
-                if already_found:
+                if found_card:
                     # 如果已经刚找到了 就直接休息一下
-                    time.sleep(0.4)
+                    time.sleep(0.45)
                 else:
                     # 如果还没找到 就试试查找点击 添加卡片
                     img_tar = overlay_images(
@@ -81,26 +83,27 @@ class BattleARoundPreparation:
                         template=img_tar,
                         template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
                         match_tolerance=0.98,
-                        match_failed_check=0.4,
-                        match_interval=0.2,
-                        after_sleep=0.4,  # 和总计检测时间一致 以同步时间
+                        match_failed_check=0.45,
+                        match_interval=0.1,
+                        after_sleep=0.45,  # 和总计检测时间一致 以同步时间
                         click=True)
                     if find:
-                        already_found = True
+                        found_card = True
 
-            # 滑块向下移动3次
-            for j in range(2):
-                if not already_found:
+            if i == 20:
+                break
+            else:
+                if not found_card:
                     # 仅还没找到继续下滑
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=400)
                 # 找没找到都要休息一下以同步时间
                 time.sleep(0.05)
 
-        if not already_found:
+        if not found_card:
             # 如果没有找到 类属性 战斗方案 需要调整为None, 防止在战斗中使用对应卡片的动作序列出现
             self.faa.quest_card = "None"
 
-        print_debug(text=" [添加任务卡] 完成, 结果:{}".format("成功" if already_found else "失败"))
+        print_debug(text=" [添加任务卡] 完成, 结果:{}".format("成功" if found_card else "失败"))
 
     def remove_ban_card(self):
         """寻找并移除需要ban的卡, 现已支持跨页ban"""
