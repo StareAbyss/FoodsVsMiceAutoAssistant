@@ -1745,26 +1745,45 @@
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="CurrentPlan">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
+             <layout class="QHBoxLayout" name="Lay_CurrentPlan_1" stretch="0">
+              <property name="sizeConstraint">
+               <enum>QLayout::SetDefaultConstraint</enum>
               </property>
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>0</height>
-               </size>
+              <property name="leftMargin">
+               <number>5</number>
               </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>16777215</height>
-               </size>
+              <property name="topMargin">
+               <number>0</number>
               </property>
-             </widget>
+              <property name="rightMargin">
+               <number>5</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QComboBox" name="CurrentPlan">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
             <item>
              <layout class="QHBoxLayout" name="Lay_CurrentPlan_2" stretch="0,0,0">
@@ -1775,13 +1794,13 @@
                <number>5</number>
               </property>
               <property name="topMargin">
-               <number>5</number>
+               <number>0</number>
               </property>
               <property name="rightMargin">
                <number>5</number>
               </property>
               <property name="bottomMargin">
-               <number>5</number>
+               <number>0</number>
               </property>
               <item>
                <widget class="QPushButton" name="Button_RenamePlan">
