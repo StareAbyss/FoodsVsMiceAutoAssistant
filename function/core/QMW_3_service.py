@@ -218,15 +218,12 @@ class QMainWindowService(QMainWindowLog):
                 #
                 # # 中断[内部战斗线程]
                 # # Q thread 线程 stop方法需要自己手写
-                # # python 默认线程 可用stop线程
-                # for thread in [thread_0.thread_1p, thread_0.thread_2p]:
-                #     if thread is not None:
-                #         thread.stop()
-                #     if thread is not None:
-                #         thread.join()  # 等待线程确实中断 Threading
-                #
-                # # 中断 销毁 [任务线程]
-                #以上全是没用的史山代码
+                # python 默认线程 可用stop线程
+                for thread in [thread_0.thread_1p, thread_0.thread_2p]:
+                    if thread is not None:
+                        thread.stop()
+                        # thread.join()  # <-罪魁祸首在此
+
                 process=thread_0.process
                 if process is not None:
                     kill_process(process)#杀死识图进程

@@ -27,6 +27,7 @@ def get_mouse_position(input_image):
     onnx_model = PATHS["model"]+"/mouse.onnx"
     model: cv2.dnn.Net = cv2.dnn.readNetFromONNX(onnx_model)
     # 读取原图
+    # original_image: np.ndarray = cv2.imread(input_image)
     original_image = input_image[:, :, :3]#去除阿尔法通道
     [height, width, _] = original_image.shape
     length = max((height, width))
@@ -34,7 +35,7 @@ def get_mouse_position(input_image):
     image[0:height, 0:width] = original_image
     scale = length / 640 # 缩放比例
     # 设置模型输入
-    blob = cv2.dnn.blobFromImage(image, scalefactor=1 / 255, size=(640, 640), swapRB=False)#通道是匹配的，不用交换红蓝
+    blob = cv2.dnn.blobFromImage(image, scalefactor=1 / 255, size=(640, 640), swapRB=True)#通道是匹配的，不用交换红蓝
     model.setInput(blob)
     # 推理
     outputs = model.forward() # output: 1 X 8400 x 84
@@ -59,16 +60,16 @@ def get_mouse_position(input_image):
             class_ids.append(maxClassIndex) # 类别
     # opencv版最极大值抑制
     result_boxes = cv2.dnn.NMSBoxes(boxes, scores, 0.25, 0.45, 0.5)
-    for i in range(len(result_boxes)):
-        index = result_boxes[i]
-        box = boxes[index]
     # annotated_image = original_image.copy()
+    # for i in range(len(result_boxes)):
+    #     index = result_boxes[i]
+    #     box = boxes[index]
     #     draw_bounding_box(annotated_image, class_ids[index], scores[index], round(box[0] * scale), round(box[1] * scale),
-    #                       round((box[0] + box[2]) * scale), round((box[1] + box[3]) * scale))
+    #                           round((box[0] + box[2]) * scale), round((box[1] + box[3]) * scale))
     # annotated_image=cv2.resize(annotated_image, (960,540))
     # cv_show('test',annotated_image)
     need_write=True#是否保存图片及对应标签，未来将对接前端
-    if need_write:
+    if need_write or len(result_boxes) > 0:
         cv_write(original_image,result_boxes,class_ids,scores,boxes,scale)
     return boxes,class_ids#返回边界框及类别用作进一步处理
 
@@ -80,7 +81,7 @@ def cv_write(original_image,result_boxes,class_ids,scores,boxes,scale):#此函�
     output_img_path = f"{output_base_path}/images/{timestamp}_{rand_num}.png"
     output_txt = f"{output_base_path}/labels/{timestamp}_{rand_num}.txt"
     cv2.imwrite(output_img_path, original_image)
-    with open(output_txt, 'w') as f:
+    with open(output_txt, 'a') as f:
         for i in range(len(result_boxes)):
             index = result_boxes[i]
             class_id = class_ids[index]
@@ -119,7 +120,7 @@ def cv_show(name,img):#图片展示
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', default='mouse.onnx', help='Input your onnx model.')
-    parser.add_argument('--img', default=str('0002_10.jpg'), help='Path to input image.')
+    parser.add_argument('--img', default=str('20240728154824_236031.png'), help='Path to input image.')
     args = parser.parse_args()
-    get_mouse_position(args.model, args.img)
+    get_mouse_position(args.img)
 
