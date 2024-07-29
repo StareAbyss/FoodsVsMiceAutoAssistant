@@ -79,7 +79,7 @@ class FAA:
         self.bp_cell = get_position_card_cell_in_battle()
 
         # 经过处理后的战斗方案, 由战斗类相关动作函数直接调用, 其中的各种操作都包含坐标
-        self.battle_plan_1 = {}
+        self.battle_plan_parsed = {}
 
         # 承载卡/冰沙/坤的位置
         self.mat_card_positions = None  # list [{},{},...]
@@ -121,6 +121,7 @@ class FAA:
         CUS_LOGGER.error("[{}P] {}".format(player, text))
 
     """界面跳转动作的接口"""
+
     def action_exit(self, mode: str = "None", raw_range=None):
         return self.object_action_interface_jump.exit(mode=mode, raw_range=raw_range)
 
@@ -207,6 +208,7 @@ class FAA:
             deck=1, quest_card="None", ban_card_list=None,
             battle_plan_uuid="00000000-0000-0000-0000-000000000000") -> None:
         """
+        战斗相关参数的re_init
         :param is_group: 是否组队
         :param is_main: 是否是主要账号(单人为True 双人房主为True)
         :param need_key: 是否使用钥匙
@@ -393,7 +395,7 @@ class FAA:
 
         self.print_info(text="战斗中识图查找幻幻鸡位置, 结果：{}".format(self.kun_position))
 
-    def init_battle_plan_1(self) -> None:
+    def init_battle_plan_parsed(self) -> None:
         """
         战斗方案解析器 - 用于根据战斗方案的json和关卡等多种信息, 解析计算为卡片的部署方案 供战斗方案执行器执行
         Return:卡片的部署方案字典
@@ -646,7 +648,7 @@ class FAA:
             self.print_debug(text="你的战斗放卡opt如下:")
             self.print_debug(text=list_cell_all)
 
-            self.battle_plan_1 = {"card": list_cell_all, "shovel": list_shovel}
+            self.battle_plan_parsed = {"card": list_cell_all, "shovel": list_shovel}
 
         return main()
 
@@ -684,7 +686,7 @@ class FAA:
         self.init_kun_card_position()
 
         # 4.计算所有坐标
-        self.init_battle_plan_1()
+        self.init_battle_plan_parsed()
 
         # 5.铲卡
         if self.is_main:
@@ -740,7 +742,7 @@ class FAA:
         if mode == "情侣任务":
             self.action_bottom_menu(mode="跳转_情侣任务")
 
-        if mode == "美食大赛" or mode=="美食大赛-新":
+        if mode == "美食大赛" or mode == "美食大赛-新":
             self.action_top_menu(mode="美食大赛")
 
         # 读取
@@ -899,14 +901,13 @@ class FAA:
 
         if mode == "美食大赛-新":
             quest_imgs = food_match_ocr_text(self)
-            texts=extract_text_from_images(quest_imgs)
-            quest_list = food_texts_to_battle_info(texts,self)
-
+            texts = extract_text_from_images(quest_imgs)
+            quest_list = food_texts_to_battle_info(texts, self)
 
         # 关闭公会任务列表(红X)
         if mode == "公会任务" or mode == "情侣任务":
             self.action_exit(mode="普通红叉")
-        if mode == "美食大赛" or mode=="美食大赛-新":
+        if mode == "美食大赛" or mode == "美食大赛-新":
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=888, y=53)
             time.sleep(0.5)
 
@@ -1298,7 +1299,7 @@ class FAA:
         def exit_ui():
             # 确定退出了该界面
             while True:
-                find = loop_match_p_in_w(
+                find_i = loop_match_p_in_w(
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
                     source_range=[350, 80, 480, 180],
@@ -1308,7 +1309,7 @@ class FAA:
                     match_failed_check=5,
                     after_sleep=2,
                     click=False)
-                if not find:
+                if not find_i:
                     break
                 else:
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=710, y=135)

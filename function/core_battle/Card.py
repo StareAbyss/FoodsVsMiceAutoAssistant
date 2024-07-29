@@ -63,17 +63,17 @@ class Card:
 
         """从FAA类的battle_plan_1中读取的属性"""
         # 根据优先级（也是在战斗方案中的index）直接读取faa
-        self.name = self.faa.battle_plan_1["card"][priority]["name"]
-        self.id = self.faa.battle_plan_1["card"][priority]["id"]
-        self.location = self.faa.battle_plan_1["card"][priority]["location"]
-        self.ergodic = self.faa.battle_plan_1["card"][priority]["ergodic"]
-        self.queue = self.faa.battle_plan_1["card"][priority]["queue"]
+        self.name = self.faa.battle_plan_parsed["card"][priority]["name"]
+        self.id = self.faa.battle_plan_parsed["card"][priority]["id"]
+        self.location = self.faa.battle_plan_parsed["card"][priority]["location"]
+        self.ergodic = self.faa.battle_plan_parsed["card"][priority]["ergodic"]
+        self.queue = self.faa.battle_plan_parsed["card"][priority]["queue"]
         # 坐标 [x,y]
-        self.location_from = self.faa.battle_plan_1["card"][priority]["location_from"]
+        self.location_from = self.faa.battle_plan_parsed["card"][priority]["location_from"]
         # dict {"1-1": [x,y],....}
-        self.location_to = self.faa.battle_plan_1["card"][priority]["location_to"]
+        self.location_to = self.faa.battle_plan_parsed["card"][priority]["location_to"]
         # 坤优先级
-        self.kun = self.faa.battle_plan_1["card"][priority]["kun"]
+        self.kun = self.faa.battle_plan_parsed["card"][priority]["kun"]
 
         """用于完成放卡的额外类属性"""
         # 放卡间隔
