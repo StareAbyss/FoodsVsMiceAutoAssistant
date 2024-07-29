@@ -50,10 +50,14 @@ def split_into_characters(line):
         chinese_match = match_block(block_array=chinese_block, imgs=RESOURCE_P["ocr"]["texts_matched"])
         if not chinese_match:
             # 保存半分割
+            if not os.path.exists(PATHS["picture"]["current"] + "\\ocr\\blocks_half"):
+                os.makedirs(PATHS["picture"]["current"] + "\\ocr\\blocks_half")
             name_id = len(os.listdir(PATHS["picture"]["current"] + "\\ocr\\blocks_half"))
             save_path = PATHS["picture"]["current"] + f"\\ocr\\blocks_half\\{name_id}.png"
             cv2.imencode('.png', latin_block)[1].tofile(save_path)
             # 保存全分割
+            if not os.path.exists(PATHS["picture"]["current"] + "\\ocr\\blocks"):
+                os.makedirs(PATHS["picture"]["current"] + "\\ocr\\blocks")
             name_id = len(os.listdir(PATHS["picture"]["current"] + "\\ocr\\blocks"))
             save_path = PATHS["picture"]["current"] + f"\\ocr\\blocks\\{name_id}.png"
             cv2.imencode('.png', chinese_block)[1].tofile(save_path)
