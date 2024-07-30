@@ -24,22 +24,45 @@ def generate_coverage(strategy_id):
     else:
         raise ValueError("未知的策略ID")
 
-def add_strategy(strategies, strategy_id, cost):
+def generate_cross_coverage(rows, cols):
+    """
+    根据给定的行数和列数生成十字覆盖范围。
+
+    :param rows: 十字的行数
+    :param cols: 十字的列数
+    :return: 覆盖区域的坐标偏移列表
+    """
+    coverage = []
+    # 纵向覆盖
+    for i in range(-rows, rows + 1):
+        coverage.append((i, 0))
+    # 横向覆盖
+    for j in range(-cols, cols + 1):
+        coverage.append((0, j))
+    return coverage
+
+def add_strategy(strategies, strategy_id, cost, rows=None, cols=None):
     """
     添加策略到策略字典中，并动态生成唯一的策略ID和覆盖范围。
 
     :param strategies: 策略字典
     :param strategy_id: 策略的类型ID
     :param cost: 策略的成本
+    :param rows: 十字的行数（仅用于十字策略）
+    :param cols: 十字的列数（仅用于十字策略）
     """
     global strategy_count
     strategy_count += 1  # 增加计数器
 
     # 根据策略类型ID生成覆盖范围
-    coverage = generate_coverage(strategy_id)
+    if strategy_id == 8:  # 如果是十字策略
+        coverage = generate_cross_coverage(rows, cols)
+    else:
+        coverage = generate_coverage(strategy_id)
 
     # 添加策略到字典，使用唯一ID
     strategies[f"{strategy_count}"] = {"coverage": coverage, "cost": cost}
+
 
 def solve_special_card_problem(points_to_cover, obstacles):
     # 定义问题
@@ -64,6 +87,7 @@ def solve_special_card_problem(points_to_cover, obstacles):
     add_strategy(strategies, 7, 30)  # 三行覆盖
     add_strategy(strategies, 7, 30)
     add_strategy(strategies, 7, 30)
+    add_strategy(strategies, 8, 15, rows=2, cols=2)  # 十字策略
     # print(strategies)
 
     # 创建决策变量
