@@ -1,7 +1,47 @@
 from pulp import *
 
+def generate_coverage(strategy_id):
+    """
+    根据策略ID生成覆盖区域。
 
-def solve_special_card_problem():
+    :param strategy_id: 策略的类型ID
+    :return: 覆盖区域的坐标偏移列表
+    """
+    if strategy_id == 1:
+        return [(i, j) for i in range(-1, 2) for j in range(-1, 2)]  # 3x3
+    elif strategy_id == 2:
+        return [(i, j) for i in range(-2, 2) for j in range(-1, 2)]  # 4x3
+    elif strategy_id == 3:
+        return [(i, j) for i in range(-2, 3) for j in range(-2, 3)]  # 5x5
+    elif strategy_id == 4:
+        return [(0, j) for j in range(-6, 7)]  # 全列覆盖
+    elif strategy_id == 5:
+        return [(i, 0) for i in range(-8, 9)]  # 全行覆盖
+    elif strategy_id == 6:
+        return [(0, 0), (0, 1), (0, -1), (1, 0), (-1, 0)]  # 小十字
+    elif strategy_id == 7:
+        return [(i, j) for j in range(-1, 2)for i in range(-8, 9)]  # 三行覆盖
+    else:
+        raise ValueError("未知的策略ID")
+
+def add_strategy(strategies, strategy_id, cost):
+    """
+    添加策略到策略字典中，并动态生成唯一的策略ID和覆盖范围。
+
+    :param strategies: 策略字典
+    :param strategy_id: 策略的类型ID
+    :param cost: 策略的成本
+    """
+    global strategy_count
+    strategy_count += 1  # 增加计数器
+
+    # 根据策略类型ID生成覆盖范围
+    coverage = generate_coverage(strategy_id)
+
+    # 添加策略到字典，使用唯一ID
+    strategies[f"{strategy_count}"] = {"coverage": coverage, "cost": cost}
+
+def solve_special_card_problem(points_to_cover, obstacles):
     # 定义问题
     prob = LpProblem("Map Coverage Problem", LpMinimize)
 
@@ -9,23 +49,22 @@ def solve_special_card_problem():
     MAP_WIDTH = 9
     MAP_HEIGHT = 7
 
-    # 定义待处理点位列表
-    points_to_cover = ["9-5", "3-2","9-2", "1-1"]  # 添加所有待处理点位
+    strategies = {}
+    # 定义一个全局计数器，用于生成唯一的策略ID
+    global strategy_count
+    strategy_count = 0
 
-    # 定义障碍列表
-    obstacles = ["1-1", "2-3"]  # 添加所有障碍点位
-
-    # 定义对策及其代价
-    strategies = {
-        1: {"coverage": [(i, j) for i in range(-1, 2) for j in range(-1, 2)], "cost": 10},  # 3x3
-        2: {"coverage": [(i, j) for i in range(-2, 2) for j in range(-1, 2)], "cost": 150},   # 4x3
-        3: {"coverage": [(i, j) for i in range(-2, 3) for j in range(-2, 3)], "cost": 275},  # 5x5
-        # 4: {"coverage": lambda size, direction: cross_coverage(size, direction), "cost": 12},  # Cross (parameterized)
-        5: {"coverage": [(0, 0), (0, 1), (0, -1), (1, 0), (-1, 0)], "cost": 10},  # 小十字
-        # 6: {"coverage": [(0, j) for j in range(-6,7)], "cost": 18},  # Full row
-        # 7: {"coverage": [(i, 0) for i in range(-8,9)], "cost": 18},  # Full column
-        # 8: {"coverage": lambda: [(i, j) for i in range(-1, 2) for j in range(MAP_WIDTH)], "cost": 25},  # Three rows
-    }
+    # 添加策略
+    # add_strategy(strategies, 1, 10)  # 3x3
+    # add_strategy(strategies, 2, 150)  # 4x3
+    # add_strategy(strategies, 3, 275)  # 5x5
+    # add_strategy(strategies, 4, 20)  # 全行覆盖
+    # add_strategy(strategies, 5, 20)  # 全列覆盖
+    # add_strategy(strategies, 6, 10)  # 小十字
+    add_strategy(strategies, 7, 30)  # 三行覆盖
+    add_strategy(strategies, 7, 30)
+    add_strategy(strategies, 7, 30)
+    # print(strategies)
 
     # 创建决策变量
     x = LpVariable.dicts("strategy",
@@ -71,4 +110,9 @@ def solve_special_card_problem():
                     if value(x[i,j,s]) == 1:
                         print(f"Place strategy {s} at position ({i},{j})")
 
-solve_special_card_problem()
+    # 定义待处理点位列表
+points_to_cover = ["9-5", "3-2","9-2", "1-1"]  # 添加所有待处理点位
+
+    # 定义障碍列表
+obstacles = ["1-1", "2-3","9-6"]  # 添加所有障碍点位
+solve_special_card_problem(points_to_cover, obstacles)
