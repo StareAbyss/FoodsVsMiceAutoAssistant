@@ -28,7 +28,7 @@ def mask_transform_color_to_black(mask, quick_method=True) -> np.ndarray:
 
 def match_template_with_optional_mask(source, template, mask=None, quick_method=True, test_show=False) -> np.ndarray:
     """
-    使用可选掩模进行模板匹配, 步骤如下.
+    使用可选掩模进行模板匹配-从源图搜索模板, 步骤如下.
     1. 生成 mask_from_template 将根据template图像是否存在Alpha通道, 取颜色为纯白的部分作为掩模纯白, 其他色均为黑.
     2. 处理 mask 根据输入的参数mask, 如果mask不为None的处理, 则将mask作为原始掩模, 否则将mask_from_template作为原始掩模.
     3. 如果 mask 不为None, 取颜色为纯白的部分作为掩模纯白, 其他色均为黑, 但保留其Alpha通道.
@@ -45,6 +45,7 @@ def match_template_with_optional_mask(source, template, mask=None, quick_method=
         numpy.ndarray: 匹配结果.
 
     """
+
     """
     函数:对应方法 匹配良好输出->匹配不好输出
     CV_TM_SQDIFF:平方差匹配法 [1]->[0]；

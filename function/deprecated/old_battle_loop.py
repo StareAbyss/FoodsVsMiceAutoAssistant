@@ -177,5 +177,5 @@ def loop_battle(self):
         use_card_loop_skill()
 
     else:
-        self.print_debug(text="不战斗 输出 self.battle_plan_1")
+        self.print_debug(text="不战斗 输出 self.battle_plan_parsed")
         self.print_debug(text=self.battle_plan_parsed)

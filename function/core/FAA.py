@@ -14,7 +14,8 @@ from function.core.FAA_Battle import Battle
 from function.core.FAA_BattleARoundPreparation import BattleARoundPreparation
 from function.core_battle.get_position_in_battle import get_position_card_deck_in_battle, \
     get_position_card_cell_in_battle
-from function.globals.init_resources import RESOURCE_P, RESOURCE_B, RESOURCE_CP
+from function.globals import init_resources
+from function.globals.init_resources import RESOURCE_P, RESOURCE_CP
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
@@ -243,7 +244,7 @@ class FAA:
         if "苏打气泡" in self.ban_card_list:
             self.ban_card_list.append("魔法软糖")
 
-        self.battle_plan_0 = RESOURCE_B[battle_plan_uuid]
+        self.battle_plan_0 = init_resources.RESOURCE_B[battle_plan_uuid]
 
         self.stage_info = read_json_to_stage_info(stage_id)
 
