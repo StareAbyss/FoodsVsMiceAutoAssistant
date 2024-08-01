@@ -36,7 +36,7 @@ def generate_cross_coverage(rows, cols):
     for j in range(-cols, cols + 1):
         coverage.append((0, j))
     return coverage
-def add_strategy(strategies, strategy_id, cost, rows=None, cols=None):
+def add_strategy(player, strategy_id, cost, rows=None, cols=None):
     """
     添加策略到策略字典中，并动态生成唯一的策略ID和覆盖范围。
     :param strategies: 策略字典
@@ -55,27 +55,43 @@ def add_strategy(strategies, strategy_id, cost, rows=None, cols=None):
     else:
         coverage = generate_coverage(strategy_id)
     # 添加策略到字典，使用唯一ID
-    if strategy_id == 9:
-        copy_strategy[f"{strategy_count}"] = {"coverage": coverage, "cost": cost}
-    else:
-        strategies[f"{strategy_count}"] = {"coverage": coverage, "cost": cost}
+    if player==1:
+        if strategy_id == 9:
+            copy_strategy[f"{strategy_count}"] = {"coverage": coverage, "cost": cost}
+        else:
+            strategies[f"{strategy_count}"] = {"coverage": coverage, "cost": cost}
+    elif player==2:
+        if strategy_id == 9:
+            copy_strategy2[f"{strategy_count}"] = {"coverage": coverage, "cost": cost}
+        else:
+            strategies2[f"{strategy_count}"] = {"coverage": coverage, "cost": cost}
+
 def solve_special_card_problem(points_to_cover, obstacles):
     # 定义问题
     prob = LpProblem("Map Coverage Problem", LpMinimize)
     # 定义常量
     MAP_WIDTH = 9
     MAP_HEIGHT = 7
+    # 定义策略字典
+    global strategies
+    global strategies2
     strategies = {}
+    strategies2 = {}
+    #定义复制策略字典
     global copy_strategy
+    global copy_strategy2
     copy_strategy={}
+    copy_strategy2={}
     # 定义一个全局计数器，用于生成唯一的策略ID
     global strategy_count
     strategy_count = 0
     # 添加策略
-    add_strategy(strategies, 7, 30)  # 三行覆盖
-    add_strategy(strategies, 3, 30)
-    add_strategy(strategies, 8, 15, rows=2, cols=2)  # 十字策略
-    add_strategy(strategies, 9, 10)  # 复制对策，成本为10
+    add_strategy(1, 7, 30)  # 三行覆盖
+    add_strategy(1, 3, -30)
+    add_strategy(2, 3, 30)
+    add_strategy(1, 8, 15, rows=2, cols=2)  # 十字策略
+    add_strategy(2, 8, 15, rows=2, cols=2)  # 十字策略
+    add_strategy(2, 9, 10)  # 复制对策，成本为10
     # 创建决策变量
     x = LpVariable.dicts("strategy",
                          [(i, j, s) for i in range(1, MAP_WIDTH+1)
@@ -89,6 +105,21 @@ def solve_special_card_problem(points_to_cover, obstacles):
                                         for s in strategies.keys()
                                         for c in copy_strategy.keys()],
                          cat='Binary')
+
+    z = LpVariable.dicts("strategy2",
+                         [(i, j, s) for i in range(1, MAP_WIDTH + 1)
+                          for j in range(1, MAP_HEIGHT + 1)
+                          for s in strategies2.keys()],
+                         cat='Binary')
+    # 创建复制对策变量
+    w = LpVariable.dicts("copy_strategy",
+                         [(i, j, s, c) for i in range(1, MAP_WIDTH + 1)
+                          for j in range(1, MAP_HEIGHT + 1)
+                          for s in strategies2.keys()
+                          for c in copy_strategy2.keys()],
+                         cat='Binary')
+
+
     # 目标函数
     prob += lpSum([strategies[s]["cost"] * x[i,j,s] for i in range(1, MAP_WIDTH+1)
                                                     for j in range(1, MAP_HEIGHT+1)
@@ -96,7 +127,14 @@ def solve_special_card_problem(points_to_cover, obstacles):
             lpSum([copy_strategy[c]["cost"] * y[i,j,s,c] for i in range(1, MAP_WIDTH+1)
                                                    for j in range(1, MAP_HEIGHT+1)
                                                    for s in strategies.keys()
-                                                   for c in copy_strategy.keys()])
+                                                   for c in copy_strategy.keys()])+\
+            lpSum([strategies2[s]["cost"] * z[i,j,s] for i in range(1, MAP_WIDTH+1)
+                                                    for j in range(1, MAP_HEIGHT+1)
+                                                    for s in strategies2.keys()])+\
+            lpSum([copy_strategy2[c]["cost"] * w[i,j,s,c] for i in range(1, MAP_WIDTH+1)
+                                                   for j in range(1, MAP_HEIGHT+1)
+                                                   for s in strategies2.keys()
+                                                   for c in copy_strategy2.keys()])
     # 约束条件
     # 1. 每个待处理点位至少被覆盖一次
     for point in points_to_cover:
@@ -109,7 +147,19 @@ def solve_special_card_problem(points_to_cover, obstacles):
                                      for j_s in range(1, MAP_HEIGHT+1)
                                      for s in strategies.keys()
                                      for c in copy_strategy.keys()
-                                     if (i-i_s, j-j_s) in strategies[s]["coverage"]]) >= 1
+                                     if (i-i_s, j-j_s) in strategies[s]["coverage"]]) +\
+                lpSum([z[i_s,j_s,s] for i_s in range(1, MAP_WIDTH+1)
+                                    for j_s in range(1, MAP_HEIGHT+1)
+                                    for s in strategies2.keys()
+                                    if (i-i_s, j-j_s)in strategies2[s]["coverage"]])+\
+                lpSum([w[i_s,j_s,s,c] for i_s in range(1, MAP_WIDTH+1)
+                                     for j_s in range(1, MAP_HEIGHT+1)
+                                     for s in strategies2.keys()
+                                     for c in copy_strategy2.keys()
+                                     if (i-i_s, j-j_s) in strategies2[s]["coverage"]])>= 1
+
+
+
     # 2. 不能在障碍上放置对策
     for obstacle in obstacles:
         i, j = map(int, obstacle.split('-'))
@@ -117,14 +167,26 @@ def solve_special_card_problem(points_to_cover, obstacles):
             prob += x[i,j,s] == 0
             for c in copy_strategy.keys():
                 prob += y[i,j,s,c] == 0
+        for s in strategies2.keys():
+            prob += z[i,j,s] == 0
+            for c in copy_strategy2.keys():
+                prob += w[i,j,s,c] == 0
     # 3. 每个策略只能被放置一次
     for s in strategies.keys():
         prob += lpSum([x[i, j, s] for i in range(1, MAP_WIDTH + 1)
+                       for j in range(1, MAP_HEIGHT + 1)]) <= 1
+    for s in strategies2.keys():
+        prob += lpSum([z[i, j, s] for i in range(1, MAP_WIDTH + 1)
                        for j in range(1, MAP_HEIGHT + 1)]) <= 1
     # 4. 每个复制对策只能被放置一次
     for s in strategies.keys():
         for c in copy_strategy.keys():
             prob += lpSum([y[i, j, s, c] for i in range(1, MAP_WIDTH + 1)
+                           for j in range(1, MAP_HEIGHT + 1)]) <= 1
+
+    for s in strategies2.keys():
+        for c in copy_strategy2.keys():
+            prob += lpSum([w[i, j, s, c] for i in range(1, MAP_WIDTH + 1)
                            for j in range(1, MAP_HEIGHT + 1)]) <= 1
     # 约束条件：如果复制对策被放置，则对应的原始对策必须被放置至少一次
     for c in copy_strategy.keys():
@@ -133,6 +195,13 @@ def solve_special_card_problem(points_to_cover, obstacles):
             # 确保原始策略s至少在地图上的一个位置被放置
             prob += lpSum([x[i, j, s] for i in range(1, MAP_WIDTH + 1)
                            for j in range(1, MAP_HEIGHT + 1)]) >= lpSum([y[i, j, s, c] for i in range(1, MAP_WIDTH + 1)
+                                                                         for j in range(1, MAP_HEIGHT + 1)])
+    for c in copy_strategy2.keys():
+        # 对于每一个复制策略c，检查其对应的所有原始策略s
+        for s in strategies2.keys():
+            # 确保原始策略s至少在地图上的一个位置被放置
+            prob += lpSum([z[i, j, s] for i in range(1, MAP_WIDTH + 1)
+                           for j in range(1, MAP_HEIGHT + 1)]) >= lpSum([w[i, j, s, c] for i in range(1, MAP_WIDTH + 1)
                                                                          for j in range(1, MAP_HEIGHT + 1)])
     # 求解问题
     prob.solve()
@@ -144,10 +213,16 @@ def solve_special_card_problem(points_to_cover, obstacles):
             for j in range(1, MAP_HEIGHT + 1):
                 for s in strategies.keys():
                     if value(x[i, j, s]) == 1:
-                        print(f"对策卡 {s} 放置于 ({i},{j})")
+                        print(f"1p对策卡 {s} 放置于 ({i},{j})")
                     for c in copy_strategy.keys():
                         if value(y[i, j, s, c]) == 1:
-                            print(f"复制类对策卡 {c} 复制了对策卡 {s} 放置于 ({i},{j})")
+                            print(f"1p复制类对策卡 {c} 复制了对策卡 {s} 放置于 ({i},{j})")
+                for s in strategies2.keys():
+                    if value(z[i, j, s]) == 1:
+                        print(f"2p对策卡 {s} 放置于 ({i},{j})")
+                    for c in copy_strategy2.keys():
+                        if value(w[i, j, s, c]) == 1:
+                            print(f"2p复制类对策卡 {c} 复制了对策卡 {s} 放置于 ({i},{j})")
 # 定义待处理点位列表
 points_to_cover = ["9-5", "3-2", "9-2", "1-1"]  # 添加所有待处理点位
 # 定义障碍列表
