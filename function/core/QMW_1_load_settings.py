@@ -8,9 +8,9 @@ import time
 from PyQt5.QtWidgets import QApplication, QMessageBox, QInputDialog
 
 from function.core.QMW_0_load_ui_file import QMainWindowLoadUI
+from function.globals import init_resources
 from function.globals.extra import EXTRA_GLOBALS
 from function.globals.get_paths import PATHS
-from function.globals.init_resources import fresh_resource_b
 from function.globals.log import CUS_LOGGER
 from function.scattered.check_uuid_in_battle_plan import check_battle_plan_with_uuid
 from function.scattered.get_customize_todo_list import get_customize_todo_list
@@ -34,7 +34,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
 
         # 检测uuid是否存在于battle plan 没有则添加 并将其读入到内存资源中
         check_battle_plan_with_uuid()
-        fresh_resource_b()
+        init_resources.fresh_resource_b()
 
         # 从json文件中读取opt 并刷新ui
         self.opt = None
@@ -434,7 +434,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         battle_plan_uuid_list_old = copy.deepcopy(EXTRA_GLOBALS.battle_plan_uuid_list)
         # 检测uuid是否存在于 可能新加入的 battle plan 没有则添加 并将其读入到内存资源中
         check_battle_plan_with_uuid()
-        fresh_resource_b()
+        init_resources.fresh_resource_b()
 
         def my_transformer_b(change_class: object, opt_1, opt_2) -> None:
             # 用于配置 带有选单的 战斗方案
