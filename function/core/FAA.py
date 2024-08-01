@@ -1769,7 +1769,8 @@ class FAA:
         fed_and_watered_main()
 
     def use_items_consumables(self) -> None:
-        self.print_debug(text="开启使用物品功能")
+
+        self.signal_print_to_ui.emit(text=f"[使用绑定消耗品] [{self.player}P] 开始.")
 
         # 打开背包
         self.print_debug(text="打开背包")
@@ -1859,22 +1860,24 @@ class FAA:
         # 关闭背包
         self.action_exit(mode="普通红叉")
 
+        self.signal_print_to_ui.emit(text=f"[使用绑定消耗品] [{self.player}P] 结束.")
+
     def use_items_double_card(self, max_times) -> None:
+        """
+        使用双倍暴击卡的函数。
+
+        在周六或周日不执行操作，其余时间会尝试使用指定数量的双倍暴击卡。
+
+        :param max_times: 最大使用次数
+        :return: None
+        """
 
         def is_saturday_or_sunday():
-            # 设置北京时区
-            beijing_tz = pytz.timezone('Asia/Shanghai')
-
-            # 获取当前的北京时间
-            now_in_beijing = datetime.now(beijing_tz)
-
-            # 获取今天是星期几（0=星期一，1=星期二，...，5=星期六，6=星期日）
-            weekday = now_in_beijing.weekday()
+            # 获取北京时间是星期几（0=星期一，1=星期二，...，5=星期六，6=星期日）
+            weekday = datetime.now(pytz.timezone('Asia/Shanghai')).weekday()
 
             # 判断今天是否是星期六或星期日
-            if weekday == 5:
-                return True
-            elif weekday == 6:
+            if weekday == 5 or weekday == 6:
                 return True
             else:
                 return False
@@ -1963,7 +1966,7 @@ class FAA:
             self.print_debug(text="打开背包")
             self.action_bottom_menu(mode="背包")
             if self.player == 1:
-                self.signal_print_to_ui.emit(text="[使用双暴卡] 背包图标可能需要加载, 等待10s")
+                self.signal_print_to_ui.emit(text=f"[使用双暴卡] [{self.player}P] 背包图标可能需要加载, 等待10s")
             time.sleep(10)
 
             loop_use_double_card()
@@ -1974,7 +1977,14 @@ class FAA:
         main()
 
     def input_level_2_password_and_gift_flower(self, password):
-        """如果背包已满 通过兑换暗晶激活二级密码就用不了了! 那么 用缘分树送花给是最稳当的!"""
+        """
+        输入二级密码.
+        如果背包已满, 通过兑换暗晶激活二级密码就用不了了! 那么 用缘分树送花给是最稳当的!
+        免费的花也不会送出, 若玩家提前送完了免费花和礼卷花, 尝试送花一定会送出点卷花!
+        """
+
+        self.signal_print_to_ui.emit(text=f"[输入二级密码] [{self.player}P] 开始.")
+
         # 打开缘分树界面
         self.print_debug(text="跳转到缘分树界面")
         self.action_bottom_menu(mode="跳转_缘分树")
@@ -2029,7 +2039,15 @@ class FAA:
             self.action_exit(mode="普通红叉")
             time.sleep(1)
 
+        self.signal_print_to_ui.emit(text=f"[输入二级密码] [{self.player}P] 结束.")
+
     def get_dark_crystal(self):
+        """
+        自动兑换暗晶的函数
+        """
+
+        self.signal_print_to_ui.emit(text=f"[兑换暗晶] [{self.player}P] 开始.")
+
         # 打开公会副本界面
         self.print_debug(text="跳转到工会副本界面")
         self.action_bottom_menu(mode="跳转_公会副本")
@@ -2053,6 +2071,8 @@ class FAA:
         for i in range(2):
             self.action_exit(mode="普通红叉")
 
+        self.signal_print_to_ui.emit(text=f"[兑换暗晶] [{self.player}P] 结束.")
+
     def delete_items(self):
         """用于删除多余的技能书类消耗品, 使用前需要输入二级或无二级密码"""
 
@@ -2066,7 +2086,7 @@ class FAA:
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=777, y=65)
         time.sleep(1)
 
-        self.signal_print_to_ui.emit(text="[删除物品] 背包图标可能需要加载, 等待10s")
+        self.signal_print_to_ui.emit(text=f"[删除物品] [{self.player}P] 背包图标可能需要加载, 等待10s")
         time.sleep(10)
 
         # 点击整理物品按钮

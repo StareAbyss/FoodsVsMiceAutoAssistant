@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png, png_cropping
-from function.globals.init_resources import RESOURCE_P
+from function.globals import init_resources
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
@@ -399,7 +399,7 @@ if __name__ == '__main__':
         root_handle = faa_get_handle(channel="锑食", mode="360")
         result = match_p_in_w(source_handle=handle,
                               source_range=[0, 0, 2000, 2000],
-                              template=RESOURCE_P["common"]["顶部菜单"]["大地图.png"],
+                              template=init_resources.RESOURCE_P["common"]["顶部菜单"]["大地图.png"],
                               match_tolerance=0.87,
                               source_root_handle=root_handle)
 
