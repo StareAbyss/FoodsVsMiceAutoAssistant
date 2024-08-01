@@ -1303,7 +1303,7 @@ class FAA:
                 find_i = loop_match_p_in_w(
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
-                    source_range=[350, 80, 480, 180],
+                    source_range=[420, 200, 500, 260],
                     template=RESOURCE_P["top_up_money"]["每日必充_判定点.png"],
                     match_tolerance=0.99,
                     match_interval=0.2,
@@ -1329,7 +1329,7 @@ class FAA:
             after_sleep=2,
             click=False)
         if not find:
-            return "步骤出现致命失误! 请联系开发者!"
+            return "本期日氪没有假期票Skip... 或进入每日必冲失败, 请联系开发者!"
 
         # 尝试领取 / 尝试进入充值界面 一元档
         CUS_LOGGER.debug("尝试领取 / 尝试进入充值界面...")
