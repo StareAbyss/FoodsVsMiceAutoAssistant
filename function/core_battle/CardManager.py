@@ -49,7 +49,7 @@ class CardManager:
 
     def init_card_list_dict(self):
         for i in ([1, 2] if self.is_group else [1]):
-            cards_plan = self.faa_dict[i].battle_plan_1["card"]
+            cards_plan = self.faa_dict[i].battle_plan_parsed["card"]
             self.card_list_dict[i] = []
             for j in range(len(cards_plan)):
                 # 按从前到后顺序，作为优先级顺序，从0开始
@@ -227,7 +227,7 @@ class ThreadCheckTimer(QThread):
                         max_card.is_kun_target = True
 
             # 调试打印 - 目前 <战斗管理器> 的状态
-            if EXTRA_GLOBALS.battle_extra_log:
+            if EXTRA_GLOBALS.extra_log_battle:
                 if self.faa.player == 1:
                     text = "[战斗执行器] "
                     for card in self.card_queue.card_list:
