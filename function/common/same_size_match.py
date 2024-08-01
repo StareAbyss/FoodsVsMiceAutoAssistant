@@ -51,18 +51,18 @@ def one_item_match(img_block, img_tar, mode="equal"):
     :param mode: str
         equal: 相等
         histogram: 直方图匹配
-        match_template: 模板匹配
-        match_is_bind: 物品是否为绑定的
-        match_template_with_mask_tradable: 掩模板单通道匹配可交易物品
+        match_template: 模板匹配 支持匹配度输出
+        match_is_bind: 物品是否为绑定的 支持匹配度输出
+        match_template_with_mask_tradable: 掩模板单通道匹配可交易物品 支持匹配度输出
         match_template_with_mask_locked: 掩模板单通道匹配可交易物品绑定物品
-    :return: bool 是否满足匹配条件
+    :return: bool 是否满足匹配条件 None or float 匹配度
     """
 
     if mode == "equal":
-        return np.array_equal(img_block[:, :, :-1], img_tar[:, :, :-1])
+        return np.array_equal(img_block[:, :, :-1], img_tar[:, :, :-1]), None
 
     if mode == "histogram":
-        return match_histogram(img_a=img_block[:, :, :-1], img_b=img_tar[:, :, :-1])
+        return match_histogram(img_a=img_block[:, :, :-1], img_b=img_tar[:, :, :-1]), None
 
     if mode == "match_template":
         # 被检查者 目标 目标缩小一圈来检查
@@ -73,14 +73,15 @@ def one_item_match(img_block, img_tar, mode="equal"):
             method=cv2.TM_SQDIFF_NORMED)
         (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(src=result)
         # 如果匹配度<阈值，就认为没有找到
-        if minVal > 1 - match_tolerance:
-            return False
-        return True
+        matching_degree = 1 - minVal
+        if matching_degree <= match_tolerance:
+            return False, matching_degree
+        return True, matching_degree
 
     if mode == "match_is_bind":
         match_tolerance = 0.98
-        source = RESOURCE_P["item"]["物品-绑定角标-战利品.png"][30:44,0:15,:]  # 特别注意 背包和战利品使用的角标不一样!!!
-        template = img_block[30:44,0:15,:]
+        source = img_block[30:44, 0:15, :]
+        template = RESOURCE_P["item"]["物品-绑定角标-战利品.png"][30:44, 0:15, :]  # 特别注意 背包和战利品使用的角标不一样!!!
         result = match_template_with_optional_mask(
             source=source,
             template=template,
@@ -89,23 +90,23 @@ def one_item_match(img_block, img_tar, mode="equal"):
         # 如果匹配度<阈值，就认为没有找到
         matching_degree = 1 - minVal
         if matching_degree <= match_tolerance:
-            return False
-        return True
+            return False, matching_degree
+        return True, matching_degree
 
     if mode == "match_template_with_mask_tradable":
         match_tolerance = 0.98
         mask = RESOURCE_P["item"]["物品-掩模-不绑定.png"]
         result = match_template_with_optional_mask(
-            source=img_tar[2:-10:2, 2:-10:2, :],
-            template=img_block[2:-10:2, 2:-10:2, :],
+            source=img_block[2:-10:2, 2:-10:2, :],
+            template=img_tar[2:-10:2, 2:-10:2, :],
             mask=mask[2:-10:2, 2:-10:2, :],
             test_show=False)
         (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(src=result)
         # 如果匹配度<阈值，就认为没有找到
         matching_degree = 1 - minVal
         if matching_degree <= match_tolerance:
-            return False
-        return True
+            return False, matching_degree
+        return True, matching_degree
 
     if mode == "match_template_with_mask_locked":
         match_tolerance = 0.98
@@ -115,16 +116,16 @@ def one_item_match(img_block, img_tar, mode="equal"):
             img_overlay=RESOURCE_P["item"]["物品-绑定角标-战利品.png"],  # 特别注意 背包和战利品使用的角标不一样!!!
             test_show=False)
         result = match_template_with_optional_mask(
-            source=img_tar[2:-10:2, 2:-10:2, :],
-            template=img_block[2:-10:2, 2:-10:2, :],
+            source=img_block[2:-10:2, 2:-10:2, :],
+            template=img_tar[2:-10:2, 2:-10:2, :],
             mask=mask[2:-10:2, 2:-10:2, :],
             test_show=False)
         (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(src=result)
         # 如果匹配度<阈值，就认为没有找到
         matching_degree = 1 - minVal
         if matching_degree <= match_tolerance:
-            return False
-        return True
+            return False, matching_degree
+        return True, matching_degree
 
 
 def match_block_equal_in_images(block_array, images):

@@ -1,16 +1,15 @@
 import copy
 import json
 import os
-import random
 import time
 
 import networkx as nx
 from cv2 import imencode
 
-from function.common.one_time_match import one_item_match
+from function.common.same_size_match import one_item_match, match_block_equal_in_images
+from function.globals import init_resources
 from function.globals.extra import EXTRA_GLOBALS
 from function.globals.get_paths import PATHS
-from function.globals.init_resources import RESOURCE_P
 from function.globals.log import CUS_LOGGER
 
 """
@@ -20,22 +19,26 @@ FAA战斗结果分析模块 - 战利品识别与自主学习的异元素融合:�
 该系统经过深度优化, 算法效率卓越, 识别准确高效.
 致谢: 八重垣天知 
 参考文献: "Topological sorting of large networks" (Communications of the ACM, 1962)
+上文由AI生成, 是某人中二病犯病的产物 :D
 """
 
 
-def match_items_from_image(img_save_path, image, mode='loots', test_print=False):
+def match_items_from_image_and_save(img_save_path, image, mode='loots', test_print=False):
     """
-    保存图片, 分析图片，获取战利品字典，尽可能不要输出None
+    保存图片, 分析图片，获取战利品字典
+    [不包含] 判定字典有效性 输出到日志 输出到服务器
     :param img_save_path: 图片保存路径
     :param image: 图片文件  numpy.ndarray
     :param mode: 识别模式
     :param test_print: 是否输出调试信息
-    :return:
+    :return: 战利品字典 不要输出None
     """
 
+    # 全局启动 或者 调用启动
+    test_print = test_print or EXTRA_GLOBALS.extra_log_match
+
     # 统计耗时
-    if test_print and mode == 'loots':
-        time_start = time.time()
+    time_start = time.time()
 
     # 判断mode和method正确:
     if mode not in ["loots", "chests"]:
@@ -156,59 +159,48 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
     :return: 优秀匹配结果, 迭代器, 是否是绑定的
     """
 
+    item_is_bind = False
     if may_locked:
-        if one_item_match(img_block=block,img_tar=None,mode="match_is_bind"):
-            # 识别到绑定角标
+        item_is_bind, _ = one_item_match(img_block=block, img_tar=None, mode="match_is_bind")
 
-            # 如果上次识图成功, 则再试一次, 看看是不是同一张图
-            if last_name is not None:
-                item_img = RESOURCE_P["item"]["战利品"][last_name + ".png"]
+    if item_is_bind:
+        # 全部遍历, 绑定物品只有开箱子会有 一般不会出现两个重复的识别结果 顺序表也不是为绑定物品准备
 
-                # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
-                if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_locked"):
-                    return last_name, list_iter, True
-
-            # 先按照顺序表遍历, 极大减少耗时(如果有顺序表)
-            if list_iter:
-                for item_name in list_iter:
-                    item_img = RESOURCE_P["item"]["战利品"][item_name + ".png"]
-
-                    # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
-                    if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_locked"):
-                        return item_name, list_iter, True
-
-            # 如果在json中按顺序查找没有找到, 全部遍历
-            for item_name, item_img in RESOURCE_P["item"]["战利品"].items():
-                item_name = item_name.replace(".png", "")
-                # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
-                if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_locked"):
-                    return item_name, list_iter, True
+        for item_name, item_img in init_resources.RESOURCE_P["item"]["战利品"].items():
+            item_name = item_name.replace(".png", "")
+            # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
+            is_it, _ = one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_locked")
+            if is_it:
+                return item_name, list_iter, True
 
     """未识别到绑定角标"""
 
     # 如果上次识图成功, 则再试一次, 看看是不是同一张图
     if last_name is not None:
-        item_img = RESOURCE_P["item"]["战利品"][last_name + ".png"]
+        item_img = init_resources.RESOURCE_P["item"]["战利品"][last_name + ".png"]
 
         # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
-        if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable"):
+        is_it, _ = one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable")
+        if is_it:
             return last_name, list_iter, False
 
     # 先按照顺序表遍历, 极大减少耗时(如果有顺序表)
     if list_iter:
         for item_name in list_iter:
-            item_img = RESOURCE_P["item"]["战利品"][item_name + ".png"]
+            item_img = init_resources.RESOURCE_P["item"]["战利品"][item_name + ".png"]
 
             # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
-            if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable"):
+            is_it = one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable")
+            if is_it:
                 return item_name, list_iter, False
 
     # 如果在json中按顺序查找没有找到, 全部遍历
-    for item_name, item_img in RESOURCE_P["item"]["战利品"].items():
+    for item_name, item_img in init_resources.RESOURCE_P["item"]["战利品"].items():
         item_name = item_name.replace(".png", "")
 
         # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
-        if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable"):
+        is_it = one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable")
+        if is_it:
             return item_name, list_iter, False
     """识别失败"""
 
