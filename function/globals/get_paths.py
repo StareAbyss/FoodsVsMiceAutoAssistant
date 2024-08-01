@@ -17,40 +17,68 @@ def get_root_path():
     sleep(10000)
 
 
-# 定义为全局变量
-PATHS = {
-    "root": get_root_path(),
-    "battle_plan": None,
-    "config": None,
-    "customize_todo": None,
-    "logs": None,
-    # resource
-    "font": None,
-    "logo": None,
-    "picture": {
-    },
-}
+def build_paths(root):
+    # 定义一个辅助函数来构建路径
+    return {
+        "root": root,
+        "battle_plan": os.path.join(root, "battle_plan"),
+        "config": os.path.join(root, "config"),
+        "customize_todo": os.path.join(root, "customize_todo"),
+        "logs": os.path.join(root, "logs"),
+        # 资源文件
+        "font": os.path.join(root, "resource", "font"),
+        "logo": os.path.join(root, "resource", "logo"),
+        "picture": {
+            "current": os.path.join(root, "resource", "picture"),
+            "common": os.path.join(root, "resource", "picture", "common"),
+            "number": os.path.join(root, "resource", "picture", "number"),
+            "card": os.path.join(root, "resource", "picture", "card"),
+            "stage": os.path.join(root, "resource", "picture", "stage"),
+            "quest_guild": os.path.join(root, "resource", "picture", "quest_guild"),
+            "quest_spouse": os.path.join(root, "resource", "picture", "quest_spouse"),
+            "quest_food": os.path.join(root, "resource", "picture", "quest_food"),
+            "ready_check_stage": os.path.join(root, "resource", "picture", "stage_ready_check"),
+            "map": os.path.join(root, "resource", "picture", "map"),
+            "item": os.path.join(root, "resource", "picture", "item"),
+            "error": os.path.join(root, "resource", "picture", "error"),
+        }
+    }
 
-PATHS["battle_plan"] = PATHS["root"] + "\\battle_plan"
-PATHS["config"] = PATHS["root"] + "\\config"
-PATHS["customize_todo"] = PATHS["root"] + "\\customize_todo"
-PATHS["logs"] = PATHS["root"] + "\\logs"
 
-PATHS["font"] = PATHS["root"] + "\\resource\\font"
-PATHS["logo"] = PATHS["root"] + "\\resource\\logo"
-PATHS["picture"]["current"] = PATHS["root"] + "\\resource\\picture"
+# 定义为全局变量 一般以固定备份调用 可以直接import该变量
+PATHS = build_paths(get_root_path())
 
-PATHS["picture"]["common"] = PATHS["picture"]["current"] + "\\common"
-PATHS["picture"]["number"] = PATHS["picture"]["current"] + "\\number"
-PATHS["picture"]["card"] = PATHS["picture"]["current"] + "\\card"
-PATHS["picture"]["stage"] = PATHS["picture"]["current"] + "\\stage"
-PATHS["picture"]["quest_guild"] = PATHS["picture"]["current"] + "\\quest_guild"
-PATHS["picture"]["quest_spouse"] = PATHS["picture"]["current"] + "\\quest_spouse"
-PATHS["picture"]["quest_food"] = PATHS["picture"]["current"] + "\\quest_food"
-PATHS["picture"]["ready_check_stage"] = PATHS["picture"]["current"] + "\\stage_ready_check"
-PATHS["picture"]["map"] = PATHS["picture"]["current"] + "\\map"
-PATHS["picture"]["item"] = PATHS["picture"]["current"] + "\\item"
-PATHS["picture"]["error"] = PATHS["picture"]["current"] + "\\error"
+
+def ensure_directory_exists(path):
+    """检测路径是否存在"""
+
+    # 检查路径是否存在
+    if not os.path.exists(path):
+        # 如果路径不存在，则创建它
+        os.makedirs(path)
+        print(f"路径不存在, 已创建: {path}")
+    else:
+        print(f"路径存在, 检测通过: {path}")
+
+
+def check_paths():
+    """检测所有路径是否存在"""
+    paths = [
+        "\\battle_plan_not_active",
+        "\\logs",
+        "\\logs\\chests_picture",
+        "\\logs\\loots_picture",
+        "\\logs\\match_failed",
+        "\\logs\\match_failed\\loots",
+        "\\logs\\match_failed\\texts",
+        "\\logs\\result_json"
+    ]
+    for path in paths:
+        ensure_directory_exists(PATHS["root"] + path)
+
+
+# 创建所有缺失的目录
+check_paths()
 
 if __name__ == '__main__':
     print(PATHS)
