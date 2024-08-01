@@ -1727,8 +1727,8 @@ class ThreadTodo(QThread):
                         "dict_exit": {
                             "other_time_player_a": [],
                             "other_time_player_b": [],
-                            "last_time_player_a": [],  # "回到上一级","普通红叉" 但之后刷新 所以空
-                            "last_time_player_b": []
+                            "last_time_player_a": ["回到上一级", "普通红叉"],  # "回到上一级","普通红叉" 但之后刷新 所以空
+                            "last_time_player_b": ["回到上一级", "普通红叉"],
                         }
                     }
                 ]
@@ -2060,5 +2060,3 @@ class ThreadTodo(QThread):
             extra_title=self.extra_opt["extra_title"],
             need_lock=self.extra_opt["need_lock"])
         self.extra_opt = None
-
-
