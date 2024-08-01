@@ -1,9 +1,11 @@
-import cv2
-import numpy as np
 import os
 
+import cv2
+import numpy as np
+
+from function.common.same_size_match import match_block_equal_in_images
+from function.globals import init_resources
 from function.globals.get_paths import PATHS
-from function.globals.init_resources import RESOURCE_P
 
 
 def find_topmost_text_pixel_in_range(gray_img, col_start, col_end, row_start, row_end):
@@ -31,7 +33,10 @@ def split_into_characters(line):
 
         # 尝试按西文字符宽度分割
         latin_block = line_gray[:, start_pos:start_pos + latin_width]
-        latin_match = match_block(latin_block, RESOURCE_P["ocr"]["texts_matched"])
+        latin_match = match_block_equal_in_images(
+            block_array=latin_block,
+            images=init_resources.RESOURCE_P["ocr"]["texts_matched"])
+
         # 如果匹配到西文字符，添加到字符列表并更新起始位置
         if latin_match:
             characters.append(latin_block)
@@ -47,7 +52,10 @@ def split_into_characters(line):
         if np.all(chinese_block == 255):
             break
 
-        chinese_match = match_block(block_array=chinese_block, imgs=RESOURCE_P["ocr"]["texts_matched"])
+        chinese_match = match_block_equal_in_images(
+            block_array=chinese_block,
+            images=init_resources.RESOURCE_P["ocr"]["texts_matched"])
+
         if not chinese_match:
             # 保存半分割
             name_id = len(os.listdir(PATHS["picture"]["current"] + "\\ocr\\blocks_half"))
@@ -105,31 +113,29 @@ def split_block(img_source):
     return character_blocks
 
 
-def match_block(block_array, imgs):
-    """识别block是否在file_patch文件夹中存在这个字, 直接对比是否完全一致"""
-    for img_name, img_array in imgs.items():
-        # 只在图像尺寸相同的情况下进行比较
-        if img_array.shape == block_array.shape:
-            # 检查两个图像数组是否完全相同
-            if np.array_equal(block_array, img_array):
-                return img_name[:-4]  # 去掉文件扩展名
-
-    return None
-
-
 def match(source):
     """识别一张图片"""
     blocks = split_block(img_source=source)
     result_str = ""
     for block in blocks:
-        result = match_block(block_array=block, imgs=RESOURCE_P["ocr"]["texts_matched"])
+
+        result = match_block_equal_in_images(
+            block_array=block,
+            images=init_resources.RESOURCE_P["ocr"]["texts_matched"])
+
         if result:
             result_str += result
+
         else:
             result_str += "?"
-            if not match_block(block_array=block, imgs=RESOURCE_P["ocr"]["texts_unmatched"]):
+            # 注意 需要重载一下内存中的图片, 这种情况下它可能变化了
+            init_resources.fresh_resource_log_img()
+            if not match_block_equal_in_images(
+                    block_array=block,
+                    images=init_resources.RESOURCE_LOG_IMG["texts"]):
+
                 # 使用PATHS["root"]来构建目标路径
-                texts_unmatched_path = os.path.join(PATHS["root"], "resource", "picture", "ocr", "texts_unmatched")
+                texts_unmatched_path = PATHS["logs"] + "\\match_failed\\texts"
 
                 p_id = len(os.listdir(texts_unmatched_path))
 

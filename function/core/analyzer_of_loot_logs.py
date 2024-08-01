@@ -210,15 +210,43 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
         # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
         if one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable"):
             return item_name, list_iter, False
+    """识别失败"""
+
+    def save_unmatched_block(img_block):
+
+        # 注意 需要重载一下内存中的图片
+        init_resources.fresh_resource_log_img()
+
+        unmatched_path = PATHS["logs"] + "\\match_failed\\loots"
+
+        if not match_block_equal_in_images(block_array=img_block, images=init_resources.RESOURCE_LOG_IMG["loots"]):
+            # i_id +1  保存为新图片
+            i_id = len(os.listdir(unmatched_path))
+            # 保存图片
+            save_path = os.path.join(unmatched_path, f"unknown_{i_id}_1.png")
+            imencode('.png', img_block)[1].tofile(save_path)
+
+        else:
+            # 自旋锁读写, 多线程访问会出现图片名称已经被更改的异步读写问题
+            while EXTRA_GLOBALS.file_is_reading_or_writing:
+                time.sleep(0.1)
+            EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+
+            # 重命名为数量+1 注意此tar_name 包含后缀名
+            for old_name, tar_image in init_resources.RESOURCE_LOG_IMG["loots"].items():
+                is_it, _ = one_item_match(img_block, tar_image, mode="equal")
+                if is_it:
+                    _, i_id, count = old_name.split('.')[0].split("_")
+                    old_path = f'{unmatched_path}\\{old_name}'
+                    new_path = f"{unmatched_path}\\unknown_{i_id}_{int(count) + 1}.png"
+                    os.rename(old_path, new_path)
+                    break
+
+            EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
 
     # 还是找不到, 识图失败 把block保存到 logs / match_failed / 中
     CUS_LOGGER.warning(f'该道具未能识别, 已在 [ logs / match_failed ] 生成文件, 请检查')
-
-    # 随便编码
-    filename = "{}\\match_failed\\{}.png".format(PATHS["logs"], random.randint(1, 100))
-
-    # 保存图片
-    imencode('.png', block)[1].tofile(filename)
+    save_unmatched_block(img_block=block)
 
     return "识别失败", list_iter, False
 
