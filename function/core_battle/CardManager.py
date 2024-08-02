@@ -2,7 +2,7 @@ from threading import Timer
 
 from PyQt5.QtCore import QThread, pyqtSignal
 
-from function.core_battle.Card import Card, CardKun
+from function.core_battle.Card import Card, CardKun,Special_card,is_special_card
 from function.core_battle.CardQueue import CardQueue
 from function.globals.extra import EXTRA_GLOBALS
 from function.globals.log import CUS_LOGGER
@@ -14,6 +14,7 @@ class CardManager:
     def __init__(self, faa_1, faa_2, round_interval=1):
         super().__init__()
         self.card_list_dict = {}
+        self.special_card_list = {}
         self.card_kun_dict = {}
         self.card_queue_dict = {}
         self.thread_dict = {}
@@ -51,9 +52,16 @@ class CardManager:
         for i in ([1, 2] if self.is_group else [1]):
             cards_plan = self.faa_dict[i].battle_plan_1["card"]
             self.card_list_dict[i] = []
+            self.special_card_list[i]=[]
             for j in range(len(cards_plan)):
                 # 按从前到后顺序，作为优先级顺序，从0开始
-                self.card_list_dict[i].append(Card(faa=self.faa_dict[i], priority=j))
+                result=is_special_card(cards_plan[j]["name"])
+                if result["found"]:
+                    self.special_card_list[i].append(Special_card(faa=self.faa_dict[i], priority=j,energy=result["energy"],card_type=result["card_type"]))
+                    if result["card_type"]==12 or result["card_type"]==15:#护罩类，除了炸弹还可能是常驻的罩子，冰沙也一并扔进去
+                        self.card_list_dict[i].append(Card(faa=self.faa_dict[i], priority=j))
+                else:
+                    self.card_list_dict[i].append(Card(faa=self.faa_dict[i], priority=j))
 
         # 将包含了极寒冰沙卡片的号筛选出来
         for player in ([1, 2] if self.is_group else [1]):

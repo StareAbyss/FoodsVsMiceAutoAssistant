@@ -104,89 +104,92 @@ class Card:
                 return
             EXTRA_GLOBALS.smoothie_lock_time = 7
 
-        # 点击 选中卡片
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=self.location_from[0], y=self.location_from[1])
+        with self.faa.battle_lock:#战斗放卡锁，用于防止与特殊放卡放置冲突，点击队列不连贯
+            # 点击 选中卡片
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=self.location_from[0], y=self.location_from[1])
 
-        if self.ergodic:
-            # 遍历模式: True 遍历该卡每一个可以放的位置
-            my_to_list = range(len(self.location))
-        else:
-            # 遍历模式: False 只放第一张, 为保证放下去, 同一个位置点两次
-            my_to_list = [0, 0]
+            if self.ergodic:
+                # 遍历模式: True 遍历该卡每一个可以放的位置
+                my_to_list = range(len(self.location))
+            else:
+                # 遍历模式: False 只放第一张, 为保证放下去, 同一个位置点两次
+                my_to_list = [0, 0]
 
-        for j in my_to_list:
-            # 点击 放下卡片
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                handle=self.handle,
-                x=self.location_to[j][0],
-                y=self.location_to[j][1])
-
-        # 放卡后点一下空白
-        T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
-
-        # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
-        time.sleep(self.click_sleep * (j + 3))
-
-        # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
-        if self.queue:
-            self.location.append(self.location[0])
-            self.location.remove(self.location[0])
-            self.location_to.append(self.location_to[0])
-            self.location_to.remove(self.location_to[0])
-
-        # 额外时延
-        time.sleep(0.2)
-
-        # 如果放卡后还可用,自ban 若干s
-        # 判断可用 如果不知道其还可用。会导致不自ban，导致无意义点击出现，后果更小。1轮扫描后纠正。
-        # 判断冷却 如果不知道其进入了冷却。会导致错误的额外的自ban，导致放卡逻辑错乱。ban描述后纠正。
-        self.fresh_status()
-
-        if self.status_usable and (self.name not in self.ban_white_list):
-            # 放置失败 说明放满了 如果不在白名单 就自ban
-            self.status_ban = 10
-        else:
-            if self.is_kun_target:
-                # 放置成功 如果是坤目标, 复制自身放卡的逻辑
-
-                # 点击 选中卡片 但坤
+            for j in my_to_list:
+                # 点击 放下卡片
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
-                    x=self.faa.kun_position["location_from"][0],
-                    y=self.faa.kun_position["location_from"][1])
-                time.sleep(self.click_sleep)
+                    x=self.location_to[j][0],
+                    y=self.location_to[j][1])
 
-                if self.ergodic:
-                    # 遍历模式: True 遍历该卡每一个可以放的位置
-                    my_to_list = range(len(self.location))
-                else:
-                    # 遍历模式: False 只放第一张, 为保证放下去, 同一个位置点两次
-                    my_to_list = [0, 0]
+            # 放卡后点一下空白
+            T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
 
-                for j in my_to_list:
-                    # 点击 放下卡片
+            # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
+            time.sleep(self.click_sleep * (j + 3))
+
+            # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
+            if self.queue:
+                self.location.append(self.location[0])
+                self.location.remove(self.location[0])
+                self.location_to.append(self.location_to[0])
+                self.location_to.remove(self.location_to[0])
+
+            # 额外时延
+            time.sleep(0.2)
+
+            # 如果放卡后还可用,自ban 若干s
+            # 判断可用 如果不知道其还可用。会导致不自ban，导致无意义点击出现，后果更小。1轮扫描后纠正。
+            # 判断冷却 如果不知道其进入了冷却。会导致错误的额外的自ban，导致放卡逻辑错乱。ban描述后纠正。
+            self.fresh_status()
+
+            if self.status_usable and (self.name not in self.ban_white_list):
+                # 放置失败 说明放满了 如果不在白名单 就自ban
+                self.status_ban = 10
+            else:
+                if self.is_kun_target:
+                    # 放置成功 如果是坤目标, 复制自身放卡的逻辑
+
+                    # 点击 选中卡片 但坤
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(
                         handle=self.handle,
-                        x=self.location_to[j][0],
-                        y=self.location_to[j][1])
+                        x=self.faa.kun_position["location_from"][0],
+                        y=self.faa.kun_position["location_from"][1])
                     time.sleep(self.click_sleep)
 
-                # 放卡后点一下空白
-                T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-                time.sleep(self.click_sleep)
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
-                time.sleep(self.click_sleep)
+                    if self.ergodic:
+                        # 遍历模式: True 遍历该卡每一个可以放的位置
+                        my_to_list = range(len(self.location))
+                    else:
+                        # 遍历模式: False 只放第一张, 为保证放下去, 同一个位置点两次
+                        my_to_list = [0, 0]
 
-                # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
-                if self.queue:
-                    self.location.append(self.location[0])
-                    self.location.remove(self.location[0])
-                    self.location_to.append(self.location_to[0])
-                    self.location_to.remove(self.location_to[0])
+                    for j in my_to_list:
+                        # 点击 放下卡片
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                            handle=self.handle,
+                            x=self.location_to[j][0],
+                            y=self.location_to[j][1])
+                        time.sleep(self.click_sleep)
 
-                # 额外时延
-                time.sleep(0.1)
+                    # 放卡后点一下空白
+                    T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+                    time.sleep(self.click_sleep)
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
+                    time.sleep(self.click_sleep)
+
+
+                    # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
+                    if self.queue:
+                        self.location.append(self.location[0])
+                        self.location.remove(self.location[0])
+                        self.location_to.append(self.location_to[0])
+                        self.location_to.remove(self.location_to[0])
+
+                    # 额外时延
+                    time.sleep(0.1)
+
 
     def fresh_status(self):
         """判断颜色来更改自身冷却和可用属性"""
@@ -299,12 +302,13 @@ class CardKun:
         self.faa = None
 
 class Special_card(Card):
-    def __init__(self, energy,*args, **kwargs):
+    def __init__(self, energy,card_type,*args, **kwargs):
         super().__init__(*args, **kwargs)
         self.energy = energy  # 特殊卡的初始能量值
-        self.need_shovel=False
-        self.need_coffee=False#是否需要咖啡粉唤醒
-        self.card_type=None
+        #是否需要咖啡粉唤醒
+        self.need_coffee = self.name in ["冰桶炸弹", "开水壶炸弹"]
+        self.card_type=card_type
+        self.need_shovel = self.card_type==12 or self.card_type==14#要秒铲的有草扇跟护罩炸弹
 
 
     def use_card(self,pos):
@@ -319,60 +323,61 @@ class Special_card(Card):
             EXTRA_GLOBALS.smoothie_lock_time = 7
 
         #根据玩家上互斥锁，保证放卡点击序列不会乱掉（因为多次点击还多线程操作很容易出事）
+        with self.faa.battle_lock:
 
-        #铲子的调用
-        T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
-        time.sleep(self.click_sleep / 2)  # 必须的间隔
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=self.location_to[0], y=self.location_to[1])
-        time.sleep(self.click_sleep)
-        #加一个垫子的判断
-
-
-
-
-
-
-        # 点击 选中卡片
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=self.location_from[0], y=self.location_from[1])
-
-
-        # 点击 放下卡片
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(
-            handle=self.handle,
-            x=self.location_to[pos[0]][0],
-            y=self.location_to[pos[1]][1])
-
-        # 放卡后点一下空白
-        T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
-        if self.need_shovel:#是否要秒铲
+            #铲子的调用
             T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
             time.sleep(self.click_sleep / 2)  # 必须的间隔
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=self.location_to[0],
-                                                    y=self.location_to[1])
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=self.location_to[0], y=self.location_to[1])
             time.sleep(self.click_sleep)
-        # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
-        time.sleep(self.click_sleep * 3)
-
-
-
-        # 额外时延
-        time.sleep(0.2)
-
-        # 如果放卡后还可用,自ban 若干s
-        # 判断可用 如果不知道其还可用。会导致不自ban，导致无意义点击出现，后果更小。1轮扫描后纠正。
-        # 判断冷却 如果不知道其进入了冷却。会导致错误的额外的自ban，导致放卡逻辑错乱。ban描述后纠正。
-        self.fresh_status()
-
-        if self.status_usable and (self.name not in self.ban_white_list):
-            # 放置失败 说明放满了 如果不在白名单 就自ban
-            self.status_ban = 10
+            #加一个垫子的判断
 
 
 
 
-        # 额外时延
-        time.sleep(0.1)
+
+
+            # 点击 选中卡片
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=self.location_from[0], y=self.location_from[1])
+
+
+            # 点击 放下卡片
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                handle=self.handle,
+                x=self.location_to[pos[0]][0],
+                y=self.location_to[pos[1]][1])
+
+            # 放卡后点一下空白
+            T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
+            if self.need_shovel:#是否要秒铲
+                T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
+                time.sleep(self.click_sleep / 2)  # 必须的间隔
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=self.location_to[0],
+                                                        y=self.location_to[1])
+                time.sleep(self.click_sleep)
+            # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
+            time.sleep(self.click_sleep * 3)
+
+
+
+            # 额外时延
+            time.sleep(0.2)
+
+            # 如果放卡后还可用,自ban 若干s
+            # 判断可用 如果不知道其还可用。会导致不自ban，导致无意义点击出现，后果更小。1轮扫描后纠正。
+            # 判断冷却 如果不知道其进入了冷却。会导致错误的额外的自ban，导致放卡逻辑错乱。ban描述后纠正。
+            self.fresh_status()
+
+            if self.status_usable and (self.name not in self.ban_white_list):
+                # 放置失败 说明放满了 如果不在白名单 就自ban
+                self.status_ban = 10
+
+
+
+
+            # 额外时延
+            time.sleep(0.1)
 
 
 def is_special_card(card_name):
@@ -406,11 +411,11 @@ def is_special_card(card_name):
     return {"found": False, "subdir_name": None, "energy":None,"card_type":None}
 
 
-# 示例使用
-card_name = "电音镭射喵"
-result = is_special_card(card_name)
-
-if result["found"]:
-    print(f"{card_name} 是特殊卡，位于子目录：{result['subdir_name']},耗能为{result['energy']},类型为{result['card_type']}")
-else:
-    print(f"{card_name} 不是特殊卡，未找到匹配文件。")
+# # 示例使用
+# card_name = "电音镭射喵"
+# result = is_special_card(card_name)
+#
+# if result["found"]:
+#     print(f"{card_name} 是特殊卡，位于子目录：{result['subdir_name']},耗能为{result['energy']},类型为{result['card_type']}")
+# else:
+#     print(f"{card_name} 不是特殊卡，未找到匹配文件。")

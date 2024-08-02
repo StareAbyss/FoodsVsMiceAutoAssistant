@@ -1,7 +1,7 @@
 import copy
 import time
 from datetime import datetime
-
+import threading
 import numpy as np
 import pytz
 
@@ -99,6 +99,8 @@ class FAA:
 
         # 战前战后实例 用于实现战斗前的ban卡, 战斗后的战利品图像截取识别 和 判断战斗正确结束
         self.object_battle_a_round_preparation = BattleARoundPreparation(faa=self)
+        #战斗放卡锁，保证同一时间一个号里边的特殊放卡及正常放卡只有一种放卡在操作
+        self.battle_lock = threading.Lock()
 
     def print_debug(self, text, player=None):
         if not player:
