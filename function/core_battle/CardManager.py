@@ -187,7 +187,7 @@ class ThreadCheckTimer(QThread):
         # 看看是不是结束了
         self.stop_flag = self.faa.faa_battle.check_end()
         if self.stop_flag:
-            if not self.stopped:
+            if not self.stopped:#正常结束，非主动杀死线程结束
                 self.faa.print_info(text='[战斗执行器] 检测到战斗结束标志, 即将关闭战斗中放卡的线程')
                 self.stop_signal.emit()
                 self.stopped = True  # 防止stop后再次调用

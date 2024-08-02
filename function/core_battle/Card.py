@@ -1,4 +1,5 @@
 import time
+import os
 
 import numpy as np
 
@@ -6,6 +7,7 @@ from function.common.bg_img_screenshot import capture_image_png
 from function.globals.extra import EXTRA_GLOBALS
 from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
+from function.globals.get_paths import PATHS
 
 
 def compare_pixels(img_source, img_template, mode="top"):
@@ -370,3 +372,27 @@ class Special_card(Card):
 
         # 额外时延
         time.sleep(0.1)
+
+def parse_and_compare(file_name, target_name):
+    """从文件名中解析出基础部分，并与目标名字进行比对"""
+    base_name = os.path.splitext(file_name)[0]
+    if '_' in base_name:
+        base_name = base_name.split('_')[0]
+    return base_name == target_name
+def is_special_card(card_name):
+    """判断是否为特殊卡，通过比较文件名"""
+    base_path = PATHS["picture"]["card"] + "\\特殊对策卡"
+
+    for root, dirs, files in os.walk(base_path):
+        for file in files:
+            if parse_and_compare(file, card_name):
+                return True
+    return False
+
+
+# # 示例使用
+# card_name = "9周年幸运草扇"
+# if is_special_card(card_name):
+#     print(f"{card_name} 是特殊卡")
+# else:
+#     print(f"{card_name} 不是特殊卡")
