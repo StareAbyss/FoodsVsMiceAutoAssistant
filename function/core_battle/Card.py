@@ -301,6 +301,7 @@ class Special_card(Card):
         super().__init__(*args, **kwargs)
         self.energy = energy  # 特殊卡的初始能量值
         self.need_shovel=False
+        self.need_coffee=False#是否需要咖啡粉唤醒
 
 
     def use_card(self,pos):
@@ -314,6 +315,7 @@ class Special_card(Card):
                 return
             EXTRA_GLOBALS.smoothie_lock_time = 7
 
+        #根据玩家上互斥锁，保证放卡点击序列不会乱掉（因为多次点击还多线程操作很容易出事）
 
         #铲子的调用
         T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
