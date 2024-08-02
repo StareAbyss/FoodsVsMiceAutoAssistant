@@ -304,6 +304,7 @@ class Special_card(Card):
         self.energy = energy  # 特殊卡的初始能量值
         self.need_shovel=False
         self.need_coffee=False#是否需要咖啡粉唤醒
+        self.card_type=None
 
 
     def use_card(self,pos):
@@ -373,26 +374,43 @@ class Special_card(Card):
         # 额外时延
         time.sleep(0.1)
 
-def parse_and_compare(file_name, target_name):
-    """从文件名中解析出基础部分，并与目标名字进行比对"""
-    base_name = os.path.splitext(file_name)[0]
-    if '_' in base_name:
-        base_name = base_name.split('_')[0]
-    return base_name == target_name
-def is_special_card(card_name):
-    """判断是否为特殊卡，通过比较文件名"""
-    base_path = PATHS["picture"]["card"] + "\\特殊对策卡"
 
+def is_special_card(card_name):
+    """判断是否为特殊卡，并返回匹配文件所在子目录的名称"""
+    base_path = PATHS["picture"]["card"] + "\\特殊对策卡"
+    card_name = os.path.splitext(card_name)[0]  # 移除传入名字的扩展名
+
+    # 遍历目录及其子目录
     for root, dirs, files in os.walk(base_path):
         for file in files:
-            if parse_and_compare(file, card_name):
-                return True
-    return False
+            # 解析文件名并移除扩展名
+            base_name = os.path.splitext(file)[0]
+            energy =None
+            if '_' in base_name:
+                parts = base_name.split('_')
+                base_name= parts[0]
+                card_type = parts[1]
+                if len(parts) > 2:
+                    energy = int(parts[2])
 
 
-# # 示例使用
-# card_name = "9周年幸运草扇"
-# if is_special_card(card_name):
-#     print(f"{card_name} 是特殊卡")
-# else:
-#     print(f"{card_name} 不是特殊卡")
+            # 检查是否匹配
+            if base_name == card_name:
+                # 计算子目录的名称
+                subdir_name = os.path.relpath(root, base_path)
+                return {"found": True, "subdir_name": subdir_name, "energy":energy,"card_type":card_type}
+                # 返回匹配状态和匹配文件所在子目录的名称
+
+
+    # 如果没有找到匹配的文件，返回匹配状态为False
+    return {"found": False, "subdir_name": None, "energy":None,"card_type":None}
+
+
+# 示例使用
+card_name = "电音镭射喵"
+result = is_special_card(card_name)
+
+if result["found"]:
+    print(f"{card_name} 是特殊卡，位于子目录：{result['subdir_name']},耗能为{result['energy']},类型为{result['card_type']}")
+else:
+    print(f"{card_name} 不是特殊卡，未找到匹配文件。")
