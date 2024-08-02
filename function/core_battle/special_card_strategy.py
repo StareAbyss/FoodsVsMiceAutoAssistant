@@ -223,8 +223,8 @@ def solve_special_card_problem(points_to_cover, obstacles):
                     for c in copy_strategy2.keys():
                         if value(w[i, j, s, c]) == 1:
                             print(f"2p复制类对策卡 {c} 复制了对策卡 {s} 放置于 ({i},{j})")
-# 定义待处理点位列表
-points_to_cover = ["9-5", "3-2", "9-2", "1-1"]  # 添加所有待处理点位
-# 定义障碍列表
-obstacles = ["1-1", "2-3", "9-6"]  # 添加所有障碍点位
-solve_special_card_problem(points_to_cover, obstacles)
+# # 定义待处理点位列表
+# points_to_cover = ["9-5", "3-2", "9-2", "1-1"]  # 添加所有待处理点位
+# # 定义障碍列表
+# obstacles = ["1-1", "2-3", "9-6"]  # 添加所有障碍点位
+# solve_special_card_problem(points_to_cover, obstacles)

@@ -11,7 +11,7 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 class CardManager:
 
-    def __init__(self, faa_1, faa_2, round_interval=1):
+    def __init__(self, faa_1, faa_2, solve_queue,round_interval=1):
         super().__init__()
         self.card_list_dict = {}
         self.special_card_list = {}
@@ -43,6 +43,8 @@ class CardManager:
 
         # 刷新全局冰沙锁
         EXTRA_GLOBALS.smoothie_lock_time = 0
+        #待解决队列，从这里提取信息
+        self.solve_queue = solve_queue
 
         # 对象分析 打包务必注释掉！
         # objgraph.show_most_common_types()
@@ -86,7 +88,7 @@ class CardManager:
         # 在每个号开打前 打印上一次战斗到这一次战斗之间, 累计的点击队列状态
         CUS_LOGGER.info(f"[战斗执行器] 在两场战斗之间, 点击队列变化状态如下, 可判断是否出现点击队列积压的情况")
         T_ACTION_QUEUE_TIMER.print_queue_statue()
-        # 实例化 检测线程 + 用卡线程
+        # 实例化 检测线程 + 用卡线程+特殊用卡进程
         for i in players:
             self.thread_dict[i] = ThreadCheckTimer(
                 card_queue=self.card_queue_dict[i],
@@ -99,6 +101,12 @@ class CardManager:
                 faa=self.faa_dict[i],
                 round_interval=self.round_interval
             )
+        self.thread_dict[4] = ThreadUseSpecialCardTimer(
+            card_queue=self.special_card_list,
+            faa=self.faa_dict,
+            round_interval=self.round_interval,
+            read_queue=self.solve_queue
+        )
 
         CUS_LOGGER.debug("[战斗执行器] 线程已全部实例化")
         CUS_LOGGER.debug(self.thread_dict)
@@ -129,6 +137,12 @@ class CardManager:
                 card.destroy()  # 释放卡片内存
             card_list.clear()  # 清空卡片列表
         self.card_list_dict.clear()  # 清空卡片列表字典
+        #释放特殊卡内存
+        for key, card_list in self.special_card_list.items():
+            for card in card_list:
+                card.destroy()  # 释放卡片内存
+            card_list.clear()  # 清空卡片列表
+        self.special_card_list.clear()  # 清空卡片列表字典
 
         # 释放坤坤卡的内存
         for key, card in self.card_kun_dict.items():
@@ -233,6 +247,7 @@ class ThreadCheckTimer(QThread):
                     # 设置优先级最高的卡片为kun目标
                     if max_card:
                         max_card.is_kun_target = True
+                        self.card_kun.target_card=max_card
 
             # 调试打印 - 目前 <战斗管理器> 的状态
             if EXTRA_GLOBALS.battle_extra_log:
@@ -298,3 +313,53 @@ class ThreadUseCardTimer(QThread):
         # 清除引用; 释放内存
         self.faa = None
         self.card_queue = None
+
+
+class ThreadUseSpecialCardTimer(QThread):
+    def __init__(self, card_queue, faa, round_interval,read_queue):
+        super().__init__()
+        self.card_queue = card_queue
+        self.faa = faa
+        self.stop_flag = True
+        self.timer = None
+        self.round_interval = round_interval*2#因为读图是两秒一次，所以此处设置两秒尝试获取一次信息
+        self.read_queue = read_queue
+
+    def run(self):
+        self.stop_flag = False
+        self.timer = Timer(self.round_interval, self.analyze_special_card)
+        self.timer.start()
+        self.faa[0].print_debug('[战斗执行器] 启动特殊放卡线程')
+        while not self.stop_flag:
+            QThread.msleep(100)
+        self.timer.cancel()
+        self.timer = None
+
+
+    def analyze_special_card(self):
+        result = self.read_queue.get()#不管能不能用对策卡先提取信息再说，免得队列堆积
+        if not self.faa.faa_battle.fire_elemental_1000:#没有1000火放毛线炸弹
+            if result is not None:
+                wave, godwind, positions = result#分别为是否波次，是否神风及待炸点位列表
+        if not self.stop_flag:
+            self.timer = Timer(self.round_interval, self.analyze_special_card)
+            self.timer.start()
+
+    def use_card(self):
+        self.card_queue.use_top_card()
+        if not self.stop_flag:
+            self.timer = Timer(self.round_interval, self.use_card)
+            self.timer.start()
+
+    def stop(self):
+        self.faa[0].print_debug("[战斗执行器] ThreadUseSpecialCardTimer stop方法已激活")
+        # 设置Flag
+        self.stop_flag = True
+        # 退出线程的事件循环
+        self.quit()
+        self.wait()
+        self.deleteLater()
+        # 清除引用; 释放内存
+        self.faa = None
+        self.card_queue = None
+        self.read_queue = None

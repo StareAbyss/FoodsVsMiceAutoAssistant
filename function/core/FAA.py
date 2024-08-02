@@ -101,6 +101,8 @@ class FAA:
         self.object_battle_a_round_preparation = BattleARoundPreparation(faa=self)
         #战斗放卡锁，保证同一时间一个号里边的特殊放卡及正常放卡只有一种放卡在操作
         self.battle_lock = threading.Lock()
+        #坤锁，上了锁坤的目标就不会更新，直到正常计算完成是否放坤
+        self.kun_or_other_need_lock = threading.Lock()
 
     def print_debug(self, text, player=None):
         if not player:

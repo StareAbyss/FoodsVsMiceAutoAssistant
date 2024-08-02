@@ -209,8 +209,6 @@ class QMainWindowService(QMainWindowLog):
         """
 
         """线程处理"""
-        lock=threading.Lock()
-        lock.acquire()
         self.is_ending=True
         for thread_0 in [self.thread_todo_1, self.thread_todo_2]:
             if thread_0 is not None:
@@ -232,6 +230,14 @@ class QMainWindowService(QMainWindowLog):
                 manager = thread_0.thread_card_manager
                 if manager is not None:
                     manager.stop()
+                #释放战斗锁
+                faas=thread_0.faa
+                if faas is not None:
+                    for faa in faas:
+                        if faa is not None:
+                            lock=faa.battle_lock
+                            if lock.locked():
+                                lock.release()
 
                 thread_0.terminate()
                 thread_0.wait()  # 等待线程确实中断 QThread
@@ -250,7 +256,7 @@ class QMainWindowService(QMainWindowLog):
         # 当前正在运行 的 文本 修改
         self.Label_RunningState.setText(f"任务事项线程状态: 未运行")
         self.is_ending = False#完成完整的线程结束
-        lock.release()
+
 
 
     def todo_click_btn(self):

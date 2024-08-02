@@ -271,6 +271,8 @@ class CardKun:
         """用于完成放卡的额外类属性"""
         # 状态 可用
         self.status_usable = False
+        #目标使用卡片
+        self.target_card=None
 
     def fresh_status(self):
         """判断颜色来更改自身冷却和可用属性"""
