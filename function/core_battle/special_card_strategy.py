@@ -53,7 +53,7 @@ def generate_extra_coverage(strategy_id,extra):
             return [(i, j) for i in range(-2, 2) for j in range(-1, 2)]+[(i, 0) for i in range(-8, 9)]
         else:
             return [(i, j) for i in range(-2, 2) for j in range(-1, 2)] + [(i, 0) for i in range(-8, 9)]+[(0, j) for j in range(-6, 7)]
-def add_strategy(player, strategy_id, cost, rows=None, cols=None,extra=None):
+def add_strategy(player, strategy_id, cost,card, rows=None, cols=None,extra=None):
     """
     添加策略到策略字典中，并动态生成唯一的策略ID和覆盖范围。
     :param strategies: 策略字典
@@ -76,14 +76,14 @@ def add_strategy(player, strategy_id, cost, rows=None, cols=None,extra=None):
     # 添加策略到字典，使用唯一ID
     if player==1:
         if strategy_id == 9:
-            copy_strategy[f"{strategy_count}"] = {"coverage": coverage, "cost": cost}
+            copy_strategy[card] = {"coverage": coverage, "cost": cost}
         else:
-            strategies[f"{strategy_count}"] = {"coverage": coverage, "cost": cost}
+            strategies[card] = {"coverage": coverage, "cost": cost}
     elif player==2:
         if strategy_id == 9:
-            copy_strategy2[f"{strategy_count}"] = {"coverage": coverage, "cost": cost}
+            copy_strategy2[card] = {"coverage": coverage, "cost": cost}
         else:
-            strategies2[f"{strategy_count}"] = {"coverage": coverage, "cost": cost}
+            strategies2[card] = {"coverage": coverage, "cost": cost}
 
 def solve_special_card_problem(points_to_cover, obstacles,card_list_can_use):
     # 定义问题
@@ -114,11 +114,11 @@ def solve_special_card_problem(points_to_cover, obstacles,card_list_can_use):
     for i in range(0, 2):#遍历可用列表添加策略
         for card in card_list_can_use[i]:
             if card.card_type==8:
-                add_strategy(i, 8, card.energy, rows=card.rows, cols=card.cols)
+                add_strategy(i, 8, card.energy, rows=card.rows, cols=card.cols,card=card)
             elif card.card_type==12 or card.card_type==13:
-                add_strategy(i, card.card_type, card.energy,extra=card.cols)
+                add_strategy(i, card.card_type, card.energy,extra=card.cols,card=card)
             else:
-                add_strategy(i, card.card_type, card.energy)
+                add_strategy(i, card.card_type, card.energy,card=card)
 
 
 

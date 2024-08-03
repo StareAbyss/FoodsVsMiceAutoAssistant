@@ -373,6 +373,7 @@ class ThreadUseSpecialCardTimer(QThread):
             if result is not None:
                 wave, godwind, positions = result  # 分别为是否波次，是否神风及待炸点位列表
                 if wave or godwind or positions:#任意一个就刷新状态
+                    self.Todo_list={}
                     if wave:
                         for i in range(1,3):
                             waveflag=False
@@ -381,7 +382,7 @@ class ThreadUseSpecialCardTimer(QThread):
                                     card.fresh_status()
                                     if card.status_usable:
                                         waveflag=True
-                                        self.Todo_list[i].append(card)
+                                        self.Todo_list[i].append([card,None])
                                         break
                                 if waveflag:
                                     break
@@ -393,7 +394,7 @@ class ThreadUseSpecialCardTimer(QThread):
                                     card.fresh_status()
                                     if card.status_usable:
                                         godwindflag = True
-                                        self.Todo_list[i].append(card)
+                                        self.Todo_list[i].append([card,None])
                                         break
                                 if godwindflag:
                                     break
@@ -410,8 +411,18 @@ class ThreadUseSpecialCardTimer(QThread):
                                 special_card.fresh_status()#刷新冷却状态，可用就加入对策列表
                                 if special_card.status_usable:
                                     self.card_list_can_use[1].append(special_card)
-                        solve_special_card_problem(positions, self.faa[0].battle_plan_1["obstacle"],self.card_list_can_use)
-                    self.use_card()#按todolist用卡
+                        result=solve_special_card_problem(positions, self.faa[0].battle_plan_1["obstacle"],self.card_list_can_use)
+                        if result is not None:
+                            strategy1, strategy2=result
+                            for card,pos in strategy1:
+                                self.Todo_list[1].append([card, pos])
+                            for card,pos in strategy2:
+                                self.Todo_list[2].append([card, pos])
+
+                    self.timer = Timer(self.round_interval / 200, self.use_card,args=(1,))#1p0.01秒后开始放卡
+                    self.timer.start()#按todolist用卡
+                    self.timer = Timer(self.round_interval / 200, self.use_card, args=(2,))  # 2p0.01秒后开始放卡
+                    self.timer.start()  # 按todolist用卡
 
 
 
@@ -419,11 +430,16 @@ class ThreadUseSpecialCardTimer(QThread):
             self.timer = Timer(self.round_interval, self.analyze_special_card)
             self.timer.start()
 
-    def use_card(self):
-        self.card_queue.use_top_card()
-        if not self.stop_flag:
-            self.timer = Timer(self.round_interval, self.use_card)
-            self.timer.start()
+    def use_card(self,player):
+        for card in self.Todo_list[player]:
+            card[0].use_card(card[1])
+            if self.stop_flag:
+                break
+            else:
+                QThread.msleep(self.round_interval / 200)
+
+
+
 
     def stop(self):
         self.faa[0].print_debug("[战斗执行器] ThreadUseSpecialCardTimer stop方法已激活")

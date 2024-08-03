@@ -8,6 +8,10 @@ from function.globals.extra import EXTRA_GLOBALS
 from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.globals.get_paths import PATHS
+from function.core_battle.get_position_in_battle import get_position_card_cell_in_battle
+
+# 在文件的开始位置获取位置坐标字典，深渊写的太低内聚了，我不想再套娃好几层传参了
+position_dict = get_position_card_cell_in_battle()
 
 
 def compare_pixels(img_source, img_template, mode="top"):
@@ -315,7 +319,7 @@ class Special_card(Card):
     def __init__(self, energy,card_type,rows=None,cols=None,*args, **kwargs):
         super().__init__(*args, **kwargs)
         self.energy = energy  # 特殊卡的初始能量值
-        #是否需要咖啡粉唤醒
+        #是否需要咖啡粉唤醒#算了不想写相关逻辑了，等有缘人补充吧
         self.need_coffee = self.name in ["冰桶炸弹", "开水壶炸弹"]
         self.card_type=card_type
         self.need_shovel = self.card_type==12 or self.card_type==14#要秒铲的有草扇跟护罩炸弹
@@ -336,60 +340,87 @@ class Special_card(Card):
 
         #根据玩家上互斥锁，保证放卡点击序列不会乱掉（因为多次点击还多线程操作很容易出事）
         with self.faa.battle_lock:
+            if pos is None:#无默认坐标即为冰桶类或草扇
 
-            #铲子的调用
-            T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
-            time.sleep(self.click_sleep / 2)  # 必须的间隔
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=self.location_to[0], y=self.location_to[1])
-            time.sleep(self.click_sleep)
-            #加一个垫子的判断
-
-
-
-
-
-
-            # 点击 选中卡片
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=self.location_from[0], y=self.location_from[1])
-
-
-            # 点击 放下卡片
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                handle=self.handle,
-                x=self.location_to[pos[0]][0],
-                y=self.location_to[pos[1]][1])
-
-            # 放卡后点一下空白
-            T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
-            if self.need_shovel:#是否要秒铲
+                #铲子的调用
                 T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
                 time.sleep(self.click_sleep / 2)  # 必须的间隔
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=self.location_to[0],
-                                                        y=self.location_to[1])
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=self.location_to[0][0], y=self.location_to[0][1])
                 time.sleep(self.click_sleep)
-            # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
-            time.sleep(self.click_sleep * 3)
+                #加一个垫子的判断
+                if self.location[0] in self.faa.battle_plan_1["mat"]:#点位要放垫子
+                    for mat in self.faa.mat_card_positions:
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=mat[location_from][0],
+                                                                y=mat[location_from][1])
+                        # 点击 放下卡片
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                            handle=self.handle,
+                            x=self.location_to[0][0],
+                            y=self.location_to[0][1])
+
+                # 点击 选中卡片
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=self.location_from[0], y=self.location_from[1])
+
+
+                # 点击 放下卡片
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle,
+                    x=self.location_to[0][0],
+                    y=self.location_to[0][1])
+
+                # 放卡后点一下空白
+                T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
+                if self.need_shovel:#是否要秒铲
+                    T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
+                    time.sleep(self.click_sleep / 2)  # 必须的间隔
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=self.location_to[0][0], y=self.location_to[0][1])
+                    time.sleep(self.click_sleep)
+                # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
+                time.sleep(self.click_sleep * 4)
+            else:#有默认坐标传入，意味着是炸弹类卡片
+                # 铲子的调用
+                T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
+                time.sleep(self.click_sleep / 2)  # 必须的间隔
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle,
+                                                        x=position_dict[self.location["{pos[0]}-{pos[1]}"]][0],
+                                                        y=position_dict["{pos[0]}-{pos[1]}"][1])
+                time.sleep(self.click_sleep)
+                # 加一个垫子的判断
+                if self.location[0] in self.faa.battle_plan_1["mat"]:#点位要放垫子
+                    for mat in self.faa.mat_card_positions:
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=mat[location_from][0],
+                                                                y=mat[location_from][1])
+                        # 点击 放下卡片
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle,
+                                                                x=position_dict[self.location["{pos[0]}-{pos[1]}"]][0],
+                                                                y=position_dict["{pos[0]}-{pos[1]}"][1])
+
+
+                # 点击 选中卡片
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=self.location_from[0],
+                                                        y=self.location_from[1])
+
+                # 点击 放下卡片
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle,
+                                                        x=position_dict[self.location["{pos[0]}-{pos[1]}"]][0],
+                                                        y=position_dict["{pos[0]}-{pos[1]}"][1])
+
+                # 放卡后点一下空白
+                T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
+                if self.need_shovel:  # 是否要秒铲
+                    T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
+                    time.sleep(self.click_sleep / 2)  # 必须的间隔
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle,
+                                                            x=position_dict[self.location["{pos[0]}-{pos[1]}"]][0],
+                                                            y=position_dict["{pos[0]}-{pos[1]}"][1])
+                    time.sleep(self.click_sleep)
+                # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
+                time.sleep(self.click_sleep * 4)
 
 
 
-            # 额外时延
-            time.sleep(0.2)
-
-            # 如果放卡后还可用,自ban 若干s
-            # 判断可用 如果不知道其还可用。会导致不自ban，导致无意义点击出现，后果更小。1轮扫描后纠正。
-            # 判断冷却 如果不知道其进入了冷却。会导致错误的额外的自ban，导致放卡逻辑错乱。ban描述后纠正。
-            self.fresh_status()
-
-            if self.status_usable and (self.name not in self.ban_white_list):
-                # 放置失败 说明放满了 如果不在白名单 就自ban
-                self.status_ban = 10
-
-
-
-
-            # 额外时延
-            time.sleep(0.1)
 
 
 def is_special_card(card_name):

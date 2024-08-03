@@ -649,7 +649,7 @@ class FAA:
             self.print_debug(text="你的战斗放卡opt如下:")
             self.print_debug(text=list_cell_all)
 
-            self.battle_plan_1 = {"card": list_cell_all, "shovel": list_shovel,"obstacle":stage_info["obstacle"]}
+            self.battle_plan_1 = {"card": list_cell_all, "shovel": list_shovel,"obstacle":stage_info["obstacle"],"mat":stage_info["mat_cell"]}
 
         return main()
 
