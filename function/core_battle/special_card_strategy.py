@@ -1,4 +1,5 @@
 from pulp import *
+from function.globals.log import CUS_LOGGER
 def generate_coverage(strategy_id):
     """
     根据策略ID生成覆盖区域。
@@ -45,11 +46,13 @@ def generate_extra_coverage(strategy_id,extra):
 
     if strategy_id == 12:
         half_size = extra // 2
-        return [(i, j) for i in range(-half_size, half_size + 1) for j in range(-half_size, half_size + 1)]  # 3x3或5x5十字
+        return [(i, j) for i in range(-half_size, half_size + 1) for j in range(-half_size, half_size + 1)]  # 3x3或5x5
 
     elif strategy_id == 13:
-        return [(i, j) for i in range(-2, 3) for j in range(-2, 3)]
-
+        if extra<3:
+            return [(i, j) for i in range(-2, 2) for j in range(-1, 2)]+[(i, 0) for i in range(-8, 9)]
+        else:
+            return [(i, j) for i in range(-2, 2) for j in range(-1, 2)] + [(i, 0) for i in range(-8, 9)]+[(0, j) for j in range(-6, 7)]
 def add_strategy(player, strategy_id, cost, rows=None, cols=None,extra=None):
     """
     添加策略到策略字典中，并动态生成唯一的策略ID和覆盖范围。
@@ -235,21 +238,31 @@ def solve_special_card_problem(points_to_cover, obstacles,card_list_can_use):
     # 输出结果
     print("Status:", LpStatus[prob.status])
     if LpStatus[prob.status] == "Optimal":  # 有解
-        print("火苗成本 =", value(prob.objective))
+        CUS_LOGGER.debug("火苗成本 =", value(prob.objective))
+        strategy1={}
+        strategy2 = {}
+
         for i in range(1, MAP_WIDTH + 1):
             for j in range(1, MAP_HEIGHT + 1):
                 for s in strategies.keys():
                     if value(x[i, j, s]) == 1:
-                        print(f"1p对策卡 {s} 放置于 ({i},{j})")
+                        strategy1[s] = [i,j]
+                        CUS_LOGGER.debug(f"1p对策卡 {s} 放置于 ({i},{j})")
                     for c in copy_strategy.keys():
                         if value(y[i, j, s, c]) == 1:
-                            print(f"1p复制类对策卡 {c} 复制了对策卡 {s} 放置于 ({i},{j})")
+                            strategy1[c] = [i, j]
+                            CUS_LOGGER.debug(f"1p复制类对策卡 {c} 复制了对策卡 {s} 放置于 ({i},{j})")
                 for s in strategies2.keys():
                     if value(z[i, j, s]) == 1:
-                        print(f"2p对策卡 {s} 放置于 ({i},{j})")
+                        strategy2[s] = [i, j]
+                        CUS_LOGGER.debug(f"2p对策卡 {s} 放置于 ({i},{j})")
                     for c in copy_strategy2.keys():
                         if value(w[i, j, s, c]) == 1:
-                            print(f"2p复制类对策卡 {c} 复制了对策卡 {s} 放置于 ({i},{j})")
+                            strategy2[c] = [i, j]
+                            CUS_LOGGER.debug(f"2p复制类对策卡 {c} 复制了对策卡 {s} 放置于 ({i},{j})")
+        return strategy1,strategy2
+    else:
+        return None
 # # 定义待处理点位列表
 # points_to_cover = ["9-5", "3-2", "9-2", "1-1"]  # 添加所有待处理点位
 # # 定义障碍列表
