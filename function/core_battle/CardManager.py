@@ -7,6 +7,7 @@ from function.core_battle.CardQueue import CardQueue
 from function.globals.extra import EXTRA_GLOBALS
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
+from function.core_battle.special_card_strategy import solve_special_card_problem
 
 
 class CardManager:
@@ -18,6 +19,8 @@ class CardManager:
         self.card_kun_dict = {}
         self.card_queue_dict = {}
         self.thread_dict = {}
+        self.iceboom_list={}
+        self.the_9th_grassfan = {}
         self.smoothie_usable_player = []
 
         # 一轮检测的时间 单位s, 该时间的1/20则是尝试使用一张卡的间隔, 该时间的10倍则是使用武器技能/自动拾取动作的间隔 推荐默认值 1s
@@ -59,9 +62,15 @@ class CardManager:
                 # 按从前到后顺序，作为优先级顺序，从0开始
                 result=is_special_card(cards_plan[j]["name"])
                 if result["found"]:
-                    self.special_card_list[i].append(Special_card(faa=self.faa_dict[i], priority=j,energy=result["energy"],card_type=result["card_type"]))
-                    if result["card_type"]==12 or result["card_type"]==15:#护罩类，除了炸弹还可能是常驻的罩子，冰沙也一并扔进去
-                        self.card_list_dict[i].append(Card(faa=self.faa_dict[i], priority=j))
+                    if result["card_type"]<14 and result["card_type"]!=11:#不是冰桶草扇冰沙或其他垃圾卡
+                        self.special_card_list[i].append(Special_card(faa=self.faa_dict[i], priority=j,energy=result["energy"],card_type=result["card_type"]))
+                        if result["card_type"]==12 :#护罩类，除了炸弹还可能是常驻的罩子
+                            self.card_list_dict[i].append(Card(faa=self.faa_dict[i], priority=j))
+                    elif result["card_type"]==11:#冰桶类
+                        self.iceboom_list[i].append(Special_card(faa=self.faa_dict[i], priority=j,energy=result["energy"],card_type=result["card_type"]))
+                    elif result["card_type"]==14:#草扇
+                        self.the_9th_grassfan[i].append(Special_card(faa=self.faa_dict[i], priority=j,energy=result["energy"],card_type=result["card_type"]))
+
                 else:
                     self.card_list_dict[i].append(Card(faa=self.faa_dict[i], priority=j))
 
@@ -75,6 +84,9 @@ class CardManager:
         for player in ([1, 2] if self.is_group else [1]):
             if self.faa_dict[player].kun_position:
                 self.card_kun_dict[player] = CardKun(faa=self.faa_dict[player])
+            for card in self.card_list_dict[player]:
+                if card.kun>0:
+                    card.card_kun=self.card_kun_dict[player]
 
     def init_card_queue_dict(self):
         for i in ([1, 2] if self.is_group else [1]):
@@ -105,7 +117,10 @@ class CardManager:
             card_queue=self.special_card_list,
             faa=self.faa_dict,
             round_interval=self.round_interval,
-            read_queue=self.solve_queue
+            read_queue=self.solve_queue,
+            is_group=self.is_group,
+            iceboom_list=self.iceboom_list,
+            the_9th_grassfan=self.the_9th_grassfan
         )
 
         CUS_LOGGER.debug("[战斗执行器] 线程已全部实例化")
@@ -247,7 +262,7 @@ class ThreadCheckTimer(QThread):
                     # 设置优先级最高的卡片为kun目标
                     if max_card:
                         max_card.is_kun_target = True
-                        self.card_kun.target_card=max_card
+
 
             # 调试打印 - 目前 <战斗管理器> 的状态
             if EXTRA_GLOBALS.battle_extra_log:
@@ -316,7 +331,7 @@ class ThreadUseCardTimer(QThread):
 
 
 class ThreadUseSpecialCardTimer(QThread):
-    def __init__(self, card_queue, faa, round_interval,read_queue):
+    def __init__(self, card_queue, faa, round_interval,read_queue,is_group,iceboom_list,the_9th_grassfan):
         super().__init__()
         self.card_queue = card_queue
         self.faa = faa
@@ -324,6 +339,12 @@ class ThreadUseSpecialCardTimer(QThread):
         self.timer = None
         self.round_interval = round_interval*2#因为读图是两秒一次，所以此处设置两秒尝试获取一次信息
         self.read_queue = read_queue
+        self.is_group = is_group
+        self.flag=[True,True,True]
+        self.card_list_can_use=[[],[]]
+        self.Todo_list={}
+        self.iceboom_list = iceboom_list
+        self.the_9th_grassfan = the_9th_grassfan
 
     def run(self):
         self.stop_flag = False
@@ -337,10 +358,63 @@ class ThreadUseSpecialCardTimer(QThread):
 
 
     def analyze_special_card(self):
+        self.flag[1]=True
+        self.flag[2]=True
+        if self.is_group:
+            self.flag[2]=False
         result = self.read_queue.get()#不管能不能用对策卡先提取信息再说，免得队列堆积
-        if not self.faa.faa_battle.fire_elemental_1000:#没有1000火放毛线炸弹
+        if not self.faa[0].faa_battle.fire_elemental_1000:#没有1000火放毛线炸弹
+            self.flag[1] = False
+        if self.is_group:
+            if not self.faa[1].faa_battle.fire_elemental_1000:
+                self.flag[2] = False
+
+        if self.flag[1] or self.flag[2]:#可以放特殊对策卡了
             if result is not None:
-                wave, godwind, positions = result#分别为是否波次，是否神风及待炸点位列表
+                wave, godwind, positions = result  # 分别为是否波次，是否神风及待炸点位列表
+                if wave or godwind or positions:#任意一个就刷新状态
+                    if wave:
+                        for i in range(1,3):
+                            waveflag=False
+                            if self.flag[i]:
+                                for card in self.iceboom_list[i]:#遍历冰桶卡
+                                    card.fresh_status()
+                                    if card.status_usable:
+                                        waveflag=True
+                                        self.Todo_list[i].append(card)
+                                        break
+                                if waveflag:
+                                    break
+                    if godwind:
+                        for i in range(1, 3):
+                            godwindflag = False
+                            if self.flag[i]:
+                                for card in self.the_9th_grassfan[i]:  # 遍历草扇卡
+                                    card.fresh_status()
+                                    if card.status_usable:
+                                        godwindflag = True
+                                        self.Todo_list[i].append(card)
+                                        break
+                                if godwindflag:
+                                    break
+
+                    if positions:
+                        self.card_list_can_use = [[], []]
+                        if self.flag[1]:
+                            for special_card in self.card_queue[1]:
+                                special_card.fresh_status()#刷新冷却状态，可用就加入对策列表
+                                if special_card.status_usable:
+                                    self.card_list_can_use[0].append(special_card)
+                        if self.flag[2]:
+                            for special_card in self.card_queue[2]:
+                                special_card.fresh_status()#刷新冷却状态，可用就加入对策列表
+                                if special_card.status_usable:
+                                    self.card_list_can_use[1].append(special_card)
+                        solve_special_card_problem(positions, self.faa[0].battle_plan_1["obstacle"],self.card_list_can_use)
+                    self.use_card()#按todolist用卡
+
+
+
         if not self.stop_flag:
             self.timer = Timer(self.round_interval, self.analyze_special_card)
             self.timer.start()

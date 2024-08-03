@@ -76,6 +76,8 @@ class Card:
         self.location_to = self.faa.battle_plan_1["card"][priority]["location_to"]
         # 坤优先级
         self.kun = self.faa.battle_plan_1["card"][priority]["kun"]
+        #卡坤的实例
+        self.card_kun=None
 
         """用于完成放卡的额外类属性"""
         # 放卡间隔
@@ -92,6 +94,8 @@ class Card:
         self.is_smoothie = self.name in ["极寒冰沙", "冰沙"]
         # 不进入放满自ban的 白名单
         self.ban_white_list = ["极寒冰沙", "冰沙"]
+        # 是否可以放卡（主要是瓜皮类）
+        self.can_use = True
 
     def use_card(self):
 
@@ -103,6 +107,8 @@ class Card:
             if EXTRA_GLOBALS.smoothie_lock_time != 0:
                 return
             EXTRA_GLOBALS.smoothie_lock_time = 7
+        if not self.can_use:#线程放瓜皮时不巧撞上了正在计算炸弹类或者计算完成后炸弹需要该瓜皮
+            return
 
         with self.faa.battle_lock:#战斗放卡锁，用于防止与特殊放卡放置冲突，点击队列不连贯
             # 点击 选中卡片
@@ -148,8 +154,8 @@ class Card:
                 # 放置失败 说明放满了 如果不在白名单 就自ban
                 self.status_ban = 10
             else:
-                if self.is_kun_target:
-                    # 放置成功 如果是坤目标, 复制自身放卡的逻辑
+                if self.is_kun_target and not self.card_kun.is_using:#and是短路计算，左边算过不满足右边就不会算，所以如果一个卡是坤标，那坤实例一定不为None
+                    # 放置成功 如果是坤目标, 复制自身放卡的逻辑,并且坤不在征用计算中或者计算完没有使用坤
 
                     # 点击 选中卡片 但坤
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(
@@ -255,6 +261,7 @@ class Card:
     def destroy(self):
         self.faa = None
         self.priority = None
+        self.card_kun=None
 
 
 class CardKun:
@@ -271,8 +278,8 @@ class CardKun:
         """用于完成放卡的额外类属性"""
         # 状态 可用
         self.status_usable = False
-        #目标使用卡片
-        self.target_card=None
+        #是否被征用计算
+        self.is_using=False
 
     def fresh_status(self):
         """判断颜色来更改自身冷却和可用属性"""
@@ -303,14 +310,17 @@ class CardKun:
     def destroy(self):
         self.faa = None
 
+
 class Special_card(Card):
-    def __init__(self, energy,card_type,*args, **kwargs):
+    def __init__(self, energy,card_type,rows=None,cols=None,*args, **kwargs):
         super().__init__(*args, **kwargs)
         self.energy = energy  # 特殊卡的初始能量值
         #是否需要咖啡粉唤醒
         self.need_coffee = self.name in ["冰桶炸弹", "开水壶炸弹"]
         self.card_type=card_type
         self.need_shovel = self.card_type==12 or self.card_type==14#要秒铲的有草扇跟护罩炸弹
+        self.rows=rows
+        self.cols=cols
 
 
     def use_card(self,pos):

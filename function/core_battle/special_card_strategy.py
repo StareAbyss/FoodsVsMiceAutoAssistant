@@ -66,7 +66,7 @@ def add_strategy(player, strategy_id, cost, rows=None, cols=None):
         else:
             strategies2[f"{strategy_count}"] = {"coverage": coverage, "cost": cost}
 
-def solve_special_card_problem(points_to_cover, obstacles):
+def solve_special_card_problem(points_to_cover, obstacles,card_list_can_use):
     # 定义问题
     prob = LpProblem("Map Coverage Problem", LpMinimize)
     # 定义常量
