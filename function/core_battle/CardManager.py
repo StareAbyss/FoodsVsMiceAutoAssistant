@@ -63,7 +63,7 @@ class CardManager:
                 result=is_special_card(cards_plan[j]["name"])
                 if result["found"]:
                     if result["card_type"]<14 and result["card_type"]!=11:#不是冰桶草扇冰沙或其他垃圾卡
-                        self.special_card_list[i].append(Special_card(faa=self.faa_dict[i], priority=j,energy=result["energy"],card_type=result["card_type"]))
+                        self.special_card_list[i].append(Special_card(faa=self.faa_dict[i], priority=j,energy=result["energy"],card_type=result["card_type"],rows=result["rows"],cols=result["cols"]))
                         if result["card_type"]==12 :#护罩类，除了炸弹还可能是常驻的罩子
                             self.card_list_dict[i].append(Card(faa=self.faa_dict[i], priority=j))
                     elif result["card_type"]==11:#冰桶类

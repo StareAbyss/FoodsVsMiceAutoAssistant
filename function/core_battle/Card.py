@@ -403,24 +403,30 @@ def is_special_card(card_name):
             # 解析文件名并移除扩展名
             base_name = os.path.splitext(file)[0]
             energy =None
+            rows = None
+            cols = None
             if '_' in base_name:
                 parts = base_name.split('_')
                 base_name= parts[0]
                 card_type = parts[1]
                 if len(parts) > 2:
                     energy = int(parts[2])
+                if len(parts) > 3:#目前只有大十字
+                    rows=int(parts[4])
+                    cols=int(parts[3])
+
 
 
             # 检查是否匹配
             if base_name == card_name:
                 # 计算子目录的名称
                 subdir_name = os.path.relpath(root, base_path)
-                return {"found": True, "subdir_name": subdir_name, "energy":energy,"card_type":card_type}
+                return {"found": True, "subdir_name": subdir_name, "energy":energy,"card_type":card_type,"rows":rows,"cols":cols}
                 # 返回匹配状态和匹配文件所在子目录的名称
 
 
     # 如果没有找到匹配的文件，返回匹配状态为False
-    return {"found": False, "subdir_name": None, "energy":None,"card_type":None}
+    return {"found": False}
 
 
 # # 示例使用

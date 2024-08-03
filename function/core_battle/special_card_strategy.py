@@ -19,6 +19,11 @@ def generate_coverage(strategy_id):
         return [(0, 0), (0, 1), (0, -1), (1, 0), (-1, 0)]  # 小十字
     elif strategy_id == 7:
         return [(i, j) for j in range(-1, 2)for i in range(-8, 9)]  # 三行覆盖
+    elif strategy_id == 10:
+        return [(i, j) for i in range(0, 3) for j in range(-1, 2)]  # 3x3预判
+
+
+    # 示例调用
     else:
         raise ValueError("未知的策略ID")
 def generate_cross_coverage(rows, cols):
@@ -36,7 +41,16 @@ def generate_cross_coverage(rows, cols):
     for j in range(-cols, cols + 1):
         coverage.append((0, j))
     return coverage
-def add_strategy(player, strategy_id, cost, rows=None, cols=None):
+def generate_extra_coverage(strategy_id,extra):
+
+    if strategy_id == 12:
+        half_size = extra // 2
+        return [(i, j) for i in range(-half_size, half_size + 1) for j in range(-half_size, half_size + 1)]  # 3x3或5x5十字
+
+    elif strategy_id == 13:
+        return [(i, j) for i in range(-2, 3) for j in range(-2, 3)]
+
+def add_strategy(player, strategy_id, cost, rows=None, cols=None,extra=None):
     """
     添加策略到策略字典中，并动态生成唯一的策略ID和覆盖范围。
     :param strategies: 策略字典
@@ -52,6 +66,8 @@ def add_strategy(player, strategy_id, cost, rows=None, cols=None):
         coverage = generate_cross_coverage(rows, cols)
     elif strategy_id == 9:  # 复制对策，没有预定义覆盖范围
         coverage = []
+    elif strategy_id == 12 or strategy_id == 13:
+        coverage = generate_extra_coverage(strategy_id,extra)
     else:
         coverage = generate_coverage(strategy_id)
     # 添加策略到字典，使用唯一ID
@@ -84,14 +100,25 @@ def solve_special_card_problem(points_to_cover, obstacles,card_list_can_use):
     copy_strategy2={}
     # 定义一个全局计数器，用于生成唯一的策略ID
     global strategy_count
-    strategy_count = 0
+    strategy_count = -1
     # 添加策略
-    add_strategy(1, 7, 30)  # 三行覆盖
-    add_strategy(1, 3, -30)
-    add_strategy(2, 3, 30)
-    add_strategy(1, 8, 15, rows=2, cols=2)  # 十字策略
-    add_strategy(2, 8, 15, rows=2, cols=2)  # 十字策略
-    add_strategy(2, 9, 10)  # 复制对策，成本为10
+    # add_strategy(1, 7, 30)  # 三行覆盖
+    # add_strategy(1, 3, -30)
+    # add_strategy(2, 3, 30)
+    # add_strategy(1, 8, 15, rows=2, cols=2)  # 十字策略
+    # add_strategy(2, 8, 15, rows=2, cols=2)  # 十字策略
+    # add_strategy(2, 9, 10)  # 复制对策，成本为10
+    for i in range(0, 2):#遍历可用列表添加策略
+        for card in card_list_can_use[i]:
+            if card.card_type==8:
+                add_strategy(i, 8, card.energy, rows=card.rows, cols=card.cols)
+            elif card.card_type==12 or card.card_type==13:
+                add_strategy(i, card.card_type, card.energy,extra=card.cols)
+            else:
+                add_strategy(i, card.card_type, card.energy)
+
+
+
     # 创建决策变量
     x = LpVariable.dicts("strategy",
                          [(i, j, s) for i in range(1, MAP_WIDTH+1)
