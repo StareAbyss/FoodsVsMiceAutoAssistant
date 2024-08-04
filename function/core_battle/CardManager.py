@@ -1,4 +1,5 @@
 from threading import Timer
+import time
 
 from PyQt5.QtCore import QThread, pyqtSignal
 
@@ -14,13 +15,15 @@ class CardManager:
 
     def __init__(self, faa_1, faa_2, solve_queue,round_interval=1):
         super().__init__()
+        # 完成构造函数的所有初始化工作后，设置 is_initialized 为 True
+        self.is_initialized=False
         self.card_list_dict = {}
         self.special_card_list = {}
         self.card_kun_dict = {}
         self.card_queue_dict = {}
         self.thread_dict = {}
-        self.iceboom_list={}
-        self.the_9th_grassfan = {}
+        self.iceboom_list={1:[],2:[]}
+        self.the_9th_grassfan = {1:[],2:[]}
         self.smoothie_usable_player = []
 
         # 一轮检测的时间 单位s, 该时间的1/20则是尝试使用一张卡的间隔, 该时间的10倍则是使用武器技能/自动拾取动作的间隔 推荐默认值 1s
@@ -48,6 +51,8 @@ class CardManager:
         EXTRA_GLOBALS.smoothie_lock_time = 0
         #待解决队列，从这里提取信息
         self.solve_queue = solve_queue
+
+        self.is_initialized = True#初始化完了
 
         # 对象分析 打包务必注释掉！
         # objgraph.show_most_common_types()
@@ -84,9 +89,9 @@ class CardManager:
         for player in ([1, 2] if self.is_group else [1]):
             if self.faa_dict[player].kun_position:
                 self.card_kun_dict[player] = CardKun(faa=self.faa_dict[player])
-            for card in self.card_list_dict[player]:
-                if card.kun>0:
-                    card.card_kun=self.card_kun_dict[player]
+                for card in self.card_list_dict[player]:
+                    if card.kun>0:
+                        card.card_kun=self.card_kun_dict[player]
 
     def init_card_queue_dict(self):
         for i in ([1, 2] if self.is_group else [1]):
@@ -134,6 +139,8 @@ class CardManager:
 
     def run(self):
         # 开始线程
+        while not self.is_initialized:
+            time.sleep(0.1)
         self.start_all_thread()
 
     def stop(self):

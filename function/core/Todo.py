@@ -659,7 +659,7 @@ class ThreadTodo(QThread):
                 round_interval=self.battle_check_interval,
                 solve_queue=queue_todo
             )
-            self.msleep(500)
+
             self.thread_card_manager.run()
             self.msleep(1000)
 

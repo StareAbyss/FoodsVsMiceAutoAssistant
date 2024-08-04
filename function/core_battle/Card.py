@@ -442,9 +442,10 @@ def is_special_card(card_name):
                 card_type = parts[1]
                 if len(parts) > 2:
                     energy = int(parts[2])
-                if len(parts) > 3:#目前只有大十字
-                    rows=int(parts[4])
+                if len(parts) > 3:
                     cols=int(parts[3])
+                if len(parts) > 4:#目前只有大十字
+                    rows = int(parts[4])
 
 
 
@@ -452,7 +453,7 @@ def is_special_card(card_name):
             if base_name == card_name:
                 # 计算子目录的名称
                 subdir_name = os.path.relpath(root, base_path)
-                return {"found": True, "subdir_name": subdir_name, "energy":energy,"card_type":card_type,"rows":rows,"cols":cols}
+                return {"found": True, "subdir_name": subdir_name, "energy":energy,"card_type":int(card_type),"rows":rows,"cols":cols}
                 # 返回匹配状态和匹配文件所在子目录的名称
 
 
