@@ -350,8 +350,8 @@ class Special_card(Card):
                 #加一个垫子的判断
                 if self.location[0] in self.faa.battle_plan_1["mat"]:#点位要放垫子
                     for mat in self.faa.mat_card_positions:
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=mat[location_from][0],
-                                                                y=mat[location_from][1])
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=mat["location_from"][0],
+                                                                y=mat["location_from"][1])
                         # 点击 放下卡片
                         T_ACTION_QUEUE_TIMER.add_click_to_queue(
                             handle=self.handle,
@@ -384,18 +384,18 @@ class Special_card(Card):
                 T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
                 time.sleep(self.click_sleep / 2)  # 必须的间隔
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle,
-                                                        x=position_dict[self.location["{pos[0]}-{pos[1]}"]][0],
-                                                        y=position_dict["{pos[0]}-{pos[1]}"][1])
+                                                        x=position_dict[f"{pos[0]}-{pos[1]}"][0],
+                                                        y=position_dict[f"{pos[0]}-{pos[1]}"][1])
                 time.sleep(0.5)
                 # 加一个垫子的判断
-                if self.location[0] in self.faa.battle_plan_1["mat"]:#点位要放垫子
+                if f"{pos[0]}-{pos[1]}" in self.faa.battle_plan_1["mat"]:#点位要放垫子
                     for mat in self.faa.mat_card_positions:
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=mat[location_from][0],
-                                                                y=mat[location_from][1])
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=mat["location_from"][0],
+                                                                y=mat["location_from"][1])
                         # 点击 放下卡片
                         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle,
-                                                                x=position_dict[self.location["{pos[0]}-{pos[1]}"]][0],
-                                                                y=position_dict["{pos[0]}-{pos[1]}"][1])
+                                                                x=position_dict[f"{pos[0]}-{pos[1]}"][0],
+                                                                y=position_dict[f"{pos[0]}-{pos[1]}"][1])
 
 
                 # 点击 选中卡片
@@ -404,8 +404,8 @@ class Special_card(Card):
 
                 # 点击 放下卡片
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle,
-                                                        x=position_dict[self.location["{pos[0]}-{pos[1]}"]][0],
-                                                        y=position_dict["{pos[0]}-{pos[1]}"][1])
+                                                        x=position_dict[f"{pos[0]}-{pos[1]}"][0],
+                                                        y=position_dict[f"{pos[0]}-{pos[1]}"][1])
 
                 # 放卡后点一下空白
                 T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
@@ -414,8 +414,8 @@ class Special_card(Card):
                     T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
                     time.sleep(self.click_sleep / 2)  # 必须的间隔
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle,
-                                                            x=position_dict[self.location["{pos[0]}-{pos[1]}"]][0],
-                                                            y=position_dict["{pos[0]}-{pos[1]}"][1])
+                                                            x=position_dict[f"{pos[0]}-{pos[1]}"][0],
+                                                            y=position_dict[f"{pos[0]}-{pos[1]}"][1])
                     time.sleep(self.click_sleep)
                 # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
                 # time.sleep(self.click_sleep * 4)

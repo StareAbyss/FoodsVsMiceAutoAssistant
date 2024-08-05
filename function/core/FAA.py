@@ -571,7 +571,7 @@ class FAA:
             # 如果location完全不存在 就去掉它
             new_list = []
             for card in list_cell_all:
-                if card["location"]:
+                # if card["location"]:
                     new_list.append(card)
 
             return new_list

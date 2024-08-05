@@ -88,6 +88,7 @@ def add_strategy(player, strategy_id, cost,card, rows=None, cols=None,extra=None
 def solve_special_card_problem(points_to_cover, obstacles,card_list_can_use):
     # 定义问题
     prob = LpProblem("Map Coverage Problem", LpMinimize)
+    print(points_to_cover, obstacles,card_list_can_use)
     # 定义常量
     MAP_WIDTH = 9
     MAP_HEIGHT = 7
@@ -111,7 +112,7 @@ def solve_special_card_problem(points_to_cover, obstacles,card_list_can_use):
     # add_strategy(1, 8, 15, rows=2, cols=2)  # 十字策略
     # add_strategy(2, 8, 15, rows=2, cols=2)  # 十字策略
     # add_strategy(2, 9, 10)  # 复制对策，成本为10
-    for i in range(0, 2):#遍历可用列表添加策略
+    for i in range(1, 3):#遍历可用列表添加策略
         for card in card_list_can_use[i]:
             if card.card_type==8:
                 add_strategy(i, 8, card.energy, rows=card.rows, cols=card.cols,card=card)
@@ -238,7 +239,7 @@ def solve_special_card_problem(points_to_cover, obstacles,card_list_can_use):
     # 输出结果
     print("Status:", LpStatus[prob.status])
     if LpStatus[prob.status] == "Optimal":  # 有解
-        CUS_LOGGER.debug("火苗成本 =", value(prob.objective))
+        CUS_LOGGER.debug(f"火苗成本 ={value(prob.objective)}")
         strategy1={}
         strategy2 = {}
 
@@ -247,19 +248,19 @@ def solve_special_card_problem(points_to_cover, obstacles,card_list_can_use):
                 for s in strategies.keys():
                     if value(x[i, j, s]) == 1:
                         strategy1[s] = [i,j]
-                        CUS_LOGGER.debug(f"1p对策卡 {s} 放置于 ({i},{j})")
+                        CUS_LOGGER.debug(f"1p对策卡 {s.name} 放置于 ({i},{j})")
                     for c in copy_strategy.keys():
                         if value(y[i, j, s, c]) == 1:
                             strategy1[c] = [i, j]
-                            CUS_LOGGER.debug(f"1p复制类对策卡 {c} 复制了对策卡 {s} 放置于 ({i},{j})")
+                            CUS_LOGGER.debug(f"1p复制类对策卡 {c.name} 复制了对策卡 {s.name} 放置于 ({i},{j})")
                 for s in strategies2.keys():
                     if value(z[i, j, s]) == 1:
                         strategy2[s] = [i, j]
-                        CUS_LOGGER.debug(f"2p对策卡 {s} 放置于 ({i},{j})")
+                        CUS_LOGGER.debug(f"2p对策卡 {s.name} 放置于 ({i},{j})")
                     for c in copy_strategy2.keys():
                         if value(w[i, j, s, c]) == 1:
                             strategy2[c] = [i, j]
-                            CUS_LOGGER.debug(f"2p复制类对策卡 {c} 复制了对策卡 {s} 放置于 ({i},{j})")
+                            CUS_LOGGER.debug(f"2p复制类对策卡 {c.name} 复制了对策卡 {s.name} 放置于 ({i},{j})")
         return strategy1,strategy2
     else:
         return None

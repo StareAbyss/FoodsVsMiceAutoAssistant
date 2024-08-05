@@ -349,7 +349,7 @@ class ThreadUseSpecialCardTimer(QThread):
         self.read_queue = read_queue
         self.is_group = is_group
         self.flag=[True,True,True]
-        self.card_list_can_use=[[],[]]
+        self.card_list_can_use= {1:[], 2:[]}
         self.Todo_list={}
         self.iceboom_list = iceboom_list
         self.the_9th_grassfan = the_9th_grassfan
@@ -411,23 +411,23 @@ class ThreadUseSpecialCardTimer(QThread):
                                     break
 
                     if positions:
-                        self.card_list_can_use = [[], []]
+                        self.card_list_can_use= {1:[], 2:[]}
                         if self.flag[1]:
                             for special_card in self.card_queue[1]:
                                 special_card.fresh_status()#刷新冷却状态，可用就加入对策列表
                                 if special_card.status_usable:
-                                    self.card_list_can_use[0].append(special_card)
+                                    self.card_list_can_use[1].append(special_card)
                         if self.flag[2]:
                             for special_card in self.card_queue[2]:
                                 special_card.fresh_status()#刷新冷却状态，可用就加入对策列表
                                 if special_card.status_usable:
-                                    self.card_list_can_use[1].append(special_card)
+                                    self.card_list_can_use[2].append(special_card)
                         result=solve_special_card_problem(positions, self.faa[1].battle_plan_1["obstacle"],self.card_list_can_use)
                         if result is not None:
                             strategy1, strategy2=result
-                            for card,pos in strategy1:
+                            for card,pos in strategy1.items():
                                 self.Todo_list[1].append([card, pos])
-                            for card,pos in strategy2:
+                            for card,pos in strategy2.items():
                                 self.Todo_list[2].append([card, pos])
 
                     CUS_LOGGER.debug(f"特殊用卡队列{self.Todo_list} ")
