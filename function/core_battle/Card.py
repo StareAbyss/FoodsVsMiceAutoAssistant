@@ -346,7 +346,7 @@ class Special_card(Card):
                 T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
                 time.sleep(self.click_sleep / 2)  # 必须的间隔
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=self.location_to[0][0], y=self.location_to[0][1])
-                time.sleep(self.click_sleep)
+                time.sleep(0.5)
                 #加一个垫子的判断
                 if self.location[0] in self.faa.battle_plan_1["mat"]:#点位要放垫子
                     for mat in self.faa.mat_card_positions:
@@ -377,7 +377,8 @@ class Special_card(Card):
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=self.location_to[0][0], y=self.location_to[0][1])
                     time.sleep(self.click_sleep)
                 # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
-                time.sleep(self.click_sleep * 4)
+                # time.sleep(self.click_sleep * 4)
+                time.sleep(0.2)
             else:#有默认坐标传入，意味着是炸弹类卡片
                 # 铲子的调用
                 T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
@@ -385,7 +386,7 @@ class Special_card(Card):
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle,
                                                         x=position_dict[self.location["{pos[0]}-{pos[1]}"]][0],
                                                         y=position_dict["{pos[0]}-{pos[1]}"][1])
-                time.sleep(self.click_sleep)
+                time.sleep(0.5)
                 # 加一个垫子的判断
                 if self.location[0] in self.faa.battle_plan_1["mat"]:#点位要放垫子
                     for mat in self.faa.mat_card_positions:
@@ -417,7 +418,8 @@ class Special_card(Card):
                                                             y=position_dict["{pos[0]}-{pos[1]}"][1])
                     time.sleep(self.click_sleep)
                 # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
-                time.sleep(self.click_sleep * 4)
+                # time.sleep(self.click_sleep * 4)
+                time.sleep(0.2)
 
 
 

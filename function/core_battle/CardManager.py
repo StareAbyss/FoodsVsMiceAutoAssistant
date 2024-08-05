@@ -25,6 +25,8 @@ class CardManager:
         self.iceboom_list={1:[],2:[]}
         self.the_9th_grassfan = {1:[],2:[]}
         self.smoothie_usable_player = []
+        # 待解决队列，从这里提取信息
+        self.solve_queue = solve_queue
 
         # 一轮检测的时间 单位s, 该时间的1/20则是尝试使用一张卡的间隔, 该时间的10倍则是使用武器技能/自动拾取动作的间隔 推荐默认值 1s
         self.round_interval = round_interval
@@ -49,8 +51,7 @@ class CardManager:
 
         # 刷新全局冰沙锁
         EXTRA_GLOBALS.smoothie_lock_time = 0
-        #待解决队列，从这里提取信息
-        self.solve_queue = solve_queue
+
 
         self.is_initialized = True#初始化完了
 
@@ -357,7 +358,7 @@ class ThreadUseSpecialCardTimer(QThread):
         self.stop_flag = False
         self.timer = Timer(self.round_interval, self.analyze_special_card)
         self.timer.start()
-        self.faa[0].print_debug('[战斗执行器] 启动特殊放卡线程')
+        self.faa[1].print_debug('[战斗执行器] 启动特殊放卡线程')
         while not self.stop_flag:
             QThread.msleep(100)
         self.timer.cancel()
@@ -367,20 +368,23 @@ class ThreadUseSpecialCardTimer(QThread):
     def analyze_special_card(self):
         self.flag[1]=True
         self.flag[2]=True
-        if self.is_group:
+        if not self.is_group:
             self.flag[2]=False
         result = self.read_queue.get()#不管能不能用对策卡先提取信息再说，免得队列堆积
-        if not self.faa[0].faa_battle.fire_elemental_1000:#没有1000火放毛线炸弹
+        CUS_LOGGER.debug(f"待二次加工信息为{result} ")
+        if not self.faa[1].faa_battle.fire_elemental_1000:#没有1000火放毛线炸弹
             self.flag[1] = False
         if self.is_group:
-            if not self.faa[1].faa_battle.fire_elemental_1000:
+            if not self.faa[2].faa_battle.fire_elemental_1000:
                 self.flag[2] = False
-
+        CUS_LOGGER.debug(f"开房号有没有1000火{self.faa[1].faa_battle.fire_elemental_1000}")
+        CUS_LOGGER.debug(f"副号有没有1000火{self.faa[2].faa_battle.fire_elemental_1000}")
         if self.flag[1] or self.flag[2]:#可以放特殊对策卡了
             if result is not None:
                 wave, godwind, positions = result  # 分别为是否波次，是否神风及待炸点位列表
                 if wave or godwind or positions:#任意一个就刷新状态
-                    self.Todo_list={}
+                    CUS_LOGGER.debug(f"刷新特殊放卡状态")
+                    self.Todo_list={1:[],2:[]}
                     if wave:
                         for i in range(1,3):
                             waveflag=False
@@ -418,7 +422,7 @@ class ThreadUseSpecialCardTimer(QThread):
                                 special_card.fresh_status()#刷新冷却状态，可用就加入对策列表
                                 if special_card.status_usable:
                                     self.card_list_can_use[1].append(special_card)
-                        result=solve_special_card_problem(positions, self.faa[0].battle_plan_1["obstacle"],self.card_list_can_use)
+                        result=solve_special_card_problem(positions, self.faa[1].battle_plan_1["obstacle"],self.card_list_can_use)
                         if result is not None:
                             strategy1, strategy2=result
                             for card,pos in strategy1:
@@ -426,6 +430,7 @@ class ThreadUseSpecialCardTimer(QThread):
                             for card,pos in strategy2:
                                 self.Todo_list[2].append([card, pos])
 
+                    CUS_LOGGER.debug(f"特殊用卡队列{self.Todo_list} ")
                     self.timer = Timer(self.round_interval / 200, self.use_card,args=(1,))#1p0.01秒后开始放卡
                     self.timer.start()#按todolist用卡
                     self.timer = Timer(self.round_interval / 200, self.use_card, args=(2,))  # 2p0.01秒后开始放卡
@@ -443,13 +448,13 @@ class ThreadUseSpecialCardTimer(QThread):
             if self.stop_flag:
                 break
             else:
-                QThread.msleep(self.round_interval / 200)
+                time.sleep(self.round_interval / 200)
 
 
 
 
     def stop(self):
-        self.faa[0].print_debug("[战斗执行器] ThreadUseSpecialCardTimer stop方法已激活")
+        self.faa[1].print_debug("[战斗执行器] ThreadUseSpecialCardTimer stop方法已激活")
         # 设置Flag
         self.stop_flag = True
         # 退出线程的事件循环
