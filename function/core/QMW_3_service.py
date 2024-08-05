@@ -13,6 +13,7 @@ from function.core.QMW_TipBattle import QMWTipBattle
 from function.core.QMW_TipStageID import QMWTipStageID
 from function.core.QMW_TipWarmGift import QMWTipWarmGift
 from function.core.Todo import ThreadTodo
+from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.TodoTimerManager import TodoTimerManager
 from function.scattered.gat_handle import faa_get_handle
@@ -96,8 +97,7 @@ class QMainWindowService(QMainWindowLog):
         手动启动时 plan_index为 none
         自动启动时 plan_index为 int 即对应的战斗方案的值
         """
-        self.is_start =True
-        self.Button_Start.setText("启动中\nStarting Now")
+
         # 根据输入判断当前需要运行的方案的index
         if plan_index:
             running_todo_plan_index = plan_index
