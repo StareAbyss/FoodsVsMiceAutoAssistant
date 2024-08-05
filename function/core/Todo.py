@@ -72,17 +72,16 @@ class ThreadTodo(QThread):
 
         if self.thread_1p is not None:
             self.thread_1p.stop()
-            self.thread_1p.join()  # 等待线程中断
+            # self.thread_1p.join()  # 等待线程中断
             self.thread_1p = None  # 清除调用
 
         if self.thread_2p is not None:
             self.thread_2p.stop()
-            self.thread_2p.join()  # 等待线程中断
+            # self.thread_2p.join()  # 等待线程中断
             self.thread_2p = None  # 清除调用
 
         if self.thread_card_manager is not None:
             self.thread_card_manager.stop()
-            self.thread_card_manager.join()  # 等待线程中断
             self.thread_card_manager = None  # 清除调用
 
     def pause(self):
@@ -1220,7 +1219,7 @@ class ThreadTodo(QThread):
             quest = quest_list[i]
 
             # 判断显著错误的关卡名称
-            if quest["stage_id"].split("-")[0] not in ["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD"]:
+            if quest["stage_id"].split("-")[0] not in ["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD", "HH"]:
                 self.signal_print_to_ui.emit(
                     text="{}事项{},{},错误的关卡名称!跳过".format(
                         title,
@@ -1463,8 +1462,8 @@ class ThreadTodo(QThread):
             """
 
             # 两个号分别读取任务
-            quest_list_1 = self.faa[1].match_quests(mode="美食大赛")
-            quest_list_2 = self.faa[2].match_quests(mode="美食大赛")
+            quest_list_1 = self.faa[1].match_quests(mode="美食大赛-新")
+            quest_list_2 = self.faa[2].match_quests(mode="美食大赛-新")
             quest_list = quest_list_1 + quest_list_2
 
             if not quest_list:
@@ -1767,8 +1766,8 @@ class ThreadTodo(QThread):
                         "dict_exit": {
                             "other_time_player_a": [],
                             "other_time_player_b": [],
-                            "last_time_player_a": [],  # "回到上一级","普通红叉" 但之后刷新 所以空
-                            "last_time_player_b": []
+                            "last_time_player_a": ["回到上一级", "普通红叉"],  # "回到上一级","普通红叉" 但之后刷新 所以空
+                            "last_time_player_b": ["回到上一级", "普通红叉"],
                         }
                     }
                 ]
@@ -2100,5 +2099,3 @@ class ThreadTodo(QThread):
             extra_title=self.extra_opt["extra_title"],
             need_lock=self.extra_opt["need_lock"])
         self.extra_opt = None
-
-

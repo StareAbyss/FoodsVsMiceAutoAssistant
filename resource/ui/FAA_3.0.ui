@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>1100</width>
-    <height>750</height>
+    <height>770</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -22,13 +22,13 @@
   <property name="minimumSize">
    <size>
     <width>1100</width>
-    <height>750</height>
+    <height>770</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>1100</width>
-    <height>750</height>
+    <height>770</height>
    </size>
   </property>
   <property name="tabletTracking">
@@ -68,7 +68,7 @@
       <x>0</x>
       <y>0</y>
       <width>1101</width>
-      <height>751</height>
+      <height>771</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="LayMain">
@@ -108,7 +108,7 @@
            <x>0</x>
            <y>0</y>
            <width>1081</width>
-           <height>711</height>
+           <height>731</height>
           </rect>
          </property>
          <layout class="QHBoxLayout" name="Lay_Tab1" stretch="4,0">
@@ -169,7 +169,7 @@
            </layout>
           </item>
           <item>
-           <layout class="QVBoxLayout" name="Lay_Tab1_Right" stretch="1,1,1,1,1,0,0,0,1,1,1,1,1,1,0,0,0,0,1,0,0,0,0,0,0,2">
+           <layout class="QVBoxLayout" name="Lay_Tab1_Right" stretch="1,1,1,1,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,2">
             <property name="leftMargin">
              <number>5</number>
             </property>
@@ -631,29 +631,81 @@
              </layout>
             </item>
             <item>
-             <widget class="QPushButton" name="Button_Hide">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
+             <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,1">
+              <property name="spacing">
+               <number>5</number>
               </property>
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>0</height>
-               </size>
+              <property name="leftMargin">
+               <number>5</number>
               </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>16777215</height>
-               </size>
+              <property name="topMargin">
+               <number>5</number>
               </property>
-              <property name="text">
-               <string>点击切换 - 将窗口拖到窗口底端~</string>
+              <property name="rightMargin">
+               <number>5</number>
               </property>
-             </widget>
+              <property name="bottomMargin">
+               <number>5</number>
+              </property>
+              <item>
+               <widget class="DragLabel" name="Label_drag">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>23</height>
+                 </size>
+                </property>
+                <property name="layoutDirection">
+                 <enum>Qt::LeftToRight</enum>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">QLabel {
+	border: 1px solid grey;/* 灰色边框，宽度为2像素 */
+	border-radius: 4px;/* 边框圆角半径为5像素 */
+	border-color: #bababa;/* 边框颜色 */
+	background-color: #fdfdfd;/* 背景颜色 */
+}</string>
+                </property>
+                <property name="text">
+                 <string>请拖到1P窗口</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="Button_Hide">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>23</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>点击切换 - 将窗口拖到窗口底端~</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
             <item>
              <spacer name="verticalSpacer_2">
@@ -1693,7 +1745,7 @@
              </widget>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="Lay_CurrentPlan" stretch="2,6">
+             <layout class="QHBoxLayout" name="Lay_CurrentPlan_1" stretch="0">
               <property name="sizeConstraint">
                <enum>QLayout::SetDefaultConstraint</enum>
               </property>
@@ -1701,76 +1753,40 @@
                <number>5</number>
               </property>
               <property name="topMargin">
-               <number>5</number>
+               <number>0</number>
               </property>
               <property name="rightMargin">
                <number>5</number>
               </property>
               <property name="bottomMargin">
-               <number>5</number>
+               <number>0</number>
               </property>
               <item>
-               <layout class="QVBoxLayout" name="LayCurrentPlan_Text">
-                <item>
-                 <widget class="QPushButton" name="Button_DeletePlan">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>16777215</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="toolTip">
-                   <string>删除当前选中的方案, 但Default方案不会被删哦~</string>
-                  </property>
-                  <property name="text">
-                   <string>删除此方案</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QVBoxLayout" name="LayCurrentPlan_Choose">
-                <item>
-                 <widget class="QComboBox" name="CurrentPlan">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>16777215</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
+               <widget class="QComboBox" name="CurrentPlan">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+               </widget>
               </item>
              </layout>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="Lay_CurrentPlan_2" stretch="2,6">
+             <layout class="QHBoxLayout" name="Lay_CurrentPlan_2" stretch="0,0,0">
               <property name="sizeConstraint">
                <enum>QLayout::SetDefaultConstraint</enum>
               </property>
@@ -1778,154 +1794,97 @@
                <number>5</number>
               </property>
               <property name="topMargin">
-               <number>5</number>
+               <number>0</number>
               </property>
               <property name="rightMargin">
                <number>5</number>
               </property>
               <property name="bottomMargin">
-               <number>5</number>
+               <number>0</number>
               </property>
               <item>
-               <layout class="QVBoxLayout" name="LayCurrentPlan_Text_2">
-                <item>
-                 <widget class="QPushButton" name="Button_RenamePlan">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>16777215</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="toolTip">
-                   <string>重命名当前选中的方案, 但Default方案不可更改哦~</string>
-                  </property>
-                  <property name="text">
-                   <string>重命名方案</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
+               <widget class="QPushButton" name="Button_RenamePlan">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>重命名当前选中的方案, 但Default方案不可更改哦~</string>
+                </property>
+                <property name="text">
+                 <string>重命名方案</string>
+                </property>
+               </widget>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout">
-                <item>
-                 <widget class="QLineEdit" name="RenamePlan_Input">
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>16777215</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="tabletTracking">
-                   <bool>false</bool>
-                  </property>
-                  <property name="autoFillBackground">
-                   <bool>false</bool>
-                  </property>
-                  <property name="text">
-                   <string/>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="Lay_CurrentPlan_3" stretch="2,6">
-              <property name="sizeConstraint">
-               <enum>QLayout::SetDefaultConstraint</enum>
-              </property>
-              <property name="leftMargin">
-               <number>5</number>
-              </property>
-              <property name="topMargin">
-               <number>5</number>
-              </property>
-              <property name="rightMargin">
-               <number>5</number>
-              </property>
-              <property name="bottomMargin">
-               <number>5</number>
-              </property>
-              <item>
-               <layout class="QVBoxLayout" name="LayCurrentPlan_Text_3">
-                <item>
-                 <widget class="QPushButton" name="Button_CreatePlan">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>16777215</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="toolTip">
-                   <string>新建的方案会继承Default的一切设置，但不能给新方案取名Default</string>
-                  </property>
-                  <property name="text">
-                   <string>创建新方案</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
+               <widget class="QPushButton" name="Button_DeletePlan">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>删除当前选中的方案, 但Default方案不会被删哦~</string>
+                </property>
+                <property name="text">
+                 <string>删除此方案</string>
+                </property>
+               </widget>
               </item>
               <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_2">
-                <item>
-                 <widget class="QLineEdit" name="CreatePlan_Input">
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>16777215</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="tabletTracking">
-                   <bool>false</bool>
-                  </property>
-                  <property name="autoFillBackground">
-                   <bool>false</bool>
-                  </property>
-                  <property name="text">
-                   <string/>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
+               <widget class="QPushButton" name="Button_CreatePlan">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>新建的方案会继承Default的一切设置，但不能给新方案取名Default</string>
+                </property>
+                <property name="text">
+                 <string>创建新方案</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </item>
@@ -8744,6 +8703,13 @@ Link Start</string>
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>DragLabel</class>
+   <extends>QLabel</extends>
+   <header>resource.ui.draglabel</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

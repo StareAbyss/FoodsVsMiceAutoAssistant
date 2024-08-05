@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png, png_cropping
-from function.globals.init_resources import RESOURCE_P
+from function.globals import init_resources
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
@@ -28,7 +28,7 @@ def mask_transform_color_to_black(mask, quick_method=True) -> np.ndarray:
 
 def match_template_with_optional_mask(source, template, mask=None, quick_method=True, test_show=False) -> np.ndarray:
     """
-    使用可选掩模进行模板匹配, 步骤如下.
+    使用可选掩模进行模板匹配-从源图搜索模板, 步骤如下.
     1. 生成 mask_from_template 将根据template图像是否存在Alpha通道, 取颜色为纯白的部分作为掩模纯白, 其他色均为黑.
     2. 处理 mask 根据输入的参数mask, 如果mask不为None的处理, 则将mask作为原始掩模, 否则将mask_from_template作为原始掩模.
     3. 如果 mask 不为None, 取颜色为纯白的部分作为掩模纯白, 其他色均为黑, 但保留其Alpha通道.
@@ -45,6 +45,7 @@ def match_template_with_optional_mask(source, template, mask=None, quick_method=
         numpy.ndarray: 匹配结果.
 
     """
+
     """
     函数:对应方法 匹配良好输出->匹配不好输出
     CV_TM_SQDIFF:平方差匹配法 [1]->[0]；
@@ -132,7 +133,9 @@ def match_p_in_w(
         match_tolerance: float = 0.95,
         test_print=False,
         test_show=False,
-        source_root_handle=None) -> Union[None, list]:
+        source_root_handle=None,
+        return_center=True,
+) -> Union[None, list]:
     """
     find target in template
     catch an image by a handle, find a smaller image(target) in this bigger one, return center relative position
@@ -195,7 +198,10 @@ def match_p_in_w(
         cv2.imshow(winname="SourceImg.png", mat=img_source)
         cv2.waitKey(0)
 
-    return center_point
+    if return_center:
+        return center_point
+    else:
+        return [start_x,start_y]
 
 
 def match_ps_in_w(
@@ -393,7 +399,7 @@ if __name__ == '__main__':
         root_handle = faa_get_handle(channel="锑食", mode="360")
         result = match_p_in_w(source_handle=handle,
                               source_range=[0, 0, 2000, 2000],
-                              template=RESOURCE_P["common"]["顶部菜单"]["大地图.png"],
+                              template=init_resources.RESOURCE_P["common"]["顶部菜单"]["大地图.png"],
                               match_tolerance=0.87,
                               source_root_handle=root_handle)
 

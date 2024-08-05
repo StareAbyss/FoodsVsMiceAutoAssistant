@@ -1,7 +1,7 @@
 import copy
 import time
 from datetime import datetime
-import threading
+
 import numpy as np
 import pytz
 
@@ -14,10 +14,13 @@ from function.core.FAA_Battle import Battle
 from function.core.FAA_BattleARoundPreparation import BattleARoundPreparation
 from function.core_battle.get_position_in_battle import get_position_card_deck_in_battle, \
     get_position_card_cell_in_battle
-from function.globals.init_resources import RESOURCE_P, RESOURCE_B, RESOURCE_CP
+from function.globals import init_resources
+from function.globals.init_resources import RESOURCE_P, RESOURCE_CP
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
+from function.scattered.match_ocr_text.loop_match_ocr import food_match_ocr_text, extract_text_from_images
+from function.scattered.match_ocr_text.text_to_battle_info import food_texts_to_battle_info
 from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 
 
@@ -79,7 +82,7 @@ class FAA:
         self.bp_cell = get_position_card_cell_in_battle()
 
         # 经过处理后的战斗方案, 由战斗类相关动作函数直接调用, 其中的各种操作都包含坐标
-        self.battle_plan_1 = {}
+        self.battle_plan_parsed = {}
 
         # 承载卡/冰沙/坤的位置
         self.mat_card_positions = None  # list [{},{},...]
@@ -210,6 +213,7 @@ class FAA:
             deck=1, quest_card="None", ban_card_list=None,
             battle_plan_uuid="00000000-0000-0000-0000-000000000000") -> None:
         """
+        战斗相关参数的re_init
         :param is_group: 是否组队
         :param is_main: 是否是主要账号(单人为True 双人房主为True)
         :param need_key: 是否使用钥匙
@@ -244,7 +248,7 @@ class FAA:
         if "苏打气泡" in self.ban_card_list:
             self.ban_card_list.append("魔法软糖")
 
-        self.battle_plan_0 = RESOURCE_B[battle_plan_uuid]
+        self.battle_plan_0 = init_resources.RESOURCE_B[battle_plan_uuid]
 
         self.stage_info = read_json_to_stage_info(stage_id)
 
@@ -396,7 +400,7 @@ class FAA:
 
         self.print_info(text="战斗中识图查找幻幻鸡位置, 结果：{}".format(self.kun_position))
 
-    def init_battle_plan_1(self) -> None:
+    def init_battle_plan_parsed(self) -> None:
         """
         战斗方案解析器 - 用于根据战斗方案的json和关卡等多种信息, 解析计算为卡片的部署方案 供战斗方案执行器执行
         Return:卡片的部署方案字典
@@ -649,7 +653,7 @@ class FAA:
             self.print_debug(text="你的战斗放卡opt如下:")
             self.print_debug(text=list_cell_all)
 
-            self.battle_plan_1 = {"card": list_cell_all, "shovel": list_shovel,"obstacle":stage_info["obstacle"],"mat":stage_info["mat_cell"]}
+            self.battle_plan_parsed = {"card": list_cell_all, "shovel": list_shovel,"obstacle":stage_info["obstacle"],"mat":stage_info["mat_cell"]}
 
         return main()
 
@@ -687,7 +691,7 @@ class FAA:
         self.init_kun_card_position()
 
         # 4.计算所有坐标
-        self.init_battle_plan_1()
+        self.init_battle_plan_parsed()
 
         # 5.铲卡
         if self.is_main:
@@ -724,7 +728,7 @@ class FAA:
     def match_quests(self, mode: str, qg_cs=False) -> list:
         """
         获取任务列表 -> 需要的完成的关卡步骤
-        :param mode: "公会任务" "情侣任务" "美食大赛"
+        :param mode: "公会任务" "情侣任务" "美食大赛" "美食大赛-新"
         :param qg_cs: 公会任务模式下 是否需要跨服
         :return: [{"stage_id":str, "max_times":int, "quest_card":str, "ban_card":None},...]
         """
@@ -743,7 +747,7 @@ class FAA:
         if mode == "情侣任务":
             self.action_bottom_menu(mode="跳转_情侣任务")
 
-        if mode == "美食大赛":
+        if mode == "美食大赛" or mode == "美食大赛-新":
             self.action_top_menu(mode="美食大赛")
 
         # 读取
@@ -900,10 +904,15 @@ class FAA:
                             }
                         )
 
+        if mode == "美食大赛-新":
+            quest_imgs = food_match_ocr_text(self)
+            texts = extract_text_from_images(quest_imgs)
+            quest_list = food_texts_to_battle_info(texts, self)
+
         # 关闭公会任务列表(红X)
         if mode == "公会任务" or mode == "情侣任务":
             self.action_exit(mode="普通红叉")
-        if mode == "美食大赛":
+        if mode == "美食大赛" or mode == "美食大赛-新":
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=888, y=53)
             time.sleep(0.5)
 
@@ -1292,6 +1301,25 @@ class FAA:
     def sign_top_up_money(self):
         """日氪一元! 仅限4399 游币哦!"""
 
+        def exit_ui():
+            # 确定退出了该界面
+            while True:
+                find_i = loop_match_p_in_w(
+                    source_handle=self.handle,
+                    source_root_handle=self.handle_360,
+                    source_range=[420, 200, 500, 260],
+                    template=RESOURCE_P["top_up_money"]["每日必充_判定点.png"],
+                    match_tolerance=0.99,
+                    match_interval=0.2,
+                    match_failed_check=5,
+                    after_sleep=2,
+                    click=False)
+                if not find_i:
+                    break
+                else:
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=710, y=135)
+                    time.sleep(2)
+
         # 进入充值界面
         self.action_top_menu(mode="每日充值")
         find = loop_match_p_in_w(
@@ -1305,7 +1333,7 @@ class FAA:
             after_sleep=2,
             click=False)
         if not find:
-            return "步骤出现致命失误! 请联系开发者!"
+            return "本期日氪没有假期票Skip... 或进入每日必冲失败, 请联系开发者!"
 
         # 尝试领取 / 尝试进入充值界面 一元档
         CUS_LOGGER.debug("尝试领取 / 尝试进入充值界面...")
@@ -1322,7 +1350,7 @@ class FAA:
             click=True)
         if find:
             # 退出充值界面
-            self.action_top_menu(mode="每日充值")
+            exit_ui()
             return "你今天氪过, 但未领取, 已帮忙领取, 下次别忘了哦~"
 
         find = loop_match_p_in_w(
@@ -1337,18 +1365,18 @@ class FAA:
             click=True)
         if not find:
             # 退出充值界面
-            self.action_top_menu(mode="每日充值")
+            exit_ui()
             return "今天氪过了~"
 
         # 没有完成, 进入充值界面
         CUS_LOGGER.debug("充值界面 点击切换为游币")
-        source_range_2 = [275, 210, 395, 265]  # 游币兑换按钮位置
+        source_range_2 = [280, 165, 735, 265]  # 游币兑换按钮可能的位置
         loop_match_p_in_w(
             source_handle=self.handle,
             source_root_handle=self.handle_360,
             source_range=source_range_2,
             template=RESOURCE_P["top_up_money"]["充值界面_游币兑换.png"],
-            match_tolerance=0.99,
+            match_tolerance=0.995,
             match_interval=0.2,
             match_failed_check=5,
             after_sleep=2,
@@ -1359,7 +1387,7 @@ class FAA:
             source_root_handle=self.handle_360,
             source_range=source_range_2,
             template=RESOURCE_P["top_up_money"]["充值界面_游币兑换√.png"],
-            match_tolerance=0.99,
+            match_tolerance=0.995,
             match_interval=0.2,
             match_failed_check=5,
             after_sleep=2,
@@ -1434,9 +1462,11 @@ class FAA:
             return "步骤出现致命失误! 请联系开发者!"
 
         # 退出充值界面 刷新界面状态 才有领取按钮
-        self.action_top_menu(mode="每日充值")
+        exit_ui()
+
         # 进入充值界面
         self.action_top_menu(mode="每日充值")
+
         # 充值成功领取
         find = loop_match_p_in_w(
             source_handle=self.handle,
@@ -1452,7 +1482,7 @@ class FAA:
             return "成功氪金并领取~"
 
         # 退出充值界面
-        self.action_top_menu(mode="每日充值")
+        exit_ui()
 
     def fed_and_watered(self) -> None:
         """公会施肥浇水功能"""
@@ -1743,7 +1773,8 @@ class FAA:
         fed_and_watered_main()
 
     def use_items_consumables(self) -> None:
-        self.print_debug(text="开启使用物品功能")
+
+        self.signal_print_to_ui.emit(text=f"[使用绑定消耗品] [{self.player}P] 开始.")
 
         # 打开背包
         self.print_debug(text="打开背包")
@@ -1769,7 +1800,7 @@ class FAA:
                 # 添加绑定角标
                 item_image = overlay_images(
                     img_background=item_image,
-                    img_overlay=RESOURCE_P["item"]["物品-绑定角标.png"])
+                    img_overlay=RESOURCE_P["item"]["物品-绑定角标-背包.png"])  # 特别注意 背包和战利品使用的角标不一样!!!
 
                 while True:
 
@@ -1833,22 +1864,24 @@ class FAA:
         # 关闭背包
         self.action_exit(mode="普通红叉")
 
+        self.signal_print_to_ui.emit(text=f"[使用绑定消耗品] [{self.player}P] 结束.")
+
     def use_items_double_card(self, max_times) -> None:
+        """
+        使用双倍暴击卡的函数。
+
+        在周六或周日不执行操作，其余时间会尝试使用指定数量的双倍暴击卡。
+
+        :param max_times: 最大使用次数
+        :return: None
+        """
 
         def is_saturday_or_sunday():
-            # 设置北京时区
-            beijing_tz = pytz.timezone('Asia/Shanghai')
-
-            # 获取当前的北京时间
-            now_in_beijing = datetime.now(beijing_tz)
-
-            # 获取今天是星期几（0=星期一，1=星期二，...，5=星期六，6=星期日）
-            weekday = now_in_beijing.weekday()
+            # 获取北京时间是星期几（0=星期一，1=星期二，...，5=星期六，6=星期日）
+            weekday = datetime.now(pytz.timezone('Asia/Shanghai')).weekday()
 
             # 判断今天是否是星期六或星期日
-            if weekday == 5:
-                return True
-            elif weekday == 6:
+            if weekday == 5 or weekday == 6:
                 return True
             else:
                 return False
@@ -1936,7 +1969,8 @@ class FAA:
             # 打开背包
             self.print_debug(text="打开背包")
             self.action_bottom_menu(mode="背包")
-            self.signal_print_to_ui.emit(text="[使用双暴卡] 背包图标可能需要加载, 等待10s")
+            if self.player == 1:
+                self.signal_print_to_ui.emit(text=f"[使用双暴卡] [{self.player}P] 背包图标可能需要加载, 等待10s")
             time.sleep(10)
 
             loop_use_double_card()
@@ -1947,7 +1981,14 @@ class FAA:
         main()
 
     def input_level_2_password_and_gift_flower(self, password):
-        """如果背包已满 通过兑换暗晶激活二级密码就用不了了! 那么 用缘分树送花给是最稳当的!"""
+        """
+        输入二级密码.
+        如果背包已满, 通过兑换暗晶激活二级密码就用不了了! 那么 用缘分树送花给是最稳当的!
+        免费的花也不会送出, 若玩家提前送完了免费花和礼卷花, 尝试送花一定会送出点卷花!
+        """
+
+        self.signal_print_to_ui.emit(text=f"[输入二级密码] [{self.player}P] 开始.")
+
         # 打开缘分树界面
         self.print_debug(text="跳转到缘分树界面")
         self.action_bottom_menu(mode="跳转_缘分树")
@@ -2002,7 +2043,15 @@ class FAA:
             self.action_exit(mode="普通红叉")
             time.sleep(1)
 
+        self.signal_print_to_ui.emit(text=f"[输入二级密码] [{self.player}P] 结束.")
+
     def get_dark_crystal(self):
+        """
+        自动兑换暗晶的函数
+        """
+
+        self.signal_print_to_ui.emit(text=f"[兑换暗晶] [{self.player}P] 开始.")
+
         # 打开公会副本界面
         self.print_debug(text="跳转到工会副本界面")
         self.action_bottom_menu(mode="跳转_公会副本")
@@ -2026,6 +2075,8 @@ class FAA:
         for i in range(2):
             self.action_exit(mode="普通红叉")
 
+        self.signal_print_to_ui.emit(text=f"[兑换暗晶] [{self.player}P] 结束.")
+
     def delete_items(self):
         """用于删除多余的技能书类消耗品, 使用前需要输入二级或无二级密码"""
 
@@ -2039,7 +2090,7 @@ class FAA:
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=777, y=65)
         time.sleep(1)
 
-        self.signal_print_to_ui.emit(text="[删除物品] 背包图标可能需要加载, 等待10s")
+        self.signal_print_to_ui.emit(text=f"[删除物品] [{self.player}P] 背包图标可能需要加载, 等待10s")
         time.sleep(10)
 
         # 点击整理物品按钮

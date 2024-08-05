@@ -70,7 +70,7 @@ class Battle:
         """
         根据战斗方案用铲子
         """
-        positions = self.faa.battle_plan_1["shovel"]
+        positions = self.faa.battle_plan_parsed["shovel"]
         if positions is None:
             positions = []
 
