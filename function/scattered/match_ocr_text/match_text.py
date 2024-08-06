@@ -19,7 +19,7 @@ def find_topmost_text_pixel_in_range(gray_img, col_start, col_end, row_start, ro
 def split_into_characters(line):
     """从行图像中分割出单个字符图像"""
     characters = []
-    line_gray = cv2.cvtColor(line, cv2.COLOR_BGR2GRAY)  # 将行图像转换为灰度图像
+    line_gray = cv2.cvtColor(line, cv2.COLOR_BGR2GRAY)  # 将行图像转换为灰度图像 注意 只有两个维度!
     width, _ = line_gray.shape[::-1]
 
     # 西文字符宽度
@@ -57,13 +57,17 @@ def split_into_characters(line):
             images=init_resources.RESOURCE_P["ocr"]["texts_matched"])
 
         if not chinese_match:
+
             # 保存半分割
-            name_id = len(os.listdir(PATHS["picture"]["current"] + "\\ocr\\blocks_half"))
-            save_path = PATHS["picture"]["current"] + f"\\ocr\\blocks_half\\{name_id}.png"
+            cus_path = PATHS["logs"] + "\\match_failed\\texts\\blocks_half"
+            name_id = len(os.listdir(cus_path))
+            save_path = f"{cus_path}\\unknown_{name_id}.png"
             cv2.imencode('.png', latin_block)[1].tofile(save_path)
+
             # 保存全分割
-            name_id = len(os.listdir(PATHS["picture"]["current"] + "\\ocr\\blocks"))
-            save_path = PATHS["picture"]["current"] + f"\\ocr\\blocks\\{name_id}.png"
+            cus_path = PATHS["logs"] + "\\match_failed\\texts\\blocks"
+            name_id = len(os.listdir(cus_path))
+            save_path = f"{cus_path}\\unknown_{name_id}.png"
             cv2.imencode('.png', chinese_block)[1].tofile(save_path)
 
         characters.append(chinese_block)
@@ -128,20 +132,6 @@ def match(source):
 
         else:
             result_str += "?"
-            # 注意 需要重载一下内存中的图片, 这种情况下它可能变化了
-            init_resources.fresh_resource_log_img()
-            if not match_block_equal_in_images(
-                    block_array=block,
-                    images=init_resources.RESOURCE_LOG_IMG["texts"]):
-
-                # 使用PATHS["root"]来构建目标路径
-                texts_unmatched_path = PATHS["logs"] + "\\match_failed\\texts"
-
-                p_id = len(os.listdir(texts_unmatched_path))
-
-                # 保存图片
-                save_path = os.path.join(texts_unmatched_path, f"unknown_{p_id}.png")
-                cv2.imencode('.png', block)[1].tofile(save_path)
 
     return result_str
 

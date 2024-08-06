@@ -71,6 +71,8 @@ def check_paths():
         "\\logs\\match_failed",
         "\\logs\\match_failed\\loots",
         "\\logs\\match_failed\\texts",
+        "\\logs\\match_failed\\texts\\blocks",
+        "\\logs\\match_failed\\texts\\blocks_half",
         "\\logs\\result_json"
     ]
     for path in paths:
