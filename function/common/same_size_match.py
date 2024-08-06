@@ -130,16 +130,17 @@ def one_item_match(img_block, img_tar, mode="equal"):
 
 def match_block_equal_in_images(block_array, images):
     """识别block是否在file_patch文件夹中, 直接对比是否完全一致, 会去除阿尔法通道"""
-    # 去Alpha通道
-    block_array = block_array if block_array.shape[2] == 3 else block_array[:, :, :3]
 
     for img_name, img_array in images.items():
-        # 去Alpha通道
-        img_array = img_array if img_array.shape[2] == 3 else img_array[:, :, :3]
+
         # 只在图像尺寸相同的情况下进行比较
-        if img_array.shape == block_array.shape:
-            # 检查两个图像数组是否完全相同
-            if np.array_equal(block_array, img_array):
-                return img_name[:-4]  # 去掉文件扩展名
+        if not img_array.shape == block_array.shape:
+            continue
+
+        # 检查两个图像数组是否完全相同
+        if not np.array_equal(block_array, img_array):
+            continue
+
+        return img_name[:-4]  # 去掉文件扩展名输出
 
     return None
