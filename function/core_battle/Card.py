@@ -348,7 +348,7 @@ class Special_card(Card):
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=self.location_to[0][0], y=self.location_to[0][1])
                 time.sleep(0.5)
                 #加一个垫子的判断
-                if self.location[0] in self.faa.battle_plan_1["mat"]:#点位要放垫子
+                if self.location[0] in self.faa.battle_plan_parsed["mat"]:#点位要放垫子
                     for mat in self.faa.mat_card_positions:
                         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=mat["location_from"][0],
                                                                 y=mat["location_from"][1])
@@ -388,7 +388,7 @@ class Special_card(Card):
                                                         y=position_dict[f"{pos[0]}-{pos[1]}"][1])
                 time.sleep(0.5)
                 # 加一个垫子的判断
-                if f"{pos[0]}-{pos[1]}" in self.faa.battle_plan_1["mat"]:#点位要放垫子
+                if f"{pos[0]}-{pos[1]}" in self.faa.battle_plan_parsed["mat"]:#点位要放垫子
                     for mat in self.faa.mat_card_positions:
                         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=mat["location_from"][0],
                                                                 y=mat["location_from"][1])
