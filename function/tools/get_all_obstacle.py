@@ -5,12 +5,12 @@ from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 # stage_list_1 = ["NO", "EX", "CS"]
 stage_list_1 = ["EX"]
 
-stage_list_2 = []
-for i in [5]:
-    stage_list_2.append(str(i))
+stage_list_2 = ["2"]
+# for i in [5]:
+#     stage_list_2.append(str(i))
 
 stage_list_3 = []
-for i in range(8):
+for i in range(10):
     stage_list_3.append(str(i))
 
 stage_info_list = []

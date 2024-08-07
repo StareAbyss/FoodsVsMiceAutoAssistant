@@ -5,12 +5,12 @@ import shutil
 import sys
 import time
 
-from PyQt5.QtWidgets import QApplication, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMessageBox, QInputDialog
 
 from function.core.QMW_0_load_ui_file import QMainWindowLoadUI
+from function.globals import init_resources
 from function.globals.extra import EXTRA_GLOBALS
 from function.globals.get_paths import PATHS
-from function.globals.init_resources import fresh_resource_b
 from function.globals.log import CUS_LOGGER
 from function.scattered.check_uuid_in_battle_plan import check_battle_plan_with_uuid
 from function.scattered.get_customize_todo_list import get_customize_todo_list
@@ -34,7 +34,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
 
         # 检测uuid是否存在于battle plan 没有则添加 并将其读入到内存资源中
         check_battle_plan_with_uuid()
-        fresh_resource_b()
+        init_resources.fresh_resource_b()
 
         # 从json文件中读取opt 并刷新ui
         self.opt = None
@@ -434,7 +434,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         battle_plan_uuid_list_old = copy.deepcopy(EXTRA_GLOBALS.battle_plan_uuid_list)
         # 检测uuid是否存在于 可能新加入的 battle plan 没有则添加 并将其读入到内存资源中
         check_battle_plan_with_uuid()
-        fresh_resource_b()
+        init_resources.fresh_resource_b()
 
         def my_transformer_b(change_class: object, opt_1, opt_2) -> None:
             # 用于配置 带有选单的 战斗方案
@@ -687,20 +687,39 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         if self.CurrentPlan.currentIndex() == 0:
             QMessageBox.information(self, "警告", "默认方案不能重命名呢...")
             return
-        self.opt["todo_plans"][self.CurrentPlan.currentIndex()]["name"] = copy.deepcopy(self.RenamePlan_Input.text())
-        # 重载ui
-        self.init_opt_to_ui()
+
+        # 弹出对话框获取新名称
+        new_name, ok = QInputDialog.getText(self, "重命名方案", "请输入新的方案名称:")
+
+        if ok and new_name:
+            self.opt["todo_plans"][self.CurrentPlan.currentIndex()]["name"] = copy.deepcopy(new_name)
+            current_index = self.CurrentPlan.currentIndex()
+            # 重载ui
+            self.init_opt_to_ui()
+            # 默认选中重命名后方案
+            self.CurrentPlan.setCurrentIndex(current_index)
+        else:
+            QMessageBox.information(self, "提示", "方案名称未改变。")
 
     def create_new_plan(self) -> None:
         """新建一个 todo plan, 但不能取名为Default"""
-        if self.CreatePlan_Input == "Default":
-            QMessageBox.information(self, "警告", "不能使用 Default 作为新的 TodoPlan 名呢...")
-            return
-        # 注意深拷贝
-        self.opt["todo_plans"].append(copy.deepcopy(self.opt["todo_plans"][0]))
-        self.opt["todo_plans"][-1]["name"] = copy.deepcopy(self.CreatePlan_Input.text())
-        # 重载ui
-        self.init_opt_to_ui()
+        # 弹出对话框获取新方案名称
+        new_name, ok = QInputDialog.getText(self, "新建方案", "请输入新的方案名称:")
+
+        if ok and new_name:
+            if new_name == "Default":
+                QMessageBox.information(self, "警告", "不能使用 Default 作为新的 TodoPlan 名呢...")
+                return
+
+            # 注意深拷贝
+            self.opt["todo_plans"].append(copy.deepcopy(self.opt["todo_plans"][self.CurrentPlan.currentIndex()]))
+            self.opt["todo_plans"][-1]["name"] = copy.deepcopy(new_name)
+            # 重载ui
+            self.init_opt_to_ui()
+            # 默认选中新方案
+            self.CurrentPlan.setCurrentIndex(len(self.opt["todo_plans"]) - 1)
+        else:
+            QMessageBox.information(self, "提示", "方案未创建。")
 
 
 if __name__ == "__main__":

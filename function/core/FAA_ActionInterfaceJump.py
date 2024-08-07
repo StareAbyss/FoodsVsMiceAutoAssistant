@@ -656,6 +656,30 @@ class FAAActionInterfaceJump:
 
                     time.sleep(0.5)
 
+        def main_hh():
+
+            # 进入美味岛并切区
+            self.goto_map(map_id=1)
+            change_to_region(region_list=[1, 11])
+
+            # 仅限主角色创建关卡
+            if is_main:
+
+                # 进入欢乐假期页面
+                self.top_menu(mode="欢乐假期")
+
+                # 给一点加载时间
+                time.sleep(2)
+
+                # 创建队伍 - 该按钮可能需要修正位置
+                loop_match_p_in_w(
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[515, 477, 658, 513],
+                    template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
+                    after_sleep=0.05,
+                    click=True)
+
         if stage_0 == "NO":
             main_no()
         elif stage_0 == "MT":
@@ -670,5 +694,7 @@ class FAAActionInterfaceJump:
             main_pt()
         elif stage_0 == "GD":
             main_gd()
+        elif stage_0 == "HH":
+            main_hh()
         else:
             print_error(text="请输入正确的关卡名称！")
