@@ -422,7 +422,7 @@ class ThreadUseSpecialCardTimer(QThread):
                                 special_card.fresh_status()#刷新冷却状态，可用就加入对策列表
                                 if special_card.status_usable:
                                     self.card_list_can_use[2].append(special_card)
-                        result=solve_special_card_problem(positions, self.faa[1].battle_plan_1["obstacle"],self.card_list_can_use)
+                        result=solve_special_card_problem(positions, self.faa[1].battle_plan_parsed["obstacle"],self.card_list_can_use)
                         if result is not None:
                             strategy1, strategy2=result
                             for card,pos in strategy1.items():
