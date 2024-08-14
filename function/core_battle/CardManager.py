@@ -119,7 +119,7 @@ class CardManager:
                 faa=self.faa_dict[i],
                 round_interval=self.round_interval
             )
-        self.thread_dict[4] = ThreadUseSpecialCardTimer(
+        self.thread_dict[5] = ThreadUseSpecialCardTimer(
             card_queue=self.special_card_list,
             faa=self.faa_dict,
             round_interval=self.round_interval,
