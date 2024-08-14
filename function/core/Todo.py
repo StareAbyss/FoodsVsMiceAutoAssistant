@@ -23,6 +23,8 @@ from function.scattered.get_customize_todo_list import get_customize_todo_list
 from function.scattered.loots_and_chest_data_save_and_post import loots_and_chests_detail_to_json, \
     loots_and_chests_data_post_to_sever, loots_and_chests_statistics_to_json
 
+from function.core.FAA_extra_readimage import read_and_get_return_information,kill_process
+
 
 class ThreadTodo(QThread):
     signal_start_todo_2_battle = pyqtSignal(dict)
@@ -53,6 +55,8 @@ class ThreadTodo(QThread):
         self.my_lock = False  # 多人单线程的互锁, 需要彼此完成方可解除对方的锁
         self.todo_id = todo_id  # id == 1 默认 id==2 处理双单人多线程
         self.extra_opt = None  # 用来给双单人多线程的2P传递参数
+
+        self.process= None #截图进程在此
 
         # 好用的信号~
         self.signal_dict = signal_dict
@@ -192,7 +196,8 @@ class ThreadTodo(QThread):
             target=self.faa[2].reload_game,
             name="2P Thread - Reload",
             kwargs={})
-
+        self.thread_1p.daemon = True
+        self.thread_2p.daemon = True
         self.thread_1p.start()
         time.sleep(1)
         self.thread_2p.start()
@@ -215,6 +220,8 @@ class ThreadTodo(QThread):
             target=self.faa[2].click_refresh_btn,
             name="2P Thread - Reload",
             kwargs={})
+        self.thread_1p.daemon = True
+        self.thread_2p.daemon = True
         self.thread_1p.start()
         self.thread_2p.start()
         self.thread_1p.join()
@@ -276,6 +283,9 @@ class ThreadTodo(QThread):
                 name="2P Thread - SignIn",
                 kwargs={})
         # 开始进程
+        self.thread_1p.daemon = True
+        if is_group:
+            self.thread_2p.daemon = True
         self.thread_1p.start()
         if is_group:
             self.thread_2p.start()
@@ -314,6 +324,9 @@ class ThreadTodo(QThread):
                 })
 
         # 涉及键盘抢夺, 容错低, 最好分开执行
+        self.thread_1p.daemon = True
+        if is_group:
+            self.thread_2p.daemon = True
         self.thread_1p.start()
         if is_group:
             sleep(0.333)
@@ -345,6 +358,8 @@ class ThreadTodo(QThread):
             })
 
         # 涉及键盘抢夺, 容错低, 最好分开执行
+        self.thread_1p.daemon = True
+        self.thread_2p.daemon = True
         self.thread_1p.start()
         sleep(0.333)
         self.thread_2p.start()
@@ -372,6 +387,8 @@ class ThreadTodo(QThread):
             })
 
         # 涉及键盘抢夺, 容错低, 最好分开执行
+        self.thread_1p.daemon = True
+        self.thread_2p.daemon = True
         self.thread_1p.start()
         sleep(0.333)
         self.thread_2p.start()
@@ -400,6 +417,9 @@ class ThreadTodo(QThread):
                 kwargs={})
 
         # 涉及键盘抢夺, 容错低, 最好分开执行
+        self.thread_1p.daemon = True
+        if is_group:
+            self.thread_2p.daemon = True
         self.thread_1p.start()
         if is_group:
             sleep(0.333)
@@ -428,6 +448,9 @@ class ThreadTodo(QThread):
                 kwargs={"max_times": max_times})
 
         # 涉及键盘抢夺, 容错低, 最好分开执行
+        self.thread_1p.daemon = True
+        if is_group:
+            self.thread_2p.daemon = True
         self.thread_1p.start()
         if is_group:
             sleep(0.333)
@@ -454,7 +477,9 @@ class ThreadTodo(QThread):
                 target=self.faa[2].loop_cross_server,
                 name="2P Thread",
                 kwargs={"deck": deck})
-
+        self.thread_1p.daemon = True
+        if is_group:
+            self.thread_2p.daemon = True
         self.thread_1p.start()
         if is_group:
             self.thread_2p.start()
@@ -610,7 +635,9 @@ class ThreadTodo(QThread):
                     target=self.faa[player_b].battle_a_round_room_preparatory,
                     name="{}P Thread - Battle - Before".format(player_b),
                     kwargs={})
-
+            self.thread_1p.daemon = True
+            if is_group:
+                self.thread_2p.daemon = True
             # 开始多线程
             if is_group:
                 self.thread_2p.start()
@@ -645,6 +672,9 @@ class ThreadTodo(QThread):
                     kwargs={})
 
             # 开始多线程
+            self.thread_1p.daemon = True
+            if is_group:
+                self.thread_2p.daemon = True
             self.thread_1p.start()
             if is_group:
                 self.thread_2p.start()
@@ -654,13 +684,16 @@ class ThreadTodo(QThread):
             if is_group:
                 self.thread_2p.join()
 
+            self.process,queue_todo=read_and_get_return_information(self.faa[player_a])
+
             # 实例化放卡管理器
             self.thread_card_manager = CardManager(
                 faa_1=self.faa[player_a],
                 faa_2=self.faa[player_b],
-                round_interval=self.battle_check_interval
+                round_interval=self.battle_check_interval,
+                solve_queue=queue_todo
             )
-            self.msleep(500)
+
             self.thread_card_manager.run()
             self.msleep(1000)
 
@@ -679,6 +712,9 @@ class ThreadTodo(QThread):
             # 此处的重新变为None是为了让中止todo实例时时该属性仍存在
             CUS_LOGGER.debug('销毁thread_card_manager的调用')
             self.thread_card_manager = None
+            CUS_LOGGER.debug('销毁识图进程')
+            kill_process(self.process)
+            self.process=None
 
             result_spend_time = time.time() - battle_start_time
 
@@ -700,6 +736,9 @@ class ThreadTodo(QThread):
                     kwargs={})
 
             # 开始多线程
+            self.thread_1p.daemon = True
+            if is_group:
+                self.thread_2p.daemon = True
             self.thread_1p.start()
             if is_group:
                 self.thread_2p.start()

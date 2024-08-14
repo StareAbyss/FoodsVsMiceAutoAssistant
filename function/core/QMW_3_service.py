@@ -1,6 +1,6 @@
 import random
 import sys
-
+import threading
 import win32con
 import win32gui
 from PyQt5.QtCore import pyqtSignal, Qt
@@ -18,6 +18,8 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.TodoTimerManager import TodoTimerManager
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
+
+from function.core.FAA_extra_readimage import kill_process
 
 
 class QMainWindowService(QMainWindowLog):
@@ -85,12 +87,16 @@ class QMainWindowService(QMainWindowLog):
         self.Button_Hide.clicked.connect(self.click_btn_hide_window)
         self.game_window_is_hide = False
 
+        self.is_ending=False#线程是否正在结束
+        self.is_start=False#线程是否正在启动
+
+
         # 连接自定义信号到槽函数，从而修改编辑框内容
         self.Label_drag.windowNameChanged1.connect(self.updateEditBox1)
         self.Label_drag.windowNameChanged2.connect(self.updateEditBox2)
-        
+
     def updateEditBox1(self, window_name:str):
-        
+
         """更新1P编辑框内容的槽函数"""
         if '|' in window_name:
             names=window_name.split('|')
@@ -108,7 +114,7 @@ class QMainWindowService(QMainWindowLog):
         else:
             self.Name2P_Input.setText("")
             self.GameName_Input.setText(window_name)
-        
+
 
 
 
@@ -150,6 +156,8 @@ class QMainWindowService(QMainWindowLog):
                 self.signal_dialog.emit(
                     "出错！(╬◣д◢)",
                     f"{player}P存在错误的窗口名或游戏名称, 请参考 [使用前看我!.pdf] 或 [README.md]")
+                self.Button_Start.setText("开始任务\nLink Start")
+                self.is_start = False
                 return
 
         """UI处理"""
@@ -217,6 +225,7 @@ class QMainWindowService(QMainWindowLog):
         self.thread_todo_2.signal_todo_lock.connect(self.thread_todo_1.change_lock)
         self.thread_todo_1.signal_todo_lock.connect(self.thread_todo_2.change_lock)
         self.thread_todo_1.start()
+        self.is_start =False#完成完整启动
 
     def todo_end(self):
         """
@@ -227,14 +236,39 @@ class QMainWindowService(QMainWindowLog):
         """
 
         """线程处理"""
-        for thread_todo in [self.thread_todo_1, self.thread_todo_2]:
-            CUS_LOGGER.debug(f"中止Todo线程:{thread_todo}, 开始")
-            thread_todo.stop()
-            thread_todo.terminate()
-            thread_todo.wait()  # 等待线程确实中断 QThread
-            CUS_LOGGER.debug(f"中止Todo线程:{thread_todo}, 完成")
-        self.thread_todo_1 = None
-        self.thread_todo_2 = None
+        self.is_ending=True
+        for thread_0 in [self.thread_todo_1, self.thread_todo_2]:
+            if thread_0 is not None:
+                # 暂停外部线程
+                # thread_0.pause()
+                #
+                # # 中断[内部战斗线程]
+                # # Q thread 线程 stop方法需要自己手写
+                # python 默认线程 可用stop线程
+                for thread in [thread_0.thread_1p, thread_0.thread_2p]:
+                    if thread is not None:
+                        thread.stop()
+                        # thread.join()  # <-罪魁祸首在此
+
+                process=thread_0.process
+                if process is not None:
+                    kill_process(process)#杀死识图进程
+
+                manager = thread_0.thread_card_manager
+                if manager is not None:
+                    manager.stop()
+                #释放战斗锁
+                faas=thread_0.faa
+                if faas is not None:
+                    for faa in faas:
+                        if faa is not None:
+                            lock=faa.battle_lock
+                            if lock.locked():
+                                lock.release()
+
+                thread_0.terminate()
+                thread_0.wait()  # 等待线程确实中断 QThread
+                thread_0.deleteLater()
 
         # 中止[动作处理线程]
         T_ACTION_QUEUE_TIMER.stop()
@@ -248,14 +282,17 @@ class QMainWindowService(QMainWindowLog):
         self.signal_print_to_ui.emit("[任务事项] 已关闭全部线程", color_level=1)
         # 当前正在运行 的 文本 修改
         self.Label_RunningState.setText(f"任务事项线程状态: 未运行")
+        self.is_ending = False#完成完整的线程结束
+
+
 
     def todo_click_btn(self):
         """战斗开始函数"""
 
         # 线程没有激活
-        if not self.thread_todo_running:
+        if not (self.thread_todo_running or self.is_ending or self.is_start):
             self.todo_start()
-        else:
+        elif not self.is_ending:#加强鲁棒性，用于防熊
             self.todo_end()
 
     def todo_timer_start(self):

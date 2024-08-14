@@ -10,7 +10,7 @@ from function.scattered.restore_window_if_minimized import restore_window_if_min
 # pip install opencv-contrib-python
 
 # 排除缩放干扰 但有的时候会出错 可以在这里多测试测试
-windll.user32.SetProcessDPIAware()
+# windll.user32.SetProcessDPIAware()
 
 
 def capture_image_png(handle: HWND, raw_range: list, root_handle: HWND = None):
@@ -46,6 +46,30 @@ def capture_image_png(handle: HWND, raw_range: list, root_handle: HWND = None):
 
     return image
 
+def capture_image_png_all(handle: HWND, root_handle: HWND = None):
+    """
+    跟上边那个函数一毛一样，只是用来截取全屏
+    """
+    # 尝试截图一次
+    image = capture_image_png_once(handle=handle)
+
+    # image == [], 句柄错误, 返回一个对应大小的全0图像
+    if image is None:
+        return np.zeros((1, 1, 3), dtype=np.uint8)
+
+    # 检查是否为全黑 如果全0 大概率是最小化了
+    if is_mostly_black(image=image, sample_points=9):
+        # 检查窗口是否最小化
+        if root_handle:
+            # 尝试恢复至激活窗口的底层
+            if restore_window_if_minimized(handle=root_handle):
+                # 如果恢复成功, 再次尝试截图一次
+                image = capture_image_png_once(handle=handle)
+
+
+
+    return image
+
 
 def is_mostly_black(image, sample_points=9):
     """
@@ -54,6 +78,8 @@ def is_mostly_black(image, sample_points=9):
     :param sample_points: 要检查的像素点数, 默认为9.
     :return: 如果抽样的像素都是黑色,则返回True; 否则返回False.
     """
+    if image.size == 0:
+        return True
     height, width = image.shape[:2]
 
     # 定义要检查的像素位置

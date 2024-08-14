@@ -100,7 +100,7 @@ class QMainWindowLog(QMainWindowLoadSettings):
         self.signal_image_to_ui.emit(image=PATHS["logo"] + "\\圆角-FetTuo-192x.png")
         self.signal_print_to_ui.emit(text="嗷呜, 欢迎使用FAA-美食大战老鼠自动放卡作战小助手~", time=False)
 
-        self.signal_print_to_ui.emit(text="本软件 [开源][免费][绿色] 当前版本: 1.4.0", time=False)
+        self.signal_print_to_ui.emit(text="本软件 [开源][免费][绿色] 当前版本: 1.5.1 beta", time=False)
         self.signal_print_to_ui.emit(text="", time=False)
         self.signal_print_to_ui.emit(text="使用安全说明", color_level=1, time=False)
         self.signal_print_to_ui.emit(text="[1] 务必有二级密码", time=False)

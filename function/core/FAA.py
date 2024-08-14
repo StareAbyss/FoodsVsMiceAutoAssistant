@@ -1,7 +1,7 @@
 import copy
 import time
 from datetime import datetime
-
+import threading
 import numpy as np
 import pytz
 
@@ -51,6 +51,8 @@ class FAA:
 
         # 随机种子
         self.random_seed = random_seed
+        #这个参数主要用于启动时防熊，避免线程已终止faa类内仍在循环识图
+        self.should_stop = False
 
         """每次战斗中都保持一致的参数"""
         # 角色的index int 1 or 2
@@ -100,6 +102,8 @@ class FAA:
 
         # 战前战后实例 用于实现战斗前的ban卡, 战斗后的战利品图像截取识别 和 判断战斗正确结束
         self.object_battle_a_round_preparation = BattleARoundPreparation(faa=self)
+        #战斗放卡锁，保证同一时间一个号里边的特殊放卡及正常放卡只有一种放卡在操作
+        self.battle_lock = threading.Lock()
 
     def print_debug(self, text, player=None):
         if not player:
@@ -571,7 +575,7 @@ class FAA:
             # 如果location完全不存在 就去掉它
             new_list = []
             for card in list_cell_all:
-                if card["location"]:
+                # if card["location"]:
                     new_list.append(card)
 
             return new_list
@@ -649,7 +653,7 @@ class FAA:
             self.print_debug(text="你的战斗放卡opt如下:")
             self.print_debug(text=list_cell_all)
 
-            self.battle_plan_parsed = {"card": list_cell_all, "shovel": list_shovel}
+            self.battle_plan_parsed = {"card": list_cell_all, "shovel": list_shovel,"obstacle":stage_info["obstacle"],"mat":stage_info["mat_cell"]}
 
         return main()
 
@@ -1013,7 +1017,7 @@ class FAA:
             return False
 
         def main():
-            while True:
+            while not self.should_stop:
 
                 # 点击刷新按钮 该按钮在360窗口上
                 self.print_debug(text="[刷新游戏] 点击刷新按钮...")

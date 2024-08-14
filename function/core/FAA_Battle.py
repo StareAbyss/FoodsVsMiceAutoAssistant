@@ -6,6 +6,7 @@ from function.common.bg_img_match import match_p_in_w, match_ps_in_w, loop_match
 from function.common.bg_img_screenshot import capture_image_png
 from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
+from function.globals.log import CUS_LOGGER
 
 
 class Battle:
@@ -211,6 +212,7 @@ class Battle:
         image = image.reshape(-1, image.shape[-1])  # 减少一个多余的维度
         self.fire_elemental_1000 = np.any(image == [0, 0, 0])
 
-        # 调试打印
+        # # 调试打印
         # if self.faa.player == 1:
-        #     self.faa.print_debug("战斗火苗能量>1000:", self.fire_elemental_1000)
+        #     # self.faa.print_debug("战斗火苗能量>1000:", self.fire_elemental_1000)
+        #     CUS_LOGGER.debug(f"有没有1000火{self.fire_elemental_1000}")

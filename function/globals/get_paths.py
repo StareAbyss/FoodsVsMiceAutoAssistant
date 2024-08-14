@@ -28,6 +28,7 @@ def build_paths(root):
         # 资源文件
         "font": os.path.join(root, "resource", "font"),
         "logo": os.path.join(root, "resource", "logo"),
+        "model": os.path.join(root, "resource", "model"),
         "picture": {
             "current": os.path.join(root, "resource", "picture"),
             "common": os.path.join(root, "resource", "picture", "common"),
@@ -73,7 +74,10 @@ def check_paths():
         "\\logs\\match_failed\\texts",
         "\\logs\\match_failed\\texts\\blocks",
         "\\logs\\match_failed\\texts\\blocks_half",
-        "\\logs\\result_json"
+        "\\logs\\result_json",
+        "\\logs\\yolo_output",
+        "\\logs\\yolo_output\\images",
+        "\\logs\\yolo_output\\labels"
     ]
     for path in paths:
         ensure_directory_exists(PATHS["root"] + path)
