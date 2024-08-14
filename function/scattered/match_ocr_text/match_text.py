@@ -45,9 +45,11 @@ def split_into_characters(line):
 
         # 否则，尝试按中文字符宽度分割
         chinese_block = line_gray[:, start_pos:start_pos + chinese_width]
+
         # 如果中文块宽度小于15像素，说明之后换行了 结束这一行
         if chinese_block.shape[1] < chinese_width:
             break
+
         # 检查这一中文块是否全为白色，如果是 结束这一行
         if np.all(chinese_block == 255):
             break
@@ -58,17 +60,28 @@ def split_into_characters(line):
 
         if not chinese_match:
 
+            # 刷新资源
+            init_resources.fresh_resource_log_img()
+
             # 保存半分割
-            cus_path = PATHS["logs"] + "\\match_failed\\texts\\blocks_half"
-            name_id = len(os.listdir(cus_path))
-            save_path = f"{cus_path}\\unknown_{name_id}.png"
-            cv2.imencode('.png', latin_block)[1].tofile(save_path)
+            result = match_block_equal_in_images(
+                block_array=latin_block,
+                images=init_resources.RESOURCE_LOG_IMG["texts"]["blocks_half"])
+            if not result:
+                cus_path = PATHS["logs"] + "\\match_failed\\texts\\blocks_half"
+                name_id = len(os.listdir(cus_path))
+                save_path = f"{cus_path}\\unknown_{name_id}.png"
+                cv2.imencode('.png', latin_block)[1].tofile(save_path)
 
             # 保存全分割
-            cus_path = PATHS["logs"] + "\\match_failed\\texts\\blocks"
-            name_id = len(os.listdir(cus_path))
-            save_path = f"{cus_path}\\unknown_{name_id}.png"
-            cv2.imencode('.png', chinese_block)[1].tofile(save_path)
+            result = match_block_equal_in_images(
+                block_array=chinese_block,
+                images=init_resources.RESOURCE_LOG_IMG["texts"]["blocks"])
+            if not result:
+                cus_path = PATHS["logs"] + "\\match_failed\\texts\\blocks"
+                name_id = len(os.listdir(cus_path))
+                save_path = f"{cus_path}\\unknown_{name_id}.png"
+                cv2.imencode('.png', chinese_block)[1].tofile(save_path)
 
         characters.append(chinese_block)
         start_pos += chinese_width
