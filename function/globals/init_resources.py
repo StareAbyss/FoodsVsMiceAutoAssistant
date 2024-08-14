@@ -26,8 +26,10 @@ def add_to_resource_img(relative_path, img):
 
     for part in path_parts[:-1]:
         if part not in current_level:
-            current_level[part] = {}
+            current_level[part] = {}  # 初始化一个新的字典
         current_level = current_level[part]
+
+    # 设置最终的图像数据
     current_level[path_parts[-1]] = img
 
 
@@ -40,6 +42,12 @@ def fresh_resource_img():
     root_dir = PATHS["root"] + "\\resource\\picture"
 
     for root, dirs, files in os.walk(root_dir):
+        # 对于每个子文件夹，创建对应的字典层级
+        for c_dir in dirs:
+            relative_path = os.path.relpath(os.path.join(root, c_dir), root_dir)
+            add_to_resource_img(relative_path, {})  # 创建字典层级，值可以设为None
+
+        # 读取所有名称后缀为.png的文件，加入到字典中
         for file in files:
             if file.endswith(".png"):
                 file_path = os.path.join(root, file)
@@ -61,8 +69,10 @@ def add_to_resource_cus_img(relative_path, img):
 
     for part in path_parts[:-1]:
         if part not in current_level:
-            current_level[part] = {}
+            current_level[part] = {}  # 初始化一个新的字典
         current_level = current_level[part]
+
+    # 设置最终的图像数据
     current_level[path_parts[-1]] = img
 
 
@@ -75,6 +85,12 @@ def fresh_resource_cus_img():
     root_dir = PATHS["config"] + "\\cus_images"
 
     for root, dirs, files in os.walk(root_dir):
+        # 对于每个子文件夹，创建对应的字典层级
+        for c_dir in dirs:
+            relative_path = os.path.relpath(os.path.join(root, c_dir), root_dir)
+            add_to_resource_cus_img(relative_path, {})  # 创建字典层级，值可以设为None
+
+        # 读取所有名称后缀为.png的文件，加入到字典中
         for file in files:
             if file.endswith(".png"):
                 file_path = os.path.join(root, file)
@@ -96,8 +112,10 @@ def add_to_resource_log_img(relative_path, img):
 
     for part in path_parts[:-1]:
         if part not in current_level:
-            current_level[part] = {}
+            current_level[part] = {}  # 初始化一个新的字典
         current_level = current_level[part]
+
+    # 设置最终的图像数据
     current_level[path_parts[-1]] = img
 
 
@@ -106,10 +124,16 @@ def fresh_resource_log_img():
     global RESOURCE_LOG_IMG
     RESOURCE_LOG_IMG = {}
 
-    # 遍历文件夹结构，读取所有名称后缀为.png的文件，加入到字典中
+    # 遍历文件夹结构
     root_dir = PATHS["logs"] + "\\match_failed"
 
     for root, dirs, files in os.walk(root_dir):
+        # 对于每个子文件夹，创建对应的字典层级
+        for c_dir in dirs:
+            relative_path = os.path.relpath(os.path.join(root, c_dir), root_dir)
+            add_to_resource_log_img(relative_path, {})  # 创建字典层级，值可以设为None
+
+        # 读取所有名称后缀为.png的文件，加入到字典中
         for file in files:
             if file.endswith(".png"):
                 file_path = os.path.join(root, file)
@@ -148,4 +172,5 @@ fresh_resource_cus_img()
 fresh_resource_log_img()
 
 if __name__ == '__main__':
+    print(RESOURCE_LOG_IMG)
     pass
