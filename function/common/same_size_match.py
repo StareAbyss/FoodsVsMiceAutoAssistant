@@ -96,9 +96,11 @@ def one_item_match(img_block, img_tar, mode="equal"):
     if mode == "match_template_with_mask_tradable":
         match_tolerance = 0.98
         mask = RESOURCE_P["item"]["物品-掩模-不绑定.png"]
+        source = img_block[2:-10:2, 2:-10:2, :]
+        template = img_tar[2:-10:2, 2:-10:2, :]
         result = match_template_with_optional_mask(
-            source=img_block[2:-10:2, 2:-10:2, :],
-            template=img_tar[2:-10:2, 2:-10:2, :],
+            source=source,
+            template=template,
             mask=mask[2:-10:2, 2:-10:2, :],
             test_show=False)
         (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(src=result)

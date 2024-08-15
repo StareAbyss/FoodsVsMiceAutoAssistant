@@ -97,41 +97,84 @@ class QMainWindowLog(QMainWindowLoadSettings):
     def start_print(self):
         """打印默认输出提示"""
 
-        self.signal_image_to_ui.emit(image=PATHS["logo"] + "\\圆角-FetTuo-192x.png")
-        self.signal_print_to_ui.emit(text="嗷呜, 欢迎使用FAA-美食大战老鼠自动放卡作战小助手~", time=False)
-
-        self.signal_print_to_ui.emit(text="本软件 [开源][免费][绿色] 当前版本: 1.5.1 beta", time=False)
-        self.signal_print_to_ui.emit(text="", time=False)
-        self.signal_print_to_ui.emit(text="使用安全说明", color_level=1, time=False)
-        self.signal_print_to_ui.emit(text="[1] 务必有二级密码", time=False)
-        self.signal_print_to_ui.emit(text="[2] 有一定的礼卷防翻牌异常", time=False)
-        self.signal_print_to_ui.emit(text="[3] 高星或珍贵不绑卡挂拍卖/提前转移", time=False)
-        self.signal_print_to_ui.emit(text="", time=False)
-        self.signal_print_to_ui.emit(text="使用疑难解决", color_level=1, time=False)
-        self.signal_print_to_ui.emit(text="用户请认真阅读[FAA从入门到神殿.pdf], 解决[闪退/没反应/UI缩放]等问题",
-                                     color_level=2,
-                                     time=False)
-        self.signal_print_to_ui.emit(text="开发者和深入使用, 请参考[README.md]", time=False)
-        self.signal_print_to_ui.emit(text="鼠标悬停在文字或按钮上会显示部分提示信息~", time=False)
-        self.signal_print_to_ui.emit(text="任务或定时器开始运行后, 将锁定点击按钮时的配置文件, 不应用实时更改",
-                                     time=False)
-        self.signal_print_to_ui.emit(text="该版本的FAA会向服务器发送战利品掉落Log以做掉落统计, 不传输<任何>其他内容",
-                                     time=False)
-        self.signal_print_to_ui.emit(text="", time=False)
-        self.signal_print_to_ui.emit(text="相关链接", color_level=1, time=False)
-        self.signal_print_to_ui.emit(text="[爱发电]  https://afdian.net/a/zssy_faa ", time=False)
-        self.signal_print_to_ui.emit(text="[爱发电]你们的支持是FAA持(不)续(跑)开(路)发的最大动力",
-                                     time=False)
-        self.signal_print_to_ui.emit(text="[Github]  https://github.com/StareAbyss/FoodsVsMiceAutoAssistant",
-                                     time=False)
-        self.signal_print_to_ui.emit(text="[Github]  开源不易, 为我点个Star吧! 发送Issues是最有效的问题反馈渠道",
-                                     time=False)
-        self.signal_print_to_ui.emit(text="[B站][UP直视深淵][宣传]  https://www.bilibili.com/video/BV1fS421N7zf",
-                                     time=False)
-        self.signal_print_to_ui.emit(text="[B站]  速速一键三连辣!", time=False)
-        self.signal_print_to_ui.emit(text="[交流QQ群]  1群: 786921130  2群: 142272678 ", time=False)
-        self.signal_print_to_ui.emit(text="[交流QQ群]  欢迎加入交流讨论游戏相关和自动化相关问题 & 获取使用帮助",
-                                     time=False)
+        self.signal_image_to_ui.emit(
+            image=PATHS["logo"] + "\\圆角-FetTuo-192x.png")
+        self.signal_print_to_ui.emit(
+            text="嗷呜, 欢迎使用FAA-美食大战老鼠自动放卡作战小助手~",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="本软件 [开源][免费][绿色] 当前版本: v1.5.0-beta.1",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="使用安全说明",
+            color_level=1,
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="[1] 务必有二级密码",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="[2] 有一定的礼卷防翻牌异常",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="[3] 高星或珍贵不绑卡挂拍卖/提前转移",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="使用疑难解决",
+            color_level=1,
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="用户请认真阅读[FAA从入门到神殿.pdf], 解决[闪退/没反应/UI缩放]等问题",
+            color_level=2,
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="开发者和深入使用, 请参考[README.md]",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="鼠标悬停在文字或按钮上会显示部分提示信息~",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="任务或定时器开始运行后, 将锁定点击按钮时的配置文件, 不应用实时更改",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="该版本的FAA会向服务器发送战利品掉落Log以做掉落统计, 不传输<任何>其他内容",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="相关链接",
+            color_level=1,
+            time=False)
+        # self.signal_print_to_ui.emit(
+        #     text="[爱发电]  https://afdian.net/a/zssy_faa ",
+        #     time=False)
+        # self.signal_print_to_ui.emit(
+        #     text="[爱发电]你们的支持是FAA持(不)续(跑)开(路)发的最大动力",
+        #     time=False)
+        self.signal_print_to_ui.emit(
+            text="[Github]  https://github.com/StareAbyss/FoodsVsMiceAutoAssistant",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="[Github]  开源不易, 为我点个Star吧! 发送Issues是最有效的问题反馈渠道",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="[B站][UP直视深淵][宣传]  https://www.bilibili.com/video/BV1fS421N7zf",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="[B站]  速速一键三连辣!",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="[交流QQ群]  1群: 786921130  2群: 142272678 ",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="[交流QQ群]  欢迎加入, 交流游戏和自动化 & 获取使用帮助 & 参与开发!",
+            time=False)
 
     # 用于展示弹窗信息的方法
     @QtCore.pyqtSlot(str, str)

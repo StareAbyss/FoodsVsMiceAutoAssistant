@@ -1,6 +1,5 @@
 from function.common.bg_img_match import match_p_in_w
 from function.globals.init_resources import RESOURCE_P
-from function.scattered.gat_handle import faa_get_handle
 
 
 def get_position_card_deck_in_battle(handle,handle_360):
@@ -126,9 +125,10 @@ def get_position_card_cell_in_battle():
 
 
 if __name__ == '__main__':
-    def main():
-        handle = faa_get_handle(channel="锑食", mode="flash")
-        print(get_position_card_deck_in_battle(handle=handle))
-
-
-    main()
+    pass
+    # def main():
+    #     handle = faa_get_handle(channel="锑食", mode="flash")
+    #     print(get_position_card_deck_in_battle(handle=handle))
+    #
+    #
+    # main()

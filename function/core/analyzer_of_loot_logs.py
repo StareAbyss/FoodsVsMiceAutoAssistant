@@ -190,7 +190,7 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
             item_img = init_resources.RESOURCE_P["item"]["战利品"][item_name + ".png"]
 
             # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
-            is_it = one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable")
+            is_it, _ = one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable")
             if is_it:
                 return item_name, list_iter, False
 
@@ -199,7 +199,7 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
         item_name = item_name.replace(".png", "")
 
         # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
-        is_it = one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable")
+        is_it, _ = one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable")
         if is_it:
             return item_name, list_iter, False
     """识别失败"""
