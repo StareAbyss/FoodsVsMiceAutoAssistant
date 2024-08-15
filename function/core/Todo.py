@@ -11,6 +11,7 @@ from requests import RequestException
 
 from function.common.bg_img_match import loop_match_p_in_w
 from function.common.thread_with_exception import ThreadWithException
+from function.core.FAA_extra_readimage import read_and_get_return_information, kill_process
 from function.core.analyzer_of_loot_logs import update_dag_graph, find_longest_path_from_dag
 from function.core_battle.CardManager import CardManager
 from function.globals.extra import EXTRA_GLOBALS
@@ -22,8 +23,6 @@ from function.scattered.create_drops_image import create_drops_image
 from function.scattered.get_customize_todo_list import get_customize_todo_list
 from function.scattered.loots_and_chest_data_save_and_post import loots_and_chests_detail_to_json, \
     loots_and_chests_data_post_to_sever, loots_and_chests_statistics_to_json
-
-from function.core.FAA_extra_readimage import read_and_get_return_information,kill_process
 
 
 class ThreadTodo(QThread):
@@ -56,7 +55,7 @@ class ThreadTodo(QThread):
         self.todo_id = todo_id  # id == 1 默认 id==2 处理双单人多线程
         self.extra_opt = None  # 用来给双单人多线程的2P传递参数
 
-        self.process= None #截图进程在此
+        self.process = None  # 截图进程在此
 
         # 好用的信号~
         self.signal_dict = signal_dict
@@ -684,7 +683,7 @@ class ThreadTodo(QThread):
             if is_group:
                 self.thread_2p.join()
 
-            self.process,queue_todo=read_and_get_return_information(self.faa[player_a])
+            self.process, queue_todo = read_and_get_return_information(self.faa[player_a])
 
             # 实例化放卡管理器
             self.thread_card_manager = CardManager(
@@ -714,7 +713,7 @@ class ThreadTodo(QThread):
             self.thread_card_manager = None
             CUS_LOGGER.debug('销毁识图进程')
             kill_process(self.process)
-            self.process=None
+            self.process = None
 
             result_spend_time = time.time() - battle_start_time
 

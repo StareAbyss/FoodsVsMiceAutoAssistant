@@ -1,14 +1,14 @@
-import time
 import os
+import time
 
 import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png
+from function.core_battle.get_position_in_battle import get_position_card_cell_in_battle
 from function.globals.extra import EXTRA_GLOBALS
+from function.globals.get_paths import PATHS
 from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
-from function.globals.get_paths import PATHS
-from function.core_battle.get_position_in_battle import get_position_card_cell_in_battle
 
 # 在文件的开始位置获取位置坐标字典，深渊写的太低内聚了，我不想再套娃好几层传参了
 position_dict = get_position_card_cell_in_battle()
@@ -57,7 +57,7 @@ class Card:
     def __init__(self, priority, faa):
         # 直接塞进来一个faa的实例地址, 直接从该实例中拉取方法和属性作为参数~
         self.faa = faa
-        # 优先级
+        # 优先级 index
         self.priority = priority
 
         """直接从FAA类读取的属性"""
@@ -67,7 +67,7 @@ class Card:
         self.faa_battle = self.faa.faa_battle
         self.player = self.faa.player
 
-        """从FAA类的battle_plan_1中读取的属性"""
+        """从 FAA类 的 battle_plan_parsed 中读取的属性"""
         # 根据优先级（也是在战斗方案中的index）直接读取faa
         self.name = self.faa.battle_plan_parsed["card"][priority]["name"]
         self.id = self.faa.battle_plan_parsed["card"][priority]["id"]
@@ -80,8 +80,8 @@ class Card:
         self.location_to = self.faa.battle_plan_parsed["card"][priority]["location_to"]
         # 坤优先级
         self.kun = self.faa.battle_plan_parsed["card"][priority]["kun"]
-        #卡坤的实例
-        self.card_kun=None
+        # 卡坤的实例
+        self.card_kun = None
 
         """用于完成放卡的额外类属性"""
         # 放卡间隔
@@ -103,20 +103,30 @@ class Card:
 
     def use_card(self):
 
+        # 未启动自动战斗
         if not self.is_auto_battle:
             return
+
+        # 自身是冰沙但不符合使用条件
         if self.is_smoothie:
             if not self.faa_battle.fire_elemental_1000:
                 return
             if EXTRA_GLOBALS.smoothie_lock_time != 0:
                 return
             EXTRA_GLOBALS.smoothie_lock_time = 7
-        if not self.can_use:#线程放瓜皮时不巧撞上了正在计算炸弹类或者计算完成后炸弹需要该瓜皮
+
+        # 线程放瓜皮时不巧撞上了正在计算炸弹类或者计算完成后炸弹需要该瓜皮
+        if not self.can_use:
             return
 
-        with self.faa.battle_lock:#战斗放卡锁，用于防止与特殊放卡放置冲突，点击队列不连贯
+        # 战斗放卡锁，用于防止与特殊放卡放置冲突，点击队列不连贯
+        with self.faa.battle_lock:
+
             # 点击 选中卡片
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=self.location_from[0], y=self.location_from[1])
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                handle=self.handle,
+                x=self.location_from[0],
+                y=self.location_from[1])
 
             if self.ergodic:
                 # 遍历模式: True 遍历该卡每一个可以放的位置
@@ -124,6 +134,9 @@ class Card:
             else:
                 # 遍历模式: False 只放第一张, 为保证放下去, 同一个位置点两次
                 my_to_list = [0, 0]
+
+            # 初始化 j 为 0
+            j = 0
 
             for j in my_to_list:
                 # 点击 放下卡片
@@ -158,8 +171,9 @@ class Card:
                 # 放置失败 说明放满了 如果不在白名单 就自ban
                 self.status_ban = 10
             else:
-                if self.is_kun_target and not self.card_kun.is_using:#and是短路计算，左边算过不满足右边就不会算，所以如果一个卡是坤标，那坤实例一定不为None
-                    # 放置成功 如果是坤目标, 复制自身放卡的逻辑,并且坤不在征用计算中或者计算完没有使用坤
+                # and是短路计算，左边算过不满足右边就不会算，所以如果一个卡是坤标，那坤实例一定不为None
+                # 放置成功 如果是坤目标, 复制自身放卡的逻辑,并且坤不在征用计算中或者计算完没有使用坤
+                if self.is_kun_target and not self.card_kun.is_using:
 
                     # 点击 选中卡片 但坤
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(
@@ -189,7 +203,6 @@ class Card:
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
                     time.sleep(self.click_sleep)
 
-
                     # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
                     if self.queue:
                         self.location.append(self.location[0])
@@ -199,7 +212,6 @@ class Card:
 
                     # 额外时延
                     time.sleep(0.1)
-
 
     def fresh_status(self):
         """判断颜色来更改自身冷却和可用属性"""
@@ -265,7 +277,7 @@ class Card:
     def destroy(self):
         self.faa = None
         self.priority = None
-        self.card_kun=None
+        self.card_kun = None
 
 
 class CardKun:
@@ -282,8 +294,8 @@ class CardKun:
         """用于完成放卡的额外类属性"""
         # 状态 可用
         self.status_usable = False
-        #是否被征用计算
-        self.is_using=False
+        # 是否被征用计算
+        self.is_using = False
 
     def fresh_status(self):
         """判断颜色来更改自身冷却和可用属性"""
@@ -315,19 +327,18 @@ class CardKun:
         self.faa = None
 
 
-class Special_card(Card):
-    def __init__(self, energy,card_type,rows=None,cols=None,*args, **kwargs):
+class SpecialCard(Card):
+    def __init__(self, energy, card_type, rows=None, cols=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.energy = energy  # 特殊卡的初始能量值
-        #是否需要咖啡粉唤醒#算了不想写相关逻辑了，等有缘人补充吧
+        # 是否需要咖啡粉唤醒 算了不想写相关逻辑了，等有缘人补充吧
         self.need_coffee = self.name in ["冰桶炸弹", "开水壶炸弹"]
-        self.card_type=card_type
-        self.need_shovel = self.card_type==12 or self.card_type==14#要秒铲的有草扇跟护罩炸弹
-        self.rows=rows
-        self.cols=cols
+        self.card_type = card_type
+        self.need_shovel = self.card_type == 12 or self.card_type == 14  # 要秒铲的有草扇跟护罩炸弹
+        self.rows = rows
+        self.cols = cols
 
-
-    def use_card(self,pos):
+    def use_card(self, pos):
 
         if not self.is_auto_battle:
             return
@@ -338,20 +349,28 @@ class Special_card(Card):
                 return
             EXTRA_GLOBALS.smoothie_lock_time = 7
 
-        #根据玩家上互斥锁，保证放卡点击序列不会乱掉（因为多次点击还多线程操作很容易出事）
+        # 根据玩家上互斥锁，保证放卡点击序列不会乱掉（因为多次点击还多线程操作很容易出事）
         with self.faa.battle_lock:
-            if pos is None:#无默认坐标即为冰桶类或草扇
+            # 无默认坐标即为冰桶类或草扇
+            if pos is None:
 
-                #铲子的调用
+                # 铲子的调用
                 T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
                 time.sleep(self.click_sleep / 2)  # 必须的间隔
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=self.location_to[0][0], y=self.location_to[0][1])
+
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.faa.handle,
+                    x=self.location_to[0][0],
+                    y=self.location_to[0][1])
                 time.sleep(0.5)
-                #加一个垫子的判断
-                if self.location[0] in self.faa.battle_plan_parsed["mat"]:#点位要放垫子
+
+                # 加一个垫子的判断 点位要放承载卡
+                if self.location[0] in self.faa.battle_plan_parsed["mat"]:
                     for mat in self.faa.mat_card_positions:
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=mat["location_from"][0],
-                                                                y=mat["location_from"][1])
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                            handle=self.handle,
+                            x=mat["location_from"][0],
+                            y=mat["location_from"][1])
                         # 点击 放下卡片
                         T_ACTION_QUEUE_TIMER.add_click_to_queue(
                             handle=self.handle,
@@ -359,8 +378,10 @@ class Special_card(Card):
                             y=self.location_to[0][1])
 
                 # 点击 选中卡片
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=self.location_from[0], y=self.location_from[1])
-
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle,
+                    x=self.location_from[0],
+                    y=self.location_from[1])
 
                 # 点击 放下卡片
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
@@ -371,58 +392,72 @@ class Special_card(Card):
                 # 放卡后点一下空白
                 T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
-                if self.need_shovel:#是否要秒铲
+                if self.need_shovel:  # 是否要秒铲
                     T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
                     time.sleep(self.click_sleep / 2)  # 必须的间隔
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=self.location_to[0][0], y=self.location_to[0][1])
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                        handle=self.faa.handle,
+                        x=self.location_to[0][0],
+                        y=self.location_to[0][1])
                     time.sleep(self.click_sleep)
                 # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
                 # time.sleep(self.click_sleep * 4)
                 time.sleep(0.2)
-            else:#有默认坐标传入，意味着是炸弹类卡片
+
+            # 有默认坐标传入，意味着是炸弹类卡片
+            else:
                 # 铲子的调用
                 T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
                 time.sleep(self.click_sleep / 2)  # 必须的间隔
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle,
-                                                        x=position_dict[f"{pos[0]}-{pos[1]}"][0],
-                                                        y=position_dict[f"{pos[0]}-{pos[1]}"][1])
-                time.sleep(0.5)
-                # 加一个垫子的判断
-                if f"{pos[0]}-{pos[1]}" in self.faa.battle_plan_parsed["mat"]:#点位要放垫子
-                    for mat in self.faa.mat_card_positions:
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=mat["location_from"][0],
-                                                                y=mat["location_from"][1])
-                        # 点击 放下卡片
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle,
-                                                                x=position_dict[f"{pos[0]}-{pos[1]}"][0],
-                                                                y=position_dict[f"{pos[0]}-{pos[1]}"][1])
 
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.faa.handle,
+                    x=position_dict[f"{pos[0]}-{pos[1]}"][0],
+                    y=position_dict[f"{pos[0]}-{pos[1]}"][1])
+                time.sleep(0.5)
+
+                # 加一个垫子的判断
+                if f"{pos[0]}-{pos[1]}" in self.faa.battle_plan_parsed["mat"]:  # 点位要放垫子
+                    for mat in self.faa.mat_card_positions:
+
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                            handle=self.handle,
+                            x=mat["location_from"][0],
+                            y=mat["location_from"][1])
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                            handle=self.faa.handle,
+                            x=position_dict[f"{pos[0]}-{pos[1]}"][0],
+                            y=position_dict[f"{pos[0]}-{pos[1]}"][1])
 
                 # 点击 选中卡片
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=self.location_from[0],
-                                                        y=self.location_from[1])
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle,
+                    x=self.location_from[0],
+                    y=self.location_from[1])
 
                 # 点击 放下卡片
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle,
-                                                        x=position_dict[f"{pos[0]}-{pos[1]}"][0],
-                                                        y=position_dict[f"{pos[0]}-{pos[1]}"][1])
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.faa.handle,
+                    x=position_dict[f"{pos[0]}-{pos[1]}"][0],
+                    y=position_dict[f"{pos[0]}-{pos[1]}"][1])
 
                 # 放卡后点一下空白
                 T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
                 if self.need_shovel:  # 是否要秒铲
+
                     T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
                     time.sleep(self.click_sleep / 2)  # 必须的间隔
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle,
-                                                            x=position_dict[f"{pos[0]}-{pos[1]}"][0],
-                                                            y=position_dict[f"{pos[0]}-{pos[1]}"][1])
+
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                        handle=self.faa.handle,
+                        x=position_dict[f"{pos[0]}-{pos[1]}"][0],
+                        y=position_dict[f"{pos[0]}-{pos[1]}"][1])
                     time.sleep(self.click_sleep)
+
                 # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
                 # time.sleep(self.click_sleep * 4)
                 time.sleep(0.2)
-
-
-
 
 
 def is_special_card(card_name):
@@ -435,33 +470,35 @@ def is_special_card(card_name):
         for file in files:
             # 解析文件名并移除扩展名
             base_name = os.path.splitext(file)[0]
-            energy =None
+            energy = None
             rows = None
             cols = None
             if '_' in base_name:
                 parts = base_name.split('_')
-                base_name= parts[0]
+                base_name = parts[0]
                 card_type = parts[1]
                 if len(parts) > 2:
                     energy = int(parts[2])
                 if len(parts) > 3:
-                    cols=int(parts[3])
-                if len(parts) > 4:#目前只有大十字
+                    cols = int(parts[3])
+                if len(parts) > 4:  # 目前只有大十字
                     rows = int(parts[4])
-
-
 
             # 检查是否匹配
             if base_name == card_name:
                 # 计算子目录的名称
                 subdir_name = os.path.relpath(root, base_path)
-                return {"found": True, "subdir_name": subdir_name, "energy":energy,"card_type":int(card_type),"rows":rows,"cols":cols}
+                return {
+                    "found": True,
+                    "subdir_name": subdir_name,
+                    "energy": energy,
+                    "card_type": int(card_type),
+                    "rows": rows,
+                    "cols": cols}
                 # 返回匹配状态和匹配文件所在子目录的名称
-
 
     # 如果没有找到匹配的文件，返回匹配状态为False
     return {"found": False}
-
 
 # # 示例使用
 # card_name = "电音镭射喵"

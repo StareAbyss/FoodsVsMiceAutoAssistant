@@ -1,25 +1,23 @@
 import random
 import sys
-import threading
+
 import win32con
 import win32gui
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QApplication
 
 from function.core.FAA import FAA
+from function.core.FAA_extra_readimage import kill_process
 from function.core.QMW_2_log import QMainWindowLog
 from function.core.QMW_EditorOfBattlePlan import QMWEditorOfBattlePlan
 from function.core.QMW_TipBattle import QMWTipBattle
 from function.core.QMW_TipStageID import QMWTipStageID
 from function.core.QMW_TipWarmGift import QMWTipWarmGift
 from function.core.Todo import ThreadTodo
-from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.TodoTimerManager import TodoTimerManager
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
-
-from function.core.FAA_extra_readimage import kill_process
 
 
 class QMainWindowService(QMainWindowLog):
@@ -87,36 +85,33 @@ class QMainWindowService(QMainWindowLog):
         self.Button_Hide.clicked.connect(self.click_btn_hide_window)
         self.game_window_is_hide = False
 
-        self.is_ending=False#线程是否正在结束
-        self.is_start=False#线程是否正在启动
-
+        self.is_ending = False  # 线程是否正在结束
+        self.is_start = False  # 线程是否正在启动
 
         # 连接自定义信号到槽函数，从而修改编辑框内容
         self.Label_drag.windowNameChanged1.connect(self.updateEditBox1)
         self.Label_drag.windowNameChanged2.connect(self.updateEditBox2)
 
-    def updateEditBox1(self, window_name:str):
+    def updateEditBox1(self, window_name: str):
 
         """更新1P编辑框内容的槽函数"""
         if '|' in window_name:
-            names=window_name.split('|')
+            names = window_name.split('|')
             self.Name1P_Input.setText(names[0].strip())
             self.GameName_Input.setText(names[1].strip())
         else:
             self.Name1P_Input.setText("")
             self.GameName_Input.setText(window_name)
+
     def updateEditBox2(self, window_name):
         """更新2P编辑框内容的槽函数"""
         if '|' in window_name:
-            names=window_name.split('|')
+            names = window_name.split('|')
             self.Name2P_Input.setText(names[0].strip())
             self.GameName_Input.setText(names[1].strip())
         else:
             self.Name2P_Input.setText("")
             self.GameName_Input.setText(window_name)
-
-
-
 
     def todo_start(self, plan_index=None):
         """
@@ -225,7 +220,7 @@ class QMainWindowService(QMainWindowLog):
         self.thread_todo_2.signal_todo_lock.connect(self.thread_todo_1.change_lock)
         self.thread_todo_1.signal_todo_lock.connect(self.thread_todo_2.change_lock)
         self.thread_todo_1.start()
-        self.is_start =False#完成完整启动
+        self.is_start = False  # 完成完整启动
 
     def todo_end(self):
         """
@@ -236,7 +231,7 @@ class QMainWindowService(QMainWindowLog):
         """
 
         """线程处理"""
-        self.is_ending=True
+        self.is_ending = True
         for thread_0 in [self.thread_todo_1, self.thread_todo_2]:
             if thread_0 is not None:
                 # 暂停外部线程
@@ -250,19 +245,19 @@ class QMainWindowService(QMainWindowLog):
                         thread.stop()
                         # thread.join()  # <-罪魁祸首在此
 
-                process=thread_0.process
+                process = thread_0.process
                 if process is not None:
-                    kill_process(process)#杀死识图进程
+                    kill_process(process)  # 杀死识图进程
 
                 manager = thread_0.thread_card_manager
                 if manager is not None:
                     manager.stop()
-                #释放战斗锁
-                faas=thread_0.faa
+                # 释放战斗锁
+                faas = thread_0.faa
                 if faas is not None:
                     for faa in faas:
                         if faa is not None:
-                            lock=faa.battle_lock
+                            lock = faa.battle_lock
                             if lock.locked():
                                 lock.release()
 
@@ -282,9 +277,7 @@ class QMainWindowService(QMainWindowLog):
         self.signal_print_to_ui.emit("[任务事项] 已关闭全部线程", color_level=1)
         # 当前正在运行 的 文本 修改
         self.Label_RunningState.setText(f"任务事项线程状态: 未运行")
-        self.is_ending = False#完成完整的线程结束
-
-
+        self.is_ending = False  # 完成完整的线程结束
 
     def todo_click_btn(self):
         """战斗开始函数"""
@@ -292,7 +285,7 @@ class QMainWindowService(QMainWindowLog):
         # 线程没有激活
         if not (self.thread_todo_running or self.is_ending or self.is_start):
             self.todo_start()
-        elif not self.is_ending:#加强鲁棒性，用于防熊
+        elif not self.is_ending:  # 加强鲁棒性，用于防熊
             self.todo_end()
 
     def todo_timer_start(self):

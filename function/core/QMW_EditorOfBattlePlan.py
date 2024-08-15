@@ -349,8 +349,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         index -= 1
         card = self.json_data["card"][index]
-        id = int(self.WeiIdInput.value())
-        card["id"] = id
+        card["id"] = int(self.WeiIdInput.value())
         card["name"] = self.WeiNameInput.text()
         card["ergodic"] = bool(self.WeiErgodicInput.currentText() == 'true')  # 转化bool
         card["queue"] = bool(self.QueueInput.currentText() == 'true')  # 转化bool
