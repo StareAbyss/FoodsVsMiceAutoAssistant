@@ -403,6 +403,13 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
             self.Battle_senior_checkedbox.setChecked(my_opt["auto_senior_settings"])
+            self.Battle_senior_checkedbox.stateChanged.connect(self.on_checkbox_state_changed)
+            self.all_senior_log.setEnabled(my_opt["auto_senior_settings"])
+            self.indeed_need.setEnabled(my_opt["auto_senior_settings"])
+            if my_opt["senior_log_state"]:
+                self.all_senior_log.setChecked(True)
+            else:
+                self.indeed_need.setChecked(True)
 
 
         def get_warm_gift_settings() -> None:
@@ -516,6 +523,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
             my_opt["auto_senior_settings"] = self.Battle_senior_checkedbox.isChecked()
+            my_opt["senior_log_state"] = 1 if self.all_senior_log.isChecked() else 0
         def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
             my_opt["1p"]["active"] = self.GetWarmGift_1P_Active.isChecked()
@@ -728,6 +736,14 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.CurrentPlan.setCurrentIndex(len(self.opt["todo_plans"]) - 1)
         else:
             QMessageBox.information(self, "提示", "方案未创建。")
+
+    def on_checkbox_state_changed(self, state):
+        if state == 2:  # Qt.Checked
+            self.all_senior_log.setEnabled(True)
+            self.indeed_need.setEnabled(True)
+        else:
+            self.all_senior_log.setEnabled(False)
+            self.indeed_need.setEnabled(False)
 
 
 if __name__ == "__main__":
