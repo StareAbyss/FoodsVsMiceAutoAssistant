@@ -67,7 +67,7 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>1101</width>
+      <width>1140</width>
       <height>771</height>
      </rect>
     </property>
@@ -8692,6 +8692,22 @@ Link Start</string>
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QLabel" name="Label_Version">
+    <property name="geometry">
+     <rect>
+      <x>890</x>
+      <y>10</y>
+      <width>200</width>
+      <height>15</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>版本号</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
    </widget>
   </widget>
   <action name="action_start_1">

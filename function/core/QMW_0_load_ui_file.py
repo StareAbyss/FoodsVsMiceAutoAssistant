@@ -28,6 +28,12 @@ class QMainWindowLoadUI(QMainWindow):
         # 设置窗口名称
         self.setWindowTitle("FAA - 本软件免费且开源 - 反馈交流: 786921130")
 
+        # 设置版本号
+        self.version = "v1.5.0-beta.1"
+        self.Label_Version.setText(self.version)
+
+        # 从服务器获取最新版本号，如果和本地一致，就把版本号改成金色；不一致改成绿色
+
         # 设置窗口图标
         self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetTuo-192x.png"))
 
