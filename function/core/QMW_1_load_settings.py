@@ -400,6 +400,17 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.EndExitGame.setChecked(my_opt["end_exit_game"])
             self.AutoUseCard.setChecked(my_opt["auto_use_card"])
             self.AutoDeleteOldImages.setChecked(my_opt["auto_delete_old_images"])
+        def senior_settings() -> None:
+            my_opt = self.opt["senior_settings"]
+            self.Battle_senior_checkedbox.setChecked(my_opt["auto_senior_settings"])
+            self.Battle_senior_checkedbox.stateChanged.connect(self.on_checkbox_state_changed)
+            self.all_senior_log.setEnabled(my_opt["auto_senior_settings"])
+            self.indeed_need.setEnabled(my_opt["auto_senior_settings"])
+            if my_opt["senior_log_state"]:
+                self.all_senior_log.setChecked(True)
+            else:
+                self.indeed_need.setChecked(True)
+
 
         def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
@@ -418,6 +429,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         base_settings()
         timer_settings()
         advanced_settings()
+        senior_settings()
         get_warm_gift_settings()
         level_2()
         self.CurrentPlan.clear()
@@ -513,7 +525,10 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             my_opt["end_exit_game"] = self.EndExitGame.isChecked()
             my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
             my_opt["auto_delete_old_images"] = self.AutoDeleteOldImages.isChecked()
-
+        def senior_settings() -> None:
+            my_opt = self.opt["senior_settings"]
+            my_opt["auto_senior_settings"] = self.Battle_senior_checkedbox.isChecked()
+            my_opt["senior_log_state"] = 1 if self.all_senior_log.isChecked() else 0
         def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
             my_opt["1p"]["active"] = self.GetWarmGift_1P_Active.isChecked()
@@ -668,6 +683,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         base_settings()
         timer_settings()
         advanced_settings()
+        senior_settings()
         get_warm_gift_settings()
         level_2()
         self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
@@ -725,6 +741,14 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.CurrentPlan.setCurrentIndex(len(self.opt["todo_plans"]) - 1)
         else:
             QMessageBox.information(self, "提示", "方案未创建。")
+
+    def on_checkbox_state_changed(self, state):
+        if state == 2:  # Qt.Checked
+            self.all_senior_log.setEnabled(True)
+            self.indeed_need.setEnabled(True)
+        else:
+            self.all_senior_log.setEnabled(False)
+            self.indeed_need.setEnabled(False)
 
 
 if __name__ == "__main__":

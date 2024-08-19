@@ -135,15 +135,16 @@ class CardManager:
                 faa=self.faa_dict[i],
                 round_interval=self.round_interval
             )
-        self.thread_dict[5] = ThreadUseSpecialCardTimer(
-            card_queue=self.special_card_list,
-            faa=self.faa_dict,
-            round_interval=self.round_interval,
-            read_queue=self.solve_queue,
-            is_group=self.is_group,
-            iceboom_list=self.iceboom_list,
-            the_9th_grassfan=self.the_9th_grassfan
-        )
+        if self.solve_queue is not None:#不是空的，说明启动了高级战斗
+            self.thread_dict[5] = ThreadUseSpecialCardTimer(
+                card_queue=self.special_card_list,
+                faa=self.faa_dict,
+                round_interval=self.round_interval,
+                read_queue=self.solve_queue,
+                is_group=self.is_group,
+                iceboom_list=self.iceboom_list,
+                the_9th_grassfan=self.the_9th_grassfan
+            )
 
         CUS_LOGGER.debug("[战斗执行器] 线程已全部实例化")
         CUS_LOGGER.debug(self.thread_dict)

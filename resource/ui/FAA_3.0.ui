@@ -8266,7 +8266,123 @@ Link Start</string>
              </widget>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="_3">
+             <layout class="QVBoxLayout" name="Lay_senior_battle" stretch="3,2,1,1,1,1,1,3">
+              <property name="leftMargin">
+               <number>5</number>
+              </property>
+              <property name="topMargin">
+               <number>5</number>
+              </property>
+              <property name="rightMargin">
+               <number>5</number>
+              </property>
+              <property name="bottomMargin">
+               <number>5</number>
+              </property>
+              <item alignment="Qt::AlignHCenter">
+               <widget class="QLabel" name="Battle_senior_text">
+                <property name="text">
+                 <string>高级战斗设置</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>以下为测试功能，启用前确保你已阅读高级放卡md，并且完全理解</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>其放卡原理，如发生未能按预期实现的功能，请先确保你的相关设</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>置无误，再向开发者提出问题，附上详细说明与日志，以便更好的</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_5">
+                <property name="text">
+                 <string>解决问题</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="Battle_senior_checkedbox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>只用点一下就够了!</string>
+                </property>
+                <property name="text">
+                 <string>是否启动高级战斗</string>
+                </property>
+               </widget>
+              </item>
+              <item alignment="Qt::AlignHCenter">
+               <widget class="QLabel" name="label_6">
+                <property name="text">
+                 <string>高级战斗log日志输出</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="Lay_senior_battle_2" stretch="3,2">
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QRadioButton" name="all_senior_log">
+                  <property name="text">
+                   <string>我全都要</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="indeed_need">
+                  <property name="text">
+                   <string>非必要不记录</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="Lay_GetWarmGift_1P_2">
               <property name="leftMargin">
                <number>5</number>
               </property>
@@ -8734,6 +8850,22 @@ Link Start</string>
       </widget>
      </item>
     </layout>
+   </widget>
+   <widget class="QLabel" name="Label_Version">
+    <property name="geometry">
+     <rect>
+      <x>890</x>
+      <y>10</y>
+      <width>200</width>
+      <height>15</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>版本号</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
    </widget>
   </widget>
   <action name="action_start_1">
