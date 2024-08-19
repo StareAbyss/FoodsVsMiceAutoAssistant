@@ -71,13 +71,16 @@ class Card:
         # 根据优先级（也是在战斗方案中的index）直接读取faa
         self.name = self.faa.battle_plan_parsed["card"][priority]["name"]
         self.id = self.faa.battle_plan_parsed["card"][priority]["id"]
-        self.location = self.faa.battle_plan_parsed["card"][priority]["location"]
+
         self.ergodic = self.faa.battle_plan_parsed["card"][priority]["ergodic"]
         self.queue = self.faa.battle_plan_parsed["card"][priority]["queue"]
-        # 坐标 [x,y]
-        self.location_from = self.faa.battle_plan_parsed["card"][priority]["location_from"]
-        # dict {"1-1": [x,y],....}
+        # 卡片需要放置的位置代号 list["1-1",...]
+        self.location = self.faa.battle_plan_parsed["card"][priority]["location"]
+        # 卡片需要放置的位置坐标 list[[x,y],....]
         self.location_to = self.faa.battle_plan_parsed["card"][priority]["location_to"]
+        # 卡片拿去的坐标 list[x,y]
+        self.location_from = self.faa.battle_plan_parsed["card"][priority]["location_from"]
+
         # 坤优先级
         self.kun = self.faa.battle_plan_parsed["card"][priority]["kun"]
         # 卡坤的实例
@@ -100,6 +103,40 @@ class Card:
         self.ban_white_list = ["极寒冰沙", "冰沙"]
         # 是否可以放卡（主要是瓜皮类）
         self.can_use = True
+
+    def put_card(self):
+        """
+        在取卡后, 放下一张卡并更改内部数组的全套操作
+        """
+
+        if self.ergodic:
+            # 遍历模式: True 遍历该卡每一个可以放的位置
+            my_to_list = range(len(self.location))
+        else:
+            # 遍历模式: False 只放第一张, 为保证放下去, 同一个位置点两次
+            my_to_list = [0, 0]
+
+        for j in my_to_list:
+            # 点击 放下卡片
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                handle=self.handle,
+                x=self.location_to[j][0],
+                y=self.location_to[j][1])
+            time.sleep(self.click_sleep)
+
+        # 放卡后点一下空白
+        T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+        time.sleep(self.click_sleep)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
+        time.sleep(self.click_sleep)
+
+        # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
+        if self.queue:
+            if self.location:
+                self.location.append(self.location[0])
+                self.location.remove(self.location[0])
+                self.location_to.append(self.location_to[0])
+                self.location_to.remove(self.location_to[0])
 
     def use_card(self):
 
@@ -127,37 +164,10 @@ class Card:
                 handle=self.handle,
                 x=self.location_from[0],
                 y=self.location_from[1])
+            time.sleep(self.click_sleep)
 
-            if self.ergodic:
-                # 遍历模式: True 遍历该卡每一个可以放的位置
-                my_to_list = range(len(self.location))
-            else:
-                # 遍历模式: False 只放第一张, 为保证放下去, 同一个位置点两次
-                my_to_list = [0, 0]
-
-            # 初始化 j 为 0
-            j = 0
-
-            for j in my_to_list:
-                # 点击 放下卡片
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                    handle=self.handle,
-                    x=self.location_to[j][0],
-                    y=self.location_to[j][1])
-
-            # 放卡后点一下空白
-            T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
-
-            # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
-            time.sleep(self.click_sleep * (j + 3))
-
-            # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
-            if self.queue and len(self.location) > 0 and len(self.location_to) > 0:
-                self.location.append(self.location[0])
-                self.location.remove(self.location[0])
-                self.location_to.append(self.location_to[0])
-                self.location_to.remove(self.location_to[0])
+            # 放卡
+            self.put_card()
 
             # 额外时延
             time.sleep(0.2)
@@ -182,33 +192,8 @@ class Card:
                         y=self.faa.kun_position["location_from"][1])
                     time.sleep(self.click_sleep)
 
-                    if self.ergodic:
-                        # 遍历模式: True 遍历该卡每一个可以放的位置
-                        my_to_list = range(len(self.location))
-                    else:
-                        # 遍历模式: False 只放第一张, 为保证放下去, 同一个位置点两次
-                        my_to_list = [0, 0]
-
-                    for j in my_to_list:
-                        # 点击 放下卡片
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                            handle=self.handle,
-                            x=self.location_to[j][0],
-                            y=self.location_to[j][1])
-                        time.sleep(self.click_sleep)
-
-                    # 放卡后点一下空白
-                    T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-                    time.sleep(self.click_sleep)
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
-                    time.sleep(self.click_sleep)
-
-                    # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
-                    if self.queue:
-                        self.location.append(self.location[0])
-                        self.location.remove(self.location[0])
-                        self.location_to.append(self.location_to[0])
-                        self.location_to.remove(self.location_to[0])
+                    # 放卡
+                    self.put_card()
 
                     # 额外时延
                     time.sleep(0.1)
@@ -351,6 +336,7 @@ class SpecialCard(Card):
 
         # 根据玩家上互斥锁，保证放卡点击序列不会乱掉（因为多次点击还多线程操作很容易出事）
         with self.faa.battle_lock:
+
             # 无默认坐标即为冰桶类或草扇
             if pos is None:
 
@@ -394,14 +380,13 @@ class SpecialCard(Card):
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
                 if self.need_shovel:  # 是否要秒铲
                     T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
-                    time.sleep(self.click_sleep / 2)  # 必须的间隔
+                    time.sleep(self.click_sleep)  # 必须的间隔
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(
                         handle=self.faa.handle,
                         x=self.location_to[0][0],
                         y=self.location_to[0][1])
                     time.sleep(self.click_sleep)
-                # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
-                # time.sleep(self.click_sleep * 4)
+
                 time.sleep(0.2)
 
             # 有默认坐标传入，意味着是炸弹类卡片
@@ -419,7 +404,6 @@ class SpecialCard(Card):
                 # 加一个垫子的判断
                 if f"{pos[0]}-{pos[1]}" in self.faa.battle_plan_parsed["mat"]:  # 点位要放垫子
                     for mat in self.faa.mat_card_positions:
-
                         T_ACTION_QUEUE_TIMER.add_click_to_queue(
                             handle=self.handle,
                             x=mat["location_from"][0],
@@ -455,8 +439,6 @@ class SpecialCard(Card):
                         y=position_dict[f"{pos[0]}-{pos[1]}"][1])
                     time.sleep(self.click_sleep)
 
-                # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
-                # time.sleep(self.click_sleep * 4)
                 time.sleep(0.2)
 
 
