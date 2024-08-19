@@ -682,8 +682,11 @@ class ThreadTodo(QThread):
             self.thread_1p.join()
             if is_group:
                 self.thread_2p.join()
-
-            self.process, queue_todo = read_and_get_return_information(self.faa[player_a])
+            if self.opt["senior_settings"]["auto_senior_settings"]:
+                self.process, queue_todo = read_and_get_return_information(self.faa[player_a])
+            else:
+                queue_todo = None
+                self.process=None
 
             # 实例化放卡管理器
             self.thread_card_manager = CardManager(
@@ -711,9 +714,10 @@ class ThreadTodo(QThread):
             # 此处的重新变为None是为了让中止todo实例时时该属性仍存在
             CUS_LOGGER.debug('销毁thread_card_manager的调用')
             self.thread_card_manager = None
-            CUS_LOGGER.debug('销毁识图进程')
-            kill_process(self.process)
-            self.process = None
+            if self.opt["senior_settings"]["auto_senior_settings"]:
+                CUS_LOGGER.debug('销毁识图进程')
+                kill_process(self.process)
+                self.process = None
 
             result_spend_time = time.time() - battle_start_time
 
