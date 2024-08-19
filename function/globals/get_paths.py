@@ -23,7 +23,7 @@ def build_paths(root):
         "root": root,
         "battle_plan": os.path.join(root, "battle_plan"),
         "config": os.path.join(root, "config"),
-        "customize_todo": os.path.join(root, "customize_todo"),
+        "task_sequence": os.path.join(root, "task_sequence"),
         "logs": os.path.join(root, "logs"),
         # 资源文件
         "font": os.path.join(root, "resource", "font"),

@@ -254,7 +254,7 @@ The original intention of developing this tool is to fulfill a childhood wish te
 
 # 自定义和部分自动战斗实现的说明
 
-customize_todo 目录中为 <自定义战斗序列> 的配置文件.  
+task_sequence 目录中为 <自定义战斗序列> 的配置文件.  
 battle_plan 目录中为 <战斗方案> 的配置文件夹. 现已支持方案编辑器, 进行可视化互动式编辑.
 
 ### 文件名
@@ -422,11 +422,11 @@ ergodic(遍历); queue(队列) 代表了自动战斗放卡实现的两种重要�
      │
      ├─ battle_plan 内含大量默认的战斗方案. 也可以自行添加自定义战斗方案
      │
-     ├─ customize_todo 配置文件 使用json格式
-     │   ├─ opt_customize_from_csv.py 用于将csv格式的战斗方案转化为对应的json格式, 美食大赛用
-     │   ├─ opt_customize_todo.csv csv格式的自定义战斗方案
-     │   ├─ opt_customize_todo.json 在执行自定义战斗时, 将读取此方案
-     │   └─ opt_customize_todo_example.json 自定义战斗方案的模板文件
+     ├─ task_sequence 配置文件 使用json格式
+     │   ├─ opt_task_sequence_from_csv.py 用于将csv格式的战斗方案转化为对应的json格式, 美食大赛用
+     │   ├─ opt_task_sequence.csv csv格式的自定义战斗方案
+     │   ├─ opt_task_sequence.json 在执行自定义战斗时, 将读取此方案
+     │   └─ opt_task_sequence_example.json 自定义战斗方案的模板文件
      │
      ├─ function(打包后为main)
      │   │   

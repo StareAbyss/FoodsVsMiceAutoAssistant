@@ -10,6 +10,7 @@ from function.core.FAA import FAA
 from function.core.FAA_extra_readimage import kill_process
 from function.core.QMW_2_log import QMainWindowLog
 from function.core.QMW_EditorOfBattlePlan import QMWEditorOfBattlePlan
+from function.core.QMW_EditorOfTaskSequence import QMWEditorOfTaskSequence
 from function.core.QMW_TipBattle import QMWTipBattle
 from function.core.QMW_TipStageID import QMWTipStageID
 from function.core.QMW_TipWarmGift import QMWTipWarmGift
@@ -50,8 +51,12 @@ class QMainWindowService(QMainWindowLog):
         self.signal_todo_start.connect(self.todo_start)
 
         # 额外窗口 - 战斗方案编辑器
-        self.window_editor = QMWEditorOfBattlePlan()
-        self.OpenEditorOfBattlePlan_Button.clicked.connect(self.click_btn_open_editor)
+        self.window_editor_of_battle_plan = QMWEditorOfBattlePlan()
+        self.OpenEditorOfBattlePlan_Button.clicked.connect(self.click_btn_open_editor_of_battle_plan)
+
+        # 额外窗口 - 任务序列编辑器
+        self.window_editor_of_task_sequence = QMWEditorOfTaskSequence()
+        self.OpenEditorOfTaskSequence_Button.clicked.connect(self.click_btn_open_editor_of_task_sequence)
 
         # 额外窗口 - 温馨礼包提示
         self.window_tip_warm_gift = QMWTipWarmGift()
@@ -334,9 +339,13 @@ class QMainWindowService(QMainWindowLog):
         else:
             self.todo_timer_stop()
 
-    def click_btn_open_editor(self):
-        self.window_editor.set_my_font(self.font)
-        self.window_editor.show()
+    def click_btn_open_editor_of_battle_plan(self):
+        self.window_editor_of_battle_plan.set_my_font(self.font)
+        self.window_editor_of_battle_plan.show()
+
+    def click_btn_open_editor_of_task_sequence(self):
+        self.window_editor_of_task_sequence.set_my_font(self.font)
+        self.window_editor_of_task_sequence.show()
 
     def click_btn_tip_warm_gift(self):
         self.window_tip_warm_gift.setFont(self.font)

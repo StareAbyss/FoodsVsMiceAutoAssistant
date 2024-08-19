@@ -7,11 +7,11 @@ from function.globals.get_paths import PATHS
 from function.scattered.get_list_battle_plan import get_list_battle_plan
 
 
-def check_battle_plan_with_uuid():
+def fresh_and_check_battle_plan_uuid():
     """
     检测是否已经存在uuid在所有方案中
     如果没有 添加一个并保存进去
-    :return: 创建 uuid -> 路径的速查表
+    :return: 创建 uuid -> 路径 的速查表
     """
     battle_plans = get_list_battle_plan(with_extension=True)
 
@@ -48,5 +48,5 @@ def check_battle_plan_with_uuid():
 
 
 if __name__ == '__main__':
-    check_battle_plan_with_uuid()
+    fresh_and_check_battle_plan_uuid()
     print(EXTRA_GLOBALS.battle_plan_uuid_list)

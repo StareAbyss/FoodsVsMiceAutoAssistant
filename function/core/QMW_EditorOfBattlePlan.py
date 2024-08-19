@@ -6,7 +6,7 @@ import time
 import uuid
 
 from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtGui import QKeySequence
+from PyQt5.QtGui import QKeySequence, QIcon
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QGridLayout, QPushButton, QWidget, QFileDialog, QVBoxLayout, QLabel, QComboBox,
     QLineEdit, QHBoxLayout, QTextEdit, QListWidget, QMessageBox, QSpinBox, QListWidgetItem, QShortcut, QFrame)
@@ -27,9 +27,6 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
     def __init__(self):
         super().__init__()
-
-        """字体"""
-        self.my_font = None
 
         """内部数据表"""
         # 数据dict
@@ -77,6 +74,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.WeiTipsEditor = QTextEdit()
         self.WeiTipsEditor.setPlaceholderText('在这里编辑提示文本...')
         self.LayMain.addWidget(self.WeiTipsEditor)
+
         """操作教学文本"""
         self.LayPrint = QHBoxLayout()
         self.LayMain.addLayout(self.LayPrint)
@@ -88,6 +86,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         self.LayPrint.addWidget(QLabel(
             '点击左侧列表, 选中对象进行编辑 | 点击格子添加到该位置, 再点一下取消位置 | 列表从上到下 是一轮放卡的优先级(人物除外)'))
+
         """卡片编辑器"""
         self.LayCardEditor = QHBoxLayout()
         self.LayMain.addLayout(self.LayCardEditor)
@@ -230,7 +229,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
     def UICss(self):
         # 窗口名
-        self.setWindowTitle('战斗方案编辑器')
+        self.setWindowTitle('FAA - 战斗方案编辑器')
+        # 设置窗口图标
+        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetTuo-192x.png"))
 
     def current_card_change(self, item):
         """被单击后, 被选中的卡片改变了"""
@@ -428,7 +429,6 @@ class QMWEditorOfBattlePlan(QMainWindow):
             return
         if sender == self.save_as_button:
             options = QFileDialog.Options()
-
             file_name, _ = QFileDialog.getSaveFileName(
                 parent=self,
                 caption="保存 JSON 文件",
@@ -571,8 +571,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.refresh_chessboard()
 
     def set_my_font(self, my_font):
-        self.my_font = my_font
-        self.setFont(self.my_font)
+        """用于继承字体, 而不需要多次读取"""
+        self.setFont(my_font)
 
 
 class QListWidgetDraggable(QListWidget):
