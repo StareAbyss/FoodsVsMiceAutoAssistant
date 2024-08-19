@@ -104,7 +104,7 @@ def get_version(pwd_id:str):
     '''
     file_name=get_filename(pwd_id)
     # 文件夹名为FAA-v1.5.0fix的格式，版本号为v1.5.0fix，所以前4个字符不包含在版本号内
-    version=file_name[5:]
+    version=file_name[4:]
     
     return version
 

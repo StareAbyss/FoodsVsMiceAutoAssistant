@@ -4,7 +4,7 @@ import sys
 import win32con
 import win32gui
 from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication,QMessageBox
 
 from function.core.FAA import FAA
 from function.core.FAA_extra_readimage import kill_process
@@ -18,6 +18,7 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.TodoTimerManager import TodoTimerManager
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
+from function.common.versionControl import get_version,is_need_update
 
 
 class QMainWindowService(QMainWindowLog):
@@ -418,6 +419,18 @@ class QMainWindowService(QMainWindowLog):
 def faa_start_main():
     # 实例化 PyQt后台管理
     app = QApplication(sys.argv)
+    version=get_version('76232a322cce')
+    if is_need_update('fcf203055a00'):
+        QMessageBox.warning(None, 'Warning', f'您当前使用的版本由于太过老旧，最新版本为{version}，需要更新才可使用。\n请前往官网下载最新版进行使用', QMessageBox.Ok)
+        return
+    else:
+        
+        QMessageBox.information(None,'Information', f'最新版本为{version}。\n如果您的当前版本是旧版本的话，可以前往官网下载最新版进行使用', QMessageBox.Ok)
+        
+        
+
+
+    
     app.setAttribute(Qt.AA_EnableHighDpiScaling, True)  # 启用高DPI缩放
     app.setAttribute(Qt.AA_UseHighDpiPixmaps, True)  # 使用高DPI图标和图像
 
