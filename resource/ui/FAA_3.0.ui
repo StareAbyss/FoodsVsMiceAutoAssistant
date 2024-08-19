@@ -96,7 +96,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="Tab1">
         <attribute name="title">
@@ -7713,7 +7713,7 @@ Link Start</string>
            <number>5</number>
           </property>
           <item>
-           <layout class="QVBoxLayout" name="Lay_Tab3_Left" stretch="3,0,3,0,6,0,2">
+           <layout class="QVBoxLayout" name="Lay_Tab3_Left" stretch="3,0,3,0,0,6,0,2">
             <property name="leftMargin">
              <number>5</number>
             </property>
@@ -8264,6 +8264,57 @@ Link Start</string>
                <enum>Qt::Horizontal</enum>
               </property>
              </widget>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="Lay_senior_battle" stretch="0,0">
+              <property name="leftMargin">
+               <number>5</number>
+              </property>
+              <property name="topMargin">
+               <number>5</number>
+              </property>
+              <property name="rightMargin">
+               <number>5</number>
+              </property>
+              <property name="bottomMargin">
+               <number>5</number>
+              </property>
+              <item alignment="Qt::AlignHCenter">
+               <widget class="QLabel" name="Battle_senior_text">
+                <property name="text">
+                 <string>高级战斗设置</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="Battle_senior_checkedbox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>只用点一下就够了!</string>
+                </property>
+                <property name="text">
+                 <string>是否启动高级战斗</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
             <item>
              <layout class="QHBoxLayout" name="Lay_GetWarmGift_1P_2">

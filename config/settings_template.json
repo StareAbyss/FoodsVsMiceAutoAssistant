@@ -1087,6 +1087,9 @@
         "auto_use_card": true,
         "auto_delete_old_images": true
     },
+    "senior_settings": {
+        "auto_senior_settings": false
+    },
     "get_warm_gift": {
         "1p": {
             "active": false,

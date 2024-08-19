@@ -400,6 +400,10 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.EndExitGame.setChecked(my_opt["end_exit_game"])
             self.AutoUseCard.setChecked(my_opt["auto_use_card"])
             self.AutoDeleteOldImages.setChecked(my_opt["auto_delete_old_images"])
+        def senior_settings() -> None:
+            my_opt = self.opt["senior_settings"]
+            self.Battle_senior_checkedbox.setChecked(my_opt["auto_senior_settings"])
+
 
         def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
@@ -418,6 +422,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         base_settings()
         timer_settings()
         advanced_settings()
+        senior_settings()
         get_warm_gift_settings()
         level_2()
         self.CurrentPlan.clear()
@@ -508,7 +513,9 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             my_opt["end_exit_game"] = self.EndExitGame.isChecked()
             my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
             my_opt["auto_delete_old_images"] = self.AutoDeleteOldImages.isChecked()
-
+        def senior_settings() -> None:
+            my_opt = self.opt["senior_settings"]
+            my_opt["auto_senior_settings"] = self.Battle_senior_checkedbox.isChecked()
         def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
             my_opt["1p"]["active"] = self.GetWarmGift_1P_Active.isChecked()
@@ -663,6 +670,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         base_settings()
         timer_settings()
         advanced_settings()
+        senior_settings()
         get_warm_gift_settings()
         level_2()
         self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
