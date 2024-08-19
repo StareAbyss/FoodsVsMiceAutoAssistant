@@ -3,12 +3,12 @@ import os
 from function.globals.get_paths import PATHS
 
 
-def get_customize_todo_list(with_extension):
+def get_task_sequence_list(with_extension):
     """
     :param with_extension: Include extension name
     :return: a list of battle plan
     """
-    my_list = os.listdir(PATHS["customize_todo"] + "\\")
+    my_list = os.listdir(PATHS["task_sequence"] + "\\")
 
     # 只保留json
     new_list = []
@@ -28,7 +28,7 @@ def get_customize_todo_list(with_extension):
 
 if __name__ == '__main__':
     def main():
-        my_list = get_customize_todo_list(with_extension=False)
+        my_list = get_task_sequence_list(with_extension=False)
         print(my_list)
 
 

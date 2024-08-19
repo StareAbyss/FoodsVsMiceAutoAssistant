@@ -12,9 +12,9 @@ from function.globals import init_resources
 from function.globals.extra import EXTRA_GLOBALS
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
-from function.scattered.check_uuid_in_battle_plan import check_battle_plan_with_uuid
-from function.scattered.get_customize_todo_list import get_customize_todo_list
+from function.scattered.check_uuid_in_battle_plan import fresh_and_check_battle_plan_uuid
 from function.scattered.get_list_battle_plan import get_list_battle_plan
+from function.scattered.get_task_sequence_list import get_task_sequence_list
 
 
 class QMainWindowLoadSettings(QMainWindowLoadUI):
@@ -33,7 +33,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.check_opt_exist()
 
         # 检测uuid是否存在于battle plan 没有则添加 并将其读入到内存资源中
-        check_battle_plan_with_uuid()
+        fresh_and_check_battle_plan_uuid()
         init_resources.fresh_resource_b()
 
         # 从json文件中读取opt 并刷新ui
@@ -152,7 +152,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.CurrentPlan_Label_Change.setText(self.CurrentPlan.currentText())
 
         battle_plan_list = get_list_battle_plan(with_extension=False)
-        customize_todo_list = get_customize_todo_list(with_extension=False)
+        task_sequence_list = get_task_sequence_list(with_extension=False)
 
         # 获取前半部分
         my_opt = self.opt["todo_plans"][int(self.opt["current_plan"])]
@@ -329,7 +329,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.Customize_Active.setChecked(my_opt["customize"]["active"])
         self.Customize_Stage.setValue(my_opt["customize"]["stage"])
         self.Customize_1P.clear()
-        self.Customize_1P.addItems(customize_todo_list)
+        self.Customize_1P.addItems(task_sequence_list)
         self.Customize_1P.setCurrentIndex(my_opt["customize"]["battle_plan_1p"])
 
         self.AutoFood_Active.setChecked(my_opt["auto_food"]["active"])
@@ -440,35 +440,40 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
     def ui_to_opt(self) -> None:
         # battle_plan_list
         battle_plan_list_new = get_list_battle_plan(with_extension=False)
-        customize_todo_list = get_customize_todo_list(with_extension=False)
+        task_sequence_list = get_task_sequence_list(with_extension=False)
 
         # 深拷贝, 记录一下加入新的元素前, list index 和 uuid的映射
         battle_plan_uuid_list_old = copy.deepcopy(EXTRA_GLOBALS.battle_plan_uuid_list)
         # 检测uuid是否存在于 可能新加入的 battle plan 没有则添加 并将其读入到内存资源中
-        check_battle_plan_with_uuid()
+        fresh_and_check_battle_plan_uuid()
         init_resources.fresh_resource_b()
 
         def my_transformer_b(change_class: object, opt_1, opt_2) -> None:
-            # 用于配置 带有选单的 战斗方案
+            """用于配置 带有选单的 战斗方案"""
+
             # 根据更新前的数据, 获取index对应的正确uuid 并写入到opt
             ui_index = change_class.currentIndex()
             ui_uuid = battle_plan_uuid_list_old[ui_index]
             self.opt["todo_plans"][self.opt["current_plan"]][opt_1][opt_2] = ui_uuid
 
             # 根据新的数据, 重新生成每一个列表的元素 和uuid应该指向的index
+
             # 重新填充元素
             change_class.clear()
             change_class.addItems(battle_plan_list_new)
+
             # 根据uuid 找到其文件夹中一致的index
             new_index = EXTRA_GLOBALS.battle_plan_uuid_list.index(ui_uuid)
+
             # 让对应的元素选定对应的index
             change_class.setCurrentIndex(new_index)
 
         def my_transformer_c(change_class: object, opt_1, opt_2) -> None:
-            # 用于配置 带有选单的 自定义作战序列
+            """用于配置 带有选单的 自定义作战序列"""
+
             self.opt["todo_plans"][self.opt["current_plan"]][opt_1][opt_2] = change_class.currentIndex()
             change_class.clear()
-            change_class.addItems(customize_todo_list)
+            change_class.addItems(task_sequence_list)
             change_class.setCurrentIndex(self.opt["todo_plans"][self.opt["current_plan"]][opt_1][opt_2])
 
         def base_settings() -> None:

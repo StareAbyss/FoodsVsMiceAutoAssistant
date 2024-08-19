@@ -20,7 +20,7 @@ from function.globals.init_resources import RESOURCE_P
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.create_drops_image import create_drops_image
-from function.scattered.get_customize_todo_list import get_customize_todo_list
+from function.scattered.get_task_sequence_list import get_task_sequence_list
 from function.scattered.loots_and_chest_data_save_and_post import loots_and_chests_detail_to_json, \
     loots_and_chests_data_post_to_sever, loots_and_chests_statistics_to_json
 
@@ -1407,20 +1407,39 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=text_)
 
-    def customize_todo(self, text_, stage_begin: int, customize_todo_index: int):
+    def task_sequence(self, text_, stage_begin: int, task_sequence_index: int):
 
-        def read_json_to_customize_todo():
-            customize_todo_list = get_customize_todo_list(with_extension=True)
-            customize_todo_path = "{}\\{}".format(
-                PATHS["customize_todo"],
-                customize_todo_list[customize_todo_index]
+        def split_task_sequence(task_sequence_list: list):
+            """将任务序列列表拆分为单独的任务列表"""
+            task_list = []
+            battle_list = []
+            for task in task_sequence_list:
+                task_type = task["task_type"]
+                if task_type == "battle":
+                    battle_list.append(task)
+                else:
+                    if battle_list:
+                        task_list.append(battle_list)
+                        battle_list = []
+                    task_list.append(task)
+
+            if battle_list:
+                task_list.append(battle_list)
+
+            return task_list
+
+        def read_json_to_task_sequence():
+            task_sequence_list = get_task_sequence_list(with_extension=True)
+            task_sequence_path = "{}\\{}".format(
+                PATHS["task_sequence"],
+                task_sequence_list[task_sequence_index]
             )
 
             # 自旋锁读写, 防止多线程读写问题
             while EXTRA_GLOBALS.file_is_reading_or_writing:
                 time.sleep(0.1)
             EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
-            with open(file=customize_todo_path, mode="r", encoding="UTF-8") as file:
+            with open(file=task_sequence_path, mode="r", encoding="UTF-8") as file:
                 data = json.load(file)
             EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
             return data
@@ -1431,7 +1450,7 @@ class ThreadTodo(QThread):
         self.signal_print_to_ui.emit(text=f"[{text_}] 开始[多本论战]")
 
         # 读取json文件
-        quest_list = read_json_to_customize_todo()
+        quest_list = read_json_to_task_sequence()
 
         # 获得最高方案的id
         max_battle_id = 1
@@ -1450,8 +1469,19 @@ class ThreadTodo(QThread):
                 my_list.append(quest)
         quest_list = my_list
 
-        # 开始战斗
-        self.battle_1_n_n(quest_list=quest_list)
+        # 根据战斗和其他事项拆分
+        quest_list = split_task_sequence(task_sequence_list=quest_list)
+
+        for quest in quest_list:
+            if type(quest) is list:
+                # 开始战斗
+                self.battle_1_n_n(quest_list=quest)
+            elif type(quest) is dict:
+                task_type = quest["task_type"]
+                if task_type == "reload":
+                    self.batch_reload_game()
+                elif task_type == "clear_pack":
+                    self.batch_level_2_action(is_group=True)
 
         # 战斗结束
         self.model_end_print(text=text_)
@@ -2073,10 +2103,10 @@ class ThreadTodo(QThread):
 
         my_opt = c_opt["customize"]
         if my_opt["active"]:
-            self.customize_todo(
+            self.task_sequence(
                 text_="高级自定义",
                 stage_begin=my_opt["stage"],
-                customize_todo_index=my_opt["battle_plan_1p"])
+                task_sequence_index=my_opt["battle_plan_1p"])
 
         my_opt = c_opt["auto_food"]
         if my_opt["active"]:
