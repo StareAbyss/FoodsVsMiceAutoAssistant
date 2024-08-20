@@ -195,9 +195,9 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         set_list_current_index(self.NormalBattle_2P, my_opt["normal_battle"]["battle_plan_2p"])
 
         self.OfferReward_Active.setChecked(my_opt["offer_reward"]["active"])
-        self.OfferReward_MaxTimes_1.setValue(my_opt["offer_reward"]["max_times_1"])
-        self.OfferReward_MaxTimes_2.setValue(my_opt["offer_reward"]["max_times_2"])
-        self.OfferReward_MaxTimes_3.setValue(my_opt["offer_reward"]["max_times_3"])
+        self.OfferReward_MaxTimes_1.setText(str(my_opt["offer_reward"]["max_times_1"]))
+        self.OfferReward_MaxTimes_2.setText(str(my_opt["offer_reward"]["max_times_2"]))
+        self.OfferReward_MaxTimes_3.setText(str(my_opt["offer_reward"]["max_times_3"]))
         self.OfferReward_Deck.setValue(my_opt["offer_reward"]["deck"])
         self.OfferReward_1P.clear()
         self.OfferReward_2P.clear()
@@ -412,7 +412,6 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             else:
                 self.indeed_need.setChecked(True)
 
-
         def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
             self.GetWarmGift_1P_Active.setChecked(my_opt["1p"]["active"])
@@ -581,9 +580,9 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
 
             my_opt["offer_reward"]["active"] = self.OfferReward_Active.isChecked()
             my_opt["offer_reward"]["deck"] = self.OfferReward_Deck.value()
-            my_opt["offer_reward"]["max_times_1"] = self.OfferReward_MaxTimes_1.value()
-            my_opt["offer_reward"]["max_times_2"] = self.OfferReward_MaxTimes_2.value()
-            my_opt["offer_reward"]["max_times_3"] = self.OfferReward_MaxTimes_3.value()
+            my_opt["offer_reward"]["max_times_1"] = int(self.OfferReward_MaxTimes_1.text())
+            my_opt["offer_reward"]["max_times_2"] = int(self.OfferReward_MaxTimes_2.text())
+            my_opt["offer_reward"]["max_times_3"] = int(self.OfferReward_MaxTimes_3.text())
 
             my_transformer_b(self.OfferReward_1P, "offer_reward", "battle_plan_1p")
             my_transformer_b(self.OfferReward_2P, "offer_reward", "battle_plan_2p")
