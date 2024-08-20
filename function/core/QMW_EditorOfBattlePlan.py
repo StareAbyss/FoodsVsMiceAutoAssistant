@@ -98,7 +98,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.WeiIdInput.setMaximumWidth(65)
         self.LayCardEditor.addWidget(self.WeiIdInput)
         self.WeiIdInput.setToolTip("id代表卡在卡组中的顺序")
-        self.WeiIdInput.setRange(0, 21)
+        self.WeiIdInput.setRange(1, 21)
 
         self.LayCardEditor.addWidget(QLabel('名称:'))
 
@@ -324,7 +324,16 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.load_data_to_ui_list()
 
     def add_card(self):
-        id_ = 0
+
+        ids_list = [card["id"] for card in self.json_data["card"]]
+        for i in range(1,22):
+            if i not in ids_list:
+                id_ = i
+                break
+        else:
+            QMessageBox.information(self, "操作错误！", "卡片ID已用完, 无法再添加新卡片!")
+            return
+
         name_ = "新的卡片"
 
         self.json_data["card"].append(
