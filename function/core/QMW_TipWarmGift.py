@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMainWindow, QTextEdit, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QMainWindow, QTextEdit, QVBoxLayout, QWidget
 
 
 class QMWTipWarmGift(QMainWindow):

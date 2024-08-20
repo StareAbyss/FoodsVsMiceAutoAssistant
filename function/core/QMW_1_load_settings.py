@@ -771,7 +771,7 @@ if __name__ == "__main__":
         window.show()
 
         # 运行主循环，必须调用此函数才可以开始事件处理
-        sys.exit(app.exec_())
+        sys.exit(app.exec())
 
 
     main()

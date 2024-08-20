@@ -1,7 +1,7 @@
 import win32gui
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QFontDatabase, QFont
-from PyQt5.QtWidgets import QLabel
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QFontDatabase, QFont
+from PyQt6.QtWidgets import QLabel
 
 from function.globals.get_paths import PATHS
 
@@ -24,21 +24,21 @@ class DragLabel(QLabel):
             self.setFont(self.font)
 
         # self.setText("拖动鼠标到窗口上，然后松开鼠标按钮")
-        self.setAlignment(Qt.AlignCenter)
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.startPos = None
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             self.startPos = event.pos()  # 记录标签上鼠标按下的位置
 
     def mouseMoveEvent(self, event):
-        if event.buttons() == Qt.LeftButton and self.startPos:
+        if event.buttons() == Qt.MouseButton.LeftButton and self.startPos:
             endPos = event.pos()
             self.setText(f"{endPos.x()}, {endPos.y()}")  # 更新标签文本显示当前位置
 
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            global_end_pos = event.globalPos()  # 获取鼠标在屏幕上的全局位置
+        if event.button() == Qt.MouseButton.LeftButton:
+            global_end_pos = event.globalPosition()  # 获取鼠标在屏幕上的全局位置
             found_windows = []
 
             def enum_windows_callback(hwnd, lParam):

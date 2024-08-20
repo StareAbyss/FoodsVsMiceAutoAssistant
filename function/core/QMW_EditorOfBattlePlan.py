@@ -5,11 +5,11 @@ import sys
 import time
 import uuid
 
-from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtGui import QKeySequence, QIcon
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import pyqtSignal, Qt
+from PyQt6.QtGui import QKeySequence, QIcon, QShortcut
+from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QGridLayout, QPushButton, QWidget, QFileDialog, QVBoxLayout, QLabel, QComboBox,
-    QLineEdit, QHBoxLayout, QTextEdit, QListWidget, QMessageBox, QSpinBox, QListWidgetItem, QShortcut, QFrame)
+    QLineEdit, QHBoxLayout, QTextEdit, QListWidget, QMessageBox, QSpinBox, QListWidgetItem, QFrame, QAbstractItemView)
 
 from function.globals.extra import EXTRA_GLOBALS
 from function.globals.get_paths import PATHS
@@ -161,11 +161,11 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 # 创建QFrame作为高亮效果的载体
                 frame = QFrame(self)
                 frame.setFixedSize(100, 100)
-                frame.setFrameShape(QFrame.StyledPanel)
-                frame.setFrameShadow(QFrame.Raised)
+                frame.setFrameShape(QFrame.Shape.StyledPanel)
+                frame.setFrameShadow(QFrame.Shadow.Raised)
                 self.chessboard_layout.addWidget(frame, i, j)
                 frame.lower()  # 确保QFrame在按钮下方
-                frame.setAttribute(Qt.WA_TransparentForMouseEvents, True)  # 防止遮挡按钮
+                frame.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)  # 防止遮挡按钮
                 row_frames.append(frame)
 
             self.chessboard_buttons.append(row_buttons)
@@ -428,7 +428,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
             QMessageBox.information(self, "禁止虚空保存！", "请先选择一个战斗方案!")
             return
         if sender == self.save_as_button:
-            options = QFileDialog.Options()
+
+            options = QFileDialog.Option.DontUseNativeDialog
+
             file_name, _ = QFileDialog.getSaveFileName(
                 parent=self,
                 caption="保存 JSON 文件",
@@ -466,7 +468,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.WeiErgodicInput.blockSignals(True)
         self.QueueInput.blockSignals(True)
 
-        options = QFileDialog.Options()
+        options = QFileDialog.Option.DontUseNativeDialog
 
         file_name, _ = QFileDialog.getOpenFileName(
             parent=self,
@@ -584,7 +586,7 @@ class QListWidgetDraggable(QListWidget):
         self.drop_function = drop_function
 
         # 允许内部拖拽
-        self.setDragDropMode(self.InternalMove)
+        self.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
 
     def dropEvent(self, e):
         CUS_LOGGER.debug("拖拽事件触发")
@@ -606,10 +608,10 @@ class QListWidgetDraggable(QListWidget):
         current_row = self.currentRow()
         if current_row == 0:
             # 禁止拖拽
-            self.setDragDropMode(self.NoDragDrop)
+            self.setDragDropMode(QAbstractItemView.DragDropMode.NoDragDrop)
         else:
             # 允许内部拖拽
-            self.setDragDropMode(self.InternalMove)
+            self.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
 
 
 class ChessButton(QPushButton):
@@ -617,7 +619,7 @@ class ChessButton(QPushButton):
         super().__init__(parent)
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.RightButton:
+        if event.button() == Qt.MouseButton.RightButton:
             # 发出自定义的右键点击信号
             self.rightClicked.emit()
         else:
@@ -630,4 +632,4 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = QMWEditorOfBattlePlan()
     ex.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

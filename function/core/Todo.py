@@ -6,7 +6,7 @@ import time
 from time import sleep
 
 import requests
-from PyQt5.QtCore import *
+from PyQt6.QtCore import *
 from requests import RequestException
 
 from function.common.bg_img_match import loop_match_p_in_w
@@ -709,7 +709,7 @@ class ThreadTodo(QThread):
                     self.thread_card_manager.thread_dict[i].used_key_signal.connect(self.set_is_used_key_true)
 
             CUS_LOGGER.debug('启动Todo中的事件循环, 用以战斗')
-            self.exec_()
+            self.exec()
 
             # 此处的重新变为None是为了让中止todo实例时时该属性仍存在
             CUS_LOGGER.debug('销毁thread_card_manager的调用')

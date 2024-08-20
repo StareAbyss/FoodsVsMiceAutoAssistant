@@ -1,10 +1,10 @@
 import json
 import sys
 
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QComboBox, QHBoxLayout, QLabel, QLineEdit, \
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSpinBox, QCheckBox, QWidget, QListWidgetItem, QFileDialog, QMessageBox, QApplication, QListWidget, QSpacerItem, \
-    QSizePolicy, QFrame
+    QSizePolicy, QFrame, QAbstractItemView
 
 from function.globals.extra import EXTRA_GLOBALS
 from function.globals.get_paths import PATHS
@@ -17,9 +17,15 @@ def QCVerticalLine():
     """
     创建一个较窄的竖线
     """
+    # 创建 QFrame 实例
     vertical_line = QFrame()
-    vertical_line.setFrameShape(QFrame.VLine)
-    vertical_line.setFrameShadow(QFrame.Sunken)
+
+    # 设置为垂直线
+    vertical_line.setFrameShape(QFrame.Shape.VLine)
+
+    # 设置阴影效果
+    vertical_line.setFrameShadow(QFrame.Shadow.Sunken)
+
     vertical_line.setStyleSheet("QFrame { background-color: gray; margin: 0px; padding: 0px; border: none; }")
     vertical_line.setFixedWidth(1)  # 设置固定的宽度为 1 像素
     return vertical_line
@@ -31,7 +37,7 @@ class QCListWidgetDraggable(QListWidget):
     def __init__(self, ):
         super(QCListWidgetDraggable, self).__init__()
         # 允许内部拖拽
-        self.setDragDropMode(self.InternalMove)
+        self.setDragDropMode(QAbstractItemView.DragDropMode.InternalMove)
         self.drop_function = None
 
     def setDropFunction(self, drop_function):
@@ -351,7 +357,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             add_element(w_label=w_label, w_input=w_input)
 
             # 创建一个水平弹簧
-            spacer = QSpacerItem(0, 20, QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
+            spacer = QSpacerItem(0, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
             line_layout.addItem(spacer)
 
         # 添加完成后，在布局的最后添加一个删除按钮
@@ -543,7 +549,9 @@ class QMWEditorOfTaskSequence(QMainWindow):
         """
         Load a JSON file and parse it into the task sequence list
         """
-        options = QFileDialog.Options()
+
+        options = QFileDialog.Option.DontUseNativeDialog
+
         file_name, _ = QFileDialog.getOpenFileName(
             parent=self,
             caption="加载<事项序列>.json",
@@ -580,7 +588,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 f"转化ui内容到list失败\n请联系开发者!!!\n错误信息: {str(e)}")
             return
 
-        options = QFileDialog.Options()
+        options = QFileDialog.Option.DontUseNativeDialog
+
         file_name, _ = QFileDialog.getSaveFileName(
             parent=self,
             caption="保存事项序列.json",
@@ -606,4 +615,4 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = QMWEditorOfTaskSequence()
     window.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

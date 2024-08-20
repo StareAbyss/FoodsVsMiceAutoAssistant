@@ -1,9 +1,9 @@
 import os
 import sys
 
-from PyQt5 import uic
-from PyQt5.QtGui import QIcon, QFont, QFontDatabase
-from PyQt5.QtWidgets import QMainWindow, QApplication
+from PyQt6 import uic, QtGui
+from PyQt6.QtGui import QIcon, QFont, QFontDatabase
+from PyQt6.QtWidgets import QMainWindow, QApplication
 
 from function.common.get_system_dpi import get_system_dpi
 from function.globals.get_paths import PATHS
@@ -69,7 +69,7 @@ if __name__ == "__main__":
         my_main_window.show()
 
         # 运行主循环，必须调用此函数才可以开始事件处理
-        sys.exit(app.exec_())
+        sys.exit(app.exec())
 
 
     main()

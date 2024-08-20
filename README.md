@@ -514,6 +514,6 @@ Link Start!
 # 致谢
 
 * 图像识别：[opencv](https://github.com/opencv/opencv.git)
-* 图形化界面：[PyQt5](https://github.com/PyQt5/PyQt5.git)
+* 图形化界面：[PyQt6](https://github.com/PyQt6/PyQt6.git)
 * 感谢交流群的各位小伙伴对本软件的测试和相关建议 ~
 * 感谢八重垣天知, 对本软件的开发和测试的大力支持!

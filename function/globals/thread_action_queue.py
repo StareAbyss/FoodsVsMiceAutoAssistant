@@ -4,7 +4,7 @@ from ctypes import windll
 from string import printable
 from threading import Timer
 
-from PyQt5.QtCore import QThread
+from PyQt6.QtCore import QThread
 
 from function.globals.log import CUS_LOGGER
 

@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMainWindow, QTableWidgetItem, QTableWidget, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QMainWindow, QTableWidgetItem, QTableWidget, QVBoxLayout, QWidget
 
 
 class QMWTipStageID(QMainWindow):
@@ -13,10 +13,10 @@ class QMWTipStageID(QMainWindow):
     def initUI(self):
 
         table = QTableWidget()
-        table.setEditTriggers(QTableWidget.NoEditTriggers)  # 设置为不可编辑
+        table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)  # 设置为不可编辑
         table.verticalHeader().setVisible(False)  # 隐藏行号
         table.horizontalHeader().setVisible(False)  # 隐藏列号
-        table.setSelectionMode(QTableWidget.NoSelection)  # 禁用选择功能
+        table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)  # 禁用选择功能
 
         # 定义表头和对应的数据
         data_dict = {
@@ -156,7 +156,6 @@ class QMWTipStageID(QMainWindow):
                 table.setItem(row, col_index * 2 + 1, QTableWidgetItem(item2))
                 row += 1
             row = 1  # 重置行号以填充下一个表头的内容
-
 
         # 设置布局
         layout = QVBoxLayout()

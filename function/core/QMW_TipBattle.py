@@ -1,6 +1,4 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QMainWindow, QTextEdit, QVBoxLayout, QWidget
-
+from PyQt6.QtWidgets import QMainWindow, QTextEdit, QVBoxLayout, QWidget
 
 
 class QMWTipBattle(QMainWindow):
@@ -12,8 +10,6 @@ class QMWTipBattle(QMainWindow):
         self.setMinimumSize(650, 400)
         self.setMaximumSize(650, 400)
         self.initUI()
-        # 设置主窗口无边框
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
 
     def initUI(self):
         self.text_edit = QTextEdit()
@@ -37,8 +33,6 @@ class QMWTipBattle(QMainWindow):
         text += "1. 仅支持同时携带一张该类卡片(含转职和创造神).\n"
         text += "2. 将根据战斗方案中为每张卡片设置的优先级 (坤参数) 进行自动复制, 坤参数为0不复制, 否则坤参数越高被复制优先级越高, 同优先级取卡片顺序.\n"
         text += "3. 需火苗数>=1000.\n"
-
-
 
         # 插入文本
         self.text_edit.setPlainText(text)
