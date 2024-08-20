@@ -1,14 +1,24 @@
 import cProfile
 
-from function.common.bg_img_match import loop_match_p_in_w
-from function.globals.get_paths import PATHS
+from function.common.bg_img_match import match_p_in_w
 from function.globals.init_resources import RESOURCE_P
 from function.scattered.gat_handle import faa_get_handle
 
 
 def f_test():
-    handle = faa_get_handle(channel="锑食-微端", mode="flash")
-    template = PATHS["root"] + "\\resource_other\\原始资源\\2\\炭烧海星-初级技能书.png"  # 44x44
+    source_handle = faa_get_handle(channel="锑食-微端", mode="flash")
+    source_range = [240, 190, 740, 265]
+    template = RESOURCE_P["top_up_money"]["每日必充_判定点.png"]
+
+    result = match_p_in_w(
+        source_handle=source_handle,
+        source_range=source_range,
+        template=template,
+        match_tolerance=0.99,
+        test_print=True,
+        test_show=True
+    )
+    print(result)
 
     # for i in range(100):
     # 匹配不绑
@@ -38,20 +48,6 @@ def f_test():
     #         test_print=True,
     #         test_show=True,
     #     )
-
-    source_range_2 = [275, 210, 395, 265]  # 游币兑换按钮位置
-    result = loop_match_p_in_w(
-        source_handle=faa_get_handle(channel="小号2 | 锑食-微端", mode="flash"),
-        source_range=source_range_2,
-        template=RESOURCE_P["top_up_money"]["充值界面_游币兑换.png"],
-        match_tolerance=0.99,
-        match_interval=0.2,
-        match_failed_check=5,
-        after_sleep=2,
-        click=True,
-        click_handle=faa_get_handle(channel="小号2 | 锑食-微端", mode="browser")
-    )
-    print(result)
 
 
 cProfile.run("f_test()")

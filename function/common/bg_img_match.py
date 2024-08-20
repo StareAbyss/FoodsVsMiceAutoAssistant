@@ -148,8 +148,8 @@ def match_p_in_w(
     :param test_print: 仅单例测试使用, 显示匹配到的最右图像位置框
     :param test_show: 是否展示识别结果, 仅单例测试使用, 显示匹配到的最右图像位置框
     :param source_root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层 可空置
-
-    Returns: 识别到的目标的中心坐标(相对于截图区域左上)
+    :param return_center: 是否返回中心坐标, 否则返回左上坐标
+    Returns: 目标的坐标 - 截图区域左上
     """
 
     # 截取原始图像(windows窗口) BGRA -> BGR
