@@ -826,7 +826,7 @@
              </widget>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="Lay_Timer1">
+             <layout class="QHBoxLayout" name="Lay_Timer1" stretch="1,1">
               <property name="leftMargin">
                <number>0</number>
               </property>
@@ -841,6 +841,9 @@
               </property>
               <item>
                <layout class="QHBoxLayout" name="LayTimer1_Left" stretch="0,0,0,0">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
                 <property name="leftMargin">
                  <number>5</number>
                 </property>
@@ -848,7 +851,7 @@
                  <number>5</number>
                 </property>
                 <property name="rightMargin">
-                 <number>5</number>
+                 <number>0</number>
                 </property>
                 <property name="bottomMargin">
                  <number>5</number>
@@ -866,13 +869,13 @@
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>60</width>
+                    <width>55</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>60</width>
+                    <width>55</width>
                     <height>16777215</height>
                    </size>
                   </property>
@@ -897,13 +900,13 @@
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>16777215</height>
                    </size>
                   </property>
@@ -926,6 +929,18 @@
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>5</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>5</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
                   <property name="text">
                    <string>:</string>
                   </property>
@@ -941,13 +956,13 @@
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>16777215</height>
                    </size>
                   </property>
@@ -1018,7 +1033,7 @@
              </layout>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="Lay_Timer2">
+             <layout class="QHBoxLayout" name="Lay_Timer2" stretch="1,1">
               <property name="leftMargin">
                <number>0</number>
               </property>
@@ -1033,6 +1048,9 @@
               </property>
               <item>
                <layout class="QHBoxLayout" name="LayTimer2_Left">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
                 <property name="leftMargin">
                  <number>5</number>
                 </property>
@@ -1040,7 +1058,7 @@
                  <number>5</number>
                 </property>
                 <property name="rightMargin">
-                 <number>5</number>
+                 <number>0</number>
                 </property>
                 <property name="bottomMargin">
                  <number>5</number>
@@ -1058,13 +1076,13 @@
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>60</width>
+                    <width>55</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>60</width>
+                    <width>55</width>
                     <height>16777215</height>
                    </size>
                   </property>
@@ -1086,13 +1104,13 @@
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>16777215</height>
                    </size>
                   </property>
@@ -1115,6 +1133,18 @@
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>5</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>5</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
                   <property name="text">
                    <string>:</string>
                   </property>
@@ -1130,13 +1160,13 @@
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>16777215</height>
                    </size>
                   </property>
@@ -1207,7 +1237,7 @@
              </layout>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="Lay_Timer3">
+             <layout class="QHBoxLayout" name="Lay_Timer3" stretch="1,1">
               <property name="leftMargin">
                <number>0</number>
               </property>
@@ -1222,6 +1252,9 @@
               </property>
               <item>
                <layout class="QHBoxLayout" name="LayTimer3_Left">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
                 <property name="leftMargin">
                  <number>5</number>
                 </property>
@@ -1229,7 +1262,7 @@
                  <number>5</number>
                 </property>
                 <property name="rightMargin">
-                 <number>5</number>
+                 <number>0</number>
                 </property>
                 <property name="bottomMargin">
                  <number>5</number>
@@ -1247,13 +1280,13 @@
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>60</width>
+                    <width>55</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>60</width>
+                    <width>55</width>
                     <height>16777215</height>
                    </size>
                   </property>
@@ -1275,13 +1308,13 @@
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>16777215</height>
                    </size>
                   </property>
@@ -1304,6 +1337,18 @@
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>5</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>5</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
                   <property name="text">
                    <string>:</string>
                   </property>
@@ -1319,13 +1364,13 @@
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>16777215</height>
                    </size>
                   </property>
@@ -1396,7 +1441,7 @@
              </layout>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="Lay_Timer4">
+             <layout class="QHBoxLayout" name="Lay_Timer4" stretch="1,1">
               <property name="leftMargin">
                <number>0</number>
               </property>
@@ -1411,6 +1456,9 @@
               </property>
               <item>
                <layout class="QHBoxLayout" name="LayTimer4_Left">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
                 <property name="leftMargin">
                  <number>5</number>
                 </property>
@@ -1418,7 +1466,7 @@
                  <number>5</number>
                 </property>
                 <property name="rightMargin">
-                 <number>5</number>
+                 <number>0</number>
                 </property>
                 <property name="bottomMargin">
                  <number>5</number>
@@ -1436,13 +1484,13 @@
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>60</width>
+                    <width>55</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>60</width>
+                    <width>55</width>
                     <height>16777215</height>
                    </size>
                   </property>
@@ -1464,13 +1512,13 @@
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>16777215</height>
                    </size>
                   </property>
@@ -1493,6 +1541,18 @@
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>5</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>5</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
                   <property name="text">
                    <string>:</string>
                   </property>
@@ -1508,13 +1568,13 @@
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>16777215</height>
                    </size>
                   </property>
@@ -1585,7 +1645,7 @@
              </layout>
             </item>
             <item>
-             <layout class="QHBoxLayout" name="Lay_Timer5">
+             <layout class="QHBoxLayout" name="Lay_Timer5" stretch="1,1">
               <property name="leftMargin">
                <number>0</number>
               </property>
@@ -1600,6 +1660,9 @@
               </property>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_28">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
                 <property name="leftMargin">
                  <number>5</number>
                 </property>
@@ -1607,7 +1670,7 @@
                  <number>5</number>
                 </property>
                 <property name="rightMargin">
-                 <number>5</number>
+                 <number>0</number>
                 </property>
                 <property name="bottomMargin">
                  <number>5</number>
@@ -1625,13 +1688,13 @@
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>60</width>
+                    <width>55</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>60</width>
+                    <width>55</width>
                     <height>16777215</height>
                    </size>
                   </property>
@@ -1653,13 +1716,13 @@
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>16777215</height>
                    </size>
                   </property>
@@ -1682,6 +1745,18 @@
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>5</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>5</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
                   <property name="text">
                    <string>:</string>
                   </property>
@@ -1697,13 +1772,13 @@
                   </property>
                   <property name="minimumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>50</width>
+                    <width>65</width>
                     <height>16777215</height>
                    </size>
                   </property>
@@ -2105,7 +2180,7 @@ Link Start</string>
           <rect>
            <x>10</x>
            <y>0</y>
-           <width>1061</width>
+           <width>1083</width>
            <height>731</height>
           </rect>
          </property>
@@ -5493,104 +5568,56 @@ Link Start</string>
                <number>0</number>
               </property>
               <item>
-               <widget class="QSpinBox" name="OfferReward_MaxTimes_1">
+               <widget class="QLineEdit" name="OfferReward_MaxTimes_1">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>25</width>
+                  <width>30</width>
                   <height>0</height>
                  </size>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>2000</width>
-                  <height>50</height>
+                  <width>30</width>
+                  <height>16777215</height>
                  </size>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                </property>
-                <property name="minimum">
-                 <number>0</number>
-                </property>
-                <property name="maximum">
-                 <number>3</number>
-                </property>
-                <property name="value">
-                 <number>3</number>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QSpinBox" name="OfferReward_MaxTimes_2">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
+               <widget class="QLineEdit" name="OfferReward_MaxTimes_2">
                 <property name="minimumSize">
                  <size>
-                  <width>25</width>
+                  <width>30</width>
                   <height>0</height>
                  </size>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>2000</width>
-                  <height>50</height>
+                  <width>30</width>
+                  <height>16777215</height>
                  </size>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                </property>
-                <property name="minimum">
-                 <number>0</number>
-                </property>
-                <property name="maximum">
-                 <number>3</number>
-                </property>
-                <property name="value">
-                 <number>3</number>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QSpinBox" name="OfferReward_MaxTimes_3">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
+               <widget class="QLineEdit" name="OfferReward_MaxTimes_3">
                 <property name="minimumSize">
                  <size>
-                  <width>25</width>
+                  <width>30</width>
                   <height>0</height>
                  </size>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>2000</width>
-                  <height>50</height>
+                  <width>30</width>
+                  <height>16777215</height>
                  </size>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-                </property>
-                <property name="minimum">
-                 <number>0</number>
-                </property>
-                <property name="maximum">
-                 <number>3</number>
-                </property>
-                <property name="value">
-                 <number>3</number>
                 </property>
                </widget>
               </item>
@@ -8798,7 +8825,7 @@ Link Start</string>
               <item>
                <widget class="QLabel" name="label_2">
                 <property name="text">
-                 <string>本功能将实现自动炸弹等超强功能
+                 <string>实现自动炸神风 &amp; 电流 &amp; 破冰等超强功能
 叠甲1: 以下为高级测试功能
 叠甲2: 启用前请阅读高级放卡md，完全理解
 叠甲3: 如未能按预期实现, 请先确保你的相关设置无误</string>
