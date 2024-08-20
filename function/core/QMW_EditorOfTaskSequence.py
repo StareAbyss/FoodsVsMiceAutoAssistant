@@ -66,8 +66,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
         """
         super().__init__()
         # 大小
-        self.setMaximumSize(1050, 1080)
-        self.setMinimumSize(1050, 600)
+        self.setMaximumSize(1100, 1080)
+        self.setMinimumSize(1100, 600)
 
         # 序列 主要元素
         self.TaskSequenceList = QCListWidgetDraggable()
@@ -238,7 +238,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
             w_label = QLabel('关卡')
             w_input = QLineEdit()
             w_input.setObjectName("w_stage_id")
-            w_input.setMaximumWidth(60)
+            w_input.setMinimumWidth(70)
+            w_input.setMaximumWidth(70)
             w_input.setText(task["task_args"]["stage_id"])
             add_element(w_label=w_label, w_input=w_input)
 
@@ -246,6 +247,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             w_label = QLabel('次数')
             w_input = QSpinBox()
             w_input.setObjectName("w_max_times")
+            w_input.setMinimumWidth(70)
             w_input.setMinimum(1)
             w_input.setMaximum(99)
             w_input.setValue(task["task_args"]["max_times"])
@@ -327,6 +329,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
             # 战斗Player
             w_label = QLabel('玩家')
             w_input = QComboBox()
+            w_input.setMinimumWidth(70)
+            w_input.setMaximumWidth(70)
             w_input.setObjectName("w_player")
             for player in ['1P', '2P', '1+2P']:
                 w_input.addItem(player)
@@ -345,6 +349,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
             # 战斗Player
             w_label = QLabel('玩家')
             w_input = QComboBox()
+            w_input.setMinimumWidth(70)
+            w_input.setMaximumWidth(70)
             w_input.setObjectName("w_player")
             for player in ['1P', '2P', '1+2P']:
                 w_input.addItem(player)

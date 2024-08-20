@@ -94,6 +94,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.LayCardEditor.addWidget(QLabel('ID:'))
 
         self.WeiIdInput = QSpinBox()
+        self.WeiIdInput.setMinimumWidth(65)
+        self.WeiIdInput.setMaximumWidth(65)
         self.LayCardEditor.addWidget(self.WeiIdInput)
         self.WeiIdInput.setToolTip("id代表卡在卡组中的顺序")
         self.WeiIdInput.setRange(0, 21)
@@ -120,6 +122,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         self.LayCardEditor.addWidget(QLabel('幻鸡优先级:'))
         self.KunInput = QSpinBox()
+        self.KunInput.setMinimumWidth(65)
+        self.KunInput.setMaximumWidth(65)
+
         self.KunInput.setRange(0, 10)
         self.LayCardEditor.addWidget(self.KunInput)
         self.KunInput.setToolTip("卡片是否使用幻幻鸡, 0代表不使用，越高使用优先级越高")
