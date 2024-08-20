@@ -1305,6 +1305,8 @@ class FAA:
     def sign_top_up_money(self):
         """日氪一元! 仅限4399 游币哦!"""
 
+        return "当前版本该功能已被锁定!"
+
         def exit_ui():
             # 确定退出了该界面
             while True:
@@ -1329,7 +1331,7 @@ class FAA:
         find = loop_match_p_in_w(
             source_handle=self.handle,
             source_root_handle=self.handle_360,
-            source_range=[350, 80, 480, 180],
+            source_range=[240, 190, 740, 265],
             template=RESOURCE_P["top_up_money"]["每日必充_判定点.png"],
             match_tolerance=0.99,
             match_interval=0.2,
@@ -1482,11 +1484,16 @@ class FAA:
             match_failed_check=5,
             after_sleep=2,
             click=True)
-        if find:
-            return "成功氪金并领取~"
 
         # 退出充值界面
         exit_ui()
+
+        if find:
+            return "成功氪金并领取~"
+        else:
+            return "你游币用完了! 氪不了一点 orz"
+
+
 
     def fed_and_watered(self) -> None:
         """公会施肥浇水功能"""
