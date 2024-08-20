@@ -1,8 +1,8 @@
 import cProfile
 import sys
 
-from PyQt5.QtCore import QThread, QTimer
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt6.QtCore import QThread, QTimer
+from PyQt6.QtWidgets import QApplication, QMainWindow
 
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
@@ -33,7 +33,7 @@ if __name__ == '__main__':
                 pr.runctx('T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=1, y=1)',
                           globals(), locals())
 
-            self.exec_()  # 启动事件循环
+            self.exec()  # 启动事件循环
 
             # 分析结果输出到文件
             pr.dump_stats('profile_results.prof')
@@ -73,4 +73,4 @@ if __name__ == '__main__':
     main_win.show()
     main_win.do_something()
 
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

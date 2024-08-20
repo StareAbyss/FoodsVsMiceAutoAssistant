@@ -3,8 +3,8 @@ import sys
 
 import win32con
 import win32gui
-from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import QApplication
+from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtWidgets import QApplication
 
 from function.core.FAA import FAA
 from function.core.FAA_extra_readimage import kill_process
@@ -427,8 +427,6 @@ class QMainWindowService(QMainWindowLog):
 def faa_start_main():
     # 实例化 PyQt后台管理
     app = QApplication(sys.argv)
-    app.setAttribute(Qt.AA_EnableHighDpiScaling, True)  # 启用高DPI缩放
-    app.setAttribute(Qt.AA_UseHighDpiPixmaps, True)  # 使用高DPI图标和图像
 
     # 实例化 主窗口
     window = QMainWindowService()
@@ -437,7 +435,7 @@ def faa_start_main():
     window.show()
 
     # 运行主循环，必须调用此函数才可以开始事件处理
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 
 if __name__ == "__main__":

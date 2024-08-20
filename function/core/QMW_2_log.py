@@ -4,8 +4,10 @@ import datetime
 import cv2
 import numpy
 import numpy as np
-from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtCore import pyqtSignal
+from PyQt6 import QtWidgets, QtCore
+from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtGui import QTextCursor
+from PyQt6.QtWidgets import QApplication
 
 from function.core.QMW_1_load_settings import QMainWindowLoadSettings
 from function.globals.get_paths import PATHS
@@ -184,19 +186,27 @@ class QMainWindowLog(QMainWindowLoadSettings):
         msg.setWindowTitle(title)
         msg.setText(message)
         msg.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
-        msg.exec_()
+        msg.exec()
 
     def print_to_ui(self, text, color, time):
         """打印文本到输出框 """
+
         # 时间文本
         text_time = "[{}] ".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) if time else ""
+
         # 颜色文本
         text_all = f'<span style="color:#{color};">{text_time}{text}</span>'
+
         # 输出到输出框
         self.TextBrowser.append(text_all)
+
         # 实时输出
-        self.TextBrowser.moveCursor(self.TextBrowser.textCursor().End)
-        QtWidgets.QApplication.processEvents()
+        cursor = self.TextBrowser.textCursor()
+        cursor.setPosition(cursor.position(), QTextCursor.MoveMode.MoveAnchor)
+        cursor.setPosition(cursor.position() + 1, QTextCursor.MoveMode.KeepAnchor)  # 移动到末尾
+        self.TextBrowser.setTextCursor(cursor)
+        QApplication.processEvents()
+
         # 输出到日志和运行框
         CUS_LOGGER.info(text)
 
@@ -218,6 +228,10 @@ class QMainWindowLog(QMainWindowLoadSettings):
 
         # 输出到输出框
         self.TextBrowser.append(image_html)
+
         # 实时输出
-        self.TextBrowser.moveCursor(self.TextBrowser.textCursor().End)
-        QtWidgets.QApplication.processEvents()
+        cursor = self.TextBrowser.textCursor()
+        cursor.setPosition(cursor.position(), QTextCursor.MoveMode.MoveAnchor)
+        cursor.setPosition(cursor.position() + 1, QTextCursor.MoveMode.KeepAnchor)  # 移动到末尾
+        self.TextBrowser.setTextCursor(cursor)
+        QApplication.processEvents()

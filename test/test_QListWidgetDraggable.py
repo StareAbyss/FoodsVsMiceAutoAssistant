@@ -1,6 +1,6 @@
 import sys
 
-from PyQt5.QtWidgets import QApplication, QWidget, QListWidget, QListWidgetItem, QTextEdit, QHBoxLayout
+from PyQt6.QtWidgets import QApplication, QWidget, QListWidget, QListWidgetItem, QTextEdit, QHBoxLayout
 
 """
 目标一： 实现一个列表ui 与 内部数据表 一一对应 且可以通过拖拽它进行直接修改
@@ -145,4 +145,4 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     demo = Demo()
     demo.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())

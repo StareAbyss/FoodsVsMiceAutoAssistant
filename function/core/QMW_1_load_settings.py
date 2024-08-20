@@ -5,7 +5,7 @@ import shutil
 import sys
 import time
 
-from PyQt5.QtWidgets import QApplication, QMessageBox, QInputDialog
+from PyQt6.QtWidgets import QApplication, QMessageBox, QInputDialog
 
 from function.core.QMW_0_load_ui_file import QMainWindowLoadUI
 from function.globals import init_resources
@@ -400,6 +400,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.EndExitGame.setChecked(my_opt["end_exit_game"])
             self.AutoUseCard.setChecked(my_opt["auto_use_card"])
             self.AutoDeleteOldImages.setChecked(my_opt["auto_delete_old_images"])
+
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
             self.Battle_senior_checkedbox.setChecked(my_opt["auto_senior_settings"])
@@ -525,10 +526,12 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             my_opt["end_exit_game"] = self.EndExitGame.isChecked()
             my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
             my_opt["auto_delete_old_images"] = self.AutoDeleteOldImages.isChecked()
+
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
             my_opt["auto_senior_settings"] = self.Battle_senior_checkedbox.isChecked()
             my_opt["senior_log_state"] = 1 if self.all_senior_log.isChecked() else 0
+
         def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
             my_opt["1p"]["active"] = self.GetWarmGift_1P_Active.isChecked()
@@ -771,7 +774,7 @@ if __name__ == "__main__":
         window.show()
 
         # 运行主循环，必须调用此函数才可以开始事件处理
-        sys.exit(app.exec_())
+        sys.exit(app.exec())
 
 
     main()

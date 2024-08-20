@@ -1,8 +1,8 @@
 import json
 import time
 
-from PyQt5 import uic
-from PyQt5.QtWidgets import QWidget
+from PyQt6 import uic
+from PyQt6.QtWidgets import QWidget
 
 from function.globals.extra import EXTRA_GLOBALS
 from function.globals.get_paths import PATHS

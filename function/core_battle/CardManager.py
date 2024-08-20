@@ -1,7 +1,7 @@
 import time
 from threading import Timer
 
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt6.QtCore import QThread, pyqtSignal
 
 from function.core_battle.Card import Card, CardKun, SpecialCard, is_special_card
 from function.core_battle.CardQueue import CardQueue
