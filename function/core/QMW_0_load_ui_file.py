@@ -26,7 +26,7 @@ class QMainWindowLoadUI(QMainWindow):
         uic.loadUi(PATHS["root"] + '\\resource\\ui\\FAA_3.0.ui', self)
 
         # 设置窗口名称
-        self.setWindowTitle("FAA - 本软件免费且开源 - 反馈交流: 786921130")
+        self.setWindowTitle("FAA - 本软件免费且开源")
 
         # 设置版本号
         self.version = "v1.5.0-beta.1"
@@ -47,6 +47,23 @@ class QMainWindowLoadUI(QMainWindow):
             font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
             self.font = QFont(font_family, 11)
             self.setFont(self.font)
+
+        # 获取系统样式
+        if self.palette().color(QtGui.QPalette.ColorRole.Window).lightness() < 128:
+            self.theme = "dark"
+        else:
+            self.theme = "light"
+
+        # 修改特殊控件样式表
+        if self.theme == "dark":
+            self.Label_drag.setStyleSheet("""
+                QLabel {
+                    border: 1px solid grey; /* 灰色边框，宽度为1像素 */
+                    border-radius: 4px; /* 边框圆角半径为4像素 */
+                    border-color: #5b5b5b; /* 边框颜色 */
+                    background-color: #3c3c3c; /* 背景颜色 */
+                }
+            """)
 
     def closeEvent(self, event):
         """

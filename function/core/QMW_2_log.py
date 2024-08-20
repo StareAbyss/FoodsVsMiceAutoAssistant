@@ -27,12 +27,15 @@ class QMainWindowLog(QMainWindowLoadSettings):
         self.signal_dialog.connect(self.show_dialog)
 
         # 是模仿信号类写法 的 类, 并不是直接输出, 其emit方法是 一个可以输入 缺省的颜色 或 时间参数 来生成文本 调用 signal_print_to_ui_1
-        self.signal_print_to_ui = self.MidSignalPrint(signal_1=self.signal_print_to_ui_1)
+        self.signal_print_to_ui = self.MidSignalPrint(
+            signal_1=self.signal_print_to_ui_1,
+            theme=self.theme)
         # 真正的 发送信息激活 print 的函数, 被链接到直接发送信息到ui的函数
         self.signal_print_to_ui_1.connect(self.print_to_ui)
 
         # 类似上面, 但图片, 用于支持 输入 路径 或 numpy.ndarray
-        self.signal_image_to_ui = self.MidSignalImage(signal_1=self.signal_image_to_ui_1)
+        self.signal_image_to_ui = self.MidSignalImage(
+            signal_1=self.signal_image_to_ui_1)
         self.signal_image_to_ui_1.connect(self.image_to_ui)
 
         # 储存所有信号
@@ -53,24 +56,40 @@ class QMainWindowLog(QMainWindowLoadSettings):
         并调用信号发送真正的信息
         """
 
-        def __init__(self, signal_1):
+        def __init__(self, signal_1, theme):
             super().__init__()
             self.signal_1 = signal_1
-            self.color_scheme = {
-                1: "C80000",  # 深红色
-                2: "E67800",  # 深橙色暗调
-                3: "006400",  # 深绿色
-                4: "009688",  # 深宝石绿
-                5: "0056A6",  # 深海蓝
-                6: "003153",  # 普鲁士蓝
-                7: "5E2D79",  # 深兰花紫
-                8: "4B0082",  # 靛蓝
-                9: "333333",  # 煤黑色
-            }
+            match theme:
+                case 'light':
+                    self.color_scheme = {
+                        1: "C80000",  # 深红色
+                        2: "E67800",  # 深橙色暗调
+                        3: "006400",  # 深绿色
+                        4: "009688",  # 深宝石绿
+                        5: "0056A6",  # 深海蓝
+                        6: "003153",  # 普鲁士蓝
+                        7: "5E2D79",  # 深兰花紫
+                        8: "4B0082",  # 靛蓝
+                        9: "333333",  # 煤黑色
+                    }
+                case 'dark':
+                    self.color_scheme = {
+                        1: "FF4C4C",  # 鲜红色
+                        2: "FFA500",  # 橙色
+                        3: "00FF00",  # 亮绿色
+                        4: "20B2AA",  # 浅海绿色
+                        5: "1E90FF",  # 道奇蓝
+                        6: "4682B4",  # 钢蓝色
+                        7: "9370DB",  # 中兰花紫
+                        8: "8A2BE2",  # 蓝紫色
+                        9: "CCCCCC",  # 浅灰色
+                    }
 
-        def emit(self, text, color="333333", color_level=None, time=True):
+        def emit(self, text, color_level=9, color=None, time=True):
             if color_level in self.color_scheme:
                 color = self.color_scheme[color_level]
+            elif not color:
+                color = self.color_scheme[9]
 
             # 处理缺省参数
             self.signal_1.emit(text, color, time)
@@ -105,7 +124,7 @@ class QMainWindowLog(QMainWindowLoadSettings):
             text="嗷呜, 欢迎使用FAA-美食大战老鼠自动放卡作战小助手~",
             time=False)
         self.signal_print_to_ui.emit(
-            text="本软件 [开源][免费][绿色] 当前版本: v1.5.0-beta.1",
+            text="本软件 [开源][免费][绿色]",
             time=False)
         self.signal_print_to_ui.emit(
             text="",
@@ -176,6 +195,12 @@ class QMainWindowLog(QMainWindowLoadSettings):
             time=False)
         self.signal_print_to_ui.emit(
             text="[交流QQ群]  欢迎加入, 交流游戏和自动化 & 获取使用帮助 & 参与开发!",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="[腾讯频道]  https://pd.qq.com/s/a0h4rujt0",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="[腾讯频道]  欢迎加入, 用以下载 / 公告 / 提交问题.",
             time=False)
 
     # 用于展示弹窗信息的方法
