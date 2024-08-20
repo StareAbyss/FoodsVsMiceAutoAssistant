@@ -538,7 +538,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 for card in cards_in_this_location:
                     text += '\n' + card['name']
                     c_index_list = card["location"].index(location_key) + 1
-                    if type(c_index_list) == "list":
+                    if type(c_index_list) is list:
                         for location_index in c_index_list:
                             text += " {}".format(location_index)
                     else:

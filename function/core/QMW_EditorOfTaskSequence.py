@@ -118,7 +118,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
         设置界面样式
         """
         # 设置窗口标题
-        self.setWindowTitle('任务序列编辑器')
+        self.setWindowTitle('事项序列编辑器')
         # 设置窗口图标
         self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetTuo-192x.png"))
 
@@ -146,26 +146,25 @@ class QMWEditorOfTaskSequence(QMainWindow):
             "task_id": 0,
             "task_args": None
         }
-        if task_type == '战斗':
-            task["task_args"] = {
-                "stage_id": "NO-1-7",
-                "deck": 1,
-                "max_times": 1,
-                "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-                "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-
-                "need_key": True,
-                "player": [2, 1]
-            }
-        elif task_type == '刷新游戏':
-            task["task_args"] = {
-                "player": [1, 2]
-            }
-
-        elif task_type == '清背包':
-            task["task_args"] = {
-                "player": [1, 2]
-            }
+        match task_type:
+            case '战斗':
+                task["task_args"] = {
+                    "stage_id": "NO-1-7",
+                    "deck": 1,
+                    "max_times": 1,
+                    "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+                    "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+                    "need_key": True,
+                    "player": [2, 1]
+                }
+            case '刷新游戏':
+                task["task_args"] = {
+                    "player": [1, 2]
+                }
+            case '清背包':
+                task["task_args"] = {
+                    "player": [1, 2]
+                }
 
         self.add_task(task=task)
 
@@ -197,7 +196,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
         self.TaskSequenceList.addItem(item)
         self.TaskSequenceList.setItemWidget(item, line_widget)
 
-    def add_line_manager(self, task: dict):
+    def add_line_manager(self, task):
         """
         根据任务生成控件，单独管理列表中每一行的布局
         每一行布局分为三个部分：task_id; task type; task info
@@ -321,7 +320,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             add_element(w_label=w_label, w_input=w_input)
 
             # 创建一个水平弹簧
-            spacer = QSpacerItem(0, 20, QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
+            spacer = QSpacerItem(0, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
             line_layout.addItem(spacer)
 
         elif task_type == '刷新游戏':
@@ -339,7 +338,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             add_element(w_label=w_label, w_input=w_input)
 
             # 创建一个水平弹簧
-            spacer = QSpacerItem(0, 20, QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
+            spacer = QSpacerItem(0, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
             line_layout.addItem(spacer)
 
         elif task_type == '清背包':

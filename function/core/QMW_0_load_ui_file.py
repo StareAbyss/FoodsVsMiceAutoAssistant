@@ -30,7 +30,7 @@ class QMainWindowLoadUI(QMainWindow):
 
         # 设置版本号
         self.version = "v1.5.0-beta.1"
-        self.Label_Version.setText("版本号:" + self.version)
+        self.Label_Version.setText(self.version)
 
         # 从服务器获取最新版本号，如果和本地一致，就把版本号改成金色；不一致改成绿色
 
@@ -54,7 +54,7 @@ class QMainWindowLoadUI(QMainWindow):
         """
 
         event.accept()
-        # 用过sys.exit(0)和sys.exit(app.exec_())，但没起效果
+        # 用过sys.exit(0)和sys.exit(app.exec())，但没起效果
         os._exit(0)
 
 

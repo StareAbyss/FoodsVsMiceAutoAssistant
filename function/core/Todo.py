@@ -682,8 +682,13 @@ class ThreadTodo(QThread):
             self.thread_1p.join()
             if is_group:
                 self.thread_2p.join()
+
             if self.opt["senior_settings"]["auto_senior_settings"]:
-                self.process, queue_todo = read_and_get_return_information(self.faa[player_a],self.opt["senior_settings"]["senior_log_state"])
+
+                self.process, queue_todo = read_and_get_return_information(
+                    self.faa[player_a],
+                    self.opt["senior_settings"]["senior_log_state"])
+
             else:
                 queue_todo = None
                 self.process=None
