@@ -22,6 +22,7 @@ class CusLogger(logging.Logger):
 
         # 保存路径 log文件会自动创建
         log_path = PATHS["logs"] + '\\running_log.log'
+        error_log_path = PATHS["logs"] + '\\error_log.log'
 
         # 输出到文件
         file_handler = logging.FileHandler(filename=log_path, mode='w', encoding='utf-8')  # 创建一个FileHandler来写日志到文件
@@ -29,6 +30,13 @@ class CusLogger(logging.Logger):
         formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')  # 创建一个formatter来定义日志的格式
         file_handler.setFormatter(formatter)  # 应用formatter
         self.addHandler(file_handler)  # 添加到logger
+
+        # 新增错误日志处理器
+        error_file_handler = logging.FileHandler(filename=error_log_path, mode='w', encoding='utf-8')  # 创建一个FileHandler来写日志到文件
+        error_file_handler.setLevel(logging.ERROR)  # 设置FileHandler的最低日志级别为ERROR
+        error_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')  # 创建一个formatter来定义日志的格式
+        error_file_handler.setFormatter(error_formatter)  # 应用formatter
+        self.addHandler(error_file_handler)  # 添加到logger
 
         # 输出到运行框 标准输出流
         stream_handler = colorlog.StreamHandler()
