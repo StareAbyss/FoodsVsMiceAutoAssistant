@@ -1,11 +1,12 @@
 import time
+
 import cv2
 
-from function.globals.init_resources import RESOURCE_P
-from function.scattered.match_ocr_text.match_text import match
-from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
-from function.common.bg_img_screenshot import capture_image_png
 from function.common.bg_img_match import match_p_in_w
+from function.common.bg_img_screenshot import capture_image_png
+from function.globals.g_resources import RESOURCE_P
+from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
+from function.scattered.match_ocr_text.match_text import match
 
 
 def food_match_ocr_text(self):

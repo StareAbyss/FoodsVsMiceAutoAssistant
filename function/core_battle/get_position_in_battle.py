@@ -1,5 +1,5 @@
 from function.common.bg_img_match import match_p_in_w
-from function.globals.init_resources import RESOURCE_P
+from function.globals.g_resources import RESOURCE_P
 
 
 def get_position_card_deck_in_battle(handle,handle_360):

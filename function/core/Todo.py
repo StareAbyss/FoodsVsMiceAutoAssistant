@@ -14,9 +14,9 @@ from function.common.thread_with_exception import ThreadWithException
 from function.core.FAA_extra_readimage import read_and_get_return_information, kill_process
 from function.core.analyzer_of_loot_logs import update_dag_graph, find_longest_path_from_dag
 from function.core_battle.CardManager import CardManager
-from function.globals.extra import EXTRA_GLOBALS
+from function.globals import g_extra
+from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
-from function.globals.init_resources import RESOURCE_P
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.create_drops_image import create_drops_image
@@ -1507,13 +1507,10 @@ class ThreadTodo(QThread):
                 task_sequence_list[task_sequence_index]
             )
 
-            # 自旋锁读写, 防止多线程读写问题
-            while EXTRA_GLOBALS.file_is_reading_or_writing:
-                time.sleep(0.1)
-            EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
-            with open(file=task_sequence_path, mode="r", encoding="UTF-8") as file:
-                data = json.load(file)
-            EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
+            with g_extra.GLOBAL_EXTRA.file_lock:
+                with open(file=task_sequence_path, mode="r", encoding="UTF-8") as file:
+                    data = json.load(file)
+
             return data
 
         self.model_start_print(text=text_)

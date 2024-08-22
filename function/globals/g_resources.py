@@ -1,11 +1,10 @@
 import json
 import os
-import time
 
 import cv2
 import numpy as np
 
-from function.globals.extra import EXTRA_GLOBALS
+from function.globals import g_extra
 from function.globals.get_paths import PATHS
 
 
@@ -151,19 +150,10 @@ def fresh_resource_b():
     # 清空
     global RESOURCE_B
     RESOURCE_B = {}
-
-    for b_uuid, b_path in EXTRA_GLOBALS.battle_plan_uuid_to_path.items():
-
-        # 自旋锁读写, 防止多线程读写问题
-        while EXTRA_GLOBALS.file_is_reading_or_writing:
-            time.sleep(0.1)
-        EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
-
-        with open(file=b_path, mode='r', encoding='utf-8') as file:
-            json_data = json.load(file)
-
-        EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
-
+    for b_uuid, b_path in g_extra.GLOBAL_EXTRA.battle_plan_uuid_to_path.items():
+        with g_extra.GLOBAL_EXTRA.file_lock:
+            with open(file=b_path, mode='r', encoding='utf-8') as file:
+                json_data = json.load(file)
         RESOURCE_B[b_uuid] = json_data
 
 

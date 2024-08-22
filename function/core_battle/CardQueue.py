@@ -1,6 +1,6 @@
 import queue
 
-from function.globals.extra import EXTRA_GLOBALS
+from function.globals import g_extra
 from function.globals.log import CUS_LOGGER
 
 
@@ -71,7 +71,7 @@ class CardQueue(queue.PriorityQueue):
             self.card_using = False
             return
 
-        if EXTRA_GLOBALS.extra_log_battle:
+        if g_extra.GLOBAL_EXTRA.extra_log_battle:
             CUS_LOGGER.debug(f"[战斗执行器] 使用卡片：{card.name}")
 
         # 去使用这张卡

@@ -6,7 +6,7 @@ from PyQt6.QtCore import QThread, pyqtSignal
 from function.core_battle.Card import Card, CardKun, SpecialCard, is_special_card
 from function.core_battle.CardQueue import CardQueue
 from function.core_battle.special_card_strategy import solve_special_card_problem
-from function.globals.extra import EXTRA_GLOBALS
+from function.globals import g_extra
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
@@ -50,7 +50,7 @@ class CardManager:
         self.init_all_thread()
 
         # 刷新全局冰沙锁
-        EXTRA_GLOBALS.smoothie_lock_time = 0
+        g_extra.GLOBAL_EXTRA.smoothie_lock_time = 0
 
         self.is_initialized = True  # 初始化完了
 
@@ -289,7 +289,7 @@ class ThreadCheckTimer(QThread):
                         max_card.is_kun_target = True
 
             # 调试打印 - 目前 <战斗管理器> 的状态
-            if EXTRA_GLOBALS.extra_log_battle:
+            if g_extra.GLOBAL_EXTRA.extra_log_battle:
                 if self.faa.player == 1:
                     text = "[战斗执行器] "
                     for card in self.card_queue.card_list:
@@ -302,8 +302,8 @@ class ThreadCheckTimer(QThread):
                     self.faa.print_debug(text)
 
         # 刷新全局冰沙锁的状态
-        if EXTRA_GLOBALS.smoothie_lock_time != 0:
-            EXTRA_GLOBALS.smoothie_lock_time -= self.round_interval
+        if g_extra.GLOBAL_EXTRA.smoothie_lock_time != 0:
+            g_extra.GLOBAL_EXTRA.smoothie_lock_time -= self.round_interval
 
         # 定时 使用武器技能 自动拾取 考虑到火苗消失时间是7s
         if self.running_round % 7 == 0:

@@ -6,8 +6,8 @@ from function.common.bg_img_match import loop_match_ps_in_w, loop_match_p_in_w, 
 from function.common.bg_img_screenshot import capture_image_png
 from function.common.overlay_images import overlay_images
 from function.core.analyzer_of_loot_logs import match_items_from_image_and_save
+from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
-from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
