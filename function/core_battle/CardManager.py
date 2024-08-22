@@ -24,6 +24,7 @@ class CardManager:
         self.thread_dict = {}
         self.iceboom_list = {1: [], 2: []}
         self.the_9th_grassfan = {1: [], 2: []}
+        self.huzhao= {1: [], 2: []}
         self.smoothie_usable_player = []
         # 待解决队列，从这里提取信息
         self.solve_queue = solve_queue
@@ -68,16 +69,22 @@ class CardManager:
                 result = is_special_card(cards_plan[j]["name"])
                 if result["found"]:
                     if result["card_type"] < 14 and result["card_type"] != 11:  # 不是冰桶草扇冰沙或其他垃圾卡
-                        self.special_card_list[i].append(
-                            SpecialCard(
+                        s_card = SpecialCard(
                                 faa=self.faa_dict[i],
                                 priority=j,
                                 energy=result["energy"],
                                 card_type=result["card_type"],
                                 rows=result["rows"],
-                                cols=result["cols"]))
+                                cols=result["cols"])
+                        self.special_card_list[i].append(s_card
+                            )
                         if result["card_type"] == 12:  # 护罩类，除了炸弹还可能是常驻的罩子
-                            self.card_list_dict[i].append(Card(faa=self.faa_dict[i], priority=j))
+                            card_zhao=Card(faa=self.faa_dict[i], priority=j)
+                            self.card_list_dict[i].append(card_zhao)
+                            #建立特殊卡护罩与常规卡护罩之间的连接
+                            s_card.huzhao = card_zhao
+                            #将护罩类特殊卡用一个单独的字典管理
+                            self.huzhao[i].append(s_card)
                     elif result["card_type"] == 11:  # 冰桶类
                         self.iceboom_list[i].append(
                             SpecialCard(
@@ -145,7 +152,8 @@ class CardManager:
                 read_queue=self.solve_queue,
                 is_group=self.is_group,
                 iceboom_list=self.iceboom_list,
-                the_9th_grassfan=self.the_9th_grassfan
+                the_9th_grassfan=self.the_9th_grassfan,
+                huzhao=self.huzhao
             )
 
         CUS_LOGGER.debug("[战斗执行器] 线程已全部实例化")
@@ -357,7 +365,7 @@ class ThreadUseCardTimer(QThread):
 
 
 class ThreadUseSpecialCardTimer(QThread):
-    def __init__(self, card_queue, faa, round_interval, read_queue, is_group, iceboom_list, the_9th_grassfan):
+    def __init__(self, card_queue, faa, round_interval, read_queue, is_group, iceboom_list, the_9th_grassfan,huzhao):
         super().__init__()
         self.card_queue = card_queue
         self.faa = faa
@@ -371,6 +379,8 @@ class ThreadUseSpecialCardTimer(QThread):
         self.Todo_list = {}
         self.iceboom_list = iceboom_list
         self.the_9th_grassfan = the_9th_grassfan
+        self.card_huzhao = {1: [], 2: []}
+        self.huzhao=huzhao
 
     def run(self):
         self.stop_flag = False
@@ -429,17 +439,24 @@ class ThreadUseSpecialCardTimer(QThread):
 
                     if positions:
                         self.card_list_can_use = {1: [], 2: []}
+                        self.card_huzhao = {1: [], 2: []}
 
                         if self.flag[1]:
                             for special_card in self.card_queue[1]:
                                 special_card.fresh_status()  # 刷新冷却状态，可用就加入对策列表
                                 if special_card.status_usable:
+                                    if special_card.huzhao is not None:
+                                        #护罩被征用计算辣
+                                        special_card.huzhao.can_use = False
                                     self.card_list_can_use[1].append(special_card)
 
                         if self.flag[2]:
                             for special_card in self.card_queue[2]:
                                 special_card.fresh_status()  # 刷新冷却状态，可用就加入对策列表
                                 if special_card.status_usable:
+                                    if special_card.huzhao is not None:
+                                        #护罩被征用计算辣
+                                        special_card.huzhao.can_use = False
                                     self.card_list_can_use[2].append(special_card)
 
                         result = solve_special_card_problem(
@@ -448,9 +465,21 @@ class ThreadUseSpecialCardTimer(QThread):
                         if result is not None:
                             strategy1, strategy2 = result
                             for card, pos in strategy1.items():
+                                if card.card_type == 12:
+                                    self.card_huzhao[1].append(card)
                                 self.Todo_list[1].append([card, pos])
                             for card, pos in strategy2.items():
+                                if card.card_type == 12:
+                                    self.card_huzhao[2].append(card)
                                 self.Todo_list[2].append([card, pos])
+                        #被禁用的护罩现在经过计算没有调用的统统反正
+                        huzhaofix1 = list(filter(lambda x: x not in self.card_huzhao[1], self.huzhao[1]))
+                        huzhaofix2 = list(filter(lambda x: x not in self.card_huzhao[2], self.huzhao[2]))
+                        for card in huzhaofix1:
+                            card.huzhao.can_use=True
+                        for card in huzhaofix2:
+                            card.huzhao.can_use=True
+
 
                     CUS_LOGGER.debug(f"特殊用卡队列{self.Todo_list} ")
                     self.timer = Timer(self.round_interval / 200, self.use_card, args=(1,))  # 1p0.01秒后开始放卡

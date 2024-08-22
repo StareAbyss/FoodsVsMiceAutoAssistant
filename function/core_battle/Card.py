@@ -322,6 +322,7 @@ class SpecialCard(Card):
         self.need_shovel = self.card_type == 12 or self.card_type == 14  # 要秒铲的有草扇跟护罩炸弹
         self.rows = rows
         self.cols = cols
+        self.huzhao = None#建立特殊卡护罩与常规卡护罩之间的连接
 
     def use_card(self, pos):
 
@@ -438,6 +439,9 @@ class SpecialCard(Card):
                         x=position_dict[f"{pos[0]}-{pos[1]}"][0],
                         y=position_dict[f"{pos[0]}-{pos[1]}"][1])
                     time.sleep(self.click_sleep)
+                if self.huzhao is not None:
+                    #特殊卡用完当护罩得给他改回常驻卡可用状态
+                    self.huzhao.can_use = True
 
                 time.sleep(0.2)
 
