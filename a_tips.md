@@ -1,22 +1,20 @@
 # 打包
-## 切换位置
-    cd "F:\My Project\Python\_ExeWorkSpace"
 
-## 打包开始
-    pyinstaller -i "F:\My Project\Python\FoodsVsMousesAutoAssistant\resource\logo\圆角-FetTuo-48x.ico" -w -D "F:\My Project\Python\FoodsVsMousesAutoAssistant\function\faa_main.py" 
+## 打包
 
-## 打包开始(调试版)
-    pyinstaller -i "F:\My Project\Python\FoodsVsMousesAutoAssistant\resource\logo\圆角-FetTuo-48x.ico" -D "F:\My Project\Python\FoodsVsMousesAutoAssistant\function\faa_main.py" 
+    记得使用资源文件打包.py 路径请自行调整 默认是在项目上一级新建目录以打包
 
-## 其他tip
-    `-D` 产生完整目录作为可执行文件
-    `-w` 不显示黑框
-    `-i 路径`  icon 图标
+    pyinstaller -i "F:\My Project\Python\FoodsVsMousesAutoAssistant\resource\logo\圆角-FetTuo-48x.ico" -w -D -n "FAA" -y --distpath="F:\My Project\Python\_ExeWorkSpace\dist" --workpath="F:\My Project\Python\_ExeWorkSpace\build" "F:\My Project\Python\FoodsVsMousesAutoAssistant\function\faa_main.py"
+
+## 打包 - 调试版
+    -w -> -c
+
+    pyinstaller -i "F:\My Project\Python\FoodsVsMousesAutoAssistant\resource\logo\圆角-FetTuo-48x.ico" -c -D -n "FAA" -y --distpath="F:\My Project\Python\_ExeWorkSpace\dist" --workpath="F:\My Project\Python\_ExeWorkSpace\build" "F:\My Project\Python\FoodsVsMousesAutoAssistant\function\faa_main.py"
 
 # 环境迁移
 
-## 下载python安装程序 v3.7.9
-    https://www.python.org/ftp/python/3.7.9/python-3.7.9.exe
+## 下载python安装程序 v3.12.5
+    https://www.python.org/ftp/python/
 
 ## 生成配置文件
     cd "F:\My Project\Python\FoodsVsMousesAutoAssistant"
