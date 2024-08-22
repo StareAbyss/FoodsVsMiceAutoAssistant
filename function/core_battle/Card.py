@@ -131,7 +131,7 @@ class Card:
         time.sleep(self.click_sleep)
 
         # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
-        if self.queue:
+        if self.queue and len(self.location)>0 and len(self.location_to)>0:
             if self.location:
                 self.location.append(self.location[0])
                 self.location.remove(self.location[0])
