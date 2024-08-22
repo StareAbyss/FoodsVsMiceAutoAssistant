@@ -150,12 +150,20 @@ def main():
     )
 
     # 添加文件夹及其排除列表
-    mover.add_folder("config", exclude_files=["settings.json"])
-    mover.add_folder("battle_plan")
-    mover.add_folder("battle_plan_not_active")
-    mover.add_folder("md_img")
-    mover.add_folder("task_sequence")
-    mover.add_folder("resource", exclude_types=[".pyc"])
+    mover.add_folder(
+        folder_name="config",
+        exclude_files=["settings.json","空间服登录界面_1P.png","空间服登录界面_2P.png","跨服远征_1p.png"])
+    mover.add_folder(
+        folder_name="battle_plan")
+    mover.add_folder(
+        folder_name="battle_plan_not_active")
+    mover.add_folder(
+        folder_name="md_img")
+    mover.add_folder(
+        folder_name="task_sequence")
+    mover.add_folder(
+        folder_name="resource",
+        exclude_types=[".pyc"])
 
     # 添加文件
     mover.add_file("[入门]FAA从入门到神殿.docx")
