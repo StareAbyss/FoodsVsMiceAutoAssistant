@@ -1942,7 +1942,7 @@ class ThreadTodo(QThread):
         """主要事项"""
 
         self.signal_print_to_ui.emit(
-            text="f[主要事项] 开始!",
+            text=f"[主要事项] 开始!",
             color_level=1)
 
         need_reload = False
@@ -2151,7 +2151,7 @@ class ThreadTodo(QThread):
 
         if need_reload:
             self.signal_print_to_ui.emit(
-                text="f[额外事项] 开始!",
+                text=f"[额外事项] 开始!",
                 color_level=1)
             self.batch_reload_game()
             start_time = datetime.datetime.now()
@@ -2198,7 +2198,7 @@ class ThreadTodo(QThread):
 
         if active_singleton:
             self.signal_print_to_ui.emit(
-                text="f[自定义事项] 开始! 请勿与 [常规事项] 和 [额外事项] 同时开启, 否则可能造成未知错误!",
+                text=f"[自定义事项] 开始! 请勿与 [常规事项] 和 [额外事项] 同时开启, 否则可能造成未知错误!",
                 color_level=1)
             start_time = datetime.datetime.now()
 
