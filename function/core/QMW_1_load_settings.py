@@ -16,6 +16,31 @@ from function.scattered.get_list_battle_plan import get_list_battle_plan
 from function.scattered.get_task_sequence_list import get_task_sequence_list
 
 
+def ensure_file_exists(file_path, template_suffix="_template") -> None:
+    """
+    测某文件是否存在 如果不存在且存在_template的模板, 应用模板
+    :param file_path: 文件路径
+    :param template_suffix: 模板附加名称
+    :return:
+    """
+
+    # 检查文件是否存在
+    if not os.path.exists(file_path):
+        # 构建模板文件的路径
+        base_name, ext = os.path.splitext(file_path)
+        template_file_path = f"{base_name}{template_suffix}{ext}"
+
+        # 检查模板文件是否存在
+        if os.path.exists(template_file_path):
+            # 如果模板文件存在，则复制模板文件到原始文件路径
+            shutil.copy(template_file_path, file_path)
+            CUS_LOGGER.warning(f"[资源检查] '{file_path}' 不存在，已从模板 '{template_file_path}' 创建。")
+        else:
+            CUS_LOGGER.error(f"[资源检查] 无 '{file_path}', 无 '{template_file_path}'. ")
+    else:
+        CUS_LOGGER.info(f"[资源检查] '{file_path}' 已存在. 直接读取.")
+
+
 class QMainWindowLoadSettings(QMainWindowLoadUI):
     """将读取配置的方法封装在此处"""
 
@@ -25,11 +50,18 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
 
         # opt路径
         self.opt_path = PATHS["root"] + "\\config\\settings.json"
-        # opt模板路径
-        self.opt_template_path = PATHS["root"] + "\\config\\settings_template.json"
 
-        # 检测opt是否存在
-        self.check_opt_exist()
+        # 检测某文件是否存在 如果不存在且存在_template的模板, 应用模板
+        ensure_file_exists_tar_list = [
+            PATHS["root"] + "\\config\\cus_images\\用户自截\\空间服登录界面_1P.png",
+            PATHS["root"] + "\\config\\cus_images\\用户自截\\空间服登录界面_2P.png",
+            PATHS["root"] + "\\config\\cus_images\\用户自截\\跨服远征_1p.png",
+            self.opt_path]
+        for file_path in ensure_file_exists_tar_list:
+            ensure_file_exists(file_path=file_path)
+
+        # 检测&修复 settings文件和模板的格式是否对应.
+        self.correct_settings_file()
 
         # 检测uuid是否存在于battle plan 没有则添加 并将其读入到内存资源中
         fresh_and_check_battle_plan_uuid()
@@ -40,23 +72,18 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         self.json_to_opt()
         self.init_opt_to_ui()
 
-    def check_opt_exist(self) -> None:
+    def correct_settings_file(self, template_suffix="_template") -> None:
+        """
+        检查settings.json 是否和 template.json 各级的字段名和数据类型是否一致, 如果不一致, 应用模板
+        :param template_suffix: 模板附加名称
+        :return: None
+        """
 
-        settings_file = self.opt_path
-        template_file = self.opt_template_path
+        # 构建模板文件的路径
+        file_path = self.opt_path
+        base_name, ext = os.path.splitext(file_path)
+        template_file_path = f"{base_name}{template_suffix}{ext}"
 
-        # 检查settings.json是否存在
-        if not os.path.exists(settings_file):
-            # 如果不存在，从模板文件复制
-            try:
-                shutil.copyfile(template_file, settings_file)
-                CUS_LOGGER.warning(f"[读取FAA基础配置文件] '{settings_file}' 不存在，已从模板 '{template_file}' 创建。")
-            except IOError as e:
-                CUS_LOGGER.error(f"[读取FAA基础配置文件] 无法创建 '{settings_file}' 从 '{template_file}'. 错误: {e}")
-        else:
-            CUS_LOGGER.info(f"[读取FAA基础配置文件] '{settings_file}' 已存在. 直接读取.")
-
-        # 检查settings.json 是否和 template.json 各级的字段名和数据类型是否一致, 如果不一致, 应用模板
         # 如果值为list 使用template中第一个值作为模板对照进行merge
         def merge_settings_with_template(settings, template):
             def merge(dict1, dict2):
@@ -94,9 +121,9 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         # 自旋锁读写, 防止多线程读写问题
         with g_extra.GLOBAL_EXTRA.file_lock:
 
-            with open(file=settings_file, mode="r", encoding="UTF-8") as file:
+            with open(file=file_path, mode="r", encoding="UTF-8") as file:
                 data_settings = json.load(file)
-            with open(file=template_file, mode="r", encoding="UTF-8") as file:
+            with open(file=template_file_path, mode="r", encoding="UTF-8") as file:
                 data_template = json.load(file)
 
             data_settings = merge_settings_with_template(settings=data_settings, template=data_template)
