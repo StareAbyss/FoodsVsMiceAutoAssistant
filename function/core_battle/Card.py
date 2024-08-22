@@ -131,7 +131,7 @@ class Card:
         time.sleep(self.click_sleep)
 
         # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
-        if self.queue:
+        if self.queue and len(self.location)>0 and len(self.location_to)>0:
             if self.location:
                 self.location.append(self.location[0])
                 self.location.remove(self.location[0])
@@ -322,6 +322,7 @@ class SpecialCard(Card):
         self.need_shovel = self.card_type == 12 or self.card_type == 14  # 要秒铲的有草扇跟护罩炸弹
         self.rows = rows
         self.cols = cols
+        self.huzhao = None#建立特殊卡护罩与常规卡护罩之间的连接
 
     def use_card(self, pos):
 
@@ -438,6 +439,9 @@ class SpecialCard(Card):
                         x=position_dict[f"{pos[0]}-{pos[1]}"][0],
                         y=position_dict[f"{pos[0]}-{pos[1]}"][1])
                     time.sleep(self.click_sleep)
+                if self.huzhao is not None:
+                    #特殊卡用完当护罩得给他改回常驻卡可用状态
+                    self.huzhao.can_use = True
 
                 time.sleep(0.2)
 

@@ -36,7 +36,7 @@ def draw_bounding_box(img, class_id, confidence, x, y, x_plus_w, y_plus_h):
     cv2.putText(img, label, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
 
-def get_mouse_position(input_image):
+def get_mouse_position(input_image,is_log):
     """
     :param input_image:
     :return:
@@ -92,7 +92,7 @@ def get_mouse_position(input_image):
     #                           round((box[0] + box[2]) * scale), round((box[1] + box[3]) * scale))
     # annotated_image=cv2.resize(annotated_image, (960,540))
     # cv_show('test',annotated_image)
-    need_write = True  # 是否保存图片及对应标签，未来将对接前端
+    need_write = is_log  # 是否保存图片及对应标签，未来将对接前端
     if need_write or len(result_boxes) > 0:
         cv_write(original_image, result_boxes, class_ids, scores, boxes, scale)
     return filtered_boxes, filtered_class_ids  # 返回边界框及类别用作进一步处理
