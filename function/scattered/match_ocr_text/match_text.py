@@ -60,28 +60,48 @@ def split_into_characters(line):
 
         if not chinese_match:
 
-            # 刷新资源
-            init_resources.fresh_resource_log_img()
+            with g_extra.GLOBAL_EXTRA.file_lock:
 
-            # 保存半分割
-            result = match_block_equal_in_images(
-                block_array=latin_block,
-                images=init_resources.RESOURCE_LOG_IMG["texts"]["blocks_half"])
-            if not result:
-                cus_path = PATHS["logs"] + "\\match_failed\\texts\\blocks_half"
-                name_id = len(os.listdir(cus_path))
-                save_path = f"{cus_path}\\unknown_{name_id}.png"
-                cv2.imencode('.png', latin_block)[1].tofile(save_path)
+                # 刷新资源
+                g_resources.fresh_resource_log_img()
 
-            # 保存全分割
-            result = match_block_equal_in_images(
-                block_array=chinese_block,
-                images=init_resources.RESOURCE_LOG_IMG["texts"]["blocks"])
-            if not result:
-                cus_path = PATHS["logs"] + "\\match_failed\\texts\\blocks"
-                name_id = len(os.listdir(cus_path))
-                save_path = f"{cus_path}\\unknown_{name_id}.png"
-                cv2.imencode('.png', chinese_block)[1].tofile(save_path)
+                # 保存半分割
+                result = match_block_equal_in_images(
+                    block_array=latin_block,
+                    images=g_resources.RESOURCE_LOG_IMG["texts"]["blocks_half"])
+                if not result:
+                    cus_path = PATHS["logs"] + "\\match_failed\\texts\\blocks_half"
+
+                    # 获得最小的未使用的id
+                    used_ids = set()
+                    for name, _ in g_resources.RESOURCE_LOG_IMG["texts"]["blocks_half"].items():
+                        name_id = int(name.split('.')[0].split("_")[1])
+                        used_ids.add(name_id)
+                    name_id = 0
+                    while name_id in used_ids:
+                        name_id += 1
+
+                    save_path = f"{cus_path}\\unknown_{name_id}.png"
+                    cv2.imencode('.png', latin_block)[1].tofile(save_path)
+
+                # 保存全分割
+                result = match_block_equal_in_images(
+                    block_array=chinese_block,
+                    images=g_resources.RESOURCE_LOG_IMG["texts"]["blocks"])
+                if not result:
+                    cus_path = PATHS["logs"] + "\\match_failed\\texts\\blocks"
+
+                    # 获得最小的未使用的id
+                    used_ids = set()
+                    for name, _ in g_resources.RESOURCE_LOG_IMG["texts"]["blocks"].items():
+                        name_id = int(name.split('.')[0].split("_")[1])
+                        used_ids.add(name_id)
+                    name_id = 0
+                    while name_id in used_ids:
+                        name_id += 1
+
+                    save_path = f"{cus_path}\\unknown_{name_id}.png"
+                    cv2.imencode('.png', chinese_block)[1].tofile(save_path)
 
         characters.append(chinese_block)
         start_pos += chinese_width
