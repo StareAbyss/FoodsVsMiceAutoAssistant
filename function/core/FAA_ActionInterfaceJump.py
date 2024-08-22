@@ -2,7 +2,8 @@ import random
 import time
 
 from function.common.bg_img_match import loop_match_p_in_w, match_p_in_w
-from function.globals.g_resources import RESOURCE_P, RESOURCE_CP
+from function.globals import g_resources
+from function.globals.g_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
@@ -468,7 +469,7 @@ class FAAActionInterfaceJump:
                         source_handle=handle,
                         source_root_handle=handle_360,
                         source_range=[0, 0, 950, 600],
-                        template=RESOURCE_CP["用户自截"]["跨服远征_1p.png"],
+                        template=g_resources.RESOURCE_CP["用户自截"]["跨服远征_1p.png"],
                         click=True,
                         after_sleep=1.0,
                         match_failed_check=1.0)

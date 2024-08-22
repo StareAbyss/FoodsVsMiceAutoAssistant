@@ -65,6 +65,9 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
 
         # 检测uuid是否存在于battle plan 没有则添加 并将其读入到内存资源中
         fresh_and_check_battle_plan_uuid()
+
+        # 更新完毕后重新刷新对应资源
+        g_resources.fresh_resource_cus_img()
         g_resources.fresh_resource_b()
 
         # 从json文件中读取opt 并刷新ui
