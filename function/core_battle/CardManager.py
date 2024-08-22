@@ -92,6 +92,8 @@ class CardManager:
                                 priority=j,
                                 energy=result["energy"],
                                 card_type=result["card_type"]))
+                    else:
+                        self.card_list_dict[i].append(Card(faa=self.faa_dict[i], priority=j))
 
                 else:
                     self.card_list_dict[i].append(Card(faa=self.faa_dict[i], priority=j))
