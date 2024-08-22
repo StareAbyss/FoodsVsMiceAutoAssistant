@@ -152,62 +152,115 @@ class ThreadTodo(QThread):
 
     """业务代码 - 战斗以外"""
 
-    def batch_level_2_action(self, title_text, is_group, dark_crystal=False):
+    def batch_level_2_action(self, title_text:str, player:list=None, dark_crystal:bool=False):
+        """
+        批量启动 输入二级 -> 兑换暗晶(可选) -> 删除物品
+        :param title_text:
+        :param player: [1] [2] [1,2]
+        :param dark_crystal: bool 是否兑换暗晶
+        :return:
+        """
+
+        # 默认值
+        if player is None:
+            player = [1, 2]
+        # 如果只有一个角色
+        if self.faa[1].channel == self.faa[2].channel:
+            player = [1]
+        # 输入错误的值!
+        if player not in [[1, 2], [1], [2]]:
+            raise ValueError(f"batch_level_2_action -  player not in [[1,2],[1],[2]], your value {player}.")
+
+        # 根据配置是否激活, 取交集, 判空
+        if not self.opt["level_2"]["1p"]["active"]:
+            if 1 in player:
+                player.remove(1)
+        if not self.opt["level_2"]["2p"]["active"]:
+            if 2 in player:
+                player.remove(2)
+        if not player:
+            return
 
         # 在该动作前已经完成了游戏刷新 可以尽可能保证欢乐互娱不作妖
-        if self.opt["level_2"]["1p"]["active"] or self.opt["level_2"]["2p"]["active"]:
-            self.signal_print_to_ui.emit(
-                text=f"[{title_text}] [二级功能] 您输入二级激活了该功能. 将送免费花 + 兑换暗晶 + 删除多余技能书",
-                color_level=2)
+        self.signal_print_to_ui.emit(
+            text=f"[{title_text}] [二级功能] 您输入二级激活了该功能. " +
+                 f"兑换暗晶 + " if dark_crystal else f"" +
+                 f"删除多余技能书, 目标:{player}P",
+            color_level=2)
 
         # 高危动作 慢慢执行
-        if self.opt["level_2"]["1p"]["active"]:
+        if 1 in player:
             self.faa[1].input_level_2_password_and_gift_flower(password=self.opt["level_2"]["1p"]["password"])
             self.faa[1].delete_items()
             if dark_crystal:
                 self.faa[1].get_dark_crystal()
 
-        if is_group and self.opt["level_2"]["2p"]["active"]:
+        if 2 in player:
             self.faa[2].input_level_2_password_and_gift_flower(password=self.opt["level_2"]["2p"]["password"])
             self.faa[2].delete_items()
             if dark_crystal:
                 self.faa[2].get_dark_crystal()
 
         # 执行完毕后立刻刷新游戏 以清除二级输入状态
-        if self.opt["level_2"]["1p"]["active"] or self.opt["level_2"]["2p"]["active"]:
-            self.signal_print_to_ui.emit(
-                text=f"[{title_text}] [二级功能] 结束, 即将刷新游戏以清除二级输入的状态...", color_level=2)
-            self.batch_reload_game()
+        self.signal_print_to_ui.emit(
+            text=f"[{title_text}] [二级功能] 结束, 即将刷新游戏以清除二级输入的状态...", color_level=2)
 
-    def batch_reload_game(self):
+        self.batch_reload_game(player=player)
 
-        self.signal_print_to_ui.emit("Refresh Game...")
+    def batch_reload_game(self, player=None):
+        """
+        批量启动 reload 游戏
+        :param player: [1] [2] [1,2]
+        :return:
+        """
 
-        CUS_LOGGER.debug("刷新两个游戏窗口 开始")
+        # 默认值
+        if player is None:
+            player = [1, 2]
+        # 如果只有一个角色
+        if self.faa[1].channel == self.faa[2].channel:
+            player = [1]
+        # 输入错误的值!
+        if player not in [[1, 2], [1], [2]]:
+            raise ValueError(f"batch_level_2_action -  player not in [[1,2],[1],[2]], your value {player}.")
+
+        self.signal_print_to_ui.emit("Refresh Game...", color_level=1)
+
+        CUS_LOGGER.debug(f"刷新游戏窗口 开始, 目标: {player}")
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
-        self.thread_1p = ThreadWithException(
-            target=self.faa[1].reload_game,
-            name="1P Thread - Reload",
-            kwargs={})
+        if 1 in player:
+            self.thread_1p = ThreadWithException(
+                target=self.faa[1].reload_game,
+                name="1P Thread - Reload",
+                kwargs={})
+        if 2 in player:
+            self.thread_2p = ThreadWithException(
+                target=self.faa[2].reload_game,
+                name="2P Thread - Reload",
+                kwargs={})
 
-        self.thread_2p = ThreadWithException(
-            target=self.faa[2].reload_game,
-            name="2P Thread - Reload",
-            kwargs={})
-        self.thread_1p.daemon = True
-        self.thread_2p.daemon = True
-        self.thread_1p.start()
-        time.sleep(1)
-        self.thread_2p.start()
-        self.thread_1p.join()
-        self.thread_2p.join()
+        if 1 in player:
+            self.thread_1p.daemon = True
+        if 2 in player:
+            self.thread_2p.daemon = True
 
-        CUS_LOGGER.debug("刷新两个游戏窗口 结束")
+        if 1 in player:
+            self.thread_1p.start()
+        if 2 in player:
+            time.sleep(1)
+            self.thread_2p.start()
+
+        if 1 in player:
+            self.thread_1p.join()
+        if 2 in player:
+            self.thread_2p.join()
+
+        CUS_LOGGER.debug("刷新游戏窗口 结束")
 
     def batch_click_refresh_btn(self):
 
-        self.signal_print_to_ui.emit("Refresh Game...")
+        self.signal_print_to_ui.emit("Refresh Game...", color_level=1)
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -233,7 +286,7 @@ class ThreadTodo(QThread):
         self.model_start_print(text=title_text)
 
         """激活删除物品高危功能(可选) + 领取奖励一次"""
-        self.batch_level_2_action(is_group=is_group, title_text=title_text, dark_crystal=False)
+        self.batch_level_2_action(title_text=title_text, dark_crystal=False)
 
         """领取温馨礼包"""
         for i in [1, 2]:
@@ -301,7 +354,7 @@ class ThreadTodo(QThread):
         self.model_start_print(text=title_text)
 
         """激活了删除物品高危功能"""
-        self.batch_level_2_action(is_group=is_group, title_text=title_text, dark_crystal=True)
+        self.batch_level_2_action(title_text=title_text, dark_crystal=True)
 
         """普通任务"""
         self.signal_print_to_ui.emit(text=f"[{title_text}] [普通任务] 开始...")
@@ -691,7 +744,7 @@ class ThreadTodo(QThread):
 
             else:
                 queue_todo = None
-                self.process=None
+                self.process = None
 
             # 实例化放卡管理器
             self.thread_card_manager = CardManager(
@@ -1354,7 +1407,7 @@ class ThreadTodo(QThread):
 
         # 激活删除物品高危功能(可选) + 领取奖励一次
         if quest_mode == "公会任务":
-            self.batch_level_2_action(is_group=True, title_text=title_text, dark_crystal=False)
+            self.batch_level_2_action(title_text=title_text, dark_crystal=False)
         self.signal_print_to_ui.emit(text=f"[{title_text}] 检查领取奖励...")
         self.faa[1].receive_quest_rewards(mode=quest_mode)
         self.faa[2].receive_quest_rewards(mode=quest_mode)
@@ -1377,7 +1430,7 @@ class ThreadTodo(QThread):
 
         # 激活删除物品高危功能(可选) + 领取奖励一次
         if quest_mode == "公会任务":
-            self.batch_level_2_action(is_group=True, title_text=title_text, dark_crystal=False)
+            self.batch_level_2_action(title_text=title_text, dark_crystal=False)
         self.signal_print_to_ui.emit(text=f"[{title_text}] 检查领取奖励中...")
         self.faa[1].receive_quest_rewards(mode=quest_mode)
         self.faa[2].receive_quest_rewards(mode=quest_mode)
