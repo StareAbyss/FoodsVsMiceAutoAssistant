@@ -436,7 +436,7 @@ ergodic(遍历); queue(队列) 代表了自动战斗放卡实现的两种重要�
      │   │   │
      │   │   ├─ get_paths.py 管理项目相对目录的全局变量表
      │   │   │
-     │   │   ├─ init_resources.py 管理项目的预加载资源, 以减少I/O量
+     │   │   ├─ g_resources.py 管理项目的预加载资源, 以减少I/O量
      │   │   │
      │   │   └─ thread_action_queue.py
      │   │       ├─ ThreadActionQueueTimer类 Qthread线程类, 用于定时执行动作队列, 包含添加键鼠操作到其队列中的函数.
