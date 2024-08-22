@@ -152,7 +152,7 @@ class ThreadTodo(QThread):
 
     """业务代码 - 战斗以外"""
 
-    def batch_level_2_action(self, title_text:str, player:list=None, dark_crystal:bool=False):
+    def batch_level_2_action(self, title_text: str, player: list = None, dark_crystal: bool = False):
         """
         批量启动 输入二级 -> 兑换暗晶(可选) -> 删除物品
         :param title_text:
@@ -185,7 +185,7 @@ class ThreadTodo(QThread):
         self.signal_print_to_ui.emit(
             text=f"[{title_text}] [二级功能] 您输入二级激活了该功能. " +
                  f"兑换暗晶 + " if dark_crystal else f"" +
-                 f"删除多余技能书, 目标:{player}P",
+                                                     f"删除多余技能书, 目标:{player}P",
             color_level=2)
 
         # 高危动作 慢慢执行
@@ -1465,24 +1465,38 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=text_)
 
-    def task_sequence(self, text_, stage_begin: int, task_sequence_index: int):
+    def task_sequence(self, text_, task_begin_id: int, task_sequence_index: int):
+        """
+        战斗 刷新游戏 清背包
+        :param text_:
+        :param task_begin_id:
+        :param task_sequence_index:
+        :return:
+        """
 
-        def split_task_sequence(task_sequence_list: list):
+        def split_task_sequence(task_sequence: list):
             """将任务序列列表拆分为单独的任务列表"""
             task_list = []
-            battle_list = []
-            for task in task_sequence_list:
-                task_type = task["task_type"]
-                if task_type == "battle":
-                    battle_list.append(task)
+            battle_dict = {
+                "task_type": "战斗",
+                "task_args": []
+            }
+            for task in task_sequence:
+                if task["task_type"] == "战斗":
+                    task["task_args"]["battle_id"] = task["task_id"]
+                    battle_dict["task_args"].append(task["task_args"])
                 else:
-                    if battle_list:
-                        task_list.append(battle_list)
-                        battle_list = []
+                    # 出现非战斗事项
+                    if battle_dict["task_args"]:
+                        task_list.append(battle_dict)
+                        battle_dict = {
+                            "task_type": "战斗",
+                            "task_args": []
+                        }
                     task_list.append(task)
-
-            if battle_list:
-                task_list.append(battle_list)
+            # 保存末位战斗
+            if battle_dict["task_args"]:
+                task_list.append(battle_dict)
 
             return task_list
 
@@ -1504,42 +1518,46 @@ class ThreadTodo(QThread):
 
         self.model_start_print(text=text_)
 
-        # 战斗开始
-        self.signal_print_to_ui.emit(text=f"[{text_}] 开始[多本论战]")
-
         # 读取json文件
-        quest_list = read_json_to_task_sequence()
+        task_sequence = read_json_to_task_sequence()
 
-        # 获得最高方案的id
-        max_battle_id = 1
-        for quest in quest_list:
-            max_battle_id = max(max_battle_id, quest["battle_id"])
+        # 获取最大task_id
+        max_tid = 1
+        for quest in task_sequence:
+            max_tid = max(max_tid, quest["task_id"])
 
-        if stage_begin > max_battle_id:
-            self.signal_print_to_ui.emit(text=f"[{text_}] 任务序号超过了该方案最高序号! 将直接跳过!")
+        if task_begin_id > max_tid:
+            self.signal_print_to_ui.emit(text=f"[{text_}] 开始事项id > 该方案最高id! 将直接跳过!")
             return
 
         # 由于任务id从1开始, 故需要减1
         # 去除序号小于stage_begin的任务
-        my_list = []
-        for quest in quest_list:
-            if quest["battle_id"] >= stage_begin:
-                my_list.append(quest)
-        quest_list = my_list
+        task_sequence = [task for task in task_sequence if task["task_id"] >= task_begin_id]
 
-        # 根据战斗和其他事项拆分
-        quest_list = split_task_sequence(task_sequence_list=quest_list)
+        # 根据战斗和其他事项拆分 让战斗事项的参数构成 n本 n次 为一组的汇总
+        task_sequence = split_task_sequence(task_sequence=task_sequence)
 
-        for quest in quest_list:
-            if type(quest) is list:
-                # 开始战斗
-                self.battle_1_n_n(quest_list=quest)
-            elif type(quest) is dict:
-                task_type = quest["task_type"]
-                if task_type == "reload":
-                    self.batch_reload_game()
-                elif task_type == "clear_pack":
-                    self.batch_level_2_action(is_group=True)
+        for task in task_sequence:
+
+            match task["task_type"]:
+
+                case "战斗":
+                    self.battle_1_n_n(
+                        quest_list=task["task_args"],
+                        extra_title=text_
+                    )
+
+                case "刷新游戏":
+                    self.batch_reload_game(
+                        player=task["task_args"]["player"],
+                    )
+
+                case "清背包":
+                    self.batch_level_2_action(
+                        title_text=text_,
+                        player=task["task_args"]["player"],
+                        dark_crystal=False
+                    )
 
         # 战斗结束
         self.model_end_print(text=text_)
@@ -1921,6 +1939,12 @@ class ThreadTodo(QThread):
         if self.opt["advanced_settings"]["auto_delete_old_images"]:
             self.remove_outdated_log_images()
 
+        """主要事项"""
+
+        self.signal_print_to_ui.emit(
+            text="f[主要事项] 开始!",
+            color_level=1)
+
         need_reload = False
         need_reload = need_reload or c_opt["sign_in"]["active"]
         need_reload = need_reload or c_opt["fed_and_watered"]["active"]
@@ -2112,17 +2136,25 @@ class ThreadTodo(QThread):
                 }
             )
 
-        self.signal_print_to_ui.emit(text=f"全部主要事项已完成! 耗时:{datetime.datetime.now() - start_time}")
+        self.signal_print_to_ui.emit(
+            text=f"[主要事项] 全部完成! 耗时:{datetime.datetime.now() - start_time}",
+            color_level=1)
+
+        """额外事项"""
 
         need_reload = False
         need_reload = need_reload or c_opt["receive_awards"]["active"]
         need_reload = need_reload or c_opt["use_items"]["active"]
+        need_reload = need_reload or c_opt["auto_food"]["active"]
         need_reload = need_reload or c_opt["loop_cross_server"]["active"]
         need_reload = need_reload or c_opt["customize"]["active"]
-        need_reload = need_reload or c_opt["auto_food"]["active"]
 
         if need_reload:
+            self.signal_print_to_ui.emit(
+                text="f[额外事项] 开始!",
+                color_level=1)
             self.batch_reload_game()
+            start_time = datetime.datetime.now()
 
         my_opt = c_opt["receive_awards"]
         if my_opt["active"]:
@@ -2135,11 +2167,40 @@ class ThreadTodo(QThread):
             self.batch_use_items_consumables(
                 is_group=my_opt["is_group"])
 
+        my_opt = c_opt["auto_food"]
+        if my_opt["active"]:
+            self.auto_food(
+                deck=my_opt["deck"],
+            )
+
         my_opt = c_opt["loop_cross_server"]
         if my_opt["active"]:
             self.batch_loop_cross_server(
                 is_group=my_opt["is_group"],
                 deck=c_opt["quest_guild"]["deck"])
+
+        self.signal_print_to_ui.emit(
+            text=f"[额外事项] 全部完成! 耗时:{datetime.datetime.now() - start_time}",
+            color_level=1)
+
+        if self.opt["advanced_settings"]["end_exit_game"]:
+            self.batch_click_refresh_btn()
+        else:
+            self.signal_print_to_ui.emit(
+                text="推荐勾选高级设置-完成后刷新游戏, 防止长期运行flash导致卡顿",
+                color_level=1)
+
+        """自定义事项"""
+
+        active_singleton = False
+        active_singleton = active_singleton or c_opt["customize_battle"]["active"]
+        active_singleton = active_singleton or c_opt["customize"]["active"]
+
+        if active_singleton:
+            self.signal_print_to_ui.emit(
+                text="f[自定义事项] 开始! 请勿与 [常规事项] 和 [额外事项] 同时开启, 否则可能造成未知错误!",
+                color_level=1)
+            start_time = datetime.datetime.now()
 
         my_opt = c_opt["customize_battle"]
         if my_opt["active"]:
@@ -2162,22 +2223,13 @@ class ThreadTodo(QThread):
         my_opt = c_opt["customize"]
         if my_opt["active"]:
             self.task_sequence(
-                text_="高级自定义",
-                stage_begin=my_opt["stage"],
+                text_="自定义任务序列",
+                task_begin_id=my_opt["stage"],
                 task_sequence_index=my_opt["battle_plan_1p"])
 
-        my_opt = c_opt["auto_food"]
-        if my_opt["active"]:
-            self.auto_food(
-                deck=my_opt["deck"],
-            )
-
-        if self.opt["advanced_settings"]["end_exit_game"]:
-            self.signal_print_to_ui.emit(text="已完成所有额外事项！及将刷新游戏")
-            self.batch_click_refresh_btn()
-        else:
-            self.signal_print_to_ui.emit(
-                text="已完成所有额外事项！推荐勾选高级设置-完成后刷新游戏, 防止长期运行flash导致卡顿")
+        self.signal_print_to_ui.emit(
+            text=f"[自定义事项] 全部完成! 耗时:{datetime.datetime.now() - start_time}",
+            color_level=1)
 
         # 全部完成了发个信号
         self.signal_todo_end.emit()
