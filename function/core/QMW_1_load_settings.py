@@ -3,13 +3,12 @@ import json
 import os
 import shutil
 import sys
-import time
 
 from PyQt6.QtWidgets import QApplication, QMessageBox, QInputDialog
 
 from function.core.QMW_0_load_ui_file import QMainWindowLoadUI
-from function.globals import init_resources
-from function.globals.extra import EXTRA_GLOBALS
+from function.globals import g_extra
+from function.globals import g_resources
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 from function.scattered.check_uuid_in_battle_plan import fresh_and_check_battle_plan_uuid
@@ -34,7 +33,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
 
         # 检测uuid是否存在于battle plan 没有则添加 并将其读入到内存资源中
         fresh_and_check_battle_plan_uuid()
-        init_resources.fresh_resource_b()
+        g_resources.fresh_resource_b()
 
         # 从json文件中读取opt 并刷新ui
         self.opt = None
@@ -93,20 +92,16 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         CUS_LOGGER.info(f"[订正FAA基础配置文件] 订正开始.")
 
         # 自旋锁读写, 防止多线程读写问题
-        while EXTRA_GLOBALS.file_is_reading_or_writing:
-            time.sleep(0.1)
-        EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+        with g_extra.GLOBAL_EXTRA.file_lock:
 
-        with open(file=settings_file, mode="r", encoding="UTF-8") as file:
-            data_settings = json.load(file)
-        with open(file=template_file, mode="r", encoding="UTF-8") as file:
-            data_template = json.load(file)
+            with open(file=settings_file, mode="r", encoding="UTF-8") as file:
+                data_settings = json.load(file)
+            with open(file=template_file, mode="r", encoding="UTF-8") as file:
+                data_template = json.load(file)
 
-        data_settings = merge_settings_with_template(settings=data_settings, template=data_template)
-        with open(file=self.opt_path, mode="w", encoding="UTF-8") as file:
-            json.dump(obj=data_settings, fp=file, ensure_ascii=False, indent=4)
-
-        EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
+            data_settings = merge_settings_with_template(settings=data_settings, template=data_template)
+            with open(file=self.opt_path, mode="w", encoding="UTF-8") as file:
+                json.dump(obj=data_settings, fp=file, ensure_ascii=False, indent=4)
 
         CUS_LOGGER.info(f"[订正FAA基础配置文件] 订正完成.")
 
@@ -114,12 +109,10 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
 
     def json_to_opt(self) -> None:
         # 自旋锁读写, 防止多线程读写问题
-        while EXTRA_GLOBALS.file_is_reading_or_writing:
-            time.sleep(0.1)
-        EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
-        with open(file=self.opt_path, mode="r", encoding="UTF-8") as file:
-            data = json.load(file)
-        EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
+        with g_extra.GLOBAL_EXTRA.file_lock:
+            with open(file=self.opt_path, mode="r", encoding="UTF-8") as file:
+                data = json.load(file)
+
         self.opt = data
         return None
 
@@ -127,13 +120,10 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         # dict → str 转换True和true
         json_str = json.dumps(self.opt, indent=4)
 
-        # 自旋锁读写, 防止多线程读写问题
-        while EXTRA_GLOBALS.file_is_reading_or_writing:
-            time.sleep(0.1)
-        EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
-        with open(file=self.opt_path, mode="w", encoding="UTF-8") as file:
-            file.write(json_str)
-        EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
+        with g_extra.GLOBAL_EXTRA.file_lock:
+            with open(file=self.opt_path, mode="w", encoding="UTF-8") as file:
+                file.write(json_str)
+
         return None
 
     def opt_to_ui_todo_plans(self) -> None:
@@ -144,7 +134,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
 
         def set_list_current_index(widget, opt):
             # 将uuid 转化为 index
-            widget.setCurrentIndex(EXTRA_GLOBALS.battle_plan_uuid_list.index(opt))
+            widget.setCurrentIndex(g_extra.GLOBAL_EXTRA.battle_plan_uuid_list.index(opt))
 
         # 先重新获取ui上的 当前方案选项
         self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
@@ -443,10 +433,10 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         task_sequence_list = get_task_sequence_list(with_extension=False)
 
         # 深拷贝, 记录一下加入新的元素前, list index 和 uuid的映射
-        battle_plan_uuid_list_old = copy.deepcopy(EXTRA_GLOBALS.battle_plan_uuid_list)
+        battle_plan_uuid_list_old = copy.deepcopy(g_extra.GLOBAL_EXTRA.battle_plan_uuid_list)
         # 检测uuid是否存在于 可能新加入的 battle plan 没有则添加 并将其读入到内存资源中
         fresh_and_check_battle_plan_uuid()
-        init_resources.fresh_resource_b()
+        g_resources.fresh_resource_b()
 
         def my_transformer_b(change_class: object, opt_1, opt_2) -> None:
             """用于配置 带有选单的 战斗方案"""
@@ -463,7 +453,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             change_class.addItems(battle_plan_list_new)
 
             # 根据uuid 找到其文件夹中一致的index
-            new_index = EXTRA_GLOBALS.battle_plan_uuid_list.index(ui_uuid)
+            new_index = g_extra.GLOBAL_EXTRA.battle_plan_uuid_list.index(ui_uuid)
 
             # 让对应的元素选定对应的index
             change_class.setCurrentIndex(new_index)

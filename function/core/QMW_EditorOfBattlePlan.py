@@ -2,7 +2,6 @@ import copy
 import json
 import os
 import sys
-import time
 import uuid
 
 from PyQt6.QtCore import pyqtSignal, Qt
@@ -11,7 +10,7 @@ from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QGridLayout, QPushButton, QWidget, QFileDialog, QVBoxLayout, QLabel, QComboBox,
     QLineEdit, QHBoxLayout, QTextEdit, QListWidget, QMessageBox, QSpinBox, QListWidgetItem, QFrame, QAbstractItemView)
 
-from function.globals.extra import EXTRA_GLOBALS
+from function.globals import g_extra
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 
@@ -326,7 +325,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
     def add_card(self):
 
         ids_list = [card["id"] for card in self.json_data["card"]]
-        for i in range(1,22):
+        for i in range(1, 22):
             if i not in ids_list:
                 id_ = i
                 break
@@ -465,13 +464,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
             # 确保玩家位置也被保存
             self.json_data['player'] = self.json_data.get('player', [])
-            # 自旋锁读写, 防止多线程读写问题
-            while EXTRA_GLOBALS.file_is_reading_or_writing:
-                time.sleep(0.1)
-            EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
-            with open(file=file_name, mode='w', encoding='utf-8') as file:
-                json.dump(self.json_data, file, ensure_ascii=False, indent=4)
-            EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
+
+            with g_extra.GLOBAL_EXTRA.file_lock:
+                with open(file=file_name, mode='w', encoding='utf-8') as file:
+                    json.dump(self.json_data, file, ensure_ascii=False, indent=4)
 
     def load_json(self):
         """打开窗口 读取json文件"""
@@ -493,13 +489,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         if file_name:
 
-            # 自旋锁读写, 防止多线程读写问题
-            while EXTRA_GLOBALS.file_is_reading_or_writing:
-                time.sleep(0.1)
-            EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
-            with open(file=file_name, mode='r', encoding='utf-8') as file:
-                self.json_data = json.load(file)
-            EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
+            with g_extra.GLOBAL_EXTRA.file_lock:
+                with open(file=file_name, mode='r', encoding='utf-8') as file:
+                    self.json_data = json.load(file)
 
             self.WeiTipsEditor.setPlainText(self.json_data.get('tips', ''))
 

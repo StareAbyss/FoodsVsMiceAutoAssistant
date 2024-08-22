@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from function.common.same_size_match import match_block_equal_in_images
-from function.globals import init_resources
+from function.globals import g_resources, g_extra
 from function.globals.get_paths import PATHS
 
 
@@ -35,7 +35,7 @@ def split_into_characters(line):
         latin_block = line_gray[:, start_pos:start_pos + latin_width]
         latin_match = match_block_equal_in_images(
             block_array=latin_block,
-            images=init_resources.RESOURCE_P["ocr"]["texts_matched"])
+            images=g_resources.RESOURCE_P["ocr"]["texts_matched"])
 
         # 如果匹配到西文字符，添加到字符列表并更新起始位置
         if latin_match:
@@ -56,7 +56,7 @@ def split_into_characters(line):
 
         chinese_match = match_block_equal_in_images(
             block_array=chinese_block,
-            images=init_resources.RESOURCE_P["ocr"]["texts_matched"])
+            images=g_resources.RESOURCE_P["ocr"]["texts_matched"])
 
         if not chinese_match:
 
@@ -138,7 +138,7 @@ def match(source):
 
         result = match_block_equal_in_images(
             block_array=block,
-            images=init_resources.RESOURCE_P["ocr"]["texts_matched"])
+            images=g_resources.RESOURCE_P["ocr"]["texts_matched"])
 
         if result:
             result_str += result

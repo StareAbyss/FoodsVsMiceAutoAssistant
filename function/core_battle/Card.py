@@ -5,9 +5,9 @@ import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png
 from function.core_battle.get_position_in_battle import get_position_card_cell_in_battle
-from function.globals.extra import EXTRA_GLOBALS
+from function.globals import g_extra
+from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
-from function.globals.init_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 # 在文件的开始位置获取位置坐标字典，深渊写的太低内聚了，我不想再套娃好几层传参了
@@ -148,9 +148,9 @@ class Card:
         if self.is_smoothie:
             if not self.faa_battle.fire_elemental_1000:
                 return
-            if EXTRA_GLOBALS.smoothie_lock_time != 0:
+            if g_extra.GLOBAL_EXTRA.smoothie_lock_time != 0:
                 return
-            EXTRA_GLOBALS.smoothie_lock_time = 7
+            g_extra.GLOBAL_EXTRA.smoothie_lock_time = 7
 
         # 线程放瓜皮时不巧撞上了正在计算炸弹类或者计算完成后炸弹需要该瓜皮
         if not self.can_use:
@@ -330,9 +330,9 @@ class SpecialCard(Card):
         if self.is_smoothie:
             if not self.faa_battle.fire_elemental_1000:
                 return
-            if EXTRA_GLOBALS.smoothie_lock_time != 0:
+            if g_extra.GLOBAL_EXTRA.smoothie_lock_time != 0:
                 return
-            EXTRA_GLOBALS.smoothie_lock_time = 7
+            g_extra.GLOBAL_EXTRA.smoothie_lock_time = 7
 
         # 根据玩家上互斥锁，保证放卡点击序列不会乱掉（因为多次点击还多线程操作很容易出事）
         with self.faa.battle_lock:

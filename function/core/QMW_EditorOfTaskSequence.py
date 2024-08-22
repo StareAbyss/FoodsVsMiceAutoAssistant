@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QComboBox, QH
     QSpinBox, QCheckBox, QWidget, QListWidgetItem, QFileDialog, QMessageBox, QApplication, QListWidget, QSpacerItem, \
     QSizePolicy, QFrame, QAbstractItemView
 
-from function.globals.extra import EXTRA_GLOBALS
+from function.globals import g_extra
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 from function.scattered.check_uuid_in_battle_plan import fresh_and_check_battle_plan_uuid
@@ -287,7 +287,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             # 刷新和创建战斗方案的 uuid list 以方便查找对应值
             fresh_and_check_battle_plan_uuid()
             battle_plan_name_list = get_list_battle_plan(with_extension=False)
-            battle_plan_uuid_list = EXTRA_GLOBALS.battle_plan_uuid_list
+            battle_plan_uuid_list = g_extra.GLOBAL_EXTRA.battle_plan_uuid_list
 
             # 战斗方案 1P
             w_label = QLabel('1P方案')
@@ -509,7 +509,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
                 # 战斗方案
                 battle_plan_name_list = get_list_battle_plan(with_extension=False)
-                battle_plan_uuid_list = EXTRA_GLOBALS.battle_plan_uuid_list
+                battle_plan_uuid_list = g_extra.GLOBAL_EXTRA.battle_plan_uuid_list
 
                 widget_input = line_widget.findChild(QComboBox, 'w_battle_plan_1p')
                 name = widget_input.currentText()

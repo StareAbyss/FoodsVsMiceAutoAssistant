@@ -3,7 +3,7 @@ import numpy as np
 
 from function.common.bg_img_match import match_template_with_optional_mask
 from function.common.overlay_images import overlay_images
-from function.globals.init_resources import RESOURCE_P
+from function.globals.g_resources import RESOURCE_P
 
 
 def match_histogram(img_a, img_b):

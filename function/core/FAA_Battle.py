@@ -4,9 +4,8 @@ import numpy as np
 
 from function.common.bg_img_match import match_p_in_w, match_ps_in_w, loop_match_p_in_w
 from function.common.bg_img_screenshot import capture_image_png
-from function.globals.init_resources import RESOURCE_P
+from function.globals.g_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
-from function.globals.log import CUS_LOGGER
 
 
 class Battle:

@@ -7,8 +7,8 @@ import networkx as nx
 from cv2 import imencode
 
 from function.common.same_size_match import one_item_match, match_block_equal_in_images
-from function.globals import init_resources
-from function.globals.extra import EXTRA_GLOBALS
+from function.globals import g_extra
+from function.globals import g_resources
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 
@@ -35,7 +35,7 @@ def match_items_from_image_and_save(img_save_path, image, mode='loots', test_pri
     """
 
     # 全局启动 或者 调用启动
-    test_print = test_print or EXTRA_GLOBALS.extra_log_match
+    test_print = test_print or g_extra.GLOBAL_EXTRA.extra_log_match
 
     # 统计耗时
     time_start = time.time()
@@ -166,7 +166,7 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
     if item_is_bind:
         # 全部遍历, 绑定物品只有开箱子会有 一般不会出现两个重复的识别结果 顺序表也不是为绑定物品准备
 
-        for item_name, item_img in init_resources.RESOURCE_P["item"]["战利品"].items():
+        for item_name, item_img in g_resources.RESOURCE_P["item"]["战利品"].items():
             item_name = item_name.replace(".png", "")
             # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
             is_it, _ = one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_locked")
@@ -177,7 +177,7 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
 
     # 如果上次识图成功, 则再试一次, 看看是不是同一张图
     if last_name is not None:
-        item_img = init_resources.RESOURCE_P["item"]["战利品"][last_name + ".png"]
+        item_img = g_resources.RESOURCE_P["item"]["战利品"][last_name + ".png"]
 
         # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
         is_it, _ = one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable")
@@ -187,7 +187,7 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
     # 先按照顺序表遍历, 极大减少耗时(如果有顺序表)
     if list_iter:
         for item_name in list_iter:
-            item_img = init_resources.RESOURCE_P["item"]["战利品"][item_name + ".png"]
+            item_img = g_resources.RESOURCE_P["item"]["战利品"][item_name + ".png"]
 
             # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
             is_it, _ = one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable")
@@ -195,7 +195,7 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
                 return item_name, list_iter, False
 
     # 如果在json中按顺序查找没有找到, 全部遍历
-    for item_name, item_img in init_resources.RESOURCE_P["item"]["战利品"].items():
+    for item_name, item_img in g_resources.RESOURCE_P["item"]["战利品"].items():
         item_name = item_name.replace(".png", "")
 
         # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
@@ -319,13 +319,9 @@ def find_longest_path_from_dag():
 def ranking_read_data(json_path):
     if os.path.exists(json_path):
 
-        # 自旋锁读写, 防止多线程读写问题
-        while EXTRA_GLOBALS.file_is_reading_or_writing:
-            time.sleep(0.1)
-        EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
-        with open(file=json_path, mode="r", encoding="UTF-8") as file:
-            data = json.load(file)
-        EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
+        with g_extra.GLOBAL_EXTRA.file_lock:
+            with open(file=json_path, mode="r", encoding="UTF-8") as file:
+                data = json.load(file)
 
         if "ranking" in data:
             return data
@@ -335,9 +331,6 @@ def ranking_read_data(json_path):
 
 def ranking_save_data(json_path, data):
     # 自旋锁读写, 防止多线程读写问题
-    while EXTRA_GLOBALS.file_is_reading_or_writing:
-        time.sleep(0.1)
-    EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
-    with open(file=json_path, mode='w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
-    EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
+    with g_extra.GLOBAL_EXTRA.file_lock:
+        with open(file=json_path, mode='w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
