@@ -206,35 +206,40 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
 
     def save_unmatched_block(img_block):
 
-        # 注意 需要重载一下内存中的图片
-        init_resources.fresh_resource_log_img()
+        with g_extra.GLOBAL_EXTRA.file_lock:
 
-        unmatched_path = PATHS["logs"] + "\\match_failed\\loots"
+            # 注意 需要重载一下内存中的图片
+            g_resources.fresh_resource_log_img()
 
-        if not match_block_equal_in_images(block_array=img_block, images=init_resources.RESOURCE_LOG_IMG["loots"]):
-            # i_id +1  保存为新图片
-            i_id = len(os.listdir(unmatched_path))
-            # 保存图片
-            save_path = os.path.join(unmatched_path, f"unknown_{i_id}_1.png")
-            imencode('.png', img_block)[1].tofile(save_path)
+            unmatched_path = PATHS["logs"] + "\\match_failed\\loots"
 
-        else:
-            # 自旋锁读写, 多线程访问会出现图片名称已经被更改的异步读写问题
-            while EXTRA_GLOBALS.file_is_reading_or_writing:
-                time.sleep(0.1)
-            EXTRA_GLOBALS.file_is_reading_or_writing = True  # 文件被访问
+            if not match_block_equal_in_images(block_array=img_block, images=g_resources.RESOURCE_LOG_IMG["loots"]):
 
-            # 重命名为数量+1 注意此tar_name 包含后缀名
-            for old_name, tar_image in init_resources.RESOURCE_LOG_IMG["loots"].items():
-                is_it, _ = one_item_match(img_block, tar_image, mode="equal")
-                if is_it:
-                    _, i_id, count = old_name.split('.')[0].split("_")
-                    old_path = f'{unmatched_path}\\{old_name}'
-                    new_path = f"{unmatched_path}\\unknown_{i_id}_{int(count) + 1}.png"
-                    os.rename(old_path, new_path)
-                    break
+                # 获得最小的未使用的i_id
+                used_i_ids = set()
+                for name, _ in g_resources.RESOURCE_LOG_IMG["loots"].items():
+                    i_id_used = int(name.split('.')[0].split("_")[1])
+                    used_i_ids.add(i_id_used)
+                i_id = 0
+                while i_id in used_i_ids:
+                    i_id += 1
 
-            EXTRA_GLOBALS.file_is_reading_or_writing = False  # 文件已解锁
+                # 保存图片
+                save_path = os.path.join(unmatched_path, f"unknown_{i_id}_1.png")
+                imencode('.png', img_block)[1].tofile(save_path)
+
+            else:
+
+                # 重命名为数量+1 注意此tar_name 包含后缀名
+                for old_name, tar_image in g_resources.RESOURCE_LOG_IMG["loots"].items():
+                    is_it, _ = one_item_match(img_block, tar_image, mode="equal")
+                    if is_it:
+                        _, i_id, count = old_name.split('.')[0].split("_")
+                        old_path = f'{unmatched_path}\\{old_name}'
+                        new_path = f"{unmatched_path}\\unknown_{i_id}_{int(count) + 1}.png"
+                        print(old_path, new_path)
+                        os.rename(old_path, new_path)
+                        break
 
     # 还是找不到, 识图失败 把block保存到 logs / match_failed / 中
     CUS_LOGGER.warning(f'该道具未能识别, 已在 [ logs / match_failed ] 生成文件, 请检查')
