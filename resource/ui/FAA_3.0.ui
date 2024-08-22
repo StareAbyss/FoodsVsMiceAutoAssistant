@@ -9000,9 +9000,9 @@ Link Start</string>
               <item>
                <widget class="QLabel" name="label_2">
                 <property name="text">
-                 <string>实现自动炸神风 &amp; 电流 &amp; 破冰等超强功能
-叠甲1: 以下为高级测试功能
-叠甲2: 启用前请阅读高级放卡md，完全理解
+                 <string>实现自动炸神风 &amp; 电流 &amp; 波次冰桶等超强功能
+叠甲1: 此功能为高级测试功能
+叠甲2: 启用前请阅读高级放卡md，完全理解原理后再使用
 叠甲3: 如未能按预期实现, 请先确保你的相关设置无误</string>
                 </property>
                </widget>

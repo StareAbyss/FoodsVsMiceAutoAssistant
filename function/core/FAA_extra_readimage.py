@@ -9,10 +9,10 @@ from function.yolo import onnxdetect
 
 
 # 生产者函数
-def producer(time_num, handle, read_queue):
+def producer(time_num, handle, read_queue,is_log):
     while True:
         # 获取图像并进行目标检测
-        result = onnxdetect.get_mouse_position(capture_image_png_all(handle))
+        result = onnxdetect.get_mouse_position(capture_image_png_all(handle),is_log)
 
         # 检查结果是否有效
         if result is not None:
@@ -36,13 +36,13 @@ def producer(time_num, handle, read_queue):
 #        time.sleep(time_num +random.random())  # 模拟消费时间
 
 
-def read_and_get_return_information(faa):
+def read_and_get_return_information(faa,is_log):
     # 创建并启动生产者进程
     read_queue = Queue()
     CUS_LOGGER.debug("开始多进程识别特殊老鼠及波次信息")
 
     time_num = 2
-    p = Process(target=producer, args=(time_num, faa.handle, read_queue))
+    p = Process(target=producer, args=(time_num, faa.handle, read_queue,is_log))
     p.start()
 
     return p, read_queue
