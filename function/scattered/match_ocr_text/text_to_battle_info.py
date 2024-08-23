@@ -52,9 +52,9 @@ def food_texts_to_battle_info(texts,self):
         # 检查特定卡片
         if "并使用" in text:
             matches = re.findall(r'并使用\s*(.*?)(?=或|$)', text)
-            quest_card = [match.strip() for match in matches]
+            quest_card = [match.strip() for match in matches][0]
         else:
-            quest_card = []
+            quest_card = "None"
 
         # 根据文本禁用卡片
         match = re.search(r'不使用\s*(.*?)\s*(?=和|$)', text)
