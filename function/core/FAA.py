@@ -1124,6 +1124,7 @@ class FAA:
                     self.random_seed += 1
 
                     self.print_debug(text="[刷新游戏] 已完成")
+                    time.sleep(0.5)
 
                     return
                 else:
@@ -1499,8 +1500,6 @@ class FAA:
             return "成功氪金并领取~"
         else:
             return "你游币用完了! 氪不了一点 orz"
-
-
 
     def fed_and_watered(self) -> None:
         """公会施肥浇水功能"""

@@ -162,6 +162,10 @@ class Card:
         if not self.can_use:
             return
 
+        # 输出
+        # if g_extra.GLOBAL_EXTRA.extra_log_battle and self.faa.player == 1:
+        #     CUS_LOGGER.debug(f"[1P] [战斗执行器] 使用卡片：{self.name}")
+
         # 战斗放卡锁，用于防止与特殊放卡放置冲突，点击队列不连贯
         with self.faa.battle_lock:
 
@@ -177,6 +181,9 @@ class Card:
 
             # 额外时延
             time.sleep(0.2)
+
+            # if g_extra.GLOBAL_EXTRA.extra_log_battle and self.faa.player == 1:
+            #     CUS_LOGGER.debug(f"[1P] [战斗执行器] 用卡完成：{self.name}")
 
             # 如果放卡后还可用,自ban 若干s
             # 判断可用 如果不知道其还可用。会导致不自ban，导致无意义点击出现，后果更小。1轮扫描后纠正。
@@ -264,6 +271,13 @@ class Card:
                     img_template=RESOURCE_P["card"]["状态判定"]["冷却状态_3.png"][:, :, :3],
                     mode='top')
         )
+
+        # if g_extra.GLOBAL_EXTRA.extra_log_battle and self.faa.player == 1:
+        #     if self.name == "小火炉":
+        #         CUS_LOGGER.debug(
+        #             f"[1P] [战斗执行器] 状态监测完成：{self.name}, "
+        #             f"status_usable:{self.status_usable}, "
+        #             f"status_cd :{self.status_cd}")
 
     def destroy(self):
         self.faa = None

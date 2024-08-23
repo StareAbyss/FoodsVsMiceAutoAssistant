@@ -1,6 +1,5 @@
 import queue
 
-from function.globals import g_extra
 from function.globals.log import CUS_LOGGER
 
 
@@ -53,10 +52,11 @@ class CardQueue(queue.PriorityQueue):
 
         if self.card_using:
             return
+
         self.card_using = True
 
         card = self.peek()[1]
-        card.fresh_status()
+        # card.fresh_status()
 
         if card.status_ban != 0:
             # 如果这张卡被锁了 直接滚出去
@@ -70,9 +70,6 @@ class CardQueue(queue.PriorityQueue):
                 self.get()
             self.card_using = False
             return
-
-        if g_extra.GLOBAL_EXTRA.extra_log_battle:
-            CUS_LOGGER.debug(f"[战斗执行器] 使用卡片：{card.name}")
 
         # 去使用这张卡
         card.use_card()

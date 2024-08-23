@@ -110,7 +110,9 @@ class FAAActionInterfaceJump:
         failed_time = 0
         tar_menu_page = 1
         while True:
+
             self.change_activity_list(serial_num=tar_menu_page)
+
             find = loop_match_p_in_w(
                 source_handle=handle,
                 source_root_handle=handle_360,

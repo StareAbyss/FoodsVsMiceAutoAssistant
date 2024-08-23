@@ -28,13 +28,13 @@ class BattleARoundPreparation:
         print_debug = self.faa.print_debug
 
         # 由于公会任务的卡组特性, 当任务卡为[苏打气泡]时, 不需要额外选择带卡.
-        need_add = False
-        need_add = need_add or quest_card == "None"
-        need_add = need_add or quest_card == "苏打气泡-0"
-        need_add = need_add or quest_card == "苏打气泡-1"
-        need_add = need_add or quest_card == "苏打气泡"
+        not_need_add = False
+        not_need_add = not_need_add or quest_card == "None"
+        not_need_add = not_need_add or quest_card == "苏打气泡-0"
+        not_need_add = not_need_add or quest_card == "苏打气泡-1"
+        not_need_add = not_need_add or quest_card == "苏打气泡"
 
-        if need_add:
+        if not_need_add:
             print_debug(text=f"[添加任务卡] 不需要,跳过")
             return
         else:
@@ -103,7 +103,7 @@ class BattleARoundPreparation:
             # 如果没有找到 类属性 战斗方案 需要调整为None, 防止在战斗中使用对应卡片的动作序列出现
             self.faa.quest_card = "None"
 
-        print_debug(text=" [添加任务卡] 完成, 结果:{}".format("成功" if found_card else "失败"))
+        print_debug(text="[添加任务卡] 完成, 结果:{}".format("成功" if found_card else "失败"))
 
     def remove_ban_card(self):
         """寻找并移除需要ban的卡, 现已支持跨页ban"""
