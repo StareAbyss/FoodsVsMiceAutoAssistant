@@ -81,9 +81,9 @@ class CardManager:
                         if result["card_type"] == 12:  # 护罩类，除了炸弹还可能是常驻的罩子
                             card_zhao=Card(faa=self.faa_dict[i], priority=j)
                             self.card_list_dict[i].append(card_zhao)
-                            #建立特殊卡护罩与常规卡护罩之间的连接
+                            # 建立特殊卡护罩与常规卡护罩之间的连接
                             s_card.huzhao = card_zhao
-                            #将护罩类特殊卡用一个单独的字典管理
+                            # 将护罩类特殊卡用一个单独的字典管理
                             self.huzhao[i].append(s_card)
                     elif result["card_type"] == 11:  # 冰桶类
                         self.iceboom_list[i].append(
@@ -99,7 +99,8 @@ class CardManager:
                                 priority=j,
                                 energy=result["energy"],
                                 card_type=result["card_type"]))
-                    else:#应该只有冰沙罢
+                    else:
+                        # 应该只有冰沙罢
                         self.card_list_dict[i].append(Card(faa=self.faa_dict[i], priority=j))
 
                 else:
@@ -144,7 +145,8 @@ class CardManager:
                 faa=self.faa_dict[i],
                 round_interval=self.round_interval
             )
-        if self.solve_queue is not None:#不是空的，说明启动了高级战斗
+        if self.solve_queue is not None:
+            # 不是空的，说明启动了高级战斗
             self.thread_dict[5] = ThreadUseSpecialCardTimer(
                 card_queue=self.special_card_list,
                 faa=self.faa_dict,

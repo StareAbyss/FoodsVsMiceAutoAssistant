@@ -6,6 +6,7 @@ from numpy import uint8, frombuffer
 
 from function.scattered.restore_window_if_minimized import restore_window_if_minimized
 
+
 # 如果没有依赖
 # pip install opencv-contrib-python
 
@@ -46,6 +47,7 @@ def capture_image_png(handle: HWND, raw_range: list, root_handle: HWND = None):
 
     return image
 
+
 def capture_image_png_all(handle: HWND, root_handle: HWND = None):
     """
     跟上边那个函数一毛一样，只是用来截取全屏
@@ -65,8 +67,6 @@ def capture_image_png_all(handle: HWND, root_handle: HWND = None):
             if restore_window_if_minimized(handle=root_handle):
                 # 如果恢复成功, 再次尝试截图一次
                 image = capture_image_png_once(handle=handle)
-
-
 
     return image
 

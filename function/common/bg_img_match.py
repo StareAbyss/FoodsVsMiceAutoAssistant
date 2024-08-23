@@ -164,6 +164,8 @@ def match_p_in_w(
         # 读取目标图像,中文路径兼容方案
         template = cv2.imdecode(buf=np.fromfile(file=template, dtype=np.uint8), flags=-1)
 
+    # print(f"即将识图, size_source{img_source.shape},size_template：{template.shape}")
+
     # 自定义的复杂模板匹配
     result = match_template_with_optional_mask(source=img_source, template=template, mask=mask)
     (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(src=result)

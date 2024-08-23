@@ -44,11 +44,17 @@ def compare_pixels(img_source, img_template, mode="top"):
 
 def check_pixel_similarity(img_source, img_template, start, end, threshold=16):
     """
-    检查在指定水平区域内，两幅高度仅1的图像是否有至少一个像素点的差异在阈值以内。
+    检查在指定水平区域内，两幅高度仅1的图像是否有80%像素点的差异在阈值以内。
     """
+    total_pixels = end - start
+    required_pixels = int(total_pixels * 0.8)
+
+    count = 0
     for x in range(start, end):
         if np.sum(abs(img_source[0, x] - img_template[0, x])) <= threshold:
-            return True
+            count += 1
+            if count >= required_pixels:
+                return True
     return False
 
 
@@ -122,15 +128,16 @@ class Card:
                 handle=self.handle,
                 x=self.location_to[j][0],
                 y=self.location_to[j][1])
-        j=len(my_to_list)
+            time.sleep(self.click_sleep)
+
         # 放卡后点一下空白
         T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+        time.sleep(self.click_sleep)
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
-        # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
-        time.sleep(self.click_sleep * (j + 3))
+        time.sleep(self.click_sleep)
 
         # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
-        if self.queue and len(self.location)>0 and len(self.location_to)>0:
+        if self.queue and len(self.location) > 0 and len(self.location_to) > 0:
             if self.location:
                 self.location.append(self.location[0])
                 self.location.remove(self.location[0])
@@ -155,6 +162,10 @@ class Card:
         if not self.can_use:
             return
 
+        # 输出
+        # if g_extra.GLOBAL_EXTRA.extra_log_battle and self.faa.player == 1:
+        #     CUS_LOGGER.debug(f"[1P] [战斗执行器] 使用卡片：{self.name}")
+
         # 战斗放卡锁，用于防止与特殊放卡放置冲突，点击队列不连贯
         with self.faa.battle_lock:
 
@@ -171,6 +182,9 @@ class Card:
             # 额外时延
             time.sleep(0.2)
 
+            # if g_extra.GLOBAL_EXTRA.extra_log_battle and self.faa.player == 1:
+            #     CUS_LOGGER.debug(f"[1P] [战斗执行器] 用卡完成：{self.name}")
+
             # 如果放卡后还可用,自ban 若干s
             # 判断可用 如果不知道其还可用。会导致不自ban，导致无意义点击出现，后果更小。1轮扫描后纠正。
             # 判断冷却 如果不知道其进入了冷却。会导致错误的额外的自ban，导致放卡逻辑错乱。ban描述后纠正。
@@ -183,7 +197,6 @@ class Card:
                 # and是短路计算，左边算过不满足右边就不会算，所以如果一个卡是坤标，那坤实例一定不为None
                 # 放置成功 如果是坤目标, 复制自身放卡的逻辑,并且坤不在征用计算中或者计算完没有使用坤
                 if self.is_kun_target and not self.card_kun.is_using:
-
                     # 点击 选中卡片 但坤
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(
                         handle=self.handle,
@@ -205,7 +218,8 @@ class Card:
                 self.location_from[0] - 45,
                 self.location_from[1] - 64,
                 self.location_from[0] + 8,
-                self.location_from[1] + 6]
+                self.location_from[1] + 6],
+            root_handle=self.faa.handle_360
         )
 
         # 注意 y x bgr 和 rgb是翻过来的！
@@ -258,6 +272,13 @@ class Card:
                     mode='top')
         )
 
+        # if g_extra.GLOBAL_EXTRA.extra_log_battle and self.faa.player == 1:
+        #     if self.name == "小火炉":
+        #         CUS_LOGGER.debug(
+        #             f"[1P] [战斗执行器] 状态监测完成：{self.name}, "
+        #             f"status_usable:{self.status_usable}, "
+        #             f"status_cd :{self.status_cd}")
+
     def destroy(self):
         self.faa = None
         self.priority = None
@@ -289,7 +310,8 @@ class CardKun:
                 self.location_from[0] - 45,
                 self.location_from[1] - 64,
                 self.location_from[0] + 8,
-                self.location_from[1] + 6]
+                self.location_from[1] + 6],
+            root_handle=self.faa.handle_360
         )
 
         # 注意 y x bgr 和 rgb是翻过来的！
@@ -321,7 +343,7 @@ class SpecialCard(Card):
         self.need_shovel = self.card_type == 12 or self.card_type == 14  # 要秒铲的有草扇跟护罩炸弹
         self.rows = rows
         self.cols = cols
-        self.huzhao = None#建立特殊卡护罩与常规卡护罩之间的连接
+        self.huzhao = None  # 建立特殊卡护罩与常规卡护罩之间的连接
 
     def use_card(self, pos):
 
@@ -438,8 +460,9 @@ class SpecialCard(Card):
                         x=position_dict[f"{pos[0]}-{pos[1]}"][0],
                         y=position_dict[f"{pos[0]}-{pos[1]}"][1])
                     time.sleep(self.click_sleep)
+
                 if self.huzhao is not None:
-                    #特殊卡用完当护罩得给他改回常驻卡可用状态
+                    # 特殊卡用完当护罩得给他改回常驻卡可用状态
                     self.huzhao.can_use = True
 
                 time.sleep(0.2)

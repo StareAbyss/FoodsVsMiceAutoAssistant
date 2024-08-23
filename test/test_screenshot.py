@@ -33,7 +33,10 @@ def test_some_times():
     handle = faa_get_handle(channel="锑食-微端", mode="flash")
     handle_360 = faa_get_handle(channel="锑食-微端", mode="360")
     for i in range(1000):
-        image = capture_image_png(handle=handle, raw_range=[0, 0, 900, 600], root_handle=handle_360)
+        image = capture_image_png(
+            handle=handle,
+            raw_range=[0, 0, 900, 600],
+            root_handle=handle_360)
 
 
 # cProfile.run("test_screenshot_once()")

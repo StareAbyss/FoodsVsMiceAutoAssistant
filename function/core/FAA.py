@@ -192,8 +192,15 @@ class FAA:
         """
         在关卡备战界面 获得关卡名字 该函数未完工
         """
+
         stage_id = "Unknown"  # 默认名称
-        img1 = capture_image_png(handle=self.handle, raw_range=[0, 0, 950, 600])[468:484, 383:492, :3]
+
+        img1 = capture_image_png(
+            handle=self.handle,
+            raw_range=[0, 0, 950, 600],
+            root_handle=self.handle_360
+        )[468:484, 383:492, :3]
+
         # 关卡名称集 从资源文件夹自动获取, 资源文件命名格式：关卡名称.png
         stage_text_in_ready_check = []
 
@@ -1117,6 +1124,7 @@ class FAA:
                     self.random_seed += 1
 
                     self.print_debug(text="[刷新游戏] 已完成")
+                    time.sleep(0.5)
 
                     return
                 else:
@@ -1492,8 +1500,6 @@ class FAA:
             return "成功氪金并领取~"
         else:
             return "你游币用完了! 氪不了一点 orz"
-
-
 
     def fed_and_watered(self) -> None:
         """公会施肥浇水功能"""

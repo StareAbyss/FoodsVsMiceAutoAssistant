@@ -12,7 +12,10 @@ from function.yolo import onnxdetect
 def producer(time_num, handle, read_queue,is_log):
     while True:
         # 获取图像并进行目标检测
-        result = onnxdetect.get_mouse_position(capture_image_png_all(handle),is_log)
+        result = onnxdetect.get_mouse_position(
+            capture_image_png_all(handle),
+            is_log
+        )
 
         # 检查结果是否有效
         if result is not None:
