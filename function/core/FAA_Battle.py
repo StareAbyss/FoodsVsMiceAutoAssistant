@@ -206,7 +206,11 @@ class Battle:
                 time.sleep(self.click_sleep)
 
     def update_fire_elemental_1000(self):
-        image = capture_image_png(handle=self.faa.handle, raw_range=[161, 75, 164, 85])
+        image = capture_image_png(
+            handle=self.faa.handle,
+            raw_range=[161, 75, 164, 85],
+            root_handle=self.faa.handle_360
+        )
         image = image[:, :, :3]
         image = image.reshape(-1, image.shape[-1])  # 减少一个多余的维度
         self.fire_elemental_1000 = np.any(image == [0, 0, 0])

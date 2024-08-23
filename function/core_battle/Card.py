@@ -205,7 +205,8 @@ class Card:
                 self.location_from[0] - 45,
                 self.location_from[1] - 64,
                 self.location_from[0] + 8,
-                self.location_from[1] + 6]
+                self.location_from[1] + 6],
+            root_handle=self.faa.handle_360
         )
 
         # 注意 y x bgr 和 rgb是翻过来的！
@@ -289,7 +290,8 @@ class CardKun:
                 self.location_from[0] - 45,
                 self.location_from[1] - 64,
                 self.location_from[0] + 8,
-                self.location_from[1] + 6]
+                self.location_from[1] + 6],
+            root_handle=self.faa.handle_360
         )
 
         # 注意 y x bgr 和 rgb是翻过来的！

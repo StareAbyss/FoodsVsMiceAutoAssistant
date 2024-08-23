@@ -278,6 +278,7 @@ class BattleARoundPreparation:
         """
 
         handle = self.faa.handle
+        handle_360 = self.faa.handle_360
 
         # 记录战利品 tip 一张图49x49 是完美规整的
         images = []
@@ -292,7 +293,7 @@ class BattleARoundPreparation:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=484)
             time.sleep(0.05)
         time.sleep(0.25)
-        images.append(capture_image_png(handle=handle, raw_range=[209, 454, 699, 552]))
+        images.append(capture_image_png(handle=handle, raw_range=[209, 454, 699, 552], root_handle=handle_360))
         time.sleep(0.25)
 
         # 3 4 行 取3行
@@ -300,7 +301,7 @@ class BattleARoundPreparation:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=510)
             time.sleep(0.05)
         time.sleep(0.25)
-        images.append(capture_image_png(handle=handle, raw_range=[209, 456, 699, 505]))
+        images.append(capture_image_png(handle=handle, raw_range=[209, 456, 699, 505], root_handle=handle_360))
         time.sleep(0.25)
 
         # 4 5 行
@@ -308,7 +309,7 @@ class BattleARoundPreparation:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=529)
             time.sleep(0.05)
         time.sleep(0.25)
-        images.append(capture_image_png(handle=handle, raw_range=[209, 454, 699, 552]))
+        images.append(capture_image_png(handle=handle, raw_range=[209, 454, 699, 552], root_handle=handle_360))
         time.sleep(0.25)
 
         # 垂直拼接
@@ -361,7 +362,11 @@ class BattleARoundPreparation:
             img = self.action_and_capture_loots()
 
             # 分析图片，获取战利品字典
-            drop_dict = match_items_from_image_and_save(img_save_path=img_path, image=img, mode='loots', test_print=True)
+            drop_dict = match_items_from_image_and_save(
+                img_save_path=img_path,
+                image=img,
+                mode='loots',
+                test_print=True)
             print_info(text="[捕获战利品] 处在战利品UI 战利品已 捕获/识别/保存".format(drop_dict))
 
             return drop_dict
@@ -405,10 +410,12 @@ class BattleARoundPreparation:
             img = [
                 capture_image_png(
                     handle=handle,
-                    raw_range=[249, 89, 293, 133]),
+                    raw_range=[249, 89, 293, 133],
+                    root_handle=handle_360),
                 capture_image_png(
                     handle=handle,
-                    raw_range=[317, 89, 361, 133])
+                    raw_range=[317, 89, 361, 133],
+                    root_handle=handle_360),
             ]
 
             img = cv2.hconcat(img)
@@ -422,7 +429,11 @@ class BattleARoundPreparation:
             )
 
             # 分析图片，获取战利品字典
-            drop_dict = match_items_from_image_and_save(img_save_path=img_path, image=img, mode="chests", test_print=True)
+            drop_dict = match_items_from_image_and_save(
+                img_save_path=img_path,
+                image=img
+                , mode="chests",
+                test_print=True)
             print_info(text="[翻宝箱UI] 宝箱已 捕获/识别/保存".format(drop_dict))
 
             # 组队2P慢点结束翻牌 保证双人魔塔后自己是房主
