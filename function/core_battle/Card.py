@@ -44,11 +44,17 @@ def compare_pixels(img_source, img_template, mode="top"):
 
 def check_pixel_similarity(img_source, img_template, start, end, threshold=16):
     """
-    检查在指定水平区域内，两幅高度仅1的图像是否有至少一个像素点的差异在阈值以内。
+    检查在指定水平区域内，两幅高度仅1的图像是否有80%像素点的差异在阈值以内。
     """
+    total_pixels = end - start
+    required_pixels = int(total_pixels * 0.8)
+
+    count = 0
     for x in range(start, end):
         if np.sum(abs(img_source[0, x] - img_template[0, x])) <= threshold:
-            return True
+            count += 1
+            if count >= required_pixels:
+                return True
     return False
 
 
@@ -122,12 +128,13 @@ class Card:
                 handle=self.handle,
                 x=self.location_to[j][0],
                 y=self.location_to[j][1])
-        j=len(my_to_list)
+            time.sleep(self.click_sleep)
+
         # 放卡后点一下空白
         T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+        time.sleep(self.click_sleep)
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
-        # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
-        time.sleep(self.click_sleep * (j + 3))
+        time.sleep(self.click_sleep)
 
         # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
         if self.queue and len(self.location) > 0 and len(self.location_to) > 0:
