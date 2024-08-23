@@ -122,13 +122,12 @@ class Card:
                 handle=self.handle,
                 x=self.location_to[j][0],
                 y=self.location_to[j][1])
-            time.sleep(self.click_sleep)
-
+        j=len(my_to_list)
         # 放卡后点一下空白
         T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-        time.sleep(self.click_sleep)
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
-        time.sleep(self.click_sleep)
+        # 天知又双叒叕把时间sleep操作改成了聚合的 这是否会导致问题呢... 这会需要进一步测试
+        time.sleep(self.click_sleep * (j + 3))
 
         # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
         if self.queue and len(self.location)>0 and len(self.location_to)>0:
