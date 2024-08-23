@@ -237,7 +237,6 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
                         _, i_id, count = old_name.split('.')[0].split("_")
                         old_path = f'{unmatched_path}\\{old_name}'
                         new_path = f"{unmatched_path}\\unknown_{i_id}_{int(count) + 1}.png"
-                        print(old_path, new_path)
                         os.rename(old_path, new_path)
                         break
 
