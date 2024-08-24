@@ -76,10 +76,10 @@ def food_texts_to_battle_info(texts,self):
 
                 # 根据地图要求重新排序卡组
                 mat_card_opt = read_json_to_stage_info(stage_id=stage_id)["mat_card"]
-                if mat_card_opt == 1:
+                if "木盘子" in mat_card_opt:
                     default_deck.remove("木盘子")
                     default_deck.insert(0, "木盘子")
-                elif mat_card_opt == 2:
+                if "麦芽糖" in mat_card_opt:
                     default_deck.remove("麦芽糖")
                     default_deck.insert(0, "麦芽糖")
                     default_deck.remove("咖啡粉")
