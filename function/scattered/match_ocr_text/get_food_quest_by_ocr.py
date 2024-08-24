@@ -1,7 +1,5 @@
 import time
 
-import cv2
-
 from function.common.bg_img_match import match_p_in_w
 from function.common.bg_img_screenshot import capture_image_png
 from function.globals.g_resources import RESOURCE_P
@@ -51,19 +49,13 @@ def food_match_ocr_text(self):
                 )
                 # 确保图像为BGR格式，OpenCV默认使用BGR
 
-                if quest_img.shape[2] == 4:  # 检查是否有Alpha通道
-                    # 将RGBA转换为BGR
-                    quest_img_bgr = cv2.cvtColor(quest_img, cv2.COLOR_RGBA2BGR)
-                else:
-                    quest_img_bgr = quest_img[:, :, ::-1]  # RGB转BGR
-
                 # 显示图像
                 # 测试看截图是否正确
                 # cv2.imshow('Quest Image', quest_img_bgr)
                 # cv2.waitKey(0)  # 等待按键
                 # cv2.destroyAllWindows()
 
-                quest_imgs.append(quest_img_bgr)
+                quest_imgs.append(quest_img)
 
             if i == 2:
                 break
@@ -79,7 +71,7 @@ def extract_text_from_images(images):
     unique_results = []  # 存储去重后的结果
 
     for source in images:
-        text_result = match(source=source)
+        text_result = match(source=source,mode="美食大赛")
         # 只有当text_result不在seen集合中时才添加到unique_results和seen中
         if text_result not in seen:
             unique_results.append(text_result)

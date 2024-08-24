@@ -88,7 +88,7 @@ def match_template_with_optional_mask(source, template, mask=None, quick_method=
             # 有三个通道 RGB的掩模 直接覆盖识别template的透明度得到的mask
 
             # 处理彩色为黑白 (三通道->单通道, 非白色均视为黑色)
-            mask = mask_transform_color_to_black(mask=mask,quick_method=quick_method)
+            mask = mask_transform_color_to_black(mask=mask, quick_method=quick_method)
 
         else:
             # 有四个通道 RGBA的掩模
@@ -99,7 +99,7 @@ def match_template_with_optional_mask(source, template, mask=None, quick_method=
             _, mask_alpha_channel = cv2.threshold(mask_alpha_channel, 254, 255, cv2.THRESH_BINARY)
 
             # 去除Alpha通道 处理彩色为黑白 (三通道->单通道, 非白色均视为黑色)
-            mask = mask_transform_color_to_black(mask=mask[:, :, :3],quick_method=quick_method)
+            mask = mask_transform_color_to_black(mask=mask[:, :, :3], quick_method=quick_method)
 
             # 根据mask保留的阿尔法通道, 在其透明的区域, 取mask_from_template的对应区域进行合并
             mask[mask_alpha_channel != 255] = mask_from_template[mask_alpha_channel != 255]
@@ -159,7 +159,7 @@ def match_p_in_w(
     # 根据 路径 或者 numpy.array 选择是否读取
     if type(template) is not np.ndarray:
         # 未规定输出名称
-        if template_name is "Unknown" and test_print is True:
+        if template_name == "Unknown" and test_print:
             template_name = template
         # 读取目标图像,中文路径兼容方案
         template = cv2.imdecode(buf=np.fromfile(file=template, dtype=np.uint8), flags=-1)
@@ -203,7 +203,7 @@ def match_p_in_w(
     if return_center:
         return center_point
     else:
-        return [start_x,start_y]
+        return [start_x, start_y]
 
 
 def match_ps_in_w(

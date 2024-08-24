@@ -131,7 +131,9 @@ def one_item_match(img_block, img_tar, mode="equal"):
 
 
 def match_block_equal_in_images(block_array, images):
-    """识别block是否在file_patch文件夹中, 直接对比是否完全一致, 会去除阿尔法通道"""
+    """
+    识别block是否在file_patch文件夹中, 直接对比是否完全一致
+    """
 
     for img_name, img_array in images.items():
 
