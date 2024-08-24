@@ -40,6 +40,6 @@ def faa_get_handle(channel, mode="game"):
 
 
 if __name__ == '__main__':
-    print(faa_get_handle(channel="锑食", mode="360"))
-    print(faa_get_handle(channel="锑食", mode="browser"))
-    print(faa_get_handle(channel="锑食", mode="flash"))  # 刷新游戏后改变
+    print("360:",faa_get_handle(channel="小号3 | 锑食-微端", mode="360"))
+    print("browser", faa_get_handle(channel="小号3 | 锑食-微端", mode="browser"))
+    print("flash", faa_get_handle(channel="小号3 | 锑食-微端", mode="flash"))  # 刷新游戏后改变
