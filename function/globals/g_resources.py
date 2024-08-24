@@ -9,7 +9,17 @@ from function.globals.get_paths import PATHS
 
 
 def im_read(img_path):
-    return cv2.imdecode(buf=np.fromfile(file=img_path, dtype=np.uint8), flags=-1)
+    # 读取图像，处理中文路径
+    img = cv2.imdecode(np.fromfile(img_path, dtype=np.uint8), -1)
+
+    # 调试代码，通过重新保存清除libpng警告
+    # 使用imencode处理中文路径的问题
+    # ext = img_path.split('.')[-1]  # 获取文件扩展名
+    # _, buf = cv2.imencode(f'.{ext}', img)
+    # with open(img_path, 'wb') as f:
+    #     f.write(buf)
+
+    return img
 
 
 """RESOURCE_P 常规图片资源 静态资源 可以直接调用"""
