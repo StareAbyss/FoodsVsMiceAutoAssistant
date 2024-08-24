@@ -6,6 +6,19 @@ import colorlog
 from function.globals.get_paths import PATHS
 
 
+class KeywordFilter(logging.Filter):
+    """
+    多关键词过滤器
+    """
+    def __init__(self, keywords):
+        super().__init__()
+        self.keywords = keywords
+
+    def filter(self, record):
+        # 如果消息中包含任意一个指定的关键词，则返回False
+        return not any(keyword in record.getMessage() for keyword in self.keywords)
+
+
 # DEBUG -> INFO -> WARNING -> ERROR -> CRITICAL
 # 创建自定义logger类
 
@@ -14,6 +27,7 @@ class CusLogger(logging.Logger):
     自定义logger类，继承logging.Logger类. 用于记录和输出日志信息, 也会自动记录报错信息.
     主要方法: debug. info. warning. error. critical.
     """
+
     def __init__(self, name):
         super().__init__(name)  # 调用父类的构造函数，并传递name参数
 
@@ -24,15 +38,22 @@ class CusLogger(logging.Logger):
         log_path = PATHS["logs"] + '\\running_log.log'
         error_log_path = PATHS["logs"] + '\\error_log.log'
 
+        # 创建关键词过滤器，过滤掉包含特定关键词的消息
+        keywords = ["property", "widget", "push", "layout"]
+        keyword_filter = KeywordFilter(keywords)
+
+
         # 输出到文件
         file_handler = logging.FileHandler(filename=log_path, mode='w', encoding='utf-8')  # 创建一个FileHandler来写日志到文件
         file_handler.setLevel(logging.DEBUG)  # 设置FileHandler的最低日志级别
         formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')  # 创建一个formatter来定义日志的格式
         file_handler.setFormatter(formatter)  # 应用formatter
+        file_handler.addFilter(keyword_filter)  # 添加过滤器
         self.addHandler(file_handler)  # 添加到logger
 
         # 新增错误日志处理器
-        error_file_handler = logging.FileHandler(filename=error_log_path, mode='w', encoding='utf-8')  # 创建一个FileHandler来写日志到文件
+        error_file_handler = logging.FileHandler(filename=error_log_path, mode='w',
+                                                 encoding='utf-8')  # 创建一个FileHandler来写日志到文件
         error_file_handler.setLevel(logging.ERROR)  # 设置FileHandler的最低日志级别为ERROR
         error_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')  # 创建一个formatter来定义日志的格式
         error_file_handler.setFormatter(error_formatter)  # 应用formatter
@@ -44,6 +65,7 @@ class CusLogger(logging.Logger):
         formatter = colorlog.ColoredFormatter(
             '%(log_color)s%(asctime)s - %(levelname)s - %(message)s')  # 创建一个formatter来定义日志的格式
         stream_handler.setFormatter(formatter)  # 应用formatter
+        stream_handler.addFilter(keyword_filter)  # 添加过滤器
         self.addHandler(stream_handler)
 
         # 设置sys.excepthook 使用自定义的异常处理函数 取代默认输出
@@ -68,7 +90,6 @@ logging.setLoggerClass(CusLogger)
 CUS_LOGGER = logging.getLogger('my customize logger')  # 使用自定义的Logger类
 
 if __name__ == '__main__':
-
     # 配置自定义logger
     logging.setLoggerClass(CusLogger)
     logger = logging.getLogger('custom')  # 使用自定义的Logger类
