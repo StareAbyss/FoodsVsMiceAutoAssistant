@@ -1,4 +1,4 @@
-from cv2 import imwrite, imread, IMREAD_UNCHANGED, matchTemplate, TM_SQDIFF_NORMED, minMaxLoc
+from cv2 import imread, IMREAD_UNCHANGED, matchTemplate, TM_SQDIFF_NORMED, minMaxLoc
 
 from function.common.bg_img_screenshot import capture_image_png
 from function.globals.get_paths import PATHS
@@ -53,18 +53,25 @@ def get_house_id(handle):
 if __name__ == "__main__":
     def main():
 
-        handle = faa_get_handle(channel="深渊之下 | 锑食", mode="flash")
-
-        image_0 = capture_image_png(handle=handle, raw_range=[0, 0, 950, 600])
-        images = [image_0[28:36, 152 + 3:152 + 3 + 6],
-                  image_0[28:36, 159 + 3:159 + 3 + 6],
-                  image_0[28:36, 166 + 3:166 + 3 + 6],
-                  image_0[28:36, 173 + 3:173 + 3 + 6]]
-
-        for i in range(4):
-            image = images[i]
-            image[image != 255] = 0
-            imwrite("t{}.png".format(i), image)
+        handle = faa_get_handle(channel="锑食", mode="flash")
+        #
+        # image_0 = capture_image_png(handle=handle, raw_range=[0, 0, 950, 600])
+        # images = [image_0[28:36, 152 + 3:152 + 3 + 6],
+        #           image_0[28:36, 159 + 3:159 + 3 + 6],
+        #           image_0[28:36, 166 + 3:166 + 3 + 6],
+        #           image_0[28:36, 173 + 3:173 + 3 + 6]]
+        #
+        # for i in range(4):
+        #     image = images[i]
+        #     image[image != 255] = 0
+        #
+        #     # 显示
+        #     cv2.imshow("image", image)
+        #     cv2.waitKey(0)
+        #
+        #     # # 保存
+        #     # path = PATHS["picture"]["item"] + "\\原始资源\\transformer\\" + "t{}".format(i)
+        #     # cv2.imencode('.png', image)[1].tofile(path)
 
         print(get_house_id(handle=handle))
 
