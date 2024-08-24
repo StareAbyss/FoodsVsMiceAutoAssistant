@@ -350,6 +350,10 @@ class BattleARoundPreparation:
                 T_ACTION_QUEUE_TIMER.action_queue.queue.clear()
                 print_info(text="战斗结束, 成功清空所有点击队列残留!")
 
+            # 点击一下空白区域以确保指针位置的卡片图像不会影响到战利品截图
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=50, y=50)
+            time.sleep(0.05)
+
             # 定义保存路径和文件名格式
             img_path = "{}\\{}_{}P_{}.png".format(
                 PATHS["logs"] + "\\loots_picture",
