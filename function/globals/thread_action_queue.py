@@ -1,5 +1,8 @@
 # 鼠标点击队列，包含处理队列和添加队列
 import queue
+
+import win32con
+import win32gui
 from ctypes import windll
 from string import printable
 from threading import Timer
@@ -203,6 +206,12 @@ class ThreadActionQueueTimer(QThread):
         windll.user32.PostMessageW(handle, 0x100, vk_code, (scan_code << 16) | 1)
         # 松开
         windll.user32.PostMessageW(handle, 0x101, vk_code, (scan_code << 16) | 0XC0000001)
+
+    def char_input(self, handle, char):
+        """
+        输入文字
+        """
+        win32gui.PostMessage(handle, win32con.WM_CHAR, ord(char), 0)
 
     def set_zoom_rate(self, zoom_rate):
         if __name__ == '__main__':

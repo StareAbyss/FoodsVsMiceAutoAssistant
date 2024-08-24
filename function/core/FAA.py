@@ -2065,8 +2065,8 @@ class FAA:
 
         # 输入二级密码
         for key in password:
-            T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle, key=key)
-            time.sleep(0.5)
+            T_ACTION_QUEUE_TIMER.char_input(handle=self.handle, char=key)
+            time.sleep(0.1)
         time.sleep(1)
 
         # 确定二级密码
