@@ -9,6 +9,8 @@ from function.core.analyzer_of_loot_logs import match_items_from_image_and_save
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
+from function.scattered.match_ocr_text.get_stage_name_by_ocr import screen_get_stage_name
+from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 
 
 class BattleARoundPreparation:
@@ -148,6 +150,37 @@ class BattleARoundPreparation:
         # 第二页
         self.screen_ban_card_loop_a_round(ban_card_s=ban_card_list)
 
+    def check_stage_name(self, stage_name):
+        """
+        根据检测出的关卡名，改变faa当前的stage_info
+        """
+        # 特殊关卡列表占位符
+        happy_holiday_list = []
+        reward_list = []
+        roaming_list = []
+
+        special_stage = True
+        match stage_name:
+            case _ if "魔塔蛋糕" in stage_name:
+                level = stage_name.replace("魔塔蛋糕第", "").replace("层", "")
+                self.faa.stage_info = read_json_to_stage_info(stage_id=f"MT-1-{level}")
+            case _ if "双人魔塔" in stage_name:
+                level = stage_name.replace("双人魔塔第", "").replace("层", "")
+                self.faa.stage_info = read_json_to_stage_info(stage_id=f"MT-2-{level}")
+            case _ if "萌宠神殿" in stage_name:
+                level = stage_name.replace("萌宠神殿第", "").replace("层", "")
+                self.faa.stage_info = read_json_to_stage_info(stage_id=f"PT-0-{level}")
+            case _ if stage_name in happy_holiday_list:
+                pass
+            case _ if stage_name in reward_list:
+                pass
+            case _ if stage_name in roaming_list:
+                pass
+            case _:
+                special_stage = False
+        if special_stage:
+            self.faa.signal_print_to_ui.emit(f"检测到特殊关卡：<{stage_name}>，已为你启用对应关卡方案", 7)
+
     def screen_ban_card_loop_a_round(self, ban_card_s):
 
         handle = self.faa.handle
@@ -198,6 +231,12 @@ class BattleARoundPreparation:
             print_warning(text="创建房间后, 10s找不到[开始/准备]字样! 创建房间可能失败!")
             # 2-跳过本次 可能是由于: 服务器抽风无法创建房间 or 点击被吞 or 次数用尽
             return 2
+
+        # 识别出当前关卡名称
+        stage_name = screen_get_stage_name(handle, handle_360)
+        print_debug(text=f"当前关卡:{stage_name}")
+        # 检测关卡名变种，如果符合特定关卡，则修改当前战斗的关卡信息
+        self.check_stage_name(stage_name)
 
         # 选择卡组
         print_debug(text="选择卡组, 并开始加入新卡和ban卡")
