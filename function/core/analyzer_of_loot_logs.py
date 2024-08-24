@@ -213,7 +213,9 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
 
             unmatched_path = PATHS["logs"] + "\\match_failed\\loots"
 
-            if not match_block_equal_in_images(block_array=img_block, images=g_resources.RESOURCE_LOG_IMG["loots"]):
+            if not match_block_equal_in_images(
+                    block_array=img_block,
+                    images=g_resources.RESOURCE_LOG_IMG["loots"]):
 
                 # 获得最小的未使用的i_id
                 used_i_ids = set()

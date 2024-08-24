@@ -3,11 +3,9 @@ import threading
 import time
 from datetime import datetime
 
-import numpy as np
 import pytz
 
 from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
-from function.common.bg_img_screenshot import capture_image_png
 from function.common.overlay_images import overlay_images
 from function.core.FAA_ActionInterfaceJump import FAAActionInterfaceJump
 from function.core.FAA_ActionQuestReceiveRewards import FAAActionQuestReceiveRewards
@@ -20,7 +18,7 @@ from function.globals.g_resources import RESOURCE_P
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
-from function.scattered.match_ocr_text.loop_match_ocr import food_match_ocr_text, extract_text_from_images
+from function.scattered.match_ocr_text.get_food_quest_by_ocr import food_match_ocr_text, extract_text_from_images
 from function.scattered.match_ocr_text.text_to_battle_info import food_texts_to_battle_info
 from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 
@@ -188,33 +186,6 @@ class FAA:
 
         return find
 
-    def screen_get_stage_name(self) -> str:
-        """
-        在关卡备战界面 获得关卡名字 该函数未完工
-        """
-
-        stage_id = "Unknown"  # 默认名称
-
-        img1 = capture_image_png(
-            handle=self.handle,
-            raw_range=[0, 0, 950, 600],
-            root_handle=self.handle_360
-        )[468:484, 383:492, :3]
-
-        # 关卡名称集 从资源文件夹自动获取, 资源文件命名格式：关卡名称.png
-        stage_text_in_ready_check = []
-
-        for key, img in RESOURCE_P["ready_check_stage"].items():
-            stage_text_in_ready_check.append(key.split(".")[0])
-
-        for i in stage_text_in_ready_check:
-            img_tar = RESOURCE_P["ready_check_stage"]["{}.png".format(i)]
-            if np.all(img1 == img_tar):
-                # 图片完全一致
-                stage_id = i
-                break
-
-        return stage_id
 
     """调用输入关卡配置和战斗配置, 在战斗前必须进行该操作"""
 
@@ -916,8 +887,11 @@ class FAA:
                         )
 
         if mode == "美食大赛-新":
+            # 获取图片 list 可能包含alpha通道
             quest_imgs = food_match_ocr_text(self)
+            # 提取文字
             texts = extract_text_from_images(quest_imgs)
+            # 解析文本
             quest_list = food_texts_to_battle_info(texts, self)
 
         # 关闭公会任务列表(红X)

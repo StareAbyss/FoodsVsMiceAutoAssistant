@@ -18,8 +18,15 @@ config/cus_images/用户自截/跨服远征_1p.png
 # 忽略运行产生的文件 主要是日志
 logs/chests_picture/*.png
 logs/loots_picture/*.png
-logs/match_failed/texts/*.png
+
+logs/match_failed/texts_美食大赛/blocks/*.png
+logs/match_failed/texts_美食大赛/blocks_half/*.png
+
+logs/match_failed/texts_关卡名称/blocks/*.png
+logs/match_failed/texts_关卡名称/blocks_half/*.png
+
 logs/match_failed/loots/*.png
+
 logs/result_json/*.json
 logs/*.log
 logs/*.json
