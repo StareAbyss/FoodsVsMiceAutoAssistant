@@ -1027,6 +1027,29 @@ class FAA:
                 return True
             return False
 
+        def try_relink():
+            """
+            循环判断是否处于页面无法访问网页上(刷新无用，因为那是单独的网页)，如果是就点击中央按钮，不是就继续
+            """
+            for i in range(50):
+                my_result = match_p_in_w(
+                    source_handle=self.handle_browser,
+                    source_root_handle=self.handle_360,
+                    source_range=[0, 0, 2000, 2000],
+                    template=RESOURCE_P["error"]["retry_btn.png"],
+                    match_tolerance=0.9
+                )
+                if not my_result:
+                    return True
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle_browser,
+                    x=my_result[0],
+                    y=my_result[1])
+                time.sleep(6)
+            else:
+                self.print_error(text="[刷新游戏] 循环判定断线重连失败，请检查网络是否正常...")
+                return False
+
         def main():
             while not self.should_stop:
 
@@ -1045,6 +1068,9 @@ class FAA:
 
                 self.print_debug(text="[刷新游戏] 判定QQ游戏大厅平台...")
                 result = result or try_enter_server_qq_game_hall()
+
+                self.print_debug(text="[刷新游戏] 循环判定断线重连...")
+                result = result or try_relink()
 
                 # 如果未找到进入服务器，从头再来
                 if not result:
