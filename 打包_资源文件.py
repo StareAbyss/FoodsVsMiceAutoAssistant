@@ -7,32 +7,62 @@ class FileMover:
         self.src_dir = src_dir
         self.dest_dir = dest_dir
         self.files_to_move = []
-        self.folders_to_move = {}
+        self.excluded_files = set()
+        self.excluded_types = set()
 
-    def add_folder(self, folder_name, exclude_files=None, exclude_types=None):
+    def add_folder_or_file(self, tar, exclude_files=None, exclude_types=None):
         """
-        添加一个文件夹及其排除的文件名和文件类型。
+        添加一个文件或文件夹，并可设置排除的文件名和文件类型。
 
-        :param folder_name: 文件夹名称
-        :param exclude_files: 需要排除的文件名列表
-        :param exclude_types: 需要排除的文件类型列表 (例如 ['.txt', '.jpg'])
+        :param tar: 文件或文件夹的相对路径
+        :param exclude_files: 要排除的文件名列表
+        :param exclude_types: 要排除的文件类型列表
         """
-        if exclude_files is None:
-            exclude_files = []
-        if exclude_types is None:
-            exclude_types = []
-        self.folders_to_move[folder_name] = {
-            'exclude_files': exclude_files,
-            'exclude_types': exclude_types
-        }
 
-    def add_file(self, file_name):
-        """
-        添加一个文件。
+        src_full_path = os.path.join(self.src_dir, tar)
+        dest_full_path = os.path.join(self.dest_dir, tar)
 
-        :param file_name: 文件名称
+        if exclude_files is not None:
+            self.excluded_files.update(exclude_files)
+        if exclude_types is not None:
+            self.excluded_types.update(exclude_types)
+
+        if os.path.isfile(src_full_path):
+            self.files_to_move.append(tar)
+            print(f"Added file: {tar}")
+
+        elif os.path.isdir(src_full_path):
+            self._add_files_from_folder(src_full_path, tar)
+        else:
+            print(f"Add failed file: {tar}, not found")
+
+    def _add_files_from_folder(self, src_folder, relative_path):
         """
-        self.files_to_move.append(file_name)
+        递归地添加文件夹下的所有文件，并排除指定的文件和文件类型。
+
+        :param src_folder: 源文件夹的完整路径
+        :param relative_path: 相对于源目录的文件夹路径
+        """
+        for item in os.listdir(src_folder):
+            src_item = os.path.join(src_folder, item)
+            if os.path.isfile(src_item) and self._should_include(item):
+                self.files_to_move.append(os.path.join(relative_path, item))
+                print(f"Added file: {os.path.join(relative_path, item)}")
+            elif os.path.isdir(src_item):
+                self._add_files_from_folder(src_item, os.path.join(relative_path, item))
+
+    def _should_include(self, filename):
+        """
+        判断文件是否应该被包含。
+
+        :param filename: 文件名
+        :return: 如果文件应该被包含，则返回 True；否则返回 False
+        """
+        if filename in self.excluded_files:
+            return False
+        if any(filename.endswith(ext) for ext in self.excluded_types):
+            return False
+        return True
 
     def _copy_item(self, src, dest, dry_run=False):
         """
@@ -44,6 +74,8 @@ class FileMover:
         """
         if not dry_run:
             if os.path.isfile(src):
+                # 确保目标目录存在
+                self._ensure_path_exists(dest)
                 shutil.copy2(src, dest)
             elif os.path.isdir(src):
                 shutil.copytree(src, dest, dirs_exist_ok=True)
@@ -63,16 +95,6 @@ class FileMover:
             dest_file = os.path.join(self.dest_dir, file)
             self._copy_item(src_file, dest_file)
 
-        # 复制文件夹
-        for folder, exclude_info in self.folders_to_move.items():
-            src_folder = os.path.join(self.src_dir, folder)
-            dest_folder = os.path.join(self.dest_dir, folder)
-            self._copy_folder(
-                src_folder=src_folder,
-                dest_folder=dest_folder,
-                exclude_files=exclude_info['exclude_files'],
-                exclude_types=exclude_info['exclude_types'])
-
     def preview(self):
         """
         预览文件和文件夹的复制。
@@ -85,59 +107,22 @@ class FileMover:
             dest_file = os.path.join(self.dest_dir, file)
             self._copy_item(src_file, dest_file, dry_run=True)
 
-        # 预览复制文件夹
-        for folder, exclude_info in self.folders_to_move.items():
-            src_folder = os.path.join(self.src_dir, folder)
-            dest_folder = os.path.join(self.dest_dir, folder)
-            self._copy_folder(
-                src_folder=src_folder,
-                dest_folder=dest_folder,
-                exclude_files=exclude_info['exclude_files'],
-                exclude_types=exclude_info['exclude_types'],
-                dry_run=True)
-
-    def _copy_folder(self, src_folder, dest_folder, exclude_files, exclude_types, dry_run=False):
-        """
-        复制整个文件夹及其内容，排除指定的文件或文件类型。
-
-        :param src_folder: 源文件夹路径
-        :param dest_folder: 目标文件夹路径
-        :param exclude_files: 需要排除的文件名列表
-        :param exclude_types: 需要排除的文件类型列表
-        :param dry_run: 是否为预演模式
-        """
-        if not dry_run and not os.path.exists(dest_folder):
-            os.makedirs(dest_folder)
-
-        for item in os.listdir(src_folder):
-            src_item = os.path.join(src_folder, item)
-            dest_item = os.path.join(dest_folder, item)
-            if item in exclude_files:
-                continue
-            if os.path.isfile(src_item) and self._should_exclude_by_type(item, exclude_types):
-                continue
-            if os.path.isdir(src_item):
-                self._copy_folder(src_item, dest_item, exclude_files, exclude_types, dry_run=dry_run)
-            else:
-                self._copy_item(src_item, dest_item, dry_run=dry_run)
-
-    def _should_exclude_by_type(self, filename, exclude_types):
-        """
-        判断文件是否应该被排除。
-
-        :param filename: 文件名
-        :param exclude_types: 需要排除的文件类型列表
-        :return: 如果文件应该被排除，则返回 True；否则返回 False
-        """
-        _, ext = os.path.splitext(filename)
-        return ext.lower() in exclude_types
-
     def _ensure_destination_exists(self):
         """
         确保目标目录存在。
         """
         if not os.path.exists(self.dest_dir):
             os.makedirs(self.dest_dir)
+
+    def _ensure_path_exists(self, path):
+        """
+        确保给定路径的父目录存在。
+
+        :param path: 目标路径
+        """
+        parent_dir = os.path.dirname(path)
+        if parent_dir and not os.path.exists(parent_dir):
+            os.makedirs(parent_dir)
 
 
 def main():
@@ -150,31 +135,38 @@ def main():
     )
 
     # 添加文件夹及其排除列表
-    mover.add_folder(
-        folder_name="config",
-        exclude_files=["settings.json","空间服登录界面_1P.png","空间服登录界面_2P.png","跨服远征_1p.png"])
-    mover.add_folder(
-        folder_name="battle_plan")
-    mover.add_folder(
-        folder_name="battle_plan_not_active")
-    mover.add_folder(
-        folder_name="md_img")
-    mover.add_folder(
-        folder_name="task_sequence")
-    mover.add_folder(
-        folder_name="resource",
-        exclude_types=[".pyc"])
+    mover.add_folder_or_file(
+        tar="config",
+        exclude_files=["settings.json", "空间服登录界面_1P.png", "空间服登录界面_2P.png", "跨服远征_1p.png"]
+    )
+    mover.add_folder_or_file(
+        tar="battle_plan"
+    )
+    mover.add_folder_or_file(
+        tar="battle_plan_not_active"
+    )
+    mover.add_folder_or_file(
+        tar="md_img"
+    )
+    mover.add_folder_or_file(
+        tar="task_sequence"
+    )
+    mover.add_folder_or_file(
+        tar="resource",
+        exclude_types=[".pyc"]
+    )
 
-    # 添加文件
-    mover.add_file("[入门]FAA从入门到神殿.docx")
-    mover.add_file("[入门]FAA从入门到神殿.pdf")
-    mover.add_file("LICENSE")
-    mover.add_file("README.md")
-    mover.add_file("致谢名单.md")
-    mover.add_file("致谢名单.png")
+    # 添加文件或文件夹
+    mover.add_folder_or_file("[入门]FAA从入门到神殿.docx")
+    mover.add_folder_or_file("[入门]FAA从入门到神殿.pdf")
+    mover.add_folder_or_file("LICENSE")
+    mover.add_folder_or_file("README.md")
+    mover.add_folder_or_file("致谢名单.md")
+    mover.add_folder_or_file("致谢名单.png")
+    mover.add_folder_or_file("logs/item_ranking_dag_graph.json")
 
     # 预览移动
-    mover.preview()
+    # mover.preview()
 
     # 实际移动
     mover.run()
