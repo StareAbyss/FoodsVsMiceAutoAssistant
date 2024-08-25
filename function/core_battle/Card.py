@@ -250,6 +250,10 @@ class Card:
                 compare_pixels(
                     img_source=pixels_all,
                     img_template=RESOURCE_P["card"]["状态判定"]["可用状态_3.png"][:, :, :3],
+                    mode='top') or
+                compare_pixels(
+                    img_source=pixels_all,
+                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_4.png"][:, :, :3],
                     mode='top')
         )
 
