@@ -179,7 +179,7 @@ class BattleARoundPreparation:
             case _:
                 special_stage = False
         if special_stage:
-            self.faa.signal_print_to_ui.emit(f"检测到特殊关卡：<{stage_name}>，已为你启用对应关卡方案", 7)
+            self.faa.signal_print_to_ui.emit(f"检测到特殊关卡：{stage_name}，已为你启用对应关卡方案", 7)
 
     def screen_ban_card_loop_a_round(self, ban_card_s):
 
