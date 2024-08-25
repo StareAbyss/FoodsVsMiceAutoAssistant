@@ -4,15 +4,17 @@ import os
 import sys
 import uuid
 
-from PyQt6.QtCore import pyqtSignal, Qt
+from PyQt6.QtCore import pyqtSignal, Qt, QTranslator, QLocale
 from PyQt6.QtGui import QKeySequence, QIcon, QShortcut
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QGridLayout, QPushButton, QWidget, QFileDialog, QVBoxLayout, QLabel, QComboBox,
-    QLineEdit, QHBoxLayout, QTextEdit, QListWidget, QMessageBox, QSpinBox, QListWidgetItem, QFrame, QAbstractItemView)
+    QLineEdit, QHBoxLayout, QTextEdit, QListWidget, QMessageBox, QSpinBox, QListWidgetItem, QFrame, QAbstractItemView,
+    QMenuBar)
 
 from function.globals import g_extra
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
+from function.widget.MultiLevelMenu import MultiLevelMenu
 
 double_click_card_list = pyqtSignal(object)
 
@@ -26,6 +28,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
     def __init__(self):
         super().__init__()
+
+        # 获取stage_info
+        with open(file=PATHS["config"] + "//stage_info.json", mode="r", encoding="UTF-8") as file:
+            self.stage_info = json.load(file)
 
         """内部数据表"""
         # 数据dict
@@ -67,8 +73,13 @@ class QMWEditorOfBattlePlan(QMainWindow):
             for j in range(7):
                 self.WeiPlayerPositionInput.addItem(f"{i + 1}-{j + 1}")
 
-        """提示编辑器"""
-        self.LayMain.addWidget(QLabel('方案信息:'))
+        """提示编辑器 + 关卡选择"""
+        self.info_layout = QHBoxLayout()
+        self.info_layout.addWidget(QLabel('方案信息:'))
+
+        self.stage_selector = MultiLevelMenu(title="关卡选择")
+        self.info_layout.addWidget(self.stage_selector)
+        self.LayMain.addLayout(self.info_layout)
 
         self.WeiTipsEditor = QTextEdit()
         self.WeiTipsEditor.setPlaceholderText('在这里编辑提示文本...')
@@ -165,7 +176,6 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 # 创建QFrame作为高亮效果的载体
                 frame = QFrame(self)
                 frame.setFixedSize(100, 100)
-                frame.setFrameShape(QFrame.Shape.StyledPanel)
                 frame.setFrameShadow(QFrame.Shadow.Raised)
                 self.chessboard_layout.addWidget(frame, i, j)
                 frame.lower()  # 确保QFrame在按钮下方
@@ -197,6 +207,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.save_as_button.clicked.connect(self.save_json)
         self.save_button.clicked.connect(self.save_json)
 
+        # 关卡选择
+        self.stage_selector.on_selected.connect(self.stage_changed)
+
         # 添加卡片
         self.WeiAddCardButton.clicked.connect(self.add_card)
 
@@ -214,22 +227,28 @@ class QMWEditorOfBattlePlan(QMainWindow):
         """外观"""
         self.UICss()
 
+        # 初始化关卡选择
+        self.init_stage_selector()
+
         """先刷新一下数据"""
         self.load_data_to_ui_list()
 
     def highlight_chessboard(self, card_locations):
         """根据卡片的位置list，将对应元素的按钮进行高亮"""
         # 清除所有按钮的高亮
-        for row in self.chessboard_frames:
-            for btn in row:
-                # 去除高亮
-                btn.setStyleSheet("")
+        self.remove_frame_color()
 
         # 高亮显示选中卡片的位置
         for location in card_locations:
             x, y = map(int, location.split('-'))
             # 添加背景颜色到现有样式
             self.chessboard_frames[y - 1][x - 1].setStyleSheet("background-color: rgba(255, 255, 0, 127);")
+
+    def remove_frame_color(self):
+        """清除所有按钮的高亮"""
+        for row in self.chessboard_frames:
+            for frame in row:
+                frame.setStyleSheet("")
 
     def UICss(self):
         # 窗口名
@@ -436,20 +455,18 @@ class QMWEditorOfBattlePlan(QMainWindow):
         """
         self.json_data['tips'] = self.WeiTipsEditor.toPlainText()
         sender = self.sender()
-        if not self.file_name:
+        if not self.file_name and sender != self.save_as_button:
             # 提示用户还未选择任何战斗方案
             QMessageBox.information(self, "禁止虚空保存！", "请先选择一个战斗方案!")
             return
         if sender == self.save_as_button:
 
-            options = QFileDialog.Option.DontUseNativeDialog
-
             file_name, _ = QFileDialog.getSaveFileName(
                 parent=self,
                 caption="保存 JSON 文件",
                 directory=PATHS["battle_plan"],
-                filter="JSON Files (*.json)",
-                options=options)
+                filter="JSON Files (*.json)"
+            )
         else:
             file_name = self.file_name
 
@@ -465,6 +482,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
             # 确保玩家位置也被保存
             self.json_data['player'] = self.json_data.get('player', [])
 
+            # 确保文件名后缀是.json
+            file_name = os.path.splitext(file_name)[0] + '.json'
+
             with g_extra.GLOBAL_EXTRA.file_lock:
                 with open(file=file_name, mode='w', encoding='utf-8') as file:
                     json.dump(self.json_data, file, ensure_ascii=False, indent=4)
@@ -478,17 +498,13 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.WeiErgodicInput.blockSignals(True)
         self.QueueInput.blockSignals(True)
 
-        options = QFileDialog.Option.DontUseNativeDialog
-
         file_name, _ = QFileDialog.getOpenFileName(
             parent=self,
             caption="打开 JSON 文件",
             directory=PATHS["battle_plan"],
-            filter="JSON Files (*.json)",
-            options=options)
+            filter="JSON Files (*.json)")
 
         if file_name:
-
             with g_extra.GLOBAL_EXTRA.file_lock:
                 with open(file=file_name, mode='r', encoding='utf-8') as file:
                     self.json_data = json.load(file)
@@ -511,10 +527,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.load_data_to_ui_list()
             self.refresh_chessboard()
             # 清除所有按钮的高亮
-            for row in self.chessboard_frames:
-                for btn in row:
-                    # 去除高亮
-                    btn.setStyleSheet("")
+            self.remove_frame_color()
 
         # 为输入控件信号解锁
         self.WeiCurrentEdit.blockSignals(False)
@@ -581,6 +594,68 @@ class QMWEditorOfBattlePlan(QMainWindow):
     def set_my_font(self, my_font):
         """用于继承字体, 而不需要多次读取"""
         self.setFont(my_font)
+
+    def init_stage_selector(self):
+        """
+        多层菜单
+        初始化关卡选择，从stage_info或更多内容里导入关卡，选择后可以显示障碍物或更多内容
+        菜单使用字典，其值只能为字典或列表。键值对中的键恒定为子菜单，而值为选项；列表中元素只能是元组，为关卡名，关卡id
+        """
+        stage_dict = {}
+        # 给定初级菜单
+        first_menu = ["主线副本", "番外关卡", "公会副本", "悬赏副本", "跨服副本", "魔塔蛋糕"]
+
+        for stage_upper_type in first_menu:
+            # 初始化每个初级菜单项的子菜单字典
+            stage_dict[stage_upper_type] = {}
+
+            match stage_upper_type:
+                case "主线副本":
+                    main_stage = ["美味岛", "火山岛", "火山遗迹", "浮空岛", "海底旋涡", "星际穿越"]
+                    for stage_type in main_stage:
+                        index = main_stage.index(stage_type) + 1
+                        stage_dict[stage_upper_type][stage_type] = []
+                        for stage_id, stage_info in self.stage_info["NO"][str(index)].items():
+                            stage_dict[stage_upper_type][stage_type].append((stage_info["name"],
+                                                                             f"NO-{index}-{stage_id}"))
+                case "番外关卡":
+                    extra_stage = ["探险营地", "沙漠", "雪山", "雷城", "漫游奇境"]
+                    for stage_type in extra_stage:
+                        index = extra_stage.index(stage_type) + 1
+                        stage_dict[stage_upper_type][stage_type] = []
+                        for stage_id, stage_info in self.stage_info["EX"][str(index)].items():
+                            stage_dict[stage_upper_type][stage_type].append((stage_info["name"],
+                                                                             f"EX-{index}-{stage_id}"))
+                case "公会副本":
+                    pass
+
+                case "悬赏副本":
+                    pass
+
+                case "跨服副本":
+                    pass
+
+                case "魔塔蛋糕":
+                    pass
+
+        self.stage_selector.add_menu(data=stage_dict)
+
+    def stage_changed(self, stage: str, stage_id: str):
+        """
+        根据stage_info，使某些格子显示成障碍物或更多内容
+        stage为关卡名，暂时不知道有啥用
+        stage_id的格式为：XX-X-X
+        """
+        id0, id1, id2 = stage_id.split("-")
+        stage_info = self.stage_info[id0][id1][id2]
+        obstacle = stage_info.get("obstacle", [])
+        # 清除现有的frame颜色
+        self.remove_frame_color()
+        if obstacle:  # 障碍物，在frame上显示红色
+            for location in obstacle:  # location格式为："y-x"
+                y, x = map(int, location.split("-"))
+                # 改变颜色
+                self.chessboard_frames[x - 1][y - 1].setStyleSheet("background-color: rgba(255, 0, 0, 180);")
 
 
 class QListWidgetDraggable(QListWidget):
