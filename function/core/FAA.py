@@ -1031,25 +1031,19 @@ class FAA:
                 self.print_debug(text="[刷新游戏] 点击刷新按钮...")
                 self.click_refresh_btn()
 
-                # 是否在 选择服务器界面 - 判断是否存在 最近玩过的服务器ui(4399 or qq空间) 或 开始游戏(qq游戏大厅) 并进入
-                result = False
+                # 依次判断是否在选择服务器界面
+                self.print_debug(text="[刷新游戏] 判定平台...")
 
-                self.print_debug(text="[刷新游戏] 判定4399平台...")
-                result = result or try_enter_server_4399()
-
-                self.print_debug(text="[刷新游戏] 判定QQ空间平台...")
-                result = result or try_enter_server_qq_space()
-
-                self.print_debug(text="[刷新游戏] 判定QQ游戏大厅平台...")
-                result = result or try_enter_server_qq_game_hall()
-
-                self.print_debug(text="[刷新游戏] 循环判定断线重连...")
-                result = result or try_relink()
-
-                # 如果未找到进入服务器，从头再来
-                if not result:
+                if try_enter_server_4399():
+                    self.print_debug(text="[刷新游戏] 成功进入4399平台")
+                elif try_enter_server_qq_space():
+                    self.print_debug(text="[刷新游戏] 成功进入QQ空间平台")
+                elif try_enter_server_qq_game_hall():
+                    self.print_debug(text="[刷新游戏] 成功进入QQ游戏大厅平台")
+                else:
+                    # QQ空间需重新登录
                     self.print_debug(
-                        text="[刷新游戏] 未找到进入服务器, 可能 1.QQ空间需重新登录 2.360X4399微端 3.意外情况")
+                        text="[刷新游戏] 未找到进入服务器按钮, 可能 1.QQ空间需重新登录 2.360X4399微端 3.需断线重连 4.意外情况")
 
                     result = loop_match_p_in_w(
                         source_handle=self.handle_browser,
@@ -1061,10 +1055,16 @@ class FAA:
                         match_failed_check=5,
                         after_sleep=5,
                         click=True)
+
                     if result:
                         self.print_debug(text="[刷新游戏] 找到QQ空间服一键登录, 正在登录")
                     else:
-                        self.print_debug(text="[刷新游戏] 未找到QQ空间服一键登录, 可能 1.360X4399微端 2.意外情况, 继续")
+                        # 如果还未找到进入服务器的方式，则进行断线重连的判断
+                        self.print_debug(text="[刷新游戏] 进入断线重连判断...")
+                        if try_relink():
+                            self.print_debug(text="[刷新游戏] 无需断线重连/成功点击断线重连")
+                        else:
+                            self.print_debug(text="[刷新游戏] 点不动断线重连，可能是网络爆炸/其他情况")
 
                 """查找大地图确认进入游戏"""
                 self.print_debug(text="[刷新游戏] 循环识图中, 以确认进入游戏...")
