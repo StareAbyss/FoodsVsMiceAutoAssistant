@@ -30,6 +30,7 @@ class QMainWindowLoadUI(QMainWindow):
 
         # 设置版本号
         self.version = "v1.5.0-beta.3"
+        self.version += "   "
         self.Label_Version.setText(self.version)
 
         # 从服务器获取最新版本号，如果和本地一致，就把版本号改成金色；不一致改成绿色
@@ -42,13 +43,8 @@ class QMainWindowLoadUI(QMainWindow):
         T_ACTION_QUEUE_TIMER.set_zoom_rate(self.zoom_rate)
 
         # 设定字体
-        font_id = QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
-        if font_id != -1:
-            # 动态调整字体大小
-            font_size = int(11 * self.zoom_rate)
-            font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
-            self.font = QFont(font_family, font_size)
-            self.setFont(self.font)
+        QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
+
 
         # 获取系统样式
         if self.palette().color(QtGui.QPalette.ColorRole.Window).lightness() < 128:

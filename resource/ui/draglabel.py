@@ -16,12 +16,6 @@ class DragLabel(QLabel):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        # 设定字体
-        font_id = QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
-        if font_id != -1:
-            font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
-            self.font = QFont(font_family, 11)
-            self.setFont(self.font)
 
         # self.setText("拖动鼠标到窗口上，然后松开鼠标按钮")
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
