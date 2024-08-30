@@ -613,10 +613,10 @@
                    <number>1</number>
                   </property>
                   <property name="maximum">
-                   <number>60</number>
+                   <number>80</number>
                   </property>
                   <property name="value">
-                   <number>60</number>
+                   <number>80</number>
                   </property>
                  </widget>
                 </item>
@@ -691,10 +691,10 @@
                    <number>1</number>
                   </property>
                   <property name="maximum">
-                   <number>60</number>
+                   <number>80</number>
                   </property>
                   <property name="value">
-                   <number>60</number>
+                   <number>80</number>
                   </property>
                  </widget>
                 </item>
@@ -732,6 +732,9 @@
                   <width>0</width>
                   <height>23</height>
                  </size>
+                </property>
+                <property name="cursor">
+                 <cursorShape>CrossCursor</cursorShape>
                 </property>
                 <property name="layoutDirection">
                  <enum>Qt::LeftToRight</enum>
