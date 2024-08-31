@@ -26,6 +26,7 @@ def food_texts_to_battle_info(texts,self):
 
     name_stage_info = extract_names_and_ids_from_json()
     quest_list = []
+    quest_card = "None"
 
     for text in texts:
         # 初始化变量
@@ -50,17 +51,19 @@ def food_texts_to_battle_info(texts,self):
             continue
 
         # 检查特定卡片
-        if "并使用" in text:
-            matches = re.findall(r'并使用\s*(.*?)(?=或|$)', text)
-            quest_card = [match.strip() for match in matches][0]
+        if "使用" in text:
+            # 根据文本禁用卡片
+            if "不" in text :
+                # 提取卡片名称
+                match = re.search(r'使用\s*(.*?)\s*(?=和|或|转|及|$)', text)
+                if match:
+                    card_name = match.group(1).strip()
+                    ban_card_list.append(card_name)
+            else:
+                matches = re.findall(r'使用\s*(.*?)(?=或|$)', text)
+                quest_card = [match.strip() for match in matches][0]
         else:
             quest_card = "None"
-
-        # 根据文本禁用卡片
-        match = re.search(r'不使用\s*(.*?)\s*(?=和|$)', text)
-        if match:
-            card_name = match.group(1).strip()
-            ban_card_list.append(card_name)
 
         # 检查卡片限制
         if "不超过" in text or "少于" in text:
