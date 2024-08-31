@@ -69,7 +69,7 @@
    <property name="styleSheet">
     <string notr="true">*
 {
-	font-family: 'Inconsolata Black', 'OPPOSans B', sans-serif;
+	font-family:'Noto Sans Mono CJK HK', sans-serif;
 	font-size:14px
 }</string>
    </property>
@@ -9188,6 +9188,7 @@ Link Start</string>
  </customwidgets>
  <resources>
   <include location="../test.qrc"/>
+  <include location="../theme/GTRONICK/GTRONICK.qrc"/>
  </resources>
  <connections/>
 </ui>

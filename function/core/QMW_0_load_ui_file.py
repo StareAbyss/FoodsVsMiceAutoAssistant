@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import QMainWindow, QApplication
 from function.common.get_system_dpi import get_system_dpi
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
-from function.qrc import test_rc,theme_rc,qdarkgraystyle_rc,modern_rc
+from function.qrc import test_rc,theme_rc,qdarkgraystyle_rc,modern_rc,GTRONICK_rc
 
 ZOOM_RATE = None
 
@@ -45,14 +45,14 @@ class QMainWindowLoadUI(QMainWindow):
 
         # 设定字体
         font1=QFontDatabase.addApplicationFont(PATHS["font"] + "\\Inconsolata-Black.ttf")
-        font2=QFontDatabase.addApplicationFont(PATHS["font"] + "\\OPPOSans-B.ttf")
+        font2=QFontDatabase.addApplicationFont(PATHS["font"] + "\\NotoSansMonoCJKhk-Bold.ttf")
         font_family1 = QFontDatabase.applicationFontFamilies(font1)[0]
         font_family2 = QFontDatabase.applicationFontFamilies(font2)[0]
         print(font_family1)
         print(font_family2)
 
 
-        styleFile = PATHS["theme"]+ "\\GTRONICK\\Ubuntu.qss"
+        styleFile = PATHS["theme"]+ "\\feiyang\\lightblue.css"
         qssStyle = CommonHelper.readQss(styleFile)
         self.setStyleSheet(qssStyle)
 
