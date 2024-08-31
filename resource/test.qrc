@@ -1,0 +1,8 @@
+<RCC>
+  <qresource prefix="test">
+    <file>art/test/xp.png</file>
+  </qresource>
+  <qresource prefix="icon">
+    <file>logo/FetTuo-192x.png</file>
+  </qresource>
+</RCC>

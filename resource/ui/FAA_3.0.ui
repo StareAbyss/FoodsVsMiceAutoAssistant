@@ -37,6 +37,10 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../test.qrc">
+    <normaloff>:/icon/logo/FetTuo-192x.png</normaloff>:/icon/logo/FetTuo-192x.png</iconset>
+  </property>
   <property name="animated">
    <bool>true</bool>
   </property>
@@ -64,8 +68,7 @@
    </property>
    <property name="styleSheet">
     <string notr="true">*{font: 11pt &quot;Smiley Sans Oblique&quot;;
-}
-</string>
+}</string>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_7">
     <item>
@@ -104,7 +107,7 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="Tab1">
           <attribute name="title">
@@ -166,7 +169,12 @@
                   </size>
                  </property>
                  <property name="styleSheet">
-                  <string notr="true"/>
+                  <string notr="true">
+        border: 2px solid #8f8f91;
+        border-radius: 10px;
+        padding: 10px;
+        font: inherit;
+</string>
                  </property>
                 </widget>
                </item>
@@ -770,7 +778,7 @@
                    <property name="minimumSize">
                     <size>
                      <width>0</width>
-                     <height>23</height>
+                     <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
@@ -8980,6 +8988,9 @@ Link Start</string>
 叠甲2: 启用前请阅读高级放卡md，完全理解原理后再使用
 叠甲3: 如未能按预期实现, 请先确保你的相关设置无误</string>
                    </property>
+                   <property name="openExternalLinks">
+                    <bool>false</bool>
+                   </property>
                   </widget>
                  </item>
                 </layout>
@@ -9130,8 +9141,10 @@ Link Start</string>
                  <item>
                   <widget class="QLabel" name="Big_Picture">
                    <property name="text">
-                    <string>一张很大的图
-彰显作者XP(大概)</string>
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap resource="../test.qrc">:/test/art/test/xp.png</pixmap>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -9169,6 +9182,9 @@ Link Start</string>
    <header>resource.ui.draglabel</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../test.qrc"/>
+  <include location="../theme/theme.qrc"/>
+ </resources>
  <connections/>
 </ui>

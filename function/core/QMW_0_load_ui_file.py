@@ -2,12 +2,13 @@ import os
 import sys
 
 from PyQt6 import uic, QtGui
-from PyQt6.QtGui import QIcon, QFont, QFontDatabase
+from PyQt6.QtGui import QIcon, QFontDatabase
 from PyQt6.QtWidgets import QMainWindow, QApplication
 
 from function.common.get_system_dpi import get_system_dpi
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
+from function.qrc import test_rc,theme_rc
 
 ZOOM_RATE = None
 
@@ -36,7 +37,7 @@ class QMainWindowLoadUI(QMainWindow):
         # 从服务器获取最新版本号，如果和本地一致，就把版本号改成金色；不一致改成绿色
 
         # 设置窗口图标
-        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetTuo-192x.png"))
+        # self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetTuo-192x.png"))
 
         # 获取 dpi & zoom 仅能在类中调用
         self.zoom_rate = get_system_dpi() / 96
@@ -44,6 +45,10 @@ class QMainWindowLoadUI(QMainWindow):
 
         # 设定字体
         QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
+
+        styleFile = PATHS["theme"]+ "\\blacksoft.css"
+        qssStyle = CommonHelper.readQss(styleFile)
+        self.setStyleSheet(qssStyle)
 
 
         # 获取系统样式
@@ -72,6 +77,15 @@ class QMainWindowLoadUI(QMainWindow):
         # 用过sys.exit(0)和sys.exit(app.exec())，但没起效果
         os._exit(0)
 
+
+class CommonHelper:#主题加载类
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def readQss(style):
+        with open(style, 'r') as f:
+            return f.read()
 
 if __name__ == "__main__":
     def main():
