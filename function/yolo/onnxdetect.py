@@ -94,11 +94,11 @@ def get_mouse_position(input_image,is_log):
     # cv_show('test',annotated_image)
     need_write = is_log  # 是否保存图片及对应标签，未来将对接前端
     if need_write or len(result_boxes) > 0:
-        cv_write(original_image, result_boxes, class_ids, scores, boxes, scale)
+        cv_write(original_image, result_boxes, class_ids, boxes, scale)
     return filtered_boxes, filtered_class_ids  # 返回边界框及类别用作进一步处理
 
 
-def cv_write(original_image, result_boxes, class_ids, scores, boxes, scale):
+def cv_write(original_image, result_boxes, class_ids, boxes, scale):
     """
     此函数用于保存标签label及对应数据图片
     """
@@ -109,16 +109,17 @@ def cv_write(original_image, result_boxes, class_ids, scores, boxes, scale):
     output_img_path = f"{output_base_path}/images/{timestamp}_{rand_num}.png"
     output_txt = f"{output_base_path}/labels/{timestamp}_{rand_num}.txt"
     cv2.imwrite(output_img_path, original_image)
-    with open(output_txt, 'a') as f:
-        for i in range(len(result_boxes)):
-            index = result_boxes[i]
-            class_id = class_ids[index]
-            box = boxes[index]
-            x, y, w, h = voc_to_yolo(
-                original_image.shape,
-                [box[0] * scale, box[1] * scale,
-                 box[2] * scale, box[3] * scale])
-            f.write(f"{class_id} {x} {y} {w} {h}\n")
+    if len(result_boxes)>0:
+        with open(output_txt, 'a') as f:
+            for i in range(len(result_boxes)):
+                index = result_boxes[i]
+                class_id = class_ids[index]
+                box = boxes[index]
+                x, y, w, h = voc_to_yolo(
+                    original_image.shape,
+                    [box[0] * scale, box[1] * scale,
+                     box[2] * scale, box[3] * scale])
+                f.write(f"{class_id} {x} {y} {w} {h}\n")
 
 
 def voc_to_yolo(size, box):  # 归一化操作

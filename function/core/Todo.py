@@ -145,6 +145,31 @@ class ThreadTodo(QThread):
                 deleted_files_count += 1
 
         self.signal_print_to_ui.emit(f"清理完成... {deleted_files_count}张图片已清理.")
+        self.signal_print_to_ui.emit("正在清理超过7天的高级战斗log...")
+
+        now = datetime.datetime.now()
+        expiration_period = datetime.timedelta(days=7)
+        deleted_files_count = 0
+
+        directory_path = PATHS["logs"] + "\\yolo_output\\images"
+        for filename in os.listdir(directory_path):
+            file_path = os.path.join(directory_path, filename)
+            file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
+
+            if now - file_mod_time > expiration_period and filename.lower().endswith('.png'):
+                os.remove(file_path)
+                deleted_files_count += 1
+
+        directory_path = PATHS["logs"] + "\\yolo_output\\labels"
+        for filename in os.listdir(directory_path):
+            file_path = os.path.join(directory_path, filename)
+            file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
+
+            if now - file_mod_time > expiration_period and filename.lower().endswith('.png'):
+                os.remove(file_path)
+                deleted_files_count += 1
+
+        self.signal_print_to_ui.emit(f"清理完成... {deleted_files_count}个文件已清理.")
 
     def cus_quit(self):
         CUS_LOGGER.debug("已激活ThreadTodo quit")
