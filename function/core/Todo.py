@@ -120,56 +120,64 @@ class ThreadTodo(QThread):
         self.faa[2].faa_battle.is_used_key = True
 
     def remove_outdated_log_images(self):
-        self.signal_print_to_ui.emit("正在清理超过3天的log图片...")
+        self.signal_print_to_ui.emit(f"正在清理过期的的log图片...")
 
         now = datetime.datetime.now()
-        expiration_period = datetime.timedelta(days=3)
-        deleted_files_count = 0
+        time1 = int(self.opt["log_settings"]["log_other_settings"])
+        if time1>=0:
+            expiration_period = datetime.timedelta(days=time1)
+            deleted_files_count = 0
 
-        directory_path = PATHS["logs"] + "\\loots_picture"
-        for filename in os.listdir(directory_path):
-            file_path = os.path.join(directory_path, filename)
-            file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
+            directory_path = PATHS["logs"] + "\\loots_picture"
+            for filename in os.listdir(directory_path):
+                file_path = os.path.join(directory_path, filename)
+                file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
 
-            if now - file_mod_time > expiration_period and filename.lower().endswith('.png'):
-                os.remove(file_path)
-                deleted_files_count += 1
+                if now - file_mod_time > expiration_period and filename.lower().endswith('.png'):
+                    os.remove(file_path)
+                    deleted_files_count += 1
 
-        directory_path = PATHS["logs"] + "\\chests_picture"
-        for filename in os.listdir(directory_path):
-            file_path = os.path.join(directory_path, filename)
-            file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
+            directory_path = PATHS["logs"] + "\\chests_picture"
+            for filename in os.listdir(directory_path):
+                file_path = os.path.join(directory_path, filename)
+                file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
 
-            if now - file_mod_time > expiration_period and filename.lower().endswith('.png'):
-                os.remove(file_path)
-                deleted_files_count += 1
+                if now - file_mod_time > expiration_period and filename.lower().endswith('.png'):
+                    os.remove(file_path)
+                    deleted_files_count += 1
 
-        self.signal_print_to_ui.emit(f"清理完成... {deleted_files_count}张图片已清理.")
-        self.signal_print_to_ui.emit("正在清理超过7天的高级战斗log...")
+            self.signal_print_to_ui.emit(f"清理完成... {deleted_files_count}张图片已清理.")
+        else:
+            self.signal_print_to_ui.emit("未开启过期日志清理功能")
+        self.signal_print_to_ui.emit("正在清理过期的高级战斗log...")
 
         now = datetime.datetime.now()
-        expiration_period = datetime.timedelta(days=7)
-        deleted_files_count = 0
+        time2=int(self.opt["log_settings"]["log_senior_settings"])
+        if time2>=0:
+            expiration_period = datetime.timedelta(days=time2)
+            deleted_files_count = 0
 
-        directory_path = PATHS["logs"] + "\\yolo_output\\images"
-        for filename in os.listdir(directory_path):
-            file_path = os.path.join(directory_path, filename)
-            file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
+            directory_path = PATHS["logs"] + "\\yolo_output\\images"
+            for filename in os.listdir(directory_path):
+                file_path = os.path.join(directory_path, filename)
+                file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
 
-            if now - file_mod_time > expiration_period and filename.lower().endswith('.png'):
-                os.remove(file_path)
-                deleted_files_count += 1
+                if now - file_mod_time > expiration_period and filename.lower().endswith('.png'):
+                    os.remove(file_path)
+                    deleted_files_count += 1
 
-        directory_path = PATHS["logs"] + "\\yolo_output\\labels"
-        for filename in os.listdir(directory_path):
-            file_path = os.path.join(directory_path, filename)
-            file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
+            directory_path = PATHS["logs"] + "\\yolo_output\\labels"
+            for filename in os.listdir(directory_path):
+                file_path = os.path.join(directory_path, filename)
+                file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
 
-            if now - file_mod_time > expiration_period and filename.lower().endswith('.png'):
-                os.remove(file_path)
-                deleted_files_count += 1
+                if now - file_mod_time > expiration_period and filename.lower().endswith('.png'):
+                    os.remove(file_path)
+                    deleted_files_count += 1
 
-        self.signal_print_to_ui.emit(f"清理完成... {deleted_files_count}个文件已清理.")
+            self.signal_print_to_ui.emit(f"清理完成... {deleted_files_count}个文件已清理.")
+        else:
+            self.signal_print_to_ui.emit(f"高级战斗日志清理已取消.")
 
     def cus_quit(self):
         CUS_LOGGER.debug("已激活ThreadTodo quit")
