@@ -419,7 +419,6 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.TopUpMoney_2P.setChecked(my_opt["top_up_money_2p"])
             self.EndExitGame.setChecked(my_opt["end_exit_game"])
             self.AutoUseCard.setChecked(my_opt["auto_use_card"])
-            self.AutoDeleteOldImages.setChecked(my_opt["auto_delete_old_images"])
 
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
@@ -431,6 +430,11 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
                 self.all_senior_log.setChecked(True)
             else:
                 self.indeed_need.setChecked(True)
+        def log_settings() -> None:
+            my_opt = self.opt["log_settings"]
+            self.senior_log_clean.setText(my_opt["log_senior_settings"])
+            self.other_log_clean.setText(my_opt["log_other_settings"])
+
 
         def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
@@ -451,6 +455,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         advanced_settings()
         senior_settings()
         get_warm_gift_settings()
+        log_settings()
         level_2()
         self.CurrentPlan.clear()
         self.CurrentPlan.addItems(todo_plan_name_list)
@@ -544,12 +549,16 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             my_opt["top_up_money_2p"] = self.TopUpMoney_2P.isChecked()
             my_opt["end_exit_game"] = self.EndExitGame.isChecked()
             my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
-            my_opt["auto_delete_old_images"] = self.AutoDeleteOldImages.isChecked()
 
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
             my_opt["auto_senior_settings"] = self.Battle_senior_checkedbox.isChecked()
             my_opt["senior_log_state"] = 1 if self.all_senior_log.isChecked() else 0
+
+        def log_settings() -> None:
+            my_opt = self.opt["log_settings"]
+            my_opt["log_senior_settings"] = self.senior_log_clean.text()
+            my_opt["log_other_settings"] = self.other_log_clean.text()
 
         def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
@@ -707,6 +716,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         advanced_settings()
         senior_settings()
         get_warm_gift_settings()
+        log_settings()
         level_2()
         self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
         todo_plans()

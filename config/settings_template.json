@@ -1091,6 +1091,10 @@
         "auto_senior_settings": false,
         "senior_log_state":0
     },
+    "log_settings": {
+        "log_senior_settings": "7",
+        "log_other_settings":"3"
+    },
     "get_warm_gift": {
         "1p": {
             "active": false,
