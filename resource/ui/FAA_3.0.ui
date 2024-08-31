@@ -67,7 +67,10 @@
     </size>
    </property>
    <property name="styleSheet">
-    <string notr="true">*{font: 11pt &quot;Smiley Sans Oblique&quot;;
+    <string notr="true">*
+{
+	font-family: 'Inconsolata Black', 'OPPOSans B', sans-serif;
+	font-size:14px
 }</string>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -9185,7 +9188,6 @@ Link Start</string>
  </customwidgets>
  <resources>
   <include location="../test.qrc"/>
-  <include location="../theme/modern/resources.qrc"/>
  </resources>
  <connections/>
 </ui>

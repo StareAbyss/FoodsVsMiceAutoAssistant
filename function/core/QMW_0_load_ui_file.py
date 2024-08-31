@@ -44,7 +44,13 @@ class QMainWindowLoadUI(QMainWindow):
         T_ACTION_QUEUE_TIMER.set_zoom_rate(self.zoom_rate)
 
         # 设定字体
-        QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
+        font1=QFontDatabase.addApplicationFont(PATHS["font"] + "\\Inconsolata-Black.ttf")
+        font2=QFontDatabase.addApplicationFont(PATHS["font"] + "\\OPPOSans-B.ttf")
+        font_family1 = QFontDatabase.applicationFontFamilies(font1)[0]
+        font_family2 = QFontDatabase.applicationFontFamilies(font2)[0]
+        print(font_family1)
+        print(font_family2)
+
 
         styleFile = PATHS["theme"]+ "\\GTRONICK\\Ubuntu.qss"
         qssStyle = CommonHelper.readQss(styleFile)
