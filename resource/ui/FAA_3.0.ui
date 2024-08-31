@@ -173,6 +173,7 @@
         border: 2px solid #8f8f91;
         border-radius: 10px;
         padding: 10px;
+background-color: rgb(241, 241, 241);
         font: inherit;
 </string>
                  </property>
@@ -9184,7 +9185,7 @@ Link Start</string>
  </customwidgets>
  <resources>
   <include location="../test.qrc"/>
-  <include location="../theme/theme.qrc"/>
+  <include location="../theme/modern/resources.qrc"/>
  </resources>
  <connections/>
 </ui>

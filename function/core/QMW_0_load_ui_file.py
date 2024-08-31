@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import QMainWindow, QApplication
 from function.common.get_system_dpi import get_system_dpi
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
-from function.qrc import test_rc,theme_rc
+from function.qrc import test_rc,theme_rc,qdarkgraystyle_rc,modern_rc
 
 ZOOM_RATE = None
 
@@ -46,7 +46,7 @@ class QMainWindowLoadUI(QMainWindow):
         # 设定字体
         QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
 
-        styleFile = PATHS["theme"]+ "\\blacksoft.css"
+        styleFile = PATHS["theme"]+ "\\GTRONICK\\Ubuntu.qss"
         qssStyle = CommonHelper.readQss(styleFile)
         self.setStyleSheet(qssStyle)
 
