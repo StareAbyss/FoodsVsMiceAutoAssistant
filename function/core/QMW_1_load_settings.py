@@ -419,7 +419,6 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.TopUpMoney_2P.setChecked(my_opt["top_up_money_2p"])
             self.EndExitGame.setChecked(my_opt["end_exit_game"])
             self.AutoUseCard.setChecked(my_opt["auto_use_card"])
-            self.AutoDeleteOldImages.setChecked(my_opt["auto_delete_old_images"])
 
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
@@ -550,7 +549,6 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             my_opt["top_up_money_2p"] = self.TopUpMoney_2P.isChecked()
             my_opt["end_exit_game"] = self.EndExitGame.isChecked()
             my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
-            my_opt["auto_delete_old_images"] = self.AutoDeleteOldImages.isChecked()
 
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]

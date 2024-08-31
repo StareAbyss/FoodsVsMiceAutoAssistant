@@ -1966,8 +1966,7 @@ class ThreadTodo(QThread):
 
         self.signal_print_to_ui.emit("每一个大类的任务开始前均会重启游戏以防止bug...")
 
-        if self.opt["advanced_settings"]["auto_delete_old_images"]:
-            self.remove_outdated_log_images()
+        self.remove_outdated_log_images()
 
         """主要事项"""
 
