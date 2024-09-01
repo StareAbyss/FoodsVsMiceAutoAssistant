@@ -21,6 +21,7 @@ from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.create_drops_image import create_drops_image
 from function.scattered.get_task_sequence_list import get_task_sequence_list
+from function.scattered.guild_manager import GuildManager
 from function.scattered.loots_and_chest_data_save_and_post import loots_and_chests_detail_to_json, \
     loots_and_chests_data_post_to_sever, loots_and_chests_statistics_to_json
 
@@ -56,6 +57,9 @@ class ThreadTodo(QThread):
         self.extra_opt = None  # 用来给双单人多线程的2P传递参数
 
         self.process = None  # 截图进程在此
+
+        # 工会管理器相关模块
+        self.guild_manager = GuildManager()
 
         # 好用的信号~
         self.signal_dict = signal_dict
@@ -124,7 +128,7 @@ class ThreadTodo(QThread):
 
         now = datetime.datetime.now()
         time1 = int(self.opt["log_settings"]["log_other_settings"])
-        if time1>=0:
+        if time1 >= 0:
             expiration_period = datetime.timedelta(days=time1)
             deleted_files_count = 0
 
@@ -152,8 +156,8 @@ class ThreadTodo(QThread):
         self.signal_print_to_ui.emit("正在清理过期的高级战斗log...")
 
         now = datetime.datetime.now()
-        time2=int(self.opt["log_settings"]["log_senior_settings"])
-        if time2>=0:
+        time2 = int(self.opt["log_settings"]["log_senior_settings"])
+        if time2 >= 0:
             expiration_period = datetime.timedelta(days=time2)
             deleted_files_count = 0
 
@@ -217,8 +221,8 @@ class ThreadTodo(QThread):
         # 在该动作前已经完成了游戏刷新 可以尽可能保证欢乐互娱不作妖
         self.signal_print_to_ui.emit(
             text=f"[{title_text}] [二级功能] 您输入二级激活了该功能. " +
-                 f"兑换暗晶 + " if dark_crystal else f"" +
-                                                     f"删除多余技能书, 目标:{player}P",
+                 (f"兑换暗晶 + " if dark_crystal else f"") +
+                 f"删除多余技能书, 目标:{player}P",
             color_level=2)
 
         # 高危动作 慢慢执行
@@ -385,6 +389,24 @@ class ThreadTodo(QThread):
 
         title_text = "领取奖励"
         self.model_start_print(text=title_text)
+        """激活了扫描公会贡献"""
+        if self.opt["advanced_settings"]["guild_manager_active"]:
+
+            self.signal_print_to_ui.emit(
+                text=f"[{title_text}] [扫描公会贡献] 您激活了该功能.",
+                color_level=2)
+
+            # 进入公会页面
+            self.faa[self.opt["advanced_settings"]["guild_manager_active"]].action_bottom_menu(mode="公会")
+
+            # 扫描
+            self.guild_manager.get_guild_member_page(
+                handle=self.faa[self.opt["advanced_settings"]["guild_manager_active"]].handle,
+                handle_360=self.faa[self.opt["advanced_settings"]["guild_manager_active"]].handle_360
+            )
+
+            # 退出工会页面
+            self.faa[self.opt["advanced_settings"]["guild_manager_active"]].action_exit(mode="普通红叉")
 
         """激活了删除物品高危功能"""
         self.batch_level_2_action(title_text=title_text, dark_crystal=True)
