@@ -43,8 +43,14 @@ class QMainWindowLoadUI(QMainWindow):
         T_ACTION_QUEUE_TIMER.set_zoom_rate(self.zoom_rate)
 
         # 设定字体
-        QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
-
+        # 设定字体
+        font_id = QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
+        if font_id != -1:
+            # 动态调整字体大小
+            font_size = int(11 * self.zoom_rate)
+            font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
+            self.font = QFont(font_family, font_size)
+            self.setFont(self.font)
 
         # 获取系统样式
         if self.palette().color(QtGui.QPalette.ColorRole.Window).lightness() < 128:
