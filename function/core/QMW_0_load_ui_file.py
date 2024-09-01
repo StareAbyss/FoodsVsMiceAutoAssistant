@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import QMainWindow, QApplication
 from function.common.get_system_dpi import get_system_dpi
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
+#虽然ide显示下面这行没用，但实际是用来加载相关资源的，不可删除
 from function.qrc import test_rc,theme_rc,qdarkgraystyle_rc,modern_rc,GTRONICK_rc
 
 ZOOM_RATE = None
