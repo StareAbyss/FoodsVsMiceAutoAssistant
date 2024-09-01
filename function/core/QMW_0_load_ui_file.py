@@ -2,12 +2,13 @@ import os
 import sys
 
 from PyQt6 import uic, QtGui
-from PyQt6.QtGui import QIcon, QFont, QFontDatabase
+from PyQt6.QtGui import QIcon, QFontDatabase
 from PyQt6.QtWidgets import QMainWindow, QApplication
 
 from function.common.get_system_dpi import get_system_dpi
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
+from function.qrc import test_rc,theme_rc,qdarkgraystyle_rc,modern_rc,GTRONICK_rc
 
 ZOOM_RATE = None
 
@@ -36,21 +37,20 @@ class QMainWindowLoadUI(QMainWindow):
         # 从服务器获取最新版本号，如果和本地一致，就把版本号改成金色；不一致改成绿色
 
         # 设置窗口图标
-        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetTuo-192x.png"))
+        # self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetTuo-192x.png"))
 
         # 获取 dpi & zoom 仅能在类中调用
         self.zoom_rate = get_system_dpi() / 96
         T_ACTION_QUEUE_TIMER.set_zoom_rate(self.zoom_rate)
 
         # 设定字体
-        # 设定字体
-        font_id = QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
-        if font_id != -1:
-            # 动态调整字体大小
-            font_size = int(11 * self.zoom_rate)
-            font_family = QFontDatabase.applicationFontFamilies(font_id)[0]
-            self.font = QFont(font_family, font_size)
-            self.setFont(self.font)
+        font2=QFontDatabase.addApplicationFont(PATHS["font"] + "\\NotoSansMonoCJKhk-Bold.ttf")
+        font1=QFontDatabase.addApplicationFont(PATHS["font"] + "\\手书体.ttf")
+        font_family2 = QFontDatabase.applicationFontFamilies(font1)[0]
+        print(font_family2)
+
+
+
 
         # 获取系统样式
         if self.palette().color(QtGui.QPalette.ColorRole.Window).lightness() < 128:
@@ -58,16 +58,7 @@ class QMainWindowLoadUI(QMainWindow):
         else:
             self.theme = "light"
 
-        # 修改特殊控件样式表
-        if self.theme == "dark":
-            self.Label_drag.setStyleSheet("""
-                QLabel {
-                    border: 1px solid grey; /* 灰色边框，宽度为1像素 */
-                    border-radius: 4px; /* 边框圆角半径为4像素 */
-                    border-color: #5b5b5b; /* 边框颜色 */
-                    background-color: #3c3c3c; /* 背景颜色 */
-                }
-            """)
+
 
     def closeEvent(self, event):
         """
@@ -77,6 +68,8 @@ class QMainWindowLoadUI(QMainWindow):
         event.accept()
         # 用过sys.exit(0)和sys.exit(app.exec())，但没起效果
         os._exit(0)
+
+
 
 
 if __name__ == "__main__":
