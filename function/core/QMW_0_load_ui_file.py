@@ -45,7 +45,8 @@ class QMainWindowLoadUI(QMainWindow):
 
         # 设定字体
         font2=QFontDatabase.addApplicationFont(PATHS["font"] + "\\NotoSansMonoCJKhk-Bold.ttf")
-        font_family2 = QFontDatabase.applicationFontFamilies(font2)[0]
+        font1=QFontDatabase.addApplicationFont(PATHS["font"] + "\\手书体.ttf")
+        font_family2 = QFontDatabase.applicationFontFamilies(font1)[0]
         print(font_family2)
 
 

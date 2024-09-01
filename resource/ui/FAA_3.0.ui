@@ -9448,14 +9448,14 @@ Link Start</string>
                 <item>
                  <widget class="QRadioButton" name="skin5">
                   <property name="text">
-                   <string>简雅骏黑-漆黑缄默</string>
+                   <string>简雅骏灰-小坤子露出黑脚了吧</string>
                   </property>
                  </widget>
                 </item>
                 <item>
                  <widget class="QRadioButton" name="skin6">
                   <property name="text">
-                   <string>朴素黝黑-小坤子露出黑脚了吧</string>
+                   <string>朴素黝黑-漆黑缄默</string>
                   </property>
                  </widget>
                 </item>
@@ -9499,7 +9499,9 @@ Link Start</string>
               <item>
                <widget class="QLabel" name="label_8">
                 <property name="styleSheet">
-                 <string notr="true">border-image: ;</string>
+                 <string notr="true">font-family:'ShouShuti', sans-serif;
+font-size:30pt;
+color: rgb(0, 0, 0);</string>
                 </property>
                 <property name="text">
                  <string>未完待续...
