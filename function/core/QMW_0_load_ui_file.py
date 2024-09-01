@@ -2,7 +2,7 @@ import os
 import sys
 
 from PyQt6 import uic, QtGui
-from PyQt6.QtGui import QIcon, QFontDatabase
+from PyQt6.QtGui import QIcon, QFontDatabase,QFont
 from PyQt6.QtWidgets import QMainWindow, QApplication
 
 from function.common.get_system_dpi import get_system_dpi
@@ -48,6 +48,8 @@ class QMainWindowLoadUI(QMainWindow):
         font2=QFontDatabase.addApplicationFont(PATHS["font"] + "\\NotoSansMonoCJKhk-Bold.ttf")
         font1=QFontDatabase.addApplicationFont(PATHS["font"] + "\\手书体.ttf")
         font_family2 = QFontDatabase.applicationFontFamilies(font1)[0]
+        font_family = QFontDatabase.applicationFontFamilies(font2)[0]
+        self.font = QFont(font_family, 11)
         print(font_family2)
 
 
