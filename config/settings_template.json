@@ -1097,6 +1097,7 @@
         "log_senior_settings": "7",
         "log_other_settings":"3"
     },
+    "skin_type": 1,
     "get_warm_gift": {
         "1p": {
             "active": false,

@@ -5,4 +5,7 @@
   <qresource prefix="icon">
     <file>logo/FetTuo-192x.png</file>
   </qresource>
+  <qresource prefix="skin">
+    <file>art/imageskin/firefly.png</file>
+  </qresource>
 </RCC>

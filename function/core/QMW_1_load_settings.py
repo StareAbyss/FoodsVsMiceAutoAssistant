@@ -451,6 +451,46 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.Level2_1P_Password.setText(my_opt["1p"]["password"])
             self.Level2_2P_Active.setChecked(my_opt["2p"]["active"])
             self.Level2_2P_Password.setText(my_opt["2p"]["password"])
+        def skin_set() -> None:
+            my_opt = self.opt["skin_type"]
+            skin_dict = {
+                1: self.skin1,
+                2: self.skin2,
+                3: self.skin3,
+                4: self.skin4,
+                5: self.skin5,
+                6: self.skin6,
+                7: self.skin7,
+                8: self.skin8,
+                9: self.skin9,
+                10: self.skin10,
+                11: self.skin11
+            }
+
+            # 使用 get 方法设置皮肤
+            skin = skin_dict.get(my_opt)
+            if skin:
+                skin.setChecked(True)
+            styleFile = self.getstylefile(my_opt)
+            if styleFile is not None:
+                qssStyle = CommonHelper.readQss(styleFile)
+                self.setStyleSheet(qssStyle)
+            else:
+                self.setStyleSheet("")
+            # 设置信号和槽
+            self.skin1.toggled.connect(self.on_skin_state_changed)
+            self.skin2.toggled.connect(self.on_skin_state_changed)
+            self.skin3.toggled.connect(self.on_skin_state_changed)
+            self.skin4.toggled.connect(self.on_skin_state_changed)
+            self.skin5.toggled.connect(self.on_skin_state_changed)
+            self.skin6.toggled.connect(self.on_skin_state_changed)
+            self.skin7.toggled.connect(self.on_skin_state_changed)
+            self.skin8.toggled.connect(self.on_skin_state_changed)
+            self.skin9.toggled.connect(self.on_skin_state_changed)
+            self.skin10.toggled.connect(self.on_skin_state_changed)
+            self.skin11.toggled.connect(self.on_skin_state_changed)
+
+
 
         base_settings()
         timer_settings()
@@ -459,6 +499,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         get_warm_gift_settings()
         log_settings()
         level_2()
+        skin_set()
         self.CurrentPlan.clear()
         self.CurrentPlan.addItems(todo_plan_name_list)
         self.CurrentPlan.setCurrentIndex(self.opt["current_plan"])
@@ -558,6 +599,28 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             my_opt = self.opt["senior_settings"]
             my_opt["auto_senior_settings"] = self.Battle_senior_checkedbox.isChecked()
             my_opt["senior_log_state"] = 1 if self.all_senior_log.isChecked() else 0
+        def skin_settings() -> None:
+            # 定义一个字典，将复选框对象映射到对应的值
+            skin_dict = {
+                self.skin1: 1,
+                self.skin2: 2,
+                self.skin3: 3,
+                self.skin4: 4,
+                self.skin5: 5,
+                self.skin6: 6,
+                self.skin7: 7,
+                self.skin8: 8,
+                self.skin9: 9,
+                self.skin10: 10,
+                self.skin11: 11
+            }
+
+            # 遍历字典，找到第一个被选中的复选框
+            for skin, option in skin_dict.items():
+                if skin.isChecked():
+                    self.opt["skin_type"]=option
+                    break
+
 
         def log_settings() -> None:
             my_opt = self.opt["log_settings"]
@@ -721,6 +784,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         senior_settings()
         get_warm_gift_settings()
         log_settings()
+        skin_settings()
         level_2()
         self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
         todo_plans()
@@ -786,7 +850,60 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.all_senior_log.setEnabled(False)
             self.indeed_need.setEnabled(False)
 
+    def getstylefile(self,num):
+        skin_path_dict = {
+            1: None,
+            2: PATHS["theme"]+ "\\feiyang\\blacksoft.css",
+            3: PATHS["theme"]+ "\\feiyang\\flatgray.css",
+            4: PATHS["theme"]+ "\\feiyang\\lightblue.css",
+            5: PATHS["theme"]+ "\\GTRONICK\\ElegantDark.qss",
+            6: PATHS["theme"]+ "\\GTRONICK\\MaterialDark.qss",
+            7: PATHS["theme"]+ "\\GTRONICK\\NeonButtons.qss",
+            8: PATHS["theme"]+ "\\GTRONICK\\Aqua.qss",
+            9: PATHS["theme"]+ "\\GTRONICK\\ManjaroMix.qss",
+            10: PATHS["theme"]+ "\\GTRONICK\\MacOS.qss",
+            11: PATHS["theme"]+ "\\GTRONICK\\Ubuntu.qss"
+        }
 
+        # 使用 get 方法设置皮肤
+        path = skin_path_dict.get(num)
+        return path
+
+    def on_skin_state_changed(self, checked):
+        # 获取发送信号的复选框对象
+        sender = self.sender()
+
+        # 定义一个字典，将复选框对象映射到对应的值
+        skin_dict = {
+            self.skin1: 1,
+            self.skin2: 2,
+            self.skin3: 3,
+            self.skin4: 4,
+            self.skin5: 5,
+            self.skin6: 6,
+            self.skin7: 7,
+            self.skin8: 8,
+            self.skin9: 9,
+            self.skin10: 10,
+            self.skin11: 11
+        }
+        if checked:
+            current_option = skin_dict[sender]
+            styleFile = self.getstylefile(current_option)
+            if styleFile is not None:
+                qssStyle = CommonHelper.readQss(styleFile)
+                self.setStyleSheet(qssStyle)
+            else:
+                self.setStyleSheet("")
+
+class CommonHelper:#主题加载类
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def readQss(style):
+        with open(style, 'r') as f:
+            return f.read()
 if __name__ == "__main__":
     def main() -> None:
         # 实例化 PyQt后台管理

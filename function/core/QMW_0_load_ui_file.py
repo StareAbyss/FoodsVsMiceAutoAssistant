@@ -44,17 +44,11 @@ class QMainWindowLoadUI(QMainWindow):
         T_ACTION_QUEUE_TIMER.set_zoom_rate(self.zoom_rate)
 
         # 设定字体
-        font1=QFontDatabase.addApplicationFont(PATHS["font"] + "\\Inconsolata-Black.ttf")
         font2=QFontDatabase.addApplicationFont(PATHS["font"] + "\\NotoSansMonoCJKhk-Bold.ttf")
-        font_family1 = QFontDatabase.applicationFontFamilies(font1)[0]
         font_family2 = QFontDatabase.applicationFontFamilies(font2)[0]
-        print(font_family1)
         print(font_family2)
 
 
-        styleFile = PATHS["theme"]+ "\\feiyang\\lightblue.css"
-        qssStyle = CommonHelper.readQss(styleFile)
-        self.setStyleSheet(qssStyle)
 
 
         # 获取系统样式
@@ -63,16 +57,7 @@ class QMainWindowLoadUI(QMainWindow):
         else:
             self.theme = "light"
 
-        # 修改特殊控件样式表
-        if self.theme == "dark":
-            self.Label_drag.setStyleSheet("""
-                QLabel {
-                    border: 1px solid grey; /* 灰色边框，宽度为1像素 */
-                    border-radius: 4px; /* 边框圆角半径为4像素 */
-                    border-color: #5b5b5b; /* 边框颜色 */
-                    background-color: #3c3c3c; /* 背景颜色 */
-                }
-            """)
+
 
     def closeEvent(self, event):
         """
@@ -84,14 +69,7 @@ class QMainWindowLoadUI(QMainWindow):
         os._exit(0)
 
 
-class CommonHelper:#主题加载类
-    def __init__(self):
-        pass
 
-    @staticmethod
-    def readQss(style):
-        with open(style, 'r') as f:
-            return f.read()
 
 if __name__ == "__main__":
     def main():

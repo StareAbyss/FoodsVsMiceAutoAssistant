@@ -194,3 +194,24 @@ QCheckBox::indicator:unchecked {
 QStatusBar {
 	color:rgb(240,240,240);
 }
+QTimeEdit::down-button,QDateEdit::down-button,QDateTimeEdit::down-button,QDoubleSpinBox::down-button,QSpinBox::down-button{
+image:url(:/qss/QSS_IMG/go-down-symbolic.symbolic.png);
+width:10px;
+height:10px;
+padding:0px 5px 2px 0px;
+}
+QComboBox::down-arrow,QDateEdit[calendarPopup="true"]::down-arrow,QTimeEdit[calendarPopup="true"]::down-arrow,QDateTimeEdit[calendarPopup="true"]::down-arrow{
+image:url(:/qss/QSS_IMG/go-down-symbolic.symbolic.png);
+width:10px;
+height:10px;
+right:2px;
+}
+QTimeEdit::up-button,QDateEdit::up-button,QDateTimeEdit::up-button,QDoubleSpinBox::up-button,QSpinBox::up-button{
+image:url(:/qss/QSS_IMG/go-up-symbolic.symbolic.png);
+width:10px;
+height:10px;
+padding:2px 5px 0px 0px;
+}
+QCheckBox::indicator:checked,QGroupBox::indicator:checked,QTreeView::indicator:checked,QListView::indicator:checked,QTableView::indicator:checked{
+image:url(:/qss/QSS_IMG/object-select-symbolic.symbolic.png);
+}
