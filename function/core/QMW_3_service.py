@@ -19,7 +19,6 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.TodoTimerManager import TodoTimerManager
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
-from function.tools.guild_manager import GuildManager
 
 
 class QMainWindowService(QMainWindowLog):
