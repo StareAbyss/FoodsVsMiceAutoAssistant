@@ -23,8 +23,8 @@ def screen_get_stage_name(handle, handle_360) -> str:
 
 
 if __name__ == '__main__':
-    handle = faa_get_handle(channel="锑食-微端", mode="flash")
-    handle_360 = faa_get_handle(channel="锑食-微端", mode="360")
+    handle = faa_get_handle(channel="美食大战老鼠微端", mode="flash")
+    handle_360 = faa_get_handle(channel="美食大战老鼠微端", mode="360")
 
 
     def main():

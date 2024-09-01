@@ -1799,13 +1799,26 @@ class FAA:
         self.signal_print_to_ui.emit(text=f"[使用绑定消耗品] [{self.player}P] 背包图标可能需要加载, 等待10s")
         time.sleep(10)
 
-        # 四次循环查找所有正确图标 不需要升到最顶, 打开背包会自动重置
-        for i in range(4):
+        # 七次循环查找所有正确图标(280格) 不需要升到最顶, 打开背包会自动重置
+        for i in range(7):
 
             self.print_debug(text="第{}页物品".format(i + 1))
 
-            # 第一次以外, 下滑4*5次
-            if i != 0:
+            # 第一次循环，点一下整理键
+            if i == 0:
+                # 点击整理物品按钮
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=905, y=475)
+                time.sleep(2)
+            # 最后一次循环，点一下整理键且回到背包最开始，处理在下层获得的物品
+            elif i == 6:
+                # 点击整理物品按钮
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=905, y=475)
+                time.sleep(2)
+                # 点击滚动条最上方以返回背包开始
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=916, y=115)
+                time.sleep(2)
+            # 第一次以外, 下滑6*5次
+            else:
                 for j in range(5):
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=920, y=422)
                     time.sleep(0.2)

@@ -1085,7 +1085,9 @@
         "top_up_money_2p": false,
         "end_exit_game": false,
         "auto_use_card": true,
-        "auto_delete_old_images": true
+        "auto_delete_old_images": true,
+        "guild_manager_1p": false,
+        "guild_manager_2p": false
     },
     "senior_settings": {
         "auto_senior_settings": false,
