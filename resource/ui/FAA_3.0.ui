@@ -67,7 +67,7 @@
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">#QFrame{color: rgb(255, 255, 255);}</string>
+     <string notr="true"/>
     </property>
     <property name="frameShape">
      <enum>QFrame::StyledPanel</enum>
@@ -84,11 +84,18 @@
        <height>61</height>
       </rect>
      </property>
+     <property name="styleSheet">
+      <string notr="true">border:none
+</string>
+     </property>
      <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
+      <enum>QFrame::NoFrame</enum>
      </property>
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
+     </property>
+     <property name="lineWidth">
+      <number>0</number>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="1,70,70,140,20">
       <property name="leftMargin">
