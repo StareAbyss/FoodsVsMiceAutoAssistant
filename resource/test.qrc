@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="test">
+    <file>art/threekey/-.png</file>
+    <file>art/threekey/x.png</file>
+    <file>art/threekey/口.png</file>
     <file>art/test/xp.png</file>
   </qresource>
   <qresource prefix="icon">

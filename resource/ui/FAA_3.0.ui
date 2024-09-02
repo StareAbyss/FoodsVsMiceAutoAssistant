@@ -67,7 +67,7 @@
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">border-radius: 50px; /* 设置圆角 */</string>
+     <string notr="true">#QFrame{color: rgb(255, 255, 255);}</string>
     </property>
     <property name="frameShape">
      <enum>QFrame::StyledPanel</enum>
@@ -125,14 +125,18 @@
          </sizepolicy>
         </property>
         <property name="styleSheet">
-         <string notr="true">border-radius: 48px;      
-</string>
+         <string notr="true">    min-width:  50px;
+    max-width:  50px;
+    min-height: 50px;
+    max-height: 50px;
+ 
+    border-radius: 25px;
+    border-width: 0 0 0 0;
+    
+border-image: url(:/icon/logo/圆角-FetTuo-48x.ico);</string>
         </property>
         <property name="text">
          <string/>
-        </property>
-        <property name="pixmap">
-         <pixmap resource="../test.qrc">:/icon/logo/圆角-FetTuo-48x.ico</pixmap>
         </property>
         <property name="scaledContents">
          <bool>false</bool>
@@ -160,40 +164,63 @@
        </spacer>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="5,5,5,1">
+       <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="2,2,2">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>2</number>
+        </property>
+        <property name="rightMargin">
+         <number>5</number>
+        </property>
         <item>
          <widget class="QPushButton" name="Minimized_Button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">image: url(:/test/art/threekey/-.png);</string>
+          </property>
           <property name="text">
-           <string>一</string>
+           <string/>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="maxOrNormal_Button">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">image: url(:/test/art/threekey/口.png);</string>
+          </property>
           <property name="text">
-           <string>口</string>
+           <string/>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="exitButton">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">image: url(:/test/art/threekey/x.png);</string>
+          </property>
           <property name="text">
-           <string>X</string>
+           <string/>
           </property>
          </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
         </item>
        </layout>
       </item>
