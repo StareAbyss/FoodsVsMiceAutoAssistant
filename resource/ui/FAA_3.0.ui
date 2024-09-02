@@ -7948,7 +7948,7 @@ Link Start</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_6">
         <item>
-         <layout class="QHBoxLayout" name="Lay_Tab3" stretch="10,1,10,1,10">
+         <layout class="QHBoxLayout" name="Lay_Tab3" stretch="0,1,10,1,10">
           <property name="spacing">
            <number>5</number>
           </property>
@@ -7968,7 +7968,7 @@ Link Start</string>
            <number>5</number>
           </property>
           <item>
-           <layout class="QVBoxLayout" name="Lay_Tab3_Left" stretch="5,0,0,0,10,0,2,0,2">
+           <layout class="QVBoxLayout" name="Lay_Tab3_Left" stretch="4,1,4,1,14">
             <property name="leftMargin">
              <number>5</number>
             </property>
@@ -8000,6 +8000,12 @@ Link Start</string>
               </property>
               <item>
                <widget class="QLabel" name="AdvancedSettings_Text">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>35</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>高级设置</string>
                 </property>
@@ -8243,13 +8249,6 @@ Link Start</string>
              </widget>
             </item>
             <item>
-             <widget class="Line" name="line_4">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
              <layout class="QVBoxLayout" name="Lay_GetWarmGift" stretch="1,1,1,0">
               <property name="spacing">
                <number>5</number>
@@ -8268,6 +8267,12 @@ Link Start</string>
               </property>
               <item>
                <widget class="QLabel" name="GetWarmGift_Text">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>35</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>领取温馨礼包</string>
                 </property>
@@ -8489,145 +8494,12 @@ Link Start</string>
              </layout>
             </item>
             <item>
-             <spacer name="verticalSpacer_7">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="Line" name="line_5">
+             <widget class="Line" name="line_4">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
              </widget>
             </item>
-            <item>
-             <layout class="QVBoxLayout" name="Lay_OpenEditorOfBattlePlan" stretch="3">
-              <property name="leftMargin">
-               <number>5</number>
-              </property>
-              <property name="topMargin">
-               <number>5</number>
-              </property>
-              <property name="rightMargin">
-               <number>5</number>
-              </property>
-              <property name="bottomMargin">
-               <number>5</number>
-              </property>
-              <item>
-               <widget class="QPushButton" name="OpenEditorOfBattlePlan_Button">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>只用点一下就够了!</string>
-                </property>
-                <property name="text">
-                 <string>点此启动
-战斗方案编辑器</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <widget class="Line" name="line_7">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="Lay_OpenEditorOfTaskSequence" stretch="3">
-              <property name="leftMargin">
-               <number>5</number>
-              </property>
-              <property name="topMargin">
-               <number>5</number>
-              </property>
-              <property name="rightMargin">
-               <number>5</number>
-              </property>
-              <property name="bottomMargin">
-               <number>5</number>
-              </property>
-              <item>
-               <widget class="QPushButton" name="OpenEditorOfTaskSequence_Button">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>16777215</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>只用点一下就够了!</string>
-                </property>
-                <property name="text">
-                 <string>点此启动
-任务序列编辑器</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="Line" name="line_11">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QVBoxLayout" name="Lay_Tab3_Center" stretch="30,0,25,0,40">
-            <property name="leftMargin">
-             <number>5</number>
-            </property>
-            <property name="topMargin">
-             <number>5</number>
-            </property>
-            <property name="rightMargin">
-             <number>5</number>
-            </property>
-            <property name="bottomMargin">
-             <number>5</number>
-            </property>
             <item>
              <layout class="QVBoxLayout" name="Lay_GetWarmGift_2" stretch="1,1,1,9">
               <property name="spacing">
@@ -8647,6 +8519,12 @@ Link Start</string>
               </property>
               <item>
                <widget class="QLabel" name="Lay_Level2_Text">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>35</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>兑换公会副本暗晶 / 删除多余消耗品</string>
                 </property>
@@ -8859,15 +8737,31 @@ Link Start</string>
               </item>
              </layout>
             </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="Line" name="line_11">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="Lay_Tab3_Center" stretch="0,0,40,0">
+            <property name="leftMargin">
+             <number>5</number>
+            </property>
+            <property name="topMargin">
+             <number>5</number>
+            </property>
+            <property name="rightMargin">
+             <number>5</number>
+            </property>
+            <property name="bottomMargin">
+             <number>5</number>
+            </property>
             <item>
-             <widget class="Line" name="line_6">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QVBoxLayout" name="Lay_senior_battle" stretch="1,0,0,0,3">
+             <layout class="QVBoxLayout" name="Lay_senior_battle" stretch="1,1,3">
               <property name="spacing">
                <number>5</number>
               </property>
@@ -8885,6 +8779,12 @@ Link Start</string>
               </property>
               <item alignment="Qt::AlignHCenter">
                <widget class="QLabel" name="Battle_senior_text">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>35</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>高级战斗设置</string>
                 </property>
@@ -8919,46 +8819,6 @@ Link Start</string>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_6">
-                <property name="text">
-                 <string>高级战斗日志输出</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="Lay_senior_battle_2" stretch="1,1">
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <item>
-                 <widget class="QRadioButton" name="all_senior_log">
-                  <property name="text">
-                   <string>我全都要</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QRadioButton" name="indeed_need">
-                  <property name="text">
-                   <string>非必要不记录</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
                <widget class="QLabel" name="label_2">
                 <property name="text">
                  <string>实现自动炸神风 &amp; 电流 &amp; 波次冰桶等超强功能
@@ -8982,6 +8842,9 @@ Link Start</string>
             </item>
             <item>
              <layout class="QVBoxLayout" name="_3">
+              <property name="spacing">
+               <number>5</number>
+              </property>
               <property name="leftMargin">
                <number>5</number>
               </property>
@@ -8996,6 +8859,12 @@ Link Start</string>
               </property>
               <item alignment="Qt::AlignHCenter">
                <widget class="QLabel" name="label_5">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>35</height>
+                 </size>
+                </property>
                 <property name="text">
                  <string>战斗日志管理</string>
                 </property>
@@ -9004,19 +8873,40 @@ Link Start</string>
               <item>
                <widget class="QLabel" name="label_7">
                 <property name="text">
-                 <string>填入你想对日志清理的时间，单位为天，负数则不清理</string>
+                 <string>填入日志最多保存多久前的，单位天，负数则不清理</string>
                 </property>
                </widget>
               </item>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout">
+                <property name="spacing">
+                 <number>5</number>
+                </property>
+                <property name="leftMargin">
+                 <number>5</number>
+                </property>
+                <property name="topMargin">
+                 <number>5</number>
+                </property>
+                <property name="rightMargin">
+                 <number>5</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>5</number>
+                </property>
                 <item alignment="Qt::AlignHCenter">
                  <widget class="QLabel" name="label_3">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>150</width>
+                    <height>0</height>
+                   </size>
                   </property>
                   <property name="text">
                    <string>高级战斗日志清理</string>
@@ -9026,7 +8916,7 @@ Link Start</string>
                 <item alignment="Qt::AlignRight">
                  <widget class="QLineEdit" name="senior_log_clean">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
@@ -9040,6 +8930,21 @@ Link Start</string>
               </item>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_2">
+                <property name="spacing">
+                 <number>5</number>
+                </property>
+                <property name="leftMargin">
+                 <number>5</number>
+                </property>
+                <property name="topMargin">
+                 <number>5</number>
+                </property>
+                <property name="rightMargin">
+                 <number>5</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>5</number>
+                </property>
                 <item alignment="Qt::AlignHCenter">
                  <widget class="QLabel" name="label_4">
                   <property name="sizePolicy">
@@ -9047,6 +8952,12 @@ Link Start</string>
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>150</width>
+                    <height>0</height>
+                   </size>
                   </property>
                   <property name="text">
                    <string>其他日志清理</string>
@@ -9056,7 +8967,7 @@ Link Start</string>
                 <item alignment="Qt::AlignRight">
                  <widget class="QLineEdit" name="other_log_clean">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
@@ -9071,7 +8982,63 @@ Link Start</string>
                 </item>
                </layout>
               </item>
+              <item>
+               <widget class="QLabel" name="label_6">
+                <property name="text">
+                 <string>高级战斗，输出的日志层级</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="Lay_senior_battle_2" stretch="1,1">
+                <property name="spacing">
+                 <number>5</number>
+                </property>
+                <property name="leftMargin">
+                 <number>5</number>
+                </property>
+                <property name="topMargin">
+                 <number>5</number>
+                </property>
+                <property name="rightMargin">
+                 <number>5</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>5</number>
+                </property>
+                <item>
+                 <widget class="QRadioButton" name="all_senior_log">
+                  <property name="text">
+                   <string>我全都要</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QRadioButton" name="indeed_need">
+                  <property name="text">
+                   <string>非必要不记录</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
              </layout>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_11">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>1000</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </item>
@@ -9126,6 +9093,123 @@ Link Start</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_7">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>1000</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="Line" name="line_7">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="Lay_OpenEditorOfBattlePlan" stretch="3">
+              <property name="leftMargin">
+               <number>5</number>
+              </property>
+              <property name="topMargin">
+               <number>5</number>
+              </property>
+              <property name="rightMargin">
+               <number>5</number>
+              </property>
+              <property name="bottomMargin">
+               <number>5</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="OpenEditorOfBattlePlan_Button">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>60</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>只用点一下就够了!</string>
+                </property>
+                <property name="text">
+                 <string>点此启动
+战斗方案编辑器</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="Line" name="line_5">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="Lay_OpenEditorOfTaskSequence" stretch="3">
+              <property name="leftMargin">
+               <number>5</number>
+              </property>
+              <property name="topMargin">
+               <number>5</number>
+              </property>
+              <property name="rightMargin">
+               <number>5</number>
+              </property>
+              <property name="bottomMargin">
+               <number>5</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="OpenEditorOfTaskSequence_Button">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>60</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>只用点一下就够了!</string>
+                </property>
+                <property name="text">
+                 <string>点此启动
+任务序列编辑器</string>
                 </property>
                </widget>
               </item>
