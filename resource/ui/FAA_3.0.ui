@@ -62,8 +62,8 @@
      <rect>
       <x>60</x>
       <y>60</y>
-      <width>1111</width>
-      <height>791</height>
+      <width>1121</width>
+      <height>841</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -80,8 +80,8 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>1111</width>
-       <height>31</height>
+       <width>1121</width>
+       <height>61</height>
       </rect>
      </property>
      <property name="frameShape">
@@ -90,7 +90,7 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="1,1,10,1">
+     <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="1,70,70,140,20">
       <property name="leftMargin">
        <number>0</number>
       </property>
@@ -104,7 +104,30 @@
        <number>0</number>
       </property>
       <item>
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
        <widget class="QLabel" name="logo">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">border-radius: 48px;      
+</string>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -112,14 +135,14 @@
          <pixmap resource="../test.qrc">:/icon/logo/圆角-FetTuo-48x.ico</pixmap>
         </property>
         <property name="scaledContents">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QLabel" name="title">
         <property name="text">
-         <string>FAA - 本软件免费且开源</string>
+         <string> FAA - 本软件免费且开源</string>
         </property>
        </widget>
       </item>
@@ -137,7 +160,7 @@
        </spacer>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="2,2,2,1">
+       <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="5,5,5,1">
         <item>
          <widget class="QPushButton" name="Minimized_Button">
           <property name="text">
@@ -179,8 +202,8 @@
     <widget class="QTabWidget" name="tabWidget">
      <property name="geometry">
       <rect>
-       <x>0</x>
-       <y>30</y>
+       <x>10</x>
+       <y>80</y>
        <width>1101</width>
        <height>751</height>
       </rect>
@@ -9733,9 +9756,9 @@ color: rgb(0, 0, 0);</string>
      <property name="geometry">
       <rect>
        <x>900</x>
-       <y>30</y>
+       <y>70</y>
        <width>200</width>
-       <height>20</height>
+       <height>31</height>
       </rect>
      </property>
      <property name="minimumSize">
