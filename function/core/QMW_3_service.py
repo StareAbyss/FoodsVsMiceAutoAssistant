@@ -5,7 +5,7 @@ import sys
 import pandas as pd
 import win32con
 import win32gui
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtCore import pyqtSignal,Qt
 from PyQt6.QtGui import QFontDatabase, QFont
 from PyQt6.QtWidgets import QApplication
 
@@ -452,6 +452,14 @@ class QMainWindowService(QMainWindowLog):
                 # 也许有一天能写出真正的老板键 大概
             self.game_window_is_hide = True
 
+def set_no_border(window):
+    window.setWindowFlag(Qt.WindowType.FramelessWindowHint)
+    window.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+    #设置三键
+    window.Minimized_Button.clicked.connect(window.showMinimized)
+    window.maxOrNormal_Button.clicked.connect(window.maxOrNormal)
+    window.exitButton.clicked.connect(window.queryExit)
+
 
 def faa_start_main():
 
@@ -475,8 +483,12 @@ def faa_start_main():
 
     app.setFont(font)
 
+
+
     # 实例化 主窗口
     window = QMainWindowService()
+    # 设置无边框
+    set_no_border(window)
 
     # 设置全局字体
     window.font = font

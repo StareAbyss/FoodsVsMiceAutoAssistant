@@ -1,8 +1,9 @@
 import os
 import sys
 
-from PyQt6 import uic, QtGui
+from PyQt6 import uic, QtGui,QtCore
 from PyQt6.QtWidgets import QMainWindow, QApplication
+from PyQt6.QtCore import Qt
 
 from function.common.get_system_dpi import get_system_dpi
 from function.globals.get_paths import PATHS
@@ -57,6 +58,48 @@ class QMainWindowLoadUI(QMainWindow):
         event.accept()
         # 用过sys.exit(0)和sys.exit(app.exec())，但没起效果
         os._exit(0)
+
+    # 切换最大化与正常大小
+    def maxOrNormal(self):
+        if self.isMaximized():
+            self.showNormal()
+        else:
+            self.showMaximized()
+
+    # 弹出警告提示窗口确认是否要关闭
+    def queryExit(self):
+            QtCore.QCoreApplication.instance().exit()
+
+    _startPos = None
+    _endPos = None
+    _isTracking = None
+
+    # 鼠标移动事件
+    def mouseMoveEvent(self, a0: QtGui.QMouseEvent):
+        if self._startPos:
+            self._endPos = a0.pos() - self._startPos
+            # 移动窗口
+            self.move(self.pos() + self._endPos)
+
+    # 鼠标按下事件
+    def mousePressEvent(self, a0: QtGui.QMouseEvent):
+        # 根据鼠标按下时的位置判断是否在QFrame范围内
+        if self.childAt(a0.pos().x(), a0.pos().y()).objectName() == "title_tag":
+            # 判断鼠标按下的是左键
+            if a0.button() == Qt.MouseButton.LeftButton:
+                self._isTracking = True
+                # 记录初始位置
+                self._startPos = QtCore.QPoint(a0.pos().x(), a0.pos().y())
+
+    # 鼠标松开事件
+    def mouseReleaseEvent(self, a0: QtGui.QMouseEvent):
+        if a0.button() == Qt.MouseButton.LeftButton:
+            self._isTracking = False
+            self._startPos = None
+            self._endPos = None
+
+
+
 
 
 if __name__ == "__main__":
