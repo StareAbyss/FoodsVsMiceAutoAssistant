@@ -2,14 +2,13 @@ import os
 import sys
 
 from PyQt6 import uic, QtGui
-from PyQt6.QtGui import QIcon, QFontDatabase,QFont
 from PyQt6.QtWidgets import QMainWindow, QApplication
 
 from function.common.get_system_dpi import get_system_dpi
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
+
 #虽然ide显示下面这行没用，但实际是用来加载相关资源的，不可删除
-from function.qrc import test_rc,theme_rc,qdarkgraystyle_rc,modern_rc,GTRONICK_rc
 
 ZOOM_RATE = None
 
@@ -32,7 +31,6 @@ class QMainWindowLoadUI(QMainWindow):
 
         # 设置版本号
         self.version = "v1.5.0-beta.3"
-        self.version += "   "
         self.Label_Version.setText(self.version)
 
         # 从服务器获取最新版本号，如果和本地一致，就把版本号改成金色；不一致改成绿色
@@ -44,24 +42,11 @@ class QMainWindowLoadUI(QMainWindow):
         self.zoom_rate = get_system_dpi() / 96
         T_ACTION_QUEUE_TIMER.set_zoom_rate(self.zoom_rate)
 
-        # 设定字体
-        font2=QFontDatabase.addApplicationFont(PATHS["font"] + "\\NotoSansMonoCJKhk-Bold.ttf")
-        font1=QFontDatabase.addApplicationFont(PATHS["font"] + "\\手书体.ttf")
-        font_family2 = QFontDatabase.applicationFontFamilies(font1)[0]
-        font_family = QFontDatabase.applicationFontFamilies(font2)[0]
-        self.font = QFont(font_family, 11)
-        print(font_family2)
-
-
-
-
-        # 获取系统样式
+        # 获取系统样式(日夜)
         if self.palette().color(QtGui.QPalette.ColorRole.Window).lightness() < 128:
             self.theme = "dark"
         else:
             self.theme = "light"
-
-
 
     def closeEvent(self, event):
         """
@@ -71,8 +56,6 @@ class QMainWindowLoadUI(QMainWindow):
         event.accept()
         # 用过sys.exit(0)和sys.exit(app.exec())，但没起效果
         os._exit(0)
-
-
 
 
 if __name__ == "__main__":

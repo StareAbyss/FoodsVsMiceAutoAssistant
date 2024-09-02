@@ -555,14 +555,11 @@ class QMWEditorOfTaskSequence(QMainWindow):
         Load a JSON file and parse it into the task sequence list
         """
 
-        options = QFileDialog.Option.DontUseNativeDialog
-
         file_name, _ = QFileDialog.getOpenFileName(
             parent=self,
             caption="加载<事项序列>.json",
             directory=PATHS["task_sequence"],
-            filter="JSON Files (*.json)",
-            options=options)
+            filter="JSON Files (*.json)")
 
         if file_name:
             try:
@@ -593,14 +590,11 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 f"转化ui内容到list失败\n请联系开发者!!!\n错误信息: {str(e)}")
             return
 
-        options = QFileDialog.Option.DontUseNativeDialog
-
         file_name, _ = QFileDialog.getSaveFileName(
             parent=self,
             caption="保存事项序列.json",
             directory=PATHS["task_sequence"],
-            filter="JSON Files (*.json)",
-            options=options)
+            filter="JSON Files (*.json)")
         if file_name:
             try:
                 with open(file_name, 'w', encoding='utf-8') as file:
