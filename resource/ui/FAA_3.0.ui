@@ -171,7 +171,7 @@ border-image: url(:/icon/logo/圆角-FetTuo-48x.ico);</string>
        </spacer>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="2,2,2">
+       <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="2,1,2,1,2">
         <property name="spacing">
          <number>0</number>
         </property>
@@ -184,7 +184,7 @@ border-image: url(:/icon/logo/圆角-FetTuo-48x.ico);</string>
         <item>
          <widget class="QPushButton" name="Minimized_Button">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -200,9 +200,22 @@ border:none</string>
          </widget>
         </item>
         <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
          <widget class="QPushButton" name="maxOrNormal_Button">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -218,9 +231,22 @@ border:none</string>
          </widget>
         </item>
         <item>
+         <spacer name="horizontalSpacer_4">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
          <widget class="QPushButton" name="exitButton">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
@@ -256,7 +282,18 @@ border:none</string>
      </property>
      <property name="styleSheet">
       <string notr="true">#tagwidget{image: url(:/skin/art/imageskin/firefly.png);}
-</string>
+QTabWidget::pane {
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+    }
+    QTabBar::tab:selected {
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+    }</string>
      </property>
      <property name="currentIndex">
       <number>0</number>

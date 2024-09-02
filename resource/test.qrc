@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="test">
+    <file>art/background/白色.png</file>
     <file>art/threekey/-.png</file>
     <file>art/threekey/x.png</file>
     <file>art/threekey/口.png</file>
