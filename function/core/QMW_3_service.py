@@ -1,6 +1,8 @@
+import os
 import random
 import sys
 
+import pandas as pd
 import win32con
 import win32gui
 from PyQt6.QtCore import pyqtSignal
@@ -11,10 +13,12 @@ from function.core.FAA_extra_readimage import kill_process
 from function.core.QMW_2_log import QMainWindowLog
 from function.core.QMW_EditorOfBattlePlan import QMWEditorOfBattlePlan
 from function.core.QMW_EditorOfTaskSequence import QMWEditorOfTaskSequence
+from function.core.QMW_GuildManager import PandasModel, ImageDelegate
 from function.core.QMW_TipBattle import QMWTipBattle
 from function.core.QMW_TipStageID import QMWTipStageID
 from function.core.QMW_TipWarmGift import QMWTipWarmGift
 from function.core.Todo import ThreadTodo
+from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.TodoTimerManager import TodoTimerManager
 from function.scattered.gat_handle import faa_get_handle
@@ -90,6 +94,20 @@ class QMainWindowService(QMainWindowLog):
         self.Button_Hide.clicked.connect(self.click_btn_hide_window)
         self.game_window_is_hide = False
 
+        # 额外窗口，公会管理器
+        if os.path.exists(f"{PATHS['logs']}\\guild_manager\\guild_members_contributions.csv"):
+            self.df = pd.read_csv(f"{PATHS["logs"]}\\guild_manager\\guild_members_contributions.csv")
+            self.filtered_df = self.df[['Name Image Path', 'Total Contribution']]
+            self.PandasModel = PandasModel(self.filtered_df)
+            self.GuildMemberInfoTable.setModel(self.PandasModel)
+            # 添加图片
+            self.image_delegate = ImageDelegate(self.GuildMemberInfoTable)
+            self.GuildMemberInfoTable.setItemDelegateForColumn(0, self.image_delegate)
+            # 调整行高
+            self.GuildMemberInfoTable.verticalHeader().setDefaultSectionSize(45)
+            # 根据日历日期与视图模式，调整表格的过滤器
+            self.DateSelector.selectionChanged.connect(self.update_table_view)
+
         self.is_ending = False  # 线程是否正在结束
         self.is_start = False  # 线程是否正在启动
 
@@ -117,6 +135,16 @@ class QMainWindowService(QMainWindowLog):
         else:
             self.Name2P_Input.setText("")
             self.GameName_Input.setText(window_name)
+
+    def update_table_view(self):
+        """
+        根据视图模式/日期，改变表格显示内容
+        """
+        selected_date = self.DateSelector.selectedDate().toString('yyyy-MM-dd')
+        if selected_date:
+            self.filtered_df = self.df[self.df['Date'] == selected_date][['Name Image Path', 'Total Contribution']]
+            self.PandasModel = PandasModel(self.filtered_df)
+            self.GuildMemberInfoTable.setModel(self.PandasModel)
 
     def todo_start(self, plan_index=None):
         """
