@@ -460,6 +460,7 @@ def faa_start_main():
 
     # 读取字体文件
     font_id = QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
+    QFontDatabase.addApplicationFont(PATHS["font"] + "\\手书体.ttf")
 
     # 获取字体家族名称
     font_families = QFontDatabase.applicationFontFamilies(font_id)
@@ -470,6 +471,7 @@ def faa_start_main():
 
     # 创建 QFont 对象并设置大小
     font = QFont(font_family, 11)
+    # print(font_family)
 
     app.setFont(font)
 

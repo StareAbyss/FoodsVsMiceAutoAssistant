@@ -9604,7 +9604,8 @@ Link Start</string>
             <item>
              <widget class="QLabel" name="label_8">
               <property name="styleSheet">
-               <string notr="true"/>
+               <string notr="true">font: 30pt &quot;ShouShuti&quot;;
+color: rgb(0, 0, 0);</string>
               </property>
               <property name="text">
                <string>未完待续...
