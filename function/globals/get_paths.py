@@ -80,7 +80,9 @@ def check_paths():
         "\\logs\\result_json",
         "\\logs\\yolo_output",
         "\\logs\\yolo_output\\images",
-        "\\logs\\yolo_output\\labels"
+        "\\logs\\yolo_output\\labels",
+        "\\logs\\guild_manager",
+        "\\logs\\guild_manager\\guild_member_images"
     ]
     for path in paths:
         ensure_directory_exists(PATHS["root"] + path)

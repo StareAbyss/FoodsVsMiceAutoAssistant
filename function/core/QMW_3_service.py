@@ -6,6 +6,7 @@ import pandas as pd
 import win32con
 import win32gui
 from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtGui import QFontDatabase, QFont
 from PyQt6.QtWidgets import QApplication
 
 from function.core.FAA import FAA
@@ -453,11 +454,30 @@ class QMainWindowService(QMainWindowLog):
 
 
 def faa_start_main():
+
     # 实例化 PyQt后台管理
     app = QApplication(sys.argv)
 
+    # 读取字体文件
+    font_id = QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
+
+    # 获取字体家族名称
+    font_families = QFontDatabase.applicationFontFamilies(font_id)
+    if not font_families:
+        raise ValueError("Failed to load font file.")
+
+    font_family = font_families[0]
+
+    # 创建 QFont 对象并设置大小
+    font = QFont(font_family, 11)
+
+    app.setFont(font)
+
     # 实例化 主窗口
     window = QMainWindowService()
+
+    # 设置全局字体
+    window.font = font
 
     # 主窗口 实现
     window.show()
