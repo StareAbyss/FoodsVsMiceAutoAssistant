@@ -25,6 +25,9 @@ logs/match_failed/texts_美食大赛/blocks_half/*.png
 logs/match_failed/texts_关卡名称/blocks/*.png
 logs/match_failed/texts_关卡名称/blocks_half/*.png
 
+logs/guild_manager/guild_member_images/*.png
+logs/guild_manager/guild_members_contributions.csv
+
 logs/match_failed/loots/*.png
 
 logs/result_json/*.json

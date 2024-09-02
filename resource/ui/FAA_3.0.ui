@@ -9326,12 +9326,27 @@ Link Start</string>
            </spacer>
           </item>
           <item>
-           <widget class="QCalendarWidget" name="calendarWidget">
+           <widget class="QCalendarWidget" name="DateSelector">
             <property name="minimumSize">
              <size>
               <width>0</width>
               <height>300</height>
              </size>
+            </property>
+            <property name="gridVisible">
+             <bool>true</bool>
+            </property>
+            <property name="horizontalHeaderFormat">
+             <enum>QCalendarWidget::LongDayNames</enum>
+            </property>
+            <property name="verticalHeaderFormat">
+             <enum>QCalendarWidget::ISOWeekNumbers</enum>
+            </property>
+            <property name="navigationBarVisible">
+             <bool>true</bool>
+            </property>
+            <property name="dateEditEnabled">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
@@ -9352,8 +9367,8 @@ Link Start</string>
            <widget class="QLabel" name="label_11">
             <property name="text">
              <string>说明
-
-
+启用后，在领取奖励时
+所选的那一P会扫描公会的所有成员，自动生成表格
 
 
 
@@ -9373,7 +9388,11 @@ Link Start</string>
          </layout>
         </item>
         <item>
-         <widget class="QTableView" name="tableView"/>
+         <widget class="QTableView" name="GuildMemberInfoTable">
+          <property name="sortingEnabled">
+           <bool>true</bool>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>

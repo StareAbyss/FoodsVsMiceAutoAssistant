@@ -400,7 +400,7 @@ class ThreadTodo(QThread):
             self.faa[self.opt["advanced_settings"]["guild_manager_active"]].action_bottom_menu(mode="公会")
 
             # 扫描
-            self.guild_manager.get_guild_member_page(
+            self.guild_manager.main(
                 handle=self.faa[self.opt["advanced_settings"]["guild_manager_active"]].handle,
                 handle_360=self.faa[self.opt["advanced_settings"]["guild_manager_active"]].handle_360
             )
