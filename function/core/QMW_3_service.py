@@ -459,6 +459,7 @@ class QMainWindowService(QMainWindowLog):
         self.effect_shadow.setBlurRadius(20) # 阴影半径
         self.effect_shadow.setColor(QtCore.Qt.GlobalColor.gray) # 阴影颜色
         self.main_frame.setGraphicsEffect(self.effect_shadow) # 将设置套用到widget窗口中
+        self.logo.setGraphicsEffect(self.effect_shadow) # 将设置套用到widget窗口中
 
 def set_no_border(window):
     window.setWindowFlag(Qt.WindowType.FramelessWindowHint)
