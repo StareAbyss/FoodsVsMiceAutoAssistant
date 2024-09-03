@@ -152,12 +152,11 @@ QFrame#main_frame{
           </sizepolicy>
          </property>
          <property name="styleSheet">
-          <string notr="true">min-width:     50px;     
-min-height:    50px;    
-max-width:     50px;      
-max-height:    50px;     
-border-radius: 25px;      
-border:1px solid gold;  
+          <string notr="true">min-width:     48px;     
+min-height:    48px;    
+max-width:     48px;      
+max-height:    48px;     
+border-radius: 24px;      
 background-image: url(:/icon/logo/圆角-FetTuo-48x.ico);
        
 </string>
@@ -215,6 +214,9 @@ background-image: url(:/icon/logo/圆角-FetTuo-48x.ico);
              <height>40</height>
             </size>
            </property>
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
+           </property>
            <property name="styleSheet">
             <string notr="true">image: url(:/test/art/threekey/-.png);
 background-color: transparent;
@@ -238,6 +240,9 @@ border:none</string>
              <width>40</width>
              <height>40</height>
             </size>
+           </property>
+           <property name="cursor">
+            <cursorShape>PointingHandCursor</cursorShape>
            </property>
            <property name="styleSheet">
             <string notr="true">image: url(:/test/art/threekey/x.png);
