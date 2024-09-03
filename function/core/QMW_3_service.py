@@ -5,6 +5,7 @@ import sys
 import pandas as pd
 import win32con
 import win32gui
+from PyQt6 import QtWidgets, QtCore
 from PyQt6.QtCore import pyqtSignal,Qt
 from PyQt6.QtGui import QFontDatabase, QFont
 from PyQt6.QtWidgets import QApplication
@@ -451,10 +452,19 @@ class QMainWindowService(QMainWindowLog):
                 # win32gui.ShowWindow(handle,0)
                 # 也许有一天能写出真正的老板键 大概
             self.game_window_is_hide = True
+    def add_shadow(self):
+        # 添加阴影
+        self.effect_shadow = QtWidgets.QGraphicsDropShadowEffect(self)
+        self.effect_shadow.setOffset(0,0) # 偏移
+        self.effect_shadow.setBlurRadius(20) # 阴影半径
+        self.effect_shadow.setColor(QtCore.Qt.GlobalColor.gray) # 阴影颜色
+        self.main_frame.setGraphicsEffect(self.effect_shadow) # 将设置套用到widget窗口中
 
 def set_no_border(window):
     window.setWindowFlag(Qt.WindowType.FramelessWindowHint)
     window.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+    window.add_shadow()
+    window.base_widget.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
 
 
