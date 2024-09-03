@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>1373</width>
-    <height>919</height>
+    <height>1026</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -32,7 +32,7 @@
   <property name="styleSheet">
    <string notr="true">
 QFrame#main_frame{
-	border-radius:15px;
+	border-radius:10px;
 	background-color: rgb(255, 255, 255);
 }</string>
   </property>
@@ -147,7 +147,7 @@ QFrame#main_frame{
     border-radius: 25px;
     border-width: 0 0 0 0;
     
-border-image: url(:/icon/logo/圆角-FetTuo-48x.ico);</string>
+border-image: url(:/icon/logo/圆角-FetTuo-48x.ico)0 0 0 0 stretch strectch;</string>
         </property>
         <property name="text">
          <string/>
@@ -178,9 +178,9 @@ border-image: url(:/icon/logo/圆角-FetTuo-48x.ico);</string>
        </spacer>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="2,1,2,1,2">
+       <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="2,2">
         <property name="spacing">
-         <number>0</number>
+         <number>10</number>
         </property>
         <property name="leftMargin">
          <number>2</number>
@@ -211,56 +211,6 @@ border:none</string>
            <string/>
           </property>
          </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QPushButton" name="maxOrNormal_Button">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>40</width>
-            <height>40</height>
-           </size>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">image: url(:/test/art/threekey/口.png);
-background-color: transparent;
-border:none</string>
-          </property>
-          <property name="text">
-           <string/>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_4">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
         </item>
         <item>
          <widget class="QPushButton" name="exitButton">
@@ -322,6 +272,9 @@ QTabWidget::pane {
      </property>
      <property name="currentIndex">
       <number>0</number>
+     </property>
+     <property name="elideMode">
+      <enum>Qt::ElideNone</enum>
      </property>
      <widget class="QWidget" name="Tab1">
       <attribute name="title">
@@ -9918,5 +9871,38 @@ color: rgb(0, 0, 0);</string>
   <include location="../test.qrc"/>
   <include location="../theme/GTRONICK/GTRONICK.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>Minimized_Button</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>showMinimized()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1092</x>
+     <y>100</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1097</x>
+     <y>16</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>exitButton</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>1141</x>
+     <y>100</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1180</x>
+     <y>30</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

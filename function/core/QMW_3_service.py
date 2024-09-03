@@ -455,10 +455,7 @@ class QMainWindowService(QMainWindowLog):
 def set_no_border(window):
     window.setWindowFlag(Qt.WindowType.FramelessWindowHint)
     window.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-    #设置三键
-    window.Minimized_Button.clicked.connect(window.showMinimized)
-    window.maxOrNormal_Button.clicked.connect(window.maxOrNormal)
-    window.exitButton.clicked.connect(window.queryExit)
+
 
 
 def faa_start_main():
