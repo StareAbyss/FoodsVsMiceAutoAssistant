@@ -67,10 +67,10 @@ QFrame#main_frame{
    <widget class="QWidget" name="base_widget" native="true">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>40</y>
+      <x>140</x>
+      <y>80</y>
       <width>1151</width>
-      <height>881</height>
+      <height>861</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -83,7 +83,7 @@ QFrame#main_frame{
        <x>10</x>
        <y>20</y>
        <width>1121</width>
-       <height>841</height>
+       <height>821</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -101,7 +101,7 @@ QFrame#main_frame{
         <x>0</x>
         <y>0</y>
         <width>1121</width>
-        <height>101</height>
+        <height>71</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -173,6 +173,9 @@ background-image: url(:/icon/logo/圆角-FetTuo-48x.ico);
         <widget class="QLabel" name="title">
          <property name="text">
           <string>  FAA - 本软件免费且开源</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
          </property>
         </widget>
        </item>
@@ -262,7 +265,7 @@ border:none</string>
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>80</y>
+        <y>60</y>
         <width>1101</width>
         <height>751</height>
        </rect>
@@ -281,18 +284,23 @@ QTabWidget::pane {
         border-right: none;
         border-bottom: none;
     }
-    QTabBar::tab:selected {
-        border-top: none;
-        border-left: none;
-        border-right: none;
-        border-bottom: none;
-    }</string>
+
+</string>
       </property>
       <property name="currentIndex">
        <number>0</number>
       </property>
       <property name="elideMode">
        <enum>Qt::ElideNone</enum>
+      </property>
+      <property name="usesScrollButtons">
+       <bool>true</bool>
+      </property>
+      <property name="documentMode">
+       <bool>false</bool>
+      </property>
+      <property name="tabBarAutoHide">
+       <bool>false</bool>
       </property>
       <widget class="QWidget" name="Tab1">
        <attribute name="title">
@@ -360,6 +368,9 @@ QTabWidget::pane {
         padding: 10px;
         font: inherit;
 </string>
+              </property>
+              <property name="inputMethodHints">
+               <set>Qt::ImhMultiLine</set>
               </property>
              </widget>
             </item>
@@ -9828,8 +9839,8 @@ color: rgb(0, 0, 0);</string>
      <widget class="QLabel" name="Label_Version">
       <property name="geometry">
        <rect>
-        <x>900</x>
-        <y>70</y>
+        <x>880</x>
+        <y>60</y>
         <width>200</width>
         <height>31</height>
        </rect>
