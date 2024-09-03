@@ -26,6 +26,8 @@ from function.scattered.TodoTimerManager import TodoTimerManager
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
 
+from function.core.QMW_1_load_settings import CommonHelper
+
 
 class QMainWindowService(QMainWindowLog):
     signal_todo_end = pyqtSignal()
@@ -368,25 +370,57 @@ class QMainWindowService(QMainWindowLog):
             self.todo_timer_start()
         else:
             self.todo_timer_stop()
+    def set_stylesheet(self,widget):
+        # 定义一个字典，将复选框对象映射到对应的值
+        skin_dict = {
+            self.skin1: 1,
+            self.skin2: 2,
+            self.skin3: 3,
+            self.skin4: 4,
+            self.skin5: 5,
+            self.skin6: 6,
+            self.skin7: 7,
+            self.skin8: 8,
+            self.skin9: 9,
+            self.skin10: 10,
+            self.skin11: 11
+        }
 
+        # 遍历字典，找到第一个被选中的复选框
+        for skin, option in skin_dict.items():
+            if skin.isChecked():
+                my_opt = option
+                break
+
+        styleFile = self.getstylefile(my_opt)
+        if styleFile is not None:
+            qssStyle = CommonHelper.readQss(styleFile)
+            widget.setStyleSheet(qssStyle)
+        else:
+            widget.setStyleSheet("")
     def click_btn_open_editor_of_battle_plan(self):
         self.window_editor_of_battle_plan.set_my_font(self.font)
+        self.set_stylesheet(self.window_editor_of_battle_plan)
         self.window_editor_of_battle_plan.show()
 
     def click_btn_open_editor_of_task_sequence(self):
         self.window_editor_of_task_sequence.set_my_font(self.font)
+        self.set_stylesheet(self.window_editor_of_task_sequence)
         self.window_editor_of_task_sequence.show()
 
     def click_btn_tip_warm_gift(self):
         self.window_tip_warm_gift.setFont(self.font)
+        self.set_stylesheet(self.window_tip_warm_gift)
         self.window_tip_warm_gift.show()
 
     def click_btn_tip_stage_id(self):
         self.window_tip_stage_id.setFont(self.font)
+        self.set_stylesheet(self.window_tip_stage_id)
         self.window_tip_stage_id.show()
 
     def click_btn_tip_battle(self):
         self.window_tip_battle.setFont(self.font)
+        self.set_stylesheet(self.window_tip_battle)
         if self.window_tip_battle_is_show:
             self.window_tip_battle.hide()
             self.window_tip_battle_is_show = False
