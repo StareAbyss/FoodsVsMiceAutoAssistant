@@ -29,6 +29,13 @@
    <iconset resource="../test.qrc">
     <normaloff>:/icon/logo/FetTuo-192x.png</normaloff>:/icon/logo/FetTuo-192x.png</iconset>
   </property>
+  <property name="styleSheet">
+   <string notr="true">
+QFrame#main_frame{
+	border-radius:15px;
+	background-color: rgb(255, 255, 255);
+}</string>
+  </property>
   <property name="animated">
    <bool>true</bool>
   </property>
@@ -81,7 +88,7 @@
        <x>0</x>
        <y>0</y>
        <width>1121</width>
-       <height>61</height>
+       <height>101</height>
       </rect>
      </property>
      <property name="styleSheet">
@@ -99,16 +106,16 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="1,70,70,140,20">
       <property name="leftMargin">
-       <number>0</number>
+       <number>10</number>
       </property>
       <property name="topMargin">
-       <number>0</number>
+       <number>5</number>
       </property>
       <property name="rightMargin">
-       <number>0</number>
+       <number>10</number>
       </property>
       <property name="bottomMargin">
-       <number>0</number>
+       <number>30</number>
       </property>
       <item>
        <spacer name="horizontalSpacer_3">
@@ -153,7 +160,7 @@ border-image: url(:/icon/logo/圆角-FetTuo-48x.ico);</string>
       <item>
        <widget class="QLabel" name="title">
         <property name="text">
-         <string> FAA - 本软件免费且开源</string>
+         <string>  FAA - 本软件免费且开源</string>
         </property>
        </widget>
       </item>
@@ -189,6 +196,12 @@ border-image: url(:/icon/logo/圆角-FetTuo-48x.ico);</string>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
           <property name="styleSheet">
            <string notr="true">image: url(:/test/art/threekey/-.png);
 background-color: transparent;
@@ -220,6 +233,12 @@ border:none</string>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
+          </property>
           <property name="styleSheet">
            <string notr="true">image: url(:/test/art/threekey/口.png);
 background-color: transparent;
@@ -250,6 +269,12 @@ border:none</string>
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>40</height>
+           </size>
           </property>
           <property name="styleSheet">
            <string notr="true">image: url(:/test/art/threekey/x.png);
