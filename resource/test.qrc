@@ -1,9 +1,14 @@
 <RCC>
   <qresource prefix="test">
+    <file>art/background/白色.png</file>
+    <file>art/threekey/-.png</file>
+    <file>art/threekey/x.png</file>
+    <file>art/threekey/口.png</file>
     <file>art/test/xp.png</file>
   </qresource>
   <qresource prefix="icon">
     <file>logo/FetTuo-192x.png</file>
+    <file>logo/圆角-FetTuo-48x.ico</file>
   </qresource>
   <qresource prefix="skin">
     <file>art/imageskin/firefly.png</file>
