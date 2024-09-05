@@ -5,7 +5,8 @@ import sys
 import pandas as pd
 import win32con
 import win32gui
-from PyQt6.QtCore import pyqtSignal
+from PyQt6 import QtWidgets, QtCore
+from PyQt6.QtCore import pyqtSignal,Qt
 from PyQt6.QtGui import QFontDatabase, QFont
 from PyQt6.QtWidgets import QApplication
 
@@ -24,6 +25,8 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.TodoTimerManager import TodoTimerManager
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
+
+from function.core.QMW_1_load_settings import CommonHelper
 
 
 class QMainWindowService(QMainWindowLog):
@@ -367,25 +370,57 @@ class QMainWindowService(QMainWindowLog):
             self.todo_timer_start()
         else:
             self.todo_timer_stop()
+    def set_stylesheet(self,widget):
+        # 定义一个字典，将复选框对象映射到对应的值
+        skin_dict = {
+            self.skin1: 1,
+            self.skin2: 2,
+            self.skin3: 3,
+            self.skin4: 4,
+            self.skin5: 5,
+            self.skin6: 6,
+            self.skin7: 7,
+            self.skin8: 8,
+            self.skin9: 9,
+            self.skin10: 10,
+            self.skin11: 11
+        }
 
+        # 遍历字典，找到第一个被选中的复选框
+        for skin, option in skin_dict.items():
+            if skin.isChecked():
+                my_opt = option
+                break
+
+        styleFile = self.getstylefile(my_opt)
+        if styleFile is not None:
+            qssStyle = CommonHelper.readQss(styleFile)
+            widget.setStyleSheet(qssStyle)
+        else:
+            widget.setStyleSheet("")
     def click_btn_open_editor_of_battle_plan(self):
         self.window_editor_of_battle_plan.set_my_font(self.font)
+        self.set_stylesheet(self.window_editor_of_battle_plan)
         self.window_editor_of_battle_plan.show()
 
     def click_btn_open_editor_of_task_sequence(self):
         self.window_editor_of_task_sequence.set_my_font(self.font)
+        self.set_stylesheet(self.window_editor_of_task_sequence)
         self.window_editor_of_task_sequence.show()
 
     def click_btn_tip_warm_gift(self):
         self.window_tip_warm_gift.setFont(self.font)
+        self.set_stylesheet(self.window_tip_warm_gift)
         self.window_tip_warm_gift.show()
 
     def click_btn_tip_stage_id(self):
         self.window_tip_stage_id.setFont(self.font)
+        self.set_stylesheet(self.window_tip_stage_id)
         self.window_tip_stage_id.show()
 
     def click_btn_tip_battle(self):
         self.window_tip_battle.setFont(self.font)
+        self.set_stylesheet(self.window_tip_battle)
         if self.window_tip_battle_is_show:
             self.window_tip_battle.hide()
             self.window_tip_battle_is_show = False
@@ -451,6 +486,21 @@ class QMainWindowService(QMainWindowLog):
                 # win32gui.ShowWindow(handle,0)
                 # 也许有一天能写出真正的老板键 大概
             self.game_window_is_hide = True
+    def add_shadow(self):
+        # 添加阴影
+        self.effect_shadow = QtWidgets.QGraphicsDropShadowEffect(self)
+        self.effect_shadow.setOffset(0,0) # 偏移
+        self.effect_shadow.setBlurRadius(20) # 阴影半径
+        self.effect_shadow.setColor(QtCore.Qt.GlobalColor.gray) # 阴影颜色
+        self.main_frame.setGraphicsEffect(self.effect_shadow) # 将设置套用到widget窗口中
+        self.logo.setGraphicsEffect(self.effect_shadow) # 将设置套用到widget窗口中
+
+def set_no_border(window):
+    window.setWindowFlag(Qt.WindowType.FramelessWindowHint)
+    window.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+    window.add_shadow()
+    window.base_widget.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+
 
 
 def faa_start_main():
@@ -460,6 +510,7 @@ def faa_start_main():
 
     # 读取字体文件
     font_id = QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
+    QFontDatabase.addApplicationFont(PATHS["font"] + "\\手书体.ttf")
 
     # 获取字体家族名称
     font_families = QFontDatabase.applicationFontFamilies(font_id)
@@ -470,11 +521,16 @@ def faa_start_main():
 
     # 创建 QFont 对象并设置大小
     font = QFont(font_family, 11)
+    # print(font_family)
 
     app.setFont(font)
 
+
+
     # 实例化 主窗口
     window = QMainWindowService()
+    # 设置无边框
+    set_no_border(window)
 
     # 设置全局字体
     window.font = font
