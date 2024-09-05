@@ -1,18 +1,44 @@
 import os
 import sys
 
-from PyQt6 import uic, QtGui,QtCore
-from PyQt6.QtWidgets import QMainWindow, QApplication
+from PyQt6 import uic, QtGui, QtCore
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmap, QPainter, QPen, QIcon, QColor
+from PyQt6.QtWidgets import QMainWindow, QApplication
 
 from function.common.get_system_dpi import get_system_dpi
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
-#虽然ide显示下面这行没用，但实际是用来加载相关资源的，不可删除
-from function.qrc import test_rc,theme_rc,qdarkgraystyle_rc,modern_rc,GTRONICK_rc
+# 虽然ide显示下面这行没用，但实际是用来加载相关资源的，不可删除
 
 ZOOM_RATE = None
+
+
+def create_icon(color,mode):
+    """
+    绘制图表
+    :param color: Q color
+    :param mode: "-"和"x"
+    :return:
+    """
+    pixmap = QPixmap(16, 16)
+    pixmap.fill(Qt.GlobalColor.transparent)
+
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+    # 绘制图标
+    painter.setPen(QPen(color, 2))
+    match mode:
+        case "x":
+            painter.drawLine(3, 3, 13, 13)
+            painter.drawLine(3, 13, 13, 3)
+        case "-":
+            painter.drawLine(3, 8, 13, 8)
+    painter.end()
+
+    return QIcon(pixmap)
 
 
 class QMainWindowLoadUI(QMainWindow):
@@ -35,11 +61,6 @@ class QMainWindowLoadUI(QMainWindow):
         self.version = "v1.5.0-beta.3"
         self.Label_Version.setText(self.version)
 
-        # 从服务器获取最新版本号，如果和本地一致，就把版本号改成金色；不一致改成绿色
-
-        # 设置窗口图标
-        # self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetTuo-192x.png"))
-
         # 获取 dpi & zoom 仅能在类中调用
         self.zoom_rate = get_system_dpi() / 96
         T_ACTION_QUEUE_TIMER.set_zoom_rate(self.zoom_rate)
@@ -49,6 +70,11 @@ class QMainWindowLoadUI(QMainWindow):
             self.theme = "dark"
         else:
             self.theme = "light"
+
+        # 根据系统样式,设定开关图标
+        color = QColor(240, 240, 240) if self.theme == "dark" else QColor(15, 15, 15)
+        self.Button_Exit.setIcon(create_icon(color=color,mode="x"))
+        self.Button_Minimized.setIcon(create_icon(color=color,mode="-"))
 
     def closeEvent(self, event):
         """
@@ -68,7 +94,7 @@ class QMainWindowLoadUI(QMainWindow):
 
     # 弹出警告提示窗口确认是否要关闭
     def queryExit(self):
-            QtCore.QCoreApplication.instance().exit()
+        QtCore.QCoreApplication.instance().exit()
 
     _startPos = None
     _endPos = None
@@ -97,9 +123,6 @@ class QMainWindowLoadUI(QMainWindow):
             self._isTracking = False
             self._startPos = None
             self._endPos = None
-
-
-
 
 
 if __name__ == "__main__":
