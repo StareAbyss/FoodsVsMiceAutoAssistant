@@ -16,7 +16,7 @@ def create_icon(color, mode):
     """
     绘制图表
     :param color: Q color
-    :param mode: "-"和"x"
+    :param mode: "-" "x" "<-" "->"
     :return:
     """
     pixmap = QtGui.QPixmap(16, 16)
@@ -33,6 +33,17 @@ def create_icon(color, mode):
             painter.drawLine(3, 13, 13, 3)
         case "-":
             painter.drawLine(3, 8, 13, 8)
+        case "<-":
+            painter.drawLine(2, 8, 14, 8)  # 主线
+            painter.drawLine(2, 8, 6, 4)  # 左上角
+            painter.drawLine(2, 8, 6, 12)  # 左下角
+        case "->":
+            painter.drawLine(2, 8, 14, 8)  # 主线
+            painter.drawLine(14, 8, 10, 4)  # 右上角
+            painter.drawLine(14, 8, 10, 12)  # 右下角
+        case _:
+            pass
+
     painter.end()
 
     return QtGui.QIcon(pixmap)
@@ -140,6 +151,21 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         effect_shadow.setBlurRadius(8)  # 阴影半径
         effect_shadow.setColor(QtCore.Qt.GlobalColor.black)  # 阴影颜色
         self.MainFrame.setGraphicsEffect(effect_shadow)  # 将设置套用到widget窗口中
+
+
+    def set_arrow_btn_icon(self):
+
+        # 设置图标
+        color = QtGui.QColor(240, 240, 240) if self.theme == "dark" else QtGui.QColor(15, 15, 15)
+        prev_icon = create_icon(color=color, mode="<-")
+        next_icon = create_icon(color=color, mode="->")
+
+        # 找到前后月份按钮
+        prev_month_button = self.DateSelector.findChild(QtWidgets.QToolButton, "qt_calendar_prevmonth")
+        next_month_button = self.DateSelector.findChild(QtWidgets.QToolButton, "qt_calendar_nextmonth")
+
+        prev_month_button.setIcon(prev_icon)
+        next_month_button.setIcon(next_icon)
 
     """重写拖动窗口"""
 
