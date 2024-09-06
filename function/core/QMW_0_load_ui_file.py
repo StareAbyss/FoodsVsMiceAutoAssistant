@@ -144,6 +144,12 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         # 初始化样式表
         self.MainFrame.setStyleSheet("")
 
+        # 设置箭头特殊样式
+        self.set_arrow_btn_icon()
+
+        # 设置tab栏特殊样式
+        self.set_tab_bar_style()
+
     def set_main_window_shadow(self):
         # 添加阴影
         effect_shadow = QtWidgets.QGraphicsDropShadowEffect(self)
@@ -152,6 +158,47 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         effect_shadow.setColor(QtCore.Qt.GlobalColor.black)  # 阴影颜色
         self.MainFrame.setGraphicsEffect(effect_shadow)  # 将设置套用到widget窗口中
 
+    def set_tab_bar_style(self):
+
+        style_sheet = self.MainFrame.styleSheet()
+
+        style_sheet += f"""
+            QTabBar::tab {{
+                min-width: 150px;  /* 最小宽度 */
+                height: 20px;
+                border-style: solid;
+                border-top-color: transparent;
+                border-right-color: transparent;
+                border-left-color: transparent;
+                border-bottom-color: transparent;
+                border-bottom-width: 1px;
+                border-style: solid;
+                color: #808086;
+                padding: 3px;
+                margin-left:3px;
+            }}
+            QTabBar::tab:selected, QTabBar::tab:last:selected, QTabBar::tab:hover {{
+                border-style: solid;
+                border-top-color: transparent;
+                border-right-color: transparent;
+                border-left-color: transparent;
+                border-bottom-color: {self.theme_highlight_color};
+                border-bottom-width: 2px;
+                border-style: solid;
+                color: #FFFFFF;
+                padding-left: 3px;
+                padding-bottom: 2px;
+                margin-left:3px;
+            }}
+            QTabWidget::tab-bar {{
+                alignment: center;
+            }}
+            QTabWidget::pane{{
+                border:none;
+            }}
+            """
+
+        self.MainFrame.setStyleSheet(style_sheet)
 
     def set_arrow_btn_icon(self):
 
