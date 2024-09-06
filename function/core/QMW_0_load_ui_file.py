@@ -98,6 +98,9 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         # 根据系统样式,设定开关图标
         self.set_exit_and_minimized_btn_icon()
 
+        # 部分图片元素的加载
+        self.set_image_resource()
+
     def set_logo_shadow(self):
         effect_shadow = QtWidgets.QGraphicsDropShadowEffect(self)
         effect_shadow.setOffset(0, 0)  # 偏移
@@ -136,6 +139,42 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         self.Button_Exit.setIcon(create_icon(color=color, mode="x"))
         self.Button_Minimized.setIcon(create_icon(color=color, mode="-"))
 
+    def set_image_resource(self):
+
+        style_sheet = self.MainFrame.styleSheet()
+
+        # title - logo
+        cus_path = PATHS["root"] + "\\resource\\logo\\圆角-FetTuo-48x.ico"
+        cus_path = cus_path.replace("\\", "/")  # pyqt 使用正斜杠
+        radius = 20
+        style_sheet += f"""
+            #Title_Logo{{
+                min-width: {radius * 2}px;
+                min-height: {radius * 2}px;
+                max-width: {radius * 2}px;
+                max-height: {radius * 2}px;
+                border-radius: {radius}px;
+                background-image: url({cus_path});
+                background-repeat: no-repeat;
+                background-position: center;
+                background-size: {radius * 2}px {radius * 2}px;
+            }}
+        """
+
+        # 背景图
+        cus_path = PATHS["root"] + "\\resource\\ui\\firefly.png"
+        cus_path = cus_path.replace("\\", "/")  # pyqt 使用正斜杠
+        style_sheet += f"""
+            #SkinWidget{{
+            border-radius: 8px;
+            background-image: url({cus_path});
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+            }}
+        """
+
+        self.MainFrame.setStyleSheet(style_sheet)
 
     """仅默认ui需要设置的样式表"""
 
