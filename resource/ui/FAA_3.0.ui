@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1144</width>
-    <height>883</height>
+    <width>1120</width>
+    <height>860</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -32,14 +32,11 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../test.qrc">
+   <iconset>
     <normaloff>:/icon/logo/FetTuo-192x.png</normaloff>:/icon/logo/FetTuo-192x.png</iconset>
   </property>
   <property name="autoFillBackground">
    <bool>true</bool>
-  </property>
-  <property name="styleSheet">
-   <string notr="true"/>
   </property>
   <property name="animated">
    <bool>true</bool>
@@ -69,43 +66,21 @@
    <property name="autoFillBackground">
     <bool>false</bool>
    </property>
-   <property name="styleSheet">
-    <string notr="true"/>
-   </property>
-   <widget class="QWidget" name="base_widget" native="true">
+   <widget class="QWidget" name="MainFrame" native="true">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>1121</width>
-      <height>861</height>
+      <x>0</x>
+      <y>0</y>
+      <width>1120</width>
+      <height>860</height>
      </rect>
     </property>
     <property name="autoFillBackground">
      <bool>true</bool>
-    </property>
-    <property name="styleSheet">
-     <string notr="true"/>
-    </property>
-   </widget>
-   <widget class="QWidget" name="main_frame" native="true">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>1121</width>
-      <height>861</height>
-     </rect>
-    </property>
-    <property name="autoFillBackground">
-     <bool>true</bool>
-    </property>
-    <property name="styleSheet">
-     <string notr="true"/>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_7">
      <property name="spacing">
-      <number>5</number>
+      <number>0</number>
      </property>
      <property name="leftMargin">
       <number>10</number>
@@ -120,59 +95,36 @@
       <number>5</number>
      </property>
      <item>
-      <widget class="QWidget" name="title_tag" native="true">
-       <property name="autoFillBackground">
-        <bool>true</bool>
-       </property>
-       <property name="styleSheet">
-        <string notr="true"/>
-       </property>
-       <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="0,0,0,0,0,0,0">
-        <property name="spacing">
-         <number>5</number>
-        </property>
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
+      <widget class="QFrame" name="FrameTitle">
+       <layout class="QHBoxLayout" name="title_tag">
         <property name="topMargin">
          <number>5</number>
         </property>
-        <property name="rightMargin">
+        <property name="bottomMargin">
          <number>0</number>
         </property>
-        <property name="bottomMargin">
-         <number>5</number>
-        </property>
         <item>
-         <spacer name="horizontalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QLabel" name="logo">
+         <widget class="QLabel" name="Title_Logo">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="minimumSize">
+           <size>
+            <width>35</width>
+            <height>35</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>35</width>
+            <height>35</height>
+           </size>
+          </property>
           <property name="styleSheet">
-           <string notr="true">min-width:     48px;     
-min-height:    48px;    
-max-width:     48px;      
-max-height:    48px;     
-border-radius: 24px;      
-background-image: url(:/icon/logo/圆角-FetTuo-48x.ico);
-       
-</string>
+           <string notr="true"/>
           </property>
           <property name="text">
            <string/>
@@ -183,7 +135,7 @@ background-image: url(:/icon/logo/圆角-FetTuo-48x.ico);
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="title">
+         <widget class="QLabel" name="Title_Text">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -199,7 +151,7 @@ background-image: url(:/icon/logo/圆角-FetTuo-48x.ico);
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="Label_Version">
+         <widget class="QLabel" name="Title_Version">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -271,8 +223,7 @@ background-image: url(:/icon/logo/圆角-FetTuo-48x.ico);
            <cursorShape>PointingHandCursor</cursorShape>
           </property>
           <property name="styleSheet">
-           <string notr="true">image: url(:/test/art/threekey/-.png);
-background-color: transparent;
+           <string notr="true">background-color: transparent;
 border:none</string>
           </property>
           <property name="text">
@@ -298,8 +249,7 @@ border:none</string>
            <cursorShape>PointingHandCursor</cursorShape>
           </property>
           <property name="styleSheet">
-           <string notr="true">image: url(:/test/art/threekey/x.png);
-background-color: transparent;
+           <string notr="true">background-color: transparent;
 border:none</string>
           </property>
           <property name="text">
@@ -319,18 +269,10 @@ border:none</string>
         </size>
        </property>
        <property name="autoFillBackground">
-        <bool>true</bool>
+        <bool>false</bool>
        </property>
        <property name="styleSheet">
-        <string notr="true">#tagwidget{image: url(:/skin/art/imageskin/firefly.png);}
-QTabWidget::pane {
-        border-top: none;
-        border-left: none;
-        border-right: none;
-        border-bottom: none;
-    }
-
-</string>
+        <string notr="true"/>
        </property>
        <property name="currentIndex">
         <number>0</number>
@@ -359,16 +301,16 @@ QTabWidget::pane {
           <number>0</number>
          </property>
          <property name="topMargin">
-          <number>5</number>
+          <number>10</number>
          </property>
          <property name="rightMargin">
           <number>0</number>
          </property>
          <property name="bottomMargin">
-          <number>5</number>
+          <number>0</number>
          </property>
          <item>
-          <layout class="QHBoxLayout" name="Lay_Tab1" stretch="4,2">
+          <layout class="QHBoxLayout" name="Lay_Tab1" stretch="5,3">
            <property name="sizeConstraint">
             <enum>QLayout::SetDefaultConstraint</enum>
            </property>
@@ -376,7 +318,7 @@ QTabWidget::pane {
             <number>0</number>
            </property>
            <property name="topMargin">
-            <number>5</number>
+            <number>0</number>
            </property>
            <property name="rightMargin">
             <number>0</number>
@@ -386,29 +328,26 @@ QTabWidget::pane {
            </property>
            <item>
             <layout class="QVBoxLayout" name="Lay_Tab1_Left">
+             <property name="spacing">
+              <number>0</number>
+             </property>
              <property name="sizeConstraint">
               <enum>QLayout::SetMaximumSize</enum>
              </property>
              <property name="leftMargin">
-              <number>5</number>
+              <number>0</number>
              </property>
              <property name="topMargin">
               <number>5</number>
              </property>
              <property name="rightMargin">
-              <number>5</number>
+              <number>0</number>
              </property>
              <property name="bottomMargin">
               <number>5</number>
              </property>
              <item>
               <widget class="QTextBrowser" name="TextBrowser">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
                <property name="minimumSize">
                 <size>
                  <width>600</width>
@@ -422,13 +361,7 @@ QTabWidget::pane {
                 </size>
                </property>
                <property name="autoFillBackground">
-                <bool>true</bool>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">border-radius: 8px;</string>
-               </property>
-               <property name="inputMethodHints">
-                <set>Qt::ImhMultiLine</set>
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -437,13 +370,13 @@ QTabWidget::pane {
            <item>
             <layout class="QVBoxLayout" name="Lay_Tab1_Right" stretch="1,1,1,1,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,2">
              <property name="leftMargin">
-              <number>5</number>
+              <number>0</number>
              </property>
              <property name="topMargin">
               <number>5</number>
              </property>
              <property name="rightMargin">
-              <number>5</number>
+              <number>0</number>
              </property>
              <property name="bottomMargin">
               <number>5</number>
@@ -1005,6 +938,9 @@ QTabWidget::pane {
                  <property name="layoutDirection">
                   <enum>Qt::LeftToRight</enum>
                  </property>
+                 <property name="autoFillBackground">
+                  <bool>false</bool>
+                 </property>
                  <property name="styleSheet">
                   <string notr="true">QLabel {
 	border: 1px solid grey;/* 灰色边框，宽度为2像素 */
@@ -1038,6 +974,9 @@ QTabWidget::pane {
                    <width>16777215</width>
                    <height>16777215</height>
                   </size>
+                 </property>
+                 <property name="autoFillBackground">
+                  <bool>true</bool>
                  </property>
                  <property name="text">
                   <string>点击切换 - 将窗口拖到窗口底端~</string>
@@ -2451,13 +2390,13 @@ Link Start</string>
           <number>0</number>
          </property>
          <property name="topMargin">
-          <number>5</number>
+          <number>10</number>
          </property>
          <property name="rightMargin">
           <number>0</number>
          </property>
          <property name="bottomMargin">
-          <number>5</number>
+          <number>0</number>
          </property>
          <item>
           <layout class="QVBoxLayout" name="verticalLayout" stretch="1,30">
@@ -8243,13 +8182,13 @@ Link Start</string>
           <number>0</number>
          </property>
          <property name="topMargin">
-          <number>5</number>
+          <number>10</number>
          </property>
          <property name="rightMargin">
           <number>0</number>
          </property>
          <property name="bottomMargin">
-          <number>5</number>
+          <number>0</number>
          </property>
          <item>
           <layout class="QHBoxLayout" name="Lay_Tab3" stretch="0,1,10,1,10">
@@ -9393,7 +9332,7 @@ Link Start</string>
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap resource="../test.qrc">:/test/art/test/xp.png</pixmap>
+                  <pixmap>:/images/qss_images/xp.png</pixmap>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -9537,7 +9476,7 @@ Link Start</string>
           <number>0</number>
          </property>
          <property name="topMargin">
-          <number>5</number>
+          <number>10</number>
          </property>
          <property name="rightMargin">
           <number>0</number>
@@ -9814,27 +9753,20 @@ Link Start</string>
           <number>0</number>
          </property>
          <property name="topMargin">
-          <number>5</number>
+          <number>10</number>
          </property>
          <property name="rightMargin">
           <number>0</number>
          </property>
          <property name="bottomMargin">
-          <number>5</number>
+          <number>0</number>
          </property>
          <item>
-          <widget class="QFrame" name="frame">
+          <widget class="QWidget" name="SkinWidget" native="true">
            <property name="styleSheet">
             <string notr="true">#frame{
-
-	 border-image: url(:/skin/art/imageskin/firefly.png);
+	 border-image: url(:/images/qss_images/firefly.png);
 }</string>
-           </property>
-           <property name="frameShape">
-            <enum>QFrame::StyledPanel</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Raised</enum>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_10">
             <item>
@@ -9946,14 +9878,16 @@ Link Start</string>
                 </layout>
                </item>
                <item>
-                <widget class="QLabel" name="label_8">
+                <widget class="QLabel" name="SkinWidget_Label">
                  <property name="styleSheet">
-                  <string notr="true">font: 30pt &quot;ShouShuti&quot;;
-color: rgb(0, 0, 0);</string>
+                  <string notr="true">font: 30pt &quot;ShouShuti&quot;;</string>
                  </property>
                  <property name="text">
-                  <string>未完待续...
-更多超绝皮肤锐意制作中。。。</string>
+                  <string>更多超绝皮肤锐意制作中...大概
+皮肤特效By FAA-下水道铲屎官-执念</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                  </property>
                 </widget>
                </item>
@@ -9968,6 +9902,8 @@ color: rgb(0, 0, 0);</string>
       </widget>
      </item>
     </layout>
+    <zorder>tabWidget</zorder>
+    <zorder>FrameTitle</zorder>
    </widget>
   </widget>
   <action name="action_start_1">
@@ -9986,10 +9922,7 @@ color: rgb(0, 0, 0);</string>
    <header>resource.ui.draglabel</header>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="../test.qrc"/>
-  <include location="../theme/GTRONICK/GTRONICK.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>Button_Minimized</sender>
@@ -9998,12 +9931,12 @@ color: rgb(0, 0, 0);</string>
    <slot>showMinimized()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1066</x>
-     <y>50</y>
+     <x>1047</x>
+     <y>35</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1001</x>
-     <y>-59</y>
+     <x>1058</x>
+     <y>-7</y>
     </hint>
    </hints>
   </connection>
@@ -10014,12 +9947,12 @@ color: rgb(0, 0, 0);</string>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1106</x>
-     <y>37</y>
+     <x>1096</x>
+     <y>41</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1052</x>
-     <y>-104</y>
+     <x>1119</x>
+     <y>2</y>
     </hint>
    </hints>
   </connection>

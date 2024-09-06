@@ -432,11 +432,11 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
                 self.all_senior_log.setChecked(True)
             else:
                 self.indeed_need.setChecked(True)
+
         def log_settings() -> None:
             my_opt = self.opt["log_settings"]
             self.senior_log_clean.setText(my_opt["log_senior_settings"])
             self.other_log_clean.setText(my_opt["log_other_settings"])
-
 
         def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
@@ -451,6 +451,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.Level2_1P_Password.setText(my_opt["1p"]["password"])
             self.Level2_2P_Active.setChecked(my_opt["2p"]["active"])
             self.Level2_2P_Password.setText(my_opt["2p"]["password"])
+
         def skin_set() -> None:
             my_opt = self.opt["skin_type"]
             skin_dict = {
@@ -474,9 +475,12 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             styleFile = self.getstylefile(my_opt)
             if styleFile is not None:
                 qssStyle = CommonHelper.readQss(styleFile)
-                self.main_frame.setStyleSheet(qssStyle)
+                self.MainFrame.setStyleSheet(qssStyle)
+                self.set_theme_common()
             else:
-                self.main_frame.setStyleSheet("")
+                self.set_theme_default()
+                self.set_theme_common()
+
             # 设置信号和槽
             self.skin1.toggled.connect(self.on_skin_state_changed)
             self.skin2.toggled.connect(self.on_skin_state_changed)
@@ -489,8 +493,6 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.skin9.toggled.connect(self.on_skin_state_changed)
             self.skin10.toggled.connect(self.on_skin_state_changed)
             self.skin11.toggled.connect(self.on_skin_state_changed)
-
-
 
         base_settings()
         timer_settings()
@@ -599,6 +601,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             my_opt = self.opt["senior_settings"]
             my_opt["auto_senior_settings"] = self.Battle_senior_checkedbox.isChecked()
             my_opt["senior_log_state"] = 1 if self.all_senior_log.isChecked() else 0
+
         def skin_settings() -> None:
             # 定义一个字典，将复选框对象映射到对应的值
             skin_dict = {
@@ -618,9 +621,8 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             # 遍历字典，找到第一个被选中的复选框
             for skin, option in skin_dict.items():
                 if skin.isChecked():
-                    self.opt["skin_type"]=option
+                    self.opt["skin_type"] = option
                     break
-
 
         def log_settings() -> None:
             my_opt = self.opt["log_settings"]
@@ -850,19 +852,19 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.all_senior_log.setEnabled(False)
             self.indeed_need.setEnabled(False)
 
-    def getstylefile(self,num):
+    def getstylefile(self, num):
         skin_path_dict = {
             1: None,
-            2: PATHS["theme"]+ "\\feiyang\\blacksoft.css",
-            3: PATHS["theme"]+ "\\feiyang\\flatgray.css",
-            4: PATHS["theme"]+ "\\feiyang\\lightblue.css",
-            5: PATHS["theme"]+ "\\GTRONICK\\ElegantDark.qss",
-            6: PATHS["theme"]+ "\\GTRONICK\\MaterialDark.qss",
-            7: PATHS["theme"]+ "\\GTRONICK\\NeonButtons.qss",
-            8: PATHS["theme"]+ "\\GTRONICK\\Aqua.qss",
-            9: PATHS["theme"]+ "\\GTRONICK\\ManjaroMix.qss",
-            10: PATHS["theme"]+ "\\GTRONICK\\MacOS.qss",
-            11: PATHS["theme"]+ "\\GTRONICK\\Ubuntu.qss"
+            2: PATHS["theme"] + "\\feiyang\\blacksoft.css",
+            3: PATHS["theme"] + "\\feiyang\\flatgray.css",
+            4: PATHS["theme"] + "\\feiyang\\lightblue.css",
+            5: PATHS["theme"] + "\\GTRONICK\\ElegantDark.qss",
+            6: PATHS["theme"] + "\\GTRONICK\\MaterialDark.qss",
+            7: PATHS["theme"] + "\\GTRONICK\\NeonButtons.qss",
+            8: PATHS["theme"] + "\\GTRONICK\\Aqua.qss",
+            9: PATHS["theme"] + "\\GTRONICK\\ManjaroMix.qss",
+            10: PATHS["theme"] + "\\GTRONICK\\MacOS.qss",
+            11: PATHS["theme"] + "\\GTRONICK\\Ubuntu.qss"
         }
 
         # 使用 get 方法设置皮肤
@@ -892,11 +894,14 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             styleFile = self.getstylefile(current_option)
             if styleFile is not None:
                 qssStyle = CommonHelper.readQss(styleFile)
-                self.main_frame.setStyleSheet(qssStyle)
+                self.MainFrame.setStyleSheet(qssStyle)
+                self.set_theme_common()
             else:
-                self.main_frame.setStyleSheet("")
+                self.set_theme_default()
+                self.set_theme_common()
 
-class CommonHelper:#主题加载类
+
+class CommonHelper:  # 主题加载类
     def __init__(self):
         pass
 
@@ -904,6 +909,8 @@ class CommonHelper:#主题加载类
     def readQss(style):
         with open(style, 'r') as f:
             return f.read()
+
+
 if __name__ == "__main__":
     def main() -> None:
         # 实例化 PyQt后台管理

@@ -5,8 +5,7 @@ import sys
 import pandas as pd
 import win32con
 import win32gui
-from PyQt6 import QtWidgets, QtCore
-from PyQt6.QtCore import pyqtSignal, Qt
+from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QFontDatabase, QFont
 from PyQt6.QtWidgets import QApplication
 
@@ -488,39 +487,12 @@ class QMainWindowService(QMainWindowLog):
                 # 也许有一天能写出真正的老板键 大概
             self.game_window_is_hide = True
 
-    def add_shadow(self):
-        # 添加阴影
-        effect_shadow = QtWidgets.QGraphicsDropShadowEffect(self)
-        effect_shadow.setOffset(0, 0)  # 偏移
-        effect_shadow.setBlurRadius(8)  # 阴影半径
-        effect_shadow.setColor(QtCore.Qt.GlobalColor.black)  # 阴影颜色
-        self.main_frame.setGraphicsEffect(effect_shadow)  # 将设置套用到widget窗口中
-
-        effect_shadow2 = QtWidgets.QGraphicsDropShadowEffect(self)
-        effect_shadow2.setOffset(0, 0)  # 偏移
-        effect_shadow2.setBlurRadius(10)  # 阴影半径
-        effect_shadow2.setColor(QtCore.Qt.GlobalColor.gray)  # 阴影颜色
-        self.logo.setGraphicsEffect(effect_shadow2)  # 将设置套用到widget窗口中
-
-
-def set_no_border(window):
-    # 设置无边框窗口
-    window.setWindowFlag(Qt.WindowType.FramelessWindowHint)
-
-    # 设背景为透明
-    window.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-
-    # 添加阴影效果
-    window.add_shadow()
-
-    # 设置 base_widget 的背景为透明
-    window.base_widget.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-
 
 def faa_start_main():
     # 实例化 PyQt后台管理
     app = QApplication(sys.argv)
 
+    """字体"""
     # 读取字体文件
     font_id = QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
     QFontDatabase.addApplicationFont(PATHS["font"] + "\\手书体.ttf")
@@ -540,8 +512,6 @@ def faa_start_main():
 
     # 实例化 主窗口
     window = QMainWindowService()
-    # 设置无边框
-    set_no_border(window)
 
     # 设置全局字体
     window.font = font

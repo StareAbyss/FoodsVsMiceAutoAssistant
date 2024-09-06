@@ -10,7 +10,6 @@ from PyQt6.QtGui import QTextCursor
 from PyQt6.QtWidgets import QApplication
 
 from function.core.QMW_1_load_settings import QMainWindowLoadSettings
-from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 
 
@@ -118,8 +117,8 @@ class QMainWindowLog(QMainWindowLoadSettings):
     def start_print(self):
         """打印默认输出提示"""
 
-        self.signal_image_to_ui.emit(
-            image=PATHS["logo"] + "\\圆角-FetTuo-192x.png")
+        # self.signal_image_to_ui.emit(
+        #     image=PATHS["logo"] + "\\圆角-FetTuo-192x.png")
         self.signal_print_to_ui.emit(
             text="嗷呜, 欢迎使用FAA-美食大战老鼠自动放卡作战小助手~",
             time=False)
