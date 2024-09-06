@@ -420,7 +420,6 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.EndExitGame.setChecked(my_opt["end_exit_game"])
             self.AutoUseCard.setChecked(my_opt["auto_use_card"])
             self.GuildManager_Active.setCurrentIndex(my_opt["guild_manager_active"])
-            self.GuildManager_View.setCurrentIndex(my_opt["guild_manager_view"])
 
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
@@ -595,7 +594,6 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             my_opt["end_exit_game"] = self.EndExitGame.isChecked()
             my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
             my_opt["guild_manager_active"] = self.GuildManager_Active.currentIndex()
-            my_opt["guild_manager_view"] = self.GuildManager_View.currentIndex()
 
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
