@@ -12,18 +12,22 @@ This software is still in the development stage and its functions have been impl
 该工具开发初衷是圆梦十年前的童年愿望 (悲)    
 The original intention of developing this tool is to fulfill a childhood wish ten years ago (XP)
 
+# 下载 | Download [![](https://img.shields.io/github/downloads/StareAbyss/FoodsVsMiceAutoAssistant/total?color=4e4c97)](https://github.com/StareAbyss/FoodsVsMiceAutoAssistant/releases)
+* Github-Release - 包含FAA的稳定发行版 推荐, 点击上方按钮跳转. 
+* 交流QQ群-群文件 - 包含FAA的稳定发行版和内部测试版, 更有玩家社区维护的大量战斗方案和美食大赛资源供您使用.
+* 注: Github的源码会实时更新, Release不包含不稳定的测试版本.
+
+
 # 关于
-* 反馈交流QQ群 - 1群 - 2000/2000人 - 786921130 - 已满! 但仍可尝试加入...
-* 反馈交流QQ群 - 2群 - 1000/2000人 - 142272678 - 推荐
-* 爱发电赞助支持FAA - [点我跳转](https://afdian.net/a/zssy_faa) (请暂时不要使用, 爱发电因备案过期暂时无法访问!)
-* 微信赞赏码支持FAA - 请扫码下图
+![](https://img.shields.io/badge/QQ%201群-786921130-4e4c97) 1900/2000人 近满! 但仍可尝试加入...
+
+![](https://img.shields.io/badge/QQ%202群-142272678-4e4c97) 1900/2000人 近满! 但仍可尝试加入...  
+
+爱发电赞助支持FAA - 爱发电因备案过期暂时无法访问! 暂时终止使用!  
+
+ 微信赞赏码支持FAA - 请扫码下图  
 
  <img alt="image" height="300" src="md_img/FAA-赞赏码.jpg" width="300"/>
-
-# 下载
-* Github-Relese - 包含FAA的稳定发行版. [点我跳转](https://github.com/StareAbyss/FoodsVsMouses_AutoAssistant/releases)    
-* 交流QQ群-群文件 - 包含FAA的稳定发行版和内部测试版, 更有玩家社区维护的大量战斗方案和美食大赛资源供您使用.
-* 注: Github的源码会实时更新, 仅Relese不包含不稳定的测试版本.
 
 # 预览
 
