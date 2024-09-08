@@ -478,10 +478,13 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
                 self.MainFrame.setStyleSheet(qssStyle)
                 self.set_common_theme()
 
+
             else:
                 self.set_theme_common()
                 self.set_theme_default()
                 self.set_common_theme()
+
+
 
 
             # 设置信号和槽
@@ -900,10 +903,12 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
                 self.MainFrame.setStyleSheet(qssStyle)
                 self.set_common_theme()
 
+
             else:
                 self.set_theme_common()
                 self.set_theme_default()
                 self.set_common_theme()
+
 
 
 

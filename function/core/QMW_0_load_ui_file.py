@@ -119,7 +119,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         style_sheet = self.MainFrame.styleSheet()
 
         # 增加边框
-        style_sheet += "#MainFrame{border-radius: 8px; border: 1px solid #3c3d3e;} "
+        # style_sheet += "#MainFrame{border-radius: 8px; border: 1px solid #3c3d3e;} "
         self.MainFrame.setStyleSheet(style_sheet)
     def set_common_color(self):
         style_sheet = self.MainFrame.styleSheet()
@@ -178,6 +178,8 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         """
 
         self.SkinWidget.setStyleSheet(style_sheet)
+
+
 
     """仅默认ui需要设置的样式表"""
 
