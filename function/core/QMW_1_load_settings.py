@@ -474,11 +474,15 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             styleFile = self.getstylefile(my_opt)
             if styleFile is not None:
                 qssStyle = CommonHelper.readQss(styleFile)
+                self.set_theme_common()
                 self.MainFrame.setStyleSheet(qssStyle)
-                self.set_theme_common()
+                self.set_common_theme()
+
             else:
-                self.set_theme_default()
                 self.set_theme_common()
+                self.set_theme_default()
+                self.set_common_theme()
+
 
             # 设置信号和槽
             self.skin1.toggled.connect(self.on_skin_state_changed)
@@ -892,11 +896,15 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             styleFile = self.getstylefile(current_option)
             if styleFile is not None:
                 qssStyle = CommonHelper.readQss(styleFile)
+                self.set_theme_common()
                 self.MainFrame.setStyleSheet(qssStyle)
-                self.set_theme_common()
+                self.set_common_theme()
+
             else:
-                self.set_theme_default()
                 self.set_theme_common()
+                self.set_theme_default()
+                self.set_common_theme()
+
 
 
 class CommonHelper:  # 主题加载类

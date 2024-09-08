@@ -114,11 +114,15 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
         # 设背景为透明
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
+    def set_common_theme(self):
 
         style_sheet = self.MainFrame.styleSheet()
 
         # 增加边框
         style_sheet += "#MainFrame{border-radius: 8px; border: 1px solid #3c3d3e;} "
+        self.MainFrame.setStyleSheet(style_sheet)
+    def set_common_color(self):
+        style_sheet = self.MainFrame.styleSheet()
 
         # 获取当前样式表 然后在此基础上增加背景色, 根据白天黑夜主题为不同颜色
         match self.theme:
