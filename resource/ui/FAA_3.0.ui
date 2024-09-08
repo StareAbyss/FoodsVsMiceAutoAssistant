@@ -38,6 +38,9 @@
   <property name="autoFillBackground">
    <bool>true</bool>
   </property>
+  <property name="styleSheet">
+   <string notr="true">#MainFrame{border-radius: 8px; border: 1px solid #3c3d3e;} </string>
+  </property>
   <property name="animated">
    <bool>true</bool>
   </property>
@@ -76,7 +79,7 @@
      </rect>
     </property>
     <property name="autoFillBackground">
-     <bool>true</bool>
+     <bool>false</bool>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_7">
      <property name="spacing">
