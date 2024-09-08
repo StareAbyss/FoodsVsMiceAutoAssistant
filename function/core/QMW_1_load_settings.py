@@ -424,8 +424,10 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
             self.Battle_senior_checkedbox.setChecked(my_opt["auto_senior_settings"])
+            self.Battle_senior_gpu.setChecked(my_opt["gpu_settings"])
             self.Battle_senior_checkedbox.stateChanged.connect(self.on_checkbox_state_changed)
             self.all_senior_log.setEnabled(my_opt["auto_senior_settings"])
+            self.Battle_senior_gpu.setEnabled(my_opt["auto_senior_settings"])
             self.indeed_need.setEnabled(my_opt["auto_senior_settings"])
             if my_opt["senior_log_state"]:
                 self.all_senior_log.setChecked(True)
@@ -606,6 +608,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             my_opt = self.opt["senior_settings"]
             my_opt["auto_senior_settings"] = self.Battle_senior_checkedbox.isChecked()
             my_opt["senior_log_state"] = 1 if self.all_senior_log.isChecked() else 0
+            my_opt["gpu_settings"]=self.Battle_senior_gpu.isChecked()
 
         def skin_settings() -> None:
             # 定义一个字典，将复选框对象映射到对应的值
@@ -853,9 +856,11 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
         if state == 2:  # Qt.Checked
             self.all_senior_log.setEnabled(True)
             self.indeed_need.setEnabled(True)
+            self.Battle_senior_gpu.setEnabled(True)
         else:
             self.all_senior_log.setEnabled(False)
             self.indeed_need.setEnabled(False)
+            self.Battle_senior_gpu.setEnabled(False)
 
     def getstylefile(self, num):
         skin_path_dict = {

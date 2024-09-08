@@ -9,12 +9,13 @@ from function.yolo import onnxdetect
 
 
 # 生产者函数
-def producer(time_num, handle, read_queue,is_log):
+def producer(time_num, handle, read_queue,is_log,is_gpu):
     while True:
         # 获取图像并进行目标检测
         result = onnxdetect.get_mouse_position(
             capture_image_png_all(handle),
-            is_log
+            is_log,
+            is_gpu
         )
 
         # 检查结果是否有效
@@ -31,34 +32,19 @@ def producer(time_num, handle, read_queue,is_log):
         time.sleep(time_num)
 
 
-# 消费者函数
-# def consumer(time_num,read_queue):
-#     while True:
-#         boxes,class_id=read_queue.get()
-#             print(f"处理识图结果结束")
-#        time.sleep(time_num +random.random())  # 模拟消费时间
 
-
-def read_and_get_return_information(faa,is_log):
+def read_and_get_return_information(faa,is_log,is_gpu):
     # 创建并启动生产者进程
     read_queue = Queue()
     CUS_LOGGER.debug("开始多进程识别特殊老鼠及波次信息")
 
     time_num = 2
-    p = Process(target=producer, args=(time_num, faa.handle, read_queue,is_log))
+    p = Process(target=producer, args=(time_num, faa.handle, read_queue,is_log,is_gpu))
     p.start()
 
     return p, read_queue
 
 
-# def start_analysis_process(read_queue):
-#     # 创建并启动消费者进程
-#     CUS_LOGGER.debug("开始多进程解析特殊老鼠及波次信息")
-#     time_num=2
-#     p = Process(target=consumer, args=(time_num, read_queue))
-#     p.start()
-#
-#     return p,read_queue
 
 def kill_process(process):
     process.terminate()
