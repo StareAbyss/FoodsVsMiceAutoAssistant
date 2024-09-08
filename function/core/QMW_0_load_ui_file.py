@@ -141,13 +141,11 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
     def set_image_resource(self):
 
-        style_sheet = self.MainFrame.styleSheet()
-
         # title - logo
         cus_path = PATHS["root"] + "\\resource\\logo\\圆角-FetTuo-48x.ico"
         cus_path = cus_path.replace("\\", "/")  # pyqt 使用正斜杠
         radius = 20
-        style_sheet += f"""
+        style_sheet = f"""
             #Title_Logo{{
                 min-width: {radius * 2}px;
                 min-height: {radius * 2}px;
@@ -160,21 +158,22 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
                 background-size: {radius * 2}px {radius * 2}px;
             }}
         """
+        self.Title_Logo.setStyleSheet(style_sheet)
 
         # 背景图
         cus_path = PATHS["root"] + "\\resource\\ui\\firefly.png"
         cus_path = cus_path.replace("\\", "/")  # pyqt 使用正斜杠
-        style_sheet += f"""
+        style_sheet = f"""
             #SkinWidget{{
             border-radius: 8px;
-            background-image: url({cus_path});
+            border-image: url({cus_path});
             background-repeat: no-repeat;
             background-position: center;
             background-size: cover;
             }}
         """
 
-        self.MainFrame.setStyleSheet(style_sheet)
+        self.SkinWidget.setStyleSheet(style_sheet)
 
     """仅默认ui需要设置的样式表"""
 
@@ -200,6 +199,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
     def set_tab_bar_style(self):
 
         style_sheet = self.MainFrame.styleSheet()
+        selected_text_color="#FFFFFF" if self.theme=="dark" else "#000000"
 
         style_sheet += f"""
             QTabBar::tab {{
@@ -224,7 +224,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
                 border-bottom-color: {self.theme_highlight_color};
                 border-bottom-width: 2px;
                 border-style: solid;
-                color: #FFFFFF;
+                color: {selected_text_color};
                 padding-left: 3px;
                 padding-bottom: 2px;
                 margin-left:3px;

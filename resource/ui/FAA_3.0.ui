@@ -96,12 +96,15 @@
      </property>
      <item>
       <widget class="QFrame" name="FrameTitle">
+       <property name="styleSheet">
+        <string notr="true">#FrameTitle{boreder:none}</string>
+       </property>
        <layout class="QHBoxLayout" name="title_tag">
         <property name="topMargin">
          <number>5</number>
         </property>
         <property name="bottomMargin">
-         <number>0</number>
+         <number>5</number>
         </property>
         <item>
          <widget class="QLabel" name="Title_Logo">
@@ -272,7 +275,12 @@ border:none</string>
         <bool>false</bool>
        </property>
        <property name="styleSheet">
-        <string notr="true"/>
+        <string notr="true">QTabWidget::pane {
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+    }</string>
        </property>
        <property name="currentIndex">
         <number>0</number>
@@ -9813,11 +9821,12 @@ Link Start</string>
                   <string notr="true">font: 30pt &quot;ShouShuti&quot;;</string>
                  </property>
                  <property name="text">
-                  <string>更多超绝皮肤锐意制作中...大概
-皮肤特效By FAA-下水道铲屎官-执念</string>
+                  <string>更多超绝皮肤锐意制作中...
+未完待续。。。
+皮肤特效系统-执念制作</string>
                  </property>
                  <property name="alignment">
-                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>
