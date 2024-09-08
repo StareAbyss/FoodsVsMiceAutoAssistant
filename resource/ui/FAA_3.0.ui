@@ -97,7 +97,8 @@
      <item>
       <widget class="QFrame" name="FrameTitle">
        <property name="styleSheet">
-        <string notr="true"/>
+        <string notr="true">#FrameTitle{border:none
+}</string>
        </property>
        <layout class="QHBoxLayout" name="title_tag">
         <property name="topMargin">
