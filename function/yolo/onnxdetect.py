@@ -36,7 +36,7 @@ def draw_bounding_box(img, class_id, confidence, x, y, x_plus_w, y_plus_h):
     cv2.putText(img, label, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
 
-def get_mouse_position(input_image,is_log):
+def get_mouse_position(input_image,is_log,is_gpu):
     """
     :param input_image:
     :return:
@@ -44,6 +44,9 @@ def get_mouse_position(input_image,is_log):
     # 使用opencv读取onnx文件
     onnx_model = PATHS["model"] + "/mouse.onnx"
     model: cv2.dnn.Net = cv2.dnn.readNetFromONNX(onnx_model)
+    if is_gpu:
+        model.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+        model.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
     # 读取原图
     # original_image: np.ndarray = cv2.imread(input_image)
     original_image = input_image[:, :, :3]  # 去除阿尔法通道
@@ -146,5 +149,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', default='mouse.onnx', help='Input your onnx model.')
     parser.add_argument('--img', default=str('20240728154824_236031.png'), help='Path to input image.')
+    print(cv2.__version__)
     args = parser.parse_args()
     get_mouse_position(args.img)
+

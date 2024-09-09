@@ -800,7 +800,8 @@ class ThreadTodo(QThread):
 
                 self.process, queue_todo = read_and_get_return_information(
                     self.faa[player_a],
-                    self.opt["senior_settings"]["senior_log_state"])
+                    self.opt["senior_settings"]["senior_log_state"],
+                    self.opt["senior_settings"]["gpu_settings"])
 
             else:
                 queue_todo = None

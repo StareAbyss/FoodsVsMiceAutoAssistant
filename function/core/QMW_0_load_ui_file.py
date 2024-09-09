@@ -7,7 +7,10 @@ from function.common.get_system_dpi import get_system_dpi
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
-# 虽然ide显示下面这行没用，但实际是用来加载相关资源的，不可删除
+
+# noinspection PyUnresolvedReferences
+from function.qrc import test_rc,theme_rc,GTRONICK_rc
+#虽然ide显示上面这行没用，但实际是用来加载相关资源的，不可删除,我用奇妙的方式强制加载了
 
 ZOOM_RATE = None
 
@@ -114,11 +117,14 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
         # 设背景为透明
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
+    def set_common_theme(self):
 
-        style_sheet = self.MainFrame.styleSheet()
+        style_sheet = self.styleSheet()
 
         # 增加边框
         style_sheet += "#MainFrame{border-radius: 8px; border: 1px solid #3c3d3e;} "
+
+        style_sheet = self.styleSheet()
 
         # 获取当前样式表 然后在此基础上增加背景色, 根据白天黑夜主题为不同颜色
         match self.theme:
@@ -127,7 +133,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
             case "light":
                 style_sheet += "#MainFrame{background-color: #FFFFFF;}"
 
-        self.MainFrame.setStyleSheet(style_sheet)
+        self.setStyleSheet(style_sheet)
 
     def set_exit_and_minimized_btn_icon(self):
         """
@@ -141,13 +147,11 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
     def set_image_resource(self):
 
-        style_sheet = self.MainFrame.styleSheet()
-
         # title - logo
         cus_path = PATHS["root"] + "\\resource\\logo\\圆角-FetTuo-48x.ico"
         cus_path = cus_path.replace("\\", "/")  # pyqt 使用正斜杠
         radius = 20
-        style_sheet += f"""
+        style_sheet = f"""
             #Title_Logo{{
                 min-width: {radius * 2}px;
                 min-height: {radius * 2}px;
@@ -160,21 +164,24 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
                 background-size: {radius * 2}px {radius * 2}px;
             }}
         """
+        self.Title_Logo.setStyleSheet(style_sheet)
 
         # 背景图
         cus_path = PATHS["root"] + "\\resource\\ui\\firefly.png"
         cus_path = cus_path.replace("\\", "/")  # pyqt 使用正斜杠
-        style_sheet += f"""
+        style_sheet = f"""
             #SkinWidget{{
             border-radius: 8px;
-            background-image: url({cus_path});
+            border-image: url({cus_path});
             background-repeat: no-repeat;
             background-position: center;
             background-size: cover;
             }}
         """
 
-        self.MainFrame.setStyleSheet(style_sheet)
+        self.SkinWidget.setStyleSheet(style_sheet)
+
+
 
     """仅默认ui需要设置的样式表"""
 
@@ -200,6 +207,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
     def set_tab_bar_style(self):
 
         style_sheet = self.MainFrame.styleSheet()
+        selected_text_color="#FFFFFF" if self.theme=="dark" else "#000000"
 
         style_sheet += f"""
             QTabBar::tab {{
@@ -224,7 +232,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
                 border-bottom-color: {self.theme_highlight_color};
                 border-bottom-width: 2px;
                 border-style: solid;
-                color: #FFFFFF;
+                color: {selected_text_color};
                 padding-left: 3px;
                 padding-bottom: 2px;
                 margin-left:3px;
