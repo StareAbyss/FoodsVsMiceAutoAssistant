@@ -12,7 +12,7 @@ def food_match_ocr_text(self):
 
     quest_imgs = []
 
-    my_dict = {0: 362, 1: 405, 2: 448, 3: 491, 4: 534, 5: 570}
+    my_dict = {0: 358, 1: 401, 2: 444, 3: 487, 4: 530, 5: 566}
 
     for i in range(6):
 
@@ -20,7 +20,7 @@ def food_match_ocr_text(self):
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=536, y=my_dict[i])
         time.sleep(0.2)
 
-        Y = 358
+        Y = 355
 
         # while True:
         # 使用掩模匹配图片
@@ -31,7 +31,7 @@ def food_match_ocr_text(self):
                 source_range=[82, Y + 55 * j, 533, 459 + 53 * j],
                 template=RESOURCE_P["ocr"]["美食大赛任务.png"],
                 mask=RESOURCE_P["ocr"]["美食大赛任务_掩模.png"],
-                match_tolerance=0.999,
+                match_tolerance=0.98,
                 # test_print=True,
                 # test_show=True,
                 return_center=False
