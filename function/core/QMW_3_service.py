@@ -1,13 +1,12 @@
+import datetime
+import json
 import os
 import random
 import sys
 
-import pandas as pd
 import win32con
 import win32gui
-from PyQt6.QtCore import pyqtSignal
-from PyQt6.QtGui import QFontDatabase, QFont
-from PyQt6.QtWidgets import QApplication
+from PyQt6 import QtCore, QtGui, QtWidgets
 
 from function.core.FAA import FAA
 from function.core.FAA_extra_readimage import kill_process
@@ -15,11 +14,11 @@ from function.core.QMW_1_load_settings import CommonHelper
 from function.core.QMW_2_log import QMainWindowLog
 from function.core.QMW_EditorOfBattlePlan import QMWEditorOfBattlePlan
 from function.core.QMW_EditorOfTaskSequence import QMWEditorOfTaskSequence
-from function.core.QMW_GuildManager import PandasModel, ImageDelegate
 from function.core.QMW_TipBattle import QMWTipBattle
 from function.core.QMW_TipStageID import QMWTipStageID
 from function.core.QMW_TipWarmGift import QMWTipWarmGift
 from function.core.Todo import ThreadTodo
+from function.globals import g_extra
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.TodoTimerManager import TodoTimerManager
@@ -28,12 +27,16 @@ from function.scattered.get_channel_name import get_channel_name
 
 
 class QMainWindowService(QMainWindowLog):
-    signal_todo_end = pyqtSignal()
-    signal_todo_start = pyqtSignal(int)  # 可通过该信号以某个 方案id 开启一趟流程
+    signal_todo_end = QtCore.pyqtSignal()
+    signal_todo_start = QtCore.pyqtSignal(int)  # 可通过该信号以某个 方案id 开启一趟流程
+    signal_guild_manager_fresh = QtCore.pyqtSignal()  # 刷新公会管理器数据, 于扫描后
 
     def __init__(self):
         # 继承父类构造方法
         super().__init__()
+
+        # 添加一些信号到列表中方便调用
+        self.signal_dict["guild_manager_fresh"] = self.signal_guild_manager_fresh
 
         # 线程或线程管理实例
         self.thread_todo_1 = None
@@ -96,26 +99,188 @@ class QMainWindowService(QMainWindowLog):
         self.Button_Hide.clicked.connect(self.click_btn_hide_window)
         self.game_window_is_hide = False
 
-        # 额外窗口，公会管理器
-        if os.path.exists(f"{PATHS['logs']}\\guild_manager\\guild_members_contributions.csv"):
-            self.df = pd.read_csv(f"{PATHS["logs"]}\\guild_manager\\guild_members_contributions.csv")
-            self.filtered_df = self.df[['Name Image Path', 'Total Contribution']]
-            self.PandasModel = PandasModel(self.filtered_df)
-            self.GuildMemberInfoTable.setModel(self.PandasModel)
-            # 添加图片
-            self.image_delegate = ImageDelegate(self.GuildMemberInfoTable)
-            self.GuildMemberInfoTable.setItemDelegateForColumn(0, self.image_delegate)
-            # 调整行高
-            self.GuildMemberInfoTable.verticalHeader().setDefaultSectionSize(45)
-            # 根据日历日期与视图模式，调整表格的过滤器
-            self.DateSelector.selectionChanged.connect(self.update_table_view)
-
+        # 线程状态
         self.is_ending = False  # 线程是否正在结束
         self.is_start = False  # 线程是否正在启动
+
+        """公会管理器相关"""
+        # 初始化工会管理器数据和表格视图
+        self.guild_manager_table_init()
+        self.guild_manager_data = []
+        self.guild_manager_table_load_data()
+
+        # 绑定信号和槽函数, 在更新数据文件后更新内部数据表
+        self.signal_guild_manager_fresh.connect(self.guild_manager_table_load_data)
+
+        # 根据日历日期，调整表格视图
+        self.DateSelector.selectionChanged.connect(self.guild_manager_table_update)
 
         # 连接自定义信号到槽函数，从而修改编辑框内容
         self.Label_drag.windowNameChanged1.connect(self.updateEditBox1)
         self.Label_drag.windowNameChanged2.connect(self.updateEditBox2)
+
+    def guild_manager_table_init(self):
+        """
+        初始化公会管理器数据，主要是表头和第一列的图片，其他部分占位
+        """
+
+        # 设置表格基础属性
+        self.GuildMemberInfoTable.setColumnCount(7)
+        self.GuildMemberInfoTable.setHorizontalHeaderLabels(['成员', '贡献', '天', '周', '月', '年', '上次更新'])
+
+        # 调整行高
+        self.GuildMemberInfoTable.verticalHeader().setDefaultSectionSize(40)
+
+        # 调整列宽
+        header = self.GuildMemberInfoTable.horizontalHeader()
+        header.resizeSection(0, 98)  # 设置第一列宽度
+        for i in range(1, self.GuildMemberInfoTable.columnCount()):
+            header.resizeSection(i, 70)  # 设置其余列宽度
+
+        # 启用表头排序功能
+        header.setSectionsClickable(True)
+        header.setSortIndicatorShown(True)
+        self.GuildMemberInfoTable.setSortingEnabled(True)
+
+    def guild_manager_table_load_data(self):
+        # guild manager 相关
+        guild_manager_file = f"{PATHS['logs']}\\guild_manager\\guild_manager_data.json"
+        # 额外窗口，公会管理器
+        if os.path.exists(guild_manager_file):
+            with g_extra.GLOBAL_EXTRA.file_lock:
+                with open(file=guild_manager_file, mode='r', encoding='utf-8') as file:
+                    self.guild_manager_data = json.load(file)
+
+        # 根据目前选择的日期刷新一下数据
+        self.guild_manager_table_update()
+
+    def guild_manager_table_update(self):
+        """
+        根据日期，改变表格显示内容, 绑定触发器 - 日历切换日期
+        """
+
+        # 先清空排序状态
+        self.GuildMemberInfoTable.sortByColumn(-1, QtCore.Qt.SortOrder.AscendingOrder)
+
+        # 清空表格内容
+        self.GuildMemberInfoTable.setRowCount(0)
+
+        # 添加图片
+        for member in self.guild_manager_data:
+            row_position = self.GuildMemberInfoTable.rowCount()
+            self.GuildMemberInfoTable.insertRow(row_position)
+
+            # 添加成员图片
+            member_hash = member['name_image_hash']
+            name_image_path = f"{PATHS['logs']}\\guild_manager\\guild_member_images\\{member_hash}.png"
+            pixmap = QtGui.QPixmap(name_image_path)
+            qtw_item = QtWidgets.QTableWidgetItem()
+
+            # 设置单元格图片
+            qtw_item.setData(QtCore.Qt.ItemDataRole.DecorationRole, pixmap)
+
+            # 设置单元格不可编辑
+            qtw_item.setFlags(qtw_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+
+            self.GuildMemberInfoTable.setItem(row_position, 0, qtw_item)
+
+        def add_data_widget_into_table(value, row, col):
+            """
+            根据输入 是否小于0 以不同形式录入 以 支持排序
+            :param value: 如果小于0 代表其实是未知数
+            :param row:
+            :param col:
+            :return:
+            """
+            qtw_item = QtWidgets.QTableWidgetItem()
+            # 将整数类型的贡献值填充到表格中
+            if value < 0:
+                qtw_item.setData(
+                    QtCore.Qt.ItemDataRole.DisplayRole,
+                    "Unknown")
+            else:
+                qtw_item.setData(
+                    QtCore.Qt.ItemDataRole.DisplayRole,
+                    int(value))
+
+            # 设置单元格不可编辑
+            qtw_item.setFlags(qtw_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+
+            self.GuildMemberInfoTable.setItem(row, col, qtw_item)
+
+        selected_date = self.DateSelector.selectedDate()
+
+        # 遍历成员数据 因为图片也是按照guild_manager_data顺序来的, 所以可以直接无脑遍历
+        row_position = 0
+
+        for member in self.guild_manager_data:
+
+            # 获取成员数据
+            member_data = member.get('data', {})
+
+            # 刷新第二列数据（当天贡献）
+            today_contribution = member_data.get(selected_date.toString('yyyy-MM-dd'), -1)
+            add_data_widget_into_table(value=today_contribution, row=row_position, col=1)
+
+            # 刷新第三列数据（昨天到今天的变化值）
+            yesterday = selected_date.addDays(-1)
+            yesterday_contribution = member_data.get(yesterday.toString('yyyy-MM-dd'), -1)
+            if today_contribution > 0 and yesterday_contribution > 0:
+                value = today_contribution - yesterday_contribution
+            else:
+                value = -1
+            add_data_widget_into_table(value=value, row=row_position, col=2)
+
+            # 刷新第四列数据（上周周日到今天的变化值）
+            last_sunday = selected_date.addDays(-(selected_date.dayOfWeek() - 1))
+            last_sunday_contribution = member_data.get(last_sunday.toString('yyyy-MM-dd'), -1)
+            if today_contribution > 0 and last_sunday_contribution > 0:
+                value = today_contribution - last_sunday_contribution
+            else:
+                value = -1
+            add_data_widget_into_table(value=value, row=row_position, col=3)
+
+            # 刷新第五列数据（上个月最后一天到今天的变化值）
+            last_month = selected_date.addMonths(-1)
+            last_day_of_last_month = QtCore.QDate(last_month.year(), last_month.month(), last_month.daysInMonth())
+            last_day_of_last_month_str = last_day_of_last_month.toString('yyyy-MM-dd')
+            last_day_of_last_month_contribution = member_data.get(last_day_of_last_month_str, -1)
+            if today_contribution > 0 and last_day_of_last_month_contribution > 0:
+                value = today_contribution - last_day_of_last_month_contribution
+            else:
+                value = -1
+            add_data_widget_into_table(value=value, row=row_position, col=4)
+
+            # 刷新第六列数据（去年最后一天到今天的变化值）
+            last_year = selected_date.addYears(-1)
+            last_day_of_last_year = QtCore.QDate(last_year.year(), last_year.month(), last_year.daysInMonth())
+            last_day_of_last_year_str = last_day_of_last_year.toString('yyyy-MM-dd')
+            last_day_of_last_year_contribution = member_data.get(last_day_of_last_year_str, -1)
+            if today_contribution > 0 and last_day_of_last_year_contribution > 0:
+                value = today_contribution - last_day_of_last_year_contribution
+            else:
+                value = -1
+            add_data_widget_into_table(value=value, row=row_position, col=5)
+
+            # 刷新第七列数据（上次更新）
+            today_str = datetime.date.today().strftime('%Y-%m-%d')
+            last_update_date_str = max(member_data.keys(), default="Never")
+            if last_update_date_str == "Never":
+                value = "从未"
+            elif last_update_date_str == today_str:
+                value = "今天"
+            else:
+                today_q_date = QtCore.QDate.fromString(today_str, 'yyyy-MM-dd').toPyDate()
+                last_q_date = QtCore.QDate.fromString(last_update_date_str, 'yyyy-MM-dd').toPyDate()
+                days_since_last_update = (today_q_date - last_q_date).days
+                value = f"{days_since_last_update}天前"
+            qtw_item = QtWidgets.QTableWidgetItem()
+            qtw_item.setData(QtCore.Qt.ItemDataRole.DisplayRole, value)
+            self.GuildMemberInfoTable.setItem(row_position, 6, qtw_item)
+
+            row_position += 1
+
+        self.GuildMemberInfoTable.sortByColumn(1, QtCore.Qt.SortOrder.DescendingOrder)  # 降序排序
 
     def updateEditBox1(self, window_name: str):
 
@@ -137,16 +302,6 @@ class QMainWindowService(QMainWindowLog):
         else:
             self.Name2P_Input.setText("")
             self.GameName_Input.setText(window_name)
-
-    def update_table_view(self):
-        """
-        根据视图模式/日期，改变表格显示内容
-        """
-        selected_date = self.DateSelector.selectedDate().toString('yyyy-MM-dd')
-        if selected_date:
-            self.filtered_df = self.df[self.df['Date'] == selected_date][['Name Image Path', 'Total Contribution']]
-            self.PandasModel = PandasModel(self.filtered_df)
-            self.GuildMemberInfoTable.setModel(self.PandasModel)
 
     def todo_start(self, plan_index=None):
         """
@@ -490,22 +645,22 @@ class QMainWindowService(QMainWindowLog):
 
 def faa_start_main():
     # 实例化 PyQt后台管理
-    app = QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     """字体"""
     # 读取字体文件
-    font_id = QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
-    QFontDatabase.addApplicationFont(PATHS["font"] + "\\手书体.ttf")
+    font_id = QtGui.QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
+    QtGui.QFontDatabase.addApplicationFont(PATHS["font"] + "\\手书体.ttf")
 
     # 获取字体家族名称
-    font_families = QFontDatabase.applicationFontFamilies(font_id)
+    font_families = QtGui.QFontDatabase.applicationFontFamilies(font_id)
     if not font_families:
         raise ValueError("Failed to load font file.")
 
     font_family = font_families[0]
 
     # 创建 QFont 对象并设置大小
-    font = QFont(font_family, 11)
+    font = QtGui.QFont(font_family, 11)
     # print(font_family)
 
     app.setFont(font)

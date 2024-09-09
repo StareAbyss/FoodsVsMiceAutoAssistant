@@ -1,19 +1,17 @@
+import datetime
 import hashlib
+import json
 import os
 import time
-import datetime
-from collections import defaultdict
-
-import pandas as pd
 
 import cv2
 import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png
 from function.common.same_size_match import match_block_equal_in_images
-from function.globals import g_resources
-from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
+from function.globals import g_resources, g_extra
 from function.globals.get_paths import PATHS
+from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
 def make_gray(img, mode: str):
@@ -101,44 +99,59 @@ def ocr_contribution(img):
     return int(numbers)
 
 
+def _hash_image(img):
+    # 将公会成员名称图片转换为唯一的哈希值
+    return hashlib.sha256(img.tobytes()).hexdigest()
+
+
+def save_image(image, path):
+    if not os.path.exists(path):
+        cv2.imencode('.png', image)[1].tofile(path)
+
+
 class GuildManager:
     """
     公会管理工具，自动扫描并生成带日期的表格
     格式为：
     公会成员名称图片；日期；月贡；周贡；日贡；总贡；备注
+    list[
+        {
+            name_image_hash:int;
+            data:{
+                date str: value int // 一天 一条数据
+                、、、
+            }
+        },
+        ... // 更多成员的数据
+    ]
     """
 
     def __init__(self):
-        # 初始化成员数据存储结构，使用字典嵌套字典的形式
-        self.member_data = defaultdict(lambda: {
-            "name_image": None,
-            "name_image_hash": "",
-            "dates": {},
-            "status": "active"
-        })
-        self.data_file = PATHS["logs"] + "\\guild_manager\\guild_manager_data.csv"
-        self.load_data()
 
-    def _hash_image(self, img):
-        # 将公会成员名称图片转换为唯一的哈希值
-        return hashlib.sha256(img.tobytes()).hexdigest()
+        self.members_data = []
 
-    def load_data(self):
-        """从CSV文件加载数据，恢复成员信息"""
-        if os.path.exists(self.data_file):
-            df = pd.read_csv(self.data_file)
-            for _, row in df.iterrows():
-                member_hash = row["Member Hash"]
-                self.member_data[member_hash]["name_image"] = cv2.imread(row["Name Image Path"])
-                self.member_data[member_hash]["name_image_hash"] = member_hash
-                self.member_data[member_hash]["status"] = row["Status"]
-                self.member_data[member_hash]["dates"][row["Date"]] = {
-                    "contribution": row["Total Contribution"]
-                }
-                if "Join Date" in row and not pd.isna(row["Join Date"]):
-                    self.member_data[member_hash]["join_date"] = row["Join Date"]
-                if "Exit Date" in row and not pd.isna(row["Exit Date"]):
-                    self.member_data[member_hash]["exit_date"] = row["Exit Date"]
+        self.data_file = PATHS["logs"] + "\\guild_manager\\guild_manager_data.json"
+
+        self.load_json()
+
+    def load_json(self):
+        """加载数据"""
+        try:
+            with g_extra.GLOBAL_EXTRA.file_lock:
+                with open(file=self.data_file, mode='r', encoding='utf-8') as file:
+                    self.members_data = json.load(file)
+        except FileNotFoundError:
+            # 如果文件不存在，则初始化
+            self.members_data = []
+        except json.JSONDecodeError:
+            # 如果文件存在但不是有效的JSON格式，也初始化
+            self.members_data = []
+
+    def save_json(self):
+        """保存数据到json文件"""
+        with g_extra.GLOBAL_EXTRA.file_lock:
+            with open(file=self.data_file, mode='w', encoding='utf-8') as file:
+                json.dump(self.members_data, file, ensure_ascii=False, indent=4)
 
     def get_guild_member_page(self, handle, handle_360):
         """
@@ -179,107 +192,64 @@ class GuildManager:
         for i in range(5):
             # 每一行的宽度是35，行间距为2。先获取第一行的图片
             img_member = img[37 * i:37 * i + 35, :]
+
             # 名称图片，用于识别是否是同一个人
             img_name = img_member[:, 0:93]
             img_name_grey = make_gray(img_name, "成员名称")
+
             # 贡献点图片，用于OCR数字来识别贡献点
             img_contribution = img_member[5:13, 184:245]
             contribution = ocr_contribution(img_contribution)
 
+            # 保存名称图片
+            name_image_hash = _hash_image(img_name_grey)
+            save_image(
+                image=img_name_grey,
+                path=f"{PATHS['logs']}\\guild_manager\\guild_member_images\\{name_image_hash}.png"
+            )
+
             # 如果存在贡献点，更新成员数据
-            if contribution:
-                member_hash = self._hash_image(img_name)
-                current_members.add(member_hash)
-                self.update_member_data(img_name_grey, contribution, datetime.date.today())
-                if member_hash not in self.member_data:
-                    self.add_new_member(img_name)
+            self.update_member_data(
+                name_image_hash=name_image_hash,
+                contribution=contribution,
+                date=datetime.date.today().strftime('%Y-%m-%d')
+            )
 
-        self.mark_inactive_members(current_members)
-
-    def update_member_data(self, img_name, contribution, date):
+    def update_member_data(self, name_image_hash, contribution, date):
         """
-        更新成员数据，img_name是成员名称图片，contribution是总贡献点，date是数据获取日期
+        :param name_image_hash: 成员名称图片哈希值
+        :param contribution: 总贡献点
+        :param date: 数据获取日期 请转化为 str yyyy-MM-dd
+        :return:
         """
-        member_hash = self._hash_image(img_name)
 
-        # 检查成员是否存在，不存在则初始化
-        if self.member_data[member_hash]["name_image_hash"] == "":
-            self.member_data[member_hash]["name_image"] = img_name
-            self.member_data[member_hash]["name_image_hash"] = member_hash
+        # 查找成员是否存在
+        existing_member = (
+            next(
+                (member for member in self.members_data if member['name_image_hash'] == name_image_hash),
+                None)
+        )
 
-        # 更新贡献数据，按日期存储
-        if date in self.member_data[member_hash]["dates"]:
-            # 如果同一天已有数据且新数据更晚，更新
-            if contribution > self.member_data[member_hash]["dates"][date]["contribution"]:
-                self.member_data[member_hash]["dates"][date]["contribution"] = contribution
+        if existing_member is None:
+            # 新成员，创建新条目
+            new_member = {
+                'name_image_hash': name_image_hash,
+                'data': {date: contribution}
+            }
+            self.members_data.append(new_member)
         else:
-            # 存储新日期的数据
-            self.member_data[member_hash]["dates"][date] = {
-                "contribution": contribution
-            }
+            # 成员已存在，更新贡献数据
+            existing_member['data'][date] = contribution
 
-    def mark_inactive_members(self, current_members):
-        today = datetime.date.today()
-        for member_hash, info in self.member_data.items():
-            if info["status"] == "active" and member_hash not in current_members:
-                self.member_data[member_hash]["status"] = "inactive"
-                self.member_data[member_hash]["exit_date"] = today
-
-    def add_new_member(self, img_name):
-        """添加新成员"""
-        member_hash = self._hash_image(img_name)
-        if member_hash not in self.member_data:
-            self.member_data[member_hash] = {
-                "name_image": img_name,
-                "name_image_hash": member_hash,
-                "dates": {},
-                "status": "active",
-                "join_date": datetime.date.today()
-            }
-
-    def save_image(self, image, name_image_path):
-        if not os.path.exists(name_image_path):
-            cv2.imwrite(name_image_path, image)
-
-    def make_table(self):
-        """
-        生成表格，输出为DataFrame，并按日期进行数据处理和排序
-        """
-        # 初始化表格结构
-        columns = ["Name Image Path", "Member Hash", "Date", "Total Contribution", "Status", "Join Date", "Exit Date"]
-        data = []
-
-        for member_hash, info in self.member_data.items():
-            for date, details in info["dates"].items():
-                # 保存名称图片到文件（如果未保存过）
-                name_image_path = f"{PATHS['logs']}\\guild_manager\\guild_member_images\\{member_hash}.png"
-                self.save_image(info["name_image"], name_image_path)
-
-                data.append([
-                    name_image_path,
-                    member_hash,
-                    date,
-                    details["contribution"],
-                    info["status"],
-                    info.get("join_date", ""),
-                    info.get("exit_date", "")
-                ])
-
-        # 创建DataFrame
-        df = pd.DataFrame(data, columns=columns)
-
-        # 按成员哈希和日期排序
-        df = df.sort_values(by=["Member Hash", "Date"])
-
-        # 保存到CSV文件
-        df.to_csv(f"{PATHS["logs"]}\\guild_manager\\guild_members_contributions.csv", index=False)
-
-    def main(self, handle, handle_360):
+    def scan(self, handle, handle_360):
         """
         主流程函数：扫描公会成员信息，更新数据，并生成表格
         """
+        # 加载数据
+        self.load_json()
+
         # 获取公会成员页面，并更新数据
         self.get_guild_member_page(handle, handle_360)
 
-        # 用数据生成表格
-        self.make_table()
+        # 保存数据
+        self.save_json()

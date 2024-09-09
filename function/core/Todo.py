@@ -67,6 +67,7 @@ class ThreadTodo(QThread):
         self.signal_image_to_ui = self.signal_dict["image_to_ui"]
         self.signal_dialog = self.signal_dict["dialog"]
         self.signal_todo_end = self.signal_dict["end"]
+        self.signal_guild_manager_fresh = self.signal_dict["guild_manager_fresh"]
 
     def stop(self):
 
@@ -389,6 +390,7 @@ class ThreadTodo(QThread):
 
         title_text = "领取奖励"
         self.model_start_print(text=title_text)
+
         """激活了扫描公会贡献"""
         if self.opt["advanced_settings"]["guild_manager_active"]:
 
@@ -400,10 +402,13 @@ class ThreadTodo(QThread):
             self.faa[self.opt["advanced_settings"]["guild_manager_active"]].action_bottom_menu(mode="公会")
 
             # 扫描
-            self.guild_manager.main(
+            self.guild_manager.scan(
                 handle=self.faa[self.opt["advanced_settings"]["guild_manager_active"]].handle,
                 handle_360=self.faa[self.opt["advanced_settings"]["guild_manager_active"]].handle_360
             )
+
+            # 完成扫描 触发信号刷新数据
+            self.signal_guild_manager_fresh.emit()
 
             # 退出工会页面
             self.faa[self.opt["advanced_settings"]["guild_manager_active"]].action_exit(mode="普通红叉")
