@@ -217,6 +217,7 @@ class QMainWindowService(QMainWindowLog):
 
             # 获取成员数据
             member_data = member.get('data', {})
+            member_data_week = member.get('data_week', {})
 
             # 刷新第二列数据（当天贡献）
             today_contribution = member_data.get(selected_date.toString('yyyy-MM-dd'), -1)
@@ -231,14 +232,9 @@ class QMainWindowService(QMainWindowLog):
                 value = -1
             add_data_widget_into_table(value=value, row=row_position, col=2)
 
-            # 刷新第四列数据（上周周日到今天的变化值）
-            last_sunday = selected_date.addDays(-(selected_date.dayOfWeek() - 1))
-            last_sunday_contribution = member_data.get(last_sunday.toString('yyyy-MM-dd'), -1)
-            if today_contribution > 0 and last_sunday_contribution > 0:
-                value = today_contribution - last_sunday_contribution
-            else:
-                value = -1
-            add_data_widget_into_table(value=value, row=row_position, col=3)
+            # 刷新第四列数据（尝试读取周贡献）
+            today_contribution_week = member_data_week.get(selected_date.toString('yyyy-MM-dd'), -1)
+            add_data_widget_into_table(value=today_contribution_week, row=row_position, col=3)
 
             # 刷新第五列数据（上个月最后一天到今天的变化值）
             last_month = selected_date.addMonths(-1)
