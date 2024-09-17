@@ -186,7 +186,6 @@ class FAA:
 
         return find
 
-
     """调用输入关卡配置和战斗配置, 在战斗前必须进行该操作"""
 
     def set_config_for_battle(

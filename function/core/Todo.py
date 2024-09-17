@@ -386,6 +386,16 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=title_text)
 
+    def batch_fed_and_watered(self, is_group):
+        title_text = "浇水 施肥 摘果"
+        self.model_start_print(text=title_text)
+
+        self.faa[1].fed_and_watered()
+        if is_group:
+            self.faa[2].fed_and_watered()
+
+        self.model_end_print(text=title_text)
+
     def batch_receive_all_quest_rewards(self, is_group):
 
         title_text = "领取奖励"
@@ -2012,15 +2022,11 @@ class ThreadTodo(QThread):
 
         my_opt = c_opt["sign_in"]
         if my_opt["active"]:
-            self.batch_sign_in(
-                is_group=my_opt["is_group"]
-            )
+            self.batch_sign_in(is_group=my_opt["is_group"])
 
         my_opt = c_opt["fed_and_watered"]
         if my_opt["active"]:
-            self.faa[1].fed_and_watered()
-            if my_opt["is_group"]:
-                self.faa[2].fed_and_watered()
+            self.batch_fed_and_watered(is_group=my_opt["is_group"])
 
         my_opt = c_opt["use_double_card"]
         if my_opt["active"]:
