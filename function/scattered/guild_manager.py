@@ -27,13 +27,17 @@ def make_gray(img, mode: str):
     upper_bound = np.array([255, 190, 0])
     match mode:
         case "成员名称":
-            # 将白色的成员名称转化为黑色，其余则为白色
+            # 将白色的成员名称(RGB 255 255 255)转化为黑色，其余则为白色
             lower_bound = np.array([254, 254, 254])
             upper_bound = np.array([255, 255, 255])
         case "贡献点":
-            # 将所有文本颜色转化为黑色，其余则为白色
+            # 将所有文本颜色(RGB 255 190 0)转化为黑色，其余则为白色
             lower_bound = np.array([254, 189, 0])
             upper_bound = np.array([255, 190, 0])
+        case "周贡献点":
+            # 将所有文本颜色(RGB 120 210 0)转化为黑色，其余则为白色
+            lower_bound = np.array([119, 209, 0])
+            upper_bound = np.array([120, 210, 0])
     mask = cv2.inRange(img, lower_bound, upper_bound)
 
     # 图片中非字体转化为白色
@@ -47,13 +51,13 @@ def make_gray(img, mode: str):
     return img_gray
 
 
-def ocr_contribution(img):
+def ocr_contribution(img, mode):
     """
     OCR识别图片中的数字，返回识别结果
     贡献点数字的高度为8，宽度为7；rgb颜色为(255, 190, 0)
     """
     # 获取灰度图
-    img_gray = make_gray(img, "贡献点")
+    img_gray = make_gray(img=img, mode=mode)
 
     # 开始分割数字
     start_pos = 0
@@ -121,6 +125,10 @@ class GuildManager:
                 date str: value int // 一天 一条数据
                 、、、
             }
+            data_week:{
+                date str: value int // 一天 一条数据
+                 、、、
+            }
         },
         ... // 更多成员的数据
     ]
@@ -187,19 +195,22 @@ class GuildManager:
         截图，获取成员名称，职位，当前贡献
         """
 
-        current_members = set()
         # 一页稳定有五个成员，按五行分布
         for i in range(5):
-            # 每一行的宽度是35，行间距为2。先获取第一行的图片
+            # 每一行的高度是35，行间距为2。先获取第一行的图片
             img_member = img[37 * i:37 * i + 35, :]
 
             # 名称图片，用于识别是否是同一个人
             img_name = img_member[:, 0:93]
             img_name_grey = make_gray(img_name, "成员名称")
 
-            # 贡献点图片，用于OCR数字来识别贡献点
+            # 贡献点图片，用于OCR数字来识别贡献点 高8 宽x
             img_contribution = img_member[5:13, 184:245]
-            contribution = ocr_contribution(img_contribution)
+            contribution = ocr_contribution(img=img_contribution, mode="贡献点")
+
+            # 每周贡献点图片 用于OCR数字来识别贡献点 高8 宽x
+            img_contribution_week = img_member[19:27, 184:245]
+            contribution_week = ocr_contribution(img=img_contribution_week, mode="周贡献点")
 
             # 保存名称图片
             name_image_hash = _hash_image(img_name_grey)
@@ -208,17 +219,22 @@ class GuildManager:
                 path=f"{PATHS['logs']}\\guild_manager\\guild_member_images\\{name_image_hash}.png"
             )
 
+            # 调试
+            print(contribution, contribution_week)
+
             # 如果存在贡献点，更新成员数据
             self.update_member_data(
                 name_image_hash=name_image_hash,
                 contribution=contribution,
+                contribution_week=contribution_week,
                 date=datetime.date.today().strftime('%Y-%m-%d')
             )
 
-    def update_member_data(self, name_image_hash, contribution, date):
+    def update_member_data(self, name_image_hash, contribution, contribution_week, date):
         """
         :param name_image_hash: 成员名称图片哈希值
         :param contribution: 总贡献点
+        :param contribution_week: 周贡献点（游戏内数值）
         :param date: 数据获取日期 请转化为 str yyyy-MM-dd
         :return:
         """
@@ -234,12 +250,18 @@ class GuildManager:
             # 新成员，创建新条目
             new_member = {
                 'name_image_hash': name_image_hash,
-                'data': {date: contribution}
+                'data': {date: contribution},
+                'data_week': {date: contribution_week}
             }
             self.members_data.append(new_member)
         else:
-            # 成员已存在，更新贡献数据
+            # 成员已存在，更新贡献数据, 先检查结构完整性
+            if not existing_member.get('data'):
+                existing_member['data'] = {}
+            if not existing_member.get('data_week'):
+                existing_member['data_week'] = {}
             existing_member['data'][date] = contribution
+            existing_member['data_week'][date] = contribution_week
 
     def scan(self, handle, handle_360):
         """
