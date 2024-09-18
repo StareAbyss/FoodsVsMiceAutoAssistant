@@ -126,9 +126,11 @@ class QMainWindowLog(QMainWindowLoadUI):
         self.signal_print_to_ui.emit(
             text="本软件 [开源][免费][绿色]",
             time=False)
+
         self.signal_print_to_ui.emit(
             text="",
             time=False)
+
         self.signal_print_to_ui.emit(
             text="使用安全说明",
             color_level=1,
@@ -142,9 +144,11 @@ class QMainWindowLog(QMainWindowLoadUI):
         self.signal_print_to_ui.emit(
             text="[3] 高星或珍贵不绑卡挂拍卖/提前转移",
             time=False)
+
         self.signal_print_to_ui.emit(
             text="",
             time=False)
+
         self.signal_print_to_ui.emit(
             text="使用疑难解决",
             color_level=1,
@@ -165,19 +169,15 @@ class QMainWindowLog(QMainWindowLoadUI):
         self.signal_print_to_ui.emit(
             text="该版本的FAA会向服务器发送战利品掉落Log以做掉落统计, 不传输<任何>其他内容",
             time=False)
+
         self.signal_print_to_ui.emit(
             text="",
             time=False)
+
         self.signal_print_to_ui.emit(
             text="相关链接",
             color_level=1,
             time=False)
-        # self.signal_print_to_ui.emit(
-        #     text="[爱发电]  https://afdian.net/a/zssy_faa ",
-        #     time=False)
-        # self.signal_print_to_ui.emit(
-        #     text="[爱发电]你们的支持是FAA持(不)续(跑)开(路)发的最大动力",
-        #     time=False)
         self.signal_print_to_ui.emit(
             text="[Github]  https://github.com/StareAbyss/FoodsVsMiceAutoAssistant",
             time=False)
@@ -191,7 +191,7 @@ class QMainWindowLog(QMainWindowLoadUI):
             text="[B站]  速速一键三连辣!",
             time=False)
         self.signal_print_to_ui.emit(
-            text="[交流QQ群]  1群: 786921130  2群: 142272678 ",
+            text="[交流QQ群]  1群: 786921130  2群: 142272678 (推荐, 但比较爆满)",
             time=False)
         self.signal_print_to_ui.emit(
             text="[交流QQ群]  欢迎加入, 交流游戏和自动化 & 获取使用帮助 & 参与开发!",
@@ -200,8 +200,35 @@ class QMainWindowLog(QMainWindowLoadUI):
             text="[腾讯频道]  https://pd.qq.com/s/a0h4rujt0",
             time=False)
         self.signal_print_to_ui.emit(
-            text="[腾讯频道]  欢迎加入, 用以下载 / 公告 / 提交问题.",
+            text="[腾讯频道]  欢迎加入, 用以下载 / 公告 / 提交问题. (目前人少维护较差)",
             time=False)
+
+        self.signal_print_to_ui.emit(
+            text="",
+            time=False)
+
+        self.signal_print_to_ui.emit(
+            text="支持FAA",
+            color_level=1,
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="[微信赞赏码]  下方直接扫码即可. (推荐)",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="[QQ红包]  加入讨论QQ群后直接发送即可, 以防高仿.",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="[爱发电]  由于域名不稳定暂时停用.",
+            time=False)
+        self.signal_print_to_ui.emit(
+            text="赞助时, 可留下您的称呼以供致谢. 你们的支持是FAA 持 (不) 续 (跑) 开 (路) 发 的最大动力!",
+            time=False)
+
+        self.signal_image_to_ui.emit(
+            image=PATHS["logo"] + "\\赞赏码.png")
+        # self.signal_print_to_ui.emit(
+        #     text="[爱发电]  https://afdian.net/a/zssy_faa ",
+        #     time=False)
 
     # 用于展示弹窗信息的方法
     @QtCore.pyqtSlot(str, str)
