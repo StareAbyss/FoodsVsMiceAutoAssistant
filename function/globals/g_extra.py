@@ -28,5 +28,8 @@ class GlobalExtraBiuld:
         # 储存战斗方案uuid list顺序和文件夹中顺序完全一致!
         self.battle_plan_uuid_list = []
 
+        # 米苏物流url
+        self.misu_logistics = ""
+
 
 GLOBAL_EXTRA = GlobalExtraBiuld()

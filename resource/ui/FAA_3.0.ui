@@ -275,6 +275,9 @@ border:none</string>
          <height>0</height>
         </size>
        </property>
+       <property name="toolTip">
+        <string/>
+       </property>
        <property name="autoFillBackground">
         <bool>false</bool>
        </property>
@@ -2318,6 +2321,10 @@ border:none</string>
                    <height>16777215</height>
                   </size>
                  </property>
+                 <property name="toolTip">
+                  <string>点击保存配置.
+请注意 先点击保存配置后运行, 未保存的配置将不被应用!</string>
+                 </property>
                  <property name="text">
                   <string>保存配置
 Save Config</string>
@@ -2345,7 +2352,7 @@ Save Config</string>
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string/>
+                  <string>定时任务会应用新保存的方案.</string>
                  </property>
                  <property name="text">
                   <string>启动定时任务
@@ -2374,7 +2381,8 @@ Timer Start</string>
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>点击开始运行, 编辑方案中的当前方案</string>
+                  <string>点击开始运行当前选中方案.
+请注意 先点击保存配置后运行, 未保存的配置将不被应用!</string>
                  </property>
                  <property name="text">
                   <string>开始任务
@@ -8223,7 +8231,7 @@ Link Start</string>
             <number>0</number>
            </property>
            <item>
-            <layout class="QVBoxLayout" name="Lay_Tab3_Left" stretch="4,1,4,1,14">
+            <layout class="QVBoxLayout" name="Lay_Tab3_Left" stretch="4,1,4,1,4,1,4,0">
              <property name="leftMargin">
               <number>5</number>
              </property>
@@ -8237,7 +8245,7 @@ Link Start</string>
               <number>5</number>
              </property>
              <item>
-              <layout class="QVBoxLayout" name="Lay_AdvancedSettings" stretch="1,1,0,1">
+              <layout class="QVBoxLayout" name="Lay_AdvancedSettings" stretch="1,1,1,1">
                <property name="spacing">
                 <number>5</number>
                </property>
@@ -8504,7 +8512,7 @@ Link Start</string>
               </widget>
              </item>
              <item>
-              <layout class="QVBoxLayout" name="Lay_GetWarmGift" stretch="1,1,1,0">
+              <layout class="QVBoxLayout" name="Lay_GetWarmGift" stretch="1,1,1,1">
                <property name="spacing">
                 <number>5</number>
                </property>
@@ -8537,7 +8545,7 @@ Link Start</string>
                 </widget>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="Lay_GetWarmGift_1P">
+                <layout class="QHBoxLayout" name="Lay_GetWarmGift_1P" stretch="1,1,4">
                  <property name="leftMargin">
                   <number>5</number>
                  </property>
@@ -8581,7 +8589,7 @@ Link Start</string>
                  <item>
                   <widget class="QLabel" name="GetWarmGift_1P_Text">
                    <property name="text">
-                    <string>链接：</string>
+                    <string>链接</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -8591,7 +8599,7 @@ Link Start</string>
                  <item>
                   <widget class="QLineEdit" name="GetWarmGift_1P_Link">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -8628,7 +8636,7 @@ Link Start</string>
                 </layout>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="Lay_GetWarmGift_2P">
+                <layout class="QHBoxLayout" name="Lay_GetWarmGift_2P" stretch="1,1,4">
                  <property name="leftMargin">
                   <number>5</number>
                  </property>
@@ -8672,7 +8680,7 @@ Link Start</string>
                  <item>
                   <widget class="QLabel" name="GetWarmGift_2P_Text">
                    <property name="text">
-                    <string>链接：</string>
+                    <string>链接</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -8682,7 +8690,7 @@ Link Start</string>
                  <item>
                   <widget class="QLineEdit" name="GetWarmGift_2P_Link">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -8742,7 +8750,7 @@ Link Start</string>
                   <string>只用点一下就够了!</string>
                  </property>
                  <property name="text">
-                  <string>点击查看温馨礼包教学</string>
+                  <string>查看温馨礼包教学</string>
                  </property>
                 </widget>
                </item>
@@ -8756,7 +8764,7 @@ Link Start</string>
               </widget>
              </item>
              <item>
-              <layout class="QVBoxLayout" name="Lay_GetWarmGift_2" stretch="1,1,1,9">
+              <layout class="QVBoxLayout" name="Lay_GetWarmGift_2" stretch="1,1,1,1">
                <property name="spacing">
                 <number>5</number>
                </property>
@@ -8971,26 +8979,276 @@ Link Start</string>
                 </layout>
                </item>
                <item>
-                <widget class="QLabel" name="Lay_Level2_Text_1">
-                 <property name="text">
-                  <string>此处确定 并输入二级密码 将在以下位置附加该功能
-1.&lt;签到&gt;功能运行前
-2.&lt;公会任务&gt;的开始和结束的奖励领取前
-3.&lt;领取奖励&gt;功能运行前
-删除的目标物品默认均为无用技能书
-删除物品见: config/cus_images/背包_道具_需删除的
-
-叠甲1: 该功能新开发, 有风险! 请知道自己在做什么
-叠甲2: 开启此功能&lt;一切后果&gt;请玩家自负
-叠甲3: FAA是&lt;开源&gt;软件, 不会盗取你的二级数据
-叠甲4: 我想不会有人&quot;不小心&quot;正确设置完成这项操作</string>
+                <widget class="QPushButton" name="Level2_Tip">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
                  </property>
-                 <property name="alignment">
-                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>只用点一下就够了!</string>
+                 </property>
+                 <property name="text">
+                  <string>查看重要说明</string>
                  </property>
                 </widget>
                </item>
               </layout>
+             </item>
+             <item>
+              <widget class="Line" name="line_6">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="Lay_MisuLogistics" stretch="1,1,1,1">
+               <property name="spacing">
+                <number>5</number>
+               </property>
+               <property name="leftMargin">
+                <number>5</number>
+               </property>
+               <property name="topMargin">
+                <number>5</number>
+               </property>
+               <property name="rightMargin">
+                <number>5</number>
+               </property>
+               <property name="bottomMargin">
+                <number>5</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="MisuLogistics_Text">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>35</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>发送战利品记录到 FAA X 米苏物流 数据中心</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="Lay_MisuLogistics_1" stretch="1,1,5,1">
+                 <property name="leftMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>5</number>
+                 </property>
+                 <item>
+                  <widget class="QCheckBox" name="MisuLogistics_Active">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>1677215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>启动</string>
+                   </property>
+                   <property name="checkable">
+                    <bool>true</bool>
+                   </property>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="MisuLogistics_Link_Text">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>链接</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="MisuLogistics_Link">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>250</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="tabletTracking">
+                    <bool>false</bool>
+                   </property>
+                   <property name="autoFillBackground">
+                    <bool>false</bool>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="echoMode">
+                    <enum>QLineEdit::Normal</enum>
+                   </property>
+                   <property name="clearButtonEnabled">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="MisuLogistics_Link_SetDefault">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>只用点一下就够了!</string>
+                   </property>
+                   <property name="text">
+                    <string>默认</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QPushButton" name="MisuLogistics_LinkTest">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>只用点一下就够了!</string>
+                 </property>
+                 <property name="text">
+                  <string>点击测试 链接连通性</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="MisuLogistics_Tip">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>只用点一下就够了!</string>
+                 </property>
+                 <property name="text">
+                  <string>查看说明</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <spacer name="verticalSpacer_12">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>1000</height>
+                </size>
+               </property>
+              </spacer>
              </item>
             </layout>
            </item>
@@ -9531,19 +9789,6 @@ Link Start</string>
             </widget>
            </item>
            <item>
-            <spacer name="verticalSpacer_10">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
             <layout class="QHBoxLayout" name="Lay_AdvancedSettings_Bottom_2" stretch="1,1">
              <property name="leftMargin">
               <number>5</number>
@@ -9604,19 +9849,6 @@ Link Start</string>
             </layout>
            </item>
            <item>
-            <spacer name="verticalSpacer_8">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item>
             <widget class="QCalendarWidget" name="DateSelector">
              <property name="minimumSize">
               <size>
@@ -9642,7 +9874,20 @@ Link Start</string>
             </widget>
            </item>
            <item>
-            <spacer name="verticalSpacer_9">
+            <widget class="QLabel" name="label_11">
+             <property name="text">
+              <string>
+说明
+启用后，在领取奖励时
+所选的那一P, 会扫描公会的所有成员，自动生成表格</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_10">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
@@ -9653,28 +9898,6 @@ Link Start</string>
               </size>
              </property>
             </spacer>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_11">
-             <property name="text">
-              <string>说明
-启用后，在领取奖励时
-所选的那一P会扫描公会的所有成员，自动生成表格
-
-
-
-
-
-
-
-
-
-</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-            </widget>
            </item>
           </layout>
          </item>
@@ -9829,7 +10052,7 @@ Link Start</string>
                  </property>
                  <property name="text">
                   <string>更多超绝皮肤锐意制作中...
-未完待续。。。
+未完待续...
 皮肤特效系统-执念制作</string>
                  </property>
                  <property name="alignment">

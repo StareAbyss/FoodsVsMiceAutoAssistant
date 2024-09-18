@@ -1085,19 +1085,9 @@
         "top_up_money_2p": false,
         "end_exit_game": false,
         "auto_use_card": true,
-        "auto_delete_old_images": true,
-        "guild_manager_active": 0
+        "guild_manager_active": 0,
+        "misu_logistics_link":""
     },
-    "senior_settings": {
-        "auto_senior_settings": false,
-        "senior_log_state":0,
-        "gpu_settings":false
-    },
-    "log_settings": {
-        "log_senior_settings": "7",
-        "log_other_settings":"3"
-    },
-    "skin_type": 1,
     "get_warm_gift": {
         "1p": {
             "active": false,
@@ -1117,5 +1107,15 @@
             "active": false,
             "password": ""
         }
-    }
+    },
+    "senior_settings": {
+        "auto_senior_settings": false,
+        "senior_log_state": 0,
+        "gpu_settings": false
+    },
+    "log_settings": {
+        "log_senior_settings": "7",
+        "log_other_settings": "3"
+    },
+    "skin_type": 1
 }

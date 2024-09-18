@@ -107,18 +107,35 @@ def loots_and_chests_detail_to_json(faa, loots_dict, chests_dict) -> dict:
     return new_data
 
 
-def loots_and_chests_data_post_to_sever(detail_data) -> bool:
+def loots_and_chests_data_post_to_sever(detail_data, url=None) -> bool:
     """
     :param detail_data: loots_and_chests_detail_to_json 的 返回值
+    :param url: 路径
     :return: 是否发送成功
     """
-
+    if url is None:
+        url = 'http://stareabyss.top:5000/faa_server/data_upload/battle_drops'
     try:
-        # 校验正确的数据, 输出到FAA数据中心(其实是白嫖的云服务器) 5s超时
+        # 校验正确的数据, 输出到FAA数据中心 5s超时
         response = requests.post(
-            url='http://47.108.167.141:5000/faa_server', json=detail_data, timeout=5)
+            url=url, json=detail_data, timeout=5)
         # 检查响应状态码,如果不是2xx则引发异常 会被log捕获
         response.raise_for_status()
         return True
     except RequestException as e:
         return False
+
+
+# if __name__ == '__main__':
+#     result = loots_and_chests_data_post_to_sever(
+#         detail_data={
+#             "timestamp": time.time(),
+#             "stage": "NO-2-6",
+#             "is_used_key": True,
+#             "loots": {'1级四叶草': 1, '上等香料': 3, '天然香料': 1, '菠萝爆炸面包配方': 1, '开水壶炸弹配方': 2,
+#                       '果冻胶': 1, '红豆腐': 2, '电鳗鱼肉': 1, '冰包子': 1, '白砂糖': 2, '小蒸笼': 2, '水壶': 2,
+#                       '木块': 2, '火药': 1},
+#             "chests": {'白砂糖': 1, '果冻胶': 1}
+#         }
+#     )
+#     print(result)

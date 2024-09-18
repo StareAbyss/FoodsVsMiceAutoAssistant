@@ -1,21 +1,16 @@
-import json
+import requests
 
-# 示例数据
-members_data = [
-    {
-        "id": 123,
-        "data": {
-            "2024-09-08": 5948,
-            "2024-09-09": 4564
-        }
-    }
-]
+url = 'http://stareabyss.top:5000/faa_server/data_upload/battle_drops'
 
-# 保存路径
-output_path = "members_data.json"
-
-# 保存数据到 JSON 文件
-with open(output_path, 'w', encoding='utf-8') as json_file:
-    json.dump(members_data, json_file, ensure_ascii=False, indent=4)
-
-print(f"数据已保存到 {output_path}")
+try:
+    response = requests.head(url, timeout=5)
+    response.raise_for_status()
+    print(f"路由 {url} 可达，状态码：{response.status_code}")
+except requests.exceptions.Timeout:
+    print("请求超时")
+except requests.exceptions.HTTPError as err:
+    print(f"HTTP 错误: {err}")
+except requests.exceptions.ConnectionError:
+    print("连接错误")
+except requests.exceptions.RequestException as e:
+    print(f"请求异常: {e}")
