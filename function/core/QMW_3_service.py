@@ -81,6 +81,13 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.window_tip_battle = QMWTipBattle()
         self.TipBattle_Button.clicked.connect(self.click_btn_tip_battle)
 
+        # 额外窗口 - 二级说明书
+        self.window_tip_level2 = QMWTipLevels2()
+        self.Level2_Tip.clicked.connect(self.click_btn_tip_level2)
+
+        # 米苏物流 - tip窗口
+        self.window_tip_misu_logistics = QMWTipMisuLogistics()
+        self.MisuLogistics_Tip.clicked.connect(self.click_btn_tip_misu_logistics)
         # 米苏物流 - 测试链接
         self.MisuLogistics_LinkTest.clicked.connect(self.click_btn_misu_logistics_link_test)
         # 米苏物流 - 设定默认
