@@ -10,11 +10,12 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 
 from function.core.FAA import FAA
 from function.core.FAA_extra_readimage import kill_process
-from function.core.QMW_1_load_settings import CommonHelper
-from function.core.QMW_2_log import QMainWindowLog
+from function.core.QMW_2_load_settings import CommonHelper, QMainWindowLoadSettings
 from function.core.QMW_EditorOfBattlePlan import QMWEditorOfBattlePlan
 from function.core.QMW_EditorOfTaskSequence import QMWEditorOfTaskSequence
 from function.core.QMW_TipBattle import QMWTipBattle
+from function.core.QMW_TipLevel2 import QMWTipLevels2
+from function.core.QMW_TipMisuLogistics import QMWTipMisuLogistics
 from function.core.QMW_TipStageID import QMWTipStageID
 from function.core.QMW_TipWarmGift import QMWTipWarmGift
 from function.core.Todo import ThreadTodo
@@ -24,9 +25,10 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.TodoTimerManager import TodoTimerManager
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
+from function.scattered.test_route_connectivity import test_route_connectivity
 
 
-class QMainWindowService(QMainWindowLog):
+class QMainWindowService(QMainWindowLoadSettings):
     signal_todo_end = QtCore.pyqtSignal()
     signal_todo_start = QtCore.pyqtSignal(int)  # 可通过该信号以某个 方案id 开启一趟流程
     signal_guild_manager_fresh = QtCore.pyqtSignal()  # 刷新公会管理器数据, 于扫描后
@@ -80,6 +82,10 @@ class QMainWindowService(QMainWindowLog):
         self.window_tip_battle = QMWTipBattle()
         self.TipBattle_Button.clicked.connect(self.click_btn_tip_battle)
 
+        # 米苏物流 - 测试链接
+        self.MisuLogistics_LinkTest.clicked.connect(self.click_btn_misu_logistics_link_test)
+        # 米苏物流 - 设定默认
+        self.MisuLogistics_Link_SetDefault.clicked.connect(self.click_btn_misu_logistics_set_default)
         # 启动按钮 函数绑定
         self.Button_Start.clicked.connect(self.todo_click_btn)
         self.Button_StartTimer.clicked.connect(self.todo_timer_click_btn)
@@ -549,36 +555,6 @@ class QMainWindowService(QMainWindowLog):
         else:
             widget.setStyleSheet("")
 
-    def click_btn_open_editor_of_battle_plan(self):
-        self.window_editor_of_battle_plan.set_my_font(self.font)
-        self.set_stylesheet(self.window_editor_of_battle_plan)
-        self.window_editor_of_battle_plan.show()
-
-    def click_btn_open_editor_of_task_sequence(self):
-        self.window_editor_of_task_sequence.set_my_font(self.font)
-        self.set_stylesheet(self.window_editor_of_task_sequence)
-        self.window_editor_of_task_sequence.show()
-
-    def click_btn_tip_warm_gift(self):
-        self.window_tip_warm_gift.setFont(self.font)
-        self.set_stylesheet(self.window_tip_warm_gift)
-        self.window_tip_warm_gift.show()
-
-    def click_btn_tip_stage_id(self):
-        self.window_tip_stage_id.setFont(self.font)
-        self.set_stylesheet(self.window_tip_stage_id)
-        self.window_tip_stage_id.show()
-
-    def click_btn_tip_battle(self):
-        self.window_tip_battle.setFont(self.font)
-        self.set_stylesheet(self.window_tip_battle)
-        if self.window_tip_battle_is_show:
-            self.window_tip_battle.hide()
-            self.window_tip_battle_is_show = False
-        else:
-            self.window_tip_battle.show()
-            self.window_tip_battle_is_show = True
-
     def click_btn_hide_window(self):
         """因为 Flash 在窗口外无法正常渲染画面(Chrome可以), 所以老板键只能做成z轴设为最低级"""
         # 获取窗口名称
@@ -637,6 +613,65 @@ class QMainWindowService(QMainWindowLog):
                 # win32gui.ShowWindow(handle,0)
                 # 也许有一天能写出真正的老板键 大概
             self.game_window_is_hide = True
+
+    """打开其他窗口"""
+
+    def click_btn_open_editor_of_battle_plan(self):
+        self.window_editor_of_battle_plan.set_my_font(self.font)
+        self.set_stylesheet(self.window_editor_of_battle_plan)
+        self.window_editor_of_battle_plan.show()
+
+    def click_btn_open_editor_of_task_sequence(self):
+        self.window_editor_of_task_sequence.set_my_font(self.font)
+        self.set_stylesheet(self.window_editor_of_task_sequence)
+        self.window_editor_of_task_sequence.show()
+
+    def click_btn_tip_warm_gift(self):
+        window = self.window_tip_warm_gift
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
+
+    def click_btn_tip_stage_id(self):
+        window = self.window_tip_stage_id
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
+
+    def click_btn_tip_battle(self):
+        window = self.window_tip_battle
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
+
+    def click_btn_tip_level2(self):
+        window = self.window_tip_level2
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
+
+    def click_btn_tip_misu_logistics(self):
+        window = self.window_tip_misu_logistics
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
+
+    """测试网络"""
+
+    def click_btn_misu_logistics_link_test(self):
+
+        url = self.MisuLogistics_Link.text()
+        if not url:
+            url = None  # 判空
+
+        result_bool, result_print = test_route_connectivity(url=url)
+        self.signal_dict['dialog'].emit(
+            "链接成功!" if result_bool else "连接失败...",
+            result_print
+        )
+
+    def click_btn_misu_logistics_set_default(self):
+        self.MisuLogistics_Link.setText("")
 
 
 def faa_start_main():

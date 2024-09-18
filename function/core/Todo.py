@@ -69,6 +69,10 @@ class ThreadTodo(QThread):
         self.signal_todo_end = self.signal_dict["end"]
         self.signal_guild_manager_fresh = self.signal_dict["guild_manager_fresh"]
 
+        # 读取 米苏物流 url 到全局变量
+        if self.faa[1].player == 1:
+            g_extra.GLOBAL_EXTRA.misu_logistics = self.opt["advanced_settings"]["misu_logistics_link"]
+
     def stop(self):
 
         # 暂停外部线程
@@ -930,7 +934,10 @@ class ThreadTodo(QThread):
                     CUS_LOGGER.info(f"[战利品识别] [保存日志] [{player_index}P] 成功保存至统计数据!")
 
                     # 发送到服务器
-                    if loots_and_chests_data_post_to_sever(detail_data=detail_data):
+                    upload_result = loots_and_chests_data_post_to_sever(
+                        detail_data=detail_data,
+                        url=g_extra.GLOBAL_EXTRA.misu_logistics)
+                    if upload_result:
                         CUS_LOGGER.info(f"[战利品识别] [发送服务器] [{player_index}P] 成功发送一条数据!")
                     else:
                         CUS_LOGGER.warning(f"[战利品识别] [发送服务器] [{player_index}P] 超时! 可能是服务器炸了...")

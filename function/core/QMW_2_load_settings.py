@@ -6,7 +6,7 @@ import sys
 
 from PyQt6.QtWidgets import QApplication, QMessageBox, QInputDialog
 
-from function.core.QMW_0_load_ui_file import QMainWindowLoadUI
+from function.core.QMW_1_log import QMainWindowLog
 from function.globals import g_extra
 from function.globals import g_resources
 from function.globals.get_paths import PATHS
@@ -14,6 +14,7 @@ from function.globals.log import CUS_LOGGER
 from function.scattered.check_uuid_in_battle_plan import fresh_and_check_battle_plan_uuid
 from function.scattered.get_list_battle_plan import get_list_battle_plan
 from function.scattered.get_task_sequence_list import get_task_sequence_list
+from function.scattered.test_route_connectivity import test_route_connectivity
 
 
 def ensure_file_exists(file_path, template_suffix="_template") -> None:
@@ -41,7 +42,7 @@ def ensure_file_exists(file_path, template_suffix="_template") -> None:
         CUS_LOGGER.info(f"[资源检查] '{file_path}' 已存在. 直接读取.")
 
 
-class QMainWindowLoadSettings(QMainWindowLoadUI):
+class QMainWindowLoadSettings(QMainWindowLog):
     """将读取配置的方法封装在此处"""
 
     def __init__(self):
@@ -420,6 +421,7 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             self.EndExitGame.setChecked(my_opt["end_exit_game"])
             self.AutoUseCard.setChecked(my_opt["auto_use_card"])
             self.GuildManager_Active.setCurrentIndex(my_opt["guild_manager_active"])
+            self.MisuLogistics_Link.setText(my_opt["misu_logistics_link"])
 
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
@@ -603,6 +605,34 @@ class QMainWindowLoadSettings(QMainWindowLoadUI):
             my_opt["end_exit_game"] = self.EndExitGame.isChecked()
             my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
             my_opt["guild_manager_active"] = self.GuildManager_Active.currentIndex()
+
+            # link 需要额外的检查
+            url = self.MisuLogistics_Link.text()
+            result_bool, _ = test_route_connectivity(url=url)
+
+            if url != "":
+                if result_bool :
+                    my_opt["misu_logistics_link"] = url
+                    self.signal_dict["print_to_ui"].emit(
+                        text=f"FAA X 米苏物流 连通性测试 使用非默认ulr:{url} 成功!",color_level=3)
+                else:
+                    self.signal_dict["print_to_ui"].emit(
+                        text=f"FAA X 米苏物流 连通性测试 使用非默认ulr:{url} 失败! 将修正为默认url重试",color_level=1)
+                    url = ""
+                    my_opt["misu_logistics_link"] = url
+                    self.MisuLogistics_Link.setText(url)
+                    result_bool, _ = test_route_connectivity(url=url)
+
+            if url == "":
+                if result_bool :
+                    my_opt["misu_logistics_link"] = url
+                    self.signal_dict["print_to_ui"].emit(
+                        text=f"FAA X 米苏物流 连通性测试 使用默认ulr 成功!",color_level=3)
+                else:
+                    self.signal_dict["print_to_ui"].emit(
+                        text=f"FAA X 米苏物流 连通性测试 使用默认ulr 失败!",color_level=1)
+                    self.signal_dict["print_to_ui"].emit(
+                        text=f"内置url可能已过期, 推荐更新url, 以防请求等待超时, 降低战斗效率!!!",color_level=1)
 
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]

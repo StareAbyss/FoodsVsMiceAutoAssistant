@@ -9,11 +9,12 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QTextCursor
 from PyQt6.QtWidgets import QApplication
 
-from function.core.QMW_1_load_settings import QMainWindowLoadSettings
+from function.core.QMW_0_load_ui_file import QMainWindowLoadUI
+from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 
 
-class QMainWindowLog(QMainWindowLoadSettings):
+class QMainWindowLog(QMainWindowLoadUI):
     signal_dialog = pyqtSignal(str, str)  # 标题, 正文
     signal_print_to_ui_1 = pyqtSignal(str, str, bool)
     signal_image_to_ui_1 = pyqtSignal(numpy.ndarray)
