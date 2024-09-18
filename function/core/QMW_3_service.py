@@ -78,7 +78,6 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.TipStageID_Button.clicked.connect(self.click_btn_tip_stage_id)
 
         # 额外窗口 - 战斗模式介绍
-        self.window_tip_battle_is_show = False
         self.window_tip_battle = QMWTipBattle()
         self.TipBattle_Button.clicked.connect(self.click_btn_tip_battle)
 
@@ -86,6 +85,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.MisuLogistics_LinkTest.clicked.connect(self.click_btn_misu_logistics_link_test)
         # 米苏物流 - 设定默认
         self.MisuLogistics_Link_SetDefault.clicked.connect(self.click_btn_misu_logistics_set_default)
+
         # 启动按钮 函数绑定
         self.Button_Start.clicked.connect(self.todo_click_btn)
         self.Button_StartTimer.clicked.connect(self.todo_timer_click_btn)
@@ -124,6 +124,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 连接自定义信号到槽函数，从而修改编辑框内容
         self.Label_drag.windowNameChanged1.connect(self.updateEditBox1)
         self.Label_drag.windowNameChanged2.connect(self.updateEditBox2)
+
+    """工会管理器页面"""
 
     def guild_manager_table_init(self):
         """
@@ -305,6 +307,8 @@ class QMainWindowService(QMainWindowLoadSettings):
             self.Name2P_Input.setText("")
             self.GameName_Input.setText(window_name)
 
+    """主线程管理"""
+
     def todo_start(self, plan_index=None):
         """
         todo线程的启动函数
@@ -324,7 +328,7 @@ class QMainWindowService(QMainWindowLoadSettings):
             self.todo_end()
 
         # 先读取界面上的方案
-        self.ui_to_opt()
+        # self.ui_to_opt()
 
         # 获取窗口名称
         channel_1p, channel_2p = get_channel_name(
@@ -525,6 +529,8 @@ class QMainWindowService(QMainWindowLoadSettings):
             self.todo_timer_start()
         else:
             self.todo_timer_stop()
+
+    """其他"""
 
     def set_stylesheet(self, widget):
         # 定义一个字典，将复选框对象映射到对应的值

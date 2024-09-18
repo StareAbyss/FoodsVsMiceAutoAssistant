@@ -138,6 +138,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         return None
 
+    """opt和json的交互"""
+
     def json_to_opt(self) -> None:
         # 自旋锁读写, 防止多线程读写问题
         with g_extra.GLOBAL_EXTRA.file_lock:
@@ -356,6 +358,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.AutoFood_Active.setChecked(my_opt["auto_food"]["active"])
         self.AutoFood_Deck.setValue(my_opt["auto_food"]["deck"])
 
+    """ui和opt的交互"""
+
     def init_opt_to_ui(self) -> None:
         # comboBox.setCurrentIndex时 如果超过了已有预设 会显示为空 不会报错
         # comboBox.clear时 会把所有选项设定为默认选项
@@ -414,13 +418,16 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         def advanced_settings() -> None:
             my_opt = self.opt["advanced_settings"]
+            # 高级配置页
             self.AutoPickUp_1P.setChecked(my_opt["auto_pickup_1p"])
             self.AutoPickUp_2P.setChecked(my_opt["auto_pickup_2p"])
             self.TopUpMoney_1P.setChecked(my_opt["top_up_money_1p"])
             self.TopUpMoney_2P.setChecked(my_opt["top_up_money_2p"])
             self.EndExitGame.setChecked(my_opt["end_exit_game"])
             self.AutoUseCard.setChecked(my_opt["auto_use_card"])
+            # 其他放在此分类的配置
             self.GuildManager_Active.setCurrentIndex(my_opt["guild_manager_active"])
+            # link 加载的时候不做校验
             self.MisuLogistics_Link.setText(my_opt["misu_logistics_link"])
 
         def senior_settings() -> None:
@@ -488,9 +495,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 self.set_theme_default()
                 self.set_common_theme()
 
-
-
-
             # 设置信号和槽
             self.skin1.toggled.connect(self.on_skin_state_changed)
             self.skin2.toggled.connect(self.on_skin_state_changed)
@@ -512,12 +516,14 @@ class QMainWindowLoadSettings(QMainWindowLog):
         log_settings()
         level_2()
         skin_set()
+
         self.CurrentPlan.clear()
         self.CurrentPlan.addItems(todo_plan_name_list)
         self.CurrentPlan.setCurrentIndex(self.opt["current_plan"])
         self.opt_to_ui_todo_plans()
 
     def ui_to_opt(self) -> None:
+
         # battle_plan_list
         battle_plan_list_new = get_list_battle_plan(with_extension=False)
         task_sequence_list = get_task_sequence_list(with_extension=False)
@@ -598,12 +604,14 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         def advanced_settings() -> None:
             my_opt = self.opt["advanced_settings"]
+            # 高级配置页
             my_opt["auto_pickup_1p"] = self.AutoPickUp_1P.isChecked()
             my_opt["auto_pickup_2p"] = self.AutoPickUp_2P.isChecked()
             my_opt["top_up_money_1p"] = self.TopUpMoney_1P.isChecked()
             my_opt["top_up_money_2p"] = self.TopUpMoney_2P.isChecked()
             my_opt["end_exit_game"] = self.EndExitGame.isChecked()
             my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
+            # 其他放在此分类的配置
             my_opt["guild_manager_active"] = self.GuildManager_Active.currentIndex()
 
             # link 需要额外的检查
@@ -638,7 +646,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt = self.opt["senior_settings"]
             my_opt["auto_senior_settings"] = self.Battle_senior_checkedbox.isChecked()
             my_opt["senior_log_state"] = 1 if self.all_senior_log.isChecked() else 0
-            my_opt["gpu_settings"]=self.Battle_senior_gpu.isChecked()
+            my_opt["gpu_settings"] = self.Battle_senior_gpu.isChecked()
 
         def skin_settings() -> None:
             # 定义一个字典，将复选框对象映射到对应的值
@@ -829,10 +837,15 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
         todo_plans()
 
+    """按钮动作"""
+
     def click_btn_save(self) -> None:
         """点击保存配置按钮的函数"""
+        self.signal_dict["print_to_ui"].emit(text="", time=False)
         self.ui_to_opt()
         self.opt_to_json()
+        self.signal_dict["print_to_ui"].emit(
+            text=f"方案:[{self.CurrentPlan.currentText()}] 已保存!", color_level=3)
 
     def delete_current_plan(self) -> None:
         """用来删掉当前被选中的 todo plan 但不能删掉默认方案"""
@@ -892,6 +905,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.indeed_need.setEnabled(False)
             self.Battle_senior_gpu.setEnabled(False)
 
+    """其他"""
+
     def getstylefile(self, num):
         skin_path_dict = {
             1: None,
@@ -943,8 +958,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 self.set_theme_common()
                 self.set_theme_default()
                 self.set_common_theme()
-
-
 
 
 class CommonHelper:  # 主题加载类
