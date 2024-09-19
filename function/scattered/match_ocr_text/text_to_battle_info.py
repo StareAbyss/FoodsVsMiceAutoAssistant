@@ -65,9 +65,9 @@ def food_texts_to_battle_info(texts,self):
         else:
             quest_card = "None"
 
-        # 检查卡片限制
-        if "不超过" in text or "少于" in text:
-            match = re.search(r'(不超过|少于)(\d+)张', text)
+        # 检查卡片限制，默认欢乐互娱不会出携带超过多少卡的任务（希望吧悲）
+        if "超过" in text or "少于" in text:
+            match = re.search(r'(超过|少于)(\d+)张', text)
             if match:
                 limit_type, limit_number = match.groups()
                 limit_number = int(limit_number)
@@ -89,7 +89,7 @@ def food_texts_to_battle_info(texts,self):
                     default_deck.insert(0, "咖啡粉")
 
                 # 根据限制数目选择最后几张卡片进行禁用
-                if limit_type == "不超过":
+                if limit_type == "超过":
                     max_card_num = limit_number
                     ban_card_list.extend(default_deck[max_card_num:])
                 elif limit_type == "少于":
