@@ -1,3 +1,5 @@
+# 如何直接从git删除 git rm -r --cached 文件路径/文件夹/后缀
+
 # 忽略 __pycache__ 目录下的所有内容
 __pycache__/
 
@@ -14,6 +16,12 @@ config/settings.json
 config/cus_images/用户自截/空间服登录界面_1P.png
 config/cus_images/用户自截/空间服登录界面_2P.png
 config/cus_images/用户自截/跨服远征_1p.png
+
+# 忽略用户 开/删物品 额外文件
+config/cus_images/背包_装备_需使用的/任意通用包裹.png
+config/cus_images/背包_装备_需使用的/美味岛酬劳.png
+config/cus_images/背包_装备_需使用的/火山岛酬劳.png
+config/cus_images/背包_装备_需使用的/浮空岛酬劳.png
 
 # 忽略运行产生的文件 主要是日志
 logs/chests_picture/*.png
