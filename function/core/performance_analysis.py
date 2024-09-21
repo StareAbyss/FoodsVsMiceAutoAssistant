@@ -1,12 +1,9 @@
 import asyncio
-import time
+import os
 import psutil
 
-
-async def monitor_io(process_ids, duration):
-    start_time = time.time()
-
-    while time.time() - start_time < duration:
+async def monitor_io(process_ids, stop_event):
+    while not stop_event.is_set():
         total_read_bytes = 0
         total_write_bytes = 0
 
@@ -24,10 +21,8 @@ async def monitor_io(process_ids, duration):
         await asyncio.sleep(1)
 
 
-async def monitor_memory(process_ids, duration):
-    start_time = time.time()
-
-    while time.time() - start_time < duration:
+async def monitor_memory(process_ids, stop_event):
+    while not stop_event.is_set():
         total_memory_rss = 0
         total_memory_percent = 0
 
@@ -46,10 +41,8 @@ async def monitor_memory(process_ids, duration):
         await asyncio.sleep(1)
 
 
-async def monitor_cpu(process_ids, duration):
-    start_time = time.time()
-
-    while time.time() - start_time < duration:
+async def monitor_cpu(process_ids, stop_event):
+    while not stop_event.is_set():
         total_cpu_percent = 0
 
         for process_id in process_ids:
@@ -81,15 +74,25 @@ def get_all_process_ids(main_process_id):
     return process_ids
 
 
-async def analysis(main_process_id):
-    duration = int(input("请输入监控时长（秒）："))
+async def analysis(main_window):
+    stop_event = asyncio.Event()
+    current_process_id = os.getpid()
 
-    process_ids = get_all_process_ids(main_process_id)
+    process_ids = get_all_process_ids(current_process_id)
+
+    async def check_tab_selection():
+        while True:
+            if main_window.tabWidget.currentIndex() == 0:#选中了性能分析tab
+                stop_event.clear()  # 清除事件标志，允许监控
+            else:
+                stop_event.set()  # 设置事件标志，停止监控
+            await asyncio.sleep(1)  # 检查间隔
 
     tasks = [
-        monitor_io(process_ids, duration),
-        monitor_memory(process_ids, duration),
-        monitor_cpu(process_ids, duration)
+        monitor_io(process_ids, stop_event),
+        monitor_memory(process_ids, stop_event),
+        monitor_cpu(process_ids, stop_event),
+        check_tab_selection()  # 新增任务，用于检测tab选择状态
     ]
 
     await asyncio.gather(*tasks)
