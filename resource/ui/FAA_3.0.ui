@@ -72,10 +72,10 @@
    <widget class="QWidget" name="MainFrame" native="true">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>0</y>
-      <width>1120</width>
-      <height>860</height>
+      <x>11</x>
+      <y>11</y>
+      <width>1098</width>
+      <height>838</height>
      </rect>
     </property>
     <property name="autoFillBackground">
@@ -10064,6 +10064,34 @@ Link Start</string>
              </widget>
             </item>
            </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="Tab6">
+        <attribute name="title">
+         <string>性能分析</string>
+        </attribute>
+        <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <item>
+          <widget class="QLabel" name="label_8">
+           <property name="text">
+            <string>磁盘io读写</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_9">
+           <property name="text">
+            <string>内存占用</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_13">
+           <property name="text">
+            <string>cpu占用</string>
+           </property>
           </widget>
          </item>
         </layout>
