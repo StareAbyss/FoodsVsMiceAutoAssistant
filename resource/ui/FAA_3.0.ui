@@ -3949,7 +3949,7 @@ Link Start</string>
                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
                </property>
                <property name="maximum">
-                <number>155</number>
+                <number>165</number>
                </property>
                <property name="value">
                 <number>125</number>
