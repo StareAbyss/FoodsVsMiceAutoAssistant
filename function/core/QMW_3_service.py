@@ -3,6 +3,7 @@ import json
 import os
 import random
 import sys
+import asyncio
 
 import win32con
 import win32gui
@@ -19,6 +20,7 @@ from function.core.QMW_TipMisuLogistics import QMWTipMisuLogistics
 from function.core.QMW_TipStageID import QMWTipStageID
 from function.core.QMW_TipWarmGift import QMWTipWarmGift
 from function.core.Todo import ThreadTodo
+from function.core.performance_analysis import run_analysis_in_thread
 from function.globals import g_extra
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
@@ -717,6 +719,8 @@ def faa_start_main():
 
     # 主窗口 实现
     window.show()
+    # 性能分析监控启动
+    run_analysis_in_thread(window)
 
     # 运行主循环，必须调用此函数才可以开始事件处理
     sys.exit(app.exec())
