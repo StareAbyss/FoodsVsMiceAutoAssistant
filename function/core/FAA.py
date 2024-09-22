@@ -1281,11 +1281,10 @@ class FAA:
         def sign_in_camp_key():
             """领取营地钥匙"""
 
+            CUS_LOGGER.debug(f"[{self.player}] [领取营地钥匙] 开始")
             if self.character_level <= 20:
                 CUS_LOGGER.debug(f"[{self.player}] [领取营地钥匙] 放弃, 角色等级不足, 最低 21 级")
                 return
-
-            CUS_LOGGER.debug(f"[{self.player}] [领取营地钥匙] 开始")
 
             # 进入界面
             find = self.action_goto_map(map_id=10)
@@ -1298,6 +1297,22 @@ class FAA:
 
             CUS_LOGGER.debug(f"[{self.player}] [领取营地钥匙] 结束")
 
+        def sign_in_benefits_of_monthly_card():
+            """领月卡"""
+
+            CUS_LOGGER.debug(f"[{self.player}] [领取月卡福利] 开始")
+
+            self.action_top_menu(mode="月卡福利")
+            time.sleep(1)
+
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=715, y=515)
+            time.sleep(1)
+
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=835, y=60)
+            time.sleep(1)
+
+            CUS_LOGGER.debug(f"[{self.player}] [领取月卡福利] 结束")
+
         def main():
             sign_in_vip()
             sign_in_everyday()
@@ -1306,6 +1321,7 @@ class FAA:
             sign_in_pharaoh()
             sign_in_release_quest_guild()
             sign_in_camp_key()
+            sign_in_benefits_of_monthly_card()
 
         return main()
 
