@@ -23,11 +23,16 @@ class FileMover:
         for root, dirs, files in os.walk(os.path.join(self.src_dir, target)):
             rel_root = os.path.relpath(root, self.src_dir)
             for file in files:
-                # print(file, exclude_files, os.path.join(rel_root, file), exclude_paths, os.path.splitext(file)[1], exclude_types)
-                if (file not in exclude_files and
-                        os.path.join(rel_root, file) not in exclude_paths and
-                        os.path.splitext(file)[1] not in exclude_types):
-                    self.to_move.append((os.path.join(root, file), os.path.join(self.dest_dir, rel_root, file)))
+                if file in exclude_files:
+                    continue
+                if os.path.join(rel_root, file) in exclude_paths:
+                    continue
+                if os.path.splitext(file)[1] in exclude_types:
+                    continue
+                self.to_move.append((
+                    os.path.join(root, file),
+                    os.path.join(self.dest_dir, rel_root, file)
+                ))
 
     def preview(self):
         """ 打印预览信息 """
