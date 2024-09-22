@@ -2009,14 +2009,41 @@ class FAA:
 
         main()
 
-    def input_level_2_password_and_gift_flower(self, password):
+    def input_level_2_password(self, password):
         """
-        输入二级密码.
-        如果背包已满, 通过兑换暗晶激活二级密码就用不了了! 那么 用缘分树送花给是最稳当的!
-        免费的花也不会送出, 若玩家提前送完了免费花和礼卷花, 尝试送花一定会送出点卷花!
+        输入二级密码. 通过背包内尝试拆主武器
         """
 
         self.signal_print_to_ui.emit(text=f"[输入二级密码] [{self.player}P] 开始.")
+
+        # 打开背包
+        self.action_bottom_menu(mode="背包")
+
+        # 卸下主武器
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=210, y=445)
+        time.sleep(1)
+
+        # 点击输入框选中
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=440, y=300)
+        time.sleep(1)
+
+        # 输入二级密码
+        for key in password:
+            T_ACTION_QUEUE_TIMER.char_input(handle=self.handle, char=key)
+            time.sleep(0.1)
+        time.sleep(1)
+
+        # 确定二级密码
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=435, y=388)
+        time.sleep(1)
+
+        # 关闭背包
+        self.action_exit(mode="普通红叉")
+
+        self.signal_print_to_ui.emit(text=f"[输入二级密码] [{self.player}P] 结束.")
+
+    def gift_flower(self):
+        """送免费花"""
 
         # 打开缘分树界面
         self.print_debug(text="跳转到缘分树界面")
@@ -2045,34 +2072,10 @@ class FAA:
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=500, y=400)
         time.sleep(1)
 
-        # 点击输入框选中
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=440, y=300)
-        time.sleep(1)
-
-        # 输入二级密码
-        for key in password:
-            T_ACTION_QUEUE_TIMER.char_input(handle=self.handle, char=key)
-            time.sleep(0.1)
-        time.sleep(1)
-
-        # 确定二级密码
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=435, y=388)
-        time.sleep(1)
-
-        # 选择免费送花
-        # T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=350, y=300)
-        # time.sleep(1)
-
-        # 点击送出
-        # T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=500, y=400)
-        # time.sleep(1)
-
         # 退出送花
         for i in range(2):
             self.action_exit(mode="普通红叉")
             time.sleep(1)
-
-        self.signal_print_to_ui.emit(text=f"[输入二级密码] [{self.player}P] 结束.")
 
     def get_dark_crystal(self):
         """
