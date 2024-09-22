@@ -232,13 +232,13 @@ class ThreadTodo(QThread):
 
         # 高危动作 慢慢执行
         if 1 in player:
-            self.faa[1].input_level_2_password_and_gift_flower(password=self.opt["level_2"]["1p"]["password"])
+            self.faa[1].input_level_2_password(password=self.opt["level_2"]["1p"]["password"])
             self.faa[1].delete_items()
             if dark_crystal:
                 self.faa[1].get_dark_crystal()
 
         if 2 in player:
-            self.faa[2].input_level_2_password_and_gift_flower(password=self.opt["level_2"]["2p"]["password"])
+            self.faa[2].input_level_2_password(password=self.opt["level_2"]["2p"]["password"])
             self.faa[2].delete_items()
             if dark_crystal:
                 self.faa[2].get_dark_crystal()
