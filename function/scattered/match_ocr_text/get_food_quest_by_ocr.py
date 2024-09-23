@@ -57,8 +57,8 @@ def food_match_ocr_text(self):
 
                 quest_imgs.append(quest_img)
 
-            if i == 2:
-                break
+            # if i == 2:
+            #     break
 
     return quest_imgs
 
