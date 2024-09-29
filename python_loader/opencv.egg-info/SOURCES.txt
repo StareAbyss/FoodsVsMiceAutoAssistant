@@ -1,0 +1,16 @@
+setup.py
+cv2/__init__.py
+cv2/config-3.12.py
+cv2/config.py
+cv2/load_config_py2.py
+cv2/load_config_py3.py
+cv2/gapi/__init__.py
+cv2/mat_wrapper/__init__.py
+cv2/misc/__init__.py
+cv2/misc/version.py
+cv2/utils/__init__.py
+opencv.egg-info/PKG-INFO
+opencv.egg-info/SOURCES.txt
+opencv.egg-info/dependency_links.txt
+opencv.egg-info/requires.txt
+opencv.egg-info/top_level.txt
