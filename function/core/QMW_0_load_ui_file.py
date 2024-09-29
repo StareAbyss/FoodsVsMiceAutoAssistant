@@ -116,6 +116,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
         # 设背景为透明
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
+
     def set_common_theme(self):
 
         style_sheet = self.styleSheet()
@@ -180,8 +181,6 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
         self.SkinWidget.setStyleSheet(style_sheet)
 
-
-
     """仅默认ui需要设置的样式表"""
 
     def set_theme_default(self):
@@ -206,7 +205,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
     def set_tab_bar_style(self):
 
         style_sheet = self.MainFrame.styleSheet()
-        selected_text_color="#FFFFFF" if self.theme=="dark" else "#000000"
+        selected_text_color = "#FFFFFF" if self.theme == "dark" else "#000000"
 
         style_sheet += f"""
             QTabBar::tab {{
