@@ -6,11 +6,10 @@ from PyQt6 import uic, QtGui, QtCore, QtWidgets
 from function.common.get_system_dpi import get_system_dpi
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
-
-
 # noinspection PyUnresolvedReferences
-from function.qrc import test_rc,theme_rc,GTRONICK_rc
-#虽然ide显示上面这行没用，但实际是用来加载相关资源的，不可删除,我用奇妙的方式强制加载了
+from function.qrc import test_rc, theme_rc, GTRONICK_rc
+
+# 虽然ide显示上面这行没用，但实际是用来加载相关资源的，不可删除,我用奇妙的方式强制加载了
 
 ZOOM_RATE = None
 
@@ -117,6 +116,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
         # 设背景为透明
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
+
     def set_common_theme(self):
 
         style_sheet = self.styleSheet()
@@ -181,8 +181,6 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
         self.SkinWidget.setStyleSheet(style_sheet)
 
-
-
     """仅默认ui需要设置的样式表"""
 
     def set_theme_default(self):
@@ -207,11 +205,11 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
     def set_tab_bar_style(self):
 
         style_sheet = self.MainFrame.styleSheet()
-        selected_text_color="#FFFFFF" if self.theme=="dark" else "#000000"
+        selected_text_color = "#FFFFFF" if self.theme == "dark" else "#000000"
 
         style_sheet += f"""
             QTabBar::tab {{
-                min-width: 150px;  /* 最小宽度 */
+                min-width: 136px;  /* 最小宽度 */
                 height: 20px;
                 border-style: solid;
                 border-top-color: transparent;

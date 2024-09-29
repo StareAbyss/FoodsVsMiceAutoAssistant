@@ -1,9 +1,6 @@
 import win32gui
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFontDatabase, QFont
 from PyQt6.QtWidgets import QLabel
-
-from function.globals.get_paths import PATHS
 
 
 class DragLabel(QLabel):
@@ -60,11 +57,11 @@ class DragLabel(QLabel):
                 if self.first_or_second == 1:
                     self.windowNameChanged1.emit(window_title)
                     self.first_or_second = 2
-                    self.setText("请拖到2P窗口")
+                    self.setText("双人: 请拖到2P窗口 | 单人: 再次拖到1P窗口")
                 else:
                     self.windowNameChanged2.emit(window_title)
                     self.first_or_second = 1
-                    self.setText("获取成功")
+                    self.setText("获取成功~")
 
                     # # 显示包含窗口标题、句柄和类名的消息框
                 # QMessageBox.information(self, "窗口信息",

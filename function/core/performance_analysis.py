@@ -4,7 +4,8 @@ import threading
 
 import psutil
 
-async def monitor_io(process_ids, stop_event,main_window):
+
+async def monitor_io(process_ids, stop_event, main_window):
     while True:
         if not stop_event.is_set():
             total_read_bytes = 0
@@ -25,7 +26,7 @@ async def monitor_io(process_ids, stop_event,main_window):
         await asyncio.sleep(1)
 
 
-async def monitor_memory(process_ids, stop_event,main_window):
+async def monitor_memory(process_ids, stop_event, main_window):
     while True:
         if not stop_event.is_set():
             total_memory_rss = 0
@@ -47,7 +48,7 @@ async def monitor_memory(process_ids, stop_event,main_window):
         await asyncio.sleep(1)
 
 
-async def monitor_cpu(process_ids, stop_event,main_window):
+async def monitor_cpu(process_ids, stop_event, main_window):
     while True:
         if not stop_event.is_set():
             total_cpu_percent = 0
@@ -89,20 +90,21 @@ async def analysis(main_window):
 
     async def check_tab_selection():
         while True:
-            if main_window.tabWidget.currentIndex() == 5:#选中了性能分析tab
+            if main_window.tabWidget.currentIndex() == 5:  # 选中了性能分析tab
                 stop_event.clear()  # 清除事件标志，允许监控
             else:
                 stop_event.set()  # 设置事件标志，停止监控
             await asyncio.sleep(1)  # 检查间隔
 
     tasks = [
-        monitor_io(process_ids, stop_event,main_window),
-        monitor_memory(process_ids, stop_event,main_window),
-        monitor_cpu(process_ids, stop_event,main_window),
+        monitor_io(process_ids, stop_event, main_window),
+        monitor_memory(process_ids, stop_event, main_window),
+        monitor_cpu(process_ids, stop_event, main_window),
         check_tab_selection()  # 新增任务，用于检测tab选择状态
     ]
 
     await asyncio.gather(*tasks)
+
 
 def run_analysis_in_thread(main_window):
     def target_function():
