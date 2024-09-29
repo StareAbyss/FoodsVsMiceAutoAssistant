@@ -14,13 +14,11 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 position_dict = get_position_card_cell_in_battle()
 
 
-def compare_pixels(img_source, img_template, mode="top"):
+def compare_pixels(img_source, img_template):
     """
-    :param mode: 模式, 检测图片的哪些部分 "top" "bottom" "all"
     :param img_source: 目标图像 三维numpy数组 不能包含Alpha
     :param img_template: 模板图像 三维numpy数组 不能包含Alpha
 
-    为抵消游戏蒙版色，导致的差距，用于对比识别目标像素和标准像素的函数, 只要上半和下半均有一个像素颜色正确就视为True
     上半: 0-35 共计36像素 下半: 36-84 共计49像素
     正确的标准:
     对应位置的两个像素 RGB三通道 的 颜色差的绝对值 之和 小于15
@@ -33,18 +31,13 @@ def compare_pixels(img_source, img_template, mode="top"):
     # 将图片的数字转化为int32 而非int8 防止做减法溢出
     img_template = img_template.astype(np.int32)
 
-    return_bool = True
-    if mode in ["top", "all"]:
-        return_bool = return_bool and check_pixel_similarity(img_source, img_template, 0, 36)
-    if mode in ["bottom", "all"]:
-        return_bool = return_bool and check_pixel_similarity(img_source, img_template, 36, 85)
-
-    return return_bool
+    return check_pixel_similarity(img_source, img_template, 0, 36)
 
 
 def check_pixel_similarity(img_source, img_template, start, end, threshold=16):
     """
-    检查在指定水平区域内，两幅高度仅1的图像是否有80%像素点的差异在阈值以内。
+    检查在指定水平区域内，两幅高度仅1的图像是否有80%像素点的差异在阈值以内.
+    需要注意 颜色数组是int8类型, 所以需要转成int32类型以做减法
     """
     total_pixels = end - start
     required_pixels = int(total_pixels * 0.8)
@@ -80,33 +73,44 @@ class Card:
 
         self.ergodic = self.faa.battle_plan_parsed["card"][priority]["ergodic"]
         self.queue = self.faa.battle_plan_parsed["card"][priority]["queue"]
-        # 卡片需要放置的位置代号 list["1-1",...]
+
+        # 卡片放置的位置 - 代号 list["1-1",...]
         self.location = self.faa.battle_plan_parsed["card"][priority]["location"]
-        # 卡片需要放置的位置坐标 list[[x,y],....]
+
+        # 卡片放置的位置 - 坐标 list[[x,y],....]
         self.location_to = self.faa.battle_plan_parsed["card"][priority]["location_to"]
-        # 卡片拿去的坐标 list[x,y]
+
+        # 卡片拿取的位置 - 坐标 list[x,y]
         self.location_from = self.faa.battle_plan_parsed["card"][priority]["location_from"]
 
         # 坤优先级
         self.kun = self.faa.battle_plan_parsed["card"][priority]["kun"]
+
         # 卡坤的实例
         self.card_kun = None
 
         """用于完成放卡的额外类属性"""
         # 放卡间隔
         self.click_sleep = self.faa_battle.click_sleep
+
         # 状态 冷却完成 默认已完成
         self.status_cd = False
+
         # 状态 可用
         self.status_usable = False
+
         # 状态 被ban时间 当放卡，但已完成所有指定位置的放卡导致放卡后立刻检测到冷却完成，则进入该ban状态8s
         self.status_ban = 0
+
         # 是否是当前角色的坤目标
         self.is_kun_target = False
+
         # 判定自身是不是极寒冰沙
         self.is_smoothie = self.name in ["极寒冰沙", "冰沙"]
+
         # 不进入放满自ban的 白名单
         self.ban_white_list = ["极寒冰沙", "冰沙"]
+
         # 是否可以放卡（主要是瓜皮类）
         self.can_use = True
 
@@ -172,8 +176,8 @@ class Card:
             # 点击 选中卡片
             T_ACTION_QUEUE_TIMER.add_click_to_queue(
                 handle=self.handle,
-                x=self.location_from[0],
-                y=self.location_from[1])
+                x=self.location_from[0] + 5,
+                y=self.location_from[1] + 5)
             time.sleep(self.click_sleep)
 
             # 放卡
@@ -200,8 +204,8 @@ class Card:
                     # 点击 选中卡片 但坤
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(
                         handle=self.handle,
-                        x=self.faa.kun_position["location_from"][0],
-                        y=self.faa.kun_position["location_from"][1])
+                        x=self.faa.kun_position["location_from"][0] + 5,
+                        y=self.faa.kun_position["location_from"][1] + 5)
                     time.sleep(self.click_sleep)
 
                     # 放卡
@@ -215,65 +219,49 @@ class Card:
         img = capture_image_png(
             handle=self.handle,
             raw_range=[
-                self.location_from[0] - 45,
-                self.location_from[1] - 64,
-                self.location_from[0] + 8,
-                self.location_from[1] + 6],
+                self.location_from[0],
+                self.location_from[1],
+                self.location_from[0] + 53,
+                self.location_from[1] + 70],
             root_handle=self.faa.handle_360
         )
 
         # 注意 y x bgr 和 rgb是翻过来的！
-        # 将三维数组转换为二维数组
-        pixels_top_left = np.squeeze(img[0:1, 2:20, :3])  # 18个像素
-        pixels_top_right = np.squeeze(img[0:1, 33:51, :3])  # 18个像素
-        pixels_bottom = np.squeeze(img[69:70, 2:51, :3])  # 49个像素
-
-        pixels_all = [[]]
-        for axis_0 in [pixels_top_left, pixels_top_right, pixels_bottom]:
-            for pixel in axis_0:
-                pixels_all[0].append(pixel)
-        pixels_all = np.array(pixels_all)
+        pixels_top_left = img[0:1, 2:20, :3]  # 18个像素图片 (1, 18, 3)
+        pixels_top_right = img[0:1, 33:51, :3]  # 18个像素图片 (1, 18, 3)
+        pixels_all = np.hstack((pixels_top_left, pixels_top_right))  # 36个像素图片 (1, 36, 3)
 
         self.status_usable = (
                 compare_pixels(
                     img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_0.png"][:, :, :3],
-                    mode='top') or
+                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_0.png"][:, :, :3]) or
                 compare_pixels(
                     img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_1.png"][:, :, :3],
-                    mode='top') or
+                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_1.png"][:, :, :3]) or
                 compare_pixels(
                     img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_2.png"][:, :, :3],
-                    mode='top') or
+                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_2.png"][:, :, :3]) or
                 compare_pixels(
                     img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_3.png"][:, :, :3],
-                    mode='top') or
+                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_3.png"][:, :, :3]) or
                 compare_pixels(
                     img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_4.png"][:, :, :3],
-                    mode='top')
+                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_4.png"][:, :, :3])
         )
 
         self.status_cd = (
                 compare_pixels(
                     img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["冷却状态_0.png"][:, :, :3],
-                    mode='top') or
+                    img_template=RESOURCE_P["card"]["状态判定"]["冷却状态_0.png"][:, :, :3]) or
                 compare_pixels(
                     img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["冷却状态_1.png"][:, :, :3],
-                    mode='top') or
+                    img_template=RESOURCE_P["card"]["状态判定"]["冷却状态_1.png"][:, :, :3]) or
                 compare_pixels(
                     img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["冷却状态_2.png"][:, :, :3],
-                    mode='top') or
+                    img_template=RESOURCE_P["card"]["状态判定"]["冷却状态_2.png"][:, :, :3]) or
                 compare_pixels(
                     img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["冷却状态_3.png"][:, :, :3],
-                    mode='top')
+                    img_template=RESOURCE_P["card"]["状态判定"]["冷却状态_3.png"][:, :, :3])
         )
 
         # if g_extra.GLOBAL_EXTRA.extra_log_battle and self.faa.player == 1:
@@ -311,27 +299,26 @@ class CardKun:
         img = capture_image_png(
             handle=self.handle,
             raw_range=[
-                self.location_from[0] - 45,
-                self.location_from[1] - 64,
-                self.location_from[0] + 8,
-                self.location_from[1] + 6],
+                self.location_from[0],
+                self.location_from[1],
+                self.location_from[0] + 53,
+                self.location_from[1] + 70],
             root_handle=self.faa.handle_360
         )
 
         # 注意 y x bgr 和 rgb是翻过来的！
-        # 将三维数组转换为二维数组
-        pixels_top_left = np.squeeze(img[0:1, 2:20, :3])  # 18个像素
-        pixels_top_right = np.squeeze(img[0:1, 33:51, :3])  # 18个像素
-        pixels_bottom = np.squeeze(img[69:70, 2:51, :3])  # 49个像素
+        pixels_top_left = img[0:1, 2:20, :3]  # 18个像素图片 (1, 18, 3)
+        pixels_top_right = img[0:1, 33:51, :3]  # 18个像素图片 (1, 18, 3)
+        pixels_all = np.hstack((pixels_top_left, pixels_top_right))  # 36个像素图片 (1, 36, 3)
 
-        pixels_all = [[]]
-        for axis_0 in [pixels_top_left, pixels_top_right, pixels_bottom]:
-            for pixel in axis_0:
-                pixels_all[0].append(pixel)
-        pixels_all = np.array(pixels_all)
-
-        self.status_usable = (compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_0.png"][:, :, :3]) or
-                              compare_pixels(pixels_all, RESOURCE_P["card"]["状态判定"]["可用状态_2.png"][:, :, :3]))
+        self.status_usable = (
+                compare_pixels(
+                    img_source=pixels_all,
+                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_0.png"][:, :, :3]) or
+                compare_pixels(
+                    img_source=pixels_all,
+                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_2.png"][:, :, :3])
+        )
 
     def destroy(self):
         self.faa = None
@@ -381,8 +368,8 @@ class SpecialCard(Card):
                     for mat in self.faa.mat_card_positions:
                         T_ACTION_QUEUE_TIMER.add_click_to_queue(
                             handle=self.handle,
-                            x=mat["location_from"][0],
-                            y=mat["location_from"][1])
+                            x=mat["location_from"][0] + 5,
+                            y=mat["location_from"][1] + 5)
                         # 点击 放下卡片
                         T_ACTION_QUEUE_TIMER.add_click_to_queue(
                             handle=self.handle,
@@ -392,8 +379,8 @@ class SpecialCard(Card):
                 # 点击 选中卡片
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
-                    x=self.location_from[0],
-                    y=self.location_from[1])
+                    x=self.location_from[0] + 5,
+                    y=self.location_from[1] + 5)
 
                 # 点击 放下卡片
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
@@ -432,8 +419,8 @@ class SpecialCard(Card):
                     for mat in self.faa.mat_card_positions:
                         T_ACTION_QUEUE_TIMER.add_click_to_queue(
                             handle=self.handle,
-                            x=mat["location_from"][0],
-                            y=mat["location_from"][1])
+                            x=mat["location_from"][0] + 5,
+                            y=mat["location_from"][1] + 5)
                         T_ACTION_QUEUE_TIMER.add_click_to_queue(
                             handle=self.faa.handle,
                             x=position_dict[f"{pos[0]}-{pos[1]}"][0],
@@ -442,8 +429,8 @@ class SpecialCard(Card):
                 # 点击 选中卡片
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
-                    x=self.location_from[0],
-                    y=self.location_from[1])
+                    x=self.location_from[0] + 5,
+                    y=self.location_from[1] + 5)
 
                 # 点击 放下卡片
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
