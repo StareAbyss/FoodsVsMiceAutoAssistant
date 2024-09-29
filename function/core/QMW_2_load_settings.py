@@ -4,6 +4,8 @@ import os
 import shutil
 import sys
 
+from PyQt6.QtCore import QRegularExpression
+from PyQt6.QtGui import QRegularExpressionValidator
 from PyQt6.QtWidgets import QApplication, QMessageBox, QInputDialog
 
 from function.core.QMW_1_log import QMainWindowLog
@@ -371,50 +373,31 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.GameName_Input.setText(my_opt["game_name"])
             self.Name1P_Input.setText(my_opt["name_1p"])
             self.Name2P_Input.setText(my_opt["name_2p"])
-            self.ZoomRatio_Output.setText(str(self.zoom_rate) + " (自动获取)")
+            self.ZoomRatio_Output.setText(str(self.zoom_rate) + "(自动)")
             self.Level1P_Input.setValue(my_opt["level_1p"])
             self.Level2P_Input.setValue(my_opt["level_2p"])
 
         def timer_settings() -> None:
-            my_opt = self.opt["timer"]["1"]
-            self.Timer1_Active.setChecked(my_opt["active"])
-            self.Timer1_H.setValue(my_opt["h"])
-            self.Timer1_M.setValue(my_opt["m"])
-            self.Timer1_Plan.clear()
-            self.Timer1_Plan.addItems(todo_plan_name_list)
-            self.Timer1_Plan.setCurrentIndex(my_opt["plan"])
+            h_validator = QRegularExpressionValidator(QRegularExpression(r"^(?:[01][0-9]|2[0-3])$"))
+            m_validator = QRegularExpressionValidator(QRegularExpression(r"^[0-5]?[0-9]$"))
 
-            my_opt = self.opt["timer"]["2"]
-            self.Timer2_Active.setChecked(my_opt["active"])
-            self.Timer2_H.setValue(my_opt["h"])
-            self.Timer2_M.setValue(my_opt["m"])
-            self.Timer2_Plan.clear()
-            self.Timer2_Plan.addItems(todo_plan_name_list)
-            self.Timer2_Plan.setCurrentIndex(my_opt["plan"])
+            for timer_index in range(1, 6):
+                my_opt = self.opt["timer"][f"{timer_index}"]
+                getattr(self, f"Timer{timer_index}_Active").setChecked(my_opt["active"])
 
-            my_opt = self.opt["timer"]["3"]
-            self.Timer3_Active.setChecked(my_opt["active"])
-            self.Timer3_H.setValue(my_opt["h"])
-            self.Timer3_M.setValue(my_opt["m"])
-            self.Timer3_Plan.clear()
-            self.Timer3_Plan.addItems(todo_plan_name_list)
-            self.Timer3_Plan.setCurrentIndex(my_opt["plan"])
+                # 格式化小时和分钟
+                h_text = str(my_opt["h"]).zfill(2)
+                m_text = str(my_opt["m"]).zfill(2)
 
-            my_opt = self.opt["timer"]["4"]
-            self.Timer4_Active.setChecked(my_opt["active"])
-            self.Timer4_H.setValue(my_opt["h"])
-            self.Timer4_M.setValue(my_opt["m"])
-            self.Timer4_Plan.clear()
-            self.Timer4_Plan.addItems(todo_plan_name_list)
-            self.Timer4_Plan.setCurrentIndex(my_opt["plan"])
+                getattr(self, f"Timer{timer_index}_H").setText(h_text)
+                getattr(self, f"Timer{timer_index}_M").setText(m_text)
 
-            my_opt = self.opt["timer"]["5"]
-            self.Timer5_Active.setChecked(my_opt["active"])
-            self.Timer5_H.setValue(my_opt["h"])
-            self.Timer5_M.setValue(my_opt["m"])
-            self.Timer5_Plan.clear()
-            self.Timer5_Plan.addItems(todo_plan_name_list)
-            self.Timer5_Plan.setCurrentIndex(my_opt["plan"])
+                getattr(self, f"Timer{timer_index}_Plan").clear()
+                getattr(self, f"Timer{timer_index}_Plan").addItems(todo_plan_name_list)
+                getattr(self, f"Timer{timer_index}_Plan").setCurrentIndex(my_opt["plan"])
+
+                getattr(self, f"Timer{timer_index}_H").setValidator(h_validator)
+                getattr(self, f"Timer{timer_index}_M").setValidator(m_validator)
 
         def advanced_settings() -> None:
             my_opt = self.opt["advanced_settings"]
@@ -567,40 +550,17 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["game_name"] = self.GameName_Input.text()
             my_opt["name_1p"] = self.Name1P_Input.text()
             my_opt["name_2p"] = self.Name2P_Input.text()
-            self.ZoomRatio_Output.setText(str(self.zoom_rate) + " (自动获取)")
+            self.ZoomRatio_Output.setText(str(self.zoom_rate) + "(自动)")
             my_opt["level_1p"] = self.Level1P_Input.value()
             my_opt["level_2p"] = self.Level2P_Input.value()
 
         def timer_settings() -> None:
-            my_opt = self.opt["timer"]["1"]
-            my_opt["active"] = self.Timer1_Active.isChecked()
-            my_opt["h"] = self.Timer1_H.value()
-            my_opt["m"] = self.Timer1_M.value()
-            my_opt["plan"] = self.Timer1_Plan.currentIndex()
-
-            my_opt = self.opt["timer"]["2"]
-            my_opt["active"] = self.Timer2_Active.isChecked()
-            my_opt["h"] = self.Timer2_H.value()
-            my_opt["m"] = self.Timer2_M.value()
-            my_opt["plan"] = self.Timer2_Plan.currentIndex()
-
-            my_opt = self.opt["timer"]["3"]
-            my_opt["active"] = self.Timer3_Active.isChecked()
-            my_opt["h"] = self.Timer3_H.value()
-            my_opt["m"] = self.Timer3_M.value()
-            my_opt["plan"] = self.Timer3_Plan.currentIndex()
-
-            my_opt = self.opt["timer"]["4"]
-            my_opt["active"] = self.Timer4_Active.isChecked()
-            my_opt["h"] = self.Timer4_H.value()
-            my_opt["m"] = self.Timer4_M.value()
-            my_opt["plan"] = self.Timer4_Plan.currentIndex()
-
-            my_opt = self.opt["timer"]["5"]
-            my_opt["active"] = self.Timer5_Active.isChecked()
-            my_opt["h"] = self.Timer5_H.value()
-            my_opt["m"] = self.Timer5_M.value()
-            my_opt["plan"] = self.Timer5_Plan.currentIndex()
+            for i in range(1, 6):
+                my_opt = self.opt["timer"][f"{i}"]
+                my_opt["active"] = getattr(self, f"Timer{i}_Active").isChecked()
+                my_opt["h"] = int(getattr(self, f"Timer{i}_H").text())
+                my_opt["m"] = int(getattr(self, f"Timer{i}_M").text())
+                my_opt["plan"] = getattr(self, f"Timer{i}_Plan").currentIndex()
 
         def advanced_settings() -> None:
             my_opt = self.opt["advanced_settings"]

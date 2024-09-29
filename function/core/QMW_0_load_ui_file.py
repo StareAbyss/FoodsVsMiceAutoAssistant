@@ -6,11 +6,10 @@ from PyQt6 import uic, QtGui, QtCore, QtWidgets
 from function.common.get_system_dpi import get_system_dpi
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
-
-
 # noinspection PyUnresolvedReferences
-from function.qrc import test_rc,theme_rc,GTRONICK_rc
-#虽然ide显示上面这行没用，但实际是用来加载相关资源的，不可删除,我用奇妙的方式强制加载了
+from function.qrc import test_rc, theme_rc, GTRONICK_rc
+
+# 虽然ide显示上面这行没用，但实际是用来加载相关资源的，不可删除,我用奇妙的方式强制加载了
 
 ZOOM_RATE = None
 
@@ -211,7 +210,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
         style_sheet += f"""
             QTabBar::tab {{
-                min-width: 150px;  /* 最小宽度 */
+                min-width: 136px;  /* 最小宽度 */
                 height: 20px;
                 border-style: solid;
                 border-top-color: transparent;

@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1120</width>
-    <height>860</height>
+    <width>910</width>
+    <height>760</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -56,14 +56,14 @@
    </property>
    <property name="minimumSize">
     <size>
-     <width>0</width>
-     <height>0</height>
+     <width>910</width>
+     <height>760</height>
     </size>
    </property>
    <property name="maximumSize">
     <size>
-     <width>10000</width>
-     <height>10000</height>
+     <width>2000</width>
+     <height>1000</height>
     </size>
    </property>
    <property name="autoFillBackground">
@@ -72,10 +72,10 @@
    <widget class="QWidget" name="MainFrame" native="true">
     <property name="geometry">
      <rect>
-      <x>11</x>
-      <y>11</y>
-      <width>1098</width>
-      <height>838</height>
+      <x>5</x>
+      <y>5</y>
+      <width>900</width>
+      <height>750</height>
      </rect>
     </property>
     <property name="autoFillBackground">
@@ -269,9 +269,15 @@ border:none</string>
      </item>
      <item>
       <widget class="QTabWidget" name="tabWidget">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="minimumSize">
         <size>
-         <width>1071</width>
+         <width>0</width>
          <height>0</height>
         </size>
        </property>
@@ -365,7 +371,7 @@ border:none</string>
               <widget class="QTextBrowser" name="TextBrowser">
                <property name="minimumSize">
                 <size>
-                 <width>600</width>
+                 <width>0</width>
                  <height>0</height>
                 </size>
                </property>
@@ -472,13 +478,13 @@ border:none</string>
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>120</width>
+                     <width>0</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>100</width>
+                     <width>200</width>
                      <height>16777215</height>
                     </size>
                    </property>
@@ -489,7 +495,7 @@ border:none</string>
                     <bool>false</bool>
                    </property>
                    <property name="text">
-                    <string>自动缩放倍率</string>
+                    <string>自动</string>
                    </property>
                    <property name="readOnly">
                     <bool>true</bool>
@@ -553,13 +559,13 @@ border:none</string>
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>120</width>
+                     <width>0</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>100</width>
+                     <width>200</width>
                      <height>16777215</height>
                     </size>
                    </property>
@@ -644,13 +650,13 @@ border:none</string>
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>120</width>
+                     <width>0</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>100</width>
+                     <width>200</width>
                      <height>16777215</height>
                     </size>
                    </property>
@@ -722,13 +728,13 @@ border:none</string>
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>120</width>
+                     <width>0</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>100</width>
+                     <width>200</width>
                      <height>16777215</height>
                     </size>
                    </property>
@@ -813,13 +819,13 @@ border:none</string>
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>120</width>
+                     <width>0</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>100</width>
+                     <width>200</width>
                      <height>16777215</height>
                     </size>
                    </property>
@@ -891,13 +897,13 @@ border:none</string>
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>120</width>
+                     <width>0</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>100</width>
+                     <width>200</width>
                      <height>16777215</height>
                     </size>
                    </property>
@@ -1047,7 +1053,7 @@ border:none</string>
               </widget>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="Lay_Timer1" stretch="1,1">
+              <layout class="QHBoxLayout" name="Lay_Timer1" stretch="1,2">
                <property name="leftMargin">
                 <number>0</number>
                </property>
@@ -1109,36 +1115,21 @@ border:none</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSpinBox" name="Timer1_H">
-                   <property name="enabled">
-                    <bool>true</bool>
-                   </property>
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
+                  <widget class="QLineEdit" name="Timer1_H">
                    <property name="minimumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>16777215</height>
                     </size>
                    </property>
-                   <property name="minimum">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <number>23</number>
-                   </property>
-                   <property name="value">
-                    <number>23</number>
+                   <property name="text">
+                    <string>23</string>
                    </property>
                   </widget>
                  </item>
@@ -1168,33 +1159,21 @@ border:none</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSpinBox" name="Timer1_M">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
+                  <widget class="QLineEdit" name="Timer1_M">
                    <property name="minimumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>16777215</height>
                     </size>
                    </property>
-                   <property name="minimum">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <number>59</number>
-                   </property>
-                   <property name="value">
-                    <number>59</number>
+                   <property name="text">
+                    <string>59</string>
                    </property>
                   </widget>
                  </item>
@@ -1243,8 +1222,8 @@ border:none</string>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>150</width>
-                     <height>16777215</height>
+                     <width>2000</width>
+                     <height>2000</height>
                     </size>
                    </property>
                   </widget>
@@ -1254,7 +1233,7 @@ border:none</string>
               </layout>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="Lay_Timer2" stretch="1,1">
+              <layout class="QHBoxLayout" name="Lay_Timer2" stretch="1,2">
                <property name="leftMargin">
                 <number>0</number>
                </property>
@@ -1316,33 +1295,21 @@ border:none</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSpinBox" name="Timer2_H">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
+                  <widget class="QLineEdit" name="Timer2_H">
                    <property name="minimumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>16777215</height>
                     </size>
                    </property>
-                   <property name="minimum">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <number>23</number>
-                   </property>
-                   <property name="value">
-                    <number>23</number>
+                   <property name="text">
+                    <string>23</string>
                    </property>
                   </widget>
                  </item>
@@ -1372,33 +1339,21 @@ border:none</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSpinBox" name="Timer2_M">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
+                  <widget class="QLineEdit" name="Timer2_M">
                    <property name="minimumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>16777215</height>
                     </size>
                    </property>
-                   <property name="minimum">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <number>59</number>
-                   </property>
-                   <property name="value">
-                    <number>59</number>
+                   <property name="text">
+                    <string>59</string>
                    </property>
                   </widget>
                  </item>
@@ -1447,8 +1402,8 @@ border:none</string>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>150</width>
-                     <height>16777215</height>
+                     <width>2000</width>
+                     <height>2000</height>
                     </size>
                    </property>
                   </widget>
@@ -1458,7 +1413,7 @@ border:none</string>
               </layout>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="Lay_Timer3" stretch="1,1">
+              <layout class="QHBoxLayout" name="Lay_Timer3" stretch="1,2">
                <property name="leftMargin">
                 <number>0</number>
                </property>
@@ -1520,33 +1475,21 @@ border:none</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSpinBox" name="Timer3_H">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
+                  <widget class="QLineEdit" name="Timer3_H">
                    <property name="minimumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>16777215</height>
                     </size>
                    </property>
-                   <property name="minimum">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <number>23</number>
-                   </property>
-                   <property name="value">
-                    <number>23</number>
+                   <property name="text">
+                    <string>23</string>
                    </property>
                   </widget>
                  </item>
@@ -1576,33 +1519,21 @@ border:none</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSpinBox" name="Timer3_M">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
+                  <widget class="QLineEdit" name="Timer3_M">
                    <property name="minimumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>16777215</height>
                     </size>
                    </property>
-                   <property name="minimum">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <number>59</number>
-                   </property>
-                   <property name="value">
-                    <number>59</number>
+                   <property name="text">
+                    <string>59</string>
                    </property>
                   </widget>
                  </item>
@@ -1651,8 +1582,8 @@ border:none</string>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>150</width>
-                     <height>16777215</height>
+                     <width>2000</width>
+                     <height>2000</height>
                     </size>
                    </property>
                   </widget>
@@ -1662,7 +1593,7 @@ border:none</string>
               </layout>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="Lay_Timer4" stretch="1,1">
+              <layout class="QHBoxLayout" name="Lay_Timer4" stretch="1,2">
                <property name="leftMargin">
                 <number>0</number>
                </property>
@@ -1724,33 +1655,21 @@ border:none</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSpinBox" name="Timer4_H">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
+                  <widget class="QLineEdit" name="Timer4_H">
                    <property name="minimumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>16777215</height>
                     </size>
                    </property>
-                   <property name="minimum">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <number>23</number>
-                   </property>
-                   <property name="value">
-                    <number>23</number>
+                   <property name="text">
+                    <string>23</string>
                    </property>
                   </widget>
                  </item>
@@ -1780,33 +1699,21 @@ border:none</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSpinBox" name="Timer4_M">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
+                  <widget class="QLineEdit" name="Timer4_M">
                    <property name="minimumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>16777215</height>
                     </size>
                    </property>
-                   <property name="minimum">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <number>59</number>
-                   </property>
-                   <property name="value">
-                    <number>59</number>
+                   <property name="text">
+                    <string>59</string>
                    </property>
                   </widget>
                  </item>
@@ -1855,8 +1762,8 @@ border:none</string>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>150</width>
-                     <height>16777215</height>
+                     <width>2000</width>
+                     <height>2000</height>
                     </size>
                    </property>
                   </widget>
@@ -1866,7 +1773,7 @@ border:none</string>
               </layout>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="Lay_Timer5" stretch="1,1">
+              <layout class="QHBoxLayout" name="Lay_Timer5" stretch="1,2">
                <property name="leftMargin">
                 <number>0</number>
                </property>
@@ -1928,33 +1835,21 @@ border:none</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSpinBox" name="Timer5_H">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
+                  <widget class="QLineEdit" name="Timer5_H">
                    <property name="minimumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>16777215</height>
                     </size>
                    </property>
-                   <property name="minimum">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <number>23</number>
-                   </property>
-                   <property name="value">
-                    <number>23</number>
+                   <property name="text">
+                    <string>23</string>
                    </property>
                   </widget>
                  </item>
@@ -1984,33 +1879,21 @@ border:none</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QSpinBox" name="Timer5_M">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
+                  <widget class="QLineEdit" name="Timer5_M">
                    <property name="minimumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>65</width>
+                     <width>35</width>
                      <height>16777215</height>
                     </size>
                    </property>
-                   <property name="minimum">
-                    <number>0</number>
-                   </property>
-                   <property name="maximum">
-                    <number>59</number>
-                   </property>
-                   <property name="value">
-                    <number>59</number>
+                   <property name="text">
+                    <string>59</string>
                    </property>
                   </widget>
                  </item>
@@ -2059,8 +1942,8 @@ border:none</string>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>150</width>
-                     <height>16777215</height>
+                     <width>2000</width>
+                     <height>2000</height>
                     </size>
                    </property>
                   </widget>
@@ -2420,11 +2303,14 @@ Link Start</string>
          </property>
          <item>
           <layout class="QVBoxLayout" name="verticalLayout" stretch="1,30">
+           <property name="spacing">
+            <number>1</number>
+           </property>
            <property name="leftMargin">
             <number>0</number>
            </property>
            <property name="topMargin">
-            <number>5</number>
+            <number>0</number>
            </property>
            <property name="rightMargin">
             <number>0</number>
@@ -2438,13 +2324,13 @@ Link Start</string>
               <number>5</number>
              </property>
              <property name="topMargin">
-              <number>5</number>
+              <number>0</number>
              </property>
              <property name="rightMargin">
               <number>5</number>
              </property>
              <property name="bottomMargin">
-              <number>5</number>
+              <number>0</number>
              </property>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -2538,7 +2424,7 @@ Link Start</string>
            <item>
             <layout class="QGridLayout" name="Lay_Tab2">
              <property name="sizeConstraint">
-              <enum>QLayout::SetMinimumSize</enum>
+              <enum>QLayout::SetDefaultConstraint</enum>
              </property>
              <property name="leftMargin">
               <number>5</number>
@@ -2553,10 +2439,10 @@ Link Start</string>
               <number>5</number>
              </property>
              <property name="horizontalSpacing">
-              <number>5</number>
+              <number>3</number>
              </property>
              <property name="verticalSpacing">
-              <number>3</number>
+              <number>1</number>
              </property>
              <item row="25" column="3">
               <widget class="QLabel" name="UseItems_Tip_3">
@@ -2614,20 +2500,20 @@ Link Start</string>
              <item row="19" column="6">
               <widget class="QComboBox" name="MagicTowerPrison2_1P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>300</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -2635,31 +2521,6 @@ Link Start</string>
              </item>
              <item row="10" column="1">
               <widget class="Line" name="line_56">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-                 <horstretch>1</horstretch>
-                 <verstretch>1</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>5</width>
-                 <height>10</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>10</height>
-                </size>
-               </property>
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="5">
-              <widget class="Line" name="line_19">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
                  <horstretch>1</horstretch>
@@ -2743,13 +2604,13 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>250</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -2765,14 +2626,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>40</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="alignment">
@@ -2842,20 +2703,20 @@ Link Start</string>
              <item row="29" column="6">
               <widget class="QComboBox" name="CustomizeBattle_1P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -2864,20 +2725,20 @@ Link Start</string>
              <item row="29" column="7">
               <widget class="QComboBox" name="CustomizeBattle_2P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -2948,20 +2809,20 @@ Link Start</string>
              <item row="30" column="6">
               <widget class="QComboBox" name="Customize_1P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -2977,14 +2838,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>50</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="text">
@@ -3181,14 +3042,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>40</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="alignment">
@@ -3797,20 +3658,20 @@ Link Start</string>
              <item row="7" column="7">
               <widget class="QComboBox" name="NormalBattle_2P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -3901,14 +3762,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>40</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>300</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="alignment">
@@ -3966,14 +3827,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>50</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="text">
@@ -4103,13 +3964,13 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>5</width>
+                 <width>60</width>
                  <height>10</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>16777215</width>
+                 <width>60</width>
                  <height>10</height>
                 </size>
                </property>
@@ -4128,14 +3989,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>40</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>300</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="alignment">
@@ -4162,14 +4023,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>40</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="text">
@@ -4190,14 +4051,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>40</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="alignment">
@@ -4417,20 +4278,20 @@ Link Start</string>
              <item row="9" column="6">
               <widget class="QComboBox" name="CrossServer_1P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -4464,20 +4325,20 @@ Link Start</string>
              <item row="21" column="6">
               <widget class="QComboBox" name="PetTemple2_1P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -4536,20 +4397,20 @@ Link Start</string>
              <item row="8" column="6">
               <widget class="QComboBox" name="OfferReward_1P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -4664,20 +4525,20 @@ Link Start</string>
              <item row="9" column="7">
               <widget class="QComboBox" name="CrossServer_2P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -4774,14 +4635,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>40</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>300</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="alignment">
@@ -4808,14 +4669,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>40</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="alignment">
@@ -4896,14 +4757,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>40</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="alignment">
@@ -4930,14 +4791,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>40</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="alignment">
@@ -5060,20 +4921,20 @@ Link Start</string>
              <item row="22" column="7">
               <widget class="QComboBox" name="MagicTowerDouble_2P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>300</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -5211,20 +5072,20 @@ Link Start</string>
              <item row="16" column="6">
               <widget class="QComboBox" name="MagicTowerAlone1_1P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -5325,14 +5186,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>50</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="text">
@@ -5375,14 +5236,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>40</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="alignment">
@@ -5402,20 +5263,20 @@ Link Start</string>
              <item row="11" column="6">
               <widget class="QComboBox" name="QuestGuild_1P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -5460,14 +5321,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>50</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="text">
@@ -5542,14 +5403,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>40</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="alignment">
@@ -5594,20 +5455,20 @@ Link Start</string>
              <item row="11" column="7">
               <widget class="QComboBox" name="QuestGuild_2P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -5984,20 +5845,20 @@ Link Start</string>
              <item row="20" column="6">
               <widget class="QComboBox" name="PetTemple1_1P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -6038,14 +5899,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>40</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="alignment">
@@ -6099,20 +5960,20 @@ Link Start</string>
              <item row="22" column="6">
               <widget class="QComboBox" name="MagicTowerDouble_1P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>300</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -6128,13 +5989,13 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -6226,20 +6087,20 @@ Link Start</string>
              <item row="18" column="6">
               <widget class="QComboBox" name="MagicTowerPrison1_1P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>300</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -6555,20 +6416,20 @@ Link Start</string>
              <item row="8" column="7">
               <widget class="QComboBox" name="OfferReward_2P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -6688,14 +6549,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>40</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="alignment">
@@ -6933,20 +6794,20 @@ Link Start</string>
              <item row="17" column="6">
               <widget class="QComboBox" name="MagicTowerAlone2_1P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -7272,14 +7133,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>5</width>
+                 <width>60</width>
                  <height>10</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>16777215</width>
-                 <height>10</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="orientation">
@@ -7325,14 +7186,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>5</width>
+                 <width>60</width>
                  <height>10</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>16777215</width>
-                 <height>10</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="orientation">
@@ -7485,14 +7346,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>5</width>
+                 <width>45</width>
                  <height>10</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>16777215</width>
-                 <height>10</height>
+                 <width>45</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="orientation">
@@ -7528,20 +7389,20 @@ Link Start</string>
              <item row="7" column="6">
               <widget class="QComboBox" name="NormalBattle_1P">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -7610,13 +7471,13 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>180</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -7632,13 +7493,13 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>250</width>
+                 <width>200</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
+                 <width>200</width>
                  <height>50</height>
                 </size>
                </property>
@@ -7654,14 +7515,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>40</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>300</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="alignment">
@@ -7948,14 +7809,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>40</width>
+                 <width>60</width>
                  <height>0</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>2000</width>
-                 <height>50</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="alignment">
@@ -8119,14 +7980,14 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>5</width>
+                 <width>60</width>
                  <height>10</height>
                 </size>
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>16777215</width>
-                 <height>10</height>
+                 <width>60</width>
+                 <height>100</height>
                 </size>
                </property>
                <property name="orientation">
@@ -8184,6 +8045,31 @@ Link Start</string>
                </property>
               </widget>
              </item>
+             <item row="1" column="5">
+              <widget class="Line" name="line_19">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+                 <horstretch>1</horstretch>
+                 <verstretch>1</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>60</width>
+                 <height>10</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>60</width>
+                 <height>100</height>
+                </size>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
             </layout>
            </item>
           </layout>
@@ -8211,9 +8097,9 @@ Link Start</string>
           <number>0</number>
          </property>
          <item>
-          <layout class="QHBoxLayout" name="Lay_Tab3" stretch="0,1,10,1,10">
+          <layout class="QHBoxLayout" name="Lay_Tab3" stretch="10,1,10,1,10">
            <property name="spacing">
-            <number>5</number>
+            <number>0</number>
            </property>
            <property name="sizeConstraint">
             <enum>QLayout::SetDefaultConstraint</enum>
@@ -8222,7 +8108,7 @@ Link Start</string>
             <number>0</number>
            </property>
            <property name="topMargin">
-            <number>5</number>
+            <number>0</number>
            </property>
            <property name="rightMargin">
             <number>0</number>
@@ -8231,7 +8117,10 @@ Link Start</string>
             <number>0</number>
            </property>
            <item>
-            <layout class="QVBoxLayout" name="Lay_Tab3_Left" stretch="4,1,4,1,4,1,4,0">
+            <layout class="QVBoxLayout" name="Lay_Tab3_Left" stretch="4,1,4,1,4,1,4">
+             <property name="spacing">
+              <number>5</number>
+             </property>
              <property name="leftMargin">
               <number>5</number>
              </property>
@@ -8297,7 +8186,7 @@ Link Start</string>
                     <bool>true</bool>
                    </property>
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -8325,7 +8214,7 @@ Link Start</string>
                     <bool>true</bool>
                    </property>
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -8369,7 +8258,7 @@ Link Start</string>
                     <bool>true</bool>
                    </property>
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -8397,7 +8286,7 @@ Link Start</string>
                     <bool>true</bool>
                    </property>
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -8441,7 +8330,7 @@ Link Start</string>
                     <bool>true</bool>
                    </property>
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -8459,7 +8348,7 @@ Link Start</string>
                     </size>
                    </property>
                    <property name="text">
-                    <string>自动放卡战斗(建议开启)</string>
+                    <string>自动放卡-建议开启</string>
                    </property>
                   </widget>
                  </item>
@@ -8469,7 +8358,7 @@ Link Start</string>
                     <bool>true</bool>
                    </property>
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -8493,7 +8382,7 @@ Link Start</string>
                     <bool>false</bool>
                    </property>
                    <property name="text">
-                    <string>完成后刷新 以退出Flash</string>
+                    <string>完成后刷新</string>
                    </property>
                    <property name="checkable">
                     <bool>true</bool>
@@ -8545,7 +8434,7 @@ Link Start</string>
                 </widget>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="Lay_GetWarmGift_1P" stretch="1,1,4">
+                <layout class="QHBoxLayout" name="Lay_GetWarmGift_1P" stretch="1,1,8">
                  <property name="leftMargin">
                   <number>5</number>
                  </property>
@@ -8599,21 +8488,21 @@ Link Start</string>
                  <item>
                   <widget class="QLineEdit" name="GetWarmGift_1P_Link">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>250</width>
+                     <width>0</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>250</width>
-                     <height>16777215</height>
+                     <width>1000</width>
+                     <height>100</height>
                     </size>
                    </property>
                    <property name="tabletTracking">
@@ -8636,7 +8525,7 @@ Link Start</string>
                 </layout>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="Lay_GetWarmGift_2P" stretch="1,1,4">
+                <layout class="QHBoxLayout" name="Lay_GetWarmGift_2P" stretch="1,1,8">
                  <property name="leftMargin">
                   <number>5</number>
                  </property>
@@ -8690,21 +8579,21 @@ Link Start</string>
                  <item>
                   <widget class="QLineEdit" name="GetWarmGift_2P_Link">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>250</width>
+                     <width>0</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>250</width>
-                     <height>16777215</height>
+                     <width>1000</width>
+                     <height>100</height>
                     </size>
                    </property>
                    <property name="tabletTracking">
@@ -8797,7 +8686,7 @@ Link Start</string>
                 </widget>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="Lay_Level2_1P">
+                <layout class="QHBoxLayout" name="Lay_Level2_1P" stretch="1,1,8">
                  <property name="leftMargin">
                   <number>5</number>
                  </property>
@@ -8841,7 +8730,7 @@ Link Start</string>
                  <item>
                   <widget class="QLabel" name="Level2_1P_Text">
                    <property name="text">
-                    <string>二级：</string>
+                    <string>二级</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -8851,21 +8740,21 @@ Link Start</string>
                  <item>
                   <widget class="QLineEdit" name="Level2_1P_Password">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>250</width>
+                     <width>0</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>250</width>
-                     <height>16777215</height>
+                     <width>1000</width>
+                     <height>100</height>
                     </size>
                    </property>
                    <property name="tabletTracking">
@@ -8888,7 +8777,7 @@ Link Start</string>
                 </layout>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="Lay_Level2_2P">
+                <layout class="QHBoxLayout" name="Lay_Level2_2P" stretch="1,1,8">
                  <property name="leftMargin">
                   <number>5</number>
                  </property>
@@ -8932,7 +8821,7 @@ Link Start</string>
                  <item>
                   <widget class="QLabel" name="Level2_2P_Text">
                    <property name="text">
-                    <string>二级：</string>
+                    <string>二级</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -8942,21 +8831,21 @@ Link Start</string>
                  <item>
                   <widget class="QLineEdit" name="Level2_2P_Password">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>250</width>
+                     <width>0</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>250</width>
-                     <height>16777215</height>
+                     <width>1000</width>
+                     <height>100</height>
                     </size>
                    </property>
                    <property name="tabletTracking">
@@ -9041,7 +8930,8 @@ Link Start</string>
                   </size>
                  </property>
                  <property name="text">
-                  <string>发送战利品记录到 FAA X 米苏物流 数据中心</string>
+                  <string>发送战利品记录
+到FAA-米苏物流 数据中心</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -9115,7 +9005,7 @@ Link Start</string>
                  <item>
                   <widget class="QLineEdit" name="MisuLogistics_Link">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -9237,19 +9127,6 @@ Link Start</string>
                </item>
               </layout>
              </item>
-             <item>
-              <spacer name="verticalSpacer_12">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>1000</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
             </layout>
            </item>
            <item>
@@ -9260,7 +9137,10 @@ Link Start</string>
             </widget>
            </item>
            <item>
-            <layout class="QVBoxLayout" name="Lay_Tab3_Center" stretch="0,0,40,0">
+            <layout class="QVBoxLayout" name="Lay_Tab3_Center" stretch="0,0,0,0">
+             <property name="spacing">
+              <number>5</number>
+             </property>
              <property name="leftMargin">
               <number>5</number>
              </property>
@@ -9274,7 +9154,7 @@ Link Start</string>
               <number>5</number>
              </property>
              <item>
-              <layout class="QVBoxLayout" name="Lay_senior_battle" stretch="1,1,0,3">
+              <layout class="QVBoxLayout" name="Lay_senior_battle" stretch="1,0,0">
                <property name="spacing">
                 <number>5</number>
                </property>
@@ -9304,7 +9184,64 @@ Link Start</string>
                 </widget>
                </item>
                <item>
-                <widget class="QCheckBox" name="Battle_senior_checkedbox">
+                <layout class="QHBoxLayout" name="Lay_AdvancedSettings_Center_3">
+                 <property name="leftMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>5</number>
+                 </property>
+                 <item>
+                  <widget class="QCheckBox" name="Battle_senior_gpu">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>启用GPU加速</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QCheckBox" name="Battle_senior_checkedbox">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>只用点一下就够了!</string>
+                   </property>
+                   <property name="text">
+                    <string>启用高级战斗</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QPushButton" name="Battle_senior_Tip">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                    <horstretch>0</horstretch>
@@ -9327,27 +9264,7 @@ Link Start</string>
                   <string>只用点一下就够了!</string>
                  </property>
                  <property name="text">
-                  <string>启用高级战斗</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QCheckBox" name="Battle_senior_gpu">
-                 <property name="text">
-                  <string>启用GPU加速</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="label_2">
-                 <property name="text">
-                  <string>实现自动炸神风 &amp; 电流 &amp; 波次冰桶等超强功能
-叠甲1: 此功能为高级测试功能
-叠甲2: 启用前请阅读高级放卡md，完全理解原理后再使用
-叠甲3: 如未能按预期实现, 请先确保你的相关设置无误</string>
-                 </property>
-                 <property name="openExternalLinks">
-                  <bool>false</bool>
+                  <string>查看说明</string>
                  </property>
                 </widget>
                </item>
@@ -9379,6 +9296,12 @@ Link Start</string>
                </property>
                <item alignment="Qt::AlignHCenter">
                 <widget class="QLabel" name="label_5">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
@@ -9393,15 +9316,16 @@ Link Start</string>
                <item>
                 <widget class="QLabel" name="label_7">
                  <property name="text">
-                  <string>填入日志最多保存多久前的，单位天，负数则不清理</string>
+                  <string>填入日志最多保存多久前的记录
+单位天，负数则不清理</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
                  </property>
                 </widget>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout">
-                 <property name="spacing">
-                  <number>5</number>
-                 </property>
+                <layout class="QHBoxLayout" name="horizontalLayout_13">
                  <property name="leftMargin">
                   <number>5</number>
                  </property>
@@ -9414,91 +9338,125 @@ Link Start</string>
                  <property name="bottomMargin">
                   <number>5</number>
                  </property>
-                 <item alignment="Qt::AlignHCenter">
-                  <widget class="QLabel" name="label_3">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout">
+                   <property name="spacing">
+                    <number>5</number>
                    </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>150</width>
-                     <height>0</height>
-                    </size>
+                   <property name="leftMargin">
+                    <number>5</number>
                    </property>
-                   <property name="text">
-                    <string>高级战斗日志清理</string>
+                   <property name="topMargin">
+                    <number>0</number>
                    </property>
-                  </widget>
+                   <property name="rightMargin">
+                    <number>5</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="label_3">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>高级战斗</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item alignment="Qt::AlignRight">
+                    <widget class="QLineEdit" name="senior_log_clean">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>1000</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="placeholderText">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
                  </item>
-                 <item alignment="Qt::AlignRight">
-                  <widget class="QLineEdit" name="senior_log_clean">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_2">
+                   <property name="spacing">
+                    <number>5</number>
                    </property>
-                   <property name="placeholderText">
-                    <string/>
+                   <property name="leftMargin">
+                    <number>5</number>
                    </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_2">
-                 <property name="spacing">
-                  <number>5</number>
-                 </property>
-                 <property name="leftMargin">
-                  <number>5</number>
-                 </property>
-                 <property name="topMargin">
-                  <number>5</number>
-                 </property>
-                 <property name="rightMargin">
-                  <number>5</number>
-                 </property>
-                 <property name="bottomMargin">
-                  <number>5</number>
-                 </property>
-                 <item alignment="Qt::AlignHCenter">
-                  <widget class="QLabel" name="label_4">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
+                   <property name="topMargin">
+                    <number>0</number>
                    </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>150</width>
-                     <height>0</height>
-                    </size>
+                   <property name="rightMargin">
+                    <number>5</number>
                    </property>
-                   <property name="text">
-                    <string>其他日志清理</string>
+                   <property name="bottomMargin">
+                    <number>0</number>
                    </property>
-                  </widget>
-                 </item>
-                 <item alignment="Qt::AlignRight">
-                  <widget class="QLineEdit" name="other_log_clean">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="text">
-                    <string/>
-                   </property>
-                   <property name="placeholderText">
-                    <string/>
-                   </property>
-                  </widget>
+                   <item>
+                    <widget class="QLabel" name="label_4">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string>其他日志</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item alignment="Qt::AlignRight">
+                    <widget class="QLineEdit" name="other_log_clean">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>1000</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="placeholderText">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
                  </item>
                 </layout>
                </item>
@@ -9605,6 +9563,18 @@ Link Start</string>
                </property>
                <item>
                 <widget class="QLabel" name="Big_Picture">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>500</height>
+                  </size>
+                 </property>
                  <property name="text">
                   <string/>
                  </property>
@@ -9745,7 +9715,7 @@ Link Start</string>
         <attribute name="title">
          <string>公会管理</string>
         </attribute>
-        <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,2">
+        <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="2,5">
          <property name="spacing">
           <number>5</number>
          </property>
@@ -9789,7 +9759,7 @@ Link Start</string>
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="Lay_AdvancedSettings_Bottom_2" stretch="1,1">
+            <layout class="QHBoxLayout" name="Lay_AdvancedSettings_Bottom_2" stretch="0,1">
              <property name="leftMargin">
               <number>5</number>
              </property>
@@ -9819,7 +9789,7 @@ Link Start</string>
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>250</width>
+                 <width>0</width>
                  <height>0</height>
                 </size>
                </property>
@@ -9856,6 +9826,12 @@ Link Start</string>
                <height>300</height>
               </size>
              </property>
+             <property name="maximumSize">
+              <size>
+               <width>240</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="gridVisible">
               <bool>true</bool>
              </property>
@@ -9879,7 +9855,9 @@ Link Start</string>
               <string>
 说明
 启用后，在领取奖励时
-所选的那一P, 会扫描公会的所有成员，自动生成表格</string>
+所选的那一P
+会扫描公会的所有成员
+自动生成表格</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>

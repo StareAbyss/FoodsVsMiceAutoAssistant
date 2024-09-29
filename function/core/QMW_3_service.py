@@ -3,7 +3,6 @@ import json
 import os
 import random
 import sys
-import asyncio
 
 import win32con
 import win32gui
@@ -15,6 +14,7 @@ from function.core.QMW_2_load_settings import CommonHelper, QMainWindowLoadSetti
 from function.core.QMW_EditorOfBattlePlan import QMWEditorOfBattlePlan
 from function.core.QMW_EditorOfTaskSequence import QMWEditorOfTaskSequence
 from function.core.QMW_TipBattle import QMWTipBattle
+from function.core.QMW_TipBattleSenior import QMWTipBattleSenior
 from function.core.QMW_TipLevel2 import QMWTipLevels2
 from function.core.QMW_TipMisuLogistics import QMWTipMisuLogistics
 from function.core.QMW_TipStageID import QMWTipStageID
@@ -86,6 +86,10 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 额外窗口 - 二级说明书
         self.window_tip_level2 = QMWTipLevels2()
         self.Level2_Tip.clicked.connect(self.click_btn_tip_level2)
+
+        # 额外窗口 - 高级战斗说明
+        self.window_tip_battle_senior = QMWTipBattleSenior()
+        self.Battle_senior_Tip.clicked.connect(self.click_btn_tip_battle_senior)
 
         # 米苏物流 - tip窗口
         self.window_tip_misu_logistics = QMWTipMisuLogistics()
@@ -661,6 +665,12 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def click_btn_tip_level2(self):
         window = self.window_tip_level2
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
+
+    def click_btn_tip_battle_senior(self):
+        window = self.window_tip_battle_senior
         window.setFont(self.font)
         self.set_stylesheet(window)
         window.show()
