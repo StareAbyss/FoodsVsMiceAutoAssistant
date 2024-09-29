@@ -280,10 +280,10 @@ class FAA:
         mat_card_list = []
         for position in position_list:
             for card_id, card_xy_list in self.bp_card.items():
-                x1 = card_xy_list[0] - 45
-                y1 = card_xy_list[1] - 64
-                x2 = card_xy_list[0] + 8
-                y2 = card_xy_list[1] + 6
+                x1 = card_xy_list[0]
+                y1 = card_xy_list[1]
+                x2 = card_xy_list[0] + 53
+                y2 = card_xy_list[1] + 70
                 if x1 <= position[0] <= x2 and y1 <= position[1] <= y2:
                     mat_card_list.append({"id": card_id, "location_from": position})
                     break
@@ -320,10 +320,10 @@ class FAA:
         # 根据坐标位置，判断对应的卡id
         if position:
             for card_id, card_xy_list in self.bp_card.items():
-                x1 = card_xy_list[0] - 45
-                y1 = card_xy_list[1] - 64
-                x2 = card_xy_list[0] + 8
-                y2 = card_xy_list[1] + 6
+                x1 = card_xy_list[0]
+                y1 = card_xy_list[1]
+                x2 = card_xy_list[0] + 53
+                y2 = card_xy_list[1] + 70
                 if x1 <= position[0] <= x2 and y1 <= position[1] <= y2:
                     self.smoothie_position = {"id": card_id, "location_from": position}
                     break
@@ -370,10 +370,10 @@ class FAA:
         # 根据坐标位置，判断对应的卡id
         if position:
             for card_id, card_xy_list in self.bp_card.items():
-                x1 = card_xy_list[0] - 45
-                y1 = card_xy_list[1] - 64
-                x2 = card_xy_list[0] + 8
-                y2 = card_xy_list[1] + 6
+                x1 = card_xy_list[0]
+                y1 = card_xy_list[1]
+                x2 = card_xy_list[0] + 53
+                y2 = card_xy_list[1] + 70
                 if x1 <= position[0] <= x2 and y1 <= position[1] <= y2:
                     self.kun_position = {"id": card_id, "location_from": position}
                     break
