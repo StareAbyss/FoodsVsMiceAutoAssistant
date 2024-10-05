@@ -419,7 +419,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.Battle_senior_gpu.setChecked(my_opt["gpu_settings"])
             self.Battle_senior_checkedbox.stateChanged.connect(self.on_checkbox_state_changed)
             self.all_senior_log.setEnabled(my_opt["auto_senior_settings"])
-            self.Battle_senior_gpu.setEnabled(False)
+            self.Battle_senior_gpu.setEnabled(my_opt["auto_senior_settings"])
             self.indeed_need.setEnabled(my_opt["auto_senior_settings"])
             if my_opt["senior_log_state"]:
                 self.all_senior_log.setChecked(True)
@@ -859,7 +859,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         if state == 2:  # Qt.Checked
             self.all_senior_log.setEnabled(True)
             self.indeed_need.setEnabled(True)
-            self.Battle_senior_gpu.setEnabled(False)
+            self.Battle_senior_gpu.setEnabled(True)
         else:
             self.all_senior_log.setEnabled(False)
             self.indeed_need.setEnabled(False)
