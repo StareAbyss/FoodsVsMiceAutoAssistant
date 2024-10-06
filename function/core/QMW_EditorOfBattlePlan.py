@@ -4,12 +4,11 @@ import os
 import sys
 import uuid
 
-from PyQt6.QtCore import pyqtSignal, Qt, QTranslator, QLocale
+from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtGui import QKeySequence, QIcon, QShortcut
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QGridLayout, QPushButton, QWidget, QFileDialog, QVBoxLayout, QLabel, QComboBox,
-    QLineEdit, QHBoxLayout, QTextEdit, QListWidget, QMessageBox, QSpinBox, QListWidgetItem, QFrame, QAbstractItemView,
-    QMenuBar)
+    QLineEdit, QHBoxLayout, QTextEdit, QListWidget, QMessageBox, QSpinBox, QListWidgetItem, QFrame, QAbstractItemView)
 
 from function.globals import g_extra
 from function.globals.get_paths import PATHS
@@ -59,7 +58,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         # 加载 JSON 按钮
         self.file_name = None
-        self.current_plan_label = QLabel("当前编辑方案:无")
+        self.current_plan_label = QLabel("当前编辑方案:无, UUID:无")
         self.LayMain.addWidget(self.current_plan_label)
         self.ButtonLoadJson = QPushButton('加载战斗方案')
         self.LayMain.addWidget(self.ButtonLoadJson)
@@ -455,12 +454,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
         """
         self.json_data['tips'] = self.WeiTipsEditor.toPlainText()
         sender = self.sender()
-        if not self.file_name and sender != self.save_as_button:
-            # 提示用户还未选择任何战斗方案
-            QMessageBox.information(self, "禁止虚空保存！", "请先选择一个战斗方案!")
-            return
-        if sender == self.save_as_button:
 
+        if sender == self.save_as_button:
+            # 保存为
             file_name, _ = QFileDialog.getSaveFileName(
                 parent=self,
                 caption="保存 JSON 文件",
@@ -468,26 +464,38 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 filter="JSON Files (*.json)"
             )
         else:
+            # 保存
             file_name = self.file_name
+            if not self.file_name:
+                # 保存, 提示用户还未选择任何战斗方案
+                QMessageBox.information(self, "禁止虚空保存！", "请先选择一个战斗方案!")
+                return
 
-        if file_name:
-
-            if os.path.exists(file_name):  # 检查文件是否存在
-                # 这里是覆盖现有文件的情况 若不包含了uuid 生成uuid
-                self.json_data["uuid"] = self.json_data.get('uuid', str(uuid.uuid1()))
-            else:
-                # 这里是保存新文件的情况, 需要一个新的uuid做区别
-                self.json_data["uuid"] = str(uuid.uuid1())
-
-            # 确保玩家位置也被保存
-            self.json_data['player'] = self.json_data.get('player', [])
-
-            # 确保文件名后缀是.json
-            file_name = os.path.splitext(file_name)[0] + '.json'
-
+        if os.path.exists(file_name):
+            # 覆盖现有文件的情况
             with g_extra.GLOBAL_EXTRA.file_lock:
-                with open(file=file_name, mode='w', encoding='utf-8') as file:
-                    json.dump(self.json_data, file, ensure_ascii=False, indent=4)
+                with open(file=file_name, mode='r', encoding='utf-8') as file:
+                    tar_uuid = json.load(file).get('uuid', None)
+            if tar_uuid:
+                # 被覆盖的目标有uuid 使用存在的uuid
+                self.json_data["uuid"] = tar_uuid
+            else:
+                # 被覆盖的目标没有uuid 生成uuid
+                self.json_data["uuid"] = uuid.uuid1()
+        else:
+            # 这里是保存新文件的情况, 需要一个新的uuid
+            self.json_data["uuid"] = str(uuid.uuid1())
+
+        # 确保玩家位置也被保存
+        self.json_data['player'] = self.json_data.get('player', [])
+
+        # 确保文件名后缀是.json
+        file_name = os.path.splitext(file_name)[0] + '.json'
+
+        # 保存
+        with g_extra.GLOBAL_EXTRA.file_lock:
+            with open(file=file_name, mode='w', encoding='utf-8') as file:
+                json.dump(self.json_data, file, ensure_ascii=False, indent=4)
 
     def load_json(self):
         """打开窗口 读取json文件"""
@@ -516,7 +524,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.file_name = file_name  # 当前方案路径
             # 获取当前方案的名称
             current_plan_name = os.path.basename(file_name).replace(".json", "")
-            self.current_plan_label.setText(f"当前编辑方案: {current_plan_name}")
+            self.current_plan_label.setText(f"当前编辑方案: {current_plan_name}, UUID:{self.json_data.get('uuid', '无')}")
             self.WeiCurrentEdit.setText("无")
             self.WeiIdInput.clear()
             self.WeiNameInput.clear()
