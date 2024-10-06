@@ -317,8 +317,8 @@ class ThreadCheckTimer(QThread):
         if g_extra.GLOBAL_EXTRA.smoothie_lock_time != 0:
             g_extra.GLOBAL_EXTRA.smoothie_lock_time -= self.round_interval
 
-        # 定时 使用武器技能 自动拾取 考虑到火苗消失时间是7s
-        if self.running_round % 7 == 0:
+        # 定时 使用武器技能 自动拾取 考虑到火苗消失时间是7s 快一点5s更好
+        if self.running_round % 5 == 0:
             self.faa.faa_battle.use_weapon_skill()
             self.faa.faa_battle.auto_pickup()
 
