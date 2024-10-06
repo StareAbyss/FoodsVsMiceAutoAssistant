@@ -2066,12 +2066,20 @@ class ThreadTodo(QThread):
             # 因此此处选择退出方案直接选择[进入竞技岛], 并将勇士挑战选择放在本大类的最后进行, 依靠下一个大类开始后的重启游戏刷新.
 
         need_reload = False
+        need_reload = need_reload or c_opt["customize"]["active"]
         need_reload = need_reload or c_opt["normal_battle"]["active"]
         need_reload = need_reload or c_opt["offer_reward"]["active"]
         need_reload = need_reload or c_opt["cross_server"]["active"]
 
         if need_reload:
             self.batch_reload_game()
+
+        my_opt = c_opt["customize"]
+        if my_opt["active"]:
+            self.task_sequence(
+                text_="自定义任务序列",
+                task_begin_id=my_opt["stage"],
+                task_sequence_index=my_opt["battle_plan_1p"])
 
         my_opt = c_opt["normal_battle"]
         if my_opt["active"]:
@@ -2212,14 +2220,14 @@ class ThreadTodo(QThread):
 
         """额外事项"""
 
-        need_reload = False
-        need_reload = need_reload or c_opt["receive_awards"]["active"]
-        need_reload = need_reload or c_opt["use_items"]["active"]
-        need_reload = need_reload or c_opt["auto_food"]["active"]
-        need_reload = need_reload or c_opt["loop_cross_server"]["active"]
-        need_reload = need_reload or c_opt["customize"]["active"]
+        extra_active = False
+        extra_active = extra_active or c_opt["receive_awards"]["active"]
+        extra_active = extra_active or c_opt["use_items"]["active"]
+        extra_active = extra_active or c_opt["auto_food"]["active"]
+        extra_active = extra_active or c_opt["loop_cross_server"]["active"]
+        extra_active = extra_active or c_opt["customize"]["active"]
 
-        if need_reload:
+        if extra_active:
             self.signal_print_to_ui.emit(
                 text=f"[额外事项] 开始!",
                 color_level=1)
@@ -2249,15 +2257,13 @@ class ThreadTodo(QThread):
                 is_group=my_opt["is_group"],
                 deck=c_opt["quest_guild"]["deck"])
 
-        self.signal_print_to_ui.emit(
-            text=f"[额外事项] 全部完成! 耗时:{datetime.datetime.now() - start_time}",
-            color_level=1)
-
-        if self.opt["advanced_settings"]["end_exit_game"]:
-            self.batch_click_refresh_btn()
+        if extra_active:
+            self.signal_print_to_ui.emit(
+                text=f"[额外事项] 全部完成! 耗时:{datetime.datetime.now() - start_time}",
+                color_level=1)
         else:
             self.signal_print_to_ui.emit(
-                text="推荐勾选高级设置-完成后刷新游戏, 防止长期运行flash导致卡顿",
+                text=f"[额外事项] 未启动.",
                 color_level=1)
 
         """自定义事项"""
@@ -2268,7 +2274,7 @@ class ThreadTodo(QThread):
 
         if active_singleton:
             self.signal_print_to_ui.emit(
-                text=f"[自定义事项] 开始! 请勿与 [常规事项] 和 [额外事项] 同时开启, 否则可能造成未知错误!",
+                text=f"[自建房战斗] 开始! 如出现错误, 务必确保该功能是单独启动的!",
                 color_level=1)
             start_time = datetime.datetime.now()
 
@@ -2290,16 +2296,18 @@ class ThreadTodo(QThread):
                 }
             )
 
-        my_opt = c_opt["customize"]
-        if my_opt["active"]:
-            self.task_sequence(
-                text_="自定义任务序列",
-                task_begin_id=my_opt["stage"],
-                task_sequence_index=my_opt["battle_plan_1p"])
+        if active_singleton:
+            self.signal_print_to_ui.emit(
+                text=f"[自建房战斗] 全部完成! 耗时:{datetime.datetime.now() - start_time}",
+                color_level=1)
 
-        self.signal_print_to_ui.emit(
-            text=f"[自定义事项] 全部完成! 耗时:{datetime.datetime.now() - start_time}",
-            color_level=1)
+        """全部完成"""
+        if self.opt["advanced_settings"]["end_exit_game"]:
+            self.batch_click_refresh_btn()
+        else:
+            self.signal_print_to_ui.emit(
+                text="推荐勾选高级设置-完成后刷新游戏, 防止长期运行flash导致卡顿",
+                color_level=1)
 
         # 全部完成了发个信号
         self.signal_todo_end.emit()

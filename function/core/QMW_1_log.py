@@ -158,10 +158,11 @@ class QMainWindowLog(QMainWindowLoadUI):
             color_level=2,
             time=False)
         self.signal_print_to_ui.emit(
-            text="开发者和深入使用, 请参考[README.md]",
+            text="鼠标在文字或按钮上悬停一会, 会显示部分有用的提示信息哦~",
+            color_level=2,
             time=False)
         self.signal_print_to_ui.emit(
-            text="鼠标悬停在文字或按钮上会显示部分提示信息~",
+            text="开发者和深入使用, 请参考[README.md]",
             time=False)
         self.signal_print_to_ui.emit(
             text="任务或定时器开始运行后, 将锁定点击按钮时的配置文件, 不应用实时更改",
