@@ -59,7 +59,7 @@ def load_image(item_name):
         return img_black
 
 
-def create_drops_image(count_dict):
+def create_drops_image(count_dict, line_length=10):
     images = []
 
     if not count_dict:
@@ -118,9 +118,9 @@ def create_drops_image(count_dict):
     row = []
     for i, img in enumerate(images):
         row.append(img)
-        if (i + 1) % 14 == 0 or i == len(images) - 1:
-            # 如果当前行不足14张图片，添加默认颜色图片补足
-            while len(row) < 14:
+        if (i + 1) % line_length == 0 or i == len(images) - 1:
+            # 如果当前行不足 line_length 张图片，添加默认颜色图片补足
+            while len(row) < line_length:
                 blank_img = np.full(IMAGE_SIZE, BG_COLOR, dtype=np.uint8)
                 row.append(blank_img)
             rows.append(np.hstack(row))
