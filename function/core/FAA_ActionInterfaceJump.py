@@ -675,13 +675,7 @@ class FAAActionInterfaceJump:
                 time.sleep(2)
 
                 # 创建队伍 - 该按钮可能需要修正位置
-                loop_match_p_in_w(
-                    source_handle=handle,
-                    source_root_handle=handle_360,
-                    source_range=[515, 477, 658, 513],
-                    template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                    after_sleep=0.05,
-                    click=True)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=660, y=200)
 
         if stage_0 == "NO":
             main_no()
