@@ -40,6 +40,7 @@ class CardManager:
 
         # 直接从faa中获取
         self.is_group = faa_1.is_group
+        self.player_id_list = [1, 2] if self.is_group else [1]
 
         # 先创建 card_list_dict
         self.init_card_list_dict()
@@ -60,7 +61,7 @@ class CardManager:
         # objgraph.show_growth()
 
     def init_card_list_dict(self):
-        for i in ([1, 2] if self.is_group else [1]):
+        for i in self.player_id_list:
             cards_plan = self.faa_dict[i].battle_plan_parsed["card"]
             self.card_list_dict[i] = []
             self.special_card_list[i] = []
@@ -107,13 +108,13 @@ class CardManager:
                     self.card_list_dict[i].append(Card(faa=self.faa_dict[i], priority=j))
 
         # 将包含了极寒冰沙卡片的号筛选出来
-        for player in ([1, 2] if self.is_group else [1]):
+        for player in self.player_id_list:
             for card in self.card_list_dict[player]:
                 if card.is_smoothie:
                     self.smoothie_usable_player.append(player)
 
         # 添加坤
-        for player in ([1, 2] if self.is_group else [1]):
+        for player in self.player_id_list:
             if self.faa_dict[player].kun_position:
                 self.card_kun_dict[player] = CardKun(faa=self.faa_dict[player])
                 for card in self.card_list_dict[player]:
@@ -121,19 +122,24 @@ class CardManager:
                         card.card_kun = self.card_kun_dict[player]
 
     def init_card_queue_dict(self):
-        for i in ([1, 2] if self.is_group else [1]):
             self.card_queue_dict[i] = CardQueue(card_list=self.card_list_dict[i])
+        for pid in self.player_id_list:
 
     def init_all_thread(self):
-        if self.is_group:
-            players = [1, 2]
-        else:
-            players = [1]
+        """
+        初始化所有线程
+        1 - FAA1 检测线程
+        2 - FAA2 检测线程
+        3 - FAA3 用卡线程
+        4 - FAA4 用卡线程
+        5 - 高级战斗线程
+        :return:
+        """
         # 在每个号开打前 打印上一次战斗到这一次战斗之间, 累计的点击队列状态
         CUS_LOGGER.info(f"[战斗执行器] 在两场战斗之间, 点击队列变化状态如下, 可判断是否出现点击队列积压的情况")
         T_ACTION_QUEUE_TIMER.print_queue_statue()
         # 实例化 检测线程 + 用卡线程+特殊用卡进程
-        for i in players:
+        for i in self.player_id_list:
             self.thread_dict[i] = ThreadCheckTimer(
                 card_queue=self.card_queue_dict[i],
                 card_kun=self.card_kun_dict[i] if (i in self.card_kun_dict.keys()) else None,
@@ -163,7 +169,7 @@ class CardManager:
 
     def start_all_thread(self):
         # 开始线程
-        for k, my_thread in self.thread_dict.items():
+        for _, my_thread in self.thread_dict.items():
             my_thread.start()
         CUS_LOGGER.debug("[战斗执行器] 所有线程已开始")
 
@@ -215,6 +221,10 @@ class CardManager:
 
 
 class ThreadCheckTimer(QThread):
+    """
+    定时线程, 每个角色一个该线程
+    该线程将以较低频率, 重新扫描更新目前所有卡片的状态, 以确定使用方式.
+    """
     stop_signal = pyqtSignal()
     used_key_signal = pyqtSignal()
 
@@ -317,8 +327,8 @@ class ThreadCheckTimer(QThread):
         if g_extra.GLOBAL_EXTRA.smoothie_lock_time != 0:
             g_extra.GLOBAL_EXTRA.smoothie_lock_time -= self.round_interval
 
-        # 定时 使用武器技能 自动拾取 考虑到火苗消失时间是7s
-        if self.running_round % 7 == 0:
+        # 定时 使用武器技能 自动拾取 考虑到火苗消失时间是7s 快一点5s更好
+        if self.running_round % 5 == 0:
             self.faa.faa_battle.use_weapon_skill()
             self.faa.faa_battle.auto_pickup()
 

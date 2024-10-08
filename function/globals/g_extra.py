@@ -16,10 +16,10 @@ class GlobalExtraBiuld:
         # 在多线程双人时, 文件读写 全局锁, 一般是用于json读写, 也被用于logs中loots unmatched 的读写
         self.file_lock = threading.Lock()
 
-        # 额外战斗中日志 会详细显示每秒的卡片状态和当前放了哪张卡
-        self.extra_log_battle = False  # 默认 False
+        # 额外日志 - 战斗中 会详细显示每秒的卡片状态和当前放了哪张卡
+        self.extra_log_battle = True  # 默认 False
 
-        # 额外战斗中日志 会详细显示match图片的细节
+        # 额外日志 - 战斗中 会详细显示match图片的细节
         self.extra_log_match = True  # 默认 True
 
         # 储存战斗方案的 uuid -> 具体路径

@@ -4,11 +4,13 @@ from function.globals.log import CUS_LOGGER
 
 
 class CardQueue(queue.PriorityQueue):
-    def __init__(self, card_list):
+    def __init__(self, card_list, handle, handle_360):
         # 定义优先级队列
         super().__init__()
         self.card_list = card_list
         self.card_using = False
+        self.handle = handle
+        self.handle_360 = handle_360
 
     # 初始化card队列
     def init_card_queue(self):
@@ -50,11 +52,13 @@ class CardQueue(queue.PriorityQueue):
 
     def use_top_card(self):
 
+        # 处于卡片使用状态 直接返回
         if self.card_using:
             return
 
         self.card_using = True
 
+        # 查看队列顶部的元素
         card = self.peek()[1]
         # card.fresh_status()
 

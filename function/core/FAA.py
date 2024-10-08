@@ -11,11 +11,11 @@ from function.core.FAA_ActionInterfaceJump import FAAActionInterfaceJump
 from function.core.FAA_ActionQuestReceiveRewards import FAAActionQuestReceiveRewards
 from function.core.FAA_Battle import Battle
 from function.core.FAA_BattleARoundPreparation import BattleARoundPreparation
-from function.core_battle.get_position_in_battle import get_position_card_deck_in_battle, \
-    get_position_card_cell_in_battle
+from function.core_battle.get_position_in_battle import get_position_card_deck_in_battle
 from function.globals import g_resources
 from function.globals.g_resources import RESOURCE_P
 from function.globals.log import CUS_LOGGER
+from function.globals.position_card_cell_in_battle import POSITION_CARD_CELL_IN_BATTLE
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.match_ocr_text.get_food_quest_by_ocr import food_match_ocr_text, extract_text_from_images
@@ -79,15 +79,15 @@ class FAA:
         self.bp_card = None
 
         # 调用战斗中 格子位置 字典 bp -> battle position
-        self.bp_cell = get_position_card_cell_in_battle()
-
-        # 经过处理后的战斗方案, 由战斗类相关动作函数直接调用, 其中的各种操作都包含坐标
-        self.battle_plan_parsed = {}
+        self.bp_cell = POSITION_CARD_CELL_IN_BATTLE
 
         # 承载卡/冰沙/坤的位置
         self.mat_card_positions = None  # list [{},{},...]
         self.smoothie_position = None  # dict {}
         self.kun_position = None  # dict {} 也用于标记本场战斗是否需需要激活坤函数
+
+        # 经过处理后的战斗方案, 由战斗类相关动作函数直接调用, 其中的各种操作都包含坐标
+        self.battle_plan_parsed = {}
 
         """被拆分为子实例的模块"""
 
@@ -633,8 +633,11 @@ class FAA:
             self.print_debug(text="你的战斗放卡opt如下:")
             self.print_debug(text=list_cell_all)
 
-            self.battle_plan_parsed = {"card": list_cell_all, "shovel": list_shovel, "obstacle": stage_info["obstacle"],
-                                       "mat": stage_info["mat_cell"]}
+            self.battle_plan_parsed = {
+                "card": list_cell_all,
+                "shovel": list_shovel,
+                "obstacle": stage_info["obstacle"],
+                "mat": stage_info["mat_cell"]}
 
         return main()
 
