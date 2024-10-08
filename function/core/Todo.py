@@ -825,7 +825,7 @@ class ThreadTodo(QThread):
             self.thread_card_manager = CardManager(
                 faa_1=self.faa[player_a],
                 faa_2=self.faa[player_b],
-                round_interval=self.battle_check_interval,
+                check_interval=self.battle_check_interval,
                 solve_queue=queue_todo
             )
 
