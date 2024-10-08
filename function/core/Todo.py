@@ -2215,7 +2215,7 @@ class ThreadTodo(QThread):
             )
 
         self.signal_print_to_ui.emit(
-            text=f"[主要事项] 全部完成! 耗时:{datetime.datetime.now() - start_time}",
+            text=f"[主要事项] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
             color_level=1)
 
         """额外事项"""
@@ -2259,7 +2259,7 @@ class ThreadTodo(QThread):
 
         if extra_active:
             self.signal_print_to_ui.emit(
-                text=f"[额外事项] 全部完成! 耗时:{datetime.datetime.now() - start_time}",
+                text=f"[额外事项] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
                 color_level=1)
         else:
             self.signal_print_to_ui.emit(
@@ -2298,7 +2298,7 @@ class ThreadTodo(QThread):
 
         if active_singleton:
             self.signal_print_to_ui.emit(
-                text=f"[自建房战斗] 全部完成! 耗时:{datetime.datetime.now() - start_time}",
+                text=f"[自建房战斗] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
                 color_level=1)
 
         """全部完成"""
