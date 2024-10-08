@@ -13,8 +13,8 @@ This software is still in the development stage and its functions have been impl
 The original intention of developing this tool is to fulfill a childhood wish ten years ago (XP)
 
 # 下载 | Download [![](https://img.shields.io/github/downloads/StareAbyss/FoodsVsMiceAutoAssistant/total?color=4e4c97)](https://github.com/StareAbyss/FoodsVsMiceAutoAssistant/releases)
-* Github-Release - 包含FAA的稳定发行版 推荐, 点击上方按钮跳转. 
-* 交流QQ群-群文件 - 包含FAA的稳定发行版和内部测试版, 更有玩家社区维护的大量战斗方案和美食大赛资源供您使用.
+* Github-Release - 包含FAA的稳定发行版, 点击上方按钮跳转. 
+* 交流QQ群-群文件 - 包含FAA的稳定发行版和内部测试版, 更有玩家社区维护的大量战斗方案和美食大赛资源供您使用. 考虑到该游戏版本更迭的频繁性, 可能需要使用内部测试版才能正常运行.
 * 注: Github的源码会实时更新, Release不包含不稳定的测试版本.
 
 
@@ -90,6 +90,7 @@ The original intention of developing this tool is to fulfill a childhood wish te
     └─ 其他特性
         ├─ 无限跨服一分钟刷威望.
         ├─ 自动定时启动, 真正做到设置一次, 点击一下, 自动刷一周!
+        ├─ 工会管理器! 自动扫描每周贡献值!
         └─ 战利品和开宝箱历史记录保存, 识图储存为文本文件, 统计副本掉率.
 
 # 用户使用必读
@@ -99,16 +100,16 @@ The original intention of developing this tool is to fulfill a childhood wish te
 
 ## 兼容性支持
 
-* 操作系统 - `Windows7及以上`
+* 操作系统 - `Windows 10 及以上`
 * 浏览器 - `360游戏大厅`
     * 请务必使用`极速模式`进行游戏, 即Chrome内核.
-    * 如果您需要使用两个及以上游戏橘色, 请务必点击窗口右上角, 开启`多窗口模式`, 否则无法正常运行.
+    * 如果您需要使用两个及以上游戏角色, 请务必点击窗口右上角, 开启`多窗口模式`, 否则无法正常运行.
     * `窗口滚动条` 贴到 `最上最左`, 否则刷新时会自动调整导致坐标错位.
     * 在每一次重新打开游戏窗口后, 请 `完成至少一次区服选择` 并刷新后, 才能正常获取到上一次登录的服务器.
 * 游戏渠道
     * 4399渠道服
         * v0.9.1+ 支持, 无需额外配置.
-        * 该渠道服玩家可以使用云游戏的air网址进入游戏, 以获得更流畅的游戏体验.
+        * 该渠道服玩家, 推荐使用云游戏的Air网址进入游戏, 以获得更流畅的游戏体验.
     * QQ游戏大厅渠道服
         * v1.0.7+ 支持, 无需额外配置.
     * QQ空间渠道服

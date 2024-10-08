@@ -10,9 +10,6 @@ from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
-# 在文件的开始位置获取位置坐标字典，深渊写的太低内聚了，我不想再套娃好几层传参了
-position_dict = get_position_card_cell_in_battle()
-
 
 def compare_pixels(img_source, img_template):
     """
@@ -410,8 +407,8 @@ class SpecialCard(Card):
 
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.faa.handle,
-                    x=position_dict[f"{pos[0]}-{pos[1]}"][0],
-                    y=position_dict[f"{pos[0]}-{pos[1]}"][1])
+                    x=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][0],
+                    y=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][1])
                 time.sleep(0.5)
 
                 # 加一个垫子的判断
@@ -423,8 +420,8 @@ class SpecialCard(Card):
                             y=mat["location_from"][1] + 5)
                         T_ACTION_QUEUE_TIMER.add_click_to_queue(
                             handle=self.faa.handle,
-                            x=position_dict[f"{pos[0]}-{pos[1]}"][0],
-                            y=position_dict[f"{pos[0]}-{pos[1]}"][1])
+                            x=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][0],
+                            y=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][1])
 
                 # 点击 选中卡片
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
@@ -435,8 +432,8 @@ class SpecialCard(Card):
                 # 点击 放下卡片
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.faa.handle,
-                    x=position_dict[f"{pos[0]}-{pos[1]}"][0],
-                    y=position_dict[f"{pos[0]}-{pos[1]}"][1])
+                    x=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][0],
+                    y=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][1])
 
                 # 放卡后点一下空白
                 T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
@@ -448,8 +445,8 @@ class SpecialCard(Card):
 
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(
                         handle=self.faa.handle,
-                        x=position_dict[f"{pos[0]}-{pos[1]}"][0],
-                        y=position_dict[f"{pos[0]}-{pos[1]}"][1])
+                        x=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][0],
+                        y=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][1])
                     time.sleep(self.click_sleep)
 
                 if self.huzhao is not None:
