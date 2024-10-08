@@ -1,12 +1,11 @@
 # 鼠标点击队列，包含处理队列和添加队列
 import queue
-
-import win32con
-import win32gui
 from ctypes import windll
 from string import printable
 from threading import Timer
 
+import win32con
+import win32gui
 from PyQt6.QtCore import QThread
 
 from function.globals.log import CUS_LOGGER
@@ -127,8 +126,9 @@ class ThreadActionQueueTimer(QThread):
 
     def print_queue_size(self) -> int:
         """线程安全的方式查看队列长度, 打印并返回"""
-        CUS_LOGGER.debug(f"点击列表长度:{self.action_queue.qsize()}")
-        return self.action_queue.qsize()
+        q_size = self.action_queue.qsize()
+        CUS_LOGGER.debug(f"点击列表长度:{q_size}")
+        return q_size
 
     def print_queue_statue(self) -> int:
         q_size = self.action_queue.qsize()

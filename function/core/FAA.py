@@ -79,15 +79,15 @@ class FAA:
         self.bp_card = None
 
         # 调用战斗中 格子位置 字典 bp -> battle position
-
-        # 经过处理后的战斗方案, 由战斗类相关动作函数直接调用, 其中的各种操作都包含坐标
-        self.battle_plan_parsed = {}
         self.bp_cell = POSITION_CARD_CELL_IN_BATTLE
 
         # 承载卡/冰沙/坤的位置
         self.mat_card_positions = None  # list [{},{},...]
         self.smoothie_position = None  # dict {}
         self.kun_position = None  # dict {} 也用于标记本场战斗是否需需要激活坤函数
+
+        # 经过处理后的战斗方案, 由战斗类相关动作函数直接调用, 其中的各种操作都包含坐标
+        self.battle_plan_parsed = {}
 
         """被拆分为子实例的模块"""
 
@@ -633,8 +633,11 @@ class FAA:
             self.print_debug(text="你的战斗放卡opt如下:")
             self.print_debug(text=list_cell_all)
 
-            self.battle_plan_parsed = {"card": list_cell_all, "shovel": list_shovel, "obstacle": stage_info["obstacle"],
-                                       "mat": stage_info["mat_cell"]}
+            self.battle_plan_parsed = {
+                "card": list_cell_all,
+                "shovel": list_shovel,
+                "obstacle": stage_info["obstacle"],
+                "mat": stage_info["mat_cell"]}
 
         return main()
 
