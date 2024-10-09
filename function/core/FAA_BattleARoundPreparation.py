@@ -154,6 +154,10 @@ class BattleARoundPreparation:
         """
         根据检测出的关卡名，改变faa当前的stage_info
         """
+
+        # 原有的关卡id
+        stage_id = self.faa.stage_info["id"]
+
         # 特殊关卡列表占位符
         happy_holiday_list = []
         reward_list = []
@@ -163,21 +167,36 @@ class BattleARoundPreparation:
         match stage_name:
             case _ if "魔塔蛋糕" in stage_name:
                 level = stage_name.replace("魔塔蛋糕第", "").replace("层", "")
-                self.faa.stage_info = read_json_to_stage_info(stage_id=f"MT-1-{level}")
+                self.faa.stage_info = read_json_to_stage_info(
+                    stage_id=f"MT-1-0",
+                    stage_id_for_battle=f"MT-1-{level}"
+                )
+
             case _ if "双人魔塔" in stage_name:
                 level = stage_name.replace("双人魔塔第", "").replace("层", "")
-                self.faa.stage_info = read_json_to_stage_info(stage_id=f"MT-2-{level}")
+                self.faa.stage_info = read_json_to_stage_info(
+                    stage_id=f"MT-2-0",
+                    stage_id_for_battle=f"MT-2-{level}")
+
             case _ if "萌宠神殿" in stage_name:
                 level = stage_name.replace("萌宠神殿第", "").replace("层", "")
-                self.faa.stage_info = read_json_to_stage_info(stage_id=f"PT-0-{level}")
+                self.faa.stage_info = read_json_to_stage_info(
+                    stage_id=f"PT-0-0",
+                    stage_id_for_battle=f"PT-0-{level}"
+                )
+
             case _ if stage_name in happy_holiday_list:
                 pass
+
             case _ if stage_name in reward_list:
                 pass
+
             case _ if stage_name in roaming_list:
                 pass
+
             case _:
                 special_stage = False
+
         if special_stage:
             self.faa.signal_print_to_ui.emit(f"检测到特殊关卡：{stage_name}，已为你启用对应关卡方案", 7)
 
