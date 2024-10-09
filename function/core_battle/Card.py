@@ -127,8 +127,8 @@ class Card:
         """
         T_ACTION_QUEUE_TIMER.add_click_to_queue(
             handle=self.handle,
-            x=self.location_from[0] + 5,
-            y=self.location_from[1] + 5)
+            x=self.location_from[0] + 25,
+            y=self.location_from[1] + 35)
 
     def put_card(self):
         """

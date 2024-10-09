@@ -60,13 +60,13 @@ class CardQueue(queue.PriorityQueue):
         # 查看队列顶部的元素
         card = self.peek()[1]
 
-        # 卡片没有需要放置的位置 如果该卡正好是全新的卡背+没有可放置位置 会卡死 所以只要没有可放位置就先踢出去
+        # 卡片没有需要放置的位置 如果该卡正好是全新的卡背+没有可放置位置 会卡死 所以只要没有可放位置就移出队列
         if not card.location_to:
             self.get()
             self.card_using = False
             return
 
-        # 如果这张卡被锁 滚出去
+        # 如果这张卡被锁 移出队列
         if card.status_ban > 0:
             self.get()
             self.card_using = False
@@ -78,7 +78,7 @@ class CardQueue(queue.PriorityQueue):
             self.card_using = False
             return
 
-        # 如果卡片在cd中 直接滚出去
+        # 如果卡片在cd中 移出队列
         if card.status_cd:
             self.get()
             self.card_using = False
