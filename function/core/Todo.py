@@ -742,6 +742,13 @@ class ThreadTodo(QThread):
         return True
 
     def goto_stage_and_invite(self, stage_id, mt_first_time, player_a, player_b):
+        """
+        :param stage_id:
+        :param mt_first_time:
+        :param player_a:
+        :param player_b:
+        :return:
+        """
 
         # 自定义作战直接调出
         is_cu = "CU" in stage_id
@@ -1129,7 +1136,8 @@ class ThreadTodo(QThread):
                     # 魔塔
                     if not is_group:
                         # 单人前往副本
-                        faa_a.action_goto_stage(mt_first_time=need_goto_stage)
+                        faa_a.action_goto_stage(
+                            mt_first_time=need_goto_stage)  # 第一次使用 mt_first_time, 之后则不用
                     else:
                         # 多人前往副本
                         result_id = self.goto_stage_and_invite(
@@ -1612,6 +1620,8 @@ class ThreadTodo(QThread):
         self.battle_1_n_n(quest_list=quest_list)
 
         self.model_end_print(text=text_)
+
+    """高级模式"""
 
     def task_sequence(self, text_, task_begin_id: int, task_sequence_index: int):
         """

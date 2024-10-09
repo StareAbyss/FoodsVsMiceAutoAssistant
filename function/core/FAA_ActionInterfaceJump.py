@@ -350,9 +350,8 @@ class FAAActionInterfaceJump:
                     click=True
                 )
 
-                # 根据模式进行选择
+                # stage_1 根据模式进行选择
                 my_dict = {"1": 46, "2": 115, "3": 188}
-
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=my_dict[stage_1], y=66)
                 time.sleep(0.5)
 

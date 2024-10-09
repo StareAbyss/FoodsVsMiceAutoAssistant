@@ -339,8 +339,7 @@ class ThreadCheckTimer(QThread):
 
         # 刷新全局冰沙锁的状态
         if g_extra.GLOBAL_EXTRA.smoothie_lock_time != 0:
-            if self.faa.player == 1:
-                g_extra.GLOBAL_EXTRA.smoothie_lock_time -= self.check_interval
+            g_extra.GLOBAL_EXTRA.smoothie_lock_time -= self.check_interval
 
     def check(self):
         """

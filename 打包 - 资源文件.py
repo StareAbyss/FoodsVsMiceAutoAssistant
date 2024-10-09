@@ -105,7 +105,7 @@ def main():
     mover.preview()
 
     # 实际移动
-    # mover.run()
+    mover.run()
 
 
 """
