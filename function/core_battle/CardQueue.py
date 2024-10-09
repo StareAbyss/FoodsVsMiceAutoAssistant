@@ -74,9 +74,19 @@ class CardQueue(queue.PriorityQueue):
 
         # 未知卡片状态图 使用它(无限使用 直至更高顺位卡片完成冷却, 或成功获得状态)
         if card.state_images["冷却"] is None:
-            card.use_card()
-            self.card_using = False
-            return
+            try_result = card.try_get_card_states_img()
+            if try_result == 2:
+                # 试色成功 移出队列 (已经完成使用)
+                self.get()
+                self.card_using = False
+                return
+            if try_result == 1:
+                # 直接读取成功 获取状态
+                card.fresh_status()
+            if try_result == 0:
+                # 读取和试色均失败. 堵在此处
+                self.card_using = False
+                return
 
         # 如果卡片在cd中 移出队列
         if card.status_cd:
