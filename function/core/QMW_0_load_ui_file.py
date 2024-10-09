@@ -68,7 +68,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         self.setWindowTitle("FAA - 本软件免费且开源")
 
         # 设置版本号
-        self.version = "v1.5.0-beta.4"
+        self.version = "v1.5.4"
         self.Title_Version.setText(self.version)
 
         # 获取 dpi & zoom 仅能在类中调用
