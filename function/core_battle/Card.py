@@ -127,8 +127,8 @@ class Card:
         """
         T_ACTION_QUEUE_TIMER.add_click_to_queue(
             handle=self.handle,
-            x=self.location_from[0] + 5,
-            y=self.location_from[1] + 5)
+            x=self.location_from[0] + 25,
+            y=self.location_from[1] + 35)
 
     def put_card(self):
         """
@@ -277,30 +277,17 @@ class Card:
         # 战斗放卡锁，用于防止与特殊放卡放置冲突，点击队列不连贯
         with self.faa.battle_lock:
 
-            # 确保卡片状态图已经完成获取
-            if self.try_get_card_states_img() != 1:
-                # 未获取成功 或 获取成功且进行了一次使用 放弃本次用卡
-                return
-
             # 如果不可用状态 放弃本次用卡
             if not self.status_usable:
                 return
 
             # 点击 选中卡片
-            for i in range(5):
-                self.choice_card()
-                time.sleep(0.1)
-                self.fresh_status()  # 点击后必须确保选中
-                if not self.status_usable:
-                    # 正确选中 break
-                    break
-            else:
-                # 可能是状态判定出错或者卡住了, 没有通过break跳出, 故放弃本次用卡
-                return
+            self.choice_card()
+            time.sleep(self.click_sleep)
 
             # 放卡
             self.put_card()
-            time.sleep(0.1)
+            time.sleep(0.2)
             self.fresh_status()  # 如果放卡后还可用,自ban 若干s
 
             if self.status_usable and (self.name not in self.ban_white_list):
@@ -317,22 +304,11 @@ class Card:
                 return
 
             # 点击 选中卡片
-            for i in range(5):
-                self.card_kun.choice_card()
-                time.sleep(0.1)
-                self.fresh_status()  # 点击后必须确保选中
-                if not self.status_usable:
-                    # 正确选中 break
-                    break
-            else:
-                # 可能是状态判定出错或者卡住了, 没有通过break跳出, 故放弃本次用卡
-                return
+            self.choice_card()
+            time.sleep(self.click_sleep)
 
             # 放卡
             self.put_card()
-
-            # 额外时延
-            time.sleep(0.1)
 
     def destroy(self):
         """中止运行时释放内存, 顺带如果遇到了全新的状态图片保存一下"""

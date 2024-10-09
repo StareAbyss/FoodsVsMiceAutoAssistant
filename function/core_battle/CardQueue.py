@@ -60,13 +60,13 @@ class CardQueue(queue.PriorityQueue):
         # 查看队列顶部的元素
         card = self.peek()[1]
 
-        # 卡片没有需要放置的位置 如果该卡正好是全新的卡背+没有可放置位置 会卡死 所以只要没有可放位置就先踢出去
+        # 卡片没有需要放置的位置 如果该卡正好是全新的卡背+没有可放置位置 会卡死 所以只要没有可放位置就移出队列
         if not card.location_to:
             self.get()
             self.card_using = False
             return
 
-        # 如果这张卡被锁 滚出去
+        # 如果这张卡被锁 移出队列
         if card.status_ban > 0:
             self.get()
             self.card_using = False
@@ -74,11 +74,21 @@ class CardQueue(queue.PriorityQueue):
 
         # 未知卡片状态图 使用它(无限使用 直至更高顺位卡片完成冷却, 或成功获得状态)
         if card.state_images["冷却"] is None:
-            card.use_card()
-            self.card_using = False
-            return
+            try_result = card.try_get_card_states_img()
+            if try_result == 2:
+                # 试色成功 移出队列 (已经完成使用)
+                self.get()
+                self.card_using = False
+                return
+            if try_result == 1:
+                # 直接读取成功 获取状态
+                card.fresh_status()
+            if try_result == 0:
+                # 读取和试色均失败. 堵在此处
+                self.card_using = False
+                return
 
-        # 如果卡片在cd中 直接滚出去
+        # 如果卡片在cd中 移出队列
         if card.status_cd:
             self.get()
             self.card_using = False

@@ -22,7 +22,6 @@ class Battle:
 
         # 战斗专用私有属性 - 静态
 
-        self.click_interval = 0.016  # 每次点击时 按下和抬起之间的间隔 秒
         self.click_sleep = 0.016  # 每次点击时 按下和抬起之间的间隔 秒
 
         # 自动拾取的格子
@@ -189,15 +188,20 @@ class Battle:
 
     def use_weapon_skill(self):
         """使用武器技能"""
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=200)
-        time.sleep(self.click_sleep)
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=250)
-        time.sleep(self.click_sleep)
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=297)
-        time.sleep(self.click_sleep)
+        # 注意上锁, 防止和放卡冲突
+        with self.faa.battle_lock:
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=200)
+            time.sleep(self.click_sleep)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=250)
+            time.sleep(self.click_sleep)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=297)
+            time.sleep(self.click_sleep)
 
     def auto_pickup(self):
-        if self.faa.is_auto_pickup:
+        if not self.faa.is_auto_pickup:
+            return
+        # 注意上锁, 防止和放卡冲突
+        with self.faa.battle_lock:
             for coordinate in self.auto_collect_cells_coordinate:
                 T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.faa.handle, x=coordinate[0], y=coordinate[1])
                 time.sleep(self.click_sleep)
