@@ -17,7 +17,7 @@ class GlobalExtraBiuld:
         self.file_lock = threading.Lock()
 
         # 额外日志 - 战斗中 会详细显示每秒的卡片状态和当前放了哪张卡
-        self.extra_log_battle = True  # 默认 False
+        self.extra_log_battle = False  # 默认 False
 
         # 额外日志 - 战斗中 会详细显示match图片的细节
         self.extra_log_match = True  # 默认 True

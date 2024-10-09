@@ -9,8 +9,8 @@ from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_m
 from function.common.overlay_images import overlay_images
 from function.core.FAA_ActionInterfaceJump import FAAActionInterfaceJump
 from function.core.FAA_ActionQuestReceiveRewards import FAAActionQuestReceiveRewards
-from function.core.FAA_Battle import Battle
 from function.core.FAA_BattleARoundPreparation import BattleARoundPreparation
+from function.core_battle.FAA_Battle import Battle
 from function.core_battle.get_position_in_battle import get_position_card_deck_in_battle
 from function.globals import g_resources
 from function.globals.g_resources import RESOURCE_P

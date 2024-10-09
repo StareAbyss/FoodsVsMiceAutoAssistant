@@ -197,7 +197,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.Warrior_Active.setChecked(my_opt["warrior"]["active"])
         self.Warrior_Group.setChecked(my_opt["warrior"]["is_group"])
         self.Warrior_MaxTimes.setValue(my_opt["warrior"]["max_times"])
-        self.Warrior_Deck.setValue(my_opt["warrior"]["deck"])
+        self.Warrior_Deck.setCurrentIndex(my_opt["warrior"]["deck"] - 1)
         self.Warrior_1P.clear()
         self.Warrior_2P.clear()
         self.Warrior_1P.addItems(battle_plan_list)
@@ -211,7 +211,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.NormalBattle_Group.setChecked(my_opt["normal_battle"]["is_group"])
         self.NormalBattle_MaxTimes.setValue(my_opt["normal_battle"]["max_times"])
         self.NormalBattle_Stage.setText(my_opt["normal_battle"]["stage"])
-        self.NormalBattle_Deck.setValue(my_opt["normal_battle"]["deck"])
+        self.NormalBattle_Deck.setCurrentIndex(my_opt["normal_battle"]["deck"] - 1)
         self.NormalBattle_1P.clear()
         self.NormalBattle_2P.clear()
         self.NormalBattle_1P.addItems(battle_plan_list)
@@ -223,7 +223,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.OfferReward_MaxTimes_1.setText(str(my_opt["offer_reward"]["max_times_1"]))
         self.OfferReward_MaxTimes_2.setText(str(my_opt["offer_reward"]["max_times_2"]))
         self.OfferReward_MaxTimes_3.setText(str(my_opt["offer_reward"]["max_times_3"]))
-        self.OfferReward_Deck.setValue(my_opt["offer_reward"]["deck"])
+        self.OfferReward_Deck.setCurrentIndex(my_opt["offer_reward"]["deck"] - 1)
         self.OfferReward_1P.clear()
         self.OfferReward_2P.clear()
         self.OfferReward_1P.addItems(battle_plan_list)
@@ -235,7 +235,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.CrossServer_Group.setChecked(my_opt["cross_server"]["is_group"])
         self.CrossServer_MaxTimes.setValue(my_opt["cross_server"]["max_times"])
         self.CrossServer_Stage.setText(my_opt["cross_server"]["stage"])
-        self.CrossServer_Deck.setValue(my_opt["cross_server"]["deck"])
+        self.CrossServer_Deck.setCurrentIndex(my_opt["cross_server"]["deck"] - 1)
         self.CrossServer_1P.clear()
         self.CrossServer_2P.clear()
         self.CrossServer_1P.addItems(battle_plan_list)
@@ -247,7 +247,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         self.QuestGuild_Active.setChecked(my_opt["quest_guild"]["active"])
         self.QuestGuild_Stage.setChecked(my_opt["quest_guild"]["stage"])
-        self.QuestGuild_Deck.setValue(my_opt["quest_guild"]["deck"])
+        self.QuestGuild_Deck.setCurrentIndex(my_opt["quest_guild"]["deck"] - 1)
         self.QuestGuild_1P.clear()
         self.QuestGuild_2P.clear()
         self.QuestGuild_1P.addItems(battle_plan_list)
@@ -263,7 +263,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.Relic_Group.setChecked(my_opt["relic"]["is_group"])
         self.Relic_MaxTimes.setValue(my_opt["relic"]["max_times"])
         self.Relic_Stage.setText(my_opt["relic"]["stage"])
-        self.Relic_Deck.setValue(my_opt["relic"]["deck"])
+        self.Relic_Deck.setCurrentIndex(my_opt["relic"]["deck"] - 1)
         self.Relic_1P.clear()
         self.Relic_2P.clear()
         self.Relic_1P.addItems(battle_plan_list)
@@ -276,7 +276,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.MagicTowerAlone1_Active.setChecked(my_opt["magic_tower_alone_1"]["active"])
         self.MagicTowerAlone1_MaxTimes.setValue(my_opt["magic_tower_alone_1"]["max_times"])
         self.MagicTowerAlone1_Stage.setValue(my_opt["magic_tower_alone_1"]["stage"])
-        self.MagicTowerAlone1_Deck.setValue(my_opt["magic_tower_alone_1"]["deck"])
+        self.MagicTowerAlone1_Deck.setCurrentIndex(my_opt["magic_tower_alone_1"]["deck"] - 1)
         self.MagicTowerAlone1_1P.clear()
         self.MagicTowerAlone1_1P.addItems(battle_plan_list)
         set_list_current_index(self.MagicTowerAlone1_1P, my_opt["magic_tower_alone_1"]["battle_plan_1p"])
@@ -284,21 +284,21 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.MagicTowerAlone2_Active.setChecked(my_opt["magic_tower_alone_2"]["active"])
         self.MagicTowerAlone2_MaxTimes.setValue(my_opt["magic_tower_alone_2"]["max_times"])
         self.MagicTowerAlone2_Stage.setValue(my_opt["magic_tower_alone_2"]["stage"])
-        self.MagicTowerAlone2_Deck.setValue(my_opt["magic_tower_alone_2"]["deck"])
+        self.MagicTowerAlone2_Deck.setCurrentIndex(my_opt["magic_tower_alone_2"]["deck"] - 1)
         self.MagicTowerAlone2_1P.clear()
         self.MagicTowerAlone2_1P.addItems(battle_plan_list)
         set_list_current_index(self.MagicTowerAlone2_1P, my_opt["magic_tower_alone_2"]["battle_plan_1p"])
 
         self.MagicTowerPrison1_Active.setChecked(my_opt["magic_tower_prison_1"]["active"])
         self.MagicTowerPrison1_Stage.setChecked(my_opt["magic_tower_prison_1"]["stage"])
-        self.MagicTowerPrison1_Deck.setValue(my_opt["magic_tower_prison_1"]["deck"])
+        self.MagicTowerPrison1_Deck.setCurrentIndex(my_opt["magic_tower_prison_1"]["deck"] - 1)
         self.MagicTowerPrison1_1P.clear()
         self.MagicTowerPrison1_1P.addItems(battle_plan_list)
         set_list_current_index(self.MagicTowerPrison1_1P, my_opt["magic_tower_prison_1"]["battle_plan_1p"])
 
         self.MagicTowerPrison2_Active.setChecked(my_opt["magic_tower_prison_2"]["active"])
         self.MagicTowerPrison2_Stage.setChecked(my_opt["magic_tower_prison_2"]["stage"])
-        self.MagicTowerPrison2_Deck.setValue(my_opt["magic_tower_prison_2"]["deck"])
+        self.MagicTowerPrison2_Deck.setCurrentIndex(my_opt["magic_tower_prison_2"]["deck"] - 1)
         self.MagicTowerPrison2_1P.clear()
         self.MagicTowerPrison2_1P.addItems(battle_plan_list)
         set_list_current_index(self.MagicTowerPrison2_1P, my_opt["magic_tower_prison_2"]["battle_plan_1p"])
@@ -306,7 +306,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.MagicTowerDouble_Active.setChecked(my_opt["magic_tower_double"]["active"])
         self.MagicTowerDouble_Stage.setValue(my_opt["magic_tower_double"]["stage"])
         self.MagicTowerDouble_MaxTimes.setValue(my_opt["magic_tower_double"]["max_times"])
-        self.MagicTowerDouble_Deck.setValue(my_opt["magic_tower_double"]["deck"])
+        self.MagicTowerDouble_Deck.setCurrentIndex(my_opt["magic_tower_double"]["deck"] - 1)
         self.MagicTowerDouble_1P.clear()
         self.MagicTowerDouble_1P.addItems(battle_plan_list)
         set_list_current_index(self.MagicTowerDouble_1P, my_opt["magic_tower_double"]["battle_plan_1p"])
@@ -316,14 +316,14 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         self.PetTemple1_Active.setChecked(my_opt["pet_temple_1"]["active"])
         self.PetTemple1_Stage.setValue(my_opt["pet_temple_1"]["stage"])
-        self.PetTemple1_Deck.setValue(my_opt["pet_temple_1"]["deck"])
+        self.PetTemple1_Deck.setCurrentIndex(my_opt["pet_temple_1"]["deck"] - 1)
         self.PetTemple1_1P.clear()
         self.PetTemple1_1P.addItems(battle_plan_list)
         set_list_current_index(self.PetTemple1_1P, my_opt["pet_temple_1"]["battle_plan_1p"])
 
         self.PetTemple2_Active.setChecked(my_opt["pet_temple_2"]["active"])
         self.PetTemple2_Stage.setValue(my_opt["pet_temple_2"]["stage"])
-        self.PetTemple2_Deck.setValue(my_opt["pet_temple_2"]["deck"])
+        self.PetTemple2_Deck.setCurrentIndex(my_opt["pet_temple_2"]["deck"] - 1)
         self.PetTemple2_1P.clear()
         self.PetTemple2_1P.addItems(battle_plan_list)
         set_list_current_index(self.PetTemple2_1P, my_opt["pet_temple_2"]["battle_plan_1p"])
@@ -342,7 +342,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.CustomizeBattle_Active.setChecked(my_opt["customize_battle"]["active"])
         self.CustomizeBattle_Group.setCurrentIndex(my_opt["customize_battle"]["is_group"])
         self.CustomizeBattle_MaxTimes.setValue(my_opt["customize_battle"]["max_times"])
-        self.CustomizeBattle_Deck.setValue(my_opt["customize_battle"]["deck"])
+        self.CustomizeBattle_Deck.setCurrentIndex(my_opt["customize_battle"]["deck"] - 1)
         self.CustomizeBattle_1P.clear()
         self.CustomizeBattle_2P.clear()
         self.CustomizeBattle_1P.addItems(battle_plan_list)
@@ -358,7 +358,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.Customize_1P.setCurrentIndex(my_opt["customize"]["battle_plan_1p"])
 
         self.AutoFood_Active.setChecked(my_opt["auto_food"]["active"])
-        self.AutoFood_Deck.setValue(my_opt["auto_food"]["deck"])
+        self.AutoFood_Deck.setCurrentIndex(my_opt["auto_food"]["deck"] - 1)
 
     """ui和opt的交互"""
 
@@ -579,28 +579,28 @@ class QMainWindowLoadSettings(QMainWindowLog):
             result_bool, _ = test_route_connectivity(url=url)
 
             if url != "":
-                if result_bool :
+                if result_bool:
                     my_opt["misu_logistics_link"] = url
                     self.signal_dict["print_to_ui"].emit(
-                        text=f"FAA X 米苏物流 连通性测试 使用非默认ulr:{url} 成功!",color_level=3)
+                        text=f"FAA X 米苏物流 连通性测试 使用非默认ulr:{url} 成功!", color_level=3)
                 else:
                     self.signal_dict["print_to_ui"].emit(
-                        text=f"FAA X 米苏物流 连通性测试 使用非默认ulr:{url} 失败! 将修正为默认url重试",color_level=1)
+                        text=f"FAA X 米苏物流 连通性测试 使用非默认ulr:{url} 失败! 将修正为默认url重试", color_level=1)
                     url = ""
                     my_opt["misu_logistics_link"] = url
                     self.MisuLogistics_Link.setText(url)
                     result_bool, _ = test_route_connectivity(url=url)
 
             if url == "":
-                if result_bool :
+                if result_bool:
                     my_opt["misu_logistics_link"] = url
                     self.signal_dict["print_to_ui"].emit(
-                        text=f"FAA X 米苏物流 连通性测试 使用默认ulr 成功!",color_level=3)
+                        text=f"FAA X 米苏物流 连通性测试 使用默认ulr 成功!", color_level=3)
                 else:
                     self.signal_dict["print_to_ui"].emit(
-                        text=f"FAA X 米苏物流 连通性测试 使用默认ulr 失败!",color_level=1)
+                        text=f"FAA X 米苏物流 连通性测试 使用默认ulr 失败!", color_level=1)
                     self.signal_dict["print_to_ui"].emit(
-                        text=f"内置url可能已过期, 推荐更新url, 以防请求等待超时, 降低战斗效率!!!",color_level=1)
+                        text=f"内置url可能已过期, 推荐更新url, 以防请求等待超时, 降低战斗效率!!!", color_level=1)
 
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
@@ -668,7 +668,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["warrior"]["active"] = self.Warrior_Active.isChecked()
             my_opt["warrior"]["is_group"] = self.Warrior_Group.isChecked()
             my_opt["warrior"]["max_times"] = self.Warrior_MaxTimes.value()
-            my_opt["warrior"]["deck"] = self.Warrior_Deck.value()
+            my_opt["warrior"]["deck"] = self.Warrior_Deck.currentIndex() + 1
             my_transformer_b(self.Warrior_1P, "warrior", "battle_plan_1p")
             my_transformer_b(self.Warrior_2P, "warrior", "battle_plan_2p")
 
@@ -678,12 +678,12 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["normal_battle"]["is_group"] = self.NormalBattle_Group.isChecked()
             my_opt["normal_battle"]["max_times"] = self.NormalBattle_MaxTimes.value()
             my_opt["normal_battle"]["stage"] = self.NormalBattle_Stage.text()
-            my_opt["normal_battle"]["deck"] = self.NormalBattle_Deck.value()
+            my_opt["normal_battle"]["deck"] = self.NormalBattle_Deck.currentIndex() + 1
             my_transformer_b(self.NormalBattle_1P, "normal_battle", "battle_plan_1p")
             my_transformer_b(self.NormalBattle_2P, "normal_battle", "battle_plan_2p")
 
             my_opt["offer_reward"]["active"] = self.OfferReward_Active.isChecked()
-            my_opt["offer_reward"]["deck"] = self.OfferReward_Deck.value()
+            my_opt["offer_reward"]["deck"] = self.OfferReward_Deck.currentIndex() + 1
             my_opt["offer_reward"]["max_times_1"] = int(self.OfferReward_MaxTimes_1.text())
             my_opt["offer_reward"]["max_times_2"] = int(self.OfferReward_MaxTimes_2.text())
             my_opt["offer_reward"]["max_times_3"] = int(self.OfferReward_MaxTimes_3.text())
@@ -695,7 +695,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["cross_server"]["is_group"] = self.CrossServer_Group.isChecked()
             my_opt["cross_server"]["max_times"] = self.CrossServer_MaxTimes.value()
             my_opt["cross_server"]["stage"] = self.CrossServer_Stage.text()
-            my_opt["cross_server"]["deck"] = self.CrossServer_Deck.value()
+            my_opt["cross_server"]["deck"] = self.CrossServer_Deck.currentIndex() + 1
             my_transformer_b(self.CrossServer_1P, "cross_server", "battle_plan_1p")
             my_transformer_b(self.CrossServer_2P, "cross_server", "battle_plan_2p")
 
@@ -703,7 +703,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
             my_opt["quest_guild"]["active"] = self.QuestGuild_Active.isChecked()
             my_opt["quest_guild"]["stage"] = self.QuestGuild_Stage.isChecked()
-            my_opt["quest_guild"]["deck"] = self.QuestGuild_Deck.value()
+            my_opt["quest_guild"]["deck"] = self.QuestGuild_Deck.currentIndex() + 1
             my_transformer_b(self.QuestGuild_1P, "quest_guild", "battle_plan_1p")
             my_transformer_b(self.QuestGuild_2P, "quest_guild", "battle_plan_2p")
 
@@ -715,7 +715,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["relic"]["is_group"] = self.Relic_Group.isChecked()
             my_opt["relic"]["max_times"] = self.Relic_MaxTimes.value()
             my_opt["relic"]["stage"] = self.Relic_Stage.text()
-            my_opt["relic"]["deck"] = self.Relic_Deck.value()
+            my_opt["relic"]["deck"] = self.Relic_Deck.currentIndex() + 1
             my_transformer_b(self.Relic_1P, "relic", "battle_plan_1p")
             my_transformer_b(self.Relic_2P, "relic", "battle_plan_2p")
 
@@ -724,40 +724,40 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["magic_tower_alone_1"]["active"] = self.MagicTowerAlone1_Active.isChecked()
             my_opt["magic_tower_alone_1"]["max_times"] = self.MagicTowerAlone1_MaxTimes.value()
             my_opt["magic_tower_alone_1"]["stage"] = self.MagicTowerAlone1_Stage.value()
-            my_opt["magic_tower_alone_1"]["deck"] = self.MagicTowerAlone1_Deck.value()
+            my_opt["magic_tower_alone_1"]["deck"] = self.MagicTowerAlone1_Deck.currentIndex() + 1
             my_transformer_b(self.MagicTowerAlone1_1P, "magic_tower_alone_1", "battle_plan_1p")
 
             my_opt["magic_tower_alone_2"]["active"] = self.MagicTowerAlone2_Active.isChecked()
             my_opt["magic_tower_alone_2"]["max_times"] = self.MagicTowerAlone2_MaxTimes.value()
             my_opt["magic_tower_alone_2"]["stage"] = self.MagicTowerAlone2_Stage.value()
-            my_opt["magic_tower_alone_2"]["deck"] = self.MagicTowerAlone2_Deck.value()
+            my_opt["magic_tower_alone_2"]["deck"] = self.MagicTowerAlone2_Deck.currentIndex() + 1
             my_transformer_b(self.MagicTowerAlone2_1P, "magic_tower_alone_2", "battle_plan_1p")
 
             my_opt["magic_tower_prison_1"]["active"] = self.MagicTowerPrison1_Active.isChecked()
             my_opt["magic_tower_prison_1"]["stage"] = self.MagicTowerPrison1_Stage.isChecked()
-            my_opt["magic_tower_prison_1"]["deck"] = self.MagicTowerPrison1_Deck.value()
+            my_opt["magic_tower_prison_1"]["deck"] = self.MagicTowerPrison1_Deck.currentIndex() + 1
             my_transformer_b(self.MagicTowerPrison1_1P, "magic_tower_prison_1", "battle_plan_1p")
 
             my_opt["magic_tower_prison_2"]["active"] = self.MagicTowerPrison2_Active.isChecked()
             my_opt["magic_tower_prison_2"]["stage"] = self.MagicTowerPrison2_Stage.isChecked()
-            my_opt["magic_tower_prison_2"]["deck"] = self.MagicTowerPrison2_Deck.value()
+            my_opt["magic_tower_prison_2"]["deck"] = self.MagicTowerPrison2_Deck.currentIndex() + 1
             my_transformer_b(self.MagicTowerPrison2_1P, "magic_tower_prison_2", "battle_plan_1p")
 
             my_opt["magic_tower_double"]["active"] = self.MagicTowerDouble_Active.isChecked()
             my_opt["magic_tower_double"]["max_times"] = self.MagicTowerDouble_MaxTimes.value()
             my_opt["magic_tower_double"]["stage"] = self.MagicTowerDouble_Stage.value()
-            my_opt["magic_tower_double"]["deck"] = self.MagicTowerDouble_Deck.value()
+            my_opt["magic_tower_double"]["deck"] = self.MagicTowerDouble_Deck.currentIndex() + 1
             my_transformer_b(self.MagicTowerDouble_1P, "magic_tower_double", "battle_plan_1p")
             my_transformer_b(self.MagicTowerDouble_2P, "magic_tower_double", "battle_plan_2p")
 
             my_opt["pet_temple_1"]["active"] = self.PetTemple1_Active.isChecked()
             my_opt["pet_temple_1"]["stage"] = self.PetTemple1_Stage.value()
-            my_opt["pet_temple_1"]["deck"] = self.PetTemple1_Deck.value()
+            my_opt["pet_temple_1"]["deck"] = self.PetTemple1_Deck.currentIndex() + 1
             my_transformer_b(self.PetTemple1_1P, "pet_temple_1", "battle_plan_1p")
 
             my_opt["pet_temple_2"]["active"] = self.PetTemple2_Active.isChecked()
             my_opt["pet_temple_2"]["stage"] = self.PetTemple2_Stage.value()
-            my_opt["pet_temple_2"]["deck"] = self.PetTemple2_Deck.value()
+            my_opt["pet_temple_2"]["deck"] = self.PetTemple2_Deck.currentIndex() + 1
             my_transformer_b(self.PetTemple2_1P, "pet_temple_2", "battle_plan_1p")
 
             # 附加功能
@@ -774,7 +774,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["customize_battle"]["active"] = self.CustomizeBattle_Active.isChecked()
             my_opt["customize_battle"]["is_group"] = self.CustomizeBattle_Group.currentIndex()  # combobox 序号
             my_opt["customize_battle"]["max_times"] = self.CustomizeBattle_MaxTimes.value()
-            my_opt["customize_battle"]["deck"] = self.CustomizeBattle_Deck.value()
+            my_opt["customize_battle"]["deck"] = self.CustomizeBattle_Deck.currentIndex() + 1
             my_transformer_b(self.CustomizeBattle_1P, "customize_battle", "battle_plan_1p")
             my_transformer_b(self.CustomizeBattle_2P, "customize_battle", "battle_plan_2p")
 
@@ -784,7 +784,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_transformer_c(self.Customize_1P, "customize", "battle_plan_1p")
 
             my_opt["auto_food"]["active"] = self.AutoFood_Active.isChecked()
-            my_opt["auto_food"]["deck"] = self.AutoFood_Deck.value()
+            my_opt["auto_food"]["deck"] = self.AutoFood_Deck.currentIndex() + 1
 
         base_settings()
         timer_settings()
