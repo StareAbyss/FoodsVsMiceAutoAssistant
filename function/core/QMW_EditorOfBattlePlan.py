@@ -28,6 +28,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        # 不继承 系统缩放 (高DPI缩放)
+        QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+
         # 获取stage_info
         with open(file=PATHS["config"] + "//stage_info.json", mode="r", encoding="UTF-8") as file:
             self.stage_info = json.load(file)
