@@ -8,7 +8,8 @@ from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtGui import QKeySequence, QIcon, QShortcut
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QGridLayout, QPushButton, QWidget, QFileDialog, QVBoxLayout, QLabel, QComboBox,
-    QLineEdit, QHBoxLayout, QTextEdit, QListWidget, QMessageBox, QSpinBox, QListWidgetItem, QFrame, QAbstractItemView)
+    QLineEdit, QHBoxLayout, QTextEdit, QListWidget, QMessageBox, QSpinBox, QListWidgetItem, QFrame, QAbstractItemView,
+    QSpacerItem, QSizePolicy)
 
 from function.globals import g_extra
 from function.globals.get_paths import PATHS
@@ -25,7 +26,7 @@ double_click_card_list = pyqtSignal(object)
 
 class QMWEditorOfBattlePlan(QMainWindow):
 
-    def __init__(self):
+    def __init__(self, func_open_tip):
         super().__init__()
 
         # 不继承 系统缩放 (高DPI缩放)
@@ -61,10 +62,15 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         # 加载 JSON 按钮
         self.file_name = None
+        self.LayTop = QHBoxLayout()
+        self.LayMain.addLayout(self.LayTop)
+
         self.current_plan_label = QLabel("当前编辑方案:无, UUID:无")
         self.LayMain.addWidget(self.current_plan_label)
         self.ButtonLoadJson = QPushButton('加载战斗方案')
         self.LayMain.addWidget(self.ButtonLoadJson)
+        self.LayTop.addWidget(self.current_plan_label)
+
 
         # 玩家位置编辑器
         self.LayPlayerEditor = QHBoxLayout()
@@ -79,15 +85,18 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.info_layout = QHBoxLayout()
         self.info_layout.addWidget(QLabel('方案信息:'))
 
-        self.stage_selector = MultiLevelMenu(title="关卡选择")
-        self.info_layout.addWidget(self.stage_selector)
         self.LayMain.addLayout(self.info_layout)
+        self.WidgetStageSelector = MultiLevelMenu(title="关卡选择")
+        self.LayTop.addWidget(self.WidgetStageSelector)
+
+        self.WidgetCourseButton = QPushButton('  点击打开教学  ')
+        self.LayTop.addWidget(self.WidgetCourseButton)
+        self.WidgetCourseButton.clicked.connect(func_open_tip)
 
         self.WeiTipsEditor = QTextEdit()
         self.WeiTipsEditor.setPlaceholderText('在这里编辑提示文本...')
         self.LayMain.addWidget(self.WeiTipsEditor)
 
-        """操作教学文本"""
         self.LayPrint = QHBoxLayout()
         self.LayMain.addLayout(self.LayPrint)
 
@@ -95,9 +104,6 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         self.WeiCurrentEdit = QLabel("无")
         self.LayPrint.addWidget(self.WeiCurrentEdit)
-
-        self.LayPrint.addWidget(QLabel(
-            '点击左侧列表, 选中对象进行编辑 | 点击格子添加到该位置, 再点一下取消位置 | 列表从上到下 是一轮放卡的优先级(人物除外)'))
 
         """卡片编辑器"""
         self.LayCardEditor = QHBoxLayout()
