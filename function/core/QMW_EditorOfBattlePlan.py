@@ -371,17 +371,47 @@ class QMWEditorOfBattlePlan(QMainWindow):
         if not self.json_data["card"]:
             return
 
-        # 找到最长的卡片名称长度
+        def calculate_width(text):
+            """
+            计算字符串的实际宽度，中文字符占两个字节，西文字符占一个字节。
+            """
+            width_c = 0
+            width_e = 0
+            for char in text:
+                if '\u4e00' <= char <= '\u9fff':
+                    # 中文字符
+                    width_c += 1
+                else:
+                    # 西文字符
+                    width_e += 1
+            return width_c, width_e
+
+        # 根据中文和西文分别记录最高宽度
+        name_max_width_c = 0
+        name_max_width_e = 0
+        for card in self.json_data["card"]:
+            width_c, width_e = calculate_width(card["name"])
+            name_max_width_c = max(name_max_width_c, width_c)
+            name_max_width_e = max(name_max_width_e, width_e)
+
+        # 找到最长的id长度
+        max_id_length = 1
         if self.json_data["card"]:
-            max_name_length = max(len(card["name"]) for card in self.json_data["card"])
+            max_id_length = max(len(str(card["id"])) for card in self.json_data["card"])
 
         for card in self.json_data["card"]:
-            # 使用制表符或空格填充卡片名称
-            padded_name = card["name"].ljust(max_name_length)
 
-            text = "{}\tID:{} 遍历:{} 队列:{}".format(
+            # 根据中文和西文 分别根据距离相应的最大宽度的差值填充中西文空格
+            width_c, width_e = calculate_width(card["name"])
+            padded_name = str(card["name"])
+            padded_name += "\u2002" * (name_max_width_e - width_e)  # 半宽空格
+            padded_name += '\u3000' * (name_max_width_c - width_c)  # 表意空格(方块字空格)
+
+            padded_id = str(card["id"]).ljust(max_id_length)
+
+            text = "{}  ID:{}  遍历:{}  队列:{}".format(
                 padded_name,
-                card["id"],
+                padded_id,
                 "√" if card["ergodic"] else "X",
                 "√" if card["queue"] else "X"
             )
