@@ -57,11 +57,13 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         """布局和控件放置"""
 
-        # 主布局
+        # 主布局 - 竖直布局
         self.LayMain = QVBoxLayout()
 
-        # 加载 JSON 按钮
+        # 加载Json文件
         self.file_name = None
+
+        """当前方案 + 关卡选择 + 内置教学"""
         self.LayTop = QHBoxLayout()
         self.LayMain.addLayout(self.LayTop)
 
@@ -99,11 +101,11 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         self.LayPrint = QHBoxLayout()
         self.LayMain.addLayout(self.LayPrint)
-
-        self.LayPrint.addWidget(QLabel('正在编辑对象:'))
-
-        self.WeiCurrentEdit = QLabel("无")
-        self.LayPrint.addWidget(self.WeiCurrentEdit)
+        # self.LayPrint.addWidget(QLabel('正在编辑对象:'))
+        # self.WCurrentCard = QLabel("无")
+        # self.LayPrint.addWidget(self.WCurrentCard)
+        # self.LayPrint.addWidget(QLabel(
+        #     '点击左侧列表, 选中对象进行编辑 | 点击格子添加到该位置, 再点一下取消位置 | 列表从上到下 是一轮放卡的优先级(人物除外)'))
 
         """卡片编辑器"""
         self.LayCardEditor = QHBoxLayout()
@@ -158,8 +160,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.LayMain.addLayout(self.LayCardListAndCell)
 
         """卡片列表"""
-        self.WeiCardList = QListWidgetDraggable(drop_function=self.card_list_be_dropped)
-        self.LayCardListAndCell.addWidget(self.WeiCardList)
+        self.WidgetCardList = QListWidgetDraggable(drop_function=self.card_list_be_dropped)
+        self.LayCardListAndCell.addWidget(self.WidgetCardList)
 
         """棋盘布局"""
         self.chessboard_layout = QGridLayout()
@@ -196,18 +198,23 @@ class QMWEditorOfBattlePlan(QMainWindow):
         """保存按钮"""
         # 创建水平布局，来容纳保存和另存为按钮
         self.HLaySave = QHBoxLayout()
+
+
         self.save_button = QPushButton('保存当前战斗方案')
+
         self.save_as_button = QPushButton('战斗方案另存为')
         self.HLaySave.addWidget(self.save_button)
         self.HLaySave.addWidget(self.save_as_button)
         self.LayMain.addLayout(self.HLaySave)
 
         """设置主控件"""
+
         self.central_widget = QWidget()
         self.central_widget.setLayout(self.LayMain)
         self.setCentralWidget(self.central_widget)
 
         """信号和槽函数链接"""
+
         # 读取json
         self.ButtonLoadJson.clicked.connect(self.load_json)
 
@@ -216,21 +223,23 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.save_button.clicked.connect(self.save_json)
 
         # 关卡选择
-        self.stage_selector.on_selected.connect(self.stage_changed)
+        self.WidgetStageSelector.on_selected.connect(self.stage_changed)
 
         # 添加卡片
-        self.WeiAddCardButton.clicked.connect(self.add_card)
+        self.WidgetAddCardButton.clicked.connect(self.add_card)
 
         # 删除卡片
-        self.WeiDeleteCardButton.clicked.connect(self.delete_card)
+        self.WidgetDeleteCardButton.clicked.connect(self.delete_card)
+
         # 单击列表更改当前card
-        self.WeiCardList.itemClicked.connect(self.current_card_change)
+        self.WidgetCardList.itemClicked.connect(self.current_card_change)
+
         # id，名称,遍历，队列控件的更改都连接上更新卡片
-        self.WeiIdInput.valueChanged.connect(self.update_card)
-        self.WeiNameInput.textChanged.connect(self.update_card)
-        self.WeiErgodicInput.currentIndexChanged.connect(self.update_card)
-        self.QueueInput.currentIndexChanged.connect(self.update_card)
-        self.KunInput.valueChanged.connect(self.update_card)
+        self.WidgetIdInput.valueChanged.connect(self.update_card)
+        self.WidgetNameInput.textChanged.connect(self.update_card)
+        self.WidgetErgodicInput.currentIndexChanged.connect(self.update_card)
+        self.WidgetQueueInput.currentIndexChanged.connect(self.update_card)
+        self.WidgetKunInput.valueChanged.connect(self.update_card)
 
         """外观"""
         self.UICss()
@@ -264,55 +273,59 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 设置窗口图标
         self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetTuo-192x.png"))
 
+    def input_widget_lock(self, mode: bool):
+        self.WidgetIdInput.blockSignals(mode)
+        self.WidgetNameInput.blockSignals(mode)
+        self.WidgetErgodicInput.blockSignals(mode)
+        self.WidgetQueueInput.blockSignals(mode)
+        self.WidgetKunInput.blockSignals(mode)
+
+
     def current_card_change(self, item):
         """被单击后, 被选中的卡片改变了"""
-        self.index = self.WeiCardList.indexFromItem(item).row()  # list的index 是 QModelIndex 此处还需要获取到行号
+        self.index = self.WidgetCardList.indexFromItem(item).row()  # list的index 是 QModelIndex 此处还需要获取到行号
 
         self.current_edit_index = self.index
 
         # 为输入控件信号上锁，在初始化时不会触发保存
-        self.WeiCurrentEdit.blockSignals(True)
-        self.WeiIdInput.blockSignals(True)
-        self.WeiNameInput.blockSignals(True)
-        self.WeiErgodicInput.blockSignals(True)
-        self.QueueInput.blockSignals(True)
+        self.input_widget_lock(True)
 
         if self.index == 0:
             # 玩家 直接清空它们
-            self.WeiCurrentEdit.setText("玩家")
-            self.WeiIdInput.clear()
-            self.WeiNameInput.clear()
-            self.WeiNameInput.setText("玩家")
-            self.WeiErgodicInput.setCurrentIndex(0)
-            self.QueueInput.setCurrentIndex(0)
-            self.KunInput.setValue(0)
+            # self.WCurrentCard.setText("玩家")
+            self.WidgetIdInput.clear()
+            self.WidgetNameInput.clear()
+            self.WidgetNameInput.setText("玩家")
+            self.WidgetErgodicInput.setCurrentIndex(0)
+            self.WidgetQueueInput.setCurrentIndex(0)
+            self.WidgetKunInput.setValue(0)
             self.highlight_chessboard(self.json_data["player"])
         else:
             # 卡片
             index = self.index - 1  # 可能需要深拷贝？也许是被保护的特性 不需要
             card = self.json_data["card"][index]
-            self.WeiCurrentEdit.setText("索引-{} 名称-{}".format(index, card["name"]))
-            self.WeiIdInput.setValue((card['id']))
-            self.WeiNameInput.setText(card['name'])
-            self.WeiErgodicInput.setCurrentText(str(card['ergodic']).lower())
-            self.QueueInput.setCurrentText(str(card['queue']).lower())
-            self.KunInput.setValue(card.get('kun', 0))
+            # self.WCurrentCard.setText("索引-{} 名称-{}".format(index, card["name"]))
+            self.WidgetIdInput.setValue((card['id']))
+            self.WidgetNameInput.setText(card['name'])
+            self.WidgetErgodicInput.setCurrentText(str(card['ergodic']).lower())
+            self.WidgetQueueInput.setCurrentText(str(card['queue']).lower())
+            self.WidgetKunInput.setValue(card.get('kun', 0))
             # 设置高亮
             self.highlight_chessboard(card["location"])
 
         # 解锁控件信号
-        self.WeiCurrentEdit.blockSignals(False)
-        self.WeiIdInput.blockSignals(False)
-        self.WeiNameInput.blockSignals(False)
-        self.WeiErgodicInput.blockSignals(False)
-        self.QueueInput.blockSignals(False)
+        self.input_widget_lock(False)
 
     def load_data_to_ui_list(self):
         """从 [内部数据表] 载入数据到 [ui的list]"""
-        self.WeiCardList.clear()
+
+        self.WidgetCardList.clear()
 
         player_item = QListWidgetItem("玩家")
-        self.WeiCardList.addItem(player_item)
+        self.WidgetCardList.addItem(player_item)
+
+        if not self.json_data["card"]:
+            return
 
         # 找到最长的卡片名称长度
         if self.json_data["card"]:
@@ -328,10 +341,12 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 "√" if card["ergodic"] else "X",
                 "√" if card["queue"] else "X"
             )
+
             if card.get("kun", 0):
-                text += " 坤:{}".format(card["kun"])
+                text += "  坤:{}".format(card["kun"])
+
             item = QListWidgetItem(text)
-            self.WeiCardList.addItem(item)
+            self.WidgetCardList.addItem(item)
 
     def card_list_be_dropped(self, index_from, index_to):
         """在list的drop事件中调用, 用于更新内部数据表"""
@@ -346,7 +361,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             CUS_LOGGER.debug("正常操作 内部数据表已更新: {}".format(cards))
         else:
             # 试图移动到第一个
-            self.WeiCardList.clear()
+            self.WidgetCardList.clear()
             self.load_data_to_ui_list()
 
     def add_card(self):
@@ -366,8 +381,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
             {
                 "id": id_,
                 "name": name_,
-                "ergodic": bool(self.WeiErgodicInput.currentText() == 'true'),  # 转化bool
-                "queue": bool(self.QueueInput.currentText() == 'true'),  # 转化bool
+                "ergodic": bool(self.WidgetErgodicInput.currentText() == 'true'),  # 转化bool
+                "queue": bool(self.WidgetQueueInput.currentText() == 'true'),  # 转化bool
                 "location": []
             }
         )
@@ -390,12 +405,12 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         index -= 1
         card = self.json_data["card"][index]
-        card["id"] = int(self.WeiIdInput.value())
-        card["name"] = self.WeiNameInput.text()
-        card["ergodic"] = bool(self.WeiErgodicInput.currentText() == 'true')  # 转化bool
-        card["queue"] = bool(self.QueueInput.currentText() == 'true')  # 转化bool
-        card["kun"] = self.KunInput.value()
-        self.WeiCurrentEdit.setText("索引-{} 名称-{}".format(self.index - 1, card["name"]))
+        card["id"] = int(self.WidgetIdInput.value())
+        card["name"] = self.WidgetNameInput.text()
+        card["ergodic"] = bool(self.WidgetErgodicInput.currentText() == 'true')  # 转化bool
+        card["queue"] = bool(self.WidgetQueueInput.currentText() == 'true')  # 转化bool
+        card["kun"] = self.WidgetKunInput.value()
+        # self.WCurrentCard.setText("索引-{} 名称-{}".format(self.index - 1, card["name"]))
         self.load_data_to_ui_list()
         self.refresh_chessboard()
 
@@ -457,6 +472,36 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 更新界面显示
         self.refresh_chessboard()
 
+    def refresh_chessboard(self):
+        """刷新棋盘上的文本等各种元素"""
+        for i, row in enumerate(self.chessboard_buttons):
+            for j, btn in enumerate(row):
+
+                location_key = f"{j + 1}-{i + 1}"
+
+                text = ""
+                # 如果玩家在这个位置，添加 "玩家" 文字
+                player_location_list = self.json_data.get('player', [])
+                if location_key in player_location_list:
+                    text += '\n玩家 {}'.format(player_location_list.index(location_key) + 1)
+
+                cards_in_this_location = []
+                for card in self.json_data["card"]:
+                    if location_key in card['location']:
+                        cards_in_this_location.append(card)
+
+                for card in cards_in_this_location:
+                    text += '\n' + card['name']
+                    c_index_list = card["location"].index(location_key) + 1
+                    if type(c_index_list) is list:
+                        for location_index in c_index_list:
+                            text += " {}".format(location_index)
+                    else:
+                        text += " {}".format(c_index_list)
+                btn.setText(text)
+
+    """和文件系统交互"""
+
     def save_json(self):
         """
         保存方法，拥有保存和另存为两种功能，还能创建uuid
@@ -509,11 +554,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
     def load_json(self):
         """打开窗口 读取json文件"""
         # 为输入控件信号上锁，在初始化时不会触发保存
-        self.WeiCurrentEdit.blockSignals(True)
-        self.WeiIdInput.blockSignals(True)
-        self.WeiNameInput.blockSignals(True)
-        self.WeiErgodicInput.blockSignals(True)
-        self.QueueInput.blockSignals(True)
+        self.input_widget_lock(True)
 
         file_name, _ = QFileDialog.getOpenFileName(
             parent=self,
@@ -533,12 +574,13 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.file_name = file_name  # 当前方案路径
             # 获取当前方案的名称
             current_plan_name = os.path.basename(file_name).replace(".json", "")
-            self.current_plan_label.setText(f"当前编辑方案: {current_plan_name}, UUID:{self.json_data.get('uuid', '无')}")
-            self.WeiCurrentEdit.setText("无")
-            self.WeiIdInput.clear()
-            self.WeiNameInput.clear()
-            self.WeiErgodicInput.setCurrentIndex(0)
-            self.QueueInput.setCurrentIndex(0)
+            self.current_plan_label.setText(
+                f"当前编辑方案: {current_plan_name}, UUID:{self.json_data.get('uuid', '无')}")
+            # self.WCurrentCard.setText("无")
+            self.WidgetIdInput.clear()
+            self.WidgetNameInput.clear()
+            self.WidgetErgodicInput.setCurrentIndex(0)
+            self.WidgetQueueInput.setCurrentIndex(0)
 
             # 根据数据绘制视图
             self.load_data_to_ui_list()
@@ -547,39 +589,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.remove_frame_color()
 
         # 为输入控件信号解锁
-        self.WeiCurrentEdit.blockSignals(False)
-        self.WeiIdInput.blockSignals(False)
-        self.WeiNameInput.blockSignals(False)
-        self.WeiErgodicInput.blockSignals(False)
-        self.QueueInput.blockSignals(False)
+        self.input_widget_lock(False)
 
-    def refresh_chessboard(self):
-        """刷新棋盘上的文本等各种元素"""
-        for i, row in enumerate(self.chessboard_buttons):
-            for j, btn in enumerate(row):
 
-                location_key = f"{j + 1}-{i + 1}"
-
-                text = ""
-                # 如果玩家在这个位置，添加 "玩家" 文字
-                player_location_list = self.json_data.get('player', [])
-                if location_key in player_location_list:
-                    text += '\n玩家 {}'.format(player_location_list.index(location_key) + 1)
-
-                cards_in_this_location = []
-                for card in self.json_data["card"]:
-                    if location_key in card['location']:
-                        cards_in_this_location.append(card)
-
-                for card in cards_in_this_location:
-                    text += '\n' + card['name']
-                    c_index_list = card["location"].index(location_key) + 1
-                    if type(c_index_list) is list:
-                        for location_index in c_index_list:
-                            text += " {}".format(location_index)
-                    else:
-                        text += " {}".format(c_index_list)
-                btn.setText(text)
+    """撤回/重做"""
 
     def append_undo_stack(self):
         # 将当前状态压入栈中
