@@ -15,6 +15,7 @@ from function.core.QMW_EditorOfBattlePlan import QMWEditorOfBattlePlan
 from function.core.QMW_EditorOfTaskSequence import QMWEditorOfTaskSequence
 from function.core.QMW_TipBattle import QMWTipBattle
 from function.core.QMW_TipBattleSenior import QMWTipBattleSenior
+from function.core.QMW_TipEditorOfBattlePlan import QMWTipEditorOfBattlePlan
 from function.core.QMW_TipLevel2 import QMWTipLevels2
 from function.core.QMW_TipMisuLogistics import QMWTipMisuLogistics
 from function.core.QMW_TipStageID import QMWTipStageID
@@ -64,7 +65,9 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.signal_todo_start.connect(self.todo_start)
 
         # 额外窗口 - 战斗方案编辑器
-        self.window_editor_of_battle_plan = QMWEditorOfBattlePlan()
+        self.window_tip_editor_of_battle_plan = QMWTipEditorOfBattlePlan()
+        self.window_editor_of_battle_plan = QMWEditorOfBattlePlan(
+            func_open_tip=self.click_btn_tip_editor_of_battle_plan)
         self.OpenEditorOfBattlePlan_Button.clicked.connect(self.click_btn_open_editor_of_battle_plan)
 
         # 额外窗口 - 任务序列编辑器
@@ -671,6 +674,12 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def click_btn_tip_battle_senior(self):
         window = self.window_tip_battle_senior
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
+
+    def click_btn_tip_editor_of_battle_plan(self):
+        window = self.window_tip_editor_of_battle_plan
         window.setFont(self.font)
         self.set_stylesheet(window)
         window.show()

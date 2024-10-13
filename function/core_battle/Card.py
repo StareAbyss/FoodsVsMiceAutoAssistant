@@ -1,17 +1,16 @@
 import os
 import time
 
+import cv2
 import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png
-from function.core_battle.get_position_in_battle import get_position_card_cell_in_battle
 from function.globals import g_extra
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
+from function.globals.log import CUS_LOGGER
+from function.globals.position_card_cell_in_battle import POSITION_CARD_CELL_IN_BATTLE
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
-
-# 在文件的开始位置获取位置坐标字典，深渊写的太低内聚了，我不想再套娃好几层传参了
-position_dict = get_position_card_cell_in_battle()
 
 
 def compare_pixels(img_source, img_template):
@@ -61,6 +60,7 @@ class Card:
 
         """直接从FAA类读取的属性"""
         self.handle = self.faa.handle
+        self.handle_360 = self.faa.handle_360
         self.need_key = self.faa.need_key
         self.is_auto_battle = self.faa.is_auto_battle
         self.faa_battle = self.faa.faa_battle
@@ -86,10 +86,17 @@ class Card:
         # 坤优先级
         self.kun = self.faa.battle_plan_parsed["card"][priority]["kun"]
 
-        # 卡坤的实例
+        # 坤卡的实例
         self.card_kun = None
 
         """用于完成放卡的额外类属性"""
+        # 该卡片不同状态下对应的状态图片
+        self.state_images = {
+            "冷却": None,  # 战斗需要
+            "可用": None,  # 战斗需要
+            "不可用": None,  # 遇到新图片则保存下来以便初始判断, 也用于判断是否遇到了新的状态图片
+        }
+
         # 放卡间隔
         self.click_sleep = self.faa_battle.click_sleep
 
@@ -113,6 +120,15 @@ class Card:
 
         # 是否可以放卡（主要是瓜皮类）
         self.can_use = True
+
+    def choice_card(self):
+        """
+        取卡操作
+        """
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(
+            handle=self.handle,
+            x=self.location_from[0] + 25,
+            y=self.location_from[1] + 35)
 
     def put_card(self):
         """
@@ -148,6 +164,94 @@ class Card:
                 self.location_to.append(self.location_to[0])
                 self.location_to.remove(self.location_to[0])
 
+    def get_card_current_img(self, game_image=None):
+        """
+        获取用于 判定 卡片状态 的图像
+        :param game_image: 可选, 是否从已有的完成游戏图像中拆解, 不截图
+        :return:
+        """
+        x1 = self.location_from[0]
+        x2 = x1 + 53
+        y1 = self.location_from[1]
+        y2 = y1 + 70
+
+        if game_image is None:
+            img = capture_image_png(handle=self.handle, raw_range=[x1, y1, x2, y2], root_handle=self.handle_360)
+        else:
+            img = game_image[y1:y2, x1:x2]
+
+        # img的格式[y1:y2,x1:x2,bgra] 注意不是 r g b α 而是 b g r α
+        pixels_top_left = img[0:1, 2:20, :3]  # 18个像素图片 (1, 18, 3)
+        pixels_top_right = img[0:1, 33:51, :3]  # 18个像素图片 (1, 18, 3)
+        pixels_all = np.hstack((pixels_top_left, pixels_top_right))  # 36个像素图片 (1, 36, 3)
+
+        return pixels_all
+
+    def fresh_status(self, game_image=None):
+        """
+        判断游戏图像, 来确认卡片自身 冷却 和 可用 两项属性
+        """
+
+        current_img = self.get_card_current_img(game_image=game_image)
+
+        self.status_usable = np.array_equal(current_img, self.state_images["可用"])
+
+        self.status_cd = np.array_equal(current_img, self.state_images["冷却"])
+
+    def try_get_card_states_img(self):
+        """
+        检测目标状态图像是否已经获取
+        :return: 0 获取失败 1 直接获取成功或已经获取过 2 靠试卡获取成功
+        """
+        if self.state_images["冷却"] is not None:
+            # 状态已经获取好了 直接开溜
+            return 1
+
+        # 尝试直接从已有状态匹配
+        current_img = self.get_card_current_img()
+        for _, state_images_group in RESOURCE_P["card"]["状态判定"].items():
+            for _, state_image in state_images_group.items():
+                if np.array_equal(state_image, current_img):
+                    self.state_images["冷却"] = state_images_group["冷却.png"]
+                    self.state_images["可用"] = state_images_group["可用.png"]
+                    if g_extra.GLOBAL_EXTRA.extra_log_battle:
+                        CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}] 成功从已保存状态获取")
+                    return 1
+
+        # 点击 选中卡片 移动到空白位置
+        self.choice_card()
+        time.sleep(0.1)
+        T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+        time.sleep(0.5)
+
+        current_img_clicked = self.get_card_current_img()
+        if np.array_equal(current_img, current_img_clicked):
+            # 如果什么都没有改变, 意味着该颜色是 不可用 无法试色
+            if g_extra.GLOBAL_EXTRA.extra_log_battle:
+                CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}] 点击前后颜色相同, 试色失败")
+            return 0
+
+        # 发生了改变, 意味着旧的颜色是 可用 新的颜色是 不可用
+        self.state_images["可用"] = current_img
+        self.state_images["不可用"] = current_img_clicked
+        # 放下这张卡
+        self.put_card()
+        time.sleep(0.5)
+        # 放卡后, 获取到的第三种颜色必须不同于另外两种, 才记录为cd色, 否则可能由于冰沙冷却效果导致录入可用为cd色.
+        current_img_after_put = self.get_card_current_img()
+        if np.array_equal(current_img_after_put, current_img_clicked):
+            if g_extra.GLOBAL_EXTRA.extra_log_battle:
+                CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}]  获取到的cd色和其他状态冲突, 试色失败")
+            return 2
+        if np.array_equal(current_img_after_put, current_img):
+            if g_extra.GLOBAL_EXTRA.extra_log_battle:
+                CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}] 获取到的cd色和其他状态冲突, 试色失败")
+            return 2
+        self.state_images["冷却"] = current_img_after_put
+        if g_extra.GLOBAL_EXTRA.extra_log_battle:
+            CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}] 试色成功")
+        return 2
+
     def use_card(self):
 
         # 未启动自动战斗
@@ -168,160 +272,106 @@ class Card:
 
         # 输出
         # if g_extra.GLOBAL_EXTRA.extra_log_battle and self.faa.player == 1:
-        #     CUS_LOGGER.debug(f"[1P] [战斗执行器] 使用卡片：{self.name}")
+        #     CUS_LOGGER.debug(f"[战斗执行器] [{self.player}P] 使用卡片：{self.name}")
 
         # 战斗放卡锁，用于防止与特殊放卡放置冲突，点击队列不连贯
         with self.faa.battle_lock:
 
+            # 如果不可用状态 放弃本次用卡
+            if not self.status_usable:
+                return
+
             # 点击 选中卡片
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                handle=self.handle,
-                x=self.location_from[0] + 5,
-                y=self.location_from[1] + 5)
+            self.choice_card()
+            time.sleep(self.click_sleep)
+
+            # 放卡
+            self.put_card()
+            time.sleep(0.2)
+            self.fresh_status()  # 如果放卡后还可用,自ban 若干s
+
+            if self.status_usable and (self.name not in self.ban_white_list):
+                # 放置失败 说明放满了 如果不在白名单 就自ban
+                self.status_ban = 10
+                if self.player == 1:
+                    CUS_LOGGER.debug(f"[1P] {self.name} 因使用后仍可用进行了自ban")
+                    T_ACTION_QUEUE_TIMER.print_queue_statue()
+                return
+
+            # and是短路计算，左边算过不满足右边就不会算，所以如果一个卡是坤标，那坤实例一定不为None
+            # 放置成功 如果是坤目标, 复制自身放卡的逻辑,并且坤不在征用计算中或者计算完没有使用坤
+            if not self.is_kun_target:
+                return
+
+            # 点击 选中卡片
+            self.choice_card()
             time.sleep(self.click_sleep)
 
             # 放卡
             self.put_card()
 
-            # 额外时延
-            time.sleep(0.2)
-
-            # if g_extra.GLOBAL_EXTRA.extra_log_battle and self.faa.player == 1:
-            #     CUS_LOGGER.debug(f"[1P] [战斗执行器] 用卡完成：{self.name}")
-
-            # 如果放卡后还可用,自ban 若干s
-            # 判断可用 如果不知道其还可用。会导致不自ban，导致无意义点击出现，后果更小。1轮扫描后纠正。
-            # 判断冷却 如果不知道其进入了冷却。会导致错误的额外的自ban，导致放卡逻辑错乱。ban描述后纠正。
-            self.fresh_status()
-
-            if self.status_usable and (self.name not in self.ban_white_list):
-                # 放置失败 说明放满了 如果不在白名单 就自ban
-                self.status_ban = 10
-            else:
-                # and是短路计算，左边算过不满足右边就不会算，所以如果一个卡是坤标，那坤实例一定不为None
-                # 放置成功 如果是坤目标, 复制自身放卡的逻辑,并且坤不在征用计算中或者计算完没有使用坤
-                if self.is_kun_target and not self.card_kun.is_using:
-                    # 点击 选中卡片 但坤
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                        handle=self.handle,
-                        x=self.faa.kun_position["location_from"][0] + 5,
-                        y=self.faa.kun_position["location_from"][1] + 5)
-                    time.sleep(self.click_sleep)
-
-                    # 放卡
-                    self.put_card()
-
-                    # 额外时延
-                    time.sleep(0.1)
-
-    def fresh_status(self):
-        """判断颜色来更改自身冷却和可用属性"""
-        img = capture_image_png(
-            handle=self.handle,
-            raw_range=[
-                self.location_from[0],
-                self.location_from[1],
-                self.location_from[0] + 53,
-                self.location_from[1] + 70],
-            root_handle=self.faa.handle_360
-        )
-
-        # 注意 y x bgr 和 rgb是翻过来的！
-        pixels_top_left = img[0:1, 2:20, :3]  # 18个像素图片 (1, 18, 3)
-        pixels_top_right = img[0:1, 33:51, :3]  # 18个像素图片 (1, 18, 3)
-        pixels_all = np.hstack((pixels_top_left, pixels_top_right))  # 36个像素图片 (1, 36, 3)
-
-        self.status_usable = (
-                compare_pixels(
-                    img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_0.png"][:, :, :3]) or
-                compare_pixels(
-                    img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_1.png"][:, :, :3]) or
-                compare_pixels(
-                    img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_2.png"][:, :, :3]) or
-                compare_pixels(
-                    img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_3.png"][:, :, :3]) or
-                compare_pixels(
-                    img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_4.png"][:, :, :3])
-        )
-
-        self.status_cd = (
-                compare_pixels(
-                    img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["冷却状态_0.png"][:, :, :3]) or
-                compare_pixels(
-                    img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["冷却状态_1.png"][:, :, :3]) or
-                compare_pixels(
-                    img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["冷却状态_2.png"][:, :, :3]) or
-                compare_pixels(
-                    img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["冷却状态_3.png"][:, :, :3])
-        )
-
-        # if g_extra.GLOBAL_EXTRA.extra_log_battle and self.faa.player == 1:
-        #     if self.name == "小火炉":
-        #         CUS_LOGGER.debug(
-        #             f"[1P] [战斗执行器] 状态监测完成：{self.name}, "
-        #             f"status_usable:{self.status_usable}, "
-        #             f"status_cd :{self.status_cd}")
-
     def destroy(self):
+        """中止运行时释放内存, 顺带如果遇到了全新的状态图片保存一下"""
         self.faa = None
         self.priority = None
         self.card_kun = None
 
+        # 需要
+        # 1. 额外储存了不可用状态图片
+        # 2. CD状态也被正确的保存下来(防止整把都因为冰沙整蛊了)
+        # 3. 该图片是全新的(一批如果有两张一样的图会重复)
+        if (self.state_images["不可用"] is not None) and (self.state_images["冷却"] is not None):
 
-class CardKun:
-    def __init__(self, faa):
-        # 直接塞进来一个faa的实例地址, 直接从该实例中拉取方法和属性作为参数~
-        self.faa = faa
+            # 使用读写全局锁 避免冲突
+            with g_extra.GLOBAL_EXTRA.file_lock:
+
+                for _, new_state_image in self.state_images.items():
+
+                    for _, state_images_group in RESOURCE_P["card"]["状态判定"].items():
+                        for _, state_image in state_images_group.items():
+
+                            if np.array_equal(new_state_image, state_image):
+                                CUS_LOGGER.debug(
+                                    f"[战斗执行器] [{self.player}P] 成功获取到行的卡片状态图片! 但和已有图片冲突而保存失败!")
+                                return
+
+                new_state_group_id = len(RESOURCE_P["card"]["状态判定"])
+                path_images_group = PATHS["picture"]["card"] + "\\状态判定\\" + str(new_state_group_id)
+                if not os.path.exists(path_images_group):
+                    # 创建文件夹
+                    os.makedirs(path_images_group)
+                RESOURCE_P["card"]["状态判定"][new_state_group_id] = {}
+                for state_name in ["冷却", "可用", "不可用"]:
+                    # 保存到内存中
+                    RESOURCE_P["card"]["状态判定"][new_state_group_id][f"{state_name}.png"] = self.state_images[
+                        state_name]
+                    # 保存到本地
+                    path = f"{path_images_group}\\{state_name}.png"
+                    cv2.imencode(ext=".png", img=self.state_images[state_name])[1].tofile(path)
+                CUS_LOGGER.debug(f"[战斗执行器] [{self.player}P] 成功获取到行的卡片状态图片! 保存成功!")
+
+
+class CardKun(Card):
+    def __init__(self, priority, faa):
+        super().__init__(priority, faa)
 
         """直接从FAA类读取的属性"""
-        self.handle = self.faa.handle
-
-        # 坐标 [x,y]
+        # 坐标 [x,y] 和普通卡片不同 需要复写
         self.location_from = self.faa.kun_position["location_from"]
 
-        """用于完成放卡的额外类属性"""
-        # 状态 可用
-        self.status_usable = False
-        # 是否被征用计算
-        self.is_using = False
+    def use_card(self):
+        """
+        坤卡没有使用卡片函数, 仅依附于其他卡片进行使用
+        :return:
+        """
+        pass
 
-    def fresh_status(self):
-        """判断颜色来更改自身冷却和可用属性"""
-        img = capture_image_png(
-            handle=self.handle,
-            raw_range=[
-                self.location_from[0],
-                self.location_from[1],
-                self.location_from[0] + 53,
-                self.location_from[1] + 70],
-            root_handle=self.faa.handle_360
-        )
-
-        # 注意 y x bgr 和 rgb是翻过来的！
-        pixels_top_left = img[0:1, 2:20, :3]  # 18个像素图片 (1, 18, 3)
-        pixels_top_right = img[0:1, 33:51, :3]  # 18个像素图片 (1, 18, 3)
-        pixels_all = np.hstack((pixels_top_left, pixels_top_right))  # 36个像素图片 (1, 36, 3)
-
-        self.status_usable = (
-                compare_pixels(
-                    img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_0.png"][:, :, :3]) or
-                compare_pixels(
-                    img_source=pixels_all,
-                    img_template=RESOURCE_P["card"]["状态判定"]["可用状态_2.png"][:, :, :3])
-        )
-
-    def destroy(self):
-        self.faa = None
+    def put_card(self):
+        """
+        坤卡没有使用卡片函数, 仅依附于其他卡片进行使用
+        :return:
+        """
+        pass
 
 
 class SpecialCard(Card):
@@ -355,7 +405,7 @@ class SpecialCard(Card):
 
                 # 铲子的调用
                 T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
-                time.sleep(self.click_sleep / 2)  # 必须的间隔
+                time.sleep(self.click_sleep)  # 必须的间隔
 
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.faa.handle,
@@ -370,30 +420,39 @@ class SpecialCard(Card):
                             handle=self.handle,
                             x=mat["location_from"][0] + 5,
                             y=mat["location_from"][1] + 5)
+                        time.sleep(self.click_sleep)  # 必须的间隔
+
                         # 点击 放下卡片
                         T_ACTION_QUEUE_TIMER.add_click_to_queue(
                             handle=self.handle,
                             x=self.location_to[0][0],
                             y=self.location_to[0][1])
+                        time.sleep(self.click_sleep)  # 必须的间隔
 
                 # 点击 选中卡片
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
                     x=self.location_from[0] + 5,
                     y=self.location_from[1] + 5)
+                time.sleep(self.click_sleep)  # 必须的间隔
 
                 # 点击 放下卡片
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
                     x=self.location_to[0][0],
                     y=self.location_to[0][1])
+                time.sleep(self.click_sleep)  # 必须的间隔
 
                 # 放卡后点一下空白
                 T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+                time.sleep(self.click_sleep)  # 必须的间隔
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
+                time.sleep(self.click_sleep)  # 必须的间隔
+
                 if self.need_shovel:  # 是否要秒铲
                     T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
                     time.sleep(self.click_sleep)  # 必须的间隔
+
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(
                         handle=self.faa.handle,
                         x=self.location_to[0][0],
@@ -406,12 +465,12 @@ class SpecialCard(Card):
             else:
                 # 铲子的调用
                 T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
-                time.sleep(self.click_sleep / 2)  # 必须的间隔
+                time.sleep(self.click_sleep)  # 必须的间隔
 
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.faa.handle,
-                    x=position_dict[f"{pos[0]}-{pos[1]}"][0],
-                    y=position_dict[f"{pos[0]}-{pos[1]}"][1])
+                    x=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][0],
+                    y=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][1])
                 time.sleep(0.5)
 
                 # 加一个垫子的判断
@@ -421,10 +480,12 @@ class SpecialCard(Card):
                             handle=self.handle,
                             x=mat["location_from"][0] + 5,
                             y=mat["location_from"][1] + 5)
+                        time.sleep(self.click_sleep)  # 必须的间隔
+
                         T_ACTION_QUEUE_TIMER.add_click_to_queue(
                             handle=self.faa.handle,
-                            x=position_dict[f"{pos[0]}-{pos[1]}"][0],
-                            y=position_dict[f"{pos[0]}-{pos[1]}"][1])
+                            x=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][0],
+                            y=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][1])
 
                 # 点击 选中卡片
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
@@ -435,8 +496,8 @@ class SpecialCard(Card):
                 # 点击 放下卡片
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.faa.handle,
-                    x=position_dict[f"{pos[0]}-{pos[1]}"][0],
-                    y=position_dict[f"{pos[0]}-{pos[1]}"][1])
+                    x=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][0],
+                    y=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][1])
 
                 # 放卡后点一下空白
                 T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
@@ -448,8 +509,8 @@ class SpecialCard(Card):
 
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(
                         handle=self.faa.handle,
-                        x=position_dict[f"{pos[0]}-{pos[1]}"][0],
-                        y=position_dict[f"{pos[0]}-{pos[1]}"][1])
+                        x=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][0],
+                        y=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][1])
                     time.sleep(self.click_sleep)
 
                 if self.huzhao is not None:

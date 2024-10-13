@@ -192,7 +192,9 @@ class ThreadTodo(QThread):
         CUS_LOGGER.debug("已激活ThreadTodo quit")
         self.quit()
 
-    """业务代码 - 战斗以外"""
+    """
+    业务代码 - 战斗以外
+    """
 
     def batch_level_2_action(self, title_text: str, player: list = None, dark_crystal: bool = False):
         """
@@ -249,7 +251,7 @@ class ThreadTodo(QThread):
 
         self.batch_reload_game(player=player)
 
-    def batch_reload_game(self, player=None):
+    def batch_reload_game(self, player: list = None):
         """
         批量启动 reload 游戏
         :param player: [1] [2] [1,2]
@@ -262,9 +264,6 @@ class ThreadTodo(QThread):
         # 如果只有一个角色
         if self.faa[1].channel == self.faa[2].channel:
             player = [1]
-        # 输入错误的值!
-        if player not in [[1, 2], [1], [2]]:
-            raise ValueError(f"batch_level_2_action -  player not in [[1,2],[1],[2]], your value {player}.")
 
         self.signal_print_to_ui.emit("Refresh Game...", color_level=1)
 
@@ -321,8 +320,15 @@ class ThreadTodo(QThread):
         self.thread_1p.join()
         self.thread_2p.join()
 
-    def batch_sign_in(self, is_group):
+    def batch_sign_in(self, player: list = None):
         """批量完成日常功能"""
+
+        # 默认值
+        if player is None:
+            player = [1, 2]
+        # 如果只有一个角色
+        if self.faa[1].channel == self.faa[2].channel:
+            player = [1]
 
         title_text = "每日签到"
         self.model_start_print(text=title_text)
@@ -331,287 +337,351 @@ class ThreadTodo(QThread):
         self.batch_level_2_action(title_text=title_text, dark_crystal=False)
 
         """领取温馨礼包"""
-        for i in [1, 2]:
-            if not (self.opt["get_warm_gift"][f'{i}p']["active"] and (i == 1 or (i == 2 and is_group))):
-                self.signal_print_to_ui.emit(f"[{i}P] 未激活领取温馨礼包", color_level=2)
+        for pid in player:
+
+            if not self.opt["get_warm_gift"][f'{pid}p']["active"]:
+
+                self.signal_print_to_ui.emit(f"[{pid}P] 未激活领取温馨礼包", color_level=2)
                 continue
+
             else:
-                openid = self.opt["get_warm_gift"][f'{i}p']["link"]
+                openid = self.opt["get_warm_gift"][f'{pid}p']["link"]
                 if openid == "":
                     continue
                 url = 'http://meishi.wechat.123u.com/meishi/gift?openid=' + openid
 
                 try:
+
                     r = requests.get(url, timeout=10)  # 设置超时
                     r.raise_for_status()  # 如果响应状态不是200，将抛出HTTPError异常
                     message = r.json()['msg']
                     self.signal_print_to_ui.emit(
-                        text=f'[{i}P] 领取温馨礼包情况:' + message,
+                        text=f'[{pid}P] 领取温馨礼包情况:' + message,
                         color_level=2)
+
                 except RequestException as e:
+
                     # 网络问题、超时、服务器无响应
                     self.signal_print_to_ui.emit(
-                        text=f'[{i}P] 领取温馨礼包情况: 失败, 欢乐互娱的服务器炸了, {e}',
+                        text=f'[{pid}P] 领取温馨礼包情况: 失败, 欢乐互娱的服务器炸了, {e}',
                         color_level=2)
 
         """日氪"""
-        for i in [1, 2]:
+        for pid in player:
             # 1P 只要激活了高级功能 - 日氪1元 2P 还需要激活 is_group
-            if self.opt["advanced_settings"][f"top_up_money_{i}p"] and (i == 1 or (i == 2 and is_group)):
-                self.signal_print_to_ui.emit(f'[{i}P] 日氪1元开始', color_level=2)
-                money_result = self.faa[i].sign_top_up_money()
-                self.signal_print_to_ui.emit(f'[{i}P] 日氪1元结束, 结果: {money_result}', color_level=2)
+            if self.opt["advanced_settings"][f"top_up_money_{pid}p"]:
+                self.signal_print_to_ui.emit(f'[{pid}P] 日氪1元开始', color_level=2)
+                money_result = self.faa[pid].sign_top_up_money()
+                self.signal_print_to_ui.emit(f'[{pid}P] 日氪1元结束, 结果: {money_result}', color_level=2)
             else:
-                self.signal_print_to_ui.emit(f"[{i}P] 未激活日氪", color_level=2)
+                self.signal_print_to_ui.emit(f"[{pid}P] 未激活日氪", color_level=2)
 
         """双线程常规日常"""
-        self.signal_print_to_ui.emit(f"开始双线程 VIP签到/每日签到/美食活动/塔罗/法老/会长发任务/营地钥匙")
+        self.signal_print_to_ui.emit(
+            f"开始双线程 VIP签到 / 每日签到 / 美食活动 / 塔罗 / 法老 / 会长发任务 / 营地领钥匙 / 月卡礼包")
+
         # 创建进程
-        self.thread_1p = ThreadWithException(
-            target=self.faa[1].sign_in,
-            name="1P Thread - SignIn",
-            kwargs={})
-        if is_group:
+
+        if 1 in player:
+            self.thread_1p = ThreadWithException(
+                target=self.faa[1].sign_in,
+                name="1P Thread - SignIn",
+                kwargs={})
+            self.thread_1p.daemon = True
+            self.thread_1p.start()
+
+        if 2 in player:
             self.thread_2p = ThreadWithException(
                 target=self.faa[2].sign_in,
                 name="2P Thread - SignIn",
                 kwargs={})
-        # 开始进程
-        self.thread_1p.daemon = True
-        if is_group:
             self.thread_2p.daemon = True
-        self.thread_1p.start()
-        if is_group:
             self.thread_2p.start()
-        # 阻塞本进程
-        self.thread_1p.join()
-        if is_group:
+
+        if 1 in player:
+            self.thread_1p.join()
+        if 2 in player:
             self.thread_2p.join()
 
         self.model_end_print(text=title_text)
 
-    def batch_fed_and_watered(self, is_group):
+    def batch_fed_and_watered(self, player: list = None):
+
+        # 默认值
+        if player is None:
+            player = [1, 2]
+        # 如果只有一个角色
+        if self.faa[1].channel == self.faa[2].channel:
+            player = [1]
+
         title_text = "浇水 施肥 摘果"
         self.model_start_print(text=title_text)
 
-        self.faa[1].fed_and_watered()
-        if is_group:
-            self.faa[2].fed_and_watered()
+        for pid in player:
+            self.faa[pid].fed_and_watered()
 
         self.model_end_print(text=title_text)
 
-    def batch_receive_all_quest_rewards(self, is_group):
+    def batch_receive_all_quest_rewards(self, player: list = None, modes: list = None, advance_mode: bool = False):
+
+        # 默认值
+        if player is None:
+            player = [1, 2]
+        # 如果只有一个角色
+        if self.faa[1].channel == self.faa[2].channel:
+            player = [1]
+
+        if modes is None:
+            modes = ["普通任务", "美食大赛", "大富翁"]
 
         title_text = "领取奖励"
         self.model_start_print(text=title_text)
 
-        """激活了扫描公会贡献"""
-        if self.opt["advanced_settings"]["guild_manager_active"]:
+        if advance_mode:
+            """激活了扫描公会贡献"""
+            if self.opt["advanced_settings"]["guild_manager_active"]:
+                self.signal_print_to_ui.emit(
+                    text=f"[{title_text}] [扫描公会贡献] 您激活了该功能.",
+                    color_level=2)
 
-            self.signal_print_to_ui.emit(
-                text=f"[{title_text}] [扫描公会贡献] 您激活了该功能.",
-                color_level=2)
+                # 进入公会页面
+                self.faa[self.opt["advanced_settings"]["guild_manager_active"]].action_bottom_menu(mode="公会")
 
-            # 进入公会页面
-            self.faa[self.opt["advanced_settings"]["guild_manager_active"]].action_bottom_menu(mode="公会")
+                # 扫描
+                self.guild_manager.scan(
+                    handle=self.faa[self.opt["advanced_settings"]["guild_manager_active"]].handle,
+                    handle_360=self.faa[self.opt["advanced_settings"]["guild_manager_active"]].handle_360
+                )
 
-            # 扫描
-            self.guild_manager.scan(
-                handle=self.faa[self.opt["advanced_settings"]["guild_manager_active"]].handle,
-                handle_360=self.faa[self.opt["advanced_settings"]["guild_manager_active"]].handle_360
-            )
+                # 完成扫描 触发信号刷新数据
+                self.signal_guild_manager_fresh.emit()
 
-            # 完成扫描 触发信号刷新数据
-            self.signal_guild_manager_fresh.emit()
+                # 退出工会页面
+                self.faa[self.opt["advanced_settings"]["guild_manager_active"]].action_exit(mode="普通红叉")
 
-            # 退出工会页面
-            self.faa[self.opt["advanced_settings"]["guild_manager_active"]].action_exit(mode="普通红叉")
+            """激活了删除物品高危功能"""
+            self.batch_level_2_action(title_text=title_text, dark_crystal=True)
 
-        """激活了删除物品高危功能"""
-        self.batch_level_2_action(title_text=title_text, dark_crystal=True)
+        if "普通任务" in modes:
 
-        """普通任务"""
-        self.signal_print_to_ui.emit(text=f"[{title_text}] [普通任务] 开始...")
+            self.signal_print_to_ui.emit(text=f"[{title_text}] [普通任务] 开始...")
 
-        # 创建进程 -> 开始进程 -> 阻塞主进程
-        self.thread_1p = ThreadWithException(
-            target=self.faa[1].receive_quest_rewards,
-            name="1P Thread - ReceiveQuest",
-            kwargs={
-                "mode": "普通任务"
-            })
+            # 创建进程 -> 开始进程 -> 阻塞主进程
+            if 1 in player:
+                self.thread_1p = ThreadWithException(
+                    target=self.faa[1].receive_quest_rewards,
+                    name="1P Thread - ReceiveQuest",
+                    kwargs={
+                        "mode": "普通任务"
+                    })
+                self.thread_1p.daemon = True
+                self.thread_1p.start()
 
-        if is_group:
-            self.thread_2p = ThreadWithException(
-                target=self.faa[2].receive_quest_rewards,
-                name="2P Thread - ReceiveQuest",
-                kwargs={
-                    "mode": "普通任务"
-                })
+            if 1 in player and 2 in player:
+                sleep(0.333)
 
-        # 涉及键盘抢夺, 容错低, 最好分开执行
-        self.thread_1p.daemon = True
-        if is_group:
-            self.thread_2p.daemon = True
-        self.thread_1p.start()
-        if is_group:
-            sleep(0.333)
-            self.thread_2p.start()
+            if 2 in player:
+                self.thread_2p = ThreadWithException(
+                    target=self.faa[2].receive_quest_rewards,
+                    name="2P Thread - ReceiveQuest",
+                    kwargs={
+                        "mode": "普通任务"
+                    })
+                self.thread_2p.daemon = True
+                self.thread_2p.start()
 
-        self.thread_1p.join()
-        if is_group:
-            self.thread_2p.join()
+            if 1 in player:
+                self.thread_1p.join()
+            if 2 in player:
+                self.thread_2p.join()
 
-        self.signal_print_to_ui.emit(text=f"[{title_text}] [普通任务] 结束")
+            self.signal_print_to_ui.emit(text=f"[{title_text}] [普通任务] 结束")
 
-        """美食大赛"""
+        if "美食大赛" in modes:
 
-        self.signal_print_to_ui.emit(text=f"[{title_text}] [美食大赛] 开始...")
+            self.signal_print_to_ui.emit(text=f"[{title_text}] [美食大赛] 开始...")
 
-        # 创建进程 -> 开始进程 -> 阻塞主进程
-        self.thread_1p = ThreadWithException(
-            target=self.faa[1].receive_quest_rewards,
-            name="1P Thread - Quest",
-            kwargs={
-                "mode": "美食大赛"
-            })
+            # 创建进程 -> 开始进程 -> 阻塞主进程
+            if 1 in player:
+                self.thread_1p = ThreadWithException(
+                    target=self.faa[1].receive_quest_rewards,
+                    name="1P Thread - Quest",
+                    kwargs={
+                        "mode": "美食大赛"
+                    })
+                self.thread_1p.daemon = True
+                self.thread_1p.start()
 
-        self.thread_2p = ThreadWithException(
-            target=self.faa[2].receive_quest_rewards,
-            name="2P Thread - Quest",
-            kwargs={
-                "mode": "美食大赛"
-            })
+            if 1 in player and 2 in player:
+                sleep(0.333)
 
-        # 涉及键盘抢夺, 容错低, 最好分开执行
-        self.thread_1p.daemon = True
-        self.thread_2p.daemon = True
-        self.thread_1p.start()
-        sleep(0.333)
-        self.thread_2p.start()
-        self.thread_1p.join()
-        self.thread_2p.join()
+            if 2 in player:
+                self.thread_2p = ThreadWithException(
+                    target=self.faa[2].receive_quest_rewards,
+                    name="2P Thread - Quest",
+                    kwargs={
+                        "mode": "美食大赛"
+                    })
+                self.thread_2p.daemon = True
+                self.thread_2p.start()
 
-        self.signal_print_to_ui.emit(text=f"[{title_text}] [美食大赛] 结束...")
+            if 1 in player:
+                self.thread_1p.join()
+            if 2 in player:
+                self.thread_2p.join()
 
-        """大富翁"""
-        self.signal_print_to_ui.emit(text=f"[{title_text}] [大富翁] 开始...")
+            self.signal_print_to_ui.emit(text=f"[{title_text}] [美食大赛] 结束...")
 
-        # 创建进程 -> 开始进程 -> 阻塞主进程
-        self.thread_1p = ThreadWithException(
-            target=self.faa[1].receive_quest_rewards,
-            name="1P Thread - Quest",
-            kwargs={
-                "mode": "大富翁"
-            })
+        if "大富翁" in modes:
 
-        self.thread_2p = ThreadWithException(
-            target=self.faa[2].receive_quest_rewards,
-            name="2P Thread - Quest",
-            kwargs={
-                "mode": "大富翁"
-            })
+            self.signal_print_to_ui.emit(text=f"[{title_text}] [大富翁] 开始...")
 
-        # 涉及键盘抢夺, 容错低, 最好分开执行
-        self.thread_1p.daemon = True
-        self.thread_2p.daemon = True
-        self.thread_1p.start()
-        sleep(0.333)
-        self.thread_2p.start()
-        self.thread_1p.join()
-        self.thread_2p.join()
+            # 创建进程 -> 开始进程 -> 阻塞主进程
+            if 1 in player:
+                self.thread_1p = ThreadWithException(
+                    target=self.faa[1].receive_quest_rewards,
+                    name="1P Thread - Quest",
+                    kwargs={
+                        "mode": "大富翁"
+                    })
+                self.thread_1p.daemon = True
+                self.thread_1p.start()
 
-        self.signal_print_to_ui.emit(text=f"[{title_text}] [大富翁] 结束...")
+            if 1 in player and 2 in player:
+                sleep(0.333)
+
+            if 2 in player:
+                self.thread_2p = ThreadWithException(
+                    target=self.faa[2].receive_quest_rewards,
+                    name="2P Thread - Quest",
+                    kwargs={
+                        "mode": "大富翁"
+                    })
+                self.thread_2p.daemon = True
+                self.thread_2p.start()
+
+            if 1 in player:
+                self.thread_1p.join()
+            if 2 in player:
+                self.thread_2p.join()
+
+            self.signal_print_to_ui.emit(text=f"[{title_text}] [大富翁] 结束...")
 
         self.model_end_print(text=title_text)
 
-    def batch_use_items_consumables(self, is_group):
+    def batch_use_items_consumables(self, player: list = None):
+
+        # 默认值
+        if player is None:
+            player = [1, 2]
+        # 如果只有一个角色
+        if self.faa[1].channel == self.faa[2].channel:
+            player = [1]
 
         title_text = "使用绑定消耗品"
         self.model_start_print(text=title_text)
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
-        self.thread_1p = ThreadWithException(
-            target=self.faa[1].use_items_consumables,
-            name="1P Thread - UseItems",
-            kwargs={})
+        if 1 in player:
+            self.thread_1p = ThreadWithException(
+                target=self.faa[1].use_items_consumables,
+                name="1P Thread - UseItems",
+                kwargs={})
+            self.thread_1p.daemon = True
+            self.thread_1p.start()
 
-        if is_group:
+        if 1 in player and 2 in player:
+            sleep(0.333)
+
+        if 2 in player:
             self.thread_2p = ThreadWithException(
                 target=self.faa[2].use_items_consumables,
                 name="2P Thread - UseItems",
                 kwargs={})
-
-        # 涉及键盘抢夺, 容错低, 最好分开执行
-        self.thread_1p.daemon = True
-        if is_group:
             self.thread_2p.daemon = True
-        self.thread_1p.start()
-        if is_group:
-            sleep(0.333)
             self.thread_2p.start()
-        self.thread_1p.join()
-        if is_group:
+
+        if 1 in player:
+            self.thread_1p.join()
+        if 2 in player:
             self.thread_2p.join()
 
         self.model_end_print(text=title_text)
 
-    def batch_use_items_double_card(self, is_group, max_times):
+    def batch_use_items_double_card(self, player: list = None, max_times: int = 1):
+
+        # 默认值
+        if player is None:
+            player = [1, 2]
+        # 如果只有一个角色
+        if self.faa[1].channel == self.faa[2].channel:
+            player = [1]
 
         title_text = "使用双爆卡"
         self.model_start_print(text=title_text)
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
-        self.thread_1p = ThreadWithException(
-            target=self.faa[1].use_items_double_card,
-            name="1P Thread - UseItems",
-            kwargs={"max_times": max_times})
+        if 1 in player:
+            self.thread_1p = ThreadWithException(
+                target=self.faa[1].use_items_double_card,
+                name="1P Thread - UseItems",
+                kwargs={"max_times": max_times})
+            self.thread_1p.daemon = True
+            self.thread_1p.start()
 
-        if is_group:
+        if 2 in player and 1 in player:
+            sleep(0.333)
+
+        if 2 in player:
             self.thread_2p = ThreadWithException(
                 target=self.faa[2].use_items_double_card,
                 name="2P Thread - UseItems",
                 kwargs={"max_times": max_times})
-
-        # 涉及键盘抢夺, 容错低, 最好分开执行
-        self.thread_1p.daemon = True
-        if is_group:
             self.thread_2p.daemon = True
-        self.thread_1p.start()
-        if is_group:
-            sleep(0.333)
             self.thread_2p.start()
-        self.thread_1p.join()
-        if is_group:
+
+        if 1 in player:
+            self.thread_1p.join()
+        if 2 in player:
             self.thread_2p.join()
 
         self.model_end_print(text=title_text)
 
-    def batch_loop_cross_server(self, is_group, deck):
+    def batch_loop_cross_server(self, player: list = None, deck: int = 1):
+
+        # 默认值
+        if player is None:
+            player = [1, 2]
+        # 如果只有一个角色
+        if self.faa[1].channel == self.faa[2].channel:
+            player = [1]
 
         title_text = "无限跨服刷威望"
         self.model_start_print(text=title_text)
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
-        self.thread_1p = ThreadWithException(
-            target=self.faa[1].loop_cross_server,
-            name="1P Thread",
-            kwargs={"deck": deck})
+        if 1 in player:
+            self.thread_1p = ThreadWithException(
+                target=self.faa[1].loop_cross_server,
+                name="1P Thread",
+                kwargs={"deck": deck})
+            self.thread_1p.daemon = True
+            self.thread_1p.start()
 
-        if is_group:
+        if 2 in player and 1 in player:
+            sleep(0.333)
+
+        if 2 in player:
             self.thread_2p = ThreadWithException(
                 target=self.faa[2].loop_cross_server,
                 name="2P Thread",
                 kwargs={"deck": deck})
-        self.thread_1p.daemon = True
-        if is_group:
             self.thread_2p.daemon = True
-        self.thread_1p.start()
-        if is_group:
             self.thread_2p.start()
 
-        self.thread_1p.join()
-        if is_group:
+        if 1 in player:
+            self.thread_1p.join()
+        if 2 in player:
             self.thread_2p.join()
 
     """业务代码 - 战斗相关"""
@@ -672,6 +742,13 @@ class ThreadTodo(QThread):
         return True
 
     def goto_stage_and_invite(self, stage_id, mt_first_time, player_a, player_b):
+        """
+        :param stage_id:
+        :param mt_first_time:
+        :param player_a:
+        :param player_b:
+        :return:
+        """
 
         # 自定义作战直接调出
         is_cu = "CU" in stage_id
@@ -825,7 +902,7 @@ class ThreadTodo(QThread):
             self.thread_card_manager = CardManager(
                 faa_1=self.faa[player_a],
                 faa_2=self.faa[player_b],
-                round_interval=self.battle_check_interval,
+                check_interval=self.battle_check_interval,
                 solve_queue=queue_todo
             )
 
@@ -1059,7 +1136,8 @@ class ThreadTodo(QThread):
                     # 魔塔
                     if not is_group:
                         # 单人前往副本
-                        faa_a.action_goto_stage(mt_first_time=need_goto_stage)
+                        faa_a.action_goto_stage(
+                            mt_first_time=need_goto_stage)  # 第一次使用 mt_first_time, 之后则不用
                     else:
                         # 多人前往副本
                         result_id = self.goto_stage_and_invite(
@@ -1543,6 +1621,8 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=text_)
 
+    """高级模式"""
+
     def task_sequence(self, text_, task_begin_id: int, task_sequence_index: int):
         """
         战斗 刷新游戏 清背包
@@ -1620,6 +1700,11 @@ class ThreadTodo(QThread):
                     self.battle_1_n_n(
                         quest_list=task["task_args"],
                         extra_title=text_
+                    )
+                case "双暴卡":
+                    self.batch_use_items_double_card(
+                        player=task["task_args"]["player"],
+                        max_times=task["task_args"]["max_times"]
                     )
 
                 case "刷新游戏":
@@ -2029,17 +2114,21 @@ class ThreadTodo(QThread):
 
         my_opt = c_opt["sign_in"]
         if my_opt["active"]:
-            self.batch_sign_in(is_group=my_opt["is_group"])
+            self.batch_sign_in(
+                player=[1, 2] if my_opt["is_group"] else [1]
+            )
 
         my_opt = c_opt["fed_and_watered"]
         if my_opt["active"]:
-            self.batch_fed_and_watered(is_group=my_opt["is_group"])
+            self.batch_fed_and_watered(
+                player=[1, 2] if my_opt["is_group"] else [1]
+            )
 
         my_opt = c_opt["use_double_card"]
         if my_opt["active"]:
             self.batch_use_items_double_card(
+                player=[1, 2] if my_opt["is_group"] else [1],
                 max_times=my_opt["max_times"],
-                is_group=my_opt["is_group"]
             )
 
         my_opt = c_opt["warrior"]
@@ -2066,12 +2155,20 @@ class ThreadTodo(QThread):
             # 因此此处选择退出方案直接选择[进入竞技岛], 并将勇士挑战选择放在本大类的最后进行, 依靠下一个大类开始后的重启游戏刷新.
 
         need_reload = False
+        need_reload = need_reload or c_opt["customize"]["active"]
         need_reload = need_reload or c_opt["normal_battle"]["active"]
         need_reload = need_reload or c_opt["offer_reward"]["active"]
         need_reload = need_reload or c_opt["cross_server"]["active"]
 
         if need_reload:
             self.batch_reload_game()
+
+        my_opt = c_opt["customize"]
+        if my_opt["active"]:
+            self.task_sequence(
+                text_="自定义任务序列",
+                task_begin_id=my_opt["stage"],
+                task_sequence_index=my_opt["battle_plan_1p"])
 
         my_opt = c_opt["normal_battle"]
         if my_opt["active"]:
@@ -2207,19 +2304,19 @@ class ThreadTodo(QThread):
             )
 
         self.signal_print_to_ui.emit(
-            text=f"[主要事项] 全部完成! 耗时:{datetime.datetime.now() - start_time}",
+            text=f"[主要事项] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
             color_level=1)
 
         """额外事项"""
 
-        need_reload = False
-        need_reload = need_reload or c_opt["receive_awards"]["active"]
-        need_reload = need_reload or c_opt["use_items"]["active"]
-        need_reload = need_reload or c_opt["auto_food"]["active"]
-        need_reload = need_reload or c_opt["loop_cross_server"]["active"]
-        need_reload = need_reload or c_opt["customize"]["active"]
+        extra_active = False
+        extra_active = extra_active or c_opt["receive_awards"]["active"]
+        extra_active = extra_active or c_opt["use_items"]["active"]
+        extra_active = extra_active or c_opt["auto_food"]["active"]
+        extra_active = extra_active or c_opt["loop_cross_server"]["active"]
+        extra_active = extra_active or c_opt["customize"]["active"]
 
-        if need_reload:
+        if extra_active:
             self.signal_print_to_ui.emit(
                 text=f"[额外事项] 开始!",
                 color_level=1)
@@ -2229,13 +2326,15 @@ class ThreadTodo(QThread):
         my_opt = c_opt["receive_awards"]
         if my_opt["active"]:
             self.batch_receive_all_quest_rewards(
-                is_group=my_opt["is_group"]
+                player=[1, 2] if my_opt["is_group"] else [1],
+                advance_mode=True,
             )
 
         my_opt = c_opt["use_items"]
         if my_opt["active"]:
             self.batch_use_items_consumables(
-                is_group=my_opt["is_group"])
+                player=[1, 2] if my_opt["is_group"] else [1],
+            )
 
         my_opt = c_opt["auto_food"]
         if my_opt["active"]:
@@ -2246,18 +2345,16 @@ class ThreadTodo(QThread):
         my_opt = c_opt["loop_cross_server"]
         if my_opt["active"]:
             self.batch_loop_cross_server(
-                is_group=my_opt["is_group"],
+                player=[1, 2] if my_opt["is_group"] else [1],
                 deck=c_opt["quest_guild"]["deck"])
 
-        self.signal_print_to_ui.emit(
-            text=f"[额外事项] 全部完成! 耗时:{datetime.datetime.now() - start_time}",
-            color_level=1)
-
-        if self.opt["advanced_settings"]["end_exit_game"]:
-            self.batch_click_refresh_btn()
+        if extra_active:
+            self.signal_print_to_ui.emit(
+                text=f"[额外事项] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
+                color_level=1)
         else:
             self.signal_print_to_ui.emit(
-                text="推荐勾选高级设置-完成后刷新游戏, 防止长期运行flash导致卡顿",
+                text=f"[额外事项] 未启动.",
                 color_level=1)
 
         """自定义事项"""
@@ -2268,7 +2365,7 @@ class ThreadTodo(QThread):
 
         if active_singleton:
             self.signal_print_to_ui.emit(
-                text=f"[自定义事项] 开始! 请勿与 [常规事项] 和 [额外事项] 同时开启, 否则可能造成未知错误!",
+                text=f"[自建房战斗] 开始! 如出现错误, 务必确保该功能是单独启动的!",
                 color_level=1)
             start_time = datetime.datetime.now()
 
@@ -2290,16 +2387,18 @@ class ThreadTodo(QThread):
                 }
             )
 
-        my_opt = c_opt["customize"]
-        if my_opt["active"]:
-            self.task_sequence(
-                text_="自定义任务序列",
-                task_begin_id=my_opt["stage"],
-                task_sequence_index=my_opt["battle_plan_1p"])
+        if active_singleton:
+            self.signal_print_to_ui.emit(
+                text=f"[自建房战斗] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
+                color_level=1)
 
-        self.signal_print_to_ui.emit(
-            text=f"[自定义事项] 全部完成! 耗时:{datetime.datetime.now() - start_time}",
-            color_level=1)
+        """全部完成"""
+        if self.opt["advanced_settings"]["end_exit_game"]:
+            self.batch_click_refresh_btn()
+        else:
+            self.signal_print_to_ui.emit(
+                text="推荐勾选高级设置-完成后刷新游戏, 防止长期运行flash导致卡顿",
+                color_level=1)
 
         # 全部完成了发个信号
         self.signal_todo_end.emit()

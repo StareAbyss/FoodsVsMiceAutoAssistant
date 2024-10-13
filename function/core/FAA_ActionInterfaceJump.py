@@ -350,65 +350,67 @@ class FAAActionInterfaceJump:
                     click=True
                 )
 
-                # 根据模式进行选择
+                # stage_1 根据模式进行选择
                 my_dict = {"1": 46, "2": 115, "3": 188}
-
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=my_dict[stage_1], y=66)
                 time.sleep(0.5)
 
-            if is_main:
-                # 选择了密室
-                if stage_1 == "3":
-                    loop_match_p_in_w(
-                        source_handle=handle,
-                        source_root_handle=handle_360,
-                        source_range=[0, 0, 950, 600],
-                        template=RESOURCE_P["stage"]["{}.png".format(stage_info["id"])],
-                        after_sleep=0.3,
-                        click=True)
-                # 选择了单双人爬塔
-                else:
-                    # 等于0则为爬塔模式 即选择最高层 从下到上遍历所有层数
-                    if stage_2 == "0":
-                        # 到魔塔最低一层
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=47, y=579)
-                        time.sleep(0.3)
+            # 不是房主, 不进行关卡选择和创建房间
+            if not is_main:
+                return
 
-                        for i in range(11):
-                            # 下一页
-                            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=152, y=577)
-                            time.sleep(0.1)
-
-                            for j in range(15):
-                                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=110, y=542 - 30.8 * j)
-                                time.sleep(0.1)
-
-                    else:
-                        # 到魔塔最低一层
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=47, y=579)
-                        time.sleep(0.3)
-
-                        # 向右到对应位置
-                        my_left = int((int(stage_2) - 1) / 15)
-                        for i in range(my_left):
-                            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=152, y=577)
-                            time.sleep(0.3)
-
-                        # 点击对应层数
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                            handle=handle,
-                            x=110,
-                            y=542 - (30.8 * (int(stage_2) - my_left * 15 - 1)))
-                        time.sleep(0.3)
-
-                # 创建房间
+            # 选择了密室 直接识图找关卡
+            if stage_1 == "3":
                 loop_match_p_in_w(
                     source_handle=handle,
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
-                    template=RESOURCE_P["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
-                    after_sleep=1,
+                    template=RESOURCE_P["stage"]["{}.png".format(stage_info["id"])],
+                    after_sleep=0.3,
                     click=True)
+
+            # 单双人爬塔 等于0则为爬塔模式 即选择最高层 从下到上遍历所有层数
+            if stage_1 != "3" and stage_2 == "0":
+                # 到魔塔最低一层
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=47, y=579)
+                time.sleep(0.3)
+
+                for i in range(11):
+                    # 下一页
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=152, y=577)
+                    time.sleep(0.1)
+
+                    for j in range(15):
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=110, y=542 - 30.8 * j)
+                        time.sleep(0.1)
+
+            # 单双人爬塔 指定层数
+            if stage_1 != "3" and stage_2 != "0":
+                # 到魔塔最低一层
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=47, y=579)
+                time.sleep(0.3)
+
+                # 向右到对应位置
+                my_left = int((int(stage_2) - 1) / 15)
+                for i in range(my_left):
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=152, y=577)
+                    time.sleep(0.3)
+
+                # 点击对应层数
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=handle,
+                    x=110,
+                    y=542 - (30.8 * (int(stage_2) - my_left * 15 - 1)))
+                time.sleep(0.3)
+
+            # 创建房间
+            loop_match_p_in_w(
+                source_handle=handle,
+                source_root_handle=handle_360,
+                source_range=[0, 0, 950, 600],
+                template=RESOURCE_P["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
+                after_sleep=1,
+                click=True)
 
         def main_cs():
 
@@ -675,13 +677,7 @@ class FAAActionInterfaceJump:
                 time.sleep(2)
 
                 # 创建队伍 - 该按钮可能需要修正位置
-                loop_match_p_in_w(
-                    source_handle=handle,
-                    source_root_handle=handle_360,
-                    source_range=[515, 477, 658, 513],
-                    template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                    after_sleep=0.05,
-                    click=True)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=660, y=200)
 
         if stage_0 == "NO":
             main_no()
