@@ -280,6 +280,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         """先刷新一下数据"""
         self.load_data_to_ui_list()
+        # 禁用部分输入控件
+        self.input_widget_enabled(mode=False)
 
     def highlight_chessboard(self, card_locations):
         """根据卡片的位置list，将对应元素的按钮进行高亮"""
@@ -311,6 +313,13 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.WidgetQueueInput.blockSignals(mode)
         self.WidgetKunInput.blockSignals(mode)
 
+    def input_widget_enabled(self, mode: bool):
+        self.WidgetIdInput.setEnabled(mode)
+        self.WidgetNameInput.setEnabled(mode)
+        self.WidgetErgodicInput.setEnabled(mode)
+        self.WidgetQueueInput.setEnabled(mode)
+        self.WidgetKunInput.setEnabled(mode)
+        self.WidgetDeleteCardButton.setEnabled(mode)
 
     def current_card_change(self, item):
         """被单击后, 被选中的卡片改变了"""
@@ -331,6 +340,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.WidgetQueueInput.setCurrentIndex(0)
             self.WidgetKunInput.setValue(0)
             self.highlight_chessboard(self.json_data["player"])
+            # 禁用部分输入控件
+            self.input_widget_enabled(mode=False)
         else:
             # 卡片
             index = self.index - 1  # 可能需要深拷贝？也许是被保护的特性 不需要
@@ -343,6 +354,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.WidgetKunInput.setValue(card.get('kun', 0))
             # 设置高亮
             self.highlight_chessboard(card["location"])
+            # 解锁部分输入控件
+            self.input_widget_enabled(mode=True)
 
         # 解锁控件信号
         self.input_widget_lock(False)
@@ -622,6 +635,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 为输入控件信号解锁
         self.input_widget_lock(False)
 
+        # 解锁部分输入控件
+        self.input_widget_enabled(mode=False)
 
     """撤回/重做"""
 
