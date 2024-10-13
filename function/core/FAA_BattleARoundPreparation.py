@@ -168,20 +168,20 @@ class BattleARoundPreparation:
             case _ if "魔塔蛋糕" in stage_name:
                 level = stage_name.replace("魔塔蛋糕第", "").replace("层", "")
                 self.faa.stage_info = read_json_to_stage_info(
-                    stage_id=f"MT-1-0",
+                    stage_id=stage_id,
                     stage_id_for_battle=f"MT-1-{level}"
                 )
 
             case _ if "双人魔塔" in stage_name:
                 level = stage_name.replace("双人魔塔第", "").replace("层", "")
                 self.faa.stage_info = read_json_to_stage_info(
-                    stage_id=f"MT-2-0",
+                    stage_id=stage_id,
                     stage_id_for_battle=f"MT-2-{level}")
 
             case _ if "萌宠神殿" in stage_name:
                 level = stage_name.replace("萌宠神殿第", "").replace("层", "")
                 self.faa.stage_info = read_json_to_stage_info(
-                    stage_id=f"PT-0-0",
+                    stage_id=stage_id,
                     stage_id_for_battle=f"PT-0-{level}"
                 )
 
