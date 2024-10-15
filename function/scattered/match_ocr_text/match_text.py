@@ -74,7 +74,7 @@ def split_into_characters(line, mode="美食大赛"):
                 # 保存半分割
                 result = match_block_equal_in_images(
                     block_array=latin_block,
-                    images=g_resources.RESOURCE_P["ocr"][mode])
+                    images=g_resources.RESOURCE_LOG_IMG[f"texts_{mode}"]["blocks_half"])
                 if not result:
                     cus_path = PATHS["logs"] + f"\\match_failed\\texts_{mode}\\blocks_half"
 
@@ -93,7 +93,7 @@ def split_into_characters(line, mode="美食大赛"):
                 # 保存全分割
                 result = match_block_equal_in_images(
                     block_array=chinese_block,
-                    images=g_resources.RESOURCE_P["ocr"][mode])
+                    images=g_resources.RESOURCE_LOG_IMG[f"texts_{mode}"]["blocks"])
                 if not result:
                     cus_path = PATHS["logs"] + f"\\match_failed\\texts_{mode}\\blocks"
 
