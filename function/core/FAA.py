@@ -1861,16 +1861,19 @@ class FAA:
 
                 while True:
 
+                    # 无脑点击点掉X 不再识图
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=450, y=190)
+                    time.sleep(0.1)
                     # 在限定范围内 找红叉点掉
                     loop_match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
-                        source_range=[0, 0, 750, 300],
+                        source_range=[675, 175, 715, 220],
                         template=RESOURCE_P["common"]["退出.png"],
                         match_tolerance=0.98,
                         match_interval=0.2,
                         match_failed_check=0,
-                        after_sleep=0.5,
+                        after_sleep=0.1,
                         click=True)
 
                     # 在限定范围内 找物品
@@ -1917,6 +1920,21 @@ class FAA:
                         break
 
                 self.print_debug(text="物品:{}本页 已全部找到".format(item_name))
+
+        # 无脑点击点掉X 不再识图
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=450, y=190)
+        time.sleep(0.1)
+        # 在限定范围内 找红叉点掉
+        loop_match_p_in_w(
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=[425, 170, 715, 220],
+            template=RESOURCE_P["common"]["退出.png"],
+            match_tolerance=0.98,
+            match_interval=0.2,
+            match_failed_check=0,
+            after_sleep=0.1,
+            click=True)
 
         # 关闭背包
         self.action_exit(mode="普通红叉")
