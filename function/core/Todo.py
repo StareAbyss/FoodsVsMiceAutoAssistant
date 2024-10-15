@@ -367,14 +367,18 @@ class ThreadTodo(QThread):
                         color_level=2)
 
         """日氪"""
-        for pid in player:
-            # 1P 只要激活了高级功能 - 日氪1元 2P 还需要激活 is_group
-            if self.opt["advanced_settings"][f"top_up_money_{pid}p"]:
-                self.signal_print_to_ui.emit(f'[{pid}P] 日氪1元开始', color_level=2)
-                money_result = self.faa[pid].sign_top_up_money()
-                self.signal_print_to_ui.emit(f'[{pid}P] 日氪1元结束, 结果: {money_result}', color_level=2)
+        player_active = [pid for pid in player if self.opt["advanced_settings"].get(f"top_up_money_{pid}p")]
+        if player_active:
+            if g_extra.GLOBAL_EXTRA.ethical_mode:
+                self.signal_print_to_ui.emit(
+                    f'经FAA伦理核心审查, 日氪模块违反"能量限流"协议, 已被临时性抑制以符合最高伦理标准.', color_level=2)
             else:
-                self.signal_print_to_ui.emit(f"[{pid}P] 未激活日氪", color_level=2)
+                self.signal_print_to_ui.emit(
+                    f'FAA伦理核心已强制卸除, 日氪模块已通过授权, 即将激活并进入运行状态.', color_level=2)
+        for pid in player_active:
+            self.signal_print_to_ui.emit(f'[{pid}P] 日氪1元开始', color_level=2)
+            money_result = self.faa[pid].sign_top_up_money()
+            self.signal_print_to_ui.emit(f'[{pid}P] 日氪1元结束, 结果: {money_result}', color_level=2)
 
         """双线程常规日常"""
         self.signal_print_to_ui.emit(

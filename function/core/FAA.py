@@ -1340,8 +1340,6 @@ class FAA:
     def sign_top_up_money(self):
         """日氪一元! 仅限4399 游币哦!"""
 
-        return "当前版本该功能已被锁定!"
-
         def exit_ui():
             # 确定退出了该界面
             while True:
