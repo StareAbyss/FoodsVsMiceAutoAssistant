@@ -338,7 +338,7 @@ class ThreadCheckTimer(QThread):
                 CUS_LOGGER.debug(text)
 
         # 刷新全局冰沙锁的状态
-        if g_extra.GLOBAL_EXTRA.smoothie_lock_time != 0:
+        if g_extra.GLOBAL_EXTRA.smoothie_lock_time > 0:
             g_extra.GLOBAL_EXTRA.smoothie_lock_time -= self.check_interval
 
     def check(self):

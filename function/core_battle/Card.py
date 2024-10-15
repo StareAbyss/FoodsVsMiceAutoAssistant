@@ -254,14 +254,17 @@ class Card:
 
         # 放卡后, 获取到的第三种颜色必须不同于另外两种, 才记录为cd色, 否则可能由于冰沙冷却效果导致录入可用为cd色.
         current_img_after_put = self.get_card_current_img()
+
         if np.array_equal(current_img_after_put, current_img_clicked):
             if g_extra.GLOBAL_EXTRA.extra_log_battle:
                 CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}]  获取到的cd色和其他状态冲突, 试色失败")
             return 2
+
         if np.array_equal(current_img_after_put, current_img):
             if g_extra.GLOBAL_EXTRA.extra_log_battle:
                 CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}] 获取到的cd色和其他状态冲突, 试色失败")
             return 2
+
         self.state_images["冷却"] = current_img_after_put
         if g_extra.GLOBAL_EXTRA.extra_log_battle:
             CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}] 试色成功")
@@ -277,7 +280,7 @@ class Card:
         if self.is_smoothie:
             if not self.faa_battle.fire_elemental_1000:
                 return
-            if g_extra.GLOBAL_EXTRA.smoothie_lock_time != 0:
+            if g_extra.GLOBAL_EXTRA.smoothie_lock_time > 0:
                 return
             g_extra.GLOBAL_EXTRA.smoothie_lock_time = 7
 
@@ -306,23 +309,22 @@ class Card:
             self.fresh_status()  # 如果放卡后还可用,自ban 若干s
 
             if self.status_usable and (self.name not in self.ban_white_list):
-                # 放置失败 说明放满了 如果不在白名单 就自ban
+                # 放满了 如果不在白名单 就自ban
                 self.status_ban = 10
-                if self.player == 1:
-                    CUS_LOGGER.debug(f"[1P] {self.name} 因使用后仍可用进行了自ban")
-                    T_ACTION_QUEUE_TIMER.print_queue_statue()
+                # if self.player == 1:
+                #     CUS_LOGGER.debug(f"[1P] {self.name} 因使用后仍可用进行了自ban")
+                #     T_ACTION_QUEUE_TIMER.print_queue_statue()
                 return
 
-            # and是短路计算，左边算过不满足右边就不会算，所以如果一个卡是坤标，那坤实例一定不为None
-            # 放置成功 如果是坤目标, 复制自身放卡的逻辑,并且坤不在征用计算中或者计算完没有使用坤
+            # 放置成功 如果是坤目标, 复制自身放卡的逻辑
             if not self.is_kun_target:
                 return
 
-            # 点击 选中卡片
             self.choice_card()
+            # 坤-点击 选中卡片
             time.sleep(self.click_sleep)
 
-            # 放卡
+            # 坤-放卡
             self.put_card()
 
     def destroy(self):
