@@ -61,7 +61,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.LayMain = QVBoxLayout()
 
         # 加载Json文件
-        self.file_name = None
+        self.file_path = None
 
         """当前方案 + 关卡选择 + 内置教学"""
         self.LayTop = QHBoxLayout()
@@ -237,11 +237,12 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.ButtonLoadJson = QPushButton('加载战斗方案')
         self.HLaySave.addWidget(self.ButtonLoadJson)
 
-        self.save_button = QPushButton('保存当前战斗方案')
-        self.HLaySave.addWidget(self.save_button)
+        self.ButtonSave = QPushButton('保存当前战斗方案')
+        self.ButtonSave.setEnabled(False)
+        self.HLaySave.addWidget(self.ButtonSave)
 
-        self.save_as_button = QPushButton('战斗方案另存为')
-        self.HLaySave.addWidget(self.save_as_button)
+        self.ButtonSaveAs = QPushButton('战斗方案另存为')
+        self.HLaySave.addWidget(self.ButtonSaveAs)
 
         """设置主控件"""
 
@@ -252,11 +253,11 @@ class QMWEditorOfBattlePlan(QMainWindow):
         """信号和槽函数链接"""
 
         # 读取json
-        self.ButtonLoadJson.clicked.connect(self.load_json)
+        self.ButtonLoadJson.clicked.connect(self.open_json)
 
         # 保存json
-        self.save_as_button.clicked.connect(self.save_json)
-        self.save_button.clicked.connect(self.save_json)
+        self.ButtonSaveAs.clicked.connect(self.save_json)
+        self.ButtonSave.clicked.connect(self.save_json)
 
         # 关卡选择
         self.WidgetStageSelector.on_selected.connect(self.stage_changed)
@@ -585,12 +586,32 @@ class QMWEditorOfBattlePlan(QMainWindow):
         """
         保存方法，拥有保存和另存为两种功能，还能创建uuid
         """
+
+        def warning_save_enable(uuid):
+
+            if not uuid in ["00000000-0000-0000-0000-000000000000", "00000000-0000-0000-0000-000000000001"]:
+                return True
+
+            text = ("FAA部分功能(美食大赛/公会任务)依赖这两份默认方案(1卡组-通用-1P & 1卡组-通用-2P)运行.\n"
+                    "你确定要保存并修改他们吗! 这可能导致相关功能出现错误!")
+            response = QMessageBox.question(
+                self,
+                "高危操作！",
+                text,
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+            if response == QMessageBox.StandardButton.No:
+                return False
+            else:
+                return True
+
         self.json_data['tips'] = self.WeiTipsEditor.toPlainText()
         sender = self.sender()
 
-        if sender == self.save_as_button:
+        if sender == self.ButtonSaveAs:
             # 保存为
-            file_name, _ = QFileDialog.getSaveFileName(
+            file_path, _ = QFileDialog.getSaveFileName(
                 parent=self,
                 caption="保存 JSON 文件",
                 directory=PATHS["battle_plan"],
@@ -598,42 +619,46 @@ class QMWEditorOfBattlePlan(QMainWindow):
             )
         else:
             # 保存
-            file_name = self.file_name
-            if not self.file_name:
+            file_path = self.file_path
+            if not self.file_path:
                 # 保存, 提示用户还未选择任何战斗方案
                 QMessageBox.information(self, "禁止虚空保存！", "请先选择一个战斗方案!")
                 return
 
-        if os.path.exists(file_name):
-            # 覆盖现有文件的情况
-            with g_extra.GLOBAL_EXTRA.file_lock:
-                with open(file=file_name, mode='r', encoding='utf-8') as file:
-                    tar_uuid = json.load(file).get('uuid', None)
-            if tar_uuid:
-                # 被覆盖的目标有uuid 使用存在的uuid
-                self.json_data["uuid"] = tar_uuid
-            else:
-                # 被覆盖的目标没有uuid 生成uuid
-                self.json_data["uuid"] = uuid.uuid1()
-        else:
+        if not os.path.exists(file_path):
             # 这里是保存新文件的情况, 需要一个新的uuid
             self.json_data["uuid"] = str(uuid.uuid1())
+
+        else:
+            # 覆盖现有文件的情况
+            with g_extra.GLOBAL_EXTRA.file_lock:
+                with open(file=file_path, mode='r', encoding='utf-8') as file:
+                    tar_uuid = json.load(file).get('uuid', None)
+
+            if not tar_uuid:
+                # 被覆盖的目标没有uuid 生成uuid
+                self.json_data["uuid"] = str(uuid.uuid1())
+
+            else:
+                # 高危uuid需要确定
+                if not warning_save_enable(uuid=tar_uuid):
+                    return
+                # 被覆盖的目标有uuid 使用存在的uuid
+                self.json_data["uuid"] = tar_uuid
 
         # 确保玩家位置也被保存
         self.json_data['player'] = self.json_data.get('player', [])
 
         # 确保文件名后缀是.json
-        file_name = os.path.splitext(file_name)[0] + '.json'
+        file_path = os.path.splitext(file_path)[0] + '.json'
 
         # 保存
         with g_extra.GLOBAL_EXTRA.file_lock:
-            with open(file=file_name, mode='w', encoding='utf-8') as file:
+            with open(file=file_path, mode='w', encoding='utf-8') as file:
                 json.dump(self.json_data, file, ensure_ascii=False, indent=4)
 
-    def load_json(self):
-        """打开窗口 读取json文件"""
-        # 为输入控件信号上锁，在初始化时不会触发保存
-        self.input_widget_lock(True)
+    def open_json(self):
+        """打开窗口 打开json文件"""
 
         file_name, _ = QFileDialog.getOpenFileName(
             parent=self,
@@ -642,30 +667,39 @@ class QMWEditorOfBattlePlan(QMainWindow):
             filter="JSON Files (*.json)")
 
         if file_name:
-            with g_extra.GLOBAL_EXTRA.file_lock:
-                with open(file=file_name, mode='r', encoding='utf-8') as file:
-                    self.json_data = json.load(file)
+            self.load_json(file_path=file_name)
+            # 为输入控件解锁 为保存当前解锁
+            self.input_widget_lock(True)
+            self.ButtonSave.setEnabled(True)
 
-            self.WeiTipsEditor.setPlainText(self.json_data.get('tips', ''))
 
-            # 初始化
-            self.current_edit_index = None  # 初始化当前选中
-            self.file_name = file_name  # 当前方案路径
-            # 获取当前方案的名称
-            current_plan_name = os.path.basename(file_name).replace(".json", "")
-            self.current_plan_label.setText(
-                f"当前编辑方案: {current_plan_name}, UUID:{self.json_data.get('uuid', '无')}")
-            # self.WCurrentCard.setText("无")
-            self.WidgetIdInput.clear()
-            self.WidgetNameInput.clear()
-            self.WidgetErgodicInput.setCurrentIndex(0)
-            self.WidgetQueueInput.setCurrentIndex(0)
+    def load_json(self, file_path):
+        """读取对应的json文件"""
 
-            # 根据数据绘制视图
-            self.load_data_to_ui_list()
-            self.refresh_chessboard()
-            # 清除所有按钮的高亮
-            self.remove_frame_color()
+        with g_extra.GLOBAL_EXTRA.file_lock:
+            with open(file=file_path, mode='r', encoding='utf-8') as file:
+                self.json_data = json.load(file)
+
+        self.WeiTipsEditor.setPlainText(self.json_data.get('tips', ''))
+
+        # 初始化
+        self.current_edit_index = None  # 初始化当前选中
+        self.file_path = file_path  # 当前方案路径
+        # 获取当前方案的名称
+        current_plan_name = os.path.basename(file_path).replace(".json", "")
+        self.current_plan_label.setText(
+            f"当前编辑方案: {current_plan_name}, UUID:{self.json_data.get('uuid', '无')}")
+        # self.WCurrentCard.setText("无")
+        self.WidgetIdInput.clear()
+        self.WidgetNameInput.clear()
+        self.WidgetErgodicInput.setCurrentIndex(0)
+        self.WidgetQueueInput.setCurrentIndex(0)
+
+        # 根据数据绘制视图
+        self.load_data_to_ui_list()
+        self.refresh_chessboard()
+        # 清除所有按钮的高亮
+        self.remove_frame_color()
 
         # 为输入控件信号解锁
         self.input_widget_lock(False)
