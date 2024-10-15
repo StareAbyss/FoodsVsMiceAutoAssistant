@@ -168,6 +168,11 @@ class FAAActionQuestReceiveRewards:
                 f"{self.faa.player}P因背包爆满, 导致 [领取情侣任务奖励] 失败!\n"
                 f"出错时间:{current_time}, 尝试次数:{max_attempts}")
 
+        # 点两下右下角的领取
+        for _ in range(2):
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=795, y=525)
+            time.sleep(0.1)
+
         # 退出任务界面
         action_exit(mode="普通红叉")
 
