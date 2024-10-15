@@ -228,25 +228,30 @@ class Card:
                         CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}] 成功从已保存状态获取")
                     return 1
 
-        # 点击 选中卡片 移动到空白位置
-        self.choice_card()
-        time.sleep(0.1)
-        T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-        time.sleep(0.5)
+        # 包含点击操作 上锁
+        with self.faa.battle_lock:
 
-        current_img_clicked = self.get_card_current_img()
-        if np.array_equal(current_img, current_img_clicked):
-            # 如果什么都没有改变, 意味着该颜色是 不可用 无法试色
-            if g_extra.GLOBAL_EXTRA.extra_log_battle:
-                CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}] 点击前后颜色相同, 试色失败")
-            return 0
+            # 点击 选中卡片 移动到空白位置
+            self.choice_card()
+            time.sleep(0.1)
+            T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+            time.sleep(0.5)
 
-        # 发生了改变, 意味着旧的颜色是 可用 新的颜色是 不可用
-        self.state_images["可用"] = current_img
-        self.state_images["不可用"] = current_img_clicked
-        # 放下这张卡
-        self.put_card()
-        time.sleep(0.5)
+            current_img_clicked = self.get_card_current_img()
+            if np.array_equal(current_img, current_img_clicked):
+                # 如果什么都没有改变, 意味着该颜色是 不可用 无法试色
+                if g_extra.GLOBAL_EXTRA.extra_log_battle:
+                    CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}] 点击前后颜色相同, 试色失败")
+                return 0
+
+            # 发生了改变, 意味着旧的颜色是 可用 新的颜色是 不可用
+            self.state_images["可用"] = current_img
+            self.state_images["不可用"] = current_img_clicked
+
+            # 放下这张卡
+            self.put_card()
+            time.sleep(0.5)
+
         # 放卡后, 获取到的第三种颜色必须不同于另外两种, 才记录为cd色, 否则可能由于冰沙冷却效果导致录入可用为cd色.
         current_img_after_put = self.get_card_current_img()
         if np.array_equal(current_img_after_put, current_img_clicked):
