@@ -15,8 +15,8 @@ def fresh_and_check_battle_plan_uuid():
     """
     battle_plans = get_list_battle_plan(with_extension=True)
 
-    battle_plan_uuid_to_path = {}
-    battle_plan_uuid_list = []
+    battle_plan_uuid_to_path = {}  # { uuid:str : path:str }
+    battle_plan_uuid_list = []  # 按battle_plans完全一致的顺序排列
 
     for battle_plan in battle_plans:
         file_name = PATHS["battle_plan"] + "\\" + battle_plan
