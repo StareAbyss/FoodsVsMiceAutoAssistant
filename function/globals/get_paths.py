@@ -72,7 +72,6 @@ def check_paths():
         "\\logs\\loots_picture",
         "\\logs\\match_failed",
         "\\logs\\match_failed\\loots",
-        "\\logs\\match_failed\\texts",
         "\\logs\\match_failed\\texts_美食大赛\\blocks",
         "\\logs\\match_failed\\texts_美食大赛\\blocks_half",
         "\\logs\\match_failed\\texts_关卡名称\\blocks",
