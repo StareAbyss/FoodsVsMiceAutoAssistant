@@ -320,12 +320,18 @@ class Card:
             if not self.is_kun_target:
                 return
 
-            self.choice_card()
+            # 坤-如果不可用状态 放弃本次用卡
+            if not self.card_kun.status_usable:
+                return
+
             # 坤-点击 选中卡片
+            self.card_kun.choice_card()
             time.sleep(self.click_sleep)
 
             # 坤-放卡
             self.put_card()
+            time.sleep(0.1)
+            self.card_kun.fresh_status()
 
     def destroy(self):
         """中止运行时释放内存, 顺带如果遇到了全新的状态图片保存一下"""
