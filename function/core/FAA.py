@@ -1160,7 +1160,7 @@ class FAA:
             CUS_LOGGER.debug(f"[{self.player}] [每日签到] 开始")
             self.action_top_menu(mode="每日签到")
 
-            find = loop_match_p_in_w(
+            loop_match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 950, 600],
@@ -1169,12 +1169,6 @@ class FAA:
                 match_failed_check=5,
                 after_sleep=1,
                 click=True)
-
-            if find:
-                # 点击下面四个奖励
-                for x in [460, 570 ,675,785]:
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=x, y=530)
-                    time.sleep(0.1)
 
             self.action_exit(mode="普通红叉")
             CUS_LOGGER.debug(f"[{self.player}] [每日签到] 结束")
@@ -1300,12 +1294,9 @@ class FAA:
 
             if find:
                 # 领取钥匙
+                time.sleep(0.5)
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=400, y=445)
                 time.sleep(0.5)
-                # 如果还有任务
-                for _ in range(3):
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=175, y=325)
-                    time.sleep(0.1)
 
             CUS_LOGGER.debug(f"[{self.player}] [领取营地钥匙] 结束")
 
@@ -1339,6 +1330,8 @@ class FAA:
 
     def sign_top_up_money(self):
         """日氪一元! 仅限4399 游币哦!"""
+
+        return "当前版本该功能已被锁定!"
 
         def exit_ui():
             # 确定退出了该界面
@@ -1859,19 +1852,16 @@ class FAA:
 
                 while True:
 
-                    # 无脑点击点掉X 不再识图
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=450, y=190)
-                    time.sleep(0.1)
                     # 在限定范围内 找红叉点掉
                     loop_match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
-                        source_range=[675, 175, 715, 220],
+                        source_range=[0, 0, 750, 300],
                         template=RESOURCE_P["common"]["退出.png"],
                         match_tolerance=0.98,
                         match_interval=0.2,
                         match_failed_check=0,
-                        after_sleep=0.1,
+                        after_sleep=0.5,
                         click=True)
 
                     # 在限定范围内 找物品
@@ -1918,21 +1908,6 @@ class FAA:
                         break
 
                 self.print_debug(text="物品:{}本页 已全部找到".format(item_name))
-
-        # 无脑点击点掉X 不再识图
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=450, y=190)
-        time.sleep(0.1)
-        # 在限定范围内 找红叉点掉
-        loop_match_p_in_w(
-            source_handle=self.handle,
-            source_root_handle=self.handle_360,
-            source_range=[425, 170, 715, 220],
-            template=RESOURCE_P["common"]["退出.png"],
-            match_tolerance=0.98,
-            match_interval=0.2,
-            match_failed_check=0,
-            after_sleep=0.1,
-            click=True)
 
         # 关闭背包
         self.action_exit(mode="普通红叉")
@@ -2121,6 +2096,7 @@ class FAA:
         # 退出送花
         for i in range(2):
             self.action_exit(mode="普通红叉")
+            time.sleep(1)
 
     def get_dark_crystal(self):
         """

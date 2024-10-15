@@ -23,11 +23,6 @@ def compare_pixels(img_source, img_template):
     对应位置的两个像素 RGB三通道 的 颜色差的绝对值 之和 小于15
     需要注意 颜色数组是int8类型, 所以需要转成int32类型以做减法
     """
-    if img_source is None:
-        return False
-
-    if img_template is None:
-        return False
 
     # 将图片的数字转化为int32 而非int8 防止做减法溢出
     img_source = img_source.astype(np.int32)
@@ -199,14 +194,9 @@ class Card:
 
         current_img = self.get_card_current_img(game_image=game_image)
 
-        self.status_usable = compare_pixels(
-            img_source=current_img,
-            img_template=self.state_images["可用"])
+        self.status_usable = np.array_equal(current_img, self.state_images["可用"])
 
-        self.status_cd = compare_pixels(
-            img_source=current_img,
-            img_template=self.state_images["冷却"]
-        )
+        self.status_cd = np.array_equal(current_img, self.state_images["冷却"])
 
     def try_get_card_states_img(self):
         """
