@@ -1160,7 +1160,7 @@ class FAA:
             CUS_LOGGER.debug(f"[{self.player}] [每日签到] 开始")
             self.action_top_menu(mode="每日签到")
 
-            loop_match_p_in_w(
+            find = loop_match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 950, 600],
@@ -1169,6 +1169,12 @@ class FAA:
                 match_failed_check=5,
                 after_sleep=1,
                 click=True)
+
+            if find:
+                # 点击下面四个奖励
+                for x in [460, 570 ,675,785]:
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=x, y=530)
+                    time.sleep(0.1)
 
             self.action_exit(mode="普通红叉")
             CUS_LOGGER.debug(f"[{self.player}] [每日签到] 结束")
