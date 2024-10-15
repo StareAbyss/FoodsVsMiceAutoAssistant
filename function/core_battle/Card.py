@@ -305,7 +305,7 @@ class Card:
 
             # 放卡
             self.put_card()
-            time.sleep(0.2)
+            time.sleep(0.1)
             self.fresh_status()  # 如果放卡后还可用,自ban 若干s
 
             if self.status_usable and (self.name not in self.ban_white_list):
@@ -416,7 +416,7 @@ class SpecialCard(Card):
         if self.is_smoothie:
             if not self.faa_battle.fire_elemental_1000:
                 return
-            if g_extra.GLOBAL_EXTRA.smoothie_lock_time != 0:
+            if g_extra.GLOBAL_EXTRA.smoothie_lock_time > 0:
                 return
             g_extra.GLOBAL_EXTRA.smoothie_lock_time = 7
 
