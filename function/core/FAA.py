@@ -2121,7 +2121,6 @@ class FAA:
         # 退出送花
         for i in range(2):
             self.action_exit(mode="普通红叉")
-            time.sleep(1)
 
     def get_dark_crystal(self):
         """

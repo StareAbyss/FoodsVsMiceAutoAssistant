@@ -121,6 +121,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         self.LayCardEditor.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
 
+        # ID
         self.LayCardEditor.addWidget(QLabel('ID'))
 
         self.WidgetIdInput = QSpinBox()
@@ -131,6 +132,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         self.LayCardEditor.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
 
+        # 名称
         self.LayCardEditor.addWidget(QLabel('名称'))
 
         self.WidgetNameInput = QLineEdit()
@@ -140,8 +142,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         self.LayCardEditor.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
 
+        # 遍历
         tooltips = "队列和遍历不知道是什么可以全true, 具体请参见详细文档"
-        label = QLabel('遍历:')
+        label = QLabel('遍历')
         label.setToolTip(tooltips)
         self.LayCardEditor.addWidget(label)
 
@@ -153,8 +156,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         self.LayCardEditor.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
 
+        # 队列
         tooltips = "队列和遍历不知道是什么可以全true, 具体请参见详细文档"
-        label = QLabel('队列:')
+        label = QLabel('队列')
         label.setToolTip(tooltips)
         self.LayCardEditor.addWidget(label)
 
@@ -166,8 +170,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         self.LayCardEditor.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
 
+        # 幻鸡优先级
         tooltips = "卡片使用幻幻鸡复制的优先级, 0代表不使用，值越高则使用优先级越高"
-        label = QLabel('幻鸡优先级:')
+        label = QLabel('幻鸡优先级')
         label.setToolTip(tooltips)
         self.LayCardEditor.addWidget(label)
 
