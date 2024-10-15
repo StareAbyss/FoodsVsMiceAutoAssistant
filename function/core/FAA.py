@@ -1300,9 +1300,12 @@ class FAA:
 
             if find:
                 # 领取钥匙
-                time.sleep(0.5)
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=400, y=445)
                 time.sleep(0.5)
+                # 如果还有任务
+                for _ in range(3):
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=175, y=325)
+                    time.sleep(0.1)
 
             CUS_LOGGER.debug(f"[{self.player}] [领取营地钥匙] 结束")
 
