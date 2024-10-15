@@ -1,5 +1,7 @@
 import threading
 
+from function.scattered.ethical_core import ethical_core
+
 
 class GlobalExtraBiuld:
     """
@@ -30,6 +32,10 @@ class GlobalExtraBiuld:
 
         # 米苏物流url
         self.misu_logistics = ""
+
+        # 伦理模式
+        self.ethical_mode = ethical_core()
+        print("伦理模块开启:", self.ethical_mode)
 
 
 GLOBAL_EXTRA = GlobalExtraBiuld()
