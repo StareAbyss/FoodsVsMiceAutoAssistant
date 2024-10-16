@@ -34,8 +34,8 @@
         },
         "5": {
             "active": true,
-            "h": 22,
-            "m": 0,
+            "h": 23,
+            "m": 30,
             "plan": 6
         }
     },
@@ -1116,8 +1116,8 @@
         "gpu_settings": false
     },
     "log_settings": {
-        "log_senior_settings": "7",
-        "log_other_settings": "3"
+        "log_senior_settings": 1,
+        "log_other_settings": 1
     },
     "skin_type": 1
 }
