@@ -9802,20 +9802,7 @@ Link Start</string>
               </layout>
              </item>
              <item>
-              <spacer name="verticalSpacer_7">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>1000</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="Line" name="line_7">
+              <widget class="Line" name="line_9">
                <property name="orientation">
                 <enum>Qt::Horizontal</enum>
                </property>
@@ -9846,7 +9833,7 @@ Link Start</string>
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>0</height>
+                   <height>40</height>
                   </size>
                  </property>
                  <property name="maximumSize">
@@ -9859,8 +9846,7 @@ Link Start</string>
                   <string>只用点一下就够了!</string>
                  </property>
                  <property name="text">
-                  <string>点此启动
-战斗方案编辑器</string>
+                  <string>战斗方案编辑器</string>
                  </property>
                 </widget>
                </item>
@@ -9898,7 +9884,7 @@ Link Start</string>
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>0</height>
+                   <height>40</height>
                   </size>
                  </property>
                  <property name="maximumSize">
@@ -9911,8 +9897,71 @@ Link Start</string>
                   <string>只用点一下就够了!</string>
                  </property>
                  <property name="text">
-                  <string>点此启动
-任务序列编辑器</string>
+                  <string>任务序列编辑器</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <spacer name="verticalSpacer_7">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>1000</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="Line" name="line_7">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="Lay_OpenSettingsMigrator" stretch="0">
+               <property name="leftMargin">
+                <number>5</number>
+               </property>
+               <property name="topMargin">
+                <number>5</number>
+               </property>
+               <property name="rightMargin">
+                <number>5</number>
+               </property>
+               <property name="bottomMargin">
+                <number>5</number>
+               </property>
+               <item>
+                <widget class="QPushButton" name="OpenSettingsMigrator_Button">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>60</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>只用点一下就够了!</string>
+                 </property>
+                 <property name="text">
+                  <string>配置迁移器</string>
                  </property>
                 </widget>
                </item>
