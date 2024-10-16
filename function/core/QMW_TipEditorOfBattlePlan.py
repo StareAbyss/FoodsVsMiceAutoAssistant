@@ -1,5 +1,9 @@
 from PyQt6.QtWidgets import QMainWindow, QTextEdit, QVBoxLayout, QWidget
 
+text = """\
+施工ing
+"""
+
 
 class QMWTipEditorOfBattlePlan(QMainWindow):
     def __init__(self):
@@ -8,16 +12,12 @@ class QMWTipEditorOfBattlePlan(QMainWindow):
         self.text_edit = None
 
         # 设置窗口大小
-        self.setMinimumSize(650, 400)
-        self.setMaximumSize(650, 400)
+        self.setFixedSize(850, 400)
         self.initUI()
 
     def initUI(self):
         self.text_edit = QTextEdit()
         self.text_edit.setReadOnly(True)  # 设置为只读模式
-
-        text = ""
-        text += "施工ing\n"
 
         # 插入文本
         self.text_edit.setPlainText(text)
