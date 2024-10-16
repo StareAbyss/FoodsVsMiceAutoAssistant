@@ -113,7 +113,8 @@ def loots_and_chests_data_post_to_sever(detail_data, url=None) -> bool:
     :param url: 路径
     :return: 是否发送成功
     """
-    if url is None:
+    if not url:
+        # url 是 None 和 "" 这样的值
         url = 'http://stareabyss.top:5000/faa_server/data_upload/battle_drops'
     try:
         # 校验正确的数据, 输出到FAA数据中心 5s超时
@@ -124,7 +125,6 @@ def loots_and_chests_data_post_to_sever(detail_data, url=None) -> bool:
         return True
     except RequestException as e:
         return False
-
 
 # if __name__ == '__main__':
 #     result = loots_and_chests_data_post_to_sever(
