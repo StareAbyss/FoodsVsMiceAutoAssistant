@@ -644,14 +644,16 @@ class QMainWindowService(QMainWindowLoadSettings):
     """打开其他窗口"""
 
     def click_btn_open_editor_of_battle_plan(self):
-        self.window_editor_of_battle_plan.set_my_font(self.font)
-        self.set_stylesheet(self.window_editor_of_battle_plan)
-        self.window_editor_of_battle_plan.show()
+        window = self.window_editor_of_battle_plan
+        window.set_my_font(self.font)
+        self.set_stylesheet(window)
+        window.show()
 
     def click_btn_open_editor_of_task_sequence(self):
-        self.window_editor_of_task_sequence.set_my_font(self.font)
-        self.set_stylesheet(self.window_editor_of_task_sequence)
-        self.window_editor_of_task_sequence.show()
+        window = self.window_editor_of_task_sequence
+        window.set_my_font(self.font)
+        self.set_stylesheet(window)
+        window.show()
 
     def click_btn_open_settings_migrator(self):
         window = self.window_settings_migrator

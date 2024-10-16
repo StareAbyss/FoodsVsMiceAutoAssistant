@@ -6,8 +6,7 @@ class QMWTipStageID(QMainWindow):
         super().__init__()
         self.setWindowTitle("关卡代号一览 格式: 字母字母-数字-数字")
         # 设置窗口大小
-        self.setMinimumSize(900, 610)
-        self.setMaximumSize(900, 610)
+        self.setFixedSize(900, 610)
         self.initUI()
 
     def initUI(self):
