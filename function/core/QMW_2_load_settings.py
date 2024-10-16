@@ -78,6 +78,9 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.json_to_opt()
         self.init_opt_to_ui()
 
+        # 记录读取时 是否有战斗方案找不到了
+        self.cant_find_battle_plan_in_uuid = False
+
     def correct_settings_file(self, template_suffix="_template") -> None:
         """
         检查settings.json 是否和 template.json
@@ -164,6 +167,16 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
     """ui和opt的交互"""
 
+    def cant_find_battle_plan_in_uuid_show_dialog(self) -> None:
+        # 一个提示弹窗
+        if self.cant_find_battle_plan_in_uuid:
+            QMessageBox.information(
+                self,
+                "警告",
+                "你删除了被配置使用的战斗方案, 对应的战斗方案已恢复为默认方案!",
+                QMessageBox.StandardButton.Ok
+            )
+
     def opt_to_ui_todo_plans(self) -> None:
         """
         先从ui上读取目前todo plan index, 然后从opt读取对应的设置到todo plan 配置界面
@@ -172,6 +185,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         battle_plan_name_list = get_list_battle_plan(with_extension=False)
         battle_plan_uuid_list = g_extra.GLOBAL_EXTRA.battle_plan_uuid_list
         task_sequence_list = get_task_sequence_list(with_extension=False)
+        self.cant_find_battle_plan_in_uuid = False
 
         def init_battle_plan(tar_widget, opt):
             # 初始化每一项和对应的内部数据 uuid
@@ -181,7 +195,12 @@ class QMainWindowLoadSettings(QMainWindowLog):
                     battle_plan_name_list[index],
                     {"uuid": battle_plan_uuid_list[index]})
             # 根据uuid 设定当前选中项
-            tar_widget.setCurrentIndex(battle_plan_uuid_list.index(opt))
+            try:
+                index = battle_plan_uuid_list.index(opt)
+            except ValueError:
+                index = battle_plan_uuid_list.index("00000000-0000-0000-0000-000000000000")
+                self.cant_find_battle_plan_in_uuid = True
+            tar_widget.setCurrentIndex(index)
 
         # 先重新获取ui上的 当前方案选项
         self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
@@ -325,6 +344,9 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.AutoFood_Active.setChecked(my_opt["auto_food"]["active"])
         self.AutoFood_Deck.setCurrentIndex(my_opt["auto_food"]["deck"] - 1)
 
+        # 一个提示弹窗
+        self.cant_find_battle_plan_in_uuid_show_dialog()
+
     def init_opt_to_ui(self) -> None:
         # comboBox.setCurrentIndex时 如果超过了已有预设 会显示为空 不会报错
         # comboBox.clear时 会把所有选项设定为默认选项
@@ -371,6 +393,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.TopUpMoney_2P.setChecked(my_opt["top_up_money_2p"])
             self.EndExitGame.setChecked(my_opt["end_exit_game"])
             self.AutoUseCard.setChecked(my_opt["auto_use_card"])
+
             # 其他放在此分类的配置
             self.GuildManager_Active.setCurrentIndex(my_opt["guild_manager_active"])
 
@@ -397,8 +420,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         def log_settings() -> None:
             my_opt = self.opt["log_settings"]
-            self.senior_log_clean.setText(my_opt["log_senior_settings"])
-            self.other_log_clean.setText(my_opt["log_other_settings"])
+            self.senior_log_clean.setValue(my_opt["log_senior_settings"])
+            self.other_log_clean.setValue(my_opt["log_other_settings"])
 
         def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
@@ -476,6 +499,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
     def ui_to_opt(self) -> None:
 
+        self.cant_find_battle_plan_in_uuid = False
+
         # battle_plan_list
         battle_plan_name_list_new = get_list_battle_plan(with_extension=False)
         task_sequence_list = get_task_sequence_list(with_extension=False)
@@ -502,7 +527,12 @@ class QMainWindowLoadSettings(QMainWindowLog):
                     {"uuid": battle_plan_uuid_list_new[index]})
 
             # 根据uuid 设定当前选中项
-            tar_widget.setCurrentIndex(battle_plan_uuid_list_new.index(ui_uuid))
+            try:
+                index = battle_plan_uuid_list_new.index(ui_uuid)
+            except ValueError:
+                index = battle_plan_uuid_list_new.index("00000000-0000-0000-0000-000000000000")
+                self.cant_find_battle_plan_in_uuid = True
+            tar_widget.setCurrentIndex(index)
 
         def my_transformer_c(change_class: object, opt_1, opt_2) -> None:
             """用于配置 带有选单的 自定义作战序列"""
@@ -538,6 +568,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["top_up_money_2p"] = self.TopUpMoney_2P.isChecked()
             my_opt["end_exit_game"] = self.EndExitGame.isChecked()
             my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
+
             # 其他放在此分类的配置
             my_opt["guild_manager_active"] = self.GuildManager_Active.currentIndex()
 
@@ -604,8 +635,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         def log_settings() -> None:
             my_opt = self.opt["log_settings"]
-            my_opt["log_senior_settings"] = self.senior_log_clean.text()
-            my_opt["log_other_settings"] = self.other_log_clean.text()
+            my_opt["log_senior_settings"] = self.senior_log_clean.value()
+            my_opt["log_other_settings"] = self.other_log_clean.value()
 
         def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
@@ -766,8 +797,12 @@ class QMainWindowLoadSettings(QMainWindowLog):
         log_settings()
         skin_settings()
         level_2()
+
         self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
         todo_plans()
+
+        # 一个提示弹窗
+        self.cant_find_battle_plan_in_uuid_show_dialog()
 
     """按钮动作"""
 
