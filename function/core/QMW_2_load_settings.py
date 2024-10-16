@@ -373,6 +373,12 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.AutoUseCard.setChecked(my_opt["auto_use_card"])
             # 其他放在此分类的配置
             self.GuildManager_Active.setCurrentIndex(my_opt["guild_manager_active"])
+
+            # 点击频率
+            self.CusCPS_Active.setChecked(my_opt["cus_cps_active"])
+            self.CusCPS_Value.setValue(my_opt["cus_cps_value"])
+            g_extra.GLOBAL_EXTRA.click_per_second = my_opt["cus_cps_value"] if my_opt["cus_cps_active"] else 160
+
             # link 加载的时候不做校验
             self.MisuLogistics_Link.setText(my_opt["misu_logistics_link"])
 
@@ -534,6 +540,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
             # 其他放在此分类的配置
             my_opt["guild_manager_active"] = self.GuildManager_Active.currentIndex()
+
+            # 点击频率
+            my_opt["cus_cps_active"] = self.CusCPS_Active.isChecked()
+            my_opt["cus_cps_value"] = self.CusCPS_Value.value()
+            g_extra.GLOBAL_EXTRA.click_per_second = my_opt["cus_cps_value"] if my_opt["cus_cps_active"] else 160
 
             # link 需要额外的检查
             url = self.MisuLogistics_Link.text()

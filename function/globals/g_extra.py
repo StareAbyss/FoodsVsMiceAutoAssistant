@@ -12,6 +12,9 @@ class GlobalExtraBiuld:
     """
     def __init__(self):
 
+        # 每秒点击次数!
+        self.click_per_second = 160
+
         # 在双人作战时, 极寒冰沙 全局锁
         self.smoothie_lock_time = 0
 
