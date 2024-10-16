@@ -13,6 +13,7 @@ from function.core.FAA_extra_readimage import kill_process
 from function.core.QMW_2_load_settings import CommonHelper, QMainWindowLoadSettings
 from function.core.QMW_EditorOfBattlePlan import QMWEditorOfBattlePlan
 from function.core.QMW_EditorOfTaskSequence import QMWEditorOfTaskSequence
+from function.core.QMW_SettingsMigrator import QMWSettingsMigrator
 from function.core.QMW_TipBattle import QMWTipBattle
 from function.core.QMW_TipBattleSenior import QMWTipBattleSenior
 from function.core.QMW_TipEditorOfBattlePlan import QMWTipEditorOfBattlePlan
@@ -73,6 +74,10 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 额外窗口 - 任务序列编辑器
         self.window_editor_of_task_sequence = QMWEditorOfTaskSequence()
         self.OpenEditorOfTaskSequence_Button.clicked.connect(self.click_btn_open_editor_of_task_sequence)
+
+        # 额外窗口 - 配置迁移器
+        self.window_settings_migrator = QMWSettingsMigrator()
+        self.OpenSettingsMigrator_Button.clicked.connect(self.click_btn_open_settings_migrator)
 
         # 额外窗口 - 温馨礼包提示
         self.window_tip_warm_gift = QMWTipWarmGift()
@@ -647,6 +652,12 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.window_editor_of_task_sequence.set_my_font(self.font)
         self.set_stylesheet(self.window_editor_of_task_sequence)
         self.window_editor_of_task_sequence.show()
+
+    def click_btn_open_settings_migrator(self):
+        window = self.window_settings_migrator
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
 
     def click_btn_tip_warm_gift(self):
         window = self.window_tip_warm_gift
