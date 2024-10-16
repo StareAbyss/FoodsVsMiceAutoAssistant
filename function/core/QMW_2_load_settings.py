@@ -585,10 +585,10 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 if result_bool:
                     my_opt["misu_logistics_link"] = url
                     self.signal_dict["print_to_ui"].emit(
-                        text=f"FAA X 米苏物流 连通性测试 使用非默认ulr:{url} 成功!", color_level=3)
+                        text=f"FAA X 米苏物流 连通性测试 使用非默认url:{url} 成功!", color_level=3)
                 else:
                     self.signal_dict["print_to_ui"].emit(
-                        text=f"FAA X 米苏物流 连通性测试 使用非默认ulr:{url} 失败! 将修正为默认url重试", color_level=1)
+                        text=f"FAA X 米苏物流 连通性测试 使用非默认url:{url} 失败! 将修正为默认url重试", color_level=1)
                     url = ""
                     my_opt["misu_logistics_link"] = url
                     self.MisuLogistics_Link.setText(url)

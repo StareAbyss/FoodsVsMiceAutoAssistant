@@ -220,7 +220,7 @@ class GuildManager:
             )
 
             # 调试
-            print(contribution, contribution_week)
+            # print(contribution, contribution_week)
 
             # 如果存在贡献点，更新成员数据
             self.update_member_data(
