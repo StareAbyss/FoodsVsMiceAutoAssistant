@@ -1085,6 +1085,8 @@
         "top_up_money_2p": false,
         "end_exit_game": false,
         "auto_use_card": true,
+        "cus_cps_active": false,
+        "cus_cps_value": 160,
         "guild_manager_active": 0,
         "misu_logistics_link":""
     },

@@ -4,6 +4,7 @@ import numpy as np
 
 from function.common.bg_img_match import match_p_in_w, match_ps_in_w, loop_match_p_in_w
 from function.common.bg_img_screenshot import capture_image_png
+from function.globals import g_extra
 from function.globals.g_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
@@ -21,8 +22,7 @@ class Battle:
         self.is_used_key = False  # 仅由外部信号更改, 用于标识战斗是否使用了钥匙
 
         # 战斗专用私有属性 - 静态
-
-        self.click_sleep = 0.012  # 每次点击时 按下和抬起之间的间隔 秒
+        self.click_sleep = 1 / g_extra.GLOBAL_EXTRA.click_per_second * 2  # 每次点击时 按下和抬起之间的间隔 秒
 
         # 自动拾取的格子
         self.auto_collect_cells = [
