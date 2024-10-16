@@ -7,6 +7,7 @@ import cv2.dnn
 import numpy as np
 
 from function.globals.get_paths import PATHS
+from function.globals.log import CUS_LOGGER
 
 '''
 注意：如果你推理自己的模型，以下类别需要改成你自己的具体类别
@@ -44,9 +45,11 @@ def get_mouse_position(input_image,is_log,is_gpu):
     # 使用opencv读取onnx文件
     onnx_model = PATHS["model"] + "/mouse.onnx"
     model: cv2.dnn.Net = cv2.dnn.readNetFromONNX(onnx_model)
-    if is_gpu:
+    if is_gpu and cv2.cuda.getCudaEnabledDeviceCount():
         model.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
         model.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+    else:
+        CUS_LOGGER.warning(f"警告：gpu未正确启用，你正在使用cpu推理模型，可能造成开销过大，请确保清楚知道你在做什么 ")
     # 读取原图
     # original_image: np.ndarray = cv2.imread(input_image)
     original_image = input_image[:, :, :3]  # 去除阿尔法通道
