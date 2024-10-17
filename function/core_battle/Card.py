@@ -9,7 +9,6 @@ from function.globals import g_extra
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
-from function.globals.position_card_cell_in_battle import POSITION_CARD_CELL_IN_BATTLE
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
@@ -57,11 +56,11 @@ def check_pixel_similarity(img_source, img_template, start, end, threshold=16):
 
 class Card:
 
-    def __init__(self, priority, faa):
+    def __init__(self, set_priority, faa):
         # 直接塞进来一个faa的实例地址, 直接从该实例中拉取方法和属性作为参数~
         self.faa = faa
-        # 优先级 index
-        self.priority = priority
+
+        self.set_priority = set_priority  # 用于直接从战斗方案中读取卡片信息 战斗方案中的index
 
         """直接从FAA类读取的属性"""
         self.handle = self.faa.handle
@@ -73,23 +72,23 @@ class Card:
 
         """从 FAA类 的 battle_plan_parsed 中读取的属性"""
         # 根据优先级（也是在战斗方案中的index）直接读取faa
-        self.name = self.faa.battle_plan_parsed["card"][priority]["name"]
-        self.id = self.faa.battle_plan_parsed["card"][priority]["id"]
+        self.name = self.faa.battle_plan_parsed["card"][set_priority]["name"]
+        self.id = self.faa.battle_plan_parsed["card"][set_priority]["id"]
 
-        self.ergodic = self.faa.battle_plan_parsed["card"][priority]["ergodic"]
-        self.queue = self.faa.battle_plan_parsed["card"][priority]["queue"]
+        self.ergodic = self.faa.battle_plan_parsed["card"][set_priority]["ergodic"]
+        self.queue = self.faa.battle_plan_parsed["card"][set_priority]["queue"]
 
         # 卡片放置的位置 - 代号 list["1-1",...]
-        self.location = self.faa.battle_plan_parsed["card"][priority]["location"]
+        self.location_to_code = self.faa.battle_plan_parsed["card"][set_priority]["location"]
 
         # 卡片放置的位置 - 坐标 list[[x,y],....]
-        self.location_to = self.faa.battle_plan_parsed["card"][priority]["location_to"]
+        self.location_to_cdt = self.faa.battle_plan_parsed["card"][set_priority]["location_to"]
 
         # 卡片拿取的位置 - 坐标 list[x,y]
-        self.location_from = self.faa.battle_plan_parsed["card"][priority]["location_from"]
+        self.location_from_cdt = self.faa.battle_plan_parsed["card"][set_priority]["location_from"]
 
         # 坤优先级
-        self.kun = self.faa.battle_plan_parsed["card"][priority]["kun"]
+        self.kun = self.faa.battle_plan_parsed["card"][set_priority]["kun"]
 
         # 坤卡的实例
         self.card_kun = None
@@ -132,8 +131,8 @@ class Card:
         """
         T_ACTION_QUEUE_TIMER.add_click_to_queue(
             handle=self.handle,
-            x=self.location_from[0] + 25,
-            y=self.location_from[1] + 35)
+            x=self.location_from_cdt[0] + 25,
+            y=self.location_from_cdt[1] + 35)
 
     def put_card(self):
         """
@@ -142,7 +141,7 @@ class Card:
 
         if self.ergodic:
             # 遍历模式: True 遍历该卡每一个可以放的位置
-            my_to_list = range(len(self.location))
+            my_to_list = range(len(self.location_to_code))
         else:
             # 遍历模式: False 只放第一张, 为保证放下去, 同一个位置点两次
             my_to_list = [0, 0]
@@ -151,8 +150,8 @@ class Card:
             # 点击 放下卡片
             T_ACTION_QUEUE_TIMER.add_click_to_queue(
                 handle=self.handle,
-                x=self.location_to[j][0],
-                y=self.location_to[j][1])
+                x=self.location_to_cdt[j][0],
+                y=self.location_to_cdt[j][1])
             time.sleep(self.click_sleep)
 
         # 放卡后点一下空白
@@ -162,12 +161,12 @@ class Card:
         time.sleep(self.click_sleep)
 
         # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
-        if self.queue and len(self.location) > 0 and len(self.location_to) > 0:
-            if self.location:
-                self.location.append(self.location[0])
-                self.location.remove(self.location[0])
-                self.location_to.append(self.location_to[0])
-                self.location_to.remove(self.location_to[0])
+        if self.queue and len(self.location_to_code) > 0 and len(self.location_to_cdt) > 0:
+            if self.location_to_code:
+                self.location_to_code.append(self.location_to_code[0])
+                self.location_to_code.remove(self.location_to_code[0])
+                self.location_to_cdt.append(self.location_to_cdt[0])
+                self.location_to_cdt.remove(self.location_to_cdt[0])
 
     def get_card_current_img(self, game_image=None):
         """
@@ -175,9 +174,9 @@ class Card:
         :param game_image: 可选, 是否从已有的完成游戏图像中拆解, 不截图
         :return:
         """
-        x1 = self.location_from[0]
+        x1 = self.location_from_cdt[0]
         x2 = x1 + 53
-        y1 = self.location_from[1]
+        y1 = self.location_from_cdt[1]
         y2 = y1 + 70
 
         if game_image is None:
@@ -232,7 +231,7 @@ class Card:
         with self.faa.battle_lock:
 
             # 点击 选中卡片 移动到空白位置
-            self.choice_card()
+            self.try_get_card_states_img_choice_card()
             time.sleep(0.1)
             T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
             time.sleep(0.5)
@@ -249,7 +248,7 @@ class Card:
             self.state_images["不可用"] = current_img_clicked
 
             # 放下这张卡
-            self.put_card()
+            self.try_get_card_states_img_put_card()
             time.sleep(0.5)
 
         # 放卡后, 获取到的第三种颜色必须不同于另外两种, 才记录为cd色, 否则可能由于冰沙冷却效果导致录入可用为cd色.
@@ -269,6 +268,14 @@ class Card:
         if g_extra.GLOBAL_EXTRA.extra_log_battle:
             CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}] 试色成功")
         return 2
+
+    def try_get_card_states_img_choice_card(self):
+        """预留接口, 让高级放卡可以仅覆写这一小部分"""
+        self.choice_card()
+
+    def try_get_card_states_img_put_card(self):
+        """预留接口, 让高级放卡可以仅覆写这一小部分"""
+        self.put_card()
 
     def use_card(self):
 
@@ -336,7 +343,6 @@ class Card:
     def destroy(self):
         """中止运行时释放内存, 顺带如果遇到了全新的状态图片保存一下"""
         self.faa = None
-        self.priority = None
         self.card_kun = None
 
         # 需要
@@ -375,12 +381,16 @@ class Card:
 
 
 class CardKun(Card):
-    def __init__(self, priority, faa):
-        super().__init__(priority, faa)
+    def __init__(self, faa):
+        # 继承父类初始化
+        super().__init__(faa=faa, set_priority=0)
 
         """直接从FAA类读取的属性"""
         # 坐标 [x,y] 和普通卡片不同 需要复写
-        self.location_from = self.faa.kun_position["location_from"]
+        self.location_from_cdt = self.faa.kun_position["location_from"]
+
+        # 无法正常读取到自身名称 需要复写
+        self.name = "幻幻鸡"
 
     def use_card(self):
         """
@@ -398,190 +408,106 @@ class CardKun(Card):
 
 
 class SpecialCard(Card):
-    def __init__(self, energy, card_type, rows=None, cols=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, faa, set_priority, card_type, energy=None, rows=None, cols=None):
+
+        # 继承父类初始化
+        super().__init__(faa=faa, set_priority=set_priority)
+
         self.energy = energy  # 特殊卡的初始能量值
+
         # 是否需要咖啡粉唤醒 算了不想写相关逻辑了，等有缘人补充吧
-        self.need_coffee = self.name in ["冰桶炸弹", "开水壶炸弹"]
-        self.card_type = card_type
-        self.need_shovel = self.card_type == 12 or self.card_type == 14  # 要秒铲的有草扇跟护罩炸弹
+        # self.need_coffee = self.name in ["冰桶炸弹", "开水壶炸弹"]
+
+        self.card_type = card_type  # 11冰桶 12护罩 14草扇 其他炸弹
+
+        # 要秒铲的有草扇跟护罩炸弹
+        self.need_shovel = self.card_type == 12 or self.card_type == 14
+
+        # 炸弹类卡的自我属性
         self.rows = rows
         self.cols = cols
-        self.huzhao = None  # 建立特殊卡护罩与常规卡护罩之间的连接
 
-    def use_card(self, pos):
+        # 建立特殊卡护罩(炸弹护罩) 与 常规卡护罩 之间的连接 以暂时屏蔽其可用性
+        self.n_card = None
+
+        # 卡片自身的location_to 是空的 保存到模板
+        # 卡片放置的位置 - 代号 list["1-1",...]
+        self.location_to_code = []
+
+        # 卡片放置的位置 - 坐标 list[[x,y],....]
+        self.location_to_cdt = []
+
+        # 卡片放置的位置 - 代号 list["1-1",...]
+        self.location_to_code_template = self.faa.battle_plan_parsed["card"][self.set_priority]["location"]
+
+        # 卡片放置的位置 - 坐标 list[[x,y],....]
+        self.location_to_cdt_template = self.faa.battle_plan_parsed["card"][self.set_priority]["location_to"]
+
+        # 卡片拿取的位置 - 坐标 list[x,y]
+        self.location_from_cdt = self.faa.battle_plan_parsed["card"][self.set_priority]["location_from"]
+
+    def try_get_card_states_img_choice_card(self):
+        """预留接口, 让高级放卡可以仅覆写这一小部分"""
+        self.use_card_before()
+        self.choice_card()
+
+    def try_get_card_states_img_put_card(self):
+        """预留接口, 让高级放卡可以仅覆写这一小部分"""
+        self.put_card()
+        self.use_card_after()
+
+    def use_mat_card(self):
+
+        # 加一个垫子的判断 点位要放承载卡
+        if self.location_to_code[0] in self.faa.battle_plan_parsed["mat"]:
+
+            for mat in self.faa.mat_card_positions:
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle,
+                    x=mat["location_from"][0] + 5,
+                    y=mat["location_from"][1] + 5)
+                time.sleep(self.click_sleep)
+
+                # 点击 放下卡片
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle, x=self.location_to_cdt[0][0], y=self.location_to_cdt[0][1])
+        time.sleep(self.click_sleep)
+
+    def use_card(self):
 
         if not self.is_auto_battle:
             return
-        if self.is_smoothie:
-            if not self.faa_battle.fire_elemental_1000:
-                return
-            if g_extra.GLOBAL_EXTRA.smoothie_lock_time > 0:
-                return
-            g_extra.GLOBAL_EXTRA.smoothie_lock_time = 7
 
         # 根据玩家上互斥锁，保证放卡点击序列不会乱掉（因为多次点击还多线程操作很容易出事）
         with self.faa.battle_lock:
 
-            # 无默认坐标即为冰桶类或草扇
-            if pos is None:
+            self.use_card_before()
 
-                # 铲子的调用
-                T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
-                time.sleep(self.click_sleep)  # 必须的间隔
+            # 点击 选中卡片
+            self.choice_card()
+            time.sleep(self.click_sleep)
 
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                    handle=self.faa.handle,
-                    x=self.location_to[0][0],
-                    y=self.location_to[0][1])
-                time.sleep(0.5)
+            # 选中 放下卡片自身
+            self.put_card()
 
-                # 加一个垫子的判断 点位要放承载卡
-                if self.location[0] in self.faa.battle_plan_parsed["mat"]:
-                    for mat in self.faa.mat_card_positions:
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                            handle=self.handle,
-                            x=mat["location_from"][0] + 5,
-                            y=mat["location_from"][1] + 5)
-                        time.sleep(self.click_sleep)  # 必须的间隔
+            self.use_card_after()
 
-                        # 点击 放下卡片
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                            handle=self.handle,
-                            x=self.location_to[0][0],
-                            y=self.location_to[0][1])
-                        time.sleep(self.click_sleep)  # 必须的间隔
+    def use_card_before(self):
 
-                # 点击 选中卡片
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                    handle=self.handle,
-                    x=self.location_from[0] + 5,
-                    y=self.location_from[1] + 5)
-                time.sleep(self.click_sleep)  # 必须的间隔
+        # 铲子的调用
+        self.faa_battle.use_shovel(x=self.location_to_cdt[0][0], y=self.location_to_cdt[0][1])
 
-                # 点击 放下卡片
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                    handle=self.handle,
-                    x=self.location_to[0][0],
-                    y=self.location_to[0][1])
-                time.sleep(self.click_sleep)  # 必须的间隔
+        # 加一个垫子的判断 点位要放承载卡
+        self.use_mat_card()
 
-                # 放卡后点一下空白
-                T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-                time.sleep(self.click_sleep)  # 必须的间隔
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
-                time.sleep(self.click_sleep)  # 必须的间隔
+    def use_card_after(self):
 
-                if self.need_shovel:  # 是否要秒铲
-                    T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
-                    time.sleep(self.click_sleep)  # 必须的间隔
+        if self.need_shovel:  # 是否要秒铲
+            self.faa_battle.use_shovel(x=self.location_to_cdt[0][0], y=self.location_to_cdt[0][1])
 
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                        handle=self.faa.handle,
-                        x=self.location_to[0][0],
-                        y=self.location_to[0][1])
-                    time.sleep(self.click_sleep)
-
-                time.sleep(0.2)
-
-            # 有默认坐标传入，意味着是炸弹类卡片
-            else:
-                # 铲子的调用
-                T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
-                time.sleep(self.click_sleep)  # 必须的间隔
-
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                    handle=self.faa.handle,
-                    x=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][0],
-                    y=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][1])
-                time.sleep(0.5)
-
-                # 加一个垫子的判断
-                if f"{pos[0]}-{pos[1]}" in self.faa.battle_plan_parsed["mat"]:  # 点位要放垫子
-                    for mat in self.faa.mat_card_positions:
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                            handle=self.handle,
-                            x=mat["location_from"][0] + 5,
-                            y=mat["location_from"][1] + 5)
-                        time.sleep(self.click_sleep)  # 必须的间隔
-
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                            handle=self.faa.handle,
-                            x=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][0],
-                            y=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][1])
-
-                # 点击 选中卡片
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                    handle=self.handle,
-                    x=self.location_from[0] + 5,
-                    y=self.location_from[1] + 5)
-
-                # 点击 放下卡片
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                    handle=self.faa.handle,
-                    x=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][0],
-                    y=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][1])
-
-                # 放卡后点一下空白
-                T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
-                if self.need_shovel:  # 是否要秒铲
-
-                    T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
-                    time.sleep(self.click_sleep / 2)  # 必须的间隔
-
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                        handle=self.faa.handle,
-                        x=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][0],
-                        y=POSITION_CARD_CELL_IN_BATTLE[f"{pos[0]}-{pos[1]}"][1])
-                    time.sleep(self.click_sleep)
-
-                if self.huzhao is not None:
-                    # 特殊卡用完当护罩得给他改回常驻卡可用状态
-                    self.huzhao.can_use = True
-
-                time.sleep(0.2)
-
-
-def is_special_card(card_name):
-    """判断是否为特殊卡，并返回匹配文件所在子目录的名称"""
-    base_path = PATHS["picture"]["card"] + "\\特殊对策卡"
-    card_name = os.path.splitext(card_name)[0]  # 移除传入名字的扩展名
-
-    # 遍历目录及其子目录
-    for root, dirs, files in os.walk(base_path):
-        for file in files:
-            # 解析文件名并移除扩展名
-            base_name = os.path.splitext(file)[0]
-            energy = None
-            rows = None
-            cols = None
-            if '_' in base_name:
-                parts = base_name.split('_')
-                base_name = parts[0]
-                card_type = parts[1]
-                if len(parts) > 2:
-                    energy = int(parts[2])
-                if len(parts) > 3:
-                    cols = int(parts[3])
-                if len(parts) > 4:  # 目前只有大十字
-                    rows = int(parts[4])
-
-            # 检查是否匹配
-            if base_name == card_name:
-                # 计算子目录的名称
-                subdir_name = os.path.relpath(root, base_path)
-                return {
-                    "found": True,
-                    "subdir_name": subdir_name,
-                    "energy": energy,
-                    "card_type": int(card_type),
-                    "rows": rows,
-                    "cols": cols}
-                # 返回匹配状态和匹配文件所在子目录的名称
-
-    # 如果没有找到匹配的文件，返回匹配状态为False
-    return {"found": False}
+        if self.n_card:
+            # 特殊卡用完当护罩得给他改回常驻卡可用状态
+            self.n_card.can_use = True
 
 # # 示例使用
 # card_name = "电音镭射喵"

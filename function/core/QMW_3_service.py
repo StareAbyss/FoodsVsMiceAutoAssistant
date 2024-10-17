@@ -399,34 +399,36 @@ class QMainWindowService(QMainWindowLoadSettings):
         random_seed = random.randint(-100, 100)
 
         # 开始创建faa
-        faa = [None, None, None]
-        faa[1] = FAA(
-            channel=channel_1p,
-            player=1,
-            character_level=self.opt["base_settings"]["level_1p"],
-            is_auto_battle=self.opt["advanced_settings"]["auto_use_card"],  # bool 自动战斗
-            is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_1p"],
-            random_seed=random_seed,
-            signal_dict=self.signal_dict)
-        faa[2] = FAA(
-            channel=channel_2p,
-            player=2,
-            character_level=self.opt["base_settings"]["level_2p"],
-            is_auto_battle=self.opt["advanced_settings"]["auto_use_card"],
-            is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_2p"],
-            random_seed=random_seed,
-            signal_dict=self.signal_dict)
+        faa_dict = {
+            1: FAA(
+                channel=channel_1p,
+                player=1,
+                character_level=self.opt["base_settings"]["level_1p"],
+                is_auto_battle=self.opt["advanced_settings"]["auto_use_card"],
+                is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_1p"],
+                random_seed=random_seed,
+                signal_dict=self.signal_dict),
+            2: FAA(
+                channel=channel_2p,
+                player=2,
+                character_level=self.opt["base_settings"]["level_2p"],
+                is_auto_battle=self.opt["advanced_settings"]["auto_use_card"],
+                is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_2p"],
+                random_seed=random_seed,
+                signal_dict=self.signal_dict)
+        }
 
         # 创建新的todo并启动线程
         self.thread_todo_1 = ThreadTodo(
-            faa=faa,
+            faa_dict=faa_dict,
             opt=self.opt,
             running_todo_plan_index=running_todo_plan_index,
             signal_dict=self.signal_dict,
             todo_id=1)
+
         # 用于双人多线程的todo
         self.thread_todo_2 = ThreadTodo(
-            faa=faa,
+            faa_dict=faa_dict,
             opt=self.opt,
             running_todo_plan_index=running_todo_plan_index,
             signal_dict=self.signal_dict,
@@ -469,11 +471,11 @@ class QMainWindowService(QMainWindowLoadSettings):
                 manager = thread_0.thread_card_manager
                 if manager is not None:
                     manager.stop()
+
                 # 释放战斗锁
-                faas = thread_0.faa
-                if faas is not None:
-                    for faa in faas:
-                        if faa is not None:
+                if thread_0.faa_dict:
+                    for faa in thread_0.faa_dict.values():
+                        if faa:
                             lock = faa.battle_lock
                             if lock.locked():
                                 lock.release()

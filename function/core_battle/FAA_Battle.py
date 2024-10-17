@@ -73,10 +73,18 @@ class Battle:
             positions.append(position)
 
         for position in positions:
-            T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
-            time.sleep(self.click_sleep / 2)  # 必须的间隔
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=position[0], y=position[1])
-            time.sleep(self.click_sleep)
+            self.use_shovel(x=position[0],y=position[1])
+
+    def use_shovel(self,x,y):
+        """
+        :param x: 像素坐标
+        :param y: 像素坐标
+        :return:
+        """
+        T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
+        time.sleep(self.click_sleep / 2)  # 必须的间隔
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=x, y=y)
+        time.sleep(self.click_sleep)
 
     def use_key(self):
         """
