@@ -30,7 +30,7 @@ class ThreadTodo(QThread):
     signal_start_todo_2_battle = pyqtSignal(dict)
     signal_todo_lock = pyqtSignal(bool)
 
-    def __init__(self, faa, opt, running_todo_plan_index, signal_dict, todo_id):
+    def __init__(self, faa_dict, opt, running_todo_plan_index, signal_dict, todo_id):
         super().__init__()
 
         # 用于暂停恢复
@@ -39,7 +39,7 @@ class ThreadTodo(QThread):
         self.is_paused = False
 
         # 功能需要
-        self.faa = faa
+        self.faa_dict = faa_dict
         self.opt = copy.deepcopy(opt)  # 深拷贝 在作战中如果进行更改, 不会生效
         self.opt_todo_plans = self.opt["todo_plans"][running_todo_plan_index]  # 选择运行的 opt 的 todo plan 部分
         self.battle_check_interval = 1  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
@@ -70,7 +70,7 @@ class ThreadTodo(QThread):
         self.signal_guild_manager_fresh = self.signal_dict["guild_manager_fresh"]
 
         # 读取 米苏物流 url 到全局变量
-        if self.faa[1].player == 1:
+        if self.faa_dict[1].player == 1:
             g_extra.GLOBAL_EXTRA.misu_logistics = self.opt["advanced_settings"]["misu_logistics_link"]
 
     def stop(self):
@@ -125,8 +125,8 @@ class ThreadTodo(QThread):
         此外, 双人双线程时, 有两个本线程的实例控制的均为同样的faa实例, 若一方用钥匙,另一方也会悲改为用, 但魔塔不会存在该问题, 故暂时不管.
         """
 
-        self.faa[1].faa_battle.is_used_key = True
-        self.faa[2].faa_battle.is_used_key = True
+        self.faa_dict[1].faa_battle.is_used_key = True
+        self.faa_dict[2].faa_battle.is_used_key = True
 
     def remove_outdated_log_images(self):
         self.signal_print_to_ui.emit(f"正在清理过期的的log图片...")
@@ -209,7 +209,7 @@ class ThreadTodo(QThread):
         if player is None:
             player = [1, 2]
         # 如果只有一个角色
-        if self.faa[1].channel == self.faa[2].channel:
+        if self.faa_dict[1].channel == self.faa_dict[2].channel:
             player = [1]
         # 输入错误的值!
         if player not in [[1, 2], [1], [2]]:
@@ -234,16 +234,16 @@ class ThreadTodo(QThread):
 
         # 高危动作 慢慢执行
         if 1 in player:
-            self.faa[1].input_level_2_password(password=self.opt["level_2"]["1p"]["password"])
-            self.faa[1].delete_items()
+            self.faa_dict[1].input_level_2_password(password=self.opt["level_2"]["1p"]["password"])
+            self.faa_dict[1].delete_items()
             if dark_crystal:
-                self.faa[1].get_dark_crystal()
+                self.faa_dict[1].get_dark_crystal()
 
         if 2 in player:
-            self.faa[2].input_level_2_password(password=self.opt["level_2"]["2p"]["password"])
-            self.faa[2].delete_items()
+            self.faa_dict[2].input_level_2_password(password=self.opt["level_2"]["2p"]["password"])
+            self.faa_dict[2].delete_items()
             if dark_crystal:
-                self.faa[2].get_dark_crystal()
+                self.faa_dict[2].get_dark_crystal()
 
         # 执行完毕后立刻刷新游戏 以清除二级输入状态
         self.signal_print_to_ui.emit(
@@ -262,7 +262,7 @@ class ThreadTodo(QThread):
         if player is None:
             player = [1, 2]
         # 如果只有一个角色
-        if self.faa[1].channel == self.faa[2].channel:
+        if self.faa_dict[1].channel == self.faa_dict[2].channel:
             player = [1]
 
         self.signal_print_to_ui.emit("Refresh Game...", color_level=1)
@@ -272,12 +272,12 @@ class ThreadTodo(QThread):
         # 创建进程 -> 开始进程 -> 阻塞主进程
         if 1 in player:
             self.thread_1p = ThreadWithException(
-                target=self.faa[1].reload_game,
+                target=self.faa_dict[1].reload_game,
                 name="1P Thread - Reload",
                 kwargs={})
         if 2 in player:
             self.thread_2p = ThreadWithException(
-                target=self.faa[2].reload_game,
+                target=self.faa_dict[2].reload_game,
                 name="2P Thread - Reload",
                 kwargs={})
 
@@ -305,12 +305,12 @@ class ThreadTodo(QThread):
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
-            target=self.faa[1].click_refresh_btn,
+            target=self.faa_dict[1].click_refresh_btn,
             name="1P Thread - Reload",
             kwargs={})
 
         self.thread_2p = ThreadWithException(
-            target=self.faa[2].click_refresh_btn,
+            target=self.faa_dict[2].click_refresh_btn,
             name="2P Thread - Reload",
             kwargs={})
         self.thread_1p.daemon = True
@@ -327,7 +327,7 @@ class ThreadTodo(QThread):
         if player is None:
             player = [1, 2]
         # 如果只有一个角色
-        if self.faa[1].channel == self.faa[2].channel:
+        if self.faa_dict[1].channel == self.faa_dict[2].channel:
             player = [1]
 
         title_text = "每日签到"
@@ -377,7 +377,7 @@ class ThreadTodo(QThread):
                     f'FAA伦理核心已强制卸除, 日氪模块已通过授权, 即将激活并进入运行状态.', color_level=2)
         for pid in player_active:
             self.signal_print_to_ui.emit(f'[{pid}P] 日氪1元开始', color_level=2)
-            money_result = self.faa[pid].sign_top_up_money()
+            money_result = self.faa_dict[pid].sign_top_up_money()
             self.signal_print_to_ui.emit(f'[{pid}P] 日氪1元结束, 结果: {money_result}', color_level=2)
 
         """双线程常规日常"""
@@ -388,7 +388,7 @@ class ThreadTodo(QThread):
 
         if 1 in player:
             self.thread_1p = ThreadWithException(
-                target=self.faa[1].sign_in,
+                target=self.faa_dict[1].sign_in,
                 name="1P Thread - SignIn",
                 kwargs={})
             self.thread_1p.daemon = True
@@ -396,7 +396,7 @@ class ThreadTodo(QThread):
 
         if 2 in player:
             self.thread_2p = ThreadWithException(
-                target=self.faa[2].sign_in,
+                target=self.faa_dict[2].sign_in,
                 name="2P Thread - SignIn",
                 kwargs={})
             self.thread_2p.daemon = True
@@ -415,14 +415,14 @@ class ThreadTodo(QThread):
         if player is None:
             player = [1, 2]
         # 如果只有一个角色
-        if self.faa[1].channel == self.faa[2].channel:
+        if self.faa_dict[1].channel == self.faa_dict[2].channel:
             player = [1]
 
         title_text = "浇水 施肥 摘果"
         self.model_start_print(text=title_text)
 
         for pid in player:
-            self.faa[pid].fed_and_watered()
+            self.faa_dict[pid].fed_and_watered()
 
         self.model_end_print(text=title_text)
 
@@ -432,7 +432,7 @@ class ThreadTodo(QThread):
         if player is None:
             player = [1, 2]
         # 如果只有一个角色
-        if self.faa[1].channel == self.faa[2].channel:
+        if self.faa_dict[1].channel == self.faa_dict[2].channel:
             player = [1]
 
         if modes is None:
@@ -449,19 +449,19 @@ class ThreadTodo(QThread):
                     color_level=2)
 
                 # 进入公会页面
-                self.faa[self.opt["advanced_settings"]["guild_manager_active"]].action_bottom_menu(mode="公会")
+                self.faa_dict[self.opt["advanced_settings"]["guild_manager_active"]].action_bottom_menu(mode="公会")
 
                 # 扫描
                 self.guild_manager.scan(
-                    handle=self.faa[self.opt["advanced_settings"]["guild_manager_active"]].handle,
-                    handle_360=self.faa[self.opt["advanced_settings"]["guild_manager_active"]].handle_360
+                    handle=self.faa_dict[self.opt["advanced_settings"]["guild_manager_active"]].handle,
+                    handle_360=self.faa_dict[self.opt["advanced_settings"]["guild_manager_active"]].handle_360
                 )
 
                 # 完成扫描 触发信号刷新数据
                 self.signal_guild_manager_fresh.emit()
 
                 # 退出工会页面
-                self.faa[self.opt["advanced_settings"]["guild_manager_active"]].action_exit(mode="普通红叉")
+                self.faa_dict[self.opt["advanced_settings"]["guild_manager_active"]].action_exit(mode="普通红叉")
 
             """激活了删除物品高危功能"""
             self.batch_level_2_action(title_text=title_text, dark_crystal=True)
@@ -473,7 +473,7 @@ class ThreadTodo(QThread):
             # 创建进程 -> 开始进程 -> 阻塞主进程
             if 1 in player:
                 self.thread_1p = ThreadWithException(
-                    target=self.faa[1].receive_quest_rewards,
+                    target=self.faa_dict[1].receive_quest_rewards,
                     name="1P Thread - ReceiveQuest",
                     kwargs={
                         "mode": "普通任务"
@@ -486,7 +486,7 @@ class ThreadTodo(QThread):
 
             if 2 in player:
                 self.thread_2p = ThreadWithException(
-                    target=self.faa[2].receive_quest_rewards,
+                    target=self.faa_dict[2].receive_quest_rewards,
                     name="2P Thread - ReceiveQuest",
                     kwargs={
                         "mode": "普通任务"
@@ -508,7 +508,7 @@ class ThreadTodo(QThread):
             # 创建进程 -> 开始进程 -> 阻塞主进程
             if 1 in player:
                 self.thread_1p = ThreadWithException(
-                    target=self.faa[1].receive_quest_rewards,
+                    target=self.faa_dict[1].receive_quest_rewards,
                     name="1P Thread - Quest",
                     kwargs={
                         "mode": "美食大赛"
@@ -521,7 +521,7 @@ class ThreadTodo(QThread):
 
             if 2 in player:
                 self.thread_2p = ThreadWithException(
-                    target=self.faa[2].receive_quest_rewards,
+                    target=self.faa_dict[2].receive_quest_rewards,
                     name="2P Thread - Quest",
                     kwargs={
                         "mode": "美食大赛"
@@ -543,7 +543,7 @@ class ThreadTodo(QThread):
             # 创建进程 -> 开始进程 -> 阻塞主进程
             if 1 in player:
                 self.thread_1p = ThreadWithException(
-                    target=self.faa[1].receive_quest_rewards,
+                    target=self.faa_dict[1].receive_quest_rewards,
                     name="1P Thread - Quest",
                     kwargs={
                         "mode": "大富翁"
@@ -556,7 +556,7 @@ class ThreadTodo(QThread):
 
             if 2 in player:
                 self.thread_2p = ThreadWithException(
-                    target=self.faa[2].receive_quest_rewards,
+                    target=self.faa_dict[2].receive_quest_rewards,
                     name="2P Thread - Quest",
                     kwargs={
                         "mode": "大富翁"
@@ -579,7 +579,7 @@ class ThreadTodo(QThread):
         if player is None:
             player = [1, 2]
         # 如果只有一个角色
-        if self.faa[1].channel == self.faa[2].channel:
+        if self.faa_dict[1].channel == self.faa_dict[2].channel:
             player = [1]
 
         title_text = "使用绑定消耗品"
@@ -588,7 +588,7 @@ class ThreadTodo(QThread):
         # 创建进程 -> 开始进程 -> 阻塞主进程
         if 1 in player:
             self.thread_1p = ThreadWithException(
-                target=self.faa[1].use_items_consumables,
+                target=self.faa_dict[1].use_items_consumables,
                 name="1P Thread - UseItems",
                 kwargs={})
             self.thread_1p.daemon = True
@@ -599,7 +599,7 @@ class ThreadTodo(QThread):
 
         if 2 in player:
             self.thread_2p = ThreadWithException(
-                target=self.faa[2].use_items_consumables,
+                target=self.faa_dict[2].use_items_consumables,
                 name="2P Thread - UseItems",
                 kwargs={})
             self.thread_2p.daemon = True
@@ -618,7 +618,7 @@ class ThreadTodo(QThread):
         if player is None:
             player = [1, 2]
         # 如果只有一个角色
-        if self.faa[1].channel == self.faa[2].channel:
+        if self.faa_dict[1].channel == self.faa_dict[2].channel:
             player = [1]
 
         title_text = "使用双爆卡"
@@ -627,7 +627,7 @@ class ThreadTodo(QThread):
         # 创建进程 -> 开始进程 -> 阻塞主进程
         if 1 in player:
             self.thread_1p = ThreadWithException(
-                target=self.faa[1].use_items_double_card,
+                target=self.faa_dict[1].use_items_double_card,
                 name="1P Thread - UseItems",
                 kwargs={"max_times": max_times})
             self.thread_1p.daemon = True
@@ -638,7 +638,7 @@ class ThreadTodo(QThread):
 
         if 2 in player:
             self.thread_2p = ThreadWithException(
-                target=self.faa[2].use_items_double_card,
+                target=self.faa_dict[2].use_items_double_card,
                 name="2P Thread - UseItems",
                 kwargs={"max_times": max_times})
             self.thread_2p.daemon = True
@@ -657,7 +657,7 @@ class ThreadTodo(QThread):
         if player is None:
             player = [1, 2]
         # 如果只有一个角色
-        if self.faa[1].channel == self.faa[2].channel:
+        if self.faa_dict[1].channel == self.faa_dict[2].channel:
             player = [1]
 
         title_text = "无限跨服刷威望"
@@ -666,7 +666,7 @@ class ThreadTodo(QThread):
         # 创建进程 -> 开始进程 -> 阻塞主进程
         if 1 in player:
             self.thread_1p = ThreadWithException(
-                target=self.faa[1].loop_cross_server,
+                target=self.faa_dict[1].loop_cross_server,
                 name="1P Thread",
                 kwargs={"deck": deck})
             self.thread_1p.daemon = True
@@ -677,7 +677,7 @@ class ThreadTodo(QThread):
 
         if 2 in player:
             self.thread_2p = ThreadWithException(
-                target=self.faa[2].loop_cross_server,
+                target=self.faa_dict[2].loop_cross_server,
                 name="2P Thread",
                 kwargs={"deck": deck})
             self.thread_2p.daemon = True
@@ -696,8 +696,8 @@ class ThreadTodo(QThread):
         :return: bool 是否最终找到了图片
         """
 
-        faa_a = self.faa[player_a]
-        faa_b = self.faa[player_b]
+        faa_a = self.faa_dict[player_a]
+        faa_b = self.faa_dict[player_b]
 
         find = loop_match_p_in_w(
             source_handle=faa_a.handle,
@@ -762,8 +762,8 @@ class ThreadTodo(QThread):
         is_cs = "CS" in stage_id
         is_mt = "MT" in stage_id
 
-        faa_a = self.faa[player_a]
-        faa_b = self.faa[player_b]
+        faa_a = self.faa_dict[player_a]
+        faa_b = self.faa_dict[player_b]
 
         failed_round = 0  # 计数失败轮次
 
@@ -824,7 +824,7 @@ class ThreadTodo(QThread):
             int 战斗消耗时间(秒);
         """
 
-        is_group = self.faa[player_a].is_group
+        is_group = self.faa_dict[player_a].is_group
         result_id = 0
         result_loot = {}
         result_spend_time = 0
@@ -834,12 +834,12 @@ class ThreadTodo(QThread):
 
             # 初始化多线程
             self.thread_1p = ThreadWithException(
-                target=self.faa[player_a].battle_a_round_room_preparatory,
+                target=self.faa_dict[player_a].battle_a_round_room_preparatory,
                 name="{}P Thread - Battle - Before".format(player_a),
                 kwargs={})
             if is_group:
                 self.thread_2p = ThreadWithException(
-                    target=self.faa[player_b].battle_a_round_room_preparatory,
+                    target=self.faa_dict[player_b].battle_a_round_room_preparatory,
                     name="{}P Thread - Battle - Before".format(player_b),
                     kwargs={})
             self.thread_1p.daemon = True
@@ -869,12 +869,12 @@ class ThreadTodo(QThread):
 
             # 初始化多线程
             self.thread_1p = ThreadWithException(
-                target=self.faa[player_a].battle_a_round_init_battle_plan,
+                target=self.faa_dict[player_a].battle_a_round_init_battle_plan,
                 name="{}P Thread - Battle".format(player_a),
                 kwargs={})
             if is_group:
                 self.thread_2p = ThreadWithException(
-                    target=self.faa[player_b].battle_a_round_init_battle_plan,
+                    target=self.faa_dict[player_b].battle_a_round_init_battle_plan,
                     name="{}P Thread - Battle".format(player_b),
                     kwargs={})
 
@@ -894,7 +894,7 @@ class ThreadTodo(QThread):
             if self.opt["senior_settings"]["auto_senior_settings"]:
 
                 self.process, queue_todo = read_and_get_return_information(
-                    self.faa[player_a],
+                    self.faa_dict[player_a],
                     self.opt["senior_settings"]["senior_log_state"],
                     self.opt["senior_settings"]["gpu_settings"])
 
@@ -904,8 +904,8 @@ class ThreadTodo(QThread):
 
             # 实例化放卡管理器
             self.thread_card_manager = CardManager(
-                faa_1=self.faa[player_a],
-                faa_2=self.faa[player_b],
+                faa_1=self.faa_dict[player_a],
+                faa_2=self.faa_dict[player_b],
                 check_interval=self.battle_check_interval,
                 solve_queue=queue_todo
             )
@@ -943,12 +943,12 @@ class ThreadTodo(QThread):
 
             # 初始化多线程
             self.thread_1p = ThreadWithException(
-                target=self.faa[player_a].battle_a_round_loots,
+                target=self.faa_dict[player_a].battle_a_round_loots,
                 name="{}P Thread - Battle - Screen".format(player_a),
                 kwargs={})
             if is_group:
                 self.thread_2p = ThreadWithException(
-                    target=self.faa[player_b].battle_a_round_loots,
+                    target=self.faa_dict[player_b].battle_a_round_loots,
                     name="{}P Thread - Battle - Screen".format(player_b),
                     kwargs={})
 
@@ -1002,14 +1002,14 @@ class ThreadTodo(QThread):
 
                     # 保存详细数据到json
                     loots_and_chests_statistics_to_json(
-                        faa=self.faa[player_index],
+                        faa=self.faa_dict[player_index],
                         loots_dict=loots_dict,
                         chests_dict=chests_dict)
                     CUS_LOGGER.info(f"[战利品识别] [保存日志] [{player_index}P] 成功保存一条详细数据!")
 
                     # 保存汇总统计数据到json
                     detail_data = loots_and_chests_detail_to_json(
-                        faa=self.faa[player_index],
+                        faa=self.faa_dict[player_index],
                         loots_dict=loots_dict,
                         chests_dict=chests_dict)
                     CUS_LOGGER.info(f"[战利品识别] [保存日志] [{player_index}P] 成功保存至统计数据!")
@@ -1043,9 +1043,9 @@ class ThreadTodo(QThread):
 
         """分开进行战后检查"""
         if result_id == 0:
-            result_id = self.faa[player_a].battle_a_round_warp_up()
+            result_id = self.faa_dict[player_a].battle_a_round_warp_up()
             if is_group:
-                result_id = self.faa[player_b].battle_a_round_warp_up()
+                result_id = self.faa_dict[player_b].battle_a_round_warp_up()
 
         CUS_LOGGER.debug("战后检查完成 battle 函数执行结束")
 
@@ -1084,7 +1084,7 @@ class ThreadTodo(QThread):
         # 处理多人信息 (这些信息只影响函数内, 所以不判断是否组队)
         player_a = player[0]  # 房主 创建房间者
         player_b = 1 if player_a == 2 else 2  # 非房主
-        faa_a, faa_b = self.faa[player_a], self.faa[player_b]
+        faa_a, faa_b = self.faa_dict[player_a], self.faa_dict[player_b]
         battle_plan_a = battle_plan_1p if player_a == 1 else battle_plan_2p
         battle_plan_b = battle_plan_1p if player_b == 1 else battle_plan_2p
 
@@ -1554,8 +1554,8 @@ class ThreadTodo(QThread):
         self.battle_1_n_n(quest_list=quest_list)
 
         # 领取奖励
-        self.faa[1].receive_quest_rewards(mode="悬赏任务")
-        self.faa[2].receive_quest_rewards(mode="悬赏任务")
+        self.faa_dict[1].receive_quest_rewards(mode="悬赏任务")
+        self.faa_dict[2].receive_quest_rewards(mode="悬赏任务")
 
         self.model_end_print(text=text_)
 
@@ -1569,12 +1569,12 @@ class ThreadTodo(QThread):
         if quest_mode == "公会任务":
             self.batch_level_2_action(title_text=title_text, dark_crystal=False)
         self.signal_print_to_ui.emit(text=f"[{title_text}] 检查领取奖励...")
-        self.faa[1].receive_quest_rewards(mode=quest_mode)
-        self.faa[2].receive_quest_rewards(mode=quest_mode)
+        self.faa_dict[1].receive_quest_rewards(mode=quest_mode)
+        self.faa_dict[2].receive_quest_rewards(mode=quest_mode)
 
         # 获取任务
         self.signal_print_to_ui.emit(text=f"[{title_text}] 获取任务列表...")
-        quest_list = self.faa[1].match_quests(mode=quest_mode, qg_cs=stage)
+        quest_list = self.faa_dict[1].match_quests(mode=quest_mode, qg_cs=stage)
         for i in quest_list:
             self.signal_print_to_ui.emit(
                 text="副本:{},额外带卡:{}".format(
@@ -1592,8 +1592,8 @@ class ThreadTodo(QThread):
         if quest_mode == "公会任务":
             self.batch_level_2_action(title_text=title_text, dark_crystal=False)
         self.signal_print_to_ui.emit(text=f"[{title_text}] 检查领取奖励中...")
-        self.faa[1].receive_quest_rewards(mode=quest_mode)
-        self.faa[2].receive_quest_rewards(mode=quest_mode)
+        self.faa_dict[1].receive_quest_rewards(mode=quest_mode)
+        self.faa_dict[2].receive_quest_rewards(mode=quest_mode)
 
         self.model_end_print(text=title_text)
 
@@ -1735,8 +1735,8 @@ class ThreadTodo(QThread):
             """
 
             # 两个号分别读取任务
-            quest_list_1 = self.faa[1].match_quests(mode="美食大赛-新")
-            quest_list_2 = self.faa[2].match_quests(mode="美食大赛-新")
+            quest_list_1 = self.faa_dict[1].match_quests(mode="美食大赛-新")
+            quest_list_2 = self.faa_dict[2].match_quests(mode="美食大赛-新")
             quest_list = quest_list_1 + quest_list_2
 
             if not quest_list:
@@ -1799,8 +1799,8 @@ class ThreadTodo(QThread):
             self.model_start_print(text=text_)
 
             # 先领一下已经完成的大赛任务
-            self.faa[1].receive_quest_rewards(mode="美食大赛")
-            self.faa[2].receive_quest_rewards(mode="美食大赛")
+            self.faa_dict[1].receive_quest_rewards(mode="美食大赛")
+            self.faa_dict[2].receive_quest_rewards(mode="美食大赛")
 
             # 重置美食大赛任务 ban list
             self.auto_food_stage_ban_list = []  # 用于防止缺乏钥匙/次数时无限重复某些关卡

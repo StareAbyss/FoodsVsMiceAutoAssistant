@@ -7,7 +7,7 @@ class CardQueue(queue.PriorityQueue):
     def __init__(self, card_list, handle, handle_360):
         # 定义优先级队列
         super().__init__()
-        self.card_list = card_list
+        self.card_list = card_list  # 包含除幻坤外的所有卡片
         self.card_using = False
         self.handle = handle
         self.handle_360 = handle_360
@@ -24,10 +24,10 @@ class CardQueue(queue.PriorityQueue):
             card.fresh_status(game_image=game_image)
 
             # 重新装填卡片入队, 幻坤除外
-            self.put((card.priority, card))
+            self.put((card.set_priority, card))
 
     def put_card_queue(self, card):
-        self.put((card.priority, card))
+        self.put((card.set_priority, card))
 
     def peek(self):
         card_tuple = self.get()
@@ -61,7 +61,7 @@ class CardQueue(queue.PriorityQueue):
         card = self.peek()[1]
 
         # 卡片没有需要放置的位置 如果该卡正好是全新的卡背+没有可放置位置 会卡死 所以只要没有可放位置就移出队列
-        if not card.location_to:
+        if not card.location_to_cdt:
             self.get()
             self.card_using = False
             return
