@@ -1346,7 +1346,7 @@ class FAA:
                 find_i = loop_match_p_in_w(
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
-                    source_range=[420, 200, 500, 260],
+                    source_range=[450, 145, 505, 205],
                     template=RESOURCE_P["top_up_money"]["每日必充_判定点.png"],
                     match_tolerance=0.99,
                     match_interval=0.2,
@@ -1356,7 +1356,7 @@ class FAA:
                 if not find_i:
                     break
                 else:
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=710, y=135)
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=790, y=110)
                     time.sleep(2)
 
         # 进入充值界面
@@ -1364,7 +1364,7 @@ class FAA:
         find = loop_match_p_in_w(
             source_handle=self.handle,
             source_root_handle=self.handle_360,
-            source_range=[240, 190, 740, 265],
+            source_range=[450, 145, 505, 205],
             template=RESOURCE_P["top_up_money"]["每日必充_判定点.png"],
             match_tolerance=0.99,
             match_interval=0.2,
@@ -1376,7 +1376,7 @@ class FAA:
 
         # 尝试领取 / 尝试进入充值界面 一元档
         CUS_LOGGER.debug("尝试领取 / 尝试进入充值界面...")
-        source_range_1 = [640, 205, 740, 250]  # 充值/领取按钮位置
+        source_range_1 = [660, 145, 770, 200]  # 充值/领取按钮位置
         find = loop_match_p_in_w(
             source_handle=self.handle,
             source_root_handle=self.handle_360,
@@ -1409,7 +1409,7 @@ class FAA:
 
         # 没有完成, 进入充值界面
         CUS_LOGGER.debug("充值界面 点击切换为游币")
-        source_range_2 = [280, 165, 735, 265]  # 游币兑换按钮可能的位置
+        source_range_2 = [150, 110, 800, 490]  # 游币兑换按钮 查找范围
         loop_match_p_in_w(
             source_handle=self.handle,
             source_root_handle=self.handle_360,
@@ -1436,7 +1436,7 @@ class FAA:
 
         # 切换到游币选项, 准备输入一元开氪
         CUS_LOGGER.debug("充值界面 输入为1元")
-        source_range_2 = [580, 335, 700, 385]  # 请输入X元按钮位置
+        source_range_2 = [150, 110, 800, 490]  # 请输入X元按钮 查找范围
         # 点击请输入按钮
         find = loop_match_p_in_w(
             source_handle=self.handle,
@@ -1473,7 +1473,7 @@ class FAA:
         find = loop_match_p_in_w(
             source_handle=self.handle,
             source_root_handle=self.handle_360,
-            source_range=[400, 400, 560, 470],
+            source_range=[150, 110, 800, 490],
             template=RESOURCE_P["top_up_money"]["充值界面_立即充值.png"],
             match_tolerance=0.99,
             match_interval=0.2,
@@ -1489,7 +1489,7 @@ class FAA:
         find = loop_match_p_in_w(
             source_handle=self.handle,
             source_root_handle=self.handle_360,
-            source_range=[760, 100, 815, 855],
+            source_range=[750, 90, 815, 160],
             template=RESOURCE_P["top_up_money"]["充值界面_退出.png"],
             match_tolerance=0.99,
             match_interval=0.2,
