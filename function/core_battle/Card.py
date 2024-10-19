@@ -224,7 +224,7 @@ class Card:
                     self.state_images["冷却"] = state_images_group["冷却.png"]
                     self.state_images["可用"] = state_images_group["可用.png"]
                     if g_extra.GLOBAL_EXTRA.extra_log_battle:
-                        CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}] 成功从已保存状态获取")
+                        CUS_LOGGER.debug(f"[战斗执行器] [{self.player}P] [{self.name}] 成功从已保存状态获取")
                     return 1
 
         # 包含点击操作 上锁
@@ -408,7 +408,7 @@ class CardKun(Card):
 
 
 class SpecialCard(Card):
-    def __init__(self, faa, set_priority, card_type, energy=None, rows=None, cols=None):
+    def __init__(self, faa, set_priority, card_type, energy=None, rows=None, cols=None,n_card=None):
 
         # 继承父类初始化
         super().__init__(faa=faa, set_priority=set_priority)
@@ -428,7 +428,7 @@ class SpecialCard(Card):
         self.cols = cols
 
         # 建立特殊卡护罩(炸弹护罩) 与 常规卡护罩 之间的连接 以暂时屏蔽其可用性
-        self.n_card = None
+        self.n_card = n_card
 
         # 卡片自身的location_to 是空的 保存到模板
         # 卡片放置的位置 - 代号 list["1-1",...]
@@ -482,7 +482,7 @@ class SpecialCard(Card):
         with self.faa.battle_lock:
 
             self.use_card_before()
-
+            time.sleep(0.5)#真的是必要的间隔，不然会发现铲是铲了，但是把当前正在放的卡铲了（
             # 点击 选中卡片
             self.choice_card()
             time.sleep(self.click_sleep)
@@ -509,11 +509,4 @@ class SpecialCard(Card):
             # 特殊卡用完当护罩得给他改回常驻卡可用状态
             self.n_card.can_use = True
 
-# # 示例使用
-# card_name = "电音镭射喵"
-# result = is_special_card(card_name)
-#
-# if result["found"]:
-#     print(f"{card_name} 是特殊卡，位于子目录：{result['subdir_name']},耗能为{result['energy']},类型为{result['card_type']}")
-# else:
-#     print(f"{card_name} 不是特殊卡，未找到匹配文件。")
+
