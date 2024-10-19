@@ -24,7 +24,7 @@
             "id": 2,
             "name": "炭烧海星",
             "ergodic": true,
-            "queue": false,
+            "queue": true,
             "kun": 2,
             "location": [
                 "1-4",
@@ -73,7 +73,7 @@
             "id": 3,
             "name": "糖葫芦炮弹",
             "ergodic": true,
-            "queue": false,
+            "queue": true,
             "kun": 1,
             "location": [
                 "2-1",
