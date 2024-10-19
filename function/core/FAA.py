@@ -1432,7 +1432,7 @@ class FAA:
             after_sleep=2,
             click=False)
         if not find:
-            return "步骤出现致命失误! 请联系开发者!"
+            return "步骤: 充值界面-点击游币兑换. 出现致命失误! 请联系开发者!"
 
         # 切换到游币选项, 准备输入一元开氪
         CUS_LOGGER.debug("充值界面 输入为1元")
@@ -1450,7 +1450,7 @@ class FAA:
             click=True,
             click_handle=self.handle_browser)
         if not find:
-            return "步骤出现致命失误! 请联系开发者!"
+            return "步骤: 充值界面-点击-氪金值输入框. 出现致命失误! 请联系开发者!"
         # 输入1
         T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle_browser, key="1")
         # 检查
@@ -1466,7 +1466,7 @@ class FAA:
             click=False
         )
         if not find:
-            return "步骤出现致命失误! 请联系开发者!"
+            return "步骤: 充值界面-复核-已选中氪金值输入框. 出现致命失误! 请联系开发者!"
 
         """点击氪金按钮 完成氪金"""
         CUS_LOGGER.debug("点击氪金按钮")
@@ -1482,7 +1482,7 @@ class FAA:
             click=True,
             click_handle=self.handle_browser)
         if not find:
-            return "步骤出现致命失误! 请联系开发者!"
+            return "步骤: 充值界面-点击-立刻充值按钮. 出现致命失误! 请联系开发者!"
 
         # 退出到 每日充值界面
         CUS_LOGGER.debug("回到 每日必充 界面")
@@ -1498,7 +1498,7 @@ class FAA:
             click=True,
             click_handle=self.handle_browser)
         if not find:
-            return "步骤出现致命失误! 请联系开发者!"
+            return "步骤: 充值界面-点击-退出充值界面按钮. 出现致命失误! 请联系开发者!"
 
         # 退出充值界面 刷新界面状态 才有领取按钮
         exit_ui()
