@@ -402,6 +402,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.CusCPS_Value.setValue(my_opt["cus_cps_value"])
             g_extra.GLOBAL_EXTRA.click_per_second = my_opt["cus_cps_value"] if my_opt["cus_cps_active"] else 160
 
+            # 最低FPS
+            self.CusLowestFPS_Active.setChecked(my_opt["cus_lowest_fps_active"])
+            self.CusLowestFPS_Value.setValue(my_opt["cus_lowest_fps_value"])
+            g_extra.GLOBAL_EXTRA.lowest_fps = my_opt["cus_lowest_fps_value"] if my_opt["cus_lowest_fps_active"] else 10
+
             # link 加载的时候不做校验
             self.MisuLogistics_Link.setText(my_opt["misu_logistics_link"])
 
@@ -576,6 +581,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["cus_cps_active"] = self.CusCPS_Active.isChecked()
             my_opt["cus_cps_value"] = self.CusCPS_Value.value()
             g_extra.GLOBAL_EXTRA.click_per_second = my_opt["cus_cps_value"] if my_opt["cus_cps_active"] else 160
+
+            # 最低FPS
+            my_opt["cus_lowest_fps_active"] = self.CusLowestFPS_Active.isChecked()
+            my_opt["cus_lowest_fps_value"] = self.CusLowestFPS_Value.value()
+            g_extra.GLOBAL_EXTRA.lowest_fps = my_opt["cus_lowest_fps_value"] if my_opt["cus_lowest_fps_active"] else 10
 
             # link 需要额外的检查
             url = self.MisuLogistics_Link.text()
