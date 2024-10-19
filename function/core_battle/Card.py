@@ -104,6 +104,9 @@ class Card:
         # 放卡间隔
         self.click_sleep = self.faa_battle.click_sleep
 
+        # 游戏最低帧间隔
+        self.frame_interval = 1 / g_extra.GLOBAL_EXTRA.lowest_fps
+
         # 状态 冷却完成 默认已完成
         self.status_cd = False
 
@@ -207,7 +210,7 @@ class Card:
             img_template=self.state_images["冷却"]
         )
 
-    def try_get_card_states_img(self):
+    def try_get_img_for_check_card_states(self):
         """
         检测目标状态图像是否已经获取
         :return: 0 获取失败 1 直接获取成功或已经获取过 2 靠试卡获取成功
@@ -231,10 +234,15 @@ class Card:
         with self.faa.battle_lock:
 
             # 点击 选中卡片 移动到空白位置
-            self.try_get_card_states_img_choice_card()
-            time.sleep(0.1)
+            self.try_get_img_for_check_card_states_choice_card()
+
+            # 等待游戏画面刷新, 这里的值为 FAA 可以正常运行识别的游戏最低FPS对应的帧间隔
+            time.sleep(self.frame_interval)
+
             T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-            time.sleep(0.5)
+
+            # 等待游戏画面刷新, * 5 以确保稳定运行
+            time.sleep(self.frame_interval * 5)
 
             current_img_clicked = self.get_card_current_img()
             if np.array_equal(current_img, current_img_clicked):
@@ -248,8 +256,10 @@ class Card:
             self.state_images["不可用"] = current_img_clicked
 
             # 放下这张卡
-            self.try_get_card_states_img_put_card()
-            time.sleep(0.5)
+            self.try_get_img_for_check_card_states_put_card()
+
+            # 等待游戏画面刷新, * 5 以确保CD较长的卡片也完成了一像素高度的冷却动画
+            time.sleep(self.frame_interval * 5)
 
         # 放卡后, 获取到的第三种颜色必须不同于另外两种, 才记录为cd色, 否则可能由于冰沙冷却效果导致录入可用为cd色.
         current_img_after_put = self.get_card_current_img()
@@ -269,11 +279,11 @@ class Card:
             CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}] 试色成功")
         return 2
 
-    def try_get_card_states_img_choice_card(self):
+    def try_get_img_for_check_card_states_choice_card(self):
         """预留接口, 让高级放卡可以仅覆写这一小部分"""
         self.choice_card()
 
-    def try_get_card_states_img_put_card(self):
+    def try_get_img_for_check_card_states_put_card(self):
         """预留接口, 让高级放卡可以仅覆写这一小部分"""
         self.put_card()
 
@@ -312,7 +322,10 @@ class Card:
 
             # 放卡
             self.put_card()
-            time.sleep(0.1)
+
+            # 等待游戏画面刷新
+            time.sleep(self.frame_interval)
+
             self.fresh_status()  # 如果放卡后还可用,自ban 若干s
 
             if self.status_usable and (self.name not in self.ban_white_list):
@@ -337,7 +350,10 @@ class Card:
 
             # 坤-放卡
             self.put_card()
-            time.sleep(0.1)
+
+            # 等待游戏画面刷新
+            time.sleep(self.frame_interval)
+
             self.card_kun.fresh_status()
 
     def destroy(self):
@@ -446,12 +462,12 @@ class SpecialCard(Card):
         # 卡片拿取的位置 - 坐标 list[x,y]
         self.location_from_cdt = self.faa.battle_plan_parsed["card"][self.set_priority]["location_from"]
 
-    def try_get_card_states_img_choice_card(self):
+    def try_get_img_for_check_card_states_choice_card(self):
         """预留接口, 让高级放卡可以仅覆写这一小部分"""
         self.use_card_before()
         self.choice_card()
 
-    def try_get_card_states_img_put_card(self):
+    def try_get_img_for_check_card_states_put_card(self):
         """预留接口, 让高级放卡可以仅覆写这一小部分"""
         self.put_card()
         self.use_card_after()
@@ -480,7 +496,6 @@ class SpecialCard(Card):
 
         # 根据玩家上互斥锁，保证放卡点击序列不会乱掉（因为多次点击还多线程操作很容易出事）
         with self.faa.battle_lock:
-
             self.use_card_before()
 
             # 点击 选中卡片

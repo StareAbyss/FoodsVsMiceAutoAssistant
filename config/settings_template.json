@@ -1087,6 +1087,8 @@
         "auto_use_card": true,
         "cus_cps_active": false,
         "cus_cps_value": 160,
+        "cus_lowest_fps_active": false,
+        "cus_lowest_fps_value": 10,
         "guild_manager_active": 0,
         "misu_logistics_link":""
     },

@@ -9364,7 +9364,7 @@ Link Start</string>
               <number>5</number>
              </property>
              <item>
-              <layout class="QVBoxLayout" name="Lay_AdvancedSettings_5" stretch="1,0,0,0">
+              <layout class="QVBoxLayout" name="Lay_AdvancedSettings_5" stretch="1,0,0,0,0">
                <property name="spacing">
                 <number>5</number>
                </property>
@@ -9512,10 +9512,10 @@ Link Start</string>
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>不激活即为使用默认值160(每秒)</string>
+                    <string>不激活即为使用默认值</string>
                    </property>
                    <property name="text">
-                    <string>自定义点击频率</string>
+                    <string>自定点击频率</string>
                    </property>
                   </widget>
                  </item>
@@ -9540,16 +9540,118 @@ Link Start</string>
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>默认值160(每秒)， 设定过高或过低的值可能造成各种问题!</string>
+                    <string>默认值160Hz(次每秒).可设定范围60-300.
+
+设定过高会导致电脑处理不完点击:
+影响战斗和非战斗操作,导致图像识别错位进而出现各种异常.
+
+设定过低会导致点击处理速度过慢:
+导致放卡效率低下,在卡片较多时,优先级较低的卡片和冰沙将不会被使用.
+
+注:单个角色的点击频率仅有该值的一半.</string>
                    </property>
                    <property name="minimum">
-                    <number>100</number>
+                    <number>60</number>
                    </property>
                    <property name="maximum">
                     <number>300</number>
                    </property>
                    <property name="value">
                     <number>160</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="Lay_AdvancedSettings_8">
+                 <property name="leftMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>5</number>
+                 </property>
+                 <item>
+                  <widget class="QCheckBox" name="CusLowestFPS_Active">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>1677215</width>
+                     <height>100</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>不激活即为使用默认值</string>
+                   </property>
+                   <property name="text">
+                    <string>自定游戏最低帧数</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="CusLowestFPS_Value">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>100</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>默认值10Hz(或者说帧),较卡电脑可以降低该值.可设定范围3-10.
+
+该设定影响放卡后, 等待设定对应的帧间隔.
+再检测卡片是否可用,若可用则认为其放满了.
+放满后的卡片将10s内不再被尝试使用. 注:帧间隔 = 1s / 设定值
+
+若设定过高,实际帧数低于设定帧数:
+会造成无法锁定放满卡片,进而反复使用,卡死队列.
+
+若设定过低,检测前等待时间过长:
+会降低放卡速度,在放卡任务较多时,优先级低的卡片和冰沙可能无法被使用.
+
+最低3,是因为帧数再低游戏就没法玩了;
+最高10,是因为该游戏架构问题Low帧很难超过该值.</string>
+                   </property>
+                   <property name="minimum">
+                    <number>3</number>
+                   </property>
+                   <property name="maximum">
+                    <number>10</number>
+                   </property>
+                   <property name="value">
+                    <number>10</number>
                    </property>
                   </widget>
                  </item>
