@@ -96,7 +96,7 @@ def main():
     mover.add_file("[入门]FAA从入门到神殿.pdf")
     mover.add_file("LICENSE")
     mover.add_file("README.md")
-    mover.add_file("高级放卡.md")
+    mover.add_file("README - 高级放卡.md")
     mover.add_file("致谢名单.md")
     mover.add_file("致谢名单.png")
     mover.add_file("logs/item_ranking_dag_graph.json")

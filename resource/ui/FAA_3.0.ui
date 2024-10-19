@@ -2818,7 +2818,7 @@ Link Start</string>
                </property>
                <property name="toolTip">
                 <string>45把掉落衰减: 占用
-双倍掉落：可以使用</string>
+双倍掉落：可用，但无必要</string>
                </property>
                <property name="text">
                 <string>情侣任务 *</string>
@@ -3215,7 +3215,7 @@ Link Start</string>
                </property>
                <property name="toolTip">
                 <string>45把掉落衰减: 占用
-双倍掉落：可以使用</string>
+双倍掉落：可用，但无必要</string>
                </property>
                <property name="text">
                 <string>公会任务 *</string>
@@ -3651,8 +3651,12 @@ Link Start</string>
                 </size>
                </property>
                <property name="toolTip">
-                <string>该功能会无限循环
-直至没有任务或所有任务均已失败三次被跳过</string>
+                <string>使用FAA-文字识别技术 X 语义解析
+自动生成战斗方案
+该功能会无限循环
+直至没有任务
+或所有任务均已失败三次被跳过.
+更多详情见战斗逻辑介绍相应章节.</string>
                </property>
                <property name="text">
                 <string>全自动识别-大赛</string>
@@ -3881,7 +3885,8 @@ Link Start</string>
                </property>
                <property name="toolTip">
                 <string>该功能会无限循环
-直至游戏崩溃或定时启动其他任务将其中断</string>
+直至游戏崩溃
+或定时启动其他任务将其中断</string>
                </property>
                <property name="text">
                 <string>跨服副本-威望</string>
@@ -4349,7 +4354,7 @@ Link Start</string>
                </property>
                <property name="toolTip">
                 <string>45把掉落衰减: 不占用
-双倍掉落：可以使用</string>
+双倍掉落：可用，但无必要</string>
                </property>
                <property name="text">
                 <string>萌宠神殿-单人</string>
@@ -4970,7 +4975,7 @@ Link Start</string>
                </property>
                <property name="toolTip">
                 <string>45把掉落衰减: 不占用
-双倍掉落：可以使用</string>
+双倍掉落：可用，但无必要</string>
                </property>
                <property name="text">
                 <string>公会副本</string>
@@ -5231,7 +5236,7 @@ Link Start</string>
                </property>
                <property name="toolTip">
                 <string>45把掉落衰减: 不占用
-双倍掉落：可以使用</string>
+双倍掉落：可用，但无必要</string>
                </property>
                <property name="text">
                 <string>火山遗迹</string>
@@ -5282,7 +5287,7 @@ Link Start</string>
                </property>
                <property name="toolTip">
                 <string>45把掉落衰减: 不占用
-双倍掉落：可以使用</string>
+双倍掉落：可用，但无必要</string>
                </property>
                <property name="text">
                 <string>萌宠神殿-单人</string>
@@ -5795,7 +5800,7 @@ Link Start</string>
                </property>
                <property name="toolTip">
                 <string>45把掉落衰减: 占用
-双倍掉落：可以使用</string>
+双倍掉落：可用，但无必要</string>
                </property>
                <property name="text">
                 <string>悬赏任务 *</string>
@@ -6039,7 +6044,7 @@ Link Start</string>
                </property>
                <property name="toolTip">
                 <string>45把掉落衰减: 不占用
-双倍掉落：可以使用</string>
+双倍掉落：可用，但无必要</string>
                </property>
                <property name="text">
                 <string>跨服副本</string>
@@ -7470,8 +7475,7 @@ Link Start</string>
                </property>
                <property name="toolTip">
                 <string>允许您编辑任意关卡组合进行作战.
-推荐您在对FAA有一定了解后再使用.
-</string>
+推荐您在对FAA有一定了解后再使用.</string>
                </property>
                <property name="text">
                 <string>高级自定义作战</string>
