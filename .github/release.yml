@@ -11,9 +11,12 @@ changelog:
     - title: 修复
       labels:
         - Git-Fix
-    - title: 资源文件
+    - title: 资源
       labels:
         - Git-Build
+    - title: 文档
+      labels:
+        - Git-Docs
     - title: 其他
       labels:
         - "*"
