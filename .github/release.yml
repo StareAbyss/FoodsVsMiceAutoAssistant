@@ -1,3 +1,5 @@
+# .github/release.yml
+
 changelog:
   categories:
     - title: 新增
