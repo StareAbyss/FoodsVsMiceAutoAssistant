@@ -424,7 +424,7 @@ class CardKun(Card):
 
 
 class SpecialCard(Card):
-    def __init__(self, faa, set_priority, card_type, energy=None, rows=None, cols=None):
+    def __init__(self, faa, set_priority, card_type, energy=None, rows=None, cols=None,n_card=None):
 
         # 继承父类初始化
         super().__init__(faa=faa, set_priority=set_priority)
@@ -444,7 +444,7 @@ class SpecialCard(Card):
         self.cols = cols
 
         # 建立特殊卡护罩(炸弹护罩) 与 常规卡护罩 之间的连接 以暂时屏蔽其可用性
-        self.n_card = None
+        self.n_card = n_card
 
         # 卡片自身的location_to 是空的 保存到模板
         # 卡片放置的位置 - 代号 list["1-1",...]
@@ -497,7 +497,7 @@ class SpecialCard(Card):
         # 根据玩家上互斥锁，保证放卡点击序列不会乱掉（因为多次点击还多线程操作很容易出事）
         with self.faa.battle_lock:
             self.use_card_before()
-
+            time.sleep(0.5)#真的是必要的间隔，不然会发现铲是铲了，但是把当前正在放的卡铲了（
             # 点击 选中卡片
             self.choice_card()
             time.sleep(self.click_sleep)
@@ -524,11 +524,4 @@ class SpecialCard(Card):
             # 特殊卡用完当护罩得给他改回常驻卡可用状态
             self.n_card.can_use = True
 
-# # 示例使用
-# card_name = "电音镭射喵"
-# result = is_special_card(card_name)
-#
-# if result["found"]:
-#     print(f"{card_name} 是特殊卡，位于子目录：{result['subdir_name']},耗能为{result['energy']},类型为{result['card_type']}")
-# else:
-#     print(f"{card_name} 不是特殊卡，未找到匹配文件。")
+
