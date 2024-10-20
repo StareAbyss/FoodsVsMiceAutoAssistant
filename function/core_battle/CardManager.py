@@ -54,7 +54,14 @@ def is_special_card(card_name):
 
     # 如果没有找到匹配的文件，返回匹配状态为False
     return {"found": False}
-
+# # 示例使用
+# card_name = "电音镭射喵"
+# result = is_special_card(card_name)
+#
+# if result["found"]:
+#     print(f"{card_name} 是特殊卡，位于子目录：{result['subdir_name']},耗能为{result['energy']},类型为{result['card_type']}")
+# else:
+#     print(f"{card_name} 不是特殊卡，未找到匹配文件。")
 
 class CardManager:
 
@@ -62,7 +69,7 @@ class CardManager:
         """
         :param faa_1: 1P
         :param faa_2: 2P
-        :param solve_queue: 识别列表.? 如果为None 高级战斗不会激活
+        :param solve_queue: 高危目标待解决列表 如果为None 说明高级战斗未激活
         :param check_interval:
         """
         super().__init__()
@@ -168,8 +175,14 @@ class CardManager:
                     if result["card_type"] == 12:
                         # 护罩类，除了炸弹还可能是常驻的罩子
                         card_shield = Card(faa=faa, set_priority=set_priority)
-                        # 建立特殊卡护罩与常规卡护罩之间的连接
-                        s_card.n_card = card_shield
+                        s_card = SpecialCard(
+                            faa=faa,
+                            set_priority=set_priority,
+                            energy=result["energy"],
+                            card_type=result["card_type"],
+                            rows=result["rows"],
+                            cols=result["cols"],
+                            n_card = card_shield)# 建立特殊卡护罩与常规卡护罩之间的连接
                         # 以特殊卡加入特殊放卡
                         self.shield_dict_list[pid].append(s_card)
                         # 以普通卡版本加入放卡
@@ -505,10 +518,10 @@ class ThreadUseSpecialCardTimer(QThread):
     def __init__(self, faa_dict, check_interval, read_queue, is_group,
                  bomb_card_list, ice_boom_dict_list, the_9th_fan_dict_list, shield_dict_list):
         """
-        :param faa_dict:
-        :param check_interval:
-        :param read_queue:
-        :param is_group:
+        :param faa_dict:faa实例字典
+        :param check_interval:读取频率
+        :param read_queue:高危目标队列
+        :param is_group:是否组队
         :param bomb_card_list: 该类卡片为炸弹 在战斗方案中写入其from位置 在此处计算得出to位置 并进行其使用
         :param ice_boom_dict_list: 该类卡片为冰冻 在战斗方案中指定其from和to位置 在此处仅进行使用
         :param the_9th_fan_dict_list: 该类卡片为草扇 在战斗方案中指定其from和to位置 在此处仅进行使用
@@ -567,8 +580,6 @@ class ThreadUseSpecialCardTimer(QThread):
         self.pid_list = [1, 2] if self.is_group else [1]
 
         # 没有1000火的角色 从pid list中移除
-        for pid in self.pid_list:
-            faa = self.faa_dict[pid]
         self.pid_list = [pid for pid in self.pid_list if self.faa_dict[pid].faa_battle.fire_elemental_1000]
         if not self.pid_list:
             return
@@ -578,6 +589,8 @@ class ThreadUseSpecialCardTimer(QThread):
         if wave or god_wind or need_boom_positions:  # 任意一个就刷新状态
             CUS_LOGGER.debug(f"刷新特殊放卡状态")
             self.todo_dict = {1: [], 2: []}  # 1 2 对应两个角色
+        else:
+            return
 
         def wave_or_god_wind_append_to_todo(card_list) -> None:
 
@@ -585,7 +598,7 @@ class ThreadUseSpecialCardTimer(QThread):
 
                 not_got_state_images_card = [card for card in card_list[pid] if card.state_images["冷却"] is None]
 
-                # 还有未完成试色的卡片, 直接指定其中一张计入计算
+                # 还有未完成试色的卡片, 直接指定其中一张使用并试色
                 if not_got_state_images_card:
                     self.todo_dict[pid].append({
                         "card": not_got_state_images_card[0],
@@ -630,7 +643,12 @@ class ThreadUseSpecialCardTimer(QThread):
                     self.card_list_can_use[pid] = not_got_state_images_cards
                 else:
                     # 如果均完成了状态监测, 则将所有状态为可用的卡片加入待处理列表中
-                    self.card_list_can_use[pid] = [card for card in self.special_card_list[pid] if card.status_usable]
+                    self.card_list_can_use[pid] = []
+                    for card in self.special_card_list[pid]:
+                        card.fresh_status()
+                        if card.status_usable:
+                            self.card_list_can_use[pid].append(card)
+
 
             result = solve_special_card_problem(
                 points_to_cover=need_boom_positions,
@@ -644,7 +662,7 @@ class ThreadUseSpecialCardTimer(QThread):
                     for card, pos in strategy_dict[pid].items():
                         # 将计算完成的放卡结构 写入到对应角色的todo dict 中
                         self.todo_dict[pid].append({"card": card, "position_to_code": [f"{pos[0]}-{pos[1]}"]})
-                        # 记录某个角色的某个护罩已经被使用过
+                        # 记录某个角色的某个护罩将要用于特殊对策放卡
                         if card.card_type == 12:
                             self.shield_used_dict_list[pid].append(card)
 
@@ -659,6 +677,7 @@ class ThreadUseSpecialCardTimer(QThread):
 
         if wave or god_wind or need_boom_positions:  # 任意一个就刷新状态
             CUS_LOGGER.debug(f"特殊用卡队列: {self.todo_dict}")
+            CUS_LOGGER.debug(f"0.01秒后开始特殊对策卡放卡")
             self.timer = Timer(self.interval_use_special_card / 200, self.use_card, args=(1,))  # 1p0.01秒后开始放卡
             self.timer.start()  # 按todolist用卡
             self.timer = Timer(self.interval_use_special_card / 200, self.use_card, args=(2,))  # 2p0.01秒后开始放卡
