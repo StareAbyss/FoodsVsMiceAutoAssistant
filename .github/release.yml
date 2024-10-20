@@ -13,7 +13,7 @@ changelog:
         - Git-Fix
     - title: 资源文件
       labels:
-        - Git-Biuld
+        - Git-Build
     - title: 其他
       labels:
         - "*"
