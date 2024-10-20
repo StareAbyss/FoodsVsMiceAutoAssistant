@@ -1,0 +1,17 @@
+changelog:
+  categories:
+    - title: 新增
+      labels:
+        - Git-Feat
+    - title: 优化
+      labels:
+        - Git-Perf
+    - title: 修复
+      labels:
+        - Git-Fix
+    - title: 资源文件
+      labels:
+        - Git-Biuld
+    - title: 其他
+      labels:
+        - "*"
