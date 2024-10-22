@@ -724,6 +724,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
 
 def faa_start_main():
+
     # 实例化 PyQt后台管理
     app = QtWidgets.QApplication(sys.argv)
 
