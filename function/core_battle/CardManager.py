@@ -10,8 +10,8 @@ from function.core_battle.CardQueue import CardQueue
 from function.core_battle.special_card_strategy import solve_special_card_problem
 from function.globals import g_extra
 from function.globals.get_paths import PATHS
+from function.globals.location_card_cell_in_battle import COORDINATE_CARD_CELL_IN_BATTLE
 from function.globals.log import CUS_LOGGER
-from function.globals.position_card_cell_in_battle import POSITION_CARD_CELL_IN_BATTLE
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
@@ -111,7 +111,7 @@ class CardManager:
 
         self.is_initialized = True  # 初始化完了
 
-        # 对象分析 打包务必注释掉！
+        # 对象分析 打包 务必 注释 掉 ！
         # objgraph.show_most_common_types()
         # objgraph.show_growth()
 
@@ -190,7 +190,7 @@ class CardManager:
 
         for pid in self.pid_list:
             # 添加坤
-            if self.faa_dict[pid].kun_position:
+            if self.faa_dict[pid].kun_info:
                 card_kun = CardKun(faa=self.faa_dict[pid])
                 print(card_kun, "成功创建 card kun")
                 self.card_kun_dict[pid] = card_kun
@@ -223,7 +223,7 @@ class CardManager:
         for i in self.pid_list:
             self.thread_dict[i] = ThreadCheckTimer(
                 card_queue=self.card_queue_dict[i],
-                card_kun=self.card_kun_dict[i] if (i in self.card_kun_dict.keys()) else None,
+                card_kun=self.card_kun_dict.get(i, None),
                 faa=self.faa_dict[i],
                 check_interval=self.check_interval
             )
@@ -573,9 +573,9 @@ class ThreadUseSpecialCardTimer(QThread):
         if not self.pid_list:
             return
 
-        wave, god_wind, need_boom_positions = result  # 分别为是否波次，是否神风及待炸点位列表
+        wave, god_wind, need_boom_locations = result  # 分别为是否波次，是否神风及待炸点位列表
 
-        if wave or god_wind or need_boom_positions:  # 任意一个就刷新状态
+        if wave or god_wind or need_boom_locations:  # 任意一个就刷新状态
             CUS_LOGGER.debug(f"刷新特殊放卡状态")
             self.todo_dict = {1: [], 2: []}  # 1 2 对应两个角色
 
@@ -589,7 +589,7 @@ class ThreadUseSpecialCardTimer(QThread):
                 if not_got_state_images_card:
                     self.todo_dict[pid].append({
                         "card": not_got_state_images_card[0],
-                        "position_to_code": not_got_state_images_card[0].location_to_code_template
+                        "location_to": not_got_state_images_card[0].location_to_template
                     })
                     return
 
@@ -599,7 +599,7 @@ class ThreadUseSpecialCardTimer(QThread):
                     if card.status_usable:
                         self.todo_dict[pid].append({
                             "card": card,
-                            "position_to_code": card.location_to_code_template})
+                            "location_to": card.location_to_template})
                         return
 
         if wave:
@@ -608,7 +608,7 @@ class ThreadUseSpecialCardTimer(QThread):
         if god_wind:
             wave_or_god_wind_append_to_todo(card_list=self.the_9th_fan_dict_list)
 
-        if need_boom_positions:
+        if need_boom_locations:
             self.card_list_can_use = {1: [], 2: []}
             self.shield_used_dict_list = {1: [], 2: []}
 
@@ -633,7 +633,7 @@ class ThreadUseSpecialCardTimer(QThread):
                     self.card_list_can_use[pid] = [card for card in self.special_card_list[pid] if card.status_usable]
 
             result = solve_special_card_problem(
-                points_to_cover=need_boom_positions,
+                points_to_cover=need_boom_locations,
                 obstacles=self.faa_dict[1].battle_plan_parsed["obstacle"],
                 card_list_can_use=self.card_list_can_use)
 
@@ -643,7 +643,7 @@ class ThreadUseSpecialCardTimer(QThread):
                 for pid in self.pid_list:
                     for card, pos in strategy_dict[pid].items():
                         # 将计算完成的放卡结构 写入到对应角色的todo dict 中
-                        self.todo_dict[pid].append({"card": card, "position_to_code": [f"{pos[0]}-{pos[1]}"]})
+                        self.todo_dict[pid].append({"card": card, "location_to": [f"{pos[0]}-{pos[1]}"]})
                         # 记录某个角色的某个护罩已经被使用过
                         if card.card_type == 12:
                             self.shield_used_dict_list[pid].append(card)
@@ -657,7 +657,7 @@ class ThreadUseSpecialCardTimer(QThread):
                 for card in unused_shields:
                     card.n_card.can_use = True
 
-        if wave or god_wind or need_boom_positions:  # 任意一个就刷新状态
+        if wave or god_wind or need_boom_locations:  # 任意一个就刷新状态
             CUS_LOGGER.debug(f"特殊用卡队列: {self.todo_dict}")
             self.timer = Timer(self.interval_use_special_card / 200, self.use_card, args=(1,))  # 1p0.01秒后开始放卡
             self.timer.start()  # 按todolist用卡
@@ -678,25 +678,25 @@ class ThreadUseSpecialCardTimer(QThread):
 
             card = todo["card"]
             # format [‘x-y’,'x-y',...]
-            card.location_to_code = todo["position_to_code"]
+            card.location_to = todo["location_to"]
             # format [[x,y],[x,y]...]
-            card.location_to_cdt = [POSITION_CARD_CELL_IN_BATTLE[l] for l in card.location_to_code]
+            card.coordinate_to = [COORDINATE_CARD_CELL_IN_BATTLE[l] for l in card.location_to]
 
             result = card.try_get_img_for_check_card_states()
             if result == 0:
                 # 什么? 怎么可能居然获取失败了?!
-                card.location_to_code = []  # 清空location_to
-                card.location_to_cdt = []  # 清空location_to
+                card.location_to = []  # 清空location_to
+                card.coordinate_to = []  # 清空location_to
                 continue
             elif result == 1:
                 # 之前已经判定过肯定是获取到的
                 card.use_card()
-                card.location_to_code = []  # 清空location_to
-                card.location_to_cdt = []  # 清空location_to
+                card.location_to = []  # 清空location_to
+                card.coordinate_to = []  # 清空location_to
             elif result == 2:
                 # 直接就通过试色完成了使用!
-                card.location_to_code = []  # 清空location_to
-                card.location_to_cdt = []  # 清空location_to
+                card.location_to = []  # 清空location_to
+                card.coordinate_to = []  # 清空location_to
                 continue
 
             # 清空对应任务

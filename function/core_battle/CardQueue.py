@@ -61,7 +61,7 @@ class CardQueue(queue.PriorityQueue):
         card = self.peek()[1]
 
         # 卡片没有需要放置的位置 如果该卡正好是全新的卡背+没有可放置位置 会卡死 所以只要没有可放位置就移出队列
-        if not card.location_to_cdt:
+        if not card.coordinate_to:
             self.get()
             self.card_using = False
             return

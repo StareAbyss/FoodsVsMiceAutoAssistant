@@ -1,7 +1,7 @@
 import math
 
 
-def parse_positions(coordinates, base_info):
+def parse_positions(coordinate, base_info):
     # 更新边界和分割数量
     x_min, x_max = 303, 839
     y_min, y_max = 110, 560
@@ -24,11 +24,11 @@ def parse_positions(coordinates, base_info):
             continue
 
         elif base_value in [0, 1, 2, 3, 6]:
-            x = coordinates[index][0] + 0.5 * coordinates[index][2]
+            x = coordinate[index][0] + 0.5 * coordinate[index][2]
             if base_value == 1:
-                y = coordinates[index][1] + 0.5 * coordinates[index][3] + 50
+                y = coordinate[index][1] + 0.5 * coordinate[index][3] + 50
             else:
-                y = coordinates[index][1] + 0.5 * coordinates[index][3]
+                y = coordinate[index][1] + 0.5 * coordinate[index][3]
 
             # 将坐标映射到分割后的格子
             if x < x_min:
@@ -47,11 +47,11 @@ def parse_positions(coordinates, base_info):
 
 # 示例调用
 # base_info = [0, 0, 1, 6, 2, 2, 1]
-# coordinates = [
+# coordinate = [
 #     [1000, 1000], [400, 200], [500, 300], [700, 500],
 #     [600, 600], [750, 700], [350, 100]
 # ]
-# wave, godwind, positions = parse_positions(base_info, coordinates)
+# wave, godwind, positions = parse_positions(base_info, coordinate)
 # print("Wave:", wave)
 # print("Godwind:", godwind)
 # print("Positions:", positions)

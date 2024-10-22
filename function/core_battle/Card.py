@@ -11,6 +11,13 @@ from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
+"""
+重要提醒：
+FAA 的 放卡位置 的变量有两种
+location 为格子 str 格式 例如 "1-1","3-7" 
+coordinate 为坐标 list[x:int,y:int] 格式 例如 [500,600], [300,200]
+"""
+
 
 def compare_pixels(img_source, img_template):
     """
@@ -73,19 +80,16 @@ class Card:
         """从 FAA类 的 battle_plan_parsed 中读取的属性"""
         # 根据优先级（也是在战斗方案中的index）直接读取faa
         self.name = self.faa.battle_plan_parsed["card"][set_priority]["name"]
-        self.id = self.faa.battle_plan_parsed["card"][set_priority]["id"]
-
         self.ergodic = self.faa.battle_plan_parsed["card"][set_priority]["ergodic"]
         self.queue = self.faa.battle_plan_parsed["card"][set_priority]["queue"]
 
-        # 卡片放置的位置 - 代号 list["1-1",...]
-        self.location_to_code = self.faa.battle_plan_parsed["card"][set_priority]["location"]
+        # 卡片拿去的位置 - 代号 int 和 坐标 list[x,y]
+        self.id = self.faa.battle_plan_parsed["card"][set_priority]["id"]
+        self.coordinate_from = self.faa.battle_plan_parsed["card"][set_priority]["coordinate_from"]
 
-        # 卡片放置的位置 - 坐标 list[[x,y],....]
-        self.location_to_cdt = self.faa.battle_plan_parsed["card"][set_priority]["location_to"]
-
-        # 卡片拿取的位置 - 坐标 list[x,y]
-        self.location_from_cdt = self.faa.battle_plan_parsed["card"][set_priority]["location_from"]
+        # 卡片放置的位置 - 代号 list["1-1",...] 和 坐标 list[[x,y],....]
+        self.location_to = self.faa.battle_plan_parsed["card"][set_priority]["location"]
+        self.coordinate_to = self.faa.battle_plan_parsed["card"][set_priority]["coordinate_to"]
 
         # 坤优先级
         self.kun = self.faa.battle_plan_parsed["card"][set_priority]["kun"]
@@ -134,27 +138,23 @@ class Card:
         """
         T_ACTION_QUEUE_TIMER.add_click_to_queue(
             handle=self.handle,
-            x=self.location_from_cdt[0] + 25,
-            y=self.location_from_cdt[1] + 35)
+            x=self.coordinate_from[0] + 25,
+            y=self.coordinate_from[1] + 35)
 
     def put_card(self):
         """
         在取卡后, 放下一张卡并更改内部数组的全套操作
         """
 
-        if self.ergodic:
-            # 遍历模式: True 遍历该卡每一个可以放的位置
-            my_to_list = range(len(self.location_to_code))
-        else:
-            # 遍历模式: False 只放第一张, 为保证放下去, 同一个位置点两次
-            my_to_list = [0, 0]
-
-        for j in my_to_list:
+        # 遍历模式: True 遍历该卡每一个可以放的位置
+        # 遍历模式: False 只放第一张, 为保证放下去, 同一个位置点两次
+        put_to_index_list = range(len(self.coordinate_to)) if self.ergodic else [0, 0]
+        for j in put_to_index_list:
             # 点击 放下卡片
             T_ACTION_QUEUE_TIMER.add_click_to_queue(
                 handle=self.handle,
-                x=self.location_to_cdt[j][0],
-                y=self.location_to_cdt[j][1])
+                x=self.coordinate_to[j][0],
+                y=self.coordinate_to[j][1])
             time.sleep(self.click_sleep)
 
         # 放卡后点一下空白
@@ -164,12 +164,12 @@ class Card:
         time.sleep(self.click_sleep)
 
         # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
-        if self.queue and len(self.location_to_code) > 0 and len(self.location_to_cdt) > 0:
-            if self.location_to_code:
-                self.location_to_code.append(self.location_to_code[0])
-                self.location_to_code.remove(self.location_to_code[0])
-                self.location_to_cdt.append(self.location_to_cdt[0])
-                self.location_to_cdt.remove(self.location_to_cdt[0])
+        if self.queue and len(self.location_to) > 0 and len(self.coordinate_to) > 0:
+            if self.coordinate_to:
+                self.location_to.append(self.location_to[0])
+                self.location_to.remove(self.location_to[0])
+                self.coordinate_to.append(self.coordinate_to[0])
+                self.coordinate_to.remove(self.coordinate_to[0])
 
     def get_card_current_img(self, game_image=None):
         """
@@ -177,9 +177,9 @@ class Card:
         :param game_image: 可选, 是否从已有的完成游戏图像中拆解, 不截图
         :return:
         """
-        x1 = self.location_from_cdt[0]
+        x1 = self.coordinate_from[0]
         x2 = x1 + 53
-        y1 = self.location_from_cdt[1]
+        y1 = self.coordinate_from[1]
         y2 = y1 + 70
 
         if game_image is None:
@@ -403,7 +403,7 @@ class CardKun(Card):
 
         """直接从FAA类读取的属性"""
         # 坐标 [x,y] 和普通卡片不同 需要复写
-        self.location_from_cdt = self.faa.kun_position["location_from"]
+        self.coordinate_from = self.faa.kun_info["coordinate_from"]
 
         # 无法正常读取到自身名称 需要复写
         self.name = "幻幻鸡"
@@ -424,7 +424,7 @@ class CardKun(Card):
 
 
 class SpecialCard(Card):
-    def __init__(self, faa, set_priority, card_type, energy=None, rows=None, cols=None,n_card=None):
+    def __init__(self, faa, set_priority, card_type, energy=None, rows=None, cols=None, n_card=None):
 
         # 继承父类初始化
         super().__init__(faa=faa, set_priority=set_priority)
@@ -448,19 +448,15 @@ class SpecialCard(Card):
 
         # 卡片自身的location_to 是空的 保存到模板
         # 卡片放置的位置 - 代号 list["1-1",...]
-        self.location_to_code = []
+        self.location_to = []
+        self.location_to_template = self.faa.battle_plan_parsed["card"][self.set_priority]["location"]
 
         # 卡片放置的位置 - 坐标 list[[x,y],....]
-        self.location_to_cdt = []
-
-        # 卡片放置的位置 - 代号 list["1-1",...]
-        self.location_to_code_template = self.faa.battle_plan_parsed["card"][self.set_priority]["location"]
-
-        # 卡片放置的位置 - 坐标 list[[x,y],....]
-        self.location_to_cdt_template = self.faa.battle_plan_parsed["card"][self.set_priority]["location_to"]
+        self.coordinate_to = []
+        self.coordinate_to_template = self.faa.battle_plan_parsed["card"][self.set_priority]["coordinate_to"]
 
         # 卡片拿取的位置 - 坐标 list[x,y]
-        self.location_from_cdt = self.faa.battle_plan_parsed["card"][self.set_priority]["location_from"]
+        self.coordinate_from = self.faa.battle_plan_parsed["card"][self.set_priority]["coordinate_from"]
 
     def try_get_img_for_check_card_states_choice_card(self):
         """预留接口, 让高级放卡可以仅覆写这一小部分"""
@@ -475,18 +471,18 @@ class SpecialCard(Card):
     def use_mat_card(self):
 
         # 加一个垫子的判断 点位要放承载卡
-        if self.location_to_code[0] in self.faa.battle_plan_parsed["mat"]:
+        if self.location_to[0] in self.faa.battle_plan_parsed["mat"]:
 
-            for mat in self.faa.mat_card_positions:
+            for mat in self.faa.mat_cards_info:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
-                    x=mat["location_from"][0] + 5,
-                    y=mat["location_from"][1] + 5)
+                    x=mat["coordinate_from"][0] + 5,
+                    y=mat["coordinate_from"][1] + 5)
                 time.sleep(self.click_sleep)
 
                 # 点击 放下卡片
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                    handle=self.handle, x=self.location_to_cdt[0][0], y=self.location_to_cdt[0][1])
+                    handle=self.handle, x=self.coordinate_to[0][0], y=self.coordinate_to[0][1])
         time.sleep(self.click_sleep)
 
     def use_card(self):
@@ -497,7 +493,7 @@ class SpecialCard(Card):
         # 根据玩家上互斥锁，保证放卡点击序列不会乱掉（因为多次点击还多线程操作很容易出事）
         with self.faa.battle_lock:
             self.use_card_before()
-            time.sleep(0.5)#真的是必要的间隔，不然会发现铲是铲了，但是把当前正在放的卡铲了（
+            time.sleep(0.5)  # 真的是必要的间隔，不然会发现铲是铲了，但是把当前正在放的卡铲了（
             # 点击 选中卡片
             self.choice_card()
             time.sleep(self.click_sleep)
@@ -510,7 +506,7 @@ class SpecialCard(Card):
     def use_card_before(self):
 
         # 铲子的调用
-        self.faa_battle.use_shovel(x=self.location_to_cdt[0][0], y=self.location_to_cdt[0][1])
+        self.faa_battle.use_shovel(x=self.coordinate_to[0][0], y=self.coordinate_to[0][1])
 
         # 加一个垫子的判断 点位要放承载卡
         self.use_mat_card()
@@ -518,10 +514,8 @@ class SpecialCard(Card):
     def use_card_after(self):
 
         if self.need_shovel:  # 是否要秒铲
-            self.faa_battle.use_shovel(x=self.location_to_cdt[0][0], y=self.location_to_cdt[0][1])
+            self.faa_battle.use_shovel(x=self.coordinate_to[0][0], y=self.coordinate_to[0][1])
 
         if self.n_card:
             # 特殊卡用完当护罩得给他改回常驻卡可用状态
             self.n_card.can_use = True
-
-
