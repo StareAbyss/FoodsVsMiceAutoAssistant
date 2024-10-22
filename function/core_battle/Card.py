@@ -158,9 +158,9 @@ class Card:
             time.sleep(self.click_sleep)
 
         # 放卡后点一下空白
-        T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
+        T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=295, y=485)  # 曾 200, 350
         time.sleep(self.click_sleep)
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=295, y=485)
         time.sleep(self.click_sleep)
 
         # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
