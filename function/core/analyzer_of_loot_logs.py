@@ -50,7 +50,7 @@ def match_items_from_image_and_save(img_save_path, image, mode='loots', test_pri
     block_list = split_image_to_blocks(image=image, mode=mode)
 
     # 保存最佳匹配道具的识图数据
-    best_match_items = {}
+    best_match_items = []
     # 保留上一次的识别图片名
     last_name = None
 
@@ -75,11 +75,7 @@ def match_items_from_image_and_save(img_save_path, image, mode='loots', test_pri
                 break
 
             if best_match_item:
-                # 如果道具ID已存在，则增加数量，否则初始化数量为1
-                if best_match_item in best_match_items:
-                    best_match_items[best_match_item] += 1
-                else:
-                    best_match_items[best_match_item] = 1
+                best_match_items.append(best_match_item)
 
                 # 如果不是识别失败,就暂时保存上一次的图片名,下次识图开始时额外识别一次上一次图片
             if best_match_item != "识别失败":
@@ -108,11 +104,7 @@ def match_items_from_image_and_save(img_save_path, image, mode='loots', test_pri
                 best_match_item_with_locked = best_match_item
 
             if best_match_item:
-                # 如果道具名称已存在，则增加数量，否则初始化数量为1
-                if best_match_item_with_locked in best_match_items:
-                    best_match_items[best_match_item_with_locked] += 1
-                else:
-                    best_match_items[best_match_item_with_locked] = 1
+                best_match_items.append(best_match_item_with_locked)
 
             # 如果不是识别失败,就暂时保存上一次的图片名,下次识图开始时额外识别一次上一次图片
             if best_match_item != "识别失败":
@@ -156,7 +148,7 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
     :param list_iter: 迭代器
     :param last_name: 上次名称
     :param may_locked: 是否检测潜在的绑定物品
-    :return: 优秀匹配结果, 迭代器, 是否是绑定的
+    :return: str: 优秀匹配结果物品名称 or "识别失败" , 迭代器, 是否是绑定的
     """
 
     item_is_bind = False
@@ -202,6 +194,7 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
         is_it, _ = one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable")
         if is_it:
             return item_name, list_iter, False
+
     """识别失败"""
 
     def save_unmatched_block(img_block):

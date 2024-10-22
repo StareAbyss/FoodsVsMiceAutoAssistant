@@ -375,7 +375,7 @@ class BattleARoundPreparation:
 
         return image
 
-    def capture_and_match_loots(self) -> dict:
+    def capture_and_match_loots(self) -> list:
         """
         :return: 捕获的战利品dict
         """
@@ -424,21 +424,21 @@ class BattleARoundPreparation:
             img = self.action_and_capture_loots()
 
             # 分析图片，获取战利品字典
-            drop_dict = match_items_from_image_and_save(
+            drop_list = match_items_from_image_and_save(
                 img_save_path=img_path,
                 image=img,
                 mode='loots',
                 test_print=True)
-            print_info(text="[捕获战利品] 处在战利品UI 战利品已 捕获/识别/保存".format(drop_dict))
+            print_info(text="[捕获战利品] 处在战利品UI 战利品已 捕获/识别/保存".format(drop_list))
 
-            return drop_dict
+            return drop_list
 
         else:
             print_info(text="[捕获战利品] 未在战利品UI 可能由于延迟未能捕获战利品, 继续流程")
 
-            return {}
+            return []
 
-    def capture_and_match_treasure_chests(self) -> dict:
+    def capture_and_match_treasure_chests(self) -> list:
 
         handle = self.faa.handle
         handle_360 = self.faa.handle_360
@@ -491,12 +491,12 @@ class BattleARoundPreparation:
             )
 
             # 分析图片，获取战利品字典
-            drop_dict = match_items_from_image_and_save(
+            drop_list = match_items_from_image_and_save(
                 img_save_path=img_path,
                 image=img
                 , mode="chests",
                 test_print=True)
-            print_info(text="[翻宝箱UI] 宝箱已 捕获/识别/保存".format(drop_dict))
+            print_info(text="[翻宝箱UI] 宝箱已 捕获/识别/保存".format(drop_list))
 
             # 组队2P慢点结束翻牌 保证双人魔塔后自己是房主
             if is_group and player == 2:
@@ -506,16 +506,16 @@ class BattleARoundPreparation:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=502)
             time.sleep(3)
 
-            return drop_dict
+            return drop_list
 
         else:
             print_warning(text="[翻宝箱UI] 15s未能捕获正确标志, 出问题了!")
-            return {}
+            return []
 
     def perform_action_capture_match_for_loots_and_chests(self):
         """
         战斗结束后, 完成下述流程: 潜在的任务完成黑屏-> 战利品 -> 战斗结算 -> 翻宝箱 -> 回到房间/魔塔会回到其他界面
-        :return: int 状态码; None或dict, 该dict格式一定是 {"loots": {...}, "chests": {...}}
+        :return: int 状态码; None或dict, {"loots": [], "chests": []}
         """
 
         print_debug = self.faa.print_debug
@@ -525,13 +525,13 @@ class BattleARoundPreparation:
         print_debug(text="识别到多种战斗结束标志之一, 进行收尾工作")
 
         # 战利品部分, 会先检测是否在对应界面
-        loots_dict = self.capture_and_match_loots()
+        loots_list = self.capture_and_match_loots()
 
         # 翻宝箱部分, 会先检测是否在对应界面
-        chests_dict = self.capture_and_match_treasure_chests()
+        chests_list = self.capture_and_match_treasure_chests()
 
         # 重整化 loots_dict 和 chests_dict 一定是dict()
-        result_loot = {"loots": loots_dict, "chests": chests_dict}
+        result_loot = {"loots": loots_list, "chests": chests_list}
 
         if screen_check_server_boom():
             print_warning(text="检测到 断开连接 or 登录超时 or Flash爆炸, 炸服了")
