@@ -1355,7 +1355,9 @@ class FAA:
         return main()
 
     def sign_top_up_money(self):
-        """日氪一元! 仅限4399 游币哦!"""
+        """日氪一元! 仅限4399 游币哦!
+        为什么这么慢! 因为... 锑食太卡了!
+        """
 
         def exit_ui():
             # 确定退出了该界面
@@ -1368,7 +1370,7 @@ class FAA:
                     match_tolerance=0.99,
                     match_interval=0.2,
                     match_failed_check=5,
-                    after_sleep=2,
+                    after_sleep=4,
                     click=False)
                 if not find_i:
                     break
@@ -1386,7 +1388,7 @@ class FAA:
             match_tolerance=0.99,
             match_interval=0.2,
             match_failed_check=5,
-            after_sleep=2,
+            after_sleep=4,
             click=False)
         if not find:
             return "本期日氪没有假期票Skip... 或进入每日必冲失败, 请联系开发者!"
@@ -1402,7 +1404,7 @@ class FAA:
             match_tolerance=0.99,
             match_interval=0.2,
             match_failed_check=5,
-            after_sleep=2,
+            after_sleep=4,
             click=True)
         if find:
             # 退出充值界面
@@ -1417,7 +1419,7 @@ class FAA:
             match_tolerance=0.99,
             match_interval=0.2,
             match_failed_check=5,
-            after_sleep=2,
+            after_sleep=4,
             click=True)
         if not find:
             # 退出充值界面
@@ -1435,7 +1437,7 @@ class FAA:
             match_tolerance=0.995,
             match_interval=0.2,
             match_failed_check=5,
-            after_sleep=2,
+            after_sleep=4,
             click=True,
             click_handle=self.handle_browser)
         find = loop_match_p_in_w(
@@ -1446,7 +1448,7 @@ class FAA:
             match_tolerance=0.995,
             match_interval=0.2,
             match_failed_check=5,
-            after_sleep=2,
+            after_sleep=4,
             click=False)
         if not find:
             return "步骤: 充值界面-点击游币兑换. 出现致命失误! 请联系开发者!"
@@ -1463,7 +1465,7 @@ class FAA:
             match_tolerance=0.99,
             match_interval=0.2,
             match_failed_check=5,
-            after_sleep=2,
+            after_sleep=4,
             click=True,
             click_handle=self.handle_browser)
         if not find:
@@ -1479,7 +1481,7 @@ class FAA:
             match_tolerance=0.99,
             match_interval=0.2,
             match_failed_check=5,
-            after_sleep=2,
+            after_sleep=4,
             click=False
         )
         if not find:
@@ -1495,7 +1497,7 @@ class FAA:
             match_tolerance=0.99,
             match_interval=0.2,
             match_failed_check=5,
-            after_sleep=2,
+            after_sleep=4,
             click=True,
             click_handle=self.handle_browser)
         if not find:
@@ -1511,7 +1513,7 @@ class FAA:
             match_tolerance=0.99,
             match_interval=0.2,
             match_failed_check=5,
-            after_sleep=2,
+            after_sleep=4,
             click=True,
             click_handle=self.handle_browser)
         if not find:
@@ -1532,7 +1534,7 @@ class FAA:
             match_tolerance=0.99,
             match_interval=0.2,
             match_failed_check=5,
-            after_sleep=2,
+            after_sleep=4,
             click=True)
 
         # 退出充值界面
