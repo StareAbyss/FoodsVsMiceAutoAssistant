@@ -587,6 +587,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
         保存方法，拥有保存和另存为两种功能，还能创建uuid
         """
 
+        is_save_as = self.sender() == self.ButtonSaveAs
+
         def warning_save_enable(uuid):
 
             if not uuid in ["00000000-0000-0000-0000-000000000000", "00000000-0000-0000-0000-000000000001"]:
@@ -607,11 +609,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 return True
 
         self.json_data['tips'] = self.WeiTipsEditor.toPlainText()
-        sender = self.sender()
 
-        if sender == self.ButtonSaveAs:
+        if is_save_as:
             # 保存为
-            file_path, _ = QFileDialog.getSaveFileName(
+            new_file_path, _ = QFileDialog.getSaveFileName(
                 parent=self,
                 caption="保存 JSON 文件",
                 directory=PATHS["battle_plan"],
@@ -619,20 +620,20 @@ class QMWEditorOfBattlePlan(QMainWindow):
             )
         else:
             # 保存
-            file_path = self.file_path
+            new_file_path = self.file_path
             if not self.file_path:
                 # 保存, 提示用户还未选择任何战斗方案
                 QMessageBox.information(self, "禁止虚空保存！", "请先选择一个战斗方案!")
                 return
 
-        if not os.path.exists(file_path):
+        if not os.path.exists(new_file_path):
             # 这里是保存新文件的情况, 需要一个新的uuid
             self.json_data["uuid"] = str(uuid.uuid1())
 
         else:
             # 覆盖现有文件的情况
             with g_extra.GLOBAL_EXTRA.file_lock:
-                with open(file=file_path, mode='r', encoding='utf-8') as file:
+                with open(file=new_file_path, mode='r', encoding='utf-8') as file:
                     tar_uuid = json.load(file).get('uuid', None)
 
             if not tar_uuid:
@@ -650,12 +651,16 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.json_data['player'] = self.json_data.get('player', [])
 
         # 确保文件名后缀是.json
-        file_path = os.path.splitext(file_path)[0] + '.json'
+        new_file_path = os.path.splitext(new_file_path)[0] + '.json'
 
         # 保存
         with g_extra.GLOBAL_EXTRA.file_lock:
-            with open(file=file_path, mode='w', encoding='utf-8') as file:
+            with open(file=new_file_path, mode='w', encoding='utf-8') as file:
                 json.dump(self.json_data, file, ensure_ascii=False, indent=4)
+
+        # 如果是另存为文件 打开新建 or 覆盖掉的文件
+        if is_save_as:
+            self.load_json(file_path=new_file_path)
 
     def open_json(self):
         """打开窗口 打开json文件"""
@@ -671,7 +676,6 @@ class QMWEditorOfBattlePlan(QMainWindow):
             # 为输入控件解锁 为保存当前解锁
             self.input_widget_lock(True)
             self.ButtonSave.setEnabled(True)
-
 
     def load_json(self, file_path):
         """读取对应的json文件"""
