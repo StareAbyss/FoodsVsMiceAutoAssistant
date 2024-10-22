@@ -61,19 +61,19 @@ class Battle:
             self.use_player_once(i)
             time.sleep(self.click_sleep)
 
-    def use_shovel_all(self, position=None):
+    def use_shovel_all(self, location=None):
         """
         根据战斗方案用铲子
         """
-        positions = self.faa.battle_plan_parsed["shovel"]
-        if positions is None:
-            positions = []
+        locations = self.faa.battle_plan_parsed["shovel"]
+        if locations is None:
+            locations = []
 
-        if position is not None:
-            positions.append(position)
+        if location is not None:
+            locations.append(location)
 
-        for position in positions:
-            self.use_shovel(x=position[0],y=position[1])
+        for location in locations:
+            self.use_shovel(x=location[0], y=location[1])
 
     def use_shovel(self,x,y):
         """

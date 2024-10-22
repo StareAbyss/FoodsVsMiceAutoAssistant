@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png
-from function.core_battle.get_position_in_battle import get_position_card_deck_in_battle
+from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
 from function.scattered.gat_handle import faa_get_handle
 
 
@@ -14,7 +14,7 @@ class Card:
         self.handle = faa_get_handle(channel=self.channel, mode="flash")
         self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
         self.cid = 2
-        self.location_from = get_position_card_deck_in_battle(handle=self.handle, handle_360=self.handle_360)[self.cid]
+        self.coordinate_from = get_location_card_deck_in_battle(handle=self.handle, handle_360=self.handle_360)[self.cid]
 
     def get_card_current_img(self, game_image=None):
         """
@@ -22,9 +22,9 @@ class Card:
         :param game_image: 可选, 是否从已有的完成游戏图像中拆解, 不截图
         :return:
         """
-        x1 = self.location_from[0]
+        x1 = self.coordinate_from[0]
         x2 = x1 + 53
-        y1 = self.location_from[1]
+        y1 = self.coordinate_from[1]
         y2 = y1 + 70
 
         if game_image is None:

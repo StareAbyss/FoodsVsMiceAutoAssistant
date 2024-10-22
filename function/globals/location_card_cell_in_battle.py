@@ -1,5 +1,5 @@
 # 战斗中 选卡槽和部署位 -> 映射 -> 坐标
-POSITION_CARD_CELL_IN_BATTLE = {
+COORDINATE_CARD_CELL_IN_BATTLE = {
         '1-1': [332, 143],
         '1-2': [332, 206],
         '1-3': [332, 270],
