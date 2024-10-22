@@ -315,6 +315,20 @@ class FAAActionQuestReceiveRewards:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=928, y=16)
             time.sleep(0.5)
 
+    def camp(self):
+
+        handle = self.faa.handle
+
+        # 进入界面
+        find = self.faa.action_goto_map(map_id=10)
+
+        if find:
+            for _ in range(10):
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=175, y=325)
+                time.sleep(0.2)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=175, y=365)
+                time.sleep(0.2)
+
     def main(self, mode) -> None:
         print_debug = self.faa.print_debug
 
@@ -332,5 +346,7 @@ class FAAActionQuestReceiveRewards:
             self.food_competition()
         if mode == "大富翁":
             self.monopoly()
+        if mode == "营地任务":
+            self.camp()
 
         print_debug(text="[领取奖励] [{}] 结束".format(mode))

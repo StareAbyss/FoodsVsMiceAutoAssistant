@@ -720,8 +720,8 @@ class FAA:
 
     def receive_quest_rewards(self, mode: str) -> None:
         """
-        领取任务奖励, 从当前界面开始, 从当前界面结束
-        :param mode: "普通任务" "公会任务" "情侣任务" "悬赏任务" "美食大赛" "大富翁"
+        领取任务奖励, 从任意地图界面开始, 从任意地图界面结束
+        :param mode: "普通任务" "公会任务" "情侣任务" "悬赏任务" "美食大赛" "大富翁" "营地任务"
         :return: None
         """
         return self.object_action_receive_quest_rewards.main(mode=mode)
@@ -1305,7 +1305,7 @@ class FAA:
             CUS_LOGGER.debug(f"[{self.player}] [会长发布任务] 结束")
 
         def sign_in_camp_key():
-            """领取营地钥匙"""
+            """领取营地钥匙和任务奖励"""
 
             CUS_LOGGER.debug(f"[{self.player}] [领取营地钥匙] 开始")
             if self.character_level <= 20:
@@ -1320,9 +1320,11 @@ class FAA:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=400, y=445)
                 time.sleep(0.5)
                 # 如果还有任务
-                for _ in range(3):
+                for _ in range(10):
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=175, y=325)
-                    time.sleep(0.1)
+                    time.sleep(0.2)
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=175, y=365)
+                    time.sleep(0.2)
 
             CUS_LOGGER.debug(f"[{self.player}] [领取营地钥匙] 结束")
 
