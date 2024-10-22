@@ -75,6 +75,14 @@ def loots_and_chests_detail_to_json(faa, loots_dict, chests_dict) -> dict:
 
     file_path = "{}\\result_json\\{}P掉落明细.json".format(PATHS["logs"], player)
     stage_name = stage_info["id"]
+    new_data = {
+        "version": g_extra.GLOBAL_EXTRA.version,  # 版本号
+        "timestamp": time.time(),  # 时间戳
+        "stage": stage_name,  # 关卡代号
+        "is_used_key": faa_battle.is_used_key,
+        "loots": loots_dict,
+        "chests": chests_dict
+    }
 
     if os.path.exists(file_path):
         with g_extra.GLOBAL_EXTRA.file_lock:
@@ -87,14 +95,6 @@ def loots_and_chests_detail_to_json(faa, loots_dict, chests_dict) -> dict:
 
     # 检查"data"字段是否存在
     json_data.setdefault("data", [])
-
-    new_data = {
-        "timestamp": time.time(),
-        "stage": stage_name,
-        "is_used_key": faa_battle.is_used_key,
-        "loots": loots_dict,
-        "chests": chests_dict
-    }
 
     # 保存到字典数据
     json_data["data"].append(new_data)
