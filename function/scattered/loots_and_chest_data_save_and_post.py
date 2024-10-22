@@ -117,7 +117,7 @@ def loots_and_chests_data_post_to_sever(detail_data, url=None) -> bool:
         # url 是 None 和 "" 这样的值
         url = 'http://stareabyss.top:5000/faa_server/data_upload/battle_drops'
     try:
-        # 校验正确的数据, 输出到FAA数据中心 5s超时
+        # 校验正确的url, 输出到FAA数据中心 5s超时
         response = requests.post(
             url=url, json=detail_data, timeout=5)
         # 检查响应状态码,如果不是2xx则引发异常 会被log捕获

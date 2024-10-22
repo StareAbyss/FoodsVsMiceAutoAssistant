@@ -66,7 +66,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
         """
         super().__init__()
         # 大小
-        self.setMaximumSize(1280, 1080)
+        self.setMaximumSize(1280, 5000)
         self.setMinimumSize(1280, 600)
 
         # 序列 主要元素
@@ -131,12 +131,11 @@ class QMWEditorOfTaskSequence(QMainWindow):
         初始化任务选择下拉框
         """
         self.ComboBoxTask.addItem('战斗')
-        self.ComboBoxTask.addItem('双暴卡')
         self.ComboBoxTask.addItem('刷新游戏')
+        self.ComboBoxTask.addItem('双暴卡')
         self.ComboBoxTask.addItem('清背包')
         # 待实现
         # self.ComboBoxTask.addItem('使用绑定消耗品')
-        # self.ComboBoxTask.addItem('领取任务奖励')
         # self.ComboBoxTask.addItem('签到')
         # self.ComboBoxTask.addItem('浇水施肥摘果')
         # self.ComboBoxTask.addItem('扫描公会贡献')
@@ -169,7 +168,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             case '双暴卡':
                 task["task_args"] = {
                     "player": [1, 2],  # or [1] [2]
-                    "max_times":1,
+                    "max_times": 1,
                 }
             case '刷新游戏':
                 task["task_args"] = {
@@ -246,56 +245,64 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
         # task_id + type
         layout = QHBoxLayout()
+        line_layout.addLayout(layout)
 
         w_label = QLabel(str(task["task_id"]))
         w_label.setObjectName('label_task_id')
-        w_label.setMinimumWidth(10)
+        w_label.setFixedWidth(20)
         layout.addWidget(w_label)
 
         task_type = task['task_type']
         w_label = QLabel(task_type)
         w_label.setObjectName("label_task_type")
-        w_label.setMinimumWidth(80)
+        w_label.setFixedWidth(80)
         layout.addWidget(w_label)
 
-        line_layout.addLayout(layout)
         line_layout.addWidget(QCVerticalLine())
 
-        def add_element(w_label, w_input, end_line=True):
-            layout = QHBoxLayout()
-            layout.addWidget(w_label)
-            layout.addWidget(w_input)
-            line_layout.addLayout(layout)
-            if end_line:
-                line_layout.addWidget(QCVerticalLine())
+        # line_layout.addWidget(QLabel("   "))
+        def add_element(line_layout, w_input, w_label=None, end_line=True):
 
-        if task_type == '战斗':  # 战斗任务
+            layout = QHBoxLayout()
+            line_layout.addLayout(layout)
+
+            # 添加标签控件(如果有)
+            if w_label is not None:
+                layout.addWidget(w_label)
+
+            # 添加输入控件
+            layout.addWidget(w_input)
+
+            if end_line:
+                # line_layout.addWidget(QCVerticalLine())
+                line_layout.addWidget(QLabel("   "))
+
+        def battle(line_layout):
 
             # 所选关卡
             w_label = QLabel('关卡')
             w_input = QLineEdit()
             w_input.setObjectName("w_stage_id")
-            w_input.setMinimumWidth(70)
-            w_input.setMaximumWidth(70)
+            w_input.setFixedWidth(70)
             w_input.setText(task["task_args"]["stage_id"])
-            add_element(w_label=w_label, w_input=w_input)
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
 
             # 战斗次数
             w_label = QLabel('次数')
             w_input = QSpinBox()
             w_input.setObjectName("w_max_times")
-            w_input.setMinimumWidth(70)
+            w_input.setFixedWidth(70)
             w_input.setMinimum(1)
             w_input.setMaximum(99)
             w_input.setValue(task["task_args"]["max_times"])
-            add_element(w_label=w_label, w_input=w_input)
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
 
             # 是否使用钥匙
             w_label = QLabel('钥匙')
             w_input = QCheckBox()
             w_input.setObjectName("w_need_key")
             w_input.setChecked(task["task_args"]["need_key"])
-            add_element(w_label=w_label, w_input=w_input)
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
 
             # 战斗Player
             w_label = QLabel('玩家')
@@ -308,7 +315,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             index = w_input.findText(player_list_to_str_dict[tuple(task["task_args"]["player"])])
             if index >= 0:
                 w_input.setCurrentIndex(index)
-            add_element(w_label=w_label, w_input=w_input)
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
 
             # 战斗卡组
             w_label = QLabel('卡组')
@@ -319,7 +326,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             index = w_input.findText(str(task["task_args"]["deck"]))
             if index >= 0:
                 w_input.setCurrentIndex(index)
-            add_element(w_label=w_label, w_input=w_input)
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
 
             # 刷新和创建战斗方案的 uuid list 以方便查找对应值
             fresh_and_check_battle_plan_uuid()
@@ -340,7 +347,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 self.could_not_find_battle_plan_uuid = True
                 index = 0
             w_input.setCurrentIndex(index)
-            add_element(w_label=w_label, w_input=w_input)
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
 
             # 战斗方案 2P
             w_label = QLabel('2P方案')
@@ -356,19 +363,14 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 self.could_not_find_battle_plan_uuid = True
                 index = 1
             w_input.setCurrentIndex(index)
-            add_element(w_label=w_label, w_input=w_input)
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
 
-            # 创建一个水平弹簧
-            spacer = QSpacerItem(0, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
-            line_layout.addItem(spacer)
-
-        elif task_type == '双暴卡':
+        def double_card(line_layout):
 
             # Player
             w_label = QLabel('玩家')
             w_input = QComboBox()
-            w_input.setMinimumWidth(70)
-            w_input.setMaximumWidth(70)
+            w_input.setFixedWidth(70)
             w_input.setObjectName("w_player")
             # 设定当前值
             for player in ['1P', '2P', '1+2P']:
@@ -379,30 +381,26 @@ class QMWEditorOfTaskSequence(QMainWindow):
             if index >= 0:
                 w_input.setCurrentIndex(index)
 
-            add_element(w_label=w_label, w_input=w_input)
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
 
             # 战斗次数
             w_label = QLabel('次数')
             w_input = QSpinBox()
             w_input.setObjectName("w_max_times")
-            w_input.setMinimumWidth(70)
+            w_input.setFixedWidth(70)
             w_input.setMinimum(1)
             w_input.setMaximum(6)
             # 设定当前值
             w_input.setValue(task["task_args"]["max_times"])
 
-            add_element(w_label=w_label, w_input=w_input)
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
 
-            # 创建一个水平弹簧
-            spacer = QSpacerItem(0, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
-            line_layout.addItem(spacer)
+        def fresh_game(line_layout):
 
-        elif task_type == '刷新游戏':
             # Player
             w_label = QLabel('玩家')
             w_input = QComboBox()
-            w_input.setMinimumWidth(70)
-            w_input.setMaximumWidth(70)
+            w_input.setFixedWidth(70)
             w_input.setObjectName("w_player")
             for player in ['1P', '2P', '1+2P']:
                 w_input.addItem(player)
@@ -411,18 +409,14 @@ class QMWEditorOfTaskSequence(QMainWindow):
             index = w_input.findText(player_list_to_str_dict[tuple(task["task_args"]["player"])])
             if index >= 0:
                 w_input.setCurrentIndex(index)
-            add_element(w_label=w_label, w_input=w_input)
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
 
-            # 创建一个水平弹簧
-            spacer = QSpacerItem(0, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
-            line_layout.addItem(spacer)
+        def clean_items(line_layout):
 
-        elif task_type == '清背包':
             # 战斗Player
             w_label = QLabel('玩家')
             w_input = QComboBox()
-            w_input.setMinimumWidth(70)
-            w_input.setMaximumWidth(70)
+            w_input.setFixedWidth(70)
             w_input.setObjectName("w_player")
             for player in ['1P', '2P', '1+2P']:
                 w_input.addItem(player)
@@ -431,11 +425,22 @@ class QMWEditorOfTaskSequence(QMainWindow):
             index = w_input.findText(player_list_to_str_dict[tuple(task["task_args"]["player"])])
             if index >= 0:
                 w_input.setCurrentIndex(index)
-            add_element(w_label=w_label, w_input=w_input)
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
 
-            # 创建一个水平弹簧
-            spacer = QSpacerItem(0, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
-            line_layout.addItem(spacer)
+
+        match task_type:
+            case '战斗':
+                battle(line_layout=line_layout)
+            case '双暴卡':
+                double_card(line_layout=line_layout)
+            case '刷新游戏':
+                fresh_game(line_layout=line_layout)
+            case '清背包':
+                clean_items(line_layout=line_layout)
+
+        # 创建一个水平弹簧
+        spacer = QSpacerItem(0, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
+        line_layout.addItem(spacer)
 
         # 添加完成后，在布局的最后添加一个删除按钮
         delete_button = QPushButton('删除')
@@ -509,6 +514,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             del item
 
     """ .json ↔ list ↔ UI """
+
     def list_to_ui(self, task_sequence_list):
         """获取json中的数据, 转化为list并写入到ui"""
         # 清空
@@ -546,93 +552,96 @@ class QMWEditorOfTaskSequence(QMainWindow):
     def ui_to_list(self):
         """获取UI上的数据, 生成list"""
 
+        def player(w_line, args):
+            widget_input = w_line.findChild(QComboBox, 'w_player')
+            text = widget_input.currentText()
+            args['player'] = {"1P": [1], "2P": [2], "1+2P": [1, 2]}[text]
+            return args
+
+        def check_box(w_line, args, key):
+            widget = w_line.findChild(QCheckBox, f'w_{key}')
+            args[key] = widget.isChecked()
+            return args
+
         data = []
 
         list_line_widgets = self.TaskSequenceList.findChildren(QWidget, 'line_widget')
-        for line_widget in list_line_widgets:
+
+        for w_line in list_line_widgets:
             data_line = {}
 
-            label_task_type = line_widget.findChild(QLabel, 'label_task_type')
+            label_task_type = w_line.findChild(QLabel, 'label_task_type')
             task_type = label_task_type.text()
             data_line['task_type'] = task_type
 
-            label_task_id = line_widget.findChild(QLabel, 'label_task_id')
+            label_task_id = w_line.findChild(QLabel, 'label_task_id')
             task_id = label_task_id.text()
             data_line['task_id'] = int(task_id)
 
             data_line["task_args"] = {}
+            args = data_line["task_args"]
 
-            if task_type == "战斗":
-                widget_input = line_widget.findChild(QLineEdit, 'w_stage_id')
-                data_line["task_args"]['stage_id'] = widget_input.text()
+            match task_type:
+                case "战斗":
+                    widget_input = w_line.findChild(QLineEdit, 'w_stage_id')
+                    args['stage_id'] = widget_input.text()
 
-                widget_input = line_widget.findChild(QSpinBox, 'w_max_times')
-                data_line["task_args"]['max_times'] = widget_input.value()
+                    widget_input = w_line.findChild(QSpinBox, 'w_max_times')
+                    args['max_times'] = widget_input.value()
 
-                widget_input = line_widget.findChild(QCheckBox, 'w_need_key')
-                data_line["task_args"]['need_key'] = widget_input.isChecked()
+                    widget_input = w_line.findChild(QCheckBox, 'w_need_key')
+                    args['need_key'] = widget_input.isChecked()
 
-                widget_input = line_widget.findChild(QComboBox, 'w_player')
-                dict_of_player_str_to_list = {"1P": [1], "2P": [2], "1P房主": [1, 2], "2P房主": [2, 1]}
-                return_list = dict_of_player_str_to_list[widget_input.currentText()]
-                data_line["task_args"]['player'] = return_list
+                    widget_input = w_line.findChild(QComboBox, 'w_player')
+                    text = widget_input.currentText()
+                    return_list = {"1P": [1], "2P": [2], "1P房主": [1, 2], "2P房主": [2, 1]}[text]
+                    args['player'] = return_list
 
-                widget_input = line_widget.findChild(QComboBox, 'w_deck')
-                data_line["task_args"]['deck'] = int(widget_input.currentText())
+                    widget_input = w_line.findChild(QComboBox, 'w_deck')
+                    args['deck'] = int(widget_input.currentText())
 
-                # 战斗方案
-                battle_plan_name_list = get_list_battle_plan(with_extension=False)
-                battle_plan_uuid_list = g_extra.GLOBAL_EXTRA.battle_plan_uuid_list
+                    # 战斗方案
+                    battle_plan_name_list = get_list_battle_plan(with_extension=False)
+                    battle_plan_uuid_list = g_extra.GLOBAL_EXTRA.battle_plan_uuid_list
 
-                widget_input = line_widget.findChild(QComboBox, 'w_battle_plan_1p')
-                name = widget_input.currentText()
-                index = battle_plan_name_list.index(name)
-                uuid = battle_plan_uuid_list[index]
-                data_line["task_args"]['battle_plan_1p'] = uuid
+                    widget_input = w_line.findChild(QComboBox, 'w_battle_plan_1p')
+                    text = widget_input.currentText()
+                    index = battle_plan_name_list.index(text)
+                    uuid = battle_plan_uuid_list[index]
+                    args['battle_plan_1p'] = uuid
 
-                widget_input = line_widget.findChild(QComboBox, 'w_battle_plan_2p')
-                name = widget_input.currentText()
-                index = battle_plan_name_list.index(name)
-                uuid = battle_plan_uuid_list[index]
-                data_line["task_args"]['battle_plan_2p'] = uuid
+                    widget_input = w_line.findChild(QComboBox, 'w_battle_plan_2p')
+                    text = widget_input.currentText()
+                    index = battle_plan_name_list.index(text)
+                    uuid = battle_plan_uuid_list[index]
+                    args['battle_plan_2p'] = uuid
 
-                # 固定值 请不要用于 魔塔 / 萌宠神殿 这两类特殊关卡！
-                data_line["task_args"]["quest_card"] = "None"
-                data_line["task_args"]["ban_card_list"] = []
-                data_line["task_args"]["dict_exit"] = {
-                    "other_time_player_a": [],
-                    "other_time_player_b": [],
-                    "last_time_player_a": ["竞技岛"],
-                    "last_time_player_b": ["竞技岛"]
-                }
+                    # 固定值 请不要用于 魔塔 / 萌宠神殿 这两类特殊关卡！
+                    args["quest_card"] = "None"
+                    args["ban_card_list"] = []
+                    args["dict_exit"] = {
+                        "other_time_player_a": [],
+                        "other_time_player_b": [],
+                        "last_time_player_a": ["竞技岛"],
+                        "last_time_player_b": ["竞技岛"]
+                    }
 
-            if task_type == "双暴卡":
+                case "双暴卡":
+                    args = player(w_line=w_line, args=args)
 
-                # 玩家
-                widget_input = line_widget.findChild(QComboBox, 'w_player')
-                dict_of_player_str_to_list = {"1P": [1], "2P": [2], "1+2P": [1, 2]}
-                return_list = dict_of_player_str_to_list[widget_input.currentText()]
-                data_line["task_args"]['player'] = return_list
+                    # 最大次数
+                    widget = w_line.findChild(QSpinBox, 'w_max_times')
+                    args['max_times'] = widget.value()
 
-                # 最大次数
-                widget_input = line_widget.findChild(QSpinBox, 'w_max_times')
-                data_line["task_args"]['max_times'] = widget_input.value()
+                case "清背包":
+                    args = player(w_line=w_line, args=args)
 
-            if task_type == "清背包":
-
-                # 玩家
-                widget_input = line_widget.findChild(QComboBox, 'w_player')
-                dict_of_player_str_to_list = {"1P": [1], "2P": [2], "1+2P": [1, 2]}
-                return_list = dict_of_player_str_to_list[widget_input.currentText()]
-                data_line["task_args"]['player'] = return_list
+                case "刷新游戏":
+                    args = player(w_line=w_line, args=args)
 
             if task_type == "刷新游戏":
 
-                # 玩家
-                widget_input = line_widget.findChild(QComboBox, 'w_player')
-                dict_of_player_str_to_list = {"1P": [1], "2P": [2], "1+2P": [1, 2]}
-                return_list = dict_of_player_str_to_list[widget_input.currentText()]
-                data_line["task_args"]['player'] = return_list
+            data_line["task_args"] = args
 
             data.append(data_line)
 
