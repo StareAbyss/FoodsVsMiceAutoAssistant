@@ -256,6 +256,7 @@ class FAA:
                     mat_resource_exist_list.append(new_card)
 
         coordinate_list = []
+        card_name_list = []
 
         # 查找对应卡片坐标 重复3次
         for i in range(3):
@@ -492,13 +493,16 @@ class FAA:
             # 根据不同垫子数量 再分
             num_mat_card = len(mat_card_info)
 
+            # 本关需求盘子类承载卡
+            need_plate = any(card['name'] == "木盘子" for card in mat_card_info)
+
             for i in range(num_mat_card):
 
                 dict_mat = {
                     "name":mat_card_info[i]['name'],
                     "id": mat_card_info[i]['id'],
                     "location": location[i::num_mat_card],
-                    "ergodic": True,
+                    "ergodic": need_plate,
                     "queue": True,
                     "coordinate_from": mat_card_info[i]['coordinate_from'],
                     "coordinate_to": []}
