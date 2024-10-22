@@ -3,6 +3,7 @@ import datetime
 import json
 import os
 import time
+from collections import defaultdict
 from time import sleep
 
 import requests
@@ -820,13 +821,14 @@ class ThreadTodo(QThread):
         :param player_b: 玩家B
         :return:
             int id 用于判定战斗是 成功 或某种原因的失败 1-成功 2-服务器卡顿,需要重来 3-玩家设置的次数不足,跳过;
-            dict 包含player_a和player_b的[战利品]和[宝箱]识别到的情况;
+            dict 包含player_a和player_b的[战利品]和[宝箱]识别到的情况; 内容为聚合数量后的 dict。 如果识别异常, 返回值为两个None
             int 战斗消耗时间(秒);
         """
 
         is_group = self.faa_dict[player_a].is_group
         result_id = 0
-        result_loot = {}
+        result_drop_by_list = {}  # {pid:{"loots":["item",...],"chest":["item",...]},...}
+        result_drop_by_dict = {}  # {pid:{"loots":{"item":count,...},"chest":{"item":count,...}},...}
         result_spend_time = 0
 
         """同时进行战前准备"""
@@ -968,76 +970,113 @@ class ThreadTodo(QThread):
             result = self.thread_1p.get_return_value()
             result_id = max(result_id, result[0])
             if result[1]:
-                result_loot[player_a] = result[1]  # 可能是None 或 dict 故判空
+                result_drop_by_list[player_a] = result[1]  # 可能是None 或 dict 故判空
+
             if is_group:
                 result = self.thread_2p.get_return_value()
                 result_id = max(result_id, result[0])
                 if result[1]:
-                    result_loot[player_b] = result[1]  # 可能是None 或 dict 故判空
+                    result_drop_by_list[player_b] = result[1]  # 可能是None 或 dict 故判空
 
-            """构建有向无环图, 校验数据准确度, 并酌情发送至服务器和更新至Ranking"""
-            # result_loot = {
-            #   1:{"loots":{"物品":数量,...},"chests":{"物品":数量,...}} //数据 可能不存在 None
-            #   2:{"loots":{"物品":数量,...},"chests":{"物品":数量,...}} //数据 可能不存在 None或不组队
+            """数据基础校验, 构建有向无环图, 完成高级校验, 并酌情发送至服务器和更新至Ranking"""
+            # result_drop_by_list = {
+            #   1:{"loots":["物品"...],"chests":["物品"...]} //数据 可能不存在 None
+            #   2:{"loots":["物品"...],"chests":["物品"...]} //数据 可能不存在 None或不组队
             #   }
-            update_dag_result_dict = False
+            update_dag_success = False
 
-            for player_index, player_data in result_loot.items():
+            for player_index, player_data in result_drop_by_list.items():
+
+                title = f"[{player_index}P] [战利品识别]"
                 # 两种战利品的数据
-                loots_dict = player_data["loots"]
-                chests_dict = player_data["chests"]
+                loots_list = player_data["loots"]
+                chests_list = player_data["chests"]
+                # 默认表示识别异常
+                result_drop_by_dict[player_index] = {"loots": None, "chests": None}
 
-                # 仅使用战利品更新item_dag_graph文件
-                best_match_items_success = copy.deepcopy(list(player_data["loots"].keys()))
-                # 不包含失败的识别
-                if "识别失败" in best_match_items_success:
-                    best_match_items_success.remove("识别失败")
+                def check_data_validity(data):
+                    # 创建一个字典来记录每个值最后出现的位置
+                    last_seen = {}
+
+                    for index, value in enumerate(data):
+                        if value in last_seen:
+                            # 如果当前值之前已经出现过，检查中间是否有其他值
+                            if index - last_seen[value] > 1:
+                                return False
+                        # 更新当前值的最后出现位置
+                        last_seen[value] = index
+
+                    return True
+
+                if not check_data_validity(loots_list):
+                    text = f"{title} [基础校验] 失败! 同一个字符在连续出现若干次后, 再次出现! 为截图有误!"
+                    CUS_LOGGER.warning(text)
+                    continue
+
+                def drop_list_to_dict(drop_list):
+                    drop_dict = defaultdict(int)
+                    for item in drop_list:
+                        drop_dict[item] += 1
+                    return dict(drop_dict)
+
+                loots_dict = drop_list_to_dict(loots_list)
+                chests_dict = drop_list_to_dict(chests_list)
+
+                # 仅使用战利品更新item_dag_graph文件 且不包含 识别失败
+                best_match_items_success = [
+                    item for item in copy.deepcopy(list(loots_dict.keys())) if item != "识别失败"]
+
                 # 更新 item_dag_graph 文件
                 update_dag_result = update_dag_graph(item_list_new=best_match_items_success)
-                # 更新成功, 记录
-                update_dag_result_dict = update_dag_result or update_dag_result_dict
+                # 更新成功, 记录两个号中是否有至少一个号更新成功
+                update_dag_success = update_dag_result or update_dag_success
 
-                if update_dag_result:
-                    CUS_LOGGER.debug(f"[战利品识别] [有向无环图] [更新] [{player_index}P] 成功! 成功构筑 DAG.")
+                if not update_dag_result:
+                    text = f"{title} [有向无环图] [更新] 失败! 本次数据无法构筑 DAG，存在环. 可能是截图卡住了. 放弃记录和上传"
+                    CUS_LOGGER.warning(text)
+                    continue
 
-                    # 保存详细数据到json
-                    loots_and_chests_statistics_to_json(
-                        faa=self.faa_dict[player_index],
-                        loots_dict=loots_dict,
-                        chests_dict=chests_dict)
-                    CUS_LOGGER.info(f"[战利品识别] [保存日志] [{player_index}P] 成功保存一条详细数据!")
+                """至此所有校验通过!"""
 
-                    # 保存汇总统计数据到json
-                    detail_data = loots_and_chests_detail_to_json(
-                        faa=self.faa_dict[player_index],
-                        loots_dict=loots_dict,
-                        chests_dict=chests_dict)
-                    CUS_LOGGER.info(f"[战利品识别] [保存日志] [{player_index}P] 成功保存至统计数据!")
+                CUS_LOGGER.info(f"{title} [有向无环图] [更新] 成功! 成功构筑 DAG.")
 
-                    # 发送到服务器
-                    upload_result = loots_and_chests_data_post_to_sever(
-                        detail_data=detail_data,
-                        url=g_extra.GLOBAL_EXTRA.misu_logistics)
-                    if upload_result:
-                        CUS_LOGGER.info(f"[战利品识别] [发送服务器] [{player_index}P] 成功发送一条数据!")
-                    else:
-                        CUS_LOGGER.warning(f"[战利品识别] [发送服务器] [{player_index}P] 超时! 可能是服务器炸了...")
+                result_drop_by_dict[player_index] = {"loots": loots_dict, "chests": chests_dict}
 
+                # 保存详细数据到json
+                loots_and_chests_statistics_to_json(
+                    faa=self.faa_dict[player_index],
+                    loots_dict=loots_dict,
+                    chests_dict=chests_dict)
+                CUS_LOGGER.info(f"{title} [保存日志] 成功保存一条详细数据!")
+
+                # 保存汇总统计数据到json
+                detail_data = loots_and_chests_detail_to_json(
+                    faa=self.faa_dict[player_index],
+                    loots_dict=loots_dict,
+                    chests_dict=chests_dict)
+                CUS_LOGGER.info(f"{title} [保存日志] 成功保存至统计数据!")
+
+                # 发送到服务器
+                upload_result = loots_and_chests_data_post_to_sever(
+                    detail_data=detail_data,
+                    url=g_extra.GLOBAL_EXTRA.misu_logistics)
+                if upload_result:
+                    CUS_LOGGER.info(f"{title} [发送服务器] 成功发送一条数据到米苏物流!")
                 else:
-                    CUS_LOGGER.debug(
-                        "[战利品识别] [有向无环图] [更新] [{player_index}P] 失败! 本次数据无法构筑 DAG，存在环. 可能是截图卡住了.")
+                    CUS_LOGGER.warning(f"{title} [发送服务器] 超时! 可能是米苏物流服务器炸了...")
 
-            if update_dag_result_dict:
-                # 如果成功更新了 item_dag_graph.json, 更新ranking
-                ranking_new = find_longest_path_from_dag()  # 成功返回更新后的 ranking 失败返回None
-                if ranking_new:
-                    CUS_LOGGER.info(
-                        f"[根据有向无环图寻找最长链] item_ranking_dag_graph.json 已更新 , 结果:{ranking_new}")
-                else:
-                    CUS_LOGGER.warning(f"[根据有向无环图寻找最长链] item_ranking_dag_graph.json 更新失败!")
+            if not update_dag_success:
+                text = f"[战利品识别] [有向无环图] item_ranking_dag_graph.json 更新失败! 本次战斗未获得任何有效数据!"
+                CUS_LOGGER.warning(text)
+
+            # 如果成功更新了 item_dag_graph.json, 更新ranking
+            ranking_new = find_longest_path_from_dag()  # 成功返回更新后的 ranking 失败返回None
+            if ranking_new:
+                text = f"[战利品识别] [有向无环图] item_ranking_dag_graph.json 已更新 , 结果:{ranking_new}"
+                CUS_LOGGER.info(text)
             else:
-                CUS_LOGGER.warning(
-                    f"[根据有向无环图寻找最长链] item_ranking_dag_graph.json 更新失败! 本次未获得任何有效数据!")
+                text = f"[战利品识别] [有向无环图] item_ranking_dag_graph.json 更新失败, 文件被删除 或 因程序错误成环! 请联系开发者!"
+                CUS_LOGGER.error(text)
 
         CUS_LOGGER.debug("多线程进行战利品和宝箱检查 已完成")
 
@@ -1049,7 +1088,7 @@ class ThreadTodo(QThread):
 
         CUS_LOGGER.debug("战后检查完成 battle 函数执行结束")
 
-        return result_id, result_loot, result_spend_time
+        return result_id, result_drop_by_dict, result_spend_time
 
     def n_battle_customize_battle_error_print(self, success_battle_time):
         # 结束提示文本
@@ -1165,7 +1204,7 @@ class ThreadTodo(QThread):
                 self.signal_print_to_ui.emit(text=f"{title}第{battle_count + 1}次, 开始")
 
                 # 开始战斗循环
-                result_id, result_loot, result_spend_time = self.battle(player_a=player_a, player_b=player_b)
+                result_id, result_drop, result_spend_time = self.battle(player_a=player_a, player_b=player_b)
 
                 if result_id == 0:
 
@@ -1199,7 +1238,7 @@ class ThreadTodo(QThread):
                     result_list.append({
                         "time_spend": result_spend_time,
                         "is_used_key": is_used_key,
-                        "loot_dict_list": result_loot  # result_loot_dict_list = [{a掉落}, {b掉落}]
+                        "loot_dict_list": result_drop  # result_loot_dict_list = [{a掉落}, {b掉落}]
                     })
 
                     # 时间
@@ -1292,7 +1331,6 @@ class ThreadTodo(QThread):
             # 时间
             sum_time_spend = 0
             count_used_key = 0
-
             for result in result_list:
                 # 合计时间
                 sum_time_spend += result["time_spend"]
@@ -1301,12 +1339,13 @@ class ThreadTodo(QThread):
                     count_used_key += 1
             average_time_spend = sum_time_spend / valid_total_count
 
-            self.signal_print_to_ui.emit(text="正常场次:{}次 使用钥匙:{}次 总耗时:{}分{}秒  场均耗时:{}分{}秒".format(
-                valid_total_count,
-                count_used_key,
-                *divmod(int(sum_time_spend), 60),
-                *divmod(int(average_time_spend), 60)
-            ))
+            self.signal_print_to_ui.emit(
+                text="正常场次:{}次 使用钥匙:{}次 总耗时:{}分{}秒  场均耗时:{}分{}秒".format(
+                    valid_total_count,
+                    count_used_key,
+                    *divmod(int(sum_time_spend), 60),
+                    *divmod(int(average_time_spend), 60)
+                ))
 
             if len(player) == 1:
                 # 单人
@@ -1364,56 +1403,35 @@ class ThreadTodo(QThread):
         # valid_time = len(result_list)
 
         # 输入为
-        count_loots_dict = {}
-        count_chests_dict = {}
+        count_dict = {"loots": {}, "chests": {}}
+        count_match_success_dict = {"loots": {}, "chests": {}}
+
+        # 计数正确场次
 
         # 复制key
-        for result_ in result_list:
-            loots = result_["loot_dict_list"][player_id]["loots"]
-            if loots is not None:
-                for key in loots.keys():
-                    count_loots_dict[key] = 0
-            chests = result_["loot_dict_list"][player_id]["chests"]
-            if chests is not None:
-                for key in chests.keys():
-                    count_chests_dict[key] = 0
+        for i in range(len(result_list)):
+            for drop_type in ["loots", "chests"]:
+                data = result_list[i]["loot_dict_list"][player_id][drop_type]
+                # 如果有识别失败 这次数据为无效的
+                if data is None:
+                    count_match_success_dict[drop_type][i] = False
+                    continue
+                count_match_success_dict[drop_type][i] = True
 
-        # 累加数据
-        for result_ in result_list:
-            loots = result_["loot_dict_list"][player_id]["loots"]
-            if loots is not None:
-                for k, v in loots.items():
-                    count_loots_dict[k] += v
-            chests = result_["loot_dict_list"][player_id]["chests"]
-            if chests is not None:
-                for k, v in chests.items():
-                    count_chests_dict[k] += v
+                for key, value in data.items():
+                    if key in count_dict[drop_type].keys():
+                        count_dict[drop_type][key] += value
+                    else:
+                        count_dict[drop_type][key] = value
 
-        # 生成文本str 总计 输出到ui和日志
-        # loots_text = ""
-        # chests_text = ""
-        # for name, count in count_loots_dict.items():
-        #     loots_text += "{}x{}, ".format(name, count)
-        # for name, count in count_chests_dict.items():
-        #     chests_text += "{}x{}, ".format(name, count)
-        # self.signal_print_to_ui.emit(text="[{}P掉落]  {}".format(player_id,loots_text,),time=False)
-        # self.signal_print_to_ui.emit(text="[{}P宝箱]  {}".format(player_id,chests_text),time=False)
+        # 生成图片
+        text = "[{}P] 战利品合计掉落, 识别有效场次:{}".format(player_id, sum(count_match_success_dict["loots"]))
+        self.signal_print_to_ui.emit(text=text, time=False)
+        self.signal_image_to_ui.emit(image=create_drops_image(count_dict=count_dict["loots"]))
 
-        # 生成文本str 场均 输出到ui和日志
-        # loots_text = ""
-        # chests_text = ""
-        # for name, count in count_loots_dict.items():
-        #     loots_text += "{}x{:.1f}, ".format(name, count / valid_time)
-        # for name, count in count_chests_dict.items():
-        #     chests_text += "{}x{:.1f}, ".format(name, count / valid_time)
-        # self.signal_print_to_ui.emit(text="[{}P掉落/场]  {}".format(player_id,loots_text,),time=False)
-        # self.signal_print_to_ui.emit(text="[{}P宝箱/场]  {}".format(player_id,chests_text),time=False)
-
-        # 生成图片 str 总计
-        self.signal_print_to_ui.emit(text="[{}P] 战利品合计掉落".format(player_id), time=False)
-        self.signal_image_to_ui.emit(image=create_drops_image(count_dict=count_loots_dict))
-        self.signal_print_to_ui.emit(text="[{}P] 宝箱合计掉落".format(player_id), time=False)
-        self.signal_image_to_ui.emit(image=create_drops_image(count_dict=count_chests_dict))
+        text = "[{}P] 宝箱合计掉落, 识别有效场次:{}".format(player_id, sum(count_match_success_dict["chests"]))
+        self.signal_print_to_ui.emit(text=text, time=False)
+        self.signal_image_to_ui.emit(image=create_drops_image(count_dict=count_dict["chests"]))
 
     def battle_1_n_n(self, quest_list, extra_title=None, need_lock=False):
         """
