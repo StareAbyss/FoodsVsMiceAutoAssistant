@@ -79,7 +79,7 @@ class CardManager:
         self.is_initialized = False
         self.card_list_dict = {}
         self.special_card_list = {}
-        self.card_kun_dict = {}
+        self.kun_cards_dict = {}
         self.card_queue_dict = {}
         self.thread_dict = {}
 
@@ -204,14 +204,22 @@ class CardManager:
                 init_card_list_dict_advanced(cards_plan=cards_plan, faa=faa, pid=pid)
 
         for pid in self.pid_list:
+            kun_cards = []
             # 添加坤
-            if self.faa_dict[pid].kun_info:
-                card_kun = CardKun(faa=self.faa_dict[pid])
-                print(card_kun, "成功创建 card kun")
-                self.card_kun_dict[pid] = card_kun
-                for card in self.card_list_dict[pid]:
-                    if card.kun > 0:
-                        card.card_kun = card_kun
+            kun_cards_info = self.faa_dict[pid].kun_cards_info
+            if kun_cards_info:
+                for kun_card_info in kun_cards_info:
+                    kun_card = CardKun(
+                        faa=self.faa_dict[pid],
+                        name=kun_card_info["name"],
+                        c_id=kun_card_info["id"],
+                        coordinate_from=kun_card_info["coordinate_from"],
+                    )
+                    kun_cards.append(kun_card)
+            self.kun_cards_dict[pid] = kun_cards
+            for card in self.card_list_dict[pid]:
+                if card.kun > 0:
+                    card.kun_cards = kun_cards
 
     def init_card_queue_dict(self):
         for pid in self.pid_list:
@@ -235,16 +243,16 @@ class CardManager:
         T_ACTION_QUEUE_TIMER.print_queue_statue()
 
         # 实例化 检测线程 + 用卡线程+特殊用卡进程
-        for i in self.pid_list:
-            self.thread_dict[i] = ThreadCheckTimer(
-                card_queue=self.card_queue_dict[i],
-                card_kun=self.card_kun_dict.get(i, None),
-                faa=self.faa_dict[i],
+        for pid in self.pid_list:
+            self.thread_dict[pid] = ThreadCheckTimer(
+                card_queue=self.card_queue_dict[pid],
+                kun_cards=self.kun_cards_dict.get(pid, None),
+                faa=self.faa_dict[pid],
                 check_interval=self.check_interval
             )
-            self.thread_dict[i + 2] = ThreadUseCardTimer(
-                card_queue=self.card_queue_dict[i],
-                faa=self.faa_dict[i],
+            self.thread_dict[pid + 2] = ThreadUseCardTimer(
+                card_queue=self.card_queue_dict[pid],
+                faa=self.faa_dict[pid],
                 check_interval=self.check_interval
             )
 
@@ -300,8 +308,9 @@ class CardManager:
         self.special_card_list.clear()  # 清空卡片列表字典
 
         # 释放坤坤卡的内存
-        for key, card in self.card_kun_dict.items():
-            card.destroy()  # 释放卡片内存
+        for key, card_list in self.kun_cards_dict.items():
+            for card in card_list:
+                card.destroy()  # 释放卡片内存
 
         # 释放卡片队列内存
         for key, card_queue in self.card_queue_dict.items():
@@ -325,10 +334,10 @@ class ThreadCheckTimer(QThread):
     stop_signal = pyqtSignal()
     used_key_signal = pyqtSignal()
 
-    def __init__(self, card_queue, faa, card_kun, check_interval):
+    def __init__(self, card_queue, faa, kun_cards, check_interval):
         super().__init__()
         self.card_queue = card_queue
-        self.card_kun = card_kun
+        self.kun_cards = kun_cards
         self.faa = faa
         self.stop_flag = False
         self.stopped = False
@@ -362,34 +371,39 @@ class ThreadCheckTimer(QThread):
         战斗中坤卡部分的检测
         """
 
-        # 检测坤卡是否已经成功获取到状态图片
-        if self.card_kun.try_get_img_for_check_card_states() != 1:
-            return
-
         # 要求火苗1000+
         if not self.faa.faa_battle.fire_elemental_1000:
             return
 
-        # 要求kun卡状态可用
-        self.card_kun.fresh_status(game_image=game_image)
-        if not self.card_kun.status_usable:
-            return
+        any_kun_usable = False
 
-        # 定位坤卡的目标
-        kun_tar_index = 0
-        max_card = None
-        for i in range(len(self.card_queue.card_list)):
-            card = self.card_queue.card_list[i]
-            # 先将所有卡片的is_kun_target设置为False
-            card.is_kun_target = False
-            if not card.status_ban:
-                # 从没有被ban的卡中找出优先级最高的卡片
-                if card.kun > kun_tar_index:
-                    kun_tar_index = card.kun
-                    max_card = card
-        # 设置优先级最高的卡片为kun目标
-        if max_card:
-            max_card.is_kun_target = True
+        for kun_card in self.kun_cards:
+
+            # 检测坤卡是否已经成功获取到状态图片
+            if kun_card.try_get_img_for_check_card_states() != 1:
+                continue
+
+            # 要求kun卡状态可用
+            kun_card.fresh_status(game_image=game_image)
+            if kun_card.status_usable:
+                any_kun_usable = True
+
+        if any_kun_usable:
+            # 定位坤卡的目标
+            kun_tar_index = 0
+            max_card = None
+            for i in range(len(self.card_queue.card_list)):
+                card = self.card_queue.card_list[i]
+                # 先将所有卡片的is_kun_target设置为False
+                card.is_kun_target = False
+                if not card.status_ban:
+                    # 从没有被ban的卡中找出优先级最高的卡片
+                    if card.kun > kun_tar_index:
+                        kun_tar_index = card.kun
+                        max_card = card
+            # 设置优先级最高的卡片为kun目标
+            if max_card:
+                max_card.is_kun_target = True
 
     def check_for_auto_battle(self):
         """
@@ -413,7 +427,7 @@ class ThreadCheckTimer(QThread):
         self.faa.faa_battle.update_fire_elemental_1000()
 
         # 根据情况判断是否加入执行坤函数的动作
-        if self.card_kun:
+        if self.kun_cards:
             self.check_for_kun(game_image=game_image)
 
         # 调试打印 - 目前 <战斗管理器> 的状态
@@ -428,9 +442,8 @@ class ThreadCheckTimer(QThread):
                         'T' if card.status_usable else 'F',
                         card.status_ban if card.status_ban else 'F',
                         'T' if card.is_kun_target else 'F')
-                card = self.card_kun
-                if card:
-                    text += "[{}|状:{}|CD:{}|用:{}|禁:{}".format(
+                for card in self.kun_cards:
+                    text += "[{}|状:{}|CD:{}|用:{}|禁:{}]".format(
                         card.name[:2] if len(card.name) >= 2 else card.name,
                         'T' if card.state_images["冷却"] is not None else 'F',
                         'T' if card.status_cd else 'F',
@@ -650,7 +663,6 @@ class ThreadUseSpecialCardTimer(QThread):
                         card.fresh_status()
                         if card.status_usable:
                             self.card_list_can_use[pid].append(card)
-
 
             result = solve_special_card_problem(
                 points_to_cover=need_boom_locations,

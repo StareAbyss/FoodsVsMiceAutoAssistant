@@ -98,7 +98,7 @@ class Card:
         self.kun = plan_by_priority.get("kun", 0)
 
         # 坤卡的实例
-        self.card_kun = None
+        self.kun_cards = None
 
         """用于完成放卡的额外类属性"""
         # 该卡片不同状态下对应的状态图片
@@ -340,25 +340,26 @@ class Card:
                 return
 
             # 坤-如果不可用状态 放弃本次用卡
-            if not self.card_kun.status_usable:
-                return
+            for kun_card in self.kun_cards:
+                if not kun_card.status_usable:
+                    continue
 
-            # 坤-点击 选中卡片
-            self.card_kun.choice_card()
-            time.sleep(self.click_sleep)
+                # 坤-点击 选中卡片
+                kun_card.choice_card()
+                time.sleep(self.click_sleep)
 
-            # 坤-放卡
-            self.put_card()
+                # 坤-放卡
+                self.put_card()
 
-            # 等待游戏画面刷新
-            time.sleep(self.frame_interval)
+                # 等待游戏画面刷新
+                time.sleep(self.frame_interval)
 
-            self.card_kun.fresh_status()
+                kun_card.fresh_status()
 
     def destroy(self):
         """中止运行时释放内存, 顺带如果遇到了全新的状态图片保存一下"""
         self.faa = None
-        self.card_kun = None
+        self.kun_cards = None
 
         # 需要
         # 1. 额外储存了不可用状态图片
@@ -396,16 +397,15 @@ class Card:
 
 
 class CardKun(Card):
-    def __init__(self, faa):
+    def __init__(self, faa, name, c_id, coordinate_from):
         # 继承父类初始化
         super().__init__(faa=faa, set_priority=0)
 
         """直接从FAA类读取的属性"""
-        # 坐标 [x,y] 和普通卡片不同 需要复写
-        self.coordinate_from = self.faa.kun_info["coordinate_from"]
-
-        # 无法正常读取到自身名称 需要复写
-        self.name = "幻幻鸡"
+        # 覆写 不存在于战斗方案 故手动指定
+        self.name = name
+        self.c_id = c_id
+        self.coordinate_from = coordinate_from
 
     def use_card(self):
         """
