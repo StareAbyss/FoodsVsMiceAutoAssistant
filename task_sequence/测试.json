@@ -1,0 +1,30 @@
+[
+    {
+        "task_type": "战斗",
+        "task_id": 1,
+        "task_args": {
+            "stage_id": "NO-6-6",
+            "max_times": 1,
+            "need_key": false,
+            "player": [
+                2,
+                1
+            ],
+            "deck": 6,
+            "battle_plan_1p": "79a01548-8c6c-11ef-9aca-f44efc5bf671",
+            "battle_plan_2p": "79a01548-8c6c-11ef-9aca-f44efc5bf671",
+            "quest_card": "None",
+            "ban_card_list": [],
+            "dict_exit": {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": [
+                    "竞技岛"
+                ],
+                "last_time_player_b": [
+                    "竞技岛"
+                ]
+            }
+        }
+    }
+]
