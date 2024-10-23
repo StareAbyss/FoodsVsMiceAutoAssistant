@@ -271,7 +271,7 @@ class FAA:
                     match_tolerance=0.99)
                 if find:
                     coordinate_list.append([int(150 + find[0]), int(find[1])])
-                    card_name_list.append(mat_card.split(".")[0])
+                    card_name_list.append(mat_card.split("-")[0])
                     # 从资源中去除已经找到的卡片
                     mat_resource_exist_list.remove(mat_card)
 
@@ -289,7 +289,7 @@ class FAA:
                 x2 = card_xy_list[0] + 53
                 y2 = card_xy_list[1] + 70
                 if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
-                    mat_cards_info.append({'name':name, 'id': card_id, 'coordinate_from': coordinate})
+                    mat_cards_info.append({'name': name, 'id': card_id})
                     break
 
         # 输出
@@ -329,7 +329,7 @@ class FAA:
                 x2 = card_xy_list[0] + 53
                 y2 = card_xy_list[1] + 70
                 if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
-                    self.smoothie_info = {"id": card_id, "coordinate_from": coordinate}
+                    self.smoothie_info = {'name':'极寒冰沙', "id": card_id}
                     break
 
         self.print_info(text="战斗中识图查找冰沙位置, 结果：{}".format(self.smoothie_info))
@@ -499,12 +499,12 @@ class FAA:
             for i in range(num_mat_card):
 
                 dict_mat = {
-                    "name":mat_card_info[i]['name'],
+                    "name": mat_card_info[i]['name'],
                     "id": mat_card_info[i]['id'],
                     "location": location[i::num_mat_card],
                     "ergodic": need_plate,
                     "queue": True,
-                    "coordinate_from": mat_card_info[i]['coordinate_from'],
+                    "coordinate_from": [],
                     "coordinate_to": []}
 
                 # 可能是空列表 即花瓶
@@ -525,7 +525,7 @@ class FAA:
 
                 # 找到第一个不在障碍物列表中的值
                 first_available_location = next(
-                    (pos for pos in all_locations if pos not in stage_info['obstacle']),None)
+                    (pos for pos in all_locations if pos not in stage_info['obstacle']), None)
 
                 # 仅该卡确定存在后执行添加
                 card_dict = {
@@ -587,33 +587,15 @@ class FAA:
             将 location:str 变为 coordinate_to:[[x:int,y:int],...]"""
 
             for card in list_cell_all:
-                # 为每个字典添加未预设字段
-                card["coordinate_from"] = []
-                card["coordinate_to"] = []
-
                 # 根据字段值, 判断是否完成写入, 并进行转换
-                coordinate = copy.deepcopy(bp_card[card["id"]])
-                coordinate = [coordinate[0], coordinate[1]]
-                card["coordinate_from"] = [coordinate[0], coordinate[1]]
+                card["coordinate_from"] = copy.deepcopy(bp_card[card["id"]])
+                card["coordinate_to"] = [copy.deepcopy(bp_cell[location]) for location in card["location"]]
 
-                new_list = []
-                for location in card["location"]:
-                    coordinate = copy.deepcopy(bp_cell[location])
-                    new_list.append([coordinate[0], coordinate[1]])
-                card["coordinate_to"] = copy.deepcopy(new_list)
-
-            new_list = []
-            for location in list_shovel:
-                coordinate = bp_cell[location]
-                new_list.append([coordinate[0], coordinate[1]])
-            list_shovel = copy.deepcopy(new_list)  # 因为重新注册list容器了, 可以不用深拷贝 但为了方便理解用一下
+            list_shovel = copy.deepcopy([bp_cell[location] for location in list_shovel])
 
             # 为幻鸡单独转化
-            # 根据字段值, 判断是否完成写入, 并进行转换
-            if self.kun_info:
-                coordinate = copy.deepcopy(bp_card[self.kun_info["id"]])
-                coordinate = [coordinate[0], coordinate[1]]
-                self.kun_info["coordinate_from"] = [coordinate[0], coordinate[1]]
+            for kun_card_info in self.kun_cards_info:
+                kun_card_info["coordinate_from"] = copy.deepcopy(bp_card[kun_card_info["id"]])
 
             return list_cell_all, list_shovel
 
@@ -1189,7 +1171,7 @@ class FAA:
 
             if find:
                 # 点击下面四个奖励
-                for x in [460, 570 ,675,785]:
+                for x in [460, 570, 675, 785]:
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=x, y=530)
                     time.sleep(0.1)
 
