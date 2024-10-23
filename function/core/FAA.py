@@ -84,7 +84,7 @@ class FAA:
         # 承载卡/冰沙/坤的位置
         self.mat_cards_info = None  # list [{},{},...]
         self.smoothie_info = None  # dict {}
-        self.kun_info = None  # dict {} 也用于标记本场战斗是否需要激活坤函数
+        self.kun_cards_info = None  # list [{},{}...] 也用于标记本场战斗是否需要激活坤函数
 
         # 经过处理后的战斗方案, 由战斗类相关动作函数直接调用, 其中的各种操作都包含坐标
         self.battle_plan_parsed = {}
@@ -339,50 +339,59 @@ class FAA:
         self.print_info(text="战斗中识图查找幻幻鸡位置, 开始")
 
         # 重新初始化为None
-        self.kun_info = None
+        self.kun_cards_info = []
 
         # 查找对应卡片坐标 重复3次
-        def action_find_card():
+        def action_find_cards():
 
             # 筛选出所有 有图片资源的卡片 包含变种
             resource_exist_list = []
-            for i in range(20):
-                new_card = f"幻幻鸡-{i}.png"
-                if new_card in RESOURCE_P["card"]["战斗"].keys():
-                    resource_exist_list.append(new_card)
+            for i in range(6):
+                card_image_name = f"幻幻鸡-{i}.png"
+                if card_image_name in RESOURCE_P["card"]["战斗"].keys():
+                    resource_exist_list.append(card_image_name)
+            for i in range(6):
+                card_image_name = f"创造神-{i}.png"
+                if card_image_name in RESOURCE_P["card"]["战斗"].keys():
+                    resource_exist_list.append(card_image_name)
+
+            cards_coordinate = {}
 
             for try_time in range(3):
 
-                for img_card in resource_exist_list:
+                for card_image_name in resource_exist_list:
                     # 需要使用0.99相似度参数 相似度阈值过低可能导致一张图片被识别为两张卡
                     find = match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
                         source_range=[150, 0, 950, 600],
-                        template=RESOURCE_P["card"]["战斗"][img_card],
+                        template=RESOURCE_P["card"]["战斗"][card_image_name],
                         match_tolerance=0.99)
                     if find:
-                        return [int(150 + find[0]), int(find[1])]
+                        cards_coordinate[card_image_name.split("-")[0]] = [int(150 + find[0]), int(find[1])]
 
                 # 防止卡片正好被某些特效遮挡, 所以等待一下
                 time.sleep(0.1)
 
-            return None
+            return cards_coordinate
 
-        coordinate = action_find_card()
+        coordinate = action_find_cards()
 
         # 根据坐标位置，判断对应的卡id
-        if coordinate:
+        for card_name, coordinate in coordinate.items():
             for card_id, card_xy_list in self.bp_card.items():
                 x1 = card_xy_list[0]
                 y1 = card_xy_list[1]
                 x2 = card_xy_list[0] + 53
                 y2 = card_xy_list[1] + 70
                 if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
-                    self.kun_info = {"id": card_id, "coordinate_from": coordinate}
+                    self.kun_cards_info.append({
+                        'name': card_name,
+                        "id": card_id
+                    })
                     break
 
-        self.print_info(text="战斗中识图查找幻幻鸡位置, 结果：{}".format(self.kun_info))
+        self.print_info(text="战斗中识图查找幻幻鸡位置, 结果：{}".format(self.kun_cards_info))
 
     def init_battle_plan_parsed(self) -> None:
         """
@@ -529,17 +538,17 @@ class FAA:
 
                 # 仅该卡确定存在后执行添加
                 card_dict = {
-                    "name": "极寒冰沙",
-                    "id": smoothie_info["id"],
-                    "location": [first_available_location],
-                    "ergodic": False,
-                    "queue": False,
-                    "coordinate_from": smoothie_info["coordinate_from"],
-                    "coordinate_to": []
+                    'name': smoothie_info['name'],
+                    'id': smoothie_info['id'],
+                    'location': [first_available_location],
+                    'ergodic': False,
+                    'queue': False,
+                    'coordinate_from': [],
+                    'coordinate_to': []
                 }
                 list_cell_all.append(card_dict)
 
-            if self.kun_info:
+            if self.kun_cards_info:
                 # 确认卡片在卡组 且 有至少一个kun参数设定
                 kun_already_set = False
                 for card in list_cell_all:
@@ -549,7 +558,7 @@ class FAA:
                         break
                 if not kun_already_set:
                     # 没有设置 那么也视坤位置标记不存在
-                    self.kun_info = None
+                    self.kun_cards_info = []
 
             # 为没有kun参数的方案 默认添加0
             for card in list_cell_all:
