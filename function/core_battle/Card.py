@@ -170,6 +170,9 @@ class Card:
                 self.coordinate_to.append(self.coordinate_to[0])
                 self.coordinate_to.remove(self.coordinate_to[0])
 
+        # 放完卡后强制自ban 2s 这游戏似乎没有cd更短的卡片了!
+        self.status_ban = 2
+
     def get_card_current_img(self, game_image=None):
         """
         获取用于 判定 卡片状态 的图像
@@ -329,7 +332,7 @@ class Card:
 
             if self.status_usable and (self.name not in self.ban_white_list):
                 # 放满了 如果不在白名单 就自ban
-                self.status_ban = 10
+                self.status_ban = 7
                 # if self.player == 1:
                 #     CUS_LOGGER.debug(f"[1P] {self.name} 因使用后仍可用进行了自ban")
                 #     T_ACTION_QUEUE_TIMER.print_queue_statue()
@@ -470,7 +473,7 @@ class SpecialCard(Card):
     def use_mat_card(self):
 
         # 加一个垫子的判断 点位要放承载卡
-        if self.location_to[0] in self.faa.battle_plan_parsed["mat"]:
+        if self.location[0] in self.faa.battle_plan_parsed["mat"]:
 
             for mat in self.faa.mat_cards_info:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(

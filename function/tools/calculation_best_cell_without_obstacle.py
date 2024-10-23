@@ -29,14 +29,18 @@ target_cells = ["2-1", "2-2", "2-3", "2-5", "2-6", "2-7",
 all_combinations = combinations(target_cells, 4)
 
 
-# 检查组合在每个关卡中与障碍物重合的格子数是否最多只有一个
-def is_combination_valid(combination, stage_info_list):
+# 检查组合在每个关卡中与障碍物 可用格子最少有多少个
+def is_combination_valid(combination, stage_info_list, count):
     for stage_info in stage_info_list:
-        overlap_count = sum(1 for cell in combination if cell not in stage_info["obstacle"])
+        overlap_count = 0
+        for cell in combination:
+            if cell not in stage_info["obstacle"]:
+                overlap_count += 1
         # 需要达到指定数量 方可通过
-        if overlap_count >= 1:
-            return True
-    return False
+        if overlap_count < count:
+            print(overlap_count)
+            return False
+    return True
 
 
 # # 找到符合条件的组合
@@ -52,7 +56,8 @@ def is_combination_valid(combination, stage_info_list):
 
 print("结果:" + str(
     is_combination_valid(
-        combination=["2-2","2-3","2-6", "2-5"],
-        stage_info_list=stage_info_list
+        combination=["2-3","2-5"],
+        stage_info_list=stage_info_list,
+        count=1
     )
 ))
