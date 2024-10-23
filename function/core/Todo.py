@@ -1578,10 +1578,10 @@ class ThreadTodo(QThread):
 
     def task_sequence(self, text_, task_begin_id: int, task_sequence_index: int):
         """
-        战斗 刷新游戏 清背包
-        :param text_:
-        :param task_begin_id:
-        :param task_sequence_index:
+        自定义任务序列
+        :param text_: 其实是title
+        :param task_begin_id: 从第几号任务开始
+        :param task_sequence_index: 任务序列的索引号(暂未使用uuid)
         :return:
         """
 
@@ -2069,7 +2069,7 @@ class ThreadTodo(QThread):
         """主要事项"""
 
         self.signal_print_to_ui.emit(
-            text=f"[主要事项] 开始!",
+            text=f"\n[主要事项] 开始!",
             color_level=1)
 
         need_reload = False
@@ -2282,11 +2282,10 @@ class ThreadTodo(QThread):
         extra_active = extra_active or c_opt["use_items"]["active"]
         extra_active = extra_active or c_opt["auto_food"]["active"]
         extra_active = extra_active or c_opt["loop_cross_server"]["active"]
-        extra_active = extra_active or c_opt["customize"]["active"]
 
         if extra_active:
             self.signal_print_to_ui.emit(
-                text=f"[额外事项] 开始!",
+                text=f"\n[额外事项] 开始!",
                 color_level=1)
             self.batch_reload_game()
             start_time = datetime.datetime.now()
@@ -2330,11 +2329,10 @@ class ThreadTodo(QThread):
 
         active_singleton = False
         active_singleton = active_singleton or c_opt["customize_battle"]["active"]
-        active_singleton = active_singleton or c_opt["customize"]["active"]
 
         if active_singleton:
             self.signal_print_to_ui.emit(
-                text=f"[自建房战斗] 开始! 如出现错误, 务必确保该功能是单独启动的!",
+                text=f"\n[自建房战斗] 开始! 如出现错误, 务必确保该功能是单独启动的!",
                 color_level=1)
             start_time = datetime.datetime.now()
 
