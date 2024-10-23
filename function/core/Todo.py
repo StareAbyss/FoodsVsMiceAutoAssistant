@@ -1327,27 +1327,27 @@ class ThreadTodo(QThread):
         """
         根据战斗的最终结果, 打印玩家战利品信息
         :param player_id:  player_a, player_b int 1 2
-        :param result_list: list, result of b
+        :param result_list: [{一场战斗的信息}, ...]
         :return:
         关于 result_list
         """
-        # valid_time = len(result_list)
 
         # 输入为
-        count_dict = {"loots": {}, "chests": {}}
-        count_match_success_dict = {"loots": {}, "chests": {}}
+        count_dict = {"loots": {}, "chests": {}}  # 汇总每个物品的总掉落
+        count_match_success_dict = {"loots": [], "chests": []}
 
         # 计数正确场次
 
         # 复制key
-        for i in range(len(result_list)):
+        for _, a_battle_data in enumerate(result_list):
             for drop_type in ["loots", "chests"]:
-                data = result_list[i]["loot_dict_list"][player_id][drop_type]
-                # 如果有识别失败 这次数据为无效的
+
+                data = a_battle_data["loot_dict_list"][player_id][drop_type]
+                # 如果标记为识别失败
                 if data is None:
-                    count_match_success_dict[drop_type][i] = False
+                    count_match_success_dict[drop_type].append(False)
                     continue
-                count_match_success_dict[drop_type][i] = True
+                count_match_success_dict[drop_type].append(True)
 
                 for key, value in data.items():
                     if key in count_dict[drop_type].keys():
