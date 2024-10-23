@@ -134,6 +134,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
         self.ComboBoxTask.addItem('刷新游戏')
         self.ComboBoxTask.addItem('双暴卡')
         self.ComboBoxTask.addItem('清背包')
+        self.ComboBoxTask.addItem('领取任务奖励')
+
         # 待实现
         # self.ComboBoxTask.addItem('使用绑定消耗品')
         # self.ComboBoxTask.addItem('签到')
@@ -187,7 +189,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     "spouse": False,
                     "offer_reward": False,
                     "food_competition": False,
-                    "monopoly": False
+                    "monopoly": False,
+                    "camp": False
                 }
             case '扫描公会贡献':
                 task["task_args"] = {
@@ -427,6 +430,36 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 w_input.setCurrentIndex(index)
             add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
 
+        def receive_quest_rewards(line_layout):
+
+            # 战斗Player
+            w_label = QLabel('玩家')
+            w_input = QComboBox()
+            w_input.setFixedWidth(70)
+            w_input.setObjectName("w_player")
+            for player in ['1P', '2P', '1+2P']:
+                w_input.addItem(player)
+            player_list_to_str_dict = {(1,): "1P", (2,): '2P', (1, 2): '1+2P', (2, 1): '1+2P'}
+            # 查找并设置当前选中的索引
+            index = w_input.findText(player_list_to_str_dict[tuple(task["task_args"]["player"])])
+            if index >= 0:
+                w_input.setCurrentIndex(index)
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
+
+            def add_quest(c, e):
+                w_label = QLabel(c)
+                w_input = QCheckBox()
+                w_input.setObjectName(f"w_{e}")
+                w_input.setChecked(task["task_args"][e])
+                add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
+
+            add_quest("普通", "normal")
+            add_quest("公会", "guild")
+            add_quest("情侣", "spouse")
+            add_quest("悬赏", "offer_reward")
+            add_quest("大赛", "food_competition")
+            add_quest("营地", "camp")
+            add_quest("富翁", "monopoly")
 
         match task_type:
             case '战斗':
@@ -437,6 +470,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 fresh_game(line_layout=line_layout)
             case '清背包':
                 clean_items(line_layout=line_layout)
+            case '领取任务奖励':
+                receive_quest_rewards(line_layout=line_layout)
 
         # 创建一个水平弹簧
         spacer = QSpacerItem(0, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
@@ -639,7 +674,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 case "刷新游戏":
                     args = player(w_line=w_line, args=args)
 
-            if task_type == "刷新游戏":
+                case "领取任务奖励":
+                    args = player(w_line=w_line, args=args)
+                    for key in ["normal", "guild", "spouse", "offer_reward", "food_competition", "monopoly", "camp"]:
+                        args = check_box(w_line=w_line, args=args, key=key)
 
             data_line["task_args"] = args
 

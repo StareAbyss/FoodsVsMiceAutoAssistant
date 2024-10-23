@@ -7478,7 +7478,7 @@ Link Start</string>
 推荐您在对FAA有一定了解后再使用.</string>
                </property>
                <property name="text">
-                <string>高级自定义作战</string>
+                <string>自定义任务序列</string>
                </property>
               </widget>
              </item>
