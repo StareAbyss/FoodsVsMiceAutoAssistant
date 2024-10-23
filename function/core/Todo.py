@@ -427,7 +427,7 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=title_text)
 
-    def batch_receive_all_quest_rewards(self, player: list = None, modes: list = None, advance_mode: bool = False):
+    def batch_receive_all_quest_rewards(self, player: list = None, quests: list = None, advance_mode: bool = False):
 
         # 默认值
         if player is None:
@@ -436,10 +436,11 @@ class ThreadTodo(QThread):
         if self.faa_dict[1].channel == self.faa_dict[2].channel:
             player = [1]
 
-        if modes is None:
-            modes = ["普通任务", "美食大赛", "大富翁"]
+        if quests is None:
+            quests = ["普通任务"]
 
         title_text = "领取奖励"
+
         self.model_start_print(text=title_text)
 
         if advance_mode:
@@ -467,9 +468,9 @@ class ThreadTodo(QThread):
             """激活了删除物品高危功能"""
             self.batch_level_2_action(title_text=title_text, dark_crystal=True)
 
-        if "普通任务" in modes:
+        for mode in quests:
 
-            self.signal_print_to_ui.emit(text=f"[{title_text}] [普通任务] 开始...")
+            self.signal_print_to_ui.emit(text=f"[{title_text}] [{mode}] 开始...")
 
             # 创建进程 -> 开始进程 -> 阻塞主进程
             if 1 in player:
@@ -477,7 +478,7 @@ class ThreadTodo(QThread):
                     target=self.faa_dict[1].receive_quest_rewards,
                     name="1P Thread - ReceiveQuest",
                     kwargs={
-                        "mode": "普通任务"
+                        "mode": mode
                     })
                 self.thread_1p.daemon = True
                 self.thread_1p.start()
@@ -490,7 +491,7 @@ class ThreadTodo(QThread):
                     target=self.faa_dict[2].receive_quest_rewards,
                     name="2P Thread - ReceiveQuest",
                     kwargs={
-                        "mode": "普通任务"
+                        "mode": mode
                     })
                 self.thread_2p.daemon = True
                 self.thread_2p.start()
@@ -500,77 +501,7 @@ class ThreadTodo(QThread):
             if 2 in player:
                 self.thread_2p.join()
 
-            self.signal_print_to_ui.emit(text=f"[{title_text}] [普通任务] 结束")
-
-        if "美食大赛" in modes:
-
-            self.signal_print_to_ui.emit(text=f"[{title_text}] [美食大赛] 开始...")
-
-            # 创建进程 -> 开始进程 -> 阻塞主进程
-            if 1 in player:
-                self.thread_1p = ThreadWithException(
-                    target=self.faa_dict[1].receive_quest_rewards,
-                    name="1P Thread - Quest",
-                    kwargs={
-                        "mode": "美食大赛"
-                    })
-                self.thread_1p.daemon = True
-                self.thread_1p.start()
-
-            if 1 in player and 2 in player:
-                sleep(0.333)
-
-            if 2 in player:
-                self.thread_2p = ThreadWithException(
-                    target=self.faa_dict[2].receive_quest_rewards,
-                    name="2P Thread - Quest",
-                    kwargs={
-                        "mode": "美食大赛"
-                    })
-                self.thread_2p.daemon = True
-                self.thread_2p.start()
-
-            if 1 in player:
-                self.thread_1p.join()
-            if 2 in player:
-                self.thread_2p.join()
-
-            self.signal_print_to_ui.emit(text=f"[{title_text}] [美食大赛] 结束...")
-
-        if "大富翁" in modes:
-
-            self.signal_print_to_ui.emit(text=f"[{title_text}] [大富翁] 开始...")
-
-            # 创建进程 -> 开始进程 -> 阻塞主进程
-            if 1 in player:
-                self.thread_1p = ThreadWithException(
-                    target=self.faa_dict[1].receive_quest_rewards,
-                    name="1P Thread - Quest",
-                    kwargs={
-                        "mode": "大富翁"
-                    })
-                self.thread_1p.daemon = True
-                self.thread_1p.start()
-
-            if 1 in player and 2 in player:
-                sleep(0.333)
-
-            if 2 in player:
-                self.thread_2p = ThreadWithException(
-                    target=self.faa_dict[2].receive_quest_rewards,
-                    name="2P Thread - Quest",
-                    kwargs={
-                        "mode": "大富翁"
-                    })
-                self.thread_2p.daemon = True
-                self.thread_2p.start()
-
-            if 1 in player:
-                self.thread_1p.join()
-            if 2 in player:
-                self.thread_2p.join()
-
-            self.signal_print_to_ui.emit(text=f"[{title_text}] [大富翁] 结束...")
+            self.signal_print_to_ui.emit(text=f"[{title_text}] [{mode}] 结束")
 
         self.model_end_print(text=title_text)
 
@@ -1741,6 +1672,21 @@ class ThreadTodo(QThread):
                         dark_crystal=False
                     )
 
+                case "领取任务奖励":
+                    all_quests = {
+                        "normal": "普通任务",
+                        "guild": "公会任务",
+                        "spouse": "情侣任务",
+                        "offer_reward": "悬赏任务",
+                        "food_competition": "美食大赛",
+                        "monopoly": "大富翁",
+                        "camp": "营地任务"
+                    }
+                    self.batch_receive_all_quest_rewards(
+                        player=task["task_args"]["player"],
+                        quests=[k for k, v in all_quests.items() if task["task_args"][k]]
+                    )
+
         # 战斗结束
         self.model_end_print(text=text_)
 
@@ -2349,6 +2295,7 @@ class ThreadTodo(QThread):
         if my_opt["active"]:
             self.batch_receive_all_quest_rewards(
                 player=[1, 2] if my_opt["is_group"] else [1],
+                quests=["普通任务", "美食大赛", "大富翁"],
                 advance_mode=True,
             )
 
@@ -2379,7 +2326,7 @@ class ThreadTodo(QThread):
                 text=f"[额外事项] 未启动.",
                 color_level=1)
 
-        """自定义事项"""
+        """自建房战斗"""
 
         active_singleton = False
         active_singleton = active_singleton or c_opt["customize_battle"]["active"]
