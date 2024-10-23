@@ -470,7 +470,7 @@ class SpecialCard(Card):
     def use_mat_card(self):
 
         # 加一个垫子的判断 点位要放承载卡
-        if self.location_to[0] in self.faa.battle_plan_parsed["mat"]:
+        if self.location[0] in self.faa.battle_plan_parsed["mat"]:
 
             for mat in self.faa.mat_cards_info:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(

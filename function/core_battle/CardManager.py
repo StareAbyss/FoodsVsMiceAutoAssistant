@@ -184,7 +184,7 @@ class CardManager:
                             card_type=result["card_type"],
                             rows=result["rows"],
                             cols=result["cols"],
-                            n_card = card_shield)# 建立特殊卡护罩与常规卡护罩之间的连接
+                            n_card=card_shield)  # 建立特殊卡护罩与常规卡护罩之间的连接
                         # 以特殊卡加入特殊放卡
                         self.shield_dict_list[pid].append(s_card)
                         # 以普通卡版本加入放卡
