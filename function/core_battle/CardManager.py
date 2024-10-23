@@ -54,6 +54,8 @@ def is_special_card(card_name):
 
     # 如果没有找到匹配的文件，返回匹配状态为False
     return {"found": False}
+
+
 # # 示例使用
 # card_name = "电音镭射喵"
 # result = is_special_card(card_name)
@@ -602,7 +604,7 @@ class ThreadUseSpecialCardTimer(QThread):
                 if not_got_state_images_card:
                     self.todo_dict[pid].append({
                         "card": not_got_state_images_card[0],
-                        "location_to": not_got_state_images_card[0].location_to_template
+                        "location": not_got_state_images_card[0].location_template
                     })
                     return
 
@@ -612,7 +614,7 @@ class ThreadUseSpecialCardTimer(QThread):
                     if card.status_usable:
                         self.todo_dict[pid].append({
                             "card": card,
-                            "location_to": card.location_to_template})
+                            "location": card.location_template})
                         return
 
         if wave:
@@ -662,7 +664,7 @@ class ThreadUseSpecialCardTimer(QThread):
                     for card, pos in strategy_dict[pid].items():
                         # 将计算完成的放卡结构 写入到对应角色的todo dict 中
 
-                        self.todo_dict[pid].append({"card": card, "location_to": [f"{pos[0]}-{pos[1]}"]})
+                        self.todo_dict[pid].append({"card": card, "location": [f"{pos[0]}-{pos[1]}"]})
                         # 记录某个角色的某个护罩已经被使用过
 
                         if card.card_type == 12:
@@ -699,25 +701,25 @@ class ThreadUseSpecialCardTimer(QThread):
 
             card = todo["card"]
             # format [‘x-y’,'x-y',...]
-            card.location_to = todo["location_to"]
+            card.location = todo["location"]
             # format [[x,y],[x,y]...]
-            card.coordinate_to = [COORDINATE_CARD_CELL_IN_BATTLE[l] for l in card.location_to]
+            card.coordinate_to = [COORDINATE_CARD_CELL_IN_BATTLE[loc] for loc in card.location]
 
             result = card.try_get_img_for_check_card_states()
             if result == 0:
                 # 什么? 怎么可能居然获取失败了?!
-                card.location_to = []  # 清空location_to
-                card.coordinate_to = []  # 清空location_to
+                card.location = []  # 清空location
+                card.coordinate_to = []  # 清空coordinate_to
                 continue
             elif result == 1:
                 # 之前已经判定过肯定是获取到的
                 card.use_card()
-                card.location_to = []  # 清空location_to
-                card.coordinate_to = []  # 清空location_to
+                card.location = []  # 清空location
+                card.coordinate_to = []  # 清空coordinate_to
             elif result == 2:
                 # 直接就通过试色完成了使用!
-                card.location_to = []  # 清空location_to
-                card.coordinate_to = []  # 清空location_to
+                card.location = []  # 清空location
+                card.coordinate_to = []  # 清空coordinate_to
                 continue
 
             # 清空对应任务

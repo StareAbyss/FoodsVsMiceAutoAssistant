@@ -66,8 +66,8 @@ class Card:
     def __init__(self, set_priority, faa):
         # 直接塞进来一个faa的实例地址, 直接从该实例中拉取方法和属性作为参数~
         self.faa = faa
-
-        self.set_priority = set_priority  # 用于直接从战斗方案中读取卡片信息 战斗方案中的index
+        # 用于直接从战斗方案中读取卡片信息 战斗方案中的index
+        self.set_priority = set_priority
 
         """直接从FAA类读取的属性"""
         self.handle = self.faa.handle
@@ -78,21 +78,24 @@ class Card:
         self.player = self.faa.player
 
         """从 FAA类 的 battle_plan_parsed 中读取的属性"""
+        plan = self.faa.battle_plan_parsed["card"]
+        plan_by_priority = plan[set_priority] if 0 <= set_priority < len(plan) else {}  # 处理默认值, 方便坤卡继承
+
         # 根据优先级（也是在战斗方案中的index）直接读取faa
-        self.name = self.faa.battle_plan_parsed["card"][set_priority]["name"]
-        self.ergodic = self.faa.battle_plan_parsed["card"][set_priority]["ergodic"]
-        self.queue = self.faa.battle_plan_parsed["card"][set_priority]["queue"]
+        self.name = plan_by_priority.get("name", "错误")
+        self.ergodic = plan_by_priority.get("ergodic", True)
+        self.queue = plan_by_priority.get("queue", True)
 
         # 卡片拿去的位置 - 代号 int 和 坐标 list[x,y]
-        self.id = self.faa.battle_plan_parsed["card"][set_priority]["id"]
-        self.coordinate_from = self.faa.battle_plan_parsed["card"][set_priority]["coordinate_from"]
+        self.c_id = plan_by_priority.get("id", 1)
+        self.coordinate_from = plan_by_priority.get("coordinate_from", [10, 10])
 
         # 卡片放置的位置 - 代号 list["1-1",...] 和 坐标 list[[x,y],....]
-        self.location_to = self.faa.battle_plan_parsed["card"][set_priority]["location"]
-        self.coordinate_to = self.faa.battle_plan_parsed["card"][set_priority]["coordinate_to"]
+        self.location = plan_by_priority.get("location", [])
+        self.coordinate_to = plan_by_priority.get("coordinate_to", [])
 
         # 坤优先级
-        self.kun = self.faa.battle_plan_parsed["card"][set_priority]["kun"]
+        self.kun = plan_by_priority.get("kun", 0)
 
         # 坤卡的实例
         self.card_kun = None
@@ -111,14 +114,10 @@ class Card:
         # 游戏最低帧间隔
         self.frame_interval = 1 / g_extra.GLOBAL_EXTRA.lowest_fps
 
-        # 状态 冷却完成 默认已完成
-        self.status_cd = False
-
-        # 状态 可用
-        self.status_usable = False
-
-        # 状态 被ban时间 当放卡，但已完成所有指定位置的放卡导致放卡后立刻检测到冷却完成，则进入该ban状态8s
-        self.status_ban = 0
+        # 状态
+        self.status_cd = False  # 冷却完成 默认已完成
+        self.status_usable = False  # 可用
+        self.status_ban = 0  # 被ban时间 放卡，但已摆满, 导致放卡后立刻检测到可用，则进入该ban状态8s
 
         # 是否是当前角色的坤目标
         self.is_kun_target = False
@@ -164,10 +163,10 @@ class Card:
         time.sleep(self.click_sleep)
 
         # 如果启动队列模式放卡参数, 使用一次后, 第一个目标位置移动到末位
-        if self.queue and len(self.location_to) > 0 and len(self.coordinate_to) > 0:
+        if self.queue and len(self.location) > 0 and len(self.coordinate_to) > 0:
             if self.coordinate_to:
-                self.location_to.append(self.location_to[0])
-                self.location_to.remove(self.location_to[0])
+                self.location.append(self.location[0])
+                self.location.remove(self.location[0])
                 self.coordinate_to.append(self.coordinate_to[0])
                 self.coordinate_to.remove(self.coordinate_to[0])
 
@@ -446,10 +445,10 @@ class SpecialCard(Card):
         # 建立特殊卡护罩(炸弹护罩) 与 常规卡护罩 之间的连接 以暂时屏蔽其可用性
         self.n_card = n_card
 
-        # 卡片自身的location_to 是空的 保存到模板
+        # 卡片自身的location 是空的 保存到模板
         # 卡片放置的位置 - 代号 list["1-1",...]
-        self.location_to = []
-        self.location_to_template = self.faa.battle_plan_parsed["card"][self.set_priority]["location"]
+        self.location = []
+        self.location_template = self.faa.battle_plan_parsed["card"][self.set_priority]["location"]
 
         # 卡片放置的位置 - 坐标 list[[x,y],....]
         self.coordinate_to = []
