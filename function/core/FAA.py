@@ -289,7 +289,7 @@ class FAA:
                 x2 = card_xy_list[0] + 53
                 y2 = card_xy_list[1] + 70
                 if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
-                    mat_cards_info.append({'name': name, 'id': card_id})
+                    mat_cards_info.append({'name': name, 'id': card_id,'coordinate_from':card_xy_list})
                     break
 
         # 输出
