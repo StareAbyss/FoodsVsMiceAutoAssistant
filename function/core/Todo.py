@@ -765,23 +765,21 @@ class ThreadTodo(QThread):
         """同时进行战前准备"""
         if result_id == 0:
 
-            # 初始化多线程
-            self.thread_1p = ThreadWithException(
-                target=self.faa_dict[player_a].battle_a_round_room_preparatory,
-                name="{}P Thread - Battle - Before".format(player_a),
-                kwargs={})
+            # 创建并开始线程
             if is_group:
                 self.thread_2p = ThreadWithException(
                     target=self.faa_dict[player_b].battle_a_round_room_preparatory,
-                    name="{}P Thread - Battle - Before".format(player_b),
+                    name="{}P Thread - 战前准备".format(player_b),
                     kwargs={})
-            self.thread_1p.daemon = True
-            if is_group:
                 self.thread_2p.daemon = True
-            # 开始多线程
-            if is_group:
                 self.thread_2p.start()
                 time.sleep(3)
+
+            self.thread_1p = ThreadWithException(
+                target=self.faa_dict[player_a].battle_a_round_room_preparatory,
+                name="{}P Thread - 战前准备".format(player_a),
+                kwargs={})
+            self.thread_1p.daemon = True
             self.thread_1p.start()
 
             # 阻塞进程让进程执行完再继续本循环函数
@@ -805,18 +803,15 @@ class ThreadTodo(QThread):
                 target=self.faa_dict[player_a].battle_a_round_init_battle_plan,
                 name="{}P Thread - Battle".format(player_a),
                 kwargs={})
+            self.thread_1p.daemon = True
+            self.thread_1p.start()
+
             if is_group:
                 self.thread_2p = ThreadWithException(
                     target=self.faa_dict[player_b].battle_a_round_init_battle_plan,
                     name="{}P Thread - Battle".format(player_b),
                     kwargs={})
-
-            # 开始多线程
-            self.thread_1p.daemon = True
-            if is_group:
                 self.thread_2p.daemon = True
-            self.thread_1p.start()
-            if is_group:
                 self.thread_2p.start()
 
             # 阻塞进程让进程执行完再继续本循环函数
