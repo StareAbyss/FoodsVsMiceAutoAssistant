@@ -414,7 +414,7 @@ class BattleARoundPreparation:
 
             # 定义保存路径和文件名格式
             img_path = "{}\\{}_{}P_{}.png".format(
-                PATHS["logs"] + "\\loots_picture",
+                PATHS["logs"] + "\\loots_image",
                 stage_info["id"],
                 player,
                 time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
@@ -484,7 +484,7 @@ class BattleARoundPreparation:
 
             # 定义保存路径和文件名格式
             img_path = "{}\\{}_{}P_{}.png".format(
-                PATHS["logs"] + "\\chests_picture",
+                PATHS["logs"] + "\\chests_image",
                 stage_info["id"],
                 player,
                 time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())

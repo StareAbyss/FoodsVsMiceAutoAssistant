@@ -14,17 +14,17 @@ def f_test():
             template_opts=[
                 {
                     "source_range": [792, 200, 942, 534],
-                    "template": PATHS["picture"]["common"] + "\\底部菜单\\跳转_竞技场.png",
+                    "template": PATHS["image"]["common"] + "\\底部菜单\\跳转_竞技场.png",
                     "match_tolerance": 0.95,
                 },
                 {
                     "source_range": [792, 200, 942, 534],
-                    "template": PATHS["picture"]["common"] + "\\底部菜单\\跳转_情侣任务.png",
+                    "template": PATHS["image"]["common"] + "\\底部菜单\\跳转_情侣任务.png",
                     "match_tolerance": 0.95,
                 },
                 {
                     "source_range": [792, 200, 942, 534],
-                    "template": PATHS["picture"]["common"] + "\\底部菜单\\跳转_公会副本.png",
+                    "template": PATHS["image"]["common"] + "\\底部菜单\\跳转_公会副本.png",
                     "match_tolerance": 0.95,
                 }
             ],

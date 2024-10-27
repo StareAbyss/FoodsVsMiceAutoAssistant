@@ -30,19 +30,19 @@ def build_paths(root):
         "logo": os.path.join(root, "resource", "logo"),
         "model": os.path.join(root, "resource", "model"),
         "theme": os.path.join(root, "resource", "theme"),
-        "picture": {
-            "current": os.path.join(root, "resource", "picture"),
-            "common": os.path.join(root, "resource", "picture", "common"),
-            "number": os.path.join(root, "resource", "picture", "number"),
-            "card": os.path.join(root, "resource", "picture", "card"),
-            "stage": os.path.join(root, "resource", "picture", "stage"),
-            "quest_guild": os.path.join(root, "resource", "picture", "quest_guild"),
-            "quest_spouse": os.path.join(root, "resource", "picture", "quest_spouse"),
-            "quest_food": os.path.join(root, "resource", "picture", "quest_food"),
-            "ready_check_stage": os.path.join(root, "resource", "picture", "stage_ready_check"),
-            "map": os.path.join(root, "resource", "picture", "map"),
-            "item": os.path.join(root, "resource", "picture", "item"),
-            "error": os.path.join(root, "resource", "picture", "error"),
+        "image": {
+            "current": os.path.join(root, "resource", "image"),
+            "common": os.path.join(root, "resource", "image", "common"),
+            "number": os.path.join(root, "resource", "image", "number"),
+            "card": os.path.join(root, "resource", "image", "card"),
+            "stage": os.path.join(root, "resource", "image", "stage"),
+            "quest_guild": os.path.join(root, "resource", "image", "quest_guild"),
+            "quest_spouse": os.path.join(root, "resource", "image", "quest_spouse"),
+            "quest_food": os.path.join(root, "resource", "image", "quest_food"),
+            "ready_check_stage": os.path.join(root, "resource", "image", "stage_ready_check"),
+            "map": os.path.join(root, "resource", "image", "map"),
+            "item": os.path.join(root, "resource", "image", "item"),
+            "error": os.path.join(root, "resource", "image", "error"),
         }
     }
 
@@ -68,8 +68,8 @@ def check_paths():
     paths = [
         "\\battle_plan_not_active",
         "\\logs",
-        "\\logs\\chests_picture",
-        "\\logs\\loots_picture",
+        "\\logs\\chests_image",
+        "\\logs\\loots_image",
         "\\logs\\match_failed",
         "\\logs\\match_failed\\loots",
         "\\logs\\match_failed\\texts_美食大赛\\blocks",

@@ -29,7 +29,7 @@ class QMWSettingsMigrator(QMainWindow):
                 "type": "file",
                 "locations": [
                     os.path.join("config","cus_images","用户自截","空间服登录界面_1P.png"),
-                    os.path.join("resource","picture","common","用户自截","空间服登录界面_1P.png"),
+                    os.path.join("resource","image","common","用户自截","空间服登录界面_1P.png"),
                 ],
             },
             {
@@ -37,7 +37,7 @@ class QMWSettingsMigrator(QMainWindow):
                 "type": "file",
                 "locations": [
                     os.path.join("config","cus_images","用户自截","空间服登录界面_2P.png"),
-                    os.path.join("resource","picture","common","用户自截","空间服登录界面_2P.png"),
+                    os.path.join("resource","image","common","用户自截","空间服登录界面_2P.png"),
                 ],
             },
             {
@@ -46,8 +46,8 @@ class QMWSettingsMigrator(QMainWindow):
                 "locations": [
                     os.path.join("config","cus_images","用户自截","跨服远征_1p.png"),
                     os.path.join("config","cus_images","用户自截","跨服远征_1P.png"),
-                    os.path.join("resource","picture","common","用户自截","跨服远征_1p.png"),
-                    os.path.join("resource","picture","common","用户自截","跨服远征_1P.png")
+                    os.path.join("resource","image","common","用户自截","跨服远征_1p.png"),
+                    os.path.join("resource","image","common","用户自截","跨服远征_1P.png")
                 ],
             },
             {

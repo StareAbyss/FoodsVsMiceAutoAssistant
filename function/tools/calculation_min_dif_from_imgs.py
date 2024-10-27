@@ -6,7 +6,7 @@ import numpy as np
 from function.globals.get_paths import PATHS
 
 # 定义路径
-path = PATHS["picture"]["card"] + "\\状态判定"
+path = PATHS["image"]["card"] + "\\状态判定"
 
 # 读取路径下所有图像文件
 images = []

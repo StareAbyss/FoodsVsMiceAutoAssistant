@@ -384,7 +384,7 @@ class Card:
                                 return
 
                 new_state_group_id = len(RESOURCE_P["card"]["状态判定"])
-                path_images_group = PATHS["picture"]["card"] + "\\状态判定\\" + str(new_state_group_id)
+                path_images_group = PATHS["image"]["card"] + "\\状态判定\\" + str(new_state_group_id)
                 if not os.path.exists(path_images_group):
                     # 创建文件夹
                     os.makedirs(path_images_group)

@@ -138,7 +138,7 @@ class ThreadTodo(QThread):
             expiration_period = datetime.timedelta(days=time1)
             deleted_files_count = 0
 
-            directory_path = PATHS["logs"] + "\\loots_picture"
+            directory_path = PATHS["logs"] + "\\loots_image"
             for filename in os.listdir(directory_path):
                 file_path = os.path.join(directory_path, filename)
                 file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
@@ -147,7 +147,7 @@ class ThreadTodo(QThread):
                     os.remove(file_path)
                     deleted_files_count += 1
 
-            directory_path = PATHS["logs"] + "\\chests_picture"
+            directory_path = PATHS["logs"] + "\\chests_image"
             for filename in os.listdir(directory_path):
                 file_path = os.path.join(directory_path, filename)
                 file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
