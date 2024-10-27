@@ -19,7 +19,7 @@ def f_test_match_block_is_item():
     img_block_path = "花园钥匙.png"
     img_block = cv2.imdecode(buf=np.fromfile(file=img_block_path, dtype=np.uint8), flags=-1)
 
-    img_tar_path = "F://My Project//Python//FoodsVsMousesAutoAssistant//resource//picture//item//战利品//花园钥匙.png"
+    img_tar_path = "F://My Project//Python//FoodsVsMousesAutoAssistant//resource//image//item//战利品//花园钥匙.png"
     img_tar = cv2.imdecode(buf=np.fromfile(file=img_tar_path, dtype=np.uint8), flags=-1)
 
     print(one_item_match(

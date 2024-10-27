@@ -201,7 +201,7 @@ def match(source, mode="美食大赛"):
 if __name__ == '__main__':
     def main():
         # 从source文件夹里面读取所有图片
-        source_path = PATHS["picture"]["current"] + "/ocr/source"
+        source_path = PATHS["image"]["current"] + "/ocr/source"
 
         # 请补充 兼容中文路径
         sources = []

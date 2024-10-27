@@ -17,7 +17,7 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 def is_special_card(card_name):
     """判断是否为特殊卡，并返回匹配文件所在子目录的名称"""
-    base_path = PATHS["picture"]["card"] + "\\特殊对策卡"
+    base_path = PATHS["image"]["card"] + "\\特殊对策卡"
     card_name = os.path.splitext(card_name)[0]  # 移除传入名字的扩展名
 
     # 遍历目录及其子目录

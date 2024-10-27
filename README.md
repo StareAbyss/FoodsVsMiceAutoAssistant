@@ -117,7 +117,7 @@ The original intention of developing this tool is to fulfill a childhood wish te
         * 先将操作系统调整为`100%缩放倍率`.
         * 在项目目录中的指定文件夹中修改空间服登录界面截图, 可通过运行 `直达用户自截.bat` 快速抵达.
           * v1.4.1+ 在`settings/cus_images/用户自截`.
-          * 更低版本 在`resource/picture/common/用户自截`.
+          * 更低版本 在`resource/image/common/用户自截`.
         * 需在快捷登录界面分别截图1P和2P上半部分QQ头像为 `.png` 格式.
     * 3366渠道服
         * 不支持. 原因如下, 该区服过于冷门, 且与QQ空间渠道服的进入方式有一定冲突, 若兼容会影响QQ空间渠道服用户的体验.
@@ -135,7 +135,7 @@ The original intention of developing this tool is to fulfill a childhood wish te
     * 先将操作系统调整为`100%缩放倍率`.
     * 在项目目录中的指定文件夹中修改 cross_server_1P.png, 可通过运行 `直达用户自截.bat` 快速抵达.
       * v1.4.1+ 在`settings/cus_images/用户自截`.
-      * 更低版本 在`resource/picture/common/用户自截`.
+      * 更低版本 在`resource/image/common/用户自截`.
     * 需1P创建跨服房间, 2P进行截图, 保存为 `.png` 格式.
 
 ## 软件中重要信息的填写
@@ -347,8 +347,8 @@ battle_plan 目录中为 <战斗方案> 的配置文件夹. 现已支持方案�
     * 由于任务用卡片在卡组中的位置为根据card中list的长度 + 2(两种承载卡) 计算.
 
 * 关于 添加任务卡片后(quest_card) 和 移除禁止卡片后(ban_card) 的方式
-    * 在进入房间选择卡组后, 先根据 quest_card 字段, 在 resource/picture/card/房间 中 查找符合的图片, 并加入卡组
-    * 再根据 ban_card_list 字段从现有卡组的前11张卡中, 在 resource/picture/card/房间 中 查找符合的图片, 移除已有部分
+    * 在进入房间选择卡组后, 先根据 quest_card 字段, 在 resource/image/card/房间 中 查找符合的图片, 并加入卡组
+    * 再根据 ban_card_list 字段从现有卡组的前11张卡中, 在 resource/image/card/房间 中 查找符合的图片, 移除已有部分
     * quest_card/ban_card 字段中一张卡片名称格式: 非转职完整中文卡片名称[-转职编号], 例如 炭烧海星-1 或 炭烧海星
         * 不含[-转职编号], 添加卡片时, 会从0-n序号查找, 加入序号最低的卡片, 移除卡片时, 会移除0-n序号中所有符合的卡片
         * 填写[-转职编号], 会添加或移除指定变种的卡片
@@ -490,7 +490,7 @@ ergodic(遍历); queue(队列) 代表了自动战斗放卡实现的两种重要�
      │   │
      │   ├─ logo 图标资源
      │   │   
-     │   ├─ picture 图片资源文件
+     │   ├─ image 图片资源文件
      │   │   │
      │   │   ├─ card 卡片图片, 用于在ban卡和添加任务卡时, 寻找点击
      │   │   │   ├─ 战斗 战斗中的卡片截图, 为有费用使用的亮度版本, 用于识别承载卡位置
@@ -505,7 +505,7 @@ ergodic(遍历); queue(队列) 代表了自动战斗放卡实现的两种重要�
      │   │   ├─ stage_ready_cheack 房间界面左下的地图图片, 原用于识别当前所在关卡, 现废弃
      │   │   ├─ task_guild 公会任务相关图片, 其中带序号的文件夹代表从上到下第几个任务
      │   │   ├─ task_spouse 情侣任务相关图片, 其中带序号的文件夹代表从左到右第几个任务
-     │   │   └─ get_new_picture.py 用于截图获取房间界面左下角的地图图片, 现废弃
+     │   │   └─ get_new_image.py 用于截图获取房间界面左下角的地图图片, 现废弃
      │   │   
      │   └─ ui .ui文件
      │

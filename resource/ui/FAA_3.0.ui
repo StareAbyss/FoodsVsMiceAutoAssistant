@@ -10165,7 +10165,7 @@ Link Start</string>
               <number>5</number>
              </property>
              <item>
-              <layout class="QHBoxLayout" name="Lay_Big_Picture" stretch="0">
+              <layout class="QHBoxLayout" name="Lay_Big_Image" stretch="0">
                <property name="sizeConstraint">
                 <enum>QLayout::SetDefaultConstraint</enum>
                </property>
@@ -10182,7 +10182,7 @@ Link Start</string>
                 <number>5</number>
                </property>
                <item>
-                <widget class="QLabel" name="Big_Picture">
+                <widget class="QLabel" name="Big_Image">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                    <horstretch>0</horstretch>

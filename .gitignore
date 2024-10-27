@@ -24,8 +24,8 @@ config/cus_images/背包_装备_需使用的/火山岛酬劳.png
 config/cus_images/背包_装备_需使用的/浮空岛酬劳.png
 
 # 忽略运行产生的文件 主要是日志
-logs/chests_picture/*.png
-logs/loots_picture/*.png
+logs/chests_image/*.png
+logs/loots_image/*.png
 
 logs/match_failed/texts_美食大赛/blocks/*.png
 logs/match_failed/texts_美食大赛/blocks_half/*.png
