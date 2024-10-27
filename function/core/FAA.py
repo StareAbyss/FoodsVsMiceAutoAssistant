@@ -1472,7 +1472,7 @@ class FAA:
             source_range=source_range_2,
             template=RESOURCE_P["top_up_money"]["充值界面_请输入√.png"],
             match_tolerance=0.99,
-            match_interval=0.2,
+            match_interval=0.07,
             match_failed_check=5,
             after_sleep=4,
             click=False
