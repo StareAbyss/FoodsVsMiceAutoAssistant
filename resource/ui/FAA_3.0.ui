@@ -9715,7 +9715,7 @@ Link Start</string>
               </widget>
              </item>
              <item>
-              <layout class="QVBoxLayout" name="Lay_senior_battle" stretch="1,0,0,0">
+              <layout class="QVBoxLayout" name="Lay_senior_battle" stretch="1,0,0,0,0">
                <property name="spacing">
                 <number>5</number>
                </property>
@@ -9808,6 +9808,63 @@ Link Start</string>
                    </property>
                    <property name="text">
                     <string>启用高级战斗</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="Lay_AdvancedSettings_9">
+                 <property name="leftMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>5</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="label_6">
+                   <property name="text">
+                    <string>自定义高级战斗识图间隔</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="Advance_battle_interval_Value">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>100</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;单位：秒&lt;/p&gt;&lt;p&gt;默认为2秒进行一次识图，可以通过调低此参数让高级战斗放炸弹反应变快，&lt;/p&gt;&lt;p&gt;需要注意的是此参数过低会对低配置电脑造成重大负担，有可能会干扰挤占正常放卡线程，&lt;/p&gt;&lt;p&gt;非GPU版FAA同样不推荐调过低，此参数调过高则会让炸弹等对策卡放置缓慢，根据自己的电脑配置量力而行调整&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="minimum">
+                    <number>0</number>
+                   </property>
+                   <property name="value">
+                    <number>2</number>
+                   </property>
+                   <property name="displayIntegerBase">
+                    <number>10</number>
                    </property>
                   </widget>
                  </item>
@@ -10912,6 +10969,13 @@ Link Start</string>
               </widget>
              </item>
             </layout>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
            </item>
            <item>
             <spacer name="verticalSpacer_8">

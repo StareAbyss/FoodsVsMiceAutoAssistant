@@ -414,6 +414,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt = self.opt["senior_settings"]
             self.Battle_senior_checkedbox.setChecked(my_opt["auto_senior_settings"])
             self.Battle_senior_gpu.setChecked(my_opt["gpu_settings"])
+            self.Advance_battle_interval_Value.setValue(my_opt["interval"])
             self.Battle_senior_checkedbox.stateChanged.connect(self.on_checkbox_state_changed)
             self.all_senior_log.setEnabled(my_opt["auto_senior_settings"])
             self.Battle_senior_gpu.setEnabled(my_opt["auto_senior_settings"])
@@ -620,6 +621,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["auto_senior_settings"] = self.Battle_senior_checkedbox.isChecked()
             my_opt["senior_log_state"] = 1 if self.all_senior_log.isChecked() else 0
             my_opt["gpu_settings"] = self.Battle_senior_gpu.isChecked()
+            my_opt["interval"] = self.Advance_battle_interval_Value.value()
 
         def skin_settings() -> None:
             # 定义一个字典，将复选框对象映射到对应的值

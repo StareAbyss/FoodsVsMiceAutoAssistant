@@ -824,7 +824,9 @@ class ThreadTodo(QThread):
                 self.process, queue_todo = read_and_get_return_information(
                     self.faa_dict[player_a],
                     self.opt["senior_settings"]["senior_log_state"],
-                    self.opt["senior_settings"]["gpu_settings"])
+                    self.opt["senior_settings"]["gpu_settings"],
+                    self.opt["senior_settings"]["interval"]
+                )
 
             else:
                 queue_todo = None
@@ -835,7 +837,8 @@ class ThreadTodo(QThread):
                 faa_1=self.faa_dict[player_a],
                 faa_2=self.faa_dict[player_b],
                 check_interval=self.battle_check_interval,
-                solve_queue=queue_todo
+                solve_queue=queue_todo,
+                senior_interval=self.opt["senior_settings"]["interval"]
             )
 
             self.thread_card_manager.run()

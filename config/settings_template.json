@@ -1115,6 +1115,7 @@
     "senior_settings": {
         "auto_senior_settings": false,
         "senior_log_state": 0,
+        "interval": 2,
         "gpu_settings": false
     },
     "log_settings": {
