@@ -12,11 +12,20 @@ def read_json_to_stage_info(stage_id, stage_id_for_battle=None):
     :param stage_id_for_battle: 真实关卡id 直接用于查找关卡配置 大多数情况下直接继承关卡的id
     :return: {"id": str, }
     """
+    configs = []
     with g_extra.GLOBAL_EXTRA.file_lock:
-        with open(file=PATHS["config"] + "//stage_info.json", mode="r", encoding="UTF-8") as file:
-            stages_info = json.load(file)
+
         with open(file=PATHS["config"] + "//stage_info_extra.json", mode="r", encoding="UTF-8") as file:
             stages_info_extra = json.load(file)
+            configs.append(("stage_info_extra.json", stages_info_extra))
+
+        with open(file=PATHS["config"] + "//stage_info_online.json", mode="r", encoding="UTF-8") as file:
+            stages_info_online = json.load(file)
+            configs.append(("stage_info_extra.json", stages_info_online))
+
+        with open(file=PATHS["config"] + "//stage_info.json", mode="r", encoding="UTF-8") as file:
+            stages_info = json.load(file)
+            configs.append(("stage_info_extra.json", stages_info))
 
     # 初始化
     if not stage_id_for_battle:
@@ -28,13 +37,15 @@ def read_json_to_stage_info(stage_id, stage_id_for_battle=None):
     stage_0, stage_1, stage_2 = stage_id_for_battle.split("-")  # type map stage
 
     # 如果找到预设
-    for information in [stages_info_extra, stages_info]:
+    for config_name, information in configs:
         try_stage_info = information.get(stage_0, {}).get(stage_1, {}).get(stage_2, None)
         if try_stage_info:
             stage_info = {**stage_info, **try_stage_info}
+            CUS_LOGGER.info("从 {} 读取关卡信息: {}".format(config_name, stage_info))
             break
+    else:
+        CUS_LOGGER.info("未找到预设，使用默认关卡信息: {}".format(stage_info))
 
-    CUS_LOGGER.info("读取关卡信息: {}".format(stage_info))
     return stage_info
 
 

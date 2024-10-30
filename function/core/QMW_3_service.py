@@ -29,6 +29,7 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.TodoTimerManager import TodoTimerManager
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
+from function.scattered.get_stage_info_online import get_stage_info_online
 from function.scattered.test_route_connectivity import test_route_connectivity
 
 
@@ -102,8 +103,11 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 米苏物流 - tip窗口
         self.window_tip_misu_logistics = QMWTipMisuLogistics()
         self.MisuLogistics_Tip.clicked.connect(self.click_btn_tip_misu_logistics)
+
         # 米苏物流 - 测试链接
         self.MisuLogistics_LinkTest.clicked.connect(self.click_btn_misu_logistics_link_test)
+        # 米苏物流 - 获取线上关卡信息
+        self.MisuLogistics_GetStageInfoOnline.clicked.connect(self.click_btn_misu_logistics_get_stage_info_online)
         # 米苏物流 - 设定默认
         self.MisuLogistics_Link_SetDefault.clicked.connect(self.click_btn_misu_logistics_set_default)
 
@@ -716,6 +720,13 @@ class QMainWindowService(QMainWindowLoadSettings):
         result_bool, result_print = test_route_connectivity(url=url)
         self.signal_dict['dialog'].emit(
             "链接成功!" if result_bool else "连接失败...",
+            result_print
+        )
+
+    def click_btn_misu_logistics_get_stage_info_online(self):
+        result_print = get_stage_info_online()
+        self.signal_dict['dialog'].emit(
+            "尝试完成",
             result_print
         )
 
