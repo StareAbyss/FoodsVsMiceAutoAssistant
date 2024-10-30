@@ -1682,7 +1682,7 @@ class ThreadTodo(QThread):
                     }
                     self.batch_receive_all_quest_rewards(
                         player=task["task_args"]["player"],
-                        quests=[k for k, v in all_quests.items() if task["task_args"][k]]
+                        quests=[v for k, v in all_quests.items() if task["task_args"][k]]
                     )
 
         # 战斗结束
