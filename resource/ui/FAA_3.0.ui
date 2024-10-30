@@ -9088,7 +9088,7 @@ Link Start</string>
               </widget>
              </item>
              <item>
-              <layout class="QVBoxLayout" name="Lay_MisuLogistics" stretch="1,1,1,1">
+              <layout class="QVBoxLayout" name="Lay_MisuLogistics" stretch="1,1,1,1,1">
                <property name="spacing">
                 <number>5</number>
                </property>
@@ -9119,8 +9119,8 @@ Link Start</string>
                   </size>
                  </property>
                  <property name="text">
-                  <string>发送战利品记录
-到FAA-米苏物流 数据中心</string>
+                  <string>FAA-米苏物流 数据中心
+发送战利品记录 &amp; 获取关卡信息</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
@@ -9295,6 +9295,34 @@ Link Start</string>
                  </property>
                  <property name="text">
                   <string>点击测试 链接连通性</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="MisuLogistics_GetStageInfoOnline">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>100</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>只用点一下就够了!</string>
+                 </property>
+                 <property name="text">
+                  <string>点击更新 悬赏/假期/漫游 关卡信息</string>
                  </property>
                 </widget>
                </item>
@@ -9759,31 +9787,6 @@ Link Start</string>
                   <number>5</number>
                  </property>
                  <item>
-                  <widget class="QCheckBox" name="Battle_senior_gpu">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>100</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>启用GPU加速</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
                   <widget class="QCheckBox" name="Battle_senior_checkedbox">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -9811,6 +9814,31 @@ Link Start</string>
                    </property>
                   </widget>
                  </item>
+                 <item>
+                  <widget class="QCheckBox" name="Battle_senior_gpu">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>100</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>启用GPU加速</string>
+                   </property>
+                  </widget>
+                 </item>
                 </layout>
                </item>
                <item>
@@ -9829,8 +9857,14 @@ Link Start</string>
                  </property>
                  <item>
                   <widget class="QLabel" name="label_6">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="text">
-                    <string>自定义高级战斗识图间隔</string>
+                    <string>高级战斗识图间隔</string>
                    </property>
                   </widget>
                  </item>
