@@ -33,13 +33,12 @@ def producer(time_num, handle, read_queue,is_log,is_gpu):
 
 
 
-def read_and_get_return_information(faa,is_log,is_gpu):
+def read_and_get_return_information(faa,is_log,is_gpu,interval):
     # 创建并启动生产者进程
     read_queue = Queue()
     CUS_LOGGER.debug("开始多进程识别特殊老鼠及波次信息")
 
-    time_num = 2
-    p = Process(target=producer, args=(time_num, faa.handle, read_queue,is_log,is_gpu))
+    p = Process(target=producer, args=(interval, faa.handle, read_queue,is_log,is_gpu))
     p.start()
 
     return p, read_queue

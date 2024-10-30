@@ -49,7 +49,7 @@ def get_mouse_position(input_image,is_log,is_gpu):
         model.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
         model.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
     else:
-        CUS_LOGGER.warning(f"警告：gpu未正确启用，你正在使用cpu推理模型，可能造成开销过大，请确保清楚知道你在做什么 ")
+        CUS_LOGGER.debug(f"警告：gpu未正确启用，你正在使用cpu推理模型，可能造成开销过大，请确保清楚知道你在做什么 ")
     # 读取原图
     # original_image: np.ndarray = cv2.imread(input_image)
     original_image = input_image[:, :, :3]  # 去除阿尔法通道

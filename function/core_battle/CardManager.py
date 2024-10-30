@@ -67,11 +67,12 @@ def is_special_card(card_name):
 
 class CardManager:
 
-    def __init__(self, faa_1, faa_2, solve_queue, check_interval=1):
+    def __init__(self, faa_1, faa_2, solve_queue,senior_interval, check_interval=1):
         """
         :param faa_1: 1P
         :param faa_2: 2P
         :param solve_queue: 高危目标待解决列表 如果为None 说明高级战斗未激活
+        :param senior_interval: 高级战斗间隔时间
         :param check_interval:
         """
         super().__init__()
@@ -90,6 +91,8 @@ class CardManager:
 
         # 待解决队列，从这里提取信息
         self.solve_queue = solve_queue
+        # 高级战斗的间隔时间
+        self.senior_interval = senior_interval
 
         # 一轮检测的时间 单位s, 该时间的1/20则是尝试使用一张卡的间隔, 该时间的10倍则是使用武器技能/自动拾取动作的间隔 推荐默认值 1s
         self.check_interval = check_interval
@@ -261,7 +264,7 @@ class CardManager:
             self.thread_dict[5] = ThreadUseSpecialCardTimer(
                 bomb_card_list=self.special_card_list,
                 faa_dict=self.faa_dict,
-                check_interval=self.check_interval,
+                check_interval=self.senior_interval,
                 read_queue=self.solve_queue,
                 is_group=self.is_group,
                 ice_boom_dict_list=self.ice_boom_dict_list,
@@ -547,7 +550,7 @@ class ThreadUseSpecialCardTimer(QThread):
         self.faa_dict = faa_dict
         self.stop_flag = True
         self.timer = None
-        self.interval_use_special_card = check_interval * 2  # 因为读图是两秒一次，所以此处设置两秒尝试获取一次信息
+        self.interval_use_special_card = check_interval
         self.read_queue = read_queue
         self.is_group = is_group
         self.flag = None
