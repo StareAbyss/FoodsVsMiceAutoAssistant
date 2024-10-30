@@ -69,41 +69,41 @@ class QMWEditorOfTaskSequence(QMainWindow):
         self.setMaximumSize(1280, 5000)
         self.setMinimumSize(1280, 600)
 
-        # 序列 主要元素
-        self.TaskSequenceList = QCListWidgetDraggable()
-        self.TaskSequenceList.setDropFunction(drop_function=self.update_task_id)
-
-        # 布局
-        self.LayMain = QVBoxLayout()
+        # 主布局
+        self.lay_main = QVBoxLayout()
 
         # 加载按钮
-        self.ButtonLoadJson = QPushButton('加载任务序列')
-        self.LayMain.addWidget(self.ButtonLoadJson)
-        self.ButtonLoadJson.clicked.connect(self.load_json)
+        self.widget_button_load_json = QPushButton('加载任务序列')
+        self.lay_main.addWidget(self.widget_button_load_json)
+        self.widget_button_load_json.clicked.connect(self.load_json)
 
         # 列表
-        self.LayMain.addWidget(self.TaskSequenceList)
+        self.widget_task_sequence_list = QCListWidgetDraggable()
+        self.widget_task_sequence_list.setDropFunction(drop_function=self.update_task_id)
+        self.lay_main.addWidget(self.widget_task_sequence_list)
 
         # 添加任务按钮
-        self.ButtonAddTask = QPushButton('添加任务')
-        self.ComboBoxTask = QComboBox()
-        self.AddTaskLayout = QHBoxLayout()
-        self.AddTaskLayout.addWidget(self.ButtonAddTask)
-        self.AddTaskLayout.addWidget(self.ComboBoxTask)
-        self.LayMain.addLayout(self.AddTaskLayout)
-        self.ButtonAddTask.clicked.connect(self.add_task_by_button)
+        self.layout_add_task = QHBoxLayout()
+        self.lay_main.addLayout(self.layout_add_task)
+
+        self.widget_button_add_task = QPushButton('添加任务')
+        self.layout_add_task.addWidget(self.widget_button_add_task)
+        self.widget_button_add_task.clicked.connect(self.add_task_by_button)
+
+        self.widget_combo_box_task = QComboBox()
+        self.layout_add_task.addWidget(self.widget_combo_box_task)
 
         # 保存按钮
-        self.ButtonSaveJson = QPushButton('保存任务序列')
-        self.LayMain.addWidget(self.ButtonSaveJson)
-        self.ButtonSaveJson.clicked.connect(self.save_json)
+        self.widget_button_save_json = QPushButton('保存任务序列')
+        self.lay_main.addWidget(self.widget_button_save_json)
+        self.widget_button_save_json.clicked.connect(self.save_json)
 
         # 初始化控件
         self.init_combo_box()
 
         # 显示布局
         self.centralWidget = QWidget()
-        self.centralWidget.setLayout(self.LayMain)
+        self.centralWidget.setLayout(self.lay_main)
         self.setCentralWidget(self.centralWidget)
 
         # 读取方案时, 如果出现了uuid找不到方案的情况, 弹窗用变量
@@ -130,11 +130,11 @@ class QMWEditorOfTaskSequence(QMainWindow):
         """
         初始化任务选择下拉框
         """
-        self.ComboBoxTask.addItem('战斗')
-        self.ComboBoxTask.addItem('刷新游戏')
-        self.ComboBoxTask.addItem('双暴卡')
-        self.ComboBoxTask.addItem('清背包')
-        self.ComboBoxTask.addItem('领取任务奖励')
+        self.widget_combo_box_task.addItem('战斗')
+        self.widget_combo_box_task.addItem('刷新游戏')
+        self.widget_combo_box_task.addItem('双暴卡')
+        self.widget_combo_box_task.addItem('清背包')
+        self.widget_combo_box_task.addItem('领取任务奖励')
 
         # 待实现
         # self.ComboBoxTask.addItem('使用绑定消耗品')
@@ -148,7 +148,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
         """
         点击按钮, 添加一项任务(行)
         """
-        task_type = self.ComboBoxTask.currentText()
+        task_type = self.widget_combo_box_task.currentText()
 
         # 默认值
         task = {
@@ -215,7 +215,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
         """
 
         # 重新生成id
-        task["task_id"] = self.TaskSequenceList.count() + 1
+        task["task_id"] = self.widget_task_sequence_list.count() + 1
 
         # 生成控件行
         try:
@@ -227,13 +227,24 @@ class QMWEditorOfTaskSequence(QMainWindow):
             return
 
         # 创建一个 QListWidgetItem，并将 line_widget 设置为其附加的 widget
-        item = QListWidgetItem()
+        line_item = QListWidgetItem()
 
         # 设置 QListWidgetItem 的高度
-        item.setSizeHint(line_widget.sizeHint())
+        line_item.setSizeHint(line_widget.sizeHint())
 
-        self.TaskSequenceList.addItem(item)
-        self.TaskSequenceList.setItemWidget(item, line_widget)
+        self.widget_task_sequence_list.addItem(line_item)
+        self.widget_task_sequence_list.setItemWidget(line_item, line_widget)
+
+        # 绑定删除按钮的两个函数
+        delete_button = line_widget.findChild(QPushButton, 'delete_button')
+        delete_button.clicked.connect(lambda: self.remove_task_by_line_item(line_item))
+        delete_button.clicked.connect(self.update_task_id)
+
+    def remove_task_by_line_item(self, line_item):
+        # 获取索引
+        index = self.widget_task_sequence_list.row(line_item)
+        # 清除对应索引的行
+        self.widget_task_sequence_list.takeItem(index)
 
     def add_task_line_widget(self, task):
         """
@@ -480,12 +491,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
         # 添加完成后，在布局的最后添加一个删除按钮
         delete_button = QPushButton('删除')
         delete_button.setMaximumWidth(50)
-
-        # 绑定两个函数
-        delete_button.clicked.connect(lambda: self.delete_task(task["task_id"]))
-        delete_button.clicked.connect(lambda: self.update_task_id())
-        line_layout.addWidget(QCVerticalLine())
+        delete_button.setObjectName("delete_button")
         line_layout.addWidget(delete_button)
+
+        line_layout.addWidget(QCVerticalLine())
 
         return line_widget
 
@@ -494,54 +503,36 @@ class QMWEditorOfTaskSequence(QMainWindow):
         增删后 更新任务id
         """
         # 清空所有任务的 ID
-        for row in range(self.TaskSequenceList.count()):
-            item = self.TaskSequenceList.item(row)
-            widget = self.TaskSequenceList.itemWidget(item)
+        for row in range(self.widget_task_sequence_list.count()):
+            item = self.widget_task_sequence_list.item(row)
+            widget = self.widget_task_sequence_list.itemWidget(item)
 
             id_label = widget.findChild(QLabel, 'label_task_id')
             if id_label:
                 id_label.setText("")  # 清空 ID 显示
 
         # 重新分配 ID
-        for row in range(self.TaskSequenceList.count()):
-            # UI 部分
-            item = self.TaskSequenceList.item(row)
-            widget = self.TaskSequenceList.itemWidget(item)
+        for row in range(self.widget_task_sequence_list.count()):
+            # 寻找所有控件
+            item = self.widget_task_sequence_list.item(row)
+            widget = self.widget_task_sequence_list.itemWidget(item)
+            new_id = row + 1
+
+            # ID
             id_label = widget.findChild(QLabel, 'label_task_id')
-            if id_label:
-                id_label.setText(str(row + 1))  # 设置新的 ID 显示
-
-    def delete_task(self, item_id):
-        """删除指定 ID 的任务"""
-        try:
-            # 从 self.TaskSequenceList 中删除对应的项
-            item = self.TaskSequenceList.item(item_id - 1)
-            widget = self.TaskSequenceList.itemWidget(item)
-
-            # 清除附加的 widget
-            self.TaskSequenceList.removeItemWidget(item)
-
-            # 移除 QListWidgetItem
-            self.TaskSequenceList.takeItem(item_id - 1)
-
-            # 删除 widget 和 QListWidgetItem
-            if widget is not None:
-                widget.deleteLater()
-            del item
-        except Exception as e:
-            print(f"Error: {e} ")
+            id_label.setText(str(new_id))  # 设置新的 ID 显示
 
     def clear_tasks(self):
         """
         清空所有任务
         """
         # 获取当前的项数
-        count = self.TaskSequenceList.count()
+        count = self.widget_task_sequence_list.count()
 
         # 从后向前遍历并移除每一项
         for i in range(count - 1, -1, -1):
-            item = self.TaskSequenceList.takeItem(i)
-            widget = self.TaskSequenceList.itemWidget(item)
+            item = self.widget_task_sequence_list.takeItem(i)
+            widget = self.widget_task_sequence_list.itemWidget(item)
 
             # 删除附加的 widget
             if widget is not None:
@@ -600,7 +591,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
         data = []
 
-        list_line_widgets = self.TaskSequenceList.findChildren(QWidget, 'line_widget')
+        list_line_widgets = self.widget_task_sequence_list.findChildren(QWidget, 'line_widget')
 
         for w_line in list_line_widgets:
             data_line = {}
