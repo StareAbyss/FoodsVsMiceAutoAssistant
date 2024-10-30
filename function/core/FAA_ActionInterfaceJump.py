@@ -292,7 +292,7 @@ class FAAActionInterfaceJump:
 
             my_list = [85, 110, 135, 160, 185, 210, 235, 260, 285, 310, 335]
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=779, y=my_list[region_id - 1])
-            time.sleep(2.0)
+            time.sleep(3.0)
 
         def main_no():
             # 进入对应地图
@@ -506,7 +506,7 @@ class FAAActionInterfaceJump:
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["stage"]["{}.png".format(stage_info["id"])],
                 match_tolerance=0.95,
-                after_sleep=1,
+                after_sleep=3,
                 click=True)
 
             # 切区
