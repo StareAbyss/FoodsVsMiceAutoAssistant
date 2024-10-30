@@ -376,10 +376,10 @@ class ThreadTodo(QThread):
             else:
                 self.signal_print_to_ui.emit(
                     f'FAA伦理核心已强制卸除, 日氪模块已通过授权, 即将激活并进入运行状态.', color_level=2)
-        for pid in player_active:
-            self.signal_print_to_ui.emit(f'[{pid}P] 日氪1元开始, 该功能执行较慢, 防止卡顿...', color_level=2)
-            money_result = self.faa_dict[pid].sign_top_up_money()
-            self.signal_print_to_ui.emit(f'[{pid}P] 日氪1元结束, 结果: {money_result}', color_level=2)
+                for pid in player_active:
+                    self.signal_print_to_ui.emit(f'[{pid}P] 日氪1元开始, 该功能执行较慢, 防止卡顿...', color_level=2)
+                    money_result = self.faa_dict[pid].sign_top_up_money()
+                    self.signal_print_to_ui.emit(f'[{pid}P] 日氪1元结束, 结果: {money_result}', color_level=2)
 
         """双线程常规日常"""
         self.signal_print_to_ui.emit(

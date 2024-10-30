@@ -1449,6 +1449,7 @@ class FAA:
         # 切换到游币选项, 准备输入一元开氪
         CUS_LOGGER.debug("充值界面 输入为1元")
         source_range_2 = [150, 110, 800, 490]  # 请输入X元按钮 查找范围
+
         # 点击请输入按钮
         find = loop_match_p_in_w(
             source_handle=self.handle,
@@ -1463,8 +1464,22 @@ class FAA:
             click_handle=self.handle_browser)
         if not find:
             return "步骤: 充值界面-点击-氪金值输入框. 出现致命失误! 请联系开发者!"
+
         # 输入1
         T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle_browser, key="1")
+
+        # 取消输入框选中状态
+        loop_match_p_in_w(
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=source_range_2,
+            template=RESOURCE_P["top_up_money"]["充值界面_游币兑换√.png"],
+            match_tolerance=0.995,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=2,
+            click=True)
+
         # 检查
         find = loop_match_p_in_w(
             source_handle=self.handle,
@@ -1474,7 +1489,7 @@ class FAA:
             match_tolerance=0.99,
             match_interval=0.07,
             match_failed_check=5,
-            after_sleep=4,
+            after_sleep=2,
             click=False
         )
         if not find:
