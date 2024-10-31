@@ -314,39 +314,36 @@ def loop_match_p_in_w(
 
     """
     spend_time = 0.0
+    find_target = False
     while True:
 
-        find_target = match_p_in_w(
-            source_handle=source_handle,
-            source_range=source_range,
-            template=template,
-            mask=template_mask,
-            match_tolerance=match_tolerance,
-            source_root_handle=source_root_handle)
-
-        if find_target:
-
-            if not click:
-                time.sleep(after_sleep)
-
-            else:
+        if not find_target:
+            find_target = match_p_in_w(
+                source_handle=source_handle,
+                source_range=source_range,
+                template=template,
+                mask=template_mask,
+                match_tolerance=match_tolerance,
+                source_root_handle=source_root_handle)
+        else:
+            if click:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=click_handle if click_handle else source_handle,
                     x=find_target[0] + source_range[0],
                     y=find_target[1] + source_range[1]
                 )
-                time.sleep(after_sleep)
+            time.sleep(after_sleep)
 
-                if after_click_template:
-                    find_target = match_p_in_w(
-                        source_handle=source_handle,
-                        source_range=source_range,
-                        template=after_click_template,
-                        mask=after_click_template_mask,
-                        match_tolerance=match_tolerance,
-                        source_root_handle=source_root_handle)
-                    if find_target:
-                        continue  # 当前状态没有产生变化, 就不进行输出
+            if after_click_template is not None:
+                find_after_target = match_p_in_w(
+                    source_handle=source_handle,
+                    source_range=source_range,
+                    template=after_click_template,
+                    mask=after_click_template_mask,
+                    match_tolerance=match_tolerance,
+                    source_root_handle=source_root_handle)
+                if not find_after_target:
+                    continue  # 没有找到之后的target 就继续循环
 
             return True
 
