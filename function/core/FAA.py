@@ -1361,9 +1361,9 @@ class FAA:
                     source_range=[450, 145, 505, 205],
                     template=RESOURCE_P["top_up_money"]["每日必充_判定点.png"],
                     match_tolerance=0.99,
-                    match_interval=0.2,
-                    match_failed_check=5,
-                    after_sleep=4,
+                    match_interval=0.1,
+                    match_failed_check=4,
+                    after_sleep=3,
                     click=False)
                 if not find_i:
                     break
@@ -1379,9 +1379,9 @@ class FAA:
             source_range=[450, 145, 505, 205],
             template=RESOURCE_P["top_up_money"]["每日必充_判定点.png"],
             match_tolerance=0.99,
-            match_interval=0.2,
-            match_failed_check=5,
-            after_sleep=4,
+            match_interval=0.1,
+            match_failed_check=4,
+            after_sleep=3,
             click=False)
         if not find:
             return "本期日氪没有假期票Skip... 或进入每日必冲失败, 请联系开发者!"
@@ -1395,9 +1395,9 @@ class FAA:
             source_range=source_range_1,
             template=RESOURCE_P["top_up_money"]["每日必充_领取.png"],
             match_tolerance=0.99,
-            match_interval=0.2,
-            match_failed_check=5,
-            after_sleep=4,
+            match_interval=0.03,
+            match_failed_check=4,
+            after_sleep=3,
             click=True)
         if find:
             # 退出充值界面
@@ -1410,9 +1410,9 @@ class FAA:
             source_range=source_range_1,
             template=RESOURCE_P["top_up_money"]["每日必充_充值.png"],
             match_tolerance=0.99,
-            match_interval=0.2,
-            match_failed_check=5,
-            after_sleep=4,
+            match_interval=0.03,
+            match_failed_check=4,
+            after_sleep=3,
             click=True)
         if not find:
             # 退出充值界面
@@ -1422,33 +1422,23 @@ class FAA:
         # 没有完成, 进入充值界面
         CUS_LOGGER.debug("充值界面 点击切换为游币")
         source_range_2 = [150, 110, 800, 490]  # 游币兑换按钮 查找范围
-        loop_match_p_in_w(
-            source_handle=self.handle,
-            source_root_handle=self.handle_360,
-            source_range=source_range_2,
-            template=RESOURCE_P["top_up_money"]["充值界面_游币兑换.png"],
-            match_tolerance=0.995,
-            match_interval=0.2,
-            match_failed_check=5,
-            after_sleep=4,
-            click=True,
-            click_handle=self.handle_browser)
         find = loop_match_p_in_w(
             source_handle=self.handle,
             source_root_handle=self.handle_360,
             source_range=source_range_2,
-            template=RESOURCE_P["top_up_money"]["充值界面_游币兑换√.png"],
+            template=RESOURCE_P["top_up_money"]["充值界面_游币兑换.png"],
+            after_click_template=RESOURCE_P["top_up_money"]["充值界面_游币兑换_已选中.png"],
             match_tolerance=0.995,
-            match_interval=0.2,
-            match_failed_check=5,
-            after_sleep=4,
-            click=False)
+            match_interval=0.03,
+            match_failed_check=10,
+            after_sleep=3,
+            click=True,
+            click_handle=self.handle_browser)
         if not find:
             return "步骤: 充值界面-点击游币兑换. 出现致命失误! 请联系开发者!"
 
         # 切换到游币选项, 准备输入一元开氪
-        CUS_LOGGER.debug("充值界面 输入为1元")
-        source_range_2 = [150, 110, 800, 490]  # 请输入X元按钮 查找范围
+        CUS_LOGGER.debug("充值界面 点击 氪金值输入框")
 
         # 点击请输入按钮
         find = loop_match_p_in_w(
@@ -1456,44 +1446,34 @@ class FAA:
             source_root_handle=self.handle_360,
             source_range=source_range_2,
             template=RESOURCE_P["top_up_money"]["充值界面_请输入.png"],
-            match_tolerance=0.99,
-            match_interval=0.2,
-            match_failed_check=5,
-            after_sleep=4,
+            match_tolerance=0.995,
+            match_interval=0.03,
+            match_failed_check=10,
+            after_sleep=3,
             click=True,
             click_handle=self.handle_browser)
         if not find:
             return "步骤: 充值界面-点击-氪金值输入框. 出现致命失误! 请联系开发者!"
 
-        # 输入1
+        CUS_LOGGER.debug("充值界面 输入1元")
         T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle_browser, key="1")
+        time.sleep(1)
 
-        # 取消输入框选中状态
-        loop_match_p_in_w(
-            source_handle=self.handle,
-            source_root_handle=self.handle_360,
-            source_range=source_range_2,
-            template=RESOURCE_P["top_up_money"]["充值界面_游币兑换√.png"],
-            match_tolerance=0.995,
-            match_interval=0.2,
-            match_failed_check=5,
-            after_sleep=2,
-            click=True)
-
-        # 检查
+        # 取消输入框选中状态 并检查一元是否输入成功
         find = loop_match_p_in_w(
             source_handle=self.handle,
             source_root_handle=self.handle_360,
             source_range=source_range_2,
-            template=RESOURCE_P["top_up_money"]["充值界面_请输入√.png"],
-            match_tolerance=0.99,
-            match_interval=0.07,
-            match_failed_check=5,
-            after_sleep=2,
-            click=False
-        )
+            template=RESOURCE_P["top_up_money"]["充值界面_游币兑换_已选中.png"],
+            after_click_template=RESOURCE_P["top_up_money"]["充值界面_请输入_已输入.png"],
+            match_tolerance=0.995,
+            match_interval=0.03,
+            match_failed_check=10,
+            after_sleep=3,
+            click=True,
+            click_handle=self.handle_browser)
         if not find:
-            return "步骤: 充值界面-复核-已选中氪金值输入框. 出现致命失误! 请联系开发者!"
+            return "步骤: 充值界面-复核-氪金值输入1元. 出现致命失误! 请联系开发者!"
 
         """点击氪金按钮 完成氪金"""
         CUS_LOGGER.debug("点击氪金按钮")
@@ -1503,9 +1483,9 @@ class FAA:
             source_range=[150, 110, 800, 490],
             template=RESOURCE_P["top_up_money"]["充值界面_立即充值.png"],
             match_tolerance=0.99,
-            match_interval=0.2,
-            match_failed_check=5,
-            after_sleep=4,
+            match_interval=0.03,
+            match_failed_check=10,
+            after_sleep=3,
             click=True,
             click_handle=self.handle_browser)
         if not find:
@@ -1519,9 +1499,9 @@ class FAA:
             source_range=[750, 90, 815, 160],
             template=RESOURCE_P["top_up_money"]["充值界面_退出.png"],
             match_tolerance=0.99,
-            match_interval=0.2,
-            match_failed_check=5,
-            after_sleep=4,
+            match_interval=0.03,
+            match_failed_check=10,
+            after_sleep=3,
             click=True,
             click_handle=self.handle_browser)
         if not find:
@@ -1540,9 +1520,9 @@ class FAA:
             source_range=source_range_1,
             template=RESOURCE_P["top_up_money"]["每日必充_领取.png"],
             match_tolerance=0.99,
-            match_interval=0.2,
-            match_failed_check=5,
-            after_sleep=4,
+            match_interval=0.03,
+            match_failed_check=4,
+            after_sleep=3,
             click=True)
 
         # 退出充值界面
