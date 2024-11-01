@@ -13,11 +13,13 @@ This software is still in the development stage and its functions have been impl
 The original intention of developing this tool is to fulfill a childhood wish ten years ago (XP)
 
 # 主页 | Home
-[FAA - 网页文档](https://stareabyss.github.io/FAA-WebSite/)
+
+[FAA - 网络文档](https://stareabyss.github.io/FAA-WebSite/)  包括了功能综述, 新手入门教程, 进阶介绍, 开发文档.
+
 文档主体搬迁至该网站, 并逐步施工中... 此页面部分重复内容不再保留.
-包括了新手入门教程, 进阶介绍, 和开发文档.
 
 # 下载 | Download [![](https://img.shields.io/github/downloads/StareAbyss/FoodsVsMiceAutoAssistant/total?color=4e4c97)](https://github.com/StareAbyss/FoodsVsMiceAutoAssistant/releases)
+
 * Github-Release 
   * 包含FAA的稳定发行版, 不包含不稳定的测试版本.
   * 点击上方按钮跳转. 找到最新的版本, 找到最新的版本, 下滑过更新介绍, 找到下方的.zip文件, 解压后开袋即食.
@@ -27,6 +29,7 @@ The original intention of developing this tool is to fulfill a childhood wish te
   * 更有玩家社区维护的大量战斗方案供您使用.
 
 # 关于 | About
+
 ![](https://img.shields.io/badge/QQ%201群-786921130-4e4c97) 1500/2000人 推荐加入
 
 ![](https://img.shields.io/badge/QQ%202群-142272678-4e4c97) 1500/2000人 推荐加入
@@ -40,15 +43,19 @@ The original intention of developing this tool is to fulfill a childhood wish te
 # 预览 | Preview
 
 ## 运行主页  
+
 ![image](md_img/运行主页.png)
 
 ## 流程配置  
+
 ![image](md_img/任务列表.png)
 
 ## 高级选项  
+
 ![image](md_img/高级功能.png)
 
 ## 战斗方案编辑器  
+
 ![image](md_img/战斗方案编辑器.png)
 
 # 功能 | Feature
