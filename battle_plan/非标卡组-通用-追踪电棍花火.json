@@ -14,7 +14,7 @@
     "card": [
         {
             "id": 1,
-            "name": "花火龙",
+            "name": "产火",
             "ergodic": true,
             "queue": true,
             "kun": 0,
@@ -26,7 +26,7 @@
         },
         {
             "id": 2,
-            "name": "炭烧海星",
+            "name": "海星",
             "ergodic": true,
             "queue": true,
             "kun": 2,
@@ -55,7 +55,7 @@
             ]
         },
         {
-            "id": 3,
+            "id": 5,
             "name": "追踪",
             "ergodic": true,
             "queue": false,
@@ -91,7 +91,7 @@
         },
         {
             "id": 4,
-            "name": "瓜皮护罩",
+            "name": "瓜皮",
             "ergodic": true,
             "queue": false,
             "kun": 0,
@@ -127,7 +127,7 @@
             ]
         },
         {
-            "id": 5,
+            "id": 3,
             "name": "追踪增幅",
             "ergodic": true,
             "queue": false,
@@ -139,7 +139,7 @@
         },
         {
             "id": 6,
-            "name": "油灯",
+            "name": "照明",
             "ergodic": true,
             "queue": false,
             "kun": 0,
@@ -150,7 +150,7 @@
         },
         {
             "id": 7,
-            "name": "樱桃反弹布丁",
+            "name": "布丁",
             "ergodic": true,
             "queue": false,
             "kun": 0,
