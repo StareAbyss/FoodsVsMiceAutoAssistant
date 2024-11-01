@@ -1,16 +1,16 @@
-# FAA_FoodsVsMouses_AutoAssistant
+# FAA美食自动助理 FoodsVsMouses_AutoAssistant
 
-一款名叫中国页游《美食大战老鼠》的自动助手, 一键完成所有日常任务。  
-An automatic assistant for a Chinese webpage game called Foods Vs Mouses, Complete all daily tasks with one click.
+《美食大战老鼠》的自动助手，一键完成所有日常。
+An automatic assistant for Foods vs. Mice, complete all daily tasks with one click.
 
-本软件基于图像识别 + 自动放卡完成战斗, 不支持任何作弊功能(秒杀或更多)。  
-This software is based on image recognition, and does not support any cheating function (flash killing and more).
+本软件基于图像识别 + 自动放置卡片完成战斗，不支持任何作弊功能（如秒杀）。
+This software is based on image recognition and automatic card placement for battles, and does not support any cheating functions (such as instant kills).
 
-本软件尚处于开发阶段, 已实现功能见下。  
-This software is still in the development stage and its functions have been implemented as shown below.
+本软件历经一年开发，已趋近成熟，功能完善且丰富。
+This software has been in development for a year and is now approaching maturity with comprehensive and rich features.
 
-该工具开发初衷是圆梦十年前的童年愿望 (悲)    
-The original intention of developing this tool is to fulfill a childhood wish ten years ago (XP)
+该工具开发初衷是圆梦十年前的童年愿望 (悲)
+The original intention of developing this tool is to fulfill a childhood wish from ten years ago (XD)
 
 # 主页 | Home
 
