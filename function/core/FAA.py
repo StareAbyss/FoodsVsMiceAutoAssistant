@@ -289,7 +289,7 @@ class FAA:
                 x2 = card_xy_list[0] + 53
                 y2 = card_xy_list[1] + 70
                 if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
-                    mat_cards_info.append({'name': name, 'id': card_id,'coordinate_from':card_xy_list})
+                    mat_cards_info.append({'name': name, 'id': card_id, 'coordinate_from': card_xy_list})
                     break
 
         # 输出
@@ -329,7 +329,7 @@ class FAA:
                 x2 = card_xy_list[0] + 53
                 y2 = card_xy_list[1] + 70
                 if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
-                    self.smoothie_info = {'name':'极寒冰沙', "id": card_id}
+                    self.smoothie_info = {'name': '极寒冰沙', "id": card_id}
                     break
 
         self.print_info(text="战斗中识图查找冰沙位置, 结果：{}".format(self.smoothie_info))
@@ -453,9 +453,7 @@ class FAA:
                     "id": quest_card_id,
                     "location": quest_card_locations,
                     "ergodic": True,
-                    "queue": True,
-                    "coordinate_from": [],
-                    "coordinate_to": []
+                    "queue": True
                 }
 
                 # 可能是空列表 即花瓶
@@ -512,9 +510,8 @@ class FAA:
                     "id": mat_card_info[i]['id'],
                     "location": location[i::num_mat_card],
                     "ergodic": need_plate,
-                    "queue": True,
-                    "coordinate_from": [],
-                    "coordinate_to": []}
+                    "queue": True
+                }
 
                 # 可能是空列表 即花瓶
                 if len(list_cell_all) == 0:
@@ -542,9 +539,7 @@ class FAA:
                     'id': smoothie_info['id'],
                     'location': [first_available_location],
                     'ergodic': False,
-                    'queue': False,
-                    'coordinate_from': [],
-                    'coordinate_to': []
+                    'queue': False
                 }
                 list_cell_all.append(card_dict)
 

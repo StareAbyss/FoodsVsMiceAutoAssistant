@@ -207,11 +207,11 @@ class ThreadTodo(QThread):
         """
 
         # 默认值
-        if player is None:
-            player = [1, 2]
+        player = player or [1, 2]
+
         # 如果只有一个角色
-        if self.faa_dict[1].channel == self.faa_dict[2].channel:
-            player = [1]
+        player = [1] if self.faa_dict[1].channel == self.faa_dict[2].channel else player
+
         # 输入错误的值!
         if player not in [[1, 2], [1], [2]]:
             raise ValueError(f"batch_level_2_action -  player not in [[1,2],[1],[2]], your value {player}.")
@@ -1837,12 +1837,12 @@ class ThreadTodo(QThread):
             # 信号无法使用 具名参数
             self.signal_start_todo_2_battle.emit({
                 "quest_list": quest_lists[2],
-                "extra_title": "多线程单人2P",
+                "extra_title": "多线程单人] [2P",
                 "need_lock": True
             })
             self.battle_1_n_n(
                 quest_list=quest_lists[1],
-                extra_title="多线程单人1P",
+                extra_title="多线程单人] [1P",
                 need_lock=True)
 
         def main():
@@ -1933,11 +1933,11 @@ class ThreadTodo(QThread):
             # 信号无法使用 具名参数
             self.signal_start_todo_2_battle.emit({
                 "quest_list": quest_lists[2],
-                "extra_title": "多线程单人2P",
+                "extra_title": "多线程单人] [2P",
                 "need_lock": True})
             self.battle_1_n_n(
                 quest_list=quest_lists[1],
-                extra_title="多线程单人1P",
+                extra_title="多线程单人] [1P",
                 need_lock=True)
 
         def main():
@@ -2010,12 +2010,12 @@ class ThreadTodo(QThread):
             # 信号无法使用 具名参数
             self.signal_start_todo_2_battle.emit({
                 "quest_list": quest_lists[2],
-                "extra_title": "多线程单人2P",
+                "extra_title": "多线程单人] [2P",
                 "need_lock": True
             })
             self.battle_1_n_n(
                 quest_list=quest_lists[1],
-                extra_title="多线程单人1P",
+                extra_title="多线程单人] [1P",
                 need_lock=True)
 
         def main():
