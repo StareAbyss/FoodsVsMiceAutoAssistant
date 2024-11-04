@@ -22,7 +22,7 @@ def im_read(img_path):
     return img
 
 
-"""RESOURCE_P 常规图片资源 静态资源 可以直接调用"""
+"""RESOURCE_P 常规图片资源 通常为静态 可以直接调用"""
 
 RESOURCE_P = {}
 
