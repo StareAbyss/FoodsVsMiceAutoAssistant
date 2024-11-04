@@ -2,11 +2,13 @@ import datetime
 import json
 import os
 import random
+import shutil
 import sys
 
 import win32con
 import win32gui
 from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtWidgets import QMessageBox
 
 from function.core.FAA import FAA
 from function.core.FAA_extra_readimage import kill_process
@@ -24,7 +26,9 @@ from function.core.QMW_TipWarmGift import QMWTipWarmGift
 from function.core.Todo import ThreadTodo
 from function.core.performance_analysis import run_analysis_in_thread
 from function.globals import g_extra
+from function.globals import g_resources
 from function.globals.get_paths import PATHS
+from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.TodoTimerManager import TodoTimerManager
 from function.scattered.gat_handle import faa_get_handle
@@ -129,6 +133,9 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 隐藏(拖动)窗口到屏幕视图外 函数绑定
         self.Button_Hide.clicked.connect(self.click_btn_hide_window)
         self.game_window_is_hide = False
+
+        # 重置卡片状态自学习记忆
+        self.Btn_ResetCardStatusMemory.clicked.connect(self.click_btn_reset_card_status_memory)
 
         # 线程状态
         self.is_ending = False  # 线程是否正在结束
@@ -733,9 +740,57 @@ class QMainWindowService(QMainWindowLoadSettings):
     def click_btn_misu_logistics_set_default(self):
         self.MisuLogistics_Link.setText("")
 
+    def click_btn_reset_card_status_memory(self):
+        # 弹出是或否选项
+        reply = QMessageBox.question(
+            self,
+            '重置FAA卡片状态自学习记忆',
+            '确定要进行此操作吗?\n'
+            '在严重卡顿下, FAA可能学习错误的卡片状态, 导致放卡异常\n'
+            '进行此操作, 可以尝试修复问题, 让放卡回归正常.\n'
+            '请不要在FAA运行中使用此功能, 这会造成未知错误.',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No)
+
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+
+        CUS_LOGGER.warning("重置卡片状态自学习记忆, 开始")
+
+        # 初始化清理计数器
+        cleaned_count = 0
+
+        # 删除名称为3和以上的
+        card_status_folder = os.path.join(PATHS["image"]["card"], "状态判定")
+        for folder_name in os.listdir(card_status_folder):
+            if folder_name.isdigit() and int(folder_name) >= 3:
+                # 从文件中清理
+                folder_path = os.path.join(card_status_folder, folder_name)
+                shutil.rmtree(folder_path)
+                # 从内存读取的资源文件中, 清空对应部分
+                del g_resources.RESOURCE_P["card"]["状态判定"][folder_name]
+                cleaned_count += 1
+
+        if cleaned_count == 0:
+            QMessageBox.information(
+                self,
+                '重置FAA卡片状态自学习记忆',
+                '您的状态已是最新，无需清理。',
+                QMessageBox.StandardButton.Ok
+            )
+        else:
+            QMessageBox.information(
+                self,
+                '重置FAA卡片状态自学习记忆',
+                f'成功释放大失忆术! 遗忘状态: {cleaned_count}项.\n'
+                '该操作不需要重启FAA. 再启动试试吧!',
+                QMessageBox.StandardButton.Ok
+            )
+
+        CUS_LOGGER.warning("重置卡片状态自学习记忆, 结束")
+
 
 def faa_start_main():
-
     # 实例化 PyQt后台管理
     app = QtWidgets.QApplication(sys.argv)
 
