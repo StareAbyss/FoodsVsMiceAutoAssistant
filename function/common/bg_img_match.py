@@ -292,66 +292,82 @@ def loop_match_p_in_w(
         source_root_handle=None,
 ) -> bool:
     """
-    catch a resource by a handle, find a smaller resource in the bigger one,
-    click the center of the smaller one in the bigger one by handle(relative position)
+    根据句柄截图, 并在截图中寻找一个较小的图片资源.
+    可选: 根据句柄 点击 较小图片所在位置.
+    可选: 点击后是否复核为另一图片(切换界面成功). 如果未找到仍会返回False.
     Args:
         :param source_handle: 截图句柄
         :param source_range: 截图后截取范围 [左上x,左上y,右下x,右下y]
-        :param template: 目标图片路径
-        :param template_mask: 目标图片掩模, 若为None, 则不使用掩模
-        :param match_tolerance: 捕捉准确度阈值 0-1
-        :param match_interval: 捕捉图片的间隔
-        :param match_failed_check: # 捕捉图片时间限制, 超时输出False
-        :param after_sleep: 找到图/点击后 的休眠时间
+        :param template: 目标图片. 路径或数组.
+        :param template_mask: 可选: 目标图片掩模, 为None则不启用.
+        :param match_tolerance: 可选: 自定捕捉准确度阈值 0-1, 默认0.95
+        :param match_interval: 可选: 自定捕捉图片的间隔, 默认0.2, 单位秒. 不采用系统时钟, 而是直接加算.
+        :param match_failed_check: 可选: 自定捕捉图片时间限制, 超时输出False. 默认10, 单位秒. 流程上会先识图, 识图失败加算时间判定超时, 故此处为0仍会识图1次.
+        :param after_sleep: 找到图 / 点击后(如果点击) / 复核(如果复核) 后的休眠时间
         :param click: 是否点一下
         :param click_handle: 是否启用不一样的点击句柄
-        :param after_click_template: 点击后进行检查, 若能找到该图片, 视为无效, 不输出True, 继承前者的精准度tolerance
-        :param after_click_template_mask: 检查掩模
+        :param after_click_template: 点击后进行检查, 若能找到该图片, 视为无效, 不输出True, 继承前者的 tolerance interval
+        :param after_click_template_mask: 检查 - 掩模
         :param source_root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层 可空置
 
     return:
         是否在限定时间内找到图片
-
     """
     spend_time = 0.0
-    find_target = False
     while True:
 
-        if not find_target:
-            find_target = match_p_in_w(
-                source_handle=source_handle,
-                source_range=source_range,
-                template=template,
-                mask=template_mask,
-                match_tolerance=match_tolerance,
-                source_root_handle=source_root_handle)
+        find_target = match_p_in_w(
+            source_handle=source_handle,
+            source_range=source_range,
+            template=template,
+            mask=template_mask,
+            match_tolerance=match_tolerance,
+            source_root_handle=source_root_handle)
+        if find_target:
+            break
         else:
-            if click:
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                    handle=click_handle if click_handle else source_handle,
-                    x=find_target[0] + source_range[0],
-                    y=find_target[1] + source_range[1]
-                )
-            time.sleep(after_sleep)
+            # 若超时, 查找失败
+            time.sleep(match_interval)
+            spend_time += match_interval
+            if spend_time > match_failed_check:
+                return False
 
-            if after_click_template is not None:
-                find_after_target = match_p_in_w(
-                    source_handle=source_handle,
-                    source_range=source_range,
-                    template=after_click_template,
-                    mask=after_click_template_mask,
-                    match_tolerance=match_tolerance,
-                    source_root_handle=source_root_handle)
-                if not find_after_target:
-                    continue  # 没有找到之后的target 就继续循环
+    if not click:
+        time.sleep(after_sleep)
+        return True
 
-            return True
+    T_ACTION_QUEUE_TIMER.add_click_to_queue(
+        handle=click_handle if click_handle else source_handle,
+        x=find_target[0] + source_range[0],
+        y=find_target[1] + source_range[1]
+    )
 
-        # 超时, 查找失败
-        time.sleep(match_interval)
-        spend_time += match_interval
-        if spend_time > match_failed_check:
-            return False
+    if after_click_template is None:
+        # 不需要检查是否切换到另一个界面
+        time.sleep(after_sleep)
+        return True
+
+    while True:
+        find_after_target = match_p_in_w(
+            source_handle=source_handle,
+            source_range=source_range,
+            template=after_click_template,
+            mask=after_click_template_mask,
+            match_tolerance=match_tolerance,
+            source_root_handle=source_root_handle)
+        if find_after_target:
+            break
+        else:
+            # 若超时, 查找失败
+            time.sleep(match_interval)
+            spend_time += match_interval
+            if spend_time > match_failed_check:
+                return False
+
+    time.sleep(after_sleep)
+    return True
+
+
 
 
 def loop_match_ps_in_w(

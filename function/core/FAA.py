@@ -1861,16 +1861,16 @@ class FAA:
 
                 while True:
 
-                    # 无脑点击点掉X 不再识图
+                    # 单一物品: 无脑点击点掉X 不再识图
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=450, y=190)
                     time.sleep(0.1)
-                    # 在限定范围内 找红叉点掉
+                    # 礼包物品: 在限定范围内 找红叉点掉
                     loop_match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
-                        source_range=[675, 175, 715, 220],
+                        source_range=[678, 190, 720, 215],
                         template=RESOURCE_P["common"]["退出.png"],
-                        match_tolerance=0.98,
+                        match_tolerance=0.99,
                         match_interval=0.2,
                         match_failed_check=0,
                         after_sleep=0.1,
