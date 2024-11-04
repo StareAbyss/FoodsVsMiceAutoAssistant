@@ -13,7 +13,7 @@ class GlobalExtraBiuld:
     def __init__(self):
 
         # 版本号
-        self.version = "v1.5.6"
+        self.version = "v1.5.7"
 
         # 每秒点击次数
         self.click_per_second = 160
