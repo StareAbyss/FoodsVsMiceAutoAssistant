@@ -110,16 +110,20 @@ def main():
 
 """
 我需要完成一个文件迁移打包器，包含以下功能：
-1. 输入源目录和目标目录
-2. 根据源目录的相对路径，设置配置，包括以下
+* 输入源目录和目标目录
+* 根据源目录的相对路径，设置配置，包括以下
     * add_file 函数 直接根据相对路径加入移动列表
     * add_folder 函数 直接根据相对路径遍历内部所有子文件夹和文件，加入移动列表
         * 该函数需要支持 exclude_paths  exclude_files exclude_types 三个参数 参数为list
         * exclude_paths 根据相对路径排除文件 比如我在"config"路径中 可通过 "config/cus_images/背包_装备_需使用的/任意通用包裹.png"准确排除这个文件
         * exclude_files 根据文件名称 + 文件后缀名排除 比如 "致谢名单.png"
         * exclude_types 根据文件后缀名排除 比如 ".pyc"
-3. preview 函数 预览移动 输出样例 Would copy: .\config\cus_images\一些常用的图标\浮空岛酬劳.png -> ..\_ExeWorkSpace\dist\FAA\config\cus_images\一些常用的图标\浮空岛酬劳.png
-4. run 函数 实际移动 输出样例 Copied: .\LICENSE -> ..\_ExeWorkSpace\dist\FAA\LICENSE
+* preview 函数 预览移动 输出样例 
+    Would copy: 
+    '.\config\cus_images\一些常用的图标\浮空岛酬劳.png' -> '..\_ExeWorkSpace\dist\FAA\config\cus_images\一些常用的图标\浮空岛酬劳.png'
+* run 函数 实际移动 输出样例 
+    Copied: 
+    '.\LICENSE -> ..\_ExeWorkSpace\dist\FAA\LICENSE'
 下面是调用样例
 
 def main():

@@ -142,7 +142,7 @@ class QMainWindowLog(QMainWindowLoadUI):
             text="[2] 有一定的礼卷防翻牌异常",
             time=False)
         self.signal_print_to_ui.emit(
-            text="[3] 高星或珍贵不绑卡挂拍卖/提前转移",
+            text="[3] 高星或珍贵不绑卡放储藏室",
             time=False)
 
         self.signal_print_to_ui.emit(
