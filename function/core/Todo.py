@@ -428,6 +428,12 @@ class ThreadTodo(QThread):
         self.model_end_print(text=title_text)
 
     def batch_receive_all_quest_rewards(self, player: list = None, quests: list = None, advance_mode: bool = False):
+        """
+        :param player: 默认[1,2] 可选: [1] [2] [1,2] [2,1]
+        :param quests: list 可包含内容: "普通任务" "公会任务" "情侣任务" "悬赏任务" "美食大赛" "大富翁" "营地任务"
+        :param advance_mode: 公会贡献扫描器和二级功能是否尝试激活 默认不激活 即使激活 仍需判定配置是否允许
+        :return:
+        """
 
         # 默认值
         if player is None:
@@ -1535,12 +1541,14 @@ class ThreadTodo(QThread):
         # 完成任务
         self.battle_1_n_n(quest_list=quest_list)
 
-        # 激活删除物品高危功能(可选) + 领取奖励一次
+        # 激活删除物品高危功能(可选) + 领取奖励一次 + 领取普通任务奖励(公会点)一次
+        quests = [quest_mode]
         if quest_mode == "公会任务":
+            quests.append("普通任务")
             self.batch_level_2_action(title_text=title_text, dark_crystal=False)
+
         self.signal_print_to_ui.emit(text=f"[{title_text}] 检查领取奖励中...")
-        self.faa_dict[1].receive_quest_rewards(mode=quest_mode)
-        self.faa_dict[2].receive_quest_rewards(mode=quest_mode)
+        self.batch_receive_all_quest_rewards(player=[1,2],quests=quests)
 
         self.model_end_print(text=title_text)
 
