@@ -9396,7 +9396,7 @@ Link Start</string>
               <number>5</number>
              </property>
              <item>
-              <layout class="QVBoxLayout" name="Lay_AdvancedSettings_5" stretch="1,0,0,0,0">
+              <layout class="QVBoxLayout" name="Lay_NormalBattleSettings" stretch="1,0,0,0,0,0">
                <property name="spacing">
                 <number>5</number>
                </property>
@@ -9435,7 +9435,7 @@ Link Start</string>
                 </widget>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="Lay_AdvancedSettings_1">
+                <layout class="QHBoxLayout" name="Lay_NormalBattleSettings_1">
                  <property name="leftMargin">
                   <number>5</number>
                  </property>
@@ -9507,7 +9507,7 @@ Link Start</string>
                 </layout>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="Lay_AdvancedSettings_4">
+                <layout class="QHBoxLayout" name="Lay_NormalBattleSettings_2">
                  <property name="leftMargin">
                   <number>5</number>
                  </property>
@@ -9596,7 +9596,7 @@ Link Start</string>
                 </layout>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="Lay_AdvancedSettings_8">
+                <layout class="QHBoxLayout" name="Lay_NormalBattleSettings_3">
                  <property name="leftMargin">
                   <number>5</number>
                  </property>
@@ -9690,7 +9690,7 @@ Link Start</string>
                 </layout>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="Lay_AdvancedSettings_6">
+                <layout class="QHBoxLayout" name="Lay_NormalBattleSettings_4">
                  <property name="leftMargin">
                   <number>5</number>
                  </property>
@@ -9732,6 +9732,36 @@ Link Start</string>
                   </widget>
                  </item>
                 </layout>
+               </item>
+               <item>
+                <widget class="QPushButton" name="Btn_ResetCardStatusMemory">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>100</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>在极其罕见情况下, 极其卡顿的电脑会造成自学习的错乱.
+表现为放卡错乱失效, 卡死在某个放卡步骤.
+ 点击确定后, 将初始化其记忆, 重新开始学习.</string>
+                 </property>
+                 <property name="text">
+                  <string>点击清空 卡片状态 自学习记忆</string>
+                 </property>
+                </widget>
                </item>
               </layout>
              </item>
