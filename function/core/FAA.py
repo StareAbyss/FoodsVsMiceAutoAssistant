@@ -289,7 +289,7 @@ class FAA:
                 x2 = card_xy_list[0] + 53
                 y2 = card_xy_list[1] + 70
                 if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
-                    mat_cards_info.append({'name': name, 'id': card_id,'coordinate_from':card_xy_list})
+                    mat_cards_info.append({'name': name, 'id': card_id, 'coordinate_from': card_xy_list})
                     break
 
         # 输出
@@ -329,7 +329,7 @@ class FAA:
                 x2 = card_xy_list[0] + 53
                 y2 = card_xy_list[1] + 70
                 if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
-                    self.smoothie_info = {'name':'极寒冰沙', "id": card_id}
+                    self.smoothie_info = {'name': '极寒冰沙', "id": card_id}
                     break
 
         self.print_info(text="战斗中识图查找冰沙位置, 结果：{}".format(self.smoothie_info))
@@ -453,9 +453,7 @@ class FAA:
                     "id": quest_card_id,
                     "location": quest_card_locations,
                     "ergodic": True,
-                    "queue": True,
-                    "coordinate_from": [],
-                    "coordinate_to": []
+                    "queue": True
                 }
 
                 # 可能是空列表 即花瓶
@@ -512,9 +510,8 @@ class FAA:
                     "id": mat_card_info[i]['id'],
                     "location": location[i::num_mat_card],
                     "ergodic": need_plate,
-                    "queue": True,
-                    "coordinate_from": [],
-                    "coordinate_to": []}
+                    "queue": True
+                }
 
                 # 可能是空列表 即花瓶
                 if len(list_cell_all) == 0:
@@ -542,9 +539,7 @@ class FAA:
                     'id': smoothie_info['id'],
                     'location': [first_available_location],
                     'ergodic': False,
-                    'queue': False,
-                    'coordinate_from': [],
-                    'coordinate_to': []
+                    'queue': False
                 }
                 list_cell_all.append(card_dict)
 
@@ -1831,8 +1826,8 @@ class FAA:
         self.signal_print_to_ui.emit(text=f"[使用绑定消耗品] [{self.player}P] 背包图标可能需要加载, 等待10s")
         time.sleep(10)
 
-        # 七次循环查找所有正确图标(280格) 不需要升到最顶, 打开背包会自动重置
-        for i in range(7):
+        # 8次查找 7次下拉 查找所有正确图标 不需要升到最顶, 打开背包会自动重置
+        for i in range(8):
 
             self.print_debug(text="第{}页物品".format(i + 1))
 
@@ -1841,17 +1836,17 @@ class FAA:
                 # 点击整理物品按钮
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=905, y=475)
                 time.sleep(2)
-            # 最后一次循环，点一下整理键且回到背包最开始，处理在下层获得的物品
-            elif i == 6:
+            # 最后一次循环，点一下整理键且回到背包最开始，尝试但大概率失败的, 处理在下层获得的物品
+            elif i == 7:
                 # 点击整理物品按钮
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=905, y=475)
                 time.sleep(2)
                 # 点击滚动条最上方以返回背包开始
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=916, y=115)
                 time.sleep(2)
-            # 第一次以外, 下滑6*5次
+            # 第一次以外, 下滑3次 (一共下滑20次就到底部了)
             else:
-                for j in range(5):
+                for j in range(3):
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=920, y=422)
                     time.sleep(0.2)
 
@@ -1969,14 +1964,14 @@ class FAA:
         def loop_use_double_card():
             used_success = 0
 
-            # 四次循环查找所有正确图标 升到最顶, 不需要, 打开背包会自动重置
-            for i in range(4):
+            # 8次查找 7次下拉 不需要升到最顶,打开背包会自动重置
+            for i in range(8):
 
                 self.print_debug(text=f"[使用双暴卡] 第{i + 1}页物品 开始查找")
 
-                # 第一次以外, 下滑4*5次
+                # 第一次以外, 下滑3次点击 一共3*7=21次, 20次到底
                 if i != 0:
-                    for j in range(5):
+                    for j in range(3):
                         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=920, y=422)
                         time.sleep(0.2)
 
@@ -1989,11 +1984,11 @@ class FAA:
                     find = loop_match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
-                        source_range=[466, 86, 891, 435],
+                        source_range=[466, 86, 910, 435],
                         template=RESOURCE_P["item"]["物品-双暴卡.png"],
                         match_tolerance=0.98,
                         match_interval=0.2,
-                        match_failed_check=1.5,
+                        match_failed_check=2,
                         after_sleep=0.05,
                         click=True)
 
