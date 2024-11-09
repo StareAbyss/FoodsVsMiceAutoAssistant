@@ -9,7 +9,7 @@ from PyQt6.QtGui import QRegularExpressionValidator
 from PyQt6.QtWidgets import QApplication, QMessageBox, QInputDialog
 
 from function.core.QMW_1_log import QMainWindowLog
-from function.globals import g_extra
+from function.globals import g_extra, SIGNAL
 from function.globals import g_resources
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
@@ -595,10 +595,10 @@ class QMainWindowLoadSettings(QMainWindowLog):
             if url != "":
                 if result_bool:
                     my_opt["misu_logistics_link"] = url
-                    self.signal_dict["print_to_ui"].emit(
+                    SIGNAL.PRINT_TO_UI.emit(
                         text=f"FAA X 米苏物流 连通性测试 使用非默认url:{url} 成功!", color_level=3)
                 else:
-                    self.signal_dict["print_to_ui"].emit(
+                    SIGNAL.PRINT_TO_UI.emit(
                         text=f"FAA X 米苏物流 连通性测试 使用非默认url:{url} 失败! 将修正为默认url重试", color_level=1)
                     url = ""
                     my_opt["misu_logistics_link"] = url
@@ -608,12 +608,12 @@ class QMainWindowLoadSettings(QMainWindowLog):
             if url == "":
                 if result_bool:
                     my_opt["misu_logistics_link"] = url
-                    self.signal_dict["print_to_ui"].emit(
+                    SIGNAL.PRINT_TO_UI.emit(
                         text=f"FAA X 米苏物流 连通性测试 使用默认ulr 成功!", color_level=3)
                 else:
-                    self.signal_dict["print_to_ui"].emit(
+                    SIGNAL.PRINT_TO_UI.emit(
                         text=f"FAA X 米苏物流 连通性测试 使用默认ulr 失败!", color_level=1)
-                    self.signal_dict["print_to_ui"].emit(
+                    SIGNAL.PRINT_TO_UI.emit(
                         text=f"内置url可能已过期, 推荐更新url, 以防请求等待超时, 降低战斗效率!!!", color_level=1)
 
         def senior_settings() -> None:
@@ -820,11 +820,10 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
     def click_btn_save(self) -> None:
         """点击保存配置按钮的函数"""
-        self.signal_dict["print_to_ui"].emit(text="", time=False)
+        SIGNAL.PRINT_TO_UI.emit(text="", time=False)
         self.ui_to_opt()
         self.opt_to_json()
-        self.signal_dict["print_to_ui"].emit(
-            text=f"方案:[{self.CurrentPlan.currentText()}] 已保存!", color_level=3)
+        SIGNAL.PRINT_TO_UI.emit(text=f"方案:[{self.CurrentPlan.currentText()}] 已保存!", color_level=3)
 
     def delete_current_plan(self) -> None:
         """用来删掉当前被选中的 todo plan 但不能删掉默认方案"""

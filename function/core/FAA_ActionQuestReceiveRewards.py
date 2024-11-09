@@ -2,6 +2,7 @@ import datetime
 import time
 
 from function.common.bg_img_match import loop_match_p_in_w
+from function.globals import SIGNAL
 from function.globals.g_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
@@ -48,7 +49,7 @@ class FAAActionQuestReceiveRewards:
             # 如果达到了最大尝试次数
             if try_count == max_attempts - 1:
                 current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                self.faa.signal_dialog.emit(
+                SIGNAL.DIALOG.emit(
                     "背包满了！(╬◣д◢)",
                     f"{self.faa.player}P因背包爆满, 导致 [领取普通任务奖励] 失败!\n"
                     f"出错时间:{current_time}, 尝试次数:{max_attempts}")
@@ -123,7 +124,7 @@ class FAAActionQuestReceiveRewards:
         # 如果达到了最大尝试次数
         if try_count == max_attempts - 1:
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            self.faa.signal_dialog.emit(
+            SIGNAL.DIALOG.emit(
                 "背包满了！(╬◣д◢)",
                 f"{self.faa.player}P因背包爆满, 导致 [领取公会任务奖励] 失败!\n"
                 f"出错时间:{current_time}, 尝试次数:{max_attempts}")
@@ -163,7 +164,7 @@ class FAAActionQuestReceiveRewards:
         # 如果达到了最大尝试次数
         if try_count == max_attempts - 1:
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            self.faa.signal_dialog.emit(
+            SIGNAL.DIALOG.emit(
                 "背包满了！(╬◣д◢)",
                 f"{self.faa.player}P因背包爆满, 导致 [领取情侣任务奖励] 失败!\n"
                 f"出错时间:{current_time}, 尝试次数:{max_attempts}")
@@ -210,7 +211,7 @@ class FAAActionQuestReceiveRewards:
         # 如果达到了最大尝试次数
         if try_count == max_attempts - 1:
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            self.faa.signal_dialog.emit(
+            SIGNAL.DIALOG.emit(
                 "背包满了！(╬◣д◢)",
                 f"{self.faa.player}P因背包爆满, 导致 [领取悬赏任务奖励]失败!\n"
                 f"出错时间:{current_time}, 尝试次数:{max_attempts}")
@@ -266,7 +267,7 @@ class FAAActionQuestReceiveRewards:
                 # 如果达到了最大尝试次数
                 if try_count == max_attempts - 1:
                     current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    self.faa.signal_dialog.emit(
+                    SIGNAL.DIALOG.emit(
                         "背包满了！(╬◣д◢)",
                         f"{self.faa.player}P因背包爆满, 导致 [领取悬赏任务奖励]失败!\n"
                         f"出错时间:{current_time}, 尝试次数:{max_attempts}")
