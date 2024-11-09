@@ -343,9 +343,15 @@ class Card:
                 return
 
             # 坤-如果不可用状态 放弃本次用卡
+            kun_count = 0
             for kun_card in self.kun_cards:
+
                 if not kun_card.status_usable:
                     continue
+
+                # 防止多坤撞车
+                if kun_count >= 1:
+                    time.sleep(0.5)
 
                 # 坤-点击 选中卡片
                 kun_card.choice_card()
@@ -358,6 +364,8 @@ class Card:
                 time.sleep(self.frame_interval)
 
                 kun_card.fresh_status()
+
+                kun_count += 1
 
     def destroy(self):
         """中止运行时释放内存, 顺带如果遇到了全新的状态图片保存一下"""
