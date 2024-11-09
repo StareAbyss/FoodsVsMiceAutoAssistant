@@ -12,7 +12,7 @@ from function.core.FAA_ActionQuestReceiveRewards import FAAActionQuestReceiveRew
 from function.core.FAA_BattleARoundPreparation import BattleARoundPreparation
 from function.core_battle.FAA_Battle import Battle
 from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
-from function.globals import g_resources
+from function.globals import g_resources, SIGNAL
 from function.globals.g_resources import RESOURCE_P
 from function.globals.location_card_cell_in_battle import COORDINATE_CARD_CELL_IN_BATTLE
 from function.globals.log import CUS_LOGGER
@@ -31,22 +31,13 @@ class FAA:
     """
 
     def __init__(self, channel="锑食", player=1,
-                 character_level=1, is_auto_battle=True, is_auto_pickup=False, random_seed=0,
-                 signal_dict=None):
+                 character_level=1, is_auto_battle=True, is_auto_pickup=False, random_seed=0):
 
         # 获取窗口句柄
         self.channel = channel  # 在刷新窗口后会需要再重新获取flash的句柄, 故保留
         self.handle = faa_get_handle(channel=self.channel, mode="flash")
         self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
         self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
-
-        # 外部信号集 用于根据窗口逻辑, 控制UI和整体的Todo类, 做出相应改变
-        self.signal_dict = signal_dict
-        # 为了单例调试可用
-        if self.signal_dict:
-            self.signal_print_to_ui = self.signal_dict["print_to_ui"]
-            self.signal_dialog = self.signal_dict["dialog"]
-            self.signal_todo_end = self.signal_dict["end"]
 
         # 随机种子
         self.random_seed = random_seed
@@ -1763,7 +1754,7 @@ class FAA:
 
         def fed_and_watered_main():
 
-            self.signal_print_to_ui.emit(f"[浇水 施肥 摘果 领取] [{self.player}p] 开始执行...")
+            SIGNAL.PRINT_TO_UI.emit(f"[浇水 施肥 摘果 领取] [{self.player}p] 开始执行...")
             self.print_debug(text="开始公会浇水施肥")
 
             for reload_time in range(1, 4):
@@ -1772,12 +1763,12 @@ class FAA:
                 is_bug = goto_guild_and_in_guild()
                 if is_bug:
                     if reload_time != 3:
-                        self.signal_print_to_ui.emit(
+                        SIGNAL.PRINT_TO_UI.emit(
                             f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入工会页失败... 刷新再试({reload_time}/3)")
                         self.reload_game()
                         continue
                     else:
-                        self.signal_print_to_ui.emit(
+                        SIGNAL.PRINT_TO_UI.emit(
                             f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入工会页失败... 刷新跳过({reload_time}/3)")
                         self.reload_game()
                         break
@@ -1787,27 +1778,27 @@ class FAA:
 
                 if is_bug:
                     if reload_time != 3:
-                        self.signal_print_to_ui.emit(
+                        SIGNAL.PRINT_TO_UI.emit(
                             f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住 "
                             f"本轮循环施肥尝试:{try_time}次 刷新再试({reload_time}/3)")
                         self.reload_game()
                         continue
                     else:
-                        self.signal_print_to_ui.emit(
+                        SIGNAL.PRINT_TO_UI.emit(
                             f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住 "
                             f"本轮循环施肥尝试:{try_time}次  刷新跳过({reload_time}/3)")
                         self.reload_game()
                         break
 
                 if try_time == 100:
-                    self.signal_print_to_ui.emit(
+                    SIGNAL.PRINT_TO_UI.emit(
                         f"[浇水 施肥 摘果 领取] [{self.player}p] 尝试100次, 直接刷新跳过")
                     self.reload_game()
                     break
 
                 if completed:
                     # 正常完成
-                    self.signal_print_to_ui.emit(
+                    SIGNAL.PRINT_TO_UI.emit(
                         f"[浇水 施肥 摘果 领取] [{self.player}p] 正确完成 ~")
                     # 退出工会
                     self.action_exit(mode="普通红叉")
@@ -1818,12 +1809,12 @@ class FAA:
 
     def use_items_consumables(self) -> None:
 
-        self.signal_print_to_ui.emit(text=f"[使用绑定消耗品] [{self.player}P] 开始.")
+        SIGNAL.PRINT_TO_UI.emit(text=f"[使用绑定消耗品] [{self.player}P] 开始.")
 
         # 打开背包
         self.print_debug(text="打开背包")
         self.action_bottom_menu(mode="背包")
-        self.signal_print_to_ui.emit(text=f"[使用绑定消耗品] [{self.player}P] 背包图标可能需要加载, 等待10s")
+        SIGNAL.PRINT_TO_UI.emit(text=f"[使用绑定消耗品] [{self.player}P] 背包图标可能需要加载, 等待10s")
         time.sleep(10)
 
         # 8次查找 7次下拉 查找所有正确图标 不需要升到最顶, 打开背包会自动重置
@@ -1939,7 +1930,7 @@ class FAA:
         # 关闭背包
         self.action_exit(mode="普通红叉")
 
-        self.signal_print_to_ui.emit(text=f"[使用绑定消耗品] [{self.player}P] 结束.")
+        SIGNAL.PRINT_TO_UI.emit(text=f"[使用绑定消耗品] [{self.player}P] 结束.")
 
     def use_items_double_card(self, max_times) -> None:
         """
@@ -2038,14 +2029,14 @@ class FAA:
             self.print_debug(text="[使用双暴卡] 开始")
 
             if is_saturday_or_sunday():
-                self.signal_print_to_ui.emit(text="[使用双暴卡] 今天是星期六 / 星期日, 跳过")
+                SIGNAL.PRINT_TO_UI.emit(text="[使用双暴卡] 今天是星期六 / 星期日, 跳过")
                 return
 
             # 打开背包
             self.print_debug(text="打开背包")
             self.action_bottom_menu(mode="背包")
             if self.player == 1:
-                self.signal_print_to_ui.emit(text=f"[使用双暴卡] [{self.player}P] 背包图标可能需要加载, 等待10s")
+                SIGNAL.PRINT_TO_UI.emit(text=f"[使用双暴卡] [{self.player}P] 背包图标可能需要加载, 等待10s")
             time.sleep(10)
 
             loop_use_double_card()
@@ -2060,11 +2051,11 @@ class FAA:
         输入二级密码. 通过背包内尝试拆主武器
         """
 
-        self.signal_print_to_ui.emit(text=f"[输入二级密码] [{self.player}P] 开始.")
+        SIGNAL.PRINT_TO_UI.emit(text=f"[输入二级密码] [{self.player}P] 开始.")
 
         # 打开背包
         self.action_bottom_menu(mode="背包")
-        self.signal_print_to_ui.emit(text=f"[输入二级密码] [{self.player}P] 背包图标可能需要加载, 等待10s")
+        SIGNAL.PRINT_TO_UI.emit(text=f"[输入二级密码] [{self.player}P] 背包图标可能需要加载, 等待10s")
         time.sleep(10)
 
         # 卸下主武器
@@ -2088,7 +2079,7 @@ class FAA:
         # 关闭背包
         self.action_exit(mode="普通红叉")
 
-        self.signal_print_to_ui.emit(text=f"[输入二级密码] [{self.player}P] 结束.")
+        SIGNAL.PRINT_TO_UI.emit(text=f"[输入二级密码] [{self.player}P] 结束.")
 
     def gift_flower(self):
         """送免费花"""
@@ -2129,7 +2120,7 @@ class FAA:
         自动兑换暗晶的函数
         """
 
-        self.signal_print_to_ui.emit(text=f"[兑换暗晶] [{self.player}P] 开始.")
+        SIGNAL.PRINT_TO_UI.emit(text=f"[兑换暗晶] [{self.player}P] 开始.")
 
         # 打开公会副本界面
         self.print_debug(text="跳转到工会副本界面")
@@ -2154,7 +2145,7 @@ class FAA:
         for i in range(2):
             self.action_exit(mode="普通红叉")
 
-        self.signal_print_to_ui.emit(text=f"[兑换暗晶] [{self.player}P] 结束.")
+        SIGNAL.PRINT_TO_UI.emit(text=f"[兑换暗晶] [{self.player}P] 结束.")
 
     def delete_items(self):
         """用于删除多余的技能书类消耗品, 使用前需要输入二级或无二级密码"""
@@ -2164,14 +2155,14 @@ class FAA:
         # 打开背包
         self.print_debug(text="打开背包")
         self.action_bottom_menu(mode="背包")
-        self.signal_print_to_ui.emit(text=f"[删除物品] [{self.player}P] 背包图标可能需要加载, 等待10s")
+        SIGNAL.PRINT_TO_UI.emit(text=f"[删除物品] [{self.player}P] 背包图标可能需要加载, 等待10s")
         time.sleep(10)
 
         # 点击到物品栏目
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=777, y=65)
         time.sleep(1)
 
-        self.signal_print_to_ui.emit(text=f"[删除物品] [{self.player}P] 背包图标可能需要加载, 等待10s")
+        SIGNAL.PRINT_TO_UI.emit(text=f"[删除物品] [{self.player}P] 背包图标可能需要加载, 等待10s")
         time.sleep(10)
 
         # 点击整理物品按钮

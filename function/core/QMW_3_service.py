@@ -25,7 +25,7 @@ from function.core.QMW_TipStageID import QMWTipStageID
 from function.core.QMW_TipWarmGift import QMWTipWarmGift
 from function.core.Todo import ThreadTodo
 from function.core.performance_analysis import run_analysis_in_thread
-from function.globals import g_extra
+from function.globals import g_extra, SIGNAL
 from function.globals import g_resources
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
@@ -47,7 +47,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         super().__init__()
 
         # 添加一些信号到列表中方便调用
-        self.signal_dict["guild_manager_fresh"] = self.signal_guild_manager_fresh
+        SIGNAL.GUILD_MANAGER_FRESH = self.signal_guild_manager_fresh
+        SIGNAL.END = self.signal_todo_end
 
         # 线程或线程管理实例
         self.thread_todo_1 = None
@@ -148,7 +149,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.guild_manager_table_load_data()
 
         # 绑定信号和槽函数, 在更新数据文件后更新内部数据表
-        self.signal_guild_manager_fresh.connect(self.guild_manager_table_load_data)
+        SIGNAL.GUILD_MANAGER_FRESH.connect(self.guild_manager_table_load_data)
 
         # 根据日历日期，调整表格视图
         self.DateSelector.selectionChanged.connect(self.guild_manager_table_update)
@@ -356,7 +357,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 先检测是否已经在启动状态, 如果是, 立刻关闭 然后继续执行
         if self.thread_todo_running:
-            self.signal_print_to_ui.emit("[定时任务] 检测到线程已启动, 正在关闭", color_level=1)
+            SIGNAL.PRINT_TO_UI.emit("[定时任务] 检测到线程已启动, 正在关闭", color_level=1)
             self.todo_end()
 
         # 先读取界面上的方案
@@ -376,7 +377,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         for player, handle in handles.items():
             if handle is None or handle == 0:
                 # 报错弹窗
-                self.signal_dialog.emit(
+                SIGNAL.DIALOG.emit(
                     "出错！(╬◣д◢)",
                     f"{player}P存在错误的窗口名或游戏名称, 请参考 [使用前看我!.pdf] 或 [README.md]")
                 self.Button_Start.setText("开始任务\nLink Start")
@@ -389,15 +390,15 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 设置按钮文本
         self.Button_Start.setText("终止任务\nStop")
         if self.todo_timer_running:
-            self.signal_print_to_ui.emit("", time=False)
-            self.signal_print_to_ui.emit("[定时任务] 本次启动为 定时自启动 不清屏", color_level=1)
+            SIGNAL.PRINT_TO_UI.emit("", time=False)
+            SIGNAL.PRINT_TO_UI.emit("[定时任务] 本次启动为 定时自启动 不清屏", color_level=1)
         else:
             # 清屏并输出(仅限手动)
             self.TextBrowser.clear()
             self.start_print()
         # 设置输出文本
-        self.signal_print_to_ui.emit("", time=False)
-        self.signal_print_to_ui.emit("[任务事项] 链接开始 Todo线程开启", color_level=1)
+        SIGNAL.PRINT_TO_UI.emit("", time=False)
+        SIGNAL.PRINT_TO_UI.emit("[任务事项] 链接开始 Todo线程开启", color_level=1)
         # 当前正在运行 的 文本 修改
         running_todo_plan_name = self.opt["todo_plans"][running_todo_plan_index]["name"]
         self.Label_RunningState.setText(f"任务事项线程状态: 正在运行       运行方案: {running_todo_plan_name}")
@@ -417,16 +418,14 @@ class QMainWindowService(QMainWindowLoadSettings):
                 character_level=self.opt["base_settings"]["level_1p"],
                 is_auto_battle=self.opt["advanced_settings"]["auto_use_card"],
                 is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_1p"],
-                random_seed=random_seed,
-                signal_dict=self.signal_dict),
+                random_seed=random_seed),
             2: FAA(
                 channel=channel_2p,
                 player=2,
                 character_level=self.opt["base_settings"]["level_2p"],
                 is_auto_battle=self.opt["advanced_settings"]["auto_use_card"],
                 is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_2p"],
-                random_seed=random_seed,
-                signal_dict=self.signal_dict)
+                random_seed=random_seed)
         }
 
         # 创建新的todo并启动线程
@@ -434,7 +433,6 @@ class QMainWindowService(QMainWindowLoadSettings):
             faa_dict=faa_dict,
             opt=self.opt,
             running_todo_plan_index=running_todo_plan_index,
-            signal_dict=self.signal_dict,
             todo_id=1)
 
         # 用于双人多线程的todo
@@ -442,7 +440,6 @@ class QMainWindowService(QMainWindowLoadSettings):
             faa_dict=faa_dict,
             opt=self.opt,
             running_todo_plan_index=running_todo_plan_index,
-            signal_dict=self.signal_dict,
             todo_id=2)
 
         # 链接信号以进行多线程单人
@@ -504,7 +501,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 设置按钮文本
         self.Button_Start.setText("开始任务\nLink Start")
         # 设置输出文本
-        self.signal_print_to_ui.emit("[任务事项] 已关闭全部线程", color_level=1)
+        SIGNAL.PRINT_TO_UI.emit("[任务事项] 已关闭全部线程", color_level=1)
         # 当前正在运行 的 文本 修改
         self.Label_RunningState.setText(f"任务事项线程状态: 未运行")
         self.is_ending = False  # 完成完整的线程结束
@@ -527,8 +524,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 设置按钮文本
         self.Button_StartTimer.setText("关闭定时任务\nTimer Stop")
         # 设置输出文本
-        self.signal_print_to_ui.emit("", time=False)
-        self.signal_print_to_ui.emit("[定时任务] 已启动!", color_level=1)
+        SIGNAL.PRINT_TO_UI.emit("", time=False)
+        SIGNAL.PRINT_TO_UI.emit("[定时任务] 已启动!", color_level=1)
         # 设置Flag
         self.todo_timer_running = True
         # 新设todo timer manager的opt
@@ -544,8 +541,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 设置按钮文本
         self.Button_StartTimer.setText("启动定时任务\nTimer Start")
         # 设置输出文本
-        self.signal_print_to_ui.emit("", time=False)
-        self.signal_print_to_ui.emit("[定时任务] 定时作战已关闭!", color_level=1)
+        SIGNAL.PRINT_TO_UI.emit("", time=False)
+        SIGNAL.PRINT_TO_UI.emit("[定时任务] 定时作战已关闭!", color_level=1)
         # 设置Flag
         self.todo_timer_running = False
         # 关闭线程群
@@ -610,7 +607,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         for player, handle in handles.items():
             if handle is None or handle == 0:
                 # 报错弹窗
-                self.signal_dialog.emit(
+                SIGNAL.DIALOG.emit(
                     "出错！(╬◣д◢)",
                     f"{player}P存在错误的窗口名或游戏名称, 请参考 [使用前看我!.pdf] 或 [README.md]")
                 return
@@ -725,14 +722,14 @@ class QMainWindowService(QMainWindowLoadSettings):
             url = None  # 判空
 
         result_bool, result_print = test_route_connectivity(url=url)
-        self.signal_dict['dialog'].emit(
+        SIGNAL.DIALOG.emit(
             "链接成功!" if result_bool else "连接失败...",
             result_print
         )
 
     def click_btn_misu_logistics_get_stage_info_online(self):
         result_print = get_stage_info_online()
-        self.signal_dict['dialog'].emit(
+        SIGNAL.DIALOG.emit(
             "尝试完成",
             result_print
         )

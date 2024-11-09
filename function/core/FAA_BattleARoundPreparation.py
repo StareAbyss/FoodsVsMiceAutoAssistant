@@ -6,6 +6,7 @@ from function.common.bg_img_match import loop_match_ps_in_w, loop_match_p_in_w, 
 from function.common.bg_img_screenshot import capture_image_png
 from function.common.overlay_images import overlay_images
 from function.core.analyzer_of_loot_logs import match_items_from_image_and_save
+from function.globals import SIGNAL
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
@@ -198,7 +199,7 @@ class BattleARoundPreparation:
                 special_stage = False
 
         if special_stage:
-            self.faa.signal_print_to_ui.emit(f"检测到特殊关卡：{stage_name}，已为你启用对应关卡方案", 7)
+            SIGNAL.PRINT_TO_UI.emit(f"检测到特殊关卡：{stage_name}，已为你启用对应关卡方案", 7)
 
     def screen_ban_card_loop_a_round(self, ban_card_s):
 
