@@ -423,8 +423,10 @@ class FAA:
 
             if quest_card != "None":
 
-                # 任务卡 位置
-                quest_card_locations = ["6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7"]
+                quest_card_locations = [
+                    "6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7",
+                    "7-1", "7-2", "7-3", "7-4", "7-5", "7-6", "7-7"
+                ]
 
                 # 遍历删除 方案的放卡中 占用了任务卡摆放的棋盘位置
                 list_cell_all = [
@@ -437,6 +439,18 @@ class FAA:
                     quest_card_id = max(card["id"] for card in list_cell_all) + 1
                 else:
                     quest_card_id = 1
+
+                # 任务卡 位置 组队情况下分摊
+                if not is_group:
+                    quest_card_locations = [
+                        "6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7",
+                        "7-1", "7-2", "7-3", "7-4", "7-5", "7-6", "7-7"
+                    ]
+                else:
+                    if self.player == 1:
+                        quest_card_locations = ["6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7"]
+                    else:
+                        quest_card_locations = ["7-1", "7-2", "7-3", "7-4", "7-5", "7-6", "7-7"]
 
                 # 设定任务卡dict
                 dict_quest = {
