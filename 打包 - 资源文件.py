@@ -92,8 +92,7 @@ def main():
     )
 
     # 添加文件或文件夹
-    mover.add_file("[入门]FAA从入门到神殿.docx")
-    mover.add_file("[入门]FAA从入门到神殿.pdf")
+    mover.add_file("新手入门 看我!!! 看我!!! 看我!!!.txt")
     mover.add_file("LICENSE")
     mover.add_file("README.md")
     mover.add_file("README - 高级放卡.md")
