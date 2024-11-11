@@ -1,0 +1,16 @@
+FAA 现已启用网络文档！祝您轻松搞定配置入坑~
+
+该文档新手入门部分已施工完成, 取代原内置PDF文档. 其他部分仍在施工！
+
+新手教程 - 入门必看，20分钟搞定部署
+https://stareabyss.top/FAA-WebSite/guide/start/
+
+除错指南 - 遇到问题，逐一排查
+https://stareabyss.top/FAA-WebSite/guide/start/error.html
+
+功能一览 - 看看FAA是否有你不知道的功能
+https://stareabyss.top/FAA-WebSite/
+
+解锁日氪 - 秘 密 内 容~
+https://stareabyss.top/FAA-WebSite/guide/advanced/pay_to_win_star.html
+
