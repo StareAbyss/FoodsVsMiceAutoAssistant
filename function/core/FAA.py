@@ -63,7 +63,7 @@ class FAA:
         self.deck = None
         self.quest_card = None
         self.ban_card_list = None
-        self.battle_plan_0 = None  # 读取自json的初始战斗方案
+        self.battle_plan = None  # 读取自json的初始战斗方案
         self.battle_mode = None
 
         # 初始化战斗中 卡片位置 字典 bp -> battle location
@@ -77,8 +77,8 @@ class FAA:
         self.smoothie_info = None  # dict {}
         self.kun_cards_info = None  # list [{},{}...] 也用于标记本场战斗是否需要激活坤函数
 
-        # 经过处理后的战斗方案, 由战斗类相关动作函数直接调用, 其中的各种操作都包含坐标
-        self.battle_plan_parsed = {}
+        # 经过处理后的战斗方案卡片部分, 由战斗类相关动作函数直接调用, 其中的各种操作都包含坐标
+        self.battle_plan_card = []
 
         """被拆分为子实例的模块"""
 
@@ -98,21 +98,25 @@ class FAA:
         self.battle_lock = threading.Lock()
 
     def print_debug(self, text, player=None):
+        """FAA类中的 log debug 包含了player信息"""
         if not player:
             player = self.player
         CUS_LOGGER.debug("[{}P] {}".format(player, text))
 
     def print_info(self, text, player=None):
+        """FAA类中的 log print 包含了player信息"""
         if not player:
             player = self.player
         CUS_LOGGER.info("[{}P] {}".format(player, text))
 
     def print_warning(self, text, player=None):
+        """FAA类中的 log warning 包含了player信息"""
         if not player:
             player = self.player
         CUS_LOGGER.warning("[{}P] {}".format(player, text))
 
     def print_error(self, text, player=None):
+        """FAA类中的 log error 包含了player信息"""
         if not player:
             player = self.player
         CUS_LOGGER.error("[{}P] {}".format(player, text))
@@ -221,12 +225,14 @@ class FAA:
         # 双倍ban承载 ban软糖
         if "木盘子" in self.ban_card_list:
             self.ban_card_list.append("魔法软糖")
+
         if "麦芽糖" in self.ban_card_list:
             self.ban_card_list.append("魔法软糖")
+
         if "苏打气泡" in self.ban_card_list:
             self.ban_card_list.append("魔法软糖")
 
-        self.battle_plan_0 = g_resources.RESOURCE_B[battle_plan_uuid]
+        self.battle_plan = g_resources.RESOURCE_B[battle_plan_uuid]
 
         self.stage_info = read_json_to_stage_info(stage_id)
 
@@ -391,7 +397,7 @@ class FAA:
 
         self.print_info(text="战斗中识图查找幻幻鸡位置, 结果：{}".format(self.kun_cards_info))
 
-    def init_battle_plan_parsed(self) -> None:
+    def init_battle_plan_card(self) -> None:
         """
         战斗方案解析器 - 用于根据战斗方案的json和关卡等多种信息, 解析计算为卡片的部署方案 供战斗方案执行器执行
         Return:卡片的部署方案字典
@@ -421,7 +427,7 @@ class FAA:
         quest_card = copy.deepcopy(self.quest_card)
         ban_card_list = copy.deepcopy(self.ban_card_list)
         stage_info = copy.deepcopy(self.stage_info)
-        battle_plan = copy.deepcopy(self.battle_plan_0)
+        battle_plan = copy.deepcopy(self.battle_plan)
         mat_card_info = copy.deepcopy(self.mat_cards_info)
         smoothie_info = copy.deepcopy(self.smoothie_info)
 
@@ -591,33 +597,9 @@ class FAA:
 
             return new_list
 
-        def calculation_shovel():
-            """铲子位置 """
-            list_shovel = stage_info["shovel"]
-            return list_shovel
-
-        def transform_code_to_coordinate(list_cell_all, list_shovel):
-            """
-            如果没有后者
-            将 id:int 变为 coordinate_from:[x:int,y:int]
-            将 location:str 变为 coordinate_to:[[x:int,y:int],...]"""
-
-            for card in list_cell_all:
-                # 根据字段值, 判断是否完成写入, 并进行转换
-                card["coordinate_from"] = copy.deepcopy(bp_card[card["id"]])
-                card["coordinate_to"] = [copy.deepcopy(bp_cell[location]) for location in card["location"]]
-
-            list_shovel = copy.deepcopy([bp_cell[location] for location in list_shovel])
-
-            # 为幻鸡单独转化
-            for kun_card_info in self.kun_cards_info:
-                kun_card_info["coordinate_from"] = copy.deepcopy(bp_card[kun_card_info["id"]])
-
-            return list_cell_all, list_shovel
-
         def main():
             # 初始化数组 + 复制一份全新的 battle_plan
-            list_cell_all = battle_plan["card"]
+            list_cell_all = battle_plan
 
             # 调用计算任务卡
             list_cell_all = calculation_card_quest(list_cell_all=list_cell_all)
@@ -634,23 +616,23 @@ class FAA:
             # 调用去掉障碍位置
             list_cell_all = calculation_obstacle(list_cell_all=list_cell_all)
 
-            # 调用计算铲子卡
-            list_shovel = calculation_shovel()
-
             # 统一以坐标直接表示位置, 防止重复计算 (添加coordinate_from, coordinate_to)
-            list_cell_all, list_shovel = transform_code_to_coordinate(
-                list_cell_all=list_cell_all,
-                list_shovel=list_shovel)
+            # 将 id:int 变为 coordinate_from:[x:int,y:int]
+            # 将 location:str 变为 coordinate_to:[[x:int,y:int],...]
+            for card in list_cell_all:
+                # 根据字段值, 判断是否完成写入, 并进行转换
+                card["coordinate_from"] = copy.deepcopy(bp_card[card["id"]])
+                card["coordinate_to"] = [copy.deepcopy(bp_cell[location]) for location in card["location"]]
+
+            # 为幻鸡单独转化
+            for kun_card_info in self.kun_cards_info:
+                kun_card_info["coordinate_from"] = copy.deepcopy(bp_card[kun_card_info["id"]])
 
             # 不常用调试print
             self.print_debug(text="你的战斗放卡opt如下:")
             self.print_debug(text=list_cell_all)
 
-            self.battle_plan_parsed = {
-                "card": list_cell_all,
-                "shovel": list_shovel,
-                "obstacle": stage_info["obstacle"],
-                "mat": stage_info["mat_cell"]}
+            self.battle_plan_card = list_cell_all
 
         return main()
 
@@ -676,7 +658,7 @@ class FAA:
         time.sleep(0.333)
         if not self.is_main:
             time.sleep(0.666)
-
+        self.faa_battle.init_battle_plan_player(locations=self.battle_plan["player"])
         self.faa_battle.use_player_all()
 
         # 2.识图卡片数量，确定卡片在deck中的位置
@@ -687,10 +669,11 @@ class FAA:
         self.init_smoothie_card_info()
         self.init_kun_card_info()
 
-        # 4.计算所有坐标
-        self.init_battle_plan_parsed()
+        # 4.计算所有卡片放置坐标
+        self.init_battle_plan_card()
 
         # 5.铲卡
+        self.faa_battle.init_battle_plan_shovel(locations=self.stage_info["shovel"])
         if self.is_main:
             self.faa_battle.use_shovel_all()  # 因为有点击序列，所以同时操作是可行的
 
