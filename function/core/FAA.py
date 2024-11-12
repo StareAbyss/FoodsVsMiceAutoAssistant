@@ -1533,8 +1533,8 @@ class FAA:
         else:
             return "你游币用完了! 氪不了一点 orz"
 
-    def fed_and_watered(self) -> None:
-        """公会施肥浇水功能"""
+    def fed_and_watered(self,try_times=0) -> None:
+        """公会施肥浇水功能，默认尝试次数0, 即从第一个公会开始"""
 
         def goto_guild_and_in_guild():
             """
@@ -1626,9 +1626,9 @@ class FAA:
             # 次数限制内失败 进入施肥界面
             return False
 
-        def switch_guild_garden_by_try_times(try_time):
+        def switch_guild_garden_by_try_times(try_times):
             """根据目前尝试次数, 到达不同的公会"""
-            if try_time != 0:
+            if try_times != 0:
 
                 # 点击全部工会
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=798, y=123)
@@ -1639,7 +1639,7 @@ class FAA:
                 time.sleep(1)
 
                 # 以倒数第二页从上到下为1-4, 第二页为5-8次尝试对应的公会 以此类推
-                for i in range((try_time - 1) // 4 + 1):
+                for i in range((try_times - 1) // 4 + 1):
                     # 向上翻的页数
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=843, y=194)
                     time.sleep(1)
@@ -1649,10 +1649,10 @@ class FAA:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
                     x=810,
-                    y=my_dict[(try_time - 1) % 4 + 1])
+                    y=my_dict[(try_times - 1) % 4 + 1])
                 time.sleep(1)
 
-        def do_something_and_exit(try_time):
+        def do_something_and_exit(try_times):
             """完成素质三连并退出公会花园界面"""
             # 采摘一次
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=471)
@@ -1673,7 +1673,7 @@ class FAA:
                 after_sleep=1,
                 click=False
             )
-            self.print_debug(text=f"{try_time + 1}/100 次尝试, 浇水后, 已确认无任务完成黑屏")
+            self.print_debug(text=f"{try_times + 1}/100 次尝试, 浇水后, 已确认无任务完成黑屏")
 
             # 施肥一次
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=418)
@@ -1689,9 +1689,9 @@ class FAA:
                 match_failed_check=7,
                 after_sleep=2,
                 click=False)
-            self.print_debug(text=f"{try_time + 1}/100 次尝试, 施肥后, 已确认无任务完成黑屏")
+            self.print_debug(text=f"{try_times + 1}/100 次尝试, 施肥后, 已确认无任务完成黑屏")
 
-        def fed_and_watered_one_action(try_time):
+        def fed_and_watered_one_action(try_times):
             """
             :return: bool is completed  , bool is bugged
             """
@@ -1730,7 +1730,7 @@ class FAA:
             time.sleep(0.5)
 
             if not find:
-                self.print_debug(text="已完成公会浇水施肥, 尝试次数: {}/100".format(try_time))
+                self.print_debug(text="已完成公会浇水施肥, 尝试次数: {}/100".format(try_times))
                 return True, False
             else:
                 # 进入施肥界面, 正确进入就跳出循环
@@ -1738,35 +1738,34 @@ class FAA:
                     return False, True
 
                 # 根据目前尝试次数, 到达不同的公会
-                switch_guild_garden_by_try_times(try_time=try_time)
+                switch_guild_garden_by_try_times(try_times=try_times)
 
                 # 完成素质三连并退出公会花园界面
-                do_something_and_exit(try_time=try_time)
+                do_something_and_exit(try_times=try_times)
 
                 if exit_to_guild_page_and_in_guild():
                     return False, True
 
                 return False, False
 
-        def fed_and_watered_multi_action():
+        def fed_and_watered_multi_action(try_times):
             """
             :return: 完成的尝试次数, 是否是bug
             """
             # 循环到任务完成
-            try_time = 0
             while True:
 
-                completed_flag, is_bug = fed_and_watered_one_action(try_time)
-                try_time += 1
+                completed_flag, is_bug = fed_and_watered_one_action(try_times=try_times)
+                try_times += 1
 
-                if try_time == 100 or is_bug:
+                if try_times == 100 or is_bug:
                     # 次数过多, 或 遇上bug
-                    return completed_flag, try_time, True
+                    return completed_flag, try_times, True
 
                 if completed_flag:
-                    return completed_flag, try_time, False
+                    return completed_flag, try_times, False
 
-        def fed_and_watered_main():
+        def fed_and_watered_main(try_times):
 
             SIGNAL.PRINT_TO_UI.emit(f"[浇水 施肥 摘果 领取] [{self.player}p] 开始执行...")
             self.print_debug(text="开始公会浇水施肥")
@@ -1788,23 +1787,23 @@ class FAA:
                         break
 
                 # 循环到任务完成或出现bug或超次数
-                completed, try_time, is_bug = fed_and_watered_multi_action()
+                completed, try_times, is_bug = fed_and_watered_multi_action(try_times=try_times)
 
                 if is_bug:
                     if reload_time != 3:
                         SIGNAL.PRINT_TO_UI.emit(
                             f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住 "
-                            f"本轮循环施肥尝试:{try_time}次 刷新再试({reload_time}/3)")
+                            f"本轮循环施肥尝试:{try_times}次 刷新再试({reload_time}/3)")
                         self.reload_game()
                         continue
                     else:
                         SIGNAL.PRINT_TO_UI.emit(
                             f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住 "
-                            f"本轮循环施肥尝试:{try_time}次  刷新跳过({reload_time}/3)")
+                            f"本轮循环施肥尝试:{try_times}次  刷新跳过({reload_time}/3)")
                         self.reload_game()
                         break
 
-                if try_time == 100:
+                if try_times == 100:
                     SIGNAL.PRINT_TO_UI.emit(
                         f"[浇水 施肥 摘果 领取] [{self.player}p] 尝试100次, 直接刷新跳过")
                     self.reload_game()
@@ -1819,7 +1818,9 @@ class FAA:
                     self.receive_quest_rewards(mode="公会任务")
                     break
 
-        fed_and_watered_main()
+            return try_times
+
+        return fed_and_watered_main(try_times=try_times)
 
     def use_items_consumables(self) -> None:
 
