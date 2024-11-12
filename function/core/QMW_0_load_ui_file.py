@@ -321,7 +321,9 @@ if __name__ == "__main__":
         my_main_window.show()
 
         # 运行主循环，必须调用此函数才可以开始事件处理
-        sys.exit(app.exec())
+        app.exec()
+
+        sys.exit()
 
 
     main()

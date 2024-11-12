@@ -365,25 +365,23 @@ def loop_match_p_in_w(
     return True
 
 
-
-
 def loop_match_ps_in_w(
-        source_handle,
         template_opts: list,
         return_mode: str,
+        source_handle,
+        source_root_handle=None,
         match_failed_check: float = 10,
         match_interval: float = 0.2,
-        source_root_handle=None,
 ) -> bool:
     """
-        :param source_handle: 截图句柄
-        :param template_opts: [{"template":str,"source_range": [x1:int,y1:int,x2:int,y2:int],"match_tolerance":float},...]
-        :param return_mode: 模式 and 或者 or
-        :param match_interval: 捕捉图片的间隔
-        :param match_failed_check: # 捕捉图片时间限制, 超时输出False
-        :return: 通过了mode, 则返回[{"x":int,"y":int},None,...] , 否则返回None
-        :param source_root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层 可空置
-        """
+    :param template_opts: [{"template":str,"source_range": [x1:int,y1:int,x2:int,y2:int],"match_tolerance":float},...]
+    :param return_mode: 模式 and 或者 or
+    :param source_handle: 截图句柄
+    :param source_root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层 可空置
+    :param match_interval: 捕捉图片的间隔
+    :param match_failed_check: # 捕捉图片时间限制, 超时输出False
+    :return: 通过了mode, 则返回[{"x":int,"y":int},None,...] , 否则返回None
+    """
     # 截屏
     invite_time = 0.0
     while True:
