@@ -400,7 +400,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             # 点击频率
             self.CusCPS_Active.setChecked(my_opt["cus_cps_active"])
             self.CusCPS_Value.setValue(my_opt["cus_cps_value"])
-            EXTRA.CLICK_PER_SECOND = my_opt["cus_cps_value"] if my_opt["cus_cps_active"] else 160
+            EXTRA.CLICK_PER_SECOND = my_opt["cus_cps_value"] if my_opt["cus_cps_active"] else 120
 
             # 最低FPS
             self.CusLowestFPS_Active.setChecked(my_opt["cus_lowest_fps_active"])

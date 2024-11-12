@@ -9572,7 +9572,7 @@ Link Start</string>
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>默认值160Hz(次每秒).可设定范围60-300.
+                    <string>默认值120Hz(次每秒).可设定范围60-300.
 
 设定过高会导致电脑处理不完点击:
 影响战斗和非战斗操作,导致图像识别错位进而出现各种异常.
@@ -9589,7 +9589,7 @@ Link Start</string>
                     <number>300</number>
                    </property>
                    <property name="value">
-                    <number>160</number>
+                    <number>120</number>
                    </property>
                   </widget>
                  </item>
