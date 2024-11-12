@@ -2070,9 +2070,8 @@ class ThreadTodo(QThread):
 
         """主要事项"""
 
-        SIGNAL.PRINT_TO_UI.emit(
-            text=f"\n[主要事项] 开始!",
-            color_level=1)
+        SIGNAL.PRINT_TO_UI.emit(text="",time=False)
+        SIGNAL.PRINT_TO_UI.emit(text="[主要事项] 开始!", color_level=1)
 
         need_reload = False
         need_reload = need_reload or c_opt["sign_in"]["active"]
@@ -2286,9 +2285,8 @@ class ThreadTodo(QThread):
         extra_active = extra_active or c_opt["loop_cross_server"]["active"]
 
         if extra_active:
-            SIGNAL.PRINT_TO_UI.emit(
-                text=f"\n[额外事项] 开始!",
-                color_level=1)
+            SIGNAL.PRINT_TO_UI.emit(text="", time=False)
+            SIGNAL.PRINT_TO_UI.emit(text=f"[额外事项] 开始!",color_level=1)
             self.batch_reload_game()
             start_time = datetime.datetime.now()
 
@@ -2333,9 +2331,8 @@ class ThreadTodo(QThread):
         active_singleton = active_singleton or c_opt["customize_battle"]["active"]
 
         if active_singleton:
-            SIGNAL.PRINT_TO_UI.emit(
-                text=f"\n[自建房战斗] 开始! 如出现错误, 务必确保该功能是单独启动的!",
-                color_level=1)
+            SIGNAL.PRINT_TO_UI.emit(text="", time=False)
+            SIGNAL.PRINT_TO_UI.emit(text="[自建房战斗] 开始! 如出现错误, 务必确保该功能是单独启动的!",color_level=1)
             start_time = datetime.datetime.now()
 
         my_opt = c_opt["customize_battle"]
