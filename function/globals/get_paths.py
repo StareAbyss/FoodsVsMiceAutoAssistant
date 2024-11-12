@@ -47,7 +47,7 @@ def build_paths(root):
     }
 
 
-# 定义为全局变量 一般以固定备份调用 可以直接import该变量
+# 定义为全局变量 几乎完全是静态导入 可以直接import该变量
 PATHS = build_paths(get_root_path())
 
 

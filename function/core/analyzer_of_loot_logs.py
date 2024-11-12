@@ -7,7 +7,7 @@ import networkx as nx
 from cv2 import imencode
 
 from function.common.same_size_match import one_item_match, match_block_equal_in_images
-from function.globals import g_extra
+from function.globals import EXTRA
 from function.globals import g_resources
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
@@ -35,7 +35,7 @@ def match_items_from_image_and_save(img_save_path, image, mode='loots', test_pri
     """
 
     # 全局启动 或者 调用启动
-    test_print = test_print or g_extra.GLOBAL_EXTRA.extra_log_match
+    test_print = test_print or EXTRA.EXTRA_LOG_MATCH
 
     # 统计耗时
     time_start = time.time()
@@ -199,7 +199,7 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
 
     def save_unmatched_block(img_block):
 
-        with g_extra.GLOBAL_EXTRA.file_lock:
+        with EXTRA.FILE_LOCK:
 
             # 注意 需要重载一下内存中的图片
             g_resources.fresh_resource_log_img()
@@ -318,7 +318,7 @@ def find_longest_path_from_dag():
 def ranking_read_data(json_path):
     if os.path.exists(json_path):
 
-        with g_extra.GLOBAL_EXTRA.file_lock:
+        with EXTRA.FILE_LOCK:
             with open(file=json_path, mode="r", encoding="UTF-8") as file:
                 data = json.load(file)
 
@@ -330,6 +330,6 @@ def ranking_read_data(json_path):
 
 def ranking_save_data(json_path, data):
     # 自旋锁读写, 防止多线程读写问题
-    with g_extra.GLOBAL_EXTRA.file_lock:
+    with EXTRA.FILE_LOCK:
         with open(file=json_path, mode='w', encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=4)

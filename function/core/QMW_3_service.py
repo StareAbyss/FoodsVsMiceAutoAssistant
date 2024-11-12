@@ -25,7 +25,7 @@ from function.core.QMW_TipStageID import QMWTipStageID
 from function.core.QMW_TipWarmGift import QMWTipWarmGift
 from function.core.Todo import ThreadTodo
 from function.core.performance_analysis import run_analysis_in_thread
-from function.globals import g_extra, SIGNAL
+from function.globals import EXTRA, SIGNAL
 from function.globals import g_resources
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
@@ -188,7 +188,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         guild_manager_file = f"{PATHS['logs']}\\guild_manager\\guild_manager_data.json"
         # 额外窗口，公会管理器
         if os.path.exists(guild_manager_file):
-            with g_extra.GLOBAL_EXTRA.file_lock:
+            with EXTRA.FILE_LOCK:
                 with open(file=guild_manager_file, mode='r', encoding='utf-8') as file:
                     self.guild_manager_data = json.load(file)
 

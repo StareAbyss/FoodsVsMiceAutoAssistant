@@ -4,7 +4,7 @@ import sys
 from PyQt6 import uic, QtGui, QtCore, QtWidgets
 
 from function.common.get_system_dpi import get_system_dpi
-from function.globals import g_extra
+from function.globals import EXTRA
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 # noinspection PyUnresolvedReferences
@@ -69,7 +69,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         self.setWindowTitle("FAA - 本软件免费且开源")
 
         # 设置显示版本号
-        self.Title_Version.setText(g_extra.GLOBAL_EXTRA.version)
+        self.Title_Version.setText(EXTRA.VERSION)
 
         # 获取 dpi & zoom 仅能在类中调用
         self.zoom_rate = get_system_dpi() / 96

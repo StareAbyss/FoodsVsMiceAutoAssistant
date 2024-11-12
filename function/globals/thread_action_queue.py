@@ -8,7 +8,7 @@ import win32con
 import win32gui
 from PyQt6.QtCore import QThread
 
-from function.globals import g_extra
+from function.globals import EXTRA
 from function.globals.log import CUS_LOGGER
 
 
@@ -23,7 +23,7 @@ class ThreadActionQueueTimer(QThread):
         self.action_timer = None
         self.zoom_rate = None
         self.action_queue = queue.Queue()
-        self.interval_time = 1 / g_extra.GLOBAL_EXTRA.click_per_second  # 处理点击间隔, 单位: 秒
+        self.interval_time = 1 / EXTRA.CLICK_PER_SECOND  # 处理点击间隔, 单位: 秒
         # 计数每次统计间隔期间, 分别增减了多少次点击, 以查看消费者是否跟得上生产者
         self.count_addition = 0
         self.count_subtraction = 0

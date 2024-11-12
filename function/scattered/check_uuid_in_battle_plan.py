@@ -2,7 +2,7 @@ import json
 import time
 import uuid
 
-from function.globals import g_extra
+from function.globals import EXTRA
 from function.globals.get_paths import PATHS
 from function.scattered.get_list_battle_plan import get_list_battle_plan
 
@@ -22,7 +22,7 @@ def fresh_and_check_battle_plan_uuid():
         file_name = PATHS["battle_plan"] + "\\" + battle_plan
 
         # 自旋锁读写, 防止多线程读写问题
-        with g_extra.GLOBAL_EXTRA.file_lock:
+        with EXTRA.FILE_LOCK:
 
             with open(file=file_name, mode='r', encoding='utf-8') as file:
                 json_data = json.load(file)
@@ -37,12 +37,10 @@ def fresh_and_check_battle_plan_uuid():
                 time.sleep(0.001)  # 确保uuid唯一性
 
         battle_plan_uuid_to_path[uuid_v1] = file_name
-        battle_plan_uuid_list.append(uuid_v1)
 
-    g_extra.GLOBAL_EXTRA.battle_plan_uuid_list = battle_plan_uuid_list
-    g_extra.GLOBAL_EXTRA.battle_plan_uuid_to_path = battle_plan_uuid_to_path
+    EXTRA.BATTLE_PLAN_UUID_TO_PATH = battle_plan_uuid_to_path
 
 
 if __name__ == '__main__':
     fresh_and_check_battle_plan_uuid()
-    print(g_extra.GLOBAL_EXTRA.battle_plan_uuid_list)
+    print(EXTRA.BATTLE_PLAN_UUID_TO_PATH)

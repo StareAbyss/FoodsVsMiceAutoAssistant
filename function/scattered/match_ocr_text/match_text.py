@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from function.common.same_size_match import match_block_equal_in_images
-from function.globals import g_resources, g_extra
+from function.globals import g_resources, EXTRA
 from function.globals.get_paths import PATHS
 
 
@@ -66,7 +66,7 @@ def split_into_characters(line, mode="美食大赛"):
 
         if not chinese_match:
 
-            with g_extra.GLOBAL_EXTRA.file_lock:
+            with EXTRA.FILE_LOCK:
 
                 # 刷新资源
                 g_resources.fresh_resource_log_img()

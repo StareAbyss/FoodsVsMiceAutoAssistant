@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import (
     QLineEdit, QHBoxLayout, QTextEdit, QListWidget, QMessageBox, QSpinBox, QListWidgetItem, QFrame, QAbstractItemView,
     QSpacerItem, QSizePolicy)
 
-from function.globals import g_extra
+from function.globals import EXTRA
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 from function.widget.MultiLevelMenu import MultiLevelMenu
@@ -632,7 +632,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         else:
             # 覆盖现有文件的情况
-            with g_extra.GLOBAL_EXTRA.file_lock:
+            with EXTRA.FILE_LOCK:
                 with open(file=new_file_path, mode='r', encoding='utf-8') as file:
                     tar_uuid = json.load(file).get('uuid', None)
 
@@ -654,7 +654,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         new_file_path = os.path.splitext(new_file_path)[0] + '.json'
 
         # 保存
-        with g_extra.GLOBAL_EXTRA.file_lock:
+        with EXTRA.FILE_LOCK:
             with open(file=new_file_path, mode='w', encoding='utf-8') as file:
                 json.dump(self.json_data, file, ensure_ascii=False, indent=4)
 
@@ -680,7 +680,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
     def load_json(self, file_path):
         """读取对应的json文件"""
 
-        with g_extra.GLOBAL_EXTRA.file_lock:
+        with EXTRA.FILE_LOCK:
             with open(file=file_path, mode='r', encoding='utf-8') as file:
                 self.json_data = json.load(file)
 
