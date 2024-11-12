@@ -4,7 +4,7 @@ import os
 import cv2
 import numpy as np
 
-from function.globals import g_extra
+from function.globals import EXTRA
 from function.globals.get_paths import PATHS
 
 
@@ -160,8 +160,8 @@ def fresh_resource_b():
     # 清空
     global RESOURCE_B
     RESOURCE_B = {}
-    for b_uuid, b_path in g_extra.GLOBAL_EXTRA.battle_plan_uuid_to_path.items():
-        with g_extra.GLOBAL_EXTRA.file_lock:
+    for b_uuid, b_path in EXTRA.BATTLE_PLAN_UUID_TO_PATH.items():
+        with EXTRA.FILE_LOCK:
             with open(file=b_path, mode='r', encoding='utf-8') as file:
                 json_data = json.load(file)
         RESOURCE_B[b_uuid] = json_data

@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png
-from function.globals import g_extra
+from function.globals import EXTRA
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
@@ -112,7 +112,7 @@ class Card:
         self.click_sleep = self.faa_battle.click_sleep
 
         # 游戏最低帧间隔
-        self.frame_interval = 1 / g_extra.GLOBAL_EXTRA.lowest_fps
+        self.frame_interval = 1 / EXTRA.LOWEST_FPS
 
         # 状态
         self.status_cd = False  # 冷却完成 默认已完成
@@ -228,7 +228,7 @@ class Card:
                 if np.array_equal(state_image, current_img):
                     self.state_images["冷却"] = state_images_group["冷却.png"]
                     self.state_images["可用"] = state_images_group["可用.png"]
-                    if g_extra.GLOBAL_EXTRA.extra_log_battle:
+                    if EXTRA.EXTRA_LOG_BATTLE:
                         CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}] 成功从已保存状态获取")
                     return 1
 
@@ -249,7 +249,7 @@ class Card:
             current_img_clicked = self.get_card_current_img()
             if np.array_equal(current_img, current_img_clicked):
                 # 如果什么都没有改变, 意味着该颜色是 不可用 无法试色
-                if g_extra.GLOBAL_EXTRA.extra_log_battle:
+                if EXTRA.EXTRA_LOG_BATTLE:
                     CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}] 点击前后颜色相同, 试色失败")
                 return 0
 
@@ -267,17 +267,17 @@ class Card:
         current_img_after_put = self.get_card_current_img()
 
         if np.array_equal(current_img_after_put, current_img_clicked):
-            if g_extra.GLOBAL_EXTRA.extra_log_battle:
+            if EXTRA.EXTRA_LOG_BATTLE:
                 CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}]  获取到的cd色和其他状态冲突, 试色失败")
             return 2
 
         if np.array_equal(current_img_after_put, current_img):
-            if g_extra.GLOBAL_EXTRA.extra_log_battle:
+            if EXTRA.EXTRA_LOG_BATTLE:
                 CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}] 获取到的cd色和其他状态冲突, 试色失败")
             return 2
 
         self.state_images["冷却"] = current_img_after_put
-        if g_extra.GLOBAL_EXTRA.extra_log_battle:
+        if EXTRA.EXTRA_LOG_BATTLE:
             CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}] 试色成功")
         return 2
 
@@ -299,16 +299,16 @@ class Card:
         if self.is_smoothie:
             if not self.faa_battle.fire_elemental_1000:
                 return
-            if g_extra.GLOBAL_EXTRA.smoothie_lock_time > 0:
+            if EXTRA.SMOOTHIE_LOCK_TIME > 0:
                 return
-            g_extra.GLOBAL_EXTRA.smoothie_lock_time = 7
+            EXTRA.SMOOTHIE_LOCK_TIME = 7
 
         # 线程放瓜皮时不巧撞上了正在计算炸弹类或者计算完成后炸弹需要该瓜皮
         if not self.can_use:
             return
 
         # 输出
-        # if g_extra.GLOBAL_EXTRA.extra_log_battle and self.faa.player == 1:
+        # if EXTRA.EXTRA_LOG_BATTLE and self.faa.player == 1:
         #     CUS_LOGGER.debug(f"[战斗执行器] [{self.player}P] 使用卡片：{self.name}")
 
         # 战斗放卡锁，用于防止与特殊放卡放置冲突，点击队列不连贯
@@ -379,7 +379,7 @@ class Card:
         if (self.state_images["不可用"] is not None) and (self.state_images["冷却"] is not None):
 
             # 使用读写全局锁 避免冲突
-            with g_extra.GLOBAL_EXTRA.file_lock:
+            with EXTRA.FILE_LOCK:
 
                 for _, new_state_image in self.state_images.items():
 

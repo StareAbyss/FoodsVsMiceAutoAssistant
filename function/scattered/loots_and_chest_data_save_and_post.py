@@ -5,7 +5,7 @@ import time
 import requests
 from requests import RequestException
 
-from function.globals import g_extra
+from function.globals import EXTRA
 from function.globals.get_paths import PATHS
 
 
@@ -33,7 +33,7 @@ def loots_and_chests_statistics_to_json(faa, loots_dict, chests_dict) -> None:
 
     if os.path.exists(file_path):
         # 尝试读取现有的JSON文件 自旋锁读写, 防止多线程读写问题
-        with g_extra.GLOBAL_EXTRA.file_lock:
+        with EXTRA.FILE_LOCK:
             with open(file=file_path, mode="r", encoding="utf-8") as json_file:
                 json_data = json.load(json_file)
     else:
@@ -55,7 +55,7 @@ def loots_and_chests_statistics_to_json(faa, loots_dict, chests_dict) -> None:
     json_data_count += 1  # 更新次数
 
     # 保存或更新后的战利品字典到JSON文件  自旋锁读写, 防止多线程读写问题
-    with g_extra.GLOBAL_EXTRA.file_lock:
+    with EXTRA.FILE_LOCK:
         with open(file=file_path, mode="w", encoding="utf-8") as json_file:
             json.dump(json_data, json_file, ensure_ascii=False, indent=4)
 
@@ -76,7 +76,7 @@ def loots_and_chests_detail_to_json(faa, loots_dict, chests_dict) -> dict:
     file_path = "{}\\result_json\\{}P掉落明细.json".format(PATHS["logs"], player)
     stage_name = stage_info["id"]
     new_data = {
-        "version": g_extra.GLOBAL_EXTRA.version,  # 版本号
+        "version": EXTRA.VERSION,  # 版本号
         "timestamp": time.time(),  # 时间戳
         "stage": stage_name,  # 关卡代号
         "is_used_key": faa_battle.is_used_key,
@@ -85,7 +85,7 @@ def loots_and_chests_detail_to_json(faa, loots_dict, chests_dict) -> dict:
     }
 
     if os.path.exists(file_path):
-        with g_extra.GLOBAL_EXTRA.file_lock:
+        with EXTRA.FILE_LOCK:
             with open(file=file_path, mode="r", encoding="utf-8") as json_file:
                 json_data = json.load(json_file)
 
@@ -100,7 +100,7 @@ def loots_and_chests_detail_to_json(faa, loots_dict, chests_dict) -> dict:
     json_data["data"].append(new_data)
 
     # 保存或更新后的战利品字典到JSON文件 自旋锁读写, 防止多线程读写问题
-    with g_extra.GLOBAL_EXTRA.file_lock:
+    with EXTRA.FILE_LOCK:
         with open(file=file_path, mode="w", encoding="utf-8") as json_file:
             json.dump(json_data, json_file, ensure_ascii=False, indent=4)
 

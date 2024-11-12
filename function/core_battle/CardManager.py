@@ -8,7 +8,7 @@ from function.common.bg_img_screenshot import capture_image_png
 from function.core_battle.Card import Card, CardKun, SpecialCard
 from function.core_battle.CardQueue import CardQueue
 from function.core_battle.special_card_strategy import solve_special_card_problem
-from function.globals import g_extra
+from function.globals import EXTRA
 from function.globals.get_paths import PATHS
 from function.globals.location_card_cell_in_battle import COORDINATE_CARD_CELL_IN_BATTLE
 from function.globals.log import CUS_LOGGER
@@ -119,7 +119,7 @@ class CardManager:
         self.init_all_thread()
 
         # 刷新全局冰沙锁
-        g_extra.GLOBAL_EXTRA.smoothie_lock_time = 0
+        EXTRA.SMOOTHIE_LOCK_TIME = 0
 
         self.is_initialized = True  # 初始化完了
 
@@ -434,7 +434,7 @@ class ThreadCheckTimer(QThread):
             self.check_for_kun(game_image=game_image)
 
         # 调试打印 - 目前 <战斗管理器> 的状态
-        if g_extra.GLOBAL_EXTRA.extra_log_battle:
+        if EXTRA.EXTRA_LOG_BATTLE:
             if self.faa.player == 1:
                 text = f"[战斗执行器] [{self.faa.player}P] "
                 for card in self.card_queue.card_list:
@@ -456,8 +456,8 @@ class ThreadCheckTimer(QThread):
                 CUS_LOGGER.debug(text)
 
         # 刷新全局冰沙锁的状态
-        if g_extra.GLOBAL_EXTRA.smoothie_lock_time > 0:
-            g_extra.GLOBAL_EXTRA.smoothie_lock_time -= self.check_interval
+        if EXTRA.SMOOTHIE_LOCK_TIME > 0:
+            EXTRA.SMOOTHIE_LOCK_TIME -= self.check_interval
 
     def check(self):
         """

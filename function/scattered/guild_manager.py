@@ -9,7 +9,7 @@ import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png
 from function.common.same_size_match import match_block_equal_in_images
-from function.globals import g_resources, g_extra
+from function.globals import g_resources, EXTRA
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
@@ -145,7 +145,7 @@ class GuildManager:
     def load_json(self):
         """加载数据"""
         try:
-            with g_extra.GLOBAL_EXTRA.file_lock:
+            with EXTRA.FILE_LOCK:
                 with open(file=self.data_file, mode='r', encoding='utf-8') as file:
                     self.members_data = json.load(file)
         except FileNotFoundError:
@@ -157,7 +157,7 @@ class GuildManager:
 
     def save_json(self):
         """保存数据到json文件"""
-        with g_extra.GLOBAL_EXTRA.file_lock:
+        with EXTRA.FILE_LOCK:
             with open(file=self.data_file, mode='w', encoding='utf-8') as file:
                 json.dump(self.members_data, file, ensure_ascii=False, indent=4)
 

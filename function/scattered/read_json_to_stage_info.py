@@ -1,6 +1,6 @@
 import json
 
-from function.globals import g_extra
+from function.globals import EXTRA
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 
@@ -13,7 +13,7 @@ def read_json_to_stage_info(stage_id, stage_id_for_battle=None):
     :return: {"id": str, }
     """
     configs = []
-    with g_extra.GLOBAL_EXTRA.file_lock:
+    with EXTRA.FILE_LOCK:
 
         with open(file=PATHS["config"] + "//stage_info_extra.json", mode="r", encoding="UTF-8") as file:
             stages_info_extra = json.load(file)

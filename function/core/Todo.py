@@ -15,7 +15,7 @@ from function.common.thread_with_exception import ThreadWithException
 from function.core.FAA_extra_readimage import read_and_get_return_information, kill_process
 from function.core.analyzer_of_loot_logs import update_dag_graph, find_longest_path_from_dag
 from function.core_battle.CardManager import CardManager
-from function.globals import g_extra, SIGNAL
+from function.globals import EXTRA, SIGNAL
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
@@ -64,7 +64,7 @@ class ThreadTodo(QThread):
 
         # 读取 米苏物流 url 到全局变量
         if self.faa_dict[1].player == 1:
-            g_extra.GLOBAL_EXTRA.misu_logistics = self.opt["advanced_settings"]["misu_logistics_link"]
+            EXTRA.MISU_LOGISTICS = self.opt["advanced_settings"]["misu_logistics_link"]
 
     def stop(self):
 
@@ -362,7 +362,7 @@ class ThreadTodo(QThread):
         """日氪"""
         player_active = [pid for pid in player if self.opt["advanced_settings"].get(f"top_up_money_{pid}p")]
         if player_active:
-            if g_extra.GLOBAL_EXTRA.ethical_mode:
+            if EXTRA.ETHICAL_MODE:
                 SIGNAL.PRINT_TO_UI.emit(
                     f'经FAA伦理核心审查, 日氪模块违反"能量限流"协议, 已被临时性抑制以符合最高伦理标准.', color_level=2)
             else:
@@ -990,7 +990,7 @@ class ThreadTodo(QThread):
                 # 发送到服务器
                 upload_result = loots_and_chests_data_post_to_sever(
                     detail_data=detail_data,
-                    url=g_extra.GLOBAL_EXTRA.misu_logistics)
+                    url=EXTRA.MISU_LOGISTICS)
                 if upload_result:
                     CUS_LOGGER.info(f"{title} [发送服务器] 成功发送一条数据到米苏物流!")
                 else:
@@ -1620,7 +1620,7 @@ class ThreadTodo(QThread):
                 task_sequence_list[task_sequence_index]
             )
 
-            with g_extra.GLOBAL_EXTRA.file_lock:
+            with EXTRA.FILE_LOCK:
                 with open(file=task_sequence_path, mode="r", encoding="UTF-8") as file:
                     data = json.load(file)
 
