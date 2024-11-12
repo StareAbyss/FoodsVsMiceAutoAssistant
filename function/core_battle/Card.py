@@ -77,8 +77,8 @@ class Card:
         self.faa_battle = self.faa.faa_battle
         self.player = self.faa.player
 
-        """从 FAA类 的 battle_plan_parsed 中读取的属性"""
-        plan = self.faa.battle_plan_parsed["card"]
+        """从 FAA类 的 battle_plan_card 中读取的属性"""
+        plan = self.faa.battle_plan_card
         plan_by_priority = plan[set_priority] if 0 <= set_priority < len(plan) else {}  # 处理默认值, 方便坤卡继承
 
         # 根据优先级（也是在战斗方案中的index）直接读取faa
@@ -459,14 +459,14 @@ class SpecialCard(Card):
         # 卡片自身的location 是空的 保存到模板
         # 卡片放置的位置 - 代号 list["1-1",...]
         self.location = []
-        self.location_template = self.faa.battle_plan_parsed["card"][self.set_priority]["location"]
+        self.location_template = self.faa.battle_plan_card[self.set_priority]["location"]
 
         # 卡片放置的位置 - 坐标 list[[x,y],....]
         self.coordinate_to = []
-        self.coordinate_to_template = self.faa.battle_plan_parsed["card"][self.set_priority]["coordinate_to"]
+        self.coordinate_to_template = self.faa.battle_plan_card[self.set_priority]["coordinate_to"]
 
         # 卡片拿取的位置 - 坐标 list[x,y]
-        self.coordinate_from = self.faa.battle_plan_parsed["card"][self.set_priority]["coordinate_from"]
+        self.coordinate_from = self.faa.battle_plan_card[self.set_priority]["coordinate_from"]
 
     def try_get_img_for_check_card_states_choice_card(self):
         """预留接口, 让高级放卡可以仅覆写这一小部分"""
@@ -481,7 +481,7 @@ class SpecialCard(Card):
     def use_mat_card(self):
 
         # 加一个垫子的判断 点位要放承载卡
-        if self.location[0] in self.faa.battle_plan_parsed["mat"]:
+        if self.location[0] in self.faa.stage_info["mat_cell"]:
 
             for mat in self.faa.mat_cards_info:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(

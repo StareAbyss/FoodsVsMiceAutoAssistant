@@ -19,9 +19,13 @@ class Battle:
         self.faa = faa
 
         # 战斗专用私有属性 - 每次战斗刷新
+        self.is_used_key = False  # 仅由外部信号更改, 用于标识战斗是否使用了钥匙
         self.fire_elemental_1000 = None
         self.smoothie_usable = None
-        self.is_used_key = False  # 仅由外部信号更改, 用于标识战斗是否使用了钥匙
+
+        self.player_locations = None  # 战斗开始放人物的位置 - 代号list
+        self.shovel_locations = None  # 放铲子的位置 - 代号list
+        self.shovel_coordinates = None  # 放铲子的位置 - 坐标list
 
         # 战斗专用私有属性 - 静态
         self.click_sleep = 1 / EXTRA.CLICK_PER_SECOND * 2  # 每次点击时 按下和抬起之间的间隔 秒
@@ -42,6 +46,20 @@ class Battle:
         for i in self.auto_collect_cells:
             self.auto_collect_cells_coordinate.append(self.faa.bp_cell[i])
 
+    """ 战斗方案和关卡方案的处理"""
+
+    def init_battle_plan_shovel(self, locations):
+
+        self.shovel_locations = copy.deepcopy(locations)
+
+        bp_cell = copy.deepcopy(self.faa.bp_cell)
+        list_shovel = copy.deepcopy(self.shovel_locations)
+        list_shovel = [bp_cell[location] for location in list_shovel]
+        self.shovel_coordinates = copy.deepcopy(list_shovel)
+
+    def init_battle_plan_player(self, locations):
+        self.player_locations = copy.deepcopy(locations)
+
     """ 战斗内的子函数 """
 
     def re_init(self):
@@ -50,34 +68,36 @@ class Battle:
         self.fire_elemental_1000 = False
         self.smoothie_usable = self.faa.player == 1
 
-    def use_player_once(self, num_cell):
+    def use_player_all(self):
+
+        self.faa.print_info(text="[战斗] 开始放置玩家:{}".format(self.player_locations))
+
+        for location in self.player_locations:
+            self.use_player(location=location)
+
+    def use_player(self, location):
         T_ACTION_QUEUE_TIMER.add_click_to_queue(
             handle=self.faa.handle,
-            x=self.faa.bp_cell[num_cell][0],
-            y=self.faa.bp_cell[num_cell][1])
+            x=self.faa.bp_cell[location][0],
+            y=self.faa.bp_cell[location][1])
+        time.sleep(self.click_sleep)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(
+            handle=self.faa.handle,
+            x=self.faa.bp_cell[location][0],
+            y=self.faa.bp_cell[location][1])
         time.sleep(self.click_sleep)
 
-    def use_player_all(self):
-        self.faa.print_info(text="[战斗] 开始放置玩家:{}".format(self.faa.battle_plan_0["player"]))
-        for i in self.faa.battle_plan_0["player"]:
-            self.use_player_once(i)
-            time.sleep(self.click_sleep)
-
-    def use_shovel_all(self, location=None):
+    def use_shovel_all(self, coordinates=None):
         """
-        根据战斗方案用铲子
+        用全部的铲子
         """
-        locations = self.faa.battle_plan_parsed["shovel"]
-        if locations is None:
-            locations = []
+        if coordinates is None:
+            coordinates = self.shovel_coordinates
 
-        if location is not None:
-            locations.append(location)
+        for coordinate in coordinates:
+            self.use_shovel(x=coordinate[0], y=coordinate[1])
 
-        for location in locations:
-            self.use_shovel(x=location[0], y=location[1])
-
-    def use_shovel(self,x,y):
+    def use_shovel(self, x, y):
         """
         :param x: 像素坐标
         :param y: 像素坐标
@@ -125,10 +145,14 @@ class Battle:
         return False
 
     def check_end(self):
+
+        img = capture_image_png(
+            handle=self.faa.handle,
+            root_handle=self.faa.handle_360,
+            raw_range=[0, 0, 950, 600])
+
         # 找到战利品字样(被黑色透明物遮挡,会看不到)
-        result_is_end = match_ps_in_w(
-            source_handle=self.faa.handle,
-            source_root_handle=self.faa.handle_360,
+        result = match_ps_in_w(
             template_opts=[
                 {
                     "source_range": [202, 419, 306, 461],
@@ -166,8 +190,12 @@ class Battle:
                     "match_tolerance": 0.999
                 },
             ],
-            return_mode="or")
-        return result_is_end
+            return_mode="or",
+            quick_mode=True,
+            source_img=img
+        )
+
+        return result
 
     def use_card_once(self, num_card: int, num_cell: str, click_space=True):
         """

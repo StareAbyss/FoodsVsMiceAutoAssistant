@@ -197,14 +197,13 @@ class CardManager:
 
             faa = self.faa_dict[pid]
 
-            cards_plan = faa.battle_plan_parsed["card"]
             self.card_list_dict[pid] = []
             self.special_card_list[pid] = []
 
             if self.solve_queue is None:
-                init_card_list_dict_normal(cards_plan=cards_plan, faa=faa, pid=pid)
+                init_card_list_dict_normal(cards_plan=faa.battle_plan_card, faa=faa, pid=pid)
             else:
-                init_card_list_dict_advanced(cards_plan=cards_plan, faa=faa, pid=pid)
+                init_card_list_dict_advanced(cards_plan=faa.battle_plan_card, faa=faa, pid=pid)
 
         for pid in self.pid_list:
             kun_cards = []
@@ -418,8 +417,8 @@ class ThreadCheckTimer(QThread):
         # 仅截图一次, 降低重复次数
         game_image = capture_image_png(
             handle=self.faa.handle,
+            root_handle=self.faa.handle_360,
             raw_range=[0, 0, 950, 600],
-            root_handle=self.faa.handle_360
         )
 
         # 先清空现有队列 再初始化队列
@@ -669,7 +668,7 @@ class ThreadUseSpecialCardTimer(QThread):
 
             result = solve_special_card_problem(
                 points_to_cover=need_boom_locations,
-                obstacles=self.faa_dict[1].battle_plan_parsed["obstacle"],
+                obstacles=self.faa_dict[1].stage_info["obstacle"],
                 card_list_can_use=self.card_list_can_use)
 
             if result is not None:
