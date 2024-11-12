@@ -414,8 +414,12 @@ class ThreadTodo(QThread):
         title_text = "浇水 施肥 摘果"
         self.model_start_print(text=title_text)
 
+        # 归零尝试次数
+        try_times = 0
+
         for pid in player:
-            self.faa_dict[pid].fed_and_watered()
+            # 继承上一轮尝试次数
+            try_times = self.faa_dict[pid].fed_and_watered(try_times=try_times)
 
         self.model_end_print(text=title_text)
 
