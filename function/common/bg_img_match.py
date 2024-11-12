@@ -220,6 +220,7 @@ def match_p_in_w(
 def match_ps_in_w(
         template_opts: list,
         return_mode: str,
+        quick_mode: bool = True,
         source_handle=None,
         source_root_handle=None,
         source_img=None,
@@ -228,6 +229,7 @@ def match_ps_in_w(
     一次截图中找复数的图片, 性能更高的写法. 最大3000x3000的图像
     :param template_opts: [{"template":str,"source_range": [x1:int,y1:int,x2:int,y2:int],"match_tolerance":float},...]
     :param return_mode: 模式 and 或者 or
+    :param quick_mode: 使用短路匹配.
     :param source_handle: 窗口句柄, 用以获取图像
     :param source_root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层, 默认不取则不检查
     :param source_img: 取代截图, 直接输入图片, 优先级更高. 至少RGB三个通道. 该参数和source_handle至少输入一个.
@@ -256,6 +258,13 @@ def match_ps_in_w(
         )
         result_list.append(result)
 
+        if quick_mode:
+            if return_mode == "or":
+                if result is not None:
+                    return True
+            if return_mode == "and":
+                if result is None:
+                    return None
 
     if return_mode == "and":
         return None if (None in result_list) else result_list
