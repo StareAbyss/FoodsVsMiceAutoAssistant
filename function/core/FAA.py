@@ -135,7 +135,14 @@ class FAA:
         return self.object_action_interface_jump.goto_map(map_id=map_id)
 
     def action_goto_stage(self, mt_first_time: bool = False):
-        return self.object_action_interface_jump.goto_stage(mt_first_time=mt_first_time)
+        try:
+            return self.object_action_interface_jump.goto_stage(mt_first_time=mt_first_time)
+        except Exception as e:
+            SIGNAL.PRINT_TO_UI.emit(text="跳转关卡失败，请检查关卡代号是否正确",color_level=1)
+            SIGNAL.DIALOG.emit("ERROR", "跳转关卡失败! 请检查关卡代号是否正确")
+            SIGNAL.END.emit()
+
+
 
     """"对flash游戏界面或自身参数的最基础 [检测]"""
 
