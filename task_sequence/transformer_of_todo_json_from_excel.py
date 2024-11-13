@@ -5,7 +5,7 @@ from pprint import pprint
 import numpy as np
 import pandas as pd
 
-from function.globals import g_extra
+from function.globals import EXTRA
 from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 
 
@@ -99,7 +99,7 @@ def transformer(import_file_path, export_file_path):
     pprint(data_list_2)
 
     # 将list 保存为 json 自旋锁读写, 防止多线程读写问题
-    with g_extra.GLOBAL_EXTRA.file_lock:
+    with EXTRA.FILE_LOCK:
         with open(file=export_file_path, mode="w", encoding='utf-8') as json_file:
             json_file.write(json.dumps(data_list_2, indent=4, ensure_ascii=False))
 

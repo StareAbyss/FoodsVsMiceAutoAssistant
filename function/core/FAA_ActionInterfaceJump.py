@@ -287,12 +287,15 @@ class FAAActionInterfaceJump:
             random.seed(random_seed)
             region_id = random.randint(region_list[0], region_list[1])
 
+            time.sleep(5.0)
+
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=803, y=84)
-            time.sleep(0.5)
+            time.sleep(1.0)
 
             my_list = [85, 110, 135, 160, 185, 210, 235, 260, 285, 310, 335]
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=779, y=my_list[region_id - 1])
-            time.sleep(3.0)
+
+            time.sleep(5.0)
 
         def main_no():
             # 进入对应地图
