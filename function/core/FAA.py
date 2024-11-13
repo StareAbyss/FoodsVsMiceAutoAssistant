@@ -1121,7 +1121,6 @@ class FAA:
                         match_failed_check=3,
                         after_sleep=1,
                         click=True)
-                    self.random_seed += 1
 
                     self.print_debug(text="[刷新游戏] 已完成")
                     time.sleep(0.5)
