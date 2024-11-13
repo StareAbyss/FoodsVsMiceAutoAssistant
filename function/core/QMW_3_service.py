@@ -446,7 +446,10 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.thread_todo_1.signal_start_todo_2_battle.connect(self.thread_todo_2.set_extra_opt_and_start)
         self.thread_todo_2.signal_todo_lock.connect(self.thread_todo_1.change_lock)
         self.thread_todo_1.signal_todo_lock.connect(self.thread_todo_2.change_lock)
+
+        # 启动线程
         self.thread_todo_1.start()
+
         self.is_start = False  # 完成完整启动
 
     def todo_end(self):
@@ -821,7 +824,10 @@ def faa_start_main():
     run_analysis_in_thread(window)
 
     # 运行主循环，必须调用此函数才可以开始事件处理
-    sys.exit(app.exec())
+    app.exec()
+
+    # 退出程序
+    sys.exit()
 
 
 if __name__ == "__main__":
