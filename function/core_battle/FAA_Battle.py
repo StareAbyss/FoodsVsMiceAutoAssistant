@@ -244,15 +244,16 @@ class Battle:
                 T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.faa.handle, x=coordinate[0], y=coordinate[1])
                 time.sleep(self.click_sleep)
 
-    def update_fire_elemental_1000(self):
-        image = capture_image_png(
-            handle=self.faa.handle,
-            raw_range=[161, 75, 164, 85],
-            root_handle=self.faa.handle_360
-        )
-        image = image[:, :, :3]
-        image = image.reshape(-1, image.shape[-1])  # 减少一个多余的维度
-        self.fire_elemental_1000 = np.any(image == [0, 0, 0])
+    def update_fire_elemental_1000(self, img=None):
+        if img is None:
+            img = capture_image_png(
+                handle=self.faa.handle,
+                raw_range=[0, 0, 950, 600],
+                root_handle=self.faa.handle_360
+            )
+        img = img[75:85, 161:164, :3]
+        img = img.reshape(-1, img.shape[-1])  # 减少一个多余的维度
+        self.fire_elemental_1000 = np.any(img == [0, 0, 0])
 
         # # 调试打印
         # if self.faa.player == 1:

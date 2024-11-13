@@ -67,7 +67,7 @@ def is_special_card(card_name):
 
 class CardManager:
 
-    def __init__(self, faa_1, faa_2, solve_queue,senior_interval, check_interval=1):
+    def __init__(self, faa_1, faa_2, solve_queue, senior_interval, check_interval=1):
         """
         :param faa_1: 1P
         :param faa_2: 2P
@@ -426,7 +426,7 @@ class ThreadCheckTimer(QThread):
         self.card_queue.init_card_queue(game_image=game_image)
 
         # 更新火苗
-        self.faa.faa_battle.update_fire_elemental_1000()
+        self.faa.faa_battle.update_fire_elemental_1000(img=game_image)
 
         # 根据情况判断是否加入执行坤函数的动作
         if self.kun_cards:
