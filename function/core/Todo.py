@@ -111,16 +111,6 @@ class ThreadTodo(QThread):
     def change_lock(self, my_bool):
         self.my_lock = my_bool
 
-    def set_is_used_key_true(self):
-        """
-        在作战时, 只要有任何一方 使用了钥匙, 都设置两个号在本场作战均是用了钥匙
-        在战斗结束进行通报汇总分类 各个faa都依赖自身的该参数, 因此需要对两者都做更改
-        此外, 双人双线程时, 有两个本线程的实例控制的均为同样的faa实例, 若一方用钥匙,另一方也会悲改为用, 但魔塔不会存在该问题, 故暂时不管.
-        """
-
-        self.faa_dict[1].faa_battle.is_used_key = True
-        self.faa_dict[2].faa_battle.is_used_key = True
-
     def remove_outdated_log_images(self):
         SIGNAL.PRINT_TO_UI.emit(f"正在清理过期的的log图片...")
 
@@ -180,10 +170,6 @@ class ThreadTodo(QThread):
             SIGNAL.PRINT_TO_UI.emit(f"清理完成... {deleted_files_count}个文件已清理.")
         else:
             SIGNAL.PRINT_TO_UI.emit(f"高级战斗日志清理已取消.")
-
-    def cus_quit(self):
-        CUS_LOGGER.debug("已激活ThreadTodo quit")
-        self.quit()
 
     """
     业务代码 - 战斗以外
@@ -834,37 +820,27 @@ class ThreadTodo(QThread):
                 queue_todo = None
                 self.process = None
 
-            # 实例化放卡管理器
+            # 初始化放卡管理器
             self.thread_card_manager = CardManager(
-                faa_1=self.faa_dict[player_a],
-                faa_2=self.faa_dict[player_b],
+                faa_a=self.faa_dict[player_a],
+                faa_b=self.faa_dict[player_b],
                 check_interval=self.battle_check_interval,
                 solve_queue=queue_todo,
                 senior_interval=self.opt["senior_settings"]["interval"]
             )
 
-            self.thread_card_manager.run()
-            self.msleep(1000)
-
-            # 绑定结束信号
-            self.thread_card_manager.thread_dict[1].stop_signal.connect(self.cus_quit)
-            self.thread_card_manager.thread_dict[1].stop_signal.connect(self.thread_card_manager.stop)
-
-            # 绑定使用钥匙信号
-            for i in [1, 2]:
-                if i in self.thread_card_manager.thread_dict.keys():
-                    self.thread_card_manager.thread_dict[i].used_key_signal.connect(self.set_is_used_key_true)
-
-            CUS_LOGGER.debug('启动Todo中的事件循环, 用以战斗')
+            self.thread_card_manager.signal_stop.connect(self.exit)
+            self.thread_card_manager.start()
             self.exec()
 
             # 此处的重新变为None是为了让中止todo实例时时该属性仍存在
-            CUS_LOGGER.debug('销毁thread_card_manager的调用')
             self.thread_card_manager = None
+
             if self.opt["senior_settings"]["auto_senior_settings"]:
-                CUS_LOGGER.debug('销毁识图进程')
                 kill_process(self.process)
                 self.process = None
+
+            CUS_LOGGER.debug('thread_card_manager 退出事件循环并完成销毁线程')
 
             result_spend_time = time.time() - battle_start_time
 

@@ -65,19 +65,22 @@ def is_special_card(card_name):
 # else:
 #     print(f"{card_name} 不是特殊卡，未找到匹配文件。")
 
-class CardManager:
+class CardManager(QThread):
+    signal_used_key = pyqtSignal()
+    signal_stop = pyqtSignal()
 
-    def __init__(self, faa_1, faa_2, solve_queue, senior_interval, check_interval=1):
+    def __init__(self, faa_a, faa_b, solve_queue, senior_interval, check_interval=1):
         """
-        :param faa_1: 1P
-        :param faa_2: 2P
+        :param faa_a: 主号 -> 1
+        :param faa_b: 副号 -> 2
         :param solve_queue: 高危目标待解决列表 如果为None 说明高级战斗未激活
         :param senior_interval: 高级战斗间隔时间
         :param check_interval:
         """
         super().__init__()
-        # 完成构造函数的所有初始化工作后，设置 is_initialized 为 True
-        self.is_initialized = False
+        # # 完成构造函数的所有初始化工作后，设置 is_initialized 为 True
+        # self.is_initialized = False
+
         self.card_list_dict = {}
         self.special_card_list = {}
         self.kun_cards_dict = {}
@@ -98,16 +101,38 @@ class CardManager:
         self.check_interval = check_interval
 
         self.faa_dict = {
-            1: faa_1,  # 代表的是 多人战斗中作为队长 或 单人战斗中作为目标的 角色
-            2: faa_2  # 代表 多人战斗中的队员 或 单人战斗中不激活的另一人
+            1: faa_a,  # 代表的是 多人战斗中作为队长 或 单人战斗中作为目标的 角色
+            2: faa_b  # 代表 多人战斗中的队员 或 单人战斗中不激活的另一人
         }
 
-        self.stop_mode = 0  # 停止模式，如果是直接调用的stop方法，会先设置这个标识，避免重复杀死线程
-        self.is_running = False
-
         # 直接从faa中获取
-        self.is_group = faa_1.is_group
+        self.is_group = copy.deepcopy(faa_a.is_group)
         self.pid_list = [1, 2] if self.is_group else [1]
+
+        # 刷新全局冰沙锁
+        EXTRA.SMOOTHIE_LOCK_TIME = 0
+
+        # 绑定
+        self.signal_change_card_plan.connect(self.change_card_plan)
+
+        # 绑定使用钥匙信号
+        self.signal_used_key.connect(self.set_is_used_key_true)
+
+        # 绑定结束信号
+        self.signal_stop.connect(self.stop)
+
+        self.signals = {
+            "used_key": self.signal_used_key,
+            "stop": self.signal_stop
+        }
+
+        # 先创建 card_list_dict
+        self.init_from_battle_plan()
+
+    def init_from_battle_plan(self):
+
+        # # 完成构造函数的所有初始化工作后，设置 is_initialized 为 True
+        # self.is_initialized = False
 
         # 先创建 card_list_dict
         self.init_card_list_dict()
@@ -118,14 +143,8 @@ class CardManager:
         # 实例化线程
         self.init_all_thread()
 
-        # 刷新全局冰沙锁
-        EXTRA.SMOOTHIE_LOCK_TIME = 0
-
-        self.is_initialized = True  # 初始化完了
-
-        # 对象分析 打包 务必 注释 掉 ！
-        # objgraph.show_most_common_types()
-        # objgraph.show_growth()
+        # # 初始化完了
+        # self.is_initialized = True
 
     def init_card_list_dict(self):
         def init_card_list_dict_normal(cards_plan, faa, pid):
@@ -247,6 +266,7 @@ class CardManager:
         # 实例化 检测线程 + 用卡线程+特殊用卡进程
         for pid in self.pid_list:
             self.thread_dict[pid] = ThreadCheckTimer(
+                signals=self.signals,
                 card_queue=self.card_queue_dict[pid],
                 kun_cards=self.kun_cards_dict.get(pid, None),
                 faa=self.faa_dict[pid],
@@ -278,54 +298,84 @@ class CardManager:
         # 开始线程
         for _, my_thread in self.thread_dict.items():
             my_thread.start()
-        CUS_LOGGER.debug("[战斗执行器] 所有线程已开始")
 
-    def run(self):
-        # 开始线程
-        while not self.is_initialized:
-            time.sleep(0.1)
+        CUS_LOGGER.debug("[战斗执行器] 检测/放卡 线程已开始.")
+
         self.start_all_thread()
 
-    def stop(self):
-        CUS_LOGGER.debug("[战斗执行器] CardManager stop方法已激活, 战斗放卡 全线程 将中止")
-        self.stop_mode = 1
+    def stop_sub_thread(self):
+
+        CUS_LOGGER.info("[战斗执行器] CardManager stop_use_card方法已激活, 战斗放卡 全线程 将中止")
 
         # 中止已经存在的子线程
         for k, my_thread in self.thread_dict.items():
             if my_thread is not None:
-                my_thread.stop()
-        self.thread_dict.clear()  # 清空线程字典
+                my_thread.stop()  # 调用它们注册的stop方法
+        self.thread_dict.clear()  # 清空字典键值对
 
         # 释放卡片列表中的卡片的内存
         for key, card_list in self.card_list_dict.items():
             for card in card_list:
                 card.destroy()  # 释放卡片内存
             card_list.clear()  # 清空卡片列表
-        self.card_list_dict.clear()  # 清空卡片列表字典
+        self.card_list_dict.clear()  # 清空字典键值对
+
         # 释放特殊卡内存
         for key, card_list in self.special_card_list.items():
             for card in card_list:
                 card.destroy()  # 释放卡片内存
             card_list.clear()  # 清空卡片列表
-        self.special_card_list.clear()  # 清空卡片列表字典
+        self.special_card_list.clear()  # 清空字典键值对
 
         # 释放坤坤卡的内存
         for key, card_list in self.kun_cards_dict.items():
             for card in card_list:
-                card.destroy()  # 释放卡片内存
+                card.destroy()  # 清空字典键值对
 
         # 释放卡片队列内存
         for key, card_queue in self.card_queue_dict.items():
             card_queue.queue.clear()  # 清空卡片队列
-
         self.card_queue_dict.clear()  # 清空卡片队列字典
+
+    def stop(self):
+
+        CUS_LOGGER.info("[战斗执行器] CardManager stop方法已激活, 将销毁")
+
+        self.stop_sub_thread()  # 停止子线程
         self.faa_dict.clear()  # 清空faa字典
-        self.is_group = None
-        CUS_LOGGER.debug("[战斗执行器] CardManager stop方法已完成, 战斗放卡 全线程 已停止")
+
+        self.exit()
+        self.wait()
+
+        CUS_LOGGER.debug("[战斗执行器] CardManager stop方法已完成, 已销毁")
 
         # 在战斗结束后 打印上一次战斗到这一次战斗之间, 累计的点击队列状态
         CUS_LOGGER.info(f"[战斗执行器] 在本场战斗中, 点击队列变化状态如下, 可判断是否出现点击队列积压的情况")
         T_ACTION_QUEUE_TIMER.print_queue_statue()
+
+    def set_is_used_key_true(self):
+        """
+        在作战时, 只要有任何一方 使用了钥匙, 都设置两个号在本场作战均是用了钥匙
+        在战斗结束进行通报汇总分类 各个faa都依赖自身的该参数, 因此需要对两者都做更改
+        此外, 双人双线程时, 有两个本线程的实例控制的均为同样的faa实例, 若一方用钥匙,另一方也会悲改为用, 但魔塔不会存在该问题, 故暂时不管.
+        """
+
+        CUS_LOGGER.debug("[战斗执行器] 成功接收到使用钥匙信号")
+
+        self.faa_dict[1].faa_battle.is_used_key = True
+        if self.is_group:
+            self.faa_dict[2].faa_battle.is_used_key = True
+
+    def run(self):
+
+        # while not self.is_initialized:
+        #     time.sleep(0.1)
+
+        # 开始线程
+        self.start_all_thread()
+
+        # 开启事件循环
+        self.exec()
 
 
 class ThreadCheckTimer(QThread):
@@ -333,15 +383,14 @@ class ThreadCheckTimer(QThread):
     定时线程, 每个角色一个该线程
     该线程将以较低频率, 重新扫描更新目前所有卡片的状态, 以确定使用方式.
     """
-    stop_signal = pyqtSignal()
-    used_key_signal = pyqtSignal()
 
-    def __init__(self, card_queue, faa, kun_cards, check_interval):
+    def __init__(self, signals, card_queue, faa, kun_cards, check_interval):
         super().__init__()
+        self.signals = signals
         self.card_queue = card_queue
         self.kun_cards = kun_cards
         self.faa = faa
-        self.stop_flag = False
+        self.running = False
         self.stopped = False
         self.timer = None
         self.checked_round = 0
@@ -349,21 +398,23 @@ class ThreadCheckTimer(QThread):
 
     def run(self):
         self.timer = Timer(self.check_interval, self.check)
+        self.running = True
         self.timer.start()
-        self.faa.print_debug('[战斗执行器] 启动下层事件循环')
-        while not self.stop_flag:
-            QThread.msleep(100)
-        self.timer.cancel()  # 停止定时器
+
+        self.faa.print_debug('[战斗执行器] ThreadCheckTimer 启动事件循环')
+        self.exec()
+
+        self.running = False
+        self.timer.cancel()
         self.timer = None
 
     def stop(self):
         self.faa.print_info(text="[战斗执行器] ThreadCheckTimer stop方法已激活, 将关闭战斗中检测线程")
         # 设置Flag
-        self.stop_flag = True
-        # 退出事件循环
-        self.quit()
+        self.running = False
+        self.exit()
         self.wait()
-        self.deleteLater()
+
         # 清除引用; 释放内存
         self.faa = None
         self.card_queue = None
@@ -467,17 +518,19 @@ class ThreadCheckTimer(QThread):
         self.checked_round += 1
 
         # 看看是不是结束了
-        self.stop_flag = self.faa.faa_battle.check_end()
-        if self.stop_flag:
+        self.running = not self.faa.faa_battle.check_end()
+        if not self.running:
             if not self.stopped:  # 正常结束，非主动杀死线程结束
                 self.faa.print_info(text='[战斗执行器] 检测到战斗结束标志, 即将关闭战斗中放卡的线程')
-                self.stop_signal.emit()
+                self.signals["stop"].emit()
                 self.stopped = True  # 防止stop后再次调用
             return
 
-        # 尝试使用钥匙 如成功 发送信号 修改faa.battle中的is_used_key为True 以标识用过了, 如果不需要使用或用过了, 会直接False
-        if self.faa.faa_battle.use_key():
-            self.used_key_signal.emit()
+        # 判定主号
+        if self.faa.is_main:
+            # 尝试使用钥匙 如成功 发送信号 修改faa.battle中的is_used_key为True 以标识用过了, 如果不需要使用或用过了, 会直接False
+            if self.faa.faa_battle.use_key():
+                self.signals["used_key"].emit()
 
         # 自动战斗部分的处理
         self.check_for_auto_battle()
@@ -488,7 +541,7 @@ class ThreadCheckTimer(QThread):
             self.faa.faa_battle.auto_pickup()
 
         # 回调
-        if not self.stop_flag:
+        if self.running:
             self.timer = Timer(self.check_interval, self.check)
             self.timer.start()
 
@@ -498,34 +551,38 @@ class ThreadUseCardTimer(QThread):
         super().__init__()
         self.card_queue = card_queue
         self.faa = faa
-        self.stop_flag = True
+        self.running = False
         self.timer = None
         self.interval_use_card = float(check_interval / 50)
 
     def run(self):
-        self.stop_flag = False
         self.timer = Timer(self.interval_use_card, self.use_card)
+        self.running = True
         self.timer.start()
-        self.faa.print_debug('[战斗执行器] 启动下层事件循环2')
-        while not self.stop_flag:
-            QThread.msleep(100)
+
+        self.faa.print_debug('[战斗执行器] ThreadUseCardTimer 启动事件循环')
+        self.exec()
+
+        self.running = False
         self.timer.cancel()
         self.timer = None
 
     def use_card(self):
         self.card_queue.use_top_card()
-        if not self.stop_flag:
+
+        # 回调
+        if self.running:
             self.timer = Timer(self.interval_use_card, self.use_card)
             self.timer.start()
 
     def stop(self):
-        self.faa.print_debug("[战斗执行器] ThreadUseCardTimer stop方法已激活")
-        # 设置Flag
-        self.stop_flag = True
-        # 退出线程的事件循环
-        self.quit()
+        self.faa.print_info("[战斗执行器] ThreadUseCardTimer stop方法已激活 中止事件循环")
+
+        # 设置Flag 退出事件循环
+        self.running = False
+        self.exit()
         self.wait()
-        self.deleteLater()
+
         # 清除引用; 释放内存
         self.faa = None
         self.card_queue = None
@@ -547,7 +604,7 @@ class ThreadUseSpecialCardTimer(QThread):
         super().__init__()
 
         self.faa_dict = faa_dict
-        self.stop_flag = True
+        self.running = False
         self.timer = None
         self.interval_use_special_card = check_interval
         self.read_queue = read_queue
@@ -567,14 +624,29 @@ class ThreadUseSpecialCardTimer(QThread):
         self.shield_used_dict_list = {1: [], 2: []}
 
     def run(self):
-        self.stop_flag = False
         self.timer = Timer(self.interval_use_special_card, self.check_special_card_timer)
+        self.running = True
         self.timer.start()
+
         self.faa_dict[1].print_debug('[战斗执行器] 启动特殊放卡线程')
-        while not self.stop_flag:
-            QThread.msleep(100)
+        self.exec()
+
+        self.running = False
         self.timer.cancel()
         self.timer = None
+
+    def stop(self):
+        self.faa_dict[1].print_info("[战斗执行器] ThreadUseSpecialCardTimer stop方法已激活")
+
+        # 设置Flag 退出事件循环
+        self.running = False
+        self.exit()
+        self.wait()
+
+        # 清除引用; 释放内存
+        self.faa_dict = None
+        self.special_card_list = None
+        self.read_queue = None
 
     def fresh_all_card_status(self):
         for pid in self.pid_list:
@@ -705,7 +777,7 @@ class ThreadUseSpecialCardTimer(QThread):
 
         self.check_special_card()
 
-        if not self.stop_flag:
+        if self.running:
             self.timer = Timer(self.interval_use_special_card, self.check_special_card_timer)
             self.timer.start()
 
@@ -738,16 +810,3 @@ class ThreadUseSpecialCardTimer(QThread):
 
             # 清空对应任务
             self.todo_dict[player] = []
-
-    def stop(self):
-        self.faa_dict[1].print_debug("[战斗执行器] ThreadUseSpecialCardTimer stop方法已激活")
-        # 设置Flag
-        self.stop_flag = True
-        # 退出线程的事件循环
-        self.quit()
-        self.wait()
-        self.deleteLater()
-        # 清除引用; 释放内存
-        self.faa_dict = None
-        self.special_card_list = None
-        self.read_queue = None

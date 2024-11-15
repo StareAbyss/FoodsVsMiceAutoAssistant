@@ -7,7 +7,7 @@ class CardQueue(queue.PriorityQueue):
     def __init__(self, card_list, handle, handle_360):
         # 定义优先级队列
         super().__init__()
-        self.card_list = card_list  # 包含除幻坤外的所有卡片
+        self.card_list = card_list  # 包含除复制外的所有卡片的实例
         self.card_using = False
         self.handle = handle
         self.handle_360 = handle_360
