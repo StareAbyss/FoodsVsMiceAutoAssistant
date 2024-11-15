@@ -67,7 +67,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.correct_settings_file()
 
         # 检测uuid是否存在于battle plan 没有则添加 并将其读入到内存资源中
-        fresh_and_check_battle_plan_uuid()
+        fresh_and_check_all_battle_plan()
 
         # 更新完毕后重新刷新对应资源
         g_resources.fresh_resource_cus_img()
@@ -173,7 +173,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             QMessageBox.information(
                 self,
                 "警告",
-                "你删除了被配置使用的战斗方案, 对应的战斗方案已恢复为默认方案!",
+                "您删除了被配置使用的战斗方案.\n对应的战斗方案已恢复为默认方案! 请点击保存配置!",
                 QMessageBox.StandardButton.Ok
             )
 
@@ -512,7 +512,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         task_sequence_list = get_task_sequence_list(with_extension=False)
 
         # 检测uuid是否存在于 可能新加入的 battle plan 没有则添加 并将其读入到内存资源中
-        fresh_and_check_battle_plan_uuid()
+        fresh_and_check_all_battle_plan()
         g_resources.fresh_resource_b()
 
         # 新的uuid list

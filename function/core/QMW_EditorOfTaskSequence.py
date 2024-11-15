@@ -343,7 +343,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
 
             # 刷新和创建战斗方案的 uuid list 以方便查找对应值
-            fresh_and_check_battle_plan_uuid()
+            fresh_and_check_all_battle_plan()
             battle_plan_name_list = get_list_battle_plan(with_extension=False)
             battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
 
