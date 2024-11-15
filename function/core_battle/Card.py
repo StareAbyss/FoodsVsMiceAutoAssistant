@@ -8,6 +8,7 @@ from function.common.bg_img_screenshot import capture_image_png
 from function.globals import EXTRA
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
+from function.globals.location_card_cell_in_battle import COORDINATE_CARD_CELL_IN_BATTLE
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
@@ -428,9 +429,23 @@ class CardKun(Card):
     def put_card(self):
         """
         坤卡没有使用卡片函数, 仅依附于其他卡片进行使用
+        但在罕见情况下 坤类卡片需要重新获取状态, 所以需要强行为其进行一场全屏遍历.
         :return:
         """
-        pass
+        for _, coordinate in COORDINATE_CARD_CELL_IN_BATTLE.items():
+            # 点击 放下卡片
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                handle=self.handle,
+                x=coordinate[0],
+                y=coordinate[1])
+            time.sleep(self.click_sleep)
+
+        # 放卡后点一下空白
+        T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=295, y=485)  # 曾 200, 350
+        time.sleep(self.click_sleep)
+
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=295, y=485)
+        time.sleep(self.click_sleep)
 
 
 class SpecialCard(Card):
