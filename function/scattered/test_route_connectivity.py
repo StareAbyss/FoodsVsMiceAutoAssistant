@@ -12,7 +12,7 @@ def test_route_connectivity(url=None, expected_checksum=None):
 
     try:
         # 发送 HEAD 请求
-        response = requests.head(url, timeout=5)
+        response = requests.head(url, timeout=1.5)
         response.raise_for_status()  # 抛出 HTTPError 异常，如果响应的状态码不是 200
 
         # 检查响应头中是否存在 X-Check-Sum 头部
