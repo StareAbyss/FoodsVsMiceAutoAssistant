@@ -431,6 +431,12 @@ class FAA:
         mat_card_info = copy.deepcopy(self.mat_cards_info)
         smoothie_info = copy.deepcopy(self.smoothie_info)
 
+        """当前波次选择"""
+        if self.faa_battle.wave != 0:
+            battle_plan = battle_plan["card"]["wave"][str(self.faa_battle.wave)]
+        else:
+            battle_plan = battle_plan["card"]["default"]
+
         def calculation_card_quest(list_cell_all):
             """计算步骤一 加入任务卡的摆放坐标"""
 
