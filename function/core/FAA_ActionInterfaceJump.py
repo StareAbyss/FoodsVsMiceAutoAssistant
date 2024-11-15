@@ -423,11 +423,11 @@ class FAAActionInterfaceJump:
             if is_main:
                 # 创建房间
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=853, y=553)
-                time.sleep(0.5)
+                time.sleep(1.0)
 
                 # 选择地图
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=int(stage_1) * 101 - 36, y=70)
-                time.sleep(1)
+                time.sleep(1.0)
 
                 # 选择关卡
                 my_dict = {
@@ -437,7 +437,7 @@ class FAAActionInterfaceJump:
                     handle=handle,
                     x=my_dict[stage_2][0],
                     y=my_dict[stage_2][1])
-                time.sleep(0.5)
+                time.sleep(1.0)
 
                 # 选择密码输入框
                 my_dict = {
@@ -447,11 +447,11 @@ class FAAActionInterfaceJump:
                     handle=handle,
                     x=my_dict[stage_2][0],
                     y=my_dict[stage_2][1])
-                time.sleep(0.5)
+                time.sleep(1.0)
 
                 # 输入密码
                 T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=handle, key="1")
-                time.sleep(0.5)
+                time.sleep(1.0)
 
                 # 创建关卡
                 my_dict = {  # X+225 Y+221
@@ -461,41 +461,40 @@ class FAAActionInterfaceJump:
                     handle=handle,
                     x=my_dict[stage_2][0],
                     y=my_dict[stage_2][1])
-                time.sleep(0.5)
+                time.sleep(1.0)
             else:
                 # 刷新
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=895, y=80)
-                time.sleep(3)
+                time.sleep(3.0)
 
                 # 复位
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=602, y=490)
-                time.sleep(0.2)
+                time.sleep(1.0)
 
                 for i in range(20):
                     find = loop_match_p_in_w(
                         source_handle=handle,
                         source_root_handle=handle_360,
-                        source_range=[0, 0, 950, 600],
+                        source_range=[385, 95, 935, 390],
                         template=g_resources.RESOURCE_CP["用户自截"]["跨服远征_1p.png"],
                         click=True,
                         after_sleep=1.0,
-                        match_failed_check=1.0)
+                        match_failed_check=2.0)
                     if find:
                         break
                     else:
                         # 下一页
                         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=700, y=490)
-                        time.sleep(0.2)
 
                 # 点击密码框 输入密码 确定进入
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=490, y=300)
-                time.sleep(0.5)
+                time.sleep(1.0)
 
                 T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=handle, key="1")
-                time.sleep(0.5)
+                time.sleep(1.0)
 
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=490, y=360)
-                time.sleep(0.5)
+                time.sleep(1.0)
 
         def main_or():
 
