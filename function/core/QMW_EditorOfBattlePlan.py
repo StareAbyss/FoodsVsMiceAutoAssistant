@@ -363,14 +363,12 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.input_widget_lock(True)
 
         if self.index == 0:
-            # 玩家 直接清空它们
-            # self.WCurrentCard.setText("玩家")
+            # 玩家
             self.WidgetIdInput.clear()
-            self.WidgetNameInput.clear()
             self.WidgetNameInput.setText("玩家")
             self.WidgetErgodicInput.setCurrentIndex(0)
             self.WidgetQueueInput.setCurrentIndex(0)
-            self.WidgetKunInput.setValue(0)
+            self.WidgetKunInput.clear()
             self.highlight_chessboard(self.json_data["player"])
             # 禁用部分输入控件
             self.input_widget_enabled(mode=False)
@@ -494,8 +492,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             }
         )
 
-        self.load_data_to_ui_list()
-        self.refresh_chessboard()
+        self.fresh_card_plan()
 
     def update_card(self):
         index = self.current_edit_index
@@ -518,8 +515,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
         card["queue"] = bool(self.WidgetQueueInput.currentText() == 'true')  # 转化bool
         card["kun"] = self.WidgetKunInput.value()
         # self.WCurrentCard.setText("索引-{} 名称-{}".format(self.index - 1, card["name"]))
-        self.load_data_to_ui_list()
-        self.refresh_chessboard()
+
+        self.fresh_card_plan()
 
     def delete_card(self):
         index = self.current_edit_index
@@ -614,6 +611,20 @@ class QMWEditorOfBattlePlan(QMainWindow):
         保存方法，拥有保存和另存为两种功能，还能创建uuid
         """
 
+        def clear_sub_plan():
+            """清理和默认方案完全相同的波次方案"""
+            # 收集需要移除的键
+            keys_to_remove = []
+            for wave, sub_plan in self.json_data["card"]["wave"].items():
+                if sub_plan == self.json_data["card"]["default"]:
+                    keys_to_remove.append(wave)
+
+            # 移除收集到的键
+            for wave in keys_to_remove:
+                self.json_data["card"]["wave"].pop(wave)
+
+        clear_sub_plan()
+
         is_save_as = self.sender() == self.ButtonSaveAs
 
         def warning_save_enable(uuid):
@@ -700,8 +711,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         if file_name:
             self.load_json(file_path=file_name)
-            # 为输入控件解锁 为保存当前解锁
-            self.input_widget_lock(True)
+
             self.ButtonSave.setEnabled(True)
 
     def load_json(self, file_path):
@@ -716,15 +726,28 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 初始化
         self.current_edit_index = None  # 初始化当前选中
         self.file_path = file_path  # 当前方案路径
+
         # 获取当前方案的名称
         current_plan_name = os.path.basename(file_path).replace(".json", "")
         self.current_plan_label.setText(
             f"当前编辑方案: {current_plan_name}, UUID:{self.json_data.get('uuid', '无')}")
-        # self.WCurrentCard.setText("无")
+
+        # 为输入控件锁定
+        self.input_widget_lock(True)
+
         self.WidgetIdInput.clear()
         self.WidgetNameInput.clear()
         self.WidgetErgodicInput.setCurrentIndex(0)
         self.WidgetQueueInput.setCurrentIndex(0)
+        self.WidgetKunInput.clear()
+
+        # 为输入控件信号解锁
+        self.input_widget_lock(False)
+
+        self.fresh_card_plan()
+
+        # 解锁部分输入控件
+        self.input_widget_enabled(mode=False)
 
     def fresh_card_plan(self):
 
@@ -766,8 +789,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             current_state = copy.deepcopy(self.json_data)
             self.redo_stack.append(current_state)
             self.json_data = self.undo_stack.pop()
-            self.load_data_to_ui_list()
-            self.refresh_chessboard()
+            self.fresh_card_plan()
 
     def redo(self):
         """重做"""
@@ -775,8 +797,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
             current_state = copy.deepcopy(self.json_data)
             self.undo_stack.append(current_state)
             self.json_data = self.redo_stack.pop()
-            self.load_data_to_ui_list()
-            self.refresh_chessboard()
+
+            self.fresh_card_plan()
 
     def set_my_font(self, my_font):
         """用于继承字体, 而不需要多次读取"""
