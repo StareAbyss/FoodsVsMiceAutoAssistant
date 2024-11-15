@@ -336,6 +336,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetTuo-192x.png"))
 
     def input_widget_lock(self, mode: bool):
+        """
+        是否锁定卡片属性输入控件
+        """
         self.WidgetIdInput.blockSignals(mode)
         self.WidgetNameInput.blockSignals(mode)
         self.WidgetErgodicInput.blockSignals(mode)
@@ -371,6 +374,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.highlight_chessboard(self.json_data["player"])
             # 禁用部分输入控件
             self.input_widget_enabled(mode=False)
+
         else:
             # 卡片
             index = self.index - 1  # 可能需要深拷贝？也许是被保护的特性 不需要

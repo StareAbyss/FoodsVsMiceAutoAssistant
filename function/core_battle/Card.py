@@ -171,7 +171,7 @@ class Card:
                 self.coordinate_to.append(self.coordinate_to[0])
                 self.coordinate_to.remove(self.coordinate_to[0])
 
-        # 放完卡后强制自ban 2s 这游戏似乎没有cd更短的卡片了!
+        # 放完卡后强制自ban 1s 这游戏似乎没有cd更短的卡片了!
         self.status_ban = 1
 
     def get_card_current_img(self, game_image=None):

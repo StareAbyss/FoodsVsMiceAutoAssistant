@@ -609,10 +609,10 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 if result_bool:
                     my_opt["misu_logistics_link"] = url
                     SIGNAL.PRINT_TO_UI.emit(
-                        text=f"FAA X 米苏物流 连通性测试 使用默认ulr 成功!", color_level=3)
+                        text=f"FAA X 米苏物流 连通性测试 使用默认url 成功!", color_level=3)
                 else:
                     SIGNAL.PRINT_TO_UI.emit(
-                        text=f"FAA X 米苏物流 连通性测试 使用默认ulr 失败!", color_level=1)
+                        text=f"FAA X 米苏物流 连通性测试 使用默认url 失败!", color_level=1)
                     SIGNAL.PRINT_TO_UI.emit(
                         text=f"内置url可能已过期, 推荐更新url, 以防请求等待超时, 降低战斗效率!!!", color_level=1)
 
