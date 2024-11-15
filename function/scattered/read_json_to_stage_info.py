@@ -21,11 +21,11 @@ def read_json_to_stage_info(stage_id, stage_id_for_battle=None):
 
         with open(file=PATHS["config"] + "//stage_info_online.json", mode="r", encoding="UTF-8") as file:
             stages_info_online = json.load(file)
-            configs.append(("stage_info_extra.json", stages_info_online))
+            configs.append(("stage_info_online.json", stages_info_online))
 
         with open(file=PATHS["config"] + "//stage_info.json", mode="r", encoding="UTF-8") as file:
             stages_info = json.load(file)
-            configs.append(("stage_info_extra.json", stages_info))
+            configs.append(("stage_info.json", stages_info))
 
     # 初始化
     if not stage_id_for_battle:

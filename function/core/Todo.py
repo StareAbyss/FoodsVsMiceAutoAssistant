@@ -1520,7 +1520,7 @@ class ThreadTodo(QThread):
             self.batch_level_2_action(title_text=title_text, dark_crystal=False)
 
         SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 检查领取奖励中...")
-        self.batch_receive_all_quest_rewards(player=[1,2],quests=quests)
+        self.batch_receive_all_quest_rewards(player=[1, 2], quests=quests)
 
         self.model_end_print(text=title_text)
 
@@ -2046,7 +2046,7 @@ class ThreadTodo(QThread):
 
         """主要事项"""
 
-        SIGNAL.PRINT_TO_UI.emit(text="",time=False)
+        SIGNAL.PRINT_TO_UI.emit(text="", time=False)
         SIGNAL.PRINT_TO_UI.emit(text="[主要事项] 开始!", color_level=1)
 
         need_reload = False
@@ -2262,7 +2262,7 @@ class ThreadTodo(QThread):
 
         if extra_active:
             SIGNAL.PRINT_TO_UI.emit(text="", time=False)
-            SIGNAL.PRINT_TO_UI.emit(text=f"[额外事项] 开始!",color_level=1)
+            SIGNAL.PRINT_TO_UI.emit(text=f"[额外事项] 开始!", color_level=1)
             self.batch_reload_game()
             start_time = datetime.datetime.now()
 
@@ -2308,7 +2308,7 @@ class ThreadTodo(QThread):
 
         if active_singleton:
             SIGNAL.PRINT_TO_UI.emit(text="", time=False)
-            SIGNAL.PRINT_TO_UI.emit(text="[自建房战斗] 开始! 如出现错误, 务必确保该功能是单独启动的!",color_level=1)
+            SIGNAL.PRINT_TO_UI.emit(text="[自建房战斗] 开始! 如出现错误, 务必确保该功能是单独启动的!", color_level=1)
             start_time = datetime.datetime.now()
 
         my_opt = c_opt["customize_battle"]
