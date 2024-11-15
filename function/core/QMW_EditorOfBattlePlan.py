@@ -36,12 +36,19 @@ class QMWEditorOfBattlePlan(QMainWindow):
         with open(file=PATHS["config"] + "//stage_info.json", mode="r", encoding="UTF-8") as file:
             self.stage_info = json.load(file)
 
+        # 当前子方案, 例如 默认 波次变阵方案 两个参数确定
+        self.sub_plan_index = ("default", None)
+        self.sub_plan = []
+
         """内部数据表"""
         # 数据dict
         self.json_data = {
             "tips": "",
             "player": [],
-            "card": []
+            "card": {
+                "default": [],
+                "wave": {}
+            }
         }
 
         # 当前被选中正在编辑的项目的index
@@ -78,7 +85,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         self.WidgetWaveChoose = QComboBox()
         LayWave.addWidget(self.WidgetWaveChoose)
-        self.WidgetWaveChoose.addItems([str(i) for i in range(1, 26)])
+        self.WidgetWaveChoose.addItems([str(i) for i in range(0, 14)])
+        # 绑定信号 当其更改 则刷新
+        self.WidgetWaveChoose.currentTextChanged.connect(self.change_wave)
 
         label = QLabel("\u3000\u3000\u3000\u3000")
         LayWave.addWidget(label)
@@ -289,6 +298,20 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 禁用部分输入控件
         self.input_widget_enabled(mode=False)
 
+    def get_current_sub_plan_cards(self):
+
+        if self.sub_plan_index[0] == "default":
+            self.sub_plan = self.json_data["card"]["default"]
+
+        if self.sub_plan_index[0] == "wave":
+            wave_data = self.json_data["card"]["wave"]
+            plan = wave_data.get(self.sub_plan_index[1])
+            if plan is None:
+                # 如果缺失 深拷贝
+                wave_data[self.sub_plan_index[1]] = copy.deepcopy(self.json_data["card"]["default"])
+                plan = wave_data.get(self.sub_plan_index[1])
+            self.sub_plan = plan
+
     def highlight_chessboard(self, card_locations):
         """根据卡片的位置list，将对应元素的按钮进行高亮"""
         # 清除所有按钮的高亮
@@ -351,7 +374,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         else:
             # 卡片
             index = self.index - 1  # 可能需要深拷贝？也许是被保护的特性 不需要
-            card = self.json_data["card"][index]
+            card = self.sub_plan[index]
             # self.WCurrentCard.setText("索引-{} 名称-{}".format(index, card["name"]))
             self.WidgetIdInput.setValue((card['id']))
             self.WidgetNameInput.setText(card['name'])
@@ -374,7 +397,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         player_item = QListWidgetItem("玩家")
         self.WidgetCardList.addItem(player_item)
 
-        if not self.json_data["card"]:
+        if not self.sub_plan:
             return
 
         def calculate_width(text):
@@ -395,17 +418,17 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 根据中文和西文分别记录最高宽度
         name_max_width_c = 0
         name_max_width_e = 0
-        for card in self.json_data["card"]:
+        for card in self.sub_plan:
             width_c, width_e = calculate_width(card["name"])
             name_max_width_c = max(name_max_width_c, width_c)
             name_max_width_e = max(name_max_width_e, width_e)
 
         # 找到最长的id长度
         max_id_length = 1
-        if self.json_data["card"]:
-            max_id_length = max(len(str(card["id"])) for card in self.json_data["card"])
+        if self.sub_plan:
+            max_id_length = max(len(str(card["id"])) for card in self.sub_plan)
 
-        for card in self.json_data["card"]:
+        for card in self.sub_plan:
 
             # 根据中文和西文 分别根据距离相应的最大宽度的差值填充中西文空格
             width_c, width_e = calculate_width(card["name"])
@@ -430,7 +453,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
     def card_list_be_dropped(self, index_from, index_to):
         """在list的drop事件中调用, 用于更新内部数据表"""
-        cards = self.json_data["card"]
+        cards = self.sub_plan
         if index_to != 0:
             # 将当前状态压入栈中
             self.append_undo_stack()
@@ -446,7 +469,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
     def add_card(self):
 
-        ids_list = [card["id"] for card in self.json_data["card"]]
+        ids_list = [card["id"] for card in self.sub_plan]
         for i in range(1, 22):
             if i not in ids_list:
                 id_ = i
@@ -457,7 +480,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         name_ = "新的卡片"
 
-        self.json_data["card"].append(
+        self.sub_plan.append(
             {
                 "id": id_,
                 "name": name_,
@@ -484,7 +507,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.append_undo_stack()
 
         index -= 1
-        card = self.json_data["card"][index]
+        card = self.sub_plan[index]
         card["id"] = int(self.WidgetIdInput.value())
         card["name"] = self.WidgetNameInput.text()
         card["ergodic"] = bool(self.WidgetErgodicInput.currentText() == 'true')  # 转化bool
@@ -507,9 +530,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.append_undo_stack()
 
         index -= 1
-        del self.json_data["card"][index]
-        self.load_data_to_ui_list()
-        self.refresh_chessboard()
+        del self.sub_plan[index]
+
+        self.fresh_card_plan()
 
     def place_card(self, x, y):
         if self.current_edit_index is None:
@@ -529,7 +552,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.refresh_chessboard()
         else:
             # 当前index为卡片
-            target = self.json_data["card"][self.current_edit_index - 1]
+            target = self.sub_plan[self.current_edit_index - 1]
             # 如果这个位置已经有了这张卡片，那么移除它；否则添加它
             if location_key in target['location']:
                 target['location'].remove(location_key)
@@ -546,7 +569,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         if location in self.json_data["player"]:
             self.json_data["player"].remove(location)
         # 从卡片位置中删除
-        for card in self.json_data["card"]:
+        for card in self.sub_plan:
             if location in card["location"]:
                 card["location"].remove(location)
         # 更新界面显示
@@ -566,7 +589,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     text += '\n玩家 {}'.format(player_location_list.index(location_key) + 1)
 
                 cards_in_this_location = []
-                for card in self.json_data["card"]:
+                for card in self.sub_plan:
                     if location_key in card['location']:
                         cards_in_this_location.append(card)
 
@@ -699,17 +722,28 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.WidgetErgodicInput.setCurrentIndex(0)
         self.WidgetQueueInput.setCurrentIndex(0)
 
+    def fresh_card_plan(self):
+
+        # 加载子方案
+        self.get_current_sub_plan_cards()
+
         # 根据数据绘制视图
         self.load_data_to_ui_list()
         self.refresh_chessboard()
+
         # 清除所有按钮的高亮
         self.remove_frame_color()
 
-        # 为输入控件信号解锁
-        self.input_widget_lock(False)
+    def change_wave(self, wave: str):
 
-        # 解锁部分输入控件
-        self.input_widget_enabled(mode=False)
+        # 更新当前波次参数
+        if wave == "0":
+            self.sub_plan_index = ("default", None)
+        else:
+            self.sub_plan_index = ("wave", wave)
+
+        # 加载数据
+        self.fresh_card_plan()
 
     """撤回/重做"""
 
