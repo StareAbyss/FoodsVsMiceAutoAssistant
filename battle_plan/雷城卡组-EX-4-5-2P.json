@@ -3,144 +3,147 @@
         "4-1",
         "4-2"
     ],
-    "card": [
-        {
-            "id": 1,
-            "name": "小火炉",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "4-3",
-                "4-4",
-                "4-5",
-                "4-6",
-                "4-6",
-                "4-7",
-                "7-1",
-                "7-2",
-                "7-6",
-                "7-7"
-            ],
-            "kun": 0
-        },
-        {
-            "tips": "海星",
-            "id": 2,
-            "name": "炭烧海星",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "5-1",
-                "5-2",
-                "5-6",
-                "5-7"
-            ],
-            "kun": 0
-        },
-        {
-            "id": 3,
-            "name": "糖葫芦炮弹",
-            "ergodic": true,
-            "queue": true,
-            "location": [],
-            "kun": 0
-        },
-        {
-            "id": 4,
-            "name": "瓜皮护罩",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "7-1",
-                "7-2",
-                "4-3",
-                "4-4",
-                "4-5",
-                "7-6",
-                "7-7",
-                "6-1",
-                "6-2",
-                "3-3",
-                "3-4",
-                "3-5",
-                "6-6",
-                "6-7"
-            ],
-            "kun": 0
-        },
-        {
-            "id": 6,
-            "name": "驻场炸弹a",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "8-1",
-                "8-2",
-                "5-3",
-                "5-4",
-                "5-5",
-                "8-6",
-                "8-7"
-            ],
-            "kun": 0
-        },
-        {
-            "id": 7,
-            "name": "驻场炸弹b",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "8-1",
-                "8-2",
-                "5-3",
-                "5-4",
-                "5-5",
-                "8-6",
-                "8-7"
-            ],
-            "kun": 0
-        },
-        {
-            "id": 8,
-            "name": "驻场炸弹c",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "8-1",
-                "8-2",
-                "5-3",
-                "5-4",
-                "5-5",
-                "8-6",
-                "8-7"
-            ],
-            "kun": 0
-        },
-        {
-            "id": 9,
-            "name": "雷电长棍面包",
-            "ergodic": true,
-            "queue": false,
-            "location": []
-        },
-        {
-            "id": 10,
-            "name": "樱桃反弹布丁",
-            "ergodic": true,
-            "queue": false,
-            "location": []
-        },
-        {
-            "id": 5,
-            "name": "冰淇淋",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "8-1"
-            ],
-            "kun": 0
-        }
-    ],
+    "card": {
+        "default": [
+            {
+                "id": 1,
+                "name": "小火炉",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "4-3",
+                    "4-4",
+                    "4-5",
+                    "4-6",
+                    "4-6",
+                    "4-7",
+                    "7-1",
+                    "7-2",
+                    "7-6",
+                    "7-7"
+                ],
+                "kun": 0
+            },
+            {
+                "tips": "海星",
+                "id": 2,
+                "name": "炭烧海星",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "5-1",
+                    "5-2",
+                    "5-6",
+                    "5-7"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 3,
+                "name": "糖葫芦炮弹",
+                "ergodic": true,
+                "queue": true,
+                "location": [],
+                "kun": 0
+            },
+            {
+                "id": 4,
+                "name": "瓜皮护罩",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "7-1",
+                    "7-2",
+                    "4-3",
+                    "4-4",
+                    "4-5",
+                    "7-6",
+                    "7-7",
+                    "6-1",
+                    "6-2",
+                    "3-3",
+                    "3-4",
+                    "3-5",
+                    "6-6",
+                    "6-7"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 6,
+                "name": "驻场炸弹a",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "8-1",
+                    "8-2",
+                    "5-3",
+                    "5-4",
+                    "5-5",
+                    "8-6",
+                    "8-7"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 7,
+                "name": "驻场炸弹b",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "8-1",
+                    "8-2",
+                    "5-3",
+                    "5-4",
+                    "5-5",
+                    "8-6",
+                    "8-7"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 8,
+                "name": "驻场炸弹c",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "8-1",
+                    "8-2",
+                    "5-3",
+                    "5-4",
+                    "5-5",
+                    "8-6",
+                    "8-7"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 9,
+                "name": "雷电长棍面包",
+                "ergodic": true,
+                "queue": false,
+                "location": []
+            },
+            {
+                "id": 10,
+                "name": "樱桃反弹布丁",
+                "ergodic": true,
+                "queue": false,
+                "location": []
+            },
+            {
+                "id": 5,
+                "name": "冰淇淋",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "8-1"
+                ],
+                "kun": 0
+            }
+        ],
+        "wave": {}
+    },
     "uuid": "784f7f10-4175-11ef-a87b-f44efc5bf671",
     "tips": "深渊倾情出品 - 超低配海星折磨流音乐节日！稳定不翻车！\n驻场炸弹：包括但不限于 辣椒粉、肉松清明粿、爆炸汪、老鼠夹子-9星不转、面粉袋；\n冰淇淋如果已经二转, 可以替换为一转油灯.\n配置要求：双人，小火1P二转，海星1P2P二转，电棍1P2P同转职且1P10星+，麦芽糖1P2P一转，糖葫芦1P一转最好二转(否则打得更慢). 其他9星即可.\n"
 }
