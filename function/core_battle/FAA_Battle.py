@@ -53,6 +53,8 @@ class Battle:
 
         self.shovel_locations = copy.deepcopy(locations)
 
+        self.faa.print_debug(f"[战斗执行器] 即将铲卡, 位置:{self.shovel_locations}")
+
         bp_cell = copy.deepcopy(self.faa.bp_cell)
         list_shovel = copy.deepcopy(self.shovel_locations)
         list_shovel = [bp_cell[location] for location in list_shovel]
@@ -93,11 +95,15 @@ class Battle:
         """
         用全部的铲子
         """
-        if coordinates is None:
-            coordinates = self.shovel_coordinates
 
-        for coordinate in coordinates:
-            self.use_shovel(x=coordinate[0], y=coordinate[1])
+        # 战斗操作锁
+        with self.faa.battle_lock:
+
+            if coordinates is None:
+                coordinates = self.shovel_coordinates
+
+            for coordinate in coordinates:
+                self.use_shovel(x=coordinate[0], y=coordinate[1])
 
     def use_shovel(self, x, y):
         """
@@ -106,9 +112,9 @@ class Battle:
         :return:
         """
         T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
-        time.sleep(self.click_sleep / 2)  # 必须的间隔
+        time.sleep(self.click_sleep)  # 必须的间隔
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=x, y=y)
-        time.sleep(self.click_sleep)
+        time.sleep(self.click_sleep * 2)
 
     def use_key(self):
         """
