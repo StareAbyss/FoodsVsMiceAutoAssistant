@@ -1,5 +1,5 @@
+import copy
 import os
-import time
 from threading import Timer
 
 from PyQt6.QtCore import QThread, pyqtSignal
@@ -66,6 +66,7 @@ def is_special_card(card_name):
 #     print(f"{card_name} 不是特殊卡，未找到匹配文件。")
 
 class CardManager(QThread):
+    signal_change_card_plan = pyqtSignal()
     signal_used_key = pyqtSignal()
     signal_stop = pyqtSignal()
 
@@ -122,6 +123,7 @@ class CardManager(QThread):
         self.signal_stop.connect(self.stop)
 
         self.signals = {
+            "change_card_plan": self.signal_change_card_plan,
             "used_key": self.signal_used_key,
             "stop": self.signal_stop
         }
@@ -301,6 +303,9 @@ class CardManager(QThread):
 
         CUS_LOGGER.debug("[战斗执行器] 检测/放卡 线程已开始.")
 
+    def change_card_plan(self):
+        self.stop_sub_thread()
+        self.init_from_battle_plan()
         self.start_all_thread()
 
     def stop_sub_thread(self):
@@ -472,6 +477,12 @@ class ThreadCheckTimer(QThread):
             raw_range=[0, 0, 950, 600],
         )
 
+        # 尝试检测变阵
+        result = self.faa.faa_battle.check_wave(img=game_image)
+        if result:
+            if self.faa.is_main:
+                self.signals["change_card_plan"].emit()
+
         # 先清空现有队列 再初始化队列
         self.card_queue.queue.clear()
         self.card_queue.init_card_queue(game_image=game_image)
@@ -511,7 +522,7 @@ class ThreadCheckTimer(QThread):
 
     def check(self):
         """
-        一轮检测, 包括结束检测/继续战斗检测/自动战斗的状态检测/定时武器使用和拾取
+        一轮检测, 包括结束检测 / 继续战斗检测 / 自动战斗的状态检测 / 定时武器使用和拾取 / 按波次变阵检测
         回调不断重复
         """
 

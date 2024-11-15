@@ -22,6 +22,7 @@ class Battle:
         self.is_used_key = False  # 仅由外部信号更改, 用于标识战斗是否使用了钥匙
         self.fire_elemental_1000 = None
         self.smoothie_usable = None
+        self.wave = 0  # 当前波次归零
 
         self.player_locations = None  # 战斗开始放人物的位置 - 代号list
         self.shovel_locations = None  # 放铲子的位置 - 代号list
@@ -67,6 +68,7 @@ class Battle:
         self.is_used_key = False
         self.fire_elemental_1000 = False
         self.smoothie_usable = self.faa.player == 1
+        self.wave = 0  # 当前波次归零
 
     def use_player_all(self):
 
@@ -259,3 +261,109 @@ class Battle:
         # if self.faa.player == 1:
         #     # self.faa.print_debug("战斗火苗能量>1000:", self.fire_elemental_1000)
         #     CUS_LOGGER.debug(f"有没有1000火{self.fire_elemental_1000}")
+
+    def check_wave(self, img=None):
+        """识图检测目前的波次"""
+
+        new_wave = self.match_wave(img=img)
+
+        # 如果检测失败，使用当前波次
+        if not new_wave:
+            new_wave = self.wave
+
+        # 波次无变化
+        if self.wave == new_wave:
+            # CUS_LOGGER.debug(f"[{self.faa.player}P] 当前波次:{self.wave}, 识别波次:{new_wave}无变化")
+            return False
+
+        # 更新变量
+        self.wave = new_wave
+
+        # 新波次无方案
+        if str(new_wave) not in self.faa.battle_plan["card"]["wave"].keys():
+            CUS_LOGGER.debug(f"[{self.faa.player}P] 当前波次:{new_wave}, 已检测到转变, 但该波次无变阵方案")
+            return False
+
+        CUS_LOGGER.debug(f"[{self.faa.player}P] 当前波次:{new_wave}, 已检测到转变, 即将启动变阵方案")
+
+        # 备份旧方案
+        plans = {
+            "old": copy.deepcopy(self.faa.battle_plan_card),
+            "new": None
+        }
+
+        # 重载战斗方案
+        self.faa.init_battle_plan_card()
+        # 获取新方案
+        plans["new"] = copy.deepcopy(self.faa.battle_plan_card)
+
+        """差异铲卡 寻找id相同, 但上面的卡片的id不同的格子 全部铲一遍"""
+        location_cid = {
+            "old": {},
+            "new": {}
+        }
+        need_shovel = []
+
+        for x in range(1, 10):
+            for y in range(1, 8):
+                location = f"{x}-{y}"
+
+                for p_type in ["old", "new"]:
+                    if location not in location_cid[p_type]:
+                        location_cid[p_type][location] = []
+
+                    for card in plans[p_type]:
+
+                        if location in card["location"]:
+                            if card["name"] != "":
+                                if "护罩" in card["name"] or "瓜皮" in card["name"]:
+                                    location_cid[p_type][location].append(card["id"])
+
+                if location_cid["old"][location] == location_cid["new"][location]:
+                    continue
+                else:
+                    need_shovel.append(location)
+
+        self.faa.faa_battle.init_battle_plan_shovel(need_shovel)
+
+        if self.faa.is_main:
+            self.use_shovel_all()
+
+        return True
+
+    def match_wave(self, img=None):
+
+        if img is None:
+            img = capture_image_png(
+                handle=self.faa.handle,
+                raw_range=[0, 0, 950, 600],
+                root_handle=self.faa.handle_360
+            )
+
+        pix = img[552, 670][:3][::-1]  # 获取该像素颜色 注意将 GBRA -> RGB
+        pix_dict = {
+            0: (250, 213, 153),  # √
+            1: (255, 233, 166),  # √
+            2: (252, 200, 141),  # √
+            3: (255, 223, 107),  # √
+            4: (255, 247, 146),  # √
+            5: (255, 228, 174),  # √
+            6: (255, 251, 121),  # √
+            7: (255, 223, 119),  # √
+            8: (238, 218, 100),  # √
+            9: (255, 196, 126),  # √
+            10: (46, 37, 25),  # √
+            11: (33, 13, 0),
+            12: (135, 118, 65),
+            13: (160, 150, 90),
+        }
+
+        for wave, color in pix_dict.items():
+            if all(p == c for p, c in zip(pix, color)):
+                if EXTRA.EXTRA_LOG_BATTLE:
+                    CUS_LOGGER.debug(f"成功读取到波次: {wave}")
+                return wave
+        else:
+            if EXTRA.EXTRA_LOG_BATTLE:
+                CUS_LOGGER.warning("未能成功读取到波次, 可能在Boss战斗或选择是否钥匙. 默认返回 None")
+            return None
