@@ -328,7 +328,7 @@ class Battle:
 
                         if location in card["location"]:
                             if card["name"] != "":
-                                if "护罩" in card["name"] or "瓜皮" in card["name"]:
+                                if "护罩" not in card["name"] or "瓜皮" not in card["name"]:
                                     location_cid[p_type][location].append(card["id"])
 
                 if location_cid["old"][location] == location_cid["new"][location]:
@@ -336,7 +336,7 @@ class Battle:
                 else:
                     need_shovel.append(location)
 
-        self.faa.faa_battle.init_battle_plan_shovel(need_shovel)
+        self.faa.faa_battle.init_battle_plan_shovel(locations=need_shovel)
 
         if self.faa.is_main:
             self.use_shovel_all()
