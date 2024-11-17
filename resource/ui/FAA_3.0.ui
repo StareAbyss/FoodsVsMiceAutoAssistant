@@ -8295,7 +8295,7 @@ Link Start</string>
        </widget>
        <widget class="QWidget" name="Tab3">
         <attribute name="title">
-         <string>高级功能</string>
+         <string>进阶功能</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_6">
          <property name="spacing">
@@ -10908,7 +10908,11 @@ Link Start</string>
               </sizepolicy>
              </property>
              <property name="text">
-              <string>假装这里有一个仪表盘</string>
+              <string>假装出现了一个仪表盘
+未完待续</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
@@ -10988,7 +10992,11 @@ Link Start</string>
            <item>
             <widget class="QLabel" name="label_18">
              <property name="text">
-              <string>假装此处有一个仪表盘</string>
+              <string>假装出现了一个仪表盘
+未完待续</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
@@ -11057,7 +11065,11 @@ Link Start</string>
            <item>
             <widget class="QLabel" name="label_19">
              <property name="text">
-              <string>假装出现了一个仪表盘</string>
+              <string>假装出现了一个仪表盘
+未完待续</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
