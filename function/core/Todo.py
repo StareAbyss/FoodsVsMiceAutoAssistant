@@ -68,22 +68,41 @@ class ThreadTodo(QThread):
 
     def stop(self):
 
-        # 暂停外部线程
-        # self.pause()
+        # # Q thread 线程 stop方法需要自己手写
+        # python 默认线程 可用stop线程
 
         if self.thread_1p is not None:
             self.thread_1p.stop()
-            # self.thread_1p.join()  # 等待线程中断
             self.thread_1p = None  # 清除调用
+            # thread.join()  # <-罪魁祸首在此
 
         if self.thread_2p is not None:
             self.thread_2p.stop()
-            # self.thread_2p.join()  # 等待线程中断
             self.thread_2p = None  # 清除调用
+            # thread.join()  # <-罪魁祸首在此
+
+        # 杀死识图进程
+        if self.process is not None:
+            self.process.terminate()
+            self.process.join()
 
         if self.thread_card_manager is not None:
             self.thread_card_manager.stop()
             self.thread_card_manager = None  # 清除调用
+
+        # 释放战斗锁
+        if self.faa_dict:
+            for faa in self.faa_dict.values():
+                if faa:
+                    if faa.battle_lock.locked():
+                        faa.battle_lock.release()
+
+        self.terminate()
+        self.wait()  # 等待线程确实中断 QThread
+        self.deleteLater()
+
+        # print("生成了obj.dot")
+        # objgraph.show_backrefs(objgraph.by_type('FAA')[0], max_depth=20, filename='obj.dot')
 
     def pause(self):
         """暂停"""
@@ -822,6 +841,7 @@ class ThreadTodo(QThread):
 
             # 初始化放卡管理器
             self.thread_card_manager = CardManager(
+                todo=self,
                 faa_a=self.faa_dict[player_a],
                 faa_b=self.faa_dict[player_b],
                 check_interval=self.battle_check_interval,
@@ -829,7 +849,6 @@ class ThreadTodo(QThread):
                 senior_interval=self.opt["senior_settings"]["interval"]
             )
 
-            self.thread_card_manager.signal_stop.connect(self.exit)
             self.thread_card_manager.start()
             self.exec()
 
