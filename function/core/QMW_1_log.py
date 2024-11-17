@@ -120,11 +120,9 @@ class QMainWindowLog(QMainWindowLoadUI):
         SIGNAL.PRINT_TO_UI.emit(
             text="本软件 [开源][免费][绿色]",
             time=False)
-
         SIGNAL.PRINT_TO_UI.emit(
             text="",
             time=False)
-
         SIGNAL.PRINT_TO_UI.emit(
             text="使用安全说明",
             color_level=1,
@@ -138,37 +136,33 @@ class QMainWindowLog(QMainWindowLoadUI):
         SIGNAL.PRINT_TO_UI.emit(
             text="[3] 高星或珍贵不绑卡放储藏室",
             time=False)
-
         SIGNAL.PRINT_TO_UI.emit(
             text="",
             time=False)
-
         SIGNAL.PRINT_TO_UI.emit(
             text="使用疑难解决",
             color_level=1,
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="用户请认真阅读[FAA从入门到神殿.pdf], 解决[闪退/没反应/UI缩放]等问题",
+            text="[在线文档]  https://stareabyss.top/FAA-WebSite/",
             color_level=2,
+            time=False)
+        SIGNAL.PRINT_TO_UI.emit(
+            text="新手入门 / 除错 / 深入使用 / 开发者, 都可以在线文档找到相关内容",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
             text="鼠标在文字或按钮上悬停一会, 会显示部分有用的提示信息哦~",
             color_level=2,
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="开发者和深入使用, 请参考[README.md]",
-            time=False)
-        SIGNAL.PRINT_TO_UI.emit(
             text="任务或定时器开始运行后, 将锁定点击按钮时的配置文件, 不应用实时更改",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="该版本的FAA会向服务器发送战利品掉落Log以做掉落统计, 不传输<任何>其他内容",
+            text="FAA会向服务器发送战利品掉落Log以做掉落统计, 不传输<任何>其他内容",
             time=False)
-
         SIGNAL.PRINT_TO_UI.emit(
             text="",
             time=False)
-
         SIGNAL.PRINT_TO_UI.emit(
             text="相关链接",
             color_level=1,
@@ -180,7 +174,7 @@ class QMainWindowLog(QMainWindowLoadUI):
             text="[Github]  开源不易, 为我点个Star吧! 发送Issues是最有效的问题反馈渠道",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="[B站][UP直视深淵][宣传]  https://www.bilibili.com/video/BV1fS421N7zf",
+            text="[B站][UP直视深淵][宣传]  https://www.bilibili.com/video/BV1owUFYHEPq/",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
             text="[B站]  速速一键三连辣!",
@@ -197,26 +191,27 @@ class QMainWindowLog(QMainWindowLoadUI):
         SIGNAL.PRINT_TO_UI.emit(
             text="[腾讯频道]  欢迎加入, 用以下载 / 公告 / 提交问题. (目前人少维护较差)",
             time=False)
-
         SIGNAL.PRINT_TO_UI.emit(
             text="",
             time=False)
-
         SIGNAL.PRINT_TO_UI.emit(
             text="支持FAA",
             color_level=1,
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="[微信赞赏码]  下方直接扫码即可. (推荐)",
+            text="应用程序的开发和维护不仅耗时, 还需投入资金, 但FAA免费开放供大家使用",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="[QQ红包]  加入讨论QQ群后直接发送即可, 以防高仿.",
+            text="如果使用满意, 并想要表达感激之情或支持后续版本完善, 那么您的鼓励就是是FAA 持(不)续(跑)开(路)发 的最大动力!",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="[爱发电]  由于域名不稳定暂时停用.",
+            text="您可以选择以下任意一种方式进行捐赠. 赞助时, 可留下您的称呼以供致谢 ~",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="赞助时, 可留下您的称呼以供致谢. 你们的支持是FAA 持 (不) 续 (跑) 开 (路) 发 的最大动力!",
+            text="[微信-赞赏码]  下方直接扫码即可. (推荐)",
+            time=False)
+        SIGNAL.PRINT_TO_UI.emit(
+            text="[QQ-红包]  加入讨论QQ群后直接发送即可, 以防高仿.",
             time=False)
 
         SIGNAL.IMAGE_TO_UI.emit(
