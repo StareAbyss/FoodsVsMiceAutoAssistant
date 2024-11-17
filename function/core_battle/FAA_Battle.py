@@ -111,10 +111,14 @@ class Battle:
         :param y: 像素坐标
         :return:
         """
+        # 选择铲子
         T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
-        time.sleep(self.click_sleep)  # 必须的间隔
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=x, y=y)
-        time.sleep(self.click_sleep * 2)
+        time.sleep(self.click_sleep)
+
+        # 铲两次确保成功!
+        for _ in range(2):
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=x, y=y)
+            time.sleep(self.click_sleep)
 
     def use_key(self):
         """
@@ -247,9 +251,11 @@ class Battle:
         if not self.faa.is_auto_pickup:
             return
         # 注意上锁, 防止和放卡冲突
+
         with self.faa.battle_lock:
             for coordinate in self.auto_collect_cells_coordinate:
                 T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.faa.handle, x=coordinate[0], y=coordinate[1])
+
                 time.sleep(self.click_sleep)
 
     def update_fire_elemental_1000(self, img=None):
