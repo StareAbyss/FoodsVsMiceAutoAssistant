@@ -1,5 +1,5 @@
 {
-    "tips": "Q: 为什么给花火龙分配了四格\nA: 因为部分地图有障碍, 四个格子可以保证花火龙一定能有至少两个格子放置\n\n狮子座精灵使用打地鼠散点追踪替换, 效果更佳! 例如: 冷萃机/冰晶龙",
+    "tips": "Q: 为什么给花火龙分配了四格\nA: 因为部分地图有障碍, 四个格子可以保证花火龙一定能有至少两个格子放置\n\n对地使用散点追踪, 效果比狮子座更佳! 例如: 冷萃机/冰晶龙",
     "player": [
         "7-4",
         "6-4",
@@ -12,7 +12,7 @@
         "default": [
             {
                 "id": 1,
-                "name": "花火龙",
+                "name": "花火",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -25,7 +25,7 @@
             },
             {
                 "id": 2,
-                "name": "生煎锅",
+                "name": "生煎",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -70,7 +70,7 @@
             },
             {
                 "id": 8,
-                "name": "雷电长棍面包",
+                "name": "电棍",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -99,7 +99,7 @@
             },
             {
                 "id": 5,
-                "name": "狮子座精灵",
+                "name": "对地",
                 "ergodic": true,
                 "queue": true,
                 "location": [
@@ -110,7 +110,7 @@
             },
             {
                 "id": 3,
-                "name": "糖葫芦炮弹",
+                "name": "防空",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -125,7 +125,7 @@
             },
             {
                 "id": 4,
-                "name": "瓜皮护罩",
+                "name": "瓜皮",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -136,11 +136,12 @@
                     "9-4",
                     "9-2",
                     "9-6"
-                ]
+                ],
+                "kun": 0
             },
             {
                 "id": 6,
-                "name": "油灯",
+                "name": "照明",
                 "ergodic": true,
                 "queue": false,
                 "location": [
