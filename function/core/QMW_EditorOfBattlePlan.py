@@ -615,9 +615,12 @@ class QMWEditorOfBattlePlan(QMainWindow):
             """清理和默认方案完全相同的波次方案"""
             # 收集需要移除的键
             keys_to_remove = []
+            current_sub_plan = self.json_data["card"]["default"]
             for wave, sub_plan in self.json_data["card"]["wave"].items():
-                if sub_plan == self.json_data["card"]["default"]:
+                if sub_plan == current_sub_plan:
                     keys_to_remove.append(wave)
+                else:
+                    current_sub_plan = sub_plan
 
             # 移除收集到的键
             for wave in keys_to_remove:
