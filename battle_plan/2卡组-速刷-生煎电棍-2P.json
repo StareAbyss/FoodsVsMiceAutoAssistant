@@ -29,7 +29,7 @@
             },
             {
                 "id": 2,
-                "name": "生煎锅",
+                "name": "生煎",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -67,7 +67,7 @@
             },
             {
                 "id": 8,
-                "name": "雷电长棍面包",
+                "name": "雷棍",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -78,17 +78,18 @@
             },
             {
                 "id": 5,
-                "name": "狮子座精灵",
+                "name": "对地",
                 "ergodic": true,
                 "queue": false,
                 "location": [
                     "6-3",
                     "6-5"
-                ]
+                ],
+                "kun": 0
             },
             {
                 "id": 3,
-                "name": "糖葫芦炮弹",
+                "name": "防空",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -100,7 +101,7 @@
             },
             {
                 "id": 4,
-                "name": "瓜皮护罩",
+                "name": "瓜皮",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -111,7 +112,8 @@
                     "9-5",
                     "9-6",
                     "9-7"
-                ]
+                ],
+                "kun": 0
             },
             {
                 "id": 6,
