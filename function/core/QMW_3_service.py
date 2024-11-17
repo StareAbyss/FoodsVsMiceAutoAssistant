@@ -11,7 +11,6 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QMessageBox
 
 from function.core.FAA import FAA
-from function.core.FAA_extra_readimage import kill_process
 from function.core.QMW_2_load_settings import CommonHelper, QMainWindowLoadSettings
 from function.core.QMW_EditorOfBattlePlan import QMWEditorOfBattlePlan
 from function.core.QMW_EditorOfTaskSequence import QMWEditorOfTaskSequence
@@ -461,39 +460,13 @@ class QMainWindowService(QMainWindowLoadSettings):
         """
 
         """线程处理"""
-        self.is_ending = True
-        for thread_0 in [self.thread_todo_1, self.thread_todo_2]:
-            if thread_0 is not None:
-                # 暂停外部线程
-                # thread_0.pause()
-                #
-                # # 中断[内部战斗线程]
-                # # Q thread 线程 stop方法需要自己手写
-                # python 默认线程 可用stop线程
-                for thread in [thread_0.thread_1p, thread_0.thread_2p]:
-                    if thread is not None:
-                        thread.stop()
-                        # thread.join()  # <-罪魁祸首在此
+        self.is_ending = True  # 终止操作正在进行中 放用户疯狂操作
 
-                process = thread_0.process
-                if process is not None:
-                    kill_process(process)  # 杀死识图进程
+        if self.thread_todo_1 is not None:
+            self.thread_todo_1.stop()
 
-                manager = thread_0.thread_card_manager
-                if manager is not None:
-                    manager.stop()
-
-                # 释放战斗锁
-                if thread_0.faa_dict:
-                    for faa in thread_0.faa_dict.values():
-                        if faa:
-                            lock = faa.battle_lock
-                            if lock.locked():
-                                lock.release()
-
-                thread_0.terminate()
-                thread_0.wait()  # 等待线程确实中断 QThread
-                thread_0.deleteLater()
+        if self.thread_todo_2 is not None:
+            self.thread_todo_2.stop()
 
         # 中止[动作处理线程]
         T_ACTION_QUEUE_TIMER.stop()
@@ -507,6 +480,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         SIGNAL.PRINT_TO_UI.emit("[任务事项] 已关闭全部线程", color_level=1)
         # 当前正在运行 的 文本 修改
         self.Label_RunningState.setText(f"任务事项线程状态: 未运行")
+
         self.is_ending = False  # 完成完整的线程结束
 
     def todo_click_btn(self):
@@ -515,6 +489,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 线程没有激活
         if not (self.thread_todo_running or self.is_ending or self.is_start):
             self.todo_start()
+
         elif not self.is_ending:  # 加强鲁棒性，用于防熊
             self.todo_end()
 
