@@ -3,151 +3,154 @@
     "player": [
         "2-2"
     ],
-    "card": [
-        {
-            "id": 1,
-            "tips": "生产卡",
-            "name": "小火炉",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "4-1",
-                "4-7",
-                "1-3",
-                "1-5",
-                "2-3",
-                "2-5",
-                "4-3",
-                "4-5"
-            ],
-            "kun": 0
-        },
-        {
-            "tips": "清明果",
-            "id": 6,
-            "name": "肉松清明粿",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "9-2",
-                "9-6"
-            ],
-            "kun": 0
-        },
-        {
-            "id": 10,
-            "tips": "辣椒粉",
-            "name": "辣椒粉",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "9-2",
-                "9-6"
-            ],
-            "kun": 0
-        },
-        {
-            "id": 7,
-            "name": "面粉袋",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "9-2",
-                "9-6"
-            ],
-            "kun": 0
-        },
-        {
-            "id": 2,
-            "tips": "海星",
-            "name": "炭烧海星",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "8-2",
-                "8-6",
-                "1-2",
-                "1-6",
-                "4-2",
-                "4-6",
-                "4-4",
-                "5-4"
-            ],
-            "kun": 2
-        },
-        {
-            "id": 5,
-            "tips": "狮子座",
-            "name": "狮子座精灵",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "7-2",
-                "7-6"
-            ],
-            "kun": 3
-        },
-        {
-            "id": 3,
-            "tips": "糖葫芦",
-            "name": "糖葫芦炮弹",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "1-1",
-                "2-1",
-                "3-1",
-                "3-2",
-                "1-7",
-                "2-7",
-                "3-7",
-                "3-6",
-                "2-6"
-            ],
-            "kun": 1
-        },
-        {
-            "id": 4,
-            "tips": "瓜皮",
-            "name": "瓜皮护罩",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "8-2",
-                "8-6",
-                "7-2",
-                "7-6"
-            ],
-            "kun": 0
-        },
-        {
-            "id": 8,
-            "tips": "其他瓜皮类卡",
-            "name": "处女座精灵",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "8-2",
-                "8-6",
-                "7-2",
-                "7-6"
-            ],
-            "kun": 0
-        },
-        {
-            "id": 9,
-            "tips": "其他瓜皮类卡",
-            "name": "扑克牌护罩",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "8-2",
-                "8-6",
-                "7-2",
-                "7-6"
-            ],
-            "kun": 0
-        }
-    ],
+    "card": {
+        "default": [
+            {
+                "id": 1,
+                "tips": "生产卡",
+                "name": "小火炉",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "4-1",
+                    "4-7",
+                    "1-3",
+                    "1-5",
+                    "2-3",
+                    "2-5",
+                    "4-3",
+                    "4-5"
+                ],
+                "kun": 0
+            },
+            {
+                "tips": "清明果",
+                "id": 6,
+                "name": "肉松清明粿",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "9-2",
+                    "9-6"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 10,
+                "tips": "辣椒粉",
+                "name": "辣椒粉",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "9-2",
+                    "9-6"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 7,
+                "name": "面粉袋",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "9-2",
+                    "9-6"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 2,
+                "tips": "海星",
+                "name": "炭烧海星",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "8-2",
+                    "8-6",
+                    "1-2",
+                    "1-6",
+                    "4-2",
+                    "4-6",
+                    "4-4",
+                    "5-4"
+                ],
+                "kun": 2
+            },
+            {
+                "id": 5,
+                "tips": "狮子座",
+                "name": "狮子座精灵",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "7-2",
+                    "7-6"
+                ],
+                "kun": 3
+            },
+            {
+                "id": 3,
+                "tips": "糖葫芦",
+                "name": "糖葫芦炮弹",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "1-1",
+                    "2-1",
+                    "3-1",
+                    "3-2",
+                    "1-7",
+                    "2-7",
+                    "3-7",
+                    "3-6",
+                    "2-6"
+                ],
+                "kun": 1
+            },
+            {
+                "id": 4,
+                "tips": "瓜皮",
+                "name": "瓜皮护罩",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "8-2",
+                    "8-6",
+                    "7-2",
+                    "7-6"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 8,
+                "tips": "其他瓜皮类卡",
+                "name": "处女座精灵",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "8-2",
+                    "8-6",
+                    "7-2",
+                    "7-6"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 9,
+                "tips": "其他瓜皮类卡",
+                "name": "扑克牌护罩",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "8-2",
+                    "8-6",
+                    "7-2",
+                    "7-6"
+                ],
+                "kun": 0
+            }
+        ],
+        "wave": {}
+    },
     "uuid": "78500d06-4175-11ef-b0ee-f44efc5bf671"
 }

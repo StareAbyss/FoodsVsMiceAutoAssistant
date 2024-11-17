@@ -3,177 +3,180 @@
         "3-4",
         "4-4"
     ],
-    "card": [
-        {
-            "id": 1,
-            "name": "产火",
-            "ergodic": true,
-            "queue": false,
-            "kun": 0,
-            "location": [
-                "1-4",
-                "2-4"
-            ]
-        },
-        {
-            "id": 6,
-            "name": "棕榈叶",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "1-4",
-                "2-4"
-            ],
-            "kun": 0
-        },
-        {
-            "id": 7,
-            "name": "防风草",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "3-6",
-                "3-1",
-                "7-4"
-            ],
-            "kun": 4
-        },
-        {
-            "id": 2,
-            "name": "海星",
-            "ergodic": true,
-            "queue": false,
-            "kun": 3,
-            "location": [
-                "1-3",
-                "1-5",
-                "2-3",
-                "2-5",
-                "3-3",
-                "3-5",
-                "5-4",
-                "6-4",
-                "8-4",
-                "8-3",
-                "8-5",
-                "8-1",
-                "8-6",
-                "9-4",
-                "9-3",
-                "9-5",
-                "9-2",
-                "9-6",
-                "9-1",
-                "9-7"
-            ]
-        },
-        {
-            "id": 3,
-            "name": "糖葫芦",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "4-3",
-                "4-5",
-                "5-3",
-                "5-5",
-                "6-3",
-                "6-5"
-            ],
-            "kun": 0
-        },
-        {
-            "id": 5,
-            "name": "狮子座",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "7-3",
-                "7-5"
-            ],
-            "kun": 0
-        },
-        {
-            "id": 8,
-            "name": "投手",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "4-7",
-                "4-2",
-                "5-2",
-                "5-7"
-            ],
-            "kun": 1
-        },
-        {
-            "id": 9,
-            "name": "投手拐",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "1-2",
-                "1-7"
-            ],
-            "kun": 0
-        },
-        {
-            "id": 4,
-            "name": "瓜皮",
-            "ergodic": true,
-            "queue": false,
-            "kun": 0,
-            "location": [
-                "4-6",
-                "4-1",
-                "5-2",
-                "5-7",
-                "8-4",
-                "8-3",
-                "8-5",
-                "8-1",
-                "8-6"
-            ]
-        },
-        {
-            "id": 10,
-            "name": "巧克力",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "1-1",
-                "1-6",
-                "2-1",
-                "2-6",
-                "4-1",
-                "4-6",
-                "2-2",
-                "2-7",
-                "3-2",
-                "3-7"
-            ],
-            "kun": 0
-        },
-        {
-            "id": 11,
-            "name": "巧克力大炮",
-            "ergodic": true,
-            "queue": false,
-            "location": [
-                "1-1",
-                "1-6",
-                "2-1",
-                "2-6",
-                "4-1",
-                "4-6",
-                "2-2",
-                "2-7",
-                "3-2",
-                "3-7"
-            ],
-            "kun": 2
-        }
-    ],
+    "card": {
+        "default": [
+            {
+                "id": 1,
+                "name": "产火",
+                "ergodic": true,
+                "queue": false,
+                "kun": 0,
+                "location": [
+                    "1-4",
+                    "2-4"
+                ]
+            },
+            {
+                "id": 6,
+                "name": "棕榈叶",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "1-4",
+                    "2-4"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 7,
+                "name": "防风草",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "3-6",
+                    "3-1",
+                    "7-4"
+                ],
+                "kun": 4
+            },
+            {
+                "id": 2,
+                "name": "海星",
+                "ergodic": true,
+                "queue": false,
+                "kun": 3,
+                "location": [
+                    "1-3",
+                    "1-5",
+                    "2-3",
+                    "2-5",
+                    "3-3",
+                    "3-5",
+                    "5-4",
+                    "6-4",
+                    "8-4",
+                    "8-3",
+                    "8-5",
+                    "8-1",
+                    "8-6",
+                    "9-4",
+                    "9-3",
+                    "9-5",
+                    "9-2",
+                    "9-6",
+                    "9-1",
+                    "9-7"
+                ]
+            },
+            {
+                "id": 3,
+                "name": "糖葫芦",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "4-3",
+                    "4-5",
+                    "5-3",
+                    "5-5",
+                    "6-3",
+                    "6-5"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 5,
+                "name": "狮子座",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "7-3",
+                    "7-5"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 8,
+                "name": "投手",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "4-7",
+                    "4-2",
+                    "5-2",
+                    "5-7"
+                ],
+                "kun": 1
+            },
+            {
+                "id": 9,
+                "name": "投手拐",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "1-2",
+                    "1-7"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 4,
+                "name": "瓜皮",
+                "ergodic": true,
+                "queue": false,
+                "kun": 0,
+                "location": [
+                    "4-6",
+                    "4-1",
+                    "5-2",
+                    "5-7",
+                    "8-4",
+                    "8-3",
+                    "8-5",
+                    "8-1",
+                    "8-6"
+                ]
+            },
+            {
+                "id": 10,
+                "name": "巧克力",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "1-1",
+                    "1-6",
+                    "2-1",
+                    "2-6",
+                    "4-1",
+                    "4-6",
+                    "2-2",
+                    "2-7",
+                    "3-2",
+                    "3-7"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 11,
+                "name": "巧克力大炮",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "1-1",
+                    "1-6",
+                    "2-1",
+                    "2-6",
+                    "4-1",
+                    "4-6",
+                    "2-2",
+                    "2-7",
+                    "3-2",
+                    "3-7"
+                ],
+                "kun": 2
+            }
+        ],
+        "wave": {}
+    },
     "tips": "",
     "uuid": "c990fd49-8686-11ef-a4ab-f44efc5bf671"
 }
