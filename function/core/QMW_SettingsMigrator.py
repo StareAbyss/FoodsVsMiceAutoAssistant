@@ -86,8 +86,9 @@ class QMWSettingsMigrator(QMainWindow):
         layout_central.addWidget(self.btn_start_migration)
 
         # 状态项列表
-        self.checkboxs = {}
-        self.labels = {}
+        self.widgets_checkbox = {}
+        self.widgets_label = {}
+
         for config in self.configs:
             layout_liner = QHBoxLayout()
             layout_central.addLayout(layout_liner)
@@ -95,8 +96,9 @@ class QMWSettingsMigrator(QMainWindow):
             checkbox = QCheckBox(config["name"])
             checkbox.setFixedWidth(200)
             layout_liner.addWidget(checkbox)
-            self.checkboxs[config["name"]] = checkbox
+            self.widgets_checkbox[config["name"]] = checkbox
             checkbox.setEnabled(False)
+
             if config["type"] == "folder_battle_plan":
                 # 鼠标提示
                 checkbox.setToolTip(
@@ -107,7 +109,7 @@ class QMWSettingsMigrator(QMainWindow):
             label = QLabel("")
             label.setFixedWidth(800)
             layout_liner.addWidget(label)
-            self.labels[config["name"]] = label
+            self.widgets_label[config["name"]] = label
 
     def select_target_folder(self):
         folder_path = QFileDialog.getExistingDirectory(self, "选择目标文件夹", "")
@@ -137,7 +139,7 @@ class QMWSettingsMigrator(QMainWindow):
                     config["path_to"] = path
                     break
 
-            self.labels[config["name"]].setText(
+            self.widgets_label[config["name"]].setText(
                 "从: {}\n到: {}".format(
                     config.get("path_from", "未找到"),
                     config.get("path_to", "未找到")
@@ -146,7 +148,7 @@ class QMWSettingsMigrator(QMainWindow):
 
             # from 找到了 解锁对应ui
             if config.get("path_from") and config.get("path_to"):
-                self.checkboxs[config["name"]].setEnabled(True)
+                self.widgets_checkbox[config["name"]].setEnabled(True)
                 self.btn_start_migration.setEnabled(True)
 
     def start_migration(self):
@@ -157,7 +159,7 @@ class QMWSettingsMigrator(QMainWindow):
 
             # 锁定ui
             for config in self.configs:
-                self.checkboxs[config["name"]].setEnabled(False)
+                self.widgets_checkbox[config["name"]].setEnabled(False)
             self.btn_start_migration.setEnabled(False)
 
             # 迁移
@@ -239,7 +241,7 @@ class QMWSettingsMigrator(QMainWindow):
                 return
             if not path_to:
                 return
-            if not self.checkboxs[config["name"]].isChecked:
+            if not self.widgets_checkbox[config["name"]].isChecked():
                 return
 
             if config["type"] == "file":
@@ -248,7 +250,7 @@ class QMWSettingsMigrator(QMainWindow):
             if config["type"] == "folder_battle_plan":
                 process_json_files(folder_from=path_from, folder_to=path_to)
 
-            self.labels[config["name"]].setText(f"迁移成功!")
+            self.widgets_label[config["name"]].setText(f"迁移成功!")
 
         # 迁移逻辑
         for config in self.configs:

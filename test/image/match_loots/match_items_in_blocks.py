@@ -28,6 +28,4 @@ def f_test_match_block_is_item():
         mode="match_template_with_mask_tradable"))
 
 
-# f_test()
-# cProfile.run("f_test_match_block_is_item()")
 f_test_match_items_from_image_and_save()
