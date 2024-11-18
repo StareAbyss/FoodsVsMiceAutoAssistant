@@ -153,7 +153,7 @@
            <string>  FAA  本软件免费且开源</string>
           </property>
           <property name="alignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
           </property>
          </widget>
         </item>
@@ -178,7 +178,7 @@
            <string>版本号  </string>
           </property>
           <property name="alignment">
-           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
            <property name="spacing">
@@ -202,7 +202,7 @@
         <item>
          <spacer name="horizontalSpacer">
           <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+           <enum>Qt::Orientation::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -299,7 +299,7 @@ border:none</string>
         <number>0</number>
        </property>
        <property name="elideMode">
-        <enum>Qt::ElideNone</enum>
+        <enum>Qt::TextElideMode::ElideNone</enum>
        </property>
        <property name="usesScrollButtons">
         <bool>true</bool>
@@ -333,7 +333,7 @@ border:none</string>
          <item>
           <layout class="QHBoxLayout" name="Lay_Tab1" stretch="5,3">
            <property name="sizeConstraint">
-            <enum>QLayout::SetDefaultConstraint</enum>
+            <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
            </property>
            <property name="leftMargin">
             <number>0</number>
@@ -353,7 +353,7 @@ border:none</string>
               <number>0</number>
              </property>
              <property name="sizeConstraint">
-              <enum>QLayout::SetMaximumSize</enum>
+              <enum>QLayout::SizeConstraint::SetMaximumSize</enum>
              </property>
              <property name="leftMargin">
               <number>0</number>
@@ -408,7 +408,7 @@ border:none</string>
                 <string>基础设定</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignCenter</set>
+                <set>Qt::AlignmentFlag::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -429,7 +429,7 @@ border:none</string>
                <item>
                 <layout class="QHBoxLayout" name="LayBaseConfig1_2" stretch="2,3">
                  <property name="sizeConstraint">
-                  <enum>QLayout::SetDefaultConstraint</enum>
+                  <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
                  </property>
                  <property name="leftMargin">
                   <number>5</number>
@@ -510,7 +510,7 @@ border:none</string>
                   <number>5</number>
                  </property>
                  <property name="sizeConstraint">
-                  <enum>QLayout::SetDefaultConstraint</enum>
+                  <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
                  </property>
                  <property name="leftMargin">
                   <number>5</number>
@@ -601,7 +601,7 @@ border:none</string>
                <item>
                 <layout class="QHBoxLayout" name="LayBaseConfig1_Left" stretch="2,3">
                  <property name="sizeConstraint">
-                  <enum>QLayout::SetDefaultConstraint</enum>
+                  <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
                  </property>
                  <property name="leftMargin">
                   <number>5</number>
@@ -679,7 +679,7 @@ border:none</string>
                   <number>5</number>
                  </property>
                  <property name="sizeConstraint">
-                  <enum>QLayout::SetDefaultConstraint</enum>
+                  <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
                  </property>
                  <property name="leftMargin">
                   <number>5</number>
@@ -770,7 +770,7 @@ border:none</string>
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_15" stretch="2,3">
                  <property name="sizeConstraint">
-                  <enum>QLayout::SetDefaultConstraint</enum>
+                  <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
                  </property>
                  <property name="leftMargin">
                   <number>5</number>
@@ -848,7 +848,7 @@ border:none</string>
                   <number>5</number>
                  </property>
                  <property name="sizeConstraint">
-                  <enum>QLayout::SetDefaultConstraint</enum>
+                  <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
                  </property>
                  <property name="leftMargin">
                   <number>5</number>
@@ -957,7 +957,7 @@ border:none</string>
                   <cursorShape>CrossCursor</cursorShape>
                  </property>
                  <property name="layoutDirection">
-                  <enum>Qt::LeftToRight</enum>
+                  <enum>Qt::LayoutDirection::LeftToRight</enum>
                  </property>
                  <property name="autoFillBackground">
                   <bool>false</bool>
@@ -972,7 +972,7 @@ border:none</string>
                   <string>请拖到1P窗口</string>
                  </property>
                  <property name="alignment">
-                  <set>Qt::AlignCenter</set>
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -1009,7 +1009,7 @@ border:none</string>
              <item>
               <spacer name="verticalSpacer_2">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -1022,14 +1022,14 @@ border:none</string>
              <item>
               <widget class="Line" name="line_99">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
              <item>
               <spacer name="verticalSpacer_4">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -1048,7 +1048,7 @@ border:none</string>
                 <string>定时启动</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignCenter</set>
+                <set>Qt::AlignmentFlag::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -1955,7 +1955,7 @@ border:none</string>
              <item>
               <spacer name="verticalSpacer">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -1968,14 +1968,14 @@ border:none</string>
              <item>
               <widget class="Line" name="line_101">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
              <item>
               <spacer name="verticalSpacer_3">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -1991,14 +1991,14 @@ border:none</string>
                 <string>当前选中方案</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignCenter</set>
+                <set>Qt::AlignmentFlag::AlignCenter</set>
                </property>
               </widget>
              </item>
              <item>
               <layout class="QHBoxLayout" name="Lay_CurrentPlan_1" stretch="0">
                <property name="sizeConstraint">
-                <enum>QLayout::SetDefaultConstraint</enum>
+                <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
                </property>
                <property name="leftMargin">
                 <number>5</number>
@@ -2039,7 +2039,7 @@ border:none</string>
              <item>
               <layout class="QHBoxLayout" name="Lay_CurrentPlan_2" stretch="0,0,0">
                <property name="sizeConstraint">
-                <enum>QLayout::SetDefaultConstraint</enum>
+                <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
                </property>
                <property name="leftMargin">
                 <number>5</number>
@@ -2142,7 +2142,7 @@ border:none</string>
              <item>
               <spacer name="verticalSpacer_6">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -2155,14 +2155,14 @@ border:none</string>
              <item>
               <widget class="Line" name="line_102">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
              <item>
               <spacer name="verticalSpacer_5">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -2178,7 +2178,7 @@ border:none</string>
                 <string>任务事项线程状态: 未运行</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignCenter</set>
+                <set>Qt::AlignmentFlag::AlignCenter</set>
                </property>
               </widget>
              </item>
@@ -2424,7 +2424,7 @@ Link Start</string>
            <item>
             <layout class="QGridLayout" name="Lay_Tab2">
              <property name="sizeConstraint">
-              <enum>QLayout::SetDefaultConstraint</enum>
+              <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
              </property>
              <property name="leftMargin">
               <number>5</number>
@@ -2465,7 +2465,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -2490,7 +2490,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
                <property name="maximum">
                 <number>165</number>
@@ -2546,7 +2546,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
                <property name="minimum">
                 <number>1</number>
@@ -2580,7 +2580,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -2630,7 +2630,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -2680,7 +2680,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
                <property name="minimum">
                 <number>1</number>
@@ -2714,7 +2714,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
                <property name="maximum">
                 <number>25</number>
@@ -2742,7 +2742,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -2767,7 +2767,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -2871,7 +2871,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -2946,7 +2946,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -2971,7 +2971,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -2999,7 +2999,7 @@ Link Start</string>
                 <string>不自动承载卡</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
               </widget>
              </item>
@@ -3024,7 +3024,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -3107,7 +3107,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -3186,7 +3186,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -3246,7 +3246,7 @@ Link Start</string>
                 <string>注意！此处是选择开始的任务编号！而非常规的关卡</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
                <property name="minimum">
                 <number>1</number>
@@ -3280,7 +3280,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -3355,7 +3355,7 @@ Link Start</string>
                 <string>卡组</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
               </widget>
              </item>
@@ -3405,7 +3405,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
                <property name="maximum">
                 <number>165</number>
@@ -3436,7 +3436,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
                <property name="minimum">
                 <number>1</number>
@@ -3498,7 +3498,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -3523,7 +3523,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
                <property name="maximum">
                 <number>100</number>
@@ -3576,7 +3576,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -3601,7 +3601,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -3684,7 +3684,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -3709,7 +3709,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -3806,7 +3806,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -3939,7 +3939,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -3964,7 +3964,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -4011,7 +4011,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -4036,7 +4036,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -4061,7 +4061,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -4133,7 +4133,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -4202,7 +4202,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
                <property name="minimum">
                 <number>1</number>
@@ -4303,7 +4303,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -4382,7 +4382,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
                <property name="minimum">
                 <number>1</number>
@@ -4413,7 +4413,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -4438,7 +4438,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -4463,7 +4463,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -4513,7 +4513,7 @@ Link Start</string>
                 <string>威望币/金币/四叶草箱等</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
               </widget>
              </item>
@@ -4613,7 +4613,7 @@ Link Start</string>
                 <string>基础设置</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
               </widget>
              </item>
@@ -4691,7 +4691,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -4766,7 +4766,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -4820,7 +4820,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -4845,7 +4845,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -4870,7 +4870,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -5003,7 +5003,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -5028,7 +5028,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -5056,7 +5056,7 @@ Link Start</string>
                 <string/>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
               </widget>
              </item>
@@ -5135,7 +5135,7 @@ Link Start</string>
                 <string>关卡</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
               </widget>
              </item>
@@ -5160,7 +5160,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -5315,7 +5315,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -5387,7 +5387,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -5412,7 +5412,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -5437,7 +5437,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -5491,7 +5491,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -5566,7 +5566,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -5591,7 +5591,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -5774,7 +5774,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -5850,7 +5850,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
                <property name="minimum">
                 <number>1</number>
@@ -5887,7 +5887,7 @@ Link Start</string>
                 <string>战斗方案-1P</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
               </widget>
              </item>
@@ -5937,7 +5937,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -6018,7 +6018,7 @@ Link Start</string>
                 <string>战斗方案-2P</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
               </widget>
              </item>
@@ -6121,7 +6121,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -6149,7 +6149,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
                <property name="minimum">
                 <number>1</number>
@@ -6183,7 +6183,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
                <property name="minimum">
                 <number>0</number>
@@ -6217,7 +6217,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -6317,7 +6317,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -6376,7 +6376,7 @@ Link Start</string>
                 <string>次数</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
               </widget>
              </item>
@@ -6423,7 +6423,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -6501,7 +6501,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -6526,7 +6526,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -6551,7 +6551,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -6601,7 +6601,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -6626,7 +6626,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -6680,7 +6680,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -6814,7 +6814,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -6930,7 +6930,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -7009,7 +7009,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
                <property name="minimum">
                 <number>1</number>
@@ -7040,7 +7040,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -7065,7 +7065,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -7090,7 +7090,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -7165,7 +7165,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -7193,7 +7193,7 @@ Link Start</string>
                 <string>事项 *推荐开启</string>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
               </widget>
              </item>
@@ -7218,7 +7218,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                </property>
                <property name="minimum">
                 <number>1</number>
@@ -7252,7 +7252,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -7302,7 +7302,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
               </widget>
              </item>
@@ -7327,7 +7327,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -7352,7 +7352,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -7377,7 +7377,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -7424,7 +7424,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -8319,7 +8319,7 @@ Link Start</string>
             <number>0</number>
            </property>
            <property name="sizeConstraint">
-            <enum>QLayout::SetDefaultConstraint</enum>
+            <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
            </property>
            <property name="leftMargin">
             <number>0</number>
@@ -8385,7 +8385,7 @@ Link Start</string>
                   <string>高级设置</string>
                  </property>
                  <property name="alignment">
-                  <set>Qt::AlignCenter</set>
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -8519,7 +8519,7 @@ Link Start</string>
              <item>
               <widget class="Line" name="line_2">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -8558,7 +8558,7 @@ Link Start</string>
                   <string>领取温馨礼包</string>
                  </property>
                  <property name="alignment">
-                  <set>Qt::AlignCenter</set>
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -8622,7 +8622,7 @@ Link Start</string>
                     <string>链接</string>
                    </property>
                    <property name="alignment">
-                    <set>Qt::AlignCenter</set>
+                    <set>Qt::AlignmentFlag::AlignCenter</set>
                    </property>
                   </widget>
                  </item>
@@ -8656,7 +8656,7 @@ Link Start</string>
                     <string/>
                    </property>
                    <property name="echoMode">
-                    <enum>QLineEdit::PasswordEchoOnEdit</enum>
+                    <enum>QLineEdit::EchoMode::PasswordEchoOnEdit</enum>
                    </property>
                    <property name="clearButtonEnabled">
                     <bool>true</bool>
@@ -8725,7 +8725,7 @@ Link Start</string>
                     <string>链接</string>
                    </property>
                    <property name="alignment">
-                    <set>Qt::AlignCenter</set>
+                    <set>Qt::AlignmentFlag::AlignCenter</set>
                    </property>
                   </widget>
                  </item>
@@ -8759,7 +8759,7 @@ Link Start</string>
                     <string/>
                    </property>
                    <property name="echoMode">
-                    <enum>QLineEdit::PasswordEchoOnEdit</enum>
+                    <enum>QLineEdit::EchoMode::PasswordEchoOnEdit</enum>
                    </property>
                    <property name="clearButtonEnabled">
                     <bool>true</bool>
@@ -8801,7 +8801,7 @@ Link Start</string>
              <item>
               <widget class="Line" name="line_4">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -8840,7 +8840,7 @@ Link Start</string>
                   <string>兑换公会副本暗晶 / 删除多余消耗品</string>
                  </property>
                  <property name="alignment">
-                  <set>Qt::AlignCenter</set>
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -8904,7 +8904,7 @@ Link Start</string>
                     <string>二级</string>
                    </property>
                    <property name="alignment">
-                    <set>Qt::AlignCenter</set>
+                    <set>Qt::AlignmentFlag::AlignCenter</set>
                    </property>
                   </widget>
                  </item>
@@ -8938,7 +8938,7 @@ Link Start</string>
                     <string/>
                    </property>
                    <property name="echoMode">
-                    <enum>QLineEdit::PasswordEchoOnEdit</enum>
+                    <enum>QLineEdit::EchoMode::PasswordEchoOnEdit</enum>
                    </property>
                    <property name="clearButtonEnabled">
                     <bool>true</bool>
@@ -9007,7 +9007,7 @@ Link Start</string>
                     <string>二级</string>
                    </property>
                    <property name="alignment">
-                    <set>Qt::AlignCenter</set>
+                    <set>Qt::AlignmentFlag::AlignCenter</set>
                    </property>
                   </widget>
                  </item>
@@ -9041,7 +9041,7 @@ Link Start</string>
                     <string/>
                    </property>
                    <property name="echoMode">
-                    <enum>QLineEdit::PasswordEchoOnEdit</enum>
+                    <enum>QLineEdit::EchoMode::PasswordEchoOnEdit</enum>
                    </property>
                    <property name="clearButtonEnabled">
                     <bool>true</bool>
@@ -9083,7 +9083,7 @@ Link Start</string>
              <item>
               <widget class="Line" name="line_6">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -9123,7 +9123,7 @@ Link Start</string>
 发送战利品记录 &amp; 获取关卡信息</string>
                  </property>
                  <property name="alignment">
-                  <set>Qt::AlignCenter</set>
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -9199,7 +9199,7 @@ Link Start</string>
                     <string>链接</string>
                    </property>
                    <property name="alignment">
-                    <set>Qt::AlignCenter</set>
+                    <set>Qt::AlignmentFlag::AlignCenter</set>
                    </property>
                   </widget>
                  </item>
@@ -9233,7 +9233,7 @@ Link Start</string>
                     <string/>
                    </property>
                    <property name="echoMode">
-                    <enum>QLineEdit::Normal</enum>
+                    <enum>QLineEdit::EchoMode::Normal</enum>
                    </property>
                    <property name="clearButtonEnabled">
                     <bool>true</bool>
@@ -9359,7 +9359,7 @@ Link Start</string>
              <item>
               <spacer name="verticalSpacer_12">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -9374,7 +9374,7 @@ Link Start</string>
            <item>
             <widget class="Line" name="line_11">
              <property name="orientation">
-              <enum>Qt::Vertical</enum>
+              <enum>Qt::Orientation::Vertical</enum>
              </property>
             </widget>
            </item>
@@ -9430,7 +9430,7 @@ Link Start</string>
                   <string>普通战斗设定</string>
                  </property>
                  <property name="alignment">
-                  <set>Qt::AlignCenter</set>
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -9768,7 +9768,7 @@ Link Start</string>
              <item>
               <widget class="Line" name="line_10">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -9789,7 +9789,7 @@ Link Start</string>
                <property name="bottomMargin">
                 <number>5</number>
                </property>
-               <item alignment="Qt::AlignHCenter">
+               <item>
                 <widget class="QLabel" name="Battle_senior_text">
                  <property name="minimumSize">
                   <size>
@@ -10024,7 +10024,7 @@ Link Start</string>
              <item>
               <widget class="Line" name="line_8">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -10045,7 +10045,7 @@ Link Start</string>
                <property name="bottomMargin">
                 <number>5</number>
                </property>
-               <item alignment="Qt::AlignHCenter">
+               <item>
                 <widget class="QLabel" name="label_5">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -10089,7 +10089,7 @@ Link Start</string>
 单位天，负数则不清理</string>
                  </property>
                  <property name="alignment">
-                  <set>Qt::AlignCenter</set>
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -10148,7 +10148,7 @@ Link Start</string>
                       <string>高级战斗</string>
                      </property>
                      <property name="alignment">
-                      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                      <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
                      </property>
                     </widget>
                    </item>
@@ -10249,7 +10249,7 @@ Link Start</string>
              <item>
               <spacer name="verticalSpacer_11">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -10264,7 +10264,7 @@ Link Start</string>
            <item>
             <widget class="Line" name="line_12">
              <property name="orientation">
-              <enum>Qt::Vertical</enum>
+              <enum>Qt::Orientation::Vertical</enum>
              </property>
             </widget>
            </item>
@@ -10288,7 +10288,7 @@ Link Start</string>
              <item>
               <layout class="QHBoxLayout" name="Lay_Big_Image" stretch="0">
                <property name="sizeConstraint">
-                <enum>QLayout::SetDefaultConstraint</enum>
+                <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
                </property>
                <property name="leftMargin">
                 <number>5</number>
@@ -10323,7 +10323,7 @@ Link Start</string>
                   <pixmap>:/images/qss_images/xp.png</pixmap>
                  </property>
                  <property name="alignment">
-                  <set>Qt::AlignCenter</set>
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -10332,7 +10332,7 @@ Link Start</string>
              <item>
               <widget class="Line" name="line_9">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -10383,7 +10383,7 @@ Link Start</string>
              <item>
               <widget class="Line" name="line_5">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -10434,7 +10434,7 @@ Link Start</string>
              <item>
               <spacer name="verticalSpacer_7">
                <property name="orientation">
-                <enum>Qt::Vertical</enum>
+                <enum>Qt::Orientation::Vertical</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -10447,7 +10447,7 @@ Link Start</string>
              <item>
               <widget class="Line" name="line_7">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
               </widget>
              </item>
@@ -10544,7 +10544,7 @@ Link Start</string>
               <string>公会贡献点扫描器</string>
              </property>
              <property name="alignment">
-              <set>Qt::AlignCenter</set>
+              <set>Qt::AlignmentFlag::AlignCenter</set>
              </property>
             </widget>
            </item>
@@ -10626,10 +10626,10 @@ Link Start</string>
               <bool>true</bool>
              </property>
              <property name="horizontalHeaderFormat">
-              <enum>QCalendarWidget::LongDayNames</enum>
+              <enum>QCalendarWidget::HorizontalHeaderFormat::LongDayNames</enum>
              </property>
              <property name="verticalHeaderFormat">
-              <enum>QCalendarWidget::ISOWeekNumbers</enum>
+              <enum>QCalendarWidget::VerticalHeaderFormat::NoVerticalHeader</enum>
              </property>
              <property name="navigationBarVisible">
               <bool>true</bool>
@@ -10650,14 +10650,14 @@ Link Start</string>
 自动生成表格</string>
              </property>
              <property name="alignment">
-              <set>Qt::AlignCenter</set>
+              <set>Qt::AlignmentFlag::AlignCenter</set>
              </property>
             </widget>
            </item>
            <item>
             <spacer name="verticalSpacer_10">
              <property name="orientation">
-              <enum>Qt::Vertical</enum>
+              <enum>Qt::Orientation::Vertical</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -10824,7 +10824,7 @@ Link Start</string>
 皮肤特效系统-执念制作</string>
                  </property>
                  <property name="alignment">
-                  <set>Qt::AlignCenter</set>
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
                  </property>
                 </widget>
                </item>
@@ -10889,7 +10889,7 @@ Link Start</string>
            <item>
             <spacer name="verticalSpacer_13">
              <property name="orientation">
-              <enum>Qt::Vertical</enum>
+              <enum>Qt::Orientation::Vertical</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -10912,14 +10912,14 @@ Link Start</string>
 未完待续</string>
              </property>
              <property name="alignment">
-              <set>Qt::AlignCenter</set>
+              <set>Qt::AlignmentFlag::AlignCenter</set>
              </property>
             </widget>
            </item>
            <item>
             <spacer name="verticalSpacer_14">
              <property name="orientation">
-              <enum>Qt::Vertical</enum>
+              <enum>Qt::Orientation::Vertical</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -10979,7 +10979,7 @@ Link Start</string>
            <item>
             <spacer name="verticalSpacer_9">
              <property name="orientation">
-              <enum>Qt::Vertical</enum>
+              <enum>Qt::Orientation::Vertical</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -10996,14 +10996,14 @@ Link Start</string>
 未完待续</string>
              </property>
              <property name="alignment">
-              <set>Qt::AlignCenter</set>
+              <set>Qt::AlignmentFlag::AlignCenter</set>
              </property>
             </widget>
            </item>
            <item>
             <spacer name="verticalSpacer_15">
              <property name="orientation">
-              <enum>Qt::Vertical</enum>
+              <enum>Qt::Orientation::Vertical</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -11052,7 +11052,7 @@ Link Start</string>
            <item>
             <spacer name="verticalSpacer_8">
              <property name="orientation">
-              <enum>Qt::Vertical</enum>
+              <enum>Qt::Orientation::Vertical</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -11069,14 +11069,14 @@ Link Start</string>
 未完待续</string>
              </property>
              <property name="alignment">
-              <set>Qt::AlignCenter</set>
+              <set>Qt::AlignmentFlag::AlignCenter</set>
              </property>
             </widget>
            </item>
            <item>
             <spacer name="verticalSpacer_16">
              <property name="orientation">
-              <enum>Qt::Vertical</enum>
+              <enum>Qt::Orientation::Vertical</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
