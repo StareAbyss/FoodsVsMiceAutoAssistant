@@ -166,7 +166,7 @@ class GuildManager:
         循环获取公会成员页面
         """
         img_old = None
-        for i in range(20):
+        while True:
             for j in range(5):
                 # 尝试五次获取，如果不与之前的图片重复则认为成功翻页，获取一次成员信息
                 img = capture_image_png(
