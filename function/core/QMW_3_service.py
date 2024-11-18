@@ -237,7 +237,7 @@ class QMainWindowService(QMainWindowLoadSettings):
             if value < 0:
                 qtw_item.setData(
                     QtCore.Qt.ItemDataRole.DisplayRole,
-                    "Unknown")
+                    0)
             else:
                 qtw_item.setData(
                     QtCore.Qt.ItemDataRole.DisplayRole,
