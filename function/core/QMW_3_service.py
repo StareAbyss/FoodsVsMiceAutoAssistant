@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import QMessageBox
 from function.core.FAA import FAA
 from function.core.QMW_2_load_settings import CommonHelper, QMainWindowLoadSettings
 from function.core.QMW_EditorOfBattlePlan import QMWEditorOfBattlePlan
+from function.core.QMW_EditorOfStagePlan import QMWEditorOfStagePlan
 from function.core.QMW_EditorOfTaskSequence import QMWEditorOfTaskSequence
 from function.core.QMW_SettingsMigrator import QMWSettingsMigrator
 from function.core.QMW_TipBattle import QMWTipBattle
@@ -79,6 +80,10 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 额外窗口 - 任务序列编辑器
         self.window_editor_of_task_sequence = QMWEditorOfTaskSequence()
         self.OpenEditorOfTaskSequence_Button.clicked.connect(self.click_btn_open_editor_of_task_sequence)
+
+        # 额外窗口 - 关卡方案编辑器
+        self.window_editor_of_stage_plan = QMWEditorOfStagePlan()
+        self.OpenEditorOfStagePlan_Button.clicked.connect(self.click_btn_open_editor_of_stage_plan)
 
         # 额外窗口 - 配置迁移器
         self.window_settings_migrator = QMWSettingsMigrator()
@@ -641,6 +646,14 @@ class QMainWindowService(QMainWindowLoadSettings):
         window = self.window_editor_of_task_sequence
         window.set_my_font(self.font)
         self.set_stylesheet(window)
+        window.show()
+
+    def click_btn_open_editor_of_stage_plan(self):
+        window = self.window_editor_of_stage_plan
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        # 刷新一次战斗方案
+        window.refresh_battle_plan_selector()
         window.show()
 
     def click_btn_open_settings_migrator(self):
