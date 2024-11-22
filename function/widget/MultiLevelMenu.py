@@ -9,7 +9,7 @@ class MultiLevelMenu(QPushButton):
     """
     on_selected = pyqtSignal(str, str)  # 使用 pyqtSignal 传递两个参数
 
-    def __init__(self, title: str, parent=None):
+    def __init__(self, title: str = '关卡选择', parent=None):
         super().__init__(title, parent)
         self.menu = QMenu(self)
         self.setMenu(self.menu)
