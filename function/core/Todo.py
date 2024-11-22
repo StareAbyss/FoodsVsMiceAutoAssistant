@@ -773,18 +773,45 @@ class ThreadTodo(QThread):
         if result_id == 0:
 
             # 创建并开始线程
+            self.thread_1p = ThreadWithException(
+                target=self.faa_dict[player_a].object_battle_a_round_preparation.pre_battle_prep,
+                name="{}P Thread - 战前准备".format(player_a),
+                kwargs={})
+            self.thread_1p.daemon = True
+            self.thread_1p.start()
             if is_group:
                 self.thread_2p = ThreadWithException(
-                    target=self.faa_dict[player_b].battle_a_round_room_preparatory,
+                    target=self.faa_dict[player_b].object_battle_a_round_preparation.pre_battle_prep,
                     name="{}P Thread - 战前准备".format(player_b),
                     kwargs={})
                 self.thread_2p.daemon = True
                 self.thread_2p.start()
-                time.sleep(3)
 
+            # 阻塞进程让进程执行完再继续本循环函数
+            self.thread_1p.join()
+            if is_group:
+                self.thread_2p.join()
+
+            # 获取返回值
+            result_id = max(result_id, self.thread_1p.get_return_value())
+            if is_group:
+                result_id = max(result_id, self.thread_2p.get_return_value())
+
+        """不同时开始战斗, 并检测是否成功进入游戏"""
+        if result_id == 0:
+
+            # 创建并开始线程 注意 玩家B 是非房主 需要先开始
+            if is_group:
+                self.thread_2p = ThreadWithException(
+                    target=self.faa_dict[player_b].object_battle_a_round_preparation.start_and_ensure_entry,
+                    name="{}P Thread - 进入游戏".format(player_b),
+                    kwargs={})
+                self.thread_2p.daemon = True
+                self.thread_2p.start()
+                time.sleep(2)
             self.thread_1p = ThreadWithException(
-                target=self.faa_dict[player_a].battle_a_round_room_preparatory,
-                name="{}P Thread - 战前准备".format(player_a),
+                target=self.faa_dict[player_a].object_battle_a_round_preparation.start_and_ensure_entry,
+                name="{}P Thread - 进入游戏".format(player_a),
                 kwargs={})
             self.thread_1p.daemon = True
             self.thread_1p.start()
@@ -915,12 +942,13 @@ class ThreadTodo(QThread):
 
                 title = f"[{player_index}P] [战利品识别]"
                 # 两种战利品的数据
-                loots_list = player_data["loots"]
-                chests_list = player_data["chests"]
+                loots_list = player_data["loots"]  # list[str,...]
+                chests_list = player_data["chests"]  # list[str,...]
                 # 默认表示识别异常
                 result_drop_by_dict[player_index] = {"loots": None, "chests": None}
 
                 def check_data_validity(data):
+                    """确定同一个物品名总是相邻出现"""
                     # 创建一个字典来记录每个值最后出现的位置
                     last_seen = {}
 
@@ -934,8 +962,9 @@ class ThreadTodo(QThread):
 
                     return True
 
+                # 确定同一个物品名总是相邻出现
                 if not check_data_validity(loots_list):
-                    text = f"{title} [基础校验] 失败! 同一个字符在连续出现若干次后, 再次出现! 为截图有误!"
+                    text = f"{title} [基础校验] 失败! 同一个物品在连续出现若干次后, 再次出现! 为截图有误!"
                     CUS_LOGGER.warning(text)
                     continue
 
@@ -1136,11 +1165,6 @@ class ThreadTodo(QThread):
 
                     # 战斗成功 计数+1
                     battle_count += 1
-
-                    # 计数战斗是否使用了钥匙, 由于一个号用过后两个号都会被修改为用过, 故不需要多余的判断
-                    # this_battle_is_used_key = faa_a.faa_battle.is_used_key
-                    # if is_group:
-                    #     this_battle_is_used_key = this_battle_is_used_key or faa_b.faa_battle.is_used_key
 
                     if battle_count < max_times:
                         # 常规退出方式

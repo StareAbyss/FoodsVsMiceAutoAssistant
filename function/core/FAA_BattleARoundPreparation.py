@@ -1,3 +1,7 @@
+import copy
+import json
+import os
+import re
 import time
 
 import cv2
@@ -225,9 +229,9 @@ class BattleARoundPreparation:
                 after_sleep=1,
                 click=True)
 
-    def before(self):
+    def pre_battle_prep(self):
         """
-        房间内战前准备
+        战前准备工作 通常被调用的主要函数
         :return: 0-正常结束 1-重启本次 2-跳过本次
         """
         handle = self.faa.handle
@@ -255,11 +259,13 @@ class BattleARoundPreparation:
         # 识别出当前关卡名称
         stage_name = screen_get_stage_name(handle, handle_360)
         print_debug(text=f"当前关卡:{stage_name}")
+
         # 检测关卡名变种，如果符合特定关卡，则修改当前战斗的关卡信息
         self.check_stage_name(stage_name)
 
         # 选择卡组
         print_debug(text="选择卡组, 并开始加入新卡和ban卡")
+
         T_ACTION_QUEUE_TIMER.add_click_to_queue(
             handle=handle,
             x={1: 425, 2: 523, 3: 588, 4: 666, 5: 756, 6: 837}[deck],
@@ -270,7 +276,16 @@ class BattleARoundPreparation:
         self.add_quest_card()
         self.remove_ban_card()
 
-        """点击开始"""
+        return 0  # 0-一切顺利
+
+    def start_and_ensure_entry(self):
+        """开始并确保进入成功"""
+
+        handle = self.faa.handle
+        handle_360 = self.faa.handle_360
+        deck = self.faa.deck
+        print_debug = self.faa.print_debug
+        print_warning = self.faa.print_warning
 
         # 点击开始
         find = loop_match_p_in_w(
@@ -318,12 +333,10 @@ class BattleARoundPreparation:
         # 刷新ui: 状态文本
         if find:
             print_debug(text="找到火苗标识物, 战斗进行中...")
-
+            return 0  # 0-一切顺利
         else:
             print_warning(text="未能找到火苗标识物, 进入战斗失败, 可能是次数不足或服务器卡顿")
             return 2  # 2-跳过本次
-
-        return 0  # 0-一切顺利
 
     """初始化战斗方案部分"""
 
