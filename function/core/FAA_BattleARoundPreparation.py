@@ -25,98 +25,261 @@ class BattleARoundPreparation:
         # 但只捕获这个类本身, 在函数里调用的类属性, 则是实时值 √
         self.faa = faa
 
+        file_name = os.path.join(PATHS["config"], "card_type.json")
+        with open(file=file_name, mode='r', encoding='utf-8') as file:
+            data = json.load(file)
+
+        self.card_types = data
+
     """战前整备部分"""
 
-    def add_quest_card(self):
+    def card_name_to_tar_list(self, card_name):
+        """
+        卡片标识名称 可以为 合法类名 模糊名(初始名称) 精准名(初始名称-转职数字)
+        转化为对应的查找优先级列表
+        """
+
+        targets_0 = []
+        """匹配 有效承载 保留字段"""
+        if card_name == "有效承载":
+            targets_0 += copy.deepcopy(self.faa.stage_info["mat_card"])
+        else:
+            """匹配合法类名"""
+            # 仅匹配中文字符 (去除所有abc之类的同类卡后缀) 并参照已设定的类 是否有成功的匹配
+            card_name_only_chinese = ''.join(re.compile(r'[\u4e00-\u9fff]+').findall(card_name))
+            match_one = False
+            for card_type in self.card_types:
+                for card_type_key in card_type["key"]:
+                    if card_type_key == card_name_only_chinese:
+                        for card in card_type["value"]:
+                            targets_0.append(card)
+                        match_one = True
+
+            # 不属于任何类型 直接加入targets
+            if not match_one:
+                targets_0.append(card_name_only_chinese)
+
+        """第二 匹配转职"""
+        targets_1 = []
+        for card in targets_0:
+            # 精准匹配
+            if "-" in card:
+                targets_1.append(card)
+            # 模糊匹配 允许任意变种
+            else:
+                targets_1 += [f"{card}-{i}" for i in range(3, -1, -1)]
+
+        # 只携带被记录图片的卡
+        targets_1 = [card for card in targets_1 if (card + ".png") in RESOURCE_P["card"]["准备房间+"]]
+
+        return targets_1
+
+    def scan_card(self, all_cards_precise_names):
+        """
+        战备选卡阶段 - 扫描所有卡片 找到符合标准的卡片中等级最高者
+        :param all_cards_precise_names: 二维
+        第0维代表卡组 其中每个值都代表标识名确立的一张卡片
+        第1维代表标识名确立的一张卡片  其中每个值都代表精准名确立的一张卡片 不含.png后缀
+        :return:
+        """
 
         handle = self.faa.handle
         handle_360 = self.faa.handle_360
-        quest_card = self.faa.quest_card
-        print_debug = self.faa.print_debug
 
-        # 由于公会任务的卡组特性, 当任务卡为[苏打气泡]时, 不需要额外选择带卡.
-        not_need_add = False
-        not_need_add = not_need_add or quest_card == "None"
-        not_need_add = not_need_add or quest_card == "苏打气泡-0"
-        not_need_add = not_need_add or quest_card == "苏打气泡-1"
-        not_need_add = not_need_add or quest_card == "苏打气泡"
-
-        if not_need_add:
-            print_debug(text=f"[添加任务卡] 不需要,跳过")
-            return
-        else:
-            print_debug(text=f"[添加任务卡] 开始, 目标:{quest_card}")
-
-        """处理ban卡列表"""
-
-        # 对于名称带-的卡, 就对应的写入, 如果不带-, 就查找其所有变种
-        if "-" in quest_card:
-            quest_card_list = [f"{quest_card}.png"]
-        else:
-            # i代表一张卡能有的最高变种 姑且认为是3*7 = 21
-            quest_card_list = [f"{quest_card}-{i}.png" for i in range(21)]
-
-        # 读取所有记录了的卡的图片名, 只携带被记录图片的卡
-        quest_card_list = [card for card in quest_card_list if card in RESOURCE_P["card"]["准备房间"]]
-
-        """选卡动作"""
-        found_card = False
+        # 强制要求全部走完, 防止12P的同步出问题
+        # 老板本 一共20点击到底部, 向下点 10轮 x 2次 = 20 次滑块, 识别11次
+        # 但仍然会出现识别不到的问题(我的背包太大啦), 故直接改成了最细的粒度, 希望能解决该问题.
 
         # 复位滑块
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=209)
         time.sleep(0.5)
 
-        # 强制要求全部走完, 防止12P的同步出问题
-        # 老板本 一共20点击到底部, 向下点 10轮 x 2次 = 20 次滑块, 识别11次
-        # 但仍然会出现识别不到的问题(我的背包太大啦), 故直接改成了最细的粒度, 希望能解决该问题.
+        match_img_result_dict = {}
+
+        # 以所有卡牌名称(不重复)为键, 识别结果为值的字典
+        for card_precise_names in all_cards_precise_names:
+            for card_precise_name in card_precise_names:
+                if card_precise_name not in match_img_result_dict.keys():
+                    match_img_result_dict[card_precise_name] = {"found": False, "position": 0}
+
         for i in range(21):
 
-            for quest_card in quest_card_list:
+            for target in match_img_result_dict.keys():
 
-                if found_card:
-                    # 如果已经刚找到了 就直接休息一下
-                    time.sleep(0.45)
-                else:
-                    # 如果还没找到 就试试查找点击 添加卡片
+                # 未找到
+                if not match_img_result_dict[target]["found"]:
                     img_tar = overlay_images(
-                        img_background=RESOURCE_P["card"]["准备房间"][quest_card],
+                        img_background=RESOURCE_P["card"]["准备房间+"][f"{target}.png"],
                         img_overlay=RESOURCE_P["card"]["卡片-房间-绑定角标.png"],
                         test_show=False)
-
                     find = loop_match_p_in_w(
                         source_handle=handle,
                         source_root_handle=handle_360,
-                        source_range=[380, 175, 925, 420],
+                        source_range=[380, 175, 925, 415],
                         template=img_tar,
                         template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
-                        match_tolerance=0.98,
-                        match_failed_check=0.45,
-                        match_interval=0.1,
-                        after_sleep=0.45,  # 和总计检测时间一致 以同步时间
-                        click=True)
+                        match_tolerance=0.97,
+                        match_failed_check=0,
+                        match_interval=0.01,
+                        after_sleep=0,
+                        click=False)
                     if find:
-                        found_card = True
+                        match_img_result_dict[target]["found"] = True
+                        match_img_result_dict[target]["position"] = copy.deepcopy(i)
 
             if i == 20:
                 break
+            # 仅还没找到继续下滑
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=400)
+            # 需要刷新游戏帧数
+            time.sleep(0.1)
+
+        # 根据结果重新生成一个list 包含了每一个 标识名称 对应的 精准名称 找到的 最高等级的卡, 如果没找到 则为None
+        scan_card_result_list = []
+        scan_card_position_list = []
+        for card_precise_names in all_cards_precise_names:
+            for card_precise_name in card_precise_names:
+                # 成功查找
+                if match_img_result_dict[card_precise_name]["found"]:
+                    scan_card_result_list.append(card_precise_name)
+                    scan_card_position_list.append(match_img_result_dict[card_precise_name]["position"])
+                    match_img_result_dict[card_precise_name]["found"] = False
+                    break
             else:
-                if not found_card:
+                # 没有找到
+                scan_card_result_list.append(None)
+                scan_card_position_list.append(None)
+
+        return scan_card_result_list, scan_card_position_list
+
+    def add_card(self, card_name, tar_position=None) -> bool:
+        """
+        战备选卡阶段 - 选中添加一张卡到卡组
+        :param tar_position: 预扫描在第几次下拉找到了对应卡片, 如果有该值 直达
+        :param card_name: 卡片标识名称 可以为 合法类名 模糊名(初始名称) 精准名(初始名称-转职数字)
+        :return:
+        """
+
+        handle = self.faa.handle
+        handle_360 = self.faa.handle_360
+
+        if tar_position is None:
+            targets = self.card_name_to_tar_list(card_name=card_name)
+        else:
+            # 有预扫描步骤 一步到位
+            targets = [card_name]
+
+        found_card = False
+
+        # 强制要求全部走完, 防止12P的同步出问题
+        # 老板本 一共20点击到底部, 向下点 10轮 x 2次 = 20 次滑块, 识别11次
+        # 但仍然会出现识别不到的问题(我的背包太大啦), 故直接改成了最细的粒度, 希望能解决该问题.
+        for target in targets:
+
+            # 复位滑块
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=209)
+            time.sleep(0.1)
+
+            for i in range(21):
+                if tar_position is None or i >= tar_position:
+                    # 需要刷新游戏帧数
+                    img_tar = overlay_images(
+                        img_background=RESOURCE_P["card"]["准备房间+"][f"{target}.png"],
+                        img_overlay=RESOURCE_P["card"]["卡片-房间-绑定角标.png"],
+                        test_show=False)
+                    find = loop_match_p_in_w(
+                        source_handle=handle,
+                        source_root_handle=handle_360,
+                        source_range=[380, 175, 925, 415],
+                        template=img_tar,
+                        template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
+                        match_tolerance=0.97,
+                        match_failed_check=0.15,
+                        match_interval=0.05,
+                        after_sleep=0,
+                        click=True)
+                    if find:
+                        found_card = True
+                        break
+                else:
+                    if i == 20:
+                        break
                     # 仅还没找到继续下滑
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=400)
-                # 找没找到都要休息一下以同步时间
-                time.sleep(0.05)
+                    time.sleep(0.1)
+
+            if found_card:
+                return True
+
+        return False
+
+    def add_cards(self, card_name_list: list, can_failed_list: list):
+        """
+        战备选卡阶段 - 按顺序选中若干张卡添加到卡组
+        :param card_name_list: list [str, ...] 包含若干卡片 标识名称(Identifier Name)
+        可以为 合法类名(Valid Class Name) 模糊名称(Fuzzy Name, 卡片不转职名称) 精准名称(Precise Name, 模糊名-转职数字)
+        最终都可以拓展为若干个 精准名称
+        :param can_failed_list: 和card_name_list 一一对应 每一张卡是否允许失败
+        :return: 是否成功选卡每一张
+        """
+        self.faa.print_debug(text="[选取卡片] 开始, 总计: {}张".format(len(card_name_list)))
+
+        # 先展开标识名称为精确名称.png 一个标识名称 应对多个 精准名
+        all_cards_precise_names = []
+        for card_name in card_name_list:
+            precise_names = self.card_name_to_tar_list(card_name=card_name)
+            all_cards_precise_names.append(precise_names)
+
+        # 一轮识别 识别同一张卡的所有精准名称中 哪一个是实际存在且优先级最高的
+        scan_card_result_list, scan_card_position_list = self.scan_card(
+            all_cards_precise_names=all_cards_precise_names)
+        self.faa.print_debug(text="[选取卡片] 经识别将查找以下有效卡片: {}, 位置: {}".format(
+            scan_card_result_list,scan_card_position_list))
+
+        # 如果不允许失败 提前检查
+        for index in range(len(can_failed_list)):
+            if (scan_card_result_list[index] is None) and (not can_failed_list[index]):
+                self.faa.print_debug(text="[选取卡片] 结束, 结果: 因查找失败中断")
+                return False
+
+        for index in range(len(scan_card_result_list)):
+            card_name = scan_card_result_list[index]
+            tar_position = scan_card_position_list[index]
+            if card_name is None:
+                continue
+            # 理论上 经过了筛查 选卡不可能失败的！
+            result = self.add_card(card_name=card_name, tar_position=tar_position)
+            self.faa.print_debug(text="[选取卡片] [{}]完成, 结果: {}".format(card_name, "成功" if result else "失败"))
+
+        return True
+
+    def add_quest_card(self):
+
+        quest_card = copy.deepcopy(self.faa.quest_card)
+
+        not_need_add = False
+        not_need_add = not_need_add or quest_card == "None"
+
+        if not_need_add:
+            self.faa.print_debug(text=f"[添加任务卡] 不需要,跳过")
+            return
+        else:
+            self.faa.print_debug(text=f"[添加任务卡] 开始, 目标:{quest_card}")
+
+        # 调用选卡
+        found_card = self.add_card(card_name=quest_card)
 
         if not found_card:
             # 如果没有找到 类属性 战斗方案 需要调整为None, 防止在战斗中使用对应卡片的动作序列出现
             self.faa.quest_card = "None"
 
-        print_debug(text="[添加任务卡] 完成, 结果:{}".format("成功" if found_card else "失败"))
+        self.faa.print_debug(text="[添加任务卡] 完成, 结果:{}".format("成功" if found_card else "失败"))
 
     def remove_ban_card(self):
         """寻找并移除需要ban的卡, 现已支持跨页ban"""
 
         handle = self.faa.handle
-        ban_card_list = self.faa.ban_card_list
+        ban_card_list = copy.deepcopy(self.faa.ban_card_list)
         print_debug = self.faa.print_debug
 
         if ban_card_list:
@@ -137,7 +300,7 @@ class BattleARoundPreparation:
         ban_card_list = my_list
 
         # 读取所有已记录的卡片文件名, 并去除没有记录的卡片
-        ban_card_list = [ban_card for ban_card in ban_card_list if ban_card in RESOURCE_P["card"]["准备房间"]]
+        ban_card_list = [ban_card for ban_card in ban_card_list if ban_card in RESOURCE_P["card"]["准备房间-"]]
 
         # 翻页回第一页
         for i in range(5):
@@ -229,6 +392,48 @@ class BattleARoundPreparation:
                 after_sleep=1,
                 click=True)
 
+    def get_card_name_list_from_battle_plan(self):
+
+        mats = copy.deepcopy(self.faa.stage_info["mat_card"])
+
+        # 和 card_list 一一对应 顺序一致 代表这张卡是否允许被跳过
+        plan = copy.deepcopy(self.faa.battle_plan)
+
+        my_dict = {}
+
+        # 先取默认中
+        for card in plan["card"]["default"]:
+            if card["id"] not in my_dict.keys():
+                my_dict[card["id"]] = card["name"]
+
+        # 再取变阵中
+        for wave_plan in plan["card"]["wave"].values():
+            for card in wave_plan:
+                if card["id"] not in my_dict.keys():
+                    my_dict[card["id"]] = card["name"]
+
+        # 增承载卡
+        # 根据id 排序 并取其中的value为list
+        sorted_list = list(dict(sorted(my_dict.items())).values())
+        can_failed_list = [False for _ in sorted_list]
+
+        # 如果需要任意承载卡 第一张卡设定为 字段 有效承载
+        if len(mats) >= 1:
+            sorted_list += ["有效承载"]
+            can_failed_list += [False]
+
+        # 添加冰沙 复制类
+        sorted_list += ["冰淇淋-2", "创造神", "幻幻鸡"]
+        can_failed_list += [True, True, True]
+
+        # 如果有效承载数量 >= 2
+        if len(mats) >= 2:
+            for _ in range(len(mats) - 1):
+                sorted_list += ["有效承载"]
+                can_failed_list += [True]
+
+        return sorted_list, can_failed_list
+
     def pre_battle_prep(self):
         """
         战前准备工作 通常被调用的主要函数
@@ -273,6 +478,15 @@ class BattleARoundPreparation:
         time.sleep(0.7)
 
         """寻找并添加任务所需卡片"""
+
+        if self.faa.auto_carry_card:
+
+            card_name_list, can_failed_list = self.get_card_name_list_from_battle_plan()
+            success = self.add_cards(card_name_list=card_name_list, can_failed_list=can_failed_list)
+            # 失败就会直接跳过本关卡全部场次！
+            if not success:
+                return 3
+
         self.add_quest_card()
         self.remove_ban_card()
 
