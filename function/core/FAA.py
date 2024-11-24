@@ -60,6 +60,7 @@ class FAA:
         self.is_main = None
         self.is_group = None
         self.need_key = None
+        self.auto_carry_card = None
         self.deck = None
         self.quest_card = None
         self.ban_card_list = None
@@ -190,16 +191,17 @@ class FAA:
 
     def set_config_for_battle(
             self, stage_id="NO-1-1", is_group=False, is_main=True, need_key=True,
-            deck=1, quest_card="None", ban_card_list=None,
+            deck=1, auto_carry_card=False, quest_card="None", ban_card_list=None,
             battle_plan_uuid="00000000-0000-0000-0000-000000000000") -> None:
         """
         战斗相关参数的re_init
         :param is_group: 是否组队
         :param is_main: 是否是主要账号(单人为True 双人房主为True)
         :param need_key: 是否使用钥匙
-        :param deck:
-        :param quest_card:
-        :param ban_card_list:
+        :param deck: int 1-6 选中的卡槽数
+        :param auto_carry_card: bool 是否激活自动带卡
+        :param quest_card: str 自动携带任务卡的名称
+        :param ban_card_list: list[str,...] ban卡列表
         :param battle_plan_uuid: 战斗方案的uuid
         :param stage_id: 关卡的id
         :return:
@@ -212,6 +214,7 @@ class FAA:
         self.is_group = is_group
         self.need_key = need_key
         self.deck = deck
+        self.auto_carry_card = auto_carry_card
         self.quest_card = quest_card
         self.ban_card_list = ban_card_list
 
