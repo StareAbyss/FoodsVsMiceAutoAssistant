@@ -968,6 +968,12 @@ class ThreadTodo(QThread):
                     CUS_LOGGER.warning(text)
                     continue
 
+                # 所有物品都是 识别失败
+                if all(item == "识别失败" for item in loots_list):
+                    text = f"{title} [基础校验] 失败! 识别失败过多! 为截图有误!"
+                    CUS_LOGGER.warning(text)
+                    continue
+
                 def drop_list_to_dict(drop_list):
                     drop_dict = defaultdict(int)
                     for item in drop_list:
