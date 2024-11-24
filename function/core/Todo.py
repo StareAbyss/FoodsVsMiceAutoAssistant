@@ -1053,7 +1053,8 @@ class ThreadTodo(QThread):
         sleep(60 * 60 * 24)
 
     def battle_1_1_n(self, stage_id, player, need_key, max_times, dict_exit,
-                     deck, quest_card, ban_card_list, battle_plan_1p, battle_plan_2p, title_text, need_lock=False):
+                     global_plan_active, deck, battle_plan_1p, battle_plan_2p,
+                     quest_card, ban_card_list, title_text, need_lock=False):
         """
         1轮次 1关卡 n次数
         副本外 -> (副本内战斗 * n次) -> 副本外
@@ -1075,28 +1076,66 @@ class ThreadTodo(QThread):
         if is_cs and is_group:
             player = [1, 2]
 
-        # 处理多人信息 (这些信息只影响函数内, 所以不判断是否组队)
-        player_a = player[0]  # 房主 创建房间者
-        player_b = 1 if player_a == 2 else 2  # 非房主
-        faa_a, faa_b = self.faa_dict[player_a], self.faa_dict[player_b]
-        battle_plan_a = battle_plan_1p if player_a == 1 else battle_plan_2p
-        battle_plan_b = battle_plan_1p if player_b == 1 else battle_plan_2p
+        def get_stage_plan_by_id():
+            """
+            获取stage_plan
+            """
 
-        def check_level_and_times():
+            try:
+                with EXTRA.FILE_LOCK:
+                    with open(file=PATHS["config"] + "//stage_plan.json", mode="r", encoding="UTF-8") as file:
+                        stage_plan = json.load(file)
+            except FileNotFoundError:
+                stage_plan = {}
+
+            plan = stage_plan.get(stage_id, None)
+            if not plan:
+                plan = {
+                    "skip": False,
+                    "deck": 1,
+                    "battle_plan": [
+                        "00000000-0000-0000-0000-000000000000",
+                        "00000000-0000-0000-0000-000000000001"]}
+            return plan
+
+        # 处理多人信息 (这些信息只影响函数内, 所以不判断是否组队)
+        pid_a = player[0]  # 房主 创建房间者
+        pid_b = 1 if pid_a == 2 else 2  # 非房主
+
+        # 默认肯定是不跳过的
+        skip = False
+
+        # 是否采用 全局方案配置
+        if global_plan_active:
+            stage_plan_by_id = get_stage_plan_by_id()
+            skip = stage_plan_by_id["skip"]
+            deck = stage_plan_by_id["deck"]
+            battle_plan_1p = stage_plan_by_id["battle_plan"][pid_a - 1]
+            battle_plan_2p = stage_plan_by_id["battle_plan"][pid_b - 1]
+
+        faa_a, faa_b = self.faa_dict[pid_a], self.faa_dict[pid_b]
+        battle_plan_a = battle_plan_1p if pid_a == 1 else battle_plan_2p
+        battle_plan_b = battle_plan_1p if pid_b == 1 else battle_plan_2p
+
+        def check_skip():
             """
             检查人物等级和次数是否充足
             """
+            if skip:
+                SIGNAL.PRINT_TO_UI.emit(text=f"{title} 根据全局关卡设置, 跳过")
+                return False
+
             if not faa_a.check_level():
-                SIGNAL.PRINT_TO_UI.emit(text=f"{title}{player_a}P等级不足, 跳过")
+                SIGNAL.PRINT_TO_UI.emit(text=f"{title} [{pid_a}P] 等级不足, 跳过")
                 return False
 
             if is_group:
                 if not faa_b.check_level():
-                    SIGNAL.PRINT_TO_UI.emit(text=f"{title}{player_b}P等级不足, 跳过")
+                    SIGNAL.PRINT_TO_UI.emit(text=f"{title} [{pid_b}P] 等级不足, 跳过")
                     return False
 
             if max_times < 1:
-                SIGNAL.PRINT_TO_UI.emit(text=f"{title}{stage_id} 设置次数不足 跳过")
+                SIGNAL.PRINT_TO_UI.emit(text=f"{title} {stage_id} 设置次数不足, 跳过")
                 return False
 
             return True
@@ -1126,8 +1165,8 @@ class ThreadTodo(QThread):
                             result_id = self.goto_stage_and_invite(
                                 stage_id=stage_id,
                                 mt_first_time=False,
-                                player_a=player_a,
-                                player_b=player_b)
+                                player_a=pid_a,
+                                player_b=pid_b)
 
                         need_goto_stage = False  # 进入后Flag变化
                 else:
@@ -1141,8 +1180,8 @@ class ThreadTodo(QThread):
                         result_id = self.goto_stage_and_invite(
                             stage_id=stage_id,
                             mt_first_time=need_goto_stage,
-                            player_a=player_a,
-                            player_b=player_b)
+                            player_a=pid_a,
+                            player_b=pid_b)
 
                     need_goto_stage = False  # 进入后Flag变化
 
@@ -1159,7 +1198,7 @@ class ThreadTodo(QThread):
                 SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count + 1}次, 开始")
 
                 # 开始战斗循环
-                result_id, result_drop, result_spend_time = self.battle(player_a=player_a, player_b=player_b)
+                result_id, result_drop, result_spend_time = self.battle(player_a=pid_a, player_b=pid_b)
 
                 if result_id == 0:
 
@@ -1299,7 +1338,7 @@ class ThreadTodo(QThread):
 
             if len(player) == 1:
                 # 单人
-                self.output_player_loot(player_id=player_a, result_list=result_list)
+                self.output_player_loot(player_id=pid_a, result_list=result_list)
             else:
                 # 多人
                 self.output_player_loot(player_id=1, result_list=result_list)
@@ -1329,7 +1368,7 @@ class ThreadTodo(QThread):
                     battle_plan_uuid=battle_plan_b,
                     stage_id=stage_id)
 
-            if not check_level_and_times():
+            if not check_skip():
                 return False
 
             # 进行 1本n次 返回 成功的每次战斗结果组成的list
@@ -1435,6 +1474,7 @@ class ThreadTodo(QThread):
                 self.battle_1_1_n(
                     stage_id=quest["stage_id"],
                     max_times=quest["max_times"],
+                    global_plan_active=quest["global_plan_active"],
                     deck=quest["deck"],
                     player=quest["player"],
                     need_key=quest["need_key"],
@@ -1473,7 +1513,7 @@ class ThreadTodo(QThread):
     """使用n_n_battle为核心的变种 [单线程][单人或双人]"""
 
     def easy_battle(self, text_, stage_id, player, max_times,
-                    deck, battle_plan_1p, battle_plan_2p, dict_exit):
+                    global_plan_active, deck, battle_plan_1p, battle_plan_2p, dict_exit):
         """仅调用 n_battle的简易作战"""
         self.model_start_print(text=text_)
 
@@ -1481,9 +1521,10 @@ class ThreadTodo(QThread):
             {
                 "stage_id": stage_id,
                 "max_times": max_times,
-                "player": player,
-                "deck": deck,
                 "need_key": True,
+                "player": player,
+                "global_plan_active": global_plan_active,
+                "deck": deck,
                 "battle_plan_1p": battle_plan_1p,
                 "battle_plan_2p": battle_plan_2p,
                 "quest_card": "None",
@@ -1495,7 +1536,7 @@ class ThreadTodo(QThread):
         self.model_end_print(text=text_)
 
     def offer_reward(self, text_, max_times_1, max_times_2, max_times_3,
-                     deck, battle_plan_1p, battle_plan_2p):
+                     global_plan_active, deck, battle_plan_1p, battle_plan_2p):
 
         self.model_start_print(text=text_)
 
@@ -1504,9 +1545,10 @@ class ThreadTodo(QThread):
         quest_list = []
         for i in range(3):
             quest_list.append({
-                "deck": deck,
                 "player": [2, 1],
                 "need_key": True,
+                "global_plan_active": global_plan_active,
+                "deck": deck,
                 "battle_plan_1p": battle_plan_1p,
                 "battle_plan_2p": battle_plan_2p,
                 "stage_id": "OR-0-" + str(i + 1),
@@ -1519,6 +1561,7 @@ class ThreadTodo(QThread):
                     "last_time_player_a": ["竞技岛"],
                     "last_time_player_b": ["竞技岛"]}
             })
+
         self.battle_1_n_n(quest_list=quest_list)
 
         # 领取奖励
@@ -1528,7 +1571,7 @@ class ThreadTodo(QThread):
         self.model_end_print(text=text_)
 
     def guild_or_spouse_quest(self, title_text, quest_mode,
-                              deck, battle_plan_1p, battle_plan_2p, stage=False):
+                              global_plan_active, deck, battle_plan_1p, battle_plan_2p, stage=False):
         """完成公会or情侣任务"""
 
         self.model_start_print(text=title_text)
@@ -1543,12 +1586,15 @@ class ThreadTodo(QThread):
         # 获取任务
         SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 获取任务列表...")
         quest_list = self.faa_dict[1].match_quests(mode=quest_mode, qg_cs=stage)
+
         for i in quest_list:
             SIGNAL.PRINT_TO_UI.emit(
                 text="副本:{},额外带卡:{}".format(
                     i["stage_id"],
                     i["quest_card"]))
+
         for i in range(len(quest_list)):
+            quest_list[i]["global_plan_active"] = global_plan_active
             quest_list[i]["deck"] = deck
             quest_list[i]["battle_plan_1p"] = battle_plan_1p
             quest_list[i]["battle_plan_2p"] = battle_plan_2p
@@ -1567,18 +1613,20 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=title_text)
 
-    def guild_dungeon(self, text_, deck, battle_plan_1p, battle_plan_2p):
+    def guild_dungeon(self, text_, global_plan_active, deck, battle_plan_1p, battle_plan_2p):
 
         self.model_start_print(text=text_)
 
         SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 开始[多本轮战]...")
 
         quest_list = []
+
         for i in range(3):
             quest_list.append({
                 "deck": deck,
                 "player": [2, 1],
                 "need_key": True,
+                "global_plan_active": global_plan_active,
                 "battle_plan_1p": battle_plan_1p,
                 "battle_plan_2p": battle_plan_2p,
                 "stage_id": "GD-0-" + str(i + 1),
@@ -1591,6 +1639,7 @@ class ThreadTodo(QThread):
                     "last_time_player_a": ["竞技岛"],
                     "last_time_player_b": ["竞技岛"]}
             })
+
         self.battle_1_n_n(quest_list=quest_list)
 
         self.model_end_print(text=text_)
@@ -1771,6 +1820,7 @@ class ThreadTodo(QThread):
                 )
 
             for i in range(len(quest_list)):
+                quest_list[i]["global_plan_active"] = False
                 quest_list[i]["deck"] = deck
                 quest_list[i]["battle_plan_1p"] = "00000000-0000-0000-0000-000000000000"
                 quest_list[i]["battle_plan_2p"] = "00000000-0000-0000-0000-000000000001"
@@ -1822,6 +1872,7 @@ class ThreadTodo(QThread):
                         stage_id="MT-1-" + str(my_opt["stage"]),
                         player=[player],
                         max_times=int(my_opt["max_times"]),
+                        global_plan_active=my_opt["global_plan_active"],
                         deck=my_opt["deck"],
                         battle_plan_1p=my_opt["battle_plan_1p"],
                         battle_plan_2p=my_opt["battle_plan_1p"],
@@ -1841,6 +1892,7 @@ class ThreadTodo(QThread):
                     {
                         "player": [player],
                         "need_key": True,
+                        "global_plan_active": my_opt["global_plan_active"],
                         "deck": my_opt["deck"],
                         "battle_plan_1p": my_opt["battle_plan_1p"],
                         "battle_plan_2p": my_opt["battle_plan_1p"],
@@ -1906,6 +1958,7 @@ class ThreadTodo(QThread):
                             {
                                 "player": [player],
                                 "need_key": True,
+                                "global_plan_active": my_opt["global_plan_active"],
                                 "deck": my_opt["deck"],
                                 "battle_plan_1p": my_opt["battle_plan_1p"],
                                 "battle_plan_2p": my_opt["battle_plan_1p"],
@@ -1937,6 +1990,7 @@ class ThreadTodo(QThread):
                         {
                             "player": [player],
                             "need_key": False,
+                            "global_plan_active": my_opt["global_plan_active"],
                             "deck": my_opt["deck"],
                             "battle_plan_1p": my_opt["battle_plan_1p"],
                             "battle_plan_2p": my_opt["battle_plan_1p"],
@@ -1995,6 +2049,7 @@ class ThreadTodo(QThread):
                         stage_id="PT-0-" + str(my_opt["stage"]),
                         player=[player],
                         max_times=1,
+                        global_plan_active=my_opt["global_plan_active"],
                         deck=my_opt["deck"],
                         battle_plan_1p=my_opt["battle_plan_1p"],
                         battle_plan_2p=my_opt["battle_plan_1p"],
@@ -2014,6 +2069,7 @@ class ThreadTodo(QThread):
                     {
                         "player": [player],
                         "need_key": True,
+                        "global_plan_active": my_opt["global_plan_active"],
                         "deck": my_opt["deck"],
                         "battle_plan_1p": my_opt["battle_plan_1p"],
                         "battle_plan_2p": my_opt["battle_plan_1p"],
@@ -2126,6 +2182,7 @@ class ThreadTodo(QThread):
                 stage_id="NO-2-17",
                 player=[2, 1] if my_opt["is_group"] else [1],
                 max_times=int(my_opt["max_times"]),
+                global_plan_active=my_opt["global_plan_active"],
                 deck=my_opt["deck"],
                 battle_plan_1p=my_opt["battle_plan_1p"],
                 battle_plan_2p=my_opt["battle_plan_2p"],
@@ -2165,6 +2222,7 @@ class ThreadTodo(QThread):
                 stage_id=my_opt["stage"],
                 player=[2, 1] if my_opt["is_group"] else [1],
                 max_times=int(my_opt["max_times"]),
+                global_plan_active=my_opt["global_plan_active"],
                 deck=my_opt["deck"],
                 battle_plan_1p=my_opt["battle_plan_1p"],
                 battle_plan_2p=my_opt["battle_plan_2p"],
@@ -2179,6 +2237,7 @@ class ThreadTodo(QThread):
         if my_opt["active"]:
             self.offer_reward(
                 text_="悬赏任务",
+                global_plan_active=my_opt["global_plan_active"],
                 deck=my_opt["deck"],
                 max_times_1=my_opt["max_times_1"],
                 max_times_2=my_opt["max_times_2"],
@@ -2193,6 +2252,7 @@ class ThreadTodo(QThread):
                 stage_id=my_opt["stage"],
                 player=[1, 2] if my_opt["is_group"] else [1],
                 max_times=int(my_opt["max_times"]),
+                global_plan_active=my_opt["global_plan_active"],
                 deck=my_opt["deck"],
                 battle_plan_1p=my_opt["battle_plan_1p"],
                 battle_plan_2p=my_opt["battle_plan_2p"],
@@ -2217,24 +2277,25 @@ class ThreadTodo(QThread):
             self.guild_or_spouse_quest(
                 title_text="公会任务",
                 quest_mode="公会任务",
+                global_plan_active=my_opt["global_plan_active"],
                 deck=my_opt["deck"],
                 battle_plan_1p=my_opt["battle_plan_1p"],
                 battle_plan_2p=my_opt["battle_plan_2p"],
                 stage=my_opt["stage"])
 
-        my_opt = c_opt["guild_dungeon"]
-        if my_opt["active"]:
+        if c_opt["guild_dungeon"]["active"]:
             self.guild_dungeon(
                 text_="公会副本",
+                global_plan_active=c_opt["quest_guild"]["global_plan_active"],
                 deck=c_opt["quest_guild"]["deck"],
                 battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
                 battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"])
 
-        my_opt = c_opt["quest_spouse"]
-        if my_opt["active"]:
+        if c_opt["quest_spouse"]["active"]:
             self.guild_or_spouse_quest(
                 title_text="情侣任务",
                 quest_mode="情侣任务",
+                global_plan_active=c_opt["quest_guild"]["global_plan_active"],
                 deck=c_opt["quest_guild"]["deck"],
                 battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
                 battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"])
@@ -2246,6 +2307,7 @@ class ThreadTodo(QThread):
                 stage_id=my_opt["stage"],
                 player=[2, 1] if my_opt["is_group"] else [1],
                 max_times=int(my_opt["max_times"]),
+                global_plan_active=my_opt["global_plan_active"],
                 deck=my_opt["deck"],
                 battle_plan_1p=my_opt["battle_plan_1p"],
                 battle_plan_2p=my_opt["battle_plan_2p"],
@@ -2280,6 +2342,7 @@ class ThreadTodo(QThread):
                 stage_id="MT-2-" + str(my_opt["stage"]),
                 player=[2, 1],
                 max_times=int(my_opt["max_times"]),
+                global_plan_active=my_opt["global_plan_active"],
                 deck=my_opt["deck"],
                 battle_plan_1p=my_opt["battle_plan_1p"],
                 battle_plan_2p=my_opt["battle_plan_2p"],
@@ -2361,6 +2424,7 @@ class ThreadTodo(QThread):
                 stage_id="CU-0-0",
                 player=[[1, 2], [2, 1], [1], [2]][my_opt["is_group"]],
                 max_times=int(my_opt["max_times"]),
+                global_plan_active=False,
                 deck=my_opt["deck"],
                 battle_plan_1p=my_opt["battle_plan_1p"],
                 battle_plan_2p=my_opt["battle_plan_2p"],

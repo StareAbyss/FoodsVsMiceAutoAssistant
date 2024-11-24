@@ -642,15 +642,6 @@ class FAA:
 
     """战斗完整的过程中的任务函数"""
 
-    def battle_a_round_room_preparatory(self):
-
-        """
-        房间内战前准备 包括ban卡和选任务卡
-        已模块化到外部实现
-        :return: 0-正常结束 1-重启本次 2-跳过本次
-        """
-        return self.object_battle_a_round_preparation.before()
-
     def battle_a_round_init_battle_plan(self):
         """
         关卡内战斗过程
