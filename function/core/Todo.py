@@ -1301,6 +1301,21 @@ class ThreadTodo(QThread):
                             # 单人多线程 只reload自己
                             faa_a.reload_game()
 
+                if result_id == 3:
+
+                    # 自动选卡 但没有对应的卡片! 最严重的报错!
+                    SIGNAL.PRINT_TO_UI.emit(
+                        text=f"{title} 自动选卡失败! 放弃本关全部作战! 请检查您是否拥有对应战斗方案的全部不绑卡片!")
+
+                    if not need_lock:
+                        # 非单人多线程
+                        self.batch_reload_game()
+                    else:
+                        # 单人多线程 只reload自己
+                        faa_a.reload_game()
+
+                    break
+
             return result_list
 
         def end_statistic_print(result_list):
@@ -1347,12 +1362,16 @@ class ThreadTodo(QThread):
         def main():
             SIGNAL.PRINT_TO_UI.emit(text=f"{title}{stage_id} {max_times}次 开始", color_level=5)
 
+            opt_ad = self.opt["advanced_settings"]
+            c_a_c_c_deck = opt_ad["cus_auto_carry_card_value"] if opt_ad["cus_auto_carry_card_active"] else 6
+
             # 填入战斗方案和关卡信息, 之后会大量动作和更改类属性, 所以需要判断是否组队
             faa_a.set_config_for_battle(
                 is_main=True,
                 is_group=is_group,
                 need_key=need_key,
-                deck=deck,
+                deck=c_a_c_c_deck if deck == 0 else deck,
+                auto_carry_card=deck == 0,
                 quest_card=quest_card,
                 ban_card_list=ban_card_list,
                 battle_plan_uuid=battle_plan_a,
@@ -1362,7 +1381,8 @@ class ThreadTodo(QThread):
                     is_main=False,
                     is_group=is_group,
                     need_key=need_key,
-                    deck=deck,
+                    deck=c_a_c_c_deck if deck == 0 else deck,
+                    auto_carry_card=deck == 0,
                     quest_card=quest_card,
                     ban_card_list=ban_card_list,
                     battle_plan_uuid=battle_plan_b,
@@ -1473,16 +1493,16 @@ class ThreadTodo(QThread):
 
                 self.battle_1_1_n(
                     stage_id=quest["stage_id"],
-                    max_times=quest["max_times"],
-                    global_plan_active=quest["global_plan_active"],
-                    deck=quest["deck"],
                     player=quest["player"],
                     need_key=quest["need_key"],
+                    max_times=quest["max_times"],
+                    dict_exit=quest["dict_exit"],
+                    global_plan_active=quest["global_plan_active"],
+                    deck=quest["deck"],
+                    quest_card=quest.get("quest_card", False),
+                    ban_card_list=quest["ban_card_list"],
                     battle_plan_1p=quest["battle_plan_1p"],
                     battle_plan_2p=quest["battle_plan_2p"],
-                    quest_card=quest["quest_card"],
-                    ban_card_list=quest["ban_card_list"],
-                    dict_exit=quest["dict_exit"],
                     title_text=extra_title,
                     need_lock=need_lock
                 )
