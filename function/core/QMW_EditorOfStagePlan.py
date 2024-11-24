@@ -1,12 +1,13 @@
-from PyQt6.QtWidgets import QMainWindow
-from PyQt6 import uic
+import copy
 import json
 
+from PyQt6 import uic
+from PyQt6.QtWidgets import QMainWindow
+
 from function.globals import EXTRA
+from function.globals.get_paths import PATHS
 from function.scattered.check_battle_plan import fresh_and_check_all_battle_plan
 from function.scattered.get_list_battle_plan import get_list_battle_plan
-from function.widget.MultiLevelMenu import MultiLevelMenu
-from function.globals.get_paths import PATHS
 
 """
 关卡方案编辑器
@@ -48,11 +49,19 @@ class QMWEditorOfStagePlan(QMainWindow):
 
         # 将所有控件的状态变更信号连接上变更函数
         self.skip_check.stateChanged.connect(self.state_changed)
-        self.deck_box_1P.currentIndexChanged.connect(self.state_changed)
-        self.deck_box_2P.currentIndexChanged.connect(self.state_changed)
+        self.deck_box.currentIndexChanged.connect(self.state_changed)
         self.battle_plan_box_1P.currentIndexChanged.connect(self.state_changed)
         self.battle_plan_box_2P.currentIndexChanged.connect(self.state_changed)
 
+        # 默认值, 读取为空显示默认值, 保存为默认值去掉对应值
+        self.default_set = {
+            "skip": False,
+            "deck": 1,
+            "battle_plan": [0, 1]
+        }
+
+        # 将所有input控件设为不可用
+        self.set_input_widget_usable(state=False)
 
     def init_stage_selector(self):
         """
@@ -136,22 +145,22 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.battle_plan_box_1P.blockSignals(False)
         self.battle_plan_box_2P.blockSignals(False)
 
-    def stage_changed(self, text, data):
+    def stage_changed(self, text, stage):
         """
         关卡选择改变，更新UI
         :param text: 显示在菜单中的文本
-        :param data: 关卡id
+        :param stage: 关卡id
         """
-        self.current_stage = data
-        if data in self.stage_plan.keys():
-            self.init_state_ui()
-        else:
-            self.stage_plan[data] = {
-                "skip": False,
-                "deck": [1, 1],
-                "battle_plan": [0, 1]
-            }
-            self.init_state_ui()
+        self.current_stage = stage
+
+        # 如果当前关卡没有配置，则拷贝自默认配置
+        if stage not in self.stage_plan.keys():
+            self.stage_plan[stage] = copy.deepcopy(self.default_set)
+
+        self.init_state_ui()
+
+        # 解锁 允许交互
+        self.set_input_widget_usable(state=True)
 
     def state_changed(self):
         """
@@ -162,20 +171,20 @@ class QMWEditorOfStagePlan(QMainWindow):
         match object_name:
             case "skip_check":
                 self.stage_plan[self.current_stage]["skip"] = sender.isChecked()
-            case "deck_box_1P":
-                self.stage_plan[self.current_stage]["deck"][0] = int(sender.currentText())
-            case "deck_box_2P":
-                self.stage_plan[self.current_stage]["deck"][1] = int(sender.currentText())
+            case "deck_box":
+                self.stage_plan[self.current_stage]["deck"] = int(sender.currentIndex())
             case "battle_plan_box_1P":
-                self.stage_plan[self.current_stage]["battle_plan"][0] = self.battle_plan_uuid_list[self.battle_plan_box_1P.currentIndex()]
+                self.stage_plan[self.current_stage]["battle_plan"][0] = self.battle_plan_uuid_list[
+                    self.battle_plan_box_1P.currentIndex()]
             case "battle_plan_box_2P":
-                self.stage_plan[self.current_stage]["battle_plan"][1] = self.battle_plan_uuid_list[self.battle_plan_box_2P.currentIndex()]
+                self.stage_plan[self.current_stage]["battle_plan"][1] = self.battle_plan_uuid_list[
+                    self.battle_plan_box_2P.currentIndex()]
         # 刷新战斗方案选择框
         self.refresh_battle_plan_selector()
+        # 去除和default相同的配置
+        self.remove_same_as_default()
         # 实时存储
         self.save_stage_plan()
-
-
 
     def init_state_ui(self):
         """
@@ -183,14 +192,12 @@ class QMWEditorOfStagePlan(QMainWindow):
         """
         # 屏蔽所有状态改变信号
         self.skip_check.blockSignals(True)
-        self.deck_box_1P.blockSignals(True)
-        self.deck_box_2P.blockSignals(True)
+        self.deck_box.blockSignals(True)
         self.battle_plan_box_1P.blockSignals(True)
         self.battle_plan_box_2P.blockSignals(True)
         # 更新状态
         self.skip_check.setChecked(self.stage_plan[self.current_stage]["skip"])
-        self.deck_box_1P.setCurrentIndex(self.stage_plan[self.current_stage]["deck"][0] - 1)
-        self.deck_box_2P.setCurrentIndex(self.stage_plan[self.current_stage]["deck"][1] - 1)
+        self.deck_box.setCurrentIndex(self.stage_plan[self.current_stage]["deck"])
         # 尝试获取当前任务的战斗方案
         try:
             index = self.battle_plan_uuid_list.index(self.stage_plan[self.current_stage]["battle_plan"][0])
@@ -204,10 +211,20 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.battle_plan_box_2P.setCurrentIndex(index)
         # 恢复信号
         self.skip_check.blockSignals(False)
-        self.deck_box_1P.blockSignals(False)
-        self.deck_box_2P.blockSignals(False)
+        self.deck_box.blockSignals(False)
         self.battle_plan_box_1P.blockSignals(False)
         self.battle_plan_box_2P.blockSignals(False)
+
+    def remove_same_as_default(self):
+        """
+        去除和default相同的配置 不保存
+        """
+        # 收集需要删除的键
+        keys_to_remove = [k for k, v in self.stage_plan.items() if v == self.default_set]
+
+        # 删除收集到的键
+        for k in keys_to_remove:
+            self.stage_plan.pop(k)
 
     def save_stage_plan(self):
         """
@@ -215,3 +232,12 @@ class QMWEditorOfStagePlan(QMainWindow):
         """
         with open(self.stage_plan_path, 'w', encoding='utf-8') as f:
             json.dump(self.stage_plan, f, ensure_ascii=False, indent=4)
+
+    def set_input_widget_usable(self, state):
+        """
+        更改输入的状态, 使之可用和不可用
+        """
+        self.skip_check.setEnabled(state)
+        self.deck_box.setEnabled(state)
+        self.battle_plan_box_1P.setEnabled(state)
+        self.battle_plan_box_2P.setEnabled(state)
