@@ -298,9 +298,9 @@ def loop_match_p_in_w(
         :param template: 目标图片. 路径或数组.
         :param template_mask: 可选: 目标图片掩模, 为None则不启用.
         :param match_tolerance: 可选: 自定捕捉准确度阈值 0-1, 默认0.95
-        :param match_interval: 可选: 自定捕捉图片的间隔, 默认0.2, 单位秒. 不采用系统时钟, 而是直接加算.
+        :param match_interval: 可选: 自定捕捉图片的间隔, 默认0.2, 单位秒. 不采用系统时钟, 而是直接加算. 填0会导致无限查找不终止直到找到.
         :param match_failed_check: 可选: 自定捕捉图片时间限制, 超时输出False. 默认10, 单位秒. 流程上会先识图, 识图失败加算时间判定超时, 故此处为0仍会识图1次.
-        :param after_sleep: 找到图 / 点击后(如果点击) / 复核(如果复核) 后的休眠时间
+        :param after_sleep: 找到图 / 失败后 / 点击后(如果点击) / 复核(如果复核) 后的休眠时间
         :param click: 是否点一下
         :param click_handle: 是否启用不一样的点击句柄
         :param after_click_template: 点击后进行检查, 若能找到该图片, 视为无效, 不输出True, 继承前者的 tolerance interval
@@ -327,6 +327,7 @@ def loop_match_p_in_w(
             time.sleep(match_interval)
             spend_time += match_interval
             if spend_time > match_failed_check:
+                time.sleep(after_sleep)
                 return False
 
     if not click:
@@ -359,6 +360,7 @@ def loop_match_p_in_w(
             time.sleep(match_interval)
             spend_time += match_interval
             if spend_time > match_failed_check:
+                time.sleep(after_sleep)
                 return False
 
     time.sleep(after_sleep)
