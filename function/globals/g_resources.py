@@ -9,6 +9,7 @@ from function.globals.get_paths import PATHS
 
 
 def im_read(img_path):
+
     # 读取图像，处理中文路径
     img = cv2.imdecode(np.fromfile(img_path, dtype=np.uint8), -1)
 
