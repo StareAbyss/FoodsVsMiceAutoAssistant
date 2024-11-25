@@ -715,14 +715,19 @@ class FAA:
         # 跳转到对应界面
         if mode == "公会任务":
             self.action_bottom_menu(mode="跳转_公会任务")
+
             # 点一下 让左边的选中任务颜色消失
             loop_match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["quest_guild"]["ui_quest_list.png"],
-                after_sleep=0.2,
+                after_sleep=5.0,
                 click=True)
+
+            # 向下拖一下
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=415, y=505)
+            time.sleep(1.0)
 
         if mode == "情侣任务":
             self.action_bottom_menu(mode="跳转_情侣任务")
@@ -734,38 +739,47 @@ class FAA:
         quest_list = []
         if mode == "公会任务":
 
-            for i in [1, 2, 3, 4, 5, 6, 7]:
-                for quest, img in RESOURCE_P["quest_guild"][str(i)].items():
+            for i in [1, 2, 3, 4, 5, 6, 7, 10, 11]:
+                for quest_text, img in RESOURCE_P["quest_guild"][str(i)].items():
                     # 找到任务 加入任务列表
                     find_p = match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
-                        source_range=[100, 125, 410, 500],
+                        source_range=[125, 180, 407, 540],
                         template=img,
                         match_tolerance=0.995)
                     if find_p:
 
-                        quest_card = "None"  # 任务携带卡片默认为None
+                        quest_card = None  # 任务携带卡片默认为None
+                        ban_card_list = []
 
-                        # 处理解析字符串
-                        quest = quest.split(".")[0]  # 去除.png
-                        num_of_line = quest.count("_")  # 分割
-                        if num_of_line == 0:
-                            stage_id = quest
-                        else:
-                            my_list = quest.split("_")
-                            stage_id = my_list[0]
-                            if num_of_line == 1:
-                                if not my_list[1].isdigit():
-                                    quest_card = my_list[1]
-                            elif num_of_line == 2:
-                                quest_card = my_list[2]
+                        # 处理解析字符串 格式 "关卡id" + "_附加词条"
+                        # 附加词条包括
+                        # 带卡 "带#卡片名称"
+                        # 禁卡 "禁#卡片1,卡片2..."
+                        # 同名后缀不会被识别 "小写字母"
+                        quest_text = quest_text.split(".")[0]  # 去除.png
+                        quest_split_list = quest_text.split("_")  # 分割
+
+                        # # 是否启用分支作战, 以分别进行ban卡
+                        # find_ban_batch = False
+
+                        stage_id = quest_split_list[0]
+                        for one_split in quest_split_list:
+                            if "带#" in one_split:
+                                quest_card = one_split.split("#")[1]
+                            if "禁#" in one_split:
+                                ban_card_list = one_split.split("#")[1].split(",")
+                            # if "禁分#" in one_split:
+                            #     ban_card_list = one_split.split("#")[1].split(",")
+                            #     find_ban_batch = True
 
                         # 如果不打 跳过
                         if stage_id.split("-")[0] == "CS" and (not qg_cs):
                             continue
 
                         # 添加到任务列表
+                        # if not find_ban_batch:
                         quest_list.append(
                             {
                                 "stage_id": stage_id,
@@ -778,9 +792,10 @@ class FAA:
                                     "last_time_player_a": ["竞技岛"],
                                     "last_time_player_b": ["竞技岛"]
                                 },
-                                "deck": None,  # 外部输入
                                 "quest_card": quest_card,
-                                "ban_card_list": [],
+                                "ban_card_list": ban_card_list,
+                                "global_plan_active": None,  # 外部输入
+                                "deck": None,  # 外部输入
                                 "battle_plan_1p": None,  # 外部输入
                                 "battle_plan_2p": None,  # 外部输入
                             }
@@ -798,7 +813,7 @@ class FAA:
                     match_tolerance=0.999)
                 if find_p:
                     # 遍历任务
-                    for quest, img in RESOURCE_P["quest_spouse"][i].items():
+                    for quest_text, img in RESOURCE_P["quest_spouse"][i].items():
                         # 找到任务 加入任务列表
                         find_p = match_p_in_w(
                             source_handle=self.handle,
@@ -809,7 +824,7 @@ class FAA:
                         if find_p:
                             quest_list.append(
                                 {
-                                    "stage_id": quest.split(".")[0],  # 去掉.png
+                                    "stage_id": quest_text.split(".")[0],  # 去掉.png
                                     "player": [2, 1],
                                     "need_key": True,
                                     "max_times": 1,
@@ -819,9 +834,10 @@ class FAA:
                                         "last_time_player_a": ["竞技岛"],
                                         "last_time_player_b": ["竞技岛"]
                                     },
-                                    "deck": None,  # 外部输入
-                                    "quest_card": "None",
+                                    "quest_card": None,
                                     "ban_card_list": [],
+                                    "global_plan_active": None,  # 外部输入
+                                    "deck": None,  # 外部输入
                                     "battle_plan_1p": None,  # 外部输入
                                     "battle_plan_2p": None,  # 外部输入
                                 }
@@ -833,7 +849,7 @@ class FAA:
                 # 先移动到新的一页
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=y_dict[i])
                 time.sleep(0.1)
-                for quest, img in RESOURCE_P["quest_food"].items():
+                for quest_text, img in RESOURCE_P["quest_food"].items():
                     find_p = match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
@@ -843,8 +859,8 @@ class FAA:
 
                     if find_p:
                         # 处理解析字符串 格式
-                        quest = quest.split(".")[0]  # 去除.png
-                        battle_sets = quest.split("_")  # 根据_符号 拆成list
+                        quest_text = quest_text.split(".")[0]  # 去除.png
+                        battle_sets = quest_text.split("_")  # 根据_符号 拆成list
 
                         # 打什么关卡 文件中: 关卡名称
                         stage_id = battle_sets[0]
@@ -856,7 +872,7 @@ class FAA:
                         need_key = bool(battle_sets[2])
 
                         # 任务卡: "None" or 其他
-                        quest_card = battle_sets[3]
+                        quest_card = None if battle_sets[3] == "None" else battle_sets[3]
 
                         # Ban卡表: "None" or 其他, 多个值用逗号分割
                         ban_card_list = battle_sets[4].split(",")
