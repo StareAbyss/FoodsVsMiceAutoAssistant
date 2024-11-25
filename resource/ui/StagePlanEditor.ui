@@ -169,12 +169,12 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>1P战斗方案</string>
+         <string>1P 战斗方案</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="battle_plan_box_2P">
+       <widget class="QComboBox" name="battle_plan_box_1P">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -214,12 +214,12 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>2P战斗方案</string>
+         <string>2P 战斗方案</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="battle_plan_box_1P">
+       <widget class="QComboBox" name="battle_plan_box_2P">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>

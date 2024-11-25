@@ -1126,7 +1126,7 @@ class ThreadTodo(QThread):
             if not plan:
                 plan = {
                     "skip": False,
-                    "deck": 1,
+                    "deck": 0,
                     "battle_plan": [
                         "00000000-0000-0000-0000-000000000000",
                         "00000000-0000-0000-0000-000000000001"]}
@@ -1144,8 +1144,8 @@ class ThreadTodo(QThread):
             stage_plan_by_id = get_stage_plan_by_id()
             skip = stage_plan_by_id["skip"]
             deck = stage_plan_by_id["deck"]
-            battle_plan_1p = stage_plan_by_id["battle_plan"][pid_a - 1]
-            battle_plan_2p = stage_plan_by_id["battle_plan"][pid_b - 1]
+            battle_plan_1p = stage_plan_by_id["battle_plan"][0]
+            battle_plan_2p = stage_plan_by_id["battle_plan"][1]
 
         faa_a, faa_b = self.faa_dict[pid_a], self.faa_dict[pid_b]
         battle_plan_a = battle_plan_1p if pid_a == 1 else battle_plan_2p
@@ -1643,9 +1643,10 @@ class ThreadTodo(QThread):
 
         for i in quest_list:
             SIGNAL.PRINT_TO_UI.emit(
-                text="副本:{},额外带卡:{}".format(
+                text="副本:{}, 带卡:{}, 禁卡:{}".format(
                     i["stage_id"],
-                    i["quest_card"]))
+                    i["quest_card"],
+                    i["ban_card_list"]))
 
         for i in range(len(quest_list)):
             quest_list[i]["global_plan_active"] = global_plan_active
@@ -2326,16 +2327,15 @@ class ThreadTodo(QThread):
         if need_reload:
             self.batch_reload_game()
 
-        my_opt = c_opt["quest_guild"]
-        if my_opt["active"]:
+        if c_opt["quest_guild"]["active"]:
             self.guild_or_spouse_quest(
                 title_text="公会任务",
                 quest_mode="公会任务",
-                global_plan_active=my_opt["global_plan_active"],
-                deck=my_opt["deck"],
-                battle_plan_1p=my_opt["battle_plan_1p"],
-                battle_plan_2p=my_opt["battle_plan_2p"],
-                stage=my_opt["stage"])
+                global_plan_active=c_opt["quest_guild"]["global_plan_active"],
+                deck=c_opt["quest_guild"]["deck"],
+                battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
+                battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"],
+                stage=c_opt["quest_guild"]["stage"])
 
         if c_opt["guild_dungeon"]["active"]:
             self.guild_dungeon(
