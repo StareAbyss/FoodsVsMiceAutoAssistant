@@ -1,0 +1,247 @@
+{
+    "player": [
+        "4-3",
+        "4-5"
+    ],
+    "card": {
+        "default": [
+            {
+                "id": 5,
+                "name": "棕榈吹风机",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "1-3",
+                    "1-5"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 1,
+                "name": "海星",
+                "ergodic": true,
+                "queue": false,
+                "kun": 0,
+                "location": [
+                    "2-4",
+                    "3-4",
+                    "4-4",
+                    "5-4",
+                    "6-4",
+                    "6-3",
+                    "6-5",
+                    "7-3",
+                    "7-5",
+                    "8-4",
+                    "8-3",
+                    "8-5",
+                    "8-6"
+                ]
+            },
+            {
+                "id": 2,
+                "name": "反弹",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "1-4",
+                    "2-3",
+                    "2-5"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 3,
+                "name": "散点追踪",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "4-1",
+                    "4-7",
+                    "1-1",
+                    "1-7",
+                    "5-2",
+                    "5-7",
+                    "5-3",
+                    "5-5"
+                ],
+                "kun": 1
+            },
+            {
+                "id": 4,
+                "name": "护罩",
+                "ergodic": true,
+                "queue": false,
+                "kun": 0,
+                "location": [
+                    "4-6",
+                    "4-1",
+                    "5-2",
+                    "5-7",
+                    "8-4",
+                    "8-3",
+                    "8-5",
+                    "8-6"
+                ]
+            }
+        ],
+        "wave": {
+            "9": [
+                {
+                    "id": 5,
+                    "name": "棕榈吹风机",
+                    "ergodic": true,
+                    "queue": false,
+                    "location": [
+                        "2-3",
+                        "2-5"
+                    ],
+                    "kun": 0
+                },
+                {
+                    "id": 1,
+                    "name": "海星",
+                    "ergodic": true,
+                    "queue": false,
+                    "kun": 0,
+                    "location": [
+                        "1-4",
+                        "1-3",
+                        "1-5",
+                        "1-2",
+                        "1-6",
+                        "2-4",
+                        "3-4",
+                        "4-4",
+                        "5-4",
+                        "6-4",
+                        "6-3",
+                        "6-5",
+                        "7-3",
+                        "7-5",
+                        "8-4",
+                        "8-3",
+                        "8-5",
+                        "8-6"
+                    ]
+                },
+                {
+                    "id": 2,
+                    "name": "反弹",
+                    "ergodic": true,
+                    "queue": false,
+                    "location": [
+                        "1-1",
+                        "1-7"
+                    ],
+                    "kun": 0
+                },
+                {
+                    "id": 3,
+                    "name": "散点追踪",
+                    "ergodic": true,
+                    "queue": false,
+                    "location": [
+                        "4-1",
+                        "4-7",
+                        "5-2",
+                        "5-7",
+                        "5-3",
+                        "5-5"
+                    ],
+                    "kun": 1
+                },
+                {
+                    "id": 4,
+                    "name": "护罩",
+                    "ergodic": true,
+                    "queue": false,
+                    "kun": 0,
+                    "location": [
+                        "4-6",
+                        "4-1",
+                        "5-2",
+                        "5-7",
+                        "8-4",
+                        "8-3",
+                        "8-5",
+                        "8-6"
+                    ]
+                }
+            ],
+            "7": [
+                {
+                    "id": 5,
+                    "name": "棕榈吹风机",
+                    "ergodic": true,
+                    "queue": false,
+                    "location": [
+                        "1-3",
+                        "1-5"
+                    ],
+                    "kun": 0
+                },
+                {
+                    "id": 1,
+                    "name": "海星",
+                    "ergodic": true,
+                    "queue": false,
+                    "kun": 0,
+                    "location": [
+                        "6-4",
+                        "6-3",
+                        "6-5",
+                        "7-3",
+                        "7-5",
+                        "8-4",
+                        "8-3",
+                        "8-5",
+                        "8-6"
+                    ]
+                },
+                {
+                    "id": 2,
+                    "name": "反弹",
+                    "ergodic": true,
+                    "queue": false,
+                    "location": [],
+                    "kun": 0
+                },
+                {
+                    "id": 3,
+                    "name": "散点追踪",
+                    "ergodic": true,
+                    "queue": false,
+                    "location": [
+                        "4-1",
+                        "4-7",
+                        "1-1",
+                        "1-7",
+                        "5-2",
+                        "5-7"
+                    ],
+                    "kun": 1
+                },
+                {
+                    "id": 4,
+                    "name": "护罩",
+                    "ergodic": true,
+                    "queue": false,
+                    "kun": 0,
+                    "location": [
+                        "4-6",
+                        "4-1",
+                        "5-2",
+                        "5-7",
+                        "8-4",
+                        "8-3",
+                        "8-5",
+                        "8-6"
+                    ]
+                }
+            ]
+        }
+    },
+    "tips": "请查看1P说明",
+    "uuid": "c99162ca-8686-11ef-b9f2-f44efc5bf671"
+}
