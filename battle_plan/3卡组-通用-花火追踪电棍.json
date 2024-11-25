@@ -56,7 +56,7 @@
             },
             {
                 "id": 5,
-                "name": "追踪",
+                "name": "散点追踪",
                 "ergodic": true,
                 "queue": false,
                 "kun": 3,
@@ -92,7 +92,7 @@
             },
             {
                 "id": 4,
-                "name": "瓜皮",
+                "name": "护罩",
                 "ergodic": true,
                 "queue": false,
                 "kun": 0,
@@ -129,7 +129,7 @@
             },
             {
                 "id": 3,
-                "name": "追踪增幅",
+                "name": "散点增幅",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -165,7 +165,7 @@
             },
             {
                 "id": 8,
-                "name": "电棍",
+                "name": "雷电长棍面包",
                 "ergodic": true,
                 "queue": false,
                 "location": [

@@ -28,7 +28,7 @@
             {
                 "id": 6,
                 "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
-                "name": "清明粿",
+                "name": "肉松清明粿",
                 "ergodic": true,
                 "queue": true,
                 "location": [
@@ -113,7 +113,7 @@
             },
             {
                 "id": 5,
-                "name": "追踪",
+                "name": "散点追踪",
                 "ergodic": true,
                 "queue": true,
                 "location": [
@@ -156,7 +156,7 @@
             {
                 "id": 3,
                 "tips": "糖葫芦",
-                "name": "追踪增幅",
+                "name": "散点增幅",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -184,7 +184,7 @@
             },
             {
                 "id": 10,
-                "name": "电棍",
+                "name": "雷电长棍面包",
                 "ergodic": true,
                 "queue": false,
                 "location": [

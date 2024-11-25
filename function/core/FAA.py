@@ -1832,7 +1832,7 @@ class FAA:
         # 打开背包
         self.print_debug(text="打开背包")
         self.action_bottom_menu(mode="背包")
-        SIGNAL.PRINT_TO_UI.emit(text=f"[使用绑定消耗品] [{self.player}P] 背包图标可能需要加载, 等待10s")
+        SIGNAL.PRINT_TO_UI.emit(text=f"[使用绑定消耗品] [{self.player}P] [装备栏] 图标需要加载, 等待10s")
         time.sleep(10)
 
         # 8次查找 7次下拉 查找所有正确图标 不需要升到最顶, 打开背包会自动重置
@@ -2054,7 +2054,7 @@ class FAA:
             self.print_debug(text="打开背包")
             self.action_bottom_menu(mode="背包")
             if self.player == 1:
-                SIGNAL.PRINT_TO_UI.emit(text=f"[使用双暴卡] [{self.player}P] 背包图标可能需要加载, 等待10s")
+                SIGNAL.PRINT_TO_UI.emit(text=f"[使用双暴卡] [{self.player}P] [装备栏] 图标需要加载, 等待10s")
             time.sleep(10)
 
             loop_use_double_card()
@@ -2073,8 +2073,7 @@ class FAA:
 
         # 打开背包
         self.action_bottom_menu(mode="背包")
-        SIGNAL.PRINT_TO_UI.emit(text=f"[输入二级密码] [{self.player}P] 背包图标可能需要加载, 等待10s")
-        time.sleep(10)
+        time.sleep(5)
 
         # 卸下主武器
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=210, y=445)
@@ -2173,14 +2172,14 @@ class FAA:
         # 打开背包
         self.print_debug(text="打开背包")
         self.action_bottom_menu(mode="背包")
-        SIGNAL.PRINT_TO_UI.emit(text=f"[删除物品] [{self.player}P] 背包图标可能需要加载, 等待10s")
+        SIGNAL.PRINT_TO_UI.emit(text=f"[删除物品] [{self.player}P] [装备栏] 图标需要加载, 等待10s")
         time.sleep(10)
 
         # 点击到物品栏目
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=777, y=65)
         time.sleep(1)
 
-        SIGNAL.PRINT_TO_UI.emit(text=f"[删除物品] [{self.player}P] 背包图标可能需要加载, 等待10s")
+        SIGNAL.PRINT_TO_UI.emit(text=f"[删除物品] [{self.player}P] [道具栏] 图标需要加载, 等待10s")
         time.sleep(10)
 
         # 点击整理物品按钮

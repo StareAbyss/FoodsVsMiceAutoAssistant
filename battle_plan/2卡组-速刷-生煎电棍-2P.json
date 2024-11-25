@@ -12,7 +12,7 @@
         "default": [
             {
                 "id": 1,
-                "name": "小火炉",
+                "name": "产火",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -25,11 +25,12 @@
                     "3-1",
                     "3-2",
                     "3-3"
-                ]
+                ],
+                "kun": 0
             },
             {
                 "id": 2,
-                "name": "生煎",
+                "name": "灰烬投手",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -66,8 +67,8 @@
                 "kun": 1
             },
             {
-                "id": 8,
-                "name": "雷棍",
+                "id": 7,
+                "name": "雷电长棍面包",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -101,7 +102,7 @@
             },
             {
                 "id": 4,
-                "name": "瓜皮",
+                "name": "护罩",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -117,7 +118,7 @@
             },
             {
                 "id": 6,
-                "name": "油灯",
+                "name": "照明",
                 "ergodic": true,
                 "queue": false,
                 "location": [

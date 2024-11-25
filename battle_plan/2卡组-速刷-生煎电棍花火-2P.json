@@ -1,5 +1,5 @@
 {
-    "tips": "不产火 不防空的小号\n如果对地已经使用了对地散点追踪(例:冷萃机)替代狮子座精灵, 防漏追踪卡可以改用糖葫芦~",
+    "tips": "Q: 为什么给花火龙分配了四格\nA: 因为部分地图有障碍, 四个格子可以保证花火龙一定能有至少两个格子放置\n\n对地仅支持散点追踪, 效果比狮子座更佳! 例如: 冷萃机/冰晶龙\n2p 只摆 下排电棍 照明 灰烬投手 护罩",
     "player": [
         "7-4",
         "6-4",
@@ -12,15 +12,7 @@
         "default": [
             {
                 "id": 1,
-                "name": "任意卡占位",
-                "ergodic": true,
-                "queue": false,
-                "location": [],
-                "kun": 0
-            },
-            {
-                "id": 2,
-                "name": "生煎",
+                "name": "灰烬投手",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -40,6 +32,8 @@
                     "5-5",
                     "5-1",
                     "5-7",
+                    "6-3",
+                    "6-5",
                     "6-1",
                     "6-7",
                     "7-3",
@@ -56,59 +50,27 @@
                     "4-1",
                     "4-7",
                     "9-4",
-                    "9-3",
-                    "9-5",
                     "9-2",
-                    "9-6"
+                    "9-6",
+                    "9-3",
+                    "9-5"
                 ],
                 "kun": 1
             },
             {
-                "id": 8,
-                "name": "电棍",
+                "id": 4,
+                "name": "雷电长棍面包",
                 "ergodic": true,
                 "queue": false,
                 "location": [
-                    "8-1",
-                    "9-1",
                     "8-7",
                     "9-7"
                 ],
                 "kun": 2
             },
             {
-                "id": 7,
-                "name": "任意卡占位",
-                "ergodic": true,
-                "queue": false,
-                "location": [],
-                "kun": 0
-            },
-            {
-                "id": 5,
-                "name": "对地",
-                "ergodic": true,
-                "queue": true,
-                "location": [
-                    "6-3",
-                    "6-5"
-                ],
-                "kun": 0
-            },
-            {
-                "id": 3,
-                "name": "追踪防漏卡",
-                "ergodic": true,
-                "queue": false,
-                "location": [
-                    "2-1",
-                    "2-7"
-                ],
-                "kun": 0
-            },
-            {
-                "id": 4,
-                "name": "瓜皮",
+                "id": 2,
+                "name": "护罩",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -123,8 +85,8 @@
                 "kun": 0
             },
             {
-                "id": 6,
-                "name": "油灯",
+                "id": 3,
+                "name": "照明",
                 "ergodic": true,
                 "queue": false,
                 "location": [

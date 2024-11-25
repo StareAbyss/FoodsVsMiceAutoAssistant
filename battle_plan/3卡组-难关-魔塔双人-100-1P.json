@@ -18,7 +18,7 @@
             },
             {
                 "id": 5,
-                "name": "追踪",
+                "name": "散点追踪",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -82,7 +82,7 @@
             },
             {
                 "id": 3,
-                "name": "追踪拐",
+                "name": "散点增幅",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -93,7 +93,7 @@
             },
             {
                 "id": 4,
-                "name": "瓜皮",
+                "name": "护罩",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -110,7 +110,7 @@
             {
                 "id": 6,
                 "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
-                "name": "清明粿",
+                "name": "驻场炸弹a",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -123,7 +123,7 @@
             {
                 "id": 8,
                 "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
-                "name": "驻场炸弹 a",
+                "name": "驻场炸弹b",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -136,7 +136,7 @@
             {
                 "id": 9,
                 "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
-                "name": "驻场炸弹 b",
+                "name": "驻场炸弹c",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -148,7 +148,7 @@
             },
             {
                 "id": 10,
-                "name": "电棍",
+                "name": "雷电长棍面包",
                 "ergodic": true,
                 "queue": false,
                 "location": [
