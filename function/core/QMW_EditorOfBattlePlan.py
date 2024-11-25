@@ -334,6 +334,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.setWindowTitle('FAA - 战斗方案编辑器')
         # 设置窗口图标
         self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetTuo-192x.png"))
+        # 设定窗口初始大小 否则将无法自动对齐到上级窗口中心
+        self.resize(1250, 990)
 
     def input_widget_lock(self, mode: bool):
         """

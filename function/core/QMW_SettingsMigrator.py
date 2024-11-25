@@ -12,7 +12,9 @@ class QMWSettingsMigrator(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("配置迁移工具")
-        self.setGeometry(100, 100, 300, 400)
+
+        # 设定窗口初始大小 否则将无法自动对齐到上级窗口中心
+        self.resize(1025, 435)
 
         # 需要迁移的配置项 的 名称, 和可能存在的位置.
         self.configs = [
