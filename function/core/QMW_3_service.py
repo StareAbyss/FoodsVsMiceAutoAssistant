@@ -173,7 +173,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 设置表格基础属性
         self.GuildMemberInfoTable.setColumnCount(7)
-        self.GuildMemberInfoTable.setHorizontalHeaderLabels(['成员', '贡献', '天', '周', '月', '年', '上次更新'])
+        self.GuildMemberInfoTable.setHorizontalHeaderLabels(['成员', '总贡(扫描)', '天', '周(扫描)', '月', '年', '上次更新'])
 
         # 调整行高
         self.GuildMemberInfoTable.verticalHeader().setDefaultSectionSize(40)
@@ -244,7 +244,7 @@ class QMainWindowService(QMainWindowLoadSettings):
             if value < 0:
                 qtw_item.setData(
                     QtCore.Qt.ItemDataRole.DisplayRole,
-                    0)
+                    "Ø")  # 找不到的默认值
             else:
                 qtw_item.setData(
                     QtCore.Qt.ItemDataRole.DisplayRole,
@@ -266,8 +266,11 @@ class QMainWindowService(QMainWindowLoadSettings):
             member_data = member.get('data', {})
             member_data_week = member.get('data_week', {})
 
-            # 刷新第二列数据（当天贡献）
+            # 刷新第二列数据（当天扫描到的 贡献总值）
             today_contribution = member_data.get(selected_date.toString('yyyy-MM-dd'), -1)
+            if today_contribution < 0:
+                # 不展示今天压根不存在的数据
+                continue
             add_data_widget_into_table(value=today_contribution, row=row_position, col=1)
 
             # 刷新第三列数据（昨天到今天的变化值）
