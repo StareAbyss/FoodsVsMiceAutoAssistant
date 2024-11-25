@@ -769,19 +769,19 @@ class ThreadTodo(QThread):
         result_drop_by_dict = {}  # {pid:{"loots":{"item":count,...},"chest":{"item":count,...}},...}
         result_spend_time = 0
 
-        """同时进行战前准备"""
+        """检测是否成功进入房间"""
         if result_id == 0:
 
             # 创建并开始线程
             self.thread_1p = ThreadWithException(
-                target=self.faa_dict[player_a].object_battle_a_round_preparation.pre_battle_prep,
+                target=self.faa_dict[player_a].obj_battle_preparation.pre_battle_prep,
                 name="{}P Thread - 战前准备".format(player_a),
                 kwargs={})
             self.thread_1p.daemon = True
             self.thread_1p.start()
             if is_group:
                 self.thread_2p = ThreadWithException(
-                    target=self.faa_dict[player_b].object_battle_a_round_preparation.pre_battle_prep,
+                    target=self.faa_dict[player_b].obj_battle_preparation.pre_battle_prep,
                     name="{}P Thread - 战前准备".format(player_b),
                     kwargs={})
                 self.thread_2p.daemon = True
@@ -803,14 +803,14 @@ class ThreadTodo(QThread):
             # 创建并开始线程 注意 玩家B 是非房主 需要先开始
             if is_group:
                 self.thread_2p = ThreadWithException(
-                    target=self.faa_dict[player_b].object_battle_a_round_preparation.start_and_ensure_entry,
+                    target=self.faa_dict[player_b].obj_battle_preparation.start_and_ensure_entry,
                     name="{}P Thread - 进入游戏".format(player_b),
                     kwargs={})
                 self.thread_2p.daemon = True
                 self.thread_2p.start()
                 time.sleep(2)
             self.thread_1p = ThreadWithException(
-                target=self.faa_dict[player_a].object_battle_a_round_preparation.start_and_ensure_entry,
+                target=self.faa_dict[player_a].obj_battle_preparation.start_and_ensure_entry,
                 name="{}P Thread - 进入游戏".format(player_a),
                 kwargs={})
             self.thread_1p.daemon = True
