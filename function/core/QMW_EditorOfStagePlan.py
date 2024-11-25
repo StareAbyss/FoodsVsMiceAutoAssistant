@@ -56,8 +56,10 @@ class QMWEditorOfStagePlan(QMainWindow):
         # 默认值, 读取为空显示默认值, 保存为默认值去掉对应值
         self.default_set = {
             "skip": False,
-            "deck": 1,
-            "battle_plan": [0, 1]
+            "deck": 0,
+            "battle_plan": [
+                "00000000-0000-0000-0000-000000000000",
+                "00000000-0000-0000-0000-000000000001"]
         }
 
         # 将所有input控件设为不可用

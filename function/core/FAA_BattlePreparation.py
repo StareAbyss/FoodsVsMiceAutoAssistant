@@ -201,12 +201,12 @@ class BattlePreparation:
                     if find:
                         found_card = True
                         break
-                else:
-                    if i == 20:
-                        break
-                    # 仅还没找到继续下滑
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=400)
-                    time.sleep(0.1)
+
+                if i == 20:
+                    break
+                # 仅还没找到继续下滑
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=400)
+                time.sleep(0.1)
 
             if found_card:
                 return True
@@ -230,6 +230,52 @@ class BattlePreparation:
         for card_name in card_name_list:
             precise_names = self._card_name_to_tar_list(card_name=card_name)
             all_cards_precise_names.append(precise_names)
+
+        def add_quest_card():
+            """
+            再展开 任务卡 查看任务卡是否已经存在于卡组中
+            如果在 则将faa的任务卡变回None 并修改可用的精准名称 确保携带正确的变种卡片
+            如果不在 则添加这张卡 并要求带卡必须成功
+            这里的逻辑还有一些极端状态下的小问题 但应该不影响使用
+            """
+
+            # 使用的上级变量包括
+            # all_cards_precise_names
+            # can_failed_list
+
+            if self.faa.quest_card is None or self.faa.quest_card == "None":
+                return
+
+            qc_precise_names = self._card_name_to_tar_list(card_name=copy.deepcopy(self.faa.quest_card))
+            qc_precise_in_plan_names = []
+            for precise_names in all_cards_precise_names:
+                for precise_name in precise_names:
+                    if precise_name in qc_precise_names:
+                        self.faa.quest_card = None
+                        qc_precise_in_plan_names.append(precise_name)
+
+            for i, precise_names in enumerate(all_cards_precise_names):
+                # 如果一张卡有精准名称属于任务卡的要求 那么 这张卡仅保留符合任务要求的精准名称
+                if any(item in precise_names for item in qc_precise_in_plan_names):
+                    all_cards_precise_names[i] = [pn for pn in precise_names if pn in qc_precise_in_plan_names]
+
+            # 任务卡在战斗方案带卡中找到了~ 结束
+            if qc_precise_in_plan_names:
+                return
+
+            # 插入到第一个 True值的位置 这意味着之后的卡片都不是刚需 没有True默认插入到末尾
+            insert_index = len(can_failed_list)
+            for index, value in enumerate(can_failed_list):
+                if value:
+                    insert_index = index
+                    break
+            # 插入卡片
+            all_cards_precise_names.insert(insert_index, qc_precise_names)
+            # 不允许失败
+            can_failed_list.insert(insert_index, False)
+
+        # 自动带卡版本的 任务卡添加
+        add_quest_card()
 
         # 一轮识别 识别同一张卡的所有精准名称中 哪一个是实际存在且优先级最高的
         scan_card_name_list, scan_card_position_list = self._scan_card(
@@ -466,13 +512,13 @@ class BattlePreparation:
         """
         # 识别出当前关卡名称
         stage_name = screen_get_stage_name(self.faa.handle, self.faa.handle_360)
-        self.faa.print_debug(text=f"当前关卡:{stage_name}")
+        self.faa.print_debug(text=f"关卡名称识别结果: 当前关卡 - {stage_name}")
 
         # 检测关卡名变种，如果符合特定关卡，则修改当前战斗的关卡信息
         self._check_stage_name(stage_name)
 
         # 选择卡组
-        self.faa.print_debug(text="选择卡组, 并开始加入新卡和ban卡")
+        self.faa.print_debug(text=f"选择卡组编号-{self.faa.deck}, 并开始加入新卡和ban卡")
 
         T_ACTION_QUEUE_TIMER.add_click_to_queue(
             handle=self.faa.handle,
