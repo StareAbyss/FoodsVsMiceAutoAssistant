@@ -71,8 +71,10 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 链接todo开始函数
         self.signal_todo_start.connect(self.todo_start)
 
-        # 额外窗口 - 战斗方案编辑器
+        # 额外窗口 - 战斗方案编辑 tip
         self.window_tip_editor_of_battle_plan = QMWTipEditorOfBattlePlan()
+
+        # 额外窗口 - 战斗方案编辑器
         self.window_editor_of_battle_plan = QMWEditorOfBattlePlan(
             func_open_tip=self.click_btn_tip_editor_of_battle_plan)
         self.OpenEditorOfBattlePlan_Button.clicked.connect(self.click_btn_open_editor_of_battle_plan)
