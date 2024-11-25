@@ -94,8 +94,12 @@ class FAAActionQuestReceiveRewards:
                 source_root_handle=handle_360,
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["quest_guild"]["ui_quest_list.png"],
-                after_sleep=0.5,
+                after_sleep=5.0,
                 click=True)
+
+            # 向下拖一下
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=415, y=510)
+            time.sleep(0.5)
 
             # 检查是否有已完成的任务
             result = loop_match_p_in_w(
