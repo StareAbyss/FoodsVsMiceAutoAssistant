@@ -7,7 +7,7 @@
         "default": [
             {
                 "id": 1,
-                "name": "主力产火",
+                "name": "产火",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -18,7 +18,7 @@
             },
             {
                 "id": 2,
-                "name": "炭烧海星",
+                "name": "海星",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -43,7 +43,7 @@
             },
             {
                 "id": 5,
-                "name": "冷萃",
+                "name": "散点追踪",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -80,7 +80,7 @@
             },
             {
                 "id": 3,
-                "name": "追踪增幅",
+                "name": "散点增幅",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -106,7 +106,7 @@
             },
             {
                 "id": 6,
-                "name": "肉松果",
+                "name": "肉松清明粿",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -116,7 +116,7 @@
             },
             {
                 "id": 8,
-                "name": "雷棍",
+                "name": "雷电长棍面包",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -127,7 +127,7 @@
             },
             {
                 "id": 9,
-                "name": "十周年",
+                "name": "10周年烟花",
                 "ergodic": false,
                 "queue": true,
                 "location": [
@@ -137,7 +137,7 @@
             },
             {
                 "id": 11,
-                "name": "冰桶",
+                "name": "冰桶炸弹",
                 "ergodic": false,
                 "queue": true,
                 "location": [

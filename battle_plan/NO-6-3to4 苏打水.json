@@ -8,7 +8,7 @@
         "default": [
             {
                 "id": 1,
-                "name": "小火",
+                "name": "产火",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -64,7 +64,7 @@
             },
             {
                 "id": 6,
-                "name": "冰桶",
+                "name": "冰桶炸弹",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -74,7 +74,7 @@
             },
             {
                 "id": 10,
-                "name": "螃蟹",
+                "name": "香辣年糕蟹",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -158,7 +158,7 @@
             },
             {
                 "id": 5,
-                "name": "冷萃机",
+                "name": "散点追踪",
                 "ergodic": true,
                 "queue": false,
                 "location": [

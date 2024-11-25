@@ -7,7 +7,7 @@
         "default": [
             {
                 "tips": "生产卡",
-                "name": "小火炉",
+                "name": "产火",
                 "ergodic": true,
                 "queue": false,
                 "id": 1,
@@ -21,10 +21,11 @@
                     "3-2",
                     "3-6",
                     "3-7"
-                ]
+                ],
+                "kun": 0
             },
             {
-                "name": "炭烧海星",
+                "name": "海星",
                 "ergodic": true,
                 "queue": false,
                 "id": 2,
@@ -61,10 +62,11 @@
                     "7-7",
                     "8-2",
                     "8-6"
-                ]
+                ],
+                "kun": 1
             },
             {
-                "name": "糖葫芦",
+                "name": "防空",
                 "ergodic": true,
                 "queue": false,
                 "id": 3,
@@ -73,22 +75,27 @@
                     "2-3",
                     "2-5",
                     "2-7"
-                ]
+                ],
+                "kun": 0
             },
             {
-                "name": "冰淇淋",
+                "name": "对地",
                 "ergodic": true,
                 "queue": false,
-                "id": 5,
+                "id": 4,
                 "location": [
-                    "7-4"
-                ]
+                    "7-3",
+                    "7-5",
+                    "8-3",
+                    "8-5"
+                ],
+                "kun": 2
             },
             {
                 "name": "瓜皮护罩",
                 "ergodic": true,
                 "queue": false,
-                "id": 4,
+                "id": 5,
                 "location": [
                     "7-1",
                     "8-2",
@@ -97,32 +104,23 @@
                     "8-5",
                     "8-6",
                     "7-7"
-                ]
-            },
-            {
-                "name": "狮子座",
-                "ergodic": true,
-                "queue": false,
-                "id": 6,
-                "location": [
-                    "7-3",
-                    "7-5",
-                    "8-3",
-                    "8-5"
-                ]
+                ],
+                "kun": 0
             },
             {
                 "name": "海盐粉",
                 "ergodic": true,
                 "queue": true,
-                "id": 7,
+                "id": 6,
                 "location": [
                     "2-2",
                     "2-6"
-                ]
+                ],
+                "kun": 0
             }
         ],
         "wave": {}
     },
-    "uuid": "784dd55c-4175-11ef-8114-f44efc5bf671"
+    "uuid": "784dd55c-4175-11ef-8114-f44efc5bf671",
+    "tips": ""
 }

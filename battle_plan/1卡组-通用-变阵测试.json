@@ -15,7 +15,7 @@
         "default": [
             {
                 "id": 1,
-                "name": "花火龙",
+                "name": "产火",
                 "ergodic": true,
                 "queue": true,
                 "kun": 0,
@@ -28,7 +28,7 @@
             },
             {
                 "id": 2,
-                "name": "炭烧海星",
+                "name": "海星",
                 "ergodic": true,
                 "queue": true,
                 "kun": 2,
@@ -55,7 +55,7 @@
             },
             {
                 "id": 3,
-                "name": "糖葫芦炮弹",
+                "name": "防空",
                 "ergodic": true,
                 "queue": true,
                 "kun": 1,
@@ -70,7 +70,7 @@
             },
             {
                 "id": 4,
-                "name": "瓜皮护罩",
+                "name": "护罩",
                 "ergodic": true,
                 "queue": false,
                 "kun": 0,
@@ -86,7 +86,7 @@
             },
             {
                 "id": 5,
-                "name": "狮子座精灵",
+                "name": "对地",
                 "ergodic": true,
                 "queue": false,
                 "kun": 0,
@@ -99,7 +99,7 @@
             },
             {
                 "id": 6,
-                "name": "油灯",
+                "name": "照明",
                 "ergodic": true,
                 "queue": false,
                 "kun": 0,
@@ -109,7 +109,7 @@
             },
             {
                 "id": 7,
-                "name": "樱桃反弹布丁",
+                "name": "布丁",
                 "ergodic": true,
                 "queue": false,
                 "kun": 0,

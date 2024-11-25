@@ -6,16 +6,8 @@
     "card": {
         "default": [
             {
-                "id": 1,
-                "name": "占位卡",
-                "ergodic": true,
-                "queue": false,
-                "location": [],
-                "kun": 0
-            },
-            {
-                "id": 5,
-                "name": "追踪",
+                "id": 4,
+                "name": "散点追踪",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -49,7 +41,7 @@
                 "kun": 2
             },
             {
-                "id": 2,
+                "id": 1,
                 "name": "海星",
                 "ergodic": true,
                 "queue": false,
@@ -78,8 +70,8 @@
                 "kun": 1
             },
             {
-                "id": 3,
-                "name": "追踪拐",
+                "id": 2,
+                "name": "散点增幅",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -89,8 +81,8 @@
                 "kun": 0
             },
             {
-                "id": 4,
-                "name": "瓜皮",
+                "id": 3,
+                "name": "护罩",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -105,9 +97,9 @@
                 "kun": 0
             },
             {
-                "id": 6,
+                "id": 5,
                 "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
-                "name": "清明粿",
+                "name": "肉松清明粿",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -118,7 +110,7 @@
                 "kun": 0
             },
             {
-                "id": 8,
+                "id": 7,
                 "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
                 "name": "驻场炸弹 a",
                 "ergodic": true,
@@ -131,7 +123,7 @@
                 "kun": 0
             },
             {
-                "id": 9,
+                "id": 8,
                 "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
                 "name": "驻场炸弹 b",
                 "ergodic": true,
@@ -144,8 +136,8 @@
                 "kun": 0
             },
             {
-                "id": 10,
-                "name": "电棍",
+                "id": 9,
+                "name": "雷电长棍面包",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -155,7 +147,7 @@
                 "kun": 0
             },
             {
-                "id": 7,
+                "id": 6,
                 "name": "布丁",
                 "ergodic": true,
                 "queue": false,
