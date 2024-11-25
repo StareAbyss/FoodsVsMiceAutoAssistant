@@ -774,15 +774,43 @@ class ThreadTodo(QThread):
 
             # 创建并开始线程
             self.thread_1p = ThreadWithException(
-                target=self.faa_dict[player_a].obj_battle_preparation.pre_battle_prep,
+                target=self.faa_dict[player_a].obj_battle_preparation.check_create_room_success,
                 name="{}P Thread - 战前准备".format(player_a),
                 kwargs={})
             self.thread_1p.daemon = True
             self.thread_1p.start()
             if is_group:
                 self.thread_2p = ThreadWithException(
-                    target=self.faa_dict[player_b].obj_battle_preparation.pre_battle_prep,
+                    target=self.faa_dict[player_b].obj_battle_preparation.check_create_room_success,
                     name="{}P Thread - 战前准备".format(player_b),
+                    kwargs={})
+                self.thread_2p.daemon = True
+                self.thread_2p.start()
+
+            # 阻塞进程让进程执行完再继续本循环函数
+            self.thread_1p.join()
+            if is_group:
+                self.thread_2p.join()
+
+            # 获取返回值
+            result_id = max(result_id, self.thread_1p.get_return_value())
+            if is_group:
+                result_id = max(result_id, self.thread_2p.get_return_value())
+
+        """修改卡组"""
+        if result_id == 0:
+
+            # 创建并开始线程
+            self.thread_1p = ThreadWithException(
+                target=self.faa_dict[player_a].obj_battle_preparation.change_deck,
+                name="{}P Thread - 修改卡组".format(player_a),
+                kwargs={})
+            self.thread_1p.daemon = True
+            self.thread_1p.start()
+            if is_group:
+                self.thread_2p = ThreadWithException(
+                    target=self.faa_dict[player_b].obj_battle_preparation.change_deck,
+                    name="{}P Thread - 修改卡组".format(player_b),
                     kwargs={})
                 self.thread_2p.daemon = True
                 self.thread_2p.start()

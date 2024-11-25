@@ -436,22 +436,17 @@ class BattlePreparation:
 
         return sorted_list, can_failed_list
 
-    def pre_battle_prep(self):
+    def check_create_room_success(self):
         """
-        战前准备工作 通常被调用的主要函数
-        :return: 0-正常结束 1-重启本次 2-跳过本次
+        战前准备 确定进入房间
+        :return: 0-正常结束 1-重启本次 2-跳过本次 3-跳过所有次数
         """
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
-        deck = self.faa.deck
-        print_debug = self.faa.print_debug
-        print_warning = self.faa.print_warning
 
         # 循环查找开始按键
-        print_debug(text="寻找开始或准备按钮")
+        self.faa.print_debug(text="寻找开始或准备按钮")
         find = loop_match_p_in_w(
-            source_handle=handle,
-            source_root_handle=handle_360,
+            source_handle=self.faa.handle,
+            source_root_handle=self.faa.handle_360,
             source_range=[796, 413, 950, 485],
             template=RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
             match_interval=1,
@@ -459,40 +454,49 @@ class BattlePreparation:
             after_sleep=0.3,
             click=False)
         if not find:
-            print_warning(text="创建房间后, 10s找不到[开始/准备]字样! 创建房间可能失败!")
+            self.faa.print_warning(text="创建房间后, 10s找不到[开始/准备]字样! 创建房间可能失败!")
             # 2-跳过本次 可能是由于: 服务器抽风无法创建房间 or 点击被吞 or 次数用尽
             return 2
+        return 0
 
+    def change_deck(self):
+        """
+        战前准备 修改卡组
+        :return: 0-正常结束 1-重启本次 2-跳过本次 3-跳过所有次数
+        """
         # 识别出当前关卡名称
-        stage_name = screen_get_stage_name(handle, handle_360)
-        print_debug(text=f"当前关卡:{stage_name}")
+        stage_name = screen_get_stage_name(self.faa.handle, self.faa.handle_360)
+        self.faa.print_debug(text=f"当前关卡:{stage_name}")
 
         # 检测关卡名变种，如果符合特定关卡，则修改当前战斗的关卡信息
-        self.check_stage_name(stage_name)
+        self._check_stage_name(stage_name)
 
         # 选择卡组
-        print_debug(text="选择卡组, 并开始加入新卡和ban卡")
+        self.faa.print_debug(text="选择卡组, 并开始加入新卡和ban卡")
 
         T_ACTION_QUEUE_TIMER.add_click_to_queue(
-            handle=handle,
-            x={1: 425, 2: 523, 3: 588, 4: 666, 5: 756, 6: 837}[deck],
+            handle=self.faa.handle,
+            x={1: 425, 2: 523, 3: 588, 4: 666, 5: 756, 6: 837}[self.faa.deck],
             y=121)
         time.sleep(0.7)
 
-        """寻找并添加任务所需卡片"""
+        """寻找并卡片, 包括自动带卡 / 任务要求的带卡和禁卡"""
 
         if self.faa.auto_carry_card:
 
-            card_name_list, can_failed_list = self.get_card_name_list_from_battle_plan()
-            success = self.add_cards(card_name_list=card_name_list, can_failed_list=can_failed_list)
+            card_name_list, can_failed_list = self._get_card_name_list_from_battle_plan()
+            success = self._add_cards(card_name_list=card_name_list, can_failed_list=can_failed_list)
             # 失败就会直接跳过本关卡全部场次！
             if not success:
                 return 3
 
-        self.add_quest_card()
-        self.remove_ban_card()
+        else:
+            #  任务需求的带卡 在自动带卡中会自动处理, 此处是无自动带卡时的处理
+            self._add_quest_card()
 
-        return 0  # 0-一切顺利
+        self._remove_ban_card()
+
+        return 0
 
     def start_and_ensure_entry(self):
         """开始并确保进入成功"""

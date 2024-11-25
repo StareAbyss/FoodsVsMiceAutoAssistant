@@ -87,13 +87,13 @@ class FAA:
         self.faa_battle = Battle(faa=self)
 
         # 领取奖励实例 基本只调用一个main方法
-        self.object_action_receive_quest_rewards = FAAActionQuestReceiveRewards(faa=self)
+        self.obj_action_receive_quest_rewards = FAAActionQuestReceiveRewards(faa=self)
 
         # 界面跳转实例
-        self.object_action_interface_jump = FAAActionInterfaceJump(faa=self)
+        self.obj_action_interface_jump = FAAActionInterfaceJump(faa=self)
 
         # 战前战后实例 用于实现战斗前的ban卡, 战斗后的战利品图像截取识别 和 判断战斗正确结束
-        self.object_battle_a_round_preparation = BattleARoundPreparation(faa=self)
+        self.obj_battle_preparation = BattlePreparation(faa=self)
 
         # 战斗放卡锁，保证同一时间一个号里边的特殊放卡及正常放卡只有一种放卡在操作
         self.battle_lock = threading.Lock()
@@ -125,23 +125,23 @@ class FAA:
     """界面跳转动作的接口"""
 
     def action_exit(self, mode: str = "None", raw_range=None):
-        return self.object_action_interface_jump.exit(mode=mode, raw_range=raw_range)
+        return self.obj_action_interface_jump.exit(mode=mode, raw_range=raw_range)
 
     def action_top_menu(self, mode: str):
-        return self.object_action_interface_jump.top_menu(mode=mode)
+        return self.obj_action_interface_jump.top_menu(mode=mode)
 
     def action_bottom_menu(self, mode: str):
-        return self.object_action_interface_jump.bottom_menu(mode=mode)
+        return self.obj_action_interface_jump.bottom_menu(mode=mode)
 
     def action_change_activity_list(self, serial_num: int):
-        return self.object_action_interface_jump.change_activity_list(serial_num=serial_num)
+        return self.obj_action_interface_jump.change_activity_list(serial_num=serial_num)
 
     def action_goto_map(self, map_id):
-        return self.object_action_interface_jump.goto_map(map_id=map_id)
+        return self.obj_action_interface_jump.goto_map(map_id=map_id)
 
     def action_goto_stage(self, mt_first_time: bool = False):
         try:
-            return self.object_action_interface_jump.goto_stage(mt_first_time=mt_first_time)
+            return self.obj_action_interface_jump.goto_stage(mt_first_time=mt_first_time)
         except KeyError as e:
             SIGNAL.PRINT_TO_UI.emit(text="跳转关卡失败，请检查关卡代号是否正确", color_level=1)
             SIGNAL.DIALOG.emit("ERROR", "跳转关卡失败! 请检查关卡代号是否正确")
@@ -191,7 +191,7 @@ class FAA:
 
     def set_config_for_battle(
             self, stage_id="NO-1-1", is_group=False, is_main=True, need_key=True,
-            deck=1, auto_carry_card=False, quest_card="None", ban_card_list=None,
+            deck=1, auto_carry_card=False, quest_card=None, ban_card_list=None,
             battle_plan_uuid="00000000-0000-0000-0000-000000000000") -> None:
         """
         战斗相关参数的re_init
@@ -441,7 +441,7 @@ class FAA:
         def calculation_card_quest(list_cell_all):
             """计算步骤一 加入任务卡的摆放坐标"""
 
-            if quest_card != "None":
+            if (quest_card is not None) and (quest_card != "None"):
 
                 quest_card_locations = [
                     "6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7",
@@ -684,7 +684,7 @@ class FAA:
         输出2 None或者dict, 战利品识别结果 {"loots": [], "chests": []}
         """
 
-        return self.object_battle_a_round_preparation.perform_action_capture_match_for_loots_and_chests()
+        return self.obj_battle_preparation.perform_action_capture_match_for_loots_and_chests()
 
     def battle_a_round_warp_up(self):
 
@@ -693,7 +693,7 @@ class FAA:
         :return: 0-正常结束 1-重启本次 2-跳过本次
         """
 
-        return self.object_battle_a_round_preparation.wrap_up()
+        return self.obj_battle_preparation.wrap_up()
 
     """其他非战斗功能"""
 
@@ -703,7 +703,7 @@ class FAA:
         :param mode: "普通任务" "公会任务" "情侣任务" "悬赏任务" "美食大赛" "大富翁" "营地任务"
         :return: None
         """
-        return self.object_action_receive_quest_rewards.main(mode=mode)
+        return self.obj_action_receive_quest_rewards.main(mode=mode)
 
     def match_quests(self, mode: str, qg_cs=False) -> list:
         """
