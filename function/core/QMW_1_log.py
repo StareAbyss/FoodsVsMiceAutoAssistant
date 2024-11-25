@@ -137,6 +137,9 @@ class QMainWindowLog(QMainWindowLoadUI):
             text="[3] 高星或珍贵不绑卡放储藏室",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
+            text="[4] 鼠标不在游戏内, 不玩有反外挂的游戏",
+            time=False)
+        SIGNAL.PRINT_TO_UI.emit(
             text="",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(

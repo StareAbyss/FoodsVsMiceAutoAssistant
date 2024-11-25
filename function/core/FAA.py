@@ -9,7 +9,7 @@ from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_m
 from function.common.overlay_images import overlay_images
 from function.core.FAA_ActionInterfaceJump import FAAActionInterfaceJump
 from function.core.FAA_ActionQuestReceiveRewards import FAAActionQuestReceiveRewards
-from function.core.FAA_BattleARoundPreparation import BattleARoundPreparation
+from function.core.FAA_BattlePreparation import BattlePreparation
 from function.core_battle.FAA_Battle import Battle
 from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
 from function.globals import g_resources, SIGNAL
