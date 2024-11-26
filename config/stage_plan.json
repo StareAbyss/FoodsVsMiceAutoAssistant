@@ -1,0 +1,42 @@
+{
+    "EX-4-6": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "6ffca359-9872-11ef-889b-f44efc5bf671",
+            "f7c41b8c-9872-11ef-be95-f44efc5bf671"
+        ]
+    },
+    "EX-2-9": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "c990fd49-8686-11ef-a4ab-f44efc5bf671",
+            "c99162ca-8686-11ef-b9f2-f44efc5bf671"
+        ]
+    },
+    "NO-6-6": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "4e0c85ed-aa7b-11ef-985e-c2f2346a1393",
+            "4e0c85ed-aa7b-11ef-985e-c2f2346a1393"
+        ]
+    },
+    "EX-3-5": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "52bddf04-abc1-11ef-90ab-c2f2346a1393",
+            "5eddb255-abc1-11ef-bb84-c2f2346a1393"
+        ]
+    },
+    "NO-6-5": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "d984198b-abca-11ef-9ac0-c2f2346a1393",
+            "d984198b-abca-11ef-9ac0-c2f2346a1393"
+        ]
+    }
+}
