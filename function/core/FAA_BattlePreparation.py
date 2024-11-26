@@ -295,10 +295,15 @@ class BattlePreparation:
             scan_card_name_list, scan_card_position_list))
 
         # 如果不允许失败 提前检查
+        failed_card_list = []
         for index in range(len(can_failed_list)):
             if (scan_card_name_list[index] is None) and (not can_failed_list[index]):
-                self.faa.print_debug(text="[选取卡片] 结束, 结果: 因查找失败中断")
-                return False
+                failed_card_list.append(card_name_list[index])
+
+        if failed_card_list:
+            self.faa.print_debug(text="[选取卡片] 结束, 结果: 因查找失败中断")
+            SIGNAL.PRINT_TO_UI(text=f"[{self.faa.player}P] 缺失必要卡片: {', '.join(failed_card_list)}")
+            return False
 
         for index in range(len(scan_card_name_list)):
             card_name = scan_card_name_list[index]
