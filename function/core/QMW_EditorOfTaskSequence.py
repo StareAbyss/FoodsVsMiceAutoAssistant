@@ -160,12 +160,13 @@ class QMWEditorOfTaskSequence(QMainWindow):
             case '战斗':
                 task["task_args"] = {
                     "stage_id": "NO-1-7",
-                    "deck": 1,
                     "max_times": 1,
-                    "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-                    "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
                     "need_key": True,
                     "player": [2, 1],
+                    "global_plan_active": False,
+                    "deck": 0,
+                    "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+                    "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
                 }
             case '双暴卡':
                 task["task_args"] = {
@@ -289,7 +290,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
             if end_line:
                 # line_layout.addWidget(QCVerticalLine())
-                line_layout.addWidget(QLabel("   "))
+                line_layout.addWidget(QLabel(" "))
 
         def battle(line_layout):
 
@@ -331,53 +332,72 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 w_input.setCurrentIndex(index)
             add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
 
-            # 战斗卡组
+            # 全局关卡方案
+            w_label = QLabel('全局')
+            w_gba_input = QCheckBox()
+            w_gba_input.setObjectName("w_global_plan_active")
+            w_gba_input.setChecked(task["task_args"]["global_plan_active"])
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_gba_input)
+
+            # 战斗卡组 创建控件
             w_label = QLabel('卡组')
-            w_input = QComboBox()
-            w_input.setObjectName("w_deck")
-            for index in ['1', '2', '3', '4', '5', '6']:
-                w_input.addItem(index)
-            index = w_input.findText(str(task["task_args"]["deck"]))
-            if index >= 0:
-                w_input.setCurrentIndex(index)
-            add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
+            w_d_input = QComboBox()
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_d_input)
+
+            # 战斗方案 1P 创建控件
+            w_label = QLabel('1P方案')
+            w_1p_input = QComboBox()
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_1p_input)
+
+            # 战斗方案 2P 创建控件
+            w_label = QLabel('2P方案')
+            w_2p_input = QComboBox()
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_2p_input)
+
+            def toggle_widgets(state, widgets):
+                for widget in widgets:
+                    widget.setEnabled(state == 0)
+
+            w_gba_input.stateChanged.connect(
+                lambda state: toggle_widgets(state, [w_d_input, w_1p_input, w_2p_input]))
+
+            # 初始化一次
+            toggle_widgets(w_gba_input.checkState().value, [w_d_input, w_1p_input, w_2p_input])
+
+            # 战斗卡组 修改数值
+            w_d_input.setObjectName("w_deck")
+            for index in ['自动', '1', '2', '3', '4', '5', '6']:
+                w_d_input.addItem(index)
+            w_d_input.setCurrentIndex(task["task_args"]["deck"])
 
             # 刷新和创建战斗方案的 uuid list 以方便查找对应值
             fresh_and_check_all_battle_plan()
             battle_plan_name_list = get_list_battle_plan(with_extension=False)
             battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
 
-            # 战斗方案 1P
-            w_label = QLabel('1P方案')
-            w_input = QComboBox()
-            w_input.setObjectName("w_battle_plan_1p")
-            w_input.setMaximumWidth(225)
+            # 战斗方案 1P 修改数值
+            w_1p_input.setObjectName("w_battle_plan_1p")
+            w_1p_input.setMaximumWidth(225)
             for index in battle_plan_name_list:
-                w_input.addItem(index)
-            # 设定当前值
+                w_1p_input.addItem(index)
             try:
                 index = battle_plan_uuid_list.index(task["task_args"]["battle_plan_1p"])
             except ValueError:
                 self.could_not_find_battle_plan_uuid = True
                 index = 0
-            w_input.setCurrentIndex(index)
-            add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
+            w_1p_input.setCurrentIndex(index)
 
-            # 战斗方案 2P
-            w_label = QLabel('2P方案')
-            w_input = QComboBox()
-            w_input.setObjectName("w_battle_plan_2p")
-            w_input.setMaximumWidth(225)
+            # 战斗方案 2P 修改数值
+            w_2p_input.setObjectName("w_battle_plan_2p")
+            w_2p_input.setMaximumWidth(225)
             for index in battle_plan_name_list:
-                w_input.addItem(index)
-            # 设定当前值
+                w_2p_input.addItem(index)
             try:
                 index = battle_plan_uuid_list.index(task["task_args"]["battle_plan_2p"])
             except ValueError:
                 self.could_not_find_battle_plan_uuid = True
                 index = 1
-            w_input.setCurrentIndex(index)
-            add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
+            w_2p_input.setCurrentIndex(index)
 
         def double_card(line_layout):
 
@@ -623,8 +643,11 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     return_list = {"1P": [1], "2P": [2], "1P房主": [1, 2], "2P房主": [2, 1]}[text]
                     args['player'] = return_list
 
+                    widget_input = w_line.findChild(QCheckBox, 'w_global_plan_active')
+                    args['global_plan_active'] = widget_input.isChecked()
+
                     widget_input = w_line.findChild(QComboBox, 'w_deck')
-                    args['deck'] = int(widget_input.currentText())
+                    args['deck'] = int(widget_input.currentIndex())
 
                     # 战斗方案
                     battle_plan_name_list = get_list_battle_plan(with_extension=False)
