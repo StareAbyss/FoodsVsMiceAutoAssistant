@@ -102,21 +102,27 @@ class BattlePreparation:
                 if card_precise_name not in match_img_result_dict.keys():
                     match_img_result_dict[card_precise_name] = {"found": False, "position": 0}
 
+        # 先处理叠加图片
+        resource_p = {}
+        for target in match_img_result_dict.keys():
+            img_tar = overlay_images(
+                img_background=RESOURCE_P["card"]["准备房间+"][f"{target}.png"],
+                img_overlay=RESOURCE_P["card"]["卡片-房间-绑定角标.png"],
+                test_show=False)
+            resource_p[target] = img_tar
+
         for i in range(21):
 
             for target in match_img_result_dict.keys():
 
                 # 未找到
                 if not match_img_result_dict[target]["found"]:
-                    img_tar = overlay_images(
-                        img_background=RESOURCE_P["card"]["准备房间+"][f"{target}.png"],
-                        img_overlay=RESOURCE_P["card"]["卡片-房间-绑定角标.png"],
-                        test_show=False)
+
                     find = loop_match_p_in_w(
                         source_handle=handle,
                         source_root_handle=handle_360,
                         source_range=[380, 175, 925, 415],
-                        template=img_tar,
+                        template=resource_p[target],
                         template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
                         match_tolerance=0.97,
                         match_failed_check=0,
@@ -171,6 +177,15 @@ class BattlePreparation:
 
         found_card = False
 
+        # 先叠加图片 储存
+        resource_p = {}
+        for target in targets:
+            img_tar = overlay_images(
+                img_background=RESOURCE_P["card"]["准备房间+"][f"{target}.png"],
+                img_overlay=RESOURCE_P["card"]["卡片-房间-绑定角标.png"],
+                test_show=False)
+            resource_p[target] = img_tar
+
         # 强制要求全部走完, 防止12P的同步出问题
         # 老板本 一共20点击到底部, 向下点 10轮 x 2次 = 20 次滑块, 识别11次
         # 但仍然会出现识别不到的问题(我的背包太大啦), 故直接改成了最细的粒度, 希望能解决该问题.
@@ -183,15 +198,11 @@ class BattlePreparation:
             for i in range(21):
                 if tar_position is None or i >= tar_position:
                     # 需要刷新游戏帧数
-                    img_tar = overlay_images(
-                        img_background=RESOURCE_P["card"]["准备房间+"][f"{target}.png"],
-                        img_overlay=RESOURCE_P["card"]["卡片-房间-绑定角标.png"],
-                        test_show=False)
                     find = loop_match_p_in_w(
                         source_handle=handle,
                         source_root_handle=handle_360,
                         source_range=[380, 175, 925, 415],
-                        template=img_tar,
+                        template=resource_p[target],
                         template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
                         match_tolerance=0.97,
                         match_failed_check=0.15,
@@ -442,8 +453,6 @@ class BattlePreparation:
 
     def _get_card_name_list_from_battle_plan(self):
 
-        mats = copy.deepcopy(self.faa.stage_info["mat_card"])
-
         # 和 card_list 一一对应 顺序一致 代表这张卡是否允许被跳过
         plan = copy.deepcopy(self.faa.battle_plan)
 
@@ -460,11 +469,12 @@ class BattlePreparation:
                 if card["id"] not in my_dict.keys():
                     my_dict[card["id"]] = card["name"]
 
-        # 增承载卡
         # 根据id 排序 并取其中的value为list
         sorted_list = list(dict(sorted(my_dict.items())).values())
         can_failed_list = [False for _ in sorted_list]
 
+        # 增承载卡
+        mats = copy.deepcopy(self.faa.stage_info["mat_card"])
         # 如果需要任意承载卡 第一张卡设定为 字段 有效承载
         if len(mats) >= 1:
             sorted_list += ["有效承载"]
