@@ -287,7 +287,7 @@ class FAAActionInterfaceJump:
             random.seed(random_seed)
             region_id = random.randint(region_list[0], region_list[1])
 
-            time.sleep(5.0)
+            # time.sleep(5.0)
 
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=803, y=84)
             time.sleep(1.0)
