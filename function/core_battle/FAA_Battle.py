@@ -328,7 +328,7 @@ class Battle:
 
                         if location in card["location"]:
                             if card["name"] != "":
-                                if "护罩" not in card["name"] or "瓜皮" not in card["name"]:
+                                if ("护罩" not in card["name"]) and ("瓜皮" not in card["name"]):
                                     location_cid[p_type][location].append(card["id"])
 
                 if location_cid["old"][location] == location_cid["new"][location]:
