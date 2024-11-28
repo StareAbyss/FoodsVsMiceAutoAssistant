@@ -752,11 +752,12 @@ class ThreadTodo(QThread):
                 SIGNAL.PRINT_TO_UI.emit(text=f"[单本轮战] 刷新游戏次数过多")
                 return 2
 
-    def battle(self, player_a, player_b):
+    def battle(self, player_a, player_b, change_card=True):
         """
         从进入房间到回到房间的流程
         :param player_a: 玩家A
         :param player_b: 玩家B
+        :param change_card: 是否需要选择卡组
         :return:
             int id 用于判定战斗是 成功 或某种原因的失败 1-成功 2-服务器卡顿,需要重来 3-玩家设置的次数不足,跳过;
             dict 包含player_a和player_b的[战利品]和[宝箱]识别到的情况; 内容为聚合数量后的 dict。 如果识别异常, 返回值为两个None
@@ -800,30 +801,32 @@ class ThreadTodo(QThread):
         """修改卡组"""
         if result_id == 0:
 
-            # 创建并开始线程
-            self.thread_1p = ThreadWithException(
-                target=self.faa_dict[player_a].obj_battle_preparation.change_deck,
-                name="{}P Thread - 修改卡组".format(player_a),
-                kwargs={})
-            self.thread_1p.daemon = True
-            self.thread_1p.start()
-            if is_group:
-                self.thread_2p = ThreadWithException(
-                    target=self.faa_dict[player_b].obj_battle_preparation.change_deck,
-                    name="{}P Thread - 修改卡组".format(player_b),
+            if change_card:
+
+                # 创建并开始线程
+                self.thread_1p = ThreadWithException(
+                    target=self.faa_dict[player_a].obj_battle_preparation.change_deck,
+                    name="{}P Thread - 修改卡组".format(player_a),
                     kwargs={})
-                self.thread_2p.daemon = True
-                self.thread_2p.start()
+                self.thread_1p.daemon = True
+                self.thread_1p.start()
+                if is_group:
+                    self.thread_2p = ThreadWithException(
+                        target=self.faa_dict[player_b].obj_battle_preparation.change_deck,
+                        name="{}P Thread - 修改卡组".format(player_b),
+                        kwargs={})
+                    self.thread_2p.daemon = True
+                    self.thread_2p.start()
 
-            # 阻塞进程让进程执行完再继续本循环函数
-            self.thread_1p.join()
-            if is_group:
-                self.thread_2p.join()
+                # 阻塞进程让进程执行完再继续本循环函数
+                self.thread_1p.join()
+                if is_group:
+                    self.thread_2p.join()
 
-            # 获取返回值
-            result_id = max(result_id, self.thread_1p.get_return_value())
-            if is_group:
-                result_id = max(result_id, self.thread_2p.get_return_value())
+                # 获取返回值
+                result_id = max(result_id, self.thread_1p.get_return_value())
+                if is_group:
+                    result_id = max(result_id, self.thread_2p.get_return_value())
 
         """不同时开始战斗, 并检测是否成功进入游戏"""
         if result_id == 0:
@@ -1177,6 +1180,7 @@ class ThreadTodo(QThread):
         def multi_round_battle():
             # 标记是否需要进入副本
             need_goto_stage = not is_cu
+            need_change_card = True
 
             battle_count = 0  # 记录成功的次数
             result_list = []  # 记录成功场次的战斗结果记录
@@ -1232,7 +1236,8 @@ class ThreadTodo(QThread):
                 SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count + 1}次, 开始")
 
                 # 开始战斗循环
-                result_id, result_drop, result_spend_time = self.battle(player_a=pid_a, player_b=pid_b)
+                result_id, result_drop, result_spend_time = self.battle(
+                    player_a=pid_a, player_b=pid_b, change_card=need_change_card)
 
                 if result_id == 0:
 
@@ -1293,7 +1298,12 @@ class ThreadTodo(QThread):
                             }
                         )
 
+                    # 成功的战斗 之后不需要选择卡组
+                    need_change_card = False
+
                 if result_id == 1:
+
+                    # 重试本次
 
                     if is_cu:
                         # 进入异常 但是自定义
@@ -1313,7 +1323,12 @@ class ThreadTodo(QThread):
                             # 单人多线程 只reload自己
                             faa_a.reload_game()
 
+                    # 重新进入 因此需要重新选卡组
+                    need_change_card = True
+
                 if result_id == 2:
+
+                    # 跳过本次
 
                     if is_cu:
                         # 进入异常 但是自定义
@@ -1335,7 +1350,12 @@ class ThreadTodo(QThread):
                             # 单人多线程 只reload自己
                             faa_a.reload_game()
 
+                    # 重新进入 因此需要重新选卡组
+                    need_change_card = True
+
                 if result_id == 3:
+
+                    # 放弃所有次数
 
                     # 自动选卡 但没有对应的卡片! 最严重的报错!
                     SIGNAL.PRINT_TO_UI.emit(
