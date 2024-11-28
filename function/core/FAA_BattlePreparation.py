@@ -138,7 +138,7 @@ class BattlePreparation:
             # 仅还没找到继续下滑
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=400)
             # 需要刷新游戏帧数
-            time.sleep(0.1)
+            time.sleep(0.2)
 
         # 根据结果重新生成一个list 包含了每一个 标识名称 对应的 精准名称 找到的 最高等级的卡, 如果没找到 则为None
         scan_card_result_list = []
@@ -193,7 +193,7 @@ class BattlePreparation:
 
             # 复位滑块
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=209)
-            time.sleep(0.1)
+            time.sleep(0.2)
 
             for i in range(21):
                 if tar_position is None or i >= tar_position:
@@ -217,7 +217,7 @@ class BattlePreparation:
                     break
                 # 仅还没找到继续下滑
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=400)
-                time.sleep(0.1)
+                time.sleep(0.2)
 
             if found_card:
                 return True
@@ -539,7 +539,7 @@ class BattlePreparation:
             handle=self.faa.handle,
             x={1: 425, 2: 523, 3: 588, 4: 666, 5: 756, 6: 837}[self.faa.deck],
             y=121)
-        time.sleep(0.7)
+        time.sleep(1.0)
 
         """寻找并卡片, 包括自动带卡 / 任务要求的带卡和禁卡"""
 
