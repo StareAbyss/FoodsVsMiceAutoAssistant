@@ -4,24 +4,28 @@ from function.scattered.extract_names_and_ids_from_json import extract_names_and
 from function.scattered.read_json_to_stage_info import *
 
 
-def food_texts_to_battle_info(texts,self):
+def food_texts_to_battle_info(texts, self):
     """
     :param self:
     :param texts: 文本列表，每项代表文档中的一行。
     :return: 字典列表，字典包含从文本中提取的战斗信息。
     """
     default_deck = [
-        "炭烧海星",
-        "小火炉",
-        "糖葫芦炮弹",
-        "瓜皮护罩",
-        "狮子座精灵",
-        "油灯",
-        "樱桃反弹布丁",
+        "海星",
+        "产火",
+        "防空",
+        "护罩",
+        "对地",
+        "照明",
+        "布丁",
         "苏打气泡",
         "木盘子",
         "咖啡粉",
         "麦芽糖",
+        "冰淇淋",
+        "幻幻鸡",
+        "创造神"
+        "魔法软糖"
     ]
 
     name_stage_info = extract_names_and_ids_from_json()
@@ -41,7 +45,7 @@ def food_texts_to_battle_info(texts,self):
                 stage_id = value
                 break
             if '-' in key:
-                location, time = key.split('-')#地点-日/夜（水/陆）
+                location, time = key.split('-')  # 地点-日/夜（水/陆）
                 if (location in text) and ((time in key) and (time in text)):
                     stage_id = value
                     break
@@ -53,7 +57,7 @@ def food_texts_to_battle_info(texts,self):
         # 检查特定卡片
         if "使用" in text:
             # 根据文本禁用卡片
-            if "不" in text :
+            if "不" in text:
                 # 提取卡片名称
                 match = re.search(r'使用\s*(.*?)\s*(?=和|或|转|及|$)', text)
                 if match:
@@ -109,12 +113,13 @@ def food_texts_to_battle_info(texts,self):
                 "last_time_player_a": ["竞技岛", "美食大赛领取"],
                 "last_time_player_b": ["竞技岛", "美食大赛领取"]
             },
-            "deck": None,  # 外部输入
+
+            "max_card_num": max_card_num,
             "quest_card": quest_card,
             "ban_card_list": ban_card_list,
+            "deck": None,  # 外部输入 0-6
             "battle_plan_1p": None,  # 外部输入
             "battle_plan_2p": None,  # 外部输入
         })
 
     return quest_list
-
