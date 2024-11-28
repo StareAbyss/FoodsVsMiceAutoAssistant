@@ -72,41 +72,24 @@ class QMWEditorOfStagePlan(QMainWindow):
         菜单使用字典，其值只能为字典或列表。键值对中的键恒定为子菜单，而值为选项；列表中元素只能是元组，为关卡名，关卡id
         """
         stage_dict = {}
-        # 给定初级菜单
-        first_menu = ["主线副本", "番外关卡", "公会副本", "悬赏副本", "跨服副本", "魔塔蛋糕"]
+        for type_id, stage_info_1 in self.stage_info.items():
+            if type_id in ["default", "name", "tooltip", "update_time"]:
+                continue
+            type_name = stage_info_1["name"]
+            stage_dict[type_name] = {}
 
-        for stage_upper_type in first_menu:
-            # 初始化每个初级菜单项的子菜单字典
-            stage_dict[stage_upper_type] = {}
+            for sub_type_id, stage_info_2 in stage_info_1.items():
+                if sub_type_id in ["name", "tooltip"]:
+                    continue
+                sub_type_name = stage_info_2["name"]
+                stage_dict[type_name][sub_type_name] = []
 
-            match stage_upper_type:
-                case "主线副本":
-                    main_stage = ["美味岛", "火山岛", "火山遗迹", "浮空岛", "海底旋涡", "星际穿越"]
-                    for stage_type in main_stage:
-                        index = main_stage.index(stage_type) + 1
-                        stage_dict[stage_upper_type][stage_type] = []
-                        for stage_id, stage_info in self.stage_info["NO"][str(index)].items():
-                            stage_dict[stage_upper_type][stage_type].append((stage_info["name"],
-                                                                             f"NO-{index}-{stage_id}"))
-                case "番外关卡":
-                    extra_stage = ["探险营地", "沙漠", "雪山", "雷城", "漫游奇境"]
-                    for stage_type in extra_stage:
-                        index = extra_stage.index(stage_type) + 1
-                        stage_dict[stage_upper_type][stage_type] = []
-                        for stage_id, stage_info in self.stage_info["EX"][str(index)].items():
-                            stage_dict[stage_upper_type][stage_type].append((stage_info["name"],
-                                                                             f"EX-{index}-{stage_id}"))
-                case "公会副本":
-                    pass
-
-                case "悬赏副本":
-                    pass
-
-                case "跨服副本":
-                    pass
-
-                case "魔塔蛋糕":
-                    pass
+                for stage_id, stage_info_3 in stage_info_2.items():
+                    if stage_id in ["name", "tooltip"]:
+                        continue
+                    stage_name = stage_info_3["name"]
+                    stage_code = f"{type_id}-{sub_type_id}-{stage_id}"
+                    stage_dict[type_name][sub_type_name].append((stage_name, stage_code))
 
         self.stage_selector.add_menu(data=stage_dict)
 
