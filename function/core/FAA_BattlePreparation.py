@@ -274,12 +274,15 @@ class BattlePreparation:
             if qc_precise_in_plan_names:
                 return
 
-            # 插入到第一个 True值的位置 这意味着之后的卡片都不是刚需 没有True默认插入到末尾
-            insert_index = len(can_failed_list)
-            for index, value in enumerate(can_failed_list):
-                if value:
-                    insert_index = index
-                    break
+            # 根据战斗方案 插入到方案末位
+            battle_plan = copy.deepcopy(self.faa.battle_plan)
+            max_card_id = max([0] + [card["id"] for card in battle_plan["card"]["default"]])
+            for wave, wave_battle_plan in battle_plan["card"]["wave"].items():
+                max_w_card_id = max([0] + [card["id"] for card in wave_battle_plan])
+                max_card_id = max([max_card_id, max_w_card_id])
+
+            insert_index = max_card_id
+
             # 插入卡片
             all_cards_precise_names.insert(insert_index, qc_precise_names)
             # 不允许失败
