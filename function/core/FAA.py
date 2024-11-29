@@ -64,6 +64,7 @@ class FAA:
         self.deck = None
         self.quest_card = None
         self.ban_card_list = None
+        self.max_card_num = None
         self.battle_plan = None  # 读取自json的初始战斗方案
         self.battle_mode = None
 
@@ -191,17 +192,18 @@ class FAA:
 
     def set_config_for_battle(
             self, stage_id="NO-1-1", is_group=False, is_main=True, need_key=True,
-            deck=1, auto_carry_card=False, quest_card=None, ban_card_list=None,
+            deck=1, auto_carry_card=False, quest_card=None, ban_card_list=None, max_card_num=None,
             battle_plan_uuid="00000000-0000-0000-0000-000000000000") -> None:
         """
         战斗相关参数的re_init
         :param is_group: 是否组队
         :param is_main: 是否是主要账号(单人为True 双人房主为True)
         :param need_key: 是否使用钥匙
-        :param deck: int 1-6 选中的卡槽数
+        :param deck: int 1-6 选中的卡槽数 (0值已被处理为 auto_carry_card 参数)
         :param auto_carry_card: bool 是否激活自动带卡
         :param quest_card: str 自动携带任务卡的名称
         :param ban_card_list: list[str,...] ban卡列表
+        :param max_card_num: 最大卡片数 - 仅自动带卡时 会去除id更低的卡片, 保证完成任务要求.
         :param battle_plan_uuid: 战斗方案的uuid
         :param stage_id: 关卡的id
         :return:
@@ -217,21 +219,7 @@ class FAA:
         self.auto_carry_card = auto_carry_card
         self.quest_card = quest_card
         self.ban_card_list = ban_card_list
-
-        # 一旦存在ban卡追加ban掉这几位
-        if self.ban_card_list:
-            self.ban_card_list.append("冰淇淋")
-            self.ban_card_list.append("幻幻鸡")
-
-        # 双倍ban承载 ban软糖
-        if "木盘子" in self.ban_card_list:
-            self.ban_card_list.append("魔法软糖")
-
-        if "麦芽糖" in self.ban_card_list:
-            self.ban_card_list.append("魔法软糖")
-
-        if "苏打气泡" in self.ban_card_list:
-            self.ban_card_list.append("魔法软糖")
+        self.max_card_num = max_card_num
 
         self.battle_plan = g_resources.RESOURCE_B[battle_plan_uuid]
 
@@ -752,7 +740,7 @@ class FAA:
 
                         quest_card = None  # 任务携带卡片默认为None
                         ban_card_list = []
-
+                        max_card_num = None
                         # 处理解析字符串 格式 "关卡id" + "_附加词条"
                         # 附加词条包括
                         # 带卡 "带#卡片名称"
@@ -770,9 +758,8 @@ class FAA:
                                 quest_card = one_split.split("#")[1]
                             if "禁#" in one_split:
                                 ban_card_list = one_split.split("#")[1].split(",")
-                            # if "禁分#" in one_split:
-                            #     ban_card_list = one_split.split("#")[1].split(",")
-                            #     find_ban_batch = True
+                            if "数#" in one_split:
+                                max_card_num = one_split.split("#")[1]
 
                         # 如果不打 跳过
                         if stage_id.split("-")[0] == "CS" and (not qg_cs):
@@ -794,6 +781,7 @@ class FAA:
                                 },
                                 "quest_card": quest_card,
                                 "ban_card_list": ban_card_list,
+                                "max_card_num":max_card_num,
                                 "global_plan_active": None,  # 外部输入
                                 "deck": None,  # 外部输入
                                 "battle_plan_1p": None,  # 外部输入

@@ -498,6 +498,12 @@ class BattlePreparation:
                 sorted_list += ["有效承载"]
                 can_failed_list += [True]
 
+        # 根据最大卡片数量限制 移除卡片
+        if self.faa.max_card_num is not None:
+            self.faa.print_debug(text=f"[自动带卡] 最大卡片数量限制为{self.faa.max_card_num}张, 激活自动剔除")
+            sorted_list = sorted_list[:self.faa.max_card_num]
+            can_failed_list = can_failed_list[:self.faa.max_card_num]
+
         return sorted_list, can_failed_list
 
     def check_create_room_success(self):
