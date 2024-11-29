@@ -68,6 +68,9 @@ class FAA:
         self.battle_plan = None  # 读取自json的初始战斗方案
         self.battle_mode = None
 
+        # 初始化战斗中 成功ban掉的卡片的卡组索引号 1开头和游戏对应
+        self.banned_card_index = None
+
         # 初始化战斗中 卡片位置 字典 bp -> battle location
         self.bp_card = None
 
@@ -482,20 +485,14 @@ class FAA:
         def calculation_card_ban(list_cell_all):
             """步骤二 ban掉某些卡, 依据[卡组信息中的name字段] 和 ban卡信息中的字符串 是否重复"""
 
-            list_new = []
-            for card in list_cell_all:
-                if not (card["name"] in ban_card_list):
-                    list_new.append(card)
+            if not ban_card_list:
+                return list_cell_all
+
+            list_new = [card for card in list_cell_all if card["id"] not in self.banned_card_index]
 
             # 遍历更改删卡后的位置
             for card in list_new:
-                cum_card_left = 0
-                for ban_card in ban_card_list:
-                    for c_card in list_cell_all:
-                        if c_card["name"] == ban_card:
-                            if card["id"] > c_card["id"]:
-                                cum_card_left += 1
-                card["id"] -= cum_card_left
+                card["id"] -= sum(1 for index in self.banned_card_index if card["id"] > index)
 
             return list_new
 
