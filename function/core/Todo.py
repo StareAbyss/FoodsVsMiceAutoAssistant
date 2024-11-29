@@ -1091,7 +1091,8 @@ class ThreadTodo(QThread):
 
     def battle_1_1_n(self, stage_id, player, need_key, max_times, dict_exit,
                      global_plan_active, deck, battle_plan_1p, battle_plan_2p,
-                     quest_card, ban_card_list, title_text, need_lock=False):
+                     quest_card, ban_card_list, max_card_num,
+                     title_text, need_lock=False):
         """
         1轮次 1关卡 n次数
         副本外 -> (副本内战斗 * n次) -> 副本外
@@ -1294,6 +1295,7 @@ class ThreadTodo(QThread):
                                 "max_times": max_times,
                                 "quest_card": quest_card,
                                 "ban_card_list": ban_card_list,
+                                "max_card_num": max_card_num,
                                 "dict_exit": dict_exit
                             }
                         )
@@ -1428,6 +1430,7 @@ class ThreadTodo(QThread):
                 auto_carry_card=deck == 0,
                 quest_card=quest_card,
                 ban_card_list=ban_card_list,
+                max_card_num=max_card_num,
                 battle_plan_uuid=battle_plan_a,
                 stage_id=stage_id)
             if is_group:
@@ -1439,6 +1442,7 @@ class ThreadTodo(QThread):
                     auto_carry_card=deck == 0,
                     quest_card=quest_card,
                     ban_card_list=ban_card_list,
+                    max_card_num=max_card_num,
                     battle_plan_uuid=battle_plan_b,
                     stage_id=stage_id)
 
@@ -1553,10 +1557,11 @@ class ThreadTodo(QThread):
                     dict_exit=quest["dict_exit"],
                     global_plan_active=quest["global_plan_active"],
                     deck=quest["deck"],
-                    quest_card=quest.get("quest_card", False),
-                    ban_card_list=quest["ban_card_list"],
                     battle_plan_1p=quest["battle_plan_1p"],
                     battle_plan_2p=quest["battle_plan_2p"],
+                    quest_card=quest_card,
+                    ban_card_list=ban_card_list,
+                    max_card_num=max_card_num,
                     title_text=extra_title,
                     need_lock=need_lock
                 )
