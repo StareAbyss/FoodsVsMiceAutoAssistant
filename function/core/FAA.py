@@ -486,7 +486,7 @@ class FAA:
         def calculation_card_ban(list_cell_all):
             """步骤二 ban掉某些卡, 依据[卡组信息中的name字段] 和 ban卡信息中的字符串 是否重复"""
 
-            if not ban_card_list:
+            if not self.banned_card_index:
                 return list_cell_all
 
             list_new = [card for card in list_cell_all if card["id"] not in self.banned_card_index]
