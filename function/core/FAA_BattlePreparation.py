@@ -70,7 +70,7 @@ class BattlePreparation:
                 targets_1 += [f"{card}-{i}" for i in range(3, -1, -1)]
 
         # 只携带被记录图片的卡
-        targets_1 = [card for card in targets_1 if (card + ".png") in RESOURCE_P["card"]["准备房间+"]]
+        targets_1 = [card for card in targets_1 if (card + ".png") in RESOURCE_P["card"]["准备房间"]]
 
         return targets_1
 
@@ -106,7 +106,7 @@ class BattlePreparation:
         resource_p = {}
         for target in match_img_result_dict.keys():
             img_tar = overlay_images(
-                img_background=RESOURCE_P["card"]["准备房间+"][f"{target}.png"],
+                img_background=RESOURCE_P["card"]["准备房间"][f"{target}.png"],
                 img_overlay=RESOURCE_P["card"]["卡片-房间-绑定角标.png"],
                 test_show=False)
             resource_p[target] = img_tar
@@ -181,7 +181,7 @@ class BattlePreparation:
         resource_p = {}
         for target in targets:
             img_tar = overlay_images(
-                img_background=RESOURCE_P["card"]["准备房间+"][f"{target}.png"],
+                img_background=RESOURCE_P["card"]["准备房间"][f"{target}.png"],
                 img_overlay=RESOURCE_P["card"]["卡片-房间-绑定角标.png"],
                 test_show=False)
             resource_p[target] = img_tar
