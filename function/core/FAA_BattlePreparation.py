@@ -346,8 +346,12 @@ class BattlePreparation:
         """寻找并移除需要ban的卡, 现已支持跨页ban"""
 
         handle = self.faa.handle
+        handle_360 = self.faa.handle_360
         ban_card_list = copy.deepcopy(self.faa.ban_card_list)
         print_debug = self.faa.print_debug
+
+        # 初始化 成功ban掉的卡片列表
+        self.faa.banned_card_index = None
 
         if ban_card_list:
             print_debug(text=f"[移除卡片] 开始, 目标:{ban_card_list}")
@@ -355,35 +359,107 @@ class BattlePreparation:
             print_debug(text=f"[移除卡片] 不需要,跳过")
             return
 
-        # 由于ban卡的特性, 要先将所有ban卡的变种都加入列表中, 再进行ban
-        my_list = []
-        for ban_card in ban_card_list:
-            if "-" in ban_card:
-                # 对于名称带-的卡, 就对应的写入, 如果不带-, 就查找其所有变种
-                my_list.append(f"{ban_card}.png")
-            else:
-                # 对于不包含"-"的ban_card，添加其所有21种变种到列表中
-                my_list.extend([f"{ban_card}-{i}.png" for i in range(21)])
-        ban_card_list = my_list
+        # 将 card 解析为 可能的多重目标
+        ban_card_targets_list = []
+        for card_name in ban_card_list:
+            targets = self._card_name_to_tar_list(card_name=card_name)
+            ban_card_targets_list += targets
 
-        # 读取所有已记录的卡片文件名, 并去除没有记录的卡片
-        ban_card_list = [ban_card for ban_card in ban_card_list if ban_card in RESOURCE_P["card"]["准备房间-"]]
+        # 去重
+        new_list = []
+        for i in ban_card_targets_list:
+            if i not in new_list:
+                new_list.append(i)
+        ban_card_targets_list = new_list
 
-        # 翻页回第一页
-        for i in range(5):
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=930, y=55)
-            time.sleep(0.05)
+        # 叠加图片
+        ban_card_images = []
+        for card in ban_card_targets_list:
+            img_tar = overlay_images(
+                img_background=RESOURCE_P["card"]["准备房间"][f"{card}.png"],
+                img_overlay=RESOURCE_P["card"]["卡片-房间-绑定角标.png"],
+                test_show=False)
+            ban_card_images.append(img_tar)
 
-        # 第一页
-        self._screen_ban_card_loop_a_round(ban_card_s=ban_card_list)
+        # 标志变量，记录哪些卡已经找到
+        found_cards = []
+        banned_card_index = []
 
-        # 翻页到第二页
-        for i in range(5):
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=930, y=85)
-            time.sleep(0.05)
+        for page in [1, 2]:
+            if page == 1:
+                # 翻页回第一页 找1-10 格
+                for _ in range(6):
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=930, y=55)
+                    time.sleep(0.1)
 
-        # 第二页
-        self._screen_ban_card_loop_a_round(ban_card_s=ban_card_list)
+                for c_id in range(1, 11):
+                    x_start = 390 + (c_id - 1) * 48
+                    x_end = x_start + 40
+                    y_start = 48
+                    y_end = 98  # y_start+50
+                    source_range = [x_start, y_start, x_end, y_end]
+
+                    for index in range(len(ban_card_images)):
+                        image = ban_card_images[index]
+                        if index in found_cards:
+                            continue
+
+                        find = loop_match_p_in_w(
+                            source_handle=handle,
+                            source_root_handle=handle_360,
+                            source_range=source_range,
+                            template=image,
+                            template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
+                            match_tolerance=0.98,
+                            match_interval=0.01,
+                            match_failed_check=0.03,
+                            after_sleep=0,
+                            click=True)
+                        if find:
+                            found_cards.append(index)
+                            banned_card_index.append(c_id)
+                            time.sleep(0.1)
+
+            if page == 2:
+                # 翻页到第二页 找11-21 格
+                for _ in range(6):
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=930, y=85)
+                    time.sleep(0.1)
+
+                for c_id in range(1, 12):
+                    x_start = 390 + (c_id - 1) * 48
+                    x_end = x_start + 40
+                    y_start = 48
+                    y_end = 98  # y_start+50
+                    source_range = [x_start, y_start, x_end, y_end]
+
+                    for index in range(len(ban_card_images)):
+                        image = ban_card_images[index]
+                        if index in found_cards:
+                            continue
+
+                        find = loop_match_p_in_w(
+                            source_handle=handle,
+                            source_root_handle=handle_360,
+                            source_range=source_range,
+                            template=image,
+                            template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
+                            match_tolerance=0.98,
+                            match_interval=0.01,
+                            match_failed_check=0.03,
+                            after_sleep=0,
+                            click=True)
+                        if find:
+                            found_cards.append(index)
+                            banned_card_index.append(10 + c_id)
+                            time.sleep(0.1)
+
+        if not banned_card_index:
+            self.faa.banned_card_index = None
+        else:
+            # 排序
+            banned_card_index = sorted(banned_card_index)
+            self.faa.banned_card_index = banned_card_index
 
     def _check_stage_name(self, stage_name):
         """
@@ -434,30 +510,6 @@ class BattlePreparation:
 
         if special_stage:
             SIGNAL.PRINT_TO_UI.emit(f"检测到特殊关卡：{stage_name}，已为你启用对应关卡方案", 7)
-
-    def _screen_ban_card_loop_a_round(self, ban_card_s):
-
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
-
-        for card in ban_card_s:
-            img_tar = overlay_images(
-                img_background=RESOURCE_P["card"]["准备房间-"][card],
-                img_overlay=RESOURCE_P["card"]["卡片-房间-绑定角标.png"],
-                test_show=False)
-
-            # 只ban被记录了图片的变种卡
-            loop_match_p_in_w(
-                source_handle=handle,
-                source_root_handle=handle_360,
-                source_range=[380, 40, 915, 105],
-                template=img_tar,
-                template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
-                match_tolerance=0.98,
-                match_interval=0.2,
-                match_failed_check=0.6,
-                after_sleep=1,
-                click=True)
 
     def _get_card_name_list_from_battle_plan(self):
 
