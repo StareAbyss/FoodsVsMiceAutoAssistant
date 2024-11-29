@@ -302,15 +302,38 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         if self.sub_plan_index[0] == "default":
             self.sub_plan = self.json_data["card"]["default"]
+            return
 
         if self.sub_plan_index[0] == "wave":
+            wave = self.sub_plan_index[1]
             wave_data = self.json_data["card"]["wave"]
-            plan = wave_data.get(self.sub_plan_index[1])
+            plan = wave_data.get(wave)
+
             if plan is None:
-                # 如果缺失 深拷贝
-                wave_data[self.sub_plan_index[1]] = copy.deepcopy(self.json_data["card"]["default"])
-                plan = wave_data.get(self.sub_plan_index[1])
-            self.sub_plan = plan
+                # 如果缺失，深拷贝波次更小中最大的方案
+                existing_waves = [int(w) for w in wave_data.keys() if w]
+                if existing_waves:
+                    smaller_waves = [w for w in existing_waves if w < int(wave)]
+                    print("更低的波次包含：{}".format(smaller_waves))
+                    if smaller_waves:
+                        max_smaller_wave = str(max(smaller_waves))
+                        wave_data[wave] = copy.deepcopy(wave_data[max_smaller_wave])
+                        self.sub_plan = wave_data[wave]
+                        return
+                    else:
+                        # 如果没有更小的波次方案，则使用默认方案
+                        wave_data[wave] = copy.deepcopy(self.json_data["card"]["default"])
+                        self.sub_plan = wave_data[wave]
+                        return
+                else:
+                    # 如果没有任何现有波次，则使用默认方案
+                    wave_data[wave] = copy.deepcopy(self.json_data["card"]["default"])
+                    self.sub_plan = wave_data[wave]
+                    print("没有更低的波次 选用default为当前方案")
+                    return
+            else:
+                print("该波次已有方案")
+                self.sub_plan = plan
 
     def highlight_chessboard(self, card_locations):
         """根据卡片的位置list，将对应元素的按钮进行高亮"""
@@ -756,10 +779,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
     def fresh_card_plan(self):
 
-        # 加载子方案
-        self.get_current_sub_plan_cards()
-
-        # 根据数据绘制视图
+        # 根据数据 重新 绘制视图
         self.load_data_to_ui_list()
         self.refresh_chessboard()
 
@@ -773,6 +793,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.sub_plan_index = ("default", None)
         else:
             self.sub_plan_index = ("wave", wave)
+
+        # 切换方案
+        self.get_current_sub_plan_cards()
 
         # 加载数据
         self.fresh_card_plan()
