@@ -6,7 +6,18 @@
     "card": {
         "default": [
             {
-                "id": 4,
+                "id": 10,
+                "name": "产火",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "1-7",
+                    "1-4"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 3,
                 "name": "散点追踪",
                 "ergodic": true,
                 "queue": false,
@@ -70,7 +81,7 @@
                 "kun": 1
             },
             {
-                "id": 2,
+                "id": 4,
                 "name": "散点增幅",
                 "ergodic": true,
                 "queue": false,
@@ -81,7 +92,20 @@
                 "kun": 0
             },
             {
-                "id": 3,
+                "id": 2,
+                "name": "布丁",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "6-1",
+                    "7-1",
+                    "6-7",
+                    "7-7"
+                ],
+                "kun": 0
+            },
+            {
+                "id": 5,
                 "name": "护罩",
                 "ergodic": true,
                 "queue": false,
@@ -97,7 +121,7 @@
                 "kun": 0
             },
             {
-                "id": 5,
+                "id": 6,
                 "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
                 "name": "肉松清明粿",
                 "ergodic": true,
@@ -112,7 +136,7 @@
             {
                 "id": 7,
                 "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
-                "name": "驻场炸弹 a",
+                "name": "驻场炸弹b",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -125,7 +149,7 @@
             {
                 "id": 8,
                 "tips": "辣椒粉、肉松清明、老鼠夹子、面粉袋一类",
-                "name": "驻场炸弹 b",
+                "name": "驻场炸弹c",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -141,27 +165,16 @@
                 "ergodic": true,
                 "queue": false,
                 "location": [
+                    "8-1",
+                    "9-1",
                     "8-7",
                     "9-7"
-                ],
-                "kun": 0
-            },
-            {
-                "id": 6,
-                "name": "布丁",
-                "ergodic": true,
-                "queue": false,
-                "location": [
-                    "6-1",
-                    "7-1",
-                    "6-7",
-                    "7-7"
                 ],
                 "kun": 0
             }
         ],
         "wave": {}
     },
-    "tips": "1-产火(花火) 2-海星 3-追踪拐 4-瓜皮 5-追踪 6-清明粿 7~布丁 8~电棍 9&10-驻场炸弹 \n驻场炸弹：推荐 爆炸汪 辣椒粉 其次面粉袋 也可以直接使用炸弹卡\n\n2P 仅放下排电棍 不放产火",
-    "uuid": "f63a3412-405e-11ef-9d14-f44efc5bf671"
+    "tips": "1-产火(花火) 2-海星 3-追踪拐 4-瓜皮 5-追踪 6-清明粿 7~布丁 8~电棍 9&10-驻场炸弹 \n驻场炸弹：推荐 爆炸汪 辣椒粉 其次面粉袋 也可以直接使用炸弹卡",
+    "uuid": "f639e210-405e-11ef-8f1f-f44efc5bf671"
 }

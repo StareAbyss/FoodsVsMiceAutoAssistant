@@ -1,47 +1,23 @@
 {
     "player": [
-        "2-4",
-        "3-4"
+        "3-4",
+        "2-4"
     ],
     "card": {
         "default": [
             {
+                "id": 4,
+                "name": "棕榈吹风机",
+                "ergodic": true,
+                "queue": false,
+                "location": [
+                    "3-1",
+                    "3-7"
+                ],
+                "kun": 0
+            },
+            {
                 "id": 1,
-                "name": "火",
-                "ergodic": true,
-                "queue": false,
-                "location": [
-                    "3-1",
-                    "3-7"
-                ],
-                "kun": 0
-            },
-            {
-                "id": 7,
-                "name": "防风",
-                "ergodic": true,
-                "queue": false,
-                "location": [
-                    "3-2",
-                    "3-6",
-                    "7-2",
-                    "7-6"
-                ],
-                "kun": 4
-            },
-            {
-                "id": 6,
-                "name": "棕榈叶",
-                "ergodic": true,
-                "queue": false,
-                "location": [
-                    "3-1",
-                    "3-7"
-                ],
-                "kun": 0
-            },
-            {
-                "id": 2,
                 "name": "海星",
                 "ergodic": true,
                 "queue": false,
@@ -66,30 +42,8 @@
                 ]
             },
             {
-                "id": 3,
-                "name": "糖葫芦",
-                "ergodic": true,
-                "queue": false,
-                "location": [
-                    "3-3",
-                    "3-5"
-                ],
-                "kun": 0
-            },
-            {
-                "id": 5,
-                "name": "狮子座",
-                "ergodic": true,
-                "queue": false,
-                "location": [
-                    "7-3",
-                    "7-5"
-                ],
-                "kun": 0
-            },
-            {
-                "id": 8,
-                "name": "投手",
+                "id": 2,
+                "name": "灰烬投手",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -121,23 +75,8 @@
                 "kun": 1
             },
             {
-                "id": 9,
-                "name": "投手拐",
-                "ergodic": true,
-                "queue": false,
-                "location": [
-                    "2-6",
-                    "2-2",
-                    "2-1",
-                    "2-7",
-                    "2-5",
-                    "2-3"
-                ],
-                "kun": 2
-            },
-            {
-                "id": 4,
-                "name": "瓜皮",
+                "id": 3,
+                "name": "护罩",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -160,5 +99,5 @@
         "wave": {}
     },
     "tips": "",
-    "uuid": "8b37a33d-8c1b-11ef-9d37-f44efc5bf671"
+    "uuid": "bab86a98-8c1b-11ef-a021-f44efc5bf671"
 }
