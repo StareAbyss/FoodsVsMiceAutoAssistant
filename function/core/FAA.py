@@ -819,8 +819,6 @@ class FAA:
                                         "last_time_player_a": ["竞技岛"],
                                         "last_time_player_b": ["竞技岛"]
                                     },
-                                    "quest_card": None,
-                                    "ban_card_list": [],
                                     "global_plan_active": None,  # 外部输入
                                     "deck": None,  # 外部输入
                                     "battle_plan_1p": None,  # 外部输入

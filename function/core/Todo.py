@@ -1536,18 +1536,28 @@ class ThreadTodo(QThread):
                 continue
 
             else:
-                SIGNAL.PRINT_TO_UI.emit(
-                    text="{}事项{}, 开始,{},{},{}次,带卡:{},Ban卡:{}".format(
+                # 处理允许缺失的值
+                quest_card = quest.get("quest_card", None)
+                ban_card_list = quest.get("ban_card_list", None)
+                max_card_num = quest.get("max_card_num", None)
+
+                text_parts = [
+                    "{}事项{}".format(
                         title,
-                        quest["battle_id"] if "battle_id" in quest else (i + 1),
-                        "组队" if len(quest["player"]) == 2 else "单人",
-                        quest["stage_id"],
-                        quest["max_times"],
-                        quest["quest_card"],
-                        quest["ban_card_list"]
-                    ),
-                    color_level=4
-                )
+                        quest["battle_id"] if "battle_id" in quest else (i + 1)),
+                    "开始",
+                    "组队" if len(quest["player"]) == 2 else "单人",
+                    f"{quest["stage_id"]}",
+                    f"{quest["max_times"]}次",
+                ]
+                if quest_card:
+                    text_parts.append("带卡:{}".format(quest_card))
+                if ban_card_list:
+                    text_parts.append("禁卡:{}".format(ban_card_list))
+                if max_card_num:
+                    text_parts.append("限数:{}".format(max_card_num))
+
+                SIGNAL.PRINT_TO_UI.emit(text=",".join(text_parts), color_level=4)
 
                 self.battle_1_1_n(
                     stage_id=quest["stage_id"],
@@ -1606,8 +1616,6 @@ class ThreadTodo(QThread):
                 "deck": deck,
                 "battle_plan_1p": battle_plan_1p,
                 "battle_plan_2p": battle_plan_2p,
-                "quest_card": "None",
-                "ban_card_list": [],
                 "dict_exit": dict_exit
             }]
         self.battle_1_n_n(quest_list=quest_list)
@@ -1632,8 +1640,6 @@ class ThreadTodo(QThread):
                 "battle_plan_2p": battle_plan_2p,
                 "stage_id": "OR-0-" + str(i + 1),
                 "max_times": [max_times_1, max_times_2, max_times_3][i],
-                "quest_card": "None",
-                "ban_card_list": [],
                 "dict_exit": {
                     "other_time_player_a": [],
                     "other_time_player_b": [],
@@ -1667,11 +1673,18 @@ class ThreadTodo(QThread):
         quest_list = self.faa_dict[1].match_quests(mode=quest_mode, qg_cs=stage)
 
         for i in quest_list:
-            SIGNAL.PRINT_TO_UI.emit(
-                text="副本:{}, 带卡:{}, 禁卡:{}".format(
-                    i["stage_id"],
-                    i["quest_card"],
-                    i["ban_card_list"]))
+            text_parts = [f"副本:{i["stage_id"]}"]
+            quest_card = i.get("quest_card", None)
+            ban_card_list = i.get("ban_card_list", None)
+            max_card_num = i.get("max_card_num", None)
+            if quest_card:
+                text_parts.append("带卡:{}".format(quest_card))
+            if ban_card_list:
+                text_parts.append("禁卡:{}".format(ban_card_list))
+            if max_card_num:
+                text_parts.append("限数:{}".format(max_card_num))
+            text = ",".join(text_parts)
+            SIGNAL.PRINT_TO_UI.emit(text=text)
 
         for i in range(len(quest_list)):
             quest_list[i]["global_plan_active"] = global_plan_active
@@ -1711,8 +1724,6 @@ class ThreadTodo(QThread):
                 "battle_plan_2p": battle_plan_2p,
                 "stage_id": "GD-0-" + str(i + 1),
                 "max_times": 3,
-                "quest_card": "None",
-                "ban_card_list": [],
                 "dict_exit": {
                     "other_time_player_a": [],
                     "other_time_player_b": [],
@@ -1887,17 +1898,27 @@ class ThreadTodo(QThread):
                 else:
                     player_text = "单人1P" if quest_list[i]["player"] == [1] else "单人2P"
 
-                SIGNAL.PRINT_TO_UI.emit(
-                    text="[全自动大赛] 事项{},{},{},{},{}次,带卡:{},Ban卡:{}".format(
-                        i + 1,
-                        player_text,
-                        quest_list[i]["stage_id"],
-                        "用钥匙" if quest_list[i]["stage_id"] else "无钥匙",
-                        quest_list[i]["max_times"],
-                        quest_list[i]["quest_card"],
-                        quest_list[i]["ban_card_list"]),
-                    color_level=3
-                )
+                quest_card = quest_list[i].get("quest_card", None)
+                ban_card_list = quest_list[i].get("ban_card_list", None)
+                max_card_num = quest_list[i].get("max_card_num", None)
+
+                text_parts = [
+                    f"[全自动大赛] 事项{i + 1}",
+                    f"{player_text}",
+                    f"{quest_list[i]["stage_id"]}",
+                    "用钥匙" if quest_list[i]["stage_id"] else "无钥匙",
+                    f"{quest_list[i]["max_times"]}次",
+                ]
+
+                if quest_card:
+                    text_parts.append("带卡:{}".format(quest_card))
+                if ban_card_list:
+                    text_parts.append("禁卡:{}".format(ban_card_list))
+                if max_card_num:
+                    text_parts.append("限数:{}".format(max_card_num))
+                text = ",".join(text_parts)
+
+                SIGNAL.PRINT_TO_UI.emit(text=text, color_level=3)
 
             for i in range(len(quest_list)):
                 quest_list[i]["global_plan_active"] = False
@@ -1978,8 +1999,6 @@ class ThreadTodo(QThread):
                         "battle_plan_2p": my_opt["battle_plan_1p"],
                         "stage_id": "MT-1-" + str(my_opt["stage"]),
                         "max_times": int(my_opt["max_times"]),
-                        "quest_card": "None",
-                        "ban_card_list": [],
                         "dict_exit": {
                             "other_time_player_a": [],
                             "other_time_player_b": [],
@@ -2044,8 +2063,6 @@ class ThreadTodo(QThread):
                                 "battle_plan_2p": my_opt["battle_plan_1p"],
                                 "stage_id": stage,
                                 "max_times": 1,
-                                "quest_card": "None",
-                                "ban_card_list": [],
                                 "dict_exit": {
                                     "other_time_player_a": [],
                                     "other_time_player_b": [],
@@ -2076,8 +2093,6 @@ class ThreadTodo(QThread):
                             "battle_plan_2p": my_opt["battle_plan_1p"],
                             "stage_id": stage,
                             "max_times": 1,
-                            "quest_card": "None",
-                            "ban_card_list": [],
                             "dict_exit": {
                                 "other_time_player_a": [],
                                 "other_time_player_b": [],
@@ -2155,8 +2170,6 @@ class ThreadTodo(QThread):
                         "battle_plan_2p": my_opt["battle_plan_1p"],
                         "stage_id": "PT-0-" + str(my_opt["stage"]),
                         "max_times": 1,
-                        "quest_card": "None",
-                        "ban_card_list": [],
                         "dict_exit": {
                             "other_time_player_a": [],
                             "other_time_player_b": [],

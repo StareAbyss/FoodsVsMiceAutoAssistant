@@ -30,14 +30,16 @@ def food_texts_to_battle_info(texts, self):
 
     name_stage_info = extract_names_and_ids_from_json()
     quest_list = []
-    quest_card = "None"
 
     for text in texts:
         # 初始化变量
         stage_id = None
         player = [self.player] if "单人" in text else [2, 1]
         need_key = True
+
+        quest_card = None
         ban_card_list = []
+        max_card_num = None
 
         # 提取stage_id
         for key, value in name_stage_info.items():
@@ -66,8 +68,6 @@ def food_texts_to_battle_info(texts, self):
             else:
                 matches = re.findall(r'使用\s*(.*?)(?=或|$)', text)
                 quest_card = [match.strip() for match in matches][0]
-        else:
-            quest_card = "None"
 
         # 检查卡片限制，默认欢乐互娱不会出携带超过多少卡的任务（希望吧悲）
         if "超过" in text or "少于" in text:
@@ -83,6 +83,7 @@ def food_texts_to_battle_info(texts, self):
 
                 # 根据地图要求重新排序卡组
                 mat_card_opt = read_json_to_stage_info(stage_id=stage_id)["mat_card"]
+
                 if "木盘子" in mat_card_opt:
                     default_deck.remove("木盘子")
                     default_deck.insert(0, "木盘子")
@@ -113,7 +114,6 @@ def food_texts_to_battle_info(texts, self):
                 "last_time_player_a": ["竞技岛", "美食大赛领取"],
                 "last_time_player_b": ["竞技岛", "美食大赛领取"]
             },
-
             "max_card_num": max_card_num,
             "quest_card": quest_card,
             "ban_card_list": ban_card_list,
