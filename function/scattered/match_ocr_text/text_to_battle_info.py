@@ -24,7 +24,7 @@ def food_texts_to_battle_info(texts, self):
         "麦芽糖",
         "冰淇淋",
         "幻幻鸡",
-        "创造神"
+        "创造神",
         "魔法软糖"
     ]
 
