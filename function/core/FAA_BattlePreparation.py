@@ -305,7 +305,7 @@ class BattlePreparation:
 
         if failed_card_list:
             self.faa.print_debug(text="[选取卡片] 结束, 结果: 因查找失败中断")
-            SIGNAL.PRINT_TO_UI(text=f"[{self.faa.player}P] 缺失必要卡片: {', '.join(failed_card_list)}")
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{self.faa.player}P] 缺失必要卡片: {', '.join(failed_card_list)}")
             return False
 
         for index in range(len(scan_card_name_list)):

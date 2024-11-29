@@ -432,53 +432,54 @@ class FAA:
         def calculation_card_quest(list_cell_all):
             """计算步骤一 加入任务卡的摆放坐标"""
 
-            if (quest_card is not None) and (quest_card != "None"):
+            if quest_card == "None" or quest_card is None:
+                return list_cell_all
 
+            quest_card_locations = [
+                "6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7",
+                "7-1", "7-2", "7-3", "7-4", "7-5", "7-6", "7-7"
+            ]
+
+            # 遍历删除 方案的放卡中 占用了任务卡摆放的棋盘位置
+            list_cell_all = [
+                {**card, "location": list(filter(lambda x: x not in quest_card_locations, card["location"]))}
+                for card in list_cell_all
+            ]
+
+            # 计算任务卡的id 最大的卡片id + 1 注意判空!!!
+            if list_cell_all:
+                quest_card_id = max(card["id"] for card in list_cell_all) + 1
+            else:
+                quest_card_id = 1
+
+            # 任务卡 位置 组队情况下分摊
+            if not is_group:
                 quest_card_locations = [
                     "6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7",
                     "7-1", "7-2", "7-3", "7-4", "7-5", "7-6", "7-7"
                 ]
-
-                # 遍历删除 方案的放卡中 占用了任务卡摆放的棋盘位置
-                list_cell_all = [
-                    {**card, "location": list(filter(lambda x: x not in quest_card_locations, card["location"]))}
-                    for card in list_cell_all
-                ]
-
-                # 计算任务卡的id 最大的卡片id + 1 注意判空!!!
-                if list_cell_all:
-                    quest_card_id = max(card["id"] for card in list_cell_all) + 1
+            else:
+                if self.player == 1:
+                    quest_card_locations = ["6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7"]
                 else:
-                    quest_card_id = 1
+                    quest_card_locations = ["7-1", "7-2", "7-3", "7-4", "7-5", "7-6", "7-7"]
 
-                # 任务卡 位置 组队情况下分摊
-                if not is_group:
-                    quest_card_locations = [
-                        "6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7",
-                        "7-1", "7-2", "7-3", "7-4", "7-5", "7-6", "7-7"
-                    ]
-                else:
-                    if self.player == 1:
-                        quest_card_locations = ["6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7"]
-                    else:
-                        quest_card_locations = ["7-1", "7-2", "7-3", "7-4", "7-5", "7-6", "7-7"]
+            # 设定任务卡dict
+            dict_quest = {
+                "name": quest_card,
+                "id": quest_card_id,
+                "location": quest_card_locations,
+                "ergodic": True,
+                "queue": True
+            }
 
-                # 设定任务卡dict
-                dict_quest = {
-                    "name": quest_card,
-                    "id": quest_card_id,
-                    "location": quest_card_locations,
-                    "ergodic": True,
-                    "queue": True
-                }
-
-                # 可能是空列表 即花瓶
-                if len(list_cell_all) == 0:
-                    # 首位插入
-                    list_cell_all.insert(0, dict_quest)
-                else:
-                    # 第二位插入
-                    list_cell_all.insert(1, dict_quest)
+            # 可能是空列表 即花瓶
+            if len(list_cell_all) == 0:
+                # 首位插入
+                list_cell_all.insert(0, dict_quest)
+            else:
+                # 第二位插入
+                list_cell_all.insert(1, dict_quest)
 
             return list_cell_all
 
@@ -827,6 +828,11 @@ class FAA:
                             )
 
         if mode == "美食大赛":
+
+            """
+            ！！！！注意 该模块已经废弃！！！！
+            """
+
             y_dict = {0: 359, 1: 405, 2: 448, 3: 491, 4: 534, 5: 570}
             for i in range(6):
                 # 先移动到新的一页

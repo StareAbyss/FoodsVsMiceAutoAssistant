@@ -1361,7 +1361,7 @@ class ThreadTodo(QThread):
 
                     # 自动选卡 但没有对应的卡片! 最严重的报错!
                     SIGNAL.PRINT_TO_UI.emit(
-                        text=f"{title} 自动选卡失败! 放弃本关全部作战! 请检查您是否拥有对应战斗方案的全部不绑卡片!")
+                        text=f"{title} 自动选卡失败! 放弃本关全部作战! 您是否拥有对应绑定卡?")
 
                     if not need_lock:
                         # 非单人多线程
