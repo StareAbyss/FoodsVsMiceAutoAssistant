@@ -118,5 +118,13 @@
             "f639e210-405e-11ef-8f1f-f44efc5bf671",
             "f63a3412-405e-11ef-9d14-f44efc5bf671"
         ]
+    },
+    "NO-6-7": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "07492d9c-af21-11ef-a746-c2f2346a1393",
+            "2ea312ef-af21-11ef-bab9-c2f2346a1393"
+        ]
     }
 }
