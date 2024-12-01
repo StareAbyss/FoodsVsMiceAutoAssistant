@@ -32,7 +32,7 @@ def get_stage_info_online() -> str:
 
     # 如果云端不比本地更新, 直接返回
     if origin_update_time <= local_update_time:
-        return f"获取云端关卡信息 放弃!\n本地数据为最新, 云端数据时间: {origin_update_time}, 本地数据时间: {local_update_time}"
+        return f"获取云端关卡信息 放弃! 本地数据为最新.\n云端数据时间: {origin_update_time}\n本地数据时间: {local_update_time}"
 
     # 获取云端json的数据
     try:

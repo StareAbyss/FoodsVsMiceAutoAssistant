@@ -205,7 +205,10 @@ class QMainWindowLog(QMainWindowLoadUI):
             text="应用程序的开发和维护不仅耗时, 还需投入资金, 但FAA免费开放供大家使用",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="如果使用满意, 并想要表达感激之情或支持后续版本完善, 那么您的鼓励就是是FAA 持(不)续(跑)开(路)发 的最大动力!",
+            text="如果使用满意, 并想要表达感激之情或支持后续版本完善",
+            time=False)
+        SIGNAL.PRINT_TO_UI.emit(
+            text=" 那么您的鼓励就是是FAA 持(不)续(跑)开(路)发 的最大动力!",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
             text="您可以选择以下任意一种方式进行捐赠. 赞助时, 可留下您的称呼以供致谢 ~",
