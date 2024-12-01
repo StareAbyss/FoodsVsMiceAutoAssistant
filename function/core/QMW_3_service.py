@@ -258,9 +258,11 @@ class QMainWindowService(QMainWindowLoadSettings):
         selected_date = self.DateSelector.selectedDate()
 
         # 遍历成员数据 因为图片也是按照guild_manager_data顺序来的, 所以可以直接无脑遍历
-        row_position = 0
+        row_position = -1
 
         for member in self.guild_manager_data:
+
+            row_position += 1
 
             # 获取成员数据
             member_data = member.get('data', {})
@@ -269,7 +271,7 @@ class QMainWindowService(QMainWindowLoadSettings):
             # 刷新第二列数据（当天扫描到的 贡献总值）
             today_contribution = member_data.get(selected_date.toString('yyyy-MM-dd'), -1)
             if today_contribution < 0:
-                # 不展示今天压根不存在的数据
+                # 不展示今天压根不存在的数据 但是
                 continue
             add_data_widget_into_table(value=today_contribution, row=row_position, col=1)
 
@@ -323,8 +325,6 @@ class QMainWindowService(QMainWindowLoadSettings):
             qtw_item = QtWidgets.QTableWidgetItem()
             qtw_item.setData(QtCore.Qt.ItemDataRole.DisplayRole, value)
             self.GuildMemberInfoTable.setItem(row_position, 6, qtw_item)
-
-            row_position += 1
 
         self.GuildMemberInfoTable.sortByColumn(1, QtCore.Qt.SortOrder.DescendingOrder)  # 降序排序
 
