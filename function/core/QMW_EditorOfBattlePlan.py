@@ -772,6 +772,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 为输入控件信号解锁
         self.input_widget_lock(False)
 
+        # 载入方案波次 并刷新视图
+        self.get_current_sub_plan_cards()
         self.fresh_card_plan()
 
         # 解锁部分输入控件
