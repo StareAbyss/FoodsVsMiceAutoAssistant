@@ -1,5 +1,6 @@
 # 从FAA Web的接口获取数据
 import json
+from datetime import datetime
 
 import requests
 
@@ -30,8 +31,11 @@ def get_stage_info_online() -> str:
         stages_info_online = json.load(file)
     local_update_time = stages_info_online["update_time"]
 
+    origin_dt = datetime.strptime(origin_update_time, "%Y-%m-%d %H:%M:%S")
+    local_dt = datetime.strptime(local_update_time, "%Y-%m-%d %H:%M:%S")
+
     # 如果云端不比本地更新, 直接返回
-    if origin_update_time <= local_update_time:
+    if origin_dt <= local_dt:
         return f"获取云端关卡信息 放弃!\n本地数据为最新, 云端数据时间: {origin_update_time}, 本地数据时间: {local_update_time}"
 
     # 获取云端json的数据
