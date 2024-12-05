@@ -1654,7 +1654,7 @@ class FAA:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=362)
             time.sleep(1)
 
-            # 等待一下 确保没有完成的黑屏
+            # 等待一下 确保没有 提示任务完成黑屏
             loop_match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
@@ -1665,13 +1665,15 @@ class FAA:
                 after_sleep=1,
                 click=False
             )
-            self.print_debug(text=f"{try_times + 1}/100 次尝试, 浇水后, 已确认无任务完成黑屏")
+            self.print_debug(text=f"{try_times + 1}/5 次尝试, 浇水后, 已确认无任务完成黑屏")
 
             # 施肥一次
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=418)
             time.sleep(1)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=425, y=355)
+            time.sleep(1)
 
-            # 等待一下 确保没有完成的黑屏
+            # 等待一下 确保没有 提示任务完成黑屏
             loop_match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
@@ -1681,7 +1683,7 @@ class FAA:
                 match_failed_check=7,
                 after_sleep=2,
                 click=False)
-            self.print_debug(text=f"{try_times + 1}/100 次尝试, 施肥后, 已确认无任务完成黑屏")
+            self.print_debug(text=f"{try_times + 1}/5 次尝试, 施肥后, 已确认无任务完成黑屏")
 
         def fed_and_watered_one_action(try_times):
             """
@@ -1722,7 +1724,7 @@ class FAA:
             time.sleep(0.5)
 
             if not find:
-                self.print_debug(text="已完成公会浇水施肥, 尝试次数: {}/100".format(try_times))
+                self.print_debug(text="已完成公会浇水施肥, 尝试次数: {}/5".format(try_times))
                 return True, False
             else:
                 # 进入施肥界面, 正确进入就跳出循环
@@ -1750,7 +1752,7 @@ class FAA:
                 completed_flag, is_bug = fed_and_watered_one_action(try_times=try_times)
                 try_times += 1
 
-                if try_times == 100 or is_bug:
+                if try_times == 5 or is_bug:
                     # 次数过多, 或 遇上bug
                     return completed_flag, try_times, True
 
@@ -1795,9 +1797,9 @@ class FAA:
                         self.reload_game()
                         break
 
-                if try_times == 100:
+                if try_times == 5:
                     SIGNAL.PRINT_TO_UI.emit(
-                        f"[浇水 施肥 摘果 领取] [{self.player}p] 尝试100次, 直接刷新跳过")
+                        f"[浇水 施肥 摘果 领取] [{self.player}p] 尝试5次, 直接, 肥料不够! 刷新跳过 ")
                     self.reload_game()
                     break
 
