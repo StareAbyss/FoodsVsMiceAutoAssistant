@@ -542,15 +542,21 @@ class FAAActionInterfaceJump:
                     after_sleep=1.5,
                     click=True)
 
-                # 找地图图标
-                loop_match_p_in_w(
+                # 找地图图标，需要防止因点过一次后图片放大造成的无法点击
+                if not (loop_match_p_in_w(
                     source_handle=handle,
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["stage"]["EX-{}.png".format(stage_1)],
                     after_sleep=1.5,
-                    click=True)
-
+                    click=True)):
+                        loop_match_p_in_w(
+                        source_handle=handle,
+                        source_root_handle=handle_360,
+                        source_range=[0, 0, 950, 600],
+                        template=RESOURCE_P["stage"]["EX-{}_1.png".format(stage_1)],
+                        after_sleep=1.5,
+                        click=True)
             # 切区
             change_to_region(region_list=[1, 2])
 
