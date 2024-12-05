@@ -757,7 +757,7 @@ class FAA:
                             if "禁#" in one_split:
                                 ban_card_list = one_split.split("#")[1].split(",")
                             if "数#" in one_split:
-                                max_card_num = one_split.split("#")[1]
+                                max_card_num = int(one_split.split("#")[1])
 
                         # 如果不打 跳过
                         if stage_id.split("-")[0] == "CS" and (not qg_cs):
