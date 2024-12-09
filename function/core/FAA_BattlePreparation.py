@@ -137,7 +137,7 @@ class BattlePreparation:
                         source_range=[380, 175, 925, 415],
                         template=resource_p[target],
                         template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
-                        match_tolerance=0.97,
+                        match_tolerance=0.998,
                         match_failed_check=0,
                         match_interval=0.01,
                         after_sleep=0,
@@ -217,7 +217,7 @@ class BattlePreparation:
                         source_range=[380, 175, 925, 415],
                         template=resource_p[target],
                         template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
-                        match_tolerance=0.97,
+                        match_tolerance=0.998,
                         match_failed_check=0.15,
                         match_interval=0.05,
                         after_sleep=0,
@@ -305,8 +305,12 @@ class BattlePreparation:
         add_quest_card()
 
         # 一轮识别 识别同一张卡的所有精准名称中 哪一个是实际存在且优先级最高的
+        self.faa.print_debug(text="[选取卡片] 将尝试查找以下卡片(组): {}, 是否允许失败: {}".format(
+            all_cards_precise_names, can_failed_list))
+
         scan_card_name_list, scan_card_position_list = self._scan_card(
             all_cards_precise_names=all_cards_precise_names)
+
         self.faa.print_debug(text="[选取卡片] 经识别将查找以下有效卡片: {}, 位置: {}".format(
             scan_card_name_list, scan_card_position_list))
 
@@ -423,7 +427,7 @@ class BattlePreparation:
                             source_range=source_range,
                             template=image,
                             template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
-                            match_tolerance=0.98,
+                            match_tolerance=0.998,
                             match_interval=0.01,
                             match_failed_check=0.03,
                             after_sleep=0,
@@ -457,7 +461,7 @@ class BattlePreparation:
                             source_range=source_range,
                             template=image,
                             template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
-                            match_tolerance=0.98,
+                            match_tolerance=0.998,
                             match_interval=0.01,
                             match_failed_check=0.03,
                             after_sleep=0,
