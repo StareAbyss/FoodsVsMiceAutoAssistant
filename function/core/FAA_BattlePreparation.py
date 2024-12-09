@@ -540,8 +540,10 @@ class BattlePreparation:
             if card["id"] not in my_dict.keys():
                 my_dict[card["id"]] = card["name"]
 
-        # 再取变阵中
-        for wave_plan in plan["card"]["wave"].values():
+        # 再取变阵中(顺手排序)
+        wave_dict = plan["card"]["wave"]
+        sorted_wave_dict = {k: wave_dict[k] for k in sorted(wave_dict, key=int)}
+        for wave_plan in sorted_wave_dict.values():
             for card in wave_plan:
                 if card["id"] not in my_dict.keys():
                     my_dict[card["id"]] = card["name"]
