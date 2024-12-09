@@ -19,6 +19,17 @@ from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 
 
 class BattlePreparation:
+    """
+    封装了战斗前的准备工作和战斗后收尾工作的类
+    即: 进入房间 -> 开始战斗 + 战斗结束收尾
+
+    包括:
+    1. 检测是否成功进入房间
+    2. 战斗前的选卡/禁卡 包括对任务卡的处理
+    3. 点击开始 并检测是否成功开始
+    4. 战斗后的战利品扫描/翻牌动作+扫描
+    5. 战斗结束后成功回房检测
+    """
 
     def __init__(self, faa):
         # __init__中捕获了的外部类属性值, 那么捕获的是那一刻的值, 后续对类属性的修改不会影响已经捕获的值
@@ -44,10 +55,12 @@ class BattlePreparation:
         if card_name == "有效承载":
             targets_0 += copy.deepcopy(self.faa.stage_info["mat_card"])
         else:
-            """匹配合法类名"""
             # 仅匹配中文字符 (去除所有abc之类的同类卡后缀) 并参照已设定的类 是否有成功的匹配
-            card_name_only_chinese = ''.join(re.compile(r'[\u4e00-\u9fff]+').findall(card_name))
+            match = re.match(r'^(.*[\u4e00-\u9fff])', card_name)
+            card_name_only_chinese = match.group(1) if match else ""
             match_one = False
+
+            """匹配合法类名"""
             for card_type in self.card_types:
                 for card_type_key in card_type["key"]:
                     if card_type_key == card_name_only_chinese:
@@ -55,7 +68,7 @@ class BattlePreparation:
                             targets_0.append(card)
                         match_one = True
 
-            # 不属于任何类型 直接加入targets
+            """不属于任何类型"""
             if not match_one:
                 targets_0.append(card_name_only_chinese)
 
