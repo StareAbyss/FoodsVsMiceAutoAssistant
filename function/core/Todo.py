@@ -297,19 +297,34 @@ class ThreadTodo(QThread):
 
         CUS_LOGGER.debug("刷新游戏窗口 结束")
 
-    def batch_click_refresh_btn(self):
+    def batch_click_final_refresh_btn(self):
 
         SIGNAL.PRINT_TO_UI.emit("Refresh Game...", color_level=1)
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
-            target=self.faa_dict[1].click_refresh_btn,
-            name="1P Thread - Reload",
+            target=self.faa_dict[1].click_return_btn,
+            name="1P Thread - Reload - Back",
             kwargs={})
+        self.thread_2p = ThreadWithException(
+            target=self.faa_dict[2].click_return_btn,
+            name="2P Thread - Reload - Back",
+            kwargs={})
+        self.thread_1p.daemon = True
+        self.thread_2p.daemon = True
+        self.thread_1p.start()
+        self.thread_2p.start()
+        self.thread_1p.join()
+        self.thread_2p.join()
 
+        # 创建进程 -> 开始进程 -> 阻塞主进程
+        self.thread_1p = ThreadWithException(
+            target=self.faa_dict[1].click_refresh_btn,
+            name="1P Thread - Reload - Fresh",
+            kwargs={})
         self.thread_2p = ThreadWithException(
             target=self.faa_dict[2].click_refresh_btn,
-            name="2P Thread - Reload",
+            name="2P Thread - Reload - Fresh",
             kwargs={})
         self.thread_1p.daemon = True
         self.thread_2p.daemon = True
@@ -420,7 +435,6 @@ class ThreadTodo(QThread):
         self.model_start_print(text=title_text)
 
         for pid in player:
-
             # 归零尝试次数
             try_times = 0
 
@@ -2536,7 +2550,7 @@ class ThreadTodo(QThread):
 
         """全部完成"""
         if self.opt["advanced_settings"]["end_exit_game"]:
-            self.batch_click_refresh_btn()
+            self.batch_click_final_refresh_btn()
         else:
             SIGNAL.PRINT_TO_UI.emit(
                 text="推荐勾选高级设置-完成后刷新游戏, 防止长期运行flash导致卡顿",
