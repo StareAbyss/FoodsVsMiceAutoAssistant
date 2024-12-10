@@ -2175,7 +2175,7 @@ border:none</string>
              <item>
               <widget class="QLabel" name="Label_RunningState">
                <property name="text">
-                <string>任务事项线程状态: 未运行</string>
+                <string>任务序列线程状态: 未运行</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
