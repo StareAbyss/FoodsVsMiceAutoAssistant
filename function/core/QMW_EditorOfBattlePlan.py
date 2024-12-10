@@ -651,6 +651,14 @@ class QMWEditorOfBattlePlan(QMainWindow):
             for wave in keys_to_remove:
                 self.json_data["card"]["wave"].pop(wave)
 
+        def sort_wave_plan():
+            """按照key值的int格式来进行一次排序, 让json_data中的波次方案dict变得有序"""
+            wave_data = self.json_data["card"]["wave"]
+            sorted_keys = sorted(wave_data.keys(), key=lambda x: int(x))
+            sorted_dict = {k: wave_data[k] for k in sorted_keys}
+            self.json_data["card"]["wave"] = sorted_dict
+
+        sort_wave_plan()
         clear_sub_plan()
 
         is_save_as = self.sender() == self.ButtonSaveAs
