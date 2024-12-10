@@ -1237,6 +1237,7 @@ class ThreadTodo(QThread):
                             player_a=pid_a,
                             player_b=pid_b)
 
+                    need_change_card = True  # 魔塔显然需要重新选卡组
                     need_goto_stage = False  # 进入后Flag变化
 
                 if result_id == 2:
