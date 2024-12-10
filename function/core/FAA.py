@@ -779,7 +779,7 @@ class FAA:
                                 },
                                 "quest_card": quest_card,
                                 "ban_card_list": ban_card_list,
-                                "max_card_num":max_card_num,
+                                "max_card_num": max_card_num,
                                 "global_plan_active": None,  # 外部输入
                                 "deck": None,  # 外部输入
                                 "battle_plan_1p": None,  # 外部输入
@@ -948,6 +948,51 @@ class FAA:
                     return False
         return True
 
+    def click_return_btn(self) -> bool:
+        """
+        点击360游戏大厅的返回上一级按钮
+        这用户在结束后的最终刷新前, 以保证微端也能回到选服界面
+        请注意 微端 这需要再之后补一次刷新
+        请注意 不要给该操作设置必须成功 因为 部分服务器没有回退按钮
+        :return: bool 是否成功点击
+        """
+
+        # 点击刷新按钮 该按钮在360窗口上
+        find = loop_match_p_in_w(
+            source_handle=self.handle_360,
+            source_root_handle=self.handle_360,
+            source_range=[0, 0, 400, 100],
+            template=RESOURCE_P["common"]["登录"]["0_回退.png"],
+            match_tolerance=0.9,
+            after_sleep=3,
+            click=True)
+
+        if not find:
+            find = loop_match_p_in_w(
+                source_handle=self.handle_360,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 400, 100],
+                template=RESOURCE_P["common"]["登录"]["0_回退_被选中.png"],
+                match_tolerance=0.98,
+                after_sleep=3,
+                click=True)
+
+            if not find:
+
+                find = loop_match_p_in_w(
+                    source_handle=self.handle_360,
+                    source_root_handle=self.handle_360,
+                    source_range=[0, 0, 400, 100],
+                    template=RESOURCE_P["common"]["登录"]["0_回退_被点击.png"],
+                    match_tolerance=0.98,
+                    after_sleep=3,
+                    click=True)
+
+                if not find:
+                    self.print_warning(text="未找到360大厅回退按钮, 是失败了")
+                    return False
+        return True
+
     def reload_game(self) -> None:
 
         def try_enter_server_4399():
@@ -957,7 +1002,25 @@ class FAA:
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 2000],
                 template=RESOURCE_P["common"]["登录"]["1_我最近玩过的服务器_4399.png"],
-                match_tolerance=0.9
+                match_tolerance=0.98
+            )
+            if my_result:
+                # 点击进入服务器
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle_browser,
+                    x=my_result[0],
+                    y=my_result[1] + 30)
+                return True
+            return False
+
+        def try_enter_server_4399_wd():
+            # 4399 进入服务器
+            my_result = match_p_in_w(
+                source_handle=self.handle_browser,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 2000, 2000],
+                template=RESOURCE_P["common"]["登录"]["1_我最近玩过的服务器_4399微端.png"],
+                match_tolerance=0.98
             )
             if my_result:
                 # 点击进入服务器
@@ -975,7 +1038,7 @@ class FAA:
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 2000],
                 template=RESOURCE_P["common"]["登录"]["1_我最近玩过的服务器_QQ空间.png"],
-                match_tolerance=0.9
+                match_tolerance=0.98
             )
             if my_result:
                 # 点击进入服务器
@@ -993,7 +1056,7 @@ class FAA:
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 2000],
                 template=RESOURCE_P["common"]["登录"]["1_我最近玩过的服务器_QQ游戏大厅.png"],
-                match_tolerance=0.9
+                match_tolerance=0.98
             )
             if my_result:
                 # 点击进入服务器
@@ -1014,7 +1077,7 @@ class FAA:
                     source_root_handle=self.handle_360,
                     source_range=[0, 0, 2000, 2000],
                     template=RESOURCE_P["error"]["retry_btn.png"],
-                    match_tolerance=0.9
+                    match_tolerance=0.95
                 )
                 if not my_result:
                     return True
@@ -1038,11 +1101,13 @@ class FAA:
                 self.print_debug(text="[刷新游戏] 判定平台...")
 
                 if try_enter_server_4399():
-                    self.print_debug(text="[刷新游戏] 成功进入4399平台")
+                    self.print_debug(text="[刷新游戏] 成功进入 - 4399平台")
+                elif try_enter_server_4399_wd():
+                    self.print_debug(text="[刷新游戏] 成功进入 - 4399微端平台")
                 elif try_enter_server_qq_space():
-                    self.print_debug(text="[刷新游戏] 成功进入QQ空间平台")
+                    self.print_debug(text="[刷新游戏] 成功进入 - QQ空间平台")
                 elif try_enter_server_qq_game_hall():
-                    self.print_debug(text="[刷新游戏] 成功进入QQ游戏大厅平台")
+                    self.print_debug(text="[刷新游戏] 成功进入 - QQ游戏大厅平台")
                 else:
                     # QQ空间需重新登录
                     self.print_debug(
@@ -2190,7 +2255,7 @@ class FAA:
                 template=i_image,
                 template_name=i_name,
                 mask=RESOURCE_P["item"]["物品-掩模-不绑定.png"],
-                match_tolerance=0.99,
+                match_tolerance=0.999,
                 test_print=True)
 
             if find:
