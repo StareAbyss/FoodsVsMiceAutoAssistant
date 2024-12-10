@@ -236,6 +236,10 @@ class QMainWindowLog(QMainWindowLoadUI):
             time=False)
 
         SIGNAL.PRINT_TO_UI.emit(
+            text="",
+            time=False)
+
+        SIGNAL.PRINT_TO_UI.emit(
             text="♦ QQ群组 ♦",
             color_level=1,
             time=False)
