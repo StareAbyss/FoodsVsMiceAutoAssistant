@@ -406,11 +406,12 @@ class QMainWindowService(QMainWindowLoadSettings):
             self.TextBrowser.clear()
             self.start_print()
         # 设置输出文本
-        SIGNAL.PRINT_TO_UI.emit("", time=False)
-        SIGNAL.PRINT_TO_UI.emit("[任务事项] 链接开始 Todo线程开启", color_level=1)
+        SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom", color_level=2)
+        SIGNAL.PRINT_TO_UI.emit("[任务序列] 链接开始 Todo线程开启", color_level=1)
+        SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top", color_level=2)
         # 当前正在运行 的 文本 修改
         running_todo_plan_name = self.opt["todo_plans"][running_todo_plan_index]["name"]
-        self.Label_RunningState.setText(f"任务事项线程状态: 正在运行       运行方案: {running_todo_plan_name}")
+        self.Label_RunningState.setText(f"任务序列线程状态: 运行中       运行方案: {running_todo_plan_name}")
 
         """线程处理"""
         # 启动点击处理线程
@@ -487,9 +488,11 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 设置按钮文本
         self.Button_Start.setText("开始任务\nLink Start")
         # 设置输出文本
-        SIGNAL.PRINT_TO_UI.emit("[任务事项] 已关闭全部线程", color_level=1)
+        SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom", color_level=2)
+        SIGNAL.PRINT_TO_UI.emit("[任务序列] 已关闭全部线程", color_level=1)
+        SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top", color_level=2)
         # 当前正在运行 的 文本 修改
-        self.Label_RunningState.setText(f"任务事项线程状态: 未运行")
+        self.Label_RunningState.setText(f"任务序列线程状态: 未运行")
 
         self.is_ending = False  # 完成完整的线程结束
 

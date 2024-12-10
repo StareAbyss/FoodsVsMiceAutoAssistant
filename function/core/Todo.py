@@ -225,7 +225,7 @@ class ThreadTodo(QThread):
 
         # 在该动作前已经完成了游戏刷新 可以尽可能保证欢乐互娱不作妖
         SIGNAL.PRINT_TO_UI.emit(
-            text=f"[{title_text}] [二级功能] 您输入二级激活了该功能. " +
+            text=f"[{title_text}] [二级功能] 已启用. " +
                  (f"兑换暗晶 + " if dark_crystal else f"") +
                  f"删除多余技能书, 目标:{player}P",
             color_level=2)
@@ -2245,225 +2245,229 @@ class ThreadTodo(QThread):
         # current todo plan option
         c_opt = self.opt_todo_plans
 
-        start_time = datetime.datetime.now()
-
         SIGNAL.PRINT_TO_UI.emit("每一个大类的任务开始前均会重启游戏以防止bug...")
 
         self.remove_outdated_log_images()
 
         """主要事项"""
 
-        SIGNAL.PRINT_TO_UI.emit(text="", time=False)
-        SIGNAL.PRINT_TO_UI.emit(text="[主要事项] 开始!", color_level=1)
+        main_task_1p_active = False
+        main_task_1p_active = main_task_1p_active or c_opt["sign_in"]["active"]
+        main_task_1p_active = main_task_1p_active or c_opt["fed_and_watered"]["active"]
+        main_task_1p_active = main_task_1p_active or c_opt["use_double_card"]["active"]
+        main_task_1p_active = main_task_1p_active or c_opt["warrior"]["active"]
+        main_task_2p_active = False
+        main_task_2p_active = main_task_2p_active or c_opt["customize"]["active"]
+        main_task_2p_active = main_task_2p_active or c_opt["normal_battle"]["active"]
+        main_task_2p_active = main_task_2p_active or c_opt["offer_reward"]["active"]
+        main_task_2p_active = main_task_2p_active or c_opt["cross_server"]["active"]
+        main_task_3p_active = False
+        main_task_3p_active = main_task_3p_active or c_opt["quest_guild"]["active"]
+        main_task_3p_active = main_task_3p_active or c_opt["guild_dungeon"]["active"]
+        main_task_3p_active = main_task_3p_active or c_opt["quest_spouse"]["active"]
+        main_task_3p_active = main_task_3p_active or c_opt["relic"]["active"]
+        main_task_4p_active = False
+        main_task_4p_active = main_task_4p_active or c_opt["magic_tower_alone_1"]["active"]
+        main_task_4p_active = main_task_4p_active or c_opt["magic_tower_alone_2"]["active"]
+        main_task_4p_active = main_task_4p_active or c_opt["magic_tower_prison_1"]["active"]
+        main_task_4p_active = main_task_4p_active or c_opt["magic_tower_prison_2"]["active"]
+        main_task_4p_active = main_task_4p_active or c_opt["magic_tower_double"]["active"]
+        main_task_4p_active = main_task_4p_active or c_opt["pet_temple_1"]["active"]
+        main_task_4p_active = main_task_4p_active or c_opt["pet_temple_2"]["active"]
+        main_task_active = main_task_1p_active or main_task_2p_active or main_task_3p_active or main_task_4p_active
 
-        need_reload = False
-        need_reload = need_reload or c_opt["sign_in"]["active"]
-        need_reload = need_reload or c_opt["fed_and_watered"]["active"]
-        need_reload = need_reload or c_opt["use_double_card"]["active"]
-        need_reload = need_reload or c_opt["warrior"]["active"]
-        if need_reload:
+        if main_task_active:
+            SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom")
+            SIGNAL.PRINT_TO_UI.emit(text="[主要事项] 开始!", color_level=1)
+            SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top")
+            start_time = datetime.datetime.now()
+
+        if main_task_1p_active:
             self.batch_reload_game()
 
-        my_opt = c_opt["sign_in"]
-        if my_opt["active"]:
-            self.batch_sign_in(
-                player=[1, 2] if my_opt["is_group"] else [1]
-            )
+            my_opt = c_opt["sign_in"]
+            if my_opt["active"]:
+                self.batch_sign_in(
+                    player=[1, 2] if my_opt["is_group"] else [1]
+                )
 
-        my_opt = c_opt["fed_and_watered"]
-        if my_opt["active"]:
-            self.batch_fed_and_watered(
-                player=[1, 2] if my_opt["is_group"] else [1]
-            )
+            my_opt = c_opt["fed_and_watered"]
+            if my_opt["active"]:
+                self.batch_fed_and_watered(
+                    player=[1, 2] if my_opt["is_group"] else [1]
+                )
 
-        my_opt = c_opt["use_double_card"]
-        if my_opt["active"]:
-            self.batch_use_items_double_card(
-                player=[1, 2] if my_opt["is_group"] else [1],
-                max_times=my_opt["max_times"],
-            )
+            my_opt = c_opt["use_double_card"]
+            if my_opt["active"]:
+                self.batch_use_items_double_card(
+                    player=[1, 2] if my_opt["is_group"] else [1],
+                    max_times=my_opt["max_times"],
+                )
 
-        my_opt = c_opt["warrior"]
-        if my_opt["active"]:
-            self.easy_battle(
-                text_="勇士挑战",
-                stage_id="NO-2-17",
-                player=[2, 1] if my_opt["is_group"] else [1],
-                max_times=int(my_opt["max_times"]),
-                global_plan_active=my_opt["global_plan_active"],
-                deck=my_opt["deck"],
-                battle_plan_1p=my_opt["battle_plan_1p"],
-                battle_plan_2p=my_opt["battle_plan_2p"],
-                dict_exit={
-                    "other_time_player_a": [],
-                    "other_time_player_b": [],
-                    "last_time_player_a": ["竞技岛"],
-                    "last_time_player_b": ["竞技岛"]
-                })
+            my_opt = c_opt["warrior"]
+            if my_opt["active"]:
+                self.easy_battle(
+                    text_="勇士挑战",
+                    stage_id="NO-2-17",
+                    player=[2, 1] if my_opt["is_group"] else [1],
+                    max_times=int(my_opt["max_times"]),
+                    global_plan_active=my_opt["global_plan_active"],
+                    deck=my_opt["deck"],
+                    battle_plan_1p=my_opt["battle_plan_1p"],
+                    battle_plan_2p=my_opt["battle_plan_2p"],
+                    dict_exit={
+                        "other_time_player_a": [],
+                        "other_time_player_b": [],
+                        "last_time_player_a": ["竞技岛"],
+                        "last_time_player_b": ["竞技岛"]
+                    })
 
-            # 勇士挑战在全部完成后, [进入竞技岛], 创建房间者[有概率]会保留勇士挑战选择关卡的界面.
-            # 对于创建房间者, 在触发后, 需要设定完成后退出方案为[进入竞技岛 → 点X] 才能完成退出.
-            # 对于非创建房间者, 由于号1不会出现选择关卡界面, 会因为找不到[X]而卡死.
-            # 无论如何都会出现卡死的可能性.
-            # 因此此处选择退出方案直接选择[进入竞技岛], 并将勇士挑战选择放在本大类的最后进行, 依靠下一个大类开始后的重启游戏刷新.
+                # 勇士挑战在全部完成后, [进入竞技岛], 创建房间者[有概率]会保留勇士挑战选择关卡的界面.
+                # 对于创建房间者, 在触发后, 需要设定完成后退出方案为[进入竞技岛 → 点X] 才能完成退出.
+                # 对于非创建房间者, 由于号1不会出现选择关卡界面, 会因为找不到[X]而卡死.
+                # 无论如何都会出现卡死的可能性.
+                # 因此此处选择退出方案直接选择[进入竞技岛], 并将勇士挑战选择放在本大类的最后进行, 依靠下一个大类开始后的重启游戏刷新.
 
-        need_reload = False
-        need_reload = need_reload or c_opt["customize"]["active"]
-        need_reload = need_reload or c_opt["normal_battle"]["active"]
-        need_reload = need_reload or c_opt["offer_reward"]["active"]
-        need_reload = need_reload or c_opt["cross_server"]["active"]
-
-        if need_reload:
+        if main_task_2p_active:
             self.batch_reload_game()
 
-        my_opt = c_opt["customize"]
-        if my_opt["active"]:
-            self.task_sequence(
-                text_="自定义任务序列",
-                task_begin_id=my_opt["stage"],
-                task_sequence_index=my_opt["battle_plan_1p"])
+            my_opt = c_opt["customize"]
+            if my_opt["active"]:
+                self.task_sequence(
+                    text_="自定义任务序列",
+                    task_begin_id=my_opt["stage"],
+                    task_sequence_index=my_opt["battle_plan_1p"])
 
-        my_opt = c_opt["normal_battle"]
-        if my_opt["active"]:
-            self.easy_battle(
-                text_="常规刷本",
-                stage_id=my_opt["stage"],
-                player=[2, 1] if my_opt["is_group"] else [1],
-                max_times=int(my_opt["max_times"]),
-                global_plan_active=my_opt["global_plan_active"],
-                deck=my_opt["deck"],
-                battle_plan_1p=my_opt["battle_plan_1p"],
-                battle_plan_2p=my_opt["battle_plan_2p"],
-                dict_exit={
-                    "other_time_player_a": [],
-                    "other_time_player_b": [],
-                    "last_time_player_a": ["竞技岛"],
-                    "last_time_player_b": ["竞技岛"]
-                })
+            my_opt = c_opt["normal_battle"]
+            if my_opt["active"]:
+                self.easy_battle(
+                    text_="常规刷本",
+                    stage_id=my_opt["stage"],
+                    player=[2, 1] if my_opt["is_group"] else [1],
+                    max_times=int(my_opt["max_times"]),
+                    global_plan_active=my_opt["global_plan_active"],
+                    deck=my_opt["deck"],
+                    battle_plan_1p=my_opt["battle_plan_1p"],
+                    battle_plan_2p=my_opt["battle_plan_2p"],
+                    dict_exit={
+                        "other_time_player_a": [],
+                        "other_time_player_b": [],
+                        "last_time_player_a": ["竞技岛"],
+                        "last_time_player_b": ["竞技岛"]
+                    })
 
-        my_opt = c_opt["offer_reward"]
-        if my_opt["active"]:
-            self.offer_reward(
-                text_="悬赏任务",
-                global_plan_active=my_opt["global_plan_active"],
-                deck=my_opt["deck"],
-                max_times_1=my_opt["max_times_1"],
-                max_times_2=my_opt["max_times_2"],
-                max_times_3=my_opt["max_times_3"],
-                battle_plan_1p=my_opt["battle_plan_1p"],
-                battle_plan_2p=my_opt["battle_plan_2p"])
+            my_opt = c_opt["offer_reward"]
+            if my_opt["active"]:
+                self.offer_reward(
+                    text_="悬赏任务",
+                    global_plan_active=my_opt["global_plan_active"],
+                    deck=my_opt["deck"],
+                    max_times_1=my_opt["max_times_1"],
+                    max_times_2=my_opt["max_times_2"],
+                    max_times_3=my_opt["max_times_3"],
+                    battle_plan_1p=my_opt["battle_plan_1p"],
+                    battle_plan_2p=my_opt["battle_plan_2p"])
 
-        my_opt = c_opt["cross_server"]
-        if my_opt["active"]:
-            self.easy_battle(
-                text_="跨服副本",
-                stage_id=my_opt["stage"],
-                player=[1, 2] if my_opt["is_group"] else [1],
-                max_times=int(my_opt["max_times"]),
-                global_plan_active=my_opt["global_plan_active"],
-                deck=my_opt["deck"],
-                battle_plan_1p=my_opt["battle_plan_1p"],
-                battle_plan_2p=my_opt["battle_plan_2p"],
-                dict_exit={
-                    "other_time_player_a": [],
-                    "other_time_player_b": [],
-                    "last_time_player_a": ["竞技岛"],
-                    "last_time_player_b": ["竞技岛"]
-                })
+            my_opt = c_opt["cross_server"]
+            if my_opt["active"]:
+                self.easy_battle(
+                    text_="跨服副本",
+                    stage_id=my_opt["stage"],
+                    player=[1, 2] if my_opt["is_group"] else [1],
+                    max_times=int(my_opt["max_times"]),
+                    global_plan_active=my_opt["global_plan_active"],
+                    deck=my_opt["deck"],
+                    battle_plan_1p=my_opt["battle_plan_1p"],
+                    battle_plan_2p=my_opt["battle_plan_2p"],
+                    dict_exit={
+                        "other_time_player_a": [],
+                        "other_time_player_b": [],
+                        "last_time_player_a": ["竞技岛"],
+                        "last_time_player_b": ["竞技岛"]
+                    })
 
-        need_reload = False
-        need_reload = need_reload or c_opt["quest_guild"]["active"]
-        need_reload = need_reload or c_opt["guild_dungeon"]["active"]
-        need_reload = need_reload or c_opt["quest_spouse"]["active"]
-        need_reload = need_reload or c_opt["relic"]["active"]
-
-        if need_reload:
+        if main_task_3p_active:
             self.batch_reload_game()
 
-        if c_opt["quest_guild"]["active"]:
-            self.guild_or_spouse_quest(
-                title_text="公会任务",
-                quest_mode="公会任务",
-                global_plan_active=c_opt["quest_guild"]["global_plan_active"],
-                deck=c_opt["quest_guild"]["deck"],
-                battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
-                battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"],
-                stage=c_opt["quest_guild"]["stage"])
+            if c_opt["quest_guild"]["active"]:
+                self.guild_or_spouse_quest(
+                    title_text="公会任务",
+                    quest_mode="公会任务",
+                    global_plan_active=c_opt["quest_guild"]["global_plan_active"],
+                    deck=c_opt["quest_guild"]["deck"],
+                    battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
+                    battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"],
+                    stage=c_opt["quest_guild"]["stage"])
 
-        if c_opt["guild_dungeon"]["active"]:
-            self.guild_dungeon(
-                text_="公会副本",
-                global_plan_active=c_opt["quest_guild"]["global_plan_active"],
-                deck=c_opt["quest_guild"]["deck"],
-                battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
-                battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"])
+            if c_opt["guild_dungeon"]["active"]:
+                self.guild_dungeon(
+                    text_="公会副本",
+                    global_plan_active=c_opt["quest_guild"]["global_plan_active"],
+                    deck=c_opt["quest_guild"]["deck"],
+                    battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
+                    battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"])
 
-        if c_opt["quest_spouse"]["active"]:
-            self.guild_or_spouse_quest(
-                title_text="情侣任务",
-                quest_mode="情侣任务",
-                global_plan_active=c_opt["quest_guild"]["global_plan_active"],
-                deck=c_opt["quest_guild"]["deck"],
-                battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
-                battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"])
+            if c_opt["quest_spouse"]["active"]:
+                self.guild_or_spouse_quest(
+                    title_text="情侣任务",
+                    quest_mode="情侣任务",
+                    global_plan_active=c_opt["quest_guild"]["global_plan_active"],
+                    deck=c_opt["quest_guild"]["deck"],
+                    battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
+                    battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"])
 
-        my_opt = c_opt["relic"]
-        if my_opt["active"]:
-            self.easy_battle(
-                text_="火山遗迹",
-                stage_id=my_opt["stage"],
-                player=[2, 1] if my_opt["is_group"] else [1],
-                max_times=int(my_opt["max_times"]),
-                global_plan_active=my_opt["global_plan_active"],
-                deck=my_opt["deck"],
-                battle_plan_1p=my_opt["battle_plan_1p"],
-                battle_plan_2p=my_opt["battle_plan_2p"],
-                dict_exit={
-                    "other_time_player_a": [],
-                    "other_time_player_b": [],
-                    "last_time_player_a": ["竞技岛"],
-                    "last_time_player_b": ["竞技岛"]
-                })
+            my_opt = c_opt["relic"]
+            if my_opt["active"]:
+                self.easy_battle(
+                    text_="火山遗迹",
+                    stage_id=my_opt["stage"],
+                    player=[2, 1] if my_opt["is_group"] else [1],
+                    max_times=int(my_opt["max_times"]),
+                    global_plan_active=my_opt["global_plan_active"],
+                    deck=my_opt["deck"],
+                    battle_plan_1p=my_opt["battle_plan_1p"],
+                    battle_plan_2p=my_opt["battle_plan_2p"],
+                    dict_exit={
+                        "other_time_player_a": [],
+                        "other_time_player_b": [],
+                        "last_time_player_a": ["竞技岛"],
+                        "last_time_player_b": ["竞技岛"]
+                    })
 
-        need_reload = False
-        need_reload = need_reload or c_opt["magic_tower_alone_1"]["active"]
-        need_reload = need_reload or c_opt["magic_tower_alone_2"]["active"]
-        need_reload = need_reload or c_opt["magic_tower_prison_1"]["active"]
-        need_reload = need_reload or c_opt["magic_tower_prison_2"]["active"]
-        need_reload = need_reload or c_opt["magic_tower_double"]["active"]
-        need_reload = need_reload or c_opt["pet_temple_1"]["active"]
-        need_reload = need_reload or c_opt["pet_temple_2"]["active"]
-        if need_reload:
+        if main_task_4p_active:
             self.batch_reload_game()
 
-        self.alone_magic_tower()
+            self.alone_magic_tower()
 
-        self.alone_magic_tower_prison()
+            self.alone_magic_tower_prison()
 
-        self.pet_temple()
+            self.pet_temple()
 
-        my_opt = c_opt["magic_tower_double"]
-        if my_opt["active"]:
-            self.easy_battle(
-                text_="魔塔双人",
-                stage_id="MT-2-" + str(my_opt["stage"]),
-                player=[2, 1],
-                max_times=int(my_opt["max_times"]),
-                global_plan_active=my_opt["global_plan_active"],
-                deck=my_opt["deck"],
-                battle_plan_1p=my_opt["battle_plan_1p"],
-                battle_plan_2p=my_opt["battle_plan_2p"],
-                dict_exit={
-                    "other_time_player_a": [],
-                    "other_time_player_b": ["回到上一级"],
-                    "last_time_player_a": ["普通红叉"],
-                    "last_time_player_b": ["回到上一级"]
-                }
-            )
+            my_opt = c_opt["magic_tower_double"]
+            if my_opt["active"]:
+                self.easy_battle(
+                    text_="魔塔双人",
+                    stage_id="MT-2-" + str(my_opt["stage"]),
+                    player=[2, 1],
+                    max_times=int(my_opt["max_times"]),
+                    global_plan_active=my_opt["global_plan_active"],
+                    deck=my_opt["deck"],
+                    battle_plan_1p=my_opt["battle_plan_1p"],
+                    battle_plan_2p=my_opt["battle_plan_2p"],
+                    dict_exit={
+                        "other_time_player_a": [],
+                        "other_time_player_b": ["回到上一级"],
+                        "last_time_player_a": ["普通红叉"],
+                        "last_time_player_b": ["回到上一级"]
+                    }
+                )
 
-        SIGNAL.PRINT_TO_UI.emit(
-            text=f"[主要事项] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
-            color_level=1)
+        if main_task_active:
+            SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
+            SIGNAL.PRINT_TO_UI.emit(
+                text=f"[主要事项] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
+                color_level=1)
+            SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
 
         """额外事项"""
 
@@ -2473,9 +2477,14 @@ class ThreadTodo(QThread):
         extra_active = extra_active or c_opt["auto_food"]["active"]
         extra_active = extra_active or c_opt["loop_cross_server"]["active"]
 
+        SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
         if extra_active:
-            SIGNAL.PRINT_TO_UI.emit(text="", time=False)
             SIGNAL.PRINT_TO_UI.emit(text=f"[额外事项] 开始!", color_level=1)
+        else:
+            SIGNAL.PRINT_TO_UI.emit(text=f"[额外事项] 未启动.", color_level=1)
+        SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
+
+        if extra_active:
             self.batch_reload_game()
             start_time = datetime.datetime.now()
 
@@ -2506,13 +2515,11 @@ class ThreadTodo(QThread):
                 deck=c_opt["quest_guild"]["deck"])
 
         if extra_active:
+            SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
             SIGNAL.PRINT_TO_UI.emit(
                 text=f"[额外事项] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
                 color_level=1)
-        else:
-            SIGNAL.PRINT_TO_UI.emit(
-                text=f"[额外事项] 未启动.",
-                color_level=1)
+            SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
 
         """自建房战斗"""
 
@@ -2520,8 +2527,10 @@ class ThreadTodo(QThread):
         active_singleton = active_singleton or c_opt["customize_battle"]["active"]
 
         if active_singleton:
-            SIGNAL.PRINT_TO_UI.emit(text="", time=False)
-            SIGNAL.PRINT_TO_UI.emit(text="[自建房战斗] 开始! 如出现错误, 务必确保该功能是单独启动的!", color_level=1)
+            SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom")
+            SIGNAL.PRINT_TO_UI.emit(text="[自建房战斗] 开始!", color_level=1)
+            SIGNAL.PRINT_TO_UI.emit(text="如出现错误, 务必确保该功能是单独启动的!")
+            SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top")
             start_time = datetime.datetime.now()
 
         my_opt = c_opt["customize_battle"]
@@ -2544,9 +2553,11 @@ class ThreadTodo(QThread):
             )
 
         if active_singleton:
+            SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
             SIGNAL.PRINT_TO_UI.emit(
                 text=f"[自建房战斗] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
                 color_level=1)
+            SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
 
         """全部完成"""
         if self.opt["advanced_settings"]["end_exit_game"]:

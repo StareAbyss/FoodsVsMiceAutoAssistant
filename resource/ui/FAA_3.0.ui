@@ -2175,7 +2175,7 @@ border:none</string>
              <item>
               <widget class="QLabel" name="Label_RunningState">
                <property name="text">
-                <string>任务事项线程状态: 未运行</string>
+                <string>任务序列线程状态: 未运行</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
@@ -9126,7 +9126,7 @@ Link Start</string>
                     <bool>false</bool>
                    </property>
                    <property name="text">
-                    <string>完成所有事项后返回登录页(4399微端无效)</string>
+                    <string>完成所有事项后, 返回登录页</string>
                    </property>
                    <property name="checkable">
                     <bool>true</bool>
