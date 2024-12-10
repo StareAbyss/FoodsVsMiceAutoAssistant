@@ -9126,7 +9126,7 @@ Link Start</string>
                     <bool>false</bool>
                    </property>
                    <property name="text">
-                    <string>完成所有事项后返回登录页(4399微端无效)</string>
+                    <string>完成所有事项后, 返回登录页</string>
                    </property>
                    <property name="checkable">
                     <bool>true</bool>
