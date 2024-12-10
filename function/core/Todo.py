@@ -2478,12 +2478,10 @@ class ThreadTodo(QThread):
         extra_active = extra_active or c_opt["auto_food"]["active"]
         extra_active = extra_active or c_opt["loop_cross_server"]["active"]
 
-        SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
         if extra_active:
+            SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
             SIGNAL.PRINT_TO_UI.emit(text=f"[额外事项] 开始!", color_level=1)
-        else:
-            SIGNAL.PRINT_TO_UI.emit(text=f"[额外事项] 未启动.", color_level=1)
-        SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
+            SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
 
         if extra_active:
             self.batch_reload_game()
@@ -2562,6 +2560,9 @@ class ThreadTodo(QThread):
 
         """全部完成"""
         if self.opt["advanced_settings"]["end_exit_game"]:
+            SIGNAL.PRINT_TO_UI.emit(
+                text="事项全部完成, 刷新退出游戏, 降低系统负载.",
+                color_level=1)
             self.batch_click_final_refresh_btn()
         else:
             SIGNAL.PRINT_TO_UI.emit(
