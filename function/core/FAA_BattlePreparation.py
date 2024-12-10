@@ -162,7 +162,12 @@ class BattlePreparation:
                 if match_img_result_dict[card_precise_name]["found"]:
                     scan_card_result_list.append(card_precise_name)
                     scan_card_position_list.append(match_img_result_dict[card_precise_name]["position"])
-                    match_img_result_dict[card_precise_name]["found"] = False
+                    card_name_without_id = card_precise_name.split("-")[0]
+                    # 将所有名称相同(不含转职的 -X)的卡片都设置为 未找到
+                    for i in [0,1,2,3]:
+                        card_be_used = match_img_result_dict.get(f"{card_name_without_id}-{i}")
+                        if card_be_used:
+                            card_be_used["found"] = False
                     break
             else:
                 # 没有找到
