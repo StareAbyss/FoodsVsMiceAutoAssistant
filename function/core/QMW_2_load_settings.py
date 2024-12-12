@@ -5,7 +5,7 @@ import shutil
 import sys
 
 from PyQt6.QtCore import QRegularExpression
-from PyQt6.QtGui import QRegularExpressionValidator
+from PyQt6.QtGui import QRegularExpressionValidator, QIntValidator
 from PyQt6.QtWidgets import QApplication, QMessageBox, QInputDialog
 
 from function.core.QMW_1_log import QMainWindowLog
@@ -72,6 +72,9 @@ class QMainWindowLoadSettings(QMainWindowLog):
         # 更新完毕后重新刷新对应资源
         g_resources.fresh_resource_cus_img()
         g_resources.fresh_resource_b()
+
+        # 为部分ui控件添加特性
+        self.widget_extra_settings()
 
         # 绑定
         self.set_connect_for_lock_battle_plan_settings()
@@ -229,6 +232,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.Warrior_Active.setChecked(my_opt["warrior"]["active"])
         self.Warrior_Group.setChecked(my_opt["warrior"]["is_group"])
         self.Warrior_MaxTimes.setValue(my_opt["warrior"]["max_times"])
+        self.Warrior_Stage.setText(str(my_opt["warrior"]["stage"]))
         self.Warrior_GlobalPlanActive.setChecked(my_opt["warrior"]["global_plan_active"])
         self.Warrior_Deck.setCurrentIndex(my_opt["warrior"]["deck"])
         init_battle_plan(self.Warrior_1P, my_opt["warrior"]["battle_plan_1p"])
@@ -595,6 +599,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         my_opt["warrior"]["active"] = self.Warrior_Active.isChecked()
         my_opt["warrior"]["is_group"] = self.Warrior_Group.isChecked()
         my_opt["warrior"]["max_times"] = self.Warrior_MaxTimes.value()
+        my_opt["warrior"]["stage"] = int(self.Warrior_Stage.text())
         my_opt["warrior"]["global_plan_active"] = self.Warrior_GlobalPlanActive.isChecked()
         my_opt["warrior"]["deck"] = self.Warrior_Deck.currentIndex()
         my_transformer_b(self.Warrior_1P, "warrior", "battle_plan_1p")
@@ -1047,6 +1052,35 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 self.set_theme_common()
                 self.set_theme_default()
                 self.set_common_theme()
+
+    def widget_extra_settings(self):
+        """
+        为部分控件在加载时添加额外的属性
+        :return:
+        """
+        # 只允许输入整数
+        intValidator = QIntValidator(0, 9, self)
+        self.OfferReward_MaxTimes_1.setValidator(intValidator)
+        self.OfferReward_MaxTimes_2.setValidator(intValidator)
+        self.OfferReward_MaxTimes_3.setValidator(intValidator)
+
+        # 监听文本变化事件 触发修正函数
+        def warrior_stage_changed(text):
+
+            if text:
+
+                try:
+                    value = int(text)
+                    if not 1 <= value <= 23:
+                        SIGNAL.DIALOG.emit("出错！(╬◣д◢)", "勇士本关卡值仅为1-23, 请检查输入")
+                        # 回退到最后一次有效的状态或者清除无效输入
+                        self.Warrior_Stage.setText('')
+
+                except ValueError:
+                    SIGNAL.DIALOG.emit("出错！(╬◣д◢)", "此处只可输入数字! 不要输入怪东西!")
+                    self.Warrior_Stage.setText('')
+
+        self.Warrior_Stage.textChanged.connect(warrior_stage_changed)
 
 
 class CommonHelper:  # 主题加载类

@@ -139,5 +139,13 @@ def capture_image_png_once(handle: HWND):
     return image
 
 
-def png_cropping(image, raw_range: list):
+def png_cropping(image, raw_range: list = None):
+    """
+    裁剪图像
+    :param image:
+    :param raw_range: [左上X, 左上Y,右下X, 右下Y]
+    :return:
+    """
+    if raw_range is None:
+        return image
     return image[raw_range[1]:raw_range[3], raw_range[0]:raw_range[2], :]
