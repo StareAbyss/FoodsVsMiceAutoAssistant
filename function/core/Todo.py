@@ -1541,7 +1541,7 @@ class ThreadTodo(QThread):
             quest = quest_list[i]
 
             # 判断显著错误的关卡名称
-            if quest["stage_id"].split("-")[0] not in ["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD", "HH"]:
+            if quest["stage_id"].split("-")[0] not in ["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD", "HH", "WA"]:
                 SIGNAL.PRINT_TO_UI.emit(
                     text="{}事项{},{},错误的关卡名称!跳过".format(
                         title,
@@ -2309,7 +2309,7 @@ class ThreadTodo(QThread):
             if my_opt["active"]:
                 self.easy_battle(
                     text_="勇士挑战",
-                    stage_id="NO-2-17",
+                    stage_id=f"WA-0-{my_opt["stage"]}",
                     player=[2, 1] if my_opt["is_group"] else [1],
                     max_times=int(my_opt["max_times"]),
                     global_plan_active=my_opt["global_plan_active"],

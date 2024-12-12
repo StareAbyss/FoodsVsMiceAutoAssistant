@@ -2,6 +2,7 @@ import random
 import time
 
 from function.common.bg_img_match import loop_match_p_in_w, match_p_in_w
+from function.common.bg_img_screenshot import capture_image_png
 from function.globals import g_resources
 from function.globals.g_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
@@ -184,7 +185,6 @@ class FAAActionInterfaceJump:
                 mode == "跳转_竞技场" or
                 mode == "跳转_缘分树"
         ):
-
             loop_match_p_in_w(
                 source_handle=handle,
                 source_root_handle=handle_360,
@@ -544,13 +544,13 @@ class FAAActionInterfaceJump:
 
                 # 找地图图标，需要防止因点过一次后图片放大造成的无法点击
                 if not (loop_match_p_in_w(
-                    source_handle=handle,
-                    source_root_handle=handle_360,
-                    source_range=[0, 0, 950, 600],
-                    template=RESOURCE_P["stage"]["EX-{}.png".format(stage_1)],
-                    after_sleep=1.5,
-                    click=True)):
-                        loop_match_p_in_w(
+                        source_handle=handle,
+                        source_root_handle=handle_360,
+                        source_range=[0, 0, 950, 600],
+                        template=RESOURCE_P["stage"]["EX-{}.png".format(stage_1)],
+                        after_sleep=1.5,
+                        click=True)):
+                    loop_match_p_in_w(
                         source_handle=handle,
                         source_root_handle=handle_360,
                         source_range=[0, 0, 950, 600],
@@ -677,7 +677,6 @@ class FAAActionInterfaceJump:
 
             # 仅限主角色创建关卡
             if is_main:
-
                 # 进入欢乐假期页面
                 self.top_menu(mode="欢乐假期")
 
@@ -686,6 +685,67 @@ class FAAActionInterfaceJump:
 
                 # 创建队伍 - 该按钮可能需要修正位置
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=660, y=200)
+
+        def main_wa():
+
+            # 进入对应地图
+            self.goto_map(map_id="2")
+
+            # 切区
+            change_to_region(region_list=[1, 2])
+
+            # 仅限主角色创建关卡
+            if is_main:
+
+                # 选择勇士关卡列表
+                loop_match_p_in_w(
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[155, 385, 225, 450],
+                    template=RESOURCE_P["stage"]["WA-0-0.png"],
+                    match_tolerance=0.995,
+                    after_sleep=1,
+                    click=True)
+
+                # 遍历所有关卡图像 查看目前属于哪个
+                img = capture_image_png(handle=handle, raw_range=[205, 385, 242, 405], root_handle=handle_360)
+
+                for i in range(1, 24):
+                    find = match_p_in_w(
+                        source_img=img,
+                        template=RESOURCE_P["stage"][f"WA-0-{i}.png"],
+                        match_tolerance=0.995,
+                    )
+                    if find:
+                        current_stage = i
+                        break
+                else:
+                    # 没有匹配到任何关卡?!
+                    self.faa.print_warning("[界面跳转] 进入勇士本流程出现严重错误! 请联系开发者!")
+                    return
+
+                # 根据id 向左 155 175 向右 500 175
+                add_index = int(stage_2) - current_stage
+                if add_index > 0:
+                    for i in range(add_index):
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=500, y=175)
+                        time.sleep(1.5)
+                elif add_index < 0:
+                    for i in range(abs(add_index)):
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=155, y=175)
+                        time.sleep(1.5)
+
+                # 设置密码 这个模式无法设置
+
+                # 创建队伍
+                loop_match_p_in_w(
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[370, 505, 530, 550],
+                    template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
+                    match_tolerance=0.99,
+                    after_sleep=1,
+                    click=True)
 
         if stage_0 == "NO":
             main_no()
@@ -703,5 +763,7 @@ class FAAActionInterfaceJump:
             main_gd()
         elif stage_0 == "HH":
             main_hh()
+        elif stage_0 == "WA":
+            main_wa()
         else:
             print_error(text="请输入正确的关卡名称！")
