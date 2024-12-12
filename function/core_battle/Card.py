@@ -124,7 +124,7 @@ class Card:
         self.is_kun_target = False
 
         # 判定自身是不是极寒冰沙
-        self.is_smoothie = self.name in ["极寒冰沙", "冰沙"]
+        self.is_smoothie = "冰沙" in self.name
 
         # 不进入放满自ban的 白名单
         self.ban_white_list = ["极寒冰沙", "冰沙"]
