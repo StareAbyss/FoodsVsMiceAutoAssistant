@@ -537,19 +537,20 @@ class FAA:
         def calculation_card_extra(list_cell_all):
 
             if smoothie_info:
-                # 生成从 "1-1" 到 "1-7" 再到 "9-1" 到 "9-7" 的列表
-                all_locations = [f"{i}-{j}" for i in range(1, 10) for j in range(1, 8)]
 
-                # 找到第一个不在障碍物列表中的值
-                first_available_location = next(
-                    (pos for pos in all_locations if pos not in stage_info['obstacle']), None)
+                # # 生成从 "1-1" 到 "1-7" 再到 "9-1" 到 "9-7" 的列表
+                # all_locations = [f"{i}-{j}" for i in range(1, 10) for j in range(1, 8)]
+                #
+                # # 找到第一个不在障碍物列表中的值
+                # first_available_location = next(
+                #     (pos for pos in all_locations if pos not in stage_info['obstacle']), None)
 
                 # 仅该卡确定存在后执行添加
                 card_dict = {
                     'name': smoothie_info['name'],
                     'id': smoothie_info['id'],
-                    'location': [first_available_location],
-                    'ergodic': False,
+                    'location': ["1-1","2-1","3-1","4-1","5-1","6-1","7-1","8-1","9-1"],
+                    'ergodic': True,
                     'queue': False
                 }
                 list_cell_all.append(card_dict)
