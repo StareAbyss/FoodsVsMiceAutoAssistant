@@ -1,3 +1,4 @@
+from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QMainWindow, QTableWidgetItem, QTableWidget, QVBoxLayout, QWidget
 
 
@@ -53,7 +54,6 @@ class QMWTipStageID(QMainWindow):
                 ["果酱部落-夜", "NO-2-14"],
                 ["雪顶火山", "NO-2-15"],
                 ["火山漫游", "NO-2-16"],
-                ["勇士挑战-最高难", "NO-2-17"]
             ],
             "火山遗迹": [
                 ["果仁瀑布", "NO-3-1"],
@@ -211,6 +211,26 @@ class QMWTipStageID(QMainWindow):
                 row += 1
             row = 1  # 重置行号以填充下一个表头的内容
 
+        def is_in_sequence(x):
+            # 计算 k1 和 k2
+            k1 = (x - 2) / 4
+            k2 = (x - 3) / 4
+
+            # 检查 k1 或 k2 是否为非负整数
+            if k1.is_integer() and k1 >= 0:
+                return True
+            if k2.is_integer() and k2 >= 0:
+                return True
+
+            return False
+
+        # 上透明色
+        for column in range(table.columnCount()):
+            if is_in_sequence(column):
+                for row in range(table.rowCount()):
+                    item = table.item(row, column)
+                    if item:
+                        item.setBackground(QColor(255, 255, 0, 50))
         # 设置布局
         layout = QVBoxLayout()
         layout.addWidget(table)
