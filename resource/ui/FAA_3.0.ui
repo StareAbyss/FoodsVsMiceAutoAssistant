@@ -11668,7 +11668,7 @@ Link Start</string>
         </attribute>
         <layout class="QHBoxLayout" name="horizontalLayout_7">
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout_12">
+          <layout class="QVBoxLayout" name="IoLayout">
            <item>
             <widget class="QLabel" name="label_8">
              <property name="text">
@@ -11726,7 +11726,7 @@ Link Start</string>
             </spacer>
            </item>
            <item>
-            <widget class="QLabel" name="label_17">
+            <widget class="QLabel" name="Io_panel">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -11758,7 +11758,7 @@ Link Start</string>
           </layout>
          </item>
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout_13">
+          <layout class="QVBoxLayout" name="MemoryLayout">
            <item>
             <widget class="QLabel" name="label_9">
              <property name="text">
@@ -11816,7 +11816,7 @@ Link Start</string>
             </spacer>
            </item>
            <item>
-            <widget class="QLabel" name="label_18">
+            <widget class="QLabel" name="Memory_panel">
              <property name="text">
               <string>假装出现了一个仪表盘
 未完待续</string>
@@ -11842,7 +11842,7 @@ Link Start</string>
           </layout>
          </item>
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout_14">
+          <layout class="QVBoxLayout" name="CpuLayout">
            <item>
             <widget class="QLabel" name="label_13">
              <property name="text">
@@ -11889,7 +11889,7 @@ Link Start</string>
             </spacer>
            </item>
            <item>
-            <widget class="QLabel" name="label_19">
+            <widget class="QLabel" name="cpu_panel">
              <property name="text">
               <string>假装出现了一个仪表盘
 未完待续</string>

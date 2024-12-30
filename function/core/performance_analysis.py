@@ -3,7 +3,17 @@ import os
 import threading
 
 import psutil
+from function.widget.GaugePanel import GaugePanel
 
+
+def replace_label_with_gauge(layout_name, label, gauge_panel):
+    # 从布局中移除标签
+    index = layout_name.indexOf(label)
+    layout_name.removeWidget(label)
+    label.deleteLater()
+
+    # 将仪表盘控件添加到相同的位置
+    layout_name.insertWidget(index, gauge_panel)
 
 async def monitor_io(process_ids, stop_event, main_window):
     while True:
@@ -19,8 +29,9 @@ async def monitor_io(process_ids, stop_event, main_window):
                     total_write_bytes += io_counters.write_bytes
                 except psutil.NoSuchProcess:
                     continue
-            main_window.read_bytes_label.setText(f"{total_read_bytes / 1024 / 1024:.2f} MB")
-            main_window.write_bytes_label.setText(f"{total_write_bytes / 1024 / 1024:.2f} MB")
+            main_window.read_bytes_label.setText(f"{total_read_bytes / 1048576:.2f} MB")
+            main_window.write_bytes_label.setText(f"{total_write_bytes / 1048576:.2f} MB")
+            main_window.io_gp.setValue((total_read_bytes+total_write_bytes) / 1048576)
             # print(f"总读取字节数: {total_read_bytes / 1024 / 1024:.2f} MB")
             # print(f"总写入字节数: {total_write_bytes / 1024 / 1024:.2f} MB")
         await asyncio.sleep(1)
@@ -41,8 +52,9 @@ async def monitor_memory(process_ids, stop_event, main_window):
                     total_memory_percent += memory_percent
                 except psutil.NoSuchProcess:
                     continue
-            main_window.total_memory_rss_label.setText(f"{total_memory_rss / (1024 * 1024):.2f} MB")
+            main_window.total_memory_rss_label.setText(f"{total_memory_rss / 1048576:.2f} MB")
             main_window.total_memory_percent_label.setText(f"{total_memory_percent:.2f}%")
+            main_window.me_gp.setValue(total_memory_percent)
             # print(f"总内存使用量: {total_memory_rss / (1024 * 1024):.2f} MB")
             # print(f"总内存使用率: {total_memory_percent:.2f}%")
         await asyncio.sleep(1)
@@ -61,6 +73,7 @@ async def monitor_cpu(process_ids, stop_event, main_window):
                 except psutil.NoSuchProcess:
                     continue
             main_window.total_cpu_percent_label.setText(f"{total_cpu_percent:.2f}%")
+            main_window.cpu_gp.setValue(total_cpu_percent)
             # print(f"总CPU使用率: {total_cpu_percent:.2f}%")
         await asyncio.sleep(1)
 
@@ -112,6 +125,16 @@ def run_analysis_in_thread(main_window):
         asyncio.set_event_loop(loop)
         loop.run_until_complete(analysis(main_window))
         loop.close()
+    cpu_gp=GaugePanel("CPU占用率")
+    io_gp=GaugePanel("磁盘读写量/MB",1024)
+    me_gp=GaugePanel("内存使用率")
+    # 将 GaugePanel 绑定到 main_window 对象
+    main_window.cpu_gp = cpu_gp
+    main_window.io_gp = io_gp
+    main_window.me_gp = me_gp
+    replace_label_with_gauge(main_window.CpuLayout, main_window.cpu_panel, cpu_gp)
+    replace_label_with_gauge(main_window.MemoryLayout, main_window.Memory_panel, me_gp)
+    replace_label_with_gauge(main_window.IoLayout, main_window.Io_panel, io_gp)
 
     thread = threading.Thread(target=target_function, daemon=True)
     thread.start()
