@@ -113,17 +113,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.current_plan_label = QLabel("当前编辑方案:无, UUID:无")
             self.LayTop.addWidget(self.current_plan_label)
 
-        label = QLabel("波次选择")
-        LayWave.addWidget(label)
-
-        self.WidgetWaveChoose = QComboBox()
-        LayWave.addWidget(self.WidgetWaveChoose)
-        self.WidgetWaveChoose.addItems([str(i) for i in range(0, 14)])
-        # 绑定信号 当其更改 则刷新
-        self.WidgetWaveChoose.currentTextChanged.connect(self.change_wave)
-
-        label = QLabel("\u3000\u3000\u3000\u3000")
-        LayWave.addWidget(label)
+            # 简单教学
+            self.tooltip_label = QLabel("鼠标悬停在按钮/输入框可以查看许多重要提示")
+            self.LayTop.addWidget(self.tooltip_label)
 
             # 关卡选择按钮(多级列表)
             self.WidgetStageSelector = MultiLevelMenu(title="关卡选择")
@@ -148,6 +140,25 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.LayMain.addWidget(self.WidgetTipsEditor)
             self.WidgetTipsEditor.setMaximumHeight(100)
 
+        def init_ui_lay_wave_editor():
+            """波次编辑器"""
+
+            self.LayWaveEditor = QHBoxLayout()
+            self.LayMain.addLayout(self.LayWaveEditor)
+
+            self.LayWaveEditor.addWidget(QLabel('切换波次'))
+
+            for i in range(14):
+                button = QPushButton(f"{i}")
+                self.LayWaveEditor.addWidget(button)
+                button.setObjectName(f"changeWaveButton_{i}")
+                button.clicked.connect(
+                    lambda checked, wave=i: (
+                        self.click_wave_button(be_clicked_button_id=wave)
+                    )
+                )
+                button.setToolTip(f"切换到第{i}波方案")
+                button.setFixedWidth(45)
 
 
 
@@ -371,6 +382,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 初始化关卡选择
         self.init_stage_selector()
 
+        # 初始选中的波次按钮
+        self.click_wave_button(be_clicked_button_id=0)
 
         # 根据初始数据, 刷新全部UI外观
         self.fresh_all_ui()
@@ -378,42 +391,65 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 初始加载 禁用部分输入控件
         self.input_widget_enabled(mode=False)
 
-    def get_current_sub_plan_cards(self):
+    """波次相关"""
 
-        if self.sub_plan_index[0] == "default":
-            self.sub_plan = self.json_data["card"]["default"]
-            return
+    def get_wave_plan_by_id(self, index: int):
+        """返回json_data的对应部分"""
+        if index == 0:
+            return self.json_data["card"]["default"]
+        elif index <= 13:
+            return self.json_data["card"]["wave"][str(index)]
+        else:
+            print("致命错误, 波次越位")
 
-        if self.sub_plan_index[0] == "wave":
-            wave = self.sub_plan_index[1]
-            wave_data = self.json_data["card"]["wave"]
-            plan = wave_data.get(wave)
+    def click_wave_button(self, be_clicked_button_id: int):
 
-            if plan is None:
+        print(f"波次按钮被点击: {be_clicked_button_id}")
+
+        """点击波次按钮"""
+        self.change_wave(be_clicked_button_id)
+
+        # 修改当前选中波次按钮的文本内容并还原其他按钮的内容
+        self.fresh_wave_button_text(be_clicked_button_id=int(be_clicked_button_id))
+
+    def fill_blank_wave(self):
+        """加载时, 将空白波次的方案设定为自动继承状态"""
+
+        print("[加载方案] 开始填充空白的波次方案")
+
+        wave_data = self.json_data["card"]["wave"]
+
+        for wave in range(14):
+
+            if wave == 0:
+                wave_plan = self.json_data["card"]["default"]
+            else:
+                wave_plan = self.json_data["card"]["wave"].get(str(wave))
+
+            if wave_plan is None:
                 # 如果缺失，深拷贝波次更小中最大的方案
                 existing_waves = [int(w) for w in wave_data.keys() if w]
                 if existing_waves:
                     smaller_waves = [w for w in existing_waves if w < int(wave)]
-                    print("更低的波次包含：{}".format(smaller_waves))
+                    # print(f"波次: {wave}, 更低的以下波次有方案:{smaller_waves}")
                     if smaller_waves:
                         max_smaller_wave = str(max(smaller_waves))
-                        wave_data[wave] = copy.deepcopy(wave_data[max_smaller_wave])
-                        self.sub_plan = wave_data[wave]
-                        return
+                        wave_data[str(wave)] = copy.deepcopy(wave_data[max_smaller_wave])
+                        print(f"[加载方案] 波次: {wave}, 已从波次{max_smaller_wave}完成继承")
+                        continue
                     else:
                         # 如果没有更小的波次方案，则使用默认方案
-                        wave_data[wave] = copy.deepcopy(self.json_data["card"]["default"])
-                        self.sub_plan = wave_data[wave]
-                        return
+                        wave_data[str(wave)] = copy.deepcopy(self.json_data["card"]["default"])
+                        print(f"[加载方案] 波次: {wave}, 已从波次0完成继承")
+                        continue
                 else:
                     # 如果没有任何现有波次，则使用默认方案
-                    wave_data[wave] = copy.deepcopy(self.json_data["card"]["default"])
-                    self.sub_plan = wave_data[wave]
-                    print("没有更低的波次 选用default为当前方案")
-                    return
+                    wave_data[str(wave)] = copy.deepcopy(self.json_data["card"]["default"])
+                    print(f"[加载方案] 波次: {wave}, 已从波次0完成继承")
+                    continue
             else:
-                print("该波次已有方案")
-                self.sub_plan = plan
+                print(f"[加载方案] 波次: {wave}, 文件已包含")
+
 
     def highlight_chessboard(self, card_locations):
         """根据卡片的位置list，将对应元素的按钮进行高亮"""
@@ -432,6 +468,27 @@ class QMWEditorOfBattlePlan(QMainWindow):
             for frame in row:
                 frame.setStyleSheet("")
 
+        # 更新当前波次参数
+        self.current_wave = wave
+
+        # 切换方案
+        self.sub_plan = self.get_wave_plan_by_id(index=wave)
+
+        # 去除选中的卡片
+        self.current_card_index = None
+
+        # 加载数据
+        self.fresh_all_ui()
+
+    def fresh_wave_button_text(self, be_clicked_button_id: int):
+        for wave in range(14):
+            button = self.findChild(QPushButton, f"changeWaveButton_{wave}")
+            if wave == be_clicked_button_id:
+                button.setText(f">> {wave} <<")
+            else:
+                button.setText(f"{wave}")
+
+    """数据变化->UI变化 大礼包, 懒得找对应部分直接全调用一遍总没错"""
 
     def fresh_all_ui(self):
         """
@@ -444,12 +501,6 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         # 更改波次 / 修改某放卡动作的name字段 / 删除一条放卡动作 / 修改某放卡动作的具体位置顺序 -> 重绘 UI棋盘网格
         self.refresh_chessboard()
-
-        # 更改波次 / 修改当前波次任意信息后,导致波次前后一致关系变化 -> 刷新波次按钮颜色
-        self.refresh_wave_button_color()
-
-        # 刷新棋盘高亮
-        self.highlight_chessboard()
 
     """放卡动作列表操作"""
 
@@ -553,6 +604,26 @@ class QMWEditorOfBattlePlan(QMainWindow):
             # 试图移动到第一个
             self.WidgetCardList.clear()
             self.load_data_to_ui_list()
+
+    """放卡动作属性编辑"""
+
+    def input_widget_lock(self, mode: bool):
+        """
+        是否锁定卡片属性输入控件
+        """
+        self.WidgetIdInput.blockSignals(mode)
+        self.WidgetNameInput.blockSignals(mode)
+        self.WidgetErgodicInput.blockSignals(mode)
+        self.WidgetQueueInput.blockSignals(mode)
+        self.WidgetKunInput.blockSignals(mode)
+
+    def input_widget_enabled(self, mode: bool):
+        self.WidgetIdInput.setEnabled(mode)
+        self.WidgetNameInput.setEnabled(mode)
+        self.WidgetErgodicInput.setEnabled(mode)
+        self.WidgetQueueInput.setEnabled(mode)
+        self.WidgetKunInput.setEnabled(mode)
+        self.WidgetDeleteCardButton.setEnabled(mode)
 
     def add_card(self):
 
@@ -871,6 +942,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
     def re_init_battle_plan_opened(self):
         """在读取方案后, 填充该方案空白部分, 并初始化大量控件"""
 
+        # 填充空白波次
+        self.fill_blank_wave()
+
         # 初始化当前选中
         self.current_card_index = None
 
@@ -883,37 +957,14 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.WidgetKunInput.clear()
         self.input_widget_lock(False)
 
-        # 载入方案波次 并刷新视图
-        self.get_current_sub_plan_cards()
+        # 回到波次0方案 并载入方案波次
+        self.click_wave_button(be_clicked_button_id=0)
 
         # 刷新全部视图
         self.fresh_all_ui()
 
         # 解锁部分输入控件
         self.input_widget_enabled(mode=False)
-
-    def fresh_card_plan(self):
-
-        # 根据数据 重新 绘制视图
-        self.load_data_to_ui_list()
-        self.refresh_chessboard()
-
-        # 清除所有按钮的高亮
-        self.remove_frame_color()
-
-    def change_wave(self, wave: str):
-
-        # 更新当前波次参数
-        if wave == "0":
-            self.sub_plan_index = ("default", None)
-        else:
-            self.sub_plan_index = ("wave", wave)
-
-        # 切换方案
-        self.get_current_sub_plan_cards()
-
-        # 加载数据
-        self.fresh_card_plan()
 
     """撤回/重做"""
 
