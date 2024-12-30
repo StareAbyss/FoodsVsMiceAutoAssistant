@@ -19,11 +19,18 @@ class QMWSettingsMigrator(QMainWindow):
         # 需要迁移的配置项 的 名称, 和可能存在的位置.
         self.configs = [
             {
-                "name": "主配置",
+                "name": "配置文件 - 核心",
                 "type": "file",
                 "locations": [
                     os.path.join("config","settings.json"),
                     os.path.join("config","opt_main.json"),
+                ],
+            },
+            {
+                "name": "配置文件 - 关卡全局方案",
+                "type": "file",
+                "locations": [
+                    os.path.join("config","stage_plan.json"),
                 ],
             },
             {
