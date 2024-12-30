@@ -285,6 +285,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 """棋盘布局"""
                 self.chessboard_layout = QGridLayout()
                 self.LayCardListAndCell.addLayout(self.chessboard_layout)
+
                 # 生成棋盘布局中的元素
                 self.chessboard_buttons = []
                 self.chessboard_frames = []  # 用于存储QFrame的列表
@@ -577,6 +578,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 更改波次 / 修改当前波次任意信息后,导致波次前后一致关系变化 -> 刷新波次按钮颜色
         self.refresh_wave_button_color()
 
+        # 刷新棋盘高亮
+        self.highlight_chessboard()
+
     """放卡动作列表操作"""
 
     def current_card_change(self, item):
@@ -595,7 +599,6 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.WidgetErgodicInput.setCurrentIndex(0)
             self.WidgetQueueInput.setCurrentIndex(0)
             self.WidgetKunInput.clear()
-            self.highlight_chessboard(self.json_data["player"])
             # 禁用部分输入控件
             self.input_widget_enabled(mode=False)
 
@@ -609,13 +612,14 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.WidgetErgodicInput.setCurrentText(str(card['ergodic']).lower())
             self.WidgetQueueInput.setCurrentText(str(card['queue']).lower())
             self.WidgetKunInput.setValue(card.get('kun', 0))
-            # 设置高亮
-            self.highlight_chessboard(card["location"])
             # 解锁部分输入控件
             self.input_widget_enabled(mode=True)
 
         # 解锁控件信号
         self.input_widget_lock(False)
+
+        # 高亮棋盘
+        self.highlight_chessboard()
 
     def load_data_to_ui_list(self):
         """从 [内部数据表] 载入数据到 [ui的放卡动作列表]"""
@@ -858,6 +862,43 @@ class QMWEditorOfBattlePlan(QMainWindow):
                         text += " {}".format(c_index_list)
                 btn.setText(text)
 
+    def highlight_chessboard(self):
+        """根据卡片的位置list，将对应元素的按钮进行高亮"""
+
+        # 清除所有按钮的高亮
+        for row in self.chessboard_frames:
+            for frame in row:
+                frame.setStyleSheet("")
+
+        # 记录所有被选中的格子
+        selected_cells = set()
+
+        # 还没有选中任何卡片 直接返回
+        if self.current_card_index:
+
+            if self.current_card_index == 0:
+                current_card_locations = self.json_data["player"]
+            else:
+                current_card_locations = self.sub_plan[self.current_card_index - 1]["location"]
+
+            for location in current_card_locations:
+                x, y = map(int, location.split('-'))
+                selected_cells.add((x, y))
+                # 如果是选中的卡片 蓝色
+                self.chessboard_frames[y - 1][x - 1].setStyleSheet("background-color: rgba(30, 144, 255, 100);")
+
+        # 还没有选中任何关卡 直接返回
+        if self.stage_info:
+            obstacle = self.stage_info.get("obstacle", [])
+            if obstacle:  # 障碍物，在frame上显示红色
+                for location in obstacle:  # location格式为："y-x"
+                    x, y = map(int, location.split("-"))
+                    if (x, y) in selected_cells:
+                        # 如果是被选中的格子，设置为紫色 警告
+                        self.chessboard_frames[y - 1][x - 1].setStyleSheet("background-color: rgba(145, 44, 238, 100);")
+                    else:
+                        # 否则设置为红色 代表障碍位置
+                        self.chessboard_frames[y - 1][x - 1].setStyleSheet("background-color: rgba(255, 0, 0, 100);")
 
     """储存战斗方案"""
 
@@ -1110,15 +1151,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
         stage_id的格式为：XX-X-X
         """
         id0, id1, id2 = stage_id.split("-")
-        stage_info = self.stage_info[id0][id1][id2]
-        obstacle = stage_info.get("obstacle", [])
-        # 清除现有的frame颜色
-        self.remove_frame_color()
-        if obstacle:  # 障碍物，在frame上显示红色
-            for location in obstacle:  # location格式为："y-x"
-                y, x = map(int, location.split("-"))
-                # 改变颜色
-                self.chessboard_frames[x - 1][y - 1].setStyleSheet("background-color: rgba(255, 0, 0, 180);")
+        self.stage_info = self.stage_info_all[id0][id1][id2]
+
+        # 高亮棋盘
+        self.highlight_chessboard()
 
 
 class QListWidgetDraggable(QListWidget):
