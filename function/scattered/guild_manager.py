@@ -30,11 +30,11 @@ def make_gray(img, mode: str):
             # 将白色的成员名称(RGB 255 255 255)转化为黑色，其余则为白色
             lower_bound = np.array([254, 254, 254])
             upper_bound = np.array([255, 255, 255])
-        case "贡献点":
+        case "总计":
             # 将所有文本颜色(RGB 255 190 0)转化为黑色，其余则为白色
             lower_bound = np.array([254, 189, 0])
             upper_bound = np.array([255, 190, 0])
-        case "周贡献点":
+        case "每周":
             # 将所有文本颜色(RGB 120 210 0)转化为黑色，其余则为白色
             lower_bound = np.array([119, 209, 0])
             upper_bound = np.array([120, 210, 0])
@@ -168,11 +168,10 @@ class GuildManager:
         img_old = None
         while True:
             for j in range(5):
+
                 # 尝试五次获取，如果不与之前的图片重复则认为成功翻页，获取一次成员信息
-                img = capture_image_png(
-                    handle=handle,
-                    raw_range=[484, 133, 908, 316],
-                    root_handle=handle_360)
+                img = capture_image_png(handle=handle, raw_range=[484, 133, 792, 316], root_handle=handle_360)
+
                 if img_old is None or not np.array_equal(img, img_old):
                     # 如果是第一次截图或不与之前截图重复，则认为成功翻页
                     img_old = img
@@ -204,13 +203,21 @@ class GuildManager:
             img_name = img_member[:, 0:93]
             img_name_grey = make_gray(img_name, "成员名称")
 
-            # 贡献点图片，用于OCR数字来识别贡献点 高8 宽x
+            # 贡献-总计 图片，用于OCR数字来识别贡献点 高8 宽x
             img_contribution = img_member[5:13, 184:245]
-            contribution = ocr_contribution(img=img_contribution, mode="贡献点")
+            contribution = ocr_contribution(img=img_contribution, mode="总计")
 
-            # 每周贡献点图片 用于OCR数字来识别贡献点 高8 宽x
+            # 贡献-每周 图片 用于OCR数字来识别贡献点 高8 宽x
             img_contribution_week = img_member[19:27, 184:245]
-            contribution_week = ocr_contribution(img=img_contribution_week, mode="周贡献点")
+            contribution_week = ocr_contribution(img=img_contribution_week, mode="每周")
+
+            # 功勋-总计 图片，用于OCR数字来识别贡献点 高8 宽x
+            img_merit = img_member[5:13, 246:307]
+            merit = ocr_contribution(img=img_merit, mode="总计")
+
+            # 功勋-每周 图片 用于OCR数字来识别贡献点 高8 宽x
+            img_merit_week = img_member[19:27, 246:307]
+            merit_week = ocr_contribution(img=img_merit_week, mode="每周")
 
             # 保存名称图片
             name_image_hash = _hash_image(img_name_grey)
@@ -227,14 +234,18 @@ class GuildManager:
                 name_image_hash=name_image_hash,
                 contribution=contribution,
                 contribution_week=contribution_week,
+                merit=merit,
+                merit_week=merit_week,
                 date=datetime.date.today().strftime('%Y-%m-%d')
             )
 
-    def update_member_data(self, name_image_hash, contribution, contribution_week, date):
+    def update_member_data(self, name_image_hash, contribution, contribution_week, merit, merit_week, date):
         """
         :param name_image_hash: 成员名称图片哈希值
         :param contribution: 总贡献点
         :param contribution_week: 周贡献点（游戏内数值）
+        :param merit: 总功勋点
+        :param merit_week: 周功勋点
         :param date: 数据获取日期 请转化为 str yyyy-MM-dd
         :return:
         """
@@ -251,17 +262,29 @@ class GuildManager:
             new_member = {
                 'name_image_hash': name_image_hash,
                 'data': {date: contribution},
-                'data_week': {date: contribution_week}
+                'data_week': {date: contribution_week},
+                'merit': {date: merit},
+                'merit_week': {date: merit_week},
             }
             self.members_data.append(new_member)
         else:
             # 成员已存在，更新贡献数据, 先检查结构完整性
             if not existing_member.get('data'):
                 existing_member['data'] = {}
+
             if not existing_member.get('data_week'):
                 existing_member['data_week'] = {}
+
+            if not existing_member.get('merit'):
+                existing_member['merit'] = {}
+
+            if not existing_member.get('merit_week'):
+                existing_member['merit_week'] = {}
+
             existing_member['data'][date] = contribution
             existing_member['data_week'][date] = contribution_week
+            existing_member['merit'][date] = merit
+            existing_member['merit_week'][date] = merit_week
 
     def scan(self, handle, handle_360):
         """
