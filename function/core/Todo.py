@@ -752,10 +752,10 @@ class ThreadTodo(QThread):
                     failed_time += 1
                     mt_first_time = True
 
-                    SIGNAL.PRINT_TO_UI.emit(text=f"[单本轮战] 服务器抽风,进入竞技岛重新邀请...({failed_time}/3)")
+                    SIGNAL.PRINT_TO_UI.emit(text=f"[单本轮战] 邀请失败... 建房失败 or 服务器抽风 ({failed_time}/3)")
 
                     if failed_time == 3:
-                        SIGNAL.PRINT_TO_UI.emit(text="[单本轮战] 服务器抽风过头, 刷新游戏!")
+                        SIGNAL.PRINT_TO_UI.emit(text="[单本轮战] 多次邀请失败, 刷新游戏!")
                         failed_round += 1
                         self.batch_reload_game()
                         break

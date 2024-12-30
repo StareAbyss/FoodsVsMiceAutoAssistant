@@ -4097,7 +4097,7 @@ Link Start</string>
                 <number>1</number>
                </property>
                <property name="maximum">
-                <number>12</number>
+                <number>15</number>
                </property>
                <property name="value">
                 <number>10</number>

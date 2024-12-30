@@ -25,16 +25,16 @@
         "task_id": 3,
         "task_args": {
             "stage_id": "NO-1-7",
-            "max_times": 15,
+            "max_times": 23,
             "need_key": true,
             "player": [
                 2,
                 1
             ],
             "global_plan_active": false,
-            "deck": 2,
-            "battle_plan_1p": "f63b0392-405e-11ef-8de7-f44efc5bf671",
-            "battle_plan_2p": "f63b3f70-405e-11ef-af54-f44efc5bf671",
+            "deck": 0,
+            "battle_plan_1p": "654e418d-ad07-11ef-9999-c2f2346a1393",
+            "battle_plan_2p": "7512848d-ad07-11ef-828e-c2f2346a1393",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -54,16 +54,16 @@
         "task_id": 4,
         "task_args": {
             "stage_id": "NO-1-14",
-            "max_times": 15,
+            "max_times": 11,
             "need_key": true,
             "player": [
                 2,
                 1
             ],
             "global_plan_active": false,
-            "deck": 2,
-            "battle_plan_1p": "f63b0392-405e-11ef-8de7-f44efc5bf671",
-            "battle_plan_2p": "f63b3f70-405e-11ef-af54-f44efc5bf671",
+            "deck": 0,
+            "battle_plan_1p": "654e418d-ad07-11ef-9999-c2f2346a1393",
+            "battle_plan_2p": "7512848d-ad07-11ef-828e-c2f2346a1393",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -83,16 +83,16 @@
         "task_id": 5,
         "task_args": {
             "stage_id": "NO-2-5",
-            "max_times": 15,
+            "max_times": 11,
             "need_key": true,
             "player": [
                 2,
                 1
             ],
             "global_plan_active": false,
-            "deck": 2,
-            "battle_plan_1p": "f63b0392-405e-11ef-8de7-f44efc5bf671",
-            "battle_plan_2p": "f63b3f70-405e-11ef-af54-f44efc5bf671",
+            "deck": 0,
+            "battle_plan_1p": "654e418d-ad07-11ef-9999-c2f2346a1393",
+            "battle_plan_2p": "7512848d-ad07-11ef-828e-c2f2346a1393",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {

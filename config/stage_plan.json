@@ -174,5 +174,69 @@
             "dcae3e56-8dee-11ef-b148-f44efc5bf671",
             "dcae3e56-8dee-11ef-b148-f44efc5bf671"
         ]
+    },
+    "EX-2-7": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "c98f9fa5-8686-11ef-b9ea-f44efc5bf671",
+            "c98ff27a-8686-11ef-867f-f44efc5bf671"
+        ]
+    },
+    "EX-2-8": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "c9904467-8686-11ef-b7d0-f44efc5bf671",
+            "c99095f1-8686-11ef-94f4-f44efc5bf671"
+        ]
+    },
+    "EX-3-1": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "784dd55c-4175-11ef-8114-f44efc5bf671",
+            "784e8be6-4175-11ef-9131-f44efc5bf671"
+        ]
+    },
+    "EX-3-2": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "784dd55c-4175-11ef-8114-f44efc5bf671",
+            "784e12d8-4175-11ef-8d06-f44efc5bf671"
+        ]
+    },
+    "EX-3-3": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "784dd55c-4175-11ef-8114-f44efc5bf671",
+            "784e12d8-4175-11ef-8d06-f44efc5bf671"
+        ]
+    },
+    "EX-3-4": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "784dd55c-4175-11ef-8114-f44efc5bf671",
+            "784e12d8-4175-11ef-8d06-f44efc5bf671"
+        ]
+    },
+    "NO-6-4": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "784c766e-4175-11ef-a73b-f44efc5bf671",
+            "784c766e-4175-11ef-a73b-f44efc5bf671"
+        ]
+    },
+    "NO-6-3": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "784c766e-4175-11ef-a73b-f44efc5bf671",
+            "784c766e-4175-11ef-a73b-f44efc5bf671"
+        ]
     }
 }
