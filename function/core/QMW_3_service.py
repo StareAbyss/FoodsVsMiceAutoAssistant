@@ -172,8 +172,9 @@ class QMainWindowService(QMainWindowLoadSettings):
         """
 
         # 设置表格基础属性
-        self.GuildMemberInfoTable.setColumnCount(7)
-        self.GuildMemberInfoTable.setHorizontalHeaderLabels(['成员', '总贡(扫描)', '天', '周(扫描)', '月', '年', '上次更新'])
+        header_list = ['成员', '上次更新', '总-贡献', '周-贡献', '总-功勋', '周-功勋']
+        self.GuildMemberInfoTable.setColumnCount(len(header_list))
+        self.GuildMemberInfoTable.setHorizontalHeaderLabels(header_list)
 
         # 调整行高
         self.GuildMemberInfoTable.verticalHeader().setDefaultSectionSize(40)
@@ -212,25 +213,6 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 清空表格内容
         self.GuildMemberInfoTable.setRowCount(0)
 
-        # 添加图片
-        for member in self.guild_manager_data:
-            row_position = self.GuildMemberInfoTable.rowCount()
-            self.GuildMemberInfoTable.insertRow(row_position)
-
-            # 添加成员图片
-            member_hash = member['name_image_hash']
-            name_image_path = f"{PATHS['logs']}\\guild_manager\\guild_member_images\\{member_hash}.png"
-            pixmap = QtGui.QPixmap(name_image_path)
-            qtw_item = QtWidgets.QTableWidgetItem()
-
-            # 设置单元格图片
-            qtw_item.setData(QtCore.Qt.ItemDataRole.DecorationRole, pixmap)
-
-            # 设置单元格不可编辑
-            qtw_item.setFlags(qtw_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-
-            self.GuildMemberInfoTable.setItem(row_position, 0, qtw_item)
-
         def add_data_widget_into_table(value, row, col):
             """
             根据输入 是否小于0 以不同形式录入 以 支持排序
@@ -258,61 +240,48 @@ class QMainWindowService(QMainWindowLoadSettings):
         selected_date = self.DateSelector.selectedDate()
 
         # 遍历成员数据 因为图片也是按照guild_manager_data顺序来的, 所以可以直接无脑遍历
-        row_position = -1
+        row_position = 0
 
         for member in self.guild_manager_data:
 
-            row_position += 1
+            column_position = -1
 
             # 获取成员数据
-            member_data = member.get('data', {})
-            member_data_week = member.get('data_week', {})
+            member_contribution = member.get('data', {})
+            member_contribution_week = member.get('data_week', {})
+            member_merit = member.get('merit', {})
+            member_merit_week = member.get('merit_week', {})
 
-            # 刷新第二列数据（当天扫描到的 贡献总值）
-            today_contribution = member_data.get(selected_date.toString('yyyy-MM-dd'), -1)
+            # 获取 当天扫描到的贡献总值
+            today_contribution = member_contribution.get(selected_date.toString('yyyy-MM-dd'), -1)
             if today_contribution < 0:
-                # 不展示今天压根不存在的数据 但是
+                # 不展示今天压根不存在的数据的行
                 continue
-            add_data_widget_into_table(value=today_contribution, row=row_position, col=1)
 
-            # 刷新第三列数据（昨天到今天的变化值）
-            yesterday = selected_date.addDays(-1)
-            yesterday_contribution = member_data.get(yesterday.toString('yyyy-MM-dd'), -1)
-            if today_contribution > 0 and yesterday_contribution > 0:
-                value = today_contribution - yesterday_contribution
-            else:
-                value = -1
-            add_data_widget_into_table(value=value, row=row_position, col=2)
+            # 初始化列
+            self.GuildMemberInfoTable.insertRow(row_position)
 
-            # 刷新第四列数据（尝试读取周贡献）
-            today_contribution_week = member_data_week.get(selected_date.toString('yyyy-MM-dd'), -1)
-            add_data_widget_into_table(value=today_contribution_week, row=row_position, col=3)
+            """添加列 - 成员图片"""
 
-            # 刷新第五列数据（上个月最后一天到今天的变化值）
-            last_month = selected_date.addMonths(-1)
-            last_day_of_last_month = QtCore.QDate(last_month.year(), last_month.month(), last_month.daysInMonth())
-            last_day_of_last_month_str = last_day_of_last_month.toString('yyyy-MM-dd')
-            last_day_of_last_month_contribution = member_data.get(last_day_of_last_month_str, -1)
-            if today_contribution > 0 and last_day_of_last_month_contribution > 0:
-                value = today_contribution - last_day_of_last_month_contribution
-            else:
-                value = -1
-            add_data_widget_into_table(value=value, row=row_position, col=4)
+            # 添加成员图片
+            member_hash = member['name_image_hash']
+            name_image_path = f"{PATHS['logs']}\\guild_manager\\guild_member_images\\{member_hash}.png"
+            pixmap = QtGui.QPixmap(name_image_path)
+            qtw_item = QtWidgets.QTableWidgetItem()
 
-            # 刷新第六列数据（去年最后一天到今天的变化值）
-            last_year = selected_date.addYears(-1)
-            last_day_of_last_year = QtCore.QDate(last_year.year(), last_year.month(), last_year.daysInMonth())
-            last_day_of_last_year_str = last_day_of_last_year.toString('yyyy-MM-dd')
-            last_day_of_last_year_contribution = member_data.get(last_day_of_last_year_str, -1)
-            if today_contribution > 0 and last_day_of_last_year_contribution > 0:
-                value = today_contribution - last_day_of_last_year_contribution
-            else:
-                value = -1
-            add_data_widget_into_table(value=value, row=row_position, col=5)
+            # 设置单元格图片
+            qtw_item.setData(QtCore.Qt.ItemDataRole.DecorationRole, pixmap)
 
-            # 刷新第七列数据（上次更新）
+            # 设置单元格不可编辑
+            qtw_item.setFlags(qtw_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+
+            column_position += 1
+            self.GuildMemberInfoTable.setItem(row_position, column_position, qtw_item)
+
+            """添加列 - 上次更新时间"""
+
             today_str = datetime.date.today().strftime('%Y-%m-%d')
-            last_update_date_str = max(member_data.keys(), default="Never")
+            last_update_date_str = max(member_contribution.keys(), default="Never")
             if last_update_date_str == "Never":
                 value = "从未"
             elif last_update_date_str == today_str:
@@ -324,9 +293,79 @@ class QMainWindowService(QMainWindowLoadSettings):
                 value = f"{days_since_last_update}天前"
             qtw_item = QtWidgets.QTableWidgetItem()
             qtw_item.setData(QtCore.Qt.ItemDataRole.DisplayRole, value)
-            self.GuildMemberInfoTable.setItem(row_position, 6, qtw_item)
 
-        self.GuildMemberInfoTable.sortByColumn(1, QtCore.Qt.SortOrder.DescendingOrder)  # 降序排序
+            column_position += 1
+            self.GuildMemberInfoTable.setItem(row_position, column_position, qtw_item)
+
+            """添加列 - 总贡献"""
+
+            column_position += 1
+            add_data_widget_into_table(value=today_contribution, row=row_position, col=column_position)
+
+            """添加列 - 周贡献"""
+
+            today_contribution_week = member_contribution_week.get(selected_date.toString('yyyy-MM-dd'), -1)
+
+            column_position += 1
+            add_data_widget_into_table(value=today_contribution_week, row=row_position, col=column_position)
+
+            """添加列 - 总功勋"""
+
+            today_merit = member_merit.get(selected_date.toString('yyyy-MM-dd'), -1)
+
+            column_position += 1
+            add_data_widget_into_table(value=today_merit, row=row_position, col=column_position)
+
+            """添加列 - 周功勋"""
+
+            today_merit_week = member_merit_week.get(selected_date.toString('yyyy-MM-dd'), -1)
+
+            column_position += 1
+            add_data_widget_into_table(value=today_merit_week, row=row_position, col=column_position)
+
+            """昨天到今天的变化值"""
+
+            # yesterday = selected_date.addDays(-1)
+            # yesterday_contribution = member_data.get(yesterday.toString('yyyy-MM-dd'), -1)
+            # if today_contribution > 0 and yesterday_contribution > 0:
+            #     value = today_contribution - yesterday_contribution
+            # else:
+            #     value = -1
+            #
+            # column_position += 1
+            # add_data_widget_into_table(value=value, row=row_position, col=column_position)
+
+            """上个月最后一天到今天的变化值"""
+
+            # last_month = selected_date.addMonths(-1)
+            # last_day_of_last_month = QtCore.QDate(last_month.year(), last_month.month(), last_month.daysInMonth())
+            # last_day_of_last_month_str = last_day_of_last_month.toString('yyyy-MM-dd')
+            # last_day_of_last_month_contribution = member_data.get(last_day_of_last_month_str, -1)
+            # if today_contribution > 0 and last_day_of_last_month_contribution > 0:
+            #     value = today_contribution - last_day_of_last_month_contribution
+            # else:
+            #     value = -1
+            #
+            # column_position += 1
+            # add_data_widget_into_table(value=value, row=row_position, col=column_position)
+
+            """去年最后一天到今天的变化值"""
+
+            # last_year = selected_date.addYears(-1)
+            # last_day_of_last_year = QtCore.QDate(last_year.year(), last_year.month(), last_year.daysInMonth())
+            # last_day_of_last_year_str = last_day_of_last_year.toString('yyyy-MM-dd')
+            # last_day_of_last_year_contribution = member_data.get(last_day_of_last_year_str, -1)
+            # if today_contribution > 0 and last_day_of_last_year_contribution > 0:
+            #     value = today_contribution - last_day_of_last_year_contribution
+            # else:
+            #     value = -1
+            # column_position += 1
+            # add_data_widget_into_table(value=value, row=row_position, col=column_position)
+
+            row_position += 1
+
+        # 默认按照第3列(总贡)降序排序
+        self.GuildMemberInfoTable.sortByColumn(2, QtCore.Qt.SortOrder.DescendingOrder)
 
     def updateEditBox1(self, window_name: str):
 
