@@ -207,11 +207,12 @@ class BattlePreparation:
         # 强制要求全部走完, 防止12P的同步出问题
         # 老板本 一共20点击到底部, 向下点 10轮 x 2次 = 20 次滑块, 识别11次
         # 但仍然会出现识别不到的问题(我的背包太大啦), 故直接改成了最细的粒度, 希望能解决该问题.
+        # 大大降低了操作速度 防止卡顿造成选卡失败~
         for target in targets:
 
             # 复位滑块
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=209)
-            time.sleep(0.2)
+            time.sleep(0.25)
 
             for i in range(21):
                 if tar_position is None or i >= tar_position:
@@ -223,9 +224,9 @@ class BattlePreparation:
                         template=resource_p[target],
                         template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
                         match_tolerance=0.998,
-                        match_failed_check=0.15,
-                        match_interval=0.05,
-                        after_sleep=0,
+                        match_failed_check=0.2,
+                        match_interval=0.1,
+                        after_sleep=0.1,
                         click=True)
                     if find:
                         found_card = True
@@ -235,7 +236,7 @@ class BattlePreparation:
                     break
                 # 仅还没找到继续下滑
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=400)
-                time.sleep(0.2)
+                time.sleep(0.25)
 
             if found_card:
                 return True
