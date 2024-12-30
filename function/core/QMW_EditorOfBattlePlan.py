@@ -469,23 +469,43 @@ class QMWEditorOfBattlePlan(QMainWindow):
             else:
                 print(f"[加载方案] 波次: {wave}, 文件已包含")
 
+    def refresh_wave_button_color(self):
+        """
+        扫描已有的波次方案, 如果方案和上一波次相同, 颜色不变, 否则颜色取色list中+1
+        list为一个彩虹渐变色，包含总计7档颜色，透明度为 100/256
+        :return:
+        """
+        # color_list = [
+        #     (255, 0, 0),  # 红色
+        #     (255, 165, 0),  # 橙色
+        #     (255, 255, 0),  # 黄色
+        #     (0, 255, 0),  # 绿色
+        #     (0, 0, 255),  # 蓝色
+        #     (75, 0, 130),  # 靛色
+        #     (148, 0, 211),  # 紫色
+        # ]
 
-    def highlight_chessboard(self, card_locations):
-        """根据卡片的位置list，将对应元素的按钮进行高亮"""
-        # 清除所有按钮的高亮
-        self.remove_frame_color()
+        color_list = [
+            (255, 0, 0),
+            (30, 144, 255),
+        ]
 
-        # 高亮显示选中卡片的位置
-        for location in card_locations:
-            x, y = map(int, location.split('-'))
-            # 添加背景颜色到现有样式
-            self.chessboard_frames[y - 1][x - 1].setStyleSheet("background-color: rgba(255, 255, 0, 127);")
+        last_plan = self.get_wave_plan_by_id(0)
+        color_list_index = 0
+        for wave in range(14):
+            cursor_plan = self.get_wave_plan_by_id(wave)
 
-    def remove_frame_color(self):
-        """清除所有按钮的高亮"""
-        for row in self.chessboard_frames:
-            for frame in row:
-                frame.setStyleSheet("")
+            if cursor_plan != last_plan:
+                color_list_index = (color_list_index + 1) % len(color_list)  # 循环使用颜色列表
+
+            r, g, b = color_list[color_list_index]
+            color_with_alpha = f"rgba({r}, {g}, {b}, 0.4)"
+
+            button = self.findChild(QPushButton, f"changeWaveButton_{wave}")
+            button.setStyleSheet(f"background-color: {color_with_alpha}")
+            last_plan = cursor_plan
+
+    def change_wave(self, wave: int):
 
         # 更新当前波次参数
         self.current_wave = wave
@@ -527,6 +547,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.get_wave_plan_by_id(i).clear()
             self.get_wave_plan_by_id(i).extend(copy.deepcopy(self.sub_plan))
 
+        # 仅需变色波次按钮颜色
+        self.refresh_wave_button_color()
+
         print(f"波次:{self.current_wave}方案已应用到所有波次")
 
     def fresh_wave_button_text(self, be_clicked_button_id: int):
@@ -550,6 +573,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         # 更改波次 / 修改某放卡动作的name字段 / 删除一条放卡动作 / 修改某放卡动作的具体位置顺序 -> 重绘 UI棋盘网格
         self.refresh_chessboard()
+
+        # 更改波次 / 修改当前波次任意信息后,导致波次前后一致关系变化 -> 刷新波次按钮颜色
+        self.refresh_wave_button_color()
 
     """放卡动作列表操作"""
 
