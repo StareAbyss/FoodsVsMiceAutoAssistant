@@ -160,7 +160,26 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 button.setToolTip(f"切换到第{i}波方案")
                 button.setFixedWidth(45)
 
+            # 添加复制按钮
+            self.copy_wave_button = QPushButton('复制波次')
+            self.LayWaveEditor.addWidget(self.copy_wave_button)
+            self.copy_wave_button.clicked.connect(self.copy_wave_plan)
+            self.copy_wave_button.setToolTip(f"复制当前选中波次方案, 保存到剪切板")
 
+            # 添加粘贴按钮 锁定 不可使用
+            self.paste_wave_button = QPushButton('粘贴波次')
+            self.LayWaveEditor.addWidget(self.paste_wave_button)
+            self.paste_wave_button.clicked.connect(self.paste_wave_plan)
+            self.paste_wave_button.setEnabled(False)
+            self.copy_wave_button.setToolTip(f"将剪切板中的方案, 粘贴到当前选中波次")
+
+            # 应用到全部
+            self.apply_to_all_button = QPushButton('应用到全部')
+            self.LayWaveEditor.addWidget(self.apply_to_all_button)
+            self.apply_to_all_button.clicked.connect(self.apply_to_all_wave_plan)
+            # 鼠标提示信息
+            self.apply_to_all_button.setToolTip("复制当前选中波次方案, 粘贴到全部波次")
+            self.apply_to_all_button.setMinimumWidth(80)
 
         def init_ui_lay_card_editor():
             """单组放卡操作 - 状态编辑器"""
@@ -479,6 +498,36 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         # 加载数据
         self.fresh_all_ui()
+
+    def copy_wave_plan(self):
+
+        self.be_copied_wave_id = copy.deepcopy(self.current_wave)
+
+        # 复制后 允许其粘贴
+        self.paste_wave_button.setEnabled(True)
+
+        print(f"已复制波次, 编号:{self.be_copied_wave_id}")
+
+    def paste_wave_plan(self):
+
+        be_copied_wave_plan = copy.deepcopy(self.get_wave_plan_by_id(self.be_copied_wave_id))
+
+        #
+        self.sub_plan.clear()  # 清空当前的sub_plan
+        self.sub_plan.extend(be_copied_wave_plan)  # 将新的波次计划添加到sub_plan中
+
+        self.fresh_all_ui()
+
+        print(f"已粘贴波次, 编号: {self.be_copied_wave_id} -> {self.current_wave}")
+
+    def apply_to_all_wave_plan(self):
+        for i in range(14):
+            if i == self.current_wave:
+                continue
+            self.get_wave_plan_by_id(i).clear()
+            self.get_wave_plan_by_id(i).extend(copy.deepcopy(self.sub_plan))
+
+        print(f"波次:{self.current_wave}方案已应用到所有波次")
 
     def fresh_wave_button_text(self, be_clicked_button_id: int):
         for wave in range(14):
