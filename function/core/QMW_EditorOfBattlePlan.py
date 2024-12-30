@@ -279,7 +279,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 """卡片列表"""
                 self.WidgetCardList = QListWidgetDraggable(drop_function=self.card_list_be_dropped)
                 self.LayCardListAndCell.addWidget(self.WidgetCardList)
-                self.WidgetCardList.setMaximumWidth(270)
+                # self.WidgetCardList.setMaximumWidth(270)
 
             def init_ui_lay_chessboard():
                 """棋盘布局"""
@@ -295,25 +295,32 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     row_frames = []
 
                     for j in range(9):
+
+                        # 创建按钮部分
                         btn = ChessButton('')
-                        btn.setFixedSize(80, 80)
+
                         btn.clicked.connect(lambda checked, x=i, y=j: self.place_card(y, x))
                         btn.rightClicked.connect(lambda x=i, y=j: self.remove_card(y, x))
                         self.chessboard_layout.addWidget(btn, i, j)
                         btn.setToolTip(f"当前位置: {j + 1}-{i + 1}")
                         row_buttons.append(btn)
+
                         # 尽可能让宽和高占满剩余空间
-                        btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                        # btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                        btn.setFixedSize(80, 80)
 
                         # 创建QFrame作为高亮效果的载体
                         frame = QFrame(self)
-                        # frame.setFixedSize(100, 100)
+
                         frame.setFrameShadow(QFrame.Shadow.Raised)
                         self.chessboard_layout.addWidget(frame, i, j)
                         frame.lower()  # 确保QFrame在按钮下方
                         frame.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)  # 防止遮挡按钮
+
                         # 尽可能让宽和高占满剩余空间
-                        frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                        # frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                        frame.setFixedSize(80, 80)
+
                         row_frames.append(frame)
 
                     self.chessboard_buttons.append(row_buttons)
@@ -836,6 +843,38 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
     def refresh_chessboard(self):
         """刷新棋盘上的文本等各种元素"""
+
+        def truncate_text(text, max_width=4):
+            """
+            设西文宽度0.5 中文宽度1 如果 card name 超过了宽度8 就只显示宽度为8的部分字符 加 ..
+            :param text:
+            :param max_width:
+            :return:
+            """
+            width_c, width_e = calculate_text_width(text)
+            total_width = width_c + width_e
+
+            if total_width <= max_width:
+                return text
+
+            truncated_text = ''
+            current_width = 0
+
+            for char in text:
+                if '\u4e00' <= char <= '\u9fff':
+                    char_width = 1
+                else:
+                    char_width = 0.5
+
+                if current_width + char_width > max_width - 1.0:  # 留出空间给 ..
+                    truncated_text += '..'
+                    break
+
+                truncated_text += char
+                current_width += char_width
+
+            return truncated_text
+
         for i, row in enumerate(self.chessboard_buttons):
             for j, btn in enumerate(row):
 
@@ -853,13 +892,20 @@ class QMWEditorOfBattlePlan(QMainWindow):
                         cards_in_this_location.append(card)
 
                 for card in cards_in_this_location:
-                    text += '\n' + card['name']
+                    # 换行
+                    text += '\n'
+
+                    # 名称
+                    text += truncate_text(text=card['name'])
+
+                    # 编号
                     c_index_list = card["location"].index(location_key) + 1
                     if type(c_index_list) is list:
                         for location_index in c_index_list:
                             text += " {}".format(location_index)
                     else:
                         text += " {}".format(c_index_list)
+
                 btn.setText(text)
 
     def highlight_chessboard(self):
