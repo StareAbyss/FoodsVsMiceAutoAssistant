@@ -1688,7 +1688,7 @@ class FAA:
             """根据目前尝试次数, 到达不同的公会"""
             if try_times != 0:
 
-                # 点击全部工会
+                # 点击全部公会
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=798, y=123)
                 time.sleep(1)
 
@@ -1837,12 +1837,12 @@ class FAA:
                 if is_bug:
                     if reload_time != 3:
                         SIGNAL.PRINT_TO_UI.emit(
-                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入工会页失败... 刷新再试({reload_time}/3)")
+                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入公会页失败... 刷新再试({reload_time}/3)")
                         self.reload_game()
                         continue
                     else:
                         SIGNAL.PRINT_TO_UI.emit(
-                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入工会页失败... 刷新跳过({reload_time}/3)")
+                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入公会页失败... 刷新跳过({reload_time}/3)")
                         self.reload_game()
                         break
 
@@ -1873,7 +1873,7 @@ class FAA:
                     # 正常完成
                     SIGNAL.PRINT_TO_UI.emit(
                         f"[浇水 施肥 摘果 领取] [{self.player}p] 正确完成 ~")
-                    # 退出工会
+                    # 退出公会
                     self.action_exit(mode="普通红叉")
                     self.receive_quest_rewards(mode="公会任务")
                     break
@@ -2197,7 +2197,7 @@ class FAA:
         SIGNAL.PRINT_TO_UI.emit(text=f"[兑换暗晶] [{self.player}P] 开始.")
 
         # 打开公会副本界面
-        self.print_debug(text="跳转到工会副本界面")
+        self.print_debug(text="跳转到公会副本界面")
         self.action_bottom_menu(mode="跳转_公会副本")
 
         # 打开暗晶商店

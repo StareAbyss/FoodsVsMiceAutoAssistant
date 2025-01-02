@@ -59,7 +59,7 @@ class ThreadTodo(QThread):
 
         self.process = None  # 截图进程在此
 
-        # 工会管理器相关模块
+        # 公会管理器相关模块
         self.guild_manager = GuildManager()
 
         # 读取 米苏物流 url 到全局变量
@@ -484,7 +484,7 @@ class ThreadTodo(QThread):
                 # 完成扫描 触发信号刷新数据
                 SIGNAL.GUILD_MANAGER_FRESH.emit()
 
-                # 退出工会页面
+                # 退出公会页面
                 self.faa_dict[self.opt["advanced_settings"]["guild_manager_active"]].action_exit(mode="普通红叉")
 
             """激活了删除物品高危功能"""
@@ -1686,7 +1686,9 @@ class ThreadTodo(QThread):
 
         # 获取任务
         SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 获取任务列表...")
-        quest_list = self.faa_dict[1].match_quests(mode=quest_mode, qg_cs=stage)
+        quest_list_1 = self.faa_dict[1].match_quests(mode=quest_mode, qg_cs=stage)
+        quest_list_2=self.faa_dict[2].match_quests(mode=quest_mode, qg_cs=stage)
+        quest_list=quest_list_1+[i for i in quest_list_2  if i not in quest_list_1]
 
         for i in quest_list:
             text_parts = [f"副本:{i["stage_id"]}"]

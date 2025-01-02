@@ -274,7 +274,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         init_battle_plan(self.CrossServer_1P, my_opt["cross_server"]["battle_plan_1p"])
         init_battle_plan(self.CrossServer_2P, my_opt["cross_server"]["battle_plan_2p"])
 
-        # 公会任务 工会副本 情侣任务 火山遗迹
+        # 公会任务 公会副本 情侣任务 火山遗迹
 
         self.QuestGuild_Active.setChecked(my_opt["quest_guild"]["active"])
         self.QuestGuild_Stage.setChecked(my_opt["quest_guild"]["stage"])
@@ -639,7 +639,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         my_transformer_b(self.CrossServer_1P, "cross_server", "battle_plan_1p")
         my_transformer_b(self.CrossServer_2P, "cross_server", "battle_plan_2p")
 
-        # 公会任务 工会副本 情侣任务 火山遗迹
+        # 公会任务 公会副本 情侣任务 火山遗迹
 
         my_opt["quest_guild"]["active"] = self.QuestGuild_Active.isChecked()
         my_opt["quest_guild"]["stage"] = self.QuestGuild_Stage.isChecked()
@@ -788,7 +788,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
             """其他"""
 
-            # 工会管理器
+            # 公会管理器
             my_opt["guild_manager_active"] = self.GuildManager_Active.currentIndex()
 
             # link 需要额外的检查
