@@ -621,7 +621,7 @@ class FAAActionInterfaceJump:
                     click=True)
 
         def main_gd():
-            # 进入工会副本页
+            # 进入公会副本页
             self.bottom_menu(mode="跳转_公会副本")
 
             # 给一点加载时间

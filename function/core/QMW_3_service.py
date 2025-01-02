@@ -149,7 +149,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.is_start = False  # 线程是否正在启动
 
         """公会管理器相关"""
-        # 初始化工会管理器数据和表格视图
+        # 初始化公会管理器数据和表格视图
         self.guild_manager_table_init()
         self.guild_manager_data = []
         self.guild_manager_table_load_data()
@@ -164,7 +164,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.Label_drag.windowNameChanged1.connect(self.updateEditBox1)
         self.Label_drag.windowNameChanged2.connect(self.updateEditBox2)
 
-    """工会管理器页面"""
+    """公会管理器页面"""
 
     def guild_manager_table_init(self):
         """
