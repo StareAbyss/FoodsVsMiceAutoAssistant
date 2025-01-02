@@ -1686,7 +1686,9 @@ class ThreadTodo(QThread):
 
         # 获取任务
         SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 获取任务列表...")
-        quest_list = self.faa_dict[1].match_quests(mode=quest_mode, qg_cs=stage)
+        quest_list_1 = self.faa_dict[1].match_quests(mode=quest_mode, qg_cs=stage)
+        quest_list_2=self.faa_dict[2].match_quests(mode=quest_mode, qg_cs=stage)
+        quest_list=quest_list_1+[i for i in quest_list_2  if i not in quest_list_1]
 
         for i in quest_list:
             text_parts = [f"副本:{i["stage_id"]}"]
