@@ -35,6 +35,8 @@ from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
 from function.scattered.get_stage_info_online import get_stage_info_online
 from function.scattered.test_route_connectivity import test_route_connectivity
+from function.scattered.get_channel_name import get_reverse_channel_name
+from function.core.Win_api import get_path_and_title
 
 
 class QMainWindowService(QMainWindowLoadSettings):
@@ -143,6 +145,9 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 重置卡片状态自学习记忆
         self.Btn_ResetCardStatusMemory.clicked.connect(self.click_btn_reset_card_status_memory)
+
+        # 一键获取路径与窗口名
+        self.oneclick_getpath.clicked.connect(self.click_btn_set_path_and_title)
 
         # 线程状态
         self.is_ending = False  # 线程是否正在结束
@@ -774,6 +779,58 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def click_btn_misu_logistics_set_default(self):
         self.MisuLogistics_Link.setText("")
+
+    def click_btn_set_path_and_title(self):
+        # 弹出是或否选项
+        reply = QMessageBox.question(
+            self,
+            '一键逆天（bushi',
+            '使用该功能前要打开360大厅的对应的号\n'
+            '本功能会自动填写360大厅的路径\n'
+            '以及两个账号的窗口名称\n'
+            '如果自动填写有问题请手动修改\n'
+            '记得要保存哦！\n'
+            '确定要进行此操作吗?',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No)
+
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+        path,title=get_path_and_title()
+        if not path:
+            SIGNAL.DIALOG.emit(
+                "哎呦！(╥﹏╥)",
+                f"未正确获取路径，请确保已打开360大厅及授予FAA管理员权限")
+            return
+        self.GetPath.setText(path)
+        if len(title)<1:
+            SIGNAL.DIALOG.emit(
+                "哎呦！(╥﹏╥)",
+                f"你确定打开了对应的帐号了吗？")
+            return
+        if len(title)<self.login_first.value():
+            SIGNAL.DIALOG.emit(
+                "哎呦！(╥﹏╥)",
+                f"1p账号序号超过当前打开账号数目")
+            return
+        self.GameName_Input.setText("")
+        self.Name1P_Input.setText("")
+        self.Name2P_Input.setText("")
+        if len(title)<self.login_second.value():
+            SIGNAL.DIALOG.emit(
+                "哎呦！(╥﹏╥)",
+                f"2p账号序号超过当前打开账号数目,如果单号无视此报错")
+            name_1p, name_2p, game_name = get_reverse_channel_name(title[self.login_first.value() - 1])
+
+        else:
+            name_1p, name_2p, game_name = get_reverse_channel_name(title[self.login_first.value() - 1],
+                                                                   title[self.login_second.value() - 1])
+
+        self.GameName_Input.setText(game_name)
+        self.Name1P_Input.setText(name_1p)
+        if name_2p:
+            self.Name2P_Input.setText(name_2p)
+
 
     def click_btn_reset_card_status_memory(self):
         # 弹出是或否选项

@@ -459,6 +459,13 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt = self.opt["log_settings"]
             self.senior_log_clean.setValue(my_opt["log_senior_settings"])
             self.other_log_clean.setValue(my_opt["log_other_settings"])
+        def login_settings() -> None:
+            my_opt = self.opt["login_settings"]
+            self.login_first.setValue(my_opt["first_num"])
+            self.login_second.setValue(my_opt["second_num"])
+            self.open360.setChecked(my_opt["login_open_settings"])
+            self.close360.setChecked(my_opt["login_close_settings"])
+            self.GetPath.setText(my_opt["login_path"])
 
         def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
@@ -526,6 +533,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         senior_settings()
         get_warm_gift_settings()
         log_settings()
+        login_settings()
         level_2()
         skin_set()
 
@@ -853,6 +861,14 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["log_senior_settings"] = self.senior_log_clean.value()
             my_opt["log_other_settings"] = self.other_log_clean.value()
 
+        def login_settings() -> None:
+            my_opt = self.opt["login_settings"]
+            my_opt["login_open_settings"] = self.open360.isChecked()
+            my_opt["login_close_settings"] = self.close360.isChecked()
+            my_opt["login_path"] = self.GetPath.text()
+            my_opt["first_num"] = self.login_first.value()
+            my_opt["second_num"] = self.login_second.value()
+
         def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
             my_opt["1p"]["active"] = self.GetWarmGift_1P_Active.isChecked()
@@ -873,6 +889,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         senior_settings()
         get_warm_gift_settings()
         log_settings()
+        login_settings()
         skin_settings()
         level_2()
 

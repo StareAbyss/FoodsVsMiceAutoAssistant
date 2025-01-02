@@ -1223,5 +1223,12 @@
         "log_senior_settings": 1,
         "log_other_settings": 1
     },
+    "login_settings": {
+        "login_open_settings": true,
+        "login_close_settings": true,
+        "login_path": "",
+        "first_num": 1,
+        "second_num": 2
+    },
     "skin_type": 1
 }
