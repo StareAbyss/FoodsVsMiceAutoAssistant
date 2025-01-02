@@ -4,6 +4,7 @@ import os
 import random
 import shutil
 import sys
+from time import sleep
 
 import win32con
 import win32gui
@@ -36,7 +37,7 @@ from function.scattered.get_channel_name import get_channel_name
 from function.scattered.get_stage_info_online import get_stage_info_online
 from function.scattered.test_route_connectivity import test_route_connectivity
 from function.scattered.get_channel_name import get_reverse_channel_name
-from function.core.Win_api import get_path_and_title
+from function.core.Win_api import get_path_and_title,create_start_args,start_software_with_args
 
 
 class QMainWindowService(QMainWindowLoadSettings):
@@ -415,6 +416,16 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 先读取界面上的方案
         # self.ui_to_opt()
+        #如果打开了启动登陆器选项则先启动登陆器
+        if self.opt["login_settings"]["login_open_settings"]:
+            if self.opt["login_settings"]["first_num"]!=0:#启动1p
+                args = create_start_args(self.opt["login_settings"]["first_num"])
+                start_software_with_args(self.opt["login_settings"]["login_path"], *args)
+            if self.opt["login_settings"]["second_num"]!=0:#启动2p
+                args = create_start_args(self.opt["login_settings"]["second_num"])
+                start_software_with_args(self.opt["login_settings"]["login_path"], *args)
+            sleep(2)#等待打开这两号
+
 
         # 获取窗口名称
         channel_1p, channel_2p = get_channel_name(
