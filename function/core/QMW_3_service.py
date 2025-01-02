@@ -832,7 +832,7 @@ class QMainWindowService(QMainWindowLoadSettings):
             SIGNAL.DIALOG.emit(
                 "哎呦！(╥﹏╥)",
                 f"2p账号序号超过当前打开账号数目,如果单号无视此报错")
-            name_1p, name_2p, game_name = get_reverse_channel_name(title[self.login_first.value() - 1])
+            name_1p,game_name = get_reverse_channel_name(title[self.login_first.value() - 1])
 
         else:
             name_1p, name_2p, game_name = get_reverse_channel_name(title[self.login_first.value() - 1],
