@@ -421,10 +421,11 @@ class QMainWindowService(QMainWindowLoadSettings):
             if self.opt["login_settings"]["first_num"]!=0:#启动1p
                 args = create_start_args(self.opt["login_settings"]["first_num"])
                 start_software_with_args(self.opt["login_settings"]["login_path"], *args)
+            sleep(1)#保证打开顺序与预期一致
             if self.opt["login_settings"]["second_num"]!=0:#启动2p
                 args = create_start_args(self.opt["login_settings"]["second_num"])
                 start_software_with_args(self.opt["login_settings"]["login_path"], *args)
-            sleep(2)#等待打开这两号
+            sleep(5)#等待打开这两号
 
 
         # 获取窗口名称

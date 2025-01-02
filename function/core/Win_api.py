@@ -1,6 +1,7 @@
 import subprocess
 import psutil
 import pygetwindow as gw
+import win32con
 import win32gui
 import win32process
 
@@ -17,14 +18,14 @@ def close_all_software(software_name):
             pass
 
 def close_software_by_title(window_title):
-    try:
-        window = gw.getWindowsWithTitle(window_title)[0]
-        window.close()
-        print(f"已关闭标题为 {window_title} 的窗口")
+
+        hd = win32gui.FindWindow(None, window_title)  # 根据标题名获取窗口句柄
+        print(hd)  # 打印窗口句柄
+        close_hd = win32gui.SendMessage(hd, win32con.WM_CLOSE)  # 根据句柄值关闭窗口
         if window_title=="360游戏大厅":
+            print("关闭所有360窗口")
             close_all_software("360Game.exe")#说明没有进程了，可以把后台全杀掉了
-    except IndexError:
-        print(f"未找到标题为 {window_title} 的窗口")
+
 
 
 
