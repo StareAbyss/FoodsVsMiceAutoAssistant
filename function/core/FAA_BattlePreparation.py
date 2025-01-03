@@ -696,6 +696,17 @@ class BattlePreparation:
             self.faa.print_warning(text="未能找到火苗标识物, 进入战斗失败, 可能是次数不足或服务器卡顿")
             return 2  # 2-跳过本次
 
+    def accelerate(self):
+        """加速游戏!!!"""
+        # duration is ms
+        duration = EXTRA.ACCELERATE_TIME
+        if duration > 0:
+            self.faa.click_accelerate_btn()
+            time.sleep(duration/1000)
+            self.faa.click_accelerate_btn()
+
+        return 0  # 0-一切顺利
+
     """初始化战斗方案部分"""
 
     # 在FAA中实现 需要修改FAA的类属性

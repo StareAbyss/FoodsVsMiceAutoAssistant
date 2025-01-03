@@ -18,6 +18,9 @@ CLICK_PER_SECOND = 120
 # FAA可以处理的游戏画面最低帧数
 LOWEST_FPS = 10
 
+# FAA开局加速时间
+ACCELERATE_TIME = 0
+
 # 在双人作战时, 极寒冰沙 全局锁
 SMOOTHIE_LOCK_TIME = 0
 

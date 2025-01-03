@@ -813,6 +813,8 @@ class ThreadTodo(QThread):
             if is_group:
                 result_id = max(result_id, self.thread_2p.get_return_value())
 
+        CUS_LOGGER.debug("检测是否成功进入房间 已完成")
+
         """修改卡组"""
         if result_id == 0:
 
@@ -843,6 +845,8 @@ class ThreadTodo(QThread):
                 if is_group:
                     result_id = max(result_id, self.thread_2p.get_return_value())
 
+        CUS_LOGGER.debug("修改卡组 已完成")
+
         """不同时开始战斗, 并检测是否成功进入游戏"""
         if result_id == 0:
 
@@ -854,7 +858,9 @@ class ThreadTodo(QThread):
                     kwargs={})
                 self.thread_2p.daemon = True
                 self.thread_2p.start()
+                # A 一定要后开始!!!
                 time.sleep(2)
+
             self.thread_1p = ThreadWithException(
                 target=self.faa_dict[player_a].obj_battle_preparation.start_and_ensure_entry,
                 name="{}P Thread - 进入游戏".format(player_a),
@@ -871,6 +877,41 @@ class ThreadTodo(QThread):
             result_id = max(result_id, self.thread_1p.get_return_value())
             if is_group:
                 result_id = max(result_id, self.thread_2p.get_return_value())
+
+        CUS_LOGGER.debug("开始战斗 已完成")
+
+        """根据设定, 进行加速"""
+        if result_id == 0:
+
+            # 创建并开始线程
+            self.thread_1p = ThreadWithException(
+                target=self.faa_dict[player_a].obj_battle_preparation.accelerate,
+                name="{}P Thread - 进入游戏".format(player_a),
+                kwargs={}
+            )
+
+            if is_group:
+                self.thread_2p = ThreadWithException(
+                    target=self.faa_dict[player_b].obj_battle_preparation.accelerate,
+                    name="{}P Thread - 进入游戏".format(player_b),
+                    kwargs={}
+                )
+
+            self.thread_1p.daemon = True
+            self.thread_2p.daemon = True
+            self.thread_1p.start()
+            self.thread_2p.start()
+            # 阻塞进程让进程执行完再继续本循环函数
+            self.thread_1p.join()
+            if is_group:
+                self.thread_2p.join()
+
+            # 获取返回值
+            result_id = max(result_id, self.thread_1p.get_return_value())
+            if is_group:
+                result_id = max(result_id, self.thread_2p.get_return_value())
+
+        CUS_LOGGER.debug("加速游戏 已完成")
 
         """多线程进行战斗 此处1p-ap 2p-bp 战斗部分没有返回值"""
 
@@ -917,8 +958,8 @@ class ThreadTodo(QThread):
                 todo=self,
                 faa_a=self.faa_dict[player_a],
                 faa_b=self.faa_dict[player_b],
-                check_interval=self.battle_check_interval,
                 solve_queue=queue_todo,
+                check_interval=self.battle_check_interval,
                 senior_interval=self.opt["senior_settings"]["interval"]
             )
 
