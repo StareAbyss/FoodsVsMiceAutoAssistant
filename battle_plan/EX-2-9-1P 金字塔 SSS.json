@@ -12,8 +12,7 @@
                 "queue": false,
                 "kun": 0,
                 "location": [
-                    "1-3",
-                    "1-5"
+                    "1-3"
                 ]
             },
             {
@@ -22,7 +21,6 @@
                 "ergodic": true,
                 "queue": false,
                 "location": [
-                    "1-3",
                     "1-5"
                 ],
                 "kun": 0
@@ -174,8 +172,7 @@
                     "queue": false,
                     "kun": 0,
                     "location": [
-                        "1-3",
-                        "1-5"
+                        "1-3"
                     ]
                 },
                 {
@@ -184,7 +181,6 @@
                     "ergodic": true,
                     "queue": false,
                     "location": [
-                        "1-3",
                         "1-5"
                     ],
                     "kun": 0
@@ -335,8 +331,7 @@
                     "queue": false,
                     "kun": 0,
                     "location": [
-                        "2-3",
-                        "2-5"
+                        "2-3"
                     ]
                 },
                 {
@@ -345,7 +340,6 @@
                     "ergodic": true,
                     "queue": false,
                     "location": [
-                        "2-3",
                         "2-5"
                     ],
                     "kun": 0
