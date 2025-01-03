@@ -10465,6 +10465,98 @@ Link Start</string>
                 </layout>
                </item>
                <item>
+                <layout class="QHBoxLayout" name="Lay_NormalBattleSettings_6">
+                 <property name="leftMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>5</number>
+                 </property>
+                 <item>
+                  <widget class="QCheckBox" name="Accelerate_Active">
+                   <property name="enabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>1677215</width>
+                     <height>100</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string/>
+                   </property>
+                   <property name="text">
+                    <string>开局加速游戏-毫秒</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="Accelerate_Value">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>100</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>加速时长,单位:毫秒,范围:50-1000
+即点击加速按钮的间隔时间
+
+该功能将在开始战斗后立刻点击变速按钮两次
+以进行短时间加速, 这将大幅缩短游戏出怪间隔
+
+注意事项:
+加速倍率需在360游戏大厅手动设定好
+(加速倍率-1) * 加速时长 小于 1000ms 才不影响奖励
+稳定倍率: 200% 500ms
+
+</string>
+                   </property>
+                   <property name="minimum">
+                    <number>50</number>
+                   </property>
+                   <property name="maximum">
+                    <number>1000</number>
+                   </property>
+                   <property name="value">
+                    <number>500</number>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
                 <layout class="QHBoxLayout" name="Lay_NormalBattleSettings_4">
                  <property name="leftMargin">
                   <number>5</number>

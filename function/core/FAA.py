@@ -994,6 +994,54 @@ class FAA:
                     return False
         return True
 
+    def click_accelerate_btn(self) -> bool:
+        """
+        点击360游戏大厅的刷新游戏按钮
+        :return: bool 是否成功点击
+        """
+
+        # 点击刷新按钮 该按钮在360窗口上
+        find = loop_match_p_in_w(
+            source_handle=self.handle_360,
+            source_root_handle=self.handle_360,
+            source_range=[0, 0, 2000, 75],
+            template=RESOURCE_P["common"]["战斗"]["变速.png"],
+            match_tolerance=0.99,
+            match_interval=0.00001,
+            match_failed_check=0.00002,
+            after_sleep=0,
+            click=True)
+
+        if not find:
+            find = loop_match_p_in_w(
+                source_handle=self.handle_360,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 2000, 75],
+                template=RESOURCE_P["common"]["战斗"]["变速_被选中.png"],
+                match_tolerance=0.99,
+                match_interval=0.00001,
+                match_failed_check=0.00002,
+                after_sleep=0,
+                click=True)
+
+            if not find:
+
+                find = loop_match_p_in_w(
+                    source_handle=self.handle_360,
+                    source_root_handle=self.handle_360,
+                    source_range=[0, 0,2000, 75],
+                    template=RESOURCE_P["common"]["战斗"]["变速_被点击.png"],
+                    match_tolerance=0.99,
+                    match_interval=0.00001,
+                    match_failed_check=0.00002,
+                    after_sleep=0,
+                    click=True)
+
+                if not find:
+                    self.print_error(text="未找到360大厅加速游戏按钮, 加速游戏失败了...")
+                    return False
+        return True
+
     def reload_game(self) -> None:
 
         def try_enter_server_4399():

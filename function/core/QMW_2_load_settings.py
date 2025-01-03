@@ -415,20 +415,29 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.EndExitGame.setChecked(my_opt["end_exit_game"])
 
             """ 进阶功能 - 普通战斗设定"""
+
             # 半自动拾取
             self.AutoPickUp_1P.setChecked(my_opt["auto_pickup_1p"])
             self.AutoPickUp_2P.setChecked(my_opt["auto_pickup_2p"])
+
             # 点击频率
             self.CusCPS_Active.setChecked(my_opt["cus_cps_active"])
             self.CusCPS_Value.setValue(my_opt["cus_cps_value"])
             EXTRA.CLICK_PER_SECOND = my_opt["cus_cps_value"] if my_opt["cus_cps_active"] else 120
+
             # 最低FPS
             self.CusLowestFPS_Active.setChecked(my_opt["cus_lowest_fps_active"])
             self.CusLowestFPS_Value.setValue(my_opt["cus_lowest_fps_value"])
             EXTRA.LOWEST_FPS = my_opt["cus_lowest_fps_value"] if my_opt["cus_lowest_fps_active"] else 10
+
             # 自动带卡
             self.CusAutoCarryCard_Active.setChecked(my_opt["cus_auto_carry_card_active"])
             self.CusAutoCarryCard_Value.setCurrentIndex(my_opt["cus_auto_carry_card_value"] - 1)
+
+            # 加速游戏
+            self.Accelerate_Active.setChecked(my_opt["accelerate_active"])
+            self.Accelerate_Value.setValue(my_opt["accelerate_value"])
+            EXTRA.ACCELERATE_TIME = my_opt["accelerate_value"] if my_opt["accelerate_active"] else 0
 
             # 是否启动用卡
             self.AutoUseCard.setChecked(my_opt["auto_use_card"])
@@ -782,6 +791,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
             # 自动带卡
             my_opt["cus_auto_carry_card_active"] = self.CusAutoCarryCard_Active.isChecked()
             my_opt["cus_auto_carry_card_value"] = self.CusAutoCarryCard_Value.currentIndex() + 1
+
+            # 加速游戏
+            my_opt["accelerate_active"] = self.Accelerate_Active.isChecked()
+            my_opt["accelerate_value"] = self.Accelerate_Value.value()
+            EXTRA.ACCELERATE_TIME = my_opt["accelerate_value"] if my_opt["accelerate_active"] else 0
 
             # 自动放卡
             my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
