@@ -21,6 +21,9 @@ LOWEST_FPS = 10
 # FAA开局加速时间
 ACCELERATE_TIME = 0
 
+# FAA战斗最长时间 Min
+MAX_BATTLE_TIME = 0
+
 # 在双人作战时, 极寒冰沙 全局锁
 SMOOTHIE_LOCK_TIME = 0
 

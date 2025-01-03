@@ -1192,6 +1192,8 @@
         "cus_auto_carry_card_value": 6,
         "accelerate_active": false,
         "accelerate_value": 500,
+        "max_battle_time_active": false,
+        "max_battle_time_value": 30,
         "guild_manager_active": 0,
         "misu_logistics_link": ""
     },
