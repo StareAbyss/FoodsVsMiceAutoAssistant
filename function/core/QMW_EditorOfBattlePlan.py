@@ -104,187 +104,250 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 主布局 - 竖直布局
         self.LayMain = QVBoxLayout()
 
-        def init_ui_lay_top():
-            """当前方案 + 关卡选择 + 内置教学"""
-
-            self.LayTop = QHBoxLayout()
-            self.LayMain.addLayout(self.LayTop)
-
-            self.current_plan_label = QLabel("当前编辑方案:无, UUID:无")
-            self.LayTop.addWidget(self.current_plan_label)
-
-            # 简单教学
-            self.tooltip_label = QLabel("鼠标悬停在按钮/输入框可以查看许多重要提示")
-            self.LayTop.addWidget(self.tooltip_label)
-
-            # 关卡选择按钮(多级列表)
-            self.WidgetStageSelector = MultiLevelMenu(title="关卡选择")
-            self.LayTop.addWidget(self.WidgetStageSelector)
-
-            # 教学按钮
-            self.WidgetCourseButton = QPushButton('点击打开教学')
-            self.LayTop.addWidget(self.WidgetCourseButton)
-            self.WidgetCourseButton.clicked.connect(func_open_tip)
-
-            # 设置宽度比例
-            self.LayTop.setStretch(0, 9)
-            self.LayTop.setStretch(1, 3)
-            self.LayTop.setStretch(2, 3)
-            self.LayTop.setStretch(3, 3)
-
         def init_ui_lay_tip():
             """提示编辑器"""
 
             self.WidgetTipsEditor = QTextEdit()
             self.WidgetTipsEditor.setPlaceholderText('在这里编辑提示文本...')
             self.LayMain.addWidget(self.WidgetTipsEditor)
-            self.WidgetTipsEditor.setMaximumHeight(100)
+            # self.WidgetTipsEditor.setMaximumHeight(100)
 
-        def init_ui_lay_wave_editor():
-            """波次编辑器"""
+        def init_ui_layout_bottom():
+            """
+            下方主要布局 横向 包括三块 各种详细参数编辑 Card列表 棋盘
+            """
 
-            self.LayWaveEditor = QHBoxLayout()
-            self.LayMain.addLayout(self.LayWaveEditor)
+            self.LayoutMainBottom = QHBoxLayout()
+            self.LayMain.addLayout(self.LayoutMainBottom)
 
-            self.LayWaveEditor.addWidget(QLabel('切换波次'))
+            def init_ui_lay_left():
+                """
+                左侧布局，竖向布局，包括波次编辑，放卡动作参数编辑，方案保存读取
+                """
+                self.LayLeft = QVBoxLayout()
+                self.LayoutMainBottom.addLayout(self.LayLeft)
 
-            for i in range(14):
-                button = QPushButton(f"{i}")
-                self.LayWaveEditor.addWidget(button)
-                button.setObjectName(f"changeWaveButton_{i}")
-                button.clicked.connect(
-                    lambda checked, wave=i: (
-                        self.click_wave_button(be_clicked_button_id=wave)
+                def init_ui_lay_left_top():
+                    # 关卡选择按钮(多级列表)
+                    self.WidgetStageSelector = MultiLevelMenu(title="选择关卡, 显示障碍")
+                    self.LayLeft.addWidget(self.WidgetStageSelector)
+
+                    # 教学按钮
+                    WidgetCourseButton = QPushButton('点击打开教学')
+                    WidgetCourseButton.clicked.connect(func_open_tip)
+                    self.LayLeft.addWidget(WidgetCourseButton)
+
+                def init_ui_lay_wave_editor():
+                    """波次编辑器"""
+
+                    self.LayWaveEditor = QVBoxLayout()
+                    self.LayLeft.addLayout(self.LayWaveEditor)
+
+                    title_label = QLabel('切换波次')
+                    title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # 设置文本居中对齐
+                    self.LayWaveEditor.addWidget(title_label)
+
+                    for v_index in range(3):
+                        lay_line = QHBoxLayout()
+                        for h_index in range(5):
+                            i = v_index * 5 + h_index
+                            if i != 14:
+                                button = QPushButton(f"{i}")
+                                button.setObjectName(f"changeWaveButton_{i}")
+                                button.clicked.connect(
+                                    lambda checked, wave=i: (
+                                        self.click_wave_button(be_clicked_button_id=wave)
+                                    )
+                                )
+                                button.setToolTip(f"切换到第{i}波方案")
+                            else:
+                                button = QPushButton(f"-")
+                            button.setFixedWidth(45)
+                            lay_line.addWidget(button)
+                        self.LayWaveEditor.addLayout(lay_line)
+
+                    # 添加复制按钮
+                    self.copy_wave_button = QPushButton('复制')
+                    self.copy_wave_button.clicked.connect(self.copy_wave_plan)
+                    self.copy_wave_button.setToolTip(f"复制当前选中波次方案, 保存到剪切板")
+
+                    # 添加粘贴按钮 锁定 不可使用
+                    self.paste_wave_button = QPushButton('粘贴')
+                    self.paste_wave_button.clicked.connect(self.paste_wave_plan)
+                    self.paste_wave_button.setEnabled(False)
+                    self.copy_wave_button.setToolTip(f"将剪切板中的方案, 粘贴到当前选中波次")
+
+                    # 应用到全部
+                    self.apply_to_all_button = QPushButton('应用到全部')
+                    self.apply_to_all_button.clicked.connect(self.apply_to_all_wave_plan)
+                    self.apply_to_all_button.setToolTip("复制当前选中波次方案, 粘贴到全部波次")
+
+                    # 创建水平布局，来容纳按钮
+                    LayWaveAction = QHBoxLayout()
+                    LayWaveAction.addWidget(self.copy_wave_button)
+                    LayWaveAction.addWidget(self.paste_wave_button)
+                    LayWaveAction.addWidget(self.apply_to_all_button)
+                    self.LayLeft.addLayout(LayWaveAction)
+
+                def init_ui_lay_card_editor():
+                    """单组放卡操作 - 状态编辑器"""
+
+                    self.LayCardEditor = QVBoxLayout()
+                    self.LayLeft.addLayout(self.LayCardEditor)
+
+                    title_label = QLabel('放卡操作参数设定')
+                    title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # 设置文本居中对齐
+                    self.LayCardEditor.addWidget(title_label)
+
+                    self.WidgetAddCardButton = QPushButton('新增一组放卡操作')
+                    self.LayCardEditor.addWidget(self.WidgetAddCardButton)
+
+                    # ID
+                    label = QLabel('ID')
+
+                    self.WidgetIdInput = QSpinBox()
+                    self.WidgetIdInput.setFixedWidth(140)
+                    self.WidgetIdInput.setToolTip("id代表卡在卡组中的顺序")
+                    self.WidgetIdInput.setRange(1, 21)
+
+                    layout = QHBoxLayout()
+                    layout.addWidget(label)
+                    layout.addWidget(self.WidgetIdInput)
+                    self.LayCardEditor.addLayout(layout)
+
+                    # 名称
+                    label = QLabel('名称')
+
+                    self.WidgetNameInput = QLineEdit()
+                    self.WidgetNameInput.setFixedWidth(140)
+                    self.WidgetNameInput.setToolTip(
+                        "名称标识是什么卡片\n"
+                        "手动带卡: 能让用户看懂该带啥就行.\n"
+                        "自动带卡: 需要遵从命名规范, 请查看右上角教学或相关文档."
                     )
-                )
-                button.setToolTip(f"切换到第{i}波方案")
-                button.setFixedWidth(45)
 
-            # 添加复制按钮
-            self.copy_wave_button = QPushButton('复制波次')
-            self.LayWaveEditor.addWidget(self.copy_wave_button)
-            self.copy_wave_button.clicked.connect(self.copy_wave_plan)
-            self.copy_wave_button.setToolTip(f"复制当前选中波次方案, 保存到剪切板")
+                    layout = QHBoxLayout()
+                    layout.addWidget(label)
+                    layout.addWidget(self.WidgetNameInput)
+                    self.LayCardEditor.addLayout(layout)
 
-            # 添加粘贴按钮 锁定 不可使用
-            self.paste_wave_button = QPushButton('粘贴波次')
-            self.LayWaveEditor.addWidget(self.paste_wave_button)
-            self.paste_wave_button.clicked.connect(self.paste_wave_plan)
-            self.paste_wave_button.setEnabled(False)
-            self.copy_wave_button.setToolTip(f"将剪切板中的方案, 粘贴到当前选中波次")
+                    # 遍历
+                    tooltips = "队列和遍历不知道是什么可以全true, 具体请参见详细文档"
+                    label = QLabel('遍历')
+                    label.setToolTip(tooltips)
 
-            # 应用到全部
-            self.apply_to_all_button = QPushButton('应用到全部')
-            self.LayWaveEditor.addWidget(self.apply_to_all_button)
-            self.apply_to_all_button.clicked.connect(self.apply_to_all_wave_plan)
-            # 鼠标提示信息
-            self.apply_to_all_button.setToolTip("复制当前选中波次方案, 粘贴到全部波次")
-            self.apply_to_all_button.setMinimumWidth(80)
+                    self.WidgetErgodicInput = QComboBox()
+                    self.WidgetErgodicInput.setFixedWidth(140)
+                    self.WidgetErgodicInput.addItems(['true', 'false'])
+                    self.WidgetErgodicInput.setToolTip(tooltips)
 
-        def init_ui_lay_card_editor():
-            """单组放卡操作 - 状态编辑器"""
+                    layout = QHBoxLayout()
+                    layout.addWidget(label)
+                    layout.addWidget(self.WidgetErgodicInput)
+                    self.LayCardEditor.addLayout(layout)
 
-            self.LayCardEditor = QHBoxLayout()
-            self.LayMain.addLayout(self.LayCardEditor)
+                    # 队列
+                    tooltips = "队列和遍历不知道是什么可以全true, 具体请参见详细文档"
+                    label = QLabel('队列')
+                    label.setToolTip(tooltips)
 
-            self.WidgetAddCardButton = QPushButton('  新增一组放卡操作  ')
-            self.LayCardEditor.addWidget(self.WidgetAddCardButton)
-            self.WidgetAddCardButton.setFixedWidth(120)
+                    self.WidgetQueueInput = QComboBox()
+                    self.WidgetQueueInput.setFixedWidth(140)
+                    self.WidgetQueueInput.addItems(['true', 'false'])
+                    self.WidgetQueueInput.setToolTip(tooltips)
 
-            self.LayCardEditor.addSpacerItem(
-                QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
+                    layout = QHBoxLayout()
+                    layout.addWidget(label)
+                    layout.addWidget(self.WidgetQueueInput)
+                    self.LayCardEditor.addLayout(layout)
 
-            # ID
-            self.LayCardEditor.addWidget(QLabel('ID'))
+                    # 幻鸡优先级
+                    tooltips = "卡片使用幻幻鸡复制的优先级, 0代表不使用，值越高则使用优先级越高"
+                    label = QLabel('幻鸡优先级')
+                    label.setToolTip(tooltips)
 
-            self.WidgetIdInput = QSpinBox()
-            self.LayCardEditor.addWidget(self.WidgetIdInput)
-            self.WidgetIdInput.setFixedWidth(100)
-            self.WidgetIdInput.setToolTip("id代表卡在卡组中的顺序")
-            self.WidgetIdInput.setRange(1, 21)
+                    self.WidgetKunInput = QSpinBox()
+                    self.WidgetKunInput.setFixedWidth(140)
+                    self.WidgetKunInput.setRange(0, 9)
+                    self.WidgetKunInput.setToolTip(tooltips)
 
-            self.LayCardEditor.addSpacerItem(
-                QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
+                    layout = QHBoxLayout()
+                    layout.addWidget(label)
+                    layout.addWidget(self.WidgetKunInput)
+                    self.LayCardEditor.addLayout(layout)
 
-            # 名称
-            self.LayCardEditor.addWidget(QLabel('名称'))
+                    # 删卡
 
-            self.WidgetNameInput = QLineEdit()
-            self.LayCardEditor.addWidget(self.WidgetNameInput)
-            self.WidgetNameInput.setFixedWidth(100)
-            self.WidgetNameInput.setToolTip(
-                "名称标识是什么卡片\n"
-                "手动带卡: 能让用户看懂该带啥就行.\n"
-                "自动带卡: 需要遵从命名规范, 请查看右上角教学或相关文档."
-            )
+                    self.WidgetDeleteCardButton = QPushButton('删除选中放卡操作')
+                    self.LayCardEditor.addWidget(self.WidgetDeleteCardButton)
 
-            self.LayCardEditor.addSpacerItem(
-                QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
+                def init_ui_lay_save_and_load():
+                    """加载和保存按钮"""
 
-            # 遍历
-            tooltips = "队列和遍历不知道是什么可以全true, 具体请参见详细文档"
-            label = QLabel('遍历')
-            label.setToolTip(tooltips)
-            self.LayCardEditor.addWidget(label)
+                    title_label = QLabel('方案加载与保存')
+                    title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # 设置文本居中对齐
 
-            self.WidgetErgodicInput = QComboBox()
-            self.LayCardEditor.addWidget(self.WidgetErgodicInput)
-            self.WidgetErgodicInput.setFixedWidth(100)
-            self.WidgetErgodicInput.addItems(['true', 'false'])
-            self.WidgetErgodicInput.setToolTip(tooltips)
+                    self.current_plan_name_label = QLabel("当前方案名:无")
+                    self.current_plan_uuid_label = QLabel("当前方案UUID:无")
 
-            self.LayCardEditor.addSpacerItem(
-                QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
+                    self.ButtonLoadJson = QPushButton('加载')
 
-            # 队列
-            tooltips = "队列和遍历不知道是什么可以全true, 具体请参见详细文档"
-            label = QLabel('队列')
-            label.setToolTip(tooltips)
-            self.LayCardEditor.addWidget(label)
+                    self.ButtonSave = QPushButton('保存')
+                    self.ButtonSave.setEnabled(False)
 
-            self.WidgetQueueInput = QComboBox()
-            self.LayCardEditor.addWidget(self.WidgetQueueInput)
-            self.WidgetQueueInput.setFixedWidth(100)
-            self.WidgetQueueInput.addItems(['true', 'false'])
-            self.WidgetQueueInput.setToolTip(tooltips)
+                    self.ButtonSaveAs = QPushButton('另存为')
 
-            self.LayCardEditor.addSpacerItem(
-                QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
+                    # 创建水平布局，来容纳保存和另存为按钮
+                    LaySaveBottom = QHBoxLayout()
+                    LaySaveBottom.addWidget(self.ButtonLoadJson)
+                    LaySaveBottom.addWidget(self.ButtonSave)
+                    LaySaveBottom.addWidget(self.ButtonSaveAs)
 
-            # 幻鸡优先级
-            tooltips = "卡片使用幻幻鸡复制的优先级, 0代表不使用，值越高则使用优先级越高"
-            label = QLabel('幻鸡优先级')
-            label.setToolTip(tooltips)
-            self.LayCardEditor.addWidget(label)
+                    # 创建垂直布局 放本栏title后水平布局按钮
+                    LaySave = QVBoxLayout()
+                    LaySave.addWidget(title_label)
+                    LaySave.addWidget(self.current_plan_name_label)
+                    LaySave.addWidget(self.current_plan_uuid_label)
+                    LaySave.addLayout(LaySaveBottom)
 
-            self.WidgetKunInput = QSpinBox()
-            self.LayCardEditor.addWidget(self.WidgetKunInput)
-            self.WidgetKunInput.setFixedWidth(100)
-            self.WidgetKunInput.setRange(0, 9)
-            self.WidgetKunInput.setToolTip(tooltips)
+                    # 添加到总左侧布局
+                    self.LayLeft.addLayout(LaySave)
 
-            self.LayCardEditor.addSpacerItem(
-                QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
+                def create_vertical_spacer():
+                    # 竖向弹簧
+                    return QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
-            self.WidgetDeleteCardButton = QPushButton('  删除选中放卡操作  ')
-            self.LayCardEditor.addWidget(self.WidgetDeleteCardButton)
-            self.WidgetDeleteCardButton.setFixedWidth(120)
+                def create_vertical_line():
+                    # 横向分割线
+                    separator = QFrame()
+                    separator.setFrameShape(QFrame.Shape.HLine)
+                    separator.setFrameShadow(QFrame.Shadow.Sunken)
+                    return separator
 
-        def init_ui_lay_card_list_and_chessboard():
-            """card列表+棋盘 横向布局"""
-            self.LayCardListAndCell = QHBoxLayout()
-            self.LayMain.addLayout(self.LayCardListAndCell)
+                init_ui_lay_left_top()
+                self.LayLeft.addItem(create_vertical_spacer())
+                self.LayLeft.addWidget(create_vertical_line())
+                self.LayLeft.addItem(create_vertical_spacer())
+                init_ui_lay_wave_editor()
+                self.LayLeft.addItem(create_vertical_spacer())
+                self.LayLeft.addWidget(create_vertical_line())
+                self.LayLeft.addItem(create_vertical_spacer())
+                init_ui_lay_card_editor()
+                self.LayLeft.addItem(create_vertical_spacer())
+                self.LayLeft.addWidget(create_vertical_line())
+                self.LayLeft.addItem(create_vertical_spacer())
+                init_ui_lay_save_and_load()
 
             def init_ui_lay_card_list():
                 """卡片列表"""
                 self.WidgetCardList = QListWidgetDraggable(drop_function=self.card_list_be_dropped)
-                self.LayCardListAndCell.addWidget(self.WidgetCardList)
-                # self.WidgetCardList.setMaximumWidth(270)
+                self.LayoutMainBottom.addWidget(self.WidgetCardList)
+                self.WidgetCardList.setMaximumWidth(260)  # 经过验证的完美数字
 
             def init_ui_lay_chessboard():
                 """棋盘布局"""
                 self.chessboard_layout = QGridLayout()
-                self.LayCardListAndCell.addLayout(self.chessboard_layout)
+                self.LayoutMainBottom.addLayout(self.chessboard_layout)
 
                 # 生成棋盘布局中的元素
                 self.chessboard_buttons = []
@@ -295,7 +358,6 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     row_frames = []
 
                     for j in range(9):
-
                         # 创建按钮部分
                         btn = ChessButton('')
 
@@ -305,8 +367,6 @@ class QMWEditorOfBattlePlan(QMainWindow):
                         btn.setToolTip(f"当前位置: {j + 1}-{i + 1}")
                         row_buttons.append(btn)
 
-                        # 尽可能让宽和高占满剩余空间
-                        # btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
                         btn.setFixedSize(80, 80)
 
                         # 创建QFrame作为高亮效果的载体
@@ -326,32 +386,12 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     self.chessboard_buttons.append(row_buttons)
                     self.chessboard_frames.append(row_frames)
 
+            init_ui_lay_left()
             init_ui_lay_card_list()
             init_ui_lay_chessboard()
 
-        def init_ui_lay_save_and_load():
-            """加载和保存按钮"""
-
-            # 创建水平布局，来容纳保存和另存为按钮
-            self.HLaySave = QHBoxLayout()
-            self.LayMain.addLayout(self.HLaySave)
-
-            self.ButtonLoadJson = QPushButton('加载战斗方案')
-            self.HLaySave.addWidget(self.ButtonLoadJson)
-
-            self.ButtonSave = QPushButton('保存当前战斗方案')
-            self.ButtonSave.setEnabled(False)
-            self.HLaySave.addWidget(self.ButtonSave)
-
-            self.ButtonSaveAs = QPushButton('战斗方案另存为')
-            self.HLaySave.addWidget(self.ButtonSaveAs)
-
-        init_ui_lay_top()
         init_ui_lay_tip()
-        init_ui_lay_wave_editor()
-        init_ui_lay_card_editor()
-        init_ui_lay_card_list_and_chessboard()
-        init_ui_lay_save_and_load()
+        init_ui_layout_bottom()
 
         # 设置主控件
         self.central_widget = QWidget()
@@ -393,13 +433,13 @@ class QMWEditorOfBattlePlan(QMainWindow):
             """外观"""
 
             # 窗口名
-            self.setWindowTitle('FAA - 战斗方案编辑器')
+            self.setWindowTitle('FAA - 战斗方案编辑器 - 鼠标悬停在按钮&输入框可以查看许多提示信息')
 
             # 设置窗口图标
             self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetTuo-192x.png"))
 
             # 设定窗口初始大小 否则将无法自动对齐到上级窗口中心
-            self.setFixedSize(1100, 864)
+            self.setFixedSize(1280, 720)
 
             # 不继承 系统缩放 (高DPI缩放)
             QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
@@ -880,11 +920,11 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
                 location_key = f"{j + 1}-{i + 1}"
 
-                text = ""
+                text_block = []
                 # 如果玩家在这个位置，添加 "玩家" 文字
                 player_location_list = self.json_data.get('player', [])
                 if location_key in player_location_list:
-                    text += '玩家 {}'.format(player_location_list.index(location_key) + 1)
+                    text_block.append('玩家 {}'.format(player_location_list.index(location_key) + 1))
 
                 cards_in_this_location = []
                 for card in self.sub_plan:
@@ -892,12 +932,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
                         cards_in_this_location.append(card)
 
                 for card in cards_in_this_location:
-                    # 换行
-                    text += '\n'
-
                     # 名称
-                    text += truncate_text(text=card['name'])
-
+                    text = truncate_text(text=card['name'])
                     # 编号
                     c_index_list = card["location"].index(location_key) + 1
                     if type(c_index_list) is list:
@@ -905,8 +941,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
                             text += " {}".format(location_index)
                     else:
                         text += " {}".format(c_index_list)
+                    text_block.append(text)
 
-                btn.setText(text)
+                # 用\n连接每一个block
+                btn.setText("\n".join(text_block))
 
     def highlight_chessboard(self):
         """根据卡片的位置list，将对应元素的按钮进行高亮"""
@@ -1096,10 +1134,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
         current_plan_name = os.path.basename(file_path).replace(".json", "")
         print(f"[加载方案] 开始读取:{current_plan_name}")
 
-        self.current_plan_label.setText(
-            f"当前编辑方案: {current_plan_name}, "
-            f"UUID:{self.json_data.get('uuid', '无')}"
-        )
+        self.current_plan_name_label.setText(f"当前方案名:{current_plan_name}")
+        self.current_plan_uuid_label.setText(f"{self.json_data.get('uuid', '无')}")
 
     def re_init_battle_plan_opened(self):
         """在读取方案后, 填充该方案空白部分, 并初始化大量控件"""
