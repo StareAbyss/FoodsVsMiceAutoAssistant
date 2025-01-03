@@ -126,8 +126,9 @@ class Battle:
         :return:
             None
         """
-        # 如果不需要使用钥匙 或者 已经用过钥匙 直接输出
-        if not self.faa.need_key or self.is_used_key:
+
+        # 如果 已经用过钥匙 直接输出
+        if self.is_used_key:
             return False
 
         find = match_p_in_w(
@@ -135,26 +136,41 @@ class Battle:
             source_range=[386, 332, 463, 362],
             match_tolerance=0.95,
             template=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
-        if find:
+
+        if not find:
             self.faa.print_info(text="找到了 [继续作战] 图标")
-            while find:
-                loop_match_p_in_w(
-                    source_handle=self.faa.handle,
-                    source_root_handle=self.faa.handle_360,
-                    source_range=[386, 332, 463, 362],
-                    match_tolerance=0.95,
-                    template=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"],
-                    after_sleep=0.5,
-                    click=True)
-                find = match_p_in_w(
-                    source_handle=self.faa.handle,
-                    source_root_handle=self.faa.handle_360,
-                    source_range=[302, 263, 396, 289],
-                    match_tolerance=0.95,
-                    template=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
+            return False
+
+        while find:
+            if self.faa.need_key:
+                template = RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"]
+                source_range = [394, 340, 456, 354]
+            else:
+                template = RESOURCE_P["common"]["战斗"]["战斗中_领取奖品.png"]
+                source_range = [492, 340, 554, 354]
+            loop_match_p_in_w(
+                template=template,
+                source_handle=self.faa.handle,
+                source_root_handle=self.faa.handle_360,
+                source_range=source_range,
+                match_tolerance=0.95,
+                after_sleep=0.25,
+                click=True)
+
+            # 是否还在选继续界面
+            find = match_p_in_w(
+                source_handle=self.faa.handle,
+                source_root_handle=self.faa.handle_360,
+                source_range=[302, 263, 396, 289],
+                match_tolerance=0.95,
+                template=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
+
+        if self.faa.need_key:
             self.faa.print_info(text="点击了 [继续作战] 图标")
             return True
-        return False
+        else:
+            self.faa.print_info(text="点击了 [领取奖品] 图标")
+            return False
 
     def check_end(self):
 
