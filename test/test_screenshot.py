@@ -8,7 +8,7 @@ from function.scattered.gat_handle import faa_get_handle
 
 def test_screenshot_once():
     handle = 0
-    handle_360 = faa_get_handle(channel="小号3 | 锑食-微端", mode="flash")
+    handle_360 = faa_get_handle(channel="小号4 | 锑食-微端", mode="flash")
     # handle_browser = faa_get_handle(channel="锑食", mode="browser")
     # handle = faa_get_handle(channel="小号2 | 锑食", mode="flash")
     # handle = faa_get_handle(channel="小号2 | 锑食", mode="360")
@@ -16,7 +16,7 @@ def test_screenshot_once():
     # 调用截图
     image = capture_image_png(
         handle=handle_360,
-        raw_range=[0, 0, 950, 600],
+        raw_range=[205, 385, 242, 405],
         root_handle=handle_360)
 
     print(image)

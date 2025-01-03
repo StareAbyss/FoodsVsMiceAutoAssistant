@@ -1,20 +1,25 @@
-import cProfile
-
 from function.common.bg_img_match import match_p_in_w
+from function.common.overlay_images import overlay_images
 from function.globals.g_resources import RESOURCE_P
 from function.scattered.gat_handle import faa_get_handle
 
 
 def f_test():
     source_handle = faa_get_handle(channel="锑食-微端", mode="flash")
-    source_range = [240, 190, 740, 265]
-    template = RESOURCE_P["top_up_money"]["每日必充_判定点.png"]
+    source_range = [0, 0, 950, 600]
+    template = "祥龙环-1.png"
+
+    template = overlay_images(
+        img_background=RESOURCE_P["card"]["准备房间"]["祥龙环-1.png"],
+        img_overlay=RESOURCE_P["card"]["卡片-房间-绑定角标.png"],
+        test_show=False)
 
     result = match_p_in_w(
         source_handle=source_handle,
         source_range=source_range,
         template=template,
-        match_tolerance=0.99,
+        match_tolerance=0.95,
+        mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
         test_print=True,
         test_show=True
     )
@@ -50,7 +55,8 @@ def f_test():
     #     )
 
 
-cProfile.run("f_test()")
+# cProfile.run("f_test()")
+f_test()
 
 """
 下述测试条件

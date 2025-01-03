@@ -1,23 +1,29 @@
-import cProfile
-
 from function.common.bg_mouse import mouse_left_click
 from function.scattered.gat_handle import faa_get_handle
 
 
 def f_test():
-    zoom = 1.5
+    zoom = 1.0
     click_interval = 0
     click_sleep = 0
-    handle = faa_get_handle(channel="深渊之下 | 锑食", mode="flash")
-    for i in range(1000):
-        mouse_left_click(handle=handle,
-                         x=int(10 * zoom),
-                         y=int(10 * zoom),
-                         interval_time=click_interval,
-                         sleep_time=click_sleep)
+
+    channel = "锑食-微端"
+    handle = faa_get_handle(channel=channel, mode="flash")
+    handle_browser = faa_get_handle(channel=channel, mode="browser")
+    handle_360 = faa_get_handle(channel=channel, mode="360")
+
+    for i in range(1):
+        mouse_left_click(
+            handle=handle_browser,
+            x=int(470 * zoom),
+            y=int(185 * zoom),
+            # interval_time=click_interval,
+            sleep_time=click_sleep
+        )
 
 
-cProfile.run("f_test()")
+# cProfile.run("f_test()")
+f_test()
 
 """
 结论:
