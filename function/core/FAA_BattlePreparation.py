@@ -10,7 +10,7 @@ from function.common.bg_img_match import loop_match_ps_in_w, loop_match_p_in_w, 
 from function.common.bg_img_screenshot import capture_image_png
 from function.common.overlay_images import overlay_images
 from function.core.analyzer_of_loot_logs import match_items_from_image_and_save
-from function.globals import SIGNAL
+from function.globals import SIGNAL, EXTRA
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
@@ -827,6 +827,7 @@ class BattlePreparation:
         handle_360 = self.faa.handle_360
         stage_info = self.faa.stage_info
         player = self.faa.player
+        is_main = self.faa.is_main
         is_group = self.faa.is_group
         print_info = self.faa.print_info
         print_warning = self.faa.print_warning
@@ -840,60 +841,60 @@ class BattlePreparation:
             after_sleep=2,
             click=False
         )
-        if find:
-            print_info(text="[翻宝箱UI] 捕获到正确标志, 翻牌并退出...")
-            # 开始洗牌
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=502)
-            time.sleep(6)
+        if not find:
 
-            # 翻牌 1+2
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=550, y=170)
-            time.sleep(0.5)
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=170)
-            time.sleep(1.5)
-
-            img = [
-                capture_image_png(
-                    handle=handle,
-                    raw_range=[249, 89, 293, 133],
-                    root_handle=handle_360),
-                capture_image_png(
-                    handle=handle,
-                    raw_range=[317, 89, 361, 133],
-                    root_handle=handle_360),
-            ]
-
-            img = cv2.hconcat(img)
-
-            # 定义保存路径和文件名格式
-            img_path = "{}\\{}_{}P_{}.png".format(
-                PATHS["logs"] + "\\chests_image",
-                stage_info["id"],
-                player,
-                time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
-            )
-
-            # 分析图片，获取战利品字典
-            drop_list = match_items_from_image_and_save(
-                img_save_path=img_path,
-                image=img
-                , mode="chests",
-                test_print=True)
-            print_info(text="[翻宝箱UI] 宝箱已 捕获/识别/保存".format(drop_list))
-
-            # 组队2P慢点结束翻牌 保证双人魔塔后自己是房主
-            if is_group and player == 2:
-                time.sleep(2)
-
-            # 结束翻牌
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=502)
-            time.sleep(3)
-
-            return drop_list
-
-        else:
             print_warning(text="[翻宝箱UI] 15s未能捕获正确标志, 出问题了!")
             return []
+
+        print_info(text="[翻宝箱UI] 捕获到正确标志, 翻牌并退出...")
+
+        # 翻牌 1+2 bug法
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=550, y=265)
+        time.sleep(0.1)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=265)
+        time.sleep(1.0)
+
+        img = [
+            capture_image_png(
+                handle=handle,
+                raw_range=[249, 89, 293, 133],
+                root_handle=handle_360),
+            capture_image_png(
+                handle=handle,
+                raw_range=[317, 89, 361, 133],
+                root_handle=handle_360),
+        ]
+
+        img = cv2.hconcat(img)
+
+        # 定义保存路径和文件名格式
+        img_path = "{}\\{}_{}P_{}.png".format(
+            PATHS["logs"] + "\\chests_image",
+            stage_info["id"],
+            player,
+            time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+        )
+
+        # 分析图片，获取战利品字典
+        drop_list = match_items_from_image_and_save(
+            img_save_path=img_path,
+            image=img,
+            mode="chests",
+            test_print=True)
+        print_info(text="[翻宝箱UI] 宝箱已 捕获/识别/保存".format(drop_list))
+
+        # 组队2P慢点结束翻牌 保证双人魔塔后自己是房主
+        if is_group and is_main:
+            time.sleep(1.0)
+
+        # 开始洗牌
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=502)
+        time.sleep(0.25)
+        # 结束翻牌
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=502)
+        time.sleep(1.0)
+
+        return drop_list
 
     def perform_action_capture_match_for_loots_and_chests(self):
         """
