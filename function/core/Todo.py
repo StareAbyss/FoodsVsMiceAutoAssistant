@@ -25,6 +25,7 @@ from function.scattered.get_task_sequence_list import get_task_sequence_list
 from function.scattered.guild_manager import GuildManager
 from function.scattered.loots_and_chest_data_save_and_post import loots_and_chests_detail_to_json, \
     loots_and_chests_data_post_to_sever, loots_and_chests_statistics_to_json
+from function.core.Win_api import close_software_by_title, get_path_and_title, close_all_software
 
 
 class ThreadTodo(QThread):
@@ -2612,8 +2613,31 @@ class ThreadTodo(QThread):
                 text="推荐勾选高级设置-完成后刷新游戏, 防止长期运行flash导致卡顿",
                 color_level=1)
 
+        if self.opt["login_settings"]["login_close_settings"]:
+            SIGNAL.PRINT_TO_UI.emit(
+                text="事项全部完成, 击杀登陆器后台, 降低系统负载.",
+                color_level=1)
+            self.close_login()
+        else:
+            SIGNAL.PRINT_TO_UI.emit(
+                text="推荐勾选高级设置-完成所有事项后关闭登陆器",
+                color_level=1)
+
         # 全部完成了发个信号
         SIGNAL.END.emit()
+    def close_login(self):
+        for faa in self.faa_dict.values():
+            close_software_by_title(faa.channel)
+            sleep(1)#等待完成关闭
+        _,title=get_path_and_title()
+        if len(title)==1 and title[0]=="360游戏大厅":
+            close_software_by_title("360游戏大厅")
+            #说明没有乱七八糟的多开，后台主进程也可以直接杀了
+            sleep(2)#等待打开的360后台
+            close_all_software("360Game.exe")
+        if len(title)==0:
+            close_all_software("360Game.exe")
+
 
     def run_2(self):
         """多线程作战时的第二线程, 负责2P"""
