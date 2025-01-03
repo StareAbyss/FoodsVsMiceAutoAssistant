@@ -537,7 +537,6 @@ class FAA:
         def calculation_card_extra(list_cell_all):
 
             if smoothie_info:
-
                 # # 生成从 "1-1" 到 "1-7" 再到 "9-1" 到 "9-7" 的列表
                 # all_locations = [f"{i}-{j}" for i in range(1, 10) for j in range(1, 8)]
                 #
@@ -549,7 +548,7 @@ class FAA:
                 card_dict = {
                     'name': smoothie_info['name'],
                     'id': smoothie_info['id'],
-                    'location': ["1-1","2-1","3-1","4-1","5-1","6-1","7-1","8-1","9-1"],
+                    'location': ["1-1", "2-1", "3-1", "4-1", "5-1", "6-1", "7-1", "8-1", "9-1"],
                     'ergodic': True,
                     'queue': False
                 }
@@ -917,7 +916,7 @@ class FAA:
         find = loop_match_p_in_w(
             source_handle=self.handle_360,
             source_root_handle=self.handle_360,
-            source_range=[0, 0, 400, 100],
+            source_range=[0, 0, 400, 75],
             template=RESOURCE_P["common"]["登录"]["0_刷新.png"],
             match_tolerance=0.9,
             after_sleep=3,
@@ -927,7 +926,7 @@ class FAA:
             find = loop_match_p_in_w(
                 source_handle=self.handle_360,
                 source_root_handle=self.handle_360,
-                source_range=[0, 0, 400, 100],
+                source_range=[0, 0, 400, 75],
                 template=RESOURCE_P["common"]["登录"]["0_刷新_被选中.png"],
                 match_tolerance=0.98,
                 after_sleep=3,
@@ -938,7 +937,7 @@ class FAA:
                 find = loop_match_p_in_w(
                     source_handle=self.handle_360,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 400, 100],
+                    source_range=[0, 0, 400, 75],
                     template=RESOURCE_P["common"]["登录"]["0_刷新_被点击.png"],
                     match_tolerance=0.98,
                     after_sleep=3,
@@ -962,7 +961,7 @@ class FAA:
         find = loop_match_p_in_w(
             source_handle=self.handle_360,
             source_root_handle=self.handle_360,
-            source_range=[0, 0, 400, 100],
+            source_range=[0, 0, 400, 75],
             template=RESOURCE_P["common"]["登录"]["0_回退.png"],
             match_tolerance=0.9,
             after_sleep=3,
@@ -972,7 +971,7 @@ class FAA:
             find = loop_match_p_in_w(
                 source_handle=self.handle_360,
                 source_root_handle=self.handle_360,
-                source_range=[0, 0, 400, 100],
+                source_range=[0, 0, 400, 75],
                 template=RESOURCE_P["common"]["登录"]["0_回退_被选中.png"],
                 match_tolerance=0.98,
                 after_sleep=3,
@@ -983,7 +982,7 @@ class FAA:
                 find = loop_match_p_in_w(
                     source_handle=self.handle_360,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 400, 100],
+                    source_range=[0, 0, 400, 75],
                     template=RESOURCE_P["common"]["登录"]["0_回退_被点击.png"],
                     match_tolerance=0.98,
                     after_sleep=3,

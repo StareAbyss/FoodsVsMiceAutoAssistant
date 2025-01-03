@@ -439,6 +439,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.Accelerate_Value.setValue(my_opt["accelerate_value"])
             EXTRA.ACCELERATE_TIME = my_opt["accelerate_value"] if my_opt["accelerate_active"] else 0
 
+            # 单局最大战斗时间
+            self.MaxBattleTime_Active.setChecked(my_opt["max_battle_time_active"])
+            self.MaxBattleTime_Value.setValue(my_opt["max_battle_time_value"])
+            EXTRA.MAX_BATTLE_TIME = my_opt["max_battle_time_value"] if my_opt["max_battle_time_active"] else 0
+
             # 是否启动用卡
             self.AutoUseCard.setChecked(my_opt["auto_use_card"])
 
@@ -796,6 +801,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["accelerate_active"] = self.Accelerate_Active.isChecked()
             my_opt["accelerate_value"] = self.Accelerate_Value.value()
             EXTRA.ACCELERATE_TIME = my_opt["accelerate_value"] if my_opt["accelerate_active"] else 0
+
+            # 单局最大战斗时间
+            my_opt["max_battle_time_active"] = self.MaxBattleTime_Active.isChecked()
+            my_opt["max_battle_time_value"] = self.MaxBattleTime_Value.value()
+            EXTRA.MAX_BATTLE_TIME = my_opt["max_battle_time_value"] if my_opt["max_battle_time_active"] else 0
 
             # 自动放卡
             my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
