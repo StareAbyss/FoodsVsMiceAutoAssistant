@@ -1231,8 +1231,8 @@ class FAA:
                     loop_match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
-                        source_range=[0, 0, 950, 600],
-                        template=RESOURCE_P["common"]["登录"]["4_退出每日必充.png"],
+                        source_range=[875, 30, 925, 75],
+                        template=RESOURCE_P["common"]["登录"]["4_退出假期特惠.png"],
                         match_tolerance=0.99,
                         match_failed_check=3,
                         after_sleep=1,
