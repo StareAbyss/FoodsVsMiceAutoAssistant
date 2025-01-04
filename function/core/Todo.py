@@ -13,6 +13,7 @@ from requests import RequestException
 from function.common.bg_img_match import loop_match_p_in_w
 from function.common.thread_with_exception import ThreadWithException
 from function.core.FAA_extra_readimage import read_and_get_return_information, kill_process
+from function.core.Win_api import close_software_by_title, get_path_and_title, close_all_software
 from function.core.analyzer_of_loot_logs import update_dag_graph, find_longest_path_from_dag
 from function.core_battle.CardManager import CardManager
 from function.globals import EXTRA, SIGNAL
@@ -25,7 +26,6 @@ from function.scattered.get_task_sequence_list import get_task_sequence_list
 from function.scattered.guild_manager import GuildManager
 from function.scattered.loots_and_chest_data_save_and_post import loots_and_chests_detail_to_json, \
     loots_and_chests_data_post_to_sever, loots_and_chests_statistics_to_json
-from function.core.Win_api import close_software_by_title, get_path_and_title, close_all_software
 
 
 class ThreadTodo(QThread):
@@ -1025,16 +1025,18 @@ class ThreadTodo(QThread):
             #   1:{"loots":["物品"...],"chests":["物品"...]} //数据 可能不存在 None
             #   2:{"loots":["物品"...],"chests":["物品"...]} //数据 可能不存在 None或不组队
             #   }
-            update_dag_success = False
+            update_dag_success_at_least_once = False
 
-            for player_index, player_data in result_drop_by_list.items():
+            for p_id, player_data in result_drop_by_list.items():
 
-                title = f"[{player_index}P] [战利品识别]"
+                title = f"[{p_id}P] [战利品识别]"
+
                 # 两种战利品的数据
                 loots_list = player_data["loots"]  # list[str,...]
                 chests_list = player_data["chests"]  # list[str,...]
+
                 # 默认表示识别异常
-                result_drop_by_dict[player_index] = {"loots": None, "chests": None}
+                result_drop_by_dict[p_id] = {"loots": None, "chests": None}
 
                 def check_data_validity(data):
                     """确定同一个物品名总是相邻出现"""
@@ -1064,6 +1066,9 @@ class ThreadTodo(QThread):
                     continue
 
                 def drop_list_to_dict(drop_list):
+                    """
+                    将列表转换为计数字典, 按照物品首次出现顺序,
+                    """
                     drop_dict = defaultdict(int)
                     for item in drop_list:
                         drop_dict[item] += 1
@@ -1072,14 +1077,14 @@ class ThreadTodo(QThread):
                 loots_dict = drop_list_to_dict(loots_list)
                 chests_dict = drop_list_to_dict(chests_list)
 
-                # 仅使用战利品更新item_dag_graph文件 且不包含 识别失败
+                # 使用战利品计数list, 更新item_dag_graph文件, 不包含识别失败
                 best_match_items_success = [
                     item for item in copy.deepcopy(list(loots_dict.keys())) if item != "识别失败"]
 
                 # 更新 item_dag_graph 文件
                 update_dag_result = update_dag_graph(item_list_new=best_match_items_success)
                 # 更新成功, 记录两个号中是否有至少一个号更新成功
-                update_dag_success = update_dag_result or update_dag_success
+                update_dag_success_at_least_once = update_dag_success_at_least_once or update_dag_result
 
                 if not update_dag_result:
                     text = f"{title} [有向无环图] [更新] 失败! 本次数据无法构筑 DAG，存在环. 可能是截图卡住了. 放弃记录和上传"
@@ -1090,18 +1095,18 @@ class ThreadTodo(QThread):
 
                 CUS_LOGGER.info(f"{title} [有向无环图] [更新] 成功! 成功构筑 DAG.")
 
-                result_drop_by_dict[player_index] = {"loots": loots_dict, "chests": chests_dict}
+                result_drop_by_dict[p_id] = {"loots": loots_dict, "chests": chests_dict}
 
                 # 保存详细数据到json
                 loots_and_chests_statistics_to_json(
-                    faa=self.faa_dict[player_index],
+                    faa=self.faa_dict[p_id],
                     loots_dict=loots_dict,
                     chests_dict=chests_dict)
                 CUS_LOGGER.info(f"{title} [保存日志] 成功保存一条详细数据!")
 
                 # 保存汇总统计数据到json
                 detail_data = loots_and_chests_detail_to_json(
-                    faa=self.faa_dict[player_index],
+                    faa=self.faa_dict[p_id],
                     loots_dict=loots_dict,
                     chests_dict=chests_dict)
                 CUS_LOGGER.info(f"{title} [保存日志] 成功保存至统计数据!")
@@ -1115,7 +1120,7 @@ class ThreadTodo(QThread):
                 else:
                     CUS_LOGGER.warning(f"{title} [发送服务器] 超时! 可能是米苏物流服务器炸了...")
 
-            if not update_dag_success:
+            if not update_dag_success_at_least_once:
                 text = f"[战利品识别] [有向无环图] item_ranking_dag_graph.json 更新失败! 本次战斗未获得任何有效数据!"
                 CUS_LOGGER.warning(text)
 
@@ -1730,8 +1735,8 @@ class ThreadTodo(QThread):
         # 获取任务
         SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 获取任务列表...")
         quest_list_1 = self.faa_dict[1].match_quests(mode=quest_mode, qg_cs=stage)
-        quest_list_2=self.faa_dict[2].match_quests(mode=quest_mode, qg_cs=stage)
-        quest_list=quest_list_1+[i for i in quest_list_2  if i not in quest_list_1]
+        quest_list_2 = self.faa_dict[2].match_quests(mode=quest_mode, qg_cs=stage)
+        quest_list = quest_list_1 + [i for i in quest_list_2 if i not in quest_list_1]
 
         for i in quest_list:
             text_parts = [f"副本:{i["stage_id"]}"]
@@ -2626,19 +2631,19 @@ class ThreadTodo(QThread):
 
         # 全部完成了发个信号
         SIGNAL.END.emit()
+
     def close_login(self):
         for faa in self.faa_dict.values():
             close_software_by_title(faa.channel)
-            sleep(1)#等待完成关闭
-        _,title=get_path_and_title()
-        if len(title)==1 and title[0]=="360游戏大厅":
+            sleep(1)  # 等待完成关闭
+        _, title = get_path_and_title()
+        if len(title) == 1 and title[0] == "360游戏大厅":
             close_software_by_title("360游戏大厅")
-            #说明没有乱七八糟的多开，后台主进程也可以直接杀了
-            sleep(2)#等待打开的360后台
+            # 说明没有乱七八糟的多开，后台主进程也可以直接杀了
+            sleep(2)  # 等待打开的360后台
             close_all_software("360Game.exe")
-        if len(title)==0:
+        if len(title) == 0:
             close_all_software("360Game.exe")
-
 
     def run_2(self):
         """多线程作战时的第二线程, 负责2P"""
