@@ -1039,17 +1039,31 @@ class ThreadTodo(QThread):
                 result_drop_by_dict[p_id] = {"loots": None, "chests": None}
 
                 def check_data_validity(data):
-                    """确定同一个物品名总是相邻出现"""
+                    """确定同一个物品名总是相邻出现, 但香料和四叶草无视改规则"""
+
                     # 创建一个字典来记录每个值最后出现的位置
                     last_seen = {}
 
-                    for index, value in enumerate(data):
-                        if value in last_seen:
-                            # 如果当前值之前已经出现过，检查中间是否有其他值
-                            if index - last_seen[value] > 1:
+                    # 白名单, 不参与连续出现校验
+                    # 识别失败也应当连续出现(三岛道具和其他临时道具优先级总最高, 会扎堆)
+                    white_list = [
+                        '5级四叶草', '4级四叶草', '3级四叶草', '2级四叶草', '1级四叶草',
+                        '天使香料', '精灵香料', '魔幻香料', '皇室香料', '极品香料', '秘制香料', '上等香料','天然香料'
+                    ]
+
+                    for index, item_name in enumerate(data):
+
+                        # 如果物品在白名单, 不记录
+                        if item_name in white_list:
+                            continue
+
+                        # 如果当前物品之前已经出现过, 且间隔 > 1 视为无效数据
+                        if item_name in last_seen:
+                            if index - last_seen[item_name] > 1:
                                 return False
-                        # 更新当前值的最后出现位置
-                        last_seen[value] = index
+
+                        # 更新当前物品的最后出现位置
+                        last_seen[item_name] = index
 
                     return True
 
@@ -1083,6 +1097,7 @@ class ThreadTodo(QThread):
 
                 # 更新 item_dag_graph 文件
                 update_dag_result = update_dag_graph(item_list_new=best_match_items_success)
+
                 # 更新成功, 记录两个号中是否有至少一个号更新成功
                 update_dag_success_at_least_once = update_dag_success_at_least_once or update_dag_result
 
@@ -1090,10 +1105,10 @@ class ThreadTodo(QThread):
                     text = f"{title} [有向无环图] [更新] 失败! 本次数据无法构筑 DAG，存在环. 可能是截图卡住了. 放弃记录和上传"
                     CUS_LOGGER.warning(text)
                     continue
+                else:
+                    CUS_LOGGER.info(f"{title} [有向无环图] [更新] 成功! 成功构筑 DAG.")
 
                 """至此所有校验通过!"""
-
-                CUS_LOGGER.info(f"{title} [有向无环图] [更新] 成功! 成功构筑 DAG.")
 
                 result_drop_by_dict[p_id] = {"loots": loots_dict, "chests": chests_dict}
 
