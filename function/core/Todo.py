@@ -890,7 +890,6 @@ class ThreadTodo(QThread):
                 name="{}P Thread - 进入游戏".format(player_a),
                 kwargs={}
             )
-
             if is_group:
                 self.thread_2p = ThreadWithException(
                     target=self.faa_dict[player_b].obj_battle_preparation.accelerate,
@@ -899,9 +898,11 @@ class ThreadTodo(QThread):
                 )
 
             self.thread_1p.daemon = True
-            self.thread_2p.daemon = True
             self.thread_1p.start()
-            self.thread_2p.start()
+            if is_group:
+                self.thread_2p.daemon = True
+                self.thread_2p.start()
+
             # 阻塞进程让进程执行完再继续本循环函数
             self.thread_1p.join()
             if is_group:
