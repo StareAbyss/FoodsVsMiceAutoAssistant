@@ -77,7 +77,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.widget_extra_settings()
 
         # 绑定
-        self.set_connect_for_lock_battle_plan_settings()
+        self.set_connect_for_lock_widget()
 
         # 从json文件中读取opt 并刷新ui
         self.opt = None
@@ -489,7 +489,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.Battle_senior_checkedbox.setChecked(my_opt["auto_senior_settings"])
             self.Battle_senior_gpu.setChecked(my_opt["gpu_settings"])
             self.Advance_battle_interval_Value.setValue(my_opt["interval"])
-            self.Battle_senior_checkedbox.stateChanged.connect(self.on_checkbox_state_changed)
             self.all_senior_log.setEnabled(my_opt["auto_senior_settings"])
             self.Battle_senior_gpu.setEnabled(my_opt["auto_senior_settings"])
             self.indeed_need.setEnabled(my_opt["auto_senior_settings"])
@@ -971,6 +970,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["2p"]["password"] = self.Level2_2P_Password.text()
 
         base_settings()
+        accelerate_settings()
         timer_settings()
         advanced_settings()
         senior_settings()
@@ -987,54 +987,127 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.cant_find_battle_plan_in_uuid_show_dialog()
 
     # 勾选 全局方案 -> 锁定其他几项设置
-    def set_connect_for_lock_battle_plan_settings(self) -> None:
+    def set_connect_for_lock_widget(self) -> None:
+        """
+        是否激活一个元素, 如果激活, 再允许编辑对应的下级元素
+        完成大量这样的操作
+        """
 
-        def toggle_widgets(state, widgets):
+        def toggle_widgets_on_unchecked(state, widgets):
+            """
+            如果按钮未勾选（state 为 0），则启用其他元素，使其可被更改；
+            否则，禁用其他元素，使其不可被更改。
+            """
             for widget in widgets:
                 widget.setEnabled(state == 0)
 
+        def toggle_widgets_on_checked(state, widgets):
+            """
+            如果按钮勾选（state 为 1 or 2），则启用其他元素，使其可被更改；
+            否则，禁用其他元素，使其不可被更改。
+            """
+            for widget in widgets:
+                widget.setEnabled(state != 0)
+
         self.Warrior_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.Warrior_Deck, self.Warrior_1P, self.Warrior_2P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.Warrior_Deck, self.Warrior_1P, self.Warrior_2P]))
 
         self.NormalBattle_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.NormalBattle_Deck, self.NormalBattle_1P, self.NormalBattle_2P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.NormalBattle_Deck, self.NormalBattle_1P, self.NormalBattle_2P]))
 
         self.OfferReward_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.OfferReward_Deck, self.OfferReward_1P, self.OfferReward_2P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.OfferReward_Deck, self.OfferReward_1P, self.OfferReward_2P]))
 
         self.CrossServer_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.CrossServer_Deck, self.CrossServer_1P, self.CrossServer_2P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.CrossServer_Deck, self.CrossServer_1P, self.CrossServer_2P]))
 
         # 公会任务 火山遗迹
 
         self.QuestGuild_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.QuestGuild_Deck, self.QuestGuild_1P, self.QuestGuild_2P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.QuestGuild_Deck, self.QuestGuild_1P, self.QuestGuild_2P]))
 
         self.Relic_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.Relic_Deck, self.Relic_1P, self.Relic_2P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.Relic_Deck, self.Relic_1P, self.Relic_2P]))
 
         # 魔塔 萌宠神殿
         self.MagicTowerAlone1_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.MagicTowerAlone1_Deck, self.MagicTowerAlone1_1P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.MagicTowerAlone1_Deck, self.MagicTowerAlone1_1P]))
 
         self.MagicTowerAlone2_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.MagicTowerAlone2_Deck, self.MagicTowerAlone2_1P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.MagicTowerAlone2_Deck, self.MagicTowerAlone2_1P]))
 
         self.MagicTowerPrison1_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.MagicTowerPrison1_Deck, self.MagicTowerPrison1_1P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.MagicTowerPrison1_Deck, self.MagicTowerPrison1_1P]))
 
         self.MagicTowerPrison2_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.MagicTowerPrison2_Deck, self.MagicTowerPrison2_1P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.MagicTowerPrison2_Deck, self.MagicTowerPrison2_1P]))
 
         self.PetTemple1_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.PetTemple1_Deck, self.PetTemple1_1P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.PetTemple1_Deck, self.PetTemple1_1P]))
 
         self.PetTemple2_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.PetTemple2_Deck, self.PetTemple2_1P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.PetTemple2_Deck, self.PetTemple2_1P]))
 
         self.MagicTowerDouble_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(
+            lambda state: toggle_widgets_on_unchecked(
                 state, [self.MagicTowerDouble_Deck, self.MagicTowerDouble_1P, self.MagicTowerDouble_2P]))
+
+        # 战斗设定 - 常规
+        self.CusCPS_Active.stateChanged.connect(
+            lambda state: toggle_widgets_on_checked(
+                state, [self.CusCPS_Value])
+        )
+        self.CusLowestFPS_Active.stateChanged.connect(
+            lambda state: toggle_widgets_on_checked(
+                state, [self.CusLowestFPS_Value])
+        )
+        self.CusAutoCarryCard_Active.stateChanged.connect(
+            lambda state: toggle_widgets_on_checked(
+                state, [self.CusAutoCarryCard_Value])
+        )
+        self.MaxBattleTime_Active.stateChanged.connect(
+            lambda state: toggle_widgets_on_checked(
+                state, [self.MaxBattleTime_Value])
+        )
+
+        # 战斗设定 - 加速
+        self.AccelerateActive.stateChanged.connect(
+            lambda state: toggle_widgets_on_checked(
+                state,
+                [
+                    self.AccelerateValue,
+                    self.AccelerateStartUpActive,
+                    self.AccelerateSettlementActive,
+                    self.AccelerateCustomizeActive,
+                    self.AccelerateCustomizeValue
+                ]
+            )
+        )
+
+        # 战斗设定 - 高级
+        self.Battle_senior_checkedbox.stateChanged.connect(
+            lambda state: toggle_widgets_on_checked(
+                state,
+                [
+                    self.all_senior_log,
+                    self.indeed_need,
+                    self.Battle_senior_gpu,
+                    self.Advance_battle_interval_Value
+                ]
+            )
+        )
 
     """按钮动作"""
 
@@ -1092,16 +1165,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.CurrentPlan.setCurrentIndex(len(self.opt["todo_plans"]) - 1)
         else:
             QMessageBox.information(self, "提示", "方案未创建。")
-
-    def on_checkbox_state_changed(self, state):
-        if state == 2:  # Qt.Checked
-            self.all_senior_log.setEnabled(True)
-            self.indeed_need.setEnabled(True)
-            self.Battle_senior_gpu.setEnabled(True)
-        else:
-            self.all_senior_log.setEnabled(False)
-            self.indeed_need.setEnabled(False)
-            self.Battle_senior_gpu.setEnabled(False)
 
     """其他"""
 
