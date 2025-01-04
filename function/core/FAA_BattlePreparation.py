@@ -164,7 +164,7 @@ class BattlePreparation:
                     scan_card_position_list.append(match_img_result_dict[card_precise_name]["position"])
                     card_name_without_id = card_precise_name.split("-")[0]
                     # 将所有名称相同(不含转职的 -X)的卡片都设置为 未找到
-                    for i in [0,1,2,3]:
+                    for i in [0, 1, 2, 3]:
                         card_be_used = match_img_result_dict.get(f"{card_name_without_id}-{i}")
                         if card_be_used:
                             card_be_used["found"] = False
@@ -812,7 +812,7 @@ class BattlePreparation:
                 image=img,
                 mode='loots',
                 test_print=True)
-            print_info(text="[捕获战利品] 处在战利品UI 战利品已 捕获/识别/保存".format(drop_list))
+            print_info(text="[捕获战利品] 处在战利品UI 战利品已 捕获/识别".format(drop_list))
 
             return drop_list
 
@@ -925,7 +925,7 @@ class BattlePreparation:
         # 翻宝箱部分, 会先检测是否在对应界面 如果不在则会进行加速
         chests_list = self.capture_and_match_treasure_chests()
 
-        # 重整化 loots_dict 和 chests_dict 一定是dict()
+        # 重整化 loots_list 和 chests_list 为识别到的物品的有序排列
         result_loot = {"loots": loots_list, "chests": chests_list}
 
         if screen_check_server_boom():
