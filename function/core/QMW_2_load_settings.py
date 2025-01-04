@@ -434,11 +434,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.CusAutoCarryCard_Active.setChecked(my_opt["cus_auto_carry_card_active"])
             self.CusAutoCarryCard_Value.setCurrentIndex(my_opt["cus_auto_carry_card_value"] - 1)
 
-            # 加速游戏
-            self.Accelerate_Active.setChecked(my_opt["accelerate_active"])
-            self.Accelerate_Value.setValue(my_opt["accelerate_value"])
-            EXTRA.ACCELERATE_TIME = my_opt["accelerate_value"] if my_opt["accelerate_active"] else 0
-
             # 单局最大战斗时间
             self.MaxBattleTime_Active.setChecked(my_opt["max_battle_time_active"])
             self.MaxBattleTime_Value.setValue(my_opt["max_battle_time_value"])
@@ -454,6 +449,40 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
             # link 加载的时候不做校验
             self.MisuLogistics_Link.setText(my_opt["misu_logistics_link"])
+
+        def accelerate_settings() -> None:
+            """
+            加速功能设定
+            """
+
+            my_opt = self.opt["accelerate"]
+
+            self.AccelerateActive.setChecked(my_opt["active"])
+            self.AccelerateValue.setValue(my_opt["value"])
+            self.AccelerateStartUpActive.setChecked(my_opt["start_up_active"])
+            self.AccelerateSettlementActive.setChecked(my_opt["settlement_active"])
+            self.AccelerateCustomizeActive.setChecked(my_opt["customize_active"])
+            self.AccelerateCustomizeValue.setValue(my_opt["customize_value"])
+
+            def set_accelerate_value(active, value, customize_active=False, customize_value=0):
+                if active:
+                    return customize_value if customize_active else value
+                return 0
+
+            if my_opt["active"]:
+                EXTRA.ACCELERATE_START_UP_VALUE = set_accelerate_value(
+                    active=my_opt["start_up_active"],
+                    value=my_opt["value"],
+                    customize_active=my_opt["customize_active"],
+                    customize_value=my_opt["customize_value"]
+                )
+                EXTRA.ACCELERATE_SETTLEMENT_VALUE = set_accelerate_value(
+                    active=my_opt["settlement_active"],
+                    value=my_opt["value"]
+                )
+            else:
+                EXTRA.ACCELERATE_START_UP_VALUE = 0
+                EXTRA.ACCELERATE_SETTLEMENT_VALUE = 0
 
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
@@ -473,6 +502,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt = self.opt["log_settings"]
             self.senior_log_clean.setValue(my_opt["log_senior_settings"])
             self.other_log_clean.setValue(my_opt["log_other_settings"])
+
         def login_settings() -> None:
             my_opt = self.opt["login_settings"]
             self.login_first.setValue(my_opt["first_num"])
@@ -550,6 +580,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         login_settings()
         level_2()
         skin_set()
+        accelerate_settings()
 
         self.CurrentPlan.clear()
         self.CurrentPlan.addItems(todo_plan_name_list)
@@ -805,11 +836,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["cus_auto_carry_card_active"] = self.CusAutoCarryCard_Active.isChecked()
             my_opt["cus_auto_carry_card_value"] = self.CusAutoCarryCard_Value.currentIndex() + 1
 
-            # 加速游戏
-            my_opt["accelerate_active"] = self.Accelerate_Active.isChecked()
-            my_opt["accelerate_value"] = self.Accelerate_Value.value()
-            EXTRA.ACCELERATE_TIME = my_opt["accelerate_value"] if my_opt["accelerate_active"] else 0
-
             # 单局最大战斗时间
             my_opt["max_battle_time_active"] = self.MaxBattleTime_Active.isChecked()
             my_opt["max_battle_time_value"] = self.MaxBattleTime_Value.value()
@@ -857,6 +883,43 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["senior_log_state"] = 1 if self.all_senior_log.isChecked() else 0
             my_opt["gpu_settings"] = self.Battle_senior_gpu.isChecked()
             my_opt["interval"] = self.Advance_battle_interval_Value.value()
+
+        def accelerate_settings() -> None:
+            """
+            加速功能设定
+            """
+
+            my_opt = self.opt["accelerate"]
+
+            my_opt["active"] = self.AccelerateActive.isChecked()
+            my_opt["value"] = self.AccelerateValue.value()
+            my_opt["start_up_active"] = self.AccelerateStartUpActive.isChecked()
+            my_opt["settlement_active"] = self.AccelerateSettlementActive.isChecked()
+            my_opt["customize_active"] = self.AccelerateCustomizeActive.isChecked()
+            my_opt["customize_value"] = self.AccelerateCustomizeValue.value()
+
+            def set_accelerate_value(duration, active, value, customize_active=False, customize_value=0):
+                if active:
+                    speed = customize_value if customize_active else value
+                    return duration / (speed / 100)
+                return 0
+
+            if my_opt["active"]:
+                EXTRA.ACCELERATE_START_UP_VALUE = set_accelerate_value(
+                    duration=1,
+                    active=my_opt["start_up_active"],
+                    value=my_opt["value"],
+                    customize_active=my_opt["customize_active"],
+                    customize_value=my_opt["customize_value"]
+                )
+                EXTRA.ACCELERATE_SETTLEMENT_VALUE = set_accelerate_value(
+                    duration=12,
+                    active=my_opt["settlement_active"],
+                    value=my_opt["value"]
+                )
+            else:
+                EXTRA.ACCELERATE_START_UP_VALUE = 0
+                EXTRA.ACCELERATE_SETTLEMENT_VALUE = 0
 
         def skin_settings() -> None:
             # 定义一个字典，将复选框对象映射到对应的值
