@@ -699,10 +699,10 @@ class BattlePreparation:
     def accelerate(self):
         """加速游戏!!!"""
         # duration is ms
-        duration = EXTRA.ACCELERATE_TIME
+        duration = EXTRA.ACCELERATE_START_UP_VALUE
         if duration > 0:
             self.faa.click_accelerate_btn()
-            time.sleep(duration/1000)
+            time.sleep(duration / 1000)
             self.faa.click_accelerate_btn()
 
         return 0  # 0-一切顺利
@@ -832,21 +832,32 @@ class BattlePreparation:
         print_info = self.faa.print_info
         print_warning = self.faa.print_warning
 
+        if EXTRA.ACCELERATE_SETTLEMENT_VALUE:
+            print_info(text="[翻宝箱UI] 开始加速...")
+            self.faa.click_accelerate_btn()
+
+        # 休息一会再识图 如果有加速, 少休息一会
+        time.sleep(7 / (EXTRA.ACCELERATE_SETTLEMENT_VALUE if EXTRA.ACCELERATE_SETTLEMENT_VALUE != 0 else 1))
+
         find = loop_match_p_in_w(
             source_handle=handle,
             source_root_handle=handle_360,
             source_range=[400, 35, 550, 75],
             template=RESOURCE_P["common"]["战斗"]["战斗后_4_翻宝箱.png"],
+            match_interval=0.1,
             match_failed_check=15,
-            after_sleep=2,
+            after_sleep=1,
             click=False
         )
         if not find:
-
-            print_warning(text="[翻宝箱UI] 15s未能捕获正确标志, 出问题了!")
+            print_warning(text="[翻宝箱UI] 10s未能捕获正确标志, 出问题了!")
             return []
 
         print_info(text="[翻宝箱UI] 捕获到正确标志, 翻牌并退出...")
+
+        if EXTRA.ACCELERATE_SETTLEMENT_VALUE:
+            print_info(text="[翻宝箱UI] 停止加速...")
+            self.faa.click_accelerate_btn()
 
         # 翻牌 1+2 bug法
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=550, y=265)
@@ -911,7 +922,7 @@ class BattlePreparation:
         # 战利品部分, 会先检测是否在对应界面
         loots_list = self.capture_and_match_loots()
 
-        # 翻宝箱部分, 会先检测是否在对应界面
+        # 翻宝箱部分, 会先检测是否在对应界面 如果不在则会进行加速
         chests_list = self.capture_and_match_treasure_chests()
 
         # 重整化 loots_dict 和 chests_dict 一定是dict()

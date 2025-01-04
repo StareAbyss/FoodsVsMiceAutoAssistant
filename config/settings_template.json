@@ -1190,12 +1190,18 @@
         "cus_lowest_fps_value": 10,
         "cus_auto_carry_card_active": false,
         "cus_auto_carry_card_value": 6,
-        "accelerate_active": false,
-        "accelerate_value": 500,
         "max_battle_time_active": false,
         "max_battle_time_value": 30,
         "guild_manager_active": 0,
         "misu_logistics_link": ""
+    },
+    "accelerate":{
+        "active": false,
+        "value": 200,
+        "start_up_active": true,
+        "settlement_active": true,
+        "customize_active": false,
+        "customize_value": 200
     },
     "get_warm_gift": {
         "1p": {
