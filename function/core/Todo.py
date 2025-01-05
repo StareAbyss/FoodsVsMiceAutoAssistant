@@ -14,7 +14,7 @@ from function.common.bg_img_match import loop_match_p_in_w
 from function.common.thread_with_exception import ThreadWithException
 from function.core.FAA_extra_readimage import read_and_get_return_information, kill_process
 from function.core.Win_api import close_software_by_title, get_path_and_title, close_all_software
-from function.core.analyzer_of_loot_logs import update_dag_graph, find_longest_path_from_dag
+from function.core.analyzer_of_loot_logs import update_dag_graph, find_longest_path_from_dag, ranking_read_data
 from function.core_battle.CardManager import CardManager
 from function.globals import EXTRA, SIGNAL
 from function.globals.g_resources import RESOURCE_P
@@ -1048,7 +1048,7 @@ class ThreadTodo(QThread):
                     # 识别失败也应当连续出现(三岛道具和其他临时道具优先级总最高, 会扎堆)
                     white_list = [
                         '5级四叶草', '4级四叶草', '3级四叶草', '2级四叶草', '1级四叶草',
-                        '天使香料', '精灵香料', '魔幻香料', '皇室香料', '极品香料', '秘制香料', '上等香料','天然香料'
+                        '天使香料', '精灵香料', '魔幻香料', '皇室香料', '极品香料', '秘制香料', '上等香料', '天然香料'
                     ]
 
                     for index, item_name in enumerate(data):
@@ -1552,8 +1552,6 @@ class ThreadTodo(QThread):
         count_match_success_dict = {"loots": [], "chests": []}
 
         # 计数正确场次
-
-        # 复制key
         for _, a_battle_data in enumerate(result_list):
             for drop_type in ["loots", "chests"]:
 
@@ -1569,6 +1567,37 @@ class ThreadTodo(QThread):
                         count_dict[drop_type][key] += value
                     else:
                         count_dict[drop_type][key] = value
+
+        # 根据有向无环图的ranking_list 重新排序key
+
+        def ranking_reorder_dict(count_dict, ranking_list):
+            """
+            根据 ranking_list 对 count_dict 中的元素进行重新排序。
+
+            :param count_dict: 需要重新排序的字典
+            :param ranking_list: 排序依据的列表
+            :return: 重新排序后的字典
+            """
+            # 创建一个字典来存储排序后的结果
+            sorted_dict = {}
+
+            # 遍历 ranking_list 中的元素
+            for key in ranking_list:
+                if key in count_dict:
+                    sorted_dict[key] = count_dict[key]
+
+            # 将 count_dict 中不在 ranking_list 中的元素添加到排序后的字典中
+            for key in count_dict:
+                if key not in sorted_dict:
+                    sorted_dict[key] = count_dict[key]
+
+            return sorted_dict
+
+        json_path = PATHS["logs"] + "\\item_ranking_dag_graph.json"
+        ranking_list = ranking_read_data(json_path=json_path)["ranking"]
+        for drop_type in ["loots", "chests"]:
+            count_dict[drop_type] = ranking_reorder_dict(
+                count_dict=count_dict[drop_type], ranking_list=ranking_list)
 
         # 生成图片
         text = "[{}P] 战利品合计掉落, 识别有效场次:{}".format(player_id, sum(count_match_success_dict["loots"]))
