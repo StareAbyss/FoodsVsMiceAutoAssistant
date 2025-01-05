@@ -140,8 +140,9 @@ class Battle:
             template=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
 
         if not find:
-            self.faa.print_info(text="找到了 [继续作战] 图标")
             return False
+
+        self.faa.print_info(text="找到了 [继续作战] 图标")
 
         while find:
             if self.faa.need_key:
