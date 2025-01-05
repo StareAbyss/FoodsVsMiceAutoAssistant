@@ -836,6 +836,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["cus_lowest_fps_value"] = self.CusLowestFPSValueInput.value()
             EXTRA.LOWEST_FPS = my_opt["cus_lowest_fps_value"] if my_opt["cus_lowest_fps_active"] else 10
 
+            # 自定放满禁用时间 毫秒转为秒
+            my_opt["cus_full_ban_active"] = self.CusFullBanTimeActive.isChecked()
+            my_opt["cus_full_ban_value"] = self.CusFullBanTimeValueInput.value()
+            EXTRA.FULL_BAN_TIME = my_opt["cus_full_ban_value"]/1000 if my_opt["cus_full_ban_active"] else 5
+
             # 自动带卡
             my_opt["cus_auto_carry_card_active"] = self.CusAutoCarryCardActive.isChecked()
             my_opt["cus_auto_carry_card_value"] = self.CusAutoCarryCardValueInput.currentIndex() + 1
@@ -1079,9 +1084,15 @@ class QMainWindowLoadSettings(QMainWindowLog):
             lambda state: toggle_widgets_on_checked(
                 state, [self.CusLowestFPSValueInput])
         )
-        self.CusAutoCarryCard_Active.stateChanged.connect(
+
+        self.CusFullBanTimeActive.stateChanged.connect(
             lambda state: toggle_widgets_on_checked(
-                state, [self.CusAutoCarryCard_Value])
+                state, [self.CusFullBanTimeValueInput])
+        )
+
+        self.CusAutoCarryCardActive.stateChanged.connect(
+            lambda state: toggle_widgets_on_checked(
+                state, [self.CusAutoCarryCardValueInput])
         )
         self.MaxBattleTime_Active.stateChanged.connect(
             lambda state: toggle_widgets_on_checked(
