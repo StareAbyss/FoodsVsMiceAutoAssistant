@@ -421,18 +421,18 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.AutoPickUp_2P.setChecked(my_opt["auto_pickup_2p"])
 
             # 点击频率
-            self.CusCPS_Active.setChecked(my_opt["cus_cps_active"])
-            self.CusCPS_Value.setValue(my_opt["cus_cps_value"])
+            self.CusCPSActive.setChecked(my_opt["cus_cps_active"])
+            self.CusCPSValueInput.setValue(my_opt["cus_cps_value"])
             EXTRA.CLICK_PER_SECOND = my_opt["cus_cps_value"] if my_opt["cus_cps_active"] else 120
 
             # 最低FPS
-            self.CusLowestFPS_Active.setChecked(my_opt["cus_lowest_fps_active"])
-            self.CusLowestFPS_Value.setValue(my_opt["cus_lowest_fps_value"])
+            self.CusLowestFPSActive.setChecked(my_opt["cus_lowest_fps_active"])
+            self.CusLowestFPSValueInput.setValue(my_opt["cus_lowest_fps_value"])
             EXTRA.LOWEST_FPS = my_opt["cus_lowest_fps_value"] if my_opt["cus_lowest_fps_active"] else 10
 
             # 自动带卡
-            self.CusAutoCarryCard_Active.setChecked(my_opt["cus_auto_carry_card_active"])
-            self.CusAutoCarryCard_Value.setCurrentIndex(my_opt["cus_auto_carry_card_value"] - 1)
+            self.CusAutoCarryCardActive.setChecked(my_opt["cus_auto_carry_card_active"])
+            self.CusAutoCarryCardValueInput.setCurrentIndex(my_opt["cus_auto_carry_card_value"] - 1)
 
             # 单局最大战斗时间
             self.MaxBattleTime_Active.setChecked(my_opt["max_battle_time_active"])
@@ -486,16 +486,16 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
-            self.Battle_senior_checkedbox.setChecked(my_opt["auto_senior_settings"])
-            self.Battle_senior_gpu.setChecked(my_opt["gpu_settings"])
-            self.Advance_battle_interval_Value.setValue(my_opt["interval"])
-            self.all_senior_log.setEnabled(my_opt["auto_senior_settings"])
-            self.Battle_senior_gpu.setEnabled(my_opt["auto_senior_settings"])
-            self.indeed_need.setEnabled(my_opt["auto_senior_settings"])
+            self.BattleSeniorActive.setChecked(my_opt["auto_senior_settings"])
+            self.BattleSeniorGPUActive.setChecked(my_opt["gpu_settings"])
+            self.BattleSeniorIntervalValueInput.setValue(my_opt["interval"])
+            self.BattleSeniorGPUActive.setEnabled(my_opt["auto_senior_settings"])
+            self.BattleSeniorLogFull.setEnabled(my_opt["auto_senior_settings"])
+            self.BattleSeniorLogPart.setEnabled(my_opt["auto_senior_settings"])
             if my_opt["senior_log_state"]:
-                self.all_senior_log.setChecked(True)
+                self.BattleSeniorLogFull.setChecked(True)
             else:
-                self.indeed_need.setChecked(True)
+                self.BattleSeniorLogPart.setChecked(True)
 
         def log_settings() -> None:
             my_opt = self.opt["log_settings"]
@@ -822,18 +822,18 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["auto_pickup_2p"] = self.AutoPickUp_2P.isChecked()
 
             # 点击频率
-            my_opt["cus_cps_active"] = self.CusCPS_Active.isChecked()
-            my_opt["cus_cps_value"] = self.CusCPS_Value.value()
+            my_opt["cus_cps_active"] = self.CusCPSActive.isChecked()
+            my_opt["cus_cps_value"] = self.CusCPSValueInput.value()
             EXTRA.CLICK_PER_SECOND = my_opt["cus_cps_value"] if my_opt["cus_cps_active"] else 120
 
             # 最低FPS
-            my_opt["cus_lowest_fps_active"] = self.CusLowestFPS_Active.isChecked()
-            my_opt["cus_lowest_fps_value"] = self.CusLowestFPS_Value.value()
+            my_opt["cus_lowest_fps_active"] = self.CusLowestFPSActive.isChecked()
+            my_opt["cus_lowest_fps_value"] = self.CusLowestFPSValueInput.value()
             EXTRA.LOWEST_FPS = my_opt["cus_lowest_fps_value"] if my_opt["cus_lowest_fps_active"] else 10
 
             # 自动带卡
-            my_opt["cus_auto_carry_card_active"] = self.CusAutoCarryCard_Active.isChecked()
-            my_opt["cus_auto_carry_card_value"] = self.CusAutoCarryCard_Value.currentIndex() + 1
+            my_opt["cus_auto_carry_card_active"] = self.CusAutoCarryCardActive.isChecked()
+            my_opt["cus_auto_carry_card_value"] = self.CusAutoCarryCardValueInput.currentIndex() + 1
 
             # 单局最大战斗时间
             my_opt["max_battle_time_active"] = self.MaxBattleTime_Active.isChecked()
@@ -878,10 +878,10 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
-            my_opt["auto_senior_settings"] = self.Battle_senior_checkedbox.isChecked()
-            my_opt["senior_log_state"] = 1 if self.all_senior_log.isChecked() else 0
-            my_opt["gpu_settings"] = self.Battle_senior_gpu.isChecked()
-            my_opt["interval"] = self.Advance_battle_interval_Value.value()
+            my_opt["auto_senior_settings"] = self.BattleSeniorActive.isChecked()
+            my_opt["senior_log_state"] = 1 if self.BattleSeniorLogFull.isChecked() else 0
+            my_opt["gpu_settings"] = self.BattleSeniorGPUActive.isChecked()
+            my_opt["interval"] = self.BattleSeniorIntervalValueInput.value()
 
         def accelerate_settings() -> None:
             """
@@ -1065,13 +1065,14 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 state, [self.MagicTowerDouble_Deck, self.MagicTowerDouble_1P, self.MagicTowerDouble_2P]))
 
         # 战斗设定 - 常规
-        self.CusCPS_Active.stateChanged.connect(
+        self.CusCPSActive.stateChanged.connect(
             lambda state: toggle_widgets_on_checked(
-                state, [self.CusCPS_Value])
+                state, [self.CusCPSValueInput])
         )
-        self.CusLowestFPS_Active.stateChanged.connect(
+
+        self.CusLowestFPSActive.stateChanged.connect(
             lambda state: toggle_widgets_on_checked(
-                state, [self.CusLowestFPS_Value])
+                state, [self.CusLowestFPSValueInput])
         )
         self.CusAutoCarryCard_Active.stateChanged.connect(
             lambda state: toggle_widgets_on_checked(
@@ -1097,14 +1098,15 @@ class QMainWindowLoadSettings(QMainWindowLog):
         )
 
         # 战斗设定 - 高级
-        self.Battle_senior_checkedbox.stateChanged.connect(
+        self.BattleSeniorActive.stateChanged.connect(
             lambda state: toggle_widgets_on_checked(
                 state,
                 [
-                    self.all_senior_log,
-                    self.indeed_need,
-                    self.Battle_senior_gpu,
-                    self.Advance_battle_interval_Value
+                    self.BattleSeniorLogFull,
+                    self.BattleSeniorLogPart,
+                    self.BattleSeniorGPUActive,
+                    self.SeniorBattleIntervalLabel,
+                    self.BattleSeniorIntervalValueInput
                 ]
             )
         )

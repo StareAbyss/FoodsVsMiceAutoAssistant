@@ -25,6 +25,7 @@ from function.core.QMW_TipMisuLogistics import QMWTipMisuLogistics
 from function.core.QMW_TipStageID import QMWTipStageID
 from function.core.QMW_TipWarmGift import QMWTipWarmGift
 from function.core.Todo import ThreadTodo
+from function.core.Win_api import get_path_and_title, create_start_args, start_software_with_args
 from function.core.performance_analysis import run_analysis_in_thread
 from function.globals import EXTRA, SIGNAL
 from function.globals import g_resources
@@ -34,10 +35,9 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.TodoTimerManager import TodoTimerManager
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
+from function.scattered.get_channel_name import get_reverse_channel_name
 from function.scattered.get_stage_info_online import get_stage_info_online
 from function.scattered.test_route_connectivity import test_route_connectivity
-from function.scattered.get_channel_name import get_reverse_channel_name
-from function.core.Win_api import get_path_and_title,create_start_args,start_software_with_args
 
 
 class QMainWindowService(QMainWindowLoadSettings):
@@ -112,7 +112,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 额外窗口 - 高级战斗说明
         self.window_tip_battle_senior = QMWTipBattleSenior()
-        self.Battle_senior_Tip.clicked.connect(self.click_btn_tip_battle_senior)
+        self.BattleSeniorTipButton.clicked.connect(self.click_btn_tip_battle_senior)
 
         # 米苏物流 - tip窗口
         self.window_tip_misu_logistics = QMWTipMisuLogistics()
@@ -145,7 +145,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.game_window_is_hide = False
 
         # 重置卡片状态自学习记忆
-        self.Btn_ResetCardStatusMemory.clicked.connect(self.click_btn_reset_card_status_memory)
+        self.ResetCardStatusMemoryButton.clicked.connect(self.click_btn_reset_card_status_memory)
 
         # 一键获取路径与窗口名
         self.oneclick_getpath.clicked.connect(self.click_btn_set_path_and_title)
