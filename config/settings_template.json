@@ -1184,6 +1184,8 @@
         "cus_cps_value": 120,
         "cus_lowest_fps_active": false,
         "cus_lowest_fps_value": 10,
+        "cus_full_ban_active": false,
+        "cus_full_ban_value": 5000,
         "max_battle_time_active": false,
         "max_battle_time_value": 30,
         "cus_auto_carry_card_active": false,

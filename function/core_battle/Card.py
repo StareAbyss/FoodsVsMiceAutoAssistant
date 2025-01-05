@@ -332,11 +332,14 @@ class Card:
             self.fresh_status()  # 如果放卡后还可用,自ban 若干s
 
             if self.status_usable and (self.name not in self.ban_white_list):
+
                 # 放满了 如果不在白名单 就自ban
-                self.status_ban = 7
+                self.status_ban = EXTRA.FULL_BAN_TIME
+
                 # if self.player == 1:
                 #     CUS_LOGGER.debug(f"[1P] {self.name} 因使用后仍可用进行了自ban")
                 #     T_ACTION_QUEUE_TIMER.print_queue_statue()
+
                 return
 
             # 放置成功 如果是坤目标, 复制自身放卡的逻辑
