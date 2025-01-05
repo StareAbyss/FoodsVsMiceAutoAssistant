@@ -430,6 +430,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.CusLowestFPSValueInput.setValue(my_opt["cus_lowest_fps_value"])
             EXTRA.LOWEST_FPS = my_opt["cus_lowest_fps_value"] if my_opt["cus_lowest_fps_active"] else 10
 
+            # 自定放满禁用时间 毫秒转为秒
+            self.CusFullBanTimeActive.setChecked(my_opt["cus_full_ban_active"])
+            self.CusFullBanTimeValueInput.setValue(my_opt["cus_full_ban_value"])
+            EXTRA.FULL_BAN_TIME = my_opt["cus_full_ban_value"]/1000 if my_opt["cus_full_ban_active"] else 5
+
             # 自动带卡
             self.CusAutoCarryCardActive.setChecked(my_opt["cus_auto_carry_card_active"])
             self.CusAutoCarryCardValueInput.setCurrentIndex(my_opt["cus_auto_carry_card_value"] - 1)
