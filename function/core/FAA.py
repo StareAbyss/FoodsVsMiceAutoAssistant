@@ -1981,9 +1981,9 @@ class FAA:
                     loop_match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
-                        source_range=[678, 190, 720, 215],
+                        source_range=[680, 260, 720, 290],
                         template=RESOURCE_P["common"]["退出.png"],
-                        match_tolerance=0.99,
+                        match_tolerance=0.98,
                         match_interval=0.2,
                         match_failed_check=0,
                         after_sleep=0.1,
