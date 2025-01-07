@@ -14,3 +14,11 @@ https://stareabyss.top/FAA-WebSite/
 解锁日氪 - 秘 密 内 容~
 https://stareabyss.top/FAA-WebSite/guide/advanced/pay_to_win_star.html
 
+反馈问题 - 参考以下文档
+https://stareabyss.top/FAA-WebSite/guide/start/error.html#反馈-提问的步骤
+确定排除大多数基础错误后, 请遵循以下守则进行私下求助:
+1. 复制 logs 文件夹中的 running_log.log 文件!!! 
+2. 文本详细描述遭遇的问题. 直接甩图片 / 甩视频 将被忽略.
+3. 问号 / 嘲讽 / 怨气 / 理所当然的白嫖党毫无对他人劳动尊重 的不礼貌人士请滚远.
+
+
