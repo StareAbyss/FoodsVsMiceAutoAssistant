@@ -57,6 +57,10 @@ def match_template_with_optional_mask(source, template, mask=None, quick_method=
     """
     method = cv2.TM_SQDIFF_NORMED
 
+    # 确保源图像的长度和宽度均大于模板, 否则报错 输出源大小和目标大小
+    if source.shape[0] < template.shape[0] or source.shape[1] < template.shape[1]:
+        CUS_LOGGER.error(f"图像识别模块 - 源图像小于目标大小, 产生致命错误! 源图像大小: {source.shape} 目标大小: {template.shape}")
+
     # 确保source为三通道
     if source.shape[2] == 4:
         source = source[:, :, :3]
@@ -409,11 +413,12 @@ if __name__ == '__main__':
     def main():
         handle = faa_get_handle(channel="锑食", mode="browser")
         root_handle = faa_get_handle(channel="锑食", mode="360")
-        result = match_p_in_w(source_handle=handle,
-                              source_range=[0, 0, 2000, 2000],
-                              template=g_resources.RESOURCE_P["common"]["顶部菜单"]["大地图.png"],
-                              match_tolerance=0.87,
-                              source_root_handle=root_handle)
+        result = match_p_in_w(
+            source_handle=handle,
+            source_range=[0, 0, 2000, 2000],
+            template=g_resources.RESOURCE_P["common"]["顶部菜单"]["大地图.png"],
+            match_tolerance=0.87,
+            source_root_handle=root_handle)
 
         print(result)
         result = (1, 2)
