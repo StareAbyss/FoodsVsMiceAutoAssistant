@@ -117,7 +117,7 @@ class FAAActionInterfaceJump:
             find = loop_match_p_in_w(
                 source_handle=handle,
                 source_root_handle=handle_360,
-                source_range=[250, 0, 925, 110],
+                source_range=[250, 0, 880, 110],
                 template=RESOURCE_P["common"]["顶部菜单"]["{}.png".format(mode)],
                 match_failed_check=3,
                 after_sleep=1.5,
@@ -172,8 +172,9 @@ class FAAActionInterfaceJump:
             find = loop_match_p_in_w(
                 source_handle=handle,
                 source_root_handle=handle_360,
-                source_range=[520, 530, 950, 600],
+                source_range=[520, 570, 950, 600],
                 template=RESOURCE_P["common"]["底部菜单"]["{}.png".format(mode)],
+                match_tolerance=0.99,
                 match_failed_check=3,
                 after_sleep=1,
                 click=True)
