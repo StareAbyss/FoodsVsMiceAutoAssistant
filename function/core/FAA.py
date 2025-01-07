@@ -1139,6 +1139,7 @@ class FAA:
                 return False
 
         def main():
+
             while not self.should_stop:
 
                 # 点击刷新按钮 该按钮在360窗口上
@@ -1190,17 +1191,17 @@ class FAA:
                     source_root_handle=self.handle_360,
                     template_opts=[
                         {
-                            "source_range": [840, 525, 2000, 2000],
+                            "source_range": [850, 570, 2000, 2000],
                             "template": RESOURCE_P["common"]["底部菜单"]["跳转.png"],
-                            "match_tolerance": 0.98,
+                            "match_tolerance": 0.99,
                         }, {
-                            "source_range": [610, 525, 2000, 2000],
+                            "source_range": [615, 570, 2000, 2000],
                             "template": RESOURCE_P["common"]["底部菜单"]["任务.png"],
-                            "match_tolerance": 0.98,
+                            "match_tolerance": 0.99,
                         }, {
-                            "source_range": [890, 525, 2000, 2000],
+                            "source_range": [890, 570, 2000, 2000],
                             "template": RESOURCE_P["common"]["底部菜单"]["后退.png"],
-                            "match_tolerance": 0.98,
+                            "match_tolerance": 0.99,
                         }
                     ],
                     return_mode="and",
@@ -1977,11 +1978,24 @@ class FAA:
                     # 单一物品: 无脑点击点掉X 不再识图
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=450, y=190)
                     time.sleep(0.1)
-                    # 礼包物品: 在限定范围内 找红叉点掉
+
+                    # 礼包物品1: 在限定范围内 找红叉点掉 y=180-220
                     loop_match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
                         source_range=[680, 260, 720, 290],
+                        template=RESOURCE_P["common"]["退出.png"],
+                        match_tolerance=0.98,
+                        match_interval=0.2,
+                        match_failed_check=0,
+                        after_sleep=0.1,
+                        click=True)
+
+                    # 礼包物品2: 在限定范围内 找红叉点掉 y=260-290
+                    loop_match_p_in_w(
+                        source_handle=self.handle,
+                        source_root_handle=self.handle_360,
+                        source_range=[680, 180, 720, 220],
                         template=RESOURCE_P["common"]["退出.png"],
                         match_tolerance=0.98,
                         match_interval=0.2,
