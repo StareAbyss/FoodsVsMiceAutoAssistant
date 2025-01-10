@@ -2654,24 +2654,21 @@ class ThreadTodo(QThread):
             SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
 
         """全部完成"""
-        if self.opt["advanced_settings"]["end_exit_game"]:
-            SIGNAL.PRINT_TO_UI.emit(
-                text="事项全部完成, 刷新退出游戏, 降低系统负载.",
-                color_level=1)
-            self.batch_click_final_refresh_btn()
-        else:
-            SIGNAL.PRINT_TO_UI.emit(
-                text="推荐勾选高级设置-完成后刷新游戏, 防止长期运行flash导致卡顿",
-                color_level=1)
 
         if self.opt["login_settings"]["login_close_settings"]:
-            SIGNAL.PRINT_TO_UI.emit(
-                text="事项全部完成, 击杀登陆器后台, 降低系统负载.",
-                color_level=1)
+
+            SIGNAL.PRINT_TO_UI.emit(text="事项全部完成, 关闭360游戏大厅对应窗口, 降低系统负载.", color_level=1)
             self.close_360()
+
         else:
+
+            if self.opt["advanced_settings"]["end_exit_game"]:
+                SIGNAL.PRINT_TO_UI.emit(text="事项全部完成, 刷新返回登录界面, 降低系统负载.", color_level=1)
+                self.batch_click_final_refresh_btn()
+
+        if not (self.opt["login_settings"]["login_close_settings"] or self.opt["advanced_settings"]["end_exit_game"]):
             SIGNAL.PRINT_TO_UI.emit(
-                text="推荐勾选高级设置-完成所有事项后关闭登陆器",
+                text="[推荐] 进阶功能中, 可设置完成所有事项后, 关闭360游戏大厅对应窗口 or 返回登录页, 降低系统负载.",
                 color_level=1)
 
         # 全部完成了发个信号
