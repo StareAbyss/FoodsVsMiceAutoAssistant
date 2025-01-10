@@ -1,72 +1,51 @@
-# import requests
-#
-# # 定义仓库的所有者和名称
-# owner = 'example'
-# repo = 'project'
-#
-# # GitHub API URL
-# url = f'https://api.github.com/repos/StareAbyss/FoodsVsMiceAutoAssistant/releases/latest'
-#
-# # 发送 GET 请求
-# response = requests.get(url)
-#
-# # 检查请求是否成功
-# if response.status_code == 200:
-#     data = response.json()
-#     latest_release_tag = data['tag_name']
-#     print(f"The latest release tag is: {latest_release_tag}")
-# else:
-#     print(f"Failed to retrieve the latest release information. Status code: {response.status_code}")
 
-def compare_versions(version1, version2):
-    def compare_versions_main():
-        # 分解基本版本号
-        v1_parts = version1.lstrip('v').split('-')[0].split('.')
-        v2_parts = version2.lstrip('v').split('-')[0].split('.')
+def change_item_list_by_group(group_list, item_list):
+    """
+    根据给定的分组列表，重新排列物品列表
+    具体步骤如下：
+    1. 找到项目列表中属于分组列表的项目，并记录它们的位置。
+    2. 从项目列表中移除这些项目。
+    3. 按照分组列表的顺序将这些项目重新插入到项目列表中，插入位置为第一次找到的分组项目的位置。
+    :param group_list: 需要匹配的分组列表
+    :param item_list: 需要重新排列的项目列表
+    :return: 重新排列后的项目列表
+    """
+    group_item_found_dict = {item: False for item in group_list}
+    first_index = None
 
-        # 比较主版本号
-        if int(v1_parts[0]) > int(v2_parts[0]):
-            return version1
-        elif int(v1_parts[0]) < int(v2_parts[0]):
-            return version2
+    # 找到项目列表中属于分组列表的项目，并记录它们的位置
+    for index, item_name in enumerate(item_list):
+        if item_name in group_list:
+            group_item_found_dict[item_name] = True
+            if first_index is None:
+                first_index = index
 
-        # 比较次版本号
-        if int(v1_parts[1]) > int(v2_parts[1]):
-            return version1
-        elif int(v1_parts[1]) < int(v2_parts[1]):
-            return version2
+    # 从项目列表中移除这些项目
+    new_item_list = []
+    for item in item_list:
+        if not group_item_found_dict.get(item, False):
+            new_item_list.append(item)
 
-        # 比较修订版本号
-        if int(v1_parts[2]) > int(v2_parts[2]):
-            return version1
-        elif int(v1_parts[2]) < int(v2_parts[2]):
-            return version2
+    # 按照分组列表的逆序将这些项目重新插入到项目列表中
+    for item_name in reversed(group_list):
+        if group_item_found_dict[item_name]:
+            new_item_list.insert(first_index, item_name)
 
-        return None
-
-    if version1 == version2:
-        return f"您正在使用最新正式版本，真棒!"
-
-    return_value = compare_versions_main()
-    if return_value is None:
-        if "beta" in version1:
-            return f"您正在使用的beta测试版本已被提升为最新正式版本，请放心使用~"
-
-    if return_value == version1:
-        # 主要版本号本地领先
-        if "beta" in version1:
-            return f"您正在使用较新的beta测试版本，感谢测试, 欢迎反馈bug, 请关注群内公告及时更新测试版本!"
-        else:
-            return f"您正在抢先体验最新正式版本, 太棒了!"
-
-    if return_value == version2:
-        if "beta" in version1:
-            return f"您正在使用较老的beta测试版本，请务必尽快更新~ 相关BUG将不会受理! 很可能在新版中已修复!"
-        else:
-            return f"为最新正式版本的抢先体验, 太棒了!"
+    return new_item_list
 
 
-version1 = 'v1.4.0'
-version2 = 'v1.5.0-beta.3'
-print(f"您的版本号是:{version1},云端版本号是:{version2}")
-print(compare_versions(version1, version2))
+item_list_new = [
+    "物品A", "物品B",
+    "2级四叶草",  # 绑定的四叶草  和 对应的不绑定的香料(也被计数进此处)
+    "3级四叶草", "1级四叶草",  # 不绑定的四叶草,  且没有对应绑定物, 被单独在后计数
+    "秘制香料", "天然香料",  # 绑定的香料 和 对应的不绑定的香料(也被计数进此处)
+    "上等香料",  # 不绑定的香料, 且没有对应绑定物, 被单独在后计数
+    "物品C", "物品D"  # 其他正常物品
+]
+# 强制排序初始list中部分物品
+group_1 = ['5级四叶草', '4级四叶草', '3级四叶草', '2级四叶草', '1级四叶草']
+group_2 = ['天使香料', '精灵香料', '魔幻香料', '皇室香料', '极品香料', '秘制香料', '上等香料', '天然香料']
+
+item_list_new = change_item_list_by_group(group_list=group_1, item_list=item_list_new)
+item_list_new = change_item_list_by_group(group_list=group_2, item_list=item_list_new)
+print(item_list_new)
