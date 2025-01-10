@@ -115,6 +115,10 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.window_tip_battle_senior = QMWTipBattleSenior()
         self.BattleSeniorTipButton.clicked.connect(self.click_btn_tip_battle_senior)
 
+        # 额外窗口 - 登录选项说明
+        self.window_tip_login_settings = QMWTipLoginSettings()
+        self.LoginSettingsTipButton.clicked.connect(self.click_btn_tip_login_settings)
+
         # 米苏物流 - tip窗口
         self.window_tip_misu_logistics = QMWTipMisuLogistics()
         self.MisuLogisticsTipButton.clicked.connect(self.click_btn_tip_misu_logistics)
@@ -767,6 +771,12 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def click_btn_tip_battle_senior(self):
         window = self.window_tip_battle_senior
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
+
+    def click_btn_tip_login_settings(self):
+        window = self.window_tip_login_settings
         window.setFont(self.font)
         self.set_stylesheet(window)
         window.show()
