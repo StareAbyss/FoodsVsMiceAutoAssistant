@@ -416,17 +416,33 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 先读取界面上的方案
         # self.ui_to_opt()
-        #如果打开了启动登陆器选项则先启动登陆器
-        if self.opt["login_settings"]["login_open_settings"]:
-            if self.opt["login_settings"]["first_num"]!=0:#启动1p
-                args = create_start_args(self.opt["login_settings"]["first_num"])
-                start_software_with_args(self.opt["login_settings"]["login_path"], *args)
-            sleep(1)#保证打开顺序与预期一致
-            if self.opt["login_settings"]["second_num"]!=0:#启动2p
-                args = create_start_args(self.opt["login_settings"]["second_num"])
-                start_software_with_args(self.opt["login_settings"]["login_path"], *args)
-            sleep(5)#等待打开这两号
 
+        # 是否启动360
+        if self.opt["login_settings"]["login_open_settings"]:
+            SIGNAL.PRINT_TO_UI.emit("[控制游戏大厅] 检测到需要启动360, 开始执行...", color_level=1)
+
+            load_2p = self.opt["login_settings"]["first_num"] != self.opt["login_settings"]["second_num"]
+
+            self.thread_todo_1 = ThreadStart360(
+                game_id=1,
+                account_id=self.opt["login_settings"]["first_num"],
+                executable_path=self.opt["login_settings"]["login_path"],
+                wait_sleep_time=1
+            )
+            self.thread_todo_1.start()
+            self.thread_todo_1.wait()
+
+            if load_2p:
+                self.thread_todo_2 = ThreadStart360(
+                    game_id=1,
+                    account_id=self.opt["login_settings"]["second_num"],
+                    executable_path=self.opt["login_settings"]["login_path"],
+                    wait_sleep_time=5
+                )
+                self.thread_todo_2.start()
+                self.thread_todo_2.wait()
+
+            SIGNAL.PRINT_TO_UI.emit("[控制游戏大厅] 检测到需要启动360, 执行完毕...", color_level=1)
 
         # 获取窗口名称
         channel_1p, channel_2p = get_channel_name(
@@ -808,7 +824,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         if reply != QMessageBox.StandardButton.Yes:
             return
-        path,title=get_path_and_title()
+        path, title = get_path_and_sub_titles()
         if not path:
             SIGNAL.DIALOG.emit(
                 "哎呦！(╥﹏╥)",

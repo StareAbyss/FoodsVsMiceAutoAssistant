@@ -11,9 +11,10 @@ from PyQt6.QtCore import *
 from requests import RequestException
 
 from function.common.bg_img_match import loop_match_p_in_w
+from function.common.process_and_window_manager import close_software_by_title, get_path_and_sub_titles, \
+    close_all_software_by_name
 from function.common.thread_with_exception import ThreadWithException
 from function.core.FAA_extra_readimage import read_and_get_return_information, kill_process
-from function.core.Win_api import close_software_by_title, get_path_and_title, close_all_software
 from function.core.analyzer_of_loot_logs import update_dag_graph, find_longest_path_from_dag, ranking_read_data
 from function.core_battle.CardManager import CardManager
 from function.globals import EXTRA, SIGNAL
@@ -2667,7 +2668,7 @@ class ThreadTodo(QThread):
             SIGNAL.PRINT_TO_UI.emit(
                 text="事项全部完成, 击杀登陆器后台, 降低系统负载.",
                 color_level=1)
-            self.close_login()
+            self.close_360()
         else:
             SIGNAL.PRINT_TO_UI.emit(
                 text="推荐勾选高级设置-完成所有事项后关闭登陆器",
@@ -2676,18 +2677,24 @@ class ThreadTodo(QThread):
         # 全部完成了发个信号
         SIGNAL.END.emit()
 
-    def close_login(self):
+    def close_360(self):
+
+        # 关闭所有目标窗口
         for faa in self.faa_dict.values():
-            close_software_by_title(faa.channel)
-            sleep(1)  # 等待完成关闭
-        _, title = get_path_and_title()
-        if len(title) == 1 and title[0] == "360游戏大厅":
+            close_software_by_title(window_title=faa.channel)
+            time.sleep(1)
+
+        _, sub_window_titles = get_path_and_sub_titles()
+
+        if len(sub_window_titles) == 1 and sub_window_titles[0] == "360游戏大厅":
+            # 只有一个360大厅主窗口, 鲨了它
             close_software_by_title("360游戏大厅")
-            # 说明没有乱七八糟的多开，后台主进程也可以直接杀了
-            sleep(2)  # 等待打开的360后台
-            close_all_software("360Game.exe")
-        if len(title) == 0:
-            close_all_software("360Game.exe")
+            # 等待悄悄打开的360后台 准备一网打尽
+            time.sleep(2)
+
+        if len(sub_window_titles) == 0:
+            # 不再有窗口了, 可以直接根据软件名称把后台杀干净
+            close_all_software_by_name("360Game.exe")
 
     def run_2(self):
         """多线程作战时的第二线程, 负责2P"""
