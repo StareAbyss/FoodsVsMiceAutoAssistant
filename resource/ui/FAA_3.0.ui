@@ -470,6 +470,9 @@ border:none</string>
                  </item>
                  <item>
                   <widget class="QLineEdit" name="ZoomRatio_Output">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -551,6 +554,9 @@ border:none</string>
                  </item>
                  <item>
                   <widget class="QLineEdit" name="GameName_Input">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -642,6 +648,9 @@ border:none</string>
                  </item>
                  <item>
                   <widget class="QLineEdit" name="Name1P_Input">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -720,6 +729,9 @@ border:none</string>
                  </item>
                  <item>
                   <widget class="QLineEdit" name="Name2P_Input">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -2364,7 +2376,7 @@ Link Start</string>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="TipBattle_Button">
+              <widget class="QPushButton" name="BattleTipButton">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -2392,7 +2404,7 @@ Link Start</string>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="TipStageID_Button">
+              <widget class="QPushButton" name="StageIDTipButton">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -9016,7 +9028,7 @@ Link Start</string>
               <number>5</number>
              </property>
              <item>
-              <layout class="QVBoxLayout" name="Lay_AdvancedSettings" stretch="0,1,1">
+              <layout class="QVBoxLayout" name="Lay_AdvancedSettings" stretch="0,1">
                <property name="spacing">
                 <number>5</number>
                </property>
@@ -9089,7 +9101,7 @@ Link Start</string>
                     </size>
                    </property>
                    <property name="text">
-                    <string>高级设置</string>
+                    <string>日氪模块</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -9193,62 +9205,6 @@ Link Start</string>
                    </property>
                    <property name="text">
                     <string>2P-日氪1元</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="Lay_AdvancedSettings_3">
-                 <property name="spacing">
-                  <number>5</number>
-                 </property>
-                 <property name="leftMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="topMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="rightMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="bottomMargin">
-                  <number>0</number>
-                 </property>
-                 <item>
-                  <widget class="QCheckBox" name="EndExitGame">
-                   <property name="enabled">
-                    <bool>true</bool>
-                   </property>
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>1677215</width>
-                     <height>100</height>
-                    </size>
-                   </property>
-                   <property name="mouseTracking">
-                    <bool>true</bool>
-                   </property>
-                   <property name="tabletTracking">
-                    <bool>false</bool>
-                   </property>
-                   <property name="text">
-                    <string>完成所有事项后, 返回登录页</string>
-                   </property>
-                   <property name="checkable">
-                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
@@ -9590,7 +9546,7 @@ Link Start</string>
                 </layout>
                </item>
                <item>
-                <widget class="QPushButton" name="GetWarmGift_Button">
+                <widget class="QPushButton" name="GetWarmGiftTipButton">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                    <horstretch>0</horstretch>
@@ -9610,7 +9566,7 @@ Link Start</string>
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>只用点一下就够了!</string>
+                  <string/>
                  </property>
                  <property name="text">
                   <string>查看温馨礼包教学</string>
@@ -9953,7 +9909,7 @@ Link Start</string>
                 </layout>
                </item>
                <item>
-                <widget class="QPushButton" name="Level2_Tip">
+                <widget class="QPushButton" name="Level2TipButton">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                    <horstretch>0</horstretch>
@@ -9973,7 +9929,7 @@ Link Start</string>
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>只用点一下就够了!</string>
+                  <string/>
                  </property>
                  <property name="text">
                   <string>查看重要说明</string>
@@ -10270,7 +10226,7 @@ Link Start</string>
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>只用点一下就够了!</string>
+                  <string/>
                  </property>
                  <property name="text">
                   <string>点击测试 链接连通性</string>
@@ -10298,7 +10254,7 @@ Link Start</string>
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>只用点一下就够了!</string>
+                  <string/>
                  </property>
                  <property name="text">
                   <string>点击更新 悬赏/假期/漫游 关卡信息</string>
@@ -10306,7 +10262,7 @@ Link Start</string>
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="MisuLogistics_Tip">
+                <widget class="QPushButton" name="MisuLogisticsTipButton">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                    <horstretch>0</horstretch>
@@ -10326,7 +10282,7 @@ Link Start</string>
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>只用点一下就够了!</string>
+                  <string/>
                  </property>
                  <property name="text">
                   <string>查看说明</string>
@@ -12178,7 +12134,7 @@ FAA放卡核心原理简述:
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>只用点一下就够了!</string>
+                  <string/>
                  </property>
                  <property name="text">
                   <string>查看说明</string>
@@ -12214,7 +12170,7 @@ FAA放卡核心原理简述:
               <number>5</number>
              </property>
              <item>
-              <layout class="QVBoxLayout" name="loginlayout">
+              <layout class="QVBoxLayout" name="LoginSettingsLayout">
                <property name="spacing">
                 <number>5</number>
                </property>
@@ -12231,7 +12187,7 @@ FAA放卡核心原理简述:
                 <number>5</number>
                </property>
                <item>
-                <layout class="QHBoxLayout" name="CusCPSValueLayout_7" stretch="0,0,0">
+                <layout class="QHBoxLayout" name="LoginSettingsTitleTextLayout" stretch="0,0,0">
                  <property name="spacing">
                   <number>5</number>
                  </property>
@@ -12273,7 +12229,7 @@ FAA放卡核心原理简述:
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="label_17">
+                  <widget class="QLabel" name="LoginSettingsTitleTextLabel">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                      <horstretch>0</horstretch>
@@ -12293,7 +12249,7 @@ FAA放卡核心原理简述:
                     </size>
                    </property>
                    <property name="text">
-                    <string>登录选项</string>
+                    <string>登录选项 - 需管理员权限</string>
                    </property>
                   </widget>
                  </item>
@@ -12325,28 +12281,6 @@ FAA放卡核心原理简述:
                 </layout>
                </item>
                <item>
-                <widget class="QLabel" name="label_18">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>16777215</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>确保拥有管理员权限！</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item>
                 <widget class="QCheckBox" name="open360">
                  <property name="text">
                   <string>登陆前若未打开, 打开360游戏大厅</string>
@@ -12361,7 +12295,44 @@ FAA放卡核心原理简述:
                 </widget>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_20" stretch="0,0">
+                <widget class="QCheckBox" name="EndExitGame">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>1677215</width>
+                   <height>100</height>
+                  </size>
+                 </property>
+                 <property name="mouseTracking">
+                  <bool>true</bool>
+                 </property>
+                 <property name="tabletTracking">
+                  <bool>false</bool>
+                 </property>
+                 <property name="text">
+                  <string>完成所有事项后, 返回登录页</string>
+                 </property>
+                 <property name="checkable">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="LoginSettings360Path" stretch="0,0">
                  <property name="spacing">
                   <number>5</number>
                  </property>
@@ -12378,7 +12349,7 @@ FAA放卡核心原理简述:
                   <number>0</number>
                  </property>
                  <item>
-                  <widget class="QLabel" name="label_23">
+                  <widget class="QLabel" name="LoginSettings360PathLabel">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                      <horstretch>0</horstretch>
@@ -12398,7 +12369,7 @@ FAA放卡核心原理简述:
                     </size>
                    </property>
                    <property name="text">
-                    <string>360游戏大厅.exe路径</string>
+                    <string>360游戏大厅.exe</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -12406,7 +12377,10 @@ FAA放卡核心原理简述:
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLineEdit" name="GetPath">
+                  <widget class="QLineEdit" name="LoginSettings360PathInput">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                      <horstretch>0</horstretch>
@@ -12445,7 +12419,7 @@ FAA放卡核心原理简述:
                 </layout>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_14">
+                <layout class="QHBoxLayout" name="LoginSettingsAccountIndexLayout">
                  <property name="spacing">
                   <number>5</number>
                  </property>
@@ -12462,7 +12436,7 @@ FAA放卡核心原理简述:
                   <number>0</number>
                  </property>
                  <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_17" stretch="2,3">
+                  <layout class="QHBoxLayout" name="LoginSettingsAccountIndex1PLayout" stretch="2,3">
                    <property name="spacing">
                     <number>5</number>
                    </property>
@@ -12479,7 +12453,7 @@ FAA放卡核心原理简述:
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="label_19">
+                    <widget class="QLabel" name="LoginSettingsAccountIndex1PLabel">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                        <horstretch>0</horstretch>
@@ -12499,7 +12473,7 @@ FAA放卡核心原理简述:
                       </size>
                      </property>
                      <property name="text">
-                      <string>1p账号序号</string>
+                      <string>1P-序号</string>
                      </property>
                      <property name="alignment">
                       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -12508,6 +12482,9 @@ FAA放卡核心原理简述:
                    </item>
                    <item>
                     <widget class="QSpinBox" name="login_first">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                        <horstretch>0</horstretch>
@@ -12534,7 +12511,7 @@ FAA放卡核心原理简述:
                   </layout>
                  </item>
                  <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_18" stretch="2,3">
+                  <layout class="QHBoxLayout" name="LoginSettingsAccountIndex2PLayout" stretch="2,3">
                    <property name="spacing">
                     <number>5</number>
                    </property>
@@ -12551,7 +12528,7 @@ FAA放卡核心原理简述:
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="label_22">
+                    <widget class="QLabel" name="LoginSettingsAccountIndex2PLabel">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                        <horstretch>0</horstretch>
@@ -12571,12 +12548,15 @@ FAA放卡核心原理简述:
                       </size>
                      </property>
                      <property name="text">
-                      <string>2p账号序号</string>
+                      <string>2P-序号</string>
                      </property>
                     </widget>
                    </item>
                    <item>
                     <widget class="QSpinBox" name="login_second">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                        <horstretch>0</horstretch>
@@ -12607,7 +12587,35 @@ FAA放卡核心原理简述:
                <item>
                 <widget class="QPushButton" name="oneclick_getpath">
                  <property name="text">
-                  <string>一键获取路径及自动填写窗口名</string>
+                  <string>一键获取 - 路径及账号序号</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="LoginSettingsTipButton">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>100</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string/>
+                 </property>
+                 <property name="text">
+                  <string>查看重要说明</string>
                  </property>
                 </widget>
                </item>
@@ -12964,7 +12972,7 @@ FAA放卡核心原理简述:
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>只用点一下就够了!</string>
+                  <string/>
                  </property>
                  <property name="text">
                   <string>战斗方案编辑器</string>
@@ -13008,7 +13016,7 @@ FAA放卡核心原理简述:
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>只用点一下就够了!</string>
+                  <string/>
                  </property>
                  <property name="text">
                   <string>任务序列编辑器</string>
@@ -13052,7 +13060,7 @@ FAA放卡核心原理简述:
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>只用点一下就够了!</string>
+                  <string/>
                  </property>
                  <property name="text">
                   <string>关卡全局方案</string>
@@ -13096,7 +13104,7 @@ FAA放卡核心原理简述:
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>只用点一下就够了!</string>
+                  <string/>
                  </property>
                  <property name="text">
                   <string>配置迁移器</string>

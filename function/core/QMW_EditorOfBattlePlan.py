@@ -467,11 +467,11 @@ class QMWEditorOfBattlePlan(QMainWindow):
         elif index <= 13:
             return self.json_data["card"]["wave"][str(index)]
         else:
-            print("致命错误, 波次越位")
+            CUS_LOGGER.error(f"[战斗方案编辑器] 致命错误, 波次越位")
 
     def click_wave_button(self, be_clicked_button_id: int):
 
-        print(f"波次按钮被点击: {be_clicked_button_id}")
+        CUS_LOGGER.debug(f"[战斗方案编辑器] [界面交互] 波次按钮编号 {be_clicked_button_id}, 被点击")
 
         """点击波次按钮"""
         self.change_wave(be_clicked_button_id)
@@ -482,7 +482,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
     def fill_blank_wave(self):
         """加载时, 将空白波次的方案设定为自动继承状态"""
 
-        print("[加载方案] 开始填充空白的波次方案")
+        CUS_LOGGER.debug("[战斗方案编辑器] [加载方案] 开始填充空白的波次方案")
 
         wave_data = self.json_data["card"]["wave"]
 
@@ -502,20 +502,20 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     if smaller_waves:
                         max_smaller_wave = str(max(smaller_waves))
                         wave_data[str(wave)] = copy.deepcopy(wave_data[max_smaller_wave])
-                        print(f"[加载方案] 波次: {wave}, 已从波次{max_smaller_wave}完成继承")
+                        CUS_LOGGER.debug(f"[战斗方案编辑器] [加载方案] 波次: {wave}, 已从波次{max_smaller_wave}完成继承")
                         continue
                     else:
                         # 如果没有更小的波次方案，则使用默认方案
                         wave_data[str(wave)] = copy.deepcopy(self.json_data["card"]["default"])
-                        print(f"[加载方案] 波次: {wave}, 已从波次0完成继承")
+                        CUS_LOGGER.debug(f"[战斗方案编辑器] [加载方案] 波次: {wave}, 已从波次0完成继承")
                         continue
                 else:
                     # 如果没有任何现有波次，则使用默认方案
                     wave_data[str(wave)] = copy.deepcopy(self.json_data["card"]["default"])
-                    print(f"[加载方案] 波次: {wave}, 已从波次0完成继承")
+                    CUS_LOGGER.debug(f"[战斗方案编辑器] [加载方案] 波次: {wave}, 已从波次0完成继承")
                     continue
             else:
-                print(f"[加载方案] 波次: {wave}, 文件已包含")
+                CUS_LOGGER.debug(f"[战斗方案编辑器] [加载方案] 波次: {wave}, 文件已包含")
 
     def refresh_wave_button_color(self):
         """
@@ -574,7 +574,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 复制后 允许其粘贴
         self.paste_wave_button.setEnabled(True)
 
-        print(f"已复制波次, 编号:{self.be_copied_wave_id}")
+        CUS_LOGGER.debug(f"[战斗方案编辑器] 已复制波次, 编号:{self.be_copied_wave_id}")
 
     def paste_wave_plan(self):
 
@@ -586,7 +586,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         self.fresh_all_ui()
 
-        print(f"已粘贴波次, 编号: {self.be_copied_wave_id} -> {self.current_wave}")
+        CUS_LOGGER.debug(f"[战斗方案编辑器] 已粘贴波次, 编号: {self.be_copied_wave_id} -> {self.current_wave}")
 
     def apply_to_all_wave_plan(self):
         for i in range(14):
@@ -598,7 +598,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 仅需变色波次按钮颜色
         self.refresh_wave_button_color()
 
-        print(f"波次:{self.current_wave}方案已应用到所有波次")
+        CUS_LOGGER.debug(f"[战斗方案编辑器] 波次:{self.current_wave}方案已应用到所有波次")
 
     def fresh_wave_button_text(self, be_clicked_button_id: int):
         for wave in range(14):
@@ -1132,7 +1132,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         # 获取当前方案的名称
         current_plan_name = os.path.basename(file_path).replace(".json", "")
-        print(f"[加载方案] 开始读取:{current_plan_name}")
+        CUS_LOGGER.debug(f"[战斗方案编辑器] [加载方案] 开始读取:{current_plan_name}")
 
         self.current_plan_name_label.setText(f"当前方案名:{current_plan_name}")
         self.current_plan_uuid_label.setText(f"{self.json_data.get('uuid', '无')}")
