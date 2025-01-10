@@ -1127,6 +1127,12 @@ class QMainWindowLoadSettings(QMainWindowLog):
             )
         )
 
+        # 结束流程后, 若选择关闭游戏大厅 自然不用退出到登录页, 故锁定它
+        self.close360.stateChanged.connect(
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.EndExitGame])
+        )
+
     """按钮动作"""
 
     def click_btn_save(self) -> None:
