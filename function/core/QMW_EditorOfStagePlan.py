@@ -52,11 +52,13 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.deck_box.currentIndexChanged.connect(self.state_changed)
         self.battle_plan_box_1P.currentIndexChanged.connect(self.state_changed)
         self.battle_plan_box_2P.currentIndexChanged.connect(self.state_changed)
+        self.senior_battle_check.stateChanged.connect(self.state_changed)
 
         # 默认值, 读取为空显示默认值, 保存为默认值去掉对应值
         self.default_set = {
             "skip": False,
             "deck": 0,
+            "senior_setting":False,
             "battle_plan": [
                 "00000000-0000-0000-0000-000000000000",
                 "00000000-0000-0000-0000-000000000001"]
@@ -164,6 +166,8 @@ class QMWEditorOfStagePlan(QMainWindow):
             case "battle_plan_box_2P":
                 self.stage_plan[self.current_stage]["battle_plan"][1] = self.battle_plan_uuid_list[
                     self.battle_plan_box_2P.currentIndex()]
+            case "senior_battle_check":
+                self.stage_plan[self.current_stage]["senior_setting"] = sender.isChecked()
         # 刷新战斗方案选择框
         self.refresh_battle_plan_selector()
         # 去除和default相同的配置
@@ -180,9 +184,14 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.deck_box.blockSignals(True)
         self.battle_plan_box_1P.blockSignals(True)
         self.battle_plan_box_2P.blockSignals(True)
+        self.senior_battle_check.blockSignals(True)
         # 更新状态
         self.skip_check.setChecked(self.stage_plan[self.current_stage]["skip"])
         self.deck_box.setCurrentIndex(self.stage_plan[self.current_stage]["deck"])
+        try:
+            self.senior_battle_check.setChecked(self.stage_plan[self.current_stage]["senior_setting"])
+        except KeyError:# 兼容旧版本
+            self.senior_battle_check.setChecked(False)
         # 尝试获取当前任务的战斗方案
         try:
             index = self.battle_plan_uuid_list.index(self.stage_plan[self.current_stage]["battle_plan"][0])
@@ -199,6 +208,7 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.deck_box.blockSignals(False)
         self.battle_plan_box_1P.blockSignals(False)
         self.battle_plan_box_2P.blockSignals(False)
+        self.senior_battle_check.blockSignals(False)
 
     def remove_same_as_default(self):
         """
@@ -226,3 +236,4 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.deck_box.setEnabled(state)
         self.battle_plan_box_1P.setEnabled(state)
         self.battle_plan_box_2P.setEnabled(state)
+        self.senior_battle_check.setEnabled(state)
