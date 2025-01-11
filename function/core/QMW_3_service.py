@@ -469,8 +469,6 @@ class QMainWindowService(QMainWindowLoadSettings):
                 self.Button_Start.setText("开始任务\nLink Start")
                 self.is_start = False
                 return
-            else:
-                win32gui.ShowWindow(handle, win32con.SW_MAXIMIZE)
 
         """UI处理"""
         # 设置flag
