@@ -4,13 +4,13 @@ import os
 import random
 import shutil
 import sys
-from time import sleep
 
 import win32con
 import win32gui
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QMessageBox
 
+from function.common.process_and_window_manager import get_path_and_sub_titles
 from function.core.FAA import FAA
 from function.core.QMW_2_load_settings import CommonHelper, QMainWindowLoadSettings
 from function.core.QMW_EditorOfBattlePlan import QMWEditorOfBattlePlan
@@ -21,11 +21,12 @@ from function.core.QMW_TipBattle import QMWTipBattle
 from function.core.QMW_TipBattleSenior import QMWTipBattleSenior
 from function.core.QMW_TipEditorOfBattlePlan import QMWTipEditorOfBattlePlan
 from function.core.QMW_TipLevel2 import QMWTipLevels2
+from function.core.QMW_TipLoginSettings import QMWTipLoginSettings
 from function.core.QMW_TipMisuLogistics import QMWTipMisuLogistics
 from function.core.QMW_TipStageID import QMWTipStageID
 from function.core.QMW_TipWarmGift import QMWTipWarmGift
+from function.core.QThread_360 import ThreadStart360
 from function.core.Todo import ThreadTodo
-from function.core.Win_api import get_path_and_title, create_start_args, start_software_with_args
 from function.core.performance_analysis import run_analysis_in_thread
 from function.globals import EXTRA, SIGNAL
 from function.globals import g_resources
@@ -96,27 +97,31 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 额外窗口 - 温馨礼包提示
         self.window_tip_warm_gift = QMWTipWarmGift()
-        self.GetWarmGift_Button.clicked.connect(self.click_btn_tip_warm_gift)
+        self.GetWarmGiftTipButton.clicked.connect(self.click_btn_tip_warm_gift)
 
         # 额外窗口 - 关卡代号提示
         self.window_tip_stage_id = QMWTipStageID()
-        self.TipStageID_Button.clicked.connect(self.click_btn_tip_stage_id)
+        self.StageIDTipButton.clicked.connect(self.click_btn_tip_stage_id)
 
         # 额外窗口 - 战斗模式介绍
         self.window_tip_battle = QMWTipBattle()
-        self.TipBattle_Button.clicked.connect(self.click_btn_tip_battle)
+        self.BattleTipButton.clicked.connect(self.click_btn_tip_battle)
 
         # 额外窗口 - 二级说明书
         self.window_tip_level2 = QMWTipLevels2()
-        self.Level2_Tip.clicked.connect(self.click_btn_tip_level2)
+        self.Level2TipButton.clicked.connect(self.click_btn_tip_level2)
 
         # 额外窗口 - 高级战斗说明
         self.window_tip_battle_senior = QMWTipBattleSenior()
         self.BattleSeniorTipButton.clicked.connect(self.click_btn_tip_battle_senior)
 
+        # 额外窗口 - 登录选项说明
+        self.window_tip_login_settings = QMWTipLoginSettings()
+        self.LoginSettingsTipButton.clicked.connect(self.click_btn_tip_login_settings)
+
         # 米苏物流 - tip窗口
         self.window_tip_misu_logistics = QMWTipMisuLogistics()
-        self.MisuLogistics_Tip.clicked.connect(self.click_btn_tip_misu_logistics)
+        self.MisuLogisticsTipButton.clicked.connect(self.click_btn_tip_misu_logistics)
 
         # 米苏物流 - 测试链接
         self.MisuLogistics_LinkTest.clicked.connect(self.click_btn_misu_logistics_link_test)
@@ -416,17 +421,33 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 先读取界面上的方案
         # self.ui_to_opt()
-        #如果打开了启动登陆器选项则先启动登陆器
-        if self.opt["login_settings"]["login_open_settings"]:
-            if self.opt["login_settings"]["first_num"]!=0:#启动1p
-                args = create_start_args(self.opt["login_settings"]["first_num"])
-                start_software_with_args(self.opt["login_settings"]["login_path"], *args)
-            sleep(1)#保证打开顺序与预期一致
-            if self.opt["login_settings"]["second_num"]!=0:#启动2p
-                args = create_start_args(self.opt["login_settings"]["second_num"])
-                start_software_with_args(self.opt["login_settings"]["login_path"], *args)
-            sleep(5)#等待打开这两号
 
+        # 是否启动360
+        if self.opt["login_settings"]["login_open_settings"]:
+            SIGNAL.PRINT_TO_UI.emit("[控制游戏大厅] 检测到需要启动360, 开始执行...", color_level=1)
+
+            load_2p = self.opt["login_settings"]["first_num"] != self.opt["login_settings"]["second_num"]
+
+            self.thread_todo_1 = ThreadStart360(
+                game_id=1,
+                account_id=self.opt["login_settings"]["first_num"],
+                executable_path=self.opt["login_settings"]["login_path"],
+                wait_sleep_time=1
+            )
+            self.thread_todo_1.start()
+            self.thread_todo_1.wait()
+
+            if load_2p:
+                self.thread_todo_2 = ThreadStart360(
+                    game_id=1,
+                    account_id=self.opt["login_settings"]["second_num"],
+                    executable_path=self.opt["login_settings"]["login_path"],
+                    wait_sleep_time=5
+                )
+                self.thread_todo_2.start()
+                self.thread_todo_2.wait()
+
+            SIGNAL.PRINT_TO_UI.emit("[控制游戏大厅] 检测到需要启动360, 执行完毕...", color_level=1)
 
         # 获取窗口名称
         channel_1p, channel_2p = get_channel_name(
@@ -502,8 +523,6 @@ class QMainWindowService(QMainWindowLoadSettings):
             opt=self.opt,
             running_todo_plan_index=running_todo_plan_index,
             todo_id=1)
-
-        # 用于双人多线程的todo
         self.thread_todo_2 = ThreadTodo(
             faa_dict=faa_dict,
             opt=self.opt,
@@ -758,6 +777,12 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.set_stylesheet(window)
         window.show()
 
+    def click_btn_tip_login_settings(self):
+        window = self.window_tip_login_settings
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
+
     def click_btn_tip_editor_of_battle_plan(self):
         window = self.window_tip_editor_of_battle_plan
         window.setFont(self.font)
@@ -810,19 +835,19 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         if reply != QMessageBox.StandardButton.Yes:
             return
-        path,title=get_path_and_title()
+        path, title = get_path_and_sub_titles()
         if not path:
             SIGNAL.DIALOG.emit(
                 "哎呦！(╥﹏╥)",
                 f"未正确获取路径，请确保已打开360大厅及授予FAA管理员权限")
             return
-        self.GetPath.setText(path)
-        if len(title)<1:
+        self.LoginSettings360PathInput.setText(path)
+        if len(title) < 1:
             SIGNAL.DIALOG.emit(
                 "哎呦！(╥﹏╥)",
                 f"你确定打开了对应的帐号了吗？")
             return
-        if len(title)<self.login_first.value():
+        if len(title) < self.login_first.value():
             SIGNAL.DIALOG.emit(
                 "哎呦！(╥﹏╥)",
                 f"1p账号序号超过当前打开账号数目")
@@ -830,11 +855,11 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.GameName_Input.setText("")
         self.Name1P_Input.setText("")
         self.Name2P_Input.setText("")
-        if len(title)<self.login_second.value():
+        if len(title) < self.login_second.value():
             SIGNAL.DIALOG.emit(
                 "哎呦！(╥﹏╥)",
                 f"2p账号序号超过当前打开账号数目,如果单号无视此报错")
-            name_1p,game_name = get_reverse_channel_name(title[self.login_first.value() - 1])
+            name_1p, game_name = get_reverse_channel_name(title[self.login_first.value() - 1])
 
         else:
             name_1p, name_2p, game_name = get_reverse_channel_name(title[self.login_first.value() - 1],
@@ -844,7 +869,6 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.Name1P_Input.setText(name_1p)
         if name_2p:
             self.Name2P_Input.setText(name_2p)
-
 
     def click_btn_reset_card_status_memory(self):
         # 弹出是或否选项

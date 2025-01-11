@@ -433,7 +433,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             # 自定放满禁用时间 毫秒转为秒
             self.CusFullBanTimeActive.setChecked(my_opt["cus_full_ban_active"])
             self.CusFullBanTimeValueInput.setValue(my_opt["cus_full_ban_value"])
-            EXTRA.FULL_BAN_TIME = my_opt["cus_full_ban_value"]/1000 if my_opt["cus_full_ban_active"] else 5
+            EXTRA.FULL_BAN_TIME = my_opt["cus_full_ban_value"] / 1000 if my_opt["cus_full_ban_active"] else 5
 
             # 自动带卡
             self.CusAutoCarryCardActive.setChecked(my_opt["cus_auto_carry_card_active"])
@@ -513,7 +513,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.login_second.setValue(my_opt["second_num"])
             self.open360.setChecked(my_opt["login_open_settings"])
             self.close360.setChecked(my_opt["login_close_settings"])
-            self.GetPath.setText(my_opt["login_path"])
+            self.LoginSettings360PathInput.setText(my_opt["login_path"])
 
         def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
@@ -839,7 +839,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             # 自定放满禁用时间 毫秒转为秒
             my_opt["cus_full_ban_active"] = self.CusFullBanTimeActive.isChecked()
             my_opt["cus_full_ban_value"] = self.CusFullBanTimeValueInput.value()
-            EXTRA.FULL_BAN_TIME = my_opt["cus_full_ban_value"]/1000 if my_opt["cus_full_ban_active"] else 5
+            EXTRA.FULL_BAN_TIME = my_opt["cus_full_ban_value"] / 1000 if my_opt["cus_full_ban_active"] else 5
 
             # 自动带卡
             my_opt["cus_auto_carry_card_active"] = self.CusAutoCarryCardActive.isChecked()
@@ -961,7 +961,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt = self.opt["login_settings"]
             my_opt["login_open_settings"] = self.open360.isChecked()
             my_opt["login_close_settings"] = self.close360.isChecked()
-            my_opt["login_path"] = self.GetPath.text()
+            my_opt["login_path"] = self.LoginSettings360PathInput.text()
             my_opt["first_num"] = self.login_first.value()
             my_opt["second_num"] = self.login_second.value()
 
@@ -1125,6 +1125,12 @@ class QMainWindowLoadSettings(QMainWindowLog):
                     self.BattleSeniorIntervalValueInput
                 ]
             )
+        )
+
+        # 结束流程后, 若选择关闭游戏大厅 自然不用退出到登录页
+        self.close360.stateChanged.connect(
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.EndExitGame])
         )
 
     """按钮动作"""

@@ -1043,6 +1043,24 @@ class FAA:
 
     def reload_game(self) -> None:
 
+        def try_close_sub_account_list():
+            # 是否有小号列表
+            my_result = match_p_in_w(
+                source_handle=self.handle_360,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 300, 300],
+                template=RESOURCE_P["common"]["登录"]["小号列表.png"],
+                match_tolerance=0.99
+            )
+            if my_result:
+                # 点击关闭它
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle_360,
+                    x=30,
+                    y=55)
+                return True
+            return False
+
         def try_enter_server_4399():
             # 4399 进入服务器
             my_result = match_p_in_w(
@@ -1141,6 +1159,12 @@ class FAA:
         def main():
 
             while not self.should_stop:
+
+                # 确保关闭小号列表
+                if try_close_sub_account_list():
+                    self.print_debug(text="[刷新游戏] 成功关闭小号列表")
+                else:
+                    self.print_debug(text="[刷新游戏] 未找到小号列表, 很好...")
 
                 # 点击刷新按钮 该按钮在360窗口上
                 self.print_debug(text="[刷新游戏] 点击刷新按钮...")
