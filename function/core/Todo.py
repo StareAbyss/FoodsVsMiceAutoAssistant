@@ -12,7 +12,7 @@ from requests import RequestException
 
 from function.common.bg_img_match import loop_match_p_in_w
 from function.common.process_and_window_manager import close_software_by_title, get_path_and_sub_titles, \
-    close_all_software_by_name
+    close_all_software_by_name, start_software_with_args
 from function.common.thread_with_exception import ThreadWithException
 from function.core.FAA_extra_readimage import read_and_get_return_information, kill_process
 from function.core.analyzer_of_loot_logs import update_dag_graph, find_longest_path_from_dag, ranking_read_data
@@ -23,6 +23,7 @@ from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.create_drops_image import create_drops_image
+from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_task_sequence_list import get_task_sequence_list
 from function.scattered.guild_manager import GuildManager
 from function.scattered.loots_and_chest_data_save_and_post import loots_and_chests_detail_to_json, \
@@ -2336,6 +2337,15 @@ class ThreadTodo(QThread):
             self.run_2()
 
     def run_1(self):
+        """配置检查"""
+
+        # 尝试启动360游戏大厅和对应的小号
+        self.start_360()
+
+        # 基础参数是否输入正确 输出错误直接当场夹断
+        if not self.test_args():
+            return False
+
         """单线程作战"""
 
         # current todo plan option
@@ -2657,7 +2667,10 @@ class ThreadTodo(QThread):
 
         if self.opt["login_settings"]["login_close_settings"]:
 
-            SIGNAL.PRINT_TO_UI.emit(text="事项全部完成, 关闭360游戏大厅对应窗口, 降低系统负载.", color_level=1)
+            SIGNAL.PRINT_TO_UI.emit(
+                text="[开关游戏大厅] 任务全部完成, 关闭360游戏大厅对应窗口, 降低系统负载.",
+                color_level=1
+            )
             self.close_360()
 
         else:
@@ -2673,6 +2686,72 @@ class ThreadTodo(QThread):
 
         # 全部完成了发个信号
         SIGNAL.END.emit()
+
+        return True
+
+    def start_360(self):
+
+        handles = {
+            1: faa_get_handle(channel=self.faa_dict[1].channel, mode="360"),
+            2: faa_get_handle(channel=self.faa_dict[2].channel, mode="360")
+        }
+
+        def start_one(pid, game_id, account_id, executable_path, wait_sleep_time):
+
+            if not ((handles[pid] is None) or (handles[pid] == 0)):
+                return
+
+            if account_id == 0:
+                return
+
+            args = ["-action:opengame", f"-gid:{game_id}", f"-gaid:{account_id}"]
+            start_software_with_args(executable_path, *args)
+            self.sleep(wait_sleep_time)
+
+            SIGNAL.PRINT_TO_UI.emit(text=f"[控制游戏大厅] {pid}P游戏大厅已启动.", color_level=1)
+
+        if not self.opt["login_settings"]["login_open_settings"]:
+            return
+
+        only_one_role = (
+                self.opt["login_settings"]["first_num"] == self.opt["login_settings"]["second_num"] or
+                self.opt["base_settings"]["name_1p"] == self.opt["base_settings"]["name_2p"]
+        )
+
+        # 所有需要开启的窗口都已经开启
+        if (handles[1] is not None) and (handles[1] != 0):
+            if not only_one_role:
+                if (handles[2] is not None) and (handles[2] != 0):
+                    SIGNAL.PRINT_TO_UI.emit(
+                        text="[控制游戏大厅] 已激活本功能, 但检测到所有窗口均已开启, 跳过步骤~",
+                        color_level=1
+                    )
+                    return False
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text="[控制游戏大厅] 已激活本功能, 且有若干小号窗口未开启, 开始执行...",
+            color_level=1
+        )
+
+        start_one(
+            pid=1,
+            game_id=1,
+            account_id=self.opt["login_settings"]["first_num"],
+            executable_path=self.opt["login_settings"]["login_path"],
+            wait_sleep_time=1
+        )
+
+        if only_one_role:
+            # 只有一个小号
+            return
+
+        start_one(
+            pid=2,
+            game_id=1,
+            account_id=self.opt["login_settings"]["second_num"],
+            executable_path=self.opt["login_settings"]["login_path"],
+            wait_sleep_time=5
+        )
 
     def close_360(self):
 
@@ -2692,6 +2771,22 @@ class ThreadTodo(QThread):
         if len(sub_window_titles) == 0:
             # 不再有窗口了, 可以直接根据软件名称把后台杀干净
             close_all_software_by_name("360Game.exe")
+
+    def test_args(self):
+        """防呆测试"""
+        handles = {
+            1: faa_get_handle(channel=self.faa_dict[1].channel, mode="360"),
+            2: faa_get_handle(channel=self.faa_dict[2].channel, mode="360")}
+        for player, handle in handles.items():
+            if handle is None or handle == 0:
+                # 报错弹窗
+                SIGNAL.DIALOG.emit(
+                    "出错！(╬◣д◢)",
+                    f"{player}P存在错误的窗口名或游戏名称, 请在基础设定处重新拖拽至游戏窗口后保存重启.")
+                # 强制夹断
+                return False
+        SIGNAL.PRINT_TO_UI.emit(text=f"[检测重要参数] 所有小号窗口已开启, 继续进行...", color_level=1)
+        return True
 
     def run_2(self):
         """多线程作战时的第二线程, 负责2P"""

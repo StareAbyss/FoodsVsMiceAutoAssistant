@@ -25,7 +25,6 @@ from function.core.QMW_TipLoginSettings import QMWTipLoginSettings
 from function.core.QMW_TipMisuLogistics import QMWTipMisuLogistics
 from function.core.QMW_TipStageID import QMWTipStageID
 from function.core.QMW_TipWarmGift import QMWTipWarmGift
-from function.core.QThread_360 import ThreadStart360
 from function.core.Todo import ThreadTodo
 from function.core.performance_analysis import run_analysis_in_thread
 from function.globals import EXTRA, SIGNAL
@@ -36,7 +35,6 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.TodoTimerManager import TodoTimerManager
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
-from function.scattered.get_channel_name import get_reverse_channel_name
 from function.scattered.get_stage_info_online import get_stage_info_online
 from function.scattered.test_route_connectivity import test_route_connectivity
 
@@ -422,53 +420,11 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 先读取界面上的方案
         # self.ui_to_opt()
 
-        # 是否启动360
-        if self.opt["login_settings"]["login_open_settings"]:
-            SIGNAL.PRINT_TO_UI.emit("[控制游戏大厅] 检测到需要启动360, 开始执行...", color_level=1)
-
-            load_2p = self.opt["login_settings"]["first_num"] != self.opt["login_settings"]["second_num"]
-
-            self.thread_todo_1 = ThreadStart360(
-                game_id=1,
-                account_id=self.opt["login_settings"]["first_num"],
-                executable_path=self.opt["login_settings"]["login_path"],
-                wait_sleep_time=1
-            )
-            self.thread_todo_1.start()
-            self.thread_todo_1.wait()
-
-            if load_2p:
-                self.thread_todo_2 = ThreadStart360(
-                    game_id=1,
-                    account_id=self.opt["login_settings"]["second_num"],
-                    executable_path=self.opt["login_settings"]["login_path"],
-                    wait_sleep_time=5
-                )
-                self.thread_todo_2.start()
-                self.thread_todo_2.wait()
-
-            SIGNAL.PRINT_TO_UI.emit("[控制游戏大厅] 检测到需要启动360, 执行完毕...", color_level=1)
-
         # 获取窗口名称
         channel_1p, channel_2p = get_channel_name(
             game_name=self.opt["base_settings"]["game_name"],
             name_1p=self.opt["base_settings"]["name_1p"],
             name_2p=self.opt["base_settings"]["name_2p"])
-
-        """防呆测试"""
-        # 不通过就直接结束弹窗
-        handles = {
-            1: faa_get_handle(channel=channel_1p, mode="360"),
-            2: faa_get_handle(channel=channel_2p, mode="360")}
-        for player, handle in handles.items():
-            if handle is None or handle == 0:
-                # 报错弹窗
-                SIGNAL.DIALOG.emit(
-                    "出错！(╬◣д◢)",
-                    f"{player}P存在错误的窗口名或游戏名称, 请参考 [使用前看我!.pdf] 或 [README.md]")
-                self.Button_Start.setText("开始任务\nLink Start")
-                self.is_start = False
-                return
 
         """UI处理"""
         # 设置flag
