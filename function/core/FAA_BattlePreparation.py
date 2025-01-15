@@ -701,9 +701,11 @@ class BattlePreparation:
         # duration is ms
         duration = EXTRA.ACCELERATE_START_UP_VALUE
         if duration > 0:
-            self.faa.click_accelerate_btn()
+            self.faa.click_accelerate_btn(mode="normal")
             time.sleep(duration / 1000)
-            self.faa.click_accelerate_btn()
+            self.faa.click_accelerate_btn(mode="normal")
+            # 检查已经关闭加速
+            self.faa.click_accelerate_btn(mode="stop")
 
         return 0  # 0-一切顺利
 
@@ -834,7 +836,7 @@ class BattlePreparation:
 
         if EXTRA.ACCELERATE_SETTLEMENT_VALUE:
             print_info(text="[翻宝箱UI] 开始加速...")
-            self.faa.click_accelerate_btn()
+            self.faa.click_accelerate_btn(mode="normal")
 
         # 休息一会再识图 如果有加速, 少休息一会
         time.sleep(7 / (EXTRA.ACCELERATE_SETTLEMENT_VALUE if EXTRA.ACCELERATE_SETTLEMENT_VALUE != 0 else 1))
@@ -857,7 +859,9 @@ class BattlePreparation:
 
         if EXTRA.ACCELERATE_SETTLEMENT_VALUE:
             print_info(text="[翻宝箱UI] 停止加速...")
-            self.faa.click_accelerate_btn()
+            self.faa.click_accelerate_btn(mode="normal")
+            # 检查已经关闭加速
+            self.faa.click_accelerate_btn(mode="stop")
 
         # 翻牌 1+2 bug法
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=550, y=265)
