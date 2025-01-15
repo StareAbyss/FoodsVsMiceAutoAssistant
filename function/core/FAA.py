@@ -1191,6 +1191,10 @@ class FAA:
 
             while not self.should_stop:
 
+                # 先重新获取 360 和 浏览器的句柄
+                self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
+                self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
+
                 # 确保关闭小号列表
                 if try_close_sub_account_list():
                     self.print_debug(text="[刷新游戏] 成功关闭小号列表")
