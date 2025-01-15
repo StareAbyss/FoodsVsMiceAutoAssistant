@@ -12587,7 +12587,7 @@ FAA放卡核心原理简述:
                <item>
                 <widget class="QPushButton" name="oneclick_getpath">
                  <property name="text">
-                  <string>一键获取 - 路径及账号序号</string>
+                  <string>一键获取 - 游戏大厅路径</string>
                  </property>
                 </widget>
                </item>
