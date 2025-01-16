@@ -993,30 +993,21 @@ class FAA:
                     return False
         return True
 
-    def click_accelerate_btn(self) -> bool:
+    def click_accelerate_btn(self, mode: str = "normal") -> bool:
         """
         点击360游戏大厅的刷新游戏按钮
+        :param mode: str 模式 包含 "normal" "stop"
         :return: bool 是否成功点击
         """
 
-        # 点击刷新按钮 该按钮在360窗口上
-        find = loop_match_p_in_w(
-            source_handle=self.handle_360,
-            source_root_handle=self.handle_360,
-            source_range=[0, 0, 2000, 75],
-            template=RESOURCE_P["common"]["战斗"]["变速.png"],
-            match_tolerance=0.99,
-            match_interval=0.00001,
-            match_failed_check=0.00002,
-            after_sleep=0,
-            click=True)
+        def click_btn():
 
-        if not find:
+            # 点击按钮 该按钮在360窗口上
             find = loop_match_p_in_w(
                 source_handle=self.handle_360,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 75],
-                template=RESOURCE_P["common"]["战斗"]["变速_被选中.png"],
+                template=RESOURCE_P["common"]["战斗"]["变速_默认或被点击.png"],
                 match_tolerance=0.99,
                 match_interval=0.00001,
                 match_failed_check=0.00002,
@@ -1024,12 +1015,11 @@ class FAA:
                 click=True)
 
             if not find:
-
                 find = loop_match_p_in_w(
                     source_handle=self.handle_360,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0,2000, 75],
-                    template=RESOURCE_P["common"]["战斗"]["变速_被点击.png"],
+                    source_range=[0, 0, 2000, 75],
+                    template=RESOURCE_P["common"]["战斗"]["变速_被选中.png"],
                     match_tolerance=0.99,
                     match_interval=0.00001,
                     match_failed_check=0.00002,
@@ -1039,7 +1029,48 @@ class FAA:
                 if not find:
                     self.print_error(text="未找到360大厅加速游戏按钮, 加速游戏失败了...")
                     return False
-        return True
+            return True
+
+        if mode != "stop":
+            return click_btn()
+
+        for i in range(10):
+
+            # 检测是否在加速中
+            not_accelerating = loop_match_p_in_w(
+                source_handle=self.handle_360,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 2000, 75],
+                template=RESOURCE_P["common"]["战斗"]["未激活变速_默认.png"],
+                match_tolerance=0.99,
+                match_interval=0.1,
+                match_failed_check=0.2,
+                after_sleep=0,
+                click=False
+            )
+
+            if not not_accelerating:
+                not_accelerating = loop_match_p_in_w(
+                    source_handle=self.handle_360,
+                    source_root_handle=self.handle_360,
+                    source_range=[0, 0, 2000, 75],
+                    template=RESOURCE_P["common"]["战斗"]["未激活变速_被选中或被点击.png"],
+                    match_tolerance=0.99,
+                    match_interval=0.00001,
+                    match_failed_check=0.00002,
+                    after_sleep=0,
+                    click=False
+                )
+
+            if not_accelerating:
+                self.print_info(text="复核 - 停止加速, 已完成")
+                return True
+
+            click_btn()
+            time.sleep(0.5)
+
+        else:
+            self.print_error(text="开启或关闭加速出现致命失误!!! 请通报开发者!!!")
 
     def reload_game(self) -> None:
 
@@ -1159,6 +1190,10 @@ class FAA:
         def main():
 
             while not self.should_stop:
+
+                # 先重新获取 360 和 浏览器的句柄
+                self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
+                self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
 
                 # 确保关闭小号列表
                 if try_close_sub_account_list():
