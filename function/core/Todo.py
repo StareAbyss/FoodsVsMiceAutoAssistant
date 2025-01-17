@@ -125,6 +125,17 @@ class ThreadTodo(QThread):
 
     """非脚本操作的业务代码"""
 
+    def check_player(self, title, player=None):
+        # 默认值
+        if player is None:
+            player = [1, 2]
+        # 如果只有一个角色
+        if self.faa_dict[1].channel == self.faa_dict[2].channel:
+            if player == [1, 2]:
+                CUS_LOGGER.warning(f"[{title}] 您仅注册了一个角色却选择了双人选项, 已自动修正为1P单人")
+            player = [1]
+        return player
+
     def model_start_print(self, text):
         # 在函数执行前发送的信号
         SIGNAL.PRINT_TO_UI.emit(text="", time=False)
@@ -262,14 +273,7 @@ class ThreadTodo(QThread):
         :return:
         """
 
-        # 默认值
-        if player is None:
-            player = [1, 2]
-        # 如果只有一个角色
-        if self.faa_dict[1].channel == self.faa_dict[2].channel:
-            if player == [1, 2]:
-                CUS_LOGGER.warning(f"[刷新游戏] 您仅注册了一个角色却选择了双人选项, 已自动修正为单人")
-            player = [1]
+        player = self.check_player(title="刷新游戏", player=player)
 
         SIGNAL.PRINT_TO_UI.emit("Refresh Game...", color_level=1)
 
@@ -346,14 +350,7 @@ class ThreadTodo(QThread):
 
         title_text = "每日签到"
 
-        # 默认值
-        if player is None:
-            player = [1, 2]
-        # 如果只有一个角色
-        if self.faa_dict[1].channel == self.faa_dict[2].channel:
-            if player == [1, 2]:
-                CUS_LOGGER.warning(f"{title_text} 您仅注册了一个角色却选择了双人选项, 已自动修正为单人")
-            player = [1]
+        player = self.check_player(title=title_text, player=player)
 
         self.model_start_print(text=title_text)
 
@@ -437,14 +434,7 @@ class ThreadTodo(QThread):
 
         title_text = "浇水 施肥 摘果"
 
-        # 默认值
-        if player is None:
-            player = [1, 2]
-        # 如果只有一个角色
-        if self.faa_dict[1].channel == self.faa_dict[2].channel:
-            if player == [1, 2]:
-                CUS_LOGGER.warning(f"{title_text} 您仅注册了一个角色却选择了双人选项, 已自动修正为单人")
-            player = [1]
+        player = self.check_player(title=title_text, player=player)
 
         self.model_start_print(text=title_text)
 
@@ -467,14 +457,7 @@ class ThreadTodo(QThread):
 
         title_text = "领取奖励"
 
-        # 默认值
-        if player is None:
-            player = [1, 2]
-        # 如果只有一个角色
-        if self.faa_dict[1].channel == self.faa_dict[2].channel:
-            if player == [1, 2]:
-                CUS_LOGGER.warning(f"{title_text} 您仅注册了一个角色却选择了双人选项, 已自动修正为单人")
-            player = [1]
+        player = self.check_player(title=title_text, player=player)
 
         if quests is None:
             quests = ["普通任务"]
@@ -547,15 +530,7 @@ class ThreadTodo(QThread):
 
         title_text = "使用绑定消耗品"
 
-        # 默认值
-        if player is None:
-            player = [1, 2]
-        # 如果只有一个角色
-        if self.faa_dict[1].channel == self.faa_dict[2].channel:
-            if player == [1, 2]:
-                CUS_LOGGER.warning(
-                    f"[{title_text}] [使用绑定消耗品] 您仅注册了一个角色却选择了双人选项, 已自动修正为单人")
-            player = [1]
+        player = self.check_player(title=title_text, player=player)
 
         self.model_start_print(text=title_text)
 
@@ -590,14 +565,7 @@ class ThreadTodo(QThread):
 
         title_text = "使用双爆卡"
 
-        # 默认值
-        if player is None:
-            player = [1, 2]
-        # 如果只有一个角色
-        if self.faa_dict[1].channel == self.faa_dict[2].channel:
-            if player == [1, 2]:
-                CUS_LOGGER.warning(f"{title_text} 您仅注册了一个角色却选择了双人选项, 已自动修正为单人")
-            player = [1]
+        player = self.check_player(title=title_text, player=player)
 
         self.model_start_print(text=title_text)
 
@@ -632,14 +600,7 @@ class ThreadTodo(QThread):
 
         title_text = "无限跨服刷威望"
 
-        # 默认值
-        if player is None:
-            player = [1, 2]
-        # 如果只有一个角色
-        if self.faa_dict[1].channel == self.faa_dict[2].channel:
-            if player == [1, 2]:
-                CUS_LOGGER.warning(f"{title_text} 您仅注册了一个角色却选择了双人选项, 已自动修正为单人")
-            player = [1]
+        player = self.check_player(title=title_text, player=player)
 
         self.model_start_print(text=title_text)
 
@@ -1755,6 +1716,13 @@ class ThreadTodo(QThread):
         """仅调用 n_battle的简易作战"""
         self.model_start_print(text=text_)
 
+        player = self.check_player(title="通用战斗", player=player)
+
+        if player == [1] and "MT-2-" in stage_id:
+            SIGNAL.PRINT_TO_UI.emit(text="[通用战斗] 单人无法进行魔塔双人战! 即将强制跳过本步骤!", color_level=1)
+            self.model_end_print(text=text_)
+            return
+
         quest_list = [
             {
                 "stage_id": stage_id,
@@ -1775,6 +1743,11 @@ class ThreadTodo(QThread):
                      global_plan_active, deck, battle_plan_1p, battle_plan_2p):
 
         self.model_start_print(text=text_)
+
+        if self.faa_dict[1].channel == self.faa_dict[2].channel:
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 仅有一位角色, 即将强制跳过本步骤!", color_level=1)
+            self.model_end_print(text=text_)
+            return
 
         SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 开始[多本轮战]...")
 
@@ -1804,21 +1777,26 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=text_)
 
-    def guild_or_spouse_quest(self, title_text, quest_mode,
+    def guild_or_spouse_quest(self, text_, quest_mode,
                               global_plan_active, deck, battle_plan_1p, battle_plan_2p, stage=False):
         """完成公会or情侣任务"""
 
-        self.model_start_print(text=title_text)
+        self.model_start_print(text=text_)
+
+        if self.faa_dict[1].channel == self.faa_dict[2].channel:
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 仅有一位角色, 即将强制跳过本步骤!", color_level=1)
+            self.model_end_print(text=text_)
+            return
 
         # 激活删除物品高危功能(可选) + 领取奖励一次
         if quest_mode == "公会任务":
-            self.batch_level_2_action(title_text=title_text, dark_crystal=False)
-        SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 检查领取奖励...")
+            self.batch_level_2_action(title_text=text_, dark_crystal=False)
+        SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 检查领取奖励...")
         self.faa_dict[1].receive_quest_rewards(mode=quest_mode)
         self.faa_dict[2].receive_quest_rewards(mode=quest_mode)
 
         # 获取任务
-        SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 获取任务列表...")
+        SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 获取任务列表...")
         quest_list_1 = self.faa_dict[1].match_quests(mode=quest_mode, qg_cs=stage)
         quest_list_2 = self.faa_dict[2].match_quests(mode=quest_mode, qg_cs=stage)
         quest_list = quest_list_1 + [i for i in quest_list_2 if i not in quest_list_1]
@@ -1850,16 +1828,20 @@ class ThreadTodo(QThread):
         quests = [quest_mode]
         if quest_mode == "公会任务":
             quests.append("普通任务")
-            self.batch_level_2_action(title_text=title_text, dark_crystal=False)
+            self.batch_level_2_action(title_text=text_, dark_crystal=False)
 
-        SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 检查领取奖励中...")
+        SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 检查领取奖励中...")
         self.batch_receive_all_quest_rewards(player=[1, 2], quests=quests)
 
-        self.model_end_print(text=title_text)
+        self.model_end_print(text=text_)
 
     def guild_dungeon(self, text_, global_plan_active, deck, battle_plan_1p, battle_plan_2p):
 
         self.model_start_print(text=text_)
+        if self.faa_dict[1].channel == self.faa_dict[2].channel:
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 仅有一位角色, 即将强制跳过本步骤!", color_level=1)
+            self.model_end_print(text=text_)
+            return
 
         SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 开始[多本轮战]...")
 
@@ -2537,7 +2519,7 @@ class ThreadTodo(QThread):
 
             if c_opt["quest_guild"]["active"]:
                 self.guild_or_spouse_quest(
-                    title_text="公会任务",
+                    text_="公会任务",
                     quest_mode="公会任务",
                     global_plan_active=c_opt["quest_guild"]["global_plan_active"],
                     deck=c_opt["quest_guild"]["deck"],
@@ -2555,7 +2537,7 @@ class ThreadTodo(QThread):
 
             if c_opt["quest_spouse"]["active"]:
                 self.guild_or_spouse_quest(
-                    title_text="情侣任务",
+                    text_="情侣任务",
                     quest_mode="情侣任务",
                     global_plan_active=c_opt["quest_guild"]["global_plan_active"],
                     deck=c_opt["quest_guild"]["deck"],
