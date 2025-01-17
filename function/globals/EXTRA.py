@@ -10,7 +10,7 @@ from function.scattered.ethical_core import ethical_core
 """
 
 # 版本号
-VERSION = "v2.1.0"
+VERSION = "v2.1.1"
 
 # 每秒点击次数
 CLICK_PER_SECOND = 120
