@@ -65,9 +65,6 @@ class QMWEditorOfTaskSequence(QMainWindow):
         初始化，完成界面布局，绑定信号与槽，初始化变量
         """
         super().__init__()
-        # 大小
-        self.setMaximumSize(1280, 5000)
-        self.setMinimumSize(1280, 600)
 
         # 主布局
         self.lay_main = QVBoxLayout()
@@ -122,6 +119,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
         # 设置窗口图标
         self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetTuo-192x.png"))
+
+        # 大小
+        self.setMaximumSize(1350, 5000)
+        self.setMinimumSize(1350, 600)
 
     def set_my_font(self, my_font):
         """用于继承字体, 而不需要多次读取"""
