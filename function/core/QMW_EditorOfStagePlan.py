@@ -74,7 +74,7 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.StageDeckBox.currentIndexChanged.connect(self.stage_state_changed)
         self.StageBattlePlanBox1P.currentIndexChanged.connect(self.stage_state_changed)
         self.StageBattlePlanBox2P.currentIndexChanged.connect(self.stage_state_changed)
-        self.senior_battle_check.stateChanged.connect(self.state_changed)
+        self.senior_battle_check.stateChanged.connect(self.stage_state_changed)
 
         # 加载全局方案到ui
         self.init_global_state_ui()
