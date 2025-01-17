@@ -81,6 +81,7 @@
                 "max_times_1": 1,
                 "max_times_2": 1,
                 "max_times_3": 1,
+                "max_times_4": 1,
                 "global_plan_active": false,
                 "deck": 1,
                 "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
@@ -244,6 +245,7 @@
                 "max_times_1": 1,
                 "max_times_2": 1,
                 "max_times_3": 1,
+                "max_times_4": 1,
                 "deck": 1,
                 "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
                 "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
@@ -406,6 +408,7 @@
                 "max_times_1": 1,
                 "max_times_2": 1,
                 "max_times_3": 1,
+                "max_times_4": 1,
                 "deck": 1,
                 "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
                 "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
@@ -568,6 +571,7 @@
                 "max_times_1": 1,
                 "max_times_2": 1,
                 "max_times_3": 1,
+                "max_times_4": 1,
                 "deck": 1,
                 "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
                 "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
@@ -1197,7 +1201,7 @@
         "end_exit_game": false,
         "misu_logistics_link": ""
     },
-    "accelerate":{
+    "accelerate": {
         "active": false,
         "value": 200,
         "start_up_active": true,
