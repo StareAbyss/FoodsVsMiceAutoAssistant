@@ -353,9 +353,14 @@ class Card:
                 if not kun_card.status_usable:
                     continue
 
-                # 防止多坤撞车
+                # 防止多坤撞车, 妈的智障, 变身期间完全无实体, 就只能靠这个设定来防一手
                 if kun_count >= 1:
-                    time.sleep(0.5)
+                    if self.queue:
+                        # 卡片本地是队列模式, 几乎不会撞车.
+                        time.sleep(0.5)
+                    else:
+                        # 并非队列模式, 必须等前一张卡完成变形再放下一章规避撞车问题.
+                        time.sleep(3.5)
 
                 # 坤-点击 选中卡片
                 kun_card.choice_card()
