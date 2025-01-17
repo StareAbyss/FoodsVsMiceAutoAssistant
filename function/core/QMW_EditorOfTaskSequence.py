@@ -118,7 +118,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
         设置界面样式
         """
         # 设置窗口标题
-        self.setWindowTitle('事项序列编辑器')
+        self.setWindowTitle('任务序列编辑器')
+
         # 设置窗口图标
         self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetTuo-192x.png"))
 
@@ -581,7 +582,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             QMessageBox.critical(
                 self,
                 "警告!!!",
-                f"该<事项序列>不符合协议! 读取失败! 可能原因如下:\n"
+                f"该<任务序列>不符合协议! 读取失败! 可能原因如下:\n"
                 f"1. 您使用文本编辑器魔改后, 格式不符合协议.\n"
                 f"2. 该序列的版本过低, 无法兼容解析.\n"
             )
@@ -592,8 +593,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
             QMessageBox.critical(
                 self,
                 "警告!!!",
-                f"该<事项序列>的部分战斗方案uuid, 无法在您本地的战斗方案中找到对应目标.\n"
-                f"已设定为默认值, 请手动添加该<事项序列>需要的战斗方案, 或手动修改")
+                f"该<任务序列>的部分战斗方案uuid, 无法在您本地的战斗方案中找到对应目标.\n"
+                f"已设定为默认值, 请手动添加该<任务序列>需要的战斗方案, 或手动修改")
 
     def ui_to_list(self):
         """获取UI上的数据, 生成list"""
@@ -708,7 +709,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
         file_name, _ = QFileDialog.getOpenFileName(
             parent=self,
-            caption="加载<事项序列>.json",
+            caption="加载<任务序列>.json",
             directory=PATHS["task_sequence"],
             filter="JSON Files (*.json)")
 
@@ -721,7 +722,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 QMessageBox.critical(
                     self,
                     "Json格式错误!",
-                    f"读取<事项序列>失败! \n"
+                    f"读取<任务序列>失败! \n"
                     f"这是由于您使用文本编辑器魔改后,格式不符合Json规范导致\n"
                     f"错误信息: {str(e)}")
 
@@ -743,7 +744,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
         file_name, _ = QFileDialog.getSaveFileName(
             parent=self,
-            caption="保存事项序列.json",
+            caption="保存任务序列.json",
             directory=PATHS["task_sequence"],
             filter="JSON Files (*.json)")
         if file_name:
@@ -753,12 +754,12 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     QMessageBox.information(
                         self,
                         "成功!",
-                        "<事项序列> 已保存成功~")
+                        "<任务序列> 已保存成功~")
             except Exception as e:
                 QMessageBox.critical(
                     self,
                     "错误!",
-                    f"保存<事项序列>失败\n请联系开发者!!!\n错误信息: {str(e)}")
+                    f"保存<任务序列>失败\n请联系开发者!!!\n错误信息: {str(e)}")
 
 
 if __name__ == '__main__':

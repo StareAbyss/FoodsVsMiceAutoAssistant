@@ -502,7 +502,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     if smaller_waves:
                         max_smaller_wave = str(max(smaller_waves))
                         wave_data[str(wave)] = copy.deepcopy(wave_data[max_smaller_wave])
-                        CUS_LOGGER.debug(f"[战斗方案编辑器] [加载方案] 波次: {wave}, 已从波次{max_smaller_wave}完成继承")
+                        CUS_LOGGER.debug(
+                            f"[战斗方案编辑器] [加载方案] 波次: {wave}, 已从波次{max_smaller_wave}完成继承")
                         continue
                     else:
                         # 如果没有更小的波次方案，则使用默认方案
@@ -1023,8 +1024,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
             if not uuid in ["00000000-0000-0000-0000-000000000000", "00000000-0000-0000-0000-000000000001"]:
                 return True
 
-            text = ("FAA部分功能(美食大赛/公会任务)依赖这两份默认方案(1卡组-通用-1P & 1卡组-通用-2P)运行.\n"
-                    "你确定要保存并修改他们吗! 这可能导致相关功能出现错误!")
+            text = (
+                "FAA部分功能(美食大赛/公会任务)依赖这两份默认方案(1卡组-通用-1P & 1卡组-通用-2P)运行.\n"
+                "你确定要保存并修改他们吗! 这可能导致相关功能出现错误!"
+            )
             response = QMessageBox.question(
                 self,
                 "高危操作！",
