@@ -224,7 +224,8 @@ class FAA:
         self.ban_card_list = ban_card_list
         self.max_card_num = max_card_num
 
-        self.battle_plan = g_resources.RESOURCE_B[battle_plan_uuid]
+        # 如果缺失, 外部的检测函数会拦下来不继续的
+        self.battle_plan = g_resources.RESOURCE_B.get(battle_plan_uuid, None)
 
         self.stage_info = read_json_to_stage_info(stage_id)
 
