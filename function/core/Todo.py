@@ -712,7 +712,8 @@ class ThreadTodo(QThread):
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["common"]["战斗"]["战斗前_接受邀请.png"],
                 after_sleep=2.0,
-                match_failed_check=2.0
+                match_failed_check=2.0,
+                click=True,
             )
 
             if not find:
