@@ -1090,13 +1090,12 @@ class QMWEditorOfBattlePlan(QMainWindow):
             with open(file=new_file_path, mode='w', encoding='utf-8') as file:
                 json.dump(self.json_data, file, ensure_ascii=False, indent=4)
 
-        # 如果是另存为文件 打开新建 or 覆盖掉的文件
-        if is_save_as:
-            self.load_json(file_path=new_file_path)
+        # 打开新建 or 覆盖掉的文件
+        self.load_json(file_path=new_file_path)
 
-            self.re_init_battle_plan_opened()
+        self.re_init_battle_plan_opened()
 
-            self.ButtonSave.setEnabled(True)
+        self.ButtonSave.setEnabled(True)
 
     """打开战斗方案"""
 
