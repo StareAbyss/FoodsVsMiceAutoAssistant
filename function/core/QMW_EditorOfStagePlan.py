@@ -21,8 +21,11 @@ class QMWEditorOfStagePlan(QMainWindow):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+
         # 读取ui
         uic.loadUi(PATHS["root"] + '\\resource\\ui\\StagePlanEditor.ui', self)
+
+        self.setWindowTitle('全局方案 & 关卡方案 编辑器')
 
         # 初始化战斗方案变量
         self.battle_plan_uuid_list = None
@@ -34,7 +37,8 @@ class QMWEditorOfStagePlan(QMainWindow):
         # 获取stage_info
         with open(file=PATHS["config"] + "//stage_info.json", mode="r", encoding="UTF-8") as file:
             self.stage_info = json.load(file)
-        # 获取stage_plan
+
+        # 获取stage_plan文件中的信息
         self.stage_plan_path = PATHS["config"] + "//stage_plan.json"
         try:
             with open(file=self.stage_plan_path, mode="r", encoding="UTF-8") as file:
@@ -42,28 +46,39 @@ class QMWEditorOfStagePlan(QMainWindow):
         except FileNotFoundError:
             self.stage_plan = {}
 
-        # 初始化当前选择变量与选择后方法
+        # 如果老版本方案中不包含全局方案, 添加
+        if not self.stage_plan.get("global", None):
+            self.stage_plan["global"] = {
+                "skip": False,
+                "deck": 0,
+                "battle_plan": [
+                    "00000000-0000-0000-0000-000000000000",
+                    "00000000-0000-0000-0000-000000000001"]
+            }
+
+        print(self.stage_plan)
+
+        # 初始化当前选择关卡变量与选择后方法
         self.current_stage = None
-        self.stage_selector.on_selected.connect(self.stage_changed)
+        self.stage_selector.on_selected.connect(self.stage_selector_changed)
         self.init_stage_selector()
 
-        # 将所有控件的状态变更信号连接上变更函数
-        self.skip_check.stateChanged.connect(self.state_changed)
-        self.deck_box.currentIndexChanged.connect(self.state_changed)
-        self.battle_plan_box_1P.currentIndexChanged.connect(self.state_changed)
-        self.battle_plan_box_2P.currentIndexChanged.connect(self.state_changed)
+        # 将 全局方案 状态变更信号连接上变更函数
+        self.GlobalDeckBox.currentIndexChanged.connect(self.global_state_changed)
+        self.GlobalBattlePlanBox1P.currentIndexChanged.connect(self.global_state_changed)
+        self.GlobalBattlePlanBox2P.currentIndexChanged.connect(self.global_state_changed)
 
-        # 默认值, 读取为空显示默认值, 保存为默认值去掉对应值
-        self.default_set = {
-            "skip": False,
-            "deck": 0,
-            "battle_plan": [
-                "00000000-0000-0000-0000-000000000000",
-                "00000000-0000-0000-0000-000000000001"]
-        }
+        # 将 所有控件 的状态变更信号连接上变更函数
+        self.StageSkipCheck.stateChanged.connect(self.stage_state_changed)
+        self.StageDeckBox.currentIndexChanged.connect(self.stage_state_changed)
+        self.StageBattlePlanBox1P.currentIndexChanged.connect(self.stage_state_changed)
+        self.StageBattlePlanBox2P.currentIndexChanged.connect(self.stage_state_changed)
 
-        # 将所有input控件设为不可用
-        self.set_input_widget_usable(state=False)
+        # 加载全局方案到ui
+        self.init_global_state_ui()
+
+        # 将所有stage input控件设为不可用
+        self.set_stage_input_widget_usable(state=False)
 
     def init_stage_selector(self):
         """
@@ -101,36 +116,39 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.battle_plan_name_list = get_list_battle_plan(with_extension=False)
         self.battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
         for index in self.battle_plan_name_list:
-            self.battle_plan_box_1P.addItem(index)
-            self.battle_plan_box_2P.addItem(index)
+            self.GlobalBattlePlanBox1P.addItem(index)
+            self.GlobalBattlePlanBox2P.addItem(index)
+            self.StageBattlePlanBox1P.addItem(index)
+            self.StageBattlePlanBox2P.addItem(index)
 
     def refresh_battle_plan_selector(self):
         """
-        刷新战斗方案选择框，确保读取了当前的战斗方案
+        刷新战斗方案选择框，保持指向的战斗方案不变, 并读取最新的战斗方案们.
         """
         fresh_and_check_all_battle_plan()
         self.battle_plan_name_list = get_list_battle_plan(with_extension=False)
         self.battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
-        # 存储当前的索引
-        current_index_1P = self.battle_plan_box_1P.currentIndex()
-        current_index_2P = self.battle_plan_box_2P.currentIndex()
-        # 暂时屏蔽控件信号
-        self.battle_plan_box_1P.blockSignals(True)
-        self.battle_plan_box_2P.blockSignals(True)
-        # 清空选择框列表
-        self.battle_plan_box_1P.clear()
-        self.battle_plan_box_2P.clear()
-        for index in self.battle_plan_name_list:
-            self.battle_plan_box_1P.addItem(index)
-            self.battle_plan_box_2P.addItem(index)
-        # 恢复当前索引
-        self.battle_plan_box_1P.setCurrentIndex(current_index_1P)
-        self.battle_plan_box_2P.setCurrentIndex(current_index_2P)
-        # 恢复控件信号
-        self.battle_plan_box_1P.blockSignals(False)
-        self.battle_plan_box_2P.blockSignals(False)
 
-    def stage_changed(self, text, stage):
+        def change_one(widget):
+            # 存储当前的索引
+            current_index = widget.currentIndex()
+            # 暂时屏蔽控件信号
+            widget.blockSignals(True)
+            # 清空选择框列表
+            widget.clear()
+            for index in self.battle_plan_name_list:
+                widget.addItem(index)
+            # 恢复当前索引
+            widget.setCurrentIndex(current_index)
+            # 恢复控件信号
+            widget.blockSignals(False)
+
+        change_one(widget=self.GlobalBattlePlanBox1P)
+        change_one(widget=self.GlobalBattlePlanBox1P)
+        change_one(widget=self.StageBattlePlanBox1P)
+        change_one(widget=self.StageBattlePlanBox2P)
+
+    def stage_selector_changed(self, text, stage):
         """
         关卡选择改变，更新UI
         :param text: 显示在菜单中的文本
@@ -139,90 +157,180 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.current_stage = stage
 
         # 如果当前关卡没有配置，则拷贝自默认配置
-        if stage not in self.stage_plan.keys():
-            self.stage_plan[stage] = copy.deepcopy(self.default_set)
+        if stage in self.stage_plan.keys():
+            self.label_10.setText("编辑关卡方案")
+        else:
+            self.label_10.setText("编辑关卡方案 (同步中, 修改全局方案将单向映射至关卡方案)")
+            self.stage_plan[stage] = copy.deepcopy(self.stage_plan["global"])
 
-        self.init_state_ui()
+        self.init_stage_state_ui()
 
         # 解锁 允许交互
-        self.set_input_widget_usable(state=True)
+        self.set_stage_input_widget_usable(state=True)
 
-    def state_changed(self):
+    def global_state_changed(self):
         """
-        状态改变处理器，实时更新并保存
+        全局关卡方案的状态改变处理器，实时更新并保存
+        1. 先修改全局
         """
+
+        if self.current_stage:
+            if self.stage_plan["global"] == self.stage_plan[self.current_stage]:
+                self.label_10.setText("编辑关卡方案 (同步中, 修改全局方案将单向映射至关卡方案)")
+                synchronization = True
+            else:
+                self.label_10.setText("编辑关卡方案")
+                synchronization = False
+        else:
+            synchronization = False
+
         sender = self.sender()
         object_name = sender.objectName()
+
         match object_name:
-            case "skip_check":
-                self.stage_plan[self.current_stage]["skip"] = sender.isChecked()
-            case "deck_box":
-                self.stage_plan[self.current_stage]["deck"] = int(sender.currentIndex())
-            case "battle_plan_box_1P":
-                self.stage_plan[self.current_stage]["battle_plan"][0] = self.battle_plan_uuid_list[
-                    self.battle_plan_box_1P.currentIndex()]
-            case "battle_plan_box_2P":
-                self.stage_plan[self.current_stage]["battle_plan"][1] = self.battle_plan_uuid_list[
-                    self.battle_plan_box_2P.currentIndex()]
+            case "GlobalDeckBox":
+                value = int(sender.currentIndex())
+                self.stage_plan["global"]["deck"] = value
+                if synchronization:
+                    self.stage_plan[self.current_stage]["deck"] = value
+                    self.StageDeckBox.setCurrentIndex(value)
+
+            case "GlobalBattlePlanBox1P":
+                index = self.GlobalBattlePlanBox1P.currentIndex()
+                uuid = self.battle_plan_uuid_list[index]
+                self.stage_plan["global"]["battle_plan"][0] = uuid
+                if synchronization:
+                    self.stage_plan[self.current_stage]["battle_plan"][0] = uuid
+                    self.StageBattlePlanBox1P.setCurrentIndex(index)
+
+            case "GlobalBattlePlanBox2P":
+                index = self.GlobalBattlePlanBox2P.currentIndex()
+                uuid = self.battle_plan_uuid_list[index]
+                self.stage_plan["global"]["battle_plan"][1] = uuid
+                if synchronization:
+                    self.stage_plan[self.current_stage]["battle_plan"][1] = uuid
+                    self.StageBattlePlanBox2P.setCurrentIndex(index)
+
         # 刷新战斗方案选择框
         self.refresh_battle_plan_selector()
-        # 去除和default相同的配置
-        self.remove_same_as_default()
+
         # 实时存储
         self.save_stage_plan()
 
-    def init_state_ui(self):
+    def stage_state_changed(self):
+        """
+        状态改变处理器，实时更新并保存
+        """
+
+        sender = self.sender()
+        object_name = sender.objectName()
+        match object_name:
+            case "StageSkipCheck":
+                self.stage_plan[self.current_stage]["skip"] = sender.isChecked()
+            case "StageDeckBox":
+                self.stage_plan[self.current_stage]["deck"] = int(sender.currentIndex())
+            case "StageBattlePlanBox1P":
+                self.stage_plan[self.current_stage]["battle_plan"][0] = self.battle_plan_uuid_list[
+                    self.StageBattlePlanBox1P.currentIndex()]
+            case "StageBattlePlanBox2P":
+                self.stage_plan[self.current_stage]["battle_plan"][1] = self.battle_plan_uuid_list[
+                    self.StageBattlePlanBox2P.currentIndex()]
+
+        if self.stage_plan.get(self.current_stage, None):
+            if self.stage_plan["global"] == self.stage_plan[self.current_stage]:
+                self.label_10.setText("编辑关卡方案 (同步中, 修改全局方案将单向映射至关卡方案)")
+            else:
+                self.label_10.setText("编辑关卡方案")
+
+        # 刷新战斗方案选择框
+        self.refresh_battle_plan_selector()
+
+        # 实时存储
+        self.save_stage_plan()
+
+    def init_stage_state_ui(self):
         """
         根据当前所选关卡，初始化ui
         """
         # 屏蔽所有状态改变信号
-        self.skip_check.blockSignals(True)
-        self.deck_box.blockSignals(True)
-        self.battle_plan_box_1P.blockSignals(True)
-        self.battle_plan_box_2P.blockSignals(True)
+        self.StageSkipCheck.blockSignals(True)
+        self.StageDeckBox.blockSignals(True)
+        self.StageBattlePlanBox1P.blockSignals(True)
+        self.StageBattlePlanBox2P.blockSignals(True)
+
         # 更新状态
-        self.skip_check.setChecked(self.stage_plan[self.current_stage]["skip"])
-        self.deck_box.setCurrentIndex(self.stage_plan[self.current_stage]["deck"])
-        # 尝试获取当前任务的战斗方案
+
+        self.StageSkipCheck.setChecked(self.stage_plan[self.current_stage]["skip"])
+
+        self.StageDeckBox.setCurrentIndex(self.stage_plan[self.current_stage]["deck"])
+
         try:
             index = self.battle_plan_uuid_list.index(self.stage_plan[self.current_stage]["battle_plan"][0])
         except ValueError:
             index = 0
-        self.battle_plan_box_1P.setCurrentIndex(index)
+        self.StageBattlePlanBox1P.setCurrentIndex(index)
+
         try:
             index = self.battle_plan_uuid_list.index(self.stage_plan[self.current_stage]["battle_plan"][1])
         except ValueError:
             index = 0
-        self.battle_plan_box_2P.setCurrentIndex(index)
+        self.StageBattlePlanBox2P.setCurrentIndex(index)
+
         # 恢复信号
-        self.skip_check.blockSignals(False)
-        self.deck_box.blockSignals(False)
-        self.battle_plan_box_1P.blockSignals(False)
-        self.battle_plan_box_2P.blockSignals(False)
+        self.StageSkipCheck.blockSignals(False)
+        self.StageDeckBox.blockSignals(False)
+        self.StageBattlePlanBox1P.blockSignals(False)
+        self.StageBattlePlanBox2P.blockSignals(False)
 
-    def remove_same_as_default(self):
+    def init_global_state_ui(self):
         """
-        去除和default相同的配置 不保存
+        根据当前所选关卡，初始化ui
         """
-        # 收集需要删除的键
-        keys_to_remove = [k for k, v in self.stage_plan.items() if v == self.default_set]
+        # 屏蔽所有状态改变信号
+        self.GlobalDeckBox.blockSignals(True)
+        self.GlobalBattlePlanBox1P.blockSignals(True)
+        self.GlobalBattlePlanBox2P.blockSignals(True)
 
-        # 删除收集到的键
-        for k in keys_to_remove:
-            self.stage_plan.pop(k)
+        self.GlobalDeckBox.setCurrentIndex(self.stage_plan["global"]["deck"])
+
+        try:
+            index = self.battle_plan_uuid_list.index(self.stage_plan["global"]["battle_plan"][0])
+        except ValueError:
+            index = 0
+        self.GlobalBattlePlanBox1P.setCurrentIndex(index)
+
+        try:
+            index = self.battle_plan_uuid_list.index(self.stage_plan["global"]["battle_plan"][1])
+        except ValueError:
+            index = 0
+        self.GlobalBattlePlanBox2P.setCurrentIndex(index)
+
+        # 恢复信号
+        self.GlobalDeckBox.blockSignals(False)
+        self.GlobalBattlePlanBox1P.blockSignals(False)
+        self.GlobalBattlePlanBox2P.blockSignals(False)
 
     def save_stage_plan(self):
         """
         保存当前编辑的关卡方案
         """
-        with open(self.stage_plan_path, 'w', encoding='utf-8') as f:
-            json.dump(self.stage_plan, f, ensure_ascii=False, indent=4)
 
-    def set_input_widget_usable(self, state):
+        stage_plan = copy.deepcopy(self.stage_plan)
+        # 收集需要删除的键，跳过键 'global'
+        keys_to_remove = [k for k, v in stage_plan.items() if v == stage_plan["global"] and k != "global"]
+
+        # 删除收集到的键
+        for k in keys_to_remove:
+            stage_plan.pop(k)
+
+        with open(self.stage_plan_path, 'w', encoding='utf-8') as f:
+            json.dump(stage_plan, f, ensure_ascii=False, indent=4)
+
+    def set_stage_input_widget_usable(self, state):
         """
         更改输入的状态, 使之可用和不可用
         """
-        self.skip_check.setEnabled(state)
-        self.deck_box.setEnabled(state)
-        self.battle_plan_box_1P.setEnabled(state)
-        self.battle_plan_box_2P.setEnabled(state)
+        self.StageSkipCheck.setEnabled(state)
+        self.StageDeckBox.setEnabled(state)
+        self.StageBattlePlanBox1P.setEnabled(state)
+        self.StageBattlePlanBox2P.setEnabled(state)
