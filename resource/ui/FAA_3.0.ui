@@ -4708,31 +4708,6 @@ Link Start</string>
                </property>
               </widget>
              </item>
-             <item row="9" column="3">
-              <widget class="QLabel" name="OfferReward_Stage">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>50</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>2000</width>
-                 <height>50</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>OR-0-N</string>
-               </property>
-              </widget>
-             </item>
              <item row="9" column="4">
               <widget class="Line" name="line_96">
                <property name="sizePolicy">
@@ -5737,9 +5712,9 @@ Link Start</string>
               </widget>
              </item>
              <item row="9" column="2">
-              <layout class="QHBoxLayout" name="Lay_OfferReward_MaxTimes">
+              <layout class="QHBoxLayout" name="Lay_OfferReward_MaxTimes" stretch="2,2">
                <property name="spacing">
-                <number>0</number>
+                <number>5</number>
                </property>
                <item>
                 <widget class="QLineEdit" name="OfferReward_MaxTimes_1">
@@ -5757,7 +5732,7 @@ Link Start</string>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>30</width>
+                   <width>50</width>
                    <height>16777215</height>
                   </size>
                  </property>
@@ -5776,26 +5751,7 @@ Link Start</string>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>30</width>
-                   <height>16777215</height>
-                  </size>
-                 </property>
-                 <property name="maxLength">
-                  <number>1</number>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLineEdit" name="OfferReward_MaxTimes_3">
-                 <property name="minimumSize">
-                  <size>
-                   <width>30</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>30</width>
+                   <width>50</width>
                    <height>16777215</height>
                   </size>
                  </property>
@@ -8963,6 +8919,51 @@ Link Start</string>
                 <number>7</number>
                </property>
               </widget>
+             </item>
+             <item row="9" column="3">
+              <layout class="QHBoxLayout" name="Lay_OfferReward_MaxTimes_2" stretch="2,2">
+               <property name="spacing">
+                <number>5</number>
+               </property>
+               <item>
+                <widget class="QLineEdit" name="OfferReward_MaxTimes_3">
+                 <property name="minimumSize">
+                  <size>
+                   <width>30</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>50</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="maxLength">
+                  <number>1</number>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="OfferReward_MaxTimes_4">
+                 <property name="minimumSize">
+                  <size>
+                   <width>30</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>50</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="maxLength">
+                  <number>1</number>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
             </layout>
            </item>
