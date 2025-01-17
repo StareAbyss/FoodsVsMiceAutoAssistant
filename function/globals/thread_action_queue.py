@@ -112,6 +112,7 @@ class ThreadActionQueueTimer(QThread):
     def stop(self):
         self.action_queue.queue.clear()
         self.quit()
+        self.wait()
 
     def print_queue(self):
         """线程不安全的方式查看队列内容"""

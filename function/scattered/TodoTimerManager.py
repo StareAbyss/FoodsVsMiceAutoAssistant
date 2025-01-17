@@ -42,7 +42,7 @@ class TodoTimerManager:
         m = tar_time["m"]
         delta_seconds = calculate_sec_to_next_time(next_hour=h, next_minute=m)
         CUS_LOGGER.debug(
-            f"即将创建timer, 下次启动时间{h:02d}:{m:02d}, 即 {delta_seconds} 秒后, 计划索引为 {plan_index}")
+            f"[定时启动] 即将创建Timer, 下次启动时间{h:02d}:{m:02d}, 即 {delta_seconds} 秒后, 计划索引为 {plan_index}")
         timer = Timer(
             interval=delta_seconds,
             function=self.call_back,

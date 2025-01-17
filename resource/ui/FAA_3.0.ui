@@ -12291,7 +12291,7 @@ FAA放卡核心原理简述:
                <item>
                 <widget class="QCheckBox" name="close360">
                  <property name="text">
-                  <string>完成所有事项后, 关闭360游戏大厅</string>
+                  <string>完成所有任务后, 关闭360游戏大厅</string>
                  </property>
                 </widget>
                </item>
@@ -12325,7 +12325,7 @@ FAA放卡核心原理简述:
                   <bool>false</bool>
                  </property>
                  <property name="text">
-                  <string>完成所有事项后, 返回登录页</string>
+                  <string>完成所有任务后, 返回登录页</string>
                  </property>
                  <property name="checkable">
                   <bool>true</bool>

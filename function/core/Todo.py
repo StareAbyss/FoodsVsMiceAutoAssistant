@@ -267,6 +267,8 @@ class ThreadTodo(QThread):
             player = [1, 2]
         # 如果只有一个角色
         if self.faa_dict[1].channel == self.faa_dict[2].channel:
+            if player == [1, 2]:
+                CUS_LOGGER.warning(f"[刷新游戏] 您仅注册了一个角色却选择了双人选项, 已自动修正为单人")
             player = [1]
 
         SIGNAL.PRINT_TO_UI.emit("Refresh Game...", color_level=1)
@@ -342,14 +344,17 @@ class ThreadTodo(QThread):
     def batch_sign_in(self, player: list = None):
         """批量完成日常功能"""
 
+        title_text = "每日签到"
+
         # 默认值
         if player is None:
             player = [1, 2]
         # 如果只有一个角色
         if self.faa_dict[1].channel == self.faa_dict[2].channel:
+            if player == [1, 2]:
+                CUS_LOGGER.warning(f"{title_text} 您仅注册了一个角色却选择了双人选项, 已自动修正为单人")
             player = [1]
 
-        title_text = "每日签到"
         self.model_start_print(text=title_text)
 
         """激活删除物品高危功能(可选) + 领取奖励一次"""
@@ -430,14 +435,17 @@ class ThreadTodo(QThread):
 
     def batch_fed_and_watered(self, player: list = None):
 
+        title_text = "浇水 施肥 摘果"
+
         # 默认值
         if player is None:
             player = [1, 2]
         # 如果只有一个角色
         if self.faa_dict[1].channel == self.faa_dict[2].channel:
+            if player == [1, 2]:
+                CUS_LOGGER.warning(f"{title_text} 您仅注册了一个角色却选择了双人选项, 已自动修正为单人")
             player = [1]
 
-        title_text = "浇水 施肥 摘果"
         self.model_start_print(text=title_text)
 
         for pid in player:
@@ -457,17 +465,19 @@ class ThreadTodo(QThread):
         :return:
         """
 
+        title_text = "领取奖励"
+
         # 默认值
         if player is None:
             player = [1, 2]
         # 如果只有一个角色
         if self.faa_dict[1].channel == self.faa_dict[2].channel:
+            if player == [1, 2]:
+                CUS_LOGGER.warning(f"{title_text} 您仅注册了一个角色却选择了双人选项, 已自动修正为单人")
             player = [1]
 
         if quests is None:
             quests = ["普通任务"]
-
-        title_text = "领取奖励"
 
         self.model_start_print(text=title_text)
 
@@ -535,14 +545,18 @@ class ThreadTodo(QThread):
 
     def batch_use_items_consumables(self, player: list = None):
 
+        title_text = "使用绑定消耗品"
+
         # 默认值
         if player is None:
             player = [1, 2]
         # 如果只有一个角色
         if self.faa_dict[1].channel == self.faa_dict[2].channel:
+            if player == [1, 2]:
+                CUS_LOGGER.warning(
+                    f"[{title_text}] [使用绑定消耗品] 您仅注册了一个角色却选择了双人选项, 已自动修正为单人")
             player = [1]
 
-        title_text = "使用绑定消耗品"
         self.model_start_print(text=title_text)
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
@@ -574,14 +588,17 @@ class ThreadTodo(QThread):
 
     def batch_use_items_double_card(self, player: list = None, max_times: int = 1):
 
+        title_text = "使用双爆卡"
+
         # 默认值
         if player is None:
             player = [1, 2]
         # 如果只有一个角色
         if self.faa_dict[1].channel == self.faa_dict[2].channel:
+            if player == [1, 2]:
+                CUS_LOGGER.warning(f"{title_text} 您仅注册了一个角色却选择了双人选项, 已自动修正为单人")
             player = [1]
 
-        title_text = "使用双爆卡"
         self.model_start_print(text=title_text)
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
@@ -613,14 +630,17 @@ class ThreadTodo(QThread):
 
     def batch_loop_cross_server(self, player: list = None, deck: int = 1):
 
+        title_text = "无限跨服刷威望"
+
         # 默认值
         if player is None:
             player = [1, 2]
         # 如果只有一个角色
         if self.faa_dict[1].channel == self.faa_dict[2].channel:
+            if player == [1, 2]:
+                CUS_LOGGER.warning(f"{title_text} 您仅注册了一个角色却选择了双人选项, 已自动修正为单人")
             player = [1]
 
-        title_text = "无限跨服刷威望"
         self.model_start_print(text=title_text)
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
