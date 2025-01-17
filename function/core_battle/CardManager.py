@@ -750,9 +750,9 @@ class ThreadTimePutCardTimer(QThread):
                     back_shovel_timer.start()
 
         # 波次定时宝石使用检测
-        if "gemstone" in self.timer_plan.keys():
-            if str(wave) in self.timer_plan["gemstone"]["wave"].keys():
-                for wave_plan_gem in self.timer_plan["gemstone"]["wave"][str(wave)]:
+        if "gem" in self.timer_plan.keys():
+            if str(wave) in self.timer_plan["gem"]["wave"].keys():
+                for wave_plan_gem in self.timer_plan["gem"]["wave"][str(wave)]:
                     g_time=wave_plan_gem["time"]
                     if wave==0:
                         g_time=max(0,g_time-time_change)
