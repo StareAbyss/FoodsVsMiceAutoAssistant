@@ -1,0 +1,60 @@
+{
+    "tips": "这个是定时放卡范例，第零波15秒后于1-2放置花火龙，20秒后于1-4放置海星",
+    "player": [],
+    "card": {
+        "default": [
+            {
+                "id": 1,
+                "name": "海星",
+                "ergodic": true,
+                "queue": true,
+                "location": [
+                ]
+            },
+            {
+                "id": 2,
+                "name": "花火龙",
+                "ergodic": true,
+                "queue": true,
+                "location": [
+                ]
+            }
+        ],
+        "wave": {},
+        "timer_plan": {"wave": {
+            "0": [
+                {
+                    "cid": 2,
+                    "location": "1-2",
+                    "time": 15,
+                    "front_shovel": "True",
+                    "back_shovel": "False",
+                    "back_shovel_time": 2
+
+                },{
+                    "cid": 1,
+                    "location": "1-4",
+                    "time": 20,
+                    "front_shovel": "True",
+                    "back_shovel": "True",
+                    "back_shovel_time": 2
+
+                }
+            ],
+            "2": []
+        },
+            "gemtone": {
+                "wave": {
+            "0": [
+                {
+                    "gid": 1,
+                    "time": 1.5
+                }
+            ],
+            "2": []
+            }
+        }
+    }
+    },
+    "uuid": "e5ca497c-8e2f-11ef-b477-f4c88a4ed540"
+}

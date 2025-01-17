@@ -883,6 +883,8 @@ class ThreadTodo(QThread):
                 result_id = max(result_id, self.thread_2p.get_return_value())
 
         CUS_LOGGER.debug("开始战斗 已完成")
+        # 记录准确开始时间
+        start_time = time.time()
 
         """根据设定, 进行加速"""
         if result_id == 0:
@@ -969,7 +971,8 @@ class ThreadTodo(QThread):
                 faa_b=self.faa_dict[player_b],
                 solve_queue=queue_todo,
                 check_interval=self.battle_check_interval,
-                senior_interval=self.opt["senior_settings"]["interval"]
+                senior_interval=self.opt["senior_settings"]["interval"],
+                start_time=start_time
             )
 
             self.thread_card_manager.start()

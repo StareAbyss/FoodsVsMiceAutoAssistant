@@ -1099,7 +1099,7 @@ class FAA:
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 2000],
                 template=RESOURCE_P["common"]["登录"]["1_我最近玩过的服务器_4399.png"],
-                match_tolerance=0.98
+                match_tolerance=0.95
             )
             if my_result:
                 # 点击进入服务器

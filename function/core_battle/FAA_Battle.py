@@ -265,12 +265,13 @@ class Battle:
         """使用武器技能"""
         # 注意上锁, 防止和放卡冲突
         with self.faa.battle_lock:
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=200)
-            time.sleep(self.click_sleep)
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=250)
-            time.sleep(self.click_sleep)
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=297)
-            time.sleep(self.click_sleep)
+            if "gemstone" not in self.faa.battle_plan["card"]["timer_plan"]:
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=200)
+                time.sleep(self.click_sleep)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=250)
+                time.sleep(self.click_sleep)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=297)
+                time.sleep(self.click_sleep)
 
     def auto_pickup(self):
         if not self.faa.is_auto_pickup:
