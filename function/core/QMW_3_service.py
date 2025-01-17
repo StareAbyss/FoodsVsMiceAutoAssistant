@@ -477,6 +477,8 @@ class QMainWindowService(QMainWindowLoadSettings):
             opt=self.opt,
             running_todo_plan_index=running_todo_plan_index,
             todo_id=1)
+
+        # 多线程作战时的第二线程
         self.thread_todo_2 = ThreadTodo(
             faa_dict=faa_dict,
             opt=self.opt,
@@ -502,16 +504,23 @@ class QMainWindowService(QMainWindowLoadSettings):
         """
 
         """线程处理"""
+        SIGNAL.PRINT_TO_UI.emit("[任务序列] 开始关闭全部任务执行线程", color_level=1)
+
         self.is_ending = True  # 终止操作正在进行中 放用户疯狂操作
 
         if self.thread_todo_1 is not None:
+            CUS_LOGGER.debug("[任务序列] todo 主线程 - 中止流程 - 开始")
             self.thread_todo_1.stop()
+            CUS_LOGGER.debug("[任务序列] todo 主线程 - 中止流程 - 结束")
 
         if self.thread_todo_2 is not None:
+            CUS_LOGGER.debug("[任务序列] todo 副线程 - 中止流程 - 开始")
             self.thread_todo_2.stop()
+            CUS_LOGGER.debug("[任务序列] todo 副线程 - 中止流程 - 结束")
 
-        # 中止[动作处理线程]
+        CUS_LOGGER.debug("[任务序列] 动作处理线程 - 中止流程 - 开始")
         T_ACTION_QUEUE_TIMER.stop()
+        CUS_LOGGER.debug("[任务序列] 动作处理线程 - 中止流程 - 结束")
 
         """UI处理"""
         # 设置flag
@@ -524,6 +533,16 @@ class QMainWindowService(QMainWindowLoadSettings):
         SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top", color_level=2)
         # 当前正在运行 的 文本 修改
         self.Label_RunningState.setText(f"任务序列线程状态: 未运行")
+
+        # 调试打印 确定所有内部线程的状态 是否还是运行激活状态
+        q_threads = {
+            "todo主线程": self.thread_todo_1,
+            "todo副线程": self.thread_todo_2,
+            "窗口动作处理线程": T_ACTION_QUEUE_TIMER,
+        }
+        CUS_LOGGER.debug(f"[任务序列] 结束后线程状态检查")
+        for q_thread_name, q_thread_obj in q_threads.items():
+            CUS_LOGGER.debug(f"[任务序列] {q_thread_name} 正在运行: {q_thread_obj.isRunning()}")
 
         self.is_ending = False  # 完成完整的线程结束
 

@@ -71,27 +71,33 @@ class ThreadTodo(QThread):
 
     def stop(self):
 
-        # # Q thread 线程 stop方法需要自己手写
+        # Q thread 线程 stop方法需要自己手写
         # python 默认线程 可用stop线程
 
         if self.thread_1p is not None:
             self.thread_1p.stop()
+            self.thread_1p.join()  # <- 执念: 罪魁祸首在此 深渊: 并没有问题!
+            self.msleep(10)
             self.thread_1p = None  # 清除调用
-            # thread.join()  # <-罪魁祸首在此
 
         if self.thread_2p is not None:
+            # 改造后的 py thread, 通过终止
             self.thread_2p.stop()
+            self.thread_2p.join()  # <- 执念: 罪魁祸首在此 深渊: 并没有问题!
+            self.msleep(10)
             self.thread_2p = None  # 清除调用
-            # thread.join()  # <-罪魁祸首在此
 
         # 杀死识图进程
         if self.process is not None:
             self.process.terminate()
             self.process.join()
+            self.msleep(10)
 
         if self.thread_card_manager is not None:
+            # QThread, stop函数包含wait
             self.thread_card_manager.stop()
             self.thread_card_manager = None  # 清除调用
+            self.msleep(10)
 
         # 释放战斗锁
         if self.faa_dict:
@@ -103,9 +109,6 @@ class ThreadTodo(QThread):
         self.terminate()
         self.wait()  # 等待线程确实中断 QThread
         self.deleteLater()
-
-        # print("生成了obj.dot")
-        # objgraph.show_backrefs(objgraph.by_type('FAA')[0], max_depth=20, filename='obj.dot')
 
     def pause(self):
         """暂停"""
@@ -2355,7 +2358,7 @@ class ThreadTodo(QThread):
 
         self.remove_outdated_log_images()
 
-        """主要事项"""
+        """主要任务"""
 
         main_task_1p_active = False
         main_task_1p_active = main_task_1p_active or c_opt["sign_in"]["active"]
@@ -2384,7 +2387,7 @@ class ThreadTodo(QThread):
 
         if main_task_active:
             SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom")
-            SIGNAL.PRINT_TO_UI.emit(text="[主要事项] 开始!", color_level=1)
+            SIGNAL.PRINT_TO_UI.emit(text="[主要任务] 开始!", color_level=1)
             SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top")
             start_time = datetime.datetime.now()
 
@@ -2572,11 +2575,11 @@ class ThreadTodo(QThread):
         if main_task_active:
             SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
             SIGNAL.PRINT_TO_UI.emit(
-                text=f"[主要事项] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
+                text=f"[主要任务] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
                 color_level=1)
             SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
 
-        """额外事项"""
+        """额外任务"""
 
         extra_active = False
         extra_active = extra_active or c_opt["receive_awards"]["active"]
@@ -2586,7 +2589,7 @@ class ThreadTodo(QThread):
 
         if extra_active:
             SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
-            SIGNAL.PRINT_TO_UI.emit(text=f"[额外事项] 开始!", color_level=1)
+            SIGNAL.PRINT_TO_UI.emit(text=f"[额外任务] 开始!", color_level=1)
             SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
 
         if extra_active:
@@ -2622,7 +2625,7 @@ class ThreadTodo(QThread):
         if extra_active:
             SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
             SIGNAL.PRINT_TO_UI.emit(
-                text=f"[额外事项] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
+                text=f"[额外任务] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
                 color_level=1)
             SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
 
@@ -2677,12 +2680,12 @@ class ThreadTodo(QThread):
         else:
 
             if self.opt["advanced_settings"]["end_exit_game"]:
-                SIGNAL.PRINT_TO_UI.emit(text="事项全部完成, 刷新返回登录界面, 降低系统负载.", color_level=1)
+                SIGNAL.PRINT_TO_UI.emit(text="任务全部完成, 刷新返回登录界面, 降低系统负载.", color_level=1)
                 self.batch_click_final_refresh_btn()
 
         if not (self.opt["login_settings"]["login_close_settings"] or self.opt["advanced_settings"]["end_exit_game"]):
             SIGNAL.PRINT_TO_UI.emit(
-                text="[推荐] 进阶功能中, 可设置完成所有事项后, 关闭360游戏大厅对应窗口 or 返回登录页, 降低系统负载.",
+                text="[推荐] 进阶功能中, 可设置完成所有任务后, 关闭360游戏大厅对应窗口 or 返回登录页, 降低系统负载.",
                 color_level=1)
 
         # 全部完成了发个信号
@@ -2756,22 +2759,31 @@ class ThreadTodo(QThread):
 
     def close_360(self):
 
-        # 关闭所有目标窗口
         for faa in self.faa_dict.values():
-            close_software_by_title(window_title=faa.channel)
+            # 关闭所有小号窗口
+            window_title = faa.channel
+            CUS_LOGGER.debug(f"[操作游戏大厅] 关闭名称为: [{window_title}] 的窗口, 开始")
+            close_software_by_title(window_title=window_title)
             time.sleep(1)
+            CUS_LOGGER.debug(f"[操作游戏大厅] 关闭名称为: [{window_title}] 的窗口, 成功")
 
         _, sub_window_titles = get_path_and_sub_titles()
 
         if len(sub_window_titles) == 1 and sub_window_titles[0] == "360游戏大厅":
             # 只有一个360大厅主窗口, 鲨了它
+            window_title = "360游戏大厅"
+            CUS_LOGGER.debug(f"[操作游戏大厅] 关闭名称为: [{window_title}] 的窗口, 开始")
             close_software_by_title("360游戏大厅")
+            CUS_LOGGER.debug(f"[操作游戏大厅] 关闭名称为: [{window_title}] 的窗口, 成功")
             # 等待悄悄打开的360后台 准备一网打尽
             time.sleep(2)
 
         if len(sub_window_titles) == 0:
             # 不再有窗口了, 可以直接根据软件名称把后台杀干净
-            close_all_software_by_name("360Game.exe")
+            software_name = "360Game.exe"
+            CUS_LOGGER.debug(f"[操作游戏大厅] 关闭名称为: [{software_name}] 的应用程序下的所有窗口, 开始")
+            close_all_software_by_name(software_name=software_name)
+            CUS_LOGGER.debug(f"[操作游戏大厅] 关闭名称为: [{software_name}] 的应用程序下的所有窗口, 成功")
 
     def test_args(self):
         """防呆测试"""
