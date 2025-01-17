@@ -1232,6 +1232,10 @@ class ThreadTodo(QThread):
 
             plan = stage_plan.get(stage_id, None)
             if not plan:
+                # 2.1.0-beta.2+ 包含全局方案的情况
+                plan = stage_plan.get("global", None)
+            if not plan:
+                # 2.1.0-beta.1- 不包含全局方案的情况.
                 plan = {
                     "skip": False,
                     "deck": 0,
