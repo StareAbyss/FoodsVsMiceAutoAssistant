@@ -1732,7 +1732,7 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=text_)
 
-    def offer_reward(self, text_, max_times_1, max_times_2, max_times_3,
+    def offer_reward(self, text_, max_times_1, max_times_2, max_times_3, max_times_4,
                      global_plan_active, deck, battle_plan_1p, battle_plan_2p):
 
         self.model_start_print(text=text_)
@@ -1740,7 +1740,7 @@ class ThreadTodo(QThread):
         SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 开始[多本轮战]...")
 
         quest_list = []
-        for i in range(3):
+        for i in range(4):
             quest_list.append({
                 "player": [2, 1],
                 "need_key": True,
@@ -1749,7 +1749,7 @@ class ThreadTodo(QThread):
                 "battle_plan_1p": battle_plan_1p,
                 "battle_plan_2p": battle_plan_2p,
                 "stage_id": "OR-0-" + str(i + 1),
-                "max_times": [max_times_1, max_times_2, max_times_3][i],
+                "max_times": [max_times_1, max_times_2, max_times_3, max_times_4][i],
                 "dict_exit": {
                     "other_time_player_a": [],
                     "other_time_player_b": [],
@@ -2471,6 +2471,7 @@ class ThreadTodo(QThread):
                     max_times_1=my_opt["max_times_1"],
                     max_times_2=my_opt["max_times_2"],
                     max_times_3=my_opt["max_times_3"],
+                    max_times_4=my_opt["max_times_4"],
                     battle_plan_1p=my_opt["battle_plan_1p"],
                     battle_plan_2p=my_opt["battle_plan_2p"])
 

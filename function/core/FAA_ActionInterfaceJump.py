@@ -141,7 +141,8 @@ class FAAActionInterfaceJump:
                 source_root_handle=handle_360,
                 source_range=[0, 0, 950, 200],
                 template=RESOURCE_P["common"]["跨服副本_ui.png"],
-                match_failed_check=10
+                match_failed_check=10,
+                click=False,
             )
 
             if find:
@@ -513,7 +514,7 @@ class FAAActionInterfaceJump:
                 click=True)
 
             # 切区
-            my_dict = {"1": [3, 11], "2": [1, 2], "3": [1, 2]}
+            my_dict = {"1": [3, 11], "2": [1, 2], "3": [1, 2], "4": [1, 2]}
             change_to_region(region_list=my_dict[stage_2])
 
             # 仅限创房间的人

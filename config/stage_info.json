@@ -11465,6 +11465,10 @@
             "3": {
                 "level": 42,
                 "name": "悬赏关卡-3"
+            },
+            "4": {
+                "level": 61,
+                "name": "悬赏关卡-4"
             }
         },
         "tooltip": "OR = Offer a Reward 悬赏关卡"
