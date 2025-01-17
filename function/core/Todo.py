@@ -17,7 +17,7 @@ from function.common.thread_with_exception import ThreadWithException
 from function.core.FAA_extra_readimage import read_and_get_return_information, kill_process
 from function.core.analyzer_of_loot_logs import update_dag_graph, find_longest_path_from_dag, ranking_read_data
 from function.core_battle.CardManager import CardManager
-from function.globals import EXTRA, SIGNAL
+from function.globals import EXTRA, SIGNAL, g_resources
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
@@ -1283,6 +1283,17 @@ class ThreadTodo(QThread):
             if max_times < 1:
                 SIGNAL.PRINT_TO_UI.emit(text=f"{title} {stage_id} 设置次数不足, 跳过")
                 return False
+
+            if battle_plan_1p not in g_resources.RESOURCE_B.keys():
+                SIGNAL.PRINT_TO_UI.emit(
+                    text=f"{title} [1P] 无法通过UUID找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
+                return False
+
+            if is_group:
+                if battle_plan_2p not in g_resources.RESOURCE_B.keys():
+                    SIGNAL.PRINT_TO_UI.emit(
+                        text=f"{title} [2P] 无法通过UUID找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
+                    return False
 
             return True
 
