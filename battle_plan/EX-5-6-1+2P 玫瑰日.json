@@ -8,7 +8,7 @@
         "default": [
             {
                 "id": 1,
-                "name": "小火炉",
+                "name": "产火",
                 "ergodic": true,
                 "queue": true,
                 "location": [
@@ -16,11 +16,12 @@
                     "2-6",
                     "2-1",
                     "2-7"
-                ]
+                ],
+                "kun": 0
             },
             {
                 "id": 2,
-                "name": "炭烧海星",
+                "name": "海星",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -43,21 +44,25 @@
                     "9-7",
                     "9-2",
                     "9-6"
-                ]
+                ],
+                "kun": 0
             },
             {
                 "id": 3,
-                "name": "糖葫芦炮弹",
+                "name": "散点追踪",
                 "ergodic": true,
                 "queue": false,
                 "location": [
                     "2-3",
-                    "2-5"
-                ]
+                    "2-5",
+                    "7-2",
+                    "7-6"
+                ],
+                "kun": 0
             },
             {
                 "id": 4,
-                "name": "瓜皮护罩",
+                "name": "护罩",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -79,30 +84,22 @@
                     "9-2",
                     "9-6",
                     "9-7"
-                ]
+                ],
+                "kun": 0
             },
             {
                 "id": 5,
-                "name": "狮子座精灵",
-                "ergodic": true,
-                "queue": false,
-                "location": [
-                    "7-2",
-                    "7-6"
-                ]
-            },
-            {
-                "id": 6,
-                "name": "油灯",
+                "name": "照明",
                 "ergodic": true,
                 "queue": false,
                 "location": [
                     "2-4"
-                ]
+                ],
+                "kun": 0
             },
             {
-                "id": 7,
-                "name": "樱桃反弹布丁",
+                "id": 6,
+                "name": "布丁",
                 "ergodic": true,
                 "queue": false,
                 "location": [
@@ -111,7 +108,8 @@
                     "1-6",
                     "1-1",
                     "1-7"
-                ]
+                ],
+                "kun": 0
             }
         ],
         "wave": {}

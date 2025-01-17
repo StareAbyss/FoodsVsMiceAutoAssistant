@@ -260,6 +260,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.OfferReward_MaxTimes_1.setText(str(my_opt["offer_reward"]["max_times_1"]))
         self.OfferReward_MaxTimes_2.setText(str(my_opt["offer_reward"]["max_times_2"]))
         self.OfferReward_MaxTimes_3.setText(str(my_opt["offer_reward"]["max_times_3"]))
+        self.OfferReward_MaxTimes_4.setText(str(my_opt["offer_reward"]["max_times_4"]))
         self.OfferReward_GlobalPlanActive.setChecked(my_opt["offer_reward"]["global_plan_active"])
         self.OfferReward_Deck.setCurrentIndex(my_opt["offer_reward"]["deck"])
         init_battle_plan(self.OfferReward_1P, my_opt["offer_reward"]["battle_plan_1p"])
@@ -683,6 +684,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         my_opt["offer_reward"]["max_times_1"] = int(self.OfferReward_MaxTimes_1.text())
         my_opt["offer_reward"]["max_times_2"] = int(self.OfferReward_MaxTimes_2.text())
         my_opt["offer_reward"]["max_times_3"] = int(self.OfferReward_MaxTimes_3.text())
+        my_opt["offer_reward"]["max_times_4"] = int(self.OfferReward_MaxTimes_4.text())
         my_opt["offer_reward"]["global_plan_active"] = self.OfferReward_GlobalPlanActive.isChecked()
         my_transformer_b(self.OfferReward_1P, "offer_reward", "battle_plan_1p")
         my_transformer_b(self.OfferReward_2P, "offer_reward", "battle_plan_2p")
@@ -1249,11 +1251,12 @@ class QMainWindowLoadSettings(QMainWindowLog):
         为部分控件在加载时添加额外的属性
         :return:
         """
-        # 只允许输入整数
+        # 只允许输入整数 0-9
         intValidator = QIntValidator(0, 9, self)
         self.OfferReward_MaxTimes_1.setValidator(intValidator)
         self.OfferReward_MaxTimes_2.setValidator(intValidator)
         self.OfferReward_MaxTimes_3.setValidator(intValidator)
+        self.OfferReward_MaxTimes_4.setValidator(intValidator)
 
         # 监听文本变化事件 触发修正函数
         def warrior_stage_changed(text):

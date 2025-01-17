@@ -224,7 +224,8 @@ class FAA:
         self.ban_card_list = ban_card_list
         self.max_card_num = max_card_num
 
-        self.battle_plan = g_resources.RESOURCE_B[battle_plan_uuid]
+        # 如果缺失, 外部的检测函数会拦下来不继续的
+        self.battle_plan = g_resources.RESOURCE_B.get(battle_plan_uuid, None)
 
         self.stage_info = read_json_to_stage_info(stage_id)
 
@@ -343,11 +344,11 @@ class FAA:
             # 筛选出所有 有图片资源的卡片 包含变种
             resource_exist_list = []
             for i in range(6):
-                card_image_name = f"幻幻鸡-{i}.png"
+                card_image_name = f"创造神-{i}.png"
                 if card_image_name in RESOURCE_P["card"]["战斗"].keys():
                     resource_exist_list.append(card_image_name)
             for i in range(6):
-                card_image_name = f"创造神-{i}.png"
+                card_image_name = f"幻幻鸡-{i}.png"
                 if card_image_name in RESOURCE_P["card"]["战斗"].keys():
                     resource_exist_list.append(card_image_name)
 

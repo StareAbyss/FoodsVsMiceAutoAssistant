@@ -99,7 +99,7 @@ def get_all_hwnd(hwnd, mouse, login_handle, window_title_list, exe_name):
             # print(abc,win32gui.GetWindowText(hwnd))
             if not pro == exe_name:
                 continue
-            CUS_LOGGER.debug(f"进程ID:{abc}, 窗口句柄:{hwnd}, 标题:{win32gui.GetWindowText(hwnd)}")
+            # CUS_LOGGER.debug(f"进程ID:{abc}, 窗口句柄:{hwnd}, 标题:{win32gui.GetWindowText(hwnd)}")
             login_handle[abc] = hwnd
             if win32gui.GetWindowText(hwnd):
                 window_title_list.append(win32gui.GetWindowText(hwnd))
@@ -124,7 +124,7 @@ def get_path_and_sub_titles(exe_name: str = "360Game.exe"):
     # 对 log_int_title 列表进行排序，以便按字母顺序返回窗口标题
     window_title_list.sort()
 
-    CUS_LOGGER.debug(f"根据软件名称{exe_name}, 获取其文件系统路径为:{path}, 窗口标题list为:{window_title_list}")
+    CUS_LOGGER.debug(f"[窗口操作] 根据软件名称{exe_name}, 获取其文件系统路径为:{path}, 窗口标题list为:{window_title_list}")
     return path, window_title_list
 
 
