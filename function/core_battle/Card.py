@@ -124,7 +124,7 @@ class Card:
         self.is_kun_target = False
 
         # 判定自身是不是极寒冰沙
-        self.is_smoothie = self.name in ["极寒冰沙", "冰沙"]
+        self.is_smoothie = "冰沙" in self.name
 
         # 不进入放满自ban的 白名单
         self.ban_white_list = ["极寒冰沙", "冰沙"]
@@ -332,11 +332,14 @@ class Card:
             self.fresh_status()  # 如果放卡后还可用,自ban 若干s
 
             if self.status_usable and (self.name not in self.ban_white_list):
+
                 # 放满了 如果不在白名单 就自ban
-                self.status_ban = 7
+                self.status_ban = EXTRA.FULL_BAN_TIME
+
                 # if self.player == 1:
                 #     CUS_LOGGER.debug(f"[1P] {self.name} 因使用后仍可用进行了自ban")
                 #     T_ACTION_QUEUE_TIMER.print_queue_statue()
+
                 return
 
             # 放置成功 如果是坤目标, 复制自身放卡的逻辑
@@ -350,9 +353,14 @@ class Card:
                 if not kun_card.status_usable:
                     continue
 
-                # 防止多坤撞车
+                # 防止多坤撞车, 妈的智障, 变身期间完全无实体, 就只能靠这个设定来防一手
                 if kun_count >= 1:
-                    time.sleep(0.5)
+                    if self.queue:
+                        # 卡片本地是队列模式, 几乎不会撞车.
+                        time.sleep(0.5)
+                    else:
+                        # 并非队列模式, 必须等前一张卡完成变形再放下一章规避撞车问题.
+                        time.sleep(3.5)
 
                 # 坤-点击 选中卡片
                 kun_card.choice_card()

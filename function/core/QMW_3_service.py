@@ -10,6 +10,7 @@ import win32gui
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QMessageBox
 
+from function.common.process_and_window_manager import get_path_and_sub_titles
 from function.core.FAA import FAA
 from function.core.QMW_2_load_settings import CommonHelper, QMainWindowLoadSettings
 from function.core.QMW_EditorOfBattlePlan import QMWEditorOfBattlePlan
@@ -20,6 +21,7 @@ from function.core.QMW_TipBattle import QMWTipBattle
 from function.core.QMW_TipBattleSenior import QMWTipBattleSenior
 from function.core.QMW_TipEditorOfBattlePlan import QMWTipEditorOfBattlePlan
 from function.core.QMW_TipLevel2 import QMWTipLevels2
+from function.core.QMW_TipLoginSettings import QMWTipLoginSettings
 from function.core.QMW_TipMisuLogistics import QMWTipMisuLogistics
 from function.core.QMW_TipStageID import QMWTipStageID
 from function.core.QMW_TipWarmGift import QMWTipWarmGift
@@ -93,27 +95,31 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 额外窗口 - 温馨礼包提示
         self.window_tip_warm_gift = QMWTipWarmGift()
-        self.GetWarmGift_Button.clicked.connect(self.click_btn_tip_warm_gift)
+        self.GetWarmGiftTipButton.clicked.connect(self.click_btn_tip_warm_gift)
 
         # 额外窗口 - 关卡代号提示
         self.window_tip_stage_id = QMWTipStageID()
-        self.TipStageID_Button.clicked.connect(self.click_btn_tip_stage_id)
+        self.StageIDTipButton.clicked.connect(self.click_btn_tip_stage_id)
 
         # 额外窗口 - 战斗模式介绍
         self.window_tip_battle = QMWTipBattle()
-        self.TipBattle_Button.clicked.connect(self.click_btn_tip_battle)
+        self.BattleTipButton.clicked.connect(self.click_btn_tip_battle)
 
         # 额外窗口 - 二级说明书
         self.window_tip_level2 = QMWTipLevels2()
-        self.Level2_Tip.clicked.connect(self.click_btn_tip_level2)
+        self.Level2TipButton.clicked.connect(self.click_btn_tip_level2)
 
         # 额外窗口 - 高级战斗说明
         self.window_tip_battle_senior = QMWTipBattleSenior()
-        self.Battle_senior_Tip.clicked.connect(self.click_btn_tip_battle_senior)
+        self.BattleSeniorTipButton.clicked.connect(self.click_btn_tip_battle_senior)
+
+        # 额外窗口 - 登录选项说明
+        self.window_tip_login_settings = QMWTipLoginSettings()
+        self.LoginSettingsTipButton.clicked.connect(self.click_btn_tip_login_settings)
 
         # 米苏物流 - tip窗口
         self.window_tip_misu_logistics = QMWTipMisuLogistics()
-        self.MisuLogistics_Tip.clicked.connect(self.click_btn_tip_misu_logistics)
+        self.MisuLogisticsTipButton.clicked.connect(self.click_btn_tip_misu_logistics)
 
         # 米苏物流 - 测试链接
         self.MisuLogistics_LinkTest.clicked.connect(self.click_btn_misu_logistics_link_test)
@@ -142,14 +148,17 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.game_window_is_hide = False
 
         # 重置卡片状态自学习记忆
-        self.Btn_ResetCardStatusMemory.clicked.connect(self.click_btn_reset_card_status_memory)
+        self.ResetCardStatusMemoryButton.clicked.connect(self.click_btn_reset_card_status_memory)
+
+        # 一键获取路径与窗口名
+        self.oneclick_getpath.clicked.connect(self.click_btn_set_360_path)
 
         # 线程状态
         self.is_ending = False  # 线程是否正在结束
         self.is_start = False  # 线程是否正在启动
 
         """公会管理器相关"""
-        # 初始化工会管理器数据和表格视图
+        # 初始化公会管理器数据和表格视图
         self.guild_manager_table_init()
         self.guild_manager_data = []
         self.guild_manager_table_load_data()
@@ -164,7 +173,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.Label_drag.windowNameChanged1.connect(self.updateEditBox1)
         self.Label_drag.windowNameChanged2.connect(self.updateEditBox2)
 
-    """工会管理器页面"""
+    """公会管理器页面"""
 
     def guild_manager_table_init(self):
         """
@@ -172,8 +181,9 @@ class QMainWindowService(QMainWindowLoadSettings):
         """
 
         # 设置表格基础属性
-        self.GuildMemberInfoTable.setColumnCount(7)
-        self.GuildMemberInfoTable.setHorizontalHeaderLabels(['成员', '总贡(扫描)', '天', '周(扫描)', '月', '年', '上次更新'])
+        header_list = ['成员', '上次更新', '总-贡献', '周-贡献', '总-功勋', '周-功勋']
+        self.GuildMemberInfoTable.setColumnCount(len(header_list))
+        self.GuildMemberInfoTable.setHorizontalHeaderLabels(header_list)
 
         # 调整行高
         self.GuildMemberInfoTable.verticalHeader().setDefaultSectionSize(40)
@@ -212,25 +222,6 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 清空表格内容
         self.GuildMemberInfoTable.setRowCount(0)
 
-        # 添加图片
-        for member in self.guild_manager_data:
-            row_position = self.GuildMemberInfoTable.rowCount()
-            self.GuildMemberInfoTable.insertRow(row_position)
-
-            # 添加成员图片
-            member_hash = member['name_image_hash']
-            name_image_path = f"{PATHS['logs']}\\guild_manager\\guild_member_images\\{member_hash}.png"
-            pixmap = QtGui.QPixmap(name_image_path)
-            qtw_item = QtWidgets.QTableWidgetItem()
-
-            # 设置单元格图片
-            qtw_item.setData(QtCore.Qt.ItemDataRole.DecorationRole, pixmap)
-
-            # 设置单元格不可编辑
-            qtw_item.setFlags(qtw_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
-
-            self.GuildMemberInfoTable.setItem(row_position, 0, qtw_item)
-
         def add_data_widget_into_table(value, row, col):
             """
             根据输入 是否小于0 以不同形式录入 以 支持排序
@@ -258,61 +249,48 @@ class QMainWindowService(QMainWindowLoadSettings):
         selected_date = self.DateSelector.selectedDate()
 
         # 遍历成员数据 因为图片也是按照guild_manager_data顺序来的, 所以可以直接无脑遍历
-        row_position = -1
+        row_position = 0
 
         for member in self.guild_manager_data:
 
-            row_position += 1
+            column_position = -1
 
             # 获取成员数据
-            member_data = member.get('data', {})
-            member_data_week = member.get('data_week', {})
+            member_contribution = member.get('data', {})
+            member_contribution_week = member.get('data_week', {})
+            member_merit = member.get('merit', {})
+            member_merit_week = member.get('merit_week', {})
 
-            # 刷新第二列数据（当天扫描到的 贡献总值）
-            today_contribution = member_data.get(selected_date.toString('yyyy-MM-dd'), -1)
+            # 获取 当天扫描到的贡献总值
+            today_contribution = member_contribution.get(selected_date.toString('yyyy-MM-dd'), -1)
             if today_contribution < 0:
-                # 不展示今天压根不存在的数据 但是
+                # 不展示今天压根不存在的数据的行
                 continue
-            add_data_widget_into_table(value=today_contribution, row=row_position, col=1)
 
-            # 刷新第三列数据（昨天到今天的变化值）
-            yesterday = selected_date.addDays(-1)
-            yesterday_contribution = member_data.get(yesterday.toString('yyyy-MM-dd'), -1)
-            if today_contribution > 0 and yesterday_contribution > 0:
-                value = today_contribution - yesterday_contribution
-            else:
-                value = -1
-            add_data_widget_into_table(value=value, row=row_position, col=2)
+            # 初始化列
+            self.GuildMemberInfoTable.insertRow(row_position)
 
-            # 刷新第四列数据（尝试读取周贡献）
-            today_contribution_week = member_data_week.get(selected_date.toString('yyyy-MM-dd'), -1)
-            add_data_widget_into_table(value=today_contribution_week, row=row_position, col=3)
+            """添加列 - 成员图片"""
 
-            # 刷新第五列数据（上个月最后一天到今天的变化值）
-            last_month = selected_date.addMonths(-1)
-            last_day_of_last_month = QtCore.QDate(last_month.year(), last_month.month(), last_month.daysInMonth())
-            last_day_of_last_month_str = last_day_of_last_month.toString('yyyy-MM-dd')
-            last_day_of_last_month_contribution = member_data.get(last_day_of_last_month_str, -1)
-            if today_contribution > 0 and last_day_of_last_month_contribution > 0:
-                value = today_contribution - last_day_of_last_month_contribution
-            else:
-                value = -1
-            add_data_widget_into_table(value=value, row=row_position, col=4)
+            # 添加成员图片
+            member_hash = member['name_image_hash']
+            name_image_path = f"{PATHS['logs']}\\guild_manager\\guild_member_images\\{member_hash}.png"
+            pixmap = QtGui.QPixmap(name_image_path)
+            qtw_item = QtWidgets.QTableWidgetItem()
 
-            # 刷新第六列数据（去年最后一天到今天的变化值）
-            last_year = selected_date.addYears(-1)
-            last_day_of_last_year = QtCore.QDate(last_year.year(), last_year.month(), last_year.daysInMonth())
-            last_day_of_last_year_str = last_day_of_last_year.toString('yyyy-MM-dd')
-            last_day_of_last_year_contribution = member_data.get(last_day_of_last_year_str, -1)
-            if today_contribution > 0 and last_day_of_last_year_contribution > 0:
-                value = today_contribution - last_day_of_last_year_contribution
-            else:
-                value = -1
-            add_data_widget_into_table(value=value, row=row_position, col=5)
+            # 设置单元格图片
+            qtw_item.setData(QtCore.Qt.ItemDataRole.DecorationRole, pixmap)
 
-            # 刷新第七列数据（上次更新）
+            # 设置单元格不可编辑
+            qtw_item.setFlags(qtw_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+
+            column_position += 1
+            self.GuildMemberInfoTable.setItem(row_position, column_position, qtw_item)
+
+            """添加列 - 上次更新时间"""
+
             today_str = datetime.date.today().strftime('%Y-%m-%d')
-            last_update_date_str = max(member_data.keys(), default="Never")
+            last_update_date_str = max(member_contribution.keys(), default="Never")
             if last_update_date_str == "Never":
                 value = "从未"
             elif last_update_date_str == today_str:
@@ -324,9 +302,79 @@ class QMainWindowService(QMainWindowLoadSettings):
                 value = f"{days_since_last_update}天前"
             qtw_item = QtWidgets.QTableWidgetItem()
             qtw_item.setData(QtCore.Qt.ItemDataRole.DisplayRole, value)
-            self.GuildMemberInfoTable.setItem(row_position, 6, qtw_item)
 
-        self.GuildMemberInfoTable.sortByColumn(1, QtCore.Qt.SortOrder.DescendingOrder)  # 降序排序
+            column_position += 1
+            self.GuildMemberInfoTable.setItem(row_position, column_position, qtw_item)
+
+            """添加列 - 总贡献"""
+
+            column_position += 1
+            add_data_widget_into_table(value=today_contribution, row=row_position, col=column_position)
+
+            """添加列 - 周贡献"""
+
+            today_contribution_week = member_contribution_week.get(selected_date.toString('yyyy-MM-dd'), -1)
+
+            column_position += 1
+            add_data_widget_into_table(value=today_contribution_week, row=row_position, col=column_position)
+
+            """添加列 - 总功勋"""
+
+            today_merit = member_merit.get(selected_date.toString('yyyy-MM-dd'), -1)
+
+            column_position += 1
+            add_data_widget_into_table(value=today_merit, row=row_position, col=column_position)
+
+            """添加列 - 周功勋"""
+
+            today_merit_week = member_merit_week.get(selected_date.toString('yyyy-MM-dd'), -1)
+
+            column_position += 1
+            add_data_widget_into_table(value=today_merit_week, row=row_position, col=column_position)
+
+            """昨天到今天的变化值"""
+
+            # yesterday = selected_date.addDays(-1)
+            # yesterday_contribution = member_data.get(yesterday.toString('yyyy-MM-dd'), -1)
+            # if today_contribution > 0 and yesterday_contribution > 0:
+            #     value = today_contribution - yesterday_contribution
+            # else:
+            #     value = -1
+            #
+            # column_position += 1
+            # add_data_widget_into_table(value=value, row=row_position, col=column_position)
+
+            """上个月最后一天到今天的变化值"""
+
+            # last_month = selected_date.addMonths(-1)
+            # last_day_of_last_month = QtCore.QDate(last_month.year(), last_month.month(), last_month.daysInMonth())
+            # last_day_of_last_month_str = last_day_of_last_month.toString('yyyy-MM-dd')
+            # last_day_of_last_month_contribution = member_data.get(last_day_of_last_month_str, -1)
+            # if today_contribution > 0 and last_day_of_last_month_contribution > 0:
+            #     value = today_contribution - last_day_of_last_month_contribution
+            # else:
+            #     value = -1
+            #
+            # column_position += 1
+            # add_data_widget_into_table(value=value, row=row_position, col=column_position)
+
+            """去年最后一天到今天的变化值"""
+
+            # last_year = selected_date.addYears(-1)
+            # last_day_of_last_year = QtCore.QDate(last_year.year(), last_year.month(), last_year.daysInMonth())
+            # last_day_of_last_year_str = last_day_of_last_year.toString('yyyy-MM-dd')
+            # last_day_of_last_year_contribution = member_data.get(last_day_of_last_year_str, -1)
+            # if today_contribution > 0 and last_day_of_last_year_contribution > 0:
+            #     value = today_contribution - last_day_of_last_year_contribution
+            # else:
+            #     value = -1
+            # column_position += 1
+            # add_data_widget_into_table(value=value, row=row_position, col=column_position)
+
+            row_position += 1
+
+        # 默认按照第3列(总贡)降序排序
+        self.GuildMemberInfoTable.sortByColumn(2, QtCore.Qt.SortOrder.DescendingOrder)
 
     def updateEditBox1(self, window_name: str):
 
@@ -378,21 +426,6 @@ class QMainWindowService(QMainWindowLoadSettings):
             name_1p=self.opt["base_settings"]["name_1p"],
             name_2p=self.opt["base_settings"]["name_2p"])
 
-        """防呆测试"""
-        # 不通过就直接结束弹窗
-        handles = {
-            1: faa_get_handle(channel=channel_1p, mode="360"),
-            2: faa_get_handle(channel=channel_2p, mode="360")}
-        for player, handle in handles.items():
-            if handle is None or handle == 0:
-                # 报错弹窗
-                SIGNAL.DIALOG.emit(
-                    "出错！(╬◣д◢)",
-                    f"{player}P存在错误的窗口名或游戏名称, 请参考 [使用前看我!.pdf] 或 [README.md]")
-                self.Button_Start.setText("开始任务\nLink Start")
-                self.is_start = False
-                return
-
         """UI处理"""
         # 设置flag
         self.thread_todo_running = True
@@ -406,11 +439,12 @@ class QMainWindowService(QMainWindowLoadSettings):
             self.TextBrowser.clear()
             self.start_print()
         # 设置输出文本
-        SIGNAL.PRINT_TO_UI.emit("", time=False)
-        SIGNAL.PRINT_TO_UI.emit("[任务事项] 链接开始 Todo线程开启", color_level=1)
+        SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom", color_level=2)
+        SIGNAL.PRINT_TO_UI.emit("[任务序列] 链接开始 Todo线程开启", color_level=1)
+        SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top", color_level=2)
         # 当前正在运行 的 文本 修改
         running_todo_plan_name = self.opt["todo_plans"][running_todo_plan_index]["name"]
-        self.Label_RunningState.setText(f"任务事项线程状态: 正在运行       运行方案: {running_todo_plan_name}")
+        self.Label_RunningState.setText(f"任务序列线程状态: 运行中       运行方案: {running_todo_plan_name}")
 
         """线程处理"""
         # 启动点击处理线程
@@ -444,7 +478,7 @@ class QMainWindowService(QMainWindowLoadSettings):
             running_todo_plan_index=running_todo_plan_index,
             todo_id=1)
 
-        # 用于双人多线程的todo
+        # 多线程作战时的第二线程
         self.thread_todo_2 = ThreadTodo(
             faa_dict=faa_dict,
             opt=self.opt,
@@ -470,16 +504,23 @@ class QMainWindowService(QMainWindowLoadSettings):
         """
 
         """线程处理"""
+        SIGNAL.PRINT_TO_UI.emit("[任务序列] 开始关闭全部任务执行线程", color_level=1)
+
         self.is_ending = True  # 终止操作正在进行中 放用户疯狂操作
 
         if self.thread_todo_1 is not None:
+            CUS_LOGGER.debug("[任务序列] todo 主线程 - 中止流程 - 开始")
             self.thread_todo_1.stop()
+            CUS_LOGGER.debug("[任务序列] todo 主线程 - 中止流程 - 结束")
 
         if self.thread_todo_2 is not None:
+            CUS_LOGGER.debug("[任务序列] todo 副线程 - 中止流程 - 开始")
             self.thread_todo_2.stop()
+            CUS_LOGGER.debug("[任务序列] todo 副线程 - 中止流程 - 结束")
 
-        # 中止[动作处理线程]
+        CUS_LOGGER.debug("[任务序列] 动作处理线程 - 中止流程 - 开始")
         T_ACTION_QUEUE_TIMER.stop()
+        CUS_LOGGER.debug("[任务序列] 动作处理线程 - 中止流程 - 结束")
 
         """UI处理"""
         # 设置flag
@@ -487,9 +528,21 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 设置按钮文本
         self.Button_Start.setText("开始任务\nLink Start")
         # 设置输出文本
-        SIGNAL.PRINT_TO_UI.emit("[任务事项] 已关闭全部线程", color_level=1)
+        SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom", color_level=2)
+        SIGNAL.PRINT_TO_UI.emit("[任务序列] 已关闭全部线程", color_level=1)
+        SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top", color_level=2)
         # 当前正在运行 的 文本 修改
-        self.Label_RunningState.setText(f"任务事项线程状态: 未运行")
+        self.Label_RunningState.setText(f"任务序列线程状态: 未运行")
+
+        # 调试打印 确定所有内部线程的状态 是否还是运行激活状态
+        q_threads = {
+            "todo主线程": self.thread_todo_1,
+            "todo副线程": self.thread_todo_2,
+            "窗口动作处理线程": T_ACTION_QUEUE_TIMER,
+        }
+        CUS_LOGGER.debug(f"[任务序列] 结束后线程状态检查")
+        for q_thread_name, q_thread_obj in q_threads.items():
+            CUS_LOGGER.debug(f"[任务序列] {q_thread_name} 正在运行: {q_thread_obj.isRunning()}")
 
         self.is_ending = False  # 完成完整的线程结束
 
@@ -697,6 +750,12 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.set_stylesheet(window)
         window.show()
 
+    def click_btn_tip_login_settings(self):
+        window = self.window_tip_login_settings
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
+
     def click_btn_tip_editor_of_battle_plan(self):
         window = self.window_tip_editor_of_battle_plan
         window.setFont(self.font)
@@ -732,6 +791,60 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def click_btn_misu_logistics_set_default(self):
         self.MisuLogistics_Link.setText("")
+
+    def click_btn_set_360_path(self):
+        # 弹出是或否选项
+        reply = QMessageBox.question(
+            self,
+            '一键逆天（bushi',
+            '使用该功能前, 要打开360大厅的对应的小号\n'
+            '本功能会自动填写360大厅的路径\n'
+            '记得要保存哦！\n'
+            '确定要进行此操作吗?',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No)
+
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+        path, title = get_path_and_sub_titles()
+        if not path:
+            SIGNAL.DIALOG.emit(
+                "哎呦！(╥﹏╥)",
+                f"未正确获取路径，请确保已打开360大厅及授予FAA管理员权限")
+            return
+        self.LoginSettings360PathInput.setText(path)
+
+        # if len(title) < 1:
+        #     SIGNAL.DIALOG.emit(
+        #         "哎呦！(╥﹏╥)",
+        #         f"你确定打开了对应的帐号了吗？")
+        #     return
+        #
+        # if len(title) < self.login_first.value():
+        #     SIGNAL.DIALOG.emit(
+        #         "哎呦！(╥﹏╥)",
+        #         f"1p账号序号超过当前打开账号数目")
+        #     return
+        #
+        # self.GameName_Input.setText("")
+        # self.Name1P_Input.setText("")
+        # self.Name2P_Input.setText("")
+        # if len(title) < self.login_second.value():
+        #     SIGNAL.DIALOG.emit(
+        #         "哎呦！(╥﹏╥)",
+        #         f"2p账号序号超过当前打开账号数目,如果单号无视此报错")
+        #     name_1p, game_name = get_reverse_channel_name(title[self.login_first.value() - 1])
+        #
+        # else:
+        #     name_1p, name_2p, game_name = get_reverse_channel_name(
+        #         title[self.login_first.value() - 1],
+        #         title[self.login_second.value() - 1]
+        #     )
+        #
+        # self.GameName_Input.setText(game_name)
+        # self.Name1P_Input.setText(name_1p)
+        # if name_2p:
+        #     self.Name2P_Input.setText(name_2p)
 
     def click_btn_reset_card_status_memory(self):
         # 弹出是或否选项

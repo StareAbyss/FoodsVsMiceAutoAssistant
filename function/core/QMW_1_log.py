@@ -81,12 +81,27 @@ class QMainWindowLog(QMainWindowLoadUI):
                         9: "CCCCCC",  # 浅灰色
                     }
 
-        def emit(self, text, color_level=9, color=None, time=True):
+        def emit(self, text, color_level=9, color=None, time=True, is_line=False, line_type="normal"):
+            """
+            :param text: 正文文本
+            :param color_level: int 1 to 9
+            :param color: 支持直接使用颜色代码
+            :param time: 是否显示打印时间
+            :param is_line: 是否替换本行为横线
+            :param line_type: str normal/top/bottom
+            :return:
+            """
             if color_level in self.color_scheme:
                 color = self.color_scheme[color_level]
             elif not color:
                 color = self.color_scheme[9]
-
+            if is_line:
+                text = "—" * 44
+                time = False
+                if line_type == "top":
+                    text = "‾" * 67
+                if line_type == "bottom":
+                    text = "_" * 59
             # 处理缺省参数
             self.signal_1.emit(text, color, time)
 
@@ -118,32 +133,29 @@ class QMainWindowLog(QMainWindowLoadUI):
             text="嗷呜, 欢迎使用FAA-美食大战老鼠自动放卡作战小助手~",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="本软件 [开源][免费][绿色]",
-            time=False)
-        SIGNAL.PRINT_TO_UI.emit(
             text="",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="使用安全说明",
+            text="♦ 使用安全说明 ♦",
             color_level=1,
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="[1] 务必有二级密码",
+            text="① 务必有二级密码",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="[2] 有一定的礼卷防翻牌异常",
+            text="② 有一定的礼卷防翻牌异常",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="[3] 高星或珍贵不绑卡放储藏室",
+            text="③ 高星或珍贵不绑卡放储藏室",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="[4] 鼠标不在游戏内, 不玩有反外挂的游戏",
+            text="④ 鼠标不在游戏内, 不玩有反外挂的游戏",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
             text="",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="使用疑难解决",
+            text="♦ 使用疑难解决 ♦",
             color_level=1,
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
@@ -167,38 +179,7 @@ class QMainWindowLog(QMainWindowLoadUI):
             text="",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="相关链接",
-            color_level=1,
-            time=False)
-        SIGNAL.PRINT_TO_UI.emit(
-            text="[Github]  https://github.com/StareAbyss/FoodsVsMiceAutoAssistant",
-            time=False)
-        SIGNAL.PRINT_TO_UI.emit(
-            text="[Github]  开源不易, 为我点个Star吧! 发送Issues是最有效的问题反馈渠道",
-            time=False)
-        SIGNAL.PRINT_TO_UI.emit(
-            text="[B站][UP直视深淵][宣传]  https://www.bilibili.com/video/BV1owUFYHEPq/",
-            time=False)
-        SIGNAL.PRINT_TO_UI.emit(
-            text="[B站]  速速一键三连辣!",
-            time=False)
-        SIGNAL.PRINT_TO_UI.emit(
-            text="[交流QQ群]  1群: 786921130  2群: 142272678 (推荐, 但比较爆满)",
-            time=False)
-        SIGNAL.PRINT_TO_UI.emit(
-            text="[交流QQ群]  欢迎加入, 交流游戏和自动化 & 获取使用帮助 & 参与开发!",
-            time=False)
-        SIGNAL.PRINT_TO_UI.emit(
-            text="[腾讯频道]  https://pd.qq.com/s/a0h4rujt0",
-            time=False)
-        SIGNAL.PRINT_TO_UI.emit(
-            text="[腾讯频道]  欢迎加入, 用以下载 / 公告 / 提交问题. (目前人少维护较差)",
-            time=False)
-        SIGNAL.PRINT_TO_UI.emit(
-            text="",
-            time=False)
-        SIGNAL.PRINT_TO_UI.emit(
-            text="支持FAA",
+            text="♦ 支持FAA ♦",
             color_level=1,
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
@@ -209,6 +190,7 @@ class QMainWindowLog(QMainWindowLoadUI):
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
             text=" 那么您的鼓励就是是FAA 持(不)续(跑)开(路)发 的最大动力!",
+            color_level=2,
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
             text="您可以选择以下任意一种方式进行捐赠. 赞助时, 可留下您的称呼以供致谢 ~",
@@ -219,9 +201,84 @@ class QMainWindowLog(QMainWindowLoadUI):
         SIGNAL.PRINT_TO_UI.emit(
             text="[QQ-红包]  加入讨论QQ群后直接发送即可, 以防高仿.",
             time=False)
-
         SIGNAL.IMAGE_TO_UI.emit(
             image=PATHS["logo"] + "\\赞赏码.png")
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text="",
+            time=False)
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text="♦ Github ♦",
+            time=False,
+            color_level=1)
+        SIGNAL.PRINT_TO_UI.emit(
+            text="https://github.com/StareAbyss/FoodsVsMiceAutoAssistant",
+            time=False)
+        SIGNAL.PRINT_TO_UI.emit(
+            text="开源不易, 为我点个Star吧! 发送Issues是最有效的问题反馈渠道",
+            time=False)
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text="",
+            time=False)
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text="♦ Bilibili ♦",
+            color_level=1,
+            time=False)
+        SIGNAL.PRINT_TO_UI.emit(
+            text="UP主 - 直视深淵, 非全职非专一美食~ 但关注支持一下总是不亏的",
+            time=False)
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text="[宣传] https://www.bilibili.com/video/BV1owUFYHEPq/",
+            time=False)
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text="",
+            time=False)
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text="♦ QQ群组 ♦",
+            color_level=1,
+            time=False)
+        SIGNAL.PRINT_TO_UI.emit(
+            text="1群: 786921130  2群: 142272678",
+            time=False)
+        SIGNAL.PRINT_TO_UI.emit(
+            text="交流游戏和自动化, 获取帮助, 资源分享, 参与开发",
+            time=False)
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text="",
+            time=False)
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text="♦ 腾讯频道 ♦",
+            color_level=1,
+            time=False)
+        SIGNAL.PRINT_TO_UI.emit(
+            text="https://pd.qq.com/s/a0h4rujt0 ",
+            time=False)
+        SIGNAL.PRINT_TO_UI.emit(
+            text="人少维护较差, 但用来获取更新资源很方便, 不易被打扰",
+            time=False)
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text="",
+            time=False)
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text="♦ 美食数据站 ♦",
+            color_level=1,
+            time=False)
+        SIGNAL.PRINT_TO_UI.emit(
+            text="https://msdzls.cn/",
+            time=False)
+        SIGNAL.PRINT_TO_UI.emit(
+            text="FAA X 米苏物流数据统计就挂靠在这呢~ By 夏夜浅酌",
+            time=False)
 
     # 用于展示弹窗信息的方法
     @QtCore.pyqtSlot(str, str)

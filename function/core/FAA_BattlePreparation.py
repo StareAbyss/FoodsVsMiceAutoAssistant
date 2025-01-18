@@ -10,7 +10,7 @@ from function.common.bg_img_match import loop_match_ps_in_w, loop_match_p_in_w, 
 from function.common.bg_img_screenshot import capture_image_png
 from function.common.overlay_images import overlay_images
 from function.core.analyzer_of_loot_logs import match_items_from_image_and_save
-from function.globals import SIGNAL
+from function.globals import SIGNAL, EXTRA
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
@@ -19,6 +19,17 @@ from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 
 
 class BattlePreparation:
+    """
+    封装了战斗前的准备工作和战斗后收尾工作的类
+    即: 进入房间 -> 开始战斗 + 战斗结束收尾
+
+    包括:
+    1. 检测是否成功进入房间
+    2. 战斗前的选卡/禁卡 包括对任务卡的处理
+    3. 点击开始 并检测是否成功开始
+    4. 战斗后的战利品扫描/翻牌动作+扫描
+    5. 战斗结束后成功回房检测
+    """
 
     def __init__(self, faa):
         # __init__中捕获了的外部类属性值, 那么捕获的是那一刻的值, 后续对类属性的修改不会影响已经捕获的值
@@ -44,10 +55,12 @@ class BattlePreparation:
         if card_name == "有效承载":
             targets_0 += copy.deepcopy(self.faa.stage_info["mat_card"])
         else:
-            """匹配合法类名"""
             # 仅匹配中文字符 (去除所有abc之类的同类卡后缀) 并参照已设定的类 是否有成功的匹配
-            card_name_only_chinese = ''.join(re.compile(r'[\u4e00-\u9fff]+').findall(card_name))
+            match = re.match(r'^(.*[\u4e00-\u9fff])', card_name)
+            card_name_only_chinese = match.group(1) if match else ""
             match_one = False
+
+            """匹配合法类名"""
             for card_type in self.card_types:
                 for card_type_key in card_type["key"]:
                     if card_type_key == card_name_only_chinese:
@@ -55,7 +68,7 @@ class BattlePreparation:
                             targets_0.append(card)
                         match_one = True
 
-            # 不属于任何类型 直接加入targets
+            """不属于任何类型"""
             if not match_one:
                 targets_0.append(card_name_only_chinese)
 
@@ -124,7 +137,7 @@ class BattlePreparation:
                         source_range=[380, 175, 925, 415],
                         template=resource_p[target],
                         template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
-                        match_tolerance=0.97,
+                        match_tolerance=0.998,
                         match_failed_check=0,
                         match_interval=0.01,
                         after_sleep=0,
@@ -149,7 +162,12 @@ class BattlePreparation:
                 if match_img_result_dict[card_precise_name]["found"]:
                     scan_card_result_list.append(card_precise_name)
                     scan_card_position_list.append(match_img_result_dict[card_precise_name]["position"])
-                    match_img_result_dict[card_precise_name]["found"] = False
+                    card_name_without_id = card_precise_name.split("-")[0]
+                    # 将所有名称相同(不含转职的 -X)的卡片都设置为 未找到
+                    for i in [0, 1, 2, 3]:
+                        card_be_used = match_img_result_dict.get(f"{card_name_without_id}-{i}")
+                        if card_be_used:
+                            card_be_used["found"] = False
                     break
             else:
                 # 没有找到
@@ -189,11 +207,12 @@ class BattlePreparation:
         # 强制要求全部走完, 防止12P的同步出问题
         # 老板本 一共20点击到底部, 向下点 10轮 x 2次 = 20 次滑块, 识别11次
         # 但仍然会出现识别不到的问题(我的背包太大啦), 故直接改成了最细的粒度, 希望能解决该问题.
+        # 大大降低了操作速度 防止卡顿造成选卡失败~
         for target in targets:
 
             # 复位滑块
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=209)
-            time.sleep(0.2)
+            time.sleep(0.25)
 
             for i in range(21):
                 if tar_position is None or i >= tar_position:
@@ -204,10 +223,10 @@ class BattlePreparation:
                         source_range=[380, 175, 925, 415],
                         template=resource_p[target],
                         template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
-                        match_tolerance=0.97,
-                        match_failed_check=0.15,
-                        match_interval=0.05,
-                        after_sleep=0,
+                        match_tolerance=0.998,
+                        match_failed_check=0.2,
+                        match_interval=0.1,
+                        after_sleep=0.1,
                         click=True)
                     if find:
                         found_card = True
@@ -217,7 +236,7 @@ class BattlePreparation:
                     break
                 # 仅还没找到继续下滑
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=400)
-                time.sleep(0.2)
+                time.sleep(0.25)
 
             if found_card:
                 return True
@@ -292,8 +311,12 @@ class BattlePreparation:
         add_quest_card()
 
         # 一轮识别 识别同一张卡的所有精准名称中 哪一个是实际存在且优先级最高的
+        self.faa.print_debug(text="[选取卡片] 将尝试查找以下卡片(组): {}, 是否允许失败: {}".format(
+            all_cards_precise_names, can_failed_list))
+
         scan_card_name_list, scan_card_position_list = self._scan_card(
             all_cards_precise_names=all_cards_precise_names)
+
         self.faa.print_debug(text="[选取卡片] 经识别将查找以下有效卡片: {}, 位置: {}".format(
             scan_card_name_list, scan_card_position_list))
 
@@ -410,7 +433,7 @@ class BattlePreparation:
                             source_range=source_range,
                             template=image,
                             template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
-                            match_tolerance=0.98,
+                            match_tolerance=0.998,
                             match_interval=0.01,
                             match_failed_check=0.03,
                             after_sleep=0,
@@ -444,7 +467,7 @@ class BattlePreparation:
                             source_range=source_range,
                             template=image,
                             template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
-                            match_tolerance=0.98,
+                            match_tolerance=0.998,
                             match_interval=0.01,
                             match_failed_check=0.03,
                             after_sleep=0,
@@ -523,8 +546,10 @@ class BattlePreparation:
             if card["id"] not in my_dict.keys():
                 my_dict[card["id"]] = card["name"]
 
-        # 再取变阵中
-        for wave_plan in plan["card"]["wave"].values():
+        # 再取变阵中(顺手排序)
+        wave_dict = plan["card"]["wave"]
+        sorted_wave_dict = {k: wave_dict[k] for k in sorted(wave_dict, key=int)}
+        for wave_plan in sorted_wave_dict.values():
             for card in wave_plan:
                 if card["id"] not in my_dict.keys():
                     my_dict[card["id"]] = card["name"]
@@ -671,6 +696,19 @@ class BattlePreparation:
             self.faa.print_warning(text="未能找到火苗标识物, 进入战斗失败, 可能是次数不足或服务器卡顿")
             return 2  # 2-跳过本次
 
+    def accelerate(self):
+        """加速游戏!!!"""
+        # duration is ms
+        duration = EXTRA.ACCELERATE_START_UP_VALUE
+        if duration > 0:
+            self.faa.click_accelerate_btn(mode="normal")
+            time.sleep(duration / 1000)
+            self.faa.click_accelerate_btn(mode="normal")
+            # 检查已经关闭加速
+            self.faa.click_accelerate_btn(mode="stop")
+
+        return 0  # 0-一切顺利
+
     """初始化战斗方案部分"""
 
     # 在FAA中实现 需要修改FAA的类属性
@@ -776,7 +814,7 @@ class BattlePreparation:
                 image=img,
                 mode='loots',
                 test_print=True)
-            print_info(text="[捕获战利品] 处在战利品UI 战利品已 捕获/识别/保存".format(drop_list))
+            print_info(text="[捕获战利品] 处在战利品UI 战利品已 捕获/识别".format(drop_list))
 
             return drop_list
 
@@ -791,73 +829,87 @@ class BattlePreparation:
         handle_360 = self.faa.handle_360
         stage_info = self.faa.stage_info
         player = self.faa.player
+        is_main = self.faa.is_main
         is_group = self.faa.is_group
         print_info = self.faa.print_info
         print_warning = self.faa.print_warning
+
+        if EXTRA.ACCELERATE_SETTLEMENT_VALUE:
+            print_info(text="[翻宝箱UI] 开始加速...")
+            self.faa.click_accelerate_btn(mode="normal")
+
+        # 休息一会再识图 如果有加速, 少休息一会
+        time.sleep(7 / (EXTRA.ACCELERATE_SETTLEMENT_VALUE if EXTRA.ACCELERATE_SETTLEMENT_VALUE != 0 else 1))
 
         find = loop_match_p_in_w(
             source_handle=handle,
             source_root_handle=handle_360,
             source_range=[400, 35, 550, 75],
             template=RESOURCE_P["common"]["战斗"]["战斗后_4_翻宝箱.png"],
+            match_interval=0.1,
             match_failed_check=15,
-            after_sleep=2,
+            after_sleep=1,
             click=False
         )
-        if find:
-            print_info(text="[翻宝箱UI] 捕获到正确标志, 翻牌并退出...")
-            # 开始洗牌
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=502)
-            time.sleep(6)
-
-            # 翻牌 1+2
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=550, y=170)
-            time.sleep(0.5)
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=170)
-            time.sleep(1.5)
-
-            img = [
-                capture_image_png(
-                    handle=handle,
-                    raw_range=[249, 89, 293, 133],
-                    root_handle=handle_360),
-                capture_image_png(
-                    handle=handle,
-                    raw_range=[317, 89, 361, 133],
-                    root_handle=handle_360),
-            ]
-
-            img = cv2.hconcat(img)
-
-            # 定义保存路径和文件名格式
-            img_path = "{}\\{}_{}P_{}.png".format(
-                PATHS["logs"] + "\\chests_image",
-                stage_info["id"],
-                player,
-                time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
-            )
-
-            # 分析图片，获取战利品字典
-            drop_list = match_items_from_image_and_save(
-                img_save_path=img_path,
-                image=img
-                , mode="chests",
-                test_print=True)
-            print_info(text="[翻宝箱UI] 宝箱已 捕获/识别/保存".format(drop_list))
-
-            # 组队2P慢点结束翻牌 保证双人魔塔后自己是房主
-            if is_group and player == 2:
-                time.sleep(2)
-
-            # 结束翻牌
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=502)
-            time.sleep(3)
-
-            return drop_list
-
-        else:
-            print_warning(text="[翻宝箱UI] 15s未能捕获正确标志, 出问题了!")
+        if not find:
+            print_warning(text="[翻宝箱UI] 10s未能捕获正确标志, 出问题了!")
             return []
+
+        print_info(text="[翻宝箱UI] 捕获到正确标志, 翻牌并退出...")
+
+        if EXTRA.ACCELERATE_SETTLEMENT_VALUE:
+            print_info(text="[翻宝箱UI] 停止加速...")
+            self.faa.click_accelerate_btn(mode="normal")
+            # 检查已经关闭加速
+            self.faa.click_accelerate_btn(mode="stop")
+
+        # 翻牌 1+2 bug法
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=550, y=265)
+        time.sleep(0.1)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=265)
+        time.sleep(1.0)
+
+        img = [
+            capture_image_png(
+                handle=handle,
+                raw_range=[249, 89, 293, 133],
+                root_handle=handle_360),
+            capture_image_png(
+                handle=handle,
+                raw_range=[317, 89, 361, 133],
+                root_handle=handle_360),
+        ]
+
+        img = cv2.hconcat(img)
+
+        # 定义保存路径和文件名格式
+        img_path = "{}\\{}_{}P_{}.png".format(
+            PATHS["logs"] + "\\chests_image",
+            stage_info["id"],
+            player,
+            time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+        )
+
+        # 分析图片，获取战利品字典
+        drop_list = match_items_from_image_and_save(
+            img_save_path=img_path,
+            image=img,
+            mode="chests",
+            test_print=True)
+        print_info(text="[翻宝箱UI] 宝箱已 捕获/识别/保存".format(drop_list))
+
+        # 组队2P慢点结束翻牌 保证双人魔塔后自己是房主
+        if is_group and is_main:
+            time.sleep(1.0)
+
+        # 开始洗牌
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=502)
+        time.sleep(0.25)
+        # 结束翻牌
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=502)
+        time.sleep(1.0)
+
+        return drop_list
 
     def perform_action_capture_match_for_loots_and_chests(self):
         """
@@ -874,10 +926,10 @@ class BattlePreparation:
         # 战利品部分, 会先检测是否在对应界面
         loots_list = self.capture_and_match_loots()
 
-        # 翻宝箱部分, 会先检测是否在对应界面
+        # 翻宝箱部分, 会先检测是否在对应界面 如果不在则会进行加速
         chests_list = self.capture_and_match_treasure_chests()
 
-        # 重整化 loots_dict 和 chests_dict 一定是dict()
+        # 重整化 loots_list 和 chests_list 为识别到的物品的有序排列
         result_loot = {"loots": loots_list, "chests": chests_list}
 
         if screen_check_server_boom():

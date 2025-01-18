@@ -289,7 +289,7 @@
         "task_type": "战斗",
         "task_id": 14,
         "task_args": {
-            "stage_id": "EX-3-1",
+            "stage_id": "EX-5-1",
             "max_times": 1,
             "need_key": true,
             "player": [
@@ -335,7 +335,7 @@
         "task_type": "战斗",
         "task_id": 16,
         "task_args": {
-            "stage_id": "EX-3-2",
+            "stage_id": "EX-5-2",
             "max_times": 1,
             "need_key": true,
             "player": [
@@ -381,7 +381,7 @@
         "task_type": "战斗",
         "task_id": 18,
         "task_args": {
-            "stage_id": "EX-3-3",
+            "stage_id": "EX-5-3",
             "max_times": 1,
             "need_key": true,
             "player": [
@@ -427,7 +427,7 @@
         "task_type": "战斗",
         "task_id": 20,
         "task_args": {
-            "stage_id": "EX-3-4",
+            "stage_id": "EX-5-4",
             "max_times": 1,
             "need_key": true,
             "player": [
@@ -473,7 +473,7 @@
         "task_type": "战斗",
         "task_id": 22,
         "task_args": {
-            "stage_id": "EX-3-5",
+            "stage_id": "EX-5-5",
             "max_times": 1,
             "need_key": true,
             "player": [
@@ -519,7 +519,7 @@
         "task_type": "战斗",
         "task_id": 24,
         "task_args": {
-            "stage_id": "EX-4-1",
+            "stage_id": "EX-5-6",
             "max_times": 1,
             "need_key": true,
             "player": [
@@ -565,7 +565,7 @@
         "task_type": "战斗",
         "task_id": 26,
         "task_args": {
-            "stage_id": "EX-4-2",
+            "stage_id": "EX-5-7",
             "max_times": 1,
             "need_key": true,
             "player": [
@@ -611,7 +611,7 @@
         "task_type": "战斗",
         "task_id": 28,
         "task_args": {
-            "stage_id": "EX-4-3",
+            "stage_id": "EX-5-8",
             "max_times": 1,
             "need_key": true,
             "player": [
@@ -639,144 +639,6 @@
     {
         "task_type": "领取任务奖励",
         "task_id": 29,
-        "task_args": {
-            "player": [
-                1,
-                2
-            ],
-            "normal": false,
-            "guild": false,
-            "spouse": false,
-            "offer_reward": false,
-            "food_competition": false,
-            "monopoly": false,
-            "camp": true
-        }
-    },
-    {
-        "task_type": "战斗",
-        "task_id": 30,
-        "task_args": {
-            "stage_id": "EX-4-4",
-            "max_times": 1,
-            "need_key": true,
-            "player": [
-                2,
-                1
-            ],
-            "global_plan_active": true,
-            "deck": 6,
-            "battle_plan_1p": "784e4f1c-4175-11ef-bf35-f44efc5bf671",
-            "battle_plan_2p": "784e8be6-4175-11ef-9131-f44efc5bf671",
-            "quest_card": "None",
-            "ban_card_list": [],
-            "dict_exit": {
-                "other_time_player_a": [],
-                "other_time_player_b": [],
-                "last_time_player_a": [
-                    "竞技岛"
-                ],
-                "last_time_player_b": [
-                    "竞技岛"
-                ]
-            }
-        }
-    },
-    {
-        "task_type": "领取任务奖励",
-        "task_id": 31,
-        "task_args": {
-            "player": [
-                1,
-                2
-            ],
-            "normal": false,
-            "guild": false,
-            "spouse": false,
-            "offer_reward": false,
-            "food_competition": false,
-            "monopoly": false,
-            "camp": true
-        }
-    },
-    {
-        "task_type": "战斗",
-        "task_id": 32,
-        "task_args": {
-            "stage_id": "EX-4-5",
-            "max_times": 1,
-            "need_key": true,
-            "player": [
-                2,
-                1
-            ],
-            "global_plan_active": true,
-            "deck": 6,
-            "battle_plan_1p": "784f4492-4175-11ef-b374-f44efc5bf671",
-            "battle_plan_2p": "784f7f10-4175-11ef-a87b-f44efc5bf671",
-            "quest_card": "None",
-            "ban_card_list": [],
-            "dict_exit": {
-                "other_time_player_a": [],
-                "other_time_player_b": [],
-                "last_time_player_a": [
-                    "竞技岛"
-                ],
-                "last_time_player_b": [
-                    "竞技岛"
-                ]
-            }
-        }
-    },
-    {
-        "task_type": "领取任务奖励",
-        "task_id": 33,
-        "task_args": {
-            "player": [
-                1,
-                2
-            ],
-            "normal": false,
-            "guild": false,
-            "spouse": false,
-            "offer_reward": false,
-            "food_competition": false,
-            "monopoly": false,
-            "camp": true
-        }
-    },
-    {
-        "task_type": "战斗",
-        "task_id": 34,
-        "task_args": {
-            "stage_id": "EX-4-6",
-            "max_times": 1,
-            "need_key": true,
-            "player": [
-                2,
-                1
-            ],
-            "global_plan_active": true,
-            "deck": 6,
-            "battle_plan_1p": "6ffca359-9872-11ef-889b-f44efc5bf671",
-            "battle_plan_2p": "f7c41b8c-9872-11ef-be95-f44efc5bf671",
-            "quest_card": "None",
-            "ban_card_list": [],
-            "dict_exit": {
-                "other_time_player_a": [],
-                "other_time_player_b": [],
-                "last_time_player_a": [
-                    "竞技岛"
-                ],
-                "last_time_player_b": [
-                    "竞技岛"
-                ]
-            }
-        }
-    },
-    {
-        "task_type": "领取任务奖励",
-        "task_id": 35,
         "task_args": {
             "player": [
                 1,

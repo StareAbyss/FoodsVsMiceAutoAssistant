@@ -29,22 +29,22 @@ stages_list = [stage_A, stage_B, stage_C, stage_D, stage_E, stage_F, stage_G]
 
 weight_A = 1
 weight_B = 1
-weight_C = 1
-weight_D = 1
-weight_E = 1
+weight_C = 1  # 城堡
+weight_D = 1  # 港口
+weight_E = 0.01  # 火山
 weight_F = 1
-weight_G = 0.01
+weight_G = 0.01  # 飞船
 
 # 目标函数：最小化总次数
 problem += stage_A + stage_B + stage_C + stage_D + stage_E + stage_F + stage_G
 
 # 约束条件：收集到足够的材料
-problem += (stage_A * weight_A) + (stage_E * weight_E) >= 48  # 材料a
-problem += (stage_B * weight_B) + (stage_D * weight_D) >= 48 - 141  # 材料b
-problem += (stage_B * weight_B) + (stage_E * weight_E) + (stage_G * weight_G) >= 48 + 66 * 2 - 53  # 材料c
-problem += (stage_C * weight_C) + (stage_G * weight_G) >= 25 - 10  # 材料d
-problem += (stage_C * weight_C) + (stage_F * weight_F) >= 25 - 15  # 材料e
-problem += (stage_A * weight_A) + (stage_D * weight_D) + (stage_F * weight_F) >= 25  # 材料f
+problem += (stage_A * weight_A) + (stage_E * weight_E) >= 52 + 88  # 材料a
+problem += (stage_B * weight_B) + (stage_D * weight_D) >= 52  # 材料b
+problem += (stage_B * weight_B) + (stage_E * weight_E) + (stage_G * weight_G) >= 52 + 99  # 材料c
+problem += (stage_C * weight_C) + (stage_G * weight_G) >= 52 + 88  # 材料d
+problem += (stage_C * weight_C) + (stage_F * weight_F) >= 52  # 材料e
+problem += (stage_A * weight_A) + (stage_D * weight_D) + (stage_F * weight_F) >= 52 + 66 * 4  # 材料f
 
 # 解决问题
 problem.solve()

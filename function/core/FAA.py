@@ -224,7 +224,8 @@ class FAA:
         self.ban_card_list = ban_card_list
         self.max_card_num = max_card_num
 
-        self.battle_plan = g_resources.RESOURCE_B[battle_plan_uuid]
+        # 如果缺失, 外部的检测函数会拦下来不继续的
+        self.battle_plan = g_resources.RESOURCE_B.get(battle_plan_uuid, None)
 
         self.stage_info = read_json_to_stage_info(stage_id)
 
@@ -343,11 +344,11 @@ class FAA:
             # 筛选出所有 有图片资源的卡片 包含变种
             resource_exist_list = []
             for i in range(6):
-                card_image_name = f"幻幻鸡-{i}.png"
+                card_image_name = f"创造神-{i}.png"
                 if card_image_name in RESOURCE_P["card"]["战斗"].keys():
                     resource_exist_list.append(card_image_name)
             for i in range(6):
-                card_image_name = f"创造神-{i}.png"
+                card_image_name = f"幻幻鸡-{i}.png"
                 if card_image_name in RESOURCE_P["card"]["战斗"].keys():
                     resource_exist_list.append(card_image_name)
 
@@ -537,19 +538,19 @@ class FAA:
         def calculation_card_extra(list_cell_all):
 
             if smoothie_info:
-                # 生成从 "1-1" 到 "1-7" 再到 "9-1" 到 "9-7" 的列表
-                all_locations = [f"{i}-{j}" for i in range(1, 10) for j in range(1, 8)]
-
-                # 找到第一个不在障碍物列表中的值
-                first_available_location = next(
-                    (pos for pos in all_locations if pos not in stage_info['obstacle']), None)
+                # # 生成从 "1-1" 到 "1-7" 再到 "9-1" 到 "9-7" 的列表
+                # all_locations = [f"{i}-{j}" for i in range(1, 10) for j in range(1, 8)]
+                #
+                # # 找到第一个不在障碍物列表中的值
+                # first_available_location = next(
+                #     (pos for pos in all_locations if pos not in stage_info['obstacle']), None)
 
                 # 仅该卡确定存在后执行添加
                 card_dict = {
                     'name': smoothie_info['name'],
                     'id': smoothie_info['id'],
-                    'location': [first_available_location],
-                    'ergodic': False,
+                    'location': ["1-1", "2-1", "3-1", "4-1", "5-1", "6-1", "7-1", "8-1", "9-1"],
+                    'ergodic': True,
                     'queue': False
                 }
                 list_cell_all.append(card_dict)
@@ -757,7 +758,7 @@ class FAA:
                             if "禁#" in one_split:
                                 ban_card_list = one_split.split("#")[1].split(",")
                             if "数#" in one_split:
-                                max_card_num = one_split.split("#")[1]
+                                max_card_num = int(one_split.split("#")[1])
 
                         # 如果不打 跳过
                         if stage_id.split("-")[0] == "CS" and (not qg_cs):
@@ -779,7 +780,7 @@ class FAA:
                                 },
                                 "quest_card": quest_card,
                                 "ban_card_list": ban_card_list,
-                                "max_card_num":max_card_num,
+                                "max_card_num": max_card_num,
                                 "global_plan_active": None,  # 外部输入
                                 "deck": None,  # 外部输入
                                 "battle_plan_1p": None,  # 外部输入
@@ -916,7 +917,7 @@ class FAA:
         find = loop_match_p_in_w(
             source_handle=self.handle_360,
             source_root_handle=self.handle_360,
-            source_range=[0, 0, 400, 100],
+            source_range=[0, 0, 400, 75],
             template=RESOURCE_P["common"]["登录"]["0_刷新.png"],
             match_tolerance=0.9,
             after_sleep=3,
@@ -926,7 +927,7 @@ class FAA:
             find = loop_match_p_in_w(
                 source_handle=self.handle_360,
                 source_root_handle=self.handle_360,
-                source_range=[0, 0, 400, 100],
+                source_range=[0, 0, 400, 75],
                 template=RESOURCE_P["common"]["登录"]["0_刷新_被选中.png"],
                 match_tolerance=0.98,
                 after_sleep=3,
@@ -937,7 +938,7 @@ class FAA:
                 find = loop_match_p_in_w(
                     source_handle=self.handle_360,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 400, 100],
+                    source_range=[0, 0, 400, 75],
                     template=RESOURCE_P["common"]["登录"]["0_刷新_被点击.png"],
                     match_tolerance=0.98,
                     after_sleep=3,
@@ -948,7 +949,149 @@ class FAA:
                     return False
         return True
 
+    def click_return_btn(self) -> bool:
+        """
+        点击360游戏大厅的返回上一级按钮
+        这用户在结束后的最终刷新前, 以保证微端也能回到选服界面
+        请注意 微端 这需要再之后补一次刷新
+        请注意 不要给该操作设置必须成功 因为 部分服务器没有回退按钮
+        :return: bool 是否成功点击
+        """
+
+        # 点击刷新按钮 该按钮在360窗口上
+        find = loop_match_p_in_w(
+            source_handle=self.handle_360,
+            source_root_handle=self.handle_360,
+            source_range=[0, 0, 400, 75],
+            template=RESOURCE_P["common"]["登录"]["0_回退.png"],
+            match_tolerance=0.9,
+            after_sleep=3,
+            click=True)
+
+        if not find:
+            find = loop_match_p_in_w(
+                source_handle=self.handle_360,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 400, 75],
+                template=RESOURCE_P["common"]["登录"]["0_回退_被选中.png"],
+                match_tolerance=0.98,
+                after_sleep=3,
+                click=True)
+
+            if not find:
+
+                find = loop_match_p_in_w(
+                    source_handle=self.handle_360,
+                    source_root_handle=self.handle_360,
+                    source_range=[0, 0, 400, 75],
+                    template=RESOURCE_P["common"]["登录"]["0_回退_被点击.png"],
+                    match_tolerance=0.98,
+                    after_sleep=3,
+                    click=True)
+
+                if not find:
+                    self.print_warning(text="未找到360大厅回退按钮, 是失败了")
+                    return False
+        return True
+
+    def click_accelerate_btn(self, mode: str = "normal") -> bool:
+        """
+        点击360游戏大厅的刷新游戏按钮
+        :param mode: str 模式 包含 "normal" "stop"
+        :return: bool 是否成功点击
+        """
+
+        def click_btn():
+
+            # 点击按钮 该按钮在360窗口上
+            find = loop_match_p_in_w(
+                source_handle=self.handle_360,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 2000, 75],
+                template=RESOURCE_P["common"]["战斗"]["变速_默认或被点击.png"],
+                match_tolerance=0.99,
+                match_interval=0.00001,
+                match_failed_check=0.00002,
+                after_sleep=0,
+                click=True)
+
+            if not find:
+                find = loop_match_p_in_w(
+                    source_handle=self.handle_360,
+                    source_root_handle=self.handle_360,
+                    source_range=[0, 0, 2000, 75],
+                    template=RESOURCE_P["common"]["战斗"]["变速_被选中.png"],
+                    match_tolerance=0.99,
+                    match_interval=0.00001,
+                    match_failed_check=0.00002,
+                    after_sleep=0,
+                    click=True)
+
+                if not find:
+                    self.print_error(text="未找到360大厅加速游戏按钮, 加速游戏失败了...")
+                    return False
+            return True
+
+        if mode != "stop":
+            return click_btn()
+
+        for i in range(10):
+
+            # 检测是否在加速中
+            not_accelerating = loop_match_p_in_w(
+                source_handle=self.handle_360,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 2000, 75],
+                template=RESOURCE_P["common"]["战斗"]["未激活变速_默认.png"],
+                match_tolerance=0.99,
+                match_interval=0.1,
+                match_failed_check=0.2,
+                after_sleep=0,
+                click=False
+            )
+
+            if not not_accelerating:
+                not_accelerating = loop_match_p_in_w(
+                    source_handle=self.handle_360,
+                    source_root_handle=self.handle_360,
+                    source_range=[0, 0, 2000, 75],
+                    template=RESOURCE_P["common"]["战斗"]["未激活变速_被选中或被点击.png"],
+                    match_tolerance=0.99,
+                    match_interval=0.00001,
+                    match_failed_check=0.00002,
+                    after_sleep=0,
+                    click=False
+                )
+
+            if not_accelerating:
+                self.print_info(text="复核 - 停止加速, 已完成")
+                return True
+
+            click_btn()
+            time.sleep(0.5)
+
+        else:
+            self.print_error(text="开启或关闭加速出现致命失误!!! 请通报开发者!!!")
+
     def reload_game(self) -> None:
+
+        def try_close_sub_account_list():
+            # 是否有小号列表
+            my_result = match_p_in_w(
+                source_handle=self.handle_360,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 300, 300],
+                template=RESOURCE_P["common"]["登录"]["小号列表.png"],
+                match_tolerance=0.99
+            )
+            if my_result:
+                # 点击关闭它
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle_360,
+                    x=30,
+                    y=55)
+                return True
+            return False
 
         def try_enter_server_4399():
             # 4399 进入服务器
@@ -957,7 +1100,25 @@ class FAA:
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 2000],
                 template=RESOURCE_P["common"]["登录"]["1_我最近玩过的服务器_4399.png"],
-                match_tolerance=0.9
+                match_tolerance=0.98
+            )
+            if my_result:
+                # 点击进入服务器
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle_browser,
+                    x=my_result[0],
+                    y=my_result[1] + 30)
+                return True
+            return False
+
+        def try_enter_server_4399_wd():
+            # 4399 进入服务器
+            my_result = match_p_in_w(
+                source_handle=self.handle_browser,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 2000, 2000],
+                template=RESOURCE_P["common"]["登录"]["1_我最近玩过的服务器_4399微端.png"],
+                match_tolerance=0.98
             )
             if my_result:
                 # 点击进入服务器
@@ -975,7 +1136,7 @@ class FAA:
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 2000],
                 template=RESOURCE_P["common"]["登录"]["1_我最近玩过的服务器_QQ空间.png"],
-                match_tolerance=0.9
+                match_tolerance=0.98
             )
             if my_result:
                 # 点击进入服务器
@@ -993,7 +1154,7 @@ class FAA:
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 2000],
                 template=RESOURCE_P["common"]["登录"]["1_我最近玩过的服务器_QQ游戏大厅.png"],
-                match_tolerance=0.9
+                match_tolerance=0.98
             )
             if my_result:
                 # 点击进入服务器
@@ -1014,7 +1175,7 @@ class FAA:
                     source_root_handle=self.handle_360,
                     source_range=[0, 0, 2000, 2000],
                     template=RESOURCE_P["error"]["retry_btn.png"],
-                    match_tolerance=0.9
+                    match_tolerance=0.95
                 )
                 if not my_result:
                     return True
@@ -1028,7 +1189,18 @@ class FAA:
                 return False
 
         def main():
+
             while not self.should_stop:
+
+                # 先重新获取 360 和 浏览器的句柄
+                self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
+                self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
+
+                # 确保关闭小号列表
+                if try_close_sub_account_list():
+                    self.print_debug(text="[刷新游戏] 成功关闭小号列表")
+                else:
+                    self.print_debug(text="[刷新游戏] 未找到小号列表, 很好...")
 
                 # 点击刷新按钮 该按钮在360窗口上
                 self.print_debug(text="[刷新游戏] 点击刷新按钮...")
@@ -1038,11 +1210,13 @@ class FAA:
                 self.print_debug(text="[刷新游戏] 判定平台...")
 
                 if try_enter_server_4399():
-                    self.print_debug(text="[刷新游戏] 成功进入4399平台")
+                    self.print_debug(text="[刷新游戏] 成功进入 - 4399平台")
+                elif try_enter_server_4399_wd():
+                    self.print_debug(text="[刷新游戏] 成功进入 - 4399微端平台")
                 elif try_enter_server_qq_space():
-                    self.print_debug(text="[刷新游戏] 成功进入QQ空间平台")
+                    self.print_debug(text="[刷新游戏] 成功进入 - QQ空间平台")
                 elif try_enter_server_qq_game_hall():
-                    self.print_debug(text="[刷新游戏] 成功进入QQ游戏大厅平台")
+                    self.print_debug(text="[刷新游戏] 成功进入 - QQ游戏大厅平台")
                 else:
                     # QQ空间需重新登录
                     self.print_debug(
@@ -1077,17 +1251,17 @@ class FAA:
                     source_root_handle=self.handle_360,
                     template_opts=[
                         {
-                            "source_range": [840, 525, 2000, 2000],
+                            "source_range": [850, 570, 2000, 2000],
                             "template": RESOURCE_P["common"]["底部菜单"]["跳转.png"],
-                            "match_tolerance": 0.98,
+                            "match_tolerance": 0.99,
                         }, {
-                            "source_range": [610, 525, 2000, 2000],
+                            "source_range": [615, 570, 2000, 2000],
                             "template": RESOURCE_P["common"]["底部菜单"]["任务.png"],
-                            "match_tolerance": 0.98,
+                            "match_tolerance": 0.99,
                         }, {
-                            "source_range": [890, 525, 2000, 2000],
+                            "source_range": [890, 570, 2000, 2000],
                             "template": RESOURCE_P["common"]["底部菜单"]["后退.png"],
-                            "match_tolerance": 0.98,
+                            "match_tolerance": 0.99,
                         }
                     ],
                     return_mode="and",
@@ -1118,8 +1292,8 @@ class FAA:
                     loop_match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
-                        source_range=[0, 0, 950, 600],
-                        template=RESOURCE_P["common"]["登录"]["4_退出每日必充.png"],
+                        source_range=[875, 30, 925, 75],
+                        template=RESOURCE_P["common"]["登录"]["4_退出假期特惠.png"],
                         match_tolerance=0.99,
                         match_failed_check=3,
                         after_sleep=1,
@@ -1622,7 +1796,7 @@ class FAA:
             """根据目前尝试次数, 到达不同的公会"""
             if try_times != 0:
 
-                # 点击全部工会
+                # 点击全部公会
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=798, y=123)
                 time.sleep(1)
 
@@ -1654,7 +1828,7 @@ class FAA:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=362)
             time.sleep(1)
 
-            # 等待一下 确保没有完成的黑屏
+            # 等待一下 确保没有 提示任务完成黑屏
             loop_match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
@@ -1665,13 +1839,15 @@ class FAA:
                 after_sleep=1,
                 click=False
             )
-            self.print_debug(text=f"{try_times + 1}/100 次尝试, 浇水后, 已确认无任务完成黑屏")
+            self.print_debug(text=f"{try_times + 1}/5 次尝试, 浇水后, 已确认无任务完成黑屏")
 
             # 施肥一次
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=418)
             time.sleep(1)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=425, y=355)
+            time.sleep(1)
 
-            # 等待一下 确保没有完成的黑屏
+            # 等待一下 确保没有 提示任务完成黑屏
             loop_match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
@@ -1681,7 +1857,7 @@ class FAA:
                 match_failed_check=7,
                 after_sleep=2,
                 click=False)
-            self.print_debug(text=f"{try_times + 1}/100 次尝试, 施肥后, 已确认无任务完成黑屏")
+            self.print_debug(text=f"{try_times + 1}/5 次尝试, 施肥后, 已确认无任务完成黑屏")
 
         def fed_and_watered_one_action(try_times):
             """
@@ -1722,7 +1898,7 @@ class FAA:
             time.sleep(0.5)
 
             if not find:
-                self.print_debug(text="已完成公会浇水施肥, 尝试次数: {}/100".format(try_times))
+                self.print_debug(text="已完成公会浇水施肥, 尝试次数: {}/5".format(try_times))
                 return True, False
             else:
                 # 进入施肥界面, 正确进入就跳出循环
@@ -1750,7 +1926,7 @@ class FAA:
                 completed_flag, is_bug = fed_and_watered_one_action(try_times=try_times)
                 try_times += 1
 
-                if try_times == 100 or is_bug:
+                if try_times == 5 or is_bug:
                     # 次数过多, 或 遇上bug
                     return completed_flag, try_times, True
 
@@ -1769,12 +1945,12 @@ class FAA:
                 if is_bug:
                     if reload_time != 3:
                         SIGNAL.PRINT_TO_UI.emit(
-                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入工会页失败... 刷新再试({reload_time}/3)")
+                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入公会页失败... 刷新再试({reload_time}/3)")
                         self.reload_game()
                         continue
                     else:
                         SIGNAL.PRINT_TO_UI.emit(
-                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入工会页失败... 刷新跳过({reload_time}/3)")
+                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入公会页失败... 刷新跳过({reload_time}/3)")
                         self.reload_game()
                         break
 
@@ -1795,9 +1971,9 @@ class FAA:
                         self.reload_game()
                         break
 
-                if try_times == 100:
+                if try_times == 5:
                     SIGNAL.PRINT_TO_UI.emit(
-                        f"[浇水 施肥 摘果 领取] [{self.player}p] 尝试100次, 直接刷新跳过")
+                        f"[浇水 施肥 摘果 领取] [{self.player}p] 尝试5次, 直接, 肥料不够! 刷新跳过 ")
                     self.reload_game()
                     break
 
@@ -1805,7 +1981,7 @@ class FAA:
                     # 正常完成
                     SIGNAL.PRINT_TO_UI.emit(
                         f"[浇水 施肥 摘果 领取] [{self.player}p] 正确完成 ~")
-                    # 退出工会
+                    # 退出公会
                     self.action_exit(mode="普通红叉")
                     self.receive_quest_rewards(mode="公会任务")
                     break
@@ -1862,13 +2038,26 @@ class FAA:
                     # 单一物品: 无脑点击点掉X 不再识图
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=450, y=190)
                     time.sleep(0.1)
-                    # 礼包物品: 在限定范围内 找红叉点掉
+
+                    # 礼包物品1: 在限定范围内 找红叉点掉 y=180-220
                     loop_match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
-                        source_range=[678, 190, 720, 215],
+                        source_range=[680, 260, 720, 290],
                         template=RESOURCE_P["common"]["退出.png"],
-                        match_tolerance=0.99,
+                        match_tolerance=0.98,
+                        match_interval=0.2,
+                        match_failed_check=0,
+                        after_sleep=0.1,
+                        click=True)
+
+                    # 礼包物品2: 在限定范围内 找红叉点掉 y=260-290
+                    loop_match_p_in_w(
+                        source_handle=self.handle,
+                        source_root_handle=self.handle_360,
+                        source_range=[680, 180, 720, 220],
+                        template=RESOURCE_P["common"]["退出.png"],
+                        match_tolerance=0.98,
                         match_interval=0.2,
                         match_failed_check=0,
                         after_sleep=0.1,
@@ -2129,7 +2318,7 @@ class FAA:
         SIGNAL.PRINT_TO_UI.emit(text=f"[兑换暗晶] [{self.player}P] 开始.")
 
         # 打开公会副本界面
-        self.print_debug(text="跳转到工会副本界面")
+        self.print_debug(text="跳转到公会副本界面")
         self.action_bottom_menu(mode="跳转_公会副本")
 
         # 打开暗晶商店
@@ -2188,7 +2377,7 @@ class FAA:
                 template=i_image,
                 template_name=i_name,
                 mask=RESOURCE_P["item"]["物品-掩模-不绑定.png"],
-                match_tolerance=0.99,
+                match_tolerance=0.999,
                 test_print=True)
 
             if find:

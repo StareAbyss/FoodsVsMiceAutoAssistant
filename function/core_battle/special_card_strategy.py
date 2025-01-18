@@ -32,6 +32,8 @@ def generate_coverage(strategy_id):
         return [(i, j) for j in range(-1, 2) for i in range(-8, 9)]  # 三行覆盖
     elif strategy_id == 10:
         return [(i, j) for i in range(0, 3) for j in range(-1, 2)]  # 3x3预判
+    elif strategy_id == 15:
+        return [(i, j) for i in range(-6, 7) for j in range(-8, 9)]  # 全屏
     else:
         # 示例调用
         raise ValueError("未知的策略ID")
@@ -140,12 +142,6 @@ def solve_special_card_problem(points_to_cover, obstacles, card_list_can_use):
     STRATEGY_COUNT = -1
 
     # 添加策略
-    # add_strategy(1, 7, 30)  # 三行覆盖
-    # add_strategy(1, 3, -30)
-    # add_strategy(2, 3, 30)
-    # add_strategy(1, 8, 15, rows=2, cols=2)  # 十字策略
-    # add_strategy(2, 8, 15, rows=2, cols=2)  # 十字策略
-    # add_strategy(2, 9, 10)  # 复制对策，成本为10
     for i in range(1, 3):  # 遍历可用列表添加策略
         for card in card_list_can_use[i]:
             if card.card_type == 8:

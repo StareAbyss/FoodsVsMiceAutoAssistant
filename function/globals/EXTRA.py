@@ -10,13 +10,23 @@ from function.scattered.ethical_core import ethical_core
 """
 
 # 版本号
-VERSION = "v1.6.1"
+VERSION = "v2.1.1"
 
 # 每秒点击次数
 CLICK_PER_SECOND = 120
 
 # FAA可以处理的游戏画面最低帧数
 LOWEST_FPS = 10
+
+# FAA卡片放满后的禁用时长 秒
+FULL_BAN_TIME = 5
+
+# FAA开局和结算加速时长 0则不加速
+ACCELERATE_START_UP_VALUE = 0
+ACCELERATE_SETTLEMENT_VALUE = 0
+
+# FAA战斗最长时间 Min
+MAX_BATTLE_TIME = 0
 
 # 在双人作战时, 极寒冰沙 全局锁
 SMOOTHIE_LOCK_TIME = 0

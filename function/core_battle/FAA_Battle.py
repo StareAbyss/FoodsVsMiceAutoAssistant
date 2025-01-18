@@ -23,6 +23,7 @@ class Battle:
         self.fire_elemental_1000 = None
         self.smoothie_usable = None
         self.wave = 0  # 当前波次归零
+        self.start_time = 0  # 开战时间归零
 
         self.player_locations = None  # 战斗开始放人物的位置 - 代号list
         self.shovel_locations = None  # 放铲子的位置 - 代号list
@@ -71,6 +72,7 @@ class Battle:
         self.fire_elemental_1000 = False
         self.smoothie_usable = self.faa.player == 1
         self.wave = 0  # 当前波次归零
+        self.start_time = time.time()
 
     def use_player_all(self):
 
@@ -126,8 +128,9 @@ class Battle:
         :return:
             None
         """
-        # 如果不需要使用钥匙 或者 已经用过钥匙 直接输出
-        if not self.faa.need_key or self.is_used_key:
+
+        # 如果 已经用过钥匙 直接输出
+        if self.is_used_key:
             return False
 
         find = match_p_in_w(
@@ -135,28 +138,50 @@ class Battle:
             source_range=[386, 332, 463, 362],
             match_tolerance=0.95,
             template=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
-        if find:
-            self.faa.print_info(text="找到了 [继续作战] 图标")
-            while find:
-                loop_match_p_in_w(
-                    source_handle=self.faa.handle,
-                    source_root_handle=self.faa.handle_360,
-                    source_range=[386, 332, 463, 362],
-                    match_tolerance=0.95,
-                    template=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"],
-                    after_sleep=0.5,
-                    click=True)
-                find = match_p_in_w(
-                    source_handle=self.faa.handle,
-                    source_root_handle=self.faa.handle_360,
-                    source_range=[302, 263, 396, 289],
-                    match_tolerance=0.95,
-                    template=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
+
+        if not find:
+            return False
+
+        self.faa.print_info(text="找到了 [继续作战] 图标")
+
+        while find:
+            if self.faa.need_key:
+                template = RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"]
+                source_range = [394, 340, 456, 354]
+            else:
+                template = RESOURCE_P["common"]["战斗"]["战斗中_领取奖品.png"]
+                source_range = [492, 340, 554, 354]
+            loop_match_p_in_w(
+                template=template,
+                source_handle=self.faa.handle,
+                source_root_handle=self.faa.handle_360,
+                source_range=source_range,
+                match_tolerance=0.95,
+                after_sleep=0.25,
+                click=True)
+
+            # 是否还在选继续界面
+            find = match_p_in_w(
+                source_handle=self.faa.handle,
+                source_root_handle=self.faa.handle_360,
+                source_range=[302, 263, 396, 289],
+                match_tolerance=0.95,
+                template=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
+
+        if self.faa.need_key:
             self.faa.print_info(text="点击了 [继续作战] 图标")
             return True
-        return False
+        else:
+            self.faa.print_info(text="点击了 [领取奖品] 图标")
+            return False
 
     def check_end(self):
+
+        if EXTRA.MAX_BATTLE_TIME != 0:
+            duration = time.time() - self.start_time
+            if EXTRA.MAX_BATTLE_TIME * 60 < duration:
+                self.faa.print_info(text=f"[战斗] 战斗时间:{duration:.0f}s已到, 退出战斗")
+                return True
 
         img = capture_image_png(
             handle=self.faa.handle,

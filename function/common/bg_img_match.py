@@ -57,6 +57,10 @@ def match_template_with_optional_mask(source, template, mask=None, quick_method=
     """
     method = cv2.TM_SQDIFF_NORMED
 
+    # 确保源图像的长度和宽度均大于模板, 否则报错 输出源大小和目标大小
+    if source.shape[0] < template.shape[0] or source.shape[1] < template.shape[1]:
+        CUS_LOGGER.error(f"图像识别模块 - 源图像小于目标大小, 产生致命错误! 源图像大小: {source.shape} 目标大小: {template.shape}")
+
     # 确保source为三通道
     if source.shape[2] == 4:
         source = source[:, :, :3]
@@ -144,7 +148,7 @@ def match_p_in_w(
     :param source_handle: 窗口句柄, 用以获取图像
     :param source_root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层, 默认不取则不检查
     :param source_img: 取代截图, 直接输入图片, 优先级更高. 至少RGB三个通道. 该参数和source_handle至少输入一个.
-    :param source_range: 原始图像生效的范围,为 [左上X, 左上Y,右下X, 右下Y], 右下位置超出范围取最大(不会报错), 默认不裁剪从全图匹配.
+    :param source_range: 原始图像生效的范围,为 [左上X, 左上Y,右下X, 右下Y], 右下位置超出范围取最大(不会报错), 在输入图像模式下, 默认None不裁剪, 从全图匹配, 截图模式下必须手动输入.
     :param mask: 目标图片掩模, 若为None, 则不使用掩模
     :param match_tolerance: 捕捉准确度阈值 0-1
     :param return_center: 是否返回中心坐标, 否则返回左上坐标
@@ -409,11 +413,12 @@ if __name__ == '__main__':
     def main():
         handle = faa_get_handle(channel="锑食", mode="browser")
         root_handle = faa_get_handle(channel="锑食", mode="360")
-        result = match_p_in_w(source_handle=handle,
-                              source_range=[0, 0, 2000, 2000],
-                              template=g_resources.RESOURCE_P["common"]["顶部菜单"]["大地图.png"],
-                              match_tolerance=0.87,
-                              source_root_handle=root_handle)
+        result = match_p_in_w(
+            source_handle=handle,
+            source_range=[0, 0, 2000, 2000],
+            template=g_resources.RESOURCE_P["common"]["顶部菜单"]["大地图.png"],
+            match_tolerance=0.87,
+            source_root_handle=root_handle)
 
         print(result)
         result = (1, 2)

@@ -247,11 +247,53 @@ def update_dag_graph(item_list_new) -> bool:
     根据list中各个物品(str格式)的排序 来保存成一个json文件
     会根据本次输入, 和保存的之前的图比较, 以排序, 最终获得几乎所有物品的物品的结果表
     使用有向无环图, 保留无法区分前后的数据
+    由于四叶草和香料会有隐藏的绑定与不绑区别, 会导致正常的战利品记录中中同类型之间出现出现无法区分的"错乱"排序.
     :param item_list_new 物品顺序 list 仅一维
     :return: 是否成功更新, 也是判断数据输入是否有效
     """
 
     CUS_LOGGER.debug("[有向无环图] [更新] 正在进行...")
+
+    # 强制排序初始list中部分物品
+    group_1 = ['5级四叶草', '4级四叶草', '3级四叶草', '2级四叶草', '1级四叶草']
+    group_2 = ['天使香料', '精灵香料', '魔幻香料', '皇室香料', '极品香料', '秘制香料', '上等香料', '天然香料']
+
+    def change_item_list_by_group(group_list, item_list):
+        """
+        根据给定的分组列表，重新排列物品列表
+        具体步骤如下：
+        1. 找到项目列表中属于分组列表的项目，并记录它们的位置。
+        2. 从项目列表中移除这些项目。
+        3. 按照分组列表的顺序将这些项目重新插入到项目列表中，插入位置为第一次找到的分组项目的位置。
+        :param group_list: 需要匹配的分组列表
+        :param item_list: 需要重新排列的项目列表
+        :return: 重新排列后的项目列表
+        """
+        group_item_found_dict = {item: False for item in group_list}
+        first_index = None
+
+        # 找到项目列表中属于分组列表的项目，并记录它们的位置
+        for index, item_name in enumerate(item_list):
+            if item_name in group_list:
+                group_item_found_dict[item_name] = True
+                if first_index is None:
+                    first_index = index
+
+        # 从项目列表中移除这些项目
+        new_item_list = []
+        for item in item_list:
+            if not group_item_found_dict.get(item, False):
+                new_item_list.append(item)
+
+        # 按照分组列表的逆序将这些项目重新插入到项目列表中
+        for item_name in reversed(group_list):
+            if group_item_found_dict[item_name]:
+                new_item_list.insert(first_index, item_name)
+
+        return new_item_list
+
+    item_list_new = change_item_list_by_group(group_list=group_1, item_list=item_list_new)
+    item_list_new = change_item_list_by_group(group_list=group_2, item_list=item_list_new)
 
     # 读取现 JSON Ranking 文件
     json_path = PATHS["logs"] + "\\item_ranking_dag_graph.json"

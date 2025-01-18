@@ -5,7 +5,7 @@ import shutil
 import sys
 
 from PyQt6.QtCore import QRegularExpression
-from PyQt6.QtGui import QRegularExpressionValidator
+from PyQt6.QtGui import QRegularExpressionValidator, QIntValidator
 from PyQt6.QtWidgets import QApplication, QMessageBox, QInputDialog
 
 from function.core.QMW_1_log import QMainWindowLog
@@ -73,8 +73,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
         g_resources.fresh_resource_cus_img()
         g_resources.fresh_resource_b()
 
+        # 为部分ui控件添加特性
+        self.widget_extra_settings()
+
         # 绑定
-        self.set_connect_for_lock_battle_plan_settings()
+        self.set_connect_for_lock_widget()
 
         # 从json文件中读取opt 并刷新ui
         self.opt = None
@@ -229,6 +232,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.Warrior_Active.setChecked(my_opt["warrior"]["active"])
         self.Warrior_Group.setChecked(my_opt["warrior"]["is_group"])
         self.Warrior_MaxTimes.setValue(my_opt["warrior"]["max_times"])
+        self.Warrior_Stage.setText(str(my_opt["warrior"]["stage"]))
         self.Warrior_GlobalPlanActive.setChecked(my_opt["warrior"]["global_plan_active"])
         self.Warrior_Deck.setCurrentIndex(my_opt["warrior"]["deck"])
         init_battle_plan(self.Warrior_1P, my_opt["warrior"]["battle_plan_1p"])
@@ -256,6 +260,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.OfferReward_MaxTimes_1.setText(str(my_opt["offer_reward"]["max_times_1"]))
         self.OfferReward_MaxTimes_2.setText(str(my_opt["offer_reward"]["max_times_2"]))
         self.OfferReward_MaxTimes_3.setText(str(my_opt["offer_reward"]["max_times_3"]))
+        self.OfferReward_MaxTimes_4.setText(str(my_opt["offer_reward"]["max_times_4"]))
         self.OfferReward_GlobalPlanActive.setChecked(my_opt["offer_reward"]["global_plan_active"])
         self.OfferReward_Deck.setCurrentIndex(my_opt["offer_reward"]["deck"])
         init_battle_plan(self.OfferReward_1P, my_opt["offer_reward"]["battle_plan_1p"])
@@ -270,7 +275,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         init_battle_plan(self.CrossServer_1P, my_opt["cross_server"]["battle_plan_1p"])
         init_battle_plan(self.CrossServer_2P, my_opt["cross_server"]["battle_plan_2p"])
 
-        # 公会任务 工会副本 情侣任务 火山遗迹
+        # 公会任务 公会副本 情侣任务 火山遗迹
 
         self.QuestGuild_Active.setChecked(my_opt["quest_guild"]["active"])
         self.QuestGuild_Stage.setChecked(my_opt["quest_guild"]["stage"])
@@ -411,20 +416,34 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.EndExitGame.setChecked(my_opt["end_exit_game"])
 
             """ 进阶功能 - 普通战斗设定"""
+
             # 半自动拾取
             self.AutoPickUp_1P.setChecked(my_opt["auto_pickup_1p"])
             self.AutoPickUp_2P.setChecked(my_opt["auto_pickup_2p"])
+
             # 点击频率
-            self.CusCPS_Active.setChecked(my_opt["cus_cps_active"])
-            self.CusCPS_Value.setValue(my_opt["cus_cps_value"])
+            self.CusCPSActive.setChecked(my_opt["cus_cps_active"])
+            self.CusCPSValueInput.setValue(my_opt["cus_cps_value"])
             EXTRA.CLICK_PER_SECOND = my_opt["cus_cps_value"] if my_opt["cus_cps_active"] else 120
+
             # 最低FPS
-            self.CusLowestFPS_Active.setChecked(my_opt["cus_lowest_fps_active"])
-            self.CusLowestFPS_Value.setValue(my_opt["cus_lowest_fps_value"])
+            self.CusLowestFPSActive.setChecked(my_opt["cus_lowest_fps_active"])
+            self.CusLowestFPSValueInput.setValue(my_opt["cus_lowest_fps_value"])
             EXTRA.LOWEST_FPS = my_opt["cus_lowest_fps_value"] if my_opt["cus_lowest_fps_active"] else 10
+
+            # 自定放满禁用时间 毫秒转为秒
+            self.CusFullBanTimeActive.setChecked(my_opt["cus_full_ban_active"])
+            self.CusFullBanTimeValueInput.setValue(my_opt["cus_full_ban_value"])
+            EXTRA.FULL_BAN_TIME = my_opt["cus_full_ban_value"] / 1000 if my_opt["cus_full_ban_active"] else 5
+
             # 自动带卡
-            self.CusAutoCarryCard_Active.setChecked(my_opt["cus_auto_carry_card_active"])
-            self.CusAutoCarryCard_Value.setCurrentIndex(my_opt["cus_auto_carry_card_value"] - 1)
+            self.CusAutoCarryCardActive.setChecked(my_opt["cus_auto_carry_card_active"])
+            self.CusAutoCarryCardValueInput.setCurrentIndex(my_opt["cus_auto_carry_card_value"] - 1)
+
+            # 单局最大战斗时间
+            self.MaxBattleTime_Active.setChecked(my_opt["max_battle_time_active"])
+            self.MaxBattleTime_Value.setValue(my_opt["max_battle_time_value"])
+            EXTRA.MAX_BATTLE_TIME = my_opt["max_battle_time_value"] if my_opt["max_battle_time_active"] else 0
 
             # 是否启动用卡
             self.AutoUseCard.setChecked(my_opt["auto_use_card"])
@@ -437,24 +456,65 @@ class QMainWindowLoadSettings(QMainWindowLog):
             # link 加载的时候不做校验
             self.MisuLogistics_Link.setText(my_opt["misu_logistics_link"])
 
+        def accelerate_settings() -> None:
+            """
+            加速功能设定
+            """
+
+            my_opt = self.opt["accelerate"]
+
+            self.AccelerateActive.setChecked(my_opt["active"])
+            self.AccelerateValue.setValue(my_opt["value"])
+            self.AccelerateStartUpActive.setChecked(my_opt["start_up_active"])
+            self.AccelerateSettlementActive.setChecked(my_opt["settlement_active"])
+            self.AccelerateCustomizeActive.setChecked(my_opt["customize_active"])
+            self.AccelerateCustomizeValue.setValue(my_opt["customize_value"])
+
+            def set_accelerate_value(active, value, customize_active=False, customize_value=0):
+                if active:
+                    return customize_value if customize_active else value
+                return 0
+
+            if my_opt["active"]:
+                EXTRA.ACCELERATE_START_UP_VALUE = set_accelerate_value(
+                    active=my_opt["start_up_active"],
+                    value=my_opt["value"],
+                    customize_active=my_opt["customize_active"],
+                    customize_value=my_opt["customize_value"]
+                )
+                EXTRA.ACCELERATE_SETTLEMENT_VALUE = set_accelerate_value(
+                    active=my_opt["settlement_active"],
+                    value=my_opt["value"]
+                )
+            else:
+                EXTRA.ACCELERATE_START_UP_VALUE = 0
+                EXTRA.ACCELERATE_SETTLEMENT_VALUE = 0
+
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
-            self.Battle_senior_checkedbox.setChecked(my_opt["auto_senior_settings"])
-            self.Battle_senior_gpu.setChecked(my_opt["gpu_settings"])
-            self.Advance_battle_interval_Value.setValue(my_opt["interval"])
-            self.Battle_senior_checkedbox.stateChanged.connect(self.on_checkbox_state_changed)
-            self.all_senior_log.setEnabled(my_opt["auto_senior_settings"])
-            self.Battle_senior_gpu.setEnabled(my_opt["auto_senior_settings"])
-            self.indeed_need.setEnabled(my_opt["auto_senior_settings"])
+            self.BattleSeniorActive.setChecked(my_opt["auto_senior_settings"])
+            self.BattleSeniorGPUActive.setChecked(my_opt["gpu_settings"])
+            self.BattleSeniorIntervalValueInput.setValue(my_opt["interval"])
+            self.BattleSeniorGPUActive.setEnabled(my_opt["auto_senior_settings"])
+            self.BattleSeniorLogFull.setEnabled(my_opt["auto_senior_settings"])
+            self.BattleSeniorLogPart.setEnabled(my_opt["auto_senior_settings"])
             if my_opt["senior_log_state"]:
-                self.all_senior_log.setChecked(True)
+                self.BattleSeniorLogFull.setChecked(True)
             else:
-                self.indeed_need.setChecked(True)
+                self.BattleSeniorLogPart.setChecked(True)
 
         def log_settings() -> None:
             my_opt = self.opt["log_settings"]
             self.senior_log_clean.setValue(my_opt["log_senior_settings"])
             self.other_log_clean.setValue(my_opt["log_other_settings"])
+
+        def login_settings() -> None:
+            my_opt = self.opt["login_settings"]
+            self.login_first.setValue(my_opt["first_num"])
+            self.login_second.setValue(my_opt["second_num"])
+            self.open360.setChecked(my_opt["login_open_settings"])
+            self.close360.setChecked(my_opt["login_close_settings"])
+            self.LoginSettings360PathInput.setText(my_opt["login_path"])
 
         def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
@@ -522,8 +582,10 @@ class QMainWindowLoadSettings(QMainWindowLog):
         senior_settings()
         get_warm_gift_settings()
         log_settings()
+        login_settings()
         level_2()
         skin_set()
+        accelerate_settings()
 
         self.CurrentPlan.clear()
         self.CurrentPlan.addItems(todo_plan_name_list)
@@ -595,6 +657,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         my_opt["warrior"]["active"] = self.Warrior_Active.isChecked()
         my_opt["warrior"]["is_group"] = self.Warrior_Group.isChecked()
         my_opt["warrior"]["max_times"] = self.Warrior_MaxTimes.value()
+        my_opt["warrior"]["stage"] = int(self.Warrior_Stage.text())
         my_opt["warrior"]["global_plan_active"] = self.Warrior_GlobalPlanActive.isChecked()
         my_opt["warrior"]["deck"] = self.Warrior_Deck.currentIndex()
         my_transformer_b(self.Warrior_1P, "warrior", "battle_plan_1p")
@@ -621,6 +684,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         my_opt["offer_reward"]["max_times_1"] = int(self.OfferReward_MaxTimes_1.text())
         my_opt["offer_reward"]["max_times_2"] = int(self.OfferReward_MaxTimes_2.text())
         my_opt["offer_reward"]["max_times_3"] = int(self.OfferReward_MaxTimes_3.text())
+        my_opt["offer_reward"]["max_times_4"] = int(self.OfferReward_MaxTimes_4.text())
         my_opt["offer_reward"]["global_plan_active"] = self.OfferReward_GlobalPlanActive.isChecked()
         my_transformer_b(self.OfferReward_1P, "offer_reward", "battle_plan_1p")
         my_transformer_b(self.OfferReward_2P, "offer_reward", "battle_plan_2p")
@@ -634,7 +698,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         my_transformer_b(self.CrossServer_1P, "cross_server", "battle_plan_1p")
         my_transformer_b(self.CrossServer_2P, "cross_server", "battle_plan_2p")
 
-        # 公会任务 工会副本 情侣任务 火山遗迹
+        # 公会任务 公会副本 情侣任务 火山遗迹
 
         my_opt["quest_guild"]["active"] = self.QuestGuild_Active.isChecked()
         my_opt["quest_guild"]["stage"] = self.QuestGuild_Stage.isChecked()
@@ -765,25 +829,35 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["auto_pickup_2p"] = self.AutoPickUp_2P.isChecked()
 
             # 点击频率
-            my_opt["cus_cps_active"] = self.CusCPS_Active.isChecked()
-            my_opt["cus_cps_value"] = self.CusCPS_Value.value()
+            my_opt["cus_cps_active"] = self.CusCPSActive.isChecked()
+            my_opt["cus_cps_value"] = self.CusCPSValueInput.value()
             EXTRA.CLICK_PER_SECOND = my_opt["cus_cps_value"] if my_opt["cus_cps_active"] else 120
 
             # 最低FPS
-            my_opt["cus_lowest_fps_active"] = self.CusLowestFPS_Active.isChecked()
-            my_opt["cus_lowest_fps_value"] = self.CusLowestFPS_Value.value()
+            my_opt["cus_lowest_fps_active"] = self.CusLowestFPSActive.isChecked()
+            my_opt["cus_lowest_fps_value"] = self.CusLowestFPSValueInput.value()
             EXTRA.LOWEST_FPS = my_opt["cus_lowest_fps_value"] if my_opt["cus_lowest_fps_active"] else 10
 
+            # 自定放满禁用时间 毫秒转为秒
+            my_opt["cus_full_ban_active"] = self.CusFullBanTimeActive.isChecked()
+            my_opt["cus_full_ban_value"] = self.CusFullBanTimeValueInput.value()
+            EXTRA.FULL_BAN_TIME = my_opt["cus_full_ban_value"] / 1000 if my_opt["cus_full_ban_active"] else 5
+
             # 自动带卡
-            my_opt["cus_auto_carry_card_active"] = self.CusAutoCarryCard_Active.isChecked()
-            my_opt["cus_auto_carry_card_value"] = self.CusAutoCarryCard_Value.currentIndex() + 1
+            my_opt["cus_auto_carry_card_active"] = self.CusAutoCarryCardActive.isChecked()
+            my_opt["cus_auto_carry_card_value"] = self.CusAutoCarryCardValueInput.currentIndex() + 1
+
+            # 单局最大战斗时间
+            my_opt["max_battle_time_active"] = self.MaxBattleTime_Active.isChecked()
+            my_opt["max_battle_time_value"] = self.MaxBattleTime_Value.value()
+            EXTRA.MAX_BATTLE_TIME = my_opt["max_battle_time_value"] if my_opt["max_battle_time_active"] else 0
 
             # 自动放卡
             my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
 
             """其他"""
 
-            # 工会管理器
+            # 公会管理器
             my_opt["guild_manager_active"] = self.GuildManager_Active.currentIndex()
 
             # link 需要额外的检查
@@ -816,10 +890,47 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
-            my_opt["auto_senior_settings"] = self.Battle_senior_checkedbox.isChecked()
-            my_opt["senior_log_state"] = 1 if self.all_senior_log.isChecked() else 0
-            my_opt["gpu_settings"] = self.Battle_senior_gpu.isChecked()
-            my_opt["interval"] = self.Advance_battle_interval_Value.value()
+            my_opt["auto_senior_settings"] = self.BattleSeniorActive.isChecked()
+            my_opt["senior_log_state"] = 1 if self.BattleSeniorLogFull.isChecked() else 0
+            my_opt["gpu_settings"] = self.BattleSeniorGPUActive.isChecked()
+            my_opt["interval"] = self.BattleSeniorIntervalValueInput.value()
+
+        def accelerate_settings() -> None:
+            """
+            加速功能设定
+            """
+
+            my_opt = self.opt["accelerate"]
+
+            my_opt["active"] = self.AccelerateActive.isChecked()
+            my_opt["value"] = self.AccelerateValue.value()
+            my_opt["start_up_active"] = self.AccelerateStartUpActive.isChecked()
+            my_opt["settlement_active"] = self.AccelerateSettlementActive.isChecked()
+            my_opt["customize_active"] = self.AccelerateCustomizeActive.isChecked()
+            my_opt["customize_value"] = self.AccelerateCustomizeValue.value()
+
+            def set_accelerate_value(duration, active, value, customize_active=False, customize_value=0):
+                if active:
+                    speed = customize_value if customize_active else value
+                    return duration / (speed / 100)
+                return 0
+
+            if my_opt["active"]:
+                EXTRA.ACCELERATE_START_UP_VALUE = set_accelerate_value(
+                    duration=1,
+                    active=my_opt["start_up_active"],
+                    value=my_opt["value"],
+                    customize_active=my_opt["customize_active"],
+                    customize_value=my_opt["customize_value"]
+                )
+                EXTRA.ACCELERATE_SETTLEMENT_VALUE = set_accelerate_value(
+                    duration=12,
+                    active=my_opt["settlement_active"],
+                    value=my_opt["value"]
+                )
+            else:
+                EXTRA.ACCELERATE_START_UP_VALUE = 0
+                EXTRA.ACCELERATE_SETTLEMENT_VALUE = 0
 
         def skin_settings() -> None:
             # 定义一个字典，将复选框对象映射到对应的值
@@ -848,6 +959,14 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["log_senior_settings"] = self.senior_log_clean.value()
             my_opt["log_other_settings"] = self.other_log_clean.value()
 
+        def login_settings() -> None:
+            my_opt = self.opt["login_settings"]
+            my_opt["login_open_settings"] = self.open360.isChecked()
+            my_opt["login_close_settings"] = self.close360.isChecked()
+            my_opt["login_path"] = self.LoginSettings360PathInput.text()
+            my_opt["first_num"] = self.login_first.value()
+            my_opt["second_num"] = self.login_second.value()
+
         def get_warm_gift_settings() -> None:
             my_opt = self.opt["get_warm_gift"]
             my_opt["1p"]["active"] = self.GetWarmGift_1P_Active.isChecked()
@@ -863,11 +982,13 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["2p"]["password"] = self.Level2_2P_Password.text()
 
         base_settings()
+        accelerate_settings()
         timer_settings()
         advanced_settings()
         senior_settings()
         get_warm_gift_settings()
         log_settings()
+        login_settings()
         skin_settings()
         level_2()
 
@@ -878,54 +999,141 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.cant_find_battle_plan_in_uuid_show_dialog()
 
     # 勾选 全局方案 -> 锁定其他几项设置
-    def set_connect_for_lock_battle_plan_settings(self) -> None:
+    def set_connect_for_lock_widget(self) -> None:
+        """
+        是否激活一个元素, 如果激活, 再允许编辑对应的下级元素
+        完成大量这样的操作
+        """
 
-        def toggle_widgets(state, widgets):
+        def toggle_widgets_on_unchecked(state, widgets):
+            """
+            如果按钮未勾选（state 为 0），则启用其他元素，使其可被更改；
+            否则，禁用其他元素，使其不可被更改。
+            """
             for widget in widgets:
                 widget.setEnabled(state == 0)
 
+        def toggle_widgets_on_checked(state, widgets):
+            """
+            如果按钮勾选（state 为 1 or 2），则启用其他元素，使其可被更改；
+            否则，禁用其他元素，使其不可被更改。
+            """
+            for widget in widgets:
+                widget.setEnabled(state != 0)
+
         self.Warrior_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.Warrior_Deck, self.Warrior_1P, self.Warrior_2P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.Warrior_Deck, self.Warrior_1P, self.Warrior_2P]))
 
         self.NormalBattle_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.NormalBattle_Deck, self.NormalBattle_1P, self.NormalBattle_2P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.NormalBattle_Deck, self.NormalBattle_1P, self.NormalBattle_2P]))
 
         self.OfferReward_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.OfferReward_Deck, self.OfferReward_1P, self.OfferReward_2P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.OfferReward_Deck, self.OfferReward_1P, self.OfferReward_2P]))
 
         self.CrossServer_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.CrossServer_Deck, self.CrossServer_1P, self.CrossServer_2P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.CrossServer_Deck, self.CrossServer_1P, self.CrossServer_2P]))
 
         # 公会任务 火山遗迹
 
         self.QuestGuild_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.QuestGuild_Deck, self.QuestGuild_1P, self.QuestGuild_2P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.QuestGuild_Deck, self.QuestGuild_1P, self.QuestGuild_2P]))
 
         self.Relic_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.Relic_Deck, self.Relic_1P, self.Relic_2P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.Relic_Deck, self.Relic_1P, self.Relic_2P]))
 
         # 魔塔 萌宠神殿
         self.MagicTowerAlone1_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.MagicTowerAlone1_Deck, self.MagicTowerAlone1_1P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.MagicTowerAlone1_Deck, self.MagicTowerAlone1_1P]))
 
         self.MagicTowerAlone2_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.MagicTowerAlone2_Deck, self.MagicTowerAlone2_1P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.MagicTowerAlone2_Deck, self.MagicTowerAlone2_1P]))
 
         self.MagicTowerPrison1_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.MagicTowerPrison1_Deck, self.MagicTowerPrison1_1P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.MagicTowerPrison1_Deck, self.MagicTowerPrison1_1P]))
 
         self.MagicTowerPrison2_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.MagicTowerPrison2_Deck, self.MagicTowerPrison2_1P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.MagicTowerPrison2_Deck, self.MagicTowerPrison2_1P]))
 
         self.PetTemple1_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.PetTemple1_Deck, self.PetTemple1_1P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.PetTemple1_Deck, self.PetTemple1_1P]))
 
         self.PetTemple2_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(state, [self.PetTemple2_Deck, self.PetTemple2_1P]))
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.PetTemple2_Deck, self.PetTemple2_1P]))
 
         self.MagicTowerDouble_GlobalPlanActive.stateChanged.connect(
-            lambda state: toggle_widgets(
+            lambda state: toggle_widgets_on_unchecked(
                 state, [self.MagicTowerDouble_Deck, self.MagicTowerDouble_1P, self.MagicTowerDouble_2P]))
+
+        # 战斗设定 - 常规
+        self.CusCPSActive.stateChanged.connect(
+            lambda state: toggle_widgets_on_checked(
+                state, [self.CusCPSValueInput])
+        )
+
+        self.CusLowestFPSActive.stateChanged.connect(
+            lambda state: toggle_widgets_on_checked(
+                state, [self.CusLowestFPSValueInput])
+        )
+
+        self.CusFullBanTimeActive.stateChanged.connect(
+            lambda state: toggle_widgets_on_checked(
+                state, [self.CusFullBanTimeValueInput])
+        )
+
+        self.CusAutoCarryCardActive.stateChanged.connect(
+            lambda state: toggle_widgets_on_checked(
+                state, [self.CusAutoCarryCardValueInput])
+        )
+        self.MaxBattleTime_Active.stateChanged.connect(
+            lambda state: toggle_widgets_on_checked(
+                state, [self.MaxBattleTime_Value])
+        )
+
+        # 战斗设定 - 加速
+        self.AccelerateActive.stateChanged.connect(
+            lambda state: toggle_widgets_on_checked(
+                state,
+                [
+                    self.AccelerateValue,
+                    self.AccelerateStartUpActive,
+                    self.AccelerateSettlementActive,
+                    self.AccelerateCustomizeActive,
+                    self.AccelerateCustomizeValue
+                ]
+            )
+        )
+
+        # 战斗设定 - 高级
+        self.BattleSeniorActive.stateChanged.connect(
+            lambda state: toggle_widgets_on_checked(
+                state,
+                [
+                    self.BattleSeniorLogFull,
+                    self.BattleSeniorLogPart,
+                    self.BattleSeniorGPUActive,
+                    self.SeniorBattleIntervalLabel,
+                    self.BattleSeniorIntervalValueInput
+                ]
+            )
+        )
+
+        # 结束流程后, 若选择关闭游戏大厅 自然不用退出到登录页
+        self.close360.stateChanged.connect(
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.EndExitGame])
+        )
 
     """按钮动作"""
 
@@ -984,16 +1192,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
         else:
             QMessageBox.information(self, "提示", "方案未创建。")
 
-    def on_checkbox_state_changed(self, state):
-        if state == 2:  # Qt.Checked
-            self.all_senior_log.setEnabled(True)
-            self.indeed_need.setEnabled(True)
-            self.Battle_senior_gpu.setEnabled(True)
-        else:
-            self.all_senior_log.setEnabled(False)
-            self.indeed_need.setEnabled(False)
-            self.Battle_senior_gpu.setEnabled(False)
-
     """其他"""
 
     def getstylefile(self, num):
@@ -1047,6 +1245,36 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 self.set_theme_common()
                 self.set_theme_default()
                 self.set_common_theme()
+
+    def widget_extra_settings(self):
+        """
+        为部分控件在加载时添加额外的属性
+        :return:
+        """
+        # 只允许输入整数 0-9
+        intValidator = QIntValidator(0, 9, self)
+        self.OfferReward_MaxTimes_1.setValidator(intValidator)
+        self.OfferReward_MaxTimes_2.setValidator(intValidator)
+        self.OfferReward_MaxTimes_3.setValidator(intValidator)
+        self.OfferReward_MaxTimes_4.setValidator(intValidator)
+
+        # 监听文本变化事件 触发修正函数
+        def warrior_stage_changed(text):
+
+            if text:
+
+                try:
+                    value = int(text)
+                    if not 1 <= value <= 23:
+                        SIGNAL.DIALOG.emit("出错！(╬◣д◢)", "勇士本关卡值仅为1-23, 请检查输入")
+                        # 回退到最后一次有效的状态或者清除无效输入
+                        self.Warrior_Stage.setText('')
+
+                except ValueError:
+                    SIGNAL.DIALOG.emit("出错！(╬◣д◢)", "此处只可输入数字! 不要输入怪东西!")
+                    self.Warrior_Stage.setText('')
+
+        self.Warrior_Stage.textChanged.connect(warrior_stage_changed)
 
 
 class CommonHelper:  # 主题加载类
