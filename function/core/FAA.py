@@ -1127,6 +1127,21 @@ class FAA:
                     x=my_result[0],
                     y=my_result[1] + 30)
                 return True
+            else:
+                my_result = match_p_in_w(
+                    source_handle=self.handle_browser,
+                    source_root_handle=self.handle_360,
+                    source_range=[0, 0, 2000, 2000],
+                    template=RESOURCE_P["common"]["登录"]["2_我最近玩过的服务器_4399微端.png"],
+                    match_tolerance=0.98
+                )
+                if my_result:
+                    # 点击进入服务器
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                        handle=self.handle_browser,
+                        x=my_result[0],
+                        y=my_result[1] + 30)
+                    return True
             return False
 
         def try_enter_server_qq_space():
