@@ -691,8 +691,8 @@ class ThreadTodo(QThread):
         """
         :param stage_id:
         :param mt_first_time:
-        :param player_a:
-        :param player_b:
+        :param player_a: 房主pid
+        :param player_b: 队友pid
         :return:
         """
 
@@ -946,7 +946,7 @@ class ThreadTodo(QThread):
             self.thread_card_manager = CardManager(
                 todo=self,
                 faa_a=self.faa_dict[player_a],
-                faa_b=self.faa_dict[player_b],
+                faa_b=self.faa_dict[player_b] if player_b else None,
                 solve_queue=queue_todo,
                 check_interval=self.battle_check_interval,
                 senior_interval=self.opt["senior_settings"]["interval"]
@@ -1207,7 +1207,7 @@ class ThreadTodo(QThread):
 
         # 处理多人信息 (这些信息只影响函数内, 所以不判断是否组队)
         pid_a = player[0]  # 房主 创建房间者
-        pid_b = 1 if pid_a == 2 else 2  # 非房主
+        pid_b = (1 if pid_a == 2 else 2) if is_group else None
 
         # 默认肯定是不跳过的
         skip = False
@@ -1220,9 +1220,10 @@ class ThreadTodo(QThread):
             battle_plan_1p = stage_plan_by_id["battle_plan"][0]
             battle_plan_2p = stage_plan_by_id["battle_plan"][1]
 
-        faa_a, faa_b = self.faa_dict[pid_a], self.faa_dict[pid_b]
+        faa_a = self.faa_dict[pid_a]
+        faa_b = self.faa_dict[pid_b] if pid_b else None
         battle_plan_a = battle_plan_1p if pid_a == 1 else battle_plan_2p
-        battle_plan_b = battle_plan_1p if pid_b == 1 else battle_plan_2p
+        battle_plan_b = (battle_plan_1p if pid_b == 1 else battle_plan_2p) if is_group else None
 
         def check_skip():
             """
@@ -1285,8 +1286,8 @@ class ThreadTodo(QThread):
                                 stage_id=stage_id,
                                 mt_first_time=False,
                                 player_a=pid_a,
-                                player_b=pid_b)
-
+                                player_b=pid_b
+                            )
                         need_goto_stage = False  # 进入后Flag变化
                 else:
                     # 魔塔
@@ -1300,7 +1301,8 @@ class ThreadTodo(QThread):
                             stage_id=stage_id,
                             mt_first_time=need_goto_stage,
                             player_a=pid_a,
-                            player_b=pid_b)
+                            player_b=pid_b
+                        )
 
                     need_change_card = True  # 魔塔显然需要重新选卡组
                     need_goto_stage = False  # 进入后Flag变化
@@ -1319,7 +1321,10 @@ class ThreadTodo(QThread):
 
                 # 开始战斗循环
                 result_id, result_drop, result_spend_time = self.battle(
-                    player_a=pid_a, player_b=pid_b, change_card=need_change_card)
+                    player_a=pid_a,
+                    player_b=pid_b,
+                    change_card=need_change_card
+                )
 
                 if result_id == 0:
 
