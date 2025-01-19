@@ -617,13 +617,13 @@ class QMWEditorOfBattlePlan(QMainWindow):
         如果懒得给每个动作精细划分应当调用哪个UI变化函数, 那么全都变一下总是没错（
         """
 
-        # 更改波次 / 修改某放卡动作的任意字段 / 增删一条放卡动作 -> 重绘 UI的放卡动作列表
+        # 重绘 UI的放卡动作列表
         self.load_data_to_ui_list()
 
-        # 更改波次 / 修改某放卡动作的name字段 / 删除一条放卡动作 / 修改某放卡动作的具体位置顺序 -> 重绘 UI棋盘网格
+        # 重绘 UI棋盘网格
         self.refresh_chessboard()
 
-        # 更改波次 / 修改当前波次任意信息后,导致波次前后一致关系变化 -> 刷新波次按钮颜色
+        # 刷新波次按钮颜色
         self.refresh_wave_button_color()
 
         # 刷新棋盘高亮
@@ -727,6 +727,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
             CUS_LOGGER.debug(change_card)
             cards.insert(index_to - 1, change_card)
             CUS_LOGGER.debug("正常操作 内部数据表已更新: {}".format(cards))
+            # 刷新波次上色
+            self.refresh_wave_button_color()
         else:
             # 试图移动到第一个
             self.WidgetCardList.clear()
@@ -850,7 +852,6 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 target.remove(location_key)
             else:
                 target.append(location_key)
-            self.refresh_chessboard()
         else:
             # 当前index为卡片
             target = self.sub_plan[self.current_card_index - 1]
@@ -859,7 +860,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 target['location'].remove(location_key)
             else:
                 target['location'].append(location_key)
-            self.refresh_chessboard()
+        self.refresh_chessboard()
+        self.refresh_wave_button_color()
 
     def remove_card(self, x, y):
         """
@@ -879,8 +881,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
         for card in self.sub_plan:
             if location in card["location"]:
                 card["location"].remove(location)
-        # 更新界面显示
+
         self.refresh_chessboard()
+        self.refresh_wave_button_color()
 
     def refresh_chessboard(self):
         """刷新棋盘上的文本等各种元素"""
