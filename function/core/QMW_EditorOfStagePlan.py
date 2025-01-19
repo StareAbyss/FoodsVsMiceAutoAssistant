@@ -56,7 +56,7 @@ class QMWEditorOfStagePlan(QMainWindow):
                     "00000000-0000-0000-0000-000000000001"]
             }
 
-        print(self.stage_plan)
+        # print(self.stage_plan)
 
         # 初始化当前选择关卡变量与选择后方法
         self.current_stage = None

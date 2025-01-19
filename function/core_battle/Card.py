@@ -332,7 +332,6 @@ class Card:
             self.fresh_status()  # 如果放卡后还可用,自ban 若干s
 
             if self.status_usable and (self.name not in self.ban_white_list):
-
                 # 放满了 如果不在白名单 就自ban
                 self.status_ban = EXTRA.FULL_BAN_TIME
 
