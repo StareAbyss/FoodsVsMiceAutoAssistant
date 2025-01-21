@@ -1,5 +1,6 @@
 import copy
 import os
+import time
 from threading import Timer
 
 from PyQt6.QtCore import QThread, pyqtSignal
@@ -84,8 +85,12 @@ class CardManager(QThread):
 
         """从外部直接引用的类"""
         self.todo = todo
-        # a 代表的是 多人战斗中作为队长 或 单人战斗中作为目标的 角色
+        # 多人作战, a代表队长 b代表队友
+        # 单人作战, a代表目标 b为None
         self.faa_dict = {1: faa_a, 2: faa_b}
+        self.is_group = copy.deepcopy(faa_a.is_group)
+        self.pid_list = [1, 2] if self.is_group else [1]
+
         # 待解决队列，从这里提取信息
         self.solve_queue = solve_queue
 
@@ -105,10 +110,6 @@ class CardManager(QThread):
 
         # 一轮检测的时间 单位s, 该时间的1/20则是尝试使用一张卡的间隔, 该时间的10倍则是使用武器技能/自动拾取动作的间隔 推荐默认值 1s
         self.check_interval = check_interval
-
-        # 直接从faa中获取
-        self.is_group = copy.deepcopy(faa_a.is_group)
-        self.pid_list = [1, 2] if self.is_group else [1]
 
         # 刷新全局冰沙锁
         EXTRA.SMOOTHIE_LOCK_TIME = 0
@@ -304,6 +305,13 @@ class CardManager(QThread):
         CUS_LOGGER.debug("[Todo] [战斗执行器] 检测/放卡 线程已开始.")
 
     def change_card_plan(self):
+        """如果战斗方案发生了变更"""
+        # 注意线程同步问题. 需要确保两个FAA都已经完成了波次检测, 并完成了对应的方案切换后, 再进行重载.
+        if self.is_group:
+            for i in range(50):
+                if self.faa_dict[1].faa_battle.wave != self.faa_dict[2].faa_battle.wave:
+                    time.sleep(0.1)
+
         self.stop_sub_thread()
         self.init_from_battle_plan()
         self.start_all_thread()
@@ -416,7 +424,7 @@ class ThreadCheckTimer(QThread):
         self.running = True
         self.timer.start()
 
-        self.faa.print_debug('[战斗执行器] ThreadCheckTimer 启动事件循环')
+        self.faa.print_info('[战斗执行器] ThreadCheckTimer 启动事件循环')
         self.exec()
 
     def stop(self):
@@ -459,16 +467,20 @@ class ThreadCheckTimer(QThread):
     def check(self):
         self.checked_round += 1
 
-        # 看看是不是结束了 注意仅主号完成该操作 操作的目标是manager实例对象
+        """结束检测"""
+        # 仅主号完成该检测操作
         if self.faa.is_main:
             self.running = not self.faa.faa_battle.check_end()
             if not self.running:
-                if not self.stopped:  # 正常结束，非主动杀死线程结束
+                if not self.stopped:
+                    # 正常结束，非主动杀死线程结束
                     self.faa.print_info(text='[战斗执行器] 房主 检测到战斗结束标志, 即将关闭战斗中放卡的线程')
                     self.signals["stop"].emit()
-                    self.stopped = True  # 防止stop后再次调用
+                    # 防止stop后再次调用 信号发出到中止事件循环可期间, 本函数还会多次运行.
+                    self.stopped = True
                 return
 
+        """钥匙检测"""
         # 尝试使用钥匙 如成功 发送信号 修改faa.battle中的is_used_key为True 以标识用过了, 如果不需要使用或用过了, 会直接Fals
         # 不需要判定主号 直接使用即可
         if self.faa.faa_battle.use_key():
@@ -595,7 +607,7 @@ class ThreadUseCardTimer(QThread):
         self.running = True
         self.timer.start()
 
-        self.faa.print_debug('[战斗执行器] ThreadUseCardTimer 启动事件循环')
+        self.faa.print_info('[战斗执行器] ThreadUseCardTimer 启动事件循环')
         self.exec()
 
         self.running = False

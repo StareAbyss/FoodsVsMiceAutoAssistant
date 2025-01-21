@@ -226,7 +226,7 @@ class BattlePreparation:
                         match_tolerance=0.998,
                         match_failed_check=0.2,
                         match_interval=0.1,
-                        after_sleep=0.1,
+                        after_sleep=0.25,
                         click=True)
                     if find:
                         found_card = True
@@ -234,6 +234,7 @@ class BattlePreparation:
 
                 if i == 20:
                     break
+
                 # 仅还没找到继续下滑
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=400)
                 time.sleep(0.25)

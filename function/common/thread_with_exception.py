@@ -5,15 +5,18 @@ from function.globals.log import CUS_LOGGER
 
 
 class ThreadWithException(threading.Thread):
-    def __init__(self, target, kwargs=None, name="My Thread", is_print=True):
+    def __init__(self, target, kwargs=None, name="My Thread", is_print=True, daemon=True):
         """
-        重写的线程方法, 通过抛出异常来实现结束线程, 该方法会立刻中断run方法, 完全不管循环是否进行完一轮, 且可以捕获结束参数
+        重写的python threading线程方法.
+        支持通过抛出异常来实现结束线程, 该方法会立刻中断run方法, 不需要循环式编程.
+        支持捕获结束参数.
         :param target: 目标函数
         :param kwargs: 目标函数参数(字典形式)
         :param name: 线程名称(用于print)
         :param is_print: 是否print一些线程本身的调试信息
+        :param daemon: 是否将线程设置为守护线程
         """
-        super().__init__()
+        super().__init__(target=target, kwargs=kwargs, name=name, daemon=daemon)
         threading.Thread.__init__(self)
 
         # 转化None 为空字典
@@ -32,11 +35,11 @@ class ThreadWithException(threading.Thread):
     def run(self):
         try:
             if self.is_print:
-                CUS_LOGGER.debug("[{}] start".format(self.name))
+                CUS_LOGGER.debug("[{}] Start".format(self.name))
             self.return_value = self.target(**self.kwargs)
         finally:
             if self.is_print:
-                CUS_LOGGER.debug("[{}] end".format(self.name))
+                CUS_LOGGER.debug("[{}] End".format(self.name))
 
     def get_id(self):
         """获取进程的唯一id"""

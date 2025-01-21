@@ -10,6 +10,7 @@ class KeywordFilter(logging.Filter):
     """
     多关键词过滤器
     """
+
     def __init__(self, keywords):
         super().__init__()
         self.keywords = keywords
@@ -42,18 +43,20 @@ class CusLogger(logging.Logger):
         keywords = ["property", "widget", "push", "layout"]
         keyword_filter = KeywordFilter(keywords)
 
+        # 常规日志输出
 
-        # 输出到文件
-        file_handler = logging.FileHandler(filename=log_path, mode='w', encoding='utf-8')  # 创建一个FileHandler来写日志到文件
+        # 创建一个FileHandler来写日志到文件
+        file_handler = logging.FileHandler(filename=log_path, mode='w', encoding='utf-8')
         file_handler.setLevel(logging.DEBUG)  # 设置FileHandler的最低日志级别
         formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')  # 创建一个formatter来定义日志的格式
         file_handler.setFormatter(formatter)  # 应用formatter
         file_handler.addFilter(keyword_filter)  # 添加过滤器
         self.addHandler(file_handler)  # 添加到logger
 
-        # 新增错误日志处理器
-        error_file_handler = logging.FileHandler(filename=error_log_path, mode='w',
-                                                 encoding='utf-8')  # 创建一个FileHandler来写日志到文件
+        # 错误日志输出
+
+        # 创建一个FileHandler来写日志到文件
+        error_file_handler = logging.FileHandler(filename=error_log_path, mode='w', encoding='utf-8')
         error_file_handler.setLevel(logging.ERROR)  # 设置FileHandler的最低日志级别为ERROR
         error_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')  # 创建一个formatter来定义日志的格式
         error_file_handler.setFormatter(error_formatter)  # 应用formatter
