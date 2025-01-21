@@ -4,6 +4,7 @@ import os
 import random
 import shutil
 import sys
+import winreg
 
 import win32con
 import win32gui
@@ -11,6 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QMessageBox
 
 from function.common.process_and_window_manager import get_path_and_sub_titles
+from function.common.startup import *
 from function.core.FAA import FAA
 from function.core.QMW_2_load_settings import CommonHelper, QMainWindowLoadSettings
 from function.core.QMW_EditorOfBattlePlan import QMWEditorOfBattlePlan
@@ -127,6 +129,10 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.MisuLogistics_GetStageInfoOnline.clicked.connect(self.click_btn_misu_logistics_get_stage_info_online)
         # 米苏物流 - 设定默认
         self.MisuLogistics_Link_SetDefault.clicked.connect(self.click_btn_misu_logistics_set_default)
+
+        # 自启动
+        self.check_startup_status()
+        self.Startup.stateChanged.connect(toggle_startup)
 
         # 启动按钮 函数绑定
         self.Button_Start.clicked.connect(self.todo_click_btn)
@@ -396,6 +402,20 @@ class QMainWindowService(QMainWindowLoadSettings):
         else:
             self.Name2P_Input.setText("")
             self.GameName_Input.setText(window_name)
+
+    def check_startup_status(self) -> None:
+        """
+        检测自启动状态，并在复选框中显示
+        """
+        try:
+            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                 "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+                                 0, winreg.KEY_READ)
+            value, _ = winreg.QueryValueEx(key, APP_NAME)
+            self.Startup.setChecked(True)
+            winreg.CloseKey(key)
+        except FileNotFoundError:
+            self.Startup.setChecked(False)
 
     """主线程管理"""
 
@@ -929,6 +949,13 @@ def faa_start_main():
     # 性能分析监控启动
     run_analysis_in_thread(window)
 
+    # 检测启动参数
+    start_with_task = "--start_with_task" in sys.argv
+
+    # 使用 QTimer 在事件循环开始后执行任务
+    if start_with_task:
+        print("检测到启动参数 --start_with_task，将自动开始任务")
+        window.todo_click_btn()
     # 运行主循环，必须调用此函数才可以开始事件处理
     app.exec()
 

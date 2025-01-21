@@ -12171,9 +12171,12 @@ FAA放卡核心原理简述:
               <number>5</number>
              </property>
              <item>
-              <layout class="QVBoxLayout" name="LoginSettingsLayout">
+              <layout class="QVBoxLayout" name="LoginSettingsLayout" stretch="0,0,0,0,0,0,0,0,0">
                <property name="spacing">
                 <number>5</number>
+               </property>
+               <property name="sizeConstraint">
+                <enum>QLayout::SetDefaultConstraint</enum>
                </property>
                <property name="leftMargin">
                 <number>10</number>
@@ -12276,6 +12279,17 @@ FAA放卡核心原理简述:
                    </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_14">
+                 <item>
+                  <widget class="QCheckBox" name="Startup">
+                   <property name="text">
+                    <string>开机启动</string>
                    </property>
                   </widget>
                  </item>
