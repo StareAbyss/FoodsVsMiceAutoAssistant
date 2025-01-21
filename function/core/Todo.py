@@ -220,7 +220,6 @@ class ThreadTodo(QThread):
     def batch_level_2_action(self, player: list = None, dark_crystal: bool = False):
         """
         批量启动 输入二级 -> 兑换暗晶(可选) -> 删除物品
-        :param title_text:
         :param player: [1] [2] [1,2]
         :param dark_crystal: bool 是否兑换暗晶
         :return:
@@ -300,11 +299,6 @@ class ThreadTodo(QThread):
                 kwargs={})
 
         if 1 in player:
-            self.thread_1p.daemon = True
-        if 2 in player:
-            self.thread_2p.daemon = True
-
-        if 1 in player:
             self.thread_1p.start()
         if 2 in player:
             time.sleep(1)
@@ -330,8 +324,6 @@ class ThreadTodo(QThread):
             target=self.faa_dict[2].click_return_btn,
             name="2P Thread - Reload - Back",
             kwargs={})
-        self.thread_1p.daemon = True
-        self.thread_2p.daemon = True
         self.thread_1p.start()
         self.thread_2p.start()
         self.thread_1p.join()
@@ -346,8 +338,6 @@ class ThreadTodo(QThread):
             target=self.faa_dict[2].click_refresh_btn,
             name="2P Thread - Reload - Fresh",
             kwargs={})
-        self.thread_1p.daemon = True
-        self.thread_2p.daemon = True
         self.thread_1p.start()
         self.thread_2p.start()
         self.thread_1p.join()
@@ -457,7 +447,6 @@ class ThreadTodo(QThread):
                 target=self.faa_dict[1].sign_in,
                 name="1P Thread - SignIn",
                 kwargs={})
-            self.thread_1p.daemon = True
             self.thread_1p.start()
 
         if 2 in player:
@@ -465,7 +454,6 @@ class ThreadTodo(QThread):
                 target=self.faa_dict[2].sign_in,
                 name="2P Thread - SignIn",
                 kwargs={})
-            self.thread_2p.daemon = True
             self.thread_2p.start()
 
         if 1 in player:
@@ -556,7 +544,6 @@ class ThreadTodo(QThread):
                     kwargs={
                         "mode": mode
                     })
-                self.thread_1p.daemon = True
                 self.thread_1p.start()
 
             if 1 in player and 2 in player:
@@ -569,7 +556,6 @@ class ThreadTodo(QThread):
                     kwargs={
                         "mode": mode
                     })
-                self.thread_2p.daemon = True
                 self.thread_2p.start()
 
             if 1 in player:
@@ -595,7 +581,6 @@ class ThreadTodo(QThread):
                 target=self.faa_dict[1].use_items_consumables,
                 name="1P Thread - UseItems",
                 kwargs={})
-            self.thread_1p.daemon = True
             self.thread_1p.start()
 
         if 1 in player and 2 in player:
@@ -606,7 +591,6 @@ class ThreadTodo(QThread):
                 target=self.faa_dict[2].use_items_consumables,
                 name="2P Thread - UseItems",
                 kwargs={})
-            self.thread_2p.daemon = True
             self.thread_2p.start()
 
         if 1 in player:
@@ -630,7 +614,6 @@ class ThreadTodo(QThread):
                 target=self.faa_dict[1].use_items_double_card,
                 name="1P Thread - UseItems - DoubleCard",
                 kwargs={"max_times": max_times})
-            self.thread_1p.daemon = True
             self.thread_1p.start()
 
         if 2 in player and 1 in player:
@@ -641,7 +624,6 @@ class ThreadTodo(QThread):
                 target=self.faa_dict[2].use_items_double_card,
                 name="2P Thread - UseItems - DoubleCard",
                 kwargs={"max_times": max_times})
-            self.thread_2p.daemon = True
             self.thread_2p.start()
 
         if 1 in player:
@@ -665,7 +647,6 @@ class ThreadTodo(QThread):
                 target=self.faa_dict[1].loop_cross_server,
                 name="1P Thread - LoopCS",
                 kwargs={"deck": deck})
-            self.thread_1p.daemon = True
             self.thread_1p.start()
 
         if 2 in player and 1 in player:
@@ -676,7 +657,6 @@ class ThreadTodo(QThread):
                 target=self.faa_dict[2].loop_cross_server,
                 name="2P Thread - LoopCS",
                 kwargs={"deck": deck})
-            self.thread_2p.daemon = True
             self.thread_2p.start()
 
         if 1 in player:
@@ -836,14 +816,12 @@ class ThreadTodo(QThread):
                 target=self.faa_dict[player_a].obj_battle_preparation.check_create_room_success,
                 name="{}P Thread - 战前准备".format(player_a),
                 kwargs={})
-            self.thread_1p.daemon = True
             self.thread_1p.start()
             if is_group:
                 self.thread_2p = ThreadWithException(
                     target=self.faa_dict[player_b].obj_battle_preparation.check_create_room_success,
                     name="{}P Thread - 战前准备".format(player_b),
                     kwargs={})
-                self.thread_2p.daemon = True
                 self.thread_2p.start()
 
             # 阻塞进程让进程执行完再继续本循环函数
@@ -868,14 +846,12 @@ class ThreadTodo(QThread):
                     target=self.faa_dict[player_a].obj_battle_preparation.change_deck,
                     name="{}P Thread - 修改卡组".format(player_a),
                     kwargs={})
-                self.thread_1p.daemon = True
                 self.thread_1p.start()
                 if is_group:
                     self.thread_2p = ThreadWithException(
                         target=self.faa_dict[player_b].obj_battle_preparation.change_deck,
                         name="{}P Thread - 修改卡组".format(player_b),
                         kwargs={})
-                    self.thread_2p.daemon = True
                     self.thread_2p.start()
 
                 # 阻塞进程让进程执行完再继续本循环函数
@@ -899,7 +875,6 @@ class ThreadTodo(QThread):
                     target=self.faa_dict[player_b].obj_battle_preparation.start_and_ensure_entry,
                     name="{}P Thread - 进入游戏".format(player_b),
                     kwargs={})
-                self.thread_2p.daemon = True
                 self.thread_2p.start()
                 # A 一定要后开始!!!
                 time.sleep(2)
@@ -908,7 +883,6 @@ class ThreadTodo(QThread):
                 target=self.faa_dict[player_a].obj_battle_preparation.start_and_ensure_entry,
                 name="{}P Thread - 进入游戏".format(player_a),
                 kwargs={})
-            self.thread_1p.daemon = True
             self.thread_1p.start()
 
             # 阻塞进程让进程执行完再继续本循环函数
@@ -939,10 +913,8 @@ class ThreadTodo(QThread):
                     kwargs={}
                 )
 
-            self.thread_1p.daemon = True
             self.thread_1p.start()
             if is_group:
-                self.thread_2p.daemon = True
                 self.thread_2p.start()
 
             # 阻塞进程让进程执行完再继续本循环函数
@@ -968,7 +940,6 @@ class ThreadTodo(QThread):
                 target=self.faa_dict[player_a].battle_a_round_init_battle_plan,
                 name="{}P Thread - Battle".format(player_a),
                 kwargs={})
-            self.thread_1p.daemon = True
             self.thread_1p.start()
 
             if is_group:
@@ -976,7 +947,6 @@ class ThreadTodo(QThread):
                     target=self.faa_dict[player_b].battle_a_round_init_battle_plan,
                     name="{}P Thread - Battle".format(player_b),
                     kwargs={})
-                self.thread_2p.daemon = True
                 self.thread_2p.start()
 
             # 阻塞进程让进程执行完再继续本循环函数
@@ -1039,9 +1009,6 @@ class ThreadTodo(QThread):
                     kwargs={})
 
             # 开始多线程
-            self.thread_1p.daemon = True
-            if is_group:
-                self.thread_2p.daemon = True
             self.thread_1p.start()
             if is_group:
                 self.thread_2p.start()
@@ -2691,7 +2658,6 @@ class ThreadTodo(QThread):
             self.batch_receive_all_quest_rewards(
                 player=[1, 2] if my_opt["is_group"] else [1],
                 quests=["普通任务", "美食大赛", "大富翁"],
-                advance_mode=True,
             )
 
         my_opt = c_opt["use_items"]
