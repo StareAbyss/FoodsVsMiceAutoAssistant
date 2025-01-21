@@ -962,7 +962,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         selected_cells = set()
 
         # 还没有选中任何卡片 直接返回
-        if self.current_card_index:
+        if self.current_card_index is not None:
 
             if self.current_card_index == 0:
                 current_card_locations = self.json_data["player"]
