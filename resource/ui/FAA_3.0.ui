@@ -2602,7 +2602,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="10" column="7">
-              <widget class="QComboBox" name="CrossServer_1P">
+              <widget class="SearchableComboBox" name="CrossServer_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -3481,7 +3481,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="20" column="7">
-              <widget class="QComboBox" name="MagicTowerPrison2_1P">
+              <widget class="SearchableComboBox" name="MagicTowerPrison2_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -3628,7 +3628,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="30" column="7">
-              <widget class="QComboBox" name="CustomizeBattle_1P">
+              <widget class="SearchableComboBox" name="CustomizeBattle_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -3681,7 +3681,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="5" column="7">
-              <widget class="QComboBox" name="Warrior_1P">
+              <widget class="SearchableComboBox" name="Warrior_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -3703,7 +3703,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="30" column="8">
-              <widget class="QComboBox" name="CustomizeBattle_2P">
+              <widget class="SearchableComboBox" name="CustomizeBattle_2P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -3955,7 +3955,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="8" column="8">
-              <widget class="QComboBox" name="NormalBattle_2P">
+              <widget class="SearchableComboBox" name="NormalBattle_2P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -4481,7 +4481,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="22" column="7">
-              <widget class="QComboBox" name="PetTemple2_1P">
+              <widget class="SearchableComboBox" name="PetTemple2_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -4631,7 +4631,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="10" column="8">
-              <widget class="QComboBox" name="CrossServer_2P">
+              <widget class="SearchableComboBox" name="CrossServer_2P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -4653,7 +4653,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="9" column="7">
-              <widget class="QComboBox" name="OfferReward_1P">
+              <widget class="SearchableComboBox" name="OfferReward_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -4916,7 +4916,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="23" column="8">
-              <widget class="QComboBox" name="MagicTowerDouble_2P">
+              <widget class="SearchableComboBox" name="MagicTowerDouble_2P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -5074,7 +5074,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="17" column="7">
-              <widget class="QComboBox" name="MagicTowerAlone1_1P">
+              <widget class="SearchableComboBox" name="MagicTowerAlone1_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -5203,7 +5203,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="12" column="7">
-              <widget class="QComboBox" name="QuestGuild_1P">
+              <widget class="SearchableComboBox" name="QuestGuild_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -5361,7 +5361,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="12" column="8">
-              <widget class="QComboBox" name="QuestGuild_2P">
+              <widget class="SearchableComboBox" name="QuestGuild_2P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -5640,7 +5640,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="21" column="7">
-              <widget class="QComboBox" name="PetTemple1_1P">
+              <widget class="SearchableComboBox" name="PetTemple1_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -5763,7 +5763,7 @@ Link Start</string>
               </layout>
              </item>
              <item row="23" column="7">
-              <widget class="QComboBox" name="MagicTowerDouble_1P">
+              <widget class="SearchableComboBox" name="MagicTowerDouble_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -5819,7 +5819,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="15" column="7">
-              <widget class="QComboBox" name="Relic_1P">
+              <widget class="SearchableComboBox" name="Relic_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -5923,7 +5923,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="19" column="7">
-              <widget class="QComboBox" name="MagicTowerPrison1_1P">
+              <widget class="SearchableComboBox" name="MagicTowerPrison1_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -6219,7 +6219,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="9" column="8">
-              <widget class="QComboBox" name="OfferReward_2P">
+              <widget class="SearchableComboBox" name="OfferReward_2P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -6434,7 +6434,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="18" column="7">
-              <widget class="QComboBox" name="MagicTowerAlone2_1P">
+              <widget class="SearchableComboBox" name="MagicTowerAlone2_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -6797,7 +6797,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="15" column="8">
-              <widget class="QComboBox" name="Relic_2P">
+              <widget class="SearchableComboBox" name="Relic_2P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -6819,7 +6819,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="8" column="7">
-              <widget class="QComboBox" name="NormalBattle_1P">
+              <widget class="SearchableComboBox" name="NormalBattle_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -6920,7 +6920,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="5" column="8">
-              <widget class="QComboBox" name="Warrior_2P">
+              <widget class="SearchableComboBox" name="Warrior_2P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -7360,7 +7360,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="7" column="7">
-              <widget class="QComboBox" name="Customize_1P">
+              <widget class="SearchableComboBox" name="Customize_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -12171,9 +12171,12 @@ FAA放卡核心原理简述:
               <number>5</number>
              </property>
              <item>
-              <layout class="QVBoxLayout" name="LoginSettingsLayout">
+              <layout class="QVBoxLayout" name="LoginSettingsLayout" stretch="0,0,0,0,0,0,0,0,0">
                <property name="spacing">
                 <number>5</number>
+               </property>
+               <property name="sizeConstraint">
+                <enum>QLayout::SetDefaultConstraint</enum>
                </property>
                <property name="leftMargin">
                 <number>10</number>
@@ -12276,6 +12279,17 @@ FAA放卡核心原理简述:
                    </property>
                    <property name="orientation">
                     <enum>Qt::Horizontal</enum>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_14">
+                 <item>
+                  <widget class="QCheckBox" name="Startup">
+                   <property name="text">
+                    <string>开机启动</string>
                    </property>
                   </widget>
                  </item>
@@ -13730,6 +13744,11 @@ FAA放卡核心原理简述:
    <class>DragLabel</class>
    <extends>QLabel</extends>
    <header>resource.ui.draglabel</header>
+  </customwidget>
+  <customwidget>
+   <class>SearchableComboBox</class>
+   <extends>QComboBox</extends>
+   <header location="global">function.widget.SearchableComboBox</header>
   </customwidget>
  </customwidgets>
  <resources/>
