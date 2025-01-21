@@ -32,11 +32,11 @@ class ThreadWithException(threading.Thread):
     def run(self):
         try:
             if self.is_print:
-                CUS_LOGGER.debug("[{}] start".format(self.name))
+                CUS_LOGGER.debug("[{}] Start".format(self.name))
             self.return_value = self.target(**self.kwargs)
         finally:
             if self.is_print:
-                CUS_LOGGER.debug("[{}] end".format(self.name))
+                CUS_LOGGER.debug("[{}] End".format(self.name))
 
     def get_id(self):
         """获取进程的唯一id"""

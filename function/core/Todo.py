@@ -60,7 +60,8 @@ class ThreadTodo(QThread):
         self.todo_id = todo_id  # id == 1 默认 id==2 处理双单人多线程
         self.extra_opt = None  # 用来给双单人多线程的2P传递参数
 
-        self.process = None  # 截图进程在此
+        # 高级战斗 - 截图"进程"
+        self.process = None
 
         # 公会管理器相关模块
         self.guild_manager = GuildManager()
@@ -89,12 +90,14 @@ class ThreadTodo(QThread):
 
         # 杀死识图进程
         if self.process is not None:
+            # 使用危险方法强制杀死, 该方法可能导致内存泄漏或其他不知名问题
+            # 这似乎是个多进程, 真的有terminate和join方法吗.... @执念
             self.process.terminate()
             self.process.join()
             self.msleep(10)
 
         if self.thread_card_manager is not None:
-            # QThread, stop函数包含wait
+            # QThread, 基于事件循环的多线程编程, 使用exit和wait. 非常安全的退出!
             self.thread_card_manager.stop()
             self.thread_card_manager = None  # 清除调用
             self.msleep(10)
@@ -106,8 +109,11 @@ class ThreadTodo(QThread):
                     if faa.battle_lock.locked():
                         faa.battle_lock.release()
 
+        # 非安全退出超长的run方法. 该方法可能导致内存泄漏或其他不知名问题
         self.terminate()
-        self.wait()  # 等待线程确实中断 QThread
+        # 等待线程确实中断 QThread
+        self.wait()
+        # 删除对象 防止泄露
         self.deleteLater()
 
     def pause(self):
@@ -211,7 +217,7 @@ class ThreadTodo(QThread):
     业务代码 - 战斗以外
     """
 
-    def batch_level_2_action(self, title_text: str, player: list = None, dark_crystal: bool = False):
+    def batch_level_2_action(self, player: list = None, dark_crystal: bool = False):
         """
         批量启动 输入二级 -> 兑换暗晶(可选) -> 删除物品
         :param title_text:
@@ -219,6 +225,8 @@ class ThreadTodo(QThread):
         :param dark_crystal: bool 是否兑换暗晶
         :return:
         """
+        title_text = "二级功能"
+        self.model_start_print(text=title_text)
 
         # 默认值
         player = player or [1, 2]
@@ -242,7 +250,7 @@ class ThreadTodo(QThread):
 
         # 在该动作前已经完成了游戏刷新 可以尽可能保证欢乐互娱不作妖
         SIGNAL.PRINT_TO_UI.emit(
-            text=f"[{title_text}] [二级功能] 已启用. " +
+            text=f"[{title_text}] 已启用. " +
                  (f"兑换暗晶 + " if dark_crystal else f"") +
                  f"删除多余技能书, 目标:{player}P",
             color_level=2)
@@ -262,9 +270,11 @@ class ThreadTodo(QThread):
 
         # 执行完毕后立刻刷新游戏 以清除二级输入状态
         SIGNAL.PRINT_TO_UI.emit(
-            text=f"[{title_text}] [二级功能] 结束, 即将刷新游戏以清除二级输入的状态...", color_level=2)
+            text=f"[{title_text}] 即将刷新游戏以清除二级输入的状态...", color_level=2)
 
         self.batch_reload_game(player=player)
+
+        self.model_end_print(text=title_text)
 
     def batch_reload_game(self, player: list = None):
         """
@@ -275,9 +285,7 @@ class ThreadTodo(QThread):
 
         player = self.check_player(title="刷新游戏", player=player)
 
-        SIGNAL.PRINT_TO_UI.emit("Refresh Game...", color_level=1)
-
-        CUS_LOGGER.debug(f"刷新游戏窗口 开始, 目标: {player}")
+        SIGNAL.PRINT_TO_UI.emit("刷新游戏, 开始", color_level=1)
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         if 1 in player:
@@ -307,11 +315,11 @@ class ThreadTodo(QThread):
         if 2 in player:
             self.thread_2p.join()
 
-        CUS_LOGGER.debug("刷新游戏窗口 结束")
+        SIGNAL.PRINT_TO_UI.emit("刷新游戏, 完成", color_level=1)
 
     def batch_click_final_refresh_btn(self):
 
-        SIGNAL.PRINT_TO_UI.emit("Refresh Game...", color_level=1)
+        SIGNAL.PRINT_TO_UI.emit("退回登录界面, 开始", color_level=1)
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -345,6 +353,91 @@ class ThreadTodo(QThread):
         self.thread_1p.join()
         self.thread_2p.join()
 
+        SIGNAL.PRINT_TO_UI.emit("退回登录界面, 完成", color_level=1)
+
+    def batch_get_warm_gift(self, player):
+        """领取温馨礼包"""
+
+        title_text = "领取温馨礼包"
+        player = self.check_player(title=title_text, player=player)
+
+        self.model_start_print(text=title_text)
+
+        def send_request(pid, url):
+            try:
+                r = requests.get(url, timeout=10)  # 设置超时
+                r.raise_for_status()  # 如果响应状态不是200，将抛出HTTPError异常
+                message = r.json()['msg']
+                SIGNAL.PRINT_TO_UI.emit(
+                    text=f'[{pid}P] 领取温馨礼包情况:' + message,
+                    color_level=2)
+            except RequestException as e:
+                # 网络问题、超时、服务器无响应
+                SIGNAL.PRINT_TO_UI.emit(
+                    text=f'[{pid}P] 领取温馨礼包情况: 失败, 欢乐互娱的服务器炸了, {e}',
+                    color_level=2)
+
+        for pid in player:
+
+            if not self.opt["get_warm_gift"][f'{pid}p']["active"]:
+                SIGNAL.PRINT_TO_UI.emit(f"[{pid}P] 未激活领取温馨礼包", color_level=2)
+                continue
+
+            openid = self.opt["get_warm_gift"][f'{pid}p']["link"]
+            if openid == "":
+                continue
+
+            url = 'http://meishi.wechat.123u.com/meishi/gift?openid=' + openid
+
+            # 创建进程 -> 开始进程 -> 阻塞主进程
+            self.thread_1p = ThreadWithException(
+                target=send_request,
+                name=f"{pid}P Thread - GetWarmGift",
+                kwargs={"pid": pid, "url": url})
+            self.thread_1p.start()
+            self.thread_1p.join()
+
+        self.model_end_print(text=title_text)
+
+    def batch_top_up_money(self, player):
+        """日氪"""
+
+        title_text = "日氪"
+        player = self.check_player(title=title_text, player=player)
+
+        self.model_start_print(text=title_text)
+
+        player_active = [pid for pid in player if self.opt["advanced_settings"].get(f"top_up_money_{pid}p")]
+        if not player_active:
+            return
+
+        if EXTRA.ETHICAL_MODE:
+            SIGNAL.PRINT_TO_UI.emit(
+                f'经FAA伦理核心审查, 日氪模块违反"能量限流"协议, 已被临时性抑制以符合最高伦理标准.', color_level=2)
+            return
+
+        SIGNAL.PRINT_TO_UI.emit(
+            f'FAA伦理核心已强制卸除, 日氪模块已通过授权, 即将激活并进入运行状态.', color_level=2)
+
+        for pid in player_active:
+            SIGNAL.PRINT_TO_UI.emit(f'[{pid}P] 日氪1元开始, 该功能执行较慢, 防止卡顿...', color_level=2)
+
+            # 创建进程 -> 开始进程 -> 阻塞主进程
+            self.thread_1p = ThreadWithException(
+                target=self.faa_dict[pid].sign_top_up_money,
+                name=f"{pid}P Thread - TopUpMoney",
+                kwargs={})
+            self.thread_1p.start()
+            self.thread_1p.join()
+
+            money_result = self.thread_1p.get_return_value()
+            if money_result:
+                SIGNAL.PRINT_TO_UI.emit(f'[{pid}P] 日氪1元结束, 结果: {money_result}', color_level=2)
+            else:
+                SIGNAL.PRINT_TO_UI.emit(f'[{pid}P] 日氪1元结束, 函数被手动中断! 未获得有效结果.', color_level=2)
+
+        self.model_end_print(text=title_text)
+
     def batch_sign_in(self, player: list = None):
         """批量完成日常功能"""
 
@@ -354,56 +447,8 @@ class ThreadTodo(QThread):
 
         self.model_start_print(text=title_text)
 
-        """激活删除物品高危功能(可选) + 领取奖励一次"""
-        self.batch_level_2_action(title_text=title_text, dark_crystal=False)
-
-        """领取温馨礼包"""
-        for pid in player:
-
-            if not self.opt["get_warm_gift"][f'{pid}p']["active"]:
-
-                SIGNAL.PRINT_TO_UI.emit(f"[{pid}P] 未激活领取温馨礼包", color_level=2)
-                continue
-
-            else:
-                openid = self.opt["get_warm_gift"][f'{pid}p']["link"]
-                if openid == "":
-                    continue
-                url = 'http://meishi.wechat.123u.com/meishi/gift?openid=' + openid
-
-                try:
-
-                    r = requests.get(url, timeout=10)  # 设置超时
-                    r.raise_for_status()  # 如果响应状态不是200，将抛出HTTPError异常
-                    message = r.json()['msg']
-                    SIGNAL.PRINT_TO_UI.emit(
-                        text=f'[{pid}P] 领取温馨礼包情况:' + message,
-                        color_level=2)
-
-                except RequestException as e:
-
-                    # 网络问题、超时、服务器无响应
-                    SIGNAL.PRINT_TO_UI.emit(
-                        text=f'[{pid}P] 领取温馨礼包情况: 失败, 欢乐互娱的服务器炸了, {e}',
-                        color_level=2)
-
-        """日氪"""
-        player_active = [pid for pid in player if self.opt["advanced_settings"].get(f"top_up_money_{pid}p")]
-        if player_active:
-            if EXTRA.ETHICAL_MODE:
-                SIGNAL.PRINT_TO_UI.emit(
-                    f'经FAA伦理核心审查, 日氪模块违反"能量限流"协议, 已被临时性抑制以符合最高伦理标准.', color_level=2)
-            else:
-                SIGNAL.PRINT_TO_UI.emit(
-                    f'FAA伦理核心已强制卸除, 日氪模块已通过授权, 即将激活并进入运行状态.', color_level=2)
-                for pid in player_active:
-                    SIGNAL.PRINT_TO_UI.emit(f'[{pid}P] 日氪1元开始, 该功能执行较慢, 防止卡顿...', color_level=2)
-                    money_result = self.faa_dict[pid].sign_top_up_money()
-                    SIGNAL.PRINT_TO_UI.emit(f'[{pid}P] 日氪1元结束, 结果: {money_result}', color_level=2)
-
-        """双线程常规日常"""
         SIGNAL.PRINT_TO_UI.emit(
-            f"开始双线程 VIP签到 / 每日签到 / 美食活动 / 塔罗 / 法老 / 会长发任务 / 营地领钥匙 / 月卡礼包")
+            f"开始双线程执行 - VIP签到 / 每日签到 / 美食活动 / 塔罗 / 法老 / 会长发任务 / 营地领钥匙 / 月卡礼包")
 
         # 创建进程
 
@@ -442,16 +487,51 @@ class ThreadTodo(QThread):
             # 归零尝试次数
             try_times = 0
 
-            # 不再继承上一轮尝试次数
-            try_times = self.faa_dict[pid].fed_and_watered(try_times=try_times)
+            # 创建进程 -> 开始进程 -> 阻塞主进程
+            self.thread_1p = ThreadWithException(
+                target=self.faa_dict[pid].fed_and_watered,
+                name=f"{pid}P Thread - FedAndWatered",
+                kwargs={"try_times": try_times})
+            self.thread_1p.start()
+            self.thread_1p.join()
 
         self.model_end_print(text=title_text)
 
-    def batch_receive_all_quest_rewards(self, player: list = None, quests: list = None, advance_mode: bool = False):
+    def batch_scan_guild_info(self):
+
+        title_text = "扫描公会"
+
+        if not self.opt["advanced_settings"]["guild_manager_active"]:
+            return
+
+        def action(faa):
+            # 进入公会页面 + 扫描 + 退出公会页面
+            faa.action_bottom_menu(mode="公会")
+            self.guild_manager.scan(handle=faa.handle, handle_360=faa.handle_360)
+            faa.action_exit(mode="普通红叉")
+
+        self.model_start_print(text=title_text)
+
+        pid = self.opt["advanced_settings"]["guild_manager_active"]
+        faa = self.faa_dict[pid]
+
+        # 创建进程 -> 开始进程 -> 阻塞主进程
+        self.thread_1p = ThreadWithException(
+            target=action,
+            name=f"{pid}P Thread - ScanGuildInfo",
+            kwargs={"faa": faa})
+        self.thread_1p.start()
+        self.thread_1p.join()
+
+        # 完成扫描 触发信号刷新数据
+        SIGNAL.GUILD_MANAGER_FRESH.emit()
+
+        self.model_end_print(text=title_text)
+
+    def batch_receive_all_quest_rewards(self, player: list = None, quests: list = None):
         """
         :param player: 默认[1,2] 可选: [1] [2] [1,2] [2,1]
         :param quests: list 可包含内容: "普通任务" "公会任务" "情侣任务" "悬赏任务" "美食大赛" "大富翁" "营地任务"
-        :param advance_mode: 公会贡献扫描器和二级功能是否尝试激活 默认不激活 即使激活 仍需判定配置是否允许
         :return:
         """
 
@@ -464,31 +544,6 @@ class ThreadTodo(QThread):
 
         self.model_start_print(text=title_text)
 
-        if advance_mode:
-            """激活了扫描公会贡献"""
-            if self.opt["advanced_settings"]["guild_manager_active"]:
-                SIGNAL.PRINT_TO_UI.emit(
-                    text=f"[{title_text}] [扫描公会贡献] 您激活了该功能.",
-                    color_level=2)
-
-                # 进入公会页面
-                self.faa_dict[self.opt["advanced_settings"]["guild_manager_active"]].action_bottom_menu(mode="公会")
-
-                # 扫描
-                self.guild_manager.scan(
-                    handle=self.faa_dict[self.opt["advanced_settings"]["guild_manager_active"]].handle,
-                    handle_360=self.faa_dict[self.opt["advanced_settings"]["guild_manager_active"]].handle_360
-                )
-
-                # 完成扫描 触发信号刷新数据
-                SIGNAL.GUILD_MANAGER_FRESH.emit()
-
-                # 退出公会页面
-                self.faa_dict[self.opt["advanced_settings"]["guild_manager_active"]].action_exit(mode="普通红叉")
-
-            """激活了删除物品高危功能"""
-            self.batch_level_2_action(title_text=title_text, dark_crystal=True)
-
         for mode in quests:
 
             SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] [{mode}] 开始...")
@@ -497,7 +552,7 @@ class ThreadTodo(QThread):
             if 1 in player:
                 self.thread_1p = ThreadWithException(
                     target=self.faa_dict[1].receive_quest_rewards,
-                    name="1P Thread - ReceiveQuest",
+                    name=f"1P Thread - ReceiveQuest - {mode}",
                     kwargs={
                         "mode": mode
                     })
@@ -510,7 +565,7 @@ class ThreadTodo(QThread):
             if 2 in player:
                 self.thread_2p = ThreadWithException(
                     target=self.faa_dict[2].receive_quest_rewards,
-                    name="2P Thread - ReceiveQuest",
+                    name=f"2P Thread - ReceiveQuest - {mode}",
                     kwargs={
                         "mode": mode
                     })
@@ -522,7 +577,7 @@ class ThreadTodo(QThread):
             if 2 in player:
                 self.thread_2p.join()
 
-            SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] [{mode}] 结束")
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] [{mode}] 完成")
 
         self.model_end_print(text=title_text)
 
@@ -573,7 +628,7 @@ class ThreadTodo(QThread):
         if 1 in player:
             self.thread_1p = ThreadWithException(
                 target=self.faa_dict[1].use_items_double_card,
-                name="1P Thread - UseItems",
+                name="1P Thread - UseItems - DoubleCard",
                 kwargs={"max_times": max_times})
             self.thread_1p.daemon = True
             self.thread_1p.start()
@@ -584,7 +639,7 @@ class ThreadTodo(QThread):
         if 2 in player:
             self.thread_2p = ThreadWithException(
                 target=self.faa_dict[2].use_items_double_card,
-                name="2P Thread - UseItems",
+                name="2P Thread - UseItems - DoubleCard",
                 kwargs={"max_times": max_times})
             self.thread_2p.daemon = True
             self.thread_2p.start()
@@ -608,7 +663,7 @@ class ThreadTodo(QThread):
         if 1 in player:
             self.thread_1p = ThreadWithException(
                 target=self.faa_dict[1].loop_cross_server,
-                name="1P Thread",
+                name="1P Thread - LoopCS",
                 kwargs={"deck": deck})
             self.thread_1p.daemon = True
             self.thread_1p.start()
@@ -619,7 +674,7 @@ class ThreadTodo(QThread):
         if 2 in player:
             self.thread_2p = ThreadWithException(
                 target=self.faa_dict[2].loop_cross_server,
-                name="2P Thread",
+                name="2P Thread - LoopCS",
                 kwargs={"deck": deck})
             self.thread_2p.daemon = True
             self.thread_2p.start()
@@ -1541,7 +1596,7 @@ class ThreadTodo(QThread):
             # 根据多次战斗结果组成的list 打印 1本n次 的汇总结果
             end_statistic_print(result_list=result_list)
 
-            SIGNAL.PRINT_TO_UI.emit(text=f"{title}{stage_id} {max_times}次 结束 ", color_level=5)
+            SIGNAL.PRINT_TO_UI.emit(text=f"{title}{stage_id} {max_times}次 完成 ", color_level=5)
 
         main()
 
@@ -1692,14 +1747,14 @@ class ThreadTodo(QThread):
                 )
 
                 SIGNAL.PRINT_TO_UI.emit(
-                    text="{}事项{}, 结束".format(
+                    text="{}事项{}, 完成".format(
                         title,
                         quest["battle_id"] if "battle_id" in quest else (i + 1)
                     ),
                     color_level=4
                 )
 
-        SIGNAL.PRINT_TO_UI.emit(text=f"{title}结束", color_level=3)
+        SIGNAL.PRINT_TO_UI.emit(text=f"{title}完成", color_level=3)
 
         if need_lock:
             SIGNAL.PRINT_TO_UI.emit(
@@ -1795,7 +1850,7 @@ class ThreadTodo(QThread):
 
         # 激活删除物品高危功能(可选) + 领取奖励一次
         if quest_mode == "公会任务":
-            self.batch_level_2_action(title_text=text_, dark_crystal=False)
+            self.batch_level_2_action(dark_crystal=False)
         SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 检查领取奖励...")
         self.faa_dict[1].receive_quest_rewards(mode=quest_mode)
         self.faa_dict[2].receive_quest_rewards(mode=quest_mode)
@@ -1833,7 +1888,7 @@ class ThreadTodo(QThread):
         quests = [quest_mode]
         if quest_mode == "公会任务":
             quests.append("普通任务")
-            self.batch_level_2_action(title_text=text_, dark_crystal=False)
+            self.batch_level_2_action(dark_crystal=False)
 
         SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 检查领取奖励中...")
         self.batch_receive_all_quest_rewards(player=[1, 2], quests=quests)
@@ -1966,7 +2021,6 @@ class ThreadTodo(QThread):
 
                 case "清背包":
                     self.batch_level_2_action(
-                        title_text=text_,
                         player=task["task_args"]["player"],
                         dark_crystal=False
                     )
@@ -2419,9 +2473,15 @@ class ThreadTodo(QThread):
 
             my_opt = c_opt["sign_in"]
             if my_opt["active"]:
-                self.batch_sign_in(
-                    player=[1, 2] if my_opt["is_group"] else [1]
-                )
+                player = [1, 2] if my_opt["is_group"] else [1]
+                # 删除物品高危功能(可选) + 领取奖励一次
+                self.batch_level_2_action(dark_crystal=False)
+                # 领取温馨礼包
+                self.batch_get_warm_gift(player=player)
+                # 日氪
+                self.batch_top_up_money(player=player)
+                # 常规日常签到
+                self.batch_sign_in(player=player)
 
             my_opt = c_opt["fed_and_watered"]
             if my_opt["active"]:
@@ -2621,6 +2681,13 @@ class ThreadTodo(QThread):
 
         my_opt = c_opt["receive_awards"]
         if my_opt["active"]:
+            # 扫描公会
+            self.batch_scan_guild_info()
+
+            # 删除物品高危功能
+            self.batch_level_2_action(dark_crystal=True)
+
+            # 主要函数
             self.batch_receive_all_quest_rewards(
                 player=[1, 2] if my_opt["is_group"] else [1],
                 quests=["普通任务", "美食大赛", "大富翁"],
