@@ -104,6 +104,9 @@
 }</string>
        </property>
        <layout class="QHBoxLayout" name="title_tag">
+        <property name="spacing">
+         <number>5</number>
+        </property>
         <property name="topMargin">
          <number>5</number>
         </property>
@@ -142,15 +145,15 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="Title_Text">
+         <widget class="QLabel" name="Title_Text_2">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
           <property name="text">
-           <string>  FAA  本软件免费且开源</string>
+           <string>   FAA</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -160,14 +163,14 @@
         <item>
          <widget class="QLabel" name="Title_Version">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
           <property name="minimumSize">
            <size>
-            <width>200</width>
+            <width>0</width>
             <height>0</height>
            </size>
           </property>
@@ -175,7 +178,7 @@
            <string notr="true"/>
           </property>
           <property name="text">
-           <string>版本号  </string>
+           <string>版本号</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -197,6 +200,22 @@
             <number>0</number>
            </property>
           </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="Title_Text">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>本软件免费且开源  鼠标悬停在控件上可查看提示信息</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          </property>
          </widget>
         </item>
         <item>
@@ -494,6 +513,9 @@ border:none</string>
                    <property name="tabletTracking">
                     <bool>false</bool>
                    </property>
+                   <property name="toolTip">
+                    <string>该参数由FAA自动获取</string>
+                   </property>
                    <property name="autoFillBackground">
                     <bool>false</bool>
                    </property>
@@ -577,6 +599,9 @@ border:none</string>
                    </property>
                    <property name="tabletTracking">
                     <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>请使用下方拖动功能, 获取该参数</string>
                    </property>
                    <property name="autoFillBackground">
                     <bool>false</bool>
@@ -672,6 +697,9 @@ border:none</string>
                    <property name="tabletTracking">
                     <bool>false</bool>
                    </property>
+                   <property name="toolTip">
+                    <string>请使用下方拖动功能, 获取该参数</string>
+                   </property>
                    <property name="autoFillBackground">
                     <bool>false</bool>
                    </property>
@@ -752,6 +780,9 @@ border:none</string>
                    </property>
                    <property name="tabletTracking">
                     <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>请使用下方拖动功能, 获取该参数</string>
                    </property>
                    <property name="autoFillBackground">
                     <bool>false</bool>
@@ -841,6 +872,9 @@ border:none</string>
                      <height>16777215</height>
                     </size>
                    </property>
+                   <property name="toolTip">
+                    <string>您游戏角色的等级</string>
+                   </property>
                    <property name="minimum">
                     <number>1</number>
                    </property>
@@ -918,6 +952,9 @@ border:none</string>
                      <width>200</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>您游戏角色的等级</string>
                    </property>
                    <property name="minimum">
                     <number>1</number>
@@ -2528,7 +2565,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="text">
-                <string>强制默认方案1</string>
+                <string>强制 1-通用-1P</string>
                </property>
               </widget>
              </item>
@@ -2560,7 +2597,7 @@ Link Start</string>
 双倍掉落：可用，但无必要</string>
                </property>
                <property name="text">
-                <string>公会任务 *</string>
+                <string>公会任务</string>
                </property>
               </widget>
              </item>
@@ -2697,7 +2734,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="text">
-                <string>据配置</string>
+                <string>序列-&gt;</string>
                </property>
               </widget>
              </item>
@@ -3293,7 +3330,7 @@ Link Start</string>
 双倍掉落：可用，但无必要</string>
                </property>
                <property name="text">
-                <string>情侣任务 *</string>
+                <string>情侣任务</string>
                </property>
               </widget>
              </item>
@@ -4965,7 +5002,7 @@ Link Start</string>
 </string>
                </property>
                <property name="text">
-                <string>领取奖励 *</string>
+                <string>领取奖励</string>
                </property>
               </widget>
              </item>
@@ -5507,7 +5544,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="text">
-                <string>强制默认方案1</string>
+                <string>强制 1-通用-2P</string>
                </property>
               </widget>
              </item>
@@ -5893,7 +5930,7 @@ Link Start</string>
 双倍掉落：可用，但无必要</string>
                </property>
                <property name="text">
-                <string>悬赏任务 *</string>
+                <string>悬赏任务</string>
                </property>
               </widget>
              </item>
@@ -6323,7 +6360,7 @@ Link Start</string>
                 <string>包含了：温馨礼包 / VIP签到 / 每日签到 / 美食活动 / 塔罗 / 法老 / 会长发任务 / 营地钥匙 / 领取月卡 / 温馨礼包(高级)</string>
                </property>
                <property name="text">
-                <string>签到 *</string>
+                <string>签到</string>
                </property>
               </widget>
              </item>
@@ -7177,7 +7214,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="text">
-                <string>事项 *推荐开启</string>
+                <string>事项</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -7381,31 +7418,6 @@ Link Start</string>
                </property>
               </widget>
              </item>
-             <item row="7" column="2">
-              <widget class="QLabel" name="Customize_MaxTimes">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>50</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>2000</width>
-                 <height>50</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>据配置</string>
-               </property>
-              </widget>
-             </item>
              <item row="5" column="6">
               <widget class="QComboBox" name="Warrior_Deck">
                <property name="sizePolicy">
@@ -7509,7 +7521,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="toolTip">
-                <string>允许您编辑任意关卡组合进行作战.
+                <string>允许您自由编辑[关卡/事项]进行作战.
 推荐您在对FAA有一定了解后再使用.</string>
                </property>
                <property name="text">
@@ -7572,31 +7584,6 @@ Link Start</string>
                  <string>6</string>
                 </property>
                </item>
-              </widget>
-             </item>
-             <item row="7" column="1">
-              <widget class="QLabel" name="Customize_Group">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>50</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>2000</width>
-                 <height>50</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>据配置</string>
-               </property>
               </widget>
              </item>
              <item row="12" column="6">
@@ -8303,6 +8290,9 @@ Link Start</string>
                  <height>50</height>
                 </size>
                </property>
+               <property name="toolTip">
+                <string>大赛功能, 暂不支持自动带卡! 必须手动编辑!</string>
+               </property>
                <item>
                 <property name="text">
                  <string>1</string>
@@ -8964,6 +8954,31 @@ Link Start</string>
                 </widget>
                </item>
               </layout>
+             </item>
+             <item row="7" column="2">
+              <widget class="QLabel" name="Customize_Deck_2">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>60</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>60</width>
+                 <height>100</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>起始编号-&gt;</string>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>
@@ -12285,15 +12300,11 @@ FAA放卡核心原理简述:
                 </layout>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_14">
-                 <item>
-                  <widget class="QCheckBox" name="Startup">
-                   <property name="text">
-                    <string>开机启动</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
+                <widget class="QCheckBox" name="Startup">
+                 <property name="text">
+                  <string>电脑开机后, 启动FAA</string>
+                 </property>
+                </widget>
                </item>
                <item>
                 <widget class="QCheckBox" name="open360">
@@ -12556,7 +12567,7 @@ FAA放卡核心原理简述:
                     </size>
                    </property>
                    <property name="text">
-                    <string>360游戏大厅.exe</string>
+                    <string>360游戏大厅路径</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>

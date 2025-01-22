@@ -3,6 +3,7 @@ import os
 import threading
 
 import psutil
+
 from function.widget.GaugePanel import GaugePanel
 
 
@@ -14,6 +15,7 @@ def replace_label_with_gauge(layout_name, label, gauge_panel):
 
     # 将仪表盘控件添加到相同的位置
     layout_name.insertWidget(index, gauge_panel)
+
 
 async def monitor_io(process_ids, stop_event, main_window):
     while True:
@@ -31,7 +33,7 @@ async def monitor_io(process_ids, stop_event, main_window):
                     continue
             main_window.read_bytes_label.setText(f"{total_read_bytes / 1048576:.2f} MB")
             main_window.write_bytes_label.setText(f"{total_write_bytes / 1048576:.2f} MB")
-            main_window.io_gp.setValue((total_read_bytes+total_write_bytes) / 1048576)
+            main_window.io_gp.setValue((total_read_bytes + total_write_bytes) / 1048576)
             # print(f"总读取字节数: {total_read_bytes / 1024 / 1024:.2f} MB")
             # print(f"总写入字节数: {total_write_bytes / 1024 / 1024:.2f} MB")
         await asyncio.sleep(1)
@@ -125,9 +127,10 @@ def run_analysis_in_thread(main_window):
         asyncio.set_event_loop(loop)
         loop.run_until_complete(analysis(main_window))
         loop.close()
-    cpu_gp=GaugePanel("CPU占用率")
-    io_gp=GaugePanel("磁盘读写量/MB",1024)
-    me_gp=GaugePanel("内存使用率")
+
+    cpu_gp = GaugePanel("CPU占用率")
+    io_gp = GaugePanel("磁盘读写量/MB", 1024)
+    me_gp = GaugePanel("内存使用率")
     # 将 GaugePanel 绑定到 main_window 对象
     main_window.cpu_gp = cpu_gp
     main_window.io_gp = io_gp
