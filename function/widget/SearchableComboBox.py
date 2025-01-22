@@ -1,7 +1,7 @@
 import sys
 
-from PyQt6.QtCore import QRect, QPoint, QPropertyAnimation, QEvent, Qt, pyqtSignal
-from PyQt6.QtGui import QColor, QPainter, QPen, QMouseEvent
+from PyQt6.QtCore import QRect, QPoint, Qt, pyqtSignal
+from PyQt6.QtGui import QColor, QMouseEvent, QIcon
 from PyQt6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -21,13 +21,17 @@ from PyQt6.QtWidgets import (
     QSizePolicy
 )
 
+from function.widget.CusIcon import create_qt_icon
+
 
 class SearchableComboBox(QComboBox):
     def __init__(self, items=None, parent=None):
         super().__init__(parent)
         if items:
             self.addItems(items)
-        self.setStyle(CustomComboBoxStyle())
+        self.setStyle(CustomComboBoxStyle(self))
+        # 默认放大镜图标色
+        self.theme_line_color = QColor(240, 240, 240)
 
     def mousePressEvent(self, event):
         if self.is_search_icon_clicked(event.pos()):
@@ -63,8 +67,20 @@ class SearchableComboBox(QComboBox):
         if dialog.exec() == QDialog.DialogCode.Accepted and dialog.selected_item:
             self.setCurrentText(dialog.selected_item)
 
+    def set_style(self, theme="light"):
+        """
+        :param theme: "light" or "dark"
+        :return:
+        """
+        self.theme_line_color = QColor(240, 240, 240) if theme == "dark" else QColor(15, 15, 15)
+        self.update()  # 触发重绘
+
 
 class CustomComboBoxStyle(QProxyStyle):
+    def __init__(self, combo_box):
+        super().__init__()
+        self._combo_box = combo_box
+
     def drawComplexControl(self, control, option, painter, widget):
         super().drawComplexControl(control, option, painter, widget)
         if control == QStyle.ComplexControl.CC_ComboBox:
@@ -74,9 +90,9 @@ class CustomComboBoxStyle(QProxyStyle):
                 QStyle.SubControl.SC_ComboBoxArrow,
                 widget
             )
-            search_icon_rect = widget.get_search_icon_rect(option)
-            icon = self.standardIcon(QStyle.StandardPixmap.SP_FileDialogContentsView)
-            icon.paint(painter, search_icon_rect)
+            search_icon_rect = widget.get_search_icon_rect(option)  # 获取 QRect 对象
+            search_icon = create_qt_icon(q_color=self._combo_box.theme_line_color, mode="magnifier")  # 获取 QIcon 对象
+            search_icon.paint(painter, search_icon_rect)  # 使用 QRect 对象绘制图标
 
 
 class TitleBar(QWidget):
@@ -96,27 +112,9 @@ class TitleBar(QWidget):
         self.close_btn = QPushButton("×")
         self.close_btn.setFixedSize(30, 30)
         self.close_btn.clicked.connect(self.parent().reject)
-        self.close_btn.setStyleSheet("""
-            QPushButton {
-                font-size: 18px;
-                color: #999999;
-                border: none;
-                background: transparent;
-            }
-            QPushButton:hover {
-                color: #ff4444;
-            }
-        """)
 
         layout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
         layout.addWidget(self.close_btn)
-
-        # 标题栏背景透明化处理
-        self.setStyleSheet("""
-            TitleBar {
-                background: transparent;
-            }
-        """)
 
     def mousePressEvent(self, event: QMouseEvent):
         if event.button() == Qt.MouseButton.LeftButton:
@@ -146,20 +144,38 @@ class TitleBar(QWidget):
 class SearchDialog(QDialog):
     def __init__(self, items, parent=None):
         super().__init__(parent)
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+
+        # 设置无标题栏窗口, 之后会重绘
+        # self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.Dialog)
+        # self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+
+        # 窗口大小
         self.resize(400, 400)
+
+        # 自定义标题栏
+        # self.title_bar = TitleBar(self)
+        # self.title_bar.windowMoved.connect(self.move_window)
+        # main_layout.addWidget(self.title_bar)
+
+        # 设置窗口标题文本
+        self.setWindowTitle("搜索查找战斗方案")
+
+        # 清除窗口标题左侧图标
+        self.setWindowFlags(
+            self.windowFlags() |
+            Qt.WindowType.CustomizeWindowHint |
+            Qt.WindowType.WindowTitleHint |
+            Qt.WindowType.WindowCloseButtonHint
+        )
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowSystemMenuHint)
+        self.setWindowIcon(QIcon())
+
         self.selected_item = None
 
         # 主布局
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(12, 12, 12, 12)
         main_layout.setSpacing(0)
-
-        # 自定义标题栏
-        self.title_bar = TitleBar(self)
-        self.title_bar.windowMoved.connect(self.move_window)
-        main_layout.addWidget(self.title_bar)
 
         # 内容区域
         content_widget = QWidget()
@@ -191,36 +207,6 @@ class SearchDialog(QDialog):
         self.list_widget.itemDoubleClicked.connect(self.accept_selection)
         self.list_widget.itemClicked.connect(self.select_item)
 
-        # 样式设置
-        self.setStyleSheet("""
-            QLineEdit {
-                padding: 8px 12px;
-                border: 1px solid #ced4da;
-                border-radius: 4px;
-                font-size: 14px;
-            }
-            QLineEdit:focus {
-                border-color: #4dabf7;
-            }
-            QListWidget {
-                border: 1px solid #ced4da;
-                border-radius: 4px;
-                background: white;
-                outline: none;
-            }
-            QListWidget::item {
-                padding: 8px;
-                border-bottom: 1px solid #f1f3f5;
-            }
-            QListWidget::item:hover {
-                background: #f8f9fa;
-            }
-            QListWidget::item:selected {
-                background: #e7f5ff;
-                color: #1864ab;
-            }
-        """)
-
     def move_window(self, delta):
         self.move(self.pos() + delta)
 
@@ -244,35 +230,25 @@ class SearchDialog(QDialog):
             self.selected_item = selected.text()
         super().accept()
 
-    def paintEvent(self, event):
-        """添加窗口阴影效果"""
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        pen = QPen(QColor(0, 0, 0, 30))
-        pen.setWidth(1)
-        painter.setPen(pen)
-        painter.setBrush(QColor(255, 255, 255))
-        painter.drawRoundedRect(self.rect().adjusted(1, 1, -1, -1), 6, 6)
-
-
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("现代化搜索组合框示例")
-        self.resize(600, 400)
-
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        layout = QVBoxLayout(central_widget)
-        layout.setContentsMargins(40, 40, 40, 40)
-
-        self.combo_box = SearchableComboBox([f"选项 {i:03d}" for i in range(1, 101)])
-        layout.addWidget(QLabel("请选择项目:"))
-        layout.addWidget(self.combo_box)
-        layout.addStretch()
-
 
 if __name__ == "__main__":
+    class MainWindow(QMainWindow):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("现代化搜索组合框示例")
+            self.resize(600, 400)
+
+            central_widget = QWidget()
+            self.setCentralWidget(central_widget)
+            layout = QVBoxLayout(central_widget)
+            layout.setContentsMargins(40, 40, 40, 40)
+
+            self.combo_box = SearchableComboBox([f"选项 {i:03d}" for i in range(1, 101)])
+            layout.addWidget(QLabel("请选择项目:"))
+            layout.addWidget(self.combo_box)
+            layout.addStretch()
+
+
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
