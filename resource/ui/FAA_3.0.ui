@@ -12431,6 +12431,9 @@ FAA放卡核心原理简述:
                        <height>100</height>
                       </size>
                      </property>
+                     <property name="maximum">
+                      <number>9999</number>
+                     </property>
                      <property name="value">
                       <number>1</number>
                      </property>
@@ -12502,6 +12505,9 @@ FAA放卡核心原理简述:
                        <width>16777215</width>
                        <height>100</height>
                       </size>
+                     </property>
+                     <property name="maximum">
+                      <number>9999</number>
                      </property>
                      <property name="value">
                       <number>2</number>
