@@ -27,6 +27,7 @@ from function.core.QMW_TipLoginSettings import QMWTipLoginSettings
 from function.core.QMW_TipMisuLogistics import QMWTipMisuLogistics
 from function.core.QMW_TipStageID import QMWTipStageID
 from function.core.QMW_TipWarmGift import QMWTipWarmGift
+from function.core.QMW_UsefulToolsWidget import UsefulToolsWidget
 from function.core.Todo import ThreadTodo
 from function.core.performance_analysis import run_analysis_in_thread
 from function.globals import EXTRA, SIGNAL
@@ -94,6 +95,10 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 额外窗口 - 配置迁移器
         self.window_settings_migrator = QMWSettingsMigrator()
         self.OpenSettingsMigrator_Button.clicked.connect(self.click_btn_open_settings_migrator)
+
+        # 额外窗口 - 实用小工具
+        self.window_useful_tools = UsefulToolsWidget(self)
+        self.OpenUsefulTools_Button.clicked.connect(self.click_btn_open_useful_tools)
 
         # 额外窗口 - 温馨礼包提示
         self.window_tip_warm_gift = QMWTipWarmGift()
@@ -739,6 +744,19 @@ class QMainWindowService(QMainWindowLoadSettings):
         window.setFont(self.font)
         self.set_stylesheet(window)
         window.show()
+
+    def click_btn_open_useful_tools(self):
+        window = self.window_useful_tools
+        window.resize(300, 200)
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        # 尝试获取句柄
+        if window.try_get_handle():
+            window.show()
+        else:
+            SIGNAL.DIALOG.emit(
+                "出错！(╬◣д◢)",
+                "请打开游戏窗口后再使用小工具！")
 
     def click_btn_tip_warm_gift(self):
         window = self.window_tip_warm_gift
