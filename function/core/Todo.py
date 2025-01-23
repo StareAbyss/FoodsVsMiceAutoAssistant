@@ -472,14 +472,12 @@ class ThreadTodo(QThread):
         self.model_start_print(text=title_text)
 
         for pid in player:
-            # 归零尝试次数
-            try_times = 0
 
             # 创建进程 -> 开始进程 -> 阻塞主进程
             self.thread_1p = ThreadWithException(
                 target=self.faa_dict[pid].fed_and_watered,
                 name=f"{pid}P Thread - FedAndWatered",
-                kwargs={"try_times": try_times})
+                kwargs={})
             self.thread_1p.start()
             self.thread_1p.join()
 
