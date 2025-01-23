@@ -146,7 +146,7 @@ class QMainWindowLog(QMainWindowLoadUI):
             text="② 有一定的礼卷防翻牌异常",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="③ 高星或珍贵不绑卡放储藏室",
+            text="③ 贵重不绑卡/大量多余肥料放储藏室",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
             text="④ 鼠标不在游戏内, 不玩有反外挂的游戏",
@@ -164,10 +164,6 @@ class QMainWindowLog(QMainWindowLoadUI):
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
             text="新手入门 / 除错 / 深入使用 / 开发者, 都可以在线文档找到相关内容",
-            time=False)
-        SIGNAL.PRINT_TO_UI.emit(
-            text="鼠标在文字或按钮上悬停一会, 会显示部分有用的提示信息哦~",
-            color_level=2,
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
             text="任务或定时器开始运行后, 将锁定点击按钮时的配置文件, 不应用实时更改",
