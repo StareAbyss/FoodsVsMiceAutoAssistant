@@ -77,14 +77,14 @@ class ThreadTodo(QThread):
 
         if self.thread_1p is not None:
             self.thread_1p.stop()
-            self.thread_1p.join()  # <- 执念: 罪魁祸首在此 深渊: 并没有问题!
+            # self.thread_1p.join()  # <- 执念: 罪魁祸首在此 深渊: 并没有问题!
             self.msleep(10)
             self.thread_1p = None  # 清除调用
 
         if self.thread_2p is not None:
             # 改造后的 py thread, 通过终止
             self.thread_2p.stop()
-            self.thread_2p.join()  # <- 执念: 罪魁祸首在此 深渊: 并没有问题!
+            # self.thread_2p.join()  # <- 执念: 罪魁祸首在此 深渊: 并没有问题!
             self.msleep(10)
             self.thread_2p = None  # 清除调用
 
