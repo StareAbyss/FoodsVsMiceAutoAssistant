@@ -189,7 +189,8 @@
             "customize_battle": {
                 "active": false,
                 "is_group": 1,
-                "max_times": 2,
+                "max_times": 1,
+                "stage": "NO-1-7",
                 "global_plan_active": false,
                 "deck": 6,
                 "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
@@ -352,12 +353,13 @@
             },
             "customize_battle": {
                 "active": false,
-                "is_group": 0,
+                "is_group": 1,
                 "max_times": 1,
+                "stage": "NO-1-7",
+                "global_plan_active": true,
                 "deck": 1,
                 "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-                "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-                "global_plan_active": false
+                "battle_plan_2p": "00000000-0000-0000-0000-000000000001"
             },
             "customize": {
                 "active": false,
@@ -517,11 +519,12 @@
             "customize_battle": {
                 "active": false,
                 "is_group": 1,
-                "max_times": 2,
+                "max_times": 1,
+                "stage": "NO-1-7",
+                "global_plan_active": true,
                 "deck": 1,
                 "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-                "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-                "global_plan_active": false
+                "battle_plan_2p": "00000000-0000-0000-0000-000000000001"
             },
             "customize": {
                 "active": false,
@@ -681,11 +684,12 @@
             "customize_battle": {
                 "active": false,
                 "is_group": 1,
-                "max_times": 2,
+                "max_times": 1,
+                "stage": "NO-1-7",
+                "global_plan_active": true,
                 "deck": 1,
                 "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-                "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-                "global_plan_active": false
+                "battle_plan_2p": "00000000-0000-0000-0000-000000000001"
             },
             "customize": {
                 "active": false,
@@ -845,11 +849,12 @@
             "customize_battle": {
                 "active": false,
                 "is_group": 1,
-                "max_times": 2,
+                "max_times": 1,
+                "stage": "NO-1-7",
+                "global_plan_active": true,
                 "deck": 1,
                 "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-                "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-                "global_plan_active": false
+                "battle_plan_2p": "00000000-0000-0000-0000-000000000001"
             },
             "customize": {
                 "active": false,
@@ -1009,11 +1014,12 @@
             "customize_battle": {
                 "active": false,
                 "is_group": 1,
-                "max_times": 2,
+                "max_times": 1,
+                "stage": "NO-1-7",
+                "global_plan_active": true,
                 "deck": 1,
                 "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-                "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-                "global_plan_active": false
+                "battle_plan_2p": "00000000-0000-0000-0000-000000000001"
             },
             "customize": {
                 "active": false,
@@ -1172,12 +1178,13 @@
             },
             "customize_battle": {
                 "active": false,
-                "is_group": 2,
+                "is_group": 1,
                 "max_times": 1,
+                "stage": "NO-1-7",
+                "global_plan_active": true,
                 "deck": 1,
                 "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-                "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-                "global_plan_active": false
+                "battle_plan_2p": "00000000-0000-0000-0000-000000000001"
             },
             "customize": {
                 "active": false,

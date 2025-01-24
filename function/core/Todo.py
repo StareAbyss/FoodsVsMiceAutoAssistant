@@ -472,7 +472,6 @@ class ThreadTodo(QThread):
         self.model_start_print(text=title_text)
 
         for pid in player:
-
             # 创建进程 -> 开始进程 -> 阻塞主进程
             self.thread_1p = ThreadWithException(
                 target=self.faa_dict[pid].fed_and_watered,
@@ -728,11 +727,6 @@ class ThreadTodo(QThread):
         :param player_b: 队友pid
         :return:
         """
-
-        # 自定义作战直接调出
-        is_cu = "CU" in stage_id
-        if is_cu:
-            return 0
 
         is_cs = "CS" in stage_id
         is_mt = "MT" in stage_id
@@ -1176,7 +1170,7 @@ class ThreadTodo(QThread):
     def battle_1_1_n(self, stage_id, player, need_key, max_times, dict_exit,
                      global_plan_active, deck, battle_plan_1p, battle_plan_2p,
                      quest_card, ban_card_list, max_card_num,
-                     title_text, need_lock=False):
+                     title_text, is_cu=False, need_lock=False):
         """
         1轮次 1关卡 n次数
         副本外 -> (副本内战斗 * n次) -> 副本外
@@ -1188,7 +1182,6 @@ class ThreadTodo(QThread):
 
         # 判断是不是打魔塔 或 自建房
         is_mt = "MT" in stage_id
-        is_cu = "CU" in stage_id
         is_cs = "CS" in stage_id
 
         # 判断是不是组队
@@ -1280,7 +1273,7 @@ class ThreadTodo(QThread):
 
         def multi_round_battle():
             # 标记是否需要进入副本
-            need_goto_stage = not is_cu
+            need_goto_stage = True
             need_change_card = True
 
             battle_count = 0  # 记录成功的次数
@@ -1292,38 +1285,39 @@ class ThreadTodo(QThread):
                 # 初始
                 result_id = 0
 
-                # 前往副本
-                if not is_mt:
-                    # 非魔塔
-                    if need_goto_stage:
+                if not is_cu:
+                    # 非自建房
+                    if not is_mt:
+                        # 非魔塔
+                        if need_goto_stage:
+                            if not is_group:
+                                # 单人前往副本
+                                faa_a.action_goto_stage()
+                            else:
+                                # 多人前往副本
+                                result_id = self.goto_stage_and_invite(
+                                    stage_id=stage_id,
+                                    mt_first_time=False,
+                                    player_a=pid_a,
+                                    player_b=pid_b
+                                )
+                    else:
+                        # 魔塔
                         if not is_group:
                             # 单人前往副本
-                            faa_a.action_goto_stage()
+                            faa_a.action_goto_stage(
+                                mt_first_time=need_goto_stage)  # 第一次使用 mt_first_time, 之后则不用
                         else:
                             # 多人前往副本
                             result_id = self.goto_stage_and_invite(
                                 stage_id=stage_id,
-                                mt_first_time=False,
+                                mt_first_time=need_goto_stage,
                                 player_a=pid_a,
                                 player_b=pid_b
                             )
-                        need_goto_stage = False  # 进入后Flag变化
-                else:
-                    # 魔塔
-                    if not is_group:
-                        # 单人前往副本
-                        faa_a.action_goto_stage(
-                            mt_first_time=need_goto_stage)  # 第一次使用 mt_first_time, 之后则不用
-                    else:
-                        # 多人前往副本
-                        result_id = self.goto_stage_and_invite(
-                            stage_id=stage_id,
-                            mt_first_time=need_goto_stage,
-                            player_a=pid_a,
-                            player_b=pid_b
-                        )
 
-                    need_change_card = True  # 魔塔显然需要重新选卡组
+                        need_change_card = True  # 魔塔显然需要重新选卡组
+
                     need_goto_stage = False  # 进入后Flag变化
 
                 if result_id == 2:
@@ -1415,20 +1409,20 @@ class ThreadTodo(QThread):
                     if is_cu:
                         # 进入异常 但是自定义
                         self.n_battle_customize_battle_error_print(success_battle_time=battle_count)
+                        break
 
+                    # 进入异常, 重启再来
+                    need_goto_stage = True
+
+                    # 结束提示文本
+                    SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count + 1}次, 异常结束, 重启再来")
+
+                    if not need_lock:
+                        # 非单人多线程
+                        self.batch_reload_game()
                     else:
-                        # 进入异常, 重启再来
-                        need_goto_stage = True
-
-                        # 结束提示文本
-                        SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count + 1}次, 异常结束, 重启再来")
-
-                        if not need_lock:
-                            # 非单人多线程
-                            self.batch_reload_game()
-                        else:
-                            # 单人多线程 只reload自己
-                            faa_a.reload_game()
+                        # 单人多线程 只reload自己
+                        faa_a.reload_game()
 
                     # 重新进入 因此需要重新选卡组
                     need_change_card = True
@@ -1440,22 +1434,23 @@ class ThreadTodo(QThread):
                     if is_cu:
                         # 进入异常 但是自定义
                         self.n_battle_customize_battle_error_print(success_battle_time=battle_count)
+                        break
+
+                    # 跳过本次 计数+1
+                    battle_count += 1
+
+                    # 进入异常, 跳过
+                    need_goto_stage = True
+
+                    # 结束提示文本
+                    SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count}次, 开始游戏异常, 重启跳过")
+
+                    if not need_lock:
+                        # 非单人多线程
+                        self.batch_reload_game()
                     else:
-                        # 跳过本次 计数+1
-                        battle_count += 1
-
-                        # 进入异常, 跳过
-                        need_goto_stage = True
-
-                        # 结束提示文本
-                        SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count}次, 开始游戏异常, 重启跳过")
-
-                        if not need_lock:
-                            # 非单人多线程
-                            self.batch_reload_game()
-                        else:
-                            # 单人多线程 只reload自己
-                            faa_a.reload_game()
+                        # 单人多线程 只reload自己
+                        faa_a.reload_game()
 
                     # 重新进入 因此需要重新选卡组
                     need_change_card = True
@@ -1463,7 +1458,6 @@ class ThreadTodo(QThread):
                 if result_id == 3:
 
                     # 放弃所有次数
-
                     # 自动选卡 但没有对应的卡片! 最严重的报错!
                     SIGNAL.PRINT_TO_UI.emit(
                         text=f"{title} 自动选卡失败! 放弃本关全部作战! 您是否拥有对应绑定卡?")
@@ -1659,7 +1653,7 @@ class ThreadTodo(QThread):
             quest = quest_list[i]
 
             # 判断显著错误的关卡名称
-            true_stage_first_id = ["NO", "EX", "MT", "CS", "OR", "PT", "CU", "GD", "HH", "WA", "CZ"]
+            true_stage_first_id = ["NO", "EX", "MT", "CS", "OR", "PT", "GD", "HH", "WA", "CZ"]
             if quest["stage_id"].split("-")[0] not in true_stage_first_id:
                 SIGNAL.PRINT_TO_UI.emit(
                     text="{}事项{},{},错误的关卡名称!跳过".format(
@@ -1675,6 +1669,7 @@ class ThreadTodo(QThread):
                 quest_card = quest.get("quest_card", None)
                 ban_card_list = quest.get("ban_card_list", None)
                 max_card_num = quest.get("max_card_num", None)
+                is_cu = quest.get("is_cu", False)
 
                 text_parts = [
                     "{}事项{}".format(
@@ -1691,6 +1686,8 @@ class ThreadTodo(QThread):
                     text_parts.append("禁卡:{}".format(ban_card_list))
                 if max_card_num:
                     text_parts.append("限数:{}".format(max_card_num))
+                if is_cu:
+                    text_parts.append("自建房:{}".format(is_cu))
 
                 SIGNAL.PRINT_TO_UI.emit(text=",".join(text_parts), color_level=4)
 
@@ -1708,6 +1705,7 @@ class ThreadTodo(QThread):
                     ban_card_list=ban_card_list,
                     max_card_num=max_card_num,
                     title_text=extra_title,
+                    is_cu=quest.get("is_cu", False),
                     need_lock=need_lock
                 )
 
@@ -1736,8 +1734,10 @@ class ThreadTodo(QThread):
 
     """使用n_n_battle为核心的变种 [单线程][单人或双人]"""
 
-    def easy_battle(self, text_, stage_id, player, max_times,
-                    global_plan_active, deck, battle_plan_1p, battle_plan_2p, dict_exit):
+    def easy_battle(
+            self, text_, stage_id, player, max_times,
+            global_plan_active, deck, battle_plan_1p, battle_plan_2p, dict_exit, is_cu=False
+    ):
         """仅调用 n_battle的简易作战"""
         self.model_start_print(text=text_)
 
@@ -1758,7 +1758,8 @@ class ThreadTodo(QThread):
                 "deck": deck,
                 "battle_plan_1p": battle_plan_1p,
                 "battle_plan_2p": battle_plan_2p,
-                "dict_exit": dict_exit
+                "dict_exit": dict_exit,
+                "is_cu": is_cu
             }]
         self.battle_1_n_n(quest_list=quest_list)
 
@@ -2691,18 +2692,18 @@ class ThreadTodo(QThread):
         if active_singleton:
             SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom")
             SIGNAL.PRINT_TO_UI.emit(text="[自建房战斗] 开始!", color_level=1)
-            SIGNAL.PRINT_TO_UI.emit(text="如出现错误, 务必确保该功能是单独启动的!")
             SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top")
+            SIGNAL.PRINT_TO_UI.emit(text="如出现错误, 务必确保该功能是单独启动的!")
             start_time = datetime.datetime.now()
 
         my_opt = c_opt["customize_battle"]
         if my_opt["active"]:
             self.easy_battle(
                 text_="自建房战斗",
-                stage_id="CU-0-0",
+                stage_id=my_opt["stage"],
                 player=[[1, 2], [2, 1], [1], [2]][my_opt["is_group"]],
                 max_times=int(my_opt["max_times"]),
-                global_plan_active=False,
+                global_plan_active=my_opt["global_plan_active"],
                 deck=my_opt["deck"],
                 battle_plan_1p=my_opt["battle_plan_1p"],
                 battle_plan_2p=my_opt["battle_plan_2p"],
@@ -2711,7 +2712,8 @@ class ThreadTodo(QThread):
                     "other_time_player_b": [],
                     "last_time_player_a": [],
                     "last_time_player_b": []
-                }
+                },
+                is_cu=True
             )
 
         if active_singleton:
@@ -2723,24 +2725,26 @@ class ThreadTodo(QThread):
 
         """全部完成"""
 
-        if self.opt["login_settings"]["login_close_settings"]:
-
-            SIGNAL.PRINT_TO_UI.emit(
-                text="[开关游戏大厅] 任务全部完成, 关闭360游戏大厅对应窗口, 降低系统负载.",
-                color_level=1
-            )
-            self.close_360()
-
+        if main_task_active or extra_active:
+            if self.opt["login_settings"]["login_close_settings"]:
+                SIGNAL.PRINT_TO_UI.emit(
+                    text="[开关游戏大厅] 任务全部完成, 关闭360游戏大厅对应窗口, 降低系统负载.",
+                    color_level=1
+                )
+                self.close_360()
+            else:
+                if self.opt["advanced_settings"]["end_exit_game"]:
+                    SIGNAL.PRINT_TO_UI.emit(text="任务全部完成, 刷新返回登录界面, 降低系统负载.", color_level=1)
+                    self.batch_click_final_refresh_btn()
+                else:
+                    SIGNAL.PRINT_TO_UI.emit(
+                        text="[推荐] 进阶功能中, 可设置完成所有任务后, 关闭360游戏大厅对应窗口 or 返回登录页, 降低系统负载.",
+                        color_level=1)
         else:
-
-            if self.opt["advanced_settings"]["end_exit_game"]:
-                SIGNAL.PRINT_TO_UI.emit(text="任务全部完成, 刷新返回登录界面, 降低系统负载.", color_level=1)
-                self.batch_click_final_refresh_btn()
-
-        if not (self.opt["login_settings"]["login_close_settings"] or self.opt["advanced_settings"]["end_exit_game"]):
-            SIGNAL.PRINT_TO_UI.emit(
-                text="[推荐] 进阶功能中, 可设置完成所有任务后, 关闭360游戏大厅对应窗口 or 返回登录页, 降低系统负载.",
-                color_level=1)
+            if active_singleton:
+                SIGNAL.PRINT_TO_UI.emit(text="您启动了完成后操作, 但仅运行了自建房对战, 故不进行任何操作", color_level=1)
+            else:
+                SIGNAL.PRINT_TO_UI.emit(text="您启动了完成后操作, 但并未运行任务, 故不进行任何操作", color_level=1)
 
         # 全部完成了发个信号
         SIGNAL.END.emit()
