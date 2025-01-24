@@ -749,6 +749,49 @@ class FAAActionInterfaceJump:
                     after_sleep=1,
                     click=True)
 
+        def main_cz():
+            # Chinese Zodiac 生肖关卡, 特殊关卡.
+            # 北京时间(注意时区) 周467的 7点到7点半可以进入
+            # 先不做时间检测, 节假日比较迷惑
+
+            # 进入对应地图
+            my_dict = {"1": "1", "2": "2", "3": "4", "4": "6"}
+            self.goto_map(map_id=my_dict[stage_2])
+
+            # 切区 三岛+星际
+            my_dict = {"1": [3, 11], "2": [1, 2], "3": [1, 2], "4": [1, 2]}
+            change_to_region(region_list=my_dict[stage_2])
+
+            # 仅限主角色创建关卡
+            if is_main:
+                # 防止被活动列表遮住
+                self.change_activity_list(serial_num=2)
+
+                # 选择关卡
+                my_dict = {
+                    "1": [226, 299],
+                    "2": [175, 269],
+                    "3": [116, 288],
+                    "4": [164, 375]}
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=handle,
+                    x=my_dict[stage_2][0],
+                    y=my_dict[stage_2][1]
+                )
+                time.sleep(1)
+
+                # 设置密码
+                click_set_password()
+
+                # 创建队伍
+                loop_match_p_in_w(
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[0, 0, 950, 600],
+                    template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
+                    after_sleep=1,
+                    click=True)
+
         if stage_0 == "NO":
             main_no()
         elif stage_0 == "MT":
@@ -767,5 +810,7 @@ class FAAActionInterfaceJump:
             main_hh()
         elif stage_0 == "WA":
             main_wa()
+        elif stage_0 == "CZ":
+            main_cz()
         else:
             print_error(text="请输入正确的关卡名称！")
