@@ -793,6 +793,7 @@ class ThreadTimePutCardTimer(QThread):
         """使用宝石"""
         # 注意上锁, 防止和放卡冲突
         with self.faa.battle_lock:
+            CUS_LOGGER.debug(f"[战斗执行器] ThreadTimePutCardTimer - use_gemstone 宝石{gid}启动")
             match gid:
                 case 1:
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=200)
