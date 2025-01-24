@@ -2,6 +2,7 @@ import os
 import sys
 
 from PyQt6 import uic, QtGui, QtCore, QtWidgets
+from PyQt6.QtGui import QIcon
 
 from function.common.get_system_dpi import get_system_dpi
 from function.globals import EXTRA
@@ -9,47 +10,12 @@ from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 # noinspection PyUnresolvedReferences
 from function.qrc import test_rc, theme_rc, GTRONICK_rc
+from function.widget.CusIcon import create_qt_icon
+from function.widget.SearchableComboBox import SearchableComboBox
 
 # 虽然ide显示上面这行没用，但实际是用来加载相关资源的，不可删除,我用奇妙的方式强制加载了
 
 ZOOM_RATE = None
-
-
-def create_icon(color, mode):
-    """
-    绘制图表
-    :param color: Q color
-    :param mode: "-" "x" "<-" "->"
-    :return:
-    """
-    pixmap = QtGui.QPixmap(16, 16)
-    pixmap.fill(QtCore.Qt.GlobalColor.transparent)
-
-    painter = QtGui.QPainter(pixmap)
-    painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
-
-    # 绘制图标
-    painter.setPen(QtGui.QPen(color, 2))
-    match mode:
-        case "x":
-            painter.drawLine(3, 3, 13, 13)
-            painter.drawLine(3, 13, 13, 3)
-        case "-":
-            painter.drawLine(3, 8, 13, 8)
-        case "<-":
-            painter.drawLine(2, 8, 14, 8)  # 主线
-            painter.drawLine(2, 8, 6, 4)  # 左上角
-            painter.drawLine(2, 8, 6, 12)  # 左下角
-        case "->":
-            painter.drawLine(2, 8, 14, 8)  # 主线
-            painter.drawLine(14, 8, 10, 4)  # 右上角
-            painter.drawLine(14, 8, 10, 12)  # 右下角
-        case _:
-            pass
-
-    painter.end()
-
-    return QtGui.QIcon(pixmap)
 
 
 class QMainWindowLoadUI(QtWidgets.QMainWindow):
@@ -67,6 +33,9 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
         # 设置窗口名称
         self.setWindowTitle("FAA - 本软件免费且开源")
+
+        # 设置系统图标
+        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
 
         # 设置显示版本号
         self.Title_Version.setText(EXTRA.VERSION)
@@ -91,6 +60,9 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
     """任何ui都要设置的样式表"""
 
     def set_theme_common(self):
+        """
+        在应用皮肤样式表之前设定
+        """
         # 进行特殊的无边框和阴影处理
         self.set_no_border()
 
@@ -100,24 +72,17 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         # 根据系统样式,设定开关图标
         self.set_exit_and_minimized_btn_icon()
 
+        # 根据系统样式, 设置自定义控件的样式
+        self.set_customize_widget_style()
+
         # 部分图片元素的加载
         self.set_image_resource()
 
-    def set_logo_shadow(self):
-        effect_shadow = QtWidgets.QGraphicsDropShadowEffect(self)
-        effect_shadow.setOffset(0, 0)  # 偏移
-        effect_shadow.setBlurRadius(10)  # 阴影半径
-        effect_shadow.setColor(QtCore.Qt.GlobalColor.gray)  # 阴影颜色
-        self.Title_Logo.setGraphicsEffect(effect_shadow)  # 将设置套用到widget窗口中
-
-    def set_no_border(self):
-        # 设置无边框窗口
-        self.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
-
-        # 设背景为透明
-        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
-
     def set_common_theme(self):
+        """
+        在应用皮肤样式表之后设定
+        :return:
+        """
 
         style_sheet = self.styleSheet()
 
@@ -135,36 +100,53 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
         self.setStyleSheet(style_sheet)
 
+    def set_logo_shadow(self):
+        effect_shadow = QtWidgets.QGraphicsDropShadowEffect(self)
+        effect_shadow.setOffset(0, 0)  # 偏移
+        effect_shadow.setBlurRadius(6)  # 阴影半径
+        effect_shadow.setColor(QtCore.Qt.GlobalColor.gray)  # 阴影颜色
+        self.Title_Logo.setGraphicsEffect(effect_shadow)  # 将设置套用到widget窗口中
+
+    def set_no_border(self):
+        # 设置无边框窗口
+        self.setWindowFlag(QtCore.Qt.WindowType.FramelessWindowHint)
+
+        # 设背景为透明
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
+
     def set_exit_and_minimized_btn_icon(self):
         """
         设置退出按钮和最小化按钮样式，需已获取主题
         :return:
         """
         # 根据系统样式,设定开关图标
-        color = QtGui.QColor(240, 240, 240) if self.theme == "dark" else QtGui.QColor(15, 15, 15)
-        self.Button_Exit.setIcon(create_icon(color=color, mode="x"))
-        self.Button_Minimized.setIcon(create_icon(color=color, mode="-"))
+        q_color = QtGui.QColor(240, 240, 240) if self.theme == "dark" else QtGui.QColor(15, 15, 15)
+        self.Button_Exit.setIcon(create_qt_icon(q_color=q_color, mode="x"))
+        self.Button_Minimized.setIcon(create_qt_icon(q_color=q_color, mode="-"))
+
+    def set_customize_widget_style(self):
+        # 查找所有 SearchableComboBox 实例
+        searchable_comboboxes = self.findChildren(SearchableComboBox)
+
+        # 给他们全都改一改
+        for combobox in searchable_comboboxes:
+            combobox.set_style(theme=self.theme)
 
     def set_image_resource(self):
 
         # title - logo
-        cus_path = PATHS["root"] + "\\resource\\logo\\圆角-FetTuo-48x.ico"
+        cus_path = PATHS["root"] + "\\resource\\logo\\圆角-FetDeathWing-450x.png"
         cus_path = cus_path.replace("\\", "/")  # pyqt 使用正斜杠
-        radius = 20
-        style_sheet = f"""
-            #Title_Logo{{
-                min-width: {radius * 2}px;
-                min-height: {radius * 2}px;
-                max-width: {radius * 2}px;
-                max-height: {radius * 2}px;
-                border-radius: {radius}px;
-                background-image: url({cus_path});
-                background-repeat: no-repeat;
-                background-position: center;
-                background-size: {radius * 2}px {radius * 2}px;
-            }}
-        """
-        self.Title_Logo.setStyleSheet(style_sheet)
+
+        pixmap = QtGui.QPixmap(cus_path).scaled(
+            40,
+            40,
+            QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+            QtCore.Qt.TransformationMode.SmoothTransformation
+        )
+        self.Title_Logo.setPixmap(pixmap)
+        self.Title_Logo.setFixedSize(40, 40)
+        self.Title_Logo.setScaledContents(True)  # 确保图片自适应控件大小
 
         # 背景图
         cus_path = PATHS["root"] + "\\resource\\ui\\firefly.png"
@@ -249,8 +231,8 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
         # 设置图标
         color = QtGui.QColor(240, 240, 240) if self.theme == "dark" else QtGui.QColor(15, 15, 15)
-        prev_icon = create_icon(color=color, mode="<-")
-        next_icon = create_icon(color=color, mode="->")
+        prev_icon = create_qt_icon(q_color=color, mode="<-")
+        next_icon = create_qt_icon(q_color=color, mode="->")
 
         # 找到前后月份按钮
         prev_month_button = self.DateSelector.findChild(QtWidgets.QToolButton, "qt_calendar_prevmonth")

@@ -8,7 +8,7 @@ from function.globals.log import CUS_LOGGER
 def read_json_to_stage_info(stage_id, stage_id_for_battle=None):
     """
     读取文件中是否存在预设
-    :param stage_id: 关卡的id, 可以是用于某些特殊功能的 不指定特定关卡的id 比如魔塔爬塔和自建房战斗的 ID MT-1-0 CU-0-0
+    :param stage_id: 关卡的id, 可以是用于某些特殊功能的 不指定特定关卡的id 比如魔塔爬塔 ID MT-1-0
     :param stage_id_for_battle: 真实关卡id 直接用于查找关卡配置 大多数情况下直接继承关卡的id
     :return: {"id": str, }
     """

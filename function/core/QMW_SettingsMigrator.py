@@ -2,6 +2,7 @@ import json
 import os.path
 import shutil
 
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QMessageBox, \
     QFileDialog, QHBoxLayout, QCheckBox
 
@@ -12,6 +13,7 @@ class QMWSettingsMigrator(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("配置迁移工具")
+        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
 
         # 设定窗口初始大小 否则将无法自动对齐到上级窗口中心
         self.resize(1025, 435)
@@ -22,41 +24,41 @@ class QMWSettingsMigrator(QMainWindow):
                 "name": "配置文件 - 核心",
                 "type": "file",
                 "locations": [
-                    os.path.join("config","settings.json"),
-                    os.path.join("config","opt_main.json"),
+                    os.path.join("config", "settings.json"),
+                    os.path.join("config", "opt_main.json"),
                 ],
             },
             {
                 "name": "配置文件 - 关卡全局方案",
                 "type": "file",
                 "locations": [
-                    os.path.join("config","stage_plan.json"),
+                    os.path.join("config", "stage_plan.json"),
                 ],
             },
             {
                 "name": "用户自截 - 空间服登录界面_1P",
                 "type": "file",
                 "locations": [
-                    os.path.join("config","cus_images","用户自截","空间服登录界面_1P.png"),
-                    os.path.join("resource","image","common","用户自截","空间服登录界面_1P.png"),
+                    os.path.join("config", "cus_images", "用户自截", "空间服登录界面_1P.png"),
+                    os.path.join("resource", "image", "common", "用户自截", "空间服登录界面_1P.png"),
                 ],
             },
             {
                 "name": "用户自截 - 空间服登录界面_2P",
                 "type": "file",
                 "locations": [
-                    os.path.join("config","cus_images","用户自截","空间服登录界面_2P.png"),
-                    os.path.join("resource","image","common","用户自截","空间服登录界面_2P.png"),
+                    os.path.join("config", "cus_images", "用户自截", "空间服登录界面_2P.png"),
+                    os.path.join("resource", "image", "common", "用户自截", "空间服登录界面_2P.png"),
                 ],
             },
             {
                 "name": "用户自截 - 跨服远征_1P",
                 "type": "file",
                 "locations": [
-                    os.path.join("config","cus_images","用户自截","跨服远征_1p.png"),
-                    os.path.join("config","cus_images","用户自截","跨服远征_1P.png"),
-                    os.path.join("resource","image","common","用户自截","跨服远征_1p.png"),
-                    os.path.join("resource","image","common","用户自截","跨服远征_1P.png")
+                    os.path.join("config", "cus_images", "用户自截", "跨服远征_1p.png"),
+                    os.path.join("config", "cus_images", "用户自截", "跨服远征_1P.png"),
+                    os.path.join("resource", "image", "common", "用户自截", "跨服远征_1p.png"),
+                    os.path.join("resource", "image", "common", "用户自截", "跨服远征_1P.png")
                 ],
             },
             {
@@ -72,7 +74,21 @@ class QMWSettingsMigrator(QMainWindow):
                 "locations": [
                     os.path.join("battle_plan_not_active"),
                 ],
-            }
+            },
+            {
+                "name": "公会管理器数据",
+                "type": "folder",
+                "locations": [
+                    os.path.join("logs", "guild_manager"),
+                ],
+            },
+            {
+                "name": "自定义任务序列",
+                "type": "folder_json_only",
+                "locations": [
+                    os.path.join("task_sequence"),
+                ],
+            },
         ]
         self.init_ui()
 
@@ -107,6 +123,19 @@ class QMWSettingsMigrator(QMainWindow):
             layout_liner.addWidget(checkbox)
             self.widgets_checkbox[config["name"]] = checkbox
             checkbox.setEnabled(False)
+
+            if config["type"] == "folder":
+                checkbox.setToolTip(
+                    "文件夹迁移\n"
+                    "将会**覆盖**当前配置中的同名文件夹!"
+                )
+
+            if config["type"] == "folder_json_only":
+                checkbox.setToolTip(
+                    "文件夹迁移\n"
+                    "仅迁移.json文件\n"
+                    "将会**覆盖**当前配置中的同名文件夹!"
+                )
 
             if config["type"] == "folder_battle_plan":
                 # 鼠标提示
@@ -255,6 +284,16 @@ class QMWSettingsMigrator(QMainWindow):
 
             if config["type"] == "file":
                 shutil.copyfile(path_from, path_to)
+
+            if config["type"] == "folder":
+                shutil.copytree(path_from, path_to, dirs_exist_ok=True)
+
+            if config["type"] == "folder_json_only":
+                def ignore_non_json_files(dir, files):
+                    """忽略非 .json 文件"""
+                    return [f for f in files if not f.endswith('.json')]
+
+                shutil.copytree(path_from, path_to, dirs_exist_ok=True, ignore=ignore_non_json_files)
 
             if config["type"] == "folder_battle_plan":
                 process_json_files(folder_from=path_from, folder_to=path_to)

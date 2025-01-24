@@ -1,51 +1,153 @@
-
-def change_item_list_by_group(group_list, item_list):
-    """
-    根据给定的分组列表，重新排列物品列表
-    具体步骤如下：
-    1. 找到项目列表中属于分组列表的项目，并记录它们的位置。
-    2. 从项目列表中移除这些项目。
-    3. 按照分组列表的顺序将这些项目重新插入到项目列表中，插入位置为第一次找到的分组项目的位置。
-    :param group_list: 需要匹配的分组列表
-    :param item_list: 需要重新排列的项目列表
-    :return: 重新排列后的项目列表
-    """
-    group_item_found_dict = {item: False for item in group_list}
-    first_index = None
-
-    # 找到项目列表中属于分组列表的项目，并记录它们的位置
-    for index, item_name in enumerate(item_list):
-        if item_name in group_list:
-            group_item_found_dict[item_name] = True
-            if first_index is None:
-                first_index = index
-
-    # 从项目列表中移除这些项目
-    new_item_list = []
-    for item in item_list:
-        if not group_item_found_dict.get(item, False):
-            new_item_list.append(item)
-
-    # 按照分组列表的逆序将这些项目重新插入到项目列表中
-    for item_name in reversed(group_list):
-        if group_item_found_dict[item_name]:
-            new_item_list.insert(first_index, item_name)
-
-    return new_item_list
+import sys
+from PyQt6.QtWidgets import (
+    QApplication,
+    QComboBox,
+    QLineEdit,
+    QListWidget,
+    QDialog,
+    QDialogButtonBox,
+    QVBoxLayout,
+    QPushButton,
+    QHBoxLayout,
+    QListWidgetItem,
+    QStyle,
+    QProxyStyle,
+    QStyleOptionComboBox,
+    QLabel,
+    QMainWindow,
+    QWidget,
+)
+from PyQt6.QtCore import Qt, QRect, QPoint
+from PyQt6.QtGui import QPainter, QIcon
 
 
-item_list_new = [
-    "物品A", "物品B",
-    "2级四叶草",  # 绑定的四叶草  和 对应的不绑定的香料(也被计数进此处)
-    "3级四叶草", "1级四叶草",  # 不绑定的四叶草,  且没有对应绑定物, 被单独在后计数
-    "秘制香料", "天然香料",  # 绑定的香料 和 对应的不绑定的香料(也被计数进此处)
-    "上等香料",  # 不绑定的香料, 且没有对应绑定物, 被单独在后计数
-    "物品C", "物品D"  # 其他正常物品
-]
-# 强制排序初始list中部分物品
-group_1 = ['5级四叶草', '4级四叶草', '3级四叶草', '2级四叶草', '1级四叶草']
-group_2 = ['天使香料', '精灵香料', '魔幻香料', '皇室香料', '极品香料', '秘制香料', '上等香料', '天然香料']
+class SearchableComboBox(QComboBox):
+    def __init__(self, items, parent=None):
+        super().__init__(parent)
+        self.addItems(items)
 
-item_list_new = change_item_list_by_group(group_list=group_1, item_list=item_list_new)
-item_list_new = change_item_list_by_group(group_list=group_2, item_list=item_list_new)
-print(item_list_new)
+        # 在组合框中添加搜索图标
+        self.setEditable(True)
+        self.lineEdit().setReadOnly(True)  # 将行编辑设置为只读
+        self.lineEdit().setPlaceholderText("点击搜索...")
+
+        # 自定义样式以绘制搜索图标
+        self.setStyle(CustomComboBoxStyle())
+
+    def mousePressEvent(self, event):
+        """处理鼠标按下事件以打开搜索对话框。"""
+        # 单击组合框时打开搜索对话框
+        if self.is_search_icon_clicked(event.pos()):
+            self.open_search_dialog()
+        else:
+            super().mousePressEvent(event)
+
+    def is_search_icon_clicked(self, pos: QPoint) -> bool:
+        """检查是否单击了搜索图标区域。"""
+        option = QStyleOptionComboBox()
+        self.initStyleOption(option)
+        icon_rect = self.style().subControlRect(
+            QStyle.ComplexControl.CC_ComboBox, option, QStyle.SubControl.SC_ComboBoxArrow, self
+        )
+        return icon_rect.contains(pos)
+
+    def open_search_dialog(self):
+        """打开搜索对话框并更新组合框。"""
+        dialog = SearchDialog([self.itemText(i) for i in range(self.count())], self)
+        if dialog.exec() == QDialog.DialogCode.Accepted and dialog.selected_item:
+            self.setCurrentText(dialog.selected_item)
+
+
+class CustomComboBoxStyle(QProxyStyle):
+    """自定义样式以向组合框添加搜索图标。"""
+
+    def drawComplexControl(self, control, option, painter, widget):
+        if control == QStyle.ComplexControl.CC_ComboBox:
+            # 绘制原始组合框
+            super().drawComplexControl(control, option, painter, widget)
+
+            # 在箭头区域绘制搜索图标
+            icon = widget.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogContentsView)
+            arrow_rect = self.subControlRect(
+                QStyle.ComplexControl.CC_ComboBox, option, QStyle.SubControl.SC_ComboBoxArrow, widget
+            )
+            icon_rect = QRect(
+                arrow_rect.left() - 12, arrow_rect.top() + 4, arrow_rect.width() - 8, arrow_rect.height() - 8
+            )
+            icon.paint(painter, icon_rect)
+
+        else:
+            super().drawComplexControl(control, option, painter, widget)
+
+
+class SearchDialog(QDialog):
+    def __init__(self, items, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("搜索并选择项目")
+        self.resize(400, 300)
+
+        self.selected_item = None
+
+        # 布局
+        layout = QVBoxLayout(self)
+
+        # 搜索栏
+        self.search_bar = QLineEdit(self)
+        self.search_bar.setPlaceholderText("输入关键字搜索...")
+        layout.addWidget(self.search_bar)
+
+        # 列表小部件以显示项目
+        self.list_widget = QListWidget(self)
+        self.list_widget.addItems(items)
+        layout.addWidget(self.list_widget)
+
+        # 按钮
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        layout.addWidget(button_box)
+
+        # 连接信号
+        self.search_bar.textChanged.connect(self.filter_items)
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+        self.list_widget.itemDoubleClicked.connect(self.on_item_double_clicked)
+
+    def filter_items(self, text):
+        """根据搜索文本过滤列表小部件中的项目。"""
+        for i in range(self.list_widget.count()):
+            item = self.list_widget.item(i)
+            item.setHidden(text.lower() not in item.text().lower())
+
+    def on_item_double_clicked(self, item):
+        """处理双击以选择一个项目。"""
+        self.selected_item = item.text()
+        self.accept()
+
+    def accept(self):
+        """处理对话框接受。"""
+        selected_items = self.list_widget.selectedItems()
+        if selected_items:
+            self.selected_item = selected_items[0].text()
+        super().accept()
+
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("自定义 ComboBox 搜索示例")
+        self.resize(300, 200)
+
+        # 主布局
+        central_widget = QWidget(self)
+        self.setCentralWidget(central_widget)
+        layout = QVBoxLayout(central_widget)
+
+        # 自定义 ComboBox
+        self.combo_box = SearchableComboBox([f"选项 {i}" for i in range(1, 51)], self)
+        layout.addWidget(self.combo_box)
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())

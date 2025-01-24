@@ -291,8 +291,8 @@
         "skip": false,
         "deck": 0,
         "battle_plan": [
-            "784cc7dc-4175-11ef-99da-f44efc5bf671",
-            "784d056e-4175-11ef-a250-f44efc5bf671"
+            "bb78cf6c-d689-11ef-b6d6-f44efc5bf671",
+            "f1049448-d689-11ef-bb26-f44efc5bf671"
         ]
     },
     "global": {
@@ -301,6 +301,14 @@
         "battle_plan": [
             "1587e54f-8ef1-11ef-a8a9-f44efc5bf671",
             "1d53e81e-ad86-11ef-b864-c2f2346a1393"
+        ]
+    },
+    "CZ-0-4": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "815e1fac-d9d8-11ef-934e-f44efc5bf671",
+            "a1a01237-d9d8-11ef-9fe2-f44efc5bf671"
         ]
     }
 }

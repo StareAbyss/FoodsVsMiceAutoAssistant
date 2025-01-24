@@ -1,9 +1,7 @@
 import datetime
 import json
-import os
 import random
 import shutil
-import sys
 
 import win32con
 import win32gui
@@ -11,6 +9,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QMessageBox
 
 from function.common.process_and_window_manager import get_path_and_sub_titles
+from function.common.startup import *
 from function.core.FAA import FAA
 from function.core.QMW_2_load_settings import CommonHelper, QMainWindowLoadSettings
 from function.core.QMW_EditorOfBattlePlan import QMWEditorOfBattlePlan
@@ -25,6 +24,7 @@ from function.core.QMW_TipLoginSettings import QMWTipLoginSettings
 from function.core.QMW_TipMisuLogistics import QMWTipMisuLogistics
 from function.core.QMW_TipStageID import QMWTipStageID
 from function.core.QMW_TipWarmGift import QMWTipWarmGift
+from function.core.QMW_UsefulToolsWidget import UsefulToolsWidget
 from function.core.Todo import ThreadTodo
 from function.core.performance_analysis import run_analysis_in_thread
 from function.globals import EXTRA, SIGNAL
@@ -93,6 +93,10 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.window_settings_migrator = QMWSettingsMigrator()
         self.OpenSettingsMigrator_Button.clicked.connect(self.click_btn_open_settings_migrator)
 
+        # 额外窗口 - 实用小工具
+        self.window_useful_tools = UsefulToolsWidget(self)
+        self.OpenUsefulTools_Button.clicked.connect(self.click_btn_open_useful_tools)
+
         # 额外窗口 - 温馨礼包提示
         self.window_tip_warm_gift = QMWTipWarmGift()
         self.GetWarmGiftTipButton.clicked.connect(self.click_btn_tip_warm_gift)
@@ -127,6 +131,10 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.MisuLogistics_GetStageInfoOnline.clicked.connect(self.click_btn_misu_logistics_get_stage_info_online)
         # 米苏物流 - 设定默认
         self.MisuLogistics_Link_SetDefault.clicked.connect(self.click_btn_misu_logistics_set_default)
+
+        # 自启动
+        self.check_startup_status()
+        self.Startup.stateChanged.connect(toggle_startup)
 
         # 启动按钮 函数绑定
         self.Button_Start.clicked.connect(self.todo_click_btn)
@@ -397,6 +405,20 @@ class QMainWindowService(QMainWindowLoadSettings):
             self.Name2P_Input.setText("")
             self.GameName_Input.setText(window_name)
 
+    def check_startup_status(self) -> None:
+        """
+        检测自启动状态，并在复选框中显示
+        """
+        try:
+            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                                 "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+                                 0, winreg.KEY_READ)
+            value, _ = winreg.QueryValueEx(key, APP_NAME)
+            self.Startup.setChecked(True)
+            winreg.CloseKey(key)
+        except FileNotFoundError:
+            self.Startup.setChecked(False)
+
     """主线程管理"""
 
     def todo_start(self, plan_index=None):
@@ -504,7 +526,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         """
 
         """线程处理"""
-        SIGNAL.PRINT_TO_UI.emit("[任务序列] 开始关闭全部任务执行线程", color_level=1)
+        CUS_LOGGER.info("[任务序列] 开始关闭全部任务执行线程")
 
         self.is_ending = True  # 终止操作正在进行中 放用户疯狂操作
 
@@ -720,6 +742,19 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.set_stylesheet(window)
         window.show()
 
+    def click_btn_open_useful_tools(self):
+        window = self.window_useful_tools
+        window.resize(300, 200)
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        # 尝试获取句柄
+        if window.try_get_handle():
+            window.show()
+        else:
+            SIGNAL.DIALOG.emit(
+                "出错！(╬◣д◢)",
+                "请打开游戏窗口后再使用小工具！")
+
     def click_btn_tip_warm_gift(self):
         window = self.window_tip_warm_gift
         window.setFont(self.font)
@@ -929,6 +964,13 @@ def faa_start_main():
     # 性能分析监控启动
     run_analysis_in_thread(window)
 
+    # 检测启动参数
+    start_with_task = "--start_with_task" in sys.argv
+
+    # 使用 QTimer 在事件循环开始后执行任务
+    if start_with_task:
+        print("检测到启动参数 --start_with_task，将自动开始任务")
+        window.todo_click_btn()
     # 运行主循环，必须调用此函数才可以开始事件处理
     app.exec()
 

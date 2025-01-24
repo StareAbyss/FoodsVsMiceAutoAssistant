@@ -322,7 +322,7 @@ class Battle:
             CUS_LOGGER.debug(f"[{self.faa.player}P] 当前波次:{new_wave}, 已检测到转变, 但该波次无变阵方案")
             return False
 
-        CUS_LOGGER.debug(f"[{self.faa.player}P] 当前波次:{new_wave}, 已检测到转变, 即将启动变阵方案")
+        CUS_LOGGER.info(f"[{self.faa.player}P] 当前波次:{new_wave}, 已检测到转变, 即将启动变阵方案")
 
         # 备份旧方案
         plans = {

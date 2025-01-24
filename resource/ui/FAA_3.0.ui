@@ -33,7 +33,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>:/icon/logo/FetTuo-192x.png</normaloff>:/icon/logo/FetTuo-192x.png</iconset>
+    <normaloff>:/icon/logo/圆角-FetDeathWing-450x.png</normaloff>:/icon/logo/圆角-FetDeathWing-450x.png</iconset>
   </property>
   <property name="autoFillBackground">
    <bool>true</bool>
@@ -104,8 +104,17 @@
 }</string>
        </property>
        <layout class="QHBoxLayout" name="title_tag">
+        <property name="spacing">
+         <number>5</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
         <property name="topMargin">
          <number>5</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
         </property>
         <property name="bottomMargin">
          <number>5</number>
@@ -120,14 +129,14 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>35</width>
-            <height>35</height>
+            <width>40</width>
+            <height>40</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>35</width>
-            <height>35</height>
+            <width>40</width>
+            <height>40</height>
            </size>
           </property>
           <property name="styleSheet">
@@ -142,15 +151,15 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="Title_Text">
+         <widget class="QLabel" name="Title_Text_2">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
           <property name="text">
-           <string>  FAA  本软件免费且开源</string>
+           <string>   FAA</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -160,14 +169,14 @@
         <item>
          <widget class="QLabel" name="Title_Version">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
           <property name="minimumSize">
            <size>
-            <width>200</width>
+            <width>0</width>
             <height>0</height>
            </size>
           </property>
@@ -175,7 +184,7 @@
            <string notr="true"/>
           </property>
           <property name="text">
-           <string>版本号  </string>
+           <string>版本号</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -197,6 +206,22 @@
             <number>0</number>
            </property>
           </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="Title_Text">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string>本软件免费且开源  鼠标悬停在控件上可查看提示信息</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+          </property>
          </widget>
         </item>
         <item>
@@ -494,6 +519,9 @@ border:none</string>
                    <property name="tabletTracking">
                     <bool>false</bool>
                    </property>
+                   <property name="toolTip">
+                    <string>该参数由FAA自动获取</string>
+                   </property>
                    <property name="autoFillBackground">
                     <bool>false</bool>
                    </property>
@@ -577,6 +605,9 @@ border:none</string>
                    </property>
                    <property name="tabletTracking">
                     <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>请使用下方拖动功能, 获取该参数</string>
                    </property>
                    <property name="autoFillBackground">
                     <bool>false</bool>
@@ -672,6 +703,9 @@ border:none</string>
                    <property name="tabletTracking">
                     <bool>false</bool>
                    </property>
+                   <property name="toolTip">
+                    <string>请使用下方拖动功能, 获取该参数</string>
+                   </property>
                    <property name="autoFillBackground">
                     <bool>false</bool>
                    </property>
@@ -752,6 +786,9 @@ border:none</string>
                    </property>
                    <property name="tabletTracking">
                     <bool>false</bool>
+                   </property>
+                   <property name="toolTip">
+                    <string>请使用下方拖动功能, 获取该参数</string>
                    </property>
                    <property name="autoFillBackground">
                     <bool>false</bool>
@@ -841,6 +878,9 @@ border:none</string>
                      <height>16777215</height>
                     </size>
                    </property>
+                   <property name="toolTip">
+                    <string>您游戏角色的等级</string>
+                   </property>
                    <property name="minimum">
                     <number>1</number>
                    </property>
@@ -918,6 +958,9 @@ border:none</string>
                      <width>200</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>您游戏角色的等级</string>
                    </property>
                    <property name="minimum">
                     <number>1</number>
@@ -2528,7 +2571,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="text">
-                <string>强制默认方案1</string>
+                <string>强制 1-通用-1P</string>
                </property>
               </widget>
              </item>
@@ -2560,7 +2603,7 @@ Link Start</string>
 双倍掉落：可用，但无必要</string>
                </property>
                <property name="text">
-                <string>公会任务 *</string>
+                <string>公会任务</string>
                </property>
               </widget>
              </item>
@@ -2602,7 +2645,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="10" column="7">
-              <widget class="QComboBox" name="CrossServer_1P">
+              <widget class="SearchableComboBox" name="CrossServer_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -2697,7 +2740,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="text">
-                <string>据配置</string>
+                <string>序列-&gt;</string>
                </property>
               </widget>
              </item>
@@ -2975,34 +3018,6 @@ Link Start</string>
                </property>
                <property name="text">
                 <string>勇士副本</string>
-               </property>
-              </widget>
-             </item>
-             <item row="30" column="3">
-              <widget class="QLabel" name="CustomizeBattle_Tip">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>2000</width>
-                 <height>50</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>不自动承载卡</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
                </property>
               </widget>
              </item>
@@ -3293,7 +3308,7 @@ Link Start</string>
 双倍掉落：可用，但无必要</string>
                </property>
                <property name="text">
-                <string>情侣任务 *</string>
+                <string>情侣任务</string>
                </property>
               </widget>
              </item>
@@ -3481,7 +3496,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="20" column="7">
-              <widget class="QComboBox" name="MagicTowerPrison2_1P">
+              <widget class="SearchableComboBox" name="MagicTowerPrison2_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -3628,7 +3643,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="30" column="7">
-              <widget class="QComboBox" name="CustomizeBattle_1P">
+              <widget class="SearchableComboBox" name="CustomizeBattle_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -3681,7 +3696,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="5" column="7">
-              <widget class="QComboBox" name="Warrior_1P">
+              <widget class="SearchableComboBox" name="Warrior_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -3703,7 +3718,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="30" column="8">
-              <widget class="QComboBox" name="CustomizeBattle_2P">
+              <widget class="SearchableComboBox" name="CustomizeBattle_2P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -3955,7 +3970,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="8" column="8">
-              <widget class="QComboBox" name="NormalBattle_2P">
+              <widget class="SearchableComboBox" name="NormalBattle_2P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -4481,7 +4496,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="22" column="7">
-              <widget class="QComboBox" name="PetTemple2_1P">
+              <widget class="SearchableComboBox" name="PetTemple2_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -4631,7 +4646,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="10" column="8">
-              <widget class="QComboBox" name="CrossServer_2P">
+              <widget class="SearchableComboBox" name="CrossServer_2P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -4653,7 +4668,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="9" column="7">
-              <widget class="QComboBox" name="OfferReward_1P">
+              <widget class="SearchableComboBox" name="OfferReward_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -4916,7 +4931,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="23" column="8">
-              <widget class="QComboBox" name="MagicTowerDouble_2P">
+              <widget class="SearchableComboBox" name="MagicTowerDouble_2P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -4965,7 +4980,7 @@ Link Start</string>
 </string>
                </property>
                <property name="text">
-                <string>领取奖励 *</string>
+                <string>领取奖励</string>
                </property>
               </widget>
              </item>
@@ -5074,7 +5089,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="17" column="7">
-              <widget class="QComboBox" name="MagicTowerAlone1_1P">
+              <widget class="SearchableComboBox" name="MagicTowerAlone1_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -5203,7 +5218,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="12" column="7">
-              <widget class="QComboBox" name="QuestGuild_1P">
+              <widget class="SearchableComboBox" name="QuestGuild_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -5361,7 +5376,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="12" column="8">
-              <widget class="QComboBox" name="QuestGuild_2P">
+              <widget class="SearchableComboBox" name="QuestGuild_2P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -5507,7 +5522,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="text">
-                <string>强制默认方案1</string>
+                <string>强制 1-通用-2P</string>
                </property>
               </widget>
              </item>
@@ -5640,7 +5655,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="21" column="7">
-              <widget class="QComboBox" name="PetTemple1_1P">
+              <widget class="SearchableComboBox" name="PetTemple1_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -5763,7 +5778,7 @@ Link Start</string>
               </layout>
              </item>
              <item row="23" column="7">
-              <widget class="QComboBox" name="MagicTowerDouble_1P">
+              <widget class="SearchableComboBox" name="MagicTowerDouble_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -5819,7 +5834,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="15" column="7">
-              <widget class="QComboBox" name="Relic_1P">
+              <widget class="SearchableComboBox" name="Relic_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -5893,7 +5908,7 @@ Link Start</string>
 双倍掉落：可用，但无必要</string>
                </property>
                <property name="text">
-                <string>悬赏任务 *</string>
+                <string>悬赏任务</string>
                </property>
               </widget>
              </item>
@@ -5923,7 +5938,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="19" column="7">
-              <widget class="QComboBox" name="MagicTowerPrison1_1P">
+              <widget class="SearchableComboBox" name="MagicTowerPrison1_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -6219,7 +6234,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="9" column="8">
-              <widget class="QComboBox" name="OfferReward_2P">
+              <widget class="SearchableComboBox" name="OfferReward_2P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -6323,7 +6338,7 @@ Link Start</string>
                 <string>包含了：温馨礼包 / VIP签到 / 每日签到 / 美食活动 / 塔罗 / 法老 / 会长发任务 / 营地钥匙 / 领取月卡 / 温馨礼包(高级)</string>
                </property>
                <property name="text">
-                <string>签到 *</string>
+                <string>签到</string>
                </property>
               </widget>
              </item>
@@ -6434,7 +6449,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="18" column="7">
-              <widget class="QComboBox" name="MagicTowerAlone2_1P">
+              <widget class="SearchableComboBox" name="MagicTowerAlone2_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -6797,7 +6812,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="15" column="8">
-              <widget class="QComboBox" name="Relic_2P">
+              <widget class="SearchableComboBox" name="Relic_2P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -6819,7 +6834,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="8" column="7">
-              <widget class="QComboBox" name="NormalBattle_1P">
+              <widget class="SearchableComboBox" name="NormalBattle_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -6920,7 +6935,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="5" column="8">
-              <widget class="QComboBox" name="Warrior_2P">
+              <widget class="SearchableComboBox" name="Warrior_2P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -7177,7 +7192,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="text">
-                <string>事项 *推荐开启</string>
+                <string>事项</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -7360,7 +7375,7 @@ Link Start</string>
               </widget>
              </item>
              <item row="7" column="7">
-              <widget class="QComboBox" name="Customize_1P">
+              <widget class="SearchableComboBox" name="Customize_1P">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                  <horstretch>0</horstretch>
@@ -7378,31 +7393,6 @@ Link Start</string>
                  <width>200</width>
                  <height>50</height>
                 </size>
-               </property>
-              </widget>
-             </item>
-             <item row="7" column="2">
-              <widget class="QLabel" name="Customize_MaxTimes">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>50</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>2000</width>
-                 <height>50</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>据配置</string>
                </property>
               </widget>
              </item>
@@ -7509,7 +7499,7 @@ Link Start</string>
                 </size>
                </property>
                <property name="toolTip">
-                <string>允许您编辑任意关卡组合进行作战.
+                <string>允许您自由编辑[关卡/事项]进行作战.
 推荐您在对FAA有一定了解后再使用.</string>
                </property>
                <property name="text">
@@ -7572,31 +7562,6 @@ Link Start</string>
                  <string>6</string>
                 </property>
                </item>
-              </widget>
-             </item>
-             <item row="7" column="1">
-              <widget class="QLabel" name="Customize_Group">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>50</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>2000</width>
-                 <height>50</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>据配置</string>
-               </property>
               </widget>
              </item>
              <item row="12" column="6">
@@ -8303,6 +8268,9 @@ Link Start</string>
                  <height>50</height>
                 </size>
                </property>
+               <property name="toolTip">
+                <string>大赛功能, 暂不支持自动带卡! 必须手动编辑!</string>
+               </property>
                <item>
                 <property name="text">
                  <string>1</string>
@@ -8964,6 +8932,93 @@ Link Start</string>
                 </widget>
                </item>
               </layout>
+             </item>
+             <item row="7" column="2">
+              <widget class="QLabel" name="Customize_Deck_2">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>60</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>60</width>
+                 <height>100</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>起始编号-&gt;</string>
+               </property>
+              </widget>
+             </item>
+             <item row="30" column="5">
+              <widget class="QCheckBox" name="CustomizeBattle_GlobalPlanActive">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>17</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>17</width>
+                 <height>50</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string/>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item row="30" column="3">
+              <widget class="QLineEdit" name="CustomizeBattle_Stage">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>2000</width>
+                 <height>50</height>
+                </size>
+               </property>
+               <property name="tabletTracking">
+                <bool>false</bool>
+               </property>
+               <property name="autoFillBackground">
+                <bool>false</bool>
+               </property>
+               <property name="text">
+                <string>CS-5-4</string>
+               </property>
+               <property name="maxLength">
+                <number>7</number>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>
@@ -12171,9 +12226,12 @@ FAA放卡核心原理简述:
               <number>5</number>
              </property>
              <item>
-              <layout class="QVBoxLayout" name="LoginSettingsLayout">
+              <layout class="QVBoxLayout" name="LoginSettingsLayout" stretch="0,0,0,0,0,0,0,0,0">
                <property name="spacing">
                 <number>5</number>
+               </property>
+               <property name="sizeConstraint">
+                <enum>QLayout::SetDefaultConstraint</enum>
                </property>
                <property name="leftMargin">
                 <number>10</number>
@@ -12280,6 +12338,13 @@ FAA放卡核心原理简述:
                   </widget>
                  </item>
                 </layout>
+               </item>
+               <item>
+                <widget class="QCheckBox" name="Startup">
+                 <property name="text">
+                  <string>电脑开机后, 启动FAA</string>
+                 </property>
+                </widget>
                </item>
                <item>
                 <widget class="QCheckBox" name="open360">
@@ -12417,6 +12482,9 @@ FAA放卡核心原理简述:
                        <height>100</height>
                       </size>
                      </property>
+                     <property name="maximum">
+                      <number>9999</number>
+                     </property>
                      <property name="value">
                       <number>1</number>
                      </property>
@@ -12489,6 +12557,9 @@ FAA放卡核心原理简述:
                        <height>100</height>
                       </size>
                      </property>
+                     <property name="maximum">
+                      <number>9999</number>
+                     </property>
                      <property name="value">
                       <number>2</number>
                      </property>
@@ -12536,7 +12607,7 @@ FAA放卡核心原理简述:
                     </size>
                    </property>
                    <property name="text">
-                    <string>360游戏大厅.exe</string>
+                    <string>360游戏大厅路径</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -13109,6 +13180,50 @@ FAA放卡核心原理简述:
                  </property>
                  <property name="text">
                   <string>配置迁移器</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QVBoxLayout" name="Lay_UsefulTools" stretch="0">
+               <property name="leftMargin">
+                <number>10</number>
+               </property>
+               <property name="topMargin">
+                <number>5</number>
+               </property>
+               <property name="rightMargin">
+                <number>10</number>
+               </property>
+               <property name="bottomMargin">
+                <number>5</number>
+               </property>
+               <item>
+                <widget class="QPushButton" name="OpenUsefulTools_Button">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>60</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string/>
+                 </property>
+                 <property name="text">
+                  <string>实用小工具</string>
                  </property>
                 </widget>
                </item>
@@ -13730,6 +13845,11 @@ FAA放卡核心原理简述:
    <class>DragLabel</class>
    <extends>QLabel</extends>
    <header>resource.ui.draglabel</header>
+  </customwidget>
+  <customwidget>
+   <class>SearchableComboBox</class>
+   <extends>QComboBox</extends>
+   <header location="global">function.widget.SearchableComboBox</header>
   </customwidget>
  </customwidgets>
  <resources/>
