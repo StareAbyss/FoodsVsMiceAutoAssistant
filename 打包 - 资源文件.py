@@ -69,9 +69,10 @@ def main():
         ],
         exclude_paths=[
             "config\\cus_images\\背包_装备_需使用的\\任意通用包裹.png",
-            "config\\cus_images\\背包_装备_需使用的\\浮空岛酬劳.png",
-            "config\\cus_images\\背包_装备_需使用的\\火山岛酬劳.png",
-            "config\\cus_images\\背包_装备_需使用的\\美味岛酬劳.png",
+            "config\\cus_images\\背包_装备_需使用的\\星际酬劳.png",
+            "config\\cus_images\\背包_装备_需使用的\\浮空酬劳.png",
+            "config\\cus_images\\背包_装备_需使用的\\火山酬劳.png",
+            "config\\cus_images\\背包_装备_需使用的\\美味酬劳.png",
         ]
     )
     mover.add_folder(
