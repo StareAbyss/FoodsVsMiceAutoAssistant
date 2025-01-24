@@ -363,6 +363,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.CustomizeBattle_Active.setChecked(my_opt["customize_battle"]["active"])
         self.CustomizeBattle_Group.setCurrentIndex(my_opt["customize_battle"]["is_group"])
         self.CustomizeBattle_MaxTimes.setValue(my_opt["customize_battle"]["max_times"])
+        self.CustomizeBattle_Stage.setText(my_opt["customize_battle"]["stage"])
+        self.CustomizeBattle_GlobalPlanActive.setChecked(my_opt["customize_battle"]["global_plan_active"])
         self.CustomizeBattle_Deck.setCurrentIndex(my_opt["customize_battle"]["deck"])
         init_battle_plan(self.CustomizeBattle_1P, my_opt["customize_battle"]["battle_plan_1p"])
         init_battle_plan(self.CustomizeBattle_2P, my_opt["customize_battle"]["battle_plan_2p"])
@@ -782,11 +784,12 @@ class QMainWindowLoadSettings(QMainWindowLog):
         my_opt["auto_food"]["active"] = self.AutoFood_Active.isChecked()
         my_opt["auto_food"]["deck"] = self.AutoFood_Deck.currentIndex() + 1
 
-        # 自建房作战
-
+        # 自建房对战
         my_opt["customize_battle"]["active"] = self.CustomizeBattle_Active.isChecked()
         my_opt["customize_battle"]["is_group"] = self.CustomizeBattle_Group.currentIndex()  # combobox 序号
         my_opt["customize_battle"]["max_times"] = self.CustomizeBattle_MaxTimes.value()
+        my_opt["customize_battle"]["stage"] = self.CustomizeBattle_Stage.text()
+        my_opt["customize_battle"]["global_plan_active"] = self.CustomizeBattle_GlobalPlanActive.isChecked()
         my_opt["customize_battle"]["deck"] = self.CustomizeBattle_Deck.currentIndex()
         my_transformer_b(self.CustomizeBattle_1P, "customize_battle", "battle_plan_1p")
         my_transformer_b(self.CustomizeBattle_2P, "customize_battle", "battle_plan_2p")
@@ -1075,6 +1078,10 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.MagicTowerDouble_GlobalPlanActive.stateChanged.connect(
             lambda state: toggle_widgets_on_unchecked(
                 state, [self.MagicTowerDouble_Deck, self.MagicTowerDouble_1P, self.MagicTowerDouble_2P]))
+
+        self.CustomizeBattle_GlobalPlanActive.stateChanged.connect(
+            lambda state: toggle_widgets_on_unchecked(
+                state, [self.CustomizeBattle_Deck, self.CustomizeBattle_1P, self.CustomizeBattle_2P]))
 
         # 战斗设定 - 常规
         self.CusCPSActive.stateChanged.connect(

@@ -3021,34 +3021,6 @@ Link Start</string>
                </property>
               </widget>
              </item>
-             <item row="30" column="3">
-              <widget class="QLabel" name="CustomizeBattle_Tip">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>2000</width>
-                 <height>50</height>
-                </size>
-               </property>
-               <property name="text">
-                <string>不自动承载卡</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-               </property>
-              </widget>
-             </item>
              <item row="18" column="4">
               <widget class="Line" name="line_62">
                <property name="sizePolicy">
@@ -8983,6 +8955,68 @@ Link Start</string>
                </property>
                <property name="text">
                 <string>起始编号-&gt;</string>
+               </property>
+              </widget>
+             </item>
+             <item row="30" column="5">
+              <widget class="QCheckBox" name="CustomizeBattle_GlobalPlanActive">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>17</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>17</width>
+                 <height>50</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string/>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item row="30" column="3">
+              <widget class="QLineEdit" name="CustomizeBattle_Stage">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>80</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>2000</width>
+                 <height>50</height>
+                </size>
+               </property>
+               <property name="tabletTracking">
+                <bool>false</bool>
+               </property>
+               <property name="autoFillBackground">
+                <bool>false</bool>
+               </property>
+               <property name="text">
+                <string>CS-5-4</string>
+               </property>
+               <property name="maxLength">
+                <number>7</number>
                </property>
               </widget>
              </item>

@@ -1,10 +1,7 @@
 import datetime
 import json
-import os
 import random
 import shutil
-import sys
-import winreg
 
 import win32con
 import win32gui
@@ -529,7 +526,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         """
 
         """线程处理"""
-        SIGNAL.PRINT_TO_UI.emit("[任务序列] 开始关闭全部任务执行线程", color_level=1)
+        CUS_LOGGER.info("[任务序列] 开始关闭全部任务执行线程")
 
         self.is_ending = True  # 终止操作正在进行中 放用户疯狂操作
 
