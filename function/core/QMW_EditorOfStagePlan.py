@@ -2,6 +2,7 @@ import copy
 import json
 
 from PyQt6 import uic
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow
 
 from function.globals import EXTRA
@@ -26,6 +27,7 @@ class QMWEditorOfStagePlan(QMainWindow):
         uic.loadUi(PATHS["root"] + '\\resource\\ui\\StagePlanEditor.ui', self)
 
         self.setWindowTitle('全局方案 & 关卡方案 编辑器')
+        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
 
         # 初始化战斗方案变量
         self.battle_plan_uuid_list = None

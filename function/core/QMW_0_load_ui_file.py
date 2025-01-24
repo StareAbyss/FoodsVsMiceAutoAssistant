@@ -2,6 +2,7 @@ import os
 import sys
 
 from PyQt6 import uic, QtGui, QtCore, QtWidgets
+from PyQt6.QtGui import QIcon
 
 from function.common.get_system_dpi import get_system_dpi
 from function.globals import EXTRA
@@ -32,6 +33,9 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
         # 设置窗口名称
         self.setWindowTitle("FAA - 本软件免费且开源")
+
+        # 设置系统图标
+        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
 
         # 设置显示版本号
         self.Title_Version.setText(EXTRA.VERSION)
@@ -99,7 +103,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
     def set_logo_shadow(self):
         effect_shadow = QtWidgets.QGraphicsDropShadowEffect(self)
         effect_shadow.setOffset(0, 0)  # 偏移
-        effect_shadow.setBlurRadius(10)  # 阴影半径
+        effect_shadow.setBlurRadius(6)  # 阴影半径
         effect_shadow.setColor(QtCore.Qt.GlobalColor.gray)  # 阴影颜色
         self.Title_Logo.setGraphicsEffect(effect_shadow)  # 将设置套用到widget窗口中
 
@@ -131,23 +135,18 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
     def set_image_resource(self):
 
         # title - logo
-        cus_path = PATHS["root"] + "\\resource\\logo\\圆角-FetTuo-48x.ico"
+        cus_path = PATHS["root"] + "\\resource\\logo\\圆角-FetDeathWing-450x.png"
         cus_path = cus_path.replace("\\", "/")  # pyqt 使用正斜杠
-        radius = 20
-        style_sheet = f"""
-            #Title_Logo{{
-                min-width: {radius * 2}px;
-                min-height: {radius * 2}px;
-                max-width: {radius * 2}px;
-                max-height: {radius * 2}px;
-                border-radius: {radius}px;
-                background-image: url({cus_path});
-                background-repeat: no-repeat;
-                background-position: center;
-                background-size: {radius * 2}px {radius * 2}px;
-            }}
-        """
-        self.Title_Logo.setStyleSheet(style_sheet)
+
+        pixmap = QtGui.QPixmap(cus_path).scaled(
+            40,
+            40,
+            QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+            QtCore.Qt.TransformationMode.SmoothTransformation
+        )
+        self.Title_Logo.setPixmap(pixmap)
+        self.Title_Logo.setFixedSize(40, 40)
+        self.Title_Logo.setScaledContents(True)  # 确保图片自适应控件大小
 
         # 背景图
         cus_path = PATHS["root"] + "\\resource\\ui\\firefly.png"

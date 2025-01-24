@@ -33,7 +33,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>:/icon/logo/FetTuo-192x.png</normaloff>:/icon/logo/FetTuo-192x.png</iconset>
+    <normaloff>:/icon/logo/圆角-FetDeathWing-450x.png</normaloff>:/icon/logo/圆角-FetDeathWing-450x.png</iconset>
   </property>
   <property name="autoFillBackground">
    <bool>true</bool>
@@ -107,8 +107,14 @@
         <property name="spacing">
          <number>5</number>
         </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
         <property name="topMargin">
          <number>5</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
         </property>
         <property name="bottomMargin">
          <number>5</number>
@@ -123,14 +129,14 @@
           </property>
           <property name="minimumSize">
            <size>
-            <width>35</width>
-            <height>35</height>
+            <width>40</width>
+            <height>40</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>35</width>
-            <height>35</height>
+            <width>40</width>
+            <height>40</height>
            </size>
           </property>
           <property name="styleSheet">
