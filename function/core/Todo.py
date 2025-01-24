@@ -284,7 +284,7 @@ class ThreadTodo(QThread):
 
         player = self.check_player(title="刷新游戏", player=player)
 
-        SIGNAL.PRINT_TO_UI.emit("刷新游戏, 开始", color_level=1)
+        SIGNAL.PRINT_TO_UI.emit("刷新游戏, 开始", color_level=2)
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         if 1 in player:
@@ -309,7 +309,7 @@ class ThreadTodo(QThread):
         if 2 in player:
             self.thread_2p.join()
 
-        SIGNAL.PRINT_TO_UI.emit("刷新游戏, 完成", color_level=1)
+        SIGNAL.PRINT_TO_UI.emit("刷新游戏, 完成", color_level=2)
 
     def batch_click_final_refresh_btn(self):
 
@@ -762,31 +762,30 @@ class ThreadTodo(QThread):
                 if is_cs:
                     # 跨服副本 直接退出
                     return 0
-                invite_success = self.invite(player_a=player_a, player_b=player_b)
 
+                invite_success = self.invite(player_a=player_a, player_b=player_b)
                 if invite_success:
                     SIGNAL.PRINT_TO_UI.emit(text="[单本轮战] 邀请成功")
                     # 邀请成功 返回退出
                     return 0
 
-                else:
-                    failed_time += 1
-                    mt_first_time = True
+                failed_time += 1
+                mt_first_time = True
 
-                    SIGNAL.PRINT_TO_UI.emit(text=f"[单本轮战] 邀请失败... 建房失败 or 服务器抽风 ({failed_time}/3)")
+                SIGNAL.PRINT_TO_UI.emit(text=f"[单本轮战] 邀请失败... 建房失败 or 服务器抽风, 尝试({failed_time}/3)")
 
-                    if failed_time == 3:
-                        SIGNAL.PRINT_TO_UI.emit(text="[单本轮战] 多次邀请失败, 刷新游戏!")
-                        failed_round += 1
+                if failed_time == 3:
+                    failed_round += 1
+                    SIGNAL.PRINT_TO_UI.emit(text=f"[单本轮战] 多次邀请失败, 刷新({failed_round}/3)")
+                    if failed_round < 3:
                         self.batch_reload_game()
                         break
+                    else:
+                        SIGNAL.PRINT_TO_UI.emit(text=f"[单本轮战] 刷新({failed_round}/3)次数过多")
+                        return 2
 
-                    faa_a.action_exit(mode="竞技岛")
-                    faa_b.action_exit(mode="竞技岛")
-
-            if failed_round == 3:
-                SIGNAL.PRINT_TO_UI.emit(text=f"[单本轮战] 刷新游戏次数过多")
-                return 2
+                faa_a.action_exit(mode="竞技岛")
+                faa_b.action_exit(mode="竞技岛")
 
     def battle(self, player_a, player_b, change_card=True):
         """

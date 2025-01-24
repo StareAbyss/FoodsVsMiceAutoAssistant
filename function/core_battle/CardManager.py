@@ -468,7 +468,7 @@ class ThreadCheckTimer(QThread):
         self.checked_round += 1
 
         """结束检测"""
-        # 仅主号完成该检测操作
+        # 仅房主完成该检测操作
         if self.faa.is_main:
             self.running = not self.faa.faa_battle.check_end()
             if not self.running:
