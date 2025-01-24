@@ -2,6 +2,7 @@ import json
 import os.path
 import shutil
 
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QMessageBox, \
     QFileDialog, QHBoxLayout, QCheckBox
 
@@ -12,6 +13,7 @@ class QMWSettingsMigrator(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("配置迁移工具")
+        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
 
         # 设定窗口初始大小 否则将无法自动对齐到上级窗口中心
         self.resize(1025, 435)

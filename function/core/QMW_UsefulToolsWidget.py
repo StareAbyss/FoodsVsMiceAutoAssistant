@@ -1,15 +1,17 @@
 import sys
+
+from PyQt6.QtCore import Qt, QPoint, pyqtSignal
+from PyQt6.QtGui import QPixmap, QPainter, QColor, QPen, QIcon
 from PyQt6.QtWidgets import (
-    QWidget, QApplication, QVBoxLayout, QPushButton, QLabel, QSizePolicy, QComboBox, QMessageBox, QHBoxLayout
+    QWidget, QApplication, QVBoxLayout, QPushButton, QLabel, QComboBox, QHBoxLayout
 )
-from PyQt6.QtCore import Qt, QPoint, pyqtSignal, QTimer
-from PyQt6.QtGui import QPixmap, QPainter, QColor, QCursor, QPen
+
 from function.globals import SIGNAL
 from function.globals.get_paths import PATHS
+from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
 from function.tools.useful_tools import *
-from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
 class Magnifier(QLabel):
@@ -29,11 +31,12 @@ class Magnifier(QLabel):
         ratio = screen.devicePixelRatio()
 
         # 精确捕获物理像素（需要转换为QImage操作）
-        pixmap = screen.grabWindow(0,
-                                   int((x - half) * ratio),  # 物理像素坐标
-                                   int((y - half) * ratio),
-                                   int(region_size * ratio),  # 物理像素尺寸
-                                   int(region_size * ratio))
+        pixmap = screen.grabWindow(
+            0,
+            int((x - half) * ratio),  # 物理像素坐标
+            int((y - half) * ratio),
+            int(region_size * ratio),  # 物理像素尺寸
+            int(region_size * ratio))
         img = pixmap.toImage()  # 转换为QImage进行像素级操作
 
         # 创建放大画布
@@ -85,7 +88,7 @@ class DraggablePointer(QLabel):
         super().__init__(parent)
         self.setCursor(Qt.CursorShape.OpenHandCursor)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setPixmap(QPixmap(f"{PATHS['logo']}\\圆角-FetTuo-48x.ico").scaled(32, 32))
+        self.setPixmap(QPixmap(f"{PATHS['logo']}\\圆角-FetDeathWing-450x.png").scaled(32, 32))
         self.setFixedSize(32, 32)
         self.drag_offset = QPoint()
 
@@ -113,9 +116,9 @@ class UsefulToolsWidget(QWidget):
         self.channel_1p = None
         self.faa = faa
         self.setWindowTitle("实用小工具")
+        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
         self.init_ui()
         self.gacha_thread = None
-
 
     def init_ui(self):
         layout = QVBoxLayout()
@@ -135,7 +138,7 @@ class UsefulToolsWidget(QWidget):
         # 停止按钮初始状态设为禁用
         self.btn_gold_stop.setEnabled(False)
 
-        self.note = QLabel("拖动这个肥陀以获取鼠标在目标窗口的坐标")
+        self.note = QLabel("拖动这个大表哥, 以获取鼠标在目标窗口的坐标")
         self.pointer = DraggablePointer()
         self.magnifier = Magnifier()
         self.pointer.drag_started.connect(self.magnifier.show)
@@ -220,6 +223,7 @@ class GachaGoldThread(QThread):
         T_ACTION_QUEUE_TIMER.stop()
         self._is_running = False
         self.wait()  # 等待线程完全退出
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

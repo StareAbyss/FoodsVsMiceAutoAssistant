@@ -1,4 +1,3 @@
-import win32api
 import win32gui
 from PyQt6.QtCore import QThread
 
@@ -12,11 +11,11 @@ def once_gacha_gold_trevi_fountain(handle):
     """
     # 循环识图并点击许愿十次按钮
     if loop_match_p_in_w(
-        source_handle=handle,
-        source_range=[600, 470, 710, 500],
-        template=RESOURCE_P["common"]["许愿十次.png"],
-        match_failed_check=1,
-        match_tolerance=0.9
+            source_handle=handle,
+            source_range=[600, 470, 710, 500],
+            template=RESOURCE_P["common"]["许愿十次.png"],
+            match_failed_check=1,
+            match_tolerance=0.9
     ):
         # 等待200毫秒
         QThread.msleep(200)
@@ -25,18 +24,17 @@ def once_gacha_gold_trevi_fountain(handle):
         return False, "没有找到许愿十次按钮，请确认是否在许愿池界面"
     # 点击完成后点击确定按钮
     if loop_match_p_in_w(
-        source_handle=handle,
-        source_range=[387, 336, 563, 367],
-        template=RESOURCE_P["common"]["通用_确定.png"],
-        match_failed_check=1,
-        match_tolerance=0.9
+            source_handle=handle,
+            source_range=[387, 336, 563, 367],
+            template=RESOURCE_P["common"]["通用_确定.png"],
+            match_failed_check=1,
+            match_tolerance=0.9
     ):
         # 等待200毫秒
         QThread.msleep(200)
     else:
         return False, "没有找到确定按钮，你的金币是不是不够了？"
     return True, None
-
 
 
 def get_pixel_position(handle, x, y):

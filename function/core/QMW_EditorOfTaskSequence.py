@@ -118,7 +118,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
         self.setWindowTitle('任务序列编辑器')
 
         # 设置窗口图标
-        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetTuo-192x.png"))
+        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
 
         # 大小
         self.setMaximumSize(1350, 5000)
