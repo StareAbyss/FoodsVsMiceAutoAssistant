@@ -762,18 +762,19 @@ class ThreadTimePutCardTimer(QThread):
 
         # 波次定时宝石使用检测
         if "gem" in self.timer_plan.keys():
-            if str(wave) in self.timer_plan["gem"]["wave"].keys():
-                for wave_plan_gem in self.timer_plan["gem"]["wave"][str(wave)]:
-                    g_time=wave_plan_gem["time"]
-                    if wave==0:
-                        g_time=max(0,g_time-time_change)
-                    def create_timer_callback(func, *args):
-                        return lambda: func(*args)
-                    gemstone_timer = Timer(
-                        g_time,
-                        create_timer_callback(self.use_gemstone, wave_plan_gem["gid"])
-                    )
-                    gemstone_timer.start()
+            if "wave" in self.timer_plan["gem"].keys():
+                if str(wave) in self.timer_plan["gem"]["wave"].keys():
+                    for wave_plan_gem in self.timer_plan["gem"]["wave"][str(wave)]:
+                        g_time=wave_plan_gem["time"]
+                        if wave==0:
+                            g_time=max(0,g_time-time_change)
+                        def create_timer_callback(func, *args):
+                            return lambda: func(*args)
+                        gemstone_timer = Timer(
+                            g_time,
+                            create_timer_callback(self.use_gemstone, wave_plan_gem["gid"])
+                        )
+                        gemstone_timer.start()
     def use_shovel_with_lock(self,location):
         """
         :param x: 像素坐标

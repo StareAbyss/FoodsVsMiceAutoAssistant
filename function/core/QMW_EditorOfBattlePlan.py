@@ -9,7 +9,7 @@ from PyQt6.QtGui import QKeySequence, QIcon, QShortcut
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QGridLayout, QPushButton, QWidget, QFileDialog, QVBoxLayout, QLabel, QComboBox,
     QLineEdit, QHBoxLayout, QTextEdit, QListWidget, QMessageBox, QSpinBox, QListWidgetItem, QFrame, QAbstractItemView,
-    QSpacerItem, QSizePolicy)
+    QSpacerItem, QSizePolicy, QDoubleSpinBox)
 
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
@@ -38,6 +38,34 @@ def calculate_text_width(text):
             # 西文字符
             width_e += 1
     return width_c, width_e
+
+
+def hide_layout(layout):
+    """
+    隐藏布局中的所有子部件
+    :param layout: 要隐藏的布局对象
+    """
+    for i in range(layout.count()):
+        item = layout.itemAt(i)
+        widget = item.widget()
+        if widget:
+            widget.setVisible(False)  # 隐藏子部件
+        else:
+            hide_layout(item.layout())  # 如果是子布局，递归隐藏子布局
+
+
+def show_layout(layout):
+    """
+    显示布局中的所有子部件
+    :param layout: 要显示的布局对象
+    """
+    for i in range(layout.count()):
+        item = layout.itemAt(i)
+        widget = item.widget()
+        if widget:
+            widget.setVisible(True)  # 显示子部件
+        else:
+            show_layout(item.layout())  # 如果是子布局，递归显示子布局
 
 
 class QMWEditorOfBattlePlan(QMainWindow):
@@ -78,7 +106,11 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     "11": [],
                     "12": [],
                     "13": []
-                }
+                },
+            "timer_plan": {
+                "wave": {},
+                "gem": {}
+            }
             }
         }
 
@@ -87,6 +119,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         # 当前被选中正在编辑的项目的index
         self.current_card_index = None
+        self.current_time_put_index= None
 
         # 撤销/重做功能
         self.undo_stack = []
@@ -95,6 +128,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.redo_shortcut = QShortcut(QKeySequence('Ctrl+Y'), self)
         self.undo_shortcut.activated.connect(self.undo)
         self.redo_shortcut.activated.connect(self.redo)
+
+        self.mode=1#模式1是常规遍历队列式放卡，模式二为定时放卡
+        self.change = True
 
         # 加载Json文件
         self.file_path = None
@@ -127,6 +163,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 self.LayLeft = QVBoxLayout()
                 self.LayoutMainBottom.addLayout(self.LayLeft)
 
+
                 def init_ui_lay_left_top():
                     # 关卡选择按钮(多级列表)
                     self.WidgetStageSelector = MultiLevelMenu(title="选择关卡, 显示障碍")
@@ -136,6 +173,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     WidgetCourseButton = QPushButton('点击打开教学')
                     WidgetCourseButton.clicked.connect(func_open_tip)
                     self.LayLeft.addWidget(WidgetCourseButton)
+
+                    # 点击切换放卡编辑模式
+                    self.ModeChangeButton = QPushButton('点击切换放卡编辑模式')
+                    self.LayLeft.addWidget(self.ModeChangeButton)
 
                 def init_ui_lay_wave_editor():
                     """波次编辑器"""
@@ -280,6 +321,111 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
                     self.WidgetDeleteCardButton = QPushButton('删除选中放卡操作')
                     self.LayCardEditor.addWidget(self.WidgetDeleteCardButton)
+                def init_ui_lay_card_editor_time_mode():
+                    """单组放卡操作 - 状态编辑器"""
+                    self.LayTimeCardEditor = QVBoxLayout()
+                    self.LayLeft.addLayout(self.LayTimeCardEditor)
+                    title_label = QLabel('定时放卡操作参数设定')
+                    title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # 设置文本居中对齐
+                    self.LayTimeCardEditor.addWidget(title_label)
+
+                    self.WidgetAddTimePutCardButton = QPushButton('新增单个定时放卡操作')
+                    self.LayTimeCardEditor.addWidget(self.WidgetAddTimePutCardButton)
+
+                    # ID
+                    label = QLabel('ID')
+
+                    self.WidgetIdInput2 = QSpinBox()
+                    self.WidgetIdInput2.setFixedWidth(140)
+                    self.WidgetIdInput2.setToolTip("id代表卡在卡组中的顺序")
+                    self.WidgetIdInput2.setRange(1, 21)
+
+                    layout = QHBoxLayout()
+                    layout.addWidget(label)
+                    layout.addWidget(self.WidgetIdInput2)
+                    self.LayTimeCardEditor.addLayout(layout)
+
+                    # 名称
+                    label = QLabel('名称')
+
+                    self.WidgetNameInput2 = QLineEdit()
+                    self.WidgetNameInput2.setFixedWidth(140)
+                    self.WidgetNameInput2.setToolTip(
+                        "名称标识是什么卡片\n"
+                        "能让用户看懂该带啥就行.\n"
+                    )
+
+                    layout = QHBoxLayout()
+                    layout.addWidget(label)
+                    layout.addWidget(self.WidgetNameInput2)
+                    self.LayTimeCardEditor.addLayout(layout)
+                    # 放卡时间
+                    tooltips = "识别到对应波次后，会在对应秒数后放置卡片"
+                    label = QLabel('放卡时间')
+                    label.setToolTip(tooltips)
+
+                    self.WidgetTimeInput =  QDoubleSpinBox()
+                    self.WidgetTimeInput.setFixedWidth(140)
+                    self.WidgetTimeInput.setToolTip(tooltips)
+                    self.WidgetTimeInput.setRange(0, 9999)
+
+                    layout = QHBoxLayout()
+                    layout.addWidget(label)
+                    layout.addWidget(self.WidgetTimeInput)
+                    self.LayTimeCardEditor.addLayout(layout)
+
+                    #前铲
+                    tooltips = "是否会在放卡的前0.5秒铲除该点以腾出位置放卡"
+                    label = QLabel('前铲')
+                    label.setToolTip(tooltips)
+
+                    self.WidgetShovelFrontInput = QComboBox()
+                    self.WidgetShovelFrontInput.setFixedWidth(140)
+                    self.WidgetShovelFrontInput.addItems(['true', 'false'])
+                    self.WidgetShovelFrontInput.setToolTip(tooltips)
+                    self.WidgetShovelFrontInput.setCurrentIndex(1)
+
+                    layout = QHBoxLayout()
+                    layout.addWidget(label)
+                    layout.addWidget(self.WidgetShovelFrontInput)
+                    self.LayTimeCardEditor.addLayout(layout)
+
+                    # 后铲
+                    tooltips = "是否会在指定的秒数后铲除该点"
+                    label = QLabel('后铲')
+                    label.setToolTip(tooltips)
+
+                    self.WidgetShovelBackInput = QComboBox()
+                    self.WidgetShovelBackInput.setFixedWidth(140)
+                    self.WidgetShovelBackInput.addItems(['true', 'false'])
+                    self.WidgetShovelBackInput.setToolTip(tooltips)
+                    self.WidgetShovelBackInput.setCurrentIndex(1)
+
+                    layout = QHBoxLayout()
+                    layout.addWidget(label)
+                    layout.addWidget(self.WidgetShovelBackInput)
+                    self.LayTimeCardEditor.addLayout(layout)
+
+                    # 放卡时间
+                    tooltips = "放置卡片后，几秒后铲除"
+                    label = QLabel('后铲时间')
+                    label.setToolTip(tooltips)
+
+                    self.WidgetBackTimeInput = QDoubleSpinBox()
+                    self.WidgetBackTimeInput.setFixedWidth(140)
+                    self.WidgetBackTimeInput.setToolTip(tooltips)
+                    self.WidgetBackTimeInput.setRange(0, 9999)
+
+                    layout = QHBoxLayout()
+                    layout.addWidget(label)
+                    layout.addWidget(self.WidgetBackTimeInput)
+                    self.LayTimeCardEditor.addLayout(layout)
+
+                    # 删除单个操作
+
+                    self.WidgetDeleteTimePutCardButton = QPushButton('删除选中放卡操作')
+                    self.LayTimeCardEditor.addWidget(self.WidgetDeleteTimePutCardButton)
+
 
                 def init_ui_lay_save_and_load():
                     """加载和保存按钮"""
@@ -333,6 +479,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 self.LayLeft.addWidget(create_vertical_line())
                 self.LayLeft.addItem(create_vertical_spacer())
                 init_ui_lay_card_editor()
+                init_ui_lay_card_editor_time_mode()
+                hide_layout(self.LayTimeCardEditor)
                 self.LayLeft.addItem(create_vertical_spacer())
                 self.LayLeft.addWidget(create_vertical_line())
                 self.LayLeft.addItem(create_vertical_spacer())
@@ -343,6 +491,11 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 self.WidgetCardList = QListWidgetDraggable(drop_function=self.card_list_be_dropped)
                 self.LayoutMainBottom.addWidget(self.WidgetCardList)
                 self.WidgetCardList.setMaximumWidth(260)  # 经过验证的完美数字
+            def init_ui_lay_time_put_card_list():
+                """定时放卡单元列表"""
+                self.WidgetTimePutList = QListWidgetDraggable(drop_function=self.card_list_be_dropped)
+                self.LayoutMainBottom.addWidget(self.WidgetTimePutList)
+                self.WidgetTimePutList.setMaximumWidth(260)  # 经过验证的完美数字
 
             def init_ui_lay_chessboard():
                 """棋盘布局"""
@@ -389,6 +542,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
             init_ui_lay_left()
             init_ui_lay_card_list()
             init_ui_lay_chessboard()
+            init_ui_lay_time_put_card_list()
+            self.WidgetTimePutList.setVisible(False)
 
         init_ui_lay_tip()
         init_ui_layout_bottom()
@@ -397,6 +552,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.central_widget = QWidget()
         self.central_widget.setLayout(self.LayMain)
         self.setCentralWidget(self.central_widget)
+
+
 
         def connect_signal_and_slot():
             """信号和槽函数链接"""
@@ -413,12 +570,16 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
             # 添加卡片
             self.WidgetAddCardButton.clicked.connect(self.add_card)
+            #添加定时放卡操作进入备选槽
+            self.WidgetAddTimePutCardButton.clicked.connect(self.add_time_put)
 
             # 删除卡片
             self.WidgetDeleteCardButton.clicked.connect(self.delete_card)
+            self.WidgetDeleteTimePutCardButton.clicked.connect(self.delete_time_put)
 
             # 单击列表更改当前card
             self.WidgetCardList.itemClicked.connect(self.current_card_change)
+            self.WidgetTimePutList.itemClicked.connect(self.current_time_put_change)
 
             # id，名称,遍历，队列控件的更改都连接上更新卡片
             self.WidgetIdInput.valueChanged.connect(self.update_card)
@@ -426,6 +587,16 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.WidgetErgodicInput.currentIndexChanged.connect(self.update_card)
             self.WidgetQueueInput.currentIndexChanged.connect(self.update_card)
             self.WidgetKunInput.valueChanged.connect(self.update_card)
+            #定时放卡相关变动函数绑定
+            self.WidgetIdInput2.valueChanged.connect(self.update_time_put)
+            self.WidgetNameInput2.textChanged.connect(self.update_time_put)
+            self.WidgetTimeInput.valueChanged.connect(self.update_time_put)
+            self.WidgetBackTimeInput.valueChanged.connect(self.update_time_put)
+            self.WidgetShovelFrontInput.currentIndexChanged.connect(self.update_time_put)
+            self.WidgetShovelBackInput.currentIndexChanged.connect(self.update_time_put)
+
+
+            self.ModeChangeButton.clicked.connect(self.change_edit_mode)
 
         connect_signal_and_slot()
 
@@ -468,6 +639,18 @@ class QMWEditorOfBattlePlan(QMainWindow):
             return self.json_data["card"]["wave"][str(index)]
         else:
             CUS_LOGGER.error(f"[战斗方案编辑器] 致命错误, 波次越位")
+    def get_time_wave_plan(self):
+        """返回timer_plan"""
+        try:
+            if "wave" in self.json_data["card"]["timer_plan"]:
+                time_plan= self.json_data["card"]["timer_plan"]["wave"]
+                return time_plan
+            else:
+                return None
+        except:
+            CUS_LOGGER.warning(f"[战斗方案编辑器] 定时放卡路径不存在,可能为旧方案")
+            return None
+
 
     def click_wave_button(self, be_clicked_button_id: int):
 
@@ -554,6 +737,24 @@ class QMWEditorOfBattlePlan(QMainWindow):
             button.setStyleSheet(f"background-color: {color_with_alpha}")
             last_plan = cursor_plan
 
+
+    def change_edit_mode(self):
+        if self.mode==1:
+            self.mode=2
+            self.ModeChangeButton.setText("当前为定时放卡编辑模式")
+            hide_layout(self.LayCardEditor)
+            show_layout(self.LayTimeCardEditor)
+            self.WidgetTimePutList.setVisible(True)
+            self.setFixedSize(1400, 720)
+        else:
+            self.mode=1
+            self.ModeChangeButton.setText("当前为队列遍历编辑模式")
+            hide_layout(self.LayTimeCardEditor)
+            show_layout(self.LayCardEditor)
+            self.WidgetTimePutList.setVisible(False)
+            self.setFixedSize(1280, 720)
+        self.fresh_all_ui()
+
     def change_wave(self, wave: int):
 
         # 更新当前波次参数
@@ -561,6 +762,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         # 切换方案
         self.sub_plan = self.get_wave_plan_by_id(index=wave)
+
+        self.time_wave_plan = self.get_time_wave_plan()
 
         # 去除选中的卡片
         self.current_card_index = None
@@ -619,6 +822,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         # 重绘 UI的放卡动作列表
         self.load_data_to_ui_list()
+        self.load_data_to_ui_list2()
 
         # 重绘 UI棋盘网格
         self.refresh_chessboard()
@@ -656,7 +860,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
             card = self.sub_plan[index]
             # self.WCurrentCard.setText("索引-{} 名称-{}".format(index, card["name"]))
             self.WidgetIdInput.setValue((card['id']))
+            self.WidgetIdInput2.setValue((card['id']))
             self.WidgetNameInput.setText(card['name'])
+            self.WidgetNameInput2.setText(card['name'])
             self.WidgetErgodicInput.setCurrentText(str(card['ergodic']).lower())
             self.WidgetQueueInput.setCurrentText(str(card['queue']).lower())
             self.WidgetKunInput.setValue(card.get('kun', 0))
@@ -668,11 +874,38 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         # 高亮棋盘
         self.highlight_chessboard()
+    def current_time_put_change(self, item):
+        """被单击后, 被选中的卡片改变了"""
+
+        # list的index 是 QModelIndex 此处还需要获取到行号
+        self.current_time_put_index = self.WidgetTimePutList.indexFromItem(item).row()
+        self.change=True
+
+        # 为输入控件信号上锁，在初始化时不会触发保存
+        self.input_widget_lock(True)
+
+        plan = self.time_wave_plan[str(self.current_wave)][self.current_time_put_index]
+        self.WidgetIdInput2.setValue((plan['cid']))
+        self.WidgetNameInput2.setText(plan['name'])
+        self.WidgetTimeInput.setValue(plan['time'])
+        self.WidgetBackTimeInput.setValue(plan['back_shovel_time'])
+        self.WidgetShovelFrontInput.setCurrentText(str(plan['front_shovel']).lower())
+        self.WidgetShovelBackInput.setCurrentText(str(plan['back_shovel']).lower())
+        self.change = False
+
+        # 解锁部分输入控件
+        self.input_widget_enabled(mode=True)
+
+        # 解锁控件信号
+        self.input_widget_lock(False)
+        self.fresh_all_ui()
+
 
     def load_data_to_ui_list(self):
         """从 [内部数据表] 载入数据到 [ui的放卡动作列表]"""
 
         self.WidgetCardList.clear()
+
 
         player_item = QListWidgetItem("玩家")
         self.WidgetCardList.addItem(player_item)
@@ -715,6 +948,48 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
             item = QListWidgetItem(text)
             self.WidgetCardList.addItem(item)
+    def load_data_to_ui_list2(self):
+        """从 [内部数据表] 载入数据到 [ui的放卡动作列表]"""
+
+        self.WidgetTimePutList.clear()
+
+        if not self.time_wave_plan or str(self.current_wave) not in self.time_wave_plan:
+            return
+
+        # 根据中文和西文分别记录最高宽度
+        name_max_width_c = 0
+        name_max_width_e = 0
+        for time_plan in self.time_wave_plan[str(self.current_wave)]:
+            width_c, width_e = calculate_text_width(time_plan["name"])
+            name_max_width_c = max(name_max_width_c, width_c)
+            name_max_width_e = max(name_max_width_e, width_e)
+
+        # 找到最长的id长度
+        max_id_length = 1
+        if self.time_wave_plan[str(self.current_wave)]:
+            max_id_length = max(len(str(time_plan["cid"])) for time_plan in self.time_wave_plan[str(self.current_wave)])
+
+        for time_plan in self.time_wave_plan[str(self.current_wave)]:
+
+            # 根据中文和西文 分别根据距离相应的最大宽度的差值填充中西文空格
+            width_c, width_e = calculate_text_width(time_plan["name"])
+            padded_name = str(time_plan["name"])
+            padded_name += "\u2002" * (name_max_width_e - width_e)  # 半宽空格
+            padded_name += '\u3000' * (name_max_width_c - width_c)  # 表意空格(方块字空格)
+
+            padded_id = str(time_plan["cid"]).ljust(max_id_length)
+
+            text = "{}  ID:{} 时间:{}s 前后铲:{} {} ".format(
+                padded_name,
+                padded_id,
+                time_plan["time"],
+                "√" if time_plan["front_shovel"] else "X",
+                "√" if time_plan["back_shovel"] else "X"
+            )
+
+
+            item = QListWidgetItem(text)
+            self.WidgetTimePutList.addItem(item)
 
     def card_list_be_dropped(self, index_from, index_to):
         """在list的drop事件中调用, 用于更新内部数据表"""
@@ -778,6 +1053,35 @@ class QMWEditorOfBattlePlan(QMainWindow):
         )
 
         self.fresh_all_ui()
+    def add_time_put(self):
+        try:
+            if str(self.current_wave) not in self.time_wave_plan:
+                self.time_wave_plan[str(self.current_wave)] = [{
+                        "cid": self.WidgetIdInput2.value(),
+                        "name": self.WidgetNameInput2.text(),
+                        "time": self.WidgetTimeInput.value(),
+                        "back_shovel_time": self.WidgetBackTimeInput.value(),
+                        "front_shovel": bool(self.WidgetShovelFrontInput.currentText() == 'true'),  # 转化bool
+                        "back_shovel": bool(self.WidgetShovelBackInput.currentText() == 'true'),  # 转化bool
+                        "location": ""
+                    }]
+            else:
+                self.time_wave_plan[str(self.current_wave)].append(
+                    {
+                        "cid": self.WidgetIdInput2.value(),
+                        "name": self.WidgetNameInput2.text(),
+                        "time": self.WidgetTimeInput.value(),
+                        "back_shovel_time": self.WidgetBackTimeInput.value(),
+                        "front_shovel": bool(self.WidgetShovelFrontInput.currentText() == 'true'),  # 转化bool
+                        "back_shovel": bool(self.WidgetShovelBackInput.currentText() == 'true'),  # 转化bool
+                        "location": ""
+                    }
+                )
+        except:
+            QMessageBox.information(self, "操作错误！", "请添加至备选槽时填写所有参数")
+            return
+
+        self.fresh_all_ui()
 
     def delete_card(self):
         """
@@ -799,6 +1103,26 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         # 清空选中的卡片
         self.current_card_index = None
+
+        self.fresh_all_ui()
+    def delete_time_put(self):
+        """
+        选中一组定时放卡操作后, 点击按钮, 删除它
+        :return: None
+        """
+
+        if not self.current_time_put_index:
+            if self.current_time_put_index!=0:
+                QMessageBox.information(self, "操作错误！", "请先选择一个对象(定时放卡)!")
+                return False
+
+        # 将当前状态压入栈中
+        self.append_undo_stack()
+
+        del self.time_wave_plan[str(self.current_wave)][self.current_time_put_index]
+
+        # 清空选中的卡片
+        self.current_time_put_index = None
 
         self.fresh_all_ui()
 
@@ -829,7 +1153,31 @@ class QMWEditorOfBattlePlan(QMainWindow):
         card["kun"] = self.WidgetKunInput.value()
 
         self.fresh_all_ui()
+    def update_time_put(self):
+        """
+        在UI上编辑更新一组定时放卡操作的状态后
+        将该操作同步到内部数据表
+        并刷新到左侧列表和棋盘等位置
+        :return: None
+        """
 
+        if not self.current_time_put_index:
+            if self.current_time_put_index!=0:
+                return False
+        if self.change:#点击对应的定时放卡导致的变更不予受理
+            return False
+        # 将当前状态压入栈中
+        self.append_undo_stack()
+
+        time_plan = self.time_wave_plan[str(self.current_wave)][self.current_time_put_index]
+        time_plan["cid"] = int(self.WidgetIdInput2.value())
+        time_plan["name"] = self.WidgetNameInput2.text()
+        time_plan["time"] = int(self.WidgetTimeInput.value())
+        time_plan["back_shovel_time"] = int(self.WidgetBackTimeInput.value())
+        time_plan["front_shovel"] = bool(self.WidgetShovelFrontInput.currentText() == 'true')  # 转化bool
+        time_plan["back_shovel"] = bool(self.WidgetShovelBackInput.currentText() == 'true') # 转化bool
+
+        self.fresh_all_ui()
     """棋盘操作"""
 
     def place_card(self, x, y):
@@ -837,31 +1185,42 @@ class QMWEditorOfBattlePlan(QMainWindow):
         选中一组放卡操作后, 为该操作添加一个放置位置
         :return: None
         """
-
-        if self.current_card_index is None:
-            return
-        # 将当前状态压入栈中
-        self.append_undo_stack()
-        # 初始化 并非没有选择任何东西
-        location_key = f"{x + 1}-{y + 1}"
-        if self.current_card_index == 0:
-            # 当前index为玩家
-            target = self.json_data["player"]
-            # 如果这个位置已经有了玩家，那么移除它；否则添加它
-            if location_key in target:
-                target.remove(location_key)
+        if self.mode==1:#遍历队列模式
+            if self.current_card_index is None:
+                return
+            # 将当前状态压入栈中
+            self.append_undo_stack()
+            # 初始化 并非没有选择任何东西
+            location_key = f"{x + 1}-{y + 1}"
+            if self.current_card_index == 0:
+                # 当前index为玩家
+                target = self.json_data["player"]
+                # 如果这个位置已经有了玩家，那么移除它；否则添加它
+                if location_key in target:
+                    target.remove(location_key)
+                else:
+                    target.append(location_key)
             else:
-                target.append(location_key)
+                # 当前index为卡片
+                target = self.sub_plan[self.current_card_index - 1]
+                # 如果这个位置已经有了这张卡片，那么移除它；否则添加它
+                if location_key in target['location']:
+                    target['location'].remove(location_key)
+                else:
+                    target['location'].append(location_key)
+            self.refresh_chessboard()
+            self.refresh_wave_button_color()
         else:
-            # 当前index为卡片
-            target = self.sub_plan[self.current_card_index - 1]
-            # 如果这个位置已经有了这张卡片，那么移除它；否则添加它
-            if location_key in target['location']:
-                target['location'].remove(location_key)
-            else:
-                target['location'].append(location_key)
-        self.refresh_chessboard()
-        self.refresh_wave_button_color()
+            if self.current_time_put_index is None:
+                return
+            # 将当前状态压入栈中
+            self.append_undo_stack()
+            # 初始化 并非没有选择任何东西
+            location_key = f"{x + 1}-{y + 1}"
+            target = self.time_wave_plan[str(self.current_wave)][self.current_time_put_index]
+            target["location"]=location_key
+            self.refresh_chessboard()
+            self.refresh_wave_button_color()
 
     def remove_card(self, x, y):
         """
@@ -870,20 +1229,33 @@ class QMWEditorOfBattlePlan(QMainWindow):
         :param y:
         :return:
         """
-        # 将当前状态压入栈中
-        self.append_undo_stack()
-        # 删除当前位置上的所有卡片
-        location = f"{x + 1}-{y + 1}"
-        # 从玩家位置中删除
-        if location in self.json_data["player"]:
-            self.json_data["player"].remove(location)
-        # 从卡片位置中删除
-        for card in self.sub_plan:
-            if location in card["location"]:
-                card["location"].remove(location)
+        if self.mode == 1:  # 遍历队列模式
+            # 将当前状态压入栈中
+            self.append_undo_stack()
+            # 删除当前位置上的所有卡片
+            location = f"{x + 1}-{y + 1}"
+            # 从玩家位置中删除
+            if location in self.json_data["player"]:
+                self.json_data["player"].remove(location)
+            # 从卡片位置中删除
+            for card in self.sub_plan:
+                if location in card["location"]:
+                    card["location"].remove(location)
 
-        self.refresh_chessboard()
-        self.refresh_wave_button_color()
+            self.refresh_chessboard()
+            self.refresh_wave_button_color()
+        else:
+            # 将当前状态压入栈中
+            self.append_undo_stack()
+            # 删除当前位置上的所有卡片
+            location = f"{x + 1}-{y + 1}"
+            # 移除此位置的所有定时放卡计划
+            for time_plan in self.time_wave_plan[str(self.current_wave)]:
+                if time_plan["location"]==location:
+                    time_plan["location"] = ""
+
+            self.refresh_chessboard()
+            self.refresh_wave_button_color()
 
     def refresh_chessboard(self):
         """刷新棋盘上的文本等各种元素"""
@@ -925,27 +1297,34 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 location_key = f"{j + 1}-{i + 1}"
 
                 text_block = []
-                # 如果玩家在这个位置，添加 "玩家" 文字
-                player_location_list = self.json_data.get('player', [])
-                if location_key in player_location_list:
-                    text_block.append('玩家 {}'.format(player_location_list.index(location_key) + 1))
+                if self.mode==1:
+                    # 如果玩家在这个位置，添加 "玩家" 文字
+                    player_location_list = self.json_data.get('player', [])
+                    if location_key in player_location_list:
+                        text_block.append('玩家 {}'.format(player_location_list.index(location_key) + 1))
 
-                cards_in_this_location = []
-                for card in self.sub_plan:
-                    if location_key in card['location']:
-                        cards_in_this_location.append(card)
+                    cards_in_this_location = []
+                    for card in self.sub_plan:
+                        if location_key in card['location']:
+                            cards_in_this_location.append(card)
 
-                for card in cards_in_this_location:
-                    # 名称
-                    text = truncate_text(text=card['name'])
-                    # 编号
-                    c_index_list = card["location"].index(location_key) + 1
-                    if type(c_index_list) is list:
-                        for location_index in c_index_list:
-                            text += " {}".format(location_index)
-                    else:
-                        text += " {}".format(c_index_list)
-                    text_block.append(text)
+                    for card in cards_in_this_location:
+                        # 名称
+                        text = truncate_text(text=card['name'])
+                        # 编号
+                        c_index_list = card["location"].index(location_key) + 1
+                        if type(c_index_list) is list:
+                            for location_index in c_index_list:
+                                text += " {}".format(location_index)
+                        else:
+                            text += " {}".format(c_index_list)
+                        text_block.append(text)
+                else:
+                    if str(self.current_wave) not in self.time_wave_plan:
+                        return
+                    for time_plan in self.time_wave_plan[str(self.current_wave)]:
+                        if time_plan["location"]==location_key:
+                            text_block.append("{} {}s".format(truncate_text(text=time_plan["name"]),time_plan["time"]))
 
                 # 用\n连接每一个block
                 btn.setText("\n".join(text_block))
@@ -1009,6 +1388,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
             # 移除收集到的键
             for wave in keys_to_remove:
                 self.json_data["card"]["wave"].pop(wave)
+            if "timer_plan" in self.json_data["card"]:
+                for wave, timer_plans in self.json_data["card"]["timer_plan"]["wave"].items():
+                    timer_plans[:] = [timer_plan for timer_plan in timer_plans if timer_plan["location"] != ""]#没有标注位置的定时放卡舍弃
+                    self.json_data["card"]["timer_plan"][wave]=timer_plans
 
         def sort_wave_plan():
             """按照key值的int格式来进行一次排序, 让json_data中的波次方案dict变得有序"""
@@ -1016,6 +1399,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
             sorted_keys = sorted(wave_data.keys(), key=lambda x: int(x))
             sorted_dict = {k: wave_data[k] for k in sorted_keys}
             self.json_data["card"]["wave"] = sorted_dict
+            for wave, timer_plans in self.json_data["card"]["timer_plan"]["wave"].items():
+                sorted_timeplans = sorted(timer_plans, key=lambda x: x['time'],reverse=True)
+                # 如果需要将排序后的结果重新赋值给原列表，可以使用以下代码
+                self.json_data["card"]["timer_plan"][wave] = sorted_timeplans
 
         sort_wave_plan()
         clear_sub_plan()
@@ -1154,7 +1541,13 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 初始化 放卡动作 状态编辑器
         self.input_widget_lock(True)
         self.WidgetIdInput.clear()
+        self.WidgetIdInput2.clear()
         self.WidgetNameInput.clear()
+        self.WidgetNameInput2.clear()
+        self.WidgetTimeInput.clear()
+        self.WidgetBackTimeInput.clear()
+        self.WidgetShovelFrontInput.setCurrentIndex(1)
+        self.WidgetShovelBackInput.setCurrentIndex(1)
         self.WidgetErgodicInput.setCurrentIndex(0)
         self.WidgetQueueInput.setCurrentIndex(0)
         self.WidgetKunInput.clear()

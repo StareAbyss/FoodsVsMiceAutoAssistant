@@ -1,5 +1,5 @@
 {
-    "tips": "这个是定时放卡范例，第零波15秒后于1-2放置花火龙，20秒后于1-4放置海星",
+    "tips": "这个是定时放卡范例，第零波15秒后于1-2放置花火龙，25.5秒后于1-4放置海星",
     "player": [],
     "card": {
         "default": [
@@ -27,6 +27,7 @@
                     "cid": 2,
                     "location": "1-2",
                     "time": 15,
+                    "name": "花火龙",
                     "front_shovel": "True",
                     "back_shovel": "False",
                     "back_shovel_time": 2
@@ -34,7 +35,8 @@
                 },{
                     "cid": 1,
                     "location": "1-4",
-                    "time": 20,
+                    "time": 25.5,
+                    "name": "海星",
                     "front_shovel": "True",
                     "back_shovel": "True",
                     "back_shovel_time": 2
@@ -48,7 +50,7 @@
             "0": [
                 {
                     "gid": 1,
-                    "time": 1.5
+                    "time": 150
                 }
             ],
             "2": []
