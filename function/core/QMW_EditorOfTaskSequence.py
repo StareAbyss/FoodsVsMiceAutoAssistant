@@ -310,7 +310,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             w_input.setObjectName("w_max_times")
             w_input.setFixedWidth(70)
             w_input.setMinimum(1)
-            w_input.setMaximum(99)
+            w_input.setMaximum(999)
             w_input.setValue(task["task_args"]["max_times"])
             add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
 
