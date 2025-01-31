@@ -3,7 +3,7 @@ import sys
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal
 from PyQt6.QtGui import QPixmap, QPainter, QColor, QPen, QIcon
 from PyQt6.QtWidgets import (
-    QWidget, QApplication, QVBoxLayout, QPushButton, QLabel, QComboBox, QHBoxLayout
+    QWidget, QApplication, QVBoxLayout, QPushButton, QLabel, QComboBox, QHBoxLayout, QSpacerItem, QSizePolicy, QFrame
 )
 
 from function.globals import SIGNAL
@@ -115,45 +115,102 @@ class UsefulToolsWidget(QWidget):
         self.channel_2p = None
         self.channel_1p = None
         self.faa = faa
+
         self.setWindowTitle("实用小工具")
         self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
-        self.init_ui()
+        self.setFixedSize(300, 250)
+
         self.gacha_thread = None
 
-    def init_ui(self):
+        """init ui控件"""
+
         layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        layout_wish_pool = QVBoxLayout()
+        layout.addLayout(layout_wish_pool)
+
+        label_title = QLabel("许愿池抽取")
+        label_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout_wish_pool.addWidget(label_title)
+
+        handel_layout = QHBoxLayout()
+        layout_wish_pool.addLayout(handel_layout)
+
+        self.current_window = QLabel("目标窗口选择")
+        handel_layout.addWidget(self.current_window)
+
         self.target_window = QComboBox()
-        self.current_window = QLabel("目标窗口：")
         self.target_window.addItem("P1")
         self.target_window.addItem("P2")
         self.target_window.currentIndexChanged.connect(self.select_target_window)
+        handel_layout.addWidget(self.target_window)
 
         gold_layout = QHBoxLayout()
+        layout_wish_pool.addLayout(gold_layout)
+
         self.btn_gold_start = QPushButton("开始抽金币许愿池")
         self.btn_gold_start.clicked.connect(self.on_gold_clicked)
+        gold_layout.addWidget(self.btn_gold_start)
+
         self.btn_gold_stop = QPushButton("停止抽金币许愿池")
         self.btn_gold_stop.clicked.connect(self.on_gold_stop_clicked)
-        gold_layout.addWidget(self.btn_gold_start)
         gold_layout.addWidget(self.btn_gold_stop)
+
         # 停止按钮初始状态设为禁用
         self.btn_gold_stop.setEnabled(False)
 
-        self.note = QLabel("拖动这个大表哥, 以获取鼠标在目标窗口的坐标")
+        # 插入竖向弹簧
+        vertical_spacer1 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        layout.addItem(vertical_spacer1)
+
+        # 插入横向分割线
+        line = QFrame()
+        line.setFrameShape(QFrame.Shape.HLine)
+        line.setFrameShadow(QFrame.Shadow.Sunken)
+        layout.addWidget(line)
+
+        # 插入另一个竖向弹簧
+        vertical_spacer2 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        layout.addItem(vertical_spacer2)
+
+        layout_magnifier = QVBoxLayout()
+        layout.addLayout(layout_magnifier)
+
+        label_title = QLabel("开发用 - 放大镜")
+        label_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout_magnifier.addWidget(label_title)
+
+        note_label = QLabel("拖动图标,获取鼠标在目标窗口的坐标")
+        layout_magnifier.addWidget(note_label)
+
+        self.label_position = QLabel("当前位置：未获取")
+        self.label_position.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout_magnifier.addWidget(self.label_position)
+
+        # 创建一个新的横向布局，用于包含 self.pointer 和横向弹簧
+        pointer_layout = QHBoxLayout()
+        layout_magnifier.addLayout(pointer_layout)
+
+        # 添加左侧横向弹簧
+        horizontal_spacer_left = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        pointer_layout.addItem(horizontal_spacer_left)
+
+        # 拖动开启放大镜的图标
         self.pointer = DraggablePointer()
+        pointer_layout.addWidget(self.pointer)
+
+        # 添加右侧横向弹簧
+        horizontal_spacer_right = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        pointer_layout.addItem(horizontal_spacer_right)
+
+        # 放大镜本体
         self.magnifier = Magnifier()
+
+        # 交互
         self.pointer.drag_started.connect(self.magnifier.show)
         self.pointer.drag_finished.connect(self.magnifier.hide)
         self.pointer.position_changed.connect(self.update_ui)
-
-        self.lbl_position = QLabel("当前位置：未获取")
-
-        layout.addWidget(self.current_window)
-        layout.addWidget(self.target_window)
-        layout.addLayout(gold_layout)
-        layout.addWidget(self.note)
-        layout.addWidget(self.pointer)
-        layout.addWidget(self.lbl_position)
-        self.setLayout(layout)
 
     def try_get_handle(self):
         self.channel_1p, self.channel_2p = get_channel_name(
@@ -167,7 +224,7 @@ class UsefulToolsWidget(QWidget):
     def update_ui(self, x, y):
         self.magnifier.update_view(x, y)
         relative_x, relative_y = get_pixel_position(self.target_handle, x, y)
-        self.lbl_position.setText(f"捕获位置：({relative_x}, {relative_y})")
+        self.label_position.setText(f"捕获位置：({relative_x}, {relative_y})")
 
     def select_target_window(self, index):
         self.target_handle = faa_get_handle(
