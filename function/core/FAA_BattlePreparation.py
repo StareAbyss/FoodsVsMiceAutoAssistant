@@ -664,16 +664,19 @@ class BattlePreparation:
             self.faa.print_warning(text="选择卡组后, 10s找不到[开始/准备]字样! 创建房间可能失败!")
             return 1  # 1-重启本次
 
-        # 防止被 [没有带xx卡] or []包已满 卡住
-        find = match_p_in_w(
-            source_handle=self.faa.handle,
-            source_root_handle=self.faa.handle_360,
-            source_range=[0, 0, 950, 600],
-            template=RESOURCE_P["common"]["战斗"]["战斗前_系统提示.png"],
-            match_tolerance=0.98)
-        if find:
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=427, y=353)
-            time.sleep(0.05)
+        # 防止被 [没有带对策卡] or [背包已满] or [经验已刷满] 卡住
+        for i in range(10):
+            tar = match_p_in_w(
+                source_handle=self.faa.handle,
+                source_root_handle=self.faa.handle_360,
+                source_range=[0, 0, 950, 600],
+                template=RESOURCE_P["common"]["战斗"]["战斗前_系统提示.png"],
+                match_tolerance=0.98)
+            if not tar:
+                break
+            else:
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=427, y=353)
+                time.sleep(0.2)
 
         # 刷新ui: 状态文本
         self.faa.print_debug(text="查找火苗标识物, 等待进入战斗, 限时30s")
