@@ -53,6 +53,7 @@ class QMWEditorOfStagePlan(QMainWindow):
             self.stage_plan["global"] = {
                 "skip": False,
                 "deck": 0,
+            "senior_setting":False,
                 "battle_plan": [
                     "00000000-0000-0000-0000-000000000000",
                     "00000000-0000-0000-0000-000000000001"]
@@ -75,6 +76,7 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.StageDeckBox.currentIndexChanged.connect(self.stage_state_changed)
         self.StageBattlePlanBox1P.currentIndexChanged.connect(self.stage_state_changed)
         self.StageBattlePlanBox2P.currentIndexChanged.connect(self.stage_state_changed)
+        self.senior_battle_check.stateChanged.connect(self.stage_state_changed)
 
         # 加载全局方案到ui
         self.init_global_state_ui()
@@ -237,6 +239,8 @@ class QMWEditorOfStagePlan(QMainWindow):
             case "StageBattlePlanBox2P":
                 self.stage_plan[self.current_stage]["battle_plan"][1] = self.battle_plan_uuid_list[
                     self.StageBattlePlanBox2P.currentIndex()]
+            case "senior_battle_check":
+                    self.stage_plan[self.current_stage]["senior_setting"] = sender.isChecked()
 
         if self.stage_plan.get(self.current_stage, None):
             if self.stage_plan["global"] == self.stage_plan[self.current_stage]:
@@ -259,13 +263,18 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.StageDeckBox.blockSignals(True)
         self.StageBattlePlanBox1P.blockSignals(True)
         self.StageBattlePlanBox2P.blockSignals(True)
+        self.senior_battle_check.blockSignals(True)
 
         # 更新状态
 
         self.StageSkipCheck.setChecked(self.stage_plan[self.current_stage]["skip"])
 
         self.StageDeckBox.setCurrentIndex(self.stage_plan[self.current_stage]["deck"])
-
+        try:
+            self.senior_battle_check.setChecked(self.stage_plan[self.current_stage]["senior_setting"])
+        except KeyError:# 兼容旧版本
+            self.senior_battle_check.setChecked(False)
+        # 尝试获取当前任务的战斗方案
         try:
             index = self.battle_plan_uuid_list.index(self.stage_plan[self.current_stage]["battle_plan"][0])
         except ValueError:
@@ -283,6 +292,7 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.StageDeckBox.blockSignals(False)
         self.StageBattlePlanBox1P.blockSignals(False)
         self.StageBattlePlanBox2P.blockSignals(False)
+        self.senior_battle_check.blockSignals(False)
 
     def init_global_state_ui(self):
         """
@@ -336,3 +346,4 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.StageDeckBox.setEnabled(state)
         self.StageBattlePlanBox1P.setEnabled(state)
         self.StageBattlePlanBox2P.setEnabled(state)
+        self.senior_battle_check.setEnabled(state)

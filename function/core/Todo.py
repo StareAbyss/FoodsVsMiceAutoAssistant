@@ -781,12 +781,13 @@ class ThreadTodo(QThread):
                 faa_a.action_exit(mode="竞技岛")
                 faa_b.action_exit(mode="竞技岛")
 
-    def battle(self, player_a, player_b, change_card=True):
+    def battle(self, player_a, player_b, senior_setting, change_card=True):
         """
         从进入房间到回到房间的流程
         :param player_a: 玩家A
         :param player_b: 玩家B
         :param change_card: 是否需要选择卡组
+        :param senior_setting: 是否此关卡开启高级战斗
         :return:
             int id 用于判定战斗是 成功 或某种原因的失败 1-成功 2-服务器卡顿,需要重来 3-玩家设置的次数不足,跳过;
             dict 包含player_a和player_b的[战利品]和[宝箱]识别到的情况; 内容为聚合数量后的 dict。 如果识别异常, 返回值为两个None
@@ -887,6 +888,8 @@ class ThreadTodo(QThread):
                 result_id = max(result_id, self.thread_2p.get_return_value())
 
         CUS_LOGGER.debug("开始战斗 已完成")
+        # 记录准确开始时间
+        start_time = time.time()
 
         """根据设定, 进行加速"""
         if result_id == 0:
@@ -946,13 +949,17 @@ class ThreadTodo(QThread):
                 self.thread_2p.join()
 
             if self.opt["senior_settings"]["auto_senior_settings"]:
-
-                self.process, queue_todo = read_and_get_return_information(
-                    self.faa_dict[player_a],
-                    self.opt["senior_settings"]["senior_log_state"],
-                    self.opt["senior_settings"]["gpu_settings"],
-                    self.opt["senior_settings"]["interval"]
-                )
+                if senior_setting:#双重开关，当全局的启用了，对应的关卡也要启用
+                    self.process, queue_todo = read_and_get_return_information(
+                        self.faa_dict[player_a],
+                        self.opt["senior_settings"]["senior_log_state"],
+                        self.opt["senior_settings"]["gpu_settings"],
+                        self.opt["senior_settings"]["interval"]
+                    )
+                else:
+                    CUS_LOGGER.debug("警告：全局设置启用了高级战斗，但对应关卡未开启高级战斗")
+                    queue_todo = None
+                    self.process = None
 
             else:
                 queue_todo = None
@@ -965,7 +972,8 @@ class ThreadTodo(QThread):
                 faa_b=self.faa_dict[player_b] if player_b else None,
                 solve_queue=queue_todo,
                 check_interval=self.battle_check_interval,
-                senior_interval=self.opt["senior_settings"]["interval"]
+                senior_interval=self.opt["senior_settings"]["interval"],
+                start_time=start_time
             )
 
             self.thread_card_manager.start()
@@ -1212,6 +1220,7 @@ class ThreadTodo(QThread):
                 plan = {
                     "skip": False,
                     "deck": 0,
+                    "senior_setting": False,
                     "battle_plan": [
                         "00000000-0000-0000-0000-000000000000",
                         "00000000-0000-0000-0000-000000000001"]}
@@ -1223,12 +1232,18 @@ class ThreadTodo(QThread):
 
         # 默认肯定是不跳过的
         skip = False
+        #限制即使勾选了设置中的启用高级战斗，也需要在全局战斗设置中修改对应关卡
+        senior_setting=False
 
         # 是否采用 全局方案配置
         if global_plan_active:
             stage_plan_by_id = get_stage_plan_by_id()
             skip = stage_plan_by_id["skip"]
             deck = stage_plan_by_id["deck"]
+            try:
+                senior_setting = stage_plan_by_id["senior_setting"]
+            except KeyError:
+                pass
             battle_plan_1p = stage_plan_by_id["battle_plan"][0]
             battle_plan_2p = stage_plan_by_id["battle_plan"][1]
 
@@ -1337,7 +1352,7 @@ class ThreadTodo(QThread):
                     player_a=pid_a,
                     player_b=pid_b,
                     change_card=need_change_card
-                )
+                ,senior_setting=senior_setting)
 
                 if result_id == 0:
 
