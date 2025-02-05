@@ -1825,8 +1825,9 @@ class FAA:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=843, y=305)
             time.sleep(1)
 
-            # 以倒数第二页从上到下为1-4, 第二页为5-8次尝试对应的公会 以此类推
-            for i in range((try_times - 1) // 4 + 1):
+            # 1-4 即翻2页 2-8 即翻3页
+            page = try_times // 4 + 1
+            for i in range(page):
                 # 向上翻的页数
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=843, y=194)
                 time.sleep(1)
@@ -1860,7 +1861,7 @@ class FAA:
                 after_sleep=2,
                 click=False
             )
-            self.print_debug(text=f"{try_times + 1}/5 次尝试, 浇水后, 已确认无任务完成黑屏")
+            self.print_debug(text=f"{try_times + 1}/15 次尝试, 浇水后, 已确认无任务完成黑屏")
 
             # 施肥一次
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=418)
@@ -1878,7 +1879,7 @@ class FAA:
                 match_failed_check=7,
                 after_sleep=2,
                 click=False)
-            self.print_debug(text=f"{try_times + 1}/5 次尝试, 施肥后, 已确认无任务完成黑屏")
+            self.print_debug(text=f"{try_times + 1}/15 次尝试, 施肥后, 已确认无任务完成黑屏")
 
         def check_completed_once(try_times):
             """
@@ -1920,7 +1921,7 @@ class FAA:
             time.sleep(0.5)
 
             if not quest_not_completed:
-                self.print_debug(text=f"已完成公会浇水施肥, 尝试次数: {try_times}/5")
+                self.print_debug(text=f"已完成公会浇水施肥, 尝试次数: {try_times}/15")
                 return True, False
 
             return False, False
@@ -1963,7 +1964,7 @@ class FAA:
                     return True, try_times, False
                 if is_bug:
                     return False, try_times, True
-                if try_times >= 5:
+                if try_times >= 15:
                     return False, try_times, False
 
                 is_bug = fed_and_watered_once(try_times=try_times)

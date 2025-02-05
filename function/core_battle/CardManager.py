@@ -70,6 +70,8 @@ def is_special_card(card_name):
 #     print(f"{card_name} 不是特殊卡，未找到匹配文件。")
 
 class CardManager(QThread):
+
+    # 注册信号
     signal_change_card_plan = pyqtSignal()
     signal_used_key = pyqtSignal()
     signal_stop = pyqtSignal()
@@ -86,27 +88,19 @@ class CardManager(QThread):
         # # 完成构造函数的所有初始化工作后，设置 is_initialized 为 True
         # self.is_initialized = False
 
-        """从外部直接引用的类"""
+        """
+        从外部强引用的类, 结束时注意清理引用
+        """
+
         self.todo = todo
-        # 多人作战, a代表队长 b代表队友
-        # 单人作战, a代表目标 b为None
+
+        # 多人作战, a代表队长 b代表队友; 单人作战, a代表目标 b为None
         self.faa_dict = {1: faa_a, 2: faa_b}
         self.is_group = copy.deepcopy(faa_a.is_group)
         self.pid_list = [1, 2] if self.is_group else [1]
 
         # 待解决队列，从这里提取信息
         self.solve_queue = solve_queue
-
-        self.card_list_dict = {}
-        self.special_card_list = {}
-        self.kun_cards_dict = {}
-        self.card_queue_dict = {}
-        self.thread_dict = {}
-
-        # 特殊放卡列表
-        self.ice_boom_dict_list = {1: [], 2: []}
-        self.the_9th_fan_dict_list = {1: [], 2: []}
-        self.shield_dict_list = {1: [], 2: []}
 
         # 高级战斗的间隔时间
         self.senior_interval = senior_interval
@@ -116,23 +110,36 @@ class CardManager(QThread):
         # 一轮检测的时间 单位s, 该时间的1/20则是尝试使用一张卡的间隔, 该时间的10倍则是使用武器技能/自动拾取动作的间隔 推荐默认值 1s
         self.check_interval = check_interval
 
+        """
+        线程管理
+        """
+
+        self.running = False
+        self.card_list_dict = {}
+        self.special_card_list = {}
+        self.kun_cards_dict = {}
+        self.card_queue_dict = {}
+        self.thread_dict = {}
+
+        """
+        功能属性
+        """
+
+        # 特殊放卡列表
+        self.ice_boom_dict_list = {1: [], 2: []}
+        self.the_9th_fan_dict_list = {1: [], 2: []}
+        self.shield_dict_list = {1: [], 2: []}
+
         # 刷新全局冰沙锁
         EXTRA.SMOOTHIE_LOCK_TIME = 0
 
-        # 绑定
+        """
+        信号绑定
+        """
+
         self.signal_change_card_plan.connect(self.change_card_plan)
-
-        # 绑定使用钥匙信号
         self.signal_used_key.connect(self.set_is_used_key_true)
-
-        # 绑定结束信号
         self.signal_stop.connect(self.stop)
-
-        self.signals = {
-            "change_card_plan": self.signal_change_card_plan,
-            "used_key": self.signal_used_key,
-            "stop": self.signal_stop
-        }
 
         # 先创建 card_list_dict
         self.init_from_battle_plan()
@@ -275,12 +282,15 @@ class CardManager(QThread):
 
         # 实例化 检测线程 + 用卡线程+特殊用卡进程
         for pid in self.pid_list:
+
             self.thread_dict[pid] = ThreadCheckTimer(
-                signals=self.signals,
                 card_queue=self.card_queue_dict[pid],
                 kun_cards=self.kun_cards_dict.get(pid, None),
                 faa=self.faa_dict[pid],
-                check_interval=self.check_interval
+                check_interval=self.check_interval,
+                signal_stop=self.signal_stop,
+                signal_used_key=self.signal_used_key,
+                signal_change_card_plan=self.signal_change_card_plan,
             )
             self.thread_dict[pid + 2] = ThreadUseCardTimer(
                 card_queue=self.card_queue_dict[pid],
@@ -306,31 +316,31 @@ class CardManager(QThread):
                 shield_dict_list=self.shield_dict_list
             )
 
-        CUS_LOGGER.debug("[战斗执行器] 线程已全部实例化")
-        CUS_LOGGER.debug(self.thread_dict)
+        CUS_LOGGER.info("[战斗执行器] 线程已全部实例化")
+        # CUS_LOGGER.debug(self.thread_dict)
 
-    def start_all_thread(self):
+    def start_sub_threads(self):
+
+        # 防抖
+        if self.running:
+            return
+        self.running = True
+
         # 开始线程
         for _, my_thread in self.thread_dict.items():
             my_thread.start()
 
-        CUS_LOGGER.debug("[Todo] [战斗执行器] 检测/放卡 线程已开始.")
+        CUS_LOGGER.info("[战斗执行器] 子线程已全部启动.")
 
-    def change_card_plan(self):
-        """如果战斗方案发生了变更"""
-        # 注意线程同步问题. 需要确保两个FAA都已经完成了波次检测, 并完成了对应的方案切换后, 再进行重载.
-        if self.is_group:
-            for i in range(50):
-                if self.faa_dict[1].faa_battle.wave != self.faa_dict[2].faa_battle.wave:
-                    time.sleep(0.1)
+    def stop_sub_threads(self):
 
-        self.stop_sub_thread()
-        self.init_from_battle_plan()
-        self.start_all_thread()
+        # 防止 变换波次 和 结束战斗 同时发生
+        if not self.running:
+            return
 
-    def stop_sub_thread(self):
+        self.running = False
 
-        CUS_LOGGER.info("[Todo] [战斗执行器] CardManager - stop_use_card - 激活, 战斗放卡 全线程 将中止")
+        CUS_LOGGER.info("[战斗执行器] CardManager - stop_use_card - 开始, 战斗放卡 全线程 将中止")
 
         # 中止已经存在的子线程
         for k, my_thread in self.thread_dict.items():
@@ -362,17 +372,32 @@ class CardManager(QThread):
             card_queue.queue.clear()  # 清空卡片队列
         self.card_queue_dict.clear()  # 清空卡片队列字典
 
+        CUS_LOGGER.info("[战斗执行器] CardManager - stop_use_card - 结束")
+
+    def change_card_plan(self):
+        """如果战斗方案发生了变更"""
+        # 注意线程同步问题. 需要确保两个FAA都已经完成了波次检测, 并完成了对应的方案切换后, 再进行重载.
+        if self.is_group:
+            for i in range(50):
+                if self.faa_dict[1].faa_battle.wave != self.faa_dict[2].faa_battle.wave:
+                    time.sleep(0.1)
+
+        self.stop_sub_threads()
+        self.init_from_battle_plan()
+        self.start_sub_threads()
+
     def stop(self):
 
-        CUS_LOGGER.info("[战斗执行器] CardManager stop方法已激活, 将销毁")
+        CUS_LOGGER.info("[战斗执行器] CardManager - stop 开始")
 
-        self.stop_sub_thread()  # 停止子线程
+        self.stop_sub_threads()  # 停止子线程
         self.faa_dict.clear()  # 清空faa字典
 
+        # 中止自身, 并让调用线程等待该操作完成
         self.exit()
         self.wait()
 
-        CUS_LOGGER.debug("[战斗执行器] CardManager stop方法已完成, 已销毁")
+        CUS_LOGGER.debug("[战斗执行器] CardManager - stop 结束")
 
         # 在战斗结束后 打印上一次战斗到这一次战斗之间, 累计的点击队列状态
         CUS_LOGGER.info(f"[战斗执行器] 在本场战斗中, 点击队列变化状态如下, 可判断是否出现点击队列积压的情况")
@@ -385,6 +410,8 @@ class CardManager(QThread):
         self.todo = None
         self.faa_dict = None
         self.solve_queue = None
+        self.senior_interval = None
+        self.check_interval = None
 
     def set_is_used_key_true(self):
         """
@@ -401,11 +428,8 @@ class CardManager(QThread):
 
     def run(self):
 
-        # while not self.is_initialized:
-        #     time.sleep(0.1)
-
         # 开始线程
-        self.start_all_thread()
+        self.start_sub_threads()
 
         # 开启事件循环
         self.exec()
@@ -417,14 +441,20 @@ class ThreadCheckTimer(QThread):
     该线程将以较低频率, 重新扫描更新目前所有卡片的状态, 以确定使用方式.
     """
 
-    def __init__(self, signals, card_queue, faa, kun_cards, check_interval):
+    def __init__(self, card_queue, faa, kun_cards, check_interval,
+                 signal_change_card_plan, signal_used_key, signal_stop):
+
         super().__init__()
-        """引用的类"""
+
+        # 引用的类 注意消除引用
         self.card_queue = card_queue
         self.faa = faa
         self.kun_cards = kun_cards
 
-        self.signals = signals
+        self.signal_change_card_plan = signal_change_card_plan
+        self.signal_used_key = signal_used_key
+        self.signal_stop = signal_stop
+
         self.running = False
         self.stopped = False
         self.timer = None
@@ -453,9 +483,7 @@ class ThreadCheckTimer(QThread):
 
         # 退出事件循环
         self.quit()
-        # print("[战斗执行器] ThreadCheckTimer - stop - 事件循环已退出")
         self.wait()
-        # print("[战斗执行器] ThreadCheckTimer - stop - 线程已等待完成")
 
     def callback_timer(self):
         """
@@ -470,6 +498,7 @@ class ThreadCheckTimer(QThread):
                 f"[战斗执行器] ThreadUseCardTimer - callback_timer - 在运行中遭遇错误"
                 f"可能是Timer线程调用的参数已被释放后, 有Timer进入执行状态. 这是正常情况. 错误信息: {e}"
             )
+            self.running = False
 
         # 回调
         if self.running:
@@ -487,7 +516,7 @@ class ThreadCheckTimer(QThread):
                 if not self.stopped:
                     # 正常结束，非主动杀死线程结束
                     self.faa.print_info(text='[战斗执行器] 房主 检测到战斗结束标志, 即将关闭战斗中放卡的线程')
-                    self.signals["stop"].emit()
+                    self.signal_stop.emit()
                     # 防止stop后再次调用 信号发出到中止事件循环可期间, 本函数还会多次运行.
                     self.stopped = True
                 return
@@ -496,10 +525,64 @@ class ThreadCheckTimer(QThread):
         # 尝试使用钥匙 如成功 发送信号 修改faa.battle中的is_used_key为True 以标识用过了, 如果不需要使用或用过了, 会直接Fals
         # 不需要判定主号 直接使用即可
         if self.faa.faa_battle.use_key():
-            self.signals["used_key"].emit()
+            self.signal_used_key.emit()
 
-        # 自动战斗部分的处理
-        self.check_for_auto_battle()
+        """ 自动战斗"""
+
+        if not self.faa.is_auto_battle:
+            return
+
+        # 仅截图一次, 降低重复次数
+        game_image = capture_image_png(
+            handle=self.faa.handle,
+            root_handle=self.faa.handle_360,
+            raw_range=[0, 0, 950, 600],
+        )
+
+        # 尝试检测变阵 注意仅主号完成该操作 操作的目标是manager实例对象
+        result = self.faa.faa_battle.check_wave(img=game_image)
+        if result:
+            if self.faa.is_main:
+                self.running = False
+                self.signal_change_card_plan.emit()
+                return
+
+        # 先清空现有队列 再初始化队列
+        self.card_queue.queue.clear()
+        self.card_queue.init_card_queue(game_image=game_image)
+
+        # 更新火苗
+        self.faa.faa_battle.update_fire_elemental_1000(img=game_image)
+
+        # 根据情况判断是否加入执行坤函数的动作
+        if self.kun_cards:
+            self.check_for_kun(game_image=game_image)
+
+        # 刷新全局冰沙锁的状态
+        if EXTRA.SMOOTHIE_LOCK_TIME > 0:
+            EXTRA.SMOOTHIE_LOCK_TIME -= self.check_interval
+
+        # 调试打印 - 目前 <战斗管理器> 的状态
+        if EXTRA.EXTRA_LOG_BATTLE:
+            if self.faa.player == 1:
+                text = f"[战斗执行器] [{self.faa.player}P] "
+                for card in self.card_queue.card_list:
+                    text += "[{}|状:{}|CD:{}|用:{}|禁:{}|坤:{}] ".format(
+                        card.name[:2] if len(card.name) >= 2 else card.name,
+                        'T' if card.state_images["冷却"] is not None else 'F',
+                        'T' if card.status_cd else 'F',
+                        'T' if card.status_usable else 'F',
+                        card.status_ban if card.status_ban else 'F',
+                        'T' if card.is_kun_target else 'F')
+                for card in self.kun_cards:
+                    text += "[{}|状:{}|CD:{}|用:{}|禁:{}]".format(
+                        card.name[:2] if len(card.name) >= 2 else card.name,
+                        'T' if card.state_images["冷却"] is not None else 'F',
+                        'T' if card.status_cd else 'F',
+                        'T' if card.status_usable else 'F',
+                        card.status_ban if card.status_ban else 'F')
+
+                CUS_LOGGER.debug(text)
 
         # 定时 使用武器技能 自动拾取 考虑到火苗消失时间是7s 快一点5s更好
         if self.checked_round % 5 == 0:
@@ -544,63 +627,6 @@ class ThreadCheckTimer(QThread):
             # 设置优先级最高的卡片为kun目标
             if max_card:
                 max_card.is_kun_target = True
-
-    def check_for_auto_battle(self):
-        """
-        战斗部分的检测
-        """
-        if not self.faa.is_auto_battle:
-            return
-
-        # 仅截图一次, 降低重复次数
-        game_image = capture_image_png(
-            handle=self.faa.handle,
-            root_handle=self.faa.handle_360,
-            raw_range=[0, 0, 950, 600],
-        )
-
-        # 尝试检测变阵 注意仅主号完成该操作 操作的目标是manager实例对象
-        result = self.faa.faa_battle.check_wave(img=game_image)
-        if result:
-            if self.faa.is_main:
-                self.signals["change_card_plan"].emit()
-
-        # 先清空现有队列 再初始化队列
-        self.card_queue.queue.clear()
-        self.card_queue.init_card_queue(game_image=game_image)
-
-        # 更新火苗
-        self.faa.faa_battle.update_fire_elemental_1000(img=game_image)
-
-        # 根据情况判断是否加入执行坤函数的动作
-        if self.kun_cards:
-            self.check_for_kun(game_image=game_image)
-
-        # 调试打印 - 目前 <战斗管理器> 的状态
-        if EXTRA.EXTRA_LOG_BATTLE:
-            if self.faa.player == 1:
-                text = f"[战斗执行器] [{self.faa.player}P] "
-                for card in self.card_queue.card_list:
-                    text += "[{}|状:{}|CD:{}|用:{}|禁:{}|坤:{}] ".format(
-                        card.name[:2] if len(card.name) >= 2 else card.name,
-                        'T' if card.state_images["冷却"] is not None else 'F',
-                        'T' if card.status_cd else 'F',
-                        'T' if card.status_usable else 'F',
-                        card.status_ban if card.status_ban else 'F',
-                        'T' if card.is_kun_target else 'F')
-                for card in self.kun_cards:
-                    text += "[{}|状:{}|CD:{}|用:{}|禁:{}]".format(
-                        card.name[:2] if len(card.name) >= 2 else card.name,
-                        'T' if card.state_images["冷却"] is not None else 'F',
-                        'T' if card.status_cd else 'F',
-                        'T' if card.status_usable else 'F',
-                        card.status_ban if card.status_ban else 'F')
-
-                CUS_LOGGER.debug(text)
-
-        # 刷新全局冰沙锁的状态
-        if EXTRA.SMOOTHIE_LOCK_TIME > 0:
-            EXTRA.SMOOTHIE_LOCK_TIME -= self.check_interval
 
 
 class ThreadUseCardTimer(QThread):
