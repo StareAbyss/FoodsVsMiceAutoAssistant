@@ -983,8 +983,9 @@ class ThreadTodo(QThread):
             self.thread_card_manager = None
 
             if self.opt["senior_settings"]["auto_senior_settings"]:
-                kill_process(self.process)
-                self.process = None
+                if senior_setting:
+                    kill_process(self.process)
+                    self.process = None
 
             CUS_LOGGER.debug('thread_card_manager 退出事件循环并完成销毁线程')
 
