@@ -1241,12 +1241,13 @@ class ThreadTodo(QThread):
             stage_plan_by_id = get_stage_plan_by_id()
             skip = stage_plan_by_id["skip"]
             deck = stage_plan_by_id["deck"]
-            try:
-                senior_setting = stage_plan_by_id["senior_setting"]
-            except KeyError:
-                pass
             battle_plan_1p = stage_plan_by_id["battle_plan"][0]
             battle_plan_2p = stage_plan_by_id["battle_plan"][1]
+        try:
+            stage_plan_by_id = get_stage_plan_by_id()
+            senior_setting = stage_plan_by_id["senior_setting"]
+        except KeyError:
+            pass
 
         faa_a = self.faa_dict[pid_a]
         faa_b = self.faa_dict[pid_b] if pid_b else None
