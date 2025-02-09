@@ -296,17 +296,13 @@ class BattlePreparation:
 
             # 根据战斗方案 插入到方案末位
             battle_plan = copy.deepcopy(self.faa.battle_plan)
-            max_card_id = max([0] + [card["id"] for card in battle_plan["card"]["default"]])
-            for wave, wave_battle_plan in battle_plan["card"]["wave"].items():
-                max_w_card_id = max([0] + [card["id"] for card in wave_battle_plan])
-                max_card_id = max([max_card_id, max_w_card_id])
-
-            insert_index = max_card_id
+            card_ids = [card["card_id"] for card in battle_plan["cards"]]
+            max_card_id = max(card_ids)
 
             # 插入卡片
-            all_cards_precise_names.insert(insert_index, qc_precise_names)
+            all_cards_precise_names.insert(max_card_id, qc_precise_names)
             # 不允许失败
-            can_failed_list.insert(insert_index, False)
+            can_failed_list.insert(max_card_id, False)
 
         # 自动带卡版本的 任务卡添加
         add_quest_card()
@@ -538,22 +534,13 @@ class BattlePreparation:
     def _get_card_name_list_from_battle_plan(self):
 
         # 和 card_list 一一对应 顺序一致 代表这张卡是否允许被跳过
-        plan = copy.deepcopy(self.faa.battle_plan)
+        battle_plan = copy.deepcopy(self.faa.battle_plan)
 
         my_dict = {}
 
-        # 先取默认中
-        for card in plan["card"]["default"]:
-            if card["id"] not in my_dict.keys():
-                my_dict[card["id"]] = card["name"]
-
-        # 再取变阵中(顺手排序)
-        wave_dict = plan["card"]["wave"]
-        sorted_wave_dict = {k: wave_dict[k] for k in sorted(wave_dict, key=int)}
-        for wave_plan in sorted_wave_dict.values():
-            for card in wave_plan:
-                if card["id"] not in my_dict.keys():
-                    my_dict[card["id"]] = card["name"]
+        # 直接从cards 中获取 顺带保险排序一下
+        for card in battle_plan["cards"]:
+            my_dict[card["card_id"]] = card["name"]
 
         # 根据id 排序 并取其中的value为list
         sorted_list = list(dict(sorted(my_dict.items())).values())

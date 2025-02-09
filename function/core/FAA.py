@@ -286,7 +286,7 @@ class FAA:
                 x2 = card_xy_list[0] + 53
                 y2 = card_xy_list[1] + 70
                 if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
-                    mat_cards_info.append({'name': name, 'id': card_id, 'coordinate_from': card_xy_list})
+                    mat_cards_info.append({'name': name, 'card_id': card_id, 'coordinate_from': card_xy_list})
                     break
 
         # 输出
@@ -326,7 +326,7 @@ class FAA:
                 x2 = card_xy_list[0] + 53
                 y2 = card_xy_list[1] + 70
                 if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
-                    self.smoothie_info = {'name': '极寒冰沙', "id": card_id}
+                    self.smoothie_info = {'name': '极寒冰沙', "card_id": card_id}
                     break
 
         self.print_info(text="战斗中识图查找冰沙位置, 结果：{}".format(self.smoothie_info))
@@ -384,7 +384,7 @@ class FAA:
                 if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
                     self.kun_cards_info.append({
                         'name': card_name,
-                        "id": card_id
+                        "card_id": card_id
                     })
                     break
 
@@ -393,16 +393,15 @@ class FAA:
     def init_battle_plan_card(self) -> None:
         """
         战斗方案解析器 - 用于根据战斗方案的json和关卡等多种信息, 解析计算为卡片的部署方案 供战斗方案执行器执行
-        Return:卡片的部署方案字典
+        Return: battle_plan_card 卡片的部署方案字典
             example = [
                 {
                     来自配置文件
+                    "card_id": int, 卡片从哪取 代号 (卡片在战斗中, 在卡组的的从左到右序号 )
                     "name": str,  名称 用于ban卡
-                    "id": int, 卡片从哪取 代号 (卡片在战斗中, 在卡组的的从左到右序号 )
                     "location": ["x-y","x-y"...] ,  卡片放到哪 代号
                     "ergodic": True,  放卡模式 遍历
                     "queue": True,  放卡模式 队列
-
                     函数计算得出
                     "coordinate_from": [x:int, y:int]  卡片从哪取 坐标
                     "coordinate_to": [[x:int, y:int],[x:int, y:int],[x:int, y:int],...] 卡片放到哪 坐标
@@ -418,17 +417,25 @@ class FAA:
 
         """调用类参数-战斗前生成"""
         quest_card = copy.deepcopy(self.quest_card)
-        ban_card_list = copy.deepcopy(self.ban_card_list)
         stage_info = copy.deepcopy(self.stage_info)
         battle_plan = copy.deepcopy(self.battle_plan)
         mat_card_info = copy.deepcopy(self.mat_cards_info)
         smoothie_info = copy.deepcopy(self.smoothie_info)
 
+        # 新版战斗方案兼容
+        battle_plan = next((
+            event["action"]["cards"] for event in battle_plan["events"] if (
+                event["trigger"]["type"] == "wave_timer" and
+                event["trigger"]["wave_id"] == int(self.faa_battle.wave) and
+                event["action"]["type"] == "loop_use_cards"
+        )), [])
+
+        # 内联卡片名称
+        for a_card in battle_plan:
+            a_card["name"] = next(
+                o_card["name"] for o_card in self.battle_plan["cards"] if o_card["card_id"] == a_card["card_id"])
+
         """当前波次选择"""
-        if self.faa_battle.wave != 0:
-            battle_plan = battle_plan["card"]["wave"][str(self.faa_battle.wave)]
-        else:
-            battle_plan = battle_plan["card"]["default"]
 
         def calculation_card_quest(list_cell_all):
             """计算步骤一 加入任务卡的摆放坐标"""
@@ -449,7 +456,7 @@ class FAA:
 
             # 计算任务卡的id 最大的卡片id + 1 注意判空!!!
             if list_cell_all:
-                quest_card_id = max(card["id"] for card in list_cell_all) + 1
+                quest_card_id = max(card["card_id"] for card in list_cell_all) + 1
             else:
                 quest_card_id = 1
 
@@ -467,11 +474,12 @@ class FAA:
 
             # 设定任务卡dict
             dict_quest = {
+                "card_id": quest_card_id,
                 "name": quest_card,
-                "id": quest_card_id,
                 "location": quest_card_locations,
                 "ergodic": True,
-                "queue": True
+                "queue": True,
+                "kun": 0
             }
 
             # 可能是空列表 即花瓶
@@ -490,11 +498,11 @@ class FAA:
             if not self.banned_card_index:
                 return list_cell_all
 
-            list_new = [card for card in list_cell_all if card["id"] not in self.banned_card_index]
+            list_new = [card for card in list_cell_all if card["card_id"] not in self.banned_card_index]
 
             # 遍历更改删卡后的位置
             for card in list_new:
-                card["id"] -= sum(1 for index in self.banned_card_index if card["id"] > index)
+                card["card_id"] -= sum(1 for index in self.banned_card_index if card["card_id"] > index)
 
             return list_new
 
@@ -518,8 +526,8 @@ class FAA:
             for i in range(num_mat_card):
 
                 dict_mat = {
+                    "card_id": mat_card_info[i]['card_id'],
                     "name": mat_card_info[i]['name'],
-                    "id": mat_card_info[i]['id'],
                     "location": location[i::num_mat_card],
                     "ergodic": need_plate,
                     "queue": True
@@ -548,7 +556,7 @@ class FAA:
                 # 仅该卡确定存在后执行添加
                 card_dict = {
                     'name': smoothie_info['name'],
-                    'id': smoothie_info['id'],
+                    'card_id': smoothie_info['card_id'],
                     'location': ["1-1", "2-1", "3-1", "4-1", "5-1", "6-1", "7-1", "8-1", "9-1"],
                     'ergodic': True,
                     'queue': False
@@ -615,12 +623,12 @@ class FAA:
             # 将 location:str 变为 coordinate_to:[[x:int,y:int],...]
             for card in list_cell_all:
                 # 根据字段值, 判断是否完成写入, 并进行转换
-                card["coordinate_from"] = copy.deepcopy(bp_card[card["id"]])
+                card["coordinate_from"] = copy.deepcopy(bp_card[card["card_id"]])
                 card["coordinate_to"] = [copy.deepcopy(bp_cell[location]) for location in card["location"]]
 
             # 为幻鸡单独转化
             for kun_card_info in self.kun_cards_info:
-                kun_card_info["coordinate_from"] = copy.deepcopy(bp_card[kun_card_info["id"]])
+                kun_card_info["coordinate_from"] = copy.deepcopy(bp_card[kun_card_info["card_id"]])
 
             # 不常用调试print
             self.print_debug(text="你的战斗放卡opt如下:")
@@ -643,7 +651,7 @@ class FAA:
         time.sleep(0.333)
         if not self.is_main:
             time.sleep(0.666)
-        self.faa_battle.init_battle_plan_player(locations=self.battle_plan["player"])
+        self.faa_battle.init_battle_plan_player(locations=self.battle_plan["meta_data"]["player_position"])
         self.faa_battle.use_player_all()
 
         # 2.识图卡片数量，确定卡片在deck中的位置

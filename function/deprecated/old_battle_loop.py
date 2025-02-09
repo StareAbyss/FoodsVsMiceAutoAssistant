@@ -104,7 +104,7 @@ def loop_battle(self):
                     card_plan[i]["location_to"].remove(card_plan[i]["location_to"][0])
 
             # 武器技能 + 自动收集
-            self.faa_battle.use_weapon_skill()
+            self.faa_battle.use_gem_skill()
             self.faa_battle.auto_pickup()
 
             """一轮不到7s+点7*9个位置需要的时间, 休息到该时间, 期间每[check_invite]秒检测一次"""
