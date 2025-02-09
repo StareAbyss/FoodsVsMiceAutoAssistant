@@ -153,11 +153,11 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         cus_path = cus_path.replace("\\", "/")  # pyqt 使用正斜杠
         style_sheet = f"""
             #SkinWidget{{
-            border-radius: 8px;
-            border-image: url({cus_path});
+            background-image: url({cus_path});
             background-repeat: no-repeat;
             background-position: center;
-            background-size: cover;
+            background-size: contain;  
+            border: none;  
             }}
         """
 

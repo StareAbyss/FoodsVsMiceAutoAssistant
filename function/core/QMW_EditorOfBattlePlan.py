@@ -386,16 +386,6 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     row_frames = []
 
                     for j in range(9):
-                        # 创建按钮部分
-                        btn = ChessButton('')
-
-                        btn.clicked.connect(lambda checked, x=i, y=j: self.left_click_card_pos(y, x))
-                        btn.rightClicked.connect(lambda x=i, y=j: self.right_click_card_pos(y, x))
-                        self.chessboard_layout.addWidget(btn, i, j)
-                        btn.setToolTip(f"当前位置: {j + 1}-{i + 1}")
-                        row_buttons.append(btn)
-
-                        btn.setFixedSize(80, 80)
 
                         # 创建QFrame作为高亮效果的载体
                         frame = QFrame(self)
@@ -406,10 +396,20 @@ class QMWEditorOfBattlePlan(QMainWindow):
                         frame.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)  # 防止遮挡按钮
 
                         # 尽可能让宽和高占满剩余空间
-                        # frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-                        frame.setFixedSize(80, 80)
+                        frame.setFixedSize(82, 82)
 
                         row_frames.append(frame)
+                    
+                        # 创建按钮部分
+                        btn = ChessButton('')
+
+                        btn.clicked.connect(lambda checked, x=i, y=j: self.left_click_card_pos(y, x))
+                        btn.rightClicked.connect(lambda x=i, y=j: self.right_click_card_pos(y, x))
+                        self.chessboard_layout.addWidget(btn, i, j, alignment= Qt.AlignmentFlag.AlignCenter)
+                        btn.setToolTip(f"当前位置: {j + 1}-{i + 1}")
+                        row_buttons.append(btn)
+
+                        btn.setFixedSize(80, 80)
 
                     self.chessboard_buttons.append(row_buttons)
                     self.chessboard_frames.append(row_frames)
