@@ -88,7 +88,7 @@ class Card:
         self.queue = plan_by_priority.get("queue", True)
 
         # 卡片拿去的位置 - 代号 int 和 坐标 list[x,y]
-        self.c_id = plan_by_priority.get("id", 1)
+        self.c_id = plan_by_priority.get("card_id", 1)
         self.coordinate_from = plan_by_priority.get("coordinate_from", [10, 10])
 
         # 卡片放置的位置 - 代号 list["1-1",...] 和 坐标 list[[x,y],....]

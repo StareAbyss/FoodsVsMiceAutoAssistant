@@ -70,13 +70,12 @@ def is_special_card(card_name):
 #     print(f"{card_name} 不是特殊卡，未找到匹配文件。")
 
 class CardManager(QThread):
-
     # 注册信号
     signal_change_card_plan = pyqtSignal()
     signal_used_key = pyqtSignal()
     signal_stop = pyqtSignal()
 
-    def __init__(self, todo, faa_a, faa_b, solve_queue, senior_interval,start_time, check_interval=1):
+    def __init__(self, todo, faa_a, faa_b, solve_queue, senior_interval, start_time, check_interval=1):
         """
         :param faa_a: 主号 -> 1
         :param faa_b: 副号 -> 2
@@ -248,7 +247,7 @@ class CardManager(QThread):
                     kun_card = CardKun(
                         faa=self.faa_dict[pid],
                         name=kun_card_info["name"],
-                        c_id=kun_card_info["id"],
+                        c_id=kun_card_info["card_id"],
                         coordinate_from=kun_card_info["coordinate_from"],
                     )
                     kun_cards.append(kun_card)
@@ -282,7 +281,6 @@ class CardManager(QThread):
 
         # 实例化 检测线程 + 用卡线程+特殊用卡进程
         for pid in self.pid_list:
-
             self.thread_dict[pid] = ThreadCheckTimer(
                 card_queue=self.card_queue_dict[pid],
                 kun_cards=self.kun_cards_dict.get(pid, None),
@@ -297,7 +295,7 @@ class CardManager(QThread):
                 faa=self.faa_dict[pid],
                 check_interval=self.check_interval
             )
-            self.thread_dict[pid + 4] = ThreadTimePutCardTimer(
+            self.thread_dict[pid + 4] = ThreadInsertUseCardTimer(
                 faa=self.faa_dict[pid],
                 check_interval=self.check_interval,
                 start_time=self.start_time
@@ -495,8 +493,8 @@ class ThreadCheckTimer(QThread):
             self.check()
         except Exception as e:
             CUS_LOGGER.warning(
-                f"[战斗执行器] ThreadUseCardTimer - callback_timer - 在运行中遭遇错误"
-                f"可能是Timer线程调用的参数已被释放后, 有Timer进入执行状态. 这是正常情况. 错误信息: {e}"
+                f"[战斗执行器] ThreadCheckTimer - callback_timer - 在运行中遭遇错误"
+                f"可能是Timer线程所需参数已被释放. 后有Timer进入执行状态. 这是正常情况. 错误信息: {e}"
             )
             self.running = False
 
@@ -586,7 +584,7 @@ class ThreadCheckTimer(QThread):
 
         # 定时 使用武器技能 自动拾取 考虑到火苗消失时间是7s 快一点5s更好
         if self.checked_round % 5 == 0:
-            self.faa.faa_battle.use_weapon_skill()
+            self.faa.faa_battle.use_gem_skill()
             self.faa.faa_battle.auto_pickup()
 
     def check_for_kun(self, game_image=None):
@@ -682,17 +680,28 @@ class ThreadUseCardTimer(QThread):
             self.timer = Timer(self.interval_use_card, self.callback_timer)
             self.timer.start()
 
-class ThreadTimePutCardTimer(QThread):
-    def __init__(self, faa, check_interval,start_time):
+
+class ThreadInsertUseCardTimer(QThread):
+    def __init__(self, faa, check_interval, start_time):
         super().__init__()
         """引用的类"""
         self.faa = faa
-        self.wave=0#初始化肯定是波次为0的
-        try :
-            self.timer_plan=self.faa.battle_plan["card"]["timer_plan"]
-        except Exception as e:
-            self.timer_plan=None
-            #如果没有这个键就直接返回了
+        # 初始化肯定是波次为0的
+        self.wave = 0
+
+        # 筛选出对应的战斗方案们
+        self.insert_use_card_plan = [event for event in self.faa.battle_plan["events"] if (
+                event["trigger"]["type"] == "wave_timer" and
+                event["action"]["type"] == "insert_use_card"
+        )]
+        self.insert_use_gem_plan = [event for event in self.faa.battle_plan["events"] if (
+                event["trigger"]["type"] == "wave_timer" and
+                event["action"]["type"] == "insert_use_gem"
+        )]
+        # 内联name 字段
+        for event in self.insert_use_card_plan:
+            event["action"]["name"] = next((card["name"] for card in self.faa.battle_plan["cards"]), "")
+
         self.bp_card = copy.deepcopy(self.faa.bp_card)
         self.bp_cell = copy.deepcopy(self.faa.bp_cell)
         self.start_time = start_time
@@ -702,21 +711,25 @@ class ThreadTimePutCardTimer(QThread):
         self.interval_use_card = float(check_interval / 50)
 
     def run(self):
-        if self.timer_plan is not None:#没有定时放卡plan，那就整个线程一开始就结束好了
 
-            self.timer = Timer(self.interval_use_card, self.callback_timer)
-            # 记录结束时间
-            end_time = time.time()
-            battle_start_time = end_time - self.start_time
+        if not self.insert_use_card_plan:  # 没有定时放卡plan，那就整个线程一开始就结束好了
+            return
 
-            self.set_timer_for_wave(0,time_change=battle_start_time)#初始化时设置第零波所有计时器
-            self.running = True
-            self.timer.start()
+        self.timer = Timer(self.interval_use_card, self.callback_timer)
 
-            self.faa.print_debug('[战斗执行器] ThreadTimePutCardTimer 启动')
-            self.exec()
+        # 记录结束时间
+        end_time = time.time()
+        battle_start_time = end_time - self.start_time
 
-            self.running = False
+        # 初始化时设置第零波所有计时器
+        self.set_timer_for_wave(0, time_change=battle_start_time)
+        self.running = True
+        self.timer.start()
+
+        self.faa.print_debug('[战斗执行器] ThreadTimePutCardTimer 启动')
+        self.exec()
+
+        self.running = False
 
     def stop(self):
         self.faa.print_info("[战斗执行器] ThreadTimePutCardTimer - stop - 已激活 中止事件循环")
@@ -737,10 +750,12 @@ class ThreadTimePutCardTimer(QThread):
     def callback_timer(self):
 
         try:
-            wave=self.faa.faa_battle.wave#获取当前波次
-            if self.wave!=wave:
-                self.wave=wave
-                self.set_timer_for_wave(wave)#识别到了新波次则设置该波次的定时放卡
+            # 获取当前波次
+            wave = self.faa.faa_battle.wave
+            if self.wave != wave:
+                self.wave = wave
+                # 识别到了新波次则设置该波次的定时放卡
+                self.set_timer_for_wave(wave)
         except Exception as e:
             CUS_LOGGER.warning(
                 f"[战斗执行器] ThreadTimePutCardTimer - callback_timer - 在运行中遭遇错误"
@@ -751,57 +766,71 @@ class ThreadTimePutCardTimer(QThread):
         if self.running:
             self.timer = Timer(self.interval_use_card, self.callback_timer)
             self.timer.start()
-    def set_timer_for_wave(self,wave,time_change=0):
 
-        if str(wave) in self.timer_plan["wave"].keys():  # 波次定时放卡检测
-            for wave_plan in self.timer_plan["wave"][str(wave)]:
-                c_time=wave_plan["time"]
-                # 如果是第零波，减去 time_change 时间，并确保时间不小于0，进行时间准确矫正
-                if wave == 0:
-                    CUS_LOGGER.debug(f"faa战斗执行器启动用了整整{time_change}秒！")
-                    c_time = max(0, c_time - time_change)
+    def set_timer_for_wave(self, wave, time_change=0):
 
-                def create_timer_callback( func, *args):
-                    return lambda: func(*args)
+        # 筛选本波次开始的 插入放卡事件
+        plan_this_wave = [event for event in self.insert_use_card_plan if event["trigger"]["wave_id"] == int(wave)]
 
-                if wave_plan["front_shovel"]:
-                    front_shovel_timer = Timer(
-                        max(0, c_time - 0.5),
-                        create_timer_callback( self.use_shovel_with_lock, wave_plan["location"])
-                    )
-                    front_shovel_timer.start()
+        # 遍历创建所有定时器
+        for battle_event in plan_this_wave:
 
-                card_timer = Timer(
-                    c_time,
-                    create_timer_callback( self.use_card_with_lock, wave_plan["cid"],
-                                          wave_plan["location"])
+            c_time = battle_event["trigger"]["time"]
+
+            # 如果是第零波，减去 time_change 时间，并确保时间不小于0，进行时间准确矫正
+            if wave == 0:
+                CUS_LOGGER.debug(f"faa战斗执行器启动用了整整{time_change}秒！")
+                c_time = max(0, c_time - time_change)
+
+            def create_timer_callback(func, *args):
+                return lambda: func(*args)
+
+            if battle_event["action"]["before_shovel"]:
+                before_shovel_timer = Timer(
+                    max(0, c_time - 0.5),
+                    create_timer_callback(
+                        self.use_shovel_with_lock, battle_event["action"]["location"])
                 )
-                card_timer.start()
+                before_shovel_timer.start()
 
-                if wave_plan["back_shovel"]:
-                    back_shovel_timer = Timer(
-                        c_time + wave_plan["back_shovel_time"],
-                        create_timer_callback(
-                                              self.use_shovel_with_lock, wave_plan["location"])
-                    )
-                    back_shovel_timer.start()
+            card_timer = Timer(
+                c_time,
+                create_timer_callback(
+                    self.use_card_with_lock,
+                    battle_event["action"]["card_id"],
+                    battle_event["action"]["location"])
+            )
+            card_timer.start()
 
-        # 波次定时宝石使用检测
-        if "gem" in self.timer_plan.keys():
-            if "wave" in self.timer_plan["gem"].keys():
-                if str(wave) in self.timer_plan["gem"]["wave"].keys():
-                    for wave_plan_gem in self.timer_plan["gem"]["wave"][str(wave)]:
-                        g_time=wave_plan_gem["time"]
-                        if wave==0:
-                            g_time=max(0,g_time-time_change)
-                        def create_timer_callback(func, *args):
-                            return lambda: func(*args)
-                        gemstone_timer = Timer(
-                            g_time,
-                            create_timer_callback(self.use_gemstone, wave_plan_gem["gid"])
-                        )
-                        gemstone_timer.start()
-    def use_shovel_with_lock(self,location):
+            if battle_event["action"]["after_shovel"]:
+                after_shovel_timer = Timer(
+                    c_time + battle_event["action"]["after_shovel_time"],
+                    create_timer_callback(
+                        self.use_shovel_with_lock, battle_event["action"]["location"])
+                )
+                after_shovel_timer.start()
+
+        # 奔波开始的 插入用宝石事件
+        plan_this_wave = [event for event in self.insert_use_gem_plan if event["trigger"]["wave_id"] == int(wave)]
+
+        for battle_event in plan_this_wave:
+            g_time = battle_event["trigger"]["time"]
+            if wave == 0:
+                g_time = max(0, g_time - time_change)
+
+            def create_timer_callback(func, *args):
+                return lambda: func(*args)
+
+            gemstone_timer = Timer(
+                g_time,
+                create_timer_callback(
+                    self.use_gemstone,
+                    battle_event["action"]["gem_id"]
+                )
+            )
+            gemstone_timer.start()
+
+    def use_shovel_with_lock(self, location):
         """
         :param x: 像素坐标
         :param y: 像素坐标
@@ -812,11 +841,12 @@ class ThreadTimePutCardTimer(QThread):
         with self.faa.battle_lock:
             # 选择铲子
             T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
-            time.sleep(1/240)
+            time.sleep(1 / 240)
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=x, y=y)
-            time.sleep(1/240)
+            time.sleep(1 / 240)
         CUS_LOGGER.debug(f"成功完成铲")
-    def use_gemstone(self,gid):
+
+    def use_gemstone(self, gid):
         """使用宝石"""
         # 注意上锁, 防止和放卡冲突
         with self.faa.battle_lock:
@@ -830,29 +860,35 @@ class ThreadTimePutCardTimer(QThread):
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=297)
                 case _:
                     CUS_LOGGER.warning(f"[战斗执行器] ThreadTimePutCardTimer - use_gemstone - 错误: id={id} 不存在")
-    def use_card_with_lock(self,card_id,location):
+
+    def use_card_with_lock(self, card_id, location):
         """
         :param card_id: 卡片id
         :param x: 像素坐标
         :param y: 像素坐标
         """
-        battle_log=False
+        battle_log = False
         with self.faa.battle_lock:
-            #选卡操作
+
+            # 选卡操作
             T_ACTION_QUEUE_TIMER.add_click_to_queue(
                 handle=self.faa.handle,
                 x=self.bp_card[card_id][0] + 25,
                 y=self.bp_card[card_id][1] + 35)
-            time.sleep(1/240)
-            #放卡操作
+
+            time.sleep(self.interval_use_card)
+
+            # 放卡操作
             T_ACTION_QUEUE_TIMER.add_click_to_queue(
                 handle=self.faa.handle,
                 x=self.bp_cell[location][0],
                 y=self.bp_cell[location][1])
+
         if battle_log:
             time.sleep(0.75)
             self.try_get_picture_now()
             CUS_LOGGER.debug(f"成功定时放卡{card_id}于{location}")
+
     def try_get_picture_now(self):
         windll.user32.SetProcessDPIAware()
         output_base_path = PATHS["logs"] + "\\yolo_output"
@@ -861,8 +897,6 @@ class ThreadTimePutCardTimer(QThread):
         output_img_path = f"{output_base_path}/images/{timestamp}.png"
         original_image = capture_image_png_all(self.faa.handle)[:, :, :3]
         cv2.imwrite(output_img_path, original_image)
-
-
 
 
 class ThreadUseSpecialCardTimer(QThread):
