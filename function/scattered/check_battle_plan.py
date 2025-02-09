@@ -4,6 +4,7 @@ import uuid
 
 from function.globals import EXTRA, SIGNAL
 from function.globals.get_paths import PATHS
+from function.scattered.ClassBattlePlanV3d0 import convert_v2_to_v3
 from function.scattered.get_list_battle_plan import get_list_battle_plan
 
 
@@ -26,41 +27,40 @@ def fresh_and_check_all_battle_plan():
         # 自旋锁, 防多线程读写问题
         with EXTRA.FILE_LOCK:
 
-            with open(file=file_name, mode='r', encoding='utf-8') as file:
-                json_data = json.load(file)
-
             added[plan_name] = ""
-            changed = False
+            need_save = False
 
-            uuid_v1 = json_data.get('uuid')
+            try:
+                with open(file=file_name, mode='r', encoding='utf-8') as file:
+                    json_data = json.load(file)
+            except:
+                added[plan_name] += "包含致命故障! 请勿使用文本编辑器瞎改! 请删除对应方案, FAA已保护性自爆!"
+                continue
+
+            battle_plan_version = json_data.get("meta_data",{}).get("version", None)
+            if not battle_plan_version:
+                # 低于v3.0版本的战斗方案, 尝试从v2.0进行迁移
+                try:
+                    json_data = convert_v2_to_v3(v2_data=json_data)
+                    need_save = True
+                    added[plan_name] += "成功从v2.0迁至最新"
+                except:
+                    added[plan_name] += "方案版本过低!"
+                    continue
+
+            uuid_v1 = json_data["meta_data"]['uuid']
 
             if uuid_v1 in battle_plan_uuid_list:
                 # 撞了uuid就生成
                 uuid_v1 = str(uuid.uuid1())
-                json_data["uuid"] = uuid_v1
-                added[plan_name] += "FAA v1.5.0以下 uuid撞车重新生成;"
-                changed = True
+                json_data["meta_data"]["uuid"] = uuid_v1
+                added[plan_name] += "方案 uuid撞车, 已重新生成;"
+                need_save = True
                 # 确保uuid唯一性
                 time.sleep(0.001)
-
-            if not uuid_v1:
-                # 没有uuid重新生成
-                uuid_v1 = str(uuid.uuid1())
-                json_data["uuid"] = uuid_v1
-                added[plan_name] += "FAA v1.5.0以下 uuid缺失立刻生成;"
-                changed = True
-                # 确保uuid唯一性
-                time.sleep(0.001)
-
-            card = json_data.get("card")
-
-            if type(card) is list:
-                json_data["card"] = {"default": card, "wave": {}}
-                added[plan_name] += "FAA v1.5.7以下 缺失波次信息;"
-                changed = True
 
             # 保存
-            if changed:
+            if need_save:
                 with open(file=file_name, mode='w', encoding='utf-8') as file:
                     json.dump(json_data, file, ensure_ascii=False, indent=4)
 
@@ -74,7 +74,7 @@ def fresh_and_check_all_battle_plan():
         if msg != "":
             info += f"{plan_name} -> {msg}\n"
     if info != "":
-        SIGNAL.DIALOG.emit("方案检测和修复完成", info)
+        SIGNAL.DIALOG.emit("方案检测和修复完成 - 方案版本 v3.0", info)
 
 
 if __name__ == '__main__':

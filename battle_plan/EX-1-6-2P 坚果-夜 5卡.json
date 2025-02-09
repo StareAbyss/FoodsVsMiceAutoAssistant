@@ -1,79 +1,105 @@
 {
-    "player": [
-        "5-3",
-        "5-5"
-    ],
-    "card": {
-        "default": [
-            {
-                "id": 1,
-                "name": "海星",
-                "ergodic": true,
-                "queue": false,
-                "kun": 0,
-                "location": [
-                    "1-4",
-                    "3-4",
-                    "4-4",
-                    "5-4",
-                    "6-4",
-                    "7-4",
-                    "8-4",
-                    "6-3",
-                    "6-5",
-                    "7-3",
-                    "7-5",
-                    "8-3",
-                    "8-5",
-                    "7-2",
-                    "7-6",
-                    "7-1",
-                    "7-7",
-                    "8-1",
-                    "8-7"
-                ]
-            },
-            {
-                "id": 2,
-                "name": "布丁",
-                "ergodic": true,
-                "queue": true,
-                "kun": 0,
-                "location": [
-                    "2-4",
-                    "6-1",
-                    "6-7"
-                ]
-            },
-            {
-                "id": 3,
-                "name": "酒瓶炸弹",
-                "ergodic": true,
-                "queue": false,
-                "location": [
-                    "2-4",
-                    "3-4",
-                    "4-4",
-                    "5-4",
-                    "6-4",
-                    "7-4",
-                    "8-4"
-                ],
-                "kun": 0
-            },
-            {
-                "id": 4,
-                "name": "照明",
-                "ergodic": true,
-                "queue": false,
-                "location": [
-                    "4-7"
-                ],
-                "kun": 0
-            }
+    "meta_data": {
+        "uuid": "d8d8f11c-ad80-11ef-89ca-c2f2346a1393",
+        "tips": "",
+        "player_position": [
+            "5-3",
+            "5-5"
         ],
-        "wave": {}
+        "version": "3.0"
     },
-    "tips": "",
-    "uuid": "d8d8f11c-ad80-11ef-89ca-c2f2346a1393"
+    "cards": [
+        {
+            "card_id": 1,
+            "name": "海星"
+        },
+        {
+            "card_id": 2,
+            "name": "布丁"
+        },
+        {
+            "card_id": 3,
+            "name": "酒瓶炸弹"
+        },
+        {
+            "card_id": 4,
+            "name": "照明"
+        }
+    ],
+    "events": [
+        {
+            "trigger": {
+                "wave_id": 0,
+                "time": 0,
+                "type": "wave_timer"
+            },
+            "action": {
+                "type": "loop_use_cards",
+                "cards": [
+                    {
+                        "card_id": 1,
+                        "ergodic": true,
+                        "queue": false,
+                        "location": [
+                            "1-4",
+                            "3-4",
+                            "4-4",
+                            "5-4",
+                            "6-4",
+                            "7-4",
+                            "8-4",
+                            "6-3",
+                            "6-5",
+                            "7-3",
+                            "7-5",
+                            "8-3",
+                            "8-5",
+                            "7-2",
+                            "7-6",
+                            "7-1",
+                            "7-7",
+                            "8-1",
+                            "8-7"
+                        ],
+                        "kun": 0
+                    },
+                    {
+                        "card_id": 2,
+                        "ergodic": true,
+                        "queue": true,
+                        "location": [
+                            "2-4",
+                            "6-1",
+                            "6-7"
+                        ],
+                        "kun": 0
+                    },
+                    {
+                        "card_id": 3,
+                        "ergodic": true,
+                        "queue": false,
+                        "location": [
+                            "2-4",
+                            "3-4",
+                            "4-4",
+                            "5-4",
+                            "6-4",
+                            "7-4",
+                            "8-4"
+                        ],
+                        "kun": 0
+                    },
+                    {
+                        "card_id": 4,
+                        "ergodic": true,
+                        "queue": false,
+                        "location": [
+                            "4-7"
+                        ],
+                        "kun": 0
+                    }
+                ]
+            }
+        }
+    ]
 }

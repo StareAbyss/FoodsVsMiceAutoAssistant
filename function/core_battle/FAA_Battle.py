@@ -261,17 +261,22 @@ class Battle:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=200, y=350)
             time.sleep(self.click_sleep)
 
-    def use_weapon_skill(self):
+    def use_gem_skill(self):
         """使用武器技能"""
-        # 注意上锁, 防止和放卡冲突
+
+        # 如果有定时操作 就不自动使用
+        gem_timer = next((e for e in self.faa.battle_plan["events"] if e["action"]["type"] == "insert_use_gem"), None)
+        if gem_timer is not None:
+            return
+
+        # 上锁, 防止和放卡冲突
         with self.faa.battle_lock:
-            if "gem" not in self.faa.battle_plan["card"]["timer_plan"]:
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=200)
-                time.sleep(self.click_sleep)
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=250)
-                time.sleep(self.click_sleep)
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=297)
-                time.sleep(self.click_sleep)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=200)
+            time.sleep(self.click_sleep)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=250)
+            time.sleep(self.click_sleep)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=297)
+            time.sleep(self.click_sleep)
 
     def auto_pickup(self):
         if not self.faa.is_auto_pickup:
@@ -318,7 +323,12 @@ class Battle:
         self.wave = new_wave
 
         # 新波次无方案
-        if str(new_wave) not in self.faa.battle_plan["card"]["wave"].keys():
+        wave_ids = [
+            e["trigger"]["wave_id"] for e in self.faa.battle_plan["events"]
+            if e["action"]["type"] == "loop_use_cards"
+        ]
+
+        if new_wave not in wave_ids:
             CUS_LOGGER.debug(f"[{self.faa.player}P] 当前波次:{new_wave}, 已检测到转变, 但该波次无变阵方案")
             return False
 
@@ -332,6 +342,7 @@ class Battle:
 
         # 重载战斗方案
         self.faa.init_battle_plan_card()
+
         # 获取新方案
         plans["new"] = copy.deepcopy(self.faa.battle_plan_card)
 
@@ -355,7 +366,7 @@ class Battle:
                         if location in card["location"]:
                             if card["name"] != "":
                                 if ("护罩" not in card["name"]) and ("瓜皮" not in card["name"]):
-                                    location_cid[p_type][location].append(card["id"])
+                                    location_cid[p_type][location].append(card["card_id"])
 
                 if location_cid["old"][location] == location_cid["new"][location]:
                     continue
