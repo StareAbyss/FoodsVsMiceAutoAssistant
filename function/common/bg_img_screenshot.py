@@ -1,3 +1,4 @@
+import time
 from ctypes import windll, byref, c_ubyte
 from ctypes.wintypes import RECT, HWND
 
@@ -40,6 +41,7 @@ def capture_image_png(handle: HWND, raw_range: list, root_handle: HWND = None):
             # 尝试恢复至激活窗口的底层
             if restore_window_if_minimized(handle=root_handle):
                 # 如果恢复成功, 再次尝试截图一次
+                time.sleep(0.1)
                 image = capture_image_png_once(handle=handle)
 
     # 裁剪图像到指定区域
