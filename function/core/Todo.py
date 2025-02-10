@@ -2039,6 +2039,10 @@ class ThreadTodo(QThread):
             quest_list_2 = self.faa_dict[2].match_quests(mode="美食大赛-新")
             quest_list = quest_list_1 + quest_list_2
 
+            # 用于区分单人和组队任务
+            player_text = None
+            single_player_quests = [quest for quest in quest_list if len(quest["player"]) == 1]
+
             if not quest_list:
                 return False
 
@@ -2065,6 +2069,8 @@ class ThreadTodo(QThread):
                 text="[全自动大赛] 已完成任务获取, 结果如下:",
                 color_level=3
             )
+
+            quest_list = single_player_quests if single_player_quests else quest_list
 
             for i in range(len(quest_list)):
 
@@ -2101,7 +2107,17 @@ class ThreadTodo(QThread):
                 quest_list[i]["battle_plan_1p"] = "00000000-0000-0000-0000-000000000000"
                 quest_list[i]["battle_plan_2p"] = "00000000-0000-0000-0000-000000000001"
 
-            self.battle_1_n_n(quest_list=quest_list)
+            if "单人" in player_text:
+                self.signal_start_todo_2_battle.emit({
+                    "quest_list": [quest for quest in quest_list if 2 in quest.get('player', [])],
+                    "extra_title": "多线程单人] [2P",
+                    "need_lock": True
+                })
+                self.battle_1_n_n(quest_list=[quest for quest in quest_list if 1 in quest.get('player', [])],
+                                  extra_title="多线程单人] [1P",
+                                  need_lock=True)
+            else:
+                self.battle_1_n_n(quest_list=quest_list)
 
             return True
 

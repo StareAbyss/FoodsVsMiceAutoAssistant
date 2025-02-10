@@ -904,7 +904,9 @@ class FAA:
             # 提取文字
             texts = extract_text_from_images(quest_imgs)
             # 解析文本
-            quest_list = food_texts_to_battle_info(texts, self)
+            single_player_quests, multi_player_quests = food_texts_to_battle_info(texts, self)
+            # 优先单人然后组队
+            quest_list = single_player_quests if single_player_quests else multi_player_quests
 
         # 关闭公会任务列表(红X)
         if mode == "公会任务" or mode == "情侣任务":
