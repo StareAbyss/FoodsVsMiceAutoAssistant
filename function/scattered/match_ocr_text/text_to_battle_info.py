@@ -8,7 +8,7 @@ def food_texts_to_battle_info(texts, self):
     """
     :param self:
     :param texts: 文本列表，每项代表文档中的一行。
-    :return: 字典列表，字典包含从文本中提取的战斗信息。
+    :return: 两字典列表，一个包含单人任务，另一个包含多人任务。
     """
     default_deck = [
         "海星",
@@ -29,17 +29,17 @@ def food_texts_to_battle_info(texts, self):
     ]
 
     name_stage_info = extract_names_and_ids_from_json()
-    quest_list = []
+    single_player_quests = []
+    multi_player_quests = []
 
     for text in texts:
         # 初始化变量
         stage_id = None
+        quest_card = None
+        max_card_num = None
         player = [self.player] if "单人" in text else [2, 1]
         need_key = True
-
-        quest_card = None
         ban_card_list = []
-        max_card_num = None
 
         # 提取stage_id
         for key, value in name_stage_info.items():
@@ -103,7 +103,7 @@ def food_texts_to_battle_info(texts, self):
                     ban_card_list.extend(default_deck[max_card_num:])
 
         # 将战斗信息字典添加到列表中
-        quest_list.append({
+        quest_info = {
             "stage_id": stage_id,
             "player": player,
             "need_key": need_key,
@@ -120,6 +120,27 @@ def food_texts_to_battle_info(texts, self):
             "deck": None,  # 外部输入 0-6
             "battle_plan_1p": None,  # 外部输入
             "battle_plan_2p": None,  # 外部输入
-        })
+        }
 
-    return quest_list
+        if player == [self.player]:
+            single_player_quests.append(quest_info)
+        else:
+            multi_player_quests.append(quest_info)
+
+    # 对 quest_list 按照 stage_id 进行排序
+    single_player_quests.sort(key=lambda x: x["stage_id"])
+    multi_player_quests.sort(key=lambda x: x["stage_id"])
+
+    # 找到 stage_id 最小的任务
+    if multi_player_quests:
+        min_stage_id = multi_player_quests[0]["stage_id"]
+        filtered_quests = [quest for quest in multi_player_quests if quest["stage_id"] == min_stage_id]
+
+        # 找到限制条件最多的任务
+        max_restriction_quest = max(filtered_quests, key=lambda x: len(x["ban_card_list"]) if x["ban_card_list"] else 0)
+        filtered_multi_player_quests = [max_restriction_quest]
+    else:
+        filtered_multi_player_quests = []
+
+    return single_player_quests, filtered_multi_player_quests
+
