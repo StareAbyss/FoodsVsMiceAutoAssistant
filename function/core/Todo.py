@@ -2,6 +2,7 @@ import copy
 import datetime
 import json
 import os
+import subprocess
 import time
 from collections import defaultdict
 from time import sleep
@@ -10,6 +11,7 @@ import requests
 from PyQt6.QtCore import *
 from requests import RequestException
 
+from function.common.TCEPipeCommunicationThread import TCEPipeCommunicationThread
 from function.common.bg_img_match import loop_match_p_in_w
 from function.common.process_and_window_manager import close_software_by_title, get_path_and_sub_titles, \
     close_all_software_by_name, start_software_with_args
@@ -949,7 +951,7 @@ class ThreadTodo(QThread):
                 self.thread_2p.join()
 
             if self.opt["senior_settings"]["auto_senior_settings"]:
-                if senior_setting:#双重开关，当全局的启用了，对应的关卡也要启用
+                if senior_setting:  #双重开关，当全局的启用了，对应的关卡也要启用
                     self.process, queue_todo = read_and_get_return_information(
                         self.faa_dict[player_a],
                         self.opt["senior_settings"]["senior_log_state"],
@@ -1234,7 +1236,7 @@ class ThreadTodo(QThread):
         # 默认肯定是不跳过的
         skip = False
         #限制即使勾选了设置中的启用高级战斗，也需要在全局战斗设置中修改对应关卡
-        senior_setting=False
+        senior_setting = False
 
         # 是否采用 全局方案配置
         if global_plan_active:
@@ -1354,7 +1356,7 @@ class ThreadTodo(QThread):
                     player_a=pid_a,
                     player_b=pid_b,
                     change_card=need_change_card
-                ,senior_setting=senior_setting)
+                    , senior_setting=senior_setting)
 
                 if result_id == 0:
 
@@ -2756,6 +2758,42 @@ class ThreadTodo(QThread):
                 color_level=1)
             SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
 
+        """天知强卡器"""
+        TCE_active = False
+        TCE_active = TCE_active or c_opt["start_TCE"]["active"]
+
+        if TCE_active:
+            my_opt = c_opt["start_TCE"]
+            SIGNAL.PRINT_TO_UI.emit(text="尝试召唤天知强卡器，与FAA签订契约，成为魔法少女吧!", color_level=1)
+            # 启动TCE命名管道线程
+            tce_pipe_thread = TCEPipeCommunicationThread()
+            tce_pipe_thread.start()
+            # 尝试启动强卡器
+            path = my_opt["TCE_path"]
+            TCE = subprocess.Popen(path)
+            # 等待强卡器连接，最多等待十秒
+            for _ in range(10):
+                time.sleep(1)
+                if tce_pipe_thread.running:
+                    break
+            if my_opt["player"] == "1P":
+                handle = self.faa_dict[1].handle
+            else:
+                handle = self.faa_dict[2].handle
+            if my_opt["enhance_card_active"]:
+                SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 卡片强化开始", color_level=1)
+                tce_pipe_thread.enhance_card(handle)
+                SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 卡片强化完成", color_level=1)
+            if my_opt["decompose_gem_active"]:
+                SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 宝石分解开始", color_level=1)
+                tce_pipe_thread.decompose_gem(handle)
+                SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 宝石分解完成", color_level=1)
+            # 关闭TCE命名管道线程
+            tce_pipe_thread.stop()
+            # 关闭强卡器
+            SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 强卡器关闭", color_level=2)
+            TCE.kill()
+
         """全部完成"""
 
         if main_task_active or extra_active:
@@ -2775,7 +2813,8 @@ class ThreadTodo(QThread):
                         color_level=1)
         else:
             if active_singleton:
-                SIGNAL.PRINT_TO_UI.emit(text="您启动了完成后操作, 但仅运行了自建房对战, 故不进行任何操作", color_level=1)
+                SIGNAL.PRINT_TO_UI.emit(text="您启动了完成后操作, 但仅运行了自建房对战, 故不进行任何操作",
+                                        color_level=1)
             else:
                 SIGNAL.PRINT_TO_UI.emit(text="您启动了完成后操作, 但并未运行任务, 故不进行任何操作", color_level=1)
 
