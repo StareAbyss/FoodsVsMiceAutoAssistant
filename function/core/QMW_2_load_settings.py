@@ -369,6 +369,21 @@ class QMainWindowLoadSettings(QMainWindowLog):
         init_battle_plan(self.CustomizeBattle_1P, my_opt["customize_battle"]["battle_plan_1p"])
         init_battle_plan(self.CustomizeBattle_2P, my_opt["customize_battle"]["battle_plan_2p"])
 
+        # 天知强卡器
+        if my_opt.get("start_TCE", None) is not None:
+            self.StartTCE_Active.setChecked(my_opt["start_TCE"]["active"])
+            self.TCE_Group.setCurrentText(my_opt["start_TCE"]["player"])
+            self.TCEEnhanceCard_Active.setChecked(my_opt["start_TCE"]["enhance_card_active"])
+            self.TCEDecomposeGem_Active.setChecked(my_opt["start_TCE"]["decompose_gem_active"])
+            self.TCE_path_input.setText(my_opt["start_TCE"]["TCE_path"])
+        else:
+            self.StartTCE_Active.setChecked(False)
+            self.TCE_Group.setCurrentIndex(0)
+            self.TCEEnhanceCard_Active.setChecked(False)
+            self.TCEDecomposeGem_Active.setChecked(False)
+            self.TCE_path_input.setText("")
+
+
         # 一个提示弹窗
         self.cant_find_battle_plan_in_uuid_show_dialog()
 
@@ -793,6 +808,14 @@ class QMainWindowLoadSettings(QMainWindowLog):
         my_opt["customize_battle"]["deck"] = self.CustomizeBattle_Deck.currentIndex()
         my_transformer_b(self.CustomizeBattle_1P, "customize_battle", "battle_plan_1p")
         my_transformer_b(self.CustomizeBattle_2P, "customize_battle", "battle_plan_2p")
+
+        # 天知强卡器
+        my_opt["start_TCE"] = {}
+        my_opt["start_TCE"]["active"] = self.StartTCE_Active.isChecked()
+        my_opt["start_TCE"]["player"] = self.TCE_Group.currentText()
+        my_opt["start_TCE"]["enhance_card_active"] = self.TCEEnhanceCard_Active.isChecked()
+        my_opt["start_TCE"]["decompose_gem_active"] = self.TCEDecomposeGem_Active.isChecked()
+        my_opt["start_TCE"]["TCE_path"] = self.TCE_path_input.text()
 
     def ui_to_opt(self) -> None:
 
