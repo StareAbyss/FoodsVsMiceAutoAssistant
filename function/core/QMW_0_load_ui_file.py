@@ -2,7 +2,9 @@ import os
 import sys
 
 from PyQt6 import uic, QtGui, QtCore, QtWidgets
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QListWidgetItem, QListWidget
 
 from function.common.get_system_dpi import get_system_dpi
 from function.globals import EXTRA
@@ -35,7 +37,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         self.setWindowTitle("FAA - 本软件免费且开源")
 
         # 设置系统图标
-        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
+        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-256x-AllSize.ico"))
 
         # 设置显示版本号
         self.Title_Version.setText(EXTRA.VERSION)
@@ -49,6 +51,11 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
         # 获取系统样式(高亮颜色)
         self.theme_highlight_color = QtWidgets.QApplication.palette().color(QtGui.QPalette.ColorRole.Highlight).name()
+
+        # 配置 进阶设置 导航栏交互
+        self.adv_opt_synchronizing = None
+        self.adv_opt_sections:list = []
+        self.init_advanced_settings_connection()
 
     def get_theme(self):
         if self.palette().color(QtGui.QPalette.ColorRole.Window).lightness() < 128:
@@ -290,6 +297,109 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
             self._isTracking = False
             self._startPos = None
             self._endPos = None
+
+    """进阶设定 导航栏交互 初始化"""
+
+    def init_advanced_settings_connection(self):
+
+        # 初始化同步标志
+        self.adv_opt_synchronizing = False
+
+        # 获取实际内容布局
+        content_layout = self.AdvancedSettingsArea.widget().layout()
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(20)
+
+        # 列表内容 -> 对应的元素
+        self.adv_opt_sections = {
+            "日常任务": self.DailyTasksSettingsGroup,
+            "外部控制": self.ControlSettingsGroup,
+            "战斗设置": self.BattleSettingsGroup,
+            "其它设置": self.OtherSettingsGroup
+        }
+
+        # 添加导航项和内容块
+        for title, tar_item in self.adv_opt_sections.items():
+            # 添加导航项
+            item = QListWidgetItem(title)
+            item.setData(Qt.ItemDataRole.UserRole, tar_item)
+            item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.AdvancedSettingsNavigationList.addItem(item)
+
+        # 设置样式
+        self.AdvancedSettingsNavigationList.setStyleSheet("""
+            QListWidget::item {
+                padding: 15px;
+                border-bottom: 1px solid #ddd;
+            }
+            QListWidget::item:selected {
+                background-color: #e0f0ff;
+                color: #0066cc;
+                font-weight: bold;
+            }
+        """)
+
+        # 连接信号
+        self.AdvancedSettingsNavigationList.itemClicked.connect(self.on_nav_item_clicked)
+        self.AdvancedSettingsArea.verticalScrollBar().valueChanged.connect(self.on_settings_scroll)
+
+    def on_nav_item_clicked(self, item):
+
+        if self.adv_opt_synchronizing:
+            return
+
+        # 获取关联的组件 (一个布局)
+        section = item.data(Qt.ItemDataRole.UserRole)
+
+        # 计算滚动位置（滚动到区块中间）
+        scroll_bar = self.AdvancedSettingsArea.verticalScrollBar()
+        widget_position = section.y()
+        viewport_height = self.AdvancedSettingsArea.viewport().height()
+        widget_height = section.size().height()
+
+        # 计算目标滚动位置
+        target_y = widget_position + (widget_height - viewport_height) // 2
+        scroll_bar.setValue(target_y)
+
+    def on_settings_scroll(self):
+
+        if self.adv_opt_synchronizing:
+            return
+
+        # 获取当前滚动信息
+        scroll_bar = self.AdvancedSettingsArea.verticalScrollBar()
+        current_position = scroll_bar.value()
+        viewport_height = self.AdvancedSettingsArea.viewport().height()
+        middle_position = current_position + viewport_height // 2
+
+        # 查找最接近的区块
+        closest_item = None
+        min_distance = float('inf')
+
+        for i in range(self.AdvancedSettingsNavigationList.count()):
+            item = self.AdvancedSettingsNavigationList.item(i)
+            section = item.data(Qt.ItemDataRole.UserRole)
+
+            # 计算区块中间位置
+            section_top = section.y()
+            section_height = section.size().height()
+            section_middle = section_top + section_height // 2
+
+            # 计算距离差值
+            distance = abs(section_middle - middle_position)
+            if distance < min_distance:
+                min_distance = distance
+                closest_item = item
+
+        # 更新导航选中状态
+        if closest_item:
+            self.adv_opt_synchronizing = True
+            self.AdvancedSettingsNavigationList.setCurrentItem(closest_item)
+            self.AdvancedSettingsNavigationList.scrollToItem(
+                closest_item,
+                QListWidget.ScrollHint.PositionAtCenter
+            )
+            self.adv_opt_synchronizing = False
 
 
 if __name__ == "__main__":
