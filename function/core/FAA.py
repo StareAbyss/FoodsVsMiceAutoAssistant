@@ -4,6 +4,7 @@ import time
 from datetime import datetime
 
 import pytz
+import json
 
 from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
 from function.common.overlay_images import overlay_images
@@ -12,6 +13,7 @@ from function.core.FAA_ActionQuestReceiveRewards import FAAActionQuestReceiveRew
 from function.core.FAA_BattlePreparation import BattlePreparation
 from function.core_battle.FAA_Battle import Battle
 from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
+from function.core.QMW_2_load_settings import get_QQ_login_info
 from function.globals import g_resources, SIGNAL
 from function.globals.g_resources import RESOURCE_P
 from function.globals.location_card_cell_in_battle import COORDINATE_CARD_CELL_IN_BATTLE
@@ -1170,6 +1172,7 @@ class FAA:
                     x=my_result[0] + 20,
                     y=my_result[1] + 30)
                 return True
+            
             return False
 
         def try_enter_server_qq_game_hall():
@@ -1230,7 +1233,14 @@ class FAA:
                 # 点击刷新按钮 该按钮在360窗口上
                 self.print_debug(text="[刷新游戏] 点击刷新按钮...")
                 self.click_refresh_btn()
-
+                
+                # 获取QQ登录信息
+                QQ_login_info=get_QQ_login_info()
+                
+                # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
+                if QQ_login_info["need_sleep"]:
+                    time.sleep(QQ_login_info["sleep_time"]) 
+                
                 # 依次判断是否在选择服务器界面
                 self.print_debug(text="[刷新游戏] 判定平台...")
 
@@ -1240,6 +1250,11 @@ class FAA:
                     self.print_debug(text="[刷新游戏] 成功进入 - 4399微端平台")
                 elif try_enter_server_qq_space():
                     self.print_debug(text="[刷新游戏] 成功进入 - QQ空间平台")
+                    
+                    # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
+                    if QQ_login_info["need_sleep"]:
+                        time.sleep(QQ_login_info["sleep_time"]) 
+                    
                 elif try_enter_server_qq_game_hall():
                     self.print_debug(text="[刷新游戏] 成功进入 - QQ游戏大厅平台")
                 else:
@@ -1247,16 +1262,91 @@ class FAA:
                     self.print_debug(
                         text="[刷新游戏] 未找到进入服务器按钮, 可能 1.QQ空间需重新登录 2.360X4399微端 3.需断线重连 4.意外情况")
 
-                    result = loop_match_p_in_w(
+                    
+                    
+                    if QQ_login_info['login_mode']=='密码登录': 
+                        # 开始进入密码登录页面
+                        result = loop_match_p_in_w(
+                            source_handle=self.handle_browser,
+                            source_root_handle=self.handle_360,
+                            source_range=[0, 0, 2000, 2000],
+                            template=RESOURCE_P["common"]["登录"]["密码登录.png"],
+                            match_tolerance=0.90,
+                            match_interval=0.5,
+                            match_failed_check=5,
+                            after_sleep=2,
+                            click=True)
+                        
+                        # 进入密码登录页面成功，开始获取账号输入框的焦点
+                        if result:
+                            result = loop_match_p_in_w(
+                            source_handle=self.handle_browser,
+                            source_root_handle=self.handle_360,
+                            source_range=[0, 0, 2000, 2000],
+                            template=RESOURCE_P["common"]["登录"]["账号输入框.png"],
+                            match_tolerance=0.90,
+                            match_interval=0.5,
+                            match_failed_check=5,
+                            after_sleep=0.5,
+                            click=True)
+                        else:
+                            self.print_debug(text="进入QQ密码登录页面失败")
+                            continue
+                        # 注意这里不能 sleep ，否则容易因为抢占焦点而失败
+                        # 账号输入框获取焦点成功，开始输入账号
+                        if result:
+                            username=QQ_login_info['{}p'.format(self.player)]['username']
+                            for key in username:
+                                T_ACTION_QUEUE_TIMER.char_input(handle=self.handle_browser, char=key)
+                                time.sleep(0.1)
+                        # 注意360有可能记住QQ账号，这里如果result==False就大概率是因为这个原因，所以不用输入账号
+                        # (实测发现可能是由于faa获取截图的方式比较特殊，即使记住了QQ账号他也能获取到账号输入框，总之代码能跑)
+                        # 输入账号完成，开始获取密码输入框的焦点
+                        result = loop_match_p_in_w(
                         source_handle=self.handle_browser,
                         source_root_handle=self.handle_360,
                         source_range=[0, 0, 2000, 2000],
-                        template=g_resources.RESOURCE_CP["用户自截"]["空间服登录界面_{}P.png".format(self.player)],
-                        match_tolerance=0.95,
+                        template=RESOURCE_P["common"]["登录"]["密码输入框.png"],
+                        match_tolerance=0.90,
+                        match_interval=0.5,
+                        match_failed_check=5,
+                        after_sleep=0.5,
+                        click=True)
+                        # 注意这里不能 sleep ，否则容易因为抢占焦点而失败
+                        # 获取密码输入框的焦点成功，开始输入密码
+                        if result:
+                            username=QQ_login_info['{}p'.format(self.player)]['password']
+                            for key in username:
+                                T_ACTION_QUEUE_TIMER.char_input(handle=self.handle_browser, char=key)
+                                time.sleep(0.1)
+                        
+                        # 输入密码完成，开始点击登录按钮
+                        result = loop_match_p_in_w(
+                        source_handle=self.handle_browser,
+                        source_root_handle=self.handle_360,
+                        source_range=[0, 0, 2000, 2000],
+                        template=RESOURCE_P["common"]["登录"]["登录.png"],
+                        match_tolerance=0.90,
                         match_interval=0.5,
                         match_failed_check=5,
                         after_sleep=5,
                         click=True)
+                        
+                        # 点击登录按钮成功，等待选服
+                        time.sleep(1)
+                    
+                    # 非密码登录模式，通过点击QQ头像进行快捷登录
+                    else:
+                        result = loop_match_p_in_w(
+                            source_handle=self.handle_browser,
+                            source_root_handle=self.handle_360,
+                            source_range=[0, 0, 2000, 2000],
+                            template=RESOURCE_P["用户自截"]["空间服登录界面_{}P.png".format(self.player)],
+                            match_tolerance=0.95,
+                            match_interval=0.5,
+                            match_failed_check=5,
+                            after_sleep=5,
+                            click=True)
 
                     if result:
                         self.print_debug(text="[刷新游戏] 找到QQ空间服一键登录, 正在登录")
