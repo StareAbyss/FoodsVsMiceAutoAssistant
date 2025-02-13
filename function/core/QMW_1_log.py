@@ -159,7 +159,7 @@ class QMainWindowLog(QMainWindowLoadUI):
             color_level=1,
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="[在线文档]  https://stareabyss.top/FAA-WebSite/",
+            "<a href='https://stareabyss.top/FAA-WebSite'>点 &hearts; 我 &hearts; 看 &hearts; 在 &hearts; 线 &hearts; 文 &hearts; 档</a>",
             color_level=2,
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
@@ -209,7 +209,7 @@ class QMainWindowLog(QMainWindowLoadUI):
             time=False,
             color_level=1)
         SIGNAL.PRINT_TO_UI.emit(
-            text="https://github.com/StareAbyss/FoodsVsMiceAutoAssistant",
+            text="<a href=https://github.com/StareAbyss/FoodsVsMiceAutoAssistant>点击跳转, 女装乞讨Star ing</a>",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
             text="开源不易, 为我点个Star吧! 发送Issues是最有效的问题反馈渠道",
@@ -224,11 +224,10 @@ class QMainWindowLog(QMainWindowLoadUI):
             color_level=1,
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="UP主 - 直视深淵, 非全职非专一美食~ 但关注支持一下总是不亏的",
+            text="<a href=https://www.bilibili.com/video/BV1owUFYHEPq>点击跳转, 查看劲爆宣传物料(不)</a>",
             time=False)
-
         SIGNAL.PRINT_TO_UI.emit(
-            text="[宣传] https://www.bilibili.com/video/BV1owUFYHEPq/",
+            text="UP主 - 直视深淵, 非全职非专一美食~ 但关注支持一下总是不亏的",
             time=False)
 
         SIGNAL.PRINT_TO_UI.emit(
@@ -270,10 +269,10 @@ class QMainWindowLog(QMainWindowLoadUI):
             color_level=1,
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="https://msdzls.cn/",
+            text="<a href=https://msdzls.cn>点击跳转, 进入米苏物流</a>",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="FAA X 米苏物流数据统计就挂靠在这呢~ By 夏夜浅酌",
+            text="FAA X 米苏物流  数据统计就挂靠在这呢~ By 夏夜浅酌",
             time=False)
 
     # 用于展示弹窗信息的方法
@@ -286,8 +285,11 @@ class QMainWindowLog(QMainWindowLoadUI):
         msg.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
         msg.exec()
 
-    def print_to_ui(self, text, color, time):
+    def print_to_ui(self, text, color, time, *args):
         """打印文本到输出框 """
+        if args:
+            # 使用空格连接多个参数
+            text = text + " " + " ".join(str(arg) for arg in args)
 
         # 时间文本
         text_time = "[{}] ".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) if time else ""
@@ -298,12 +300,10 @@ class QMainWindowLog(QMainWindowLoadUI):
         # 输出到输出框
         self.TextBrowser.append(text_all)
 
-        # 实时输出
-        cursor = self.TextBrowser.textCursor()
-        cursor.setPosition(cursor.position(), QTextCursor.MoveMode.MoveAnchor)
-        cursor.setPosition(cursor.position() + 1, QTextCursor.MoveMode.KeepAnchor)  # 移动到末尾
-        self.TextBrowser.setTextCursor(cursor)
-        QApplication.processEvents()
+        # 自动滚动到最新消息
+        self.TextBrowser.verticalScrollBar().setValue(
+            self.TextBrowser.verticalScrollBar().maximum()
+        )
 
         # 输出到日志和运行框
         CUS_LOGGER.info(text)
