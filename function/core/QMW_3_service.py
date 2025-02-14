@@ -24,9 +24,11 @@ from function.core.QMW_TipLoginSettings import QMWTipLoginSettings
 from function.core.QMW_TipMisuLogistics import QMWTipMisuLogistics
 from function.core.QMW_TipStageID import QMWTipStageID
 from function.core.QMW_TipWarmGift import QMWTipWarmGift
+from function.core.QMW_TipQQlogin import QMWTipQQlogin
 from function.core.QMW_UsefulToolsWidget import UsefulToolsWidget
 from function.core.Todo import ThreadTodo
 from function.core.performance_analysis import run_analysis_in_thread
+from function.core.my_crypto import encrypt_data,decrypt_data
 from function.globals import EXTRA, SIGNAL
 from function.globals import g_resources
 from function.globals.get_paths import PATHS
@@ -100,6 +102,10 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 额外窗口 - 温馨礼包提示
         self.window_tip_warm_gift = QMWTipWarmGift()
         self.GetWarmGiftTipButton.clicked.connect(self.click_btn_tip_warm_gift)
+
+        # 额外窗口 - QQ密码登录提示
+        self.window_tip_qqlogin=QMWTipQQlogin()
+        self.QQloginTipButton.clicked.connect(self.click_btn_tip_qqlogin)
 
         # 额外窗口 - 关卡代号提示
         self.window_tip_stage_id = QMWTipStageID()
@@ -183,6 +189,45 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 连接自定义信号到槽函数，从而修改编辑框内容
         self.Label_drag.windowNameChanged1.connect(self.updateEditBox1)
         self.Label_drag.windowNameChanged2.connect(self.updateEditBox2)
+        
+        """QQ密码登录模块"""
+
+        self.SavePasswordButton.clicked.connect(self.save_password_button_on_clicked)
+        
+
+    def save_password_button_on_clicked(self):
+        """"用于连接SavePasswordButton的函数，用来保存QQ密码信息"""
+        # 1p
+        username_1p=self.username_edit_1.text()
+        password_1p=self.password_edit_1.text()
+        
+        password_1p=encrypt_data(password_1p)
+        
+        # 2p
+        username_2p=self.username_edit_2.text()
+        password_2p=self.password_edit_2.text()
+        password_2p=encrypt_data(password_2p)
+        
+        save_path=self.save_password_edit.text()
+        QQ_login_info= {
+            "use_password_login":  self.checkbox_password_login_mode.isChecked(),
+            "1p": {
+                "username": username_1p,
+                "password": password_1p
+            },
+            "2p": {
+                "username": username_2p,
+                "password": password_2p
+            }
+        }
+        
+        # 检查文件是否为json后缀
+        if not save_path.endswith('.json'):
+            QMessageBox.critical(self, "错误", "路径中所填文件不是json后缀", QMessageBox.StandardButton.Ok)
+            return 
+        with open(save_path,"w",encoding="utf-8") as json_file:
+            json.dump(QQ_login_info, json_file,ensure_ascii=False, indent=4)
+        QMessageBox.information(self, "提示",f"您的登录信息已经保存到{save_path}",QMessageBox.StandardButton.Ok)
 
     """公会管理器页面"""
 
@@ -760,6 +805,12 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def click_btn_tip_warm_gift(self):
         window = self.window_tip_warm_gift
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
+        
+    def click_btn_tip_qqlogin(self):
+        window = self.window_tip_qqlogin
         window.setFont(self.font)
         self.set_stylesheet(window)
         window.show()

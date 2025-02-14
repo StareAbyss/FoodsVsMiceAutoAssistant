@@ -43,10 +43,6 @@ def ensure_file_exists(file_path, template_suffix="_template") -> None:
     else:
         CUS_LOGGER.info(f"[资源检查] '{file_path}' 已存在. 直接读取.")
 
-QQ_login_info={}
-def get_QQ_login_info():
-    '''返回QQ登录信息，包括是否使用密码登录，以及QQ账号和密码，以供FAA.py登录时使用'''
-    return QQ_login_info
 class QMainWindowLoadSettings(QMainWindowLog):
     """将读取配置的方法封装在此处"""
 
@@ -90,9 +86,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
         # 记录读取时 是否有战斗方案找不到了
         self.cant_find_battle_plan_in_uuid = False
         
-        # 读取QQ登录信息
-        global QQ_login_info
-        QQ_login_info=self.opt['QQ_login_info']
 
     def correct_settings_file(self, template_suffix="_template") -> None:
         """
