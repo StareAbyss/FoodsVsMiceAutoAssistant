@@ -5,7 +5,7 @@ from datetime import datetime
 
 import pytz
 import json
-
+import os
 from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
 from function.common.overlay_images import overlay_images
 from function.core.FAA_ActionInterfaceJump import FAAActionInterfaceJump
@@ -13,6 +13,7 @@ from function.core.FAA_ActionQuestReceiveRewards import FAAActionQuestReceiveRew
 from function.core.FAA_BattlePreparation import BattlePreparation
 from function.core_battle.FAA_Battle import Battle
 from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
+from function.core.QMW_2_load_settings import get_QQ_login_info
 from function.globals import g_resources, SIGNAL
 from function.globals.g_resources import RESOURCE_P
 from function.globals.location_card_cell_in_battle import COORDINATE_CARD_CELL_IN_BATTLE
@@ -23,7 +24,8 @@ from function.scattered.match_ocr_text.get_food_quest_by_ocr import food_match_o
 from function.scattered.match_ocr_text.text_to_battle_info import food_texts_to_battle_info
 from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 
-
+from function.globals.get_paths import PATHS
+from function.core.my_crypto import decrypt_data
 class FAA:
     """
     FAA类是项目的核心类
@@ -1233,15 +1235,19 @@ class FAA:
                 self.print_debug(text="[刷新游戏] 点击刷新按钮...")
                 self.click_refresh_btn()
                 
-                # 获取QQ登录信息
-                QQ_login_info_file=self.save_password_edit.text()
-                with open(QQ_login_info_file,"r") as json_file:
-                    data = json.load(json_file)
-                
+
                 # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
-                if QQ_login_info["need_sleep"]:
-                    time.sleep(QQ_login_info["sleep_time"]) 
-                
+                sleep_config_path = PATHS["root"] + "\\config\\sleep_config.json"
+                sleep_config={
+                    "need_sleep":False,
+                    "sleep_time":20
+                }
+                if os.path.exists(sleep_config_path):
+                    with open(sleep_config_path,"r") as json_file:
+                        sleep_config=json.load(json_file)
+                if sleep_config["need_sleep"]:
+                    time.sleep(sleep_config["sleep_time"]) 
+                    
                 # 依次判断是否在选择服务器界面
                 self.print_debug(text="[刷新游戏] 判定平台...")
 
@@ -1253,8 +1259,8 @@ class FAA:
                     self.print_debug(text="[刷新游戏] 成功进入 - QQ空间平台")
                     
                     # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
-                    if QQ_login_info["need_sleep"]:
-                        time.sleep(QQ_login_info["sleep_time"]) 
+                    if sleep_config["need_sleep"]:
+                        time.sleep(sleep_config["sleep_time"]) 
                     
                 elif try_enter_server_qq_game_hall():
                     self.print_debug(text="[刷新游戏] 成功进入 - QQ游戏大厅平台")
@@ -1263,9 +1269,17 @@ class FAA:
                     self.print_debug(
                         text="[刷新游戏] 未找到进入服务器按钮, 可能 1.QQ空间需重新登录 2.360X4399微端 3.需断线重连 4.意外情况")
 
-                    
-                    
-                    if QQ_login_info['login_mode']=='密码登录': 
+                    # 获取QQ登录信息
+                    QQ_login_info=get_QQ_login_info()
+                    print(QQ_login_info)
+
+                    # 密码登录模式
+                    if QQ_login_info['use_password']: 
+                        with open(QQ_login_info["path"]+"/QQ_account.json","r") as json_file:
+                            QQ_account=json.load(json_file)
+                        username=QQ_account['{}p'.format(self.player)]['username']
+                        password=QQ_account['{}p'.format(self.player)]['password']
+                        password=decrypt_data(password)
                         # 开始进入密码登录页面
                         result = loop_match_p_in_w(
                             source_handle=self.handle_browser,
@@ -1309,7 +1323,6 @@ class FAA:
                         # 注意这里不能 sleep ，否则容易因为抢占焦点而失败
                         # 账号输入框获取焦点成功，开始输入账号
                         if result:
-                            username=QQ_login_info['{}p'.format(self.player)]['username']
                             for key in username:
                                 T_ACTION_QUEUE_TIMER.char_input(handle=self.handle_browser, char=key)
                                 time.sleep(0.1)
@@ -1332,8 +1345,7 @@ class FAA:
                         # 注意这里不能 sleep ，否则容易因为抢占焦点而失败
                         # 密码输入框获取焦点成功，开始输入密码
                         if result:
-                            username=QQ_login_info['{}p'.format(self.player)]['password']
-                            for key in username:
+                            for key in password:
                                 T_ACTION_QUEUE_TIMER.char_input(handle=self.handle_browser, char=key)
                                 time.sleep(0.1)
                         else:

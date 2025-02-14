@@ -43,6 +43,13 @@ def ensure_file_exists(file_path, template_suffix="_template") -> None:
     else:
         CUS_LOGGER.info(f"[资源检查] '{file_path}' 已存在. 直接读取.")
 
+
+QQ_login_info={}
+# 这里用函数来返回，是因为这两个变量会在运行时改变，直接import无法获取这种改变
+# 感觉这样写很丑陋，但我也不知道怎么写比较好，总之能跑就行
+def get_QQ_login_info():
+    return QQ_login_info
+
 class QMainWindowLoadSettings(QMainWindowLog):
     """将读取配置的方法封装在此处"""
 
@@ -85,6 +92,9 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         # 记录读取时 是否有战斗方案找不到了
         self.cant_find_battle_plan_in_uuid = False
+        global QQ_login_info
+        QQ_login_info=self.opt["QQ_login_info"]
+        
         
 
     def correct_settings_file(self, template_suffix="_template") -> None:
@@ -536,6 +546,13 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.Level2_2P_Active.setChecked(my_opt["2p"]["active"])
             self.Level2_2P_Password.setText(my_opt["2p"]["password"])
 
+        def QQ_login_info() ->None:
+            """从配置中更新QQ密码登录区域的ui"""
+            my_opt = self.opt["QQ_login_info"]
+            
+            self.checkbox_use_password.setChecked(my_opt["use_password"])
+            self.path_edit.setText(my_opt["path"])
+        
         def skin_set() -> None:
             my_opt = self.opt["skin_type"]
             skin_dict = {
@@ -596,6 +613,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         log_settings()
         login_settings()
         level_2()
+        QQ_login_info()
         skin_set()
         accelerate_settings()
         tce_settings()
@@ -1005,6 +1023,12 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["decompose_gem_active"] = self.TCEDecomposeGem_Active.isChecked()
             my_opt["tce_path"] = self.TCE_path_input.text()
 
+        def QQ_login_info() -> None:
+            """从ui中读取配置"""
+            my_opt=self.opt["QQ_login_info"]
+            my_opt["use_password"]=self.checkbox_use_password.isChecked()
+            my_opt["path"]=self.path_edit.text()
+
         base_settings()
         accelerate_settings()
         timer_settings()
@@ -1016,6 +1040,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         skin_settings()
         level_2()
         tce_settings()
+        QQ_login_info()
 
         self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
         self.ui_to_opt_todo_plans()

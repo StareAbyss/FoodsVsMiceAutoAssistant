@@ -193,10 +193,21 @@ class QMainWindowService(QMainWindowLoadSettings):
         """QQ密码登录模块"""
 
         self.SavePasswordButton.clicked.connect(self.save_password_button_on_clicked)
+        self.ChoosePathButton.clicked.connect(self.choose_path_button_on_clicked)
         
 
+    def choose_path_button_on_clicked(self):
+        """"用于连接ChoosePathButton的函数，选择存储路径"""
+        # 弹出一个文件夹选择对话框
+        folder_path = QFileDialog.getExistingDirectory(self, "选择文件夹")
+
+        # 如果用户选择了文件夹，保存路径到编辑框
+        if folder_path:
+            self.path_edit.setText(folder_path)
+            
+            
     def save_password_button_on_clicked(self):
-        """"用于连接SavePasswordButton的函数，用来保存QQ密码信息"""
+        """"用于连接SavePasswordButton的函数，保存QQ密码信息"""
         # 1p
         username_1p=self.username_edit_1.text()
         password_1p=self.password_edit_1.text()
@@ -208,9 +219,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         password_2p=self.password_edit_2.text()
         password_2p=encrypt_data(password_2p)
         
-        save_path=self.save_password_edit.text()
-        QQ_login_info= {
-            "use_password_login":  self.checkbox_password_login_mode.isChecked(),
+        save_path=self.path_edit.text()
+        QQ_account= {
             "1p": {
                 "username": username_1p,
                 "password": password_1p
@@ -221,12 +231,9 @@ class QMainWindowService(QMainWindowLoadSettings):
             }
         }
         
-        # 检查文件是否为json后缀
-        if not save_path.endswith('.json'):
-            QMessageBox.critical(self, "错误", "路径中所填文件不是json后缀", QMessageBox.StandardButton.Ok)
-            return 
+        save_path = os.path.join(save_path, "QQ_account.json")
         with open(save_path,"w",encoding="utf-8") as json_file:
-            json.dump(QQ_login_info, json_file,ensure_ascii=False, indent=4)
+            json.dump(QQ_account, json_file,ensure_ascii=False, indent=4)
         QMessageBox.information(self, "提示",f"您的登录信息已经保存到{save_path}",QMessageBox.StandardButton.Ok)
 
     """公会管理器页面"""

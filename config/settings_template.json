@@ -1295,5 +1295,9 @@
         "decompose_gem_active": false,
         "tce_path": ""
     },
-    "skin_type": 1
+    "skin_type": 1,
+    "QQ_login_info":{
+        "path":"",
+        "use_password":false
+    }
 }
