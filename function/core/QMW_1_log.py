@@ -66,7 +66,7 @@ class QMainWindowLog(QMainWindowLoadUI):
                         6: "003153",  # 普鲁士蓝
                         7: "5E2D79",  # 深兰花紫
                         8: "4B0082",  # 靛蓝
-                        9: "333333",  # 煤黑色
+                        9: "999999",  # 我也不知道啥色
                     }
                 case 'dark':
                     self.color_scheme = {
