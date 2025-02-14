@@ -5,6 +5,7 @@ import re
 import time
 
 import cv2
+import numpy as np
 
 from function.common.bg_img_match import loop_match_ps_in_w, loop_match_p_in_w, match_p_in_w
 from function.common.bg_img_screenshot import capture_image_png
@@ -14,8 +15,94 @@ from function.globals import SIGNAL, EXTRA
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
+from function.scattered.gat_handle import faa_get_handle
 from function.scattered.match_ocr_text.get_stage_name_by_ocr import screen_get_stage_name
 from function.scattered.read_json_to_stage_info import read_json_to_stage_info
+
+scan_card_x_list = [
+    [386, 426],
+    [435, 475],
+    [484, 524],
+    [533, 573],
+    [582, 622],
+    [631, 671],
+    [680, 720],
+    [729, 769],
+    [778, 818],
+    [827, 867],
+    [876, 916]
+]
+
+
+def crop_and_concat_columns(img, y1=179, y2=409):
+    """
+    按列裁剪并横向拼接图像
+    :param img: 原始屏幕截图(numpy数组格式)
+    :param y1: 纵向起始坐标
+    :param y2: 纵向结束坐标
+    :return: 拼接后的新图像
+    """
+    # 纵向裁剪公共区域
+    common_area = img[y1:y2, :]
+
+    # 横向裁剪各列
+    columns = []
+    for x_range in scan_card_x_list:
+        x_start, x_end = x_range
+        # 防止超出图像边界
+        x_end = min(x_end, common_area.shape[1])
+        columns.append(common_area[:, x_start:x_end])
+
+    # 横向拼接所有列
+    return cv2.hconcat(columns)
+
+
+def generate_mask_and_crop(img, y1=179, y2=409):
+    """
+    生成索引区域掩码并裁剪图像
+    :param img: 原始图像 (numpy数组)
+    :param y1: 纵向起始坐标
+    :param y2: 纵向结束坐标
+    :return: (掩码图像, 裁剪后的图像)
+    """
+    # 计算裁剪范围
+    x1 = min([x[0] for x in scan_card_x_list])  # 最小的起始x坐标
+    x2 = max([x[1] for x in scan_card_x_list])  # 最大的结束x坐标
+
+    # 裁剪图像到索引区域
+    cropped = img[y1:y2, x1:x2]
+
+    # 创建全黑掩码（单通道）
+    mask = np.zeros(cropped.shape[:2], dtype=np.uint8)
+
+    # 绘制有效列区域
+    for x_range in scan_card_x_list:
+        start = x_range[0] - x1  # 转换为相对坐标
+        end = x_range[1] - x1  # 转换为相对坐标
+        mask[:, start:end] = 255  # 将对应区域设为白色（值为255）
+
+    return mask, cropped
+
+
+def scan_card(handle, handle_360, template, click=False):
+    for x in scan_card_x_list:
+
+        # 需要优化
+
+        find = loop_match_p_in_w(
+            source_handle=handle,
+            source_root_handle=handle_360,
+            source_range=[x[0], 175, x[1], 415],
+            template=template,
+            template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
+            match_tolerance=0.998,
+            match_failed_check=0,
+            match_interval=0,
+            after_sleep=0,
+            click=click)
+        if find:
+            return True
+    return False
 
 
 class BattlePreparation:
@@ -126,23 +213,28 @@ class BattlePreparation:
 
         for i in range(21):
 
+            # 截图复用
+            img = capture_image_png(
+                handle=handle,
+                raw_range=[0, 0, 950, 600],
+                root_handle=handle_360)
+            # 去除无效像素
+            img = crop_and_concat_columns(img=img)
+            # 获得图像哈希
+            img_hash = hash(img.tobytes())
+
             for target in match_img_result_dict.keys():
 
                 # 未找到
                 if not match_img_result_dict[target]["found"]:
 
-                    find = loop_match_p_in_w(
-                        source_handle=handle,
-                        source_root_handle=handle_360,
-                        source_range=[380, 175, 925, 415],
+                    result = match_p_in_w(
+                        source_img=img,
                         template=resource_p[target],
-                        template_mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
+                        mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
                         match_tolerance=0.998,
-                        match_failed_check=0,
-                        match_interval=0.01,
-                        after_sleep=0,
-                        click=False)
-                    if find:
+                    )
+                    if result:
                         match_img_result_dict[target]["found"] = True
                         match_img_result_dict[target]["position"] = copy.deepcopy(i)
 
@@ -150,8 +242,19 @@ class BattlePreparation:
                 break
             # 仅还没找到继续下滑
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=400)
-            # 需要刷新游戏帧数
-            time.sleep(0.2)
+            # 动态确认滑成功
+            for _ in range(20):
+                current_img = capture_image_png(
+                    handle=handle,
+                    raw_range=[0, 0, 950, 600],
+                    root_handle=handle_360)
+                # 去除无效像素
+                current_img = crop_and_concat_columns(img=current_img)
+                # 获得图像哈希
+                current_img_hash = hash(current_img.tobytes())
+                if current_img_hash != img_hash:
+                    break
+                time.sleep(0.03)
 
         # 根据结果重新生成一个list 包含了每一个 标识名称 对应的 精准名称 找到的 最高等级的卡, 如果没找到 则为None
         scan_card_result_list = []
@@ -236,8 +339,26 @@ class BattlePreparation:
                     break
 
                 # 仅还没找到继续下滑
+                img = capture_image_png(
+                    handle=handle,
+                    raw_range=[0, 0, 950, 600],
+                    root_handle=handle_360)
+                img = crop_and_concat_columns(img=img)
+                img_hash = hash(img.tobytes())
+
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=400)
-                time.sleep(0.25)
+
+                # 动态等待图像刷新
+                for _ in range(20):
+                    current_img = capture_image_png(
+                        handle=handle,
+                        raw_range=[0, 0, 950, 600],
+                        root_handle=handle_360)
+                    current_img = crop_and_concat_columns(img=current_img)
+                    current_img_hash = hash(current_img.tobytes())
+                    if current_img_hash != img_hash:
+                        break
+                    time.sleep(0.03)
 
             if found_card:
                 return True
@@ -967,3 +1088,42 @@ class BattlePreparation:
         else:
             print_error(text="10s没能捕获[开始/准备/魔塔蛋糕UI], 出现意外错误, 直接跳过本次")
             return 2  # 2-跳过本次
+
+
+if __name__ == '__main__':
+    def test_scan_card_one():
+        """
+        原始方法  15.05 = 1000次 15ms/次
+        优化过快了50倍方法！ 28.30 = 1000次 28ms/次
+        """
+        target = "10周年烟花-0"
+        img_tar = overlay_images(
+            img_background=RESOURCE_P["card"]["准备房间"][f"{target}.png"],
+            img_overlay=RESOURCE_P["card"]["卡片-房间-绑定角标.png"],
+            test_show=False)
+
+        channel = "锑食"
+        handle = faa_get_handle(channel=channel, mode="flash")
+        handle_browser = faa_get_handle(channel=channel, mode="browser")
+        handle_360 = faa_get_handle(channel=channel, mode="360")
+
+        start_time = time.time()
+
+        for i in range(1000):
+            img = capture_image_png(
+                handle=handle,
+                raw_range=[0, 0, 950, 600],
+                root_handle=handle_360)
+            img = crop_and_concat_columns(img=img)
+            result = match_p_in_w(
+                source_img=img,
+                template=img_tar,
+                mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
+                match_tolerance=0.998,
+            )
+
+        used_time = time.time() - start_time
+        print("used_time: ", used_time)
+
+
+    test_scan_card_one()
