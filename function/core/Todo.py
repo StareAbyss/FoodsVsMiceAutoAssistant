@@ -2405,6 +2405,98 @@ class ThreadTodo(QThread):
 
         main()
 
+    """天知强卡器"""
+
+    def tce(self, player: str):
+        """
+        :param player: "1P" or "2P"
+        :return:
+        """
+
+        if (not self.opt["tce"]["enhance_card_active"]) and (not self.opt["tce"]["decompose_gem_active"]):
+            SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 未开启任何功能 不启动!", color_level=1)
+            return
+
+        SIGNAL.PRINT_TO_UI.emit(text="尝试召唤天知强卡器, 与FAA签订契约, 成为魔法少女吧!", color_level=1)
+
+        # 启动TCE命名管道线程
+        tce_pipe_thread = TCEPipeCommunicationThread()
+        tce_pipe_thread.start()
+
+        # 尝试启动强卡器
+        path = self.opt["tce"]["tce_path"]
+        if not path:
+            SIGNAL.DIALOG.emit(
+                "前面的功能, 以后再来探索吧!",
+                "你还没有天知强卡器哦, 所以说你没有资格呐!\n深渊桑: 没有设置路径! 请在进阶设置完成!")
+            return
+
+        tce_sub_process = subprocess.Popen(path, cwd=os.path.dirname(path))
+        tce_start_time = datetime.datetime.now()
+
+        # 等待强卡器连接，最多等待三十秒
+        for _ in range(30):
+            time.sleep(1)
+            if tce_pipe_thread.running:
+                break
+        else:
+            # 强卡器连接失败，关掉管道线程
+            SIGNAL.DIALOG.emit(
+                "天知强卡器召唤失败T_T",
+                "和天知强卡器的羁绊还不够!\n深渊桑: 30s内未能建立连接! 请使用v0.4.0+版本的天知强卡器!")
+            tce_pipe_thread.stop()
+
+        if player:
+            handle = self.faa_dict[1].handle
+        else:
+            handle = self.faa_dict[2].handle
+
+        if self.opt["tce"]["enhance_card_active"]:
+            SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 卡片强化开始", color_level=1)
+            tce_pipe_thread.enhance_card(handle)
+            SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 卡片强化完成", color_level=1)
+
+        if self.opt["tce"]["decompose_gem_active"]:
+            SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 宝石分解开始", color_level=1)
+            tce_pipe_thread.decompose_gem(handle)
+            SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 宝石分解完成", color_level=1)
+
+        # 关闭TCE命名管道线程
+        tce_pipe_thread.stop()
+
+        time_passed = datetime.datetime.now() - tce_start_time
+
+        def trans_time_to_str(time_passed):
+            # 将时间差转换为天、小时、分钟和秒
+            days = time_passed.days
+            hours, remainder = divmod(time_passed.seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+
+            # 根据时间差的不同部分构建输出字符串
+            if days > 0:
+                time_str = "{}天{}小时{}分钟{}秒".format(days, hours, minutes, seconds)
+            elif hours > 0:
+                time_str = "{}小时{}分钟{}秒".format(hours, minutes, seconds)
+            elif minutes > 0:
+                time_str = "{}分钟{}秒".format(minutes, seconds)
+            else:
+                time_str = "{}秒".format(seconds)
+
+            return time_str
+
+        time_str = trans_time_to_str(time_passed)
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text=f"[天知强卡器] 再见了天知强卡器，希望你喜欢这{time_str}来属于你的戏份",
+            color_level=1)
+
+        # 杀死天知强卡器
+        parent = psutil.Process(tce_sub_process.pid)
+        for child in parent.children(recursive=True):
+            child.terminate()
+        parent.terminate()
+        parent.wait(timeout=5)  # 等待进程终止，超时时间为5秒
+
     """主要线程"""
 
     def set_extra_opt_and_start(self, extra_opt):
@@ -2423,7 +2515,7 @@ class ThreadTodo(QThread):
         # 尝试启动360游戏大厅和对应的小号
         self.start_360()
 
-        # 基础参数是否输入正确 输出错误直接当场夹断
+        # 基础参数是否输入正确 输出错误直接当场夹
         if not self.test_args():
             return False
 
@@ -2669,6 +2761,8 @@ class ThreadTodo(QThread):
         extra_active = extra_active or c_opt["receive_awards"]["active"]
         extra_active = extra_active or c_opt["use_items"]["active"]
         extra_active = extra_active or c_opt["auto_food"]["active"]
+        # 循环任务
+        extra_active = extra_active or c_opt["tce"]["active"]
         extra_active = extra_active or c_opt["loop_cross_server"]["active"]
 
         if extra_active:
@@ -2711,6 +2805,12 @@ class ThreadTodo(QThread):
             self.batch_loop_cross_server(
                 player=[1, 2] if my_opt["is_group"] else [1],
                 deck=c_opt["quest_guild"]["deck"])
+
+        my_opt = c_opt["tce"]
+        if my_opt["active"]:
+            self.tce(
+                player=my_opt["player"]
+            )
 
         if extra_active:
             SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
@@ -2758,42 +2858,6 @@ class ThreadTodo(QThread):
                 color_level=1)
             SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
 
-        """天知强卡器"""
-        TCE_active = False
-        TCE_active = TCE_active or c_opt["start_TCE"]["active"]
-
-        if TCE_active:
-            my_opt = c_opt["start_TCE"]
-            SIGNAL.PRINT_TO_UI.emit(text="尝试召唤天知强卡器，与FAA签订契约，成为魔法少女吧!", color_level=1)
-            # 启动TCE命名管道线程
-            tce_pipe_thread = TCEPipeCommunicationThread()
-            tce_pipe_thread.start()
-            # 尝试启动强卡器
-            path = my_opt["TCE_path"]
-            TCE = subprocess.Popen(path)
-            # 等待强卡器连接，最多等待十秒
-            for _ in range(10):
-                time.sleep(1)
-                if tce_pipe_thread.running:
-                    break
-            if my_opt["player"] == "1P":
-                handle = self.faa_dict[1].handle
-            else:
-                handle = self.faa_dict[2].handle
-            if my_opt["enhance_card_active"]:
-                SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 卡片强化开始", color_level=1)
-                tce_pipe_thread.enhance_card(handle)
-                SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 卡片强化完成", color_level=1)
-            if my_opt["decompose_gem_active"]:
-                SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 宝石分解开始", color_level=1)
-                tce_pipe_thread.decompose_gem(handle)
-                SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 宝石分解完成", color_level=1)
-            # 关闭TCE命名管道线程
-            tce_pipe_thread.stop()
-            # 关闭强卡器
-            SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 强卡器关闭", color_level=2)
-            TCE.kill()
-
         """全部完成"""
 
         if main_task_active or extra_active:
@@ -2813,8 +2877,9 @@ class ThreadTodo(QThread):
                         color_level=1)
         else:
             if active_singleton:
-                SIGNAL.PRINT_TO_UI.emit(text="您启动了完成后操作, 但仅运行了自建房对战, 故不进行任何操作",
-                                        color_level=1)
+                SIGNAL.PRINT_TO_UI.emit(
+                    text="您启动了完成后操作, 但仅运行了自建房对战, 故不进行任何操作",
+                    color_level=1)
             else:
                 SIGNAL.PRINT_TO_UI.emit(text="您启动了完成后操作, 但并未运行任务, 故不进行任何操作", color_level=1)
 

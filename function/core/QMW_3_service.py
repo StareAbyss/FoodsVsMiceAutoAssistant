@@ -1019,7 +1019,6 @@ def faa_start_main():
 
     # 创建 QFont 对象并设置大小
     font = QtGui.QFont(font_family, 11)
-    # print(font_family)
 
     app.setFont(font)
 

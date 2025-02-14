@@ -204,6 +204,10 @@
             "auto_food": {
                 "active": false,
                 "deck": 1
+            },
+            "tce": {
+                "active": false,
+                "player": "1P"
             }
         },
         {
@@ -369,6 +373,10 @@
             "auto_food": {
                 "active": true,
                 "deck": 1
+            },
+            "tce": {
+                "active": false,
+                "player": "1P"
             }
         },
         {
@@ -534,6 +542,10 @@
             "auto_food": {
                 "active": false,
                 "deck": 1
+            },
+            "tce": {
+                "active": false,
+                "player": "1P"
             }
         },
         {
@@ -699,6 +711,10 @@
             "auto_food": {
                 "active": true,
                 "deck": 1
+            },
+            "tce": {
+                "active": false,
+                "player": "1P"
             }
         },
         {
@@ -864,6 +880,10 @@
             "auto_food": {
                 "active": false,
                 "deck": 1
+            },
+            "tce": {
+                "active": false,
+                "player": "1P"
             }
         },
         {
@@ -1029,6 +1049,10 @@
             "auto_food": {
                 "active": false,
                 "deck": 1
+            },
+            "tce": {
+                "active": false,
+                "player": "1P"
             }
         },
         {
@@ -1194,6 +1218,10 @@
             "auto_food": {
                 "active": false,
                 "deck": 1
+            },
+            "tce": {
+                "active": false,
+                "player": "1P"
             }
         }
     ],
@@ -1262,9 +1290,10 @@
         "first_num": 1,
         "second_num": 2
     },
-    "skin_type": 1,
-    "QQ_login_info": {
-        "need_sleep":false,  
-        "sleep_time": 20
-    }
+    "tce": {
+        "enhance_card_active": false,
+        "decompose_gem_active": false,
+        "tce_path": ""
+    },
+    "skin_type": 1
 }
