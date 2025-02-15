@@ -7,6 +7,7 @@ import time
 from collections import defaultdict
 from time import sleep
 
+import psutil
 import requests
 from PyQt6.QtCore import *
 from requests import RequestException
@@ -58,10 +59,9 @@ class ThreadTodo(QThread):
         self.auto_food_stage_ban_list = []  # 用于防止缺乏钥匙/次数时无限重复某些关卡
 
         # 多线程管理
-        self.thread_1p = None
-        self.thread_2p = None
-        self.thread_card_manager = None
-        self.card_manager = None
+        self.thread_1p: ThreadWithException | None = None
+        self.thread_2p: ThreadWithException | None = None
+        self.thread_card_manager: CardManager | None = None
 
         # 多人双Todo线程相关
         self.my_lock = False  # 多人单线程的互锁, 需要彼此完成方可解除对方的锁
@@ -896,7 +896,7 @@ class ThreadTodo(QThread):
                 result_id = max(result_id, self.thread_2p.get_return_value())
 
         CUS_LOGGER.debug("开始战斗 已完成")
-        # 记录准确开始时间
+        # 记录准确开始时间 如果加载时间少于0.3s 会造成等额的误差!
         start_time = time.time()
 
         """根据设定, 进行加速"""
@@ -2509,10 +2509,13 @@ class ThreadTodo(QThread):
 
     def run(self):
 
-        if self.todo_id == 1:
-            self.run_1()
-        if self.todo_id == 2:
-            self.run_2()
+        try:
+            if self.todo_id == 1:
+                self.run_1()
+            if self.todo_id == 2:
+                self.run_2()
+        except Exception as e:
+            SIGNAL.PRINT_TO_UI.emit(text="[Todo] 运行时发生错误!", color_level=1)
 
     def run_1(self):
         """配置检查"""

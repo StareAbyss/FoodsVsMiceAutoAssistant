@@ -223,7 +223,7 @@ class ThreadActionQueueTimer(QThread):
 
 
 # 实例化为全局线程
-T_ACTION_QUEUE_TIMER = ThreadActionQueueTimer()
+T_ACTION_QUEUE_TIMER: ThreadActionQueueTimer = ThreadActionQueueTimer()
 
 """
 外部调用示例

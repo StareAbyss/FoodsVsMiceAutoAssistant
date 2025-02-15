@@ -160,6 +160,8 @@ class Battle:
                 source_root_handle=self.faa.handle_360,
                 source_range=source_range,
                 match_tolerance=0.95,
+                match_interval=0.2,
+                match_failed_check=10,
                 after_sleep=0.25,
                 click=True)
 

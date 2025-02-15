@@ -344,7 +344,7 @@ class FAA:
                 x2 = card_xy_list[0] + 53
                 y2 = card_xy_list[1] + 70
                 if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
-                    kun_cards_info.append({'name': card_name,"card_id": card_id})
+                    kun_cards_info.append({'name': card_name, "card_id": card_id})
         self.kun_cards_info = kun_cards_info
         self.print_info(text="战斗中识图查找幻幻鸡位置, 结果：{}".format(self.kun_cards_info))
 
@@ -999,46 +999,49 @@ class FAA:
                     return False
             return True
 
-        if mode != "stop":
-            return click_btn()
+        def close():
+            for i in range(10):
 
-        for i in range(10):
-
-            # 检测是否在加速中
-            not_accelerating = loop_match_p_in_w(
-                source_handle=self.handle_360,
-                source_root_handle=self.handle_360,
-                source_range=[0, 0, 2000, 75],
-                template=RESOURCE_P["common"]["战斗"]["未激活变速_默认.png"],
-                match_tolerance=0.99,
-                match_interval=0.1,
-                match_failed_check=0.2,
-                after_sleep=0,
-                click=False
-            )
-
-            if not not_accelerating:
+                # 检测是否在加速中
                 not_accelerating = loop_match_p_in_w(
                     source_handle=self.handle_360,
                     source_root_handle=self.handle_360,
                     source_range=[0, 0, 2000, 75],
-                    template=RESOURCE_P["common"]["战斗"]["未激活变速_被选中或被点击.png"],
+                    template=RESOURCE_P["common"]["战斗"]["未激活变速_默认.png"],
                     match_tolerance=0.99,
-                    match_interval=0.00001,
-                    match_failed_check=0.00002,
+                    match_interval=0.1,
+                    match_failed_check=0.2,
                     after_sleep=0,
                     click=False
                 )
 
-            if not_accelerating:
-                self.print_info(text="复核 - 停止加速, 已完成")
-                return True
+                if not not_accelerating:
+                    not_accelerating = loop_match_p_in_w(
+                        source_handle=self.handle_360,
+                        source_root_handle=self.handle_360,
+                        source_range=[0, 0, 2000, 75],
+                        template=RESOURCE_P["common"]["战斗"]["未激活变速_被选中或被点击.png"],
+                        match_tolerance=0.99,
+                        match_interval=0.00001,
+                        match_failed_check=0.00002,
+                        after_sleep=0,
+                        click=False
+                    )
 
-            click_btn()
-            time.sleep(0.5)
+                if not_accelerating:
+                    self.print_info(text="复核 - 停止加速, 已完成")
+                    return True
 
+                click_btn()
+                time.sleep(0.5)
+
+            self.print_error(text="关闭加速出现致命失误!!! 请通报开发者!!!")
+            return False
+
+        if mode == "normal":
+            return click_btn()
         else:
-            self.print_error(text="开启或关闭加速出现致命失误!!! 请通报开发者!!!")
+            return close()
 
     def reload_game(self) -> None:
 

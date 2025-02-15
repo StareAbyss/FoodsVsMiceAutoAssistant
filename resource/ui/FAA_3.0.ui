@@ -9426,6 +9426,13 @@ Link Start</string>
                       </property>
                       <layout class="QVBoxLayout" name="verticalLayout_12">
                        <item>
+                        <widget class="QLabel" name="TopUpMoneyLabel">
+                         <property name="text">
+                          <string>文本</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
                         <widget class="QCheckBox" name="TopUpMoney_1P">
                          <property name="enabled">
                           <bool>true</bool>
@@ -9478,6 +9485,13 @@ Link Start</string>
                          </property>
                          <property name="text">
                           <string>2P - 启用日氪1元</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QPushButton" name="TopUpMoneyTipButton">
+                         <property name="text">
+                          <string>查看相关教学/说明</string>
                          </property>
                         </widget>
                        </item>
@@ -11572,18 +11586,7 @@ FAA放卡核心原理简述:
                             </size>
                            </property>
                            <property name="toolTip">
-                            <string>该功能将在点击变速按钮两次以进行短时间加速.
-
-开始战斗后加速 
- - 85%成功率等倍率缩短游戏出怪间隔. 
- - 100%不影响奖励和任务完成.
-结算等待时加速 
- - 直接缩短等待时间.
-
-开启后将自动计算持续时长.为游戏内时长/运行倍率 - 50ms.
-可设定倍率: 100% - 1000% 据测试 200% 300% 均较稳定.
-开始战斗后加速: 950ms - 50ms
-结算等待时加速: 11950ms - 1150s</string>
+                            <string>该功能将在点击变速按钮两次以进行短时间加速.</string>
                            </property>
                            <property name="text">
                             <string>启用加速功能</string>
@@ -11928,6 +11931,13 @@ FAA放卡核心原理简述:
                           </layout>
                          </item>
                         </layout>
+                       </item>
+                       <item>
+                        <widget class="QPushButton" name="AccelerateTipButton">
+                         <property name="text">
+                          <string>查看相关教学/说明</string>
+                         </property>
+                        </widget>
                        </item>
                       </layout>
                      </widget>
