@@ -617,9 +617,7 @@ class FAA:
         self.bp_card = get_location_card_deck_in_battle(handle=self.handle, handle_360=self.handle_360)
 
         # 3.识图各种卡参数
-        t = time.time()
         self.init_mat_smoothie_kun_card_info()
-        print("识图卡片_耗时:", time.time() - t)
 
         # 4.计算所有卡片放置坐标
         self.init_battle_plan_card()
