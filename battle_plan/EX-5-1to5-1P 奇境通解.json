@@ -54,7 +54,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 9,
@@ -62,7 +61,6 @@
                         "queue": false,
                         "location": [
                             "7-7",
-                            "7-1",
                             "1-4",
                             "1-3",
                             "1-5",
@@ -169,7 +167,7 @@
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "2-3"
+                            "7-1"
                         ],
                         "kun": 0
                     },
@@ -204,7 +202,8 @@
                         ],
                         "kun": 1
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]
