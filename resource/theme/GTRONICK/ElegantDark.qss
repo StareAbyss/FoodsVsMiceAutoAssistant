@@ -9,7 +9,7 @@ QMainWindow {
 	background-color:rgb(82, 82, 82);
 }
 QTextEdit {
-	background-color:rgb(42, 42, 42);
+	background-color:rgb(242, 242, 242);
 	color: rgb(0, 255, 0);
 }
 QPushButton{
@@ -75,12 +75,12 @@ QLineEdit {
 	selection-color: rgb(60, 63, 65);
 }
 QLabel {
-	color:rgb(255,255,255);	
+	color:rgb(0,0,0);
 }
 QProgressBar {
 	text-align: center;
 	color: rgb(240, 240, 240);
-	border-width: 1px; 
+	border-width: 1px;
 	border-radius: 10px;
 	border-color: rgb(58, 58, 58);
 	border-style: inset;
@@ -163,7 +163,7 @@ QTabBar::tab:!selected {
 		margin-right: 1px;
 }
 QCheckBox {
-	color:rgb(223,219,210);
+	color:rgb(203,199,190);
 	padding: 2px;
 }
 QCheckBox:hover {
