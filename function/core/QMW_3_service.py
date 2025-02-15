@@ -55,8 +55,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         SIGNAL.END = self.signal_todo_end
 
         # 线程或线程管理实例
-        self.thread_todo_1 = None
-        self.thread_todo_2 = None  # 仅用于单人多线程时, 运行2P任务
+        self.thread_todo_1: ThreadTodo | None = None
+        self.thread_todo_2: ThreadTodo | None = None  # 仅用于单人多线程时, 运行2P任务
         self.todo_timer_manager = TodoTimerManager(
             opt=self.opt,
             func_thread_todo_start=self.signal_todo_start
@@ -101,7 +101,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.TopUpMoneyTipButton.clicked.connect(
             lambda: webbrowser.open("https://stareabyss.top/FAA-WebSite/guide/advanced/pay_to_win_star.html"))
         if EXTRA.ETHICAL_MODE:
-            self.TopUpMoneyLabel.setText("!!! 经FAA伦理核心审查, 日氪模块违反*能量限流*协议, 已被临时性*抑制*以符合最高伦理标准 !!!")
+            self.TopUpMoneyLabel.setText(
+                "!!! 经FAA伦理核心审查, 日氪模块违反*能量限流*协议, 已被临时性*抑制*以符合最高伦理标准 !!!")
             self.TopUpMoneyLabel.setStyleSheet("color: red;")  # 红色文本
         else:
             self.TopUpMoneyLabel.setText("!!! FAA伦理核心已强制卸除, 日氪模块已通过授权, 感谢您对FAA的支持与信任 !!!")

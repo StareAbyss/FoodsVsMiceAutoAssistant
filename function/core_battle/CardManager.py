@@ -578,7 +578,7 @@ class ThreadCheckTimer(QThread):
         self.stopped = False
         self.timer = None
         self.checked_round = 0
-        self.check_interval = check_interval  # s
+        self.check_interval = float(check_interval / 2)  # 默认1s 稍微加速一点
 
     def run(self):
         self.timer = Timer(self.check_interval, self.callback_timer)
@@ -594,6 +594,7 @@ class ThreadCheckTimer(QThread):
         self.running = False
         if self.timer:
             self.timer.cancel()
+        self.timer = None
 
         # 清除引用; 释放内存; 如果对应的timer正在运行中 会当场报错强制退出
         self.card_queue = None
@@ -775,6 +776,7 @@ class ThreadUseCardTimer(QThread):
         self.running = False
         if self.timer:
             self.timer.cancel()
+        self.timer = None
 
         # 清除引用; 释放内存; 如果对应的timer正在运行中 会当场报错强制退出
         self.card_queue = None
@@ -906,13 +908,8 @@ class ThreadInsertUseCardTimer(QThread):
         # 遍历创建所有定时器
         for battle_event in current_wave_plan:
 
-            # 如果是第零波，减去 time_change 时间，并确保时间不小于0，进行时间准确矫正
-            if wave == 0:
-                CUS_LOGGER.debug(f"faa战斗执行器启动用了整整{time_change}秒！")
-                c_time = max(0, c_time - time_change)
-
-            def create_timer_callback(func, *args):
-                return lambda: func(*args)
+            # 进行校准
+            wait_time = max(0.0, float(battle_event["trigger"]["time"]) - time_change)
 
             if battle_event["action"]["before_shovel"]:
                 self.manager.create_insert_timer_and_start(
@@ -1006,6 +1003,7 @@ class ThreadUseSpecialCardTimer(QThread):
         self.running = False
         if self.timer:
             self.timer.cancel()
+        self.timer = None
 
         # 清除引用; 释放内存; 如果对应的timer正在运行中 会当场报错强制退出
         self.faa_dict = None

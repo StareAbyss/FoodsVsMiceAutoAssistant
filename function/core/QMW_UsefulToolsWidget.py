@@ -120,7 +120,7 @@ class UsefulToolsWidget(QWidget):
         self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
         self.setFixedSize(300, 250)
 
-        self.gacha_thread = None
+        self.gacha_thread: GachaGoldThread | None = None
 
         """init ui控件"""
 
