@@ -37,6 +37,12 @@ class ThreadTodo(QThread):
     signal_todo_lock = pyqtSignal(bool)
 
     def __init__(self, faa_dict, opt, running_todo_plan_index, todo_id):
+        """
+        :param faa_dict:
+        :param opt:
+        :param running_todo_plan_index:
+        :param todo_id: id == 1 默认 id==2 处理双单人多线程
+        """
         super().__init__()
 
         # 用于暂停恢复
@@ -59,7 +65,7 @@ class ThreadTodo(QThread):
 
         # 多人双Todo线程相关
         self.my_lock = False  # 多人单线程的互锁, 需要彼此完成方可解除对方的锁
-        self.todo_id = todo_id  # id == 1 默认 id==2 处理双单人多线程
+        self.todo_id = todo_id
         self.extra_opt = None  # 用来给双单人多线程的2P传递参数
 
         # 高级战斗 - 截图"进程"
@@ -929,8 +935,6 @@ class ThreadTodo(QThread):
 
         if result_id == 0:
 
-            battle_start_time = time.time()
-
             # 初始化多线程
             self.thread_1p = ThreadWithException(
                 target=self.faa_dict[player_a].battle_a_round_init_battle_plan,
@@ -991,7 +995,7 @@ class ThreadTodo(QThread):
 
             CUS_LOGGER.debug('thread_card_manager 退出事件循环并完成销毁线程')
 
-            result_spend_time = time.time() - battle_start_time
+            result_spend_time = time.time() - start_time
 
         CUS_LOGGER.debug("战斗循环 已完成")
 
@@ -2504,6 +2508,7 @@ class ThreadTodo(QThread):
         self.start()
 
     def run(self):
+
         if self.todo_id == 1:
             self.run_1()
         if self.todo_id == 2:

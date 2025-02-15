@@ -6,6 +6,7 @@ from datetime import datetime
 import pytz
 
 from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
+from function.common.bg_img_screenshot import capture_image_png
 from function.common.overlay_images import overlay_images
 from function.core.FAA_ActionInterfaceJump import FAAActionInterfaceJump
 from function.core.FAA_ActionQuestReceiveRewards import FAAActionQuestReceiveRewards
@@ -231,55 +232,85 @@ class FAA:
 
     """战斗开始时的初始化函数"""
 
-    def init_mat_card_info(self) -> None:
+    def init_mat_smoothie_kun_card_info(self) -> None:
         """
         根据关卡名称和可用承载卡，以及游戏内识图到的承载卡取交集，返回承载卡的x-y坐标
         :return: [[x1, y1], [x2, y2],...]
         """
 
-        self.print_info("战斗中识图查找承载卡位置, 开始")
-
-        stage_info = copy.deepcopy(self.stage_info)
-
-        # 本关可用的所有承载卡
-        mat_available_list = stage_info["mat_card"]
+        self.print_info("战斗中识图查找承载卡/冰沙/坤位置, 开始")
 
         # 筛选出所有 有图片资源的卡片 包含变种
-        mat_resource_exist_list = []
-        for mat_card in mat_available_list:
-            for i in range(6):
-                new_card = f"{mat_card}-{i}.png"
-                if new_card in RESOURCE_P["card"]["战斗"].keys():
-                    mat_resource_exist_list.append(new_card)
+        mat_resource_list = [
+            f"{card}-{i}.png"
+            for card in copy.deepcopy(self.stage_info["mat_card"])
+            for i in range(6)
+            if f"{card}-{i}.png" in RESOURCE_P["card"]["战斗"]
+        ]
 
-        coordinate_list = []
-        card_name_list = []
+        smoothie_resource_list = [
+            f"{card}-{i}.png"
+            for card in ["冰淇淋"]
+            for i in range(6)
+            if f"{card}-{i}.png" in RESOURCE_P["card"]["战斗"]
+        ]
+
+        # 筛选出所有 有图片资源的卡片 包含变种
+        kun_resource_list = [
+            f"{card}-{i}.png"
+            for card in ["幻幻鸡", "创造神"]
+            for i in range(6)
+            if f"{card}-{i}.png" in RESOURCE_P["card"]["战斗"]
+        ]
+
+        def scan(resource_list):
+            return_dict = {}
+            for mat_card in resource_list:
+
+                # 需要使用0.99相似度参数 相似度阈值过低可能导致一张图片被识别为两张卡
+                find = match_p_in_w(
+                    source_img=image,
+                    source_range=[190, 10, 950, 80],
+                    template=RESOURCE_P["card"]["战斗"][mat_card],
+                    match_tolerance=0.99)
+                if find:
+                    return_dict[mat_card.split("-")[0]] = [int(190 + find[0]), int(10 + find[1])]
+                else:
+                    find = match_p_in_w(
+                        source_img=image,
+                        source_range=[880, 80, 950, 600],
+                        template=RESOURCE_P["card"]["战斗"][mat_card],
+                        match_tolerance=0.99)
+                    if find:
+                        return_dict[mat_card.split("-")[0]] = [int(880 + find[0]), int(80 + find[1])]
+
+            return return_dict
 
         # 查找对应卡片坐标 重复3次
         for i in range(3):
 
-            for mat_card in mat_resource_exist_list:
-                # 需要使用0.99相似度参数 相似度阈值过低可能导致一张图片被识别为两张卡
-                find = match_p_in_w(
-                    source_handle=self.handle,
-                    source_root_handle=self.handle_360,
-                    source_range=[150, 0, 950, 600],
-                    template=RESOURCE_P["card"]["战斗"][mat_card],
-                    match_tolerance=0.99)
-                if find:
-                    coordinate_list.append([int(150 + find[0]), int(find[1])])
-                    card_name_list.append(mat_card.split("-")[0])
-                    # 从资源中去除已经找到的卡片
-                    mat_resource_exist_list.remove(mat_card)
+            image = capture_image_png(
+                handle=self.handle,
+                root_handle=self.handle_360,
+                raw_range=[0, 0, 950, 600],
+            )
+            mat_card_dict = scan(resource_list=mat_resource_list)
+            smoothie_card_dict = scan(resource_list=smoothie_resource_list)
+            kun_card_dict = scan(resource_list=kun_resource_list)
+
+            for resource_list, card_dict in [
+                (mat_resource_list, mat_card_dict),
+                (smoothie_resource_list, smoothie_card_dict),
+                (kun_resource_list, kun_card_dict)
+            ]:
+                resource_list[:] = [item for item in resource_list if item not in card_dict]
 
             # 防止卡片正好被某些特效遮挡, 所以等待一下
             time.sleep(0.1)
 
         # 根据坐标位置，判断对应的卡id
         mat_cards_info = []
-        for i in range(len(coordinate_list)):
-            coordinate = coordinate_list[i]
-            name = card_name_list[i]
+        for name, coordinate in mat_card_dict.items():
             for card_id, card_xy_list in self.bp_card.items():
                 x1 = card_xy_list[0]
                 y1 = card_xy_list[1]
@@ -287,107 +318,34 @@ class FAA:
                 y2 = card_xy_list[1] + 70
                 if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
                     mat_cards_info.append({'name': name, 'card_id': card_id, 'coordinate_from': card_xy_list})
-                    break
-
-        # 输出
         self.mat_cards_info = mat_cards_info
-
         self.print_info("战斗中识图查找承载卡位置, 结果: {}".format(mat_cards_info))
 
-    def init_smoothie_card_info(self) -> None:
-
-        self.print_info(text="战斗中识图查找冰沙位置, 开始")
-
-        # 初始化为None
-        self.smoothie_info = None
-
-        coordinate = None
-        # 查找对应卡片坐标 重复3次
-        for i in range(3):
-            for j in ["2", "5"]:
-                # 需要使用0.99相似度参数 相似度阈值过低可能导致一张图片被识别为两张卡
-                find = match_p_in_w(
-                    source_handle=self.handle,
-                    source_root_handle=self.handle_360,
-                    source_range=[150, 0, 950, 600],
-                    template=RESOURCE_P["card"]["战斗"][f"冰淇淋-{j}.png"],
-                    match_tolerance=0.99)
-                if find:
-                    coordinate = [150 + int(find[0]), int(find[1])]
-                    break
-            # 防止卡片正好被某些特效遮挡, 所以等待一下
-            time.sleep(0.1)
-
         # 根据坐标位置，判断对应的卡id
-        if coordinate:
+        smoothie_info = None
+        for name, coordinate in smoothie_card_dict.items():
             for card_id, card_xy_list in self.bp_card.items():
                 x1 = card_xy_list[0]
                 y1 = card_xy_list[1]
                 x2 = card_xy_list[0] + 53
                 y2 = card_xy_list[1] + 70
                 if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
-                    self.smoothie_info = {'name': '极寒冰沙', "card_id": card_id}
+                    smoothie_info = {'name': '极寒冰沙', "card_id": card_id}
                     break
-
+        self.smoothie_info = smoothie_info
         self.print_info(text="战斗中识图查找冰沙位置, 结果：{}".format(self.smoothie_info))
 
-    def init_kun_card_info(self) -> None:
-
-        self.print_info(text="战斗中识图查找幻幻鸡位置, 开始")
-
-        # 重新初始化为None
-        self.kun_cards_info = []
-
-        # 查找对应卡片坐标 重复3次
-        def action_find_cards():
-
-            # 筛选出所有 有图片资源的卡片 包含变种
-            resource_exist_list = []
-            for i in range(6):
-                card_image_name = f"幻幻鸡-{i}.png"
-                if card_image_name in RESOURCE_P["card"]["战斗"].keys():
-                    resource_exist_list.append(card_image_name)
-            for i in range(6):
-                card_image_name = f"创造神-{i}.png"
-                if card_image_name in RESOURCE_P["card"]["战斗"].keys():
-                    resource_exist_list.append(card_image_name)
-
-            cards_coordinate = {}
-
-            for try_time in range(3):
-
-                for card_image_name in resource_exist_list:
-                    # 需要使用0.99相似度参数 相似度阈值过低可能导致一张图片被识别为两张卡
-                    find = match_p_in_w(
-                        source_handle=self.handle,
-                        source_root_handle=self.handle_360,
-                        source_range=[150, 0, 950, 600],
-                        template=RESOURCE_P["card"]["战斗"][card_image_name],
-                        match_tolerance=0.99)
-                    if find:
-                        cards_coordinate[card_image_name.split("-")[0]] = [int(150 + find[0]), int(find[1])]
-
-                # 防止卡片正好被某些特效遮挡, 所以等待一下
-                time.sleep(0.1)
-
-            return cards_coordinate
-
-        coordinate = action_find_cards()
-
         # 根据坐标位置，判断对应的卡id
-        for card_name, coordinate in coordinate.items():
+        kun_cards_info = []
+        for card_name, coordinate in kun_card_dict.items():
             for card_id, card_xy_list in self.bp_card.items():
                 x1 = card_xy_list[0]
                 y1 = card_xy_list[1]
                 x2 = card_xy_list[0] + 53
                 y2 = card_xy_list[1] + 70
                 if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
-                    self.kun_cards_info.append({
-                        'name': card_name,
-                        "card_id": card_id
-                    })
-                    break
-
+                    kun_cards_info.append({'name': card_name,"card_id": card_id})
+        self.kun_cards_info = kun_cards_info
         self.print_info(text="战斗中识图查找幻幻鸡位置, 结果：{}".format(self.kun_cards_info))
 
     def init_battle_plan_card(self) -> None:
@@ -651,6 +609,7 @@ class FAA:
         time.sleep(0.333)
         if not self.is_main:
             time.sleep(0.666)
+
         self.faa_battle.init_battle_plan_player(locations=self.battle_plan["meta_data"]["player_position"])
         self.faa_battle.use_player_all()
 
@@ -658,9 +617,9 @@ class FAA:
         self.bp_card = get_location_card_deck_in_battle(handle=self.handle, handle_360=self.handle_360)
 
         # 3.识图各种卡参数
-        self.init_mat_card_info()
-        self.init_smoothie_card_info()
-        self.init_kun_card_info()
+        t = time.time()
+        self.init_mat_smoothie_kun_card_info()
+        print("识图卡片_耗时:", time.time() - t)
 
         # 4.计算所有卡片放置坐标
         self.init_battle_plan_card()
@@ -668,7 +627,7 @@ class FAA:
         # 5.铲卡
         self.faa_battle.init_battle_plan_shovel(locations=self.stage_info["shovel"])
         if self.is_main:
-            self.faa_battle.use_shovel_all()  # 因为有点击序列，所以同时操作是可行的
+            self.faa_battle.use_shovel_all(need_lock=False)  # 因为有点击序列，所以同时操作是可行的
 
     def battle_a_round_loots(self):
         """
