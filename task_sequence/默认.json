@@ -10,22 +10,40 @@
         }
     },
     {
-        "task_type": "双暴卡",
+        "task_type": "战斗",
         "task_id": 2,
         "task_args": {
+            "stage_id": "NO-1-7",
+            "max_times": 1,
+            "need_key": true,
             "player": [
-                1,
-                2
+                2,
+                1
             ],
-            "max_times": 2
+            "global_plan_active": false,
+            "deck": 0,
+            "battle_plan_1p": "654e418d-ad07-11ef-9999-c2f2346a1393",
+            "battle_plan_2p": "7512848d-ad07-11ef-828e-c2f2346a1393",
+            "quest_card": "None",
+            "ban_card_list": [],
+            "dict_exit": {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": [
+                    "竞技岛"
+                ],
+                "last_time_player_b": [
+                    "竞技岛"
+                ]
+            }
         }
     },
     {
         "task_type": "战斗",
         "task_id": 3,
         "task_args": {
-            "stage_id": "NO-1-7",
-            "max_times": 23,
+            "stage_id": "NO-1-14",
+            "max_times": 15,
             "need_key": true,
             "player": [
                 2,
@@ -53,37 +71,8 @@
         "task_type": "战斗",
         "task_id": 4,
         "task_args": {
-            "stage_id": "NO-1-14",
-            "max_times": 11,
-            "need_key": true,
-            "player": [
-                2,
-                1
-            ],
-            "global_plan_active": false,
-            "deck": 0,
-            "battle_plan_1p": "654e418d-ad07-11ef-9999-c2f2346a1393",
-            "battle_plan_2p": "7512848d-ad07-11ef-828e-c2f2346a1393",
-            "quest_card": "None",
-            "ban_card_list": [],
-            "dict_exit": {
-                "other_time_player_a": [],
-                "other_time_player_b": [],
-                "last_time_player_a": [
-                    "竞技岛"
-                ],
-                "last_time_player_b": [
-                    "竞技岛"
-                ]
-            }
-        }
-    },
-    {
-        "task_type": "战斗",
-        "task_id": 5,
-        "task_args": {
             "stage_id": "NO-2-5",
-            "max_times": 11,
+            "max_times": 20,
             "need_key": true,
             "player": [
                 2,

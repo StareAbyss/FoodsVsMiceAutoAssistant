@@ -58,7 +58,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 9,
@@ -212,7 +211,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         },
         {
@@ -222,7 +222,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 9,
@@ -356,7 +355,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         },
         {
@@ -366,7 +366,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 9,
@@ -387,18 +386,17 @@
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "7-1",
-                            "7-7",
-                            "8-1",
-                            "8-7",
-                            "8-5",
-                            "8-4",
-                            "8-3",
-                            "8-2",
                             "6-5",
                             "6-3",
+                            "6-2",
+                            "7-3",
+                            "7-1",
+                            "7-7",
+                            "8-7",
                             "8-6",
-                            "6-2"
+                            "8-4",
+                            "8-2",
+                            "8-1"
                         ],
                         "kun": 0
                     },
@@ -458,13 +456,11 @@
                         "queue": false,
                         "location": [
                             "2-4",
+                            "6-5",
+                            "7-3",
                             "8-4",
-                            "8-3",
-                            "8-5",
                             "8-2",
-                            "8-6",
-                            "8-1",
-                            "8-7"
+                            "8-6"
                         ],
                         "kun": 0
                     },
@@ -490,7 +486,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         },
         {
@@ -500,7 +497,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 9,
@@ -521,18 +517,17 @@
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "7-1",
-                            "7-7",
-                            "8-1",
-                            "8-7",
-                            "8-5",
-                            "8-4",
-                            "8-3",
-                            "8-2",
                             "6-5",
                             "6-3",
+                            "6-2",
+                            "7-3",
+                            "7-1",
+                            "7-7",
+                            "8-7",
                             "8-6",
-                            "6-2"
+                            "8-4",
+                            "8-2",
+                            "8-1"
                         ],
                         "kun": 0
                     },
@@ -595,13 +590,11 @@
                         "queue": false,
                         "location": [
                             "2-4",
+                            "6-5",
+                            "7-3",
                             "8-4",
-                            "8-3",
-                            "8-5",
                             "8-2",
-                            "8-6",
-                            "8-1",
-                            "8-7"
+                            "8-6"
                         ],
                         "kun": 0
                     },
@@ -627,7 +620,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         },
         {
@@ -637,7 +631,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 9,
@@ -735,7 +728,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]

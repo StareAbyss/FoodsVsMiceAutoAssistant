@@ -1,21 +1,17 @@
 {
     "meta_data": {
         "uuid": "f9f97235-ad0a-11ef-a5ab-c2f2346a1393",
-        "tips": "需要二转海盐! 但SSS之路任重道远 orz",
+        "tips": "需要二转海盐!  需要花火龙!",
         "player_position": [
-            "7-3",
-            "7-5"
+            "4-3",
+            "4-5"
         ],
         "version": "3.0"
     },
     "cards": [
         {
-            "card_id": 8,
-            "name": "产火"
-        },
-        {
             "card_id": 7,
-            "name": "海盐粉"
+            "name": "产火"
         },
         {
             "card_id": 1,
@@ -39,15 +35,7 @@
         },
         {
             "card_id": 6,
-            "name": "照明"
-        },
-        {
-            "card_id": 9,
-            "name": "投手"
-        },
-        {
-            "card_id": 10,
-            "name": "投手增幅"
+            "name": "海盐粉"
         }
     ],
     "events": [
@@ -58,24 +46,14 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
-                    {
-                        "card_id": 8,
-                        "ergodic": true,
-                        "queue": true,
-                        "location": [
-                            "3-1",
-                            "3-7"
-                        ],
-                        "kun": 0
-                    },
                     {
                         "card_id": 7,
                         "ergodic": true,
                         "queue": true,
                         "location": [
-                            "4-5"
+                            "6-3",
+                            "6-5"
                         ],
                         "kun": 0
                     },
@@ -84,28 +62,37 @@
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "2-3",
-                            "2-5",
-                            "2-2",
-                            "2-6",
+                            "4-4",
+                            "5-4",
+                            "6-4",
+                            "7-4",
+                            "1-4",
                             "1-3",
                             "1-5",
                             "1-2",
-                            "1-6",
-                            "4-1",
-                            "6-1",
-                            "7-1",
-                            "4-7",
+                            "2-4",
+                            "2-3",
+                            "2-5",
+                            "3-1",
+                            "3-7",
+                            "5-1",
+                            "5-7",
                             "6-7",
                             "7-7",
-                            "8-1",
-                            "8-7",
-                            "8-2",
-                            "8-3",
-                            "8-6",
-                            "8-5",
+                            "1-6",
+                            "7-5",
+                            "7-3",
+                            "7-6",
+                            "6-1",
+                            "7-1",
                             "7-2",
-                            "7-6"
+                            "8-4",
+                            "8-3",
+                            "8-5",
+                            "8-2",
+                            "8-6",
+                            "8-1",
+                            "8-7"
                         ],
                         "kun": 1
                     },
@@ -114,8 +101,9 @@
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "2-7",
-                            "2-1"
+                            "3-4",
+                            "2-1",
+                            "2-7"
                         ],
                         "kun": 0
                     },
@@ -125,29 +113,29 @@
                         "queue": false,
                         "location": [
                             "3-2",
-                            "3-6",
-                            "3-3",
-                            "3-5",
                             "4-2",
-                            "4-6",
                             "5-2",
-                            "5-6",
                             "5-3",
-                            "5-5",
+                            "3-5",
+                            "3-6",
+                            "4-6",
+                            "5-6",
+                            "2-2",
+                            "6-2",
                             "6-3",
                             "6-5",
-                            "6-2",
-                            "6-6"
+                            "6-6",
+                            "2-6"
                         ],
-                        "kun": 3
+                        "kun": 2
                     },
                     {
                         "card_id": 4,
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "5-1",
-                            "5-7"
+                            "4-1",
+                            "4-7"
                         ],
                         "kun": 0
                     },
@@ -156,58 +144,257 @@
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "5-4",
-                            "8-4",
-                            "8-3",
-                            "8-5",
-                            "8-2",
-                            "8-6",
-                            "8-1",
-                            "8-7",
                             "7-4",
                             "7-3",
                             "7-5",
                             "7-2",
                             "7-6",
                             "7-1",
-                            "7-7"
+                            "7-7",
+                            "8-4",
+                            "8-3",
+                            "8-5",
+                            "8-2",
+                            "8-6",
+                            "8-1",
+                            "8-7"
                         ],
                         "kun": 0
                     },
                     {
                         "card_id": 6,
                         "ergodic": true,
-                        "queue": false,
-                        "location": [
-                            "8-2"
-                        ],
-                        "kun": 0
-                    },
-                    {
-                        "card_id": 9,
-                        "ergodic": true,
-                        "queue": false,
-                        "location": [
-                            "1-4",
-                            "2-4",
-                            "3-4",
-                            "5-4",
-                            "6-4",
-                            "7-4",
-                            "8-4"
-                        ],
-                        "kun": 2
-                    },
-                    {
-                        "card_id": 10,
-                        "ergodic": true,
                         "queue": true,
-                        "location": [
-                            "4-4"
-                        ],
+                        "location": [],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
+            }
+        },
+        {
+            "trigger": {
+                "wave_id": 0,
+                "time": 22,
+                "type": "wave_timer"
+            },
+            "action": {
+                "card_id": 6,
+                "location": "3-3",
+                "before_shovel": false,
+                "after_shovel": false,
+                "after_shovel_time": 0,
+                "type": "insert_use_card"
+            }
+        },
+        {
+            "trigger": {
+                "wave_id": 0,
+                "time": 42,
+                "type": "wave_timer"
+            },
+            "action": {
+                "card_id": 6,
+                "location": "3-3",
+                "before_shovel": false,
+                "after_shovel": false,
+                "after_shovel_time": 0,
+                "type": "insert_use_card"
+            }
+        },
+        {
+            "trigger": {
+                "wave_id": 0,
+                "time": 62,
+                "type": "wave_timer"
+            },
+            "action": {
+                "card_id": 6,
+                "location": "3-3",
+                "before_shovel": false,
+                "after_shovel": false,
+                "after_shovel_time": 0,
+                "type": "insert_use_card"
+            }
+        },
+        {
+            "trigger": {
+                "wave_id": 0,
+                "time": 82,
+                "type": "wave_timer"
+            },
+            "action": {
+                "card_id": 6,
+                "location": "3-3",
+                "before_shovel": false,
+                "after_shovel": false,
+                "after_shovel_time": 0,
+                "type": "insert_use_card"
+            }
+        },
+        {
+            "trigger": {
+                "wave_id": 0,
+                "time": 102,
+                "type": "wave_timer"
+            },
+            "action": {
+                "card_id": 6,
+                "location": "3-3",
+                "before_shovel": false,
+                "after_shovel": false,
+                "after_shovel_time": 0,
+                "type": "insert_use_card"
+            }
+        },
+        {
+            "trigger": {
+                "wave_id": 0,
+                "time": 122,
+                "type": "wave_timer"
+            },
+            "action": {
+                "card_id": 6,
+                "location": "3-3",
+                "before_shovel": false,
+                "after_shovel": false,
+                "after_shovel_time": 0,
+                "type": "insert_use_card"
+            }
+        },
+        {
+            "trigger": {
+                "wave_id": 0,
+                "time": 142,
+                "type": "wave_timer"
+            },
+            "action": {
+                "card_id": 6,
+                "location": "3-3",
+                "before_shovel": false,
+                "after_shovel": false,
+                "after_shovel_time": 0,
+                "type": "insert_use_card"
+            }
+        },
+        {
+            "trigger": {
+                "wave_id": 0,
+                "time": 162,
+                "type": "wave_timer"
+            },
+            "action": {
+                "card_id": 6,
+                "location": "3-3",
+                "before_shovel": false,
+                "after_shovel": false,
+                "after_shovel_time": 0,
+                "type": "insert_use_card"
+            }
+        },
+        {
+            "trigger": {
+                "wave_id": 0,
+                "time": 182,
+                "type": "wave_timer"
+            },
+            "action": {
+                "card_id": 6,
+                "location": "3-3",
+                "before_shovel": false,
+                "after_shovel": false,
+                "after_shovel_time": 0,
+                "type": "insert_use_card"
+            }
+        },
+        {
+            "trigger": {
+                "wave_id": 0,
+                "time": 202,
+                "type": "wave_timer"
+            },
+            "action": {
+                "card_id": 6,
+                "location": "3-3",
+                "before_shovel": false,
+                "after_shovel": false,
+                "after_shovel_time": 0,
+                "type": "insert_use_card"
+            }
+        },
+        {
+            "trigger": {
+                "wave_id": 0,
+                "time": 222,
+                "type": "wave_timer"
+            },
+            "action": {
+                "card_id": 6,
+                "location": "3-3",
+                "before_shovel": false,
+                "after_shovel": false,
+                "after_shovel_time": 0,
+                "type": "insert_use_card"
+            }
+        },
+        {
+            "trigger": {
+                "wave_id": 0,
+                "time": 242,
+                "type": "wave_timer"
+            },
+            "action": {
+                "card_id": 6,
+                "location": "3-3",
+                "before_shovel": false,
+                "after_shovel": false,
+                "after_shovel_time": 0,
+                "type": "insert_use_card"
+            }
+        },
+        {
+            "trigger": {
+                "wave_id": 0,
+                "time": 262,
+                "type": "wave_timer"
+            },
+            "action": {
+                "card_id": 6,
+                "location": "3-3",
+                "before_shovel": false,
+                "after_shovel": false,
+                "after_shovel_time": 0,
+                "type": "insert_use_card"
+            }
+        },
+        {
+            "trigger": {
+                "wave_id": 0,
+                "time": 282,
+                "type": "wave_timer"
+            },
+            "action": {
+                "card_id": 6,
+                "location": "3-3",
+                "before_shovel": false,
+                "after_shovel": false,
+                "after_shovel_time": 0,
+                "type": "insert_use_card"
+            }
+        },
+        {
+            "trigger": {
+                "wave_id": 0,
+                "time": 302,
+                "type": "wave_timer"
+            },
+            "action": {
+                "card_id": 6,
+                "location": "3-3",
+                "before_shovel": false,
+                "after_shovel": false,
+                "after_shovel_time": 0,
+                "type": "insert_use_card"
             }
         }
     ]
