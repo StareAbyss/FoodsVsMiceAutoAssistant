@@ -1153,15 +1153,17 @@ class ThreadTodo(QThread):
             if not update_dag_success_at_least_once:
                 text = f"[战利品识别] [有向无环图] item_ranking_dag_graph.json 更新失败! 本次战斗未获得任何有效数据!"
                 CUS_LOGGER.warning(text)
-
-            # 如果成功更新了 item_dag_graph.json, 更新ranking
-            ranking_new = find_longest_path_from_dag()  # 成功返回更新后的 ranking 失败返回None
-            if ranking_new:
-                text = f"[战利品识别] [有向无环图] item_ranking_dag_graph.json 已更新 , 结果:{ranking_new}"
-                CUS_LOGGER.info(text)
             else:
-                text = f"[战利品识别] [有向无环图] item_ranking_dag_graph.json 更新失败, 文件被删除 或 因程序错误成环! 请联系开发者!"
-                CUS_LOGGER.error(text)
+                # 如果成功更新了 item_dag_graph.json, 更新ranking
+                ranking_new = find_longest_path_from_dag()  # 成功返回更新后的 ranking 失败返回None
+                if ranking_new:
+                    text = (f"[战利品识别] [有向无环图] item_ranking_dag_graph.json 已更新,"
+                            f" 结果:{ranking_new}")
+                    CUS_LOGGER.info(text)
+                else:
+                    text = (f"[战利品识别] [有向无环图] item_ranking_dag_graph.json 更新失败,"
+                            f" 文件被删除 或 因程序错误成环! 请联系开发者!")
+                    CUS_LOGGER.error(text)
 
         CUS_LOGGER.debug("多线程进行战利品和宝箱检查 已完成")
 
