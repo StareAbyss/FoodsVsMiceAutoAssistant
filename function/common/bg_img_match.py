@@ -330,7 +330,7 @@ def loop_match_p_in_w(
             # 若超时, 查找失败
             time.sleep(match_interval)
             spend_time += match_interval
-            if spend_time > match_failed_check:
+            if spend_time >= match_failed_check:
                 time.sleep(after_sleep)
                 return False
 

@@ -93,17 +93,20 @@ class Battle:
             y=self.faa.bp_cell[location][1])
         time.sleep(self.click_sleep)
 
-    def use_shovel_all(self, coordinates=None):
+    def use_shovel_all(self, coordinates=None, need_lock=False):
         """
         用全部的铲子
         """
 
-        # 战斗操作锁
-        with self.faa.battle_lock:
-
+        if need_lock:
+            with self.faa.battle_lock:
+                if coordinates is None:
+                    coordinates = self.shovel_coordinates
+                for coordinate in coordinates:
+                    self.use_shovel(x=coordinate[0], y=coordinate[1])
+        else:
             if coordinates is None:
                 coordinates = self.shovel_coordinates
-
             for coordinate in coordinates:
                 self.use_shovel(x=coordinate[0], y=coordinate[1])
 
@@ -376,7 +379,7 @@ class Battle:
         self.faa.faa_battle.init_battle_plan_shovel(locations=need_shovel)
 
         if self.faa.is_main:
-            self.use_shovel_all()
+            self.use_shovel_all(need_lock=True)
 
         return True
 
