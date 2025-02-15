@@ -2,6 +2,7 @@ import datetime
 import json
 import random
 import shutil
+import webbrowser
 
 import win32con
 import win32gui
@@ -16,6 +17,7 @@ from function.core.QMW_EditorOfBattlePlan import QMWEditorOfBattlePlan
 from function.core.QMW_EditorOfStagePlan import QMWEditorOfStagePlan
 from function.core.QMW_EditorOfTaskSequence import QMWEditorOfTaskSequence
 from function.core.QMW_SettingsMigrator import QMWSettingsMigrator
+from function.core.QMW_TipAccelerateSettings import QMWTipAccelerateSettings
 from function.core.QMW_TipBattle import QMWTipBattle
 from function.core.QMW_TipBattleSenior import QMWTipBattleSenior
 from function.core.QMW_TipEditorOfBattlePlan import QMWTipEditorOfBattlePlan
@@ -73,10 +75,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 链接todo开始函数
         self.signal_todo_start.connect(self.todo_start)
 
-        # 额外窗口 - 战斗方案编辑 tip
-        self.window_tip_editor_of_battle_plan = QMWTipEditorOfBattlePlan()
-
         # 额外窗口 - 战斗方案编辑器
+        self.window_tip_editor_of_battle_plan = QMWTipEditorOfBattlePlan()
         self.window_editor_of_battle_plan = QMWEditorOfBattlePlan(
             func_open_tip=self.click_btn_tip_editor_of_battle_plan)
         self.OpenEditorOfBattlePlan_Button.clicked.connect(self.click_btn_open_editor_of_battle_plan)
@@ -96,6 +96,16 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 额外窗口 - 实用小工具
         self.window_useful_tools = UsefulToolsWidget(self)
         self.OpenUsefulTools_Button.clicked.connect(self.click_btn_open_useful_tools)
+
+        # 额外窗口 - 日氪链接
+        self.TopUpMoneyTipButton.clicked.connect(
+            lambda: webbrowser.open("https://stareabyss.top/FAA-WebSite/guide/advanced/pay_to_win_star.html"))
+        if EXTRA.ETHICAL_MODE:
+            self.TopUpMoneyLabel.setText("!!! 经FAA伦理核心审查, 日氪模块违反*能量限流*协议, 已被临时性*抑制*以符合最高伦理标准 !!!")
+            self.TopUpMoneyLabel.setStyleSheet("color: red;")  # 红色文本
+        else:
+            self.TopUpMoneyLabel.setText("!!! FAA伦理核心已强制卸除, 日氪模块已通过授权, 感谢您对FAA的支持与信任 !!!")
+            self.TopUpMoneyLabel.setStyleSheet("color: green;")  # 绿色文本
 
         # 额外窗口 - 温馨礼包提示
         self.window_tip_warm_gift = QMWTipWarmGift()
@@ -120,6 +130,10 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 额外窗口 - 登录选项说明
         self.window_tip_login_settings = QMWTipLoginSettings()
         self.LoginSettingsTipButton.clicked.connect(self.click_btn_tip_login_settings)
+
+        # 额外窗口 - 加速说明
+        self.window_tip_accelerate_settings = QMWTipAccelerateSettings()
+        self.AccelerateTipButton.clicked.connect(self.click_btn_tip_accelerate_settings)
 
         # 米苏物流 - tip窗口
         self.window_tip_misu_logistics = QMWTipMisuLogistics()
@@ -790,6 +804,12 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def click_btn_tip_login_settings(self):
         window = self.window_tip_login_settings
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
+
+    def click_btn_tip_accelerate_settings(self):
+        window = self.window_tip_accelerate_settings
         window.setFont(self.font)
         self.set_stylesheet(window)
         window.show()
