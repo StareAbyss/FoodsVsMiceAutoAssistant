@@ -322,9 +322,6 @@ class Battle:
             # CUS_LOGGER.debug(f"[{self.faa.player}P] 当前波次:{self.wave}, 识别波次:{new_wave}无变化")
             return False
 
-        # 更新变量
-        self.wave = new_wave
-
         # 新波次无方案
         wave_ids = [
             e["trigger"]["wave_id"] for e in self.faa.battle_plan["events"]
@@ -344,7 +341,7 @@ class Battle:
         }
 
         # 重载战斗方案
-        self.faa.init_battle_plan_card()
+        self.faa.init_battle_plan_card(wave=new_wave)
 
         # 获取新方案
         plans["new"] = copy.deepcopy(self.faa.battle_plan_card)
@@ -377,9 +374,10 @@ class Battle:
                     need_shovel.append(location)
 
         self.faa.faa_battle.init_battle_plan_shovel(locations=need_shovel)
+        self.use_shovel_all(need_lock=True)
 
-        if self.faa.is_main:
-            self.use_shovel_all(need_lock=True)
+        # 更新变量
+        self.wave = new_wave
 
         return True
 

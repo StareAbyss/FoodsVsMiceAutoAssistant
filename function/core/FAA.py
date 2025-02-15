@@ -348,7 +348,7 @@ class FAA:
         self.kun_cards_info = kun_cards_info
         self.print_info(text="战斗中识图查找幻幻鸡位置, 结果：{}".format(self.kun_cards_info))
 
-    def init_battle_plan_card(self) -> None:
+    def init_battle_plan_card(self, wave) -> None:
         """
         战斗方案解析器 - 用于根据战斗方案的json和关卡等多种信息, 解析计算为卡片的部署方案 供战斗方案执行器执行
         Return: battle_plan_card 卡片的部署方案字典
@@ -384,7 +384,7 @@ class FAA:
         battle_plan = next((
             event["action"]["cards"] for event in battle_plan["events"] if (
                 event["trigger"]["type"] == "wave_timer" and
-                event["trigger"]["wave_id"] == int(self.faa_battle.wave) and
+                event["trigger"]["wave_id"] == int(wave) and
                 event["action"]["type"] == "loop_use_cards"
         )), [])
 
@@ -620,7 +620,7 @@ class FAA:
         self.init_mat_smoothie_kun_card_info()
 
         # 4.计算所有卡片放置坐标
-        self.init_battle_plan_card()
+        self.init_battle_plan_card(wave=0)
 
         # 5.铲卡
         self.faa_battle.init_battle_plan_shovel(locations=self.stage_info["shovel"])
