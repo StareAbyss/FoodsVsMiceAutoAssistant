@@ -4,6 +4,7 @@ import os
 import time
 from ctypes import windll
 from threading import Timer
+from typing import Union
 
 import cv2
 from PyQt6.QtCore import QThread, pyqtSignal
@@ -12,7 +13,7 @@ from function.common.bg_img_screenshot import capture_image_png, capture_image_p
 from function.core_battle.Card import Card, CardKun, SpecialCard
 from function.core_battle.CardQueue import CardQueue
 from function.core_battle.special_card_strategy import solve_special_card_problem
-from function.globals import EXTRA
+from function.globals import EXTRA, SIGNAL
 from function.globals.get_paths import PATHS
 from function.globals.location_card_cell_in_battle import COORDINATE_CARD_CELL_IN_BATTLE
 from function.globals.log import CUS_LOGGER
@@ -103,10 +104,10 @@ class CardManager(QThread):
 
         # 高级战斗的间隔时间
         self.senior_interval = senior_interval
-        #精准战斗开始时间
+        # 精准战斗开始时间
         self.start_time = start_time
 
-        # 一轮检测的时间 单位s, 该时间的1/20则是尝试使用一张卡的间隔, 该时间的10倍则是使用武器技能/自动拾取动作的间隔 推荐默认值 1s
+        # 一轮检测的时间 单位s, 该时间的1/50则是尝试使用一张卡的间隔, 该时间的10倍则是使用武器技能/自动拾取动作的间隔 推荐默认值 1s
         self.check_interval = check_interval
 
         """
@@ -118,7 +119,12 @@ class CardManager(QThread):
         self.special_card_list = {}
         self.kun_cards_dict = {}
         self.card_queue_dict = {}
-        self.thread_dict = {}
+
+        thread_dict_value_types = Union[
+            ThreadCheckTimer, ThreadUseCardTimer, ThreadUseSpecialCardTimer, ThreadInsertUseCardTimer]
+        self.thread_dict: dict[int, thread_dict_value_types] = {}
+
+        self.insert_action_sub_timers = []
 
         """
         功能属性
@@ -143,179 +149,229 @@ class CardManager(QThread):
         # 先创建 card_list_dict
         self.init_from_battle_plan()
 
+    def run(self):
+
+        # 开始线程
+        self.start_sub_threads()
+
+        # 开启事件循环
+        self.exec()
+
+    def stop(self):
+
+        CUS_LOGGER.info("[战斗执行器] CardManager - stop 开始")
+
+        self.stop_sub_threads()  # 停止子线程
+        self.faa_dict.clear()  # 清空faa字典
+
+        for timer in self.insert_action_sub_timers:
+            # 取消还在运行中的定时任务
+            timer.cancel()
+        self.insert_action_sub_timers = None
+
+        # 中止自身, 并让调用线程等待该操作完成
+        self.exit()
+        self.wait()
+
+        CUS_LOGGER.debug("[战斗执行器] CardManager - stop 结束")
+
+        # 在战斗结束后 打印上一次战斗到这一次战斗之间, 累计的点击队列状态
+        CUS_LOGGER.info(f"[战斗执行器] 在本场战斗中, 点击队列变化状态如下, 可判断是否出现点击队列积压的情况")
+        undone_times = T_ACTION_QUEUE_TIMER.print_queue_statue()
+        if undone_times > 100:
+            SIGNAL.DIALOG.emit(
+                "警告 - 战斗中点击队列无法及时处理完毕, 堆积超过100",
+                "请按照提示优化问题, 否则可能出现无法点击继续战斗按钮等问题.\n"
+                "1. 减少战斗方案中需要轮替放置的卡牌数; 错误案例: 每个格子上三张瓜皮\n"
+                "2. 进阶功能 - 点击频率适当提高 (120 -> 150 -> 180); \n"
+                "3. 进阶功能 - 游戏最低帧数, 适当调低 (10 -> 7 -> 5)")
+
+        # 退出父线程的事件循环
+        self.todo.exit()
+
+        # 清理引用
+        self.todo = None
+        self.faa_dict = None
+        self.solve_queue = None
+        self.senior_interval = None
+        self.check_interval = None
+
     def init_from_battle_plan(self):
 
-        # # 完成构造函数的所有初始化工作后，设置 is_initialized 为 True
-        # self.is_initialized = False
-
-        # 先创建 card_list_dict
-        self.init_card_list_dict()
-
-        # 根据 card_list_dict 创建 card_queue_dict
-        self.init_card_queue_dict()
-
-        # 实例化线程
-        self.init_all_thread()
-
-        # # 初始化完了
-        # self.is_initialized = True
-
-    def init_card_list_dict(self):
-        def init_card_list_dict_normal(cards_plan, faa, pid):
-            for set_priority in range(len(cards_plan)):
-                # 未激活高级战斗
-                card = Card(faa=faa, set_priority=set_priority)
-                self.card_list_dict[pid].append(card)
-                continue
-
-        def init_card_list_dict_advanced(cards_plan, faa, pid):
-            # 激活了高级战斗
-            for set_priority in range(len(cards_plan)):
-
-                result = is_special_card(cards_plan[set_priority]["name"])
-
-                if not result["found"]:
-                    # 普通卡
+        def init_card_list_dict():
+            def init_card_list_dict_normal(cards_plan, faa, pid):
+                for set_priority in range(len(cards_plan)):
+                    # 未激活高级战斗
                     card = Card(faa=faa, set_priority=set_priority)
                     self.card_list_dict[pid].append(card)
                     continue
 
-                    # 高级战斗目标
-                if result["card_type"] == 11:
-                    # 冰桶类
-                    s_card = SpecialCard(
-                        faa=faa,
-                        set_priority=set_priority,
-                        energy=result["energy"],
-                        card_type=result["card_type"])
-                    self.ice_boom_dict_list[pid].append(s_card)
+            def init_card_list_dict_advanced(cards_plan, faa, pid):
+                # 激活了高级战斗
+                for set_priority in range(len(cards_plan)):
 
-                elif result["card_type"] == 14:
-                    # 草扇
-                    s_card = SpecialCard(
-                        faa=faa,
-                        set_priority=set_priority,
-                        energy=result["energy"],
-                        card_type=result["card_type"])
-                    self.the_9th_fan_dict_list[pid].append(s_card)
+                    result = is_special_card(cards_plan[set_priority]["name"])
 
-                elif result["card_type"] < 14:
-                    # 各种炸弹类卡片 包括瓜皮类炸弹
-                    s_card = SpecialCard(
-                        faa=faa,
-                        set_priority=set_priority,
-                        energy=result["energy"],
-                        card_type=result["card_type"],
-                        rows=result["rows"],
-                        cols=result["cols"])
-                    self.special_card_list[pid].append(s_card)
+                    if not result["found"]:
+                        # 普通卡
+                        card = Card(faa=faa, set_priority=set_priority)
+                        self.card_list_dict[pid].append(card)
+                        continue
 
-                    if result["card_type"] == 12:
-                        # 护罩类，除了炸弹还可能是常驻的罩子
-                        card_shield = Card(faa=faa, set_priority=set_priority)
+                        # 高级战斗目标
+                    if result["card_type"] == 11:
+                        # 冰桶类
+                        s_card = SpecialCard(
+                            faa=faa,
+                            set_priority=set_priority,
+                            energy=result["energy"],
+                            card_type=result["card_type"])
+                        self.ice_boom_dict_list[pid].append(s_card)
+
+                    elif result["card_type"] == 14:
+                        # 草扇
+                        s_card = SpecialCard(
+                            faa=faa,
+                            set_priority=set_priority,
+                            energy=result["energy"],
+                            card_type=result["card_type"])
+                        self.the_9th_fan_dict_list[pid].append(s_card)
+
+                    elif result["card_type"] < 14:
+                        # 各种炸弹类卡片 包括瓜皮类炸弹
                         s_card = SpecialCard(
                             faa=faa,
                             set_priority=set_priority,
                             energy=result["energy"],
                             card_type=result["card_type"],
                             rows=result["rows"],
-                            cols=result["cols"],
-                            n_card=card_shield)  # 建立特殊卡护罩与常规卡护罩之间的连接
-                        # 以特殊卡加入特殊放卡
-                        self.shield_dict_list[pid].append(s_card)
-                        # 以普通卡版本加入放卡
-                        self.card_list_dict[pid].append(card_shield)
+                            cols=result["cols"])
+                        self.special_card_list[pid].append(s_card)
 
-        for pid in self.pid_list:
+                        if result["card_type"] == 12:
+                            # 护罩类，除了炸弹还可能是常驻的罩子
+                            card_shield = Card(faa=faa, set_priority=set_priority)
+                            s_card = SpecialCard(
+                                faa=faa,
+                                set_priority=set_priority,
+                                energy=result["energy"],
+                                card_type=result["card_type"],
+                                rows=result["rows"],
+                                cols=result["cols"],
+                                n_card=card_shield)  # 建立特殊卡护罩与常规卡护罩之间的连接
+                            # 以特殊卡加入特殊放卡
+                            self.shield_dict_list[pid].append(s_card)
+                            # 以普通卡版本加入放卡
+                            self.card_list_dict[pid].append(card_shield)
 
-            faa = self.faa_dict[pid]
+            for pid in self.pid_list:
 
-            self.card_list_dict[pid] = []
-            self.special_card_list[pid] = []
+                faa = self.faa_dict[pid]
 
-            if self.solve_queue is None:
-                init_card_list_dict_normal(cards_plan=faa.battle_plan_card, faa=faa, pid=pid)
-            else:
-                init_card_list_dict_advanced(cards_plan=faa.battle_plan_card, faa=faa, pid=pid)
+                self.card_list_dict[pid] = []
+                self.special_card_list[pid] = []
 
-        for pid in self.pid_list:
-            kun_cards = []
-            # 添加坤
-            kun_cards_info = self.faa_dict[pid].kun_cards_info
-            if kun_cards_info:
-                for kun_card_info in kun_cards_info:
-                    kun_card = CardKun(
-                        faa=self.faa_dict[pid],
-                        name=kun_card_info["name"],
-                        c_id=kun_card_info["card_id"],
-                        coordinate_from=kun_card_info["coordinate_from"],
-                    )
-                    kun_cards.append(kun_card)
-            self.kun_cards_dict[pid] = kun_cards
-            for card in self.card_list_dict[pid]:
-                if card.kun > 0:
-                    card.kun_cards = kun_cards
+                if self.solve_queue is None:
+                    init_card_list_dict_normal(cards_plan=faa.battle_plan_card, faa=faa, pid=pid)
+                else:
+                    init_card_list_dict_advanced(cards_plan=faa.battle_plan_card, faa=faa, pid=pid)
 
-    def init_card_queue_dict(self):
-        for pid in self.pid_list:
-            self.card_queue_dict[pid] = CardQueue(
-                card_list=self.card_list_dict[pid],
-                handle=self.faa_dict[pid].handle,
-                handle_360=self.faa_dict[pid].handle_360)
+            for pid in self.pid_list:
+                kun_cards = []
+                # 添加坤
+                kun_cards_info = self.faa_dict[pid].kun_cards_info
+                if kun_cards_info:
+                    for kun_card_info in kun_cards_info:
+                        kun_card = CardKun(
+                            faa=self.faa_dict[pid],
+                            name=kun_card_info["name"],
+                            c_id=kun_card_info["card_id"],
+                            coordinate_from=kun_card_info["coordinate_from"],
+                        )
+                        kun_cards.append(kun_card)
+                self.kun_cards_dict[pid] = kun_cards
+                for card in self.card_list_dict[pid]:
+                    if card.kun > 0:
+                        card.kun_cards = kun_cards
 
-    def init_all_thread(self):
-        """
-        初始化所有线程
-        1 - FAA 检测线程1
-        2 - FAA 检测线程2
-        3 - FAA 用卡线程1
-        4 - FAA 用卡线程2
-        5 - FAA 定时用卡线程1
-        6 - FAA 定时用卡线程2
-        7 - 高级战斗线程
-        :return:
-        """
-        # 在每个号开打前 打印上一次战斗到这一次战斗之间, 累计的点击队列状态
-        CUS_LOGGER.info(f"[战斗执行器] 在两场战斗之间, 点击队列变化状态如下, 可判断是否出现点击队列积压的情况")
-        T_ACTION_QUEUE_TIMER.print_queue_statue()
+        def init_card_queue_dict():
+            for pid in self.pid_list:
+                self.card_queue_dict[pid] = CardQueue(
+                    card_list=self.card_list_dict[pid],
+                    handle=self.faa_dict[pid].handle,
+                    handle_360=self.faa_dict[pid].handle_360)
 
-        # 实例化 检测线程 + 用卡线程+特殊用卡进程
-        for pid in self.pid_list:
-            self.thread_dict[pid] = ThreadCheckTimer(
-                card_queue=self.card_queue_dict[pid],
-                kun_cards=self.kun_cards_dict.get(pid, None),
-                faa=self.faa_dict[pid],
-                check_interval=self.check_interval,
-                signal_stop=self.signal_stop,
-                signal_used_key=self.signal_used_key,
-                signal_change_card_plan=self.signal_change_card_plan,
-            )
-            self.thread_dict[pid + 2] = ThreadUseCardTimer(
-                card_queue=self.card_queue_dict[pid],
-                faa=self.faa_dict[pid],
-                check_interval=self.check_interval
-            )
-            self.thread_dict[pid + 4] = ThreadInsertUseCardTimer(
-                faa=self.faa_dict[pid],
-                check_interval=self.check_interval,
-                start_time=self.start_time
-            )
+        def init_all_thread():
+            """
+            初始化所有线程
+            1 - FAA 检测线程1
+            2 - FAA 检测线程2
+            3 - FAA 用卡线程1
+            4 - FAA 用卡线程2
+            5 - FAA 定时用卡线程1
+            6 - FAA 定时用卡线程2
+            7 - 高级战斗线程
+            :return:
+            """
+            # 在每个号开打前 打印上一次战斗到这一次战斗之间, 累计的点击队列状态
+            CUS_LOGGER.info(f"[战斗执行器] 在两场战斗之间, 点击队列变化状态如下, 可判断是否出现点击队列积压的情况")
+            undone_times = T_ACTION_QUEUE_TIMER.print_queue_statue()
+            if undone_times > 100:
+                SIGNAL.DIALOG.emit(
+                    "警告 - 战斗中点击队列无法及时处理完毕, 堆积超过100",
+                    "请按照提示优化问题, 否则可能出现无法点击继续战斗按钮等问题.\n"
+                    "1. 减少战斗方案中需要轮替放置的卡牌数; 错误案例: 每个格子上三张瓜皮\n"
+                    "2. 进阶功能 - 点击频率适当提高 (120 -> 150 -> 180); \n"
+                    "3. 进阶功能 - 游戏最低帧数, 适当调低 (10 -> 7 -> 5)")
 
-        if self.solve_queue is not None:
-            # 不是空的，说明启动了高级战斗
-            self.thread_dict[7] = ThreadUseSpecialCardTimer(
-                bomb_card_list=self.special_card_list,
-                faa_dict=self.faa_dict,
-                check_interval=self.senior_interval,
-                read_queue=self.solve_queue,
-                is_group=self.is_group,
-                ice_boom_dict_list=self.ice_boom_dict_list,
-                the_9th_fan_dict_list=self.the_9th_fan_dict_list,
-                shield_dict_list=self.shield_dict_list
-            )
+            # 实例化 检测线程 + 用卡线程+特殊用卡进程
+            for pid in self.pid_list:
+                self.thread_dict[pid] = ThreadCheckTimer(
+                    card_queue=self.card_queue_dict[pid],
+                    kun_cards=self.kun_cards_dict.get(pid, None),
+                    faa=self.faa_dict[pid],
+                    check_interval=self.check_interval,
+                    signal_stop=self.signal_stop,
+                    signal_used_key=self.signal_used_key,
+                    signal_change_card_plan=self.signal_change_card_plan,
+                )
+                self.thread_dict[pid + 2] = ThreadUseCardTimer(
+                    card_queue=self.card_queue_dict[pid],
+                    faa=self.faa_dict[pid],
+                    check_interval=self.check_interval
+                )
+                self.thread_dict[pid + 4] = ThreadInsertUseCardTimer(
+                    manager=self,
+                    pid=pid,
+                    faa=self.faa_dict[pid],
+                    check_interval=self.check_interval,
+                    start_time=self.start_time
+                )
 
-        CUS_LOGGER.info("[战斗执行器] 线程已全部实例化")
-        # CUS_LOGGER.debug(self.thread_dict)
+            if self.solve_queue is not None:
+                # 不是空的，说明启动了高级战斗
+                self.thread_dict[7] = ThreadUseSpecialCardTimer(
+                    bomb_card_list=self.special_card_list,
+                    faa_dict=self.faa_dict,
+                    check_interval=self.senior_interval,
+                    read_queue=self.solve_queue,
+                    is_group=self.is_group,
+                    ice_boom_dict_list=self.ice_boom_dict_list,
+                    the_9th_fan_dict_list=self.the_9th_fan_dict_list,
+                    shield_dict_list=self.shield_dict_list
+                )
+
+            CUS_LOGGER.info("[战斗执行器] 线程已全部实例化")
+            # CUS_LOGGER.debug(self.thread_dict)
+
+        # 先创建 card_list_dict
+        init_card_list_dict()
+
+        # 根据 card_list_dict 创建 card_queue_dict
+        init_card_queue_dict()
+
+        # 实例化线程
+        init_all_thread()
 
     def start_sub_threads(self):
 
@@ -374,6 +430,9 @@ class CardManager(QThread):
 
     def change_card_plan(self):
         """如果战斗方案发生了变更"""
+
+        self.start_time = time.time()
+
         # 注意线程同步问题. 需要确保两个FAA都已经完成了波次检测, 并完成了对应的方案切换后, 再进行重载.
         if self.is_group:
             for i in range(50):
@@ -383,33 +442,6 @@ class CardManager(QThread):
         self.stop_sub_threads()
         self.init_from_battle_plan()
         self.start_sub_threads()
-
-    def stop(self):
-
-        CUS_LOGGER.info("[战斗执行器] CardManager - stop 开始")
-
-        self.stop_sub_threads()  # 停止子线程
-        self.faa_dict.clear()  # 清空faa字典
-
-        # 中止自身, 并让调用线程等待该操作完成
-        self.exit()
-        self.wait()
-
-        CUS_LOGGER.debug("[战斗执行器] CardManager - stop 结束")
-
-        # 在战斗结束后 打印上一次战斗到这一次战斗之间, 累计的点击队列状态
-        CUS_LOGGER.info(f"[战斗执行器] 在本场战斗中, 点击队列变化状态如下, 可判断是否出现点击队列积压的情况")
-        T_ACTION_QUEUE_TIMER.print_queue_statue()
-
-        # 退出父线程的事件循环
-        self.todo.exit()
-
-        # 清理引用
-        self.todo = None
-        self.faa_dict = None
-        self.solve_queue = None
-        self.senior_interval = None
-        self.check_interval = None
 
     def set_is_used_key_true(self):
         """
@@ -424,13 +456,102 @@ class CardManager(QThread):
         if self.is_group:
             self.faa_dict[2].faa_battle.is_used_key = True
 
-    def run(self):
+    def create_insert_timer_and_start(self, interval, func_name, func_kwargs):
 
-        # 开始线程
-        self.start_sub_threads()
+        def insert_use_shovel(pid, location):
+            faa = self.faa_dict[pid]
+            x = faa.bp_cell[location][0]
+            y = faa.bp_cell[location][1]
 
-        # 开启事件循环
-        self.exec()
+            with faa.battle_lock:
+
+                # 选择铲子
+                T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=faa.handle, key="1")
+                time.sleep(self.check_interval / 50)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=x, y=y)
+                time.sleep(self.check_interval / 50)
+
+            CUS_LOGGER.debug(f"成功定时铲")
+
+        def insert_use_card(pid, card_id, location):
+
+            faa = self.faa_dict[pid]
+
+            with faa.battle_lock:
+
+                for _ in range(2):
+                    # 选卡操作
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                        handle=faa.handle,
+                        x=faa.bp_card[card_id][0] + 25,
+                        y=faa.bp_card[card_id][1] + 35)
+
+                    time.sleep(self.check_interval / 50)
+
+                    # 放卡操作
+                    for _ in range(2):
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                            handle=faa.handle,
+                            x=faa.bp_cell[location][0],
+                            y=faa.bp_cell[location][1])
+                        time.sleep(self.check_interval / 50)
+
+                    # 放卡后点2下空白 曾 200, 350
+                    T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=faa.handle, x=295, y=485)
+                    time.sleep(self.check_interval / 50)
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=295, y=485)
+                    time.sleep(self.check_interval / 50)
+
+            CUS_LOGGER.debug("成功定时放卡")
+
+            battle_log = False
+            if battle_log:
+
+                time.sleep(0.75)
+
+                def try_get_picture_now(handle):
+                    windll.user32.SetProcessDPIAware()
+                    output_base_path = PATHS["logs"] + "\\yolo_output"
+                    now = datetime.datetime.now()
+                    timestamp = now.strftime("%Y%m%d%H%M%S")
+                    output_img_path = f"{output_base_path}/images/{timestamp}.png"
+                    original_image = capture_image_png_all(handle)[:, :, :3]
+                    cv2.imwrite(output_img_path, original_image)
+
+                try_get_picture_now(handle=faa.handle)
+
+                CUS_LOGGER.debug(f"成功定时放卡{card_id}于{location}")
+
+        def insert_use_gem(pid, gid):
+
+            faa = self.faa_dict[pid]
+
+            with faa.battle_lock:
+
+                CUS_LOGGER.debug(f"[战斗执行器] ThreadTimePutCardTimer - use_gemstone 宝石{gid}启动")
+                match gid:
+                    case 1:
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=23, y=200)
+                    case 2:
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=23, y=250)
+                    case 3:
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=23, y=297)
+                    case _:
+                        CUS_LOGGER.warning(f"[战斗执行器] ThreadTimePutCardTimer - use_gemstone - 错误: id={id} 不存在")
+
+            CUS_LOGGER.debug("成功定时宝石技能")
+
+        match func_name:
+            case "insert_use_shovel":
+                func = insert_use_shovel
+            case "insert_use_card":
+                func = insert_use_card
+            case "insert_use_gem":
+                func = insert_use_gem
+
+        timer = Timer(interval=interval, function=lambda: func(**func_kwargs))
+        timer.start()
+        self.insert_action_sub_timers.append(timer)
 
 
 class ThreadCheckTimer(QThread):
@@ -682,12 +803,20 @@ class ThreadUseCardTimer(QThread):
 
 
 class ThreadInsertUseCardTimer(QThread):
-    def __init__(self, faa, check_interval, start_time):
+    def __init__(self, manager, pid, faa, check_interval, start_time):
         super().__init__()
         """引用的类"""
+        self.pid = pid
+        self.manager = manager
         self.faa = faa
-        # 初始化肯定是波次为0的
-        self.wave = 0
+        self.check_interval = float(check_interval / 10)  # 0.1检查一次 高灵敏度降低误差
+        self.interval_use_card = float(check_interval / 50)
+        self.start_time = start_time
+
+        # 初始化波次
+        self.wave = -1
+        # 初始化后的 第一波
+        self.first_wave_this_init = True
 
         # 筛选出对应的战斗方案们
         self.insert_use_card_plan = [event for event in self.faa.battle_plan["events"] if (
@@ -698,84 +827,84 @@ class ThreadInsertUseCardTimer(QThread):
                 event["trigger"]["type"] == "wave_timer" and
                 event["action"]["type"] == "insert_use_gem"
         )]
-        # 内联name 字段
+
+        # 内联 card_name 字段
         for event in self.insert_use_card_plan:
             event["action"]["name"] = next((card["name"] for card in self.faa.battle_plan["cards"]), "")
 
-        self.bp_card = copy.deepcopy(self.faa.bp_card)
-        self.bp_cell = copy.deepcopy(self.faa.bp_cell)
-        self.start_time = start_time
-
         self.running = False
         self.timer = None
-        self.interval_use_card = float(check_interval / 50)
 
     def run(self):
 
-        if not self.insert_use_card_plan:  # 没有定时放卡plan，那就整个线程一开始就结束好了
+        # 没有定时放卡plan，那就整个线程一开始就结束好了
+        if (not self.insert_use_card_plan) and (not self.insert_use_gem_plan):
+            self.faa.print_debug('[战斗执行器] ThreadInsertUseCardTimer 方案不包含定时操作 不启用')
             return
 
-        self.timer = Timer(self.interval_use_card, self.callback_timer)
-
-        # 记录结束时间
-        end_time = time.time()
-        battle_start_time = end_time - self.start_time
-
-        # 初始化时设置第零波所有计时器
-        self.set_timer_for_wave(0, time_change=battle_start_time)
+        self.faa.print_debug('[战斗执行器] ThreadInsertUseCardTimer 启动')
         self.running = True
-        self.timer.start()
 
-        self.faa.print_debug('[战斗执行器] ThreadTimePutCardTimer 启动')
+        self.timer = Timer(self.check_interval, self.callback_timer)
+        self.timer.start()
         self.exec()
 
         self.running = False
 
     def stop(self):
-        self.faa.print_info("[战斗执行器] ThreadTimePutCardTimer - stop - 已激活 中止事件循环")
+        if not self.running:
+            self.faa.print_info("[战斗执行器] ThreadInsertUseCardTimer - stop - 已激活 但其实压根没有启动过!")
+            return
 
+        self.faa.print_info("[战斗执行器] ThreadInsertUseCardTimer - stop - 已激活 中止事件循环")
         self.running = False
+
         if self.timer:
             self.timer.cancel()
+        self.timer = None
 
-        # 清除引用; 释放内存; 如果对应的timer正在运行中 会当场报错强制退出
+        # 清理索引
+        self.manager = None
         self.faa = None
 
         # 退出事件循环
         self.quit()
-        # print("[战斗执行器] ThreadUseCardTimer - stop - 事件循环已退出")
         self.wait()
-        # print("[战斗执行器] ThreadUseCardTimer - stop - 线程已等待完成")
 
     def callback_timer(self):
 
         try:
             # 获取当前波次
-            wave = self.faa.faa_battle.wave
-            if self.wave != wave:
-                self.wave = wave
+            if self.wave != self.faa.faa_battle.wave:
+                self.wave = copy.deepcopy(self.faa.faa_battle.wave)
                 # 识别到了新波次则设置该波次的定时放卡
-                self.set_timer_for_wave(wave)
+                if self.first_wave_this_init:
+                    time_change = time.time() - self.start_time
+                    self.set_timer_for_wave(wave=self.wave, time_change=time_change)
+                    if self.faa.is_main:
+                        CUS_LOGGER.debug(f"[战斗执行器] ThreadInsertUseCardTimer 重新启动用了{time_change}秒, 将校准.")
+                    self.first_wave_this_init = False
+                else:
+                    self.set_timer_for_wave(wave=self.wave, time_change=0)
+
         except Exception as e:
             CUS_LOGGER.warning(
-                f"[战斗执行器] ThreadTimePutCardTimer - callback_timer - 在运行中遭遇错误"
+                f"[战斗执行器] ThreadInsertUseCardTimer - callback_timer - 在运行中遭遇错误"
                 f"可能是Timer线程调用的参数已被释放后, 有Timer进入执行状态. 这是正常情况. 错误信息: {e}"
             )
 
         # 回调
         if self.running:
-            self.timer = Timer(self.interval_use_card, self.callback_timer)
+            self.timer = Timer(self.check_interval, self.callback_timer)
             self.timer.start()
 
-    def set_timer_for_wave(self, wave, time_change=0):
+    def set_timer_for_wave(self, wave, time_change=0.0):
 
-        # 筛选本波次开始的 插入放卡事件
-        plan_this_wave = [event for event in self.insert_use_card_plan if event["trigger"]["wave_id"] == int(wave)]
+        current_wave_plan = [
+            event for event in self.insert_use_card_plan if event["trigger"]["wave_id"] == int(wave)]
 
         # 遍历创建所有定时器
-        for battle_event in plan_this_wave:
-
-            c_time = battle_event["trigger"]["time"]
+        for battle_event in current_wave_plan:
 
             # 如果是第零波，减去 time_change 时间，并确保时间不小于0，进行时间准确矫正
             if wave == 0:
@@ -786,117 +915,44 @@ class ThreadInsertUseCardTimer(QThread):
                 return lambda: func(*args)
 
             if battle_event["action"]["before_shovel"]:
-                before_shovel_timer = Timer(
-                    max(0, c_time - 0.5),
-                    create_timer_callback(
-                        self.use_shovel_with_lock, battle_event["action"]["location"])
+                self.manager.create_insert_timer_and_start(
+                    interval=max(0.0, wait_time - 0.5),
+                    func_name="insert_use_shovel",
+                    func_kwargs={
+                        "pid": self.pid,
+                        "location": battle_event["action"]["location"]}
                 )
-                before_shovel_timer.start()
 
-            card_timer = Timer(
-                c_time,
-                create_timer_callback(
-                    self.use_card_with_lock,
-                    battle_event["action"]["card_id"],
-                    battle_event["action"]["location"])
+            # 放卡定时器
+            self.manager.create_insert_timer_and_start(
+                interval=wait_time,
+                func_name="insert_use_card",
+                func_kwargs={
+                    "pid": self.pid,
+                    "card_id": battle_event["action"]["card_id"],
+                    "location": battle_event["action"]["location"]}
             )
-            card_timer.start()
 
             if battle_event["action"]["after_shovel"]:
-                after_shovel_timer = Timer(
-                    c_time + battle_event["action"]["after_shovel_time"],
-                    create_timer_callback(
-                        self.use_shovel_with_lock, battle_event["action"]["location"])
+                self.manager.create_insert_timer_and_start(
+                    interval=wait_time + battle_event["action"]["after_shovel_time"],
+                    func_name="insert_use_shovel",
+                    func_kwargs={
+                        "pid": self.pid,
+                        "location": battle_event["action"]["location"]}
                 )
-                after_shovel_timer.start()
 
-        # 奔波开始的 插入用宝石事件
-        plan_this_wave = [event for event in self.insert_use_gem_plan if event["trigger"]["wave_id"] == int(wave)]
+        current_wave_plan = [
+            event for event in self.insert_use_gem_plan if event["trigger"]["wave_id"] == int(wave)]
 
-        for battle_event in plan_this_wave:
-            g_time = battle_event["trigger"]["time"]
-            if wave == 0:
-                g_time = max(0, g_time - time_change)
-
-            def create_timer_callback(func, *args):
-                return lambda: func(*args)
-
-            gemstone_timer = Timer(
-                g_time,
-                create_timer_callback(
-                    self.use_gemstone,
-                    battle_event["action"]["gem_id"]
-                )
+        for battle_event in current_wave_plan:
+            self.manager.create_insert_timer_and_start(
+                interval=max(0.0, battle_event["trigger"]["time"] - time_change),
+                func_name="insert_use_gem",
+                func_kwargs={
+                    "pid": self.pid,
+                    "gid": battle_event["action"]["gem_id"]}
             )
-            gemstone_timer.start()
-
-    def use_shovel_with_lock(self, location):
-        """
-        :param x: 像素坐标
-        :param y: 像素坐标
-        :return:
-        """
-        x = self.bp_cell[location][0]
-        y = self.bp_cell[location][1]
-        with self.faa.battle_lock:
-            # 选择铲子
-            T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
-            time.sleep(1 / 240)
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=x, y=y)
-            time.sleep(1 / 240)
-        CUS_LOGGER.debug(f"成功完成铲")
-
-    def use_gemstone(self, gid):
-        """使用宝石"""
-        # 注意上锁, 防止和放卡冲突
-        with self.faa.battle_lock:
-            CUS_LOGGER.debug(f"[战斗执行器] ThreadTimePutCardTimer - use_gemstone 宝石{gid}启动")
-            match gid:
-                case 1:
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=200)
-                case 2:
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=250)
-                case 3:
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=297)
-                case _:
-                    CUS_LOGGER.warning(f"[战斗执行器] ThreadTimePutCardTimer - use_gemstone - 错误: id={id} 不存在")
-
-    def use_card_with_lock(self, card_id, location):
-        """
-        :param card_id: 卡片id
-        :param x: 像素坐标
-        :param y: 像素坐标
-        """
-        battle_log = False
-        with self.faa.battle_lock:
-
-            # 选卡操作
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                handle=self.faa.handle,
-                x=self.bp_card[card_id][0] + 25,
-                y=self.bp_card[card_id][1] + 35)
-
-            time.sleep(self.interval_use_card)
-
-            # 放卡操作
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                handle=self.faa.handle,
-                x=self.bp_cell[location][0],
-                y=self.bp_cell[location][1])
-
-        if battle_log:
-            time.sleep(0.75)
-            self.try_get_picture_now()
-            CUS_LOGGER.debug(f"成功定时放卡{card_id}于{location}")
-
-    def try_get_picture_now(self):
-        windll.user32.SetProcessDPIAware()
-        output_base_path = PATHS["logs"] + "\\yolo_output"
-        now = datetime.datetime.now()
-        timestamp = now.strftime("%Y%m%d%H%M%S")
-        output_img_path = f"{output_base_path}/images/{timestamp}.png"
-        original_image = capture_image_png_all(self.faa.handle)[:, :, :3]
-        cv2.imwrite(output_img_path, original_image)
 
 
 class ThreadUseSpecialCardTimer(QThread):
