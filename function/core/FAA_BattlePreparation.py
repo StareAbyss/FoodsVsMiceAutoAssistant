@@ -319,6 +319,10 @@ class BattlePreparation:
 
             for i in range(21):
                 if tar_position is None or i >= tar_position:
+
+                    # 到达了对应位置, 先等一下实际的游戏控件刷新, 画面刷新 ≠ 控件刷新
+                    time.sleep(0.2)
+
                     # 需要刷新游戏帧数
                     find = loop_match_p_in_w(
                         source_handle=handle,
@@ -766,7 +770,7 @@ class BattlePreparation:
             match_tolerance=0.95,
             match_interval=1,
             match_failed_check=10,
-            after_sleep=1,
+            after_sleep=0.25,
             click=True)
         if not find:
             self.faa.print_warning(text="选择卡组后, 10s找不到[开始/准备]字样! 创建房间可能失败!")
@@ -777,14 +781,14 @@ class BattlePreparation:
             tar = match_p_in_w(
                 source_handle=self.faa.handle,
                 source_root_handle=self.faa.handle_360,
-                source_range=[0, 0, 950, 600],
+                source_range=[300, 180, 650, 420],
                 template=RESOURCE_P["common"]["战斗"]["战斗前_系统提示.png"],
                 match_tolerance=0.98)
             if not tar:
                 break
             else:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=427, y=353)
-                time.sleep(0.2)
+                time.sleep(0.25)
 
         # 刷新ui: 状态文本
         self.faa.print_debug(text="查找火苗标识物, 等待进入战斗, 限时30s")
@@ -793,11 +797,11 @@ class BattlePreparation:
         find = loop_match_p_in_w(
             source_handle=self.faa.handle,
             source_root_handle=self.faa.handle_360,
-            source_range=[0, 0, 950, 600],
+            source_range=[110, 0, 220, 100],
             template=RESOURCE_P["common"]["战斗"]["战斗中_火苗能量.png"],
-            match_interval=0.5,
+            match_interval=0.05,
             match_failed_check=30,
-            after_sleep=0.1,
+            after_sleep=0.01,
             click=False)
 
         # 刷新ui: 状态文本
