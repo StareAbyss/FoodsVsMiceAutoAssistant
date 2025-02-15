@@ -142,6 +142,9 @@ class Battle:
             match_tolerance=0.95,
             template=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
 
+        # 立刻清空列表 就算堵. 也不会对点继续作战造成影响了!
+        T_ACTION_QUEUE_TIMER.action_queue.queue.clear()
+
         if not find:
             return False
 
