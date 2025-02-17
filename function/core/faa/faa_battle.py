@@ -25,6 +25,8 @@ class FAABattle:
         self.wave = 0  # 当前波次归零
         self.start_time = time.time()
 
+    """铲子"""
+
     def init_battle_plan_shovel(self: "FAA", locations):
 
         self.shovel_locations = copy.deepcopy(locations)
@@ -35,30 +37,6 @@ class FAABattle:
         list_shovel = copy.deepcopy(self.shovel_locations)
         list_shovel = [bp_cell[location] for location in list_shovel]
         self.shovel_coordinates = copy.deepcopy(list_shovel)
-
-    def init_battle_plan_player(self: "FAA", locations):
-
-        self.player_locations = copy.deepcopy(locations)
-
-    def use_player_all(self: "FAA"):
-
-        self.print_info(text="[战斗] 开始放置玩家:{}".format(self.player_locations))
-
-        for location in self.player_locations:
-            self.use_player(location=location)
-
-    def use_player(self: "FAA", location):
-
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(
-            handle=self.handle,
-            x=self.bp_cell[location][0],
-            y=self.bp_cell[location][1])
-        time.sleep(self.click_sleep)
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(
-            handle=self.handle,
-            x=self.bp_cell[location][0],
-            y=self.bp_cell[location][1])
-        time.sleep(self.click_sleep)
 
     def use_shovel_all(self: "FAA", coordinates=None, need_lock=False):
         """
@@ -91,6 +69,34 @@ class FAABattle:
         for _ in range(2):
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=x, y=y)
             time.sleep(self.click_sleep)
+
+    """人物"""
+
+    def init_battle_plan_player(self: "FAA", locations):
+
+        self.player_locations = copy.deepcopy(locations)
+
+    def use_player_all(self: "FAA"):
+
+        self.print_info(text="[战斗] 开始放置玩家:{}".format(self.player_locations))
+
+        for location in self.player_locations:
+            self.use_player(location=location)
+
+    def use_player(self: "FAA", location):
+
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(
+            handle=self.handle,
+            x=self.bp_cell[location][0],
+            y=self.bp_cell[location][1])
+        time.sleep(self.click_sleep)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(
+            handle=self.handle,
+            x=self.bp_cell[location][0],
+            y=self.bp_cell[location][1])
+        time.sleep(self.click_sleep)
+
+    """状态监测"""
 
     def use_key(self: "FAA"):
         """
@@ -209,78 +215,7 @@ class FAABattle:
 
         return result
 
-    def use_card_once(self: "FAA", num_card: int, num_cell: str, click_space=True):
-        """
-        Args:
-            num_card: 使用的卡片的序号
-            num_cell: 使用的卡片对应的格子 从左上开始 "1-1" to "9-7"
-            click_space:  是否点一下空白地区防卡住
-        """
-        # 注 美食大战老鼠中 放卡动作 需要按下一下 然后拖动 然后按下并松开 才能完成 整个动作
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(
-            handle=self.handle,
-            x=self.bp_card[num_card][0],
-            y=self.bp_card[num_card][1])
-        time.sleep(self.click_sleep)
-
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(
-            handle=self.handle,
-            x=self.bp_cell[num_cell][0],
-            y=self.bp_cell[num_cell][1])
-        time.sleep(self.click_sleep)
-
-        # 点一下空白
-        if click_space:
-            T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
-            time.sleep(self.click_sleep)
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
-            time.sleep(self.click_sleep)
-
-    def use_gem_skill(self: "FAA"):
-        """使用武器技能"""
-
-        # 如果有定时操作 就不自动使用
-        gem_timer = next((e for e in self.battle_plan["events"] if e["action"]["type"] == "insert_use_gem"), None)
-        if gem_timer is not None:
-            return
-
-        # 上锁, 防止和放卡冲突
-        with self.battle_lock:
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=23, y=200)
-            time.sleep(self.click_sleep)
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=23, y=250)
-            time.sleep(self.click_sleep)
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=23, y=297)
-            time.sleep(self.click_sleep)
-
-    def auto_pickup(self: "FAA"):
-        if not self.is_auto_pickup:
-            return
-        # 注意上锁, 防止和放卡冲突
-
-        with self.battle_lock:
-            for coordinate in self.auto_collect_cells_coordinate:
-                T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=coordinate[0], y=coordinate[1])
-
-                time.sleep(self.click_sleep)
-
-    def update_fire_elemental_1000(self: "FAA", img=None):
-        if img is None:
-            img = capture_image_png(
-                handle=self.handle,
-                raw_range=[0, 0, 950, 600],
-                root_handle=self.handle_360
-            )
-        img = img[75:85, 161:164, :3]
-        img = img.reshape(-1, img.shape[-1])  # 减少一个多余的维度
-        self.fire_elemental_1000 = np.any(img == [0, 0, 0])
-
-        # # 调试打印
-        # if self.player == 1:
-        #     # self.print_debug("战斗火苗能量>1000:", self.fire_elemental_1000)
-        #     CUS_LOGGER.debug(f"有没有1000火{self.fire_elemental_1000}")
-
-    def check_wave(self: "FAA", img=None):
+    def check_wave(self: "FAA", img=None) -> bool:
         """识图检测目前的波次"""
 
         new_wave = self.match_wave(img=img)
@@ -388,3 +323,80 @@ class FAABattle:
             if EXTRA.EXTRA_LOG_BATTLE:
                 CUS_LOGGER.warning("未能成功读取到波次, 可能在Boss战斗或选择是否钥匙. 默认返回 None")
             return None
+
+    """其他动作"""
+
+    def use_card_once(self: "FAA", card_id: int, location: str, click_space=True):
+        """
+        Args:
+            card_id: 使用的卡片的序号
+            location: 使用的卡片对应的格子 从左上开始 "1-1" to "9-7"
+            click_space:  是否点一下空白地区防卡住
+        """
+        with self.battle_lock:
+            # 注 美食大战老鼠中 放卡动作 需要按下一下 然后拖动 然后按下并松开 才能完成 整个动作
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                handle=self.handle,
+                x=self.bp_card[card_id][0] + 25,
+                y=self.bp_card[card_id][1] + 35)
+            time.sleep(self.click_sleep)
+
+            for _ in range(2):
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle,
+                    x=self.bp_cell[location][0],
+                    y=self.bp_cell[location][1])
+                time.sleep(self.click_sleep)
+
+            # 点一下空白
+            if click_space:
+
+                T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=295, y=485)
+                time.sleep(self.click_sleep)
+
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=295, y=485)
+                time.sleep(self.click_sleep)
+
+    def use_gem_skill(self: "FAA"):
+        """使用武器技能"""
+
+        # 如果有定时操作 就不自动使用
+        gem_timer = next((e for e in self.battle_plan["events"] if e["action"]["type"] == "insert_use_gem"), None)
+        if gem_timer is not None:
+            return
+
+        # 上锁, 防止和放卡冲突
+        with self.battle_lock:
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=23, y=200)
+            time.sleep(self.click_sleep)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=23, y=250)
+            time.sleep(self.click_sleep)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=23, y=297)
+            time.sleep(self.click_sleep)
+
+    def auto_pickup(self: "FAA"):
+        if not self.is_auto_pickup:
+            return
+        # 注意上锁, 防止和放卡冲突
+
+        with self.battle_lock:
+            for coordinate in self.auto_collect_cells_coordinate:
+                T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=coordinate[0], y=coordinate[1])
+
+                time.sleep(self.click_sleep)
+
+    def update_fire_elemental_1000(self: "FAA", img=None):
+        if img is None:
+            img = capture_image_png(
+                handle=self.handle,
+                raw_range=[0, 0, 950, 600],
+                root_handle=self.handle_360
+            )
+        img = img[75:85, 161:164, :3]
+        img = img.reshape(-1, img.shape[-1])  # 减少一个多余的维度
+        self.fire_elemental_1000 = np.any(img == [0, 0, 0])
+
+        # # 调试打印
+        # if self.player == 1:
+        #     # self.print_debug("战斗火苗能量>1000:", self.fire_elemental_1000)
+        #     CUS_LOGGER.debug(f"有没有1000火{self.fire_elemental_1000}")

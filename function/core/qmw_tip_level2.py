@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import QMainWindow, QTextEdit, QVBoxLayout, QWidget
 
 text = """\
-此处确定, 并输入二级密码, 将在以下位置附加该功能.
+此处确定, 并输入二级密码, 将在以下位置附加 [删除道具中垃圾物品 + 兑换暗晶] 该功能.
 1. < 签到 > 功能运行前.
 2. < 公会任务 > 的开始和结束的奖励领取前.
 3. < 领取奖励 > 功能运行前.
@@ -19,7 +19,7 @@ text = """\
 class QMWTipLevels2(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('FAA X 米苏物流')
+        self.setWindowTitle('二级功能')
         self.text_edit = None
         # 设置窗口大小
         self.setFixedSize(850, 400)
