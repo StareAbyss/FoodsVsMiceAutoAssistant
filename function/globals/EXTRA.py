@@ -33,6 +33,7 @@ MAX_BATTLE_TIME = 0
 
 # 在双人作战时, 极寒冰沙 全局锁
 SMOOTHIE_LOCK_TIME = 0
+# GEM_SKILL_LOCK_TIME = 0
 
 # 在多线程双人时, 文件读写 全局锁, 一般是用于json读写, 也被用于logs中loots unmatched 的读写
 FILE_LOCK = threading.Lock()
