@@ -2340,58 +2340,70 @@ class FAABase:
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=905, y=475)
         time.sleep(2)
 
-        # 点击删除物品按钮
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=845, y=475)
-        time.sleep(1)
+        # 下拉20次正好到底, 所以循环8次. 游戏自带复位 不需要手动复位
+        for page in range(8):
 
-        for i_name, i_image in g_resources.RESOURCE_CP["背包_道具_需删除的"].items():
+            self.print_info(f"[删除物品] 背包第{page+1}页, 将开始查找删除目标...")
 
-            # 在限定范围内 找物品
-            find = match_p_in_w(
-                source_handle=self.handle,
-                source_range=[466, 88, 910, 435],
-                template=i_image,
-                template_name=i_name,
-                mask=RESOURCE_P["item"]["物品-掩模-不绑定.png"],
-                match_tolerance=0.999,
-                test_print=True)
+            # 下拉三次每轮 慢点执行....
+            if page != 0:
+                for _ in range(3):
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=920, y=420)
+                    time.sleep(0.5)
+                time.sleep(2)
 
-            if find:
-                # 点击物品图标 以删除
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=find[0] + 466, y=find[1] + 88)
+            # 点击删除物品按钮
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=845, y=475)
+            time.sleep(1)
 
-                # 点击确定 删除按钮
-                loop_match_p_in_w(
+            for i_name, i_image in g_resources.RESOURCE_CP["背包_道具_需删除的"].items():
+
+                # 在限定范围内 找物品
+                find = match_p_in_w(
                     source_handle=self.handle,
-                    source_root_handle=self.handle_360,
-                    source_range=[425, 339, 450, 367],
-                    template=RESOURCE_P["common"]["通用_确定.png"],
-                    match_tolerance=0.95,
-                    match_interval=0.2,
-                    match_failed_check=2,
-                    after_sleep=2,
-                    click=True)
+                    source_range=[466, 88, 910, 435],
+                    template=i_image,
+                    template_name=i_name,
+                    mask=RESOURCE_P["item"]["物品-掩模-不绑定.png"],
+                    match_tolerance=0.999,
+                    test_print=True)
 
-                # 鼠标选中 使用按钮 会有色差, 第一次找不到则再来一次
-                if not find:
+                if find:
+                    # 点击物品图标 以删除
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=find[0] + 466, y=find[1] + 88)
+
+                    # 点击确定 删除按钮
                     loop_match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
-                        source_range=[466, 86, 950, 500],
-                        template=RESOURCE_P["item"]["通用_确定_被选中.png"],
+                        source_range=[425, 339, 450, 367],
+                        template=RESOURCE_P["common"]["通用_确定.png"],
                         match_tolerance=0.95,
                         match_interval=0.2,
                         match_failed_check=2,
                         after_sleep=2,
                         click=True)
 
-                self.print_info(f"物品:{i_name} 已确定删除该物品...")
+                    # 鼠标选中 使用按钮 会有色差, 第一次找不到则再来一次
+                    if not find:
+                        loop_match_p_in_w(
+                            source_handle=self.handle,
+                            source_root_handle=self.handle_360,
+                            source_range=[466, 86, 950, 500],
+                            template=RESOURCE_P["item"]["通用_确定_被选中.png"],
+                            match_tolerance=0.95,
+                            match_interval=0.2,
+                            match_failed_check=2,
+                            after_sleep=2,
+                            click=True)
+
+                    self.print_info(f"物品:{i_name} 已确定删除该物品...")
 
         # 点击整理物品按钮
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=905, y=475)
         time.sleep(2)
 
-        self.print_debug(text="第一页的指定物品已全部删除!")
+        self.print_debug(text="指定物品已全部删除!")
 
         # 关闭背包
         self.action_exit(mode="普通红叉")
