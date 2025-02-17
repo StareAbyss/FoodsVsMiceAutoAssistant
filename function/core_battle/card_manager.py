@@ -122,6 +122,9 @@ class CardManager(QThread):
         # 一轮检测的时间 单位s
         self.check_interval = check_interval
 
+        # 一次点击的时间 单位s
+        self.click_sleep = faa_a.click_sleep
+
         """
         线程管理
         """
@@ -205,8 +208,6 @@ class CardManager(QThread):
         self.todo = None
         self.faa_dict = None
         self.solve_queue = None
-        self.senior_interval = None
-        self.check_interval = None
 
     def init_from_battle_plan(self):
 
@@ -349,14 +350,12 @@ class CardManager(QThread):
                 )
                 self.thread_dict[pid + 2] = ThreadUseCardTimer(
                     card_queue=self.card_queue_dict[pid],
-                    faa=self.faa_dict[pid],
-                    check_interval=self.check_interval
+                    faa=self.faa_dict[pid]
                 )
                 self.thread_dict[pid + 4] = ThreadInsertUseCardTimer(
                     manager=self,
                     pid=pid,
                     faa=self.faa_dict[pid],
-                    check_interval=self.check_interval,
                     start_time=self.start_time
                 )
 
@@ -365,7 +364,7 @@ class CardManager(QThread):
                 self.thread_dict[7] = ThreadUseSpecialCardTimer(
                     bomb_card_list=self.special_card_list,
                     faa_dict=self.faa_dict,
-                    check_interval=self.senior_interval,
+                    callback_interval=self.senior_interval,
                     read_queue=self.solve_queue,
                     is_group=self.is_group,
                     ice_boom_dict_list=self.ice_boom_dict_list,
@@ -478,9 +477,9 @@ class CardManager(QThread):
             with faa.battle_lock:
                 # 选择铲子
                 T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=faa.handle, key="1")
-                time.sleep(self.check_interval / 50)
+                time.sleep(self.click_sleep)
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=x, y=y)
-                time.sleep(self.check_interval / 50)
+                time.sleep(self.click_sleep)
 
             CUS_LOGGER.debug(f"成功定时铲")
 
@@ -497,7 +496,7 @@ class CardManager(QThread):
                         x=faa.bp_card[card_id][0] + 25,
                         y=faa.bp_card[card_id][1] + 35)
 
-                    time.sleep(self.check_interval / 50)
+                    time.sleep(self.click_sleep)
 
                     # 放卡操作
                     for _ in range(2):
@@ -505,19 +504,19 @@ class CardManager(QThread):
                             handle=faa.handle,
                             x=faa.bp_cell[location][0],
                             y=faa.bp_cell[location][1])
-                        time.sleep(self.check_interval / 50)
+                        time.sleep(self.click_sleep)
 
                     # 放卡后点2下空白 曾 200, 350
                     T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=faa.handle, x=295, y=485)
-                    time.sleep(self.check_interval / 50)
+                    time.sleep(self.click_sleep)
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=295, y=485)
-                    time.sleep(self.check_interval / 50)
+                    time.sleep(self.click_sleep)
 
             CUS_LOGGER.debug("成功定时放卡")
 
             battle_log = False
-            if battle_log:
 
+            if battle_log:
                 time.sleep(0.75)
 
                 def try_get_picture_now(handle):
@@ -589,7 +588,7 @@ class ThreadCheckTimer(QThread):
         self.stopped = False
         self.timer = None
         self.checked_round = 0
-        self.check_interval = float(check_interval / 2)  # 默认1s 稍微加速一点
+        self.check_interval = check_interval  # 默认0.5s
 
     def run(self):
         self.timer = Timer(self.check_interval, self.callback_timer)
@@ -680,7 +679,9 @@ class ThreadCheckTimer(QThread):
 
         # 先清空现有队列 再初始化队列
         self.card_queue.queue.clear()
-        self.card_queue.init_card_queue(game_image=game_image)
+        self.card_queue.init_card_queue(
+            game_image=game_image,
+            check_interval=self.check_interval)
 
         # 更新火苗
         self.faa.update_fire_elemental_1000(img=game_image)
@@ -769,7 +770,7 @@ class ThreadUseCardTimer(QThread):
 
         self.running = False
         self.timer = None
-        self.interval_use_card = float(check_interval / 50)
+        self.interval_use_card = self.faa.click_sleep
 
     def run(self):
         self.timer = Timer(self.interval_use_card, self.callback_timer)
@@ -822,8 +823,8 @@ class ThreadInsertUseCardTimer(QThread):
         self.pid = pid
         self.manager = manager
         self.faa = faa
-        self.check_interval = float(check_interval / 10)  # 0.1检查一次 高灵敏度降低误差
-        self.interval_use_card = float(check_interval / 50)
+        self.callback_interval = 0.1
+        self.interval_use_card = self.faa.click_sleep
         self.start_time = start_time
 
         # 初始化波次
@@ -858,7 +859,7 @@ class ThreadInsertUseCardTimer(QThread):
         self.faa.print_debug('[战斗执行器] ThreadInsertUseCardTimer 启动')
         self.running = True
 
-        self.timer = Timer(self.check_interval, self.callback_timer)
+        self.timer = Timer(self.callback_interval, self.callback_timer)
         self.timer.start()
         self.exec()
 
@@ -888,8 +889,8 @@ class ThreadInsertUseCardTimer(QThread):
 
         try:
             # 获取当前波次
-            if self.wave != self.faa.faa_battle.wave:
-                self.wave = copy.deepcopy(self.faa.faa_battle.wave)
+            if self.wave != self.faa.wave:
+                self.wave = copy.deepcopy(self.faa.wave)
                 # 识别到了新波次则设置该波次的定时放卡
                 if self.first_wave_this_init:
                     time_change = time.time() - self.start_time
@@ -908,7 +909,7 @@ class ThreadInsertUseCardTimer(QThread):
 
         # 回调
         if self.running:
-            self.timer = Timer(self.check_interval, self.callback_timer)
+            self.timer = Timer(self.callback_interval, self.callback_timer)
             self.timer.start()
 
     def set_timer_for_wave(self, wave, time_change=0.0):
@@ -964,11 +965,11 @@ class ThreadInsertUseCardTimer(QThread):
 
 
 class ThreadUseSpecialCardTimer(QThread):
-    def __init__(self, faa_dict, check_interval, read_queue, is_group,
+    def __init__(self, faa_dict, callback_interval, read_queue, is_group: bool,
                  bomb_card_list, ice_boom_dict_list, the_9th_fan_dict_list, shield_dict_list):
         """
         :param faa_dict:faa实例字典
-        :param check_interval:读取频率
+        :param callback_interval:读取频率
         :param read_queue:高危目标队列
         :param is_group:是否组队
         :param bomb_card_list: 该类卡片为炸弹 在战斗方案中写入其from位置 在此处计算得出to位置 并进行其使用
@@ -981,7 +982,7 @@ class ThreadUseSpecialCardTimer(QThread):
         self.faa_dict = faa_dict
         self.running = False
         self.timer = None
-        self.interval_use_special_card = check_interval
+        self.callback_interval = callback_interval
         self.read_queue = read_queue
         self.is_group = is_group
         self.flag = None
@@ -999,7 +1000,7 @@ class ThreadUseSpecialCardTimer(QThread):
         self.shield_used_dict_list = {1: [], 2: []}
 
     def run(self):
-        self.timer = Timer(self.interval_use_special_card, self.callback_timer)
+        self.timer = Timer(self.callback_interval, self.callback_timer)
         self.running = True
         self.timer.start()
 
@@ -1147,9 +1148,9 @@ class ThreadUseSpecialCardTimer(QThread):
         if wave or god_wind or need_boom_locations:  # 任意一个就刷新状态
             CUS_LOGGER.debug(f"特殊用卡队列: {self.todo_dict}")
             CUS_LOGGER.debug(f"0.01秒后开始特殊对策卡放卡")
-            self.timer = Timer(self.interval_use_special_card / 200, self.use_card, args=(1,))  # 1p0.01秒后开始放卡
+            self.timer = Timer(interval=0.01, function=self.use_card, args=(1,))  # 1p 0.01秒后开始放卡
             self.timer.start()  # 按todolist用卡
-            self.timer = Timer(self.interval_use_special_card / 200, self.use_card, args=(2,))  # 2p0.01秒后开始放卡
+            self.timer = Timer(interval=0.01, function=self.use_card, args=(2,))  # 2p 0.01秒后开始放卡
             self.timer.start()  # 按todolist用卡
 
     def callback_timer(self):
@@ -1163,7 +1164,7 @@ class ThreadUseSpecialCardTimer(QThread):
             )
 
         if self.running:
-            self.timer = Timer(self.interval_use_special_card, self.callback_timer)
+            self.timer = Timer(self.callback_interval, self.callback_timer)
             self.timer.start()
 
     def use_card(self, player):

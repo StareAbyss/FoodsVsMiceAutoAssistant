@@ -13,13 +13,16 @@ class CardQueue(queue.PriorityQueue):
         self.handle_360 = handle_360
 
     # 初始化card队列
-    def init_card_queue(self, game_image=None):
+    def init_card_queue(self, game_image=None, check_interval=1):
 
         for card in self.card_list:
 
             # 更新 status_ban
             if card.status_ban > 0:
-                card.status_ban -= 1
+                card.status_ban -= check_interval
+                # 归零
+                if card.status_ban <= 0:
+                    card.status_ban = 0
 
             # 更新卡片状态
             card.fresh_status(game_image=game_image)
