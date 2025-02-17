@@ -1,8 +1,7 @@
 import copy
-import json
-import os
 import re
 import time
+from typing import TYPE_CHECKING
 
 import cv2
 import numpy as np
@@ -18,6 +17,9 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.match_ocr_text.get_stage_name_by_ocr import screen_get_stage_name
 from function.scattered.read_json_to_stage_info import read_json_to_stage_info
+
+if TYPE_CHECKING:
+    from function.core.faa import FAA
 
 scan_card_x_list = [
     [386, 426],
@@ -118,20 +120,9 @@ class BattlePreparation:
     5. 战斗结束后成功回房检测
     """
 
-    def __init__(self, faa):
-        # __init__中捕获了的外部类属性值, 那么捕获的是那一刻的值, 后续对类属性的修改不会影响已经捕获的值
-        # 但只捕获这个类本身, 在函数里调用的类属性, 则是实时值 √
-        self.faa = faa
-
-        file_name = os.path.join(PATHS["config"], "card_type.json")
-        with open(file=file_name, mode='r', encoding='utf-8') as file:
-            data = json.load(file)
-
-        self.card_types = data
-
     """战前整备部分"""
 
-    def _card_name_to_tar_list(self, card_name):
+    def _card_name_to_tar_list(self: "FAA", card_name):
         """
         卡片标识名称 可以为 合法类名 模糊名(初始名称) 精准名(初始名称-转职数字)
         转化为对应的查找优先级列表
@@ -140,7 +131,7 @@ class BattlePreparation:
         targets_0 = []
         """匹配 有效承载 保留字段"""
         if card_name == "有效承载":
-            targets_0 += copy.deepcopy(self.faa.stage_info["mat_card"])
+            targets_0 += copy.deepcopy(self.stage_info["mat_card"])
         else:
             # 仅匹配中文字符 (去除所有abc之类的同类卡后缀) 并参照已设定的类 是否有成功的匹配
             match = re.match(r'^(.*[\u4e00-\u9fff])', card_name)
@@ -174,7 +165,7 @@ class BattlePreparation:
 
         return targets_1
 
-    def _scan_card(self, all_cards_precise_names):
+    def _scan_card(self: "FAA", all_cards_precise_names):
         """
         战备选卡阶段 - 扫描所有卡片 找到符合标准的卡片中等级最高者
         :param all_cards_precise_names: 二维
@@ -183,8 +174,8 @@ class BattlePreparation:
         :return:
         """
 
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
+        handle = self.handle
+        handle_360 = self.handle_360
 
         # 强制要求全部走完, 防止12P的同步出问题
         # 老板本 一共20点击到底部, 向下点 10轮 x 2次 = 20 次滑块, 识别11次
@@ -279,7 +270,7 @@ class BattlePreparation:
 
         return scan_card_result_list, scan_card_position_list
 
-    def _add_card(self, card_name, tar_position=None) -> bool:
+    def _add_card(self: "FAA", card_name, tar_position=None) -> bool:
         """
         战备选卡阶段 - 选中添加一张卡到卡组
         :param tar_position: 预扫描在第几次下拉找到了对应卡片, 如果有该值 直达
@@ -287,8 +278,8 @@ class BattlePreparation:
         :return:
         """
 
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
+        handle = self.handle
+        handle_360 = self.handle_360
 
         if tar_position is None:
             targets = self._card_name_to_tar_list(card_name=card_name)
@@ -369,7 +360,7 @@ class BattlePreparation:
 
         return False
 
-    def _add_cards(self, card_name_list: list, can_failed_list: list):
+    def _add_cards(self: "FAA", card_name_list: list, can_failed_list: list):
         """
         战备选卡阶段 - 按顺序选中若干张卡添加到卡组
         :param card_name_list: list [str, ...] 包含若干卡片 标识名称(Identifier Name)
@@ -378,7 +369,7 @@ class BattlePreparation:
         :param can_failed_list: 和card_name_list 一一对应 每一张卡是否允许失败
         :return: 是否成功选卡每一张
         """
-        self.faa.print_debug(text="[选取卡片] 开始, 总计: {}张".format(len(card_name_list)))
+        self.print_debug(text="[选取卡片] 开始, 总计: {}张".format(len(card_name_list)))
 
         # 先展开 战斗方案中 带卡的 标识名称 为 精确名称 包含.png后缀
         # 一个标识名称 应对多个精准名
@@ -399,15 +390,15 @@ class BattlePreparation:
             # all_cards_precise_names
             # can_failed_list
 
-            if self.faa.quest_card is None or self.faa.quest_card == "None":
+            if self.quest_card is None or self.quest_card == "None":
                 return
 
-            qc_precise_names = self._card_name_to_tar_list(card_name=copy.deepcopy(self.faa.quest_card))
+            qc_precise_names = self._card_name_to_tar_list(card_name=copy.deepcopy(self.quest_card))
             qc_precise_in_plan_names = []
             for precise_names in all_cards_precise_names:
                 for precise_name in precise_names:
                     if precise_name in qc_precise_names:
-                        self.faa.quest_card = None
+                        self.quest_card = None
                         qc_precise_in_plan_names.append(precise_name)
 
             for i, precise_names in enumerate(all_cards_precise_names):
@@ -420,7 +411,7 @@ class BattlePreparation:
                 return
 
             # 根据战斗方案 插入到方案末位
-            battle_plan = copy.deepcopy(self.faa.battle_plan)
+            battle_plan = copy.deepcopy(self.battle_plan)
             card_ids = [card["card_id"] for card in battle_plan["cards"]]
             max_card_id = max(card_ids)
 
@@ -433,13 +424,13 @@ class BattlePreparation:
         add_quest_card()
 
         # 一轮识别 识别同一张卡的所有精准名称中 哪一个是实际存在且优先级最高的
-        self.faa.print_debug(text="[选取卡片] 将尝试查找以下卡片(组): {}, 是否允许失败: {}".format(
+        self.print_debug(text="[选取卡片] 将尝试查找以下卡片(组): {}, 是否允许失败: {}".format(
             all_cards_precise_names, can_failed_list))
 
         scan_card_name_list, scan_card_position_list = self._scan_card(
             all_cards_precise_names=all_cards_precise_names)
 
-        self.faa.print_debug(text="[选取卡片] 经识别将查找以下有效卡片: {}, 位置: {}".format(
+        self.print_debug(text="[选取卡片] 经识别将查找以下有效卡片: {}, 位置: {}".format(
             scan_card_name_list, scan_card_position_list))
 
         # 如果不允许失败 提前检查
@@ -449,8 +440,8 @@ class BattlePreparation:
                 failed_card_list.append(card_name_list[index])
 
         if failed_card_list:
-            self.faa.print_debug(text="[选取卡片] 结束, 结果: 因查找失败中断")
-            SIGNAL.PRINT_TO_UI.emit(text=f"[{self.faa.player}P] 缺失必要卡片: {', '.join(failed_card_list)}")
+            self.print_debug(text="[选取卡片] 结束, 结果: 因查找失败中断")
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{self.player}P] 缺失必要卡片: {', '.join(failed_card_list)}")
             return False
 
         for index in range(len(scan_card_name_list)):
@@ -460,43 +451,43 @@ class BattlePreparation:
                 continue
             # 理论上 经过了筛查 选卡失败基本上仅是因为 和其他卡片有冲突 这只会出现在非必要承载卡 可以忽视
             result = self._add_card(card_name=card_name, tar_position=tar_position)
-            self.faa.print_debug(text="[选取卡片] [{}]完成, 结果: {}".format(card_name, "成功" if result else "失败"))
+            self.print_debug(text="[选取卡片] [{}]完成, 结果: {}".format(card_name, "成功" if result else "失败"))
 
         return True
 
-    def _add_quest_card(self):
+    def _add_quest_card(self: "FAA"):
 
-        quest_card = copy.deepcopy(self.faa.quest_card)
+        quest_card = copy.deepcopy(self.quest_card)
 
         not_need_add = False
         not_need_add = not_need_add or quest_card == "None"
         not_need_add = not_need_add or quest_card is None
 
         if not_need_add:
-            self.faa.print_debug(text=f"[添加任务卡] 不需要,跳过")
+            self.print_debug(text=f"[添加任务卡] 不需要,跳过")
             return
         else:
-            self.faa.print_debug(text=f"[添加任务卡] 开始, 目标:{quest_card}")
+            self.print_debug(text=f"[添加任务卡] 开始, 目标:{quest_card}")
 
         # 调用选卡
         found_card = self._add_card(card_name=quest_card)
 
         if not found_card:
             # 如果没有找到 类属性 战斗方案 需要调整为None, 防止在战斗中使用对应卡片的动作序列出现
-            self.faa.quest_card = "None"
+            self.quest_card = "None"
 
-        self.faa.print_debug(text="[添加任务卡] 完成, 结果:{}".format("成功" if found_card else "失败"))
+        self.print_debug(text="[添加任务卡] 完成, 结果:{}".format("成功" if found_card else "失败"))
 
-    def _remove_ban_card(self):
+    def _remove_ban_card(self: "FAA"):
         """寻找并移除需要ban的卡, 现已支持跨页ban"""
 
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
-        ban_card_list = copy.deepcopy(self.faa.ban_card_list)
-        print_debug = self.faa.print_debug
+        handle = self.handle
+        handle_360 = self.handle_360
+        ban_card_list = copy.deepcopy(self.ban_card_list)
+        print_debug = self.print_debug
 
         # 初始化 成功ban掉的卡片列表
-        self.faa.banned_card_index = None
+        self.banned_card_index = None
 
         if ban_card_list:
             print_debug(text=f"[移除卡片] 开始, 目标:{ban_card_list}")
@@ -600,19 +591,19 @@ class BattlePreparation:
                             time.sleep(0.1)
 
         if not banned_card_index:
-            self.faa.banned_card_index = None
+            self.banned_card_index = None
         else:
             # 排序
             banned_card_index = sorted(banned_card_index)
-            self.faa.banned_card_index = banned_card_index
+            self.banned_card_index = banned_card_index
 
-    def _check_stage_name(self, stage_name):
+    def _check_stage_name(self: "FAA", stage_name):
         """
         根据检测出的关卡名，改变faa当前的stage_info
         """
 
         # 原有的关卡id
-        stage_id = self.faa.stage_info["id"]
+        stage_id = self.stage_info["id"]
 
         # 特殊关卡列表占位符
         happy_holiday_list = []
@@ -623,20 +614,20 @@ class BattlePreparation:
         match stage_name:
             case _ if "魔塔蛋糕" in stage_name:
                 level = stage_name.replace("魔塔蛋糕第", "").replace("层", "")
-                self.faa.stage_info = read_json_to_stage_info(
+                self.stage_info = read_json_to_stage_info(
                     stage_id=stage_id,
                     stage_id_for_battle=f"MT-1-{level}"
                 )
 
             case _ if "双人魔塔" in stage_name:
                 level = stage_name.replace("双人魔塔第", "").replace("层", "")
-                self.faa.stage_info = read_json_to_stage_info(
+                self.stage_info = read_json_to_stage_info(
                     stage_id=stage_id,
                     stage_id_for_battle=f"MT-2-{level}")
 
             case _ if "萌宠神殿" in stage_name:
                 level = stage_name.replace("萌宠神殿第", "").replace("层", "")
-                self.faa.stage_info = read_json_to_stage_info(
+                self.stage_info = read_json_to_stage_info(
                     stage_id=stage_id,
                     stage_id_for_battle=f"PT-0-{level}"
                 )
@@ -656,10 +647,10 @@ class BattlePreparation:
         if special_stage:
             SIGNAL.PRINT_TO_UI.emit(f"检测到特殊关卡：{stage_name}，已为你启用对应关卡方案", 7)
 
-    def _get_card_name_list_from_battle_plan(self):
+    def _get_card_name_list_from_battle_plan(self: "FAA"):
 
         # 和 card_list 一一对应 顺序一致 代表这张卡是否允许被跳过
-        battle_plan = copy.deepcopy(self.faa.battle_plan)
+        battle_plan = copy.deepcopy(self.battle_plan)
 
         my_dict = {}
 
@@ -672,7 +663,7 @@ class BattlePreparation:
         can_failed_list = [False for _ in sorted_list]
 
         # 增承载卡
-        mats = copy.deepcopy(self.faa.stage_info["mat_card"])
+        mats = copy.deepcopy(self.stage_info["mat_card"])
         # 如果需要任意承载卡 第一张卡设定为 字段 有效承载
         if len(mats) >= 1:
             sorted_list += ["有效承载"]
@@ -689,24 +680,24 @@ class BattlePreparation:
                 can_failed_list += [True]
 
         # 根据最大卡片数量限制 移除卡片
-        if self.faa.max_card_num is not None:
-            self.faa.print_debug(text=f"[自动带卡] 最大卡片数量限制为{self.faa.max_card_num}张, 激活自动剔除")
-            sorted_list = sorted_list[:self.faa.max_card_num]
-            can_failed_list = can_failed_list[:self.faa.max_card_num]
+        if self.max_card_num is not None:
+            self.print_debug(text=f"[自动带卡] 最大卡片数量限制为{self.max_card_num}张, 激活自动剔除")
+            sorted_list = sorted_list[:self.max_card_num]
+            can_failed_list = can_failed_list[:self.max_card_num]
 
         return sorted_list, can_failed_list
 
-    def check_create_room_success(self):
+    def check_create_room_success(self: "FAA"):
         """
         战前准备 确定进入房间
         :return: 0-正常结束 1-重启本次 2-跳过本次 3-跳过所有次数
         """
 
         # 循环查找开始按键
-        self.faa.print_debug(text="寻找开始或准备按钮")
+        self.print_debug(text="寻找开始或准备按钮")
         find = loop_match_p_in_w(
-            source_handle=self.faa.handle,
-            source_root_handle=self.faa.handle_360,
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
             source_range=[796, 413, 950, 485],
             template=RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
             match_interval=1,
@@ -714,35 +705,35 @@ class BattlePreparation:
             after_sleep=0.3,
             click=False)
         if not find:
-            self.faa.print_warning(text="创建房间后, 10s找不到[开始/准备]字样! 创建房间可能失败!")
+            self.print_warning(text="创建房间后, 10s找不到[开始/准备]字样! 创建房间可能失败!")
             # 2-跳过本次 可能是由于: 服务器抽风无法创建房间 or 点击被吞 or 次数用尽
             return 2
         return 0
 
-    def change_deck(self):
+    def battle_preparation_change_deck(self: "FAA"):
         """
         战前准备 修改卡组
         :return: 0-正常结束 1-重启本次 2-跳过本次 3-跳过所有次数
         """
         # 识别出当前关卡名称
-        stage_name = screen_get_stage_name(self.faa.handle, self.faa.handle_360)
-        self.faa.print_debug(text=f"关卡名称识别结果: 当前关卡 - {stage_name}")
+        stage_name = screen_get_stage_name(self.handle, self.handle_360)
+        self.print_debug(text=f"关卡名称识别结果: 当前关卡 - {stage_name}")
 
         # 检测关卡名变种，如果符合特定关卡，则修改当前战斗的关卡信息
         self._check_stage_name(stage_name)
 
         # 选择卡组
-        self.faa.print_debug(text=f"选择卡组编号-{self.faa.deck}, 并开始加入新卡和ban卡")
+        self.print_debug(text=f"选择卡组编号-{self.deck}, 并开始加入新卡和ban卡")
 
         T_ACTION_QUEUE_TIMER.add_click_to_queue(
-            handle=self.faa.handle,
-            x={1: 425, 2: 523, 3: 588, 4: 666, 5: 756, 6: 837}[self.faa.deck],
+            handle=self.handle,
+            x={1: 425, 2: 523, 3: 588, 4: 666, 5: 756, 6: 837}[self.deck],
             y=121)
         time.sleep(1.0)
 
         """寻找并卡片, 包括自动带卡 / 任务要求的带卡和禁卡"""
 
-        if self.faa.auto_carry_card:
+        if self.auto_carry_card:
 
             card_name_list, can_failed_list = self._get_card_name_list_from_battle_plan()
             success = self._add_cards(card_name_list=card_name_list, can_failed_list=can_failed_list)
@@ -758,13 +749,13 @@ class BattlePreparation:
 
         return 0
 
-    def start_and_ensure_entry(self):
+    def start_and_ensure_entry(self: "FAA"):
         """开始并确保进入成功"""
 
         # 点击开始
         find = loop_match_p_in_w(
-            source_handle=self.faa.handle,
-            source_root_handle=self.faa.handle_360,
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
             source_range=[796, 413, 950, 485],
             template=RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
             match_tolerance=0.95,
@@ -773,30 +764,30 @@ class BattlePreparation:
             after_sleep=0.25,
             click=True)
         if not find:
-            self.faa.print_warning(text="选择卡组后, 10s找不到[开始/准备]字样! 创建房间可能失败!")
+            self.print_warning(text="选择卡组后, 10s找不到[开始/准备]字样! 创建房间可能失败!")
             return 1  # 1-重启本次
 
         # 防止被 [没有带对策卡] or [背包已满] or [经验已刷满] 卡住
         for i in range(10):
             tar = match_p_in_w(
-                source_handle=self.faa.handle,
-                source_root_handle=self.faa.handle_360,
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
                 source_range=[300, 180, 650, 420],
                 template=RESOURCE_P["common"]["战斗"]["战斗前_系统提示.png"],
                 match_tolerance=0.98)
             if not tar:
                 break
             else:
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=427, y=353)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=427, y=353)
                 time.sleep(0.25)
 
         # 刷新ui: 状态文本
-        self.faa.print_debug(text="查找火苗标识物, 等待进入战斗, 限时30s")
+        self.print_debug(text="查找火苗标识物, 等待进入战斗, 限时30s")
 
         # 循环查找火苗图标 找到战斗开始
         find = loop_match_p_in_w(
-            source_handle=self.faa.handle,
-            source_root_handle=self.faa.handle_360,
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
             source_range=[110, 0, 220, 100],
             template=RESOURCE_P["common"]["战斗"]["战斗中_火苗能量.png"],
             match_interval=0.05,
@@ -806,22 +797,22 @@ class BattlePreparation:
 
         # 刷新ui: 状态文本
         if find:
-            self.faa.print_debug(text="找到火苗标识物, 战斗进行中...")
+            self.print_debug(text="找到火苗标识物, 战斗进行中...")
             return 0  # 0-一切顺利
         else:
-            self.faa.print_warning(text="未能找到火苗标识物, 进入战斗失败, 可能是次数不足或服务器卡顿")
+            self.print_warning(text="未能找到火苗标识物, 进入战斗失败, 可能是次数不足或服务器卡顿")
             return 2  # 2-跳过本次
 
-    def accelerate(self):
+    def accelerate(self: "FAA"):
         """加速游戏!!!"""
         # duration is ms
         duration = EXTRA.ACCELERATE_START_UP_VALUE
         if duration > 0:
-            self.faa.click_accelerate_btn(mode="normal")
+            self.click_accelerate_btn(mode="normal")
             time.sleep(duration / 1000)
-            self.faa.click_accelerate_btn(mode="normal")
+            self.click_accelerate_btn(mode="normal")
             # 检查已经关闭加速
-            self.faa.click_accelerate_btn(mode="stop")
+            self.click_accelerate_btn(mode="stop")
 
         return 0  # 0-一切顺利
 
@@ -831,13 +822,13 @@ class BattlePreparation:
 
     """战斗结束战利品的领取和捕获图片并识别部分"""
 
-    def action_and_capture_loots(self):
+    def action_and_capture_loots(self: "FAA"):
         """
         :return: 捕获的战利品dict
         """
 
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
+        handle = self.handle
+        handle_360 = self.handle_360
 
         # 记录战利品 tip 一张图49x49 是完美规整的
         images = []
@@ -876,16 +867,16 @@ class BattlePreparation:
 
         return image
 
-    def capture_and_match_loots(self) -> list:
+    def capture_and_match_loots(self: "FAA") -> list:
         """
         :return: 捕获的战利品dict
         """
 
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
-        print_info = self.faa.print_info
-        player = self.faa.player
-        stage_info = self.faa.stage_info
+        handle = self.handle
+        handle_360 = self.handle_360
+        print_info = self.print_info
+        player = self.player
+        stage_info = self.stage_info
 
         # 是否在战利品ui界面
         find = loop_match_p_in_w(
@@ -939,20 +930,20 @@ class BattlePreparation:
 
             return []
 
-    def capture_and_match_treasure_chests(self) -> list:
+    def capture_and_match_treasure_chests(self: "FAA") -> list:
 
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
-        stage_info = self.faa.stage_info
-        player = self.faa.player
-        is_main = self.faa.is_main
-        is_group = self.faa.is_group
-        print_info = self.faa.print_info
-        print_warning = self.faa.print_warning
+        handle = self.handle
+        handle_360 = self.handle_360
+        stage_info = self.stage_info
+        player = self.player
+        is_main = self.is_main
+        is_group = self.is_group
+        print_info = self.print_info
+        print_warning = self.print_warning
 
         if EXTRA.ACCELERATE_SETTLEMENT_VALUE:
             print_info(text="[翻宝箱UI] 开始加速...")
-            self.faa.click_accelerate_btn(mode="normal")
+            self.click_accelerate_btn(mode="normal")
 
         # 休息一会再识图 如果有加速, 少休息一会
         time.sleep(7 / (EXTRA.ACCELERATE_SETTLEMENT_VALUE if EXTRA.ACCELERATE_SETTLEMENT_VALUE != 0 else 1))
@@ -975,9 +966,9 @@ class BattlePreparation:
 
         if EXTRA.ACCELERATE_SETTLEMENT_VALUE:
             print_info(text="[翻宝箱UI] 停止加速...")
-            self.faa.click_accelerate_btn(mode="normal")
+            self.click_accelerate_btn(mode="normal")
             # 检查已经关闭加速
-            self.faa.click_accelerate_btn(mode="stop")
+            self.click_accelerate_btn(mode="stop")
 
         # 翻牌 1+2 bug法
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=550, y=265)
@@ -1027,15 +1018,18 @@ class BattlePreparation:
 
         return drop_list
 
-    def perform_action_capture_match_for_loots_and_chests(self):
+    def perform_action_capture_match_for_loots_and_chests(self: "FAA"):
         """
         战斗结束后, 完成下述流程: 潜在的任务完成黑屏-> 战利品 -> 战斗结算 -> 翻宝箱 -> 回到房间/魔塔会回到其他界面
-        :return: int 状态码; None或dict, {"loots": [], "chests": []}
+        已模块化到外部实现
+        :return:
+        输出1 int, 状态码, 0-正常结束 1-重启本次 2-跳过本次,
+        输出2 None或者dict, 战利品识别结果 {"loots": [], "chests": []}
         """
 
-        print_debug = self.faa.print_debug
-        screen_check_server_boom = self.faa.screen_check_server_boom
-        print_warning = self.faa.print_warning
+        print_debug = self.print_debug
+        screen_check_server_boom = self.screen_check_server_boom
+        print_warning = self.print_warning
 
         print_debug(text="识别到多种战斗结束标志之一, 进行收尾工作")
 
@@ -1057,17 +1051,17 @@ class BattlePreparation:
 
     """补充一个用于确保正确完成了战斗的Check点"""
 
-    def wrap_up(self):
+    def battle_a_round_warp_up(self: "FAA"):
 
         """
         房间内或其他地方 战斗结束
         :return: 0-正常结束 1-重启本次 2-跳过本次
         """
 
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
-        print_debug = self.faa.print_debug
-        print_error = self.faa.print_error
+        handle = self.handle
+        handle_360 = self.handle_360
+        print_debug = self.print_debug
+        print_error = self.print_error
 
         print_debug(text="[开始/准备/魔塔蛋糕UI] 尝试捕获正确标志, 以完成战斗流程.")
         find = loop_match_ps_in_w(

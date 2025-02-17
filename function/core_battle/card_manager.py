@@ -4,20 +4,24 @@ import os
 import time
 from ctypes import windll
 from threading import Timer
-from typing import Union
+from typing import Union, TYPE_CHECKING
 
 import cv2
 from PyQt6.QtCore import QThread, pyqtSignal
 
 from function.common.bg_img_screenshot import capture_image_png, capture_image_png_all
-from function.core_battle.Card import Card, CardKun, SpecialCard
-from function.core_battle.CardQueue import CardQueue
+from function.core_battle.card import Card, CardKun, SpecialCard
+from function.core_battle.card_queue import CardQueue
 from function.core_battle.special_card_strategy import solve_special_card_problem
 from function.globals import EXTRA, SIGNAL
 from function.globals.get_paths import PATHS
 from function.globals.location_card_cell_in_battle import COORDINATE_CARD_CELL_IN_BATTLE
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
+
+if TYPE_CHECKING:
+    from function.core.todo import ThreadTodo
+    from function.core.faa import FAA
 
 
 def is_special_card(card_name):
@@ -76,14 +80,21 @@ class CardManager(QThread):
     signal_used_key = pyqtSignal()
     signal_stop = pyqtSignal()
 
-    def __init__(self, todo, faa_a, faa_b, solve_queue, senior_interval, start_time, check_interval=1):
+    def __init__(
+            self,
+            todo: "ThreadTodo",
+            faa_a: "FAA",
+            faa_b: "FAA",
+            solve_queue, senior_callback_interval, start_time, check_interval=0.5):
         """
         :param faa_a: 主号 -> 1
         :param faa_b: 副号 -> 2
         :param solve_queue: 高危目标待解决列表 如果为None 说明高级战斗未激活
-        :param senior_interval: 高级战斗间隔时间
-        :param check_interval:
+        :param senior_callback_interval: 高级战斗回调函数 间隔时间
+        :param check_interval: 许多项检测的时间间隔
+        :param start_time: 用于校准计时器 游戏开始的时间戳
         """
+
         super().__init__()
         # # 完成构造函数的所有初始化工作后，设置 is_initialized 为 True
         # self.is_initialized = False
@@ -103,11 +114,12 @@ class CardManager(QThread):
         self.solve_queue = solve_queue
 
         # 高级战斗的间隔时间
-        self.senior_interval = senior_interval
+        self.senior_interval = senior_callback_interval
+
         # 精准战斗开始时间
         self.start_time = start_time
 
-        # 一轮检测的时间 单位s, 该时间的1/50则是尝试使用一张卡的间隔, 该时间的10倍则是使用武器技能/自动拾取动作的间隔 推荐默认值 1s
+        # 一轮检测的时间 单位s
         self.check_interval = check_interval
 
         """
@@ -436,7 +448,7 @@ class CardManager(QThread):
         # 注意线程同步问题. 需要确保两个FAA都已经完成了波次检测, 并完成了对应的方案切换后, 再进行重载.
         if self.is_group:
             for i in range(50):
-                if self.faa_dict[1].faa_battle.wave != self.faa_dict[2].faa_battle.wave:
+                if self.faa_dict[1].wave != self.faa_dict[2].wave:
                     time.sleep(0.1)
 
         self.stop_sub_threads()
@@ -452,9 +464,9 @@ class CardManager(QThread):
 
         CUS_LOGGER.debug("[战斗执行器] 成功接收到使用钥匙信号")
 
-        self.faa_dict[1].faa_battle.is_used_key = True
+        self.faa_dict[1].is_used_key = True
         if self.is_group:
-            self.faa_dict[2].faa_battle.is_used_key = True
+            self.faa_dict[2].is_used_key = True
 
     def create_insert_timer_and_start(self, interval, func_name, func_kwargs):
 
@@ -464,7 +476,6 @@ class CardManager(QThread):
             y = faa.bp_cell[location][1]
 
             with faa.battle_lock:
-
                 # 选择铲子
                 T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=faa.handle, key="1")
                 time.sleep(self.check_interval / 50)
@@ -631,7 +642,7 @@ class ThreadCheckTimer(QThread):
         """结束检测"""
         # 仅房主完成该检测操作
         if self.faa.is_main:
-            self.running = not self.faa.faa_battle.check_end()
+            self.running = not self.faa.check_end()
             if not self.running:
                 if not self.stopped:
                     # 正常结束，非主动杀死线程结束
@@ -644,7 +655,7 @@ class ThreadCheckTimer(QThread):
         """钥匙检测"""
         # 尝试使用钥匙 如成功 发送信号 修改faa.battle中的is_used_key为True 以标识用过了, 如果不需要使用或用过了, 会直接Fals
         # 不需要判定主号 直接使用即可
-        if self.faa.faa_battle.use_key():
+        if self.faa.use_key():
             self.signal_used_key.emit()
 
         """ 自动战斗"""
@@ -660,7 +671,7 @@ class ThreadCheckTimer(QThread):
         )
 
         # 尝试检测变阵 注意仅主号完成该操作 操作的目标是manager实例对象
-        result = self.faa.faa_battle.check_wave(img=game_image)
+        result = self.faa.check_wave(img=game_image)
         if result:
             if self.faa.is_main:
                 self.running = False
@@ -672,7 +683,7 @@ class ThreadCheckTimer(QThread):
         self.card_queue.init_card_queue(game_image=game_image)
 
         # 更新火苗
-        self.faa.faa_battle.update_fire_elemental_1000(img=game_image)
+        self.faa.update_fire_elemental_1000(img=game_image)
 
         # 根据情况判断是否加入执行坤函数的动作
         if self.kun_cards:
@@ -706,8 +717,8 @@ class ThreadCheckTimer(QThread):
 
         # 定时 使用武器技能 自动拾取 考虑到火苗消失时间是7s 快一点5s更好
         if self.checked_round % 5 == 0:
-            self.faa.faa_battle.use_gem_skill()
-            self.faa.faa_battle.auto_pickup()
+            self.faa.use_gem_skill()
+            self.faa.auto_pickup()
 
     def check_for_kun(self, game_image=None):
         """
@@ -715,7 +726,7 @@ class ThreadCheckTimer(QThread):
         """
 
         # 要求火苗1000+
-        if not self.faa.faa_battle.fire_elemental_1000:
+        if not self.faa.fire_elemental_1000:
             return
 
         any_kun_usable = False
@@ -750,7 +761,7 @@ class ThreadCheckTimer(QThread):
 
 
 class ThreadUseCardTimer(QThread):
-    def __init__(self, card_queue, faa, check_interval):
+    def __init__(self, card_queue, faa: "FAA"):
         super().__init__()
         """引用的类"""
         self.card_queue = card_queue
@@ -805,7 +816,7 @@ class ThreadUseCardTimer(QThread):
 
 
 class ThreadInsertUseCardTimer(QThread):
-    def __init__(self, manager, pid, faa, check_interval, start_time):
+    def __init__(self, manager: CardManager, pid: int, faa: "FAA", start_time):
         super().__init__()
         """引用的类"""
         self.pid = pid
@@ -1037,7 +1048,7 @@ class ThreadUseSpecialCardTimer(QThread):
         self.pid_list = [1, 2] if self.is_group else [1]
 
         # 没有1000火的角色 从pid list中移除
-        self.pid_list = [pid for pid in self.pid_list if self.faa_dict[pid].faa_battle.fire_elemental_1000]
+        self.pid_list = [pid for pid in self.pid_list if self.faa_dict[pid].fire_elemental_1000]
         if not self.pid_list:
             return
 

@@ -9,7 +9,7 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QTextCursor
 from PyQt6.QtWidgets import QApplication
 
-from function.core.QMW_0_load_ui_file import QMainWindowLoadUI
+from function.core.qmw_0_load_ui_file import QMainWindowLoadUI
 from function.globals import SIGNAL
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER

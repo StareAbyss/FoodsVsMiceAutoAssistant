@@ -1,5 +1,8 @@
 import threading
 
+from PyQt6 import QtGui
+
+from function.globals.get_paths import PATHS
 from function.scattered.ethical_core import ethical_core
 
 """
@@ -49,3 +52,22 @@ MISU_LOGISTICS = ""
 # 伦理模式
 ETHICAL_MODE = ethical_core()
 print("伦理模块开启:", ETHICAL_MODE)
+
+
+def get_q_font():
+    # 读取字体文件
+    font_id = QtGui.QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
+    QtGui.QFontDatabase.addApplicationFont(PATHS["font"] + "\\手书体.ttf")
+
+    # 获取字体家族名称
+    font_families = QtGui.QFontDatabase.applicationFontFamilies(font_id)
+    if not font_families:
+        raise ValueError("Failed to load font file.")
+
+    font_family = font_families[0]
+
+    # 创建 QFont 对象并设置大小
+    return QtGui.QFont(font_family, 11)
+
+
+Q_FONT = get_q_font()

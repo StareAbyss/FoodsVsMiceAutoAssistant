@@ -1,20 +1,20 @@
 import copy
+import json
+import os
 import threading
 import time
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 import pytz
 
 from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
 from function.common.bg_img_screenshot import capture_image_png
 from function.common.overlay_images import overlay_images
-from function.core.FAA_ActionInterfaceJump import FAAActionInterfaceJump
-from function.core.FAA_ActionQuestReceiveRewards import FAAActionQuestReceiveRewards
-from function.core.FAA_BattlePreparation import BattlePreparation
-from function.core_battle.FAA_Battle import Battle
 from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
-from function.globals import g_resources, SIGNAL
+from function.globals import g_resources, SIGNAL, EXTRA
 from function.globals.g_resources import RESOURCE_P
+from function.globals.get_paths import PATHS
 from function.globals.location_card_cell_in_battle import COORDINATE_CARD_CELL_IN_BATTLE
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
@@ -23,16 +23,19 @@ from function.scattered.match_ocr_text.get_food_quest_by_ocr import food_match_o
 from function.scattered.match_ocr_text.text_to_battle_info import food_texts_to_battle_info
 from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 
+if TYPE_CHECKING:
+    from function.core.faa import FAA
 
-class FAA:
+
+class FAABase:
     """
     FAA类是项目的核心类
     用于封装 [所有对单个游戏窗口进行执行的操作]
     其中部分较麻烦的模块的实现被分散在了其他的类里, 此处只留下了接口以供调用
     """
 
-    def __init__(self, channel="锑食", player=1,
-                 character_level=1, is_auto_battle=True, is_auto_pickup=False, random_seed=0):
+    def __init__(self: "FAA", channel: str = "锑食", player: int = 1, character_level: int = 1,
+                 is_auto_battle: bool = True, is_auto_pickup: bool = False, random_seed: int = 0):
 
         # 获取窗口句柄
         self.channel = channel  # 在刷新窗口后会需要再重新获取flash的句柄, 故保留
@@ -40,23 +43,28 @@ class FAA:
         self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
         self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
 
-        # 随机种子
-        self.random_seed = random_seed
-
         # 这个参数主要用于启动时防熊，避免线程已终止faa类内仍在循环识图
         self.should_stop = False
 
-        """每次战斗中都保持一致的参数"""
-        # 角色的index int 1 or 2
-        self.player = player
-        # 角色的等级 int 1 to 60
-        self.character_level = character_level
-        # 是否自动战斗 bool
-        self.is_auto_battle = is_auto_battle
-        # 是否鼠标模拟收集战利品 bool
-        self.is_auto_pickup = is_auto_pickup
+        """
+        每次战斗中都保持一致的参数
+        """
 
-        """每次战斗都不一样的参数 使用内部函数调用更改"""
+        self.player: int = player  # 角色的index 1 or 2
+        self.character_level: int = character_level  # 角色的等级 1 to 60
+        self.is_auto_battle: bool = is_auto_battle  # 是否自动战斗
+        self.is_auto_pickup: bool = is_auto_pickup  # 是否鼠标模拟收集战利品
+        self.random_seed: int = random_seed  # 随机种子
+        self.bp_cell = COORDINATE_CARD_CELL_IN_BATTLE  # 调用战斗中 格子位置 字典 bp -> battle location
+
+        file_name = os.path.join(PATHS["config"], "card_type.json")
+        with open(file=file_name, mode='r', encoding='utf-8') as file:
+            self.card_types = json.load(file)
+
+        """
+        每次战斗都不一样的参数 使用内部函数调用更改
+        """
+
         self.stage_info = None
         self.is_main = None
         self.is_group = None
@@ -69,99 +77,79 @@ class FAA:
         self.battle_plan = None  # 读取自json的初始战斗方案
         self.battle_mode = None
 
-        # 初始化战斗中 成功ban掉的卡片的卡组索引号 1开头和游戏对应
-        self.banned_card_index = None
+        """
+        每次战斗运行中获取的功能参数
+        """
 
-        # 初始化战斗中 卡片位置 字典 bp -> battle location
-        self.bp_card = None
+        self.banned_card_index = None  # 初始化战斗中 成功ban掉的卡片的卡组索引号 1开头和游戏对应
+        self.bp_card = None  # 初始化战斗中 卡片位置 字典 bp -> battle location
+        self.mat_cards_info: list[dict] | None = None  # 承载卡位置
+        self.smoothie_info = None  # 冰沙位置
+        self.kun_cards_info: list[dict] | None = None  # 坤位置 也用于标记本场战斗是否需要激活坤函数
+        self.battle_plan_card = []  # 经过处理后的战斗方案卡片部分, 由战斗类相关动作函数直接调用, 其中的各种操作都包含坐标
+        self.battle_lock = threading.Lock()  # 战斗放卡锁，保证同一时间一个号里边的特殊放卡及正常放卡只有一种放卡在操作
 
-        # 调用战斗中 格子位置 字典 bp -> battle location
-        self.bp_cell = COORDINATE_CARD_CELL_IN_BATTLE
+        # ---------- 战斗专用私有属性 - 动态 ----------
 
-        # 承载卡/冰沙/坤的位置
-        self.mat_cards_info = None  # list [{},{},...]
-        self.smoothie_info = None  # dict {}
-        self.kun_cards_info = None  # list [{},{}...] 也用于标记本场战斗是否需要激活坤函数
+        self.is_used_key = False
+        self.fire_elemental_1000 = False
+        self.smoothie_usable = 1
+        self.wave = 0
+        self.start_time = 0
+        self.player_locations = []  # 战斗开始放人物的 位置代号
+        self.shovel_locations = []  # 放铲子的 位置代号
+        self.shovel_coordinates = []  # 放铲子的 位置坐标
 
-        # 经过处理后的战斗方案卡片部分, 由战斗类相关动作函数直接调用, 其中的各种操作都包含坐标
-        self.battle_plan_card = []
+        # ---------- 战斗专用私有属性 - 静态 ----------
 
-        """被拆分为子实例的模块"""
+        self.click_sleep = 1 / EXTRA.CLICK_PER_SECOND * 2.2
+        # 自动拾取的格子
+        self.auto_collect_cells = [
+            "1-1", "2-1", "3-1", "4-1", "5-1", "6-1", "7-1", "8-1", "9-1",
+            "1-2", "2-2", "3-2", "4-2", "5-2", "6-2", "7-2", "8-2", "9-2",
+            "1-3", "2-3", "3-3", "4-3", "5-3", "6-3", "7-3", "8-3", "9-3",
+            "1-4", "2-4", "3-4", "4-4", "5-4", "6-4", "7-4", "8-4", "9-4",
+            "1-5", "2-5", "3-5", "4-5", "5-5", "6-5", "7-5", "8-5", "9-5",
+            "1-6", "2-6", "3-6", "4-6", "5-6", "6-6", "7-6", "8-6", "9-6",
+            "1-7", "2-7", "3-7", "4-7", "5-7", "6-7", "7-7", "8-7", "9-7"
+        ]
+        # 自动拾取的坐标
+        self.auto_collect_cells_coordinate = [self.bp_cell[i] for i in self.auto_collect_cells]
 
-        # 战斗实例 其中绝大多数方法需要在set_config_for_battle后使用
-        self.faa_battle = Battle(faa=self)
-
-        # 领取奖励实例 基本只调用一个main方法
-        self.obj_action_receive_quest_rewards = FAAActionQuestReceiveRewards(faa=self)
-
-        # 界面跳转实例
-        self.obj_action_interface_jump = FAAActionInterfaceJump(faa=self)
-
-        # 战前战后实例 用于实现战斗前的ban卡, 战斗后的战利品图像截取识别 和 判断战斗正确结束
-        self.obj_battle_preparation = BattlePreparation(faa=self)
-
-        # 战斗放卡锁，保证同一时间一个号里边的特殊放卡及正常放卡只有一种放卡在操作
-        self.battle_lock = threading.Lock()
-
-    def print_debug(self, text, player=None):
+    def print_debug(self: "FAA", text, player=None):
         """FAA类中的 log debug 包含了player信息"""
         if not player:
             player = self.player
         CUS_LOGGER.debug("[{}P] {}".format(player, text))
 
-    def print_info(self, text, player=None):
+    def print_info(self: "FAA", text, player=None):
         """FAA类中的 log print 包含了player信息"""
         if not player:
             player = self.player
         CUS_LOGGER.info("[{}P] {}".format(player, text))
 
-    def print_warning(self, text, player=None):
+    def print_warning(self: "FAA", text, player=None):
         """FAA类中的 log warning 包含了player信息"""
         if not player:
             player = self.player
         CUS_LOGGER.warning("[{}P] {}".format(player, text))
 
-    def print_error(self, text, player=None):
+    def print_error(self: "FAA", text, player=None):
         """FAA类中的 log error 包含了player信息"""
         if not player:
             player = self.player
         CUS_LOGGER.error("[{}P] {}".format(player, text))
 
-    """界面跳转动作的接口"""
-
-    def action_exit(self, mode: str = "None", raw_range=None):
-        return self.obj_action_interface_jump.exit(mode=mode, raw_range=raw_range)
-
-    def action_top_menu(self, mode: str):
-        return self.obj_action_interface_jump.top_menu(mode=mode)
-
-    def action_bottom_menu(self, mode: str):
-        return self.obj_action_interface_jump.bottom_menu(mode=mode)
-
-    def action_change_activity_list(self, serial_num: int):
-        return self.obj_action_interface_jump.change_activity_list(serial_num=serial_num)
-
-    def action_goto_map(self, map_id):
-        return self.obj_action_interface_jump.goto_map(map_id=map_id)
-
-    def action_goto_stage(self, mt_first_time: bool = False):
-        try:
-            return self.obj_action_interface_jump.goto_stage(mt_first_time=mt_first_time)
-        except KeyError as e:
-            SIGNAL.PRINT_TO_UI.emit(text="跳转关卡失败，请检查关卡代号是否正确", color_level=1)
-            SIGNAL.DIALOG.emit("ERROR", "跳转关卡失败! 请检查关卡代号是否正确")
-            SIGNAL.END.emit()
-
     """"对flash游戏界面或自身参数的最基础 [检测]"""
 
-    def check_level(self) -> bool:
+    def check_level(self: "FAA") -> bool:
         """检测角色等级和关卡等级(调用于输入关卡信息之后)"""
         if self.character_level < self.stage_info["level"]:
             return False
         else:
             return True
 
-    def screen_check_server_boom(self) -> bool:
+    def screen_check_server_boom(self: "FAA") -> bool:
         """
         检测是不是炸服了
         :return: bool 炸了 True 没炸 False
@@ -195,9 +183,17 @@ class FAA:
     """调用输入关卡配置和战斗配置, 在战斗前必须进行该操作"""
 
     def set_config_for_battle(
-            self, stage_id="NO-1-1", is_group=False, is_main=True, need_key=True,
-            deck=1, auto_carry_card=False, quest_card=None, ban_card_list=None, max_card_num=None,
-            battle_plan_uuid="00000000-0000-0000-0000-000000000000") -> None:
+            self: "FAA",
+            stage_id: str = "NO-1-1",
+            is_group: bool = False,
+            is_main: bool = True,
+            need_key: bool = True,
+            deck: int = 1,
+            auto_carry_card: bool = False,
+            quest_card=None,
+            ban_card_list=None,
+            max_card_num=None,
+            battle_plan_uuid: str = "00000000-0000-0000-0000-000000000000") -> None:
         """
         战斗相关参数的re_init
         :param is_group: 是否组队
@@ -230,9 +226,9 @@ class FAA:
 
         self.stage_info = read_json_to_stage_info(stage_id)
 
-    """战斗开始时的初始化函数"""
+    """战斗完整的过程中的任务函数"""
 
-    def init_mat_smoothie_kun_card_info(self) -> None:
+    def init_mat_smoothie_kun_card_info(self: "FAA") -> None:
         """
         根据关卡名称和可用承载卡，以及游戏内识图到的承载卡取交集，返回承载卡的x-y坐标
         :return: [[x1, y1], [x2, y2],...]
@@ -348,7 +344,7 @@ class FAA:
         self.kun_cards_info = kun_cards_info
         self.print_info(text="战斗中识图查找幻幻鸡位置, 结果：{}".format(self.kun_cards_info))
 
-    def init_battle_plan_card(self, wave) -> None:
+    def init_battle_plan_card(self: "FAA", wave: int) -> None:
         """
         战斗方案解析器 - 用于根据战斗方案的json和关卡等多种信息, 解析计算为卡片的部署方案 供战斗方案执行器执行
         Return: battle_plan_card 卡片的部署方案字典
@@ -381,12 +377,14 @@ class FAA:
         smoothie_info = copy.deepcopy(self.smoothie_info)
 
         # 新版战斗方案兼容
-        battle_plan = next((
-            event["action"]["cards"] for event in battle_plan["events"] if (
-                event["trigger"]["type"] == "wave_timer" and
-                event["trigger"]["wave_id"] == int(wave) and
-                event["action"]["type"] == "loop_use_cards"
-        )), [])
+        battle_plan = next(
+            (
+                event["action"]["cards"] for event in battle_plan["events"] if (
+                    event["trigger"]["type"] == "wave_timer" and
+                    event["trigger"]["wave_id"] == int(wave) and
+                    event["action"]["type"] == "loop_use_cards"
+            )
+            ), [])
 
         # 内联卡片名称
         for a_card in battle_plan:
@@ -596,22 +594,20 @@ class FAA:
 
         return main()
 
-    """战斗完整的过程中的任务函数"""
-
-    def battle_a_round_init_battle_plan(self):
+    def battle_a_round_init_battle_plan(self: "FAA"):
         """
         关卡内战斗过程
         """
-        # 0.刷新faa_battle实例的部分属性
-        self.faa_battle.re_init()
+        # 0.刷新battle相关的属性值
+        self.faa_battle_re_init()
 
         # 1.把人物放下来
         time.sleep(0.333)
         if not self.is_main:
             time.sleep(0.666)
 
-        self.faa_battle.init_battle_plan_player(locations=self.battle_plan["meta_data"]["player_position"])
-        self.faa_battle.use_player_all()
+        self.init_battle_plan_player(locations=self.battle_plan["meta_data"]["player_position"])
+        self.use_player_all()
 
         # 2.识图卡片数量，确定卡片在deck中的位置
         self.bp_card = get_location_card_deck_in_battle(handle=self.handle, handle_360=self.handle_360)
@@ -623,41 +619,13 @@ class FAA:
         self.init_battle_plan_card(wave=0)
 
         # 5.铲卡
-        self.faa_battle.init_battle_plan_shovel(locations=self.stage_info["shovel"])
+        self.init_battle_plan_shovel(locations=self.stage_info["shovel"])
         if self.is_main:
-            self.faa_battle.use_shovel_all(need_lock=False)  # 因为有点击序列，所以同时操作是可行的
-
-    def battle_a_round_loots(self):
-        """
-        战斗结束后, 完成下述流程: 潜在的任务完成黑屏-> 战利品 -> 战斗结算 -> 翻宝箱 -> 回到房间/魔塔会回到其他界面
-        已模块化到外部实现
-        :return:
-        输出1 int, 状态码, 0-正常结束 1-重启本次 2-跳过本次,
-        输出2 None或者dict, 战利品识别结果 {"loots": [], "chests": []}
-        """
-
-        return self.obj_battle_preparation.perform_action_capture_match_for_loots_and_chests()
-
-    def battle_a_round_warp_up(self):
-
-        """
-        房间内或其他地方 战斗结束
-        :return: 0-正常结束 1-重启本次 2-跳过本次
-        """
-
-        return self.obj_battle_preparation.wrap_up()
+            self.use_shovel_all(need_lock=False)  # 因为有点击序列，所以同时操作是可行的
 
     """其他非战斗功能"""
 
-    def receive_quest_rewards(self, mode: str) -> None:
-        """
-        领取任务奖励, 从任意地图界面开始, 从任意地图界面结束
-        :param mode: "普通任务" "公会任务" "情侣任务" "悬赏任务" "美食大赛" "大富翁" "营地任务"
-        :return: None
-        """
-        return self.obj_action_receive_quest_rewards.main(mode=mode)
-
-    def match_quests(self, mode: str, qg_cs=False) -> list:
+    def match_quests(self: "FAA", mode: str, qg_cs:bool=False) -> list:
         """
         获取任务列表 -> 需要的完成的关卡步骤
         :param mode: "公会任务" "情侣任务" "美食大赛" "美食大赛-新"
@@ -874,7 +842,7 @@ class FAA:
 
         return quest_list
 
-    def click_refresh_btn(self) -> bool:
+    def click_refresh_btn(self: "FAA") -> bool:
         """
         点击360游戏大厅的刷新游戏按钮
         :return: bool 是否成功点击
@@ -916,7 +884,7 @@ class FAA:
                     return False
         return True
 
-    def click_return_btn(self) -> bool:
+    def click_return_btn(self: "FAA") -> bool:
         """
         点击360游戏大厅的返回上一级按钮
         这用户在结束后的最终刷新前, 以保证微端也能回到选服界面
@@ -961,7 +929,7 @@ class FAA:
                     return False
         return True
 
-    def click_accelerate_btn(self, mode: str = "normal") -> bool:
+    def click_accelerate_btn(self: "FAA", mode: str = "normal") -> bool:
         """
         点击360游戏大厅的刷新游戏按钮
         :param mode: str 模式 包含 "normal" "stop"
@@ -1043,7 +1011,7 @@ class FAA:
         else:
             return close()
 
-    def reload_game(self) -> None:
+    def reload_game(self: "FAA") -> None:
 
         def try_close_sub_account_list():
             # 是否有小号列表
@@ -1293,7 +1261,7 @@ class FAA:
 
         main()
 
-    def sign_in(self) -> None:
+    def sign_in(self: "FAA") -> None:
 
         def sign_in_vip():
             """VIP签到"""
@@ -1498,7 +1466,7 @@ class FAA:
 
         return main()
 
-    def sign_top_up_money(self):
+    def sign_top_up_money(self: "FAA"):
         """日氪一元! 仅限4399 游币哦!
         为什么这么慢! 因为... 锑食太卡了!
         """
@@ -1684,7 +1652,7 @@ class FAA:
         else:
             return "你游币用完了! 氪不了一点 orz"
 
-    def fed_and_watered(self) -> None:
+    def fed_and_watered(self: "FAA") -> None:
         """
         公会施肥浇水功能
         """
@@ -1987,7 +1955,7 @@ class FAA:
                         f"[浇水 施肥 摘果 领取] [{self.player}p] 正确完成 ~")
                     # 退出公会
                     self.action_exit(mode="普通红叉")
-                    self.receive_quest_rewards(mode="公会任务")
+                    self.action_receive_quest_rewards(mode="公会任务")
                     break
 
                 if try_times >= 5:
@@ -1998,7 +1966,7 @@ class FAA:
 
         fed_and_watered_main()
 
-    def use_items_consumables(self) -> None:
+    def use_items_consumables(self: "FAA") -> None:
 
         SIGNAL.PRINT_TO_UI.emit(text=f"[使用绑定消耗品] [{self.player}P] 开始.")
 
@@ -2136,7 +2104,7 @@ class FAA:
 
         SIGNAL.PRINT_TO_UI.emit(text=f"[使用绑定消耗品] [{self.player}P] 结束.")
 
-    def use_items_double_card(self, max_times) -> None:
+    def use_items_double_card(self: "FAA", max_times: int) -> None:
         """
         使用双倍暴击卡的函数。
 
@@ -2250,7 +2218,7 @@ class FAA:
 
         main()
 
-    def input_level_2_password(self, password):
+    def input_level_2_password(self: "FAA", password: str):
         """
         输入二级密码. 通过背包内尝试拆主武器
         """
@@ -2284,7 +2252,7 @@ class FAA:
 
         SIGNAL.PRINT_TO_UI.emit(text=f"[输入二级密码] [{self.player}P] 结束.")
 
-    def gift_flower(self):
+    def gift_flower(self: "FAA"):
         """送免费花"""
 
         # 打开缘分树界面
@@ -2318,7 +2286,7 @@ class FAA:
         for i in range(2):
             self.action_exit(mode="普通红叉")
 
-    def get_dark_crystal(self):
+    def get_dark_crystal(self: "FAA"):
         """
         自动兑换暗晶的函数
         """
@@ -2350,7 +2318,7 @@ class FAA:
 
         SIGNAL.PRINT_TO_UI.emit(text=f"[兑换暗晶] [{self.player}P] 结束.")
 
-    def delete_items(self):
+    def delete_items(self: "FAA"):
         """用于删除多余的技能书类消耗品, 使用前需要输入二级或无二级密码"""
 
         self.print_debug(text="开启删除物品高危功能")
@@ -2428,7 +2396,7 @@ class FAA:
         # 关闭背包
         self.action_exit(mode="普通红叉")
 
-    def loop_cross_server(self, deck):
+    def loop_cross_server(self: "FAA", deck: int):
 
         first_time = True
 
@@ -2517,12 +2485,3 @@ class FAA:
 
             # 游戏内退出
             self.action_exit(mode="游戏内退出")
-
-
-if __name__ == '__main__':
-    def f_main():
-        faa = FAA(channel="锑食-微端")
-        faa.delete_items()
-
-
-    f_main()

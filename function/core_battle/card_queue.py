@@ -16,6 +16,7 @@ class CardQueue(queue.PriorityQueue):
     def init_card_queue(self, game_image=None):
 
         for card in self.card_list:
+
             # 更新 status_ban
             if card.status_ban > 0:
                 card.status_ban -= 1

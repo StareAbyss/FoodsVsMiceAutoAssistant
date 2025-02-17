@@ -58,8 +58,8 @@ def loop_battle(self):
                 time.sleep(click_sleep)
 
         # 读取点击相关部分参数
-        click_interval = self.faa_battle.click_interval
-        click_sleep = self.faa_battle.click_sleep
+        click_interval = self.click_interval
+        click_sleep = self.click_sleep
 
         # 战斗中, [检测战斗结束]和[检测继续战斗]的时间间隔, 不建议大于1s(因为检测只在放完一张卡后完成 遍历会耗时)
         check_invite = 1.0
@@ -88,7 +88,7 @@ def loop_battle(self):
 
                     # 更新上次检测时间 + 更新flag + 中止休息循环
                     check_last_one_time = time.time()
-                    if self.faa_battle.use_key_and_check_end():
+                    if self.use_key_and_check_end():
                         end_flag = True
                         break
 
@@ -104,8 +104,8 @@ def loop_battle(self):
                     card_plan[i]["location_to"].remove(card_plan[i]["location_to"][0])
 
             # 武器技能 + 自动收集
-            self.faa_battle.use_gem_skill()
-            self.faa_battle.auto_pickup()
+            self.use_gem_skill()
+            self.auto_pickup()
 
             """一轮不到7s+点7*9个位置需要的时间, 休息到该时间, 期间每[check_invite]秒检测一次"""
             time_spend_a_round = time.time() - time_round_begin
@@ -120,7 +120,7 @@ def loop_battle(self):
 
                         # 更新上次检测时间 + 更新flag + 中止休息循环
                         check_last_one_time = time.time()
-                        if self.faa_battle.use_key_and_check_end():
+                        if self.use_key_and_check_end():
                             end_flag = True
                             break
                     time.sleep(check_invite)
@@ -135,7 +135,7 @@ def loop_battle(self):
                     # 更新上次检测时间 + 更新flag + 中止休息循环
                     check_last_one_time = time.time()
 
-                    if self.faa_battle.use_key_and_check_end():
+                    if self.use_key_and_check_end():
                         end_flag = True
                         break
 
@@ -144,7 +144,7 @@ def loop_battle(self):
 
     def use_card_loop_skill():
         # 放人
-        # self.faa_battle.use_player_all("5-4")
+        # self.use_player_all("5-4")
 
         # 计算目标位置 1-14
         cell_list = []

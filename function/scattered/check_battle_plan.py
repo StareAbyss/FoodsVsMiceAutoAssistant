@@ -4,7 +4,7 @@ import uuid
 
 from function.globals import EXTRA, SIGNAL
 from function.globals.get_paths import PATHS
-from function.scattered.ClassBattlePlanV3d0 import convert_v2_to_v3
+from function.scattered.class_battle_plan_v3d0 import convert_v2_to_v3
 from function.scattered.get_list_battle_plan import get_list_battle_plan
 
 

@@ -1,5 +1,6 @@
 import datetime
 import time
+from typing import TYPE_CHECKING
 
 import pytz
 
@@ -8,21 +9,21 @@ from function.globals import SIGNAL
 from function.globals.g_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
+if TYPE_CHECKING:
+    from function.core.faa import FAA
 
-class FAAActionQuestReceiveRewards:
+
+class FAAActionReceiveQuestRewards:
     """
     领取各种任务奖励的动作
     """
 
-    def __init__(self, faa):
-        self.faa = faa
-
-    def normal(self):
+    def action_receive_quest_rewards_normal(self: "FAA"):
         """领取普通任务奖励"""
 
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
-        action_exit = self.faa.action_exit
+        handle = self.handle
+        handle_360 = self.handle_360
+        player = self.player
 
         def scan_one_page():
             """扫描一页"""
@@ -53,10 +54,10 @@ class FAAActionQuestReceiveRewards:
                 current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 SIGNAL.DIALOG.emit(
                     "背包满了！(╬◣д◢)",
-                    f"{self.faa.player}P因背包爆满, 导致 [领取普通任务奖励] 失败!\n"
+                    f"{player}P因背包爆满, 导致 [领取普通任务奖励] 失败!\n"
                     f"出错时间:{current_time}, 尝试次数:{max_attempts}")
 
-        self.faa.action_bottom_menu(mode="任务")
+        self.action_bottom_menu(mode="任务")
 
         # 复位滑块
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=413, y=155)
@@ -72,9 +73,15 @@ class FAAActionQuestReceiveRewards:
 
             scan_one_page()
 
-        action_exit(mode="普通红叉")
+        self.action_exit(mode="普通红叉")
 
-    def guild(self):
+    def action_receive_quest_rewards_guild(self: "FAA"):
+
+        handle = self.handle
+        handle_360 = self.handle_360
+        action_bottom_menu = self.action_bottom_menu
+        print_info = self.print_info
+        player = self.player
 
         # 判定时间, 如果是北京时间周四的0到12点, 直接return
         # 获取北京时间
@@ -82,13 +89,8 @@ class FAAActionQuestReceiveRewards:
         now = datetime.datetime.now(beijing_tz)
 
         if now.weekday() == 3 and 0 <= now.hour < 12:
-            self.faa.print_info("[公会任务] 周四0-12点, 跳过领取.")
+            print_info("[公会任务] 周四0-12点, 跳过领取.")
             return
-
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
-        action_bottom_menu = self.faa.action_bottom_menu
-        action_exit = self.faa.action_exit
 
         # 跳转到任务界面
         action_bottom_menu(mode="跳转_公会任务")
@@ -141,18 +143,18 @@ class FAAActionQuestReceiveRewards:
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             SIGNAL.DIALOG.emit(
                 "背包满了！(╬◣д◢)",
-                f"{self.faa.player}P因背包爆满, 导致 [领取公会任务奖励] 失败!\n"
+                f"{player}P因背包爆满, 导致 [领取公会任务奖励] 失败!\n"
                 f"出错时间:{current_time}, 尝试次数:{max_attempts}")
 
         # 退出任务界面
-        action_exit(mode="普通红叉")
+        self.action_exit(mode="普通红叉")
 
-    def spouse(self):
+    def action_receive_quest_rewards_spouse(self: "FAA"):
 
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
-        action_bottom_menu = self.faa.action_bottom_menu
-        action_exit = self.faa.action_exit
+        handle = self.handle
+        handle_360 = self.handle_360
+        action_bottom_menu = self.action_bottom_menu
+        player = self.player
 
         # 跳转到任务界面
         action_bottom_menu(mode="跳转_情侣任务")
@@ -181,7 +183,7 @@ class FAAActionQuestReceiveRewards:
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             SIGNAL.DIALOG.emit(
                 "背包满了！(╬◣д◢)",
-                f"{self.faa.player}P因背包爆满, 导致 [领取情侣任务奖励] 失败!\n"
+                f"{player}P因背包爆满, 导致 [领取情侣任务奖励] 失败!\n"
                 f"出错时间:{current_time}, 尝试次数:{max_attempts}")
 
         # 点两下右下角的领取
@@ -190,19 +192,18 @@ class FAAActionQuestReceiveRewards:
             time.sleep(0.1)
 
         # 退出任务界面
-        action_exit(mode="普通红叉")
+        self.action_exit(mode="普通红叉")
 
-    def offer_reward(self):
+    def action_receive_quest_rewards_offer_reward(self: "FAA"):
         """
         领取悬赏任务奖励
         :return: None
         """
 
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
-        action_top_menu = self.faa.action_top_menu
-        action_exit = self.faa.action_exit
-
+        handle = self.handle
+        handle_360 = self.handle_360
+        action_top_menu = self.action_top_menu
+        player = self.player
         # 进入X年活动界面
         action_top_menu(mode="X年活动")
 
@@ -228,20 +229,19 @@ class FAAActionQuestReceiveRewards:
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             SIGNAL.DIALOG.emit(
                 "背包满了！(╬◣д◢)",
-                f"{self.faa.player}P因背包爆满, 导致 [领取悬赏任务奖励]失败!\n"
+                f"{player}P因背包爆满, 导致 [领取悬赏任务奖励]失败!\n"
                 f"出错时间:{current_time}, 尝试次数:{max_attempts}")
 
         # 退出任务界面
-        action_exit(mode="关闭悬赏窗口")
+        self.action_exit(mode="关闭悬赏窗口")
 
-    def food_competition(self):
+    def action_receive_quest_rewards_food_competition(self: "FAA"):
 
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
-        action_top_menu = self.faa.action_top_menu
-        print_debug = self.faa.print_debug
-        print_warning = self.faa.print_warning
-
+        handle = self.handle
+        handle_360 = self.handle_360
+        action_top_menu = self.action_top_menu
+        print_warning = self.print_warning
+        player = self.player
         found_flag = False  # 记录是否有完成任何一次任务
 
         # 进入美食大赛界面
@@ -272,7 +272,7 @@ class FAAActionQuestReceiveRewards:
                         click=True)
                     if find:
                         # 领取升级有动画
-                        print_debug(text="[收取奖励] [美食大赛] 完成1个任务")
+                        self.print_debug(text="[收取奖励] [美食大赛] 完成1个任务")
                         time.sleep(6)
                         # 更新是否找到flag
                         found_flag = True
@@ -284,7 +284,7 @@ class FAAActionQuestReceiveRewards:
                     current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     SIGNAL.DIALOG.emit(
                         "背包满了！(╬◣д◢)",
-                        f"{self.faa.player}P因背包爆满, 导致 [领取悬赏任务奖励]失败!\n"
+                        f"{player}P因背包爆满, 导致 [领取悬赏任务奖励]失败!\n"
                         f"出错时间:{current_time}, 尝试次数:{max_attempts}")
 
             # 退出美食大赛界面
@@ -295,11 +295,11 @@ class FAAActionQuestReceiveRewards:
             print_warning(text="[领取奖励] [美食大赛] 未打开界面, 可能大赛未刷新")
 
         if not found_flag:
-            print_debug(text="[领取奖励] [美食大赛] 未完成任意任务")
+            self.print_debug(text="[领取奖励] [美食大赛] 未完成任意任务")
 
-    def monopoly(self):
-        handle = self.faa.handle
-        action_top_menu = self.faa.action_top_menu
+    def action_receive_quest_rewards_monopoly(self: "FAA"):
+        handle = self.handle
+        action_top_menu = self.action_top_menu
 
         # 进入对应地图
         find = action_top_menu(mode="大富翁")
@@ -331,12 +331,13 @@ class FAAActionQuestReceiveRewards:
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=928, y=16)
             time.sleep(0.5)
 
-    def camp(self):
+    def action_receive_quest_rewards_camp(self: "FAA"):
 
-        handle = self.faa.handle
+        handle = self.handle
+        action_goto_map = self.action_goto_map
 
         # 进入界面
-        find = self.faa.action_goto_map(map_id=10)
+        find = action_goto_map(map_id=10)
 
         if find:
             for _ in range(10):
@@ -345,24 +346,28 @@ class FAAActionQuestReceiveRewards:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=175, y=365)
                 time.sleep(0.2)
 
-    def main(self, mode) -> None:
-        print_debug = self.faa.print_debug
+    def action_receive_quest_rewards(self: "FAA", mode) -> None:
+        """
+        领取任务奖励, 从任意地图界面开始, 从任意地图界面结束
+        :param mode: "普通任务" "公会任务" "情侣任务" "悬赏任务" "美食大赛" "大富翁" "营地任务"
+        :return: None
+        """
 
-        print_debug(text="[领取奖励] [{}] 开始".format(mode))
+        self.print_debug(text="[领取奖励] [{}] 开始".format(mode))
 
         if mode == "普通任务":
-            self.normal()
+            self.action_receive_quest_rewards_normal()
         if mode == "公会任务":
-            self.guild()
+            self.action_receive_quest_rewards_guild()
         if mode == "情侣任务":
-            self.spouse()
+            self.action_receive_quest_rewards_spouse()
         if mode == "悬赏任务":
-            self.offer_reward()
+            self.action_receive_quest_rewards_offer_reward()
         if mode == "美食大赛":
-            self.food_competition()
+            self.action_receive_quest_rewards_food_competition()
         if mode == "大富翁":
-            self.monopoly()
+            self.action_receive_quest_rewards_monopoly()
         if mode == "营地任务":
-            self.camp()
+            self.action_receive_quest_rewards_camp()
 
-        print_debug(text="[领取奖励] [{}] 结束".format(mode))
+        self.print_debug(text="[领取奖励] [{}] 结束".format(mode))
