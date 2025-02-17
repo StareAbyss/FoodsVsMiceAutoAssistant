@@ -1,5 +1,6 @@
 import copy
 import time
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -10,96 +11,62 @@ from function.globals.g_resources import RESOURCE_P
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
+if TYPE_CHECKING:
+    from function.core.faa import FAA
 
-class Battle:
-    def __init__(self, faa):
-        """FAA的战斗类，包含了各种战斗中专用的方法"""
-        # 复制faa实例的属性
-        # 如果直接调用该类可以从faa实例中获取动态变化的其属性值, 但如果赋值到本类内部属性则会固定为静态
-        self.faa = faa
 
-        # 战斗专用私有属性 - 每次战斗刷新
-        self.is_used_key = False  # 仅由外部信号更改, 用于标识战斗是否使用了钥匙
-        self.fire_elemental_1000 = None
-        self.smoothie_usable = None
+class FAABattle:
+
+    def faa_battle_re_init(self: "FAA"):
+        """战斗前调用, 重新初始化部分每场战斗都要重新刷新的该内私有属性"""
+        self.is_used_key = False
+        self.fire_elemental_1000 = False
+        self.smoothie_usable = self.player == 1
         self.wave = 0  # 当前波次归零
-        self.start_time = 0  # 开战时间归零
+        self.start_time = time.time()
 
-        self.player_locations = None  # 战斗开始放人物的位置 - 代号list
-        self.shovel_locations = None  # 放铲子的位置 - 代号list
-        self.shovel_coordinates = None  # 放铲子的位置 - 坐标list
-
-        # 战斗专用私有属性 - 静态
-        self.click_sleep = 1 / EXTRA.CLICK_PER_SECOND * 2  # 每次点击时 按下和抬起之间的间隔 秒
-
-        # 自动拾取的格子
-        self.auto_collect_cells = [
-            "1-1", "2-1", "3-1", "4-1", "5-1", "6-1", "7-1", "8-1", "9-1",
-            "1-2", "2-2", "3-2", "4-2", "5-2", "6-2", "7-2", "8-2", "9-2",
-            "1-3", "2-3", "3-3", "4-3", "5-3", "6-3", "7-3", "8-3", "9-3",
-            "1-4", "2-4", "3-4", "4-4", "5-4", "6-4", "7-4", "8-4", "9-4",
-            "1-5", "2-5", "3-5", "4-5", "5-5", "6-5", "7-5", "8-5", "9-5",
-            "1-6", "2-6", "3-6", "4-6", "5-6", "6-6", "7-6", "8-6", "9-6",
-            "1-7", "2-7", "3-7", "4-7", "5-7", "6-7", "7-7", "8-7", "9-7"
-        ]
-
-        # 自动拾取的坐标
-        self.auto_collect_cells_coordinate = []
-        for i in self.auto_collect_cells:
-            self.auto_collect_cells_coordinate.append(self.faa.bp_cell[i])
-
-    """ 战斗方案和关卡方案的处理"""
-
-    def init_battle_plan_shovel(self, locations):
+    def init_battle_plan_shovel(self: "FAA", locations):
 
         self.shovel_locations = copy.deepcopy(locations)
 
-        self.faa.print_debug(f"[战斗执行器] 即将铲卡, 位置:{self.shovel_locations}")
+        self.print_debug(f"[战斗执行器] 即将铲卡, 位置:{self.shovel_locations}")
 
-        bp_cell = copy.deepcopy(self.faa.bp_cell)
+        bp_cell = copy.deepcopy(self.bp_cell)
         list_shovel = copy.deepcopy(self.shovel_locations)
         list_shovel = [bp_cell[location] for location in list_shovel]
         self.shovel_coordinates = copy.deepcopy(list_shovel)
 
-    def init_battle_plan_player(self, locations):
+    def init_battle_plan_player(self: "FAA", locations):
+
         self.player_locations = copy.deepcopy(locations)
 
-    """ 战斗内的子函数 """
+    def use_player_all(self: "FAA"):
 
-    def re_init(self):
-        """战斗前调用, 重新初始化部分每场战斗都要重新刷新的该内私有属性"""
-        self.is_used_key = False
-        self.fire_elemental_1000 = False
-        self.smoothie_usable = self.faa.player == 1
-        self.wave = 0  # 当前波次归零
-        self.start_time = time.time()
-
-    def use_player_all(self):
-
-        self.faa.print_info(text="[战斗] 开始放置玩家:{}".format(self.player_locations))
+        self.print_info(text="[战斗] 开始放置玩家:{}".format(self.player_locations))
 
         for location in self.player_locations:
             self.use_player(location=location)
 
-    def use_player(self, location):
+    def use_player(self: "FAA", location):
+
         T_ACTION_QUEUE_TIMER.add_click_to_queue(
-            handle=self.faa.handle,
-            x=self.faa.bp_cell[location][0],
-            y=self.faa.bp_cell[location][1])
+            handle=self.handle,
+            x=self.bp_cell[location][0],
+            y=self.bp_cell[location][1])
         time.sleep(self.click_sleep)
         T_ACTION_QUEUE_TIMER.add_click_to_queue(
-            handle=self.faa.handle,
-            x=self.faa.bp_cell[location][0],
-            y=self.faa.bp_cell[location][1])
+            handle=self.handle,
+            x=self.bp_cell[location][0],
+            y=self.bp_cell[location][1])
         time.sleep(self.click_sleep)
 
-    def use_shovel_all(self, coordinates=None, need_lock=False):
+    def use_shovel_all(self: "FAA", coordinates=None, need_lock=False):
         """
         用全部的铲子
         """
 
         if need_lock:
-            with self.faa.battle_lock:
+            with self.battle_lock:
                 if coordinates is None:
                     coordinates = self.shovel_coordinates
                 for coordinate in coordinates:
@@ -110,22 +77,22 @@ class Battle:
             for coordinate in coordinates:
                 self.use_shovel(x=coordinate[0], y=coordinate[1])
 
-    def use_shovel(self, x, y):
+    def use_shovel(self: "FAA", x, y):
         """
         :param x: 像素坐标
         :param y: 像素坐标
         :return:
         """
         # 选择铲子
-        T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.faa.handle, key="1")
+        T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle, key="1")
         time.sleep(self.click_sleep)
 
         # 铲两次确保成功!
         for _ in range(2):
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=x, y=y)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=x, y=y)
             time.sleep(self.click_sleep)
 
-    def use_key(self):
+    def use_key(self: "FAA"):
         """
         使用钥匙的函数
         :return:
@@ -137,7 +104,7 @@ class Battle:
             return False
 
         find = match_p_in_w(
-            source_handle=self.faa.handle,
+            source_handle=self.handle,
             source_range=[386, 332, 463, 362],
             match_tolerance=0.95,
             template=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
@@ -148,10 +115,10 @@ class Battle:
         if not find:
             return False
 
-        self.faa.print_info(text="找到了 [继续作战] 图标")
+        self.print_info(text="找到了 [继续作战] 图标")
 
         while find:
-            if self.faa.need_key:
+            if self.need_key:
                 template = RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"]
                 source_range = [394, 340, 456, 354]
             else:
@@ -159,8 +126,8 @@ class Battle:
                 source_range = [492, 340, 554, 354]
             loop_match_p_in_w(
                 template=template,
-                source_handle=self.faa.handle,
-                source_root_handle=self.faa.handle_360,
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
                 source_range=source_range,
                 match_tolerance=0.95,
                 match_interval=0.2,
@@ -170,30 +137,30 @@ class Battle:
 
             # 是否还在选继续界面
             find = match_p_in_w(
-                source_handle=self.faa.handle,
-                source_root_handle=self.faa.handle_360,
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
                 source_range=[302, 263, 396, 289],
                 match_tolerance=0.95,
                 template=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
 
-        if self.faa.need_key:
-            self.faa.print_info(text="点击了 [继续作战] 图标")
+        if self.need_key:
+            self.print_info(text="点击了 [继续作战] 图标")
             return True
         else:
-            self.faa.print_info(text="点击了 [领取奖品] 图标")
+            self.print_info(text="点击了 [领取奖品] 图标")
             return False
 
-    def check_end(self):
+    def check_end(self: "FAA"):
 
         if EXTRA.MAX_BATTLE_TIME != 0:
             duration = time.time() - self.start_time
             if EXTRA.MAX_BATTLE_TIME * 60 < duration:
-                self.faa.print_info(text=f"[战斗] 战斗时间:{duration:.0f}s已到, 退出战斗")
+                self.print_info(text=f"[战斗] 战斗时间:{duration:.0f}s已到, 退出战斗")
                 return True
 
         img = capture_image_png(
-            handle=self.faa.handle,
-            root_handle=self.faa.handle_360,
+            handle=self.handle,
+            root_handle=self.handle_360,
             raw_range=[0, 0, 950, 600])
 
         # 找到战利品字样(被黑色透明物遮挡,会看不到)
@@ -242,7 +209,7 @@ class Battle:
 
         return result
 
-    def use_card_once(self, num_card: int, num_cell: str, click_space=True):
+    def use_card_once(self: "FAA", num_card: int, num_cell: str, click_space=True):
         """
         Args:
             num_card: 使用的卡片的序号
@@ -251,69 +218,69 @@ class Battle:
         """
         # 注 美食大战老鼠中 放卡动作 需要按下一下 然后拖动 然后按下并松开 才能完成 整个动作
         T_ACTION_QUEUE_TIMER.add_click_to_queue(
-            handle=self.faa.handle,
-            x=self.faa.bp_card[num_card][0],
-            y=self.faa.bp_card[num_card][1])
+            handle=self.handle,
+            x=self.bp_card[num_card][0],
+            y=self.bp_card[num_card][1])
         time.sleep(self.click_sleep)
 
         T_ACTION_QUEUE_TIMER.add_click_to_queue(
-            handle=self.faa.handle,
-            x=self.faa.bp_cell[num_cell][0],
-            y=self.faa.bp_cell[num_cell][1])
+            handle=self.handle,
+            x=self.bp_cell[num_cell][0],
+            y=self.bp_cell[num_cell][1])
         time.sleep(self.click_sleep)
 
         # 点一下空白
         if click_space:
-            T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.faa.handle, x=200, y=350)
+            T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
             time.sleep(self.click_sleep)
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=200, y=350)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=200, y=350)
             time.sleep(self.click_sleep)
 
-    def use_gem_skill(self):
+    def use_gem_skill(self: "FAA"):
         """使用武器技能"""
 
         # 如果有定时操作 就不自动使用
-        gem_timer = next((e for e in self.faa.battle_plan["events"] if e["action"]["type"] == "insert_use_gem"), None)
+        gem_timer = next((e for e in self.battle_plan["events"] if e["action"]["type"] == "insert_use_gem"), None)
         if gem_timer is not None:
             return
 
         # 上锁, 防止和放卡冲突
-        with self.faa.battle_lock:
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=200)
+        with self.battle_lock:
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=23, y=200)
             time.sleep(self.click_sleep)
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=250)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=23, y=250)
             time.sleep(self.click_sleep)
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.faa.handle, x=23, y=297)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=23, y=297)
             time.sleep(self.click_sleep)
 
-    def auto_pickup(self):
-        if not self.faa.is_auto_pickup:
+    def auto_pickup(self: "FAA"):
+        if not self.is_auto_pickup:
             return
         # 注意上锁, 防止和放卡冲突
 
-        with self.faa.battle_lock:
+        with self.battle_lock:
             for coordinate in self.auto_collect_cells_coordinate:
-                T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.faa.handle, x=coordinate[0], y=coordinate[1])
+                T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=coordinate[0], y=coordinate[1])
 
                 time.sleep(self.click_sleep)
 
-    def update_fire_elemental_1000(self, img=None):
+    def update_fire_elemental_1000(self: "FAA", img=None):
         if img is None:
             img = capture_image_png(
-                handle=self.faa.handle,
+                handle=self.handle,
                 raw_range=[0, 0, 950, 600],
-                root_handle=self.faa.handle_360
+                root_handle=self.handle_360
             )
         img = img[75:85, 161:164, :3]
         img = img.reshape(-1, img.shape[-1])  # 减少一个多余的维度
         self.fire_elemental_1000 = np.any(img == [0, 0, 0])
 
         # # 调试打印
-        # if self.faa.player == 1:
-        #     # self.faa.print_debug("战斗火苗能量>1000:", self.fire_elemental_1000)
+        # if self.player == 1:
+        #     # self.print_debug("战斗火苗能量>1000:", self.fire_elemental_1000)
         #     CUS_LOGGER.debug(f"有没有1000火{self.fire_elemental_1000}")
 
-    def check_wave(self, img=None):
+    def check_wave(self: "FAA", img=None):
         """识图检测目前的波次"""
 
         new_wave = self.match_wave(img=img)
@@ -324,32 +291,32 @@ class Battle:
 
         # 波次无变化
         if self.wave == new_wave:
-            # CUS_LOGGER.debug(f"[{self.faa.player}P] 当前波次:{self.wave}, 识别波次:{new_wave}无变化")
             return False
 
         # 新波次无方案
         wave_ids = [
-            e["trigger"]["wave_id"] for e in self.faa.battle_plan["events"]
+            e["trigger"]["wave_id"] for e in self.battle_plan["events"]
             if e["action"]["type"] == "loop_use_cards"
         ]
 
         if new_wave not in wave_ids:
-            CUS_LOGGER.debug(f"[{self.faa.player}P] 当前波次:{new_wave}, 已检测到转变, 但该波次无变阵方案")
+            CUS_LOGGER.debug(f"[{self.player}P] 当前波次:{new_wave}, 已检测到转变, 但该波次无变阵方案")
+            self.wave = new_wave
             return False
 
-        CUS_LOGGER.info(f"[{self.faa.player}P] 当前波次:{new_wave}, 已检测到转变, 即将启动变阵方案")
+        CUS_LOGGER.info(f"[{self.player}P] 当前波次:{new_wave}, 已检测到转变, 即将启动变阵方案")
 
         # 备份旧方案
         plans = {
-            "old": copy.deepcopy(self.faa.battle_plan_card),
+            "old": copy.deepcopy(self.battle_plan_card),
             "new": None
         }
 
         # 重载战斗方案
-        self.faa.init_battle_plan_card(wave=new_wave)
+        self.init_battle_plan_card(wave=new_wave)
 
         # 获取新方案
-        plans["new"] = copy.deepcopy(self.faa.battle_plan_card)
+        plans["new"] = copy.deepcopy(self.battle_plan_card)
 
         """差异铲卡 寻找id相同, 但上面的卡片的id不同的格子 全部铲一遍"""
         location_cid = {
@@ -378,21 +345,20 @@ class Battle:
                 else:
                     need_shovel.append(location)
 
-        self.faa.faa_battle.init_battle_plan_shovel(locations=need_shovel)
+        self.init_battle_plan_shovel(locations=need_shovel)
         self.use_shovel_all(need_lock=True)
 
         # 更新变量
         self.wave = new_wave
-
         return True
 
-    def match_wave(self, img=None):
+    def match_wave(self: "FAA", img=None):
 
         if img is None:
             img = capture_image_png(
-                handle=self.faa.handle,
+                handle=self.handle,
                 raw_range=[0, 0, 950, 600],
-                root_handle=self.faa.handle_360
+                root_handle=self.handle_360
             )
 
         pix = img[552, 670][:3][::-1]  # 获取该像素颜色 注意将 GBRA -> RGB

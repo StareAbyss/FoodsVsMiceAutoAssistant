@@ -5,7 +5,7 @@ from multiprocessing import Process, Queue
 import cv2
 
 from function.common.bg_img_screenshot import capture_image_png_all
-from function.core_battle.Coordinate_map import parse_positions
+from function.core_battle.coordinate_map import parse_positions
 from function.globals.log import CUS_LOGGER
 from function.yolo import onnxdetect
 

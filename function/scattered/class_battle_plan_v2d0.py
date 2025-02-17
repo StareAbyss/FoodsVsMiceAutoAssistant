@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Dict
 
-from function.core_battle.Card import Card
+from function.core_battle.card import Card
 
 
 class CardLoopConfig:

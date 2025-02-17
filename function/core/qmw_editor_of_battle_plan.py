@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import (
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
-from function.scattered.ClassBattlePlanV3d0 import json_to_obj, TriggerWaveTimer, \
+from function.scattered.class_battle_plan_v3d0 import json_to_obj, TriggerWaveTimer, \
     ActionLoopUseCards, ActionInsertUseCard, ActionUseGem, Event, BattlePlan, obj_to_json, Card, MetaData, \
     CardLoopConfig
 from function.widget.MultiLevelMenu import MultiLevelMenu
@@ -1583,7 +1583,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         try:
             battle_plan = json_to_obj(json_dict)
-        except:
+        except Exception:
             return False
 
         # 序列化为类! 加入光荣的进化!
@@ -1765,11 +1765,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
     """更改当前关卡"""
 
-    def stage_changed(self, stage: str, stage_id: str):
+    def stage_changed(self, stage_id: str):
         """
+        :param stage_id：XX-X-X
         根据stage_info，使某些格子显示成障碍物或更多内容
-        stage为关卡名，暂时不知道有啥用
-        stage_id的格式为：XX-X-X
         """
         id0, id1, id2 = stage_id.split("-")
         self.stage_info = self.stage_info_all[id0][id1][id2]

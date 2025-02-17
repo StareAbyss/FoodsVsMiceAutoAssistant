@@ -1,18 +1,20 @@
 import random
 import time
+from typing import TYPE_CHECKING
 
 from function.common.bg_img_match import loop_match_p_in_w, match_p_in_w
 from function.common.bg_img_screenshot import capture_image_png
-from function.globals import g_resources
+from function.globals import g_resources, SIGNAL
 from function.globals.g_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
+if TYPE_CHECKING:
+    from function.core.faa import FAA
+
 
 class FAAActionInterfaceJump:
-    def __init__(self, faa):
-        self.faa = faa
 
-    def exit(self, mode: str = "None", raw_range=None):
+    def action_exit(self: "FAA", mode: str = "None", raw_range=None) -> None:
         """
         游戏中的各种退出操作
         "普通红叉"
@@ -22,16 +24,16 @@ class FAAActionInterfaceJump:
         "美食大赛领取"
         "游戏内退出"
         """
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
-        print_error = self.faa.print_error
-        receive_quest_rewards = self.faa.receive_quest_rewards
+        handle = self.handle
+        handle_360 = self.handle_360
+        print_error = self.print_error
+        receive_quest_rewards = self.action_receive_quest_rewards
 
         if raw_range is None:
             raw_range = [0, 0, 950, 600]
 
         if mode == "回到上一级":
-            self.bottom_menu(mode="后退")
+            self.action_bottom_menu(mode="后退")
 
         if mode == "普通红叉":
             find = loop_match_p_in_w(
@@ -55,7 +57,7 @@ class FAAActionInterfaceJump:
                     print_error(text="未能成功找到右上红叉以退出!前面的步骤有致命错误!")
 
         if mode == "竞技岛":
-            self.bottom_menu(mode="跳转_竞技场")
+            self.action_bottom_menu(mode="跳转_竞技场")
 
         if mode == "关闭悬赏窗口":
             # 有被选中和未选中两种图标
@@ -95,7 +97,7 @@ class FAAActionInterfaceJump:
         # 安全时延
         time.sleep(0.25)
 
-    def top_menu(self, mode: str):
+    def action_top_menu(self: "FAA", mode: str) -> bool:
         """
         点击上方菜单栏, 包含:
         VIP签到|X年活动|塔罗寻宝|大地图|大富翁|欢乐假期|每日签到|美食大赛|美食活动|萌宠神殿|跨服远征|月卡福利
@@ -103,16 +105,16 @@ class FAAActionInterfaceJump:
         :return bool 是否进入成功
         """
 
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
-        print_debug = self.faa.print_debug
-        print_warning = self.faa.print_warning
+        handle = self.handle
+        handle_360 = self.handle_360
+        print_debug = self.print_debug
+        print_warning = self.print_warning
 
         failed_time = 0
         tar_menu_page = 1
         while True:
 
-            self.change_activity_list(serial_num=tar_menu_page)
+            self.action_change_activity_list(serial_num=tar_menu_page)
 
             find = loop_match_p_in_w(
                 source_handle=handle,
@@ -155,12 +157,12 @@ class FAAActionInterfaceJump:
 
         return find
 
-    def bottom_menu(self, mode: str):
+    def action_bottom_menu(self: "FAA", mode: str) -> bool:
         """点击下方菜单栏, 包含:任务/后退/背包/跳转_公会任务/跳转_公会副本/跳转_情侣任务/跳转_竞技场/跳转_缘分树"""
 
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
-        print_warning = self.faa.print_warning
+        handle = self.handle
+        handle_360 = self.handle_360
+        print_warning = self.print_warning
 
         find = False
 
@@ -209,11 +211,11 @@ class FAAActionInterfaceJump:
 
         return find
 
-    def change_activity_list(self, serial_num: int):
+    def action_change_activity_list(self: "FAA", serial_num: int) -> None:
         """检测顶部的活动清单, 1为第一页, 2为第二页(有举报图标的一页)"""
 
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
+        handle = self.handle
+        handle_360 = self.handle_360
 
         find = match_p_in_w(
             source_handle=handle,
@@ -231,15 +233,15 @@ class FAAActionInterfaceJump:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=785, y=30)
                 time.sleep(0.5)
 
-    def goto_map(self, map_id):
+    def action_goto_map(self: "FAA", map_id) -> bool:
         """
         用于前往各地图, 0.美味阵, 1.美味岛, 2.火山岛, 3.火山遗迹, 4.浮空岛, 5.海底, 6.太空, 10.营地
         """
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
+        handle = self.handle
+        handle_360 = self.handle_360
 
         # 点击世界地图
-        self.top_menu(mode="大地图")
+        self.action_top_menu(mode="大地图")
 
         # 点击对应的地图
         find = loop_match_p_in_w(
@@ -254,19 +256,19 @@ class FAAActionInterfaceJump:
         )
         return find
 
-    def goto_stage(self, mt_first_time: bool = False):
+    def action_goto_stage(self: "FAA", mt_first_time: bool = False) -> None:
         """
         只要右上能看到地球 就可以到目标关卡
         Args:
             mt_first_time: 魔塔关卡下 是否是第一次打(第一次塔需要进塔 第二次只需要选关卡序号)
         """
 
-        handle = self.faa.handle
-        handle_360 = self.faa.handle_360
-        print_error = self.faa.print_error
-        stage_info = self.faa.stage_info
-        random_seed = self.faa.random_seed
-        is_main = self.faa.is_main
+        handle = self.handle
+        handle_360 = self.handle_360
+        print_error = self.print_error
+        stage_info = self.stage_info
+        random_seed = self.random_seed
+        is_main = self.is_main
 
         # 拆成数组["关卡类型","地图id","关卡id"]
         stage_list = stage_info["id"].split("-")
@@ -301,7 +303,7 @@ class FAAActionInterfaceJump:
 
         def main_no():
             # 进入对应地图
-            self.goto_map(map_id=stage_1)
+            self.action_goto_map(map_id=stage_1)
 
             # 切区
             my_dict = {"1": [3, 11], "2": [1, 2], "3": [1, 1], "4": [1, 2], "5": [1, 2], "6": [1, 2]}
@@ -310,7 +312,7 @@ class FAAActionInterfaceJump:
             # 仅限主角色创建关卡
             if is_main:
                 # 防止被活动列表遮住
-                self.change_activity_list(serial_num=2)
+                self.action_change_activity_list(serial_num=2)
 
                 # 选择关卡
                 loop_match_p_in_w(
@@ -338,7 +340,7 @@ class FAAActionInterfaceJump:
 
             if mt_first_time:
                 # 前往海底
-                self.goto_map(map_id=5)
+                self.action_goto_map(map_id=5)
 
                 # 选区
                 change_to_region(region_list=[1, 2])
@@ -420,7 +422,7 @@ class FAAActionInterfaceJump:
         def main_cs():
 
             # 进入跨服远征界面
-            self.top_menu(mode="跨服远征")
+            self.action_top_menu(mode="跨服远征")
 
             if is_main:
                 # 创建房间
@@ -501,7 +503,7 @@ class FAAActionInterfaceJump:
         def main_or():
 
             # 进入X年活动界面
-            self.top_menu(mode="X年活动")
+            self.action_top_menu(mode="X年活动")
 
             # 选择关卡
             loop_match_p_in_w(
@@ -528,10 +530,10 @@ class FAAActionInterfaceJump:
         def main_ex():
 
             # 防止被活动列表遮住
-            self.change_activity_list(2)
+            self.action_change_activity_list(2)
 
             # 进入对应地图
-            self.goto_map(map_id=10)
+            self.action_goto_map(map_id=10)
 
             # 不是营地
             if stage_1 != "1":
@@ -588,13 +590,13 @@ class FAAActionInterfaceJump:
         def main_pt():
 
             # 进入海底旋涡
-            self.goto_map(map_id=5)
+            self.action_goto_map(map_id=5)
 
             # 仅限主角色创建关卡
             if is_main:
 
                 # 点击进入萌宠神殿
-                self.top_menu(mode="萌宠神殿")
+                self.action_top_menu(mode="萌宠神殿")
 
                 # 到最低一层
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=192, y=579)
@@ -624,7 +626,7 @@ class FAAActionInterfaceJump:
 
         def main_gd():
             # 进入公会副本页
-            self.bottom_menu(mode="跳转_公会副本")
+            self.action_bottom_menu(mode="跳转_公会副本")
 
             # 给一点加载时间
             time.sleep(2)
@@ -674,13 +676,13 @@ class FAAActionInterfaceJump:
         def main_hh():
 
             # 进入美味岛并切区
-            self.goto_map(map_id=1)
+            self.action_goto_map(map_id=1)
             change_to_region(region_list=[1, 11])
 
             # 仅限主角色创建关卡
             if is_main:
                 # 进入欢乐假期页面
-                self.top_menu(mode="欢乐假期")
+                self.action_top_menu(mode="欢乐假期")
 
                 # 给一点加载时间
                 time.sleep(2)
@@ -691,7 +693,7 @@ class FAAActionInterfaceJump:
         def main_wa():
 
             # 进入对应地图
-            self.goto_map(map_id="2")
+            self.action_goto_map(map_id="2")
 
             # 切区
             change_to_region(region_list=[1, 2])
@@ -723,7 +725,7 @@ class FAAActionInterfaceJump:
                         break
                 else:
                     # 没有匹配到任何关卡?!
-                    self.faa.print_warning("[界面跳转] 进入勇士本流程出现严重错误! 请联系开发者!")
+                    self.print_warning("[界面跳转] 进入勇士本流程出现严重错误! 请联系开发者!")
                     return
 
                 # 根据id 向左 155 175 向右 500 175
@@ -756,7 +758,7 @@ class FAAActionInterfaceJump:
 
             # 进入对应地图
             my_dict = {"1": "1", "2": "2", "3": "4", "4": "6"}
-            self.goto_map(map_id=my_dict[stage_2])
+            self.action_goto_map(map_id=my_dict[stage_2])
 
             # 切区 三岛+星际
             my_dict = {"1": [3, 11], "2": [1, 2], "3": [1, 2], "4": [1, 2]}
@@ -765,7 +767,7 @@ class FAAActionInterfaceJump:
             # 仅限主角色创建关卡
             if is_main:
                 # 防止被活动列表遮住
-                self.change_activity_list(serial_num=2)
+                self.action_change_activity_list(serial_num=2)
 
                 # 选择关卡
                 my_dict = {
@@ -792,25 +794,33 @@ class FAAActionInterfaceJump:
                     after_sleep=1,
                     click=True)
 
-        if stage_0 == "NO":
-            main_no()
-        elif stage_0 == "MT":
-            main_mt()
-        elif stage_0 == "CS":
-            main_cs()
-        elif stage_0 == "OR":
-            main_or()
-        elif stage_0 == "EX":
-            main_ex()
-        elif stage_0 == "PT":
-            main_pt()
-        elif stage_0 == "GD":
-            main_gd()
-        elif stage_0 == "HH":
-            main_hh()
-        elif stage_0 == "WA":
-            main_wa()
-        elif stage_0 == "CZ":
-            main_cz()
-        else:
-            print_error(text="请输入正确的关卡名称！")
+        try:
+
+            if stage_0 == "NO":
+                main_no()
+            elif stage_0 == "MT":
+                main_mt()
+            elif stage_0 == "CS":
+                main_cs()
+            elif stage_0 == "OR":
+                main_or()
+            elif stage_0 == "EX":
+                main_ex()
+            elif stage_0 == "PT":
+                main_pt()
+            elif stage_0 == "GD":
+                main_gd()
+            elif stage_0 == "HH":
+                main_hh()
+            elif stage_0 == "WA":
+                main_wa()
+            elif stage_0 == "CZ":
+                main_cz()
+            else:
+                print_error(text="请输入正确的关卡名称！")
+
+        except KeyError:
+
+            SIGNAL.PRINT_TO_UI.emit(text="跳转关卡失败，请检查关卡代号是否正确", color_level=1)
+            SIGNAL.DIALOG.emit("ERROR", "跳转关卡失败! 请检查关卡代号是否正确")
+            SIGNAL.END.emit()

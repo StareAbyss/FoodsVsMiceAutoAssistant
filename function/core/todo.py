@@ -17,9 +17,10 @@ from function.common.bg_img_match import loop_match_p_in_w
 from function.common.process_and_window_manager import close_software_by_title, get_path_and_sub_titles, \
     close_all_software_by_name, start_software_with_args
 from function.common.thread_with_exception import ThreadWithException
-from function.core.FAA_extra_readimage import read_and_get_return_information, kill_process
 from function.core.analyzer_of_loot_logs import update_dag_graph, find_longest_path_from_dag, ranking_read_data
-from function.core_battle.CardManager import CardManager
+from function.core.faa import FAA
+from function.core.faa_extra_readimage import read_and_get_return_information, kill_process
+from function.core_battle.card_manager import CardManager
 from function.globals import EXTRA, SIGNAL, g_resources
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
@@ -52,7 +53,7 @@ class ThreadTodo(QThread):
         self.is_paused = False
 
         # 功能需要
-        self.faa_dict = faa_dict
+        self.faa_dict: dict[int, FAA] = faa_dict
         self.opt = copy.deepcopy(opt)  # 深拷贝 在作战中如果进行更改, 不会生效
         self.opt_todo_plans = self.opt["todo_plans"][running_todo_plan_index]  # 选择运行的 opt 的 todo plan 部分
         self.battle_check_interval = 1  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
@@ -497,7 +498,7 @@ class ThreadTodo(QThread):
         if not self.opt["advanced_settings"]["guild_manager_active"]:
             return
 
-        def action(faa):
+        def action(faa: FAA):
             # 进入公会页面 + 扫描 + 退出公会页面
             faa.action_bottom_menu(mode="公会")
             self.guild_manager.scan(handle=faa.handle, handle_360=faa.handle_360)
@@ -506,7 +507,7 @@ class ThreadTodo(QThread):
         self.model_start_print(text=title_text)
 
         pid = self.opt["advanced_settings"]["guild_manager_active"]
-        faa = self.faa_dict[pid]
+        faa: FAA = self.faa_dict[pid]
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         self.thread_1p = ThreadWithException(
@@ -544,7 +545,7 @@ class ThreadTodo(QThread):
             # 创建进程 -> 开始进程 -> 阻塞主进程
             if 1 in player:
                 self.thread_1p = ThreadWithException(
-                    target=self.faa_dict[1].receive_quest_rewards,
+                    target=self.faa_dict[1].action_receive_quest_rewards,
                     name=f"1P Thread - ReceiveQuest - {mode}",
                     kwargs={
                         "mode": mode
@@ -556,7 +557,7 @@ class ThreadTodo(QThread):
 
             if 2 in player:
                 self.thread_2p = ThreadWithException(
-                    target=self.faa_dict[2].receive_quest_rewards,
+                    target=self.faa_dict[2].action_receive_quest_rewards,
                     name=f"2P Thread - ReceiveQuest - {mode}",
                     kwargs={
                         "mode": mode
@@ -813,13 +814,13 @@ class ThreadTodo(QThread):
 
             # 创建并开始线程
             self.thread_1p = ThreadWithException(
-                target=self.faa_dict[player_a].obj_battle_preparation.check_create_room_success,
+                target=self.faa_dict[player_a].check_create_room_success,
                 name="{}P Thread - 战前准备".format(player_a),
                 kwargs={})
             self.thread_1p.start()
             if is_group:
                 self.thread_2p = ThreadWithException(
-                    target=self.faa_dict[player_b].obj_battle_preparation.check_create_room_success,
+                    target=self.faa_dict[player_b].check_create_room_success,
                     name="{}P Thread - 战前准备".format(player_b),
                     kwargs={})
                 self.thread_2p.start()
@@ -843,13 +844,13 @@ class ThreadTodo(QThread):
 
                 # 创建并开始线程
                 self.thread_1p = ThreadWithException(
-                    target=self.faa_dict[player_a].obj_battle_preparation.change_deck,
+                    target=self.faa_dict[player_a].battle_preparation_change_deck,
                     name="{}P Thread - 修改卡组".format(player_a),
                     kwargs={})
                 self.thread_1p.start()
                 if is_group:
                     self.thread_2p = ThreadWithException(
-                        target=self.faa_dict[player_b].obj_battle_preparation.change_deck,
+                        target=self.faa_dict[player_b].battle_preparation_change_deck,
                         name="{}P Thread - 修改卡组".format(player_b),
                         kwargs={})
                     self.thread_2p.start()
@@ -872,7 +873,7 @@ class ThreadTodo(QThread):
             # 创建并开始线程 注意 玩家B 是非房主 需要先开始
             if is_group:
                 self.thread_2p = ThreadWithException(
-                    target=self.faa_dict[player_b].obj_battle_preparation.start_and_ensure_entry,
+                    target=self.faa_dict[player_b].start_and_ensure_entry,
                     name="{}P Thread - 进入游戏".format(player_b),
                     kwargs={})
                 self.thread_2p.start()
@@ -880,7 +881,7 @@ class ThreadTodo(QThread):
                 time.sleep(2)
 
             self.thread_1p = ThreadWithException(
-                target=self.faa_dict[player_a].obj_battle_preparation.start_and_ensure_entry,
+                target=self.faa_dict[player_a].start_and_ensure_entry,
                 name="{}P Thread - 进入游戏".format(player_a),
                 kwargs={})
             self.thread_1p.start()
@@ -904,13 +905,13 @@ class ThreadTodo(QThread):
 
             # 创建并开始线程
             self.thread_1p = ThreadWithException(
-                target=self.faa_dict[player_a].obj_battle_preparation.accelerate,
+                target=self.faa_dict[player_a].accelerate,
                 name="{}P Thread - 进入游戏".format(player_a),
                 kwargs={}
             )
             if is_group:
                 self.thread_2p = ThreadWithException(
-                    target=self.faa_dict[player_b].obj_battle_preparation.accelerate,
+                    target=self.faa_dict[player_b].accelerate,
                     name="{}P Thread - 进入游戏".format(player_b),
                     kwargs={}
                 )
@@ -978,7 +979,7 @@ class ThreadTodo(QThread):
                 faa_b=self.faa_dict[player_b] if player_b else None,
                 solve_queue=queue_todo,
                 check_interval=self.battle_check_interval,
-                senior_interval=self.opt["senior_settings"]["interval"],
+                senior_callback_interval=self.opt["senior_settings"]["interval"],
                 start_time=start_time
             )
 
@@ -1005,12 +1006,12 @@ class ThreadTodo(QThread):
 
             # 初始化多线程
             self.thread_1p = ThreadWithException(
-                target=self.faa_dict[player_a].battle_a_round_loots,
+                target=self.faa_dict[player_a].perform_action_capture_match_for_loots_and_chests,
                 name="{}P Thread - Battle - Screen".format(player_a),
                 kwargs={})
             if is_group:
                 self.thread_2p = ThreadWithException(
-                    target=self.faa_dict[player_b].battle_a_round_loots,
+                    target=self.faa_dict[player_b].perform_action_capture_match_for_loots_and_chests,
                     name="{}P Thread - Battle - Screen".format(player_b),
                     kwargs={})
 
@@ -1385,7 +1386,7 @@ class ThreadTodo(QThread):
                                 faa_b.action_exit(mode=j)
 
                     # 获取是否使用了钥匙 仅查看房主(任意一个号用了钥匙都会更改为两个号都用了)
-                    is_used_key = faa_a.faa_battle.is_used_key
+                    is_used_key = faa_a.is_used_key
 
                     # 加入结果统计列表
                     result_list.append({
@@ -1823,8 +1824,8 @@ class ThreadTodo(QThread):
         self.battle_1_n_n(quest_list=quest_list)
 
         # 领取奖励
-        self.faa_dict[1].receive_quest_rewards(mode="悬赏任务")
-        self.faa_dict[2].receive_quest_rewards(mode="悬赏任务")
+        self.faa_dict[1].action_receive_quest_rewards(mode="悬赏任务")
+        self.faa_dict[2].action_receive_quest_rewards(mode="悬赏任务")
 
         self.model_end_print(text=text_)
 
@@ -1843,8 +1844,8 @@ class ThreadTodo(QThread):
         if quest_mode == "公会任务":
             self.batch_level_2_action(dark_crystal=False)
         SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 检查领取奖励...")
-        self.faa_dict[1].receive_quest_rewards(mode=quest_mode)
-        self.faa_dict[2].receive_quest_rewards(mode=quest_mode)
+        self.faa_dict[1].action_receive_quest_rewards(mode=quest_mode)
+        self.faa_dict[2].action_receive_quest_rewards(mode=quest_mode)
 
         # 获取任务
         SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 获取任务列表...")
@@ -2134,8 +2135,8 @@ class ThreadTodo(QThread):
             self.model_start_print(text=text_)
 
             # 先领一下已经完成的大赛任务
-            self.faa_dict[1].receive_quest_rewards(mode="美食大赛")
-            self.faa_dict[2].receive_quest_rewards(mode="美食大赛")
+            self.faa_dict[1].action_receive_quest_rewards(mode="美食大赛")
+            self.faa_dict[2].action_receive_quest_rewards(mode="美食大赛")
 
             # 重置美食大赛任务 ban list
             self.auto_food_stage_ban_list = []  # 用于防止缺乏钥匙/次数时无限重复某些关卡
@@ -2517,7 +2518,7 @@ class ThreadTodo(QThread):
             if self.todo_id == 2:
                 self.run_2()
         except Exception as e:
-            SIGNAL.PRINT_TO_UI.emit(text="[Todo] 运行时发生错误!", color_level=1)
+            SIGNAL.PRINT_TO_UI.emit(text=f"[Todo] 运行时发生错误! 内容:{e}", color_level=1)
 
     def run_1(self):
         """配置检查"""

@@ -1,6 +1,6 @@
-from PyQt6.QtWidgets import QStyledItemDelegate
 from PyQt6.QtCore import QAbstractTableModel, Qt, QModelIndex
 from PyQt6.QtGui import QPixmap
+from PyQt6.QtWidgets import QStyledItemDelegate
 
 
 class PandasModel(QAbstractTableModel):

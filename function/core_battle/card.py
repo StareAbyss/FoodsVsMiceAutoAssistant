@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png
+from function.core.faa import FAA
 from function.globals import EXTRA
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
@@ -64,7 +65,7 @@ def check_pixel_similarity(img_source, img_template, start, end, threshold=16):
 
 class Card:
 
-    def __init__(self, set_priority, faa):
+    def __init__(self, set_priority: int, faa: FAA):
         # 直接塞进来一个faa的实例地址, 直接从该实例中拉取方法和属性作为参数~
         self.faa = faa
         # 用于直接从战斗方案中读取卡片信息 战斗方案中的index
@@ -75,7 +76,6 @@ class Card:
         self.handle_360 = self.faa.handle_360
         self.need_key = self.faa.need_key
         self.is_auto_battle = self.faa.is_auto_battle
-        self.faa_battle = self.faa.faa_battle
         self.player = self.faa.player
 
         """从 FAA类 的 battle_plan_card 中读取的属性"""
@@ -103,14 +103,14 @@ class Card:
 
         """用于完成放卡的额外类属性"""
         # 该卡片不同状态下对应的状态图片
-        self.state_images = {
+        self.state_images: dict[str, np.ndarray | None] = {
             "冷却": None,  # 战斗需要
             "可用": None,  # 战斗需要
             "不可用": None,  # 遇到新图片则保存下来以便初始判断, 也用于判断是否遇到了新的状态图片
         }
 
         # 放卡间隔
-        self.click_sleep = self.faa_battle.click_sleep
+        self.click_sleep = self.faa.click_sleep
 
         # 游戏最低帧间隔
         self.frame_interval = 1 / EXTRA.LOWEST_FPS
@@ -298,7 +298,7 @@ class Card:
 
         # 自身是冰沙但不符合使用条件
         if self.is_smoothie:
-            if not self.faa_battle.fire_elemental_1000:
+            if not self.faa.fire_elemental_1000:
                 return
             if EXTRA.SMOOTHIE_LOCK_TIME > 0:
                 return
@@ -412,7 +412,7 @@ class Card:
 
 
 class CardKun(Card):
-    def __init__(self, faa, name, c_id, coordinate_from):
+    def __init__(self, faa: FAA, name: str, c_id: int, coordinate_from: list):
         # 继承父类初始化
         super().__init__(faa=faa, set_priority=0)
 
@@ -452,7 +452,7 @@ class CardKun(Card):
 
 
 class SpecialCard(Card):
-    def __init__(self, faa, set_priority, card_type, energy=None, rows=None, cols=None, n_card=None):
+    def __init__(self, faa: FAA, set_priority: int, card_type, energy=None, rows=None, cols=None, n_card=None):
 
         # 继承父类初始化
         super().__init__(faa=faa, set_priority=set_priority)
@@ -534,7 +534,7 @@ class SpecialCard(Card):
     def use_card_before(self):
 
         # 铲子的调用
-        self.faa_battle.use_shovel(x=self.coordinate_to[0][0], y=self.coordinate_to[0][1])
+        self.faa.use_shovel(x=self.coordinate_to[0][0], y=self.coordinate_to[0][1])
 
         # 加一个垫子的判断 点位要放承载卡
         self.use_mat_card()
@@ -542,7 +542,7 @@ class SpecialCard(Card):
     def use_card_after(self):
 
         if self.need_shovel:  # 是否要秒铲
-            self.faa_battle.use_shovel(x=self.coordinate_to[0][0], y=self.coordinate_to[0][1])
+            self.faa.use_shovel(x=self.coordinate_to[0][0], y=self.coordinate_to[0][1])
 
         if self.n_card:
             # 特殊卡用完当护罩得给他改回常驻卡可用状态

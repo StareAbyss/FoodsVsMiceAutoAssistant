@@ -11,24 +11,24 @@ from PyQt6.QtWidgets import QMessageBox, QFileDialog
 
 from function.common.process_and_window_manager import get_path_and_sub_titles
 from function.common.startup import *
-from function.core.FAA import FAA
-from function.core.QMW_2_load_settings import CommonHelper, QMainWindowLoadSettings
-from function.core.QMW_EditorOfBattlePlan import QMWEditorOfBattlePlan
-from function.core.QMW_EditorOfStagePlan import QMWEditorOfStagePlan
-from function.core.QMW_EditorOfTaskSequence import QMWEditorOfTaskSequence
-from function.core.QMW_SettingsMigrator import QMWSettingsMigrator
-from function.core.QMW_TipAccelerateSettings import QMWTipAccelerateSettings
-from function.core.QMW_TipBattle import QMWTipBattle
-from function.core.QMW_TipBattleSenior import QMWTipBattleSenior
-from function.core.QMW_TipEditorOfBattlePlan import QMWTipEditorOfBattlePlan
-from function.core.QMW_TipLevel2 import QMWTipLevels2
-from function.core.QMW_TipLoginSettings import QMWTipLoginSettings
-from function.core.QMW_TipMisuLogistics import QMWTipMisuLogistics
-from function.core.QMW_TipStageID import QMWTipStageID
-from function.core.QMW_TipWarmGift import QMWTipWarmGift
-from function.core.QMW_UsefulToolsWidget import UsefulToolsWidget
-from function.core.Todo import ThreadTodo
+from function.core.faa import FAA
 from function.core.performance_analysis import run_analysis_in_thread
+from function.core.qmw_2_load_settings import CommonHelper, QMainWindowLoadSettings
+from function.core.qmw_editor_of_battle_plan import QMWEditorOfBattlePlan
+from function.core.qmw_editor_of_stage_plan import QMWEditorOfStagePlan
+from function.core.qmw_editor_of_task_sequence import QMWEditorOfTaskSequence
+from function.core.qmw_settings_migrator import QMWSettingsMigrator
+from function.core.qmw_tip_accelerate_settings import QMWTipAccelerateSettings
+from function.core.qmw_tip_battle import QMWTipBattle
+from function.core.qmw_tip_battle_senior import QMWTipBattleSenior
+from function.core.qmw_tip_editor_of_battle_plan import QMWTipEditorOfBattlePlan
+from function.core.qmw_tip_level2 import QMWTipLevels2
+from function.core.qmw_tip_login_settings import QMWTipLoginSettings
+from function.core.qmw_tip_misu_logistics import QMWTipMisuLogistics
+from function.core.qmw_tip_stage_id import QMWTipStageID
+from function.core.qmw_tip_warm_gift import QMWTipWarmGift
+from function.core.qmw_useful_tools_widget import UsefulToolsWidget
+from function.core.todo import ThreadTodo
 from function.globals import EXTRA, SIGNAL
 from function.globals import g_resources
 from function.globals.get_paths import PATHS
@@ -975,31 +975,27 @@ def faa_start_main():
     # 实例化 PyQt后台管理
     app = QtWidgets.QApplication(sys.argv)
 
+    # app.setStyle("Windows")
+    # app.setStyle("WindowsVista")
+    # app.setStyle("Fusion")
+    # app.setStyle("Windows11")
+
     """字体"""
-    # 读取字体文件
-    font_id = QtGui.QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
-    QtGui.QFontDatabase.addApplicationFont(PATHS["font"] + "\\手书体.ttf")
 
-    # 获取字体家族名称
-    font_families = QtGui.QFontDatabase.applicationFontFamilies(font_id)
-    if not font_families:
-        raise ValueError("Failed to load font file.")
+    font = EXTRA.Q_FONT
 
-    font_family = font_families[0]
-
-    # 创建 QFont 对象并设置大小
-    font = QtGui.QFont(font_family, 11)
-
+    # 设定 全局字体
     app.setFont(font)
 
     # 实例化 主窗口
     window = QMainWindowService()
 
-    # 设置全局字体
+    # 设置 窗口字体
     window.font = font
 
     # 主窗口 实现
     window.show()
+
     # 性能分析监控启动
     run_analysis_in_thread(window)
 
@@ -1010,6 +1006,7 @@ def faa_start_main():
     if start_with_task:
         print("检测到启动参数 --start_with_task，将自动开始任务")
         window.todo_click_btn()
+
     # 运行主循环，必须调用此函数才可以开始事件处理
     app.exec()
 

@@ -8,7 +8,7 @@ from PyQt6.QtCore import QRegularExpression
 from PyQt6.QtGui import QRegularExpressionValidator, QIntValidator
 from PyQt6.QtWidgets import QApplication, QMessageBox, QInputDialog
 
-from function.core.QMW_1_log import QMainWindowLog
+from function.core.qmw_1_log import QMainWindowLog
 from function.globals import EXTRA, SIGNAL
 from function.globals import g_resources
 from function.globals.get_paths import PATHS
@@ -86,6 +86,9 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         # 记录读取时 是否有战斗方案找不到了
         self.cant_find_battle_plan_in_uuid = False
+
+        # 保留默认主题的名字
+        self.default_style_name = QApplication.style().name()
 
     def correct_settings_file(self, template_suffix="_template") -> None:
         """
@@ -562,7 +565,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 self.set_theme_common()
                 self.MainFrame.setStyleSheet(qssStyle)
                 self.set_common_theme()
-
 
             else:
                 self.set_theme_common()
@@ -1243,6 +1245,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         return path
 
     def on_skin_state_changed(self, checked):
+
         # 获取发送信号的复选框对象
         sender = self.sender()
 
@@ -1264,13 +1267,15 @@ class QMainWindowLoadSettings(QMainWindowLog):
             current_option = skin_dict[sender]
             styleFile = self.getstylefile(current_option)
             if styleFile is not None:
+                # 先设置主题 再在此基础上叠加皮肤样式表
+                # self.app.setStyle("WindowsVista")
                 qssStyle = CommonHelper.readQss(styleFile)
                 self.set_theme_common()
                 self.MainFrame.setStyleSheet(qssStyle)
                 self.set_common_theme()
-
-
             else:
+                # 还原主题
+                # self.app.setStyle(self.default_style_name)
                 self.set_theme_common()
                 self.set_theme_default()
                 self.set_common_theme()

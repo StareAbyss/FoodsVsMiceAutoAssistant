@@ -1,6 +1,7 @@
 import json
 import os
 import time
+from typing import TYPE_CHECKING
 
 import requests
 from requests import RequestException
@@ -8,8 +9,11 @@ from requests import RequestException
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
 
+if TYPE_CHECKING:
+    from function.core.faa import FAA
 
-def loots_and_chests_statistics_to_json(faa, loots_dict, chests_dict) -> None:
+
+def loots_and_chests_statistics_to_json(faa: "FAA", loots_dict, chests_dict) -> None:
     """
     保存战利品汇总.json
     :param faa: FAA类实例
@@ -18,15 +22,13 @@ def loots_and_chests_statistics_to_json(faa, loots_dict, chests_dict) -> None:
     :return:
     """
 
-    stage_info = faa.stage_info
-    faa_battle = faa.faa_battle
     player = faa.player
 
     file_path = "{}\\result_json\\{}P掉落汇总.json".format(PATHS["logs"], player)
-    stage_name = stage_info["id"]
+    stage_name = faa.stage_info["id"]
 
     # 获取本次战斗是否使用了钥匙
-    if faa_battle.is_used_key:
+    if faa.is_used_key:
         used_key_str = "is_used_key"
     else:
         used_key_str = "is_not_used_key"
@@ -60,7 +62,7 @@ def loots_and_chests_statistics_to_json(faa, loots_dict, chests_dict) -> None:
             json.dump(json_data, json_file, ensure_ascii=False, indent=4)
 
 
-def loots_and_chests_detail_to_json(faa, loots_dict, chests_dict) -> dict:
+def loots_and_chests_detail_to_json(faa: "FAA", loots_dict, chests_dict) -> dict:
     """
     分P，在目录下保存战利品字典
     :param faa: FAA类实例
@@ -69,17 +71,13 @@ def loots_and_chests_detail_to_json(faa, loots_dict, chests_dict) -> dict:
     :return:
     """
 
-    player = faa.player
-    stage_info = faa.stage_info
-    faa_battle = faa.faa_battle
-
-    file_path = "{}\\result_json\\{}P掉落明细.json".format(PATHS["logs"], player)
-    stage_name = stage_info["id"]
+    file_path = "{}\\result_json\\{}P掉落明细.json".format(PATHS["logs"], faa.player)
+    stage_name = faa.stage_info["id"]
     new_data = {
         "version": EXTRA.VERSION,  # 版本号
         "timestamp": time.time(),  # 时间戳
         "stage": stage_name,  # 关卡代号
-        "is_used_key": faa_battle.is_used_key,
+        "is_used_key": faa.is_used_key,
         "loots": loots_dict,
         "chests": chests_dict
     }
