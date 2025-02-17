@@ -1,5 +1,6 @@
 import copy
 import datetime
+import math
 import os
 import time
 from ctypes import windll
@@ -690,8 +691,8 @@ class ThreadCheckTimer(QThread):
         if self.kun_cards:
             self.check_for_kun(game_image=game_image)
 
-        # 刷新全局冰沙锁的状态
-        if self.faa.is_group:
+        # 刷新全局冰沙锁 和 宝石技能锁 的状态
+        if self.faa.is_group and self.faa.is_main:
             if EXTRA.SMOOTHIE_LOCK_TIME > 0:
                 EXTRA.SMOOTHIE_LOCK_TIME -= self.check_interval
                 if EXTRA.SMOOTHIE_LOCK_TIME <= 0:
@@ -719,8 +720,8 @@ class ThreadCheckTimer(QThread):
 
                 CUS_LOGGER.debug(text)
 
-        # 定时 使用武器技能 自动拾取 考虑到火苗消失时间是7s 快一点5s更好
-        if self.checked_round % 5 == 0:
+        # 定时 使用武器宝石技能 自动拾取 考虑到火苗消失时间是7s 快一点5s更好
+        if self.checked_round % math.ceil(5 / self.check_interval) == 0:
             self.faa.use_gem_skill()
             self.faa.auto_pickup()
 
