@@ -300,9 +300,11 @@ class Card:
         if self.is_smoothie:
             if not self.faa.fire_elemental_1000:
                 return
-            if EXTRA.SMOOTHIE_LOCK_TIME > 0:
-                return
-            EXTRA.SMOOTHIE_LOCK_TIME = 7
+            # 仅双人锁
+            if self.faa.is_group:
+                if EXTRA.SMOOTHIE_LOCK_TIME > 0:
+                    return
+                EXTRA.SMOOTHIE_LOCK_TIME = 7
 
         # 线程放瓜皮时不巧撞上了正在计算炸弹类或者计算完成后炸弹需要该瓜皮
         if not self.can_use:

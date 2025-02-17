@@ -691,8 +691,11 @@ class ThreadCheckTimer(QThread):
             self.check_for_kun(game_image=game_image)
 
         # 刷新全局冰沙锁的状态
-        if EXTRA.SMOOTHIE_LOCK_TIME > 0:
-            EXTRA.SMOOTHIE_LOCK_TIME -= self.check_interval
+        if self.faa.is_group:
+            if EXTRA.SMOOTHIE_LOCK_TIME > 0:
+                EXTRA.SMOOTHIE_LOCK_TIME -= self.check_interval
+                if EXTRA.SMOOTHIE_LOCK_TIME <= 0:
+                    EXTRA.SMOOTHIE_LOCK_TIME = 0
 
         # 调试打印 - 目前 <战斗管理器> 的状态
         if EXTRA.EXTRA_LOG_BATTLE:
