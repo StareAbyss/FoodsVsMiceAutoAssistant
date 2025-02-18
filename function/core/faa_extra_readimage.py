@@ -1,4 +1,3 @@
-# from function.core.FAA import FAA
 import time
 from multiprocessing import Process, Queue
 

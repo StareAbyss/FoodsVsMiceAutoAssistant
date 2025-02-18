@@ -19,7 +19,7 @@ from function.scattered.match_ocr_text.get_stage_name_by_ocr import screen_get_s
 from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 
 if TYPE_CHECKING:
-    from function.core.faa import FAA
+    from function.core.faa.faa_mix import FAA
 
 scan_card_x_list = [
     [386, 426],

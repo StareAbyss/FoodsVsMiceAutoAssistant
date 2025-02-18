@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png
-from function.core.faa import FAA
+from function.core.faa.faa_mix import FAA
 from function.globals import EXTRA
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS

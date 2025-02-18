@@ -18,7 +18,7 @@ from function.common.process_and_window_manager import close_software_by_title, 
     close_all_software_by_name, start_software_with_args
 from function.common.thread_with_exception import ThreadWithException
 from function.core.analyzer_of_loot_logs import update_dag_graph, find_longest_path_from_dag, ranking_read_data
-from function.core.faa import FAA
+from function.core.faa.faa_mix import FAA
 from function.core.faa_extra_readimage import read_and_get_return_information, kill_process
 from function.core_battle.card_manager import CardManager
 from function.globals import EXTRA, SIGNAL, g_resources

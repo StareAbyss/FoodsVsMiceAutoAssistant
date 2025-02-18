@@ -11,7 +11,7 @@ from PyQt6.QtWidgets import QMessageBox, QFileDialog
 
 from function.common.process_and_window_manager import get_path_and_sub_titles
 from function.common.startup import *
-from function.core.faa import FAA
+from function.core.faa.faa_mix import FAA
 from function.core.performance_analysis import run_analysis_in_thread
 from function.core.qmw_2_load_settings import CommonHelper, QMainWindowLoadSettings
 from function.core.qmw_editor_of_battle_plan import QMWEditorOfBattlePlan
@@ -34,11 +34,11 @@ from function.globals import g_resources
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
-from function.scattered.TodoTimerManager import TodoTimerManager
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
 from function.scattered.get_stage_info_online import get_stage_info_online
 from function.scattered.test_route_connectivity import test_route_connectivity
+from function.scattered.todo_timer_manager import TodoTimerManager
 
 
 class QMainWindowService(QMainWindowLoadSettings):
