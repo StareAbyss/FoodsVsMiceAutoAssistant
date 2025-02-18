@@ -155,8 +155,8 @@ def loop_battle(self):
         # 常规放卡
         for k in range(13):
             self.battle_plan_0.use_card_once(
-                num_card=k + 1,
-                num_cell=cell_list[k],
+                card_id=k + 1,
+                location=cell_list[k],
                 click_space=False)
             time.sleep(0.07)
 

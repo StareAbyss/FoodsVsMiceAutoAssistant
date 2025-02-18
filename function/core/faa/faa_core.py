@@ -27,7 +27,7 @@ from function.scattered.match_ocr_text.text_to_battle_info import food_texts_to_
 from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 
 if TYPE_CHECKING:
-    from function.core.faa import FAA
+    from function.core.faa.faa_mix import FAA
 
 
 class FAABase:
