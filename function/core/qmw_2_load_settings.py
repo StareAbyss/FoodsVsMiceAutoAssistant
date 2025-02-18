@@ -43,6 +43,14 @@ def ensure_file_exists(file_path, template_suffix="_template") -> None:
     else:
         CUS_LOGGER.info(f"[资源检查] '{file_path}' 已存在. 直接读取.")
 
+QQ_login_info={}
+# 这里用函数来返回，是因为这两个变量会在运行时改变，直接import无法获取这种改变
+# 感觉这样写很丑陋，但我也不知道怎么写比较好，总之能跑就行
+def get_QQ_login_info():
+    """获取qq登录账号和密码"""
+    return QQ_login_info
+
+
 
 class QMainWindowLoadSettings(QMainWindowLog):
     """将读取配置的方法封装在此处"""
@@ -89,6 +97,15 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         # 保留默认主题的名字
         self.default_style_name = QApplication.style().name()
+        
+        global QQ_login_info
+        if "QQ_login_info" in self.opt:
+            QQ_login_info=self.opt["QQ_login_info"]
+        else:
+            QQ_login_info = {
+                "path":"",
+                "use_password":False
+            }
 
     def correct_settings_file(self, template_suffix="_template") -> None:
         """
@@ -590,6 +607,28 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.TCEDecomposeGem_Active.setChecked(my_opt["decompose_gem_active"])
             self.TCE_path_input.setText(my_opt["tce_path"])
 
+        def QQ_login_info_ui() ->None:
+            """从配置中读取登录信息到ui中"""
+            if "QQ_login_info" not in self.opt:
+                self.opt["QQ_login_info"]={
+                    "use_password":False,
+                    "path":""
+                }
+            my_opt=self.opt["QQ_login_info"]
+            self.checkbox_use_password.setChecked(my_opt["use_password"])
+            self.path_edit.setText(my_opt["path"])
+            
+        def sleep_opt_to_ui() ->None:
+            """""从配置中读取额外睡眠时间到ui中"""""
+            if "extra_sleep" not in self.opt:
+                self.opt["extra_sleep"]={
+                    "need_sleep":False,
+                    "sleep_time":5
+                }
+            my_opt=self.opt["extra_sleep"]
+            self.checkbox_need_sleep.setChecked(my_opt["need_sleep"])
+            self.sleep_time_edit.setText(str(my_opt["sleep_time"]))
+
         base_settings()
         timer_settings()
         advanced_settings()
@@ -601,6 +640,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
         skin_set()
         accelerate_settings()
         tce_settings()
+        QQ_login_info_ui()
+        sleep_opt_to_ui()
 
         self.CurrentPlan.clear()
         self.CurrentPlan.addItems(todo_plan_name_list)
@@ -1007,6 +1048,18 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["decompose_gem_active"] = self.TCEDecomposeGem_Active.isChecked()
             my_opt["tce_path"] = self.TCE_path_input.text()
 
+        def QQ_login_info_opt() -> None:
+            """将登录信息从ui中写入到opt"""
+            my_opt=self.opt["QQ_login_info"]
+            my_opt["use_password"]=self.checkbox_use_password.isChecked()
+            my_opt["path"]=self.path_edit.text()
+        
+        def sleep_ui_to_opt() -> None:
+            """将QQ登录时的额外休眠时间从ui写入到opt"""
+            my_opt=self.opt["extra_sleep"]
+            my_opt["need_sleep"]=self.checkbox_need_sleep.isChecked()
+            my_opt["sleep_time"]=int(self.sleep_time_edit.text())
+        
         base_settings()
         accelerate_settings()
         timer_settings()
@@ -1018,6 +1071,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
         skin_settings()
         level_2()
         tce_settings()
+        QQ_login_info_opt()
+        sleep_ui_to_opt()
 
         self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
         self.ui_to_opt_todo_plans()
