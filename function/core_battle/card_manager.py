@@ -468,97 +468,74 @@ class CardManager(QThread):
         if self.is_group:
             self.faa_dict[2].is_used_key = True
 
+    def _insert_use_shovel(self, pid, location):
+        faa = self.faa_dict[pid]
+        x = faa.bp_cell[location][0]
+        y = faa.bp_cell[location][1]
+
+        with faa.battle_lock:
+            # 选择铲子
+            T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=faa.handle, key="1")
+            time.sleep(self.click_sleep)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=x, y=y)
+            time.sleep(self.click_sleep)
+
+        CUS_LOGGER.debug(f"成功定时铲")
+
+    def _insert_use_card(self, pid, card_id, location):
+
+        faa = self.faa_dict[pid]
+        # 做两次动作 保证百分百放下来!
+        for _ in range(2):
+            faa.use_card_once(card_id=card_id, location=location, click_space=True)
+
+        CUS_LOGGER.debug("成功定时放卡")
+
+        battle_log = False
+
+        if battle_log:
+            time.sleep(0.75)
+
+            def try_get_picture_now(handle):
+                windll.user32.SetProcessDPIAware()
+                output_base_path = PATHS["logs"] + "\\yolo_output"
+                now = datetime.datetime.now()
+                timestamp = now.strftime("%Y%m%d%H%M%S")
+                output_img_path = f"{output_base_path}/images/{timestamp}.png"
+                original_image = capture_image_png_all(handle)[:, :, :3]
+                cv2.imwrite(output_img_path, original_image)
+
+            try_get_picture_now(handle=faa.handle)
+            CUS_LOGGER.debug(f"成功定时放卡{card_id}于{location}")
+
+    def _insert_use_gem(self, pid, gid):
+
+        faa = self.faa_dict[pid]
+
+        with faa.battle_lock:
+
+            CUS_LOGGER.debug(f"[战斗执行器] ThreadTimePutCardTimer - use_gemstone 宝石{gid}启动")
+            match gid:
+                case 1:
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=23, y=200)
+                case 2:
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=23, y=250)
+                case 3:
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=23, y=297)
+                case _:
+                    CUS_LOGGER.warning(f"[战斗执行器] ThreadTimePutCardTimer - use_gemstone - 错误: id={id} 不存在")
+
+        CUS_LOGGER.debug("成功定时宝石技能")
+
     def create_insert_timer_and_start(self, interval, func_name, func_kwargs):
-
-        def insert_use_shovel(pid, location):
-            faa = self.faa_dict[pid]
-            x = faa.bp_cell[location][0]
-            y = faa.bp_cell[location][1]
-
-            with faa.battle_lock:
-                # 选择铲子
-                T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=faa.handle, key="1")
-                time.sleep(self.click_sleep)
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=x, y=y)
-                time.sleep(self.click_sleep)
-
-            CUS_LOGGER.debug(f"成功定时铲")
-
-        def insert_use_card(pid, card_id, location):
-
-            faa = self.faa_dict[pid]
-
-            with faa.battle_lock:
-
-                for _ in range(2):
-                    # 选卡操作
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                        handle=faa.handle,
-                        x=faa.bp_card[card_id][0] + 25,
-                        y=faa.bp_card[card_id][1] + 35)
-
-                    time.sleep(self.click_sleep)
-
-                    # 放卡操作
-                    for _ in range(2):
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                            handle=faa.handle,
-                            x=faa.bp_cell[location][0],
-                            y=faa.bp_cell[location][1])
-                        time.sleep(self.click_sleep)
-
-                    # 放卡后点2下空白 曾 200, 350
-                    T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=faa.handle, x=295, y=485)
-                    time.sleep(self.click_sleep)
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=295, y=485)
-                    time.sleep(self.click_sleep)
-
-            CUS_LOGGER.debug("成功定时放卡")
-
-            battle_log = False
-
-            if battle_log:
-                time.sleep(0.75)
-
-                def try_get_picture_now(handle):
-                    windll.user32.SetProcessDPIAware()
-                    output_base_path = PATHS["logs"] + "\\yolo_output"
-                    now = datetime.datetime.now()
-                    timestamp = now.strftime("%Y%m%d%H%M%S")
-                    output_img_path = f"{output_base_path}/images/{timestamp}.png"
-                    original_image = capture_image_png_all(handle)[:, :, :3]
-                    cv2.imwrite(output_img_path, original_image)
-
-                try_get_picture_now(handle=faa.handle)
-
-                CUS_LOGGER.debug(f"成功定时放卡{card_id}于{location}")
-
-        def insert_use_gem(pid, gid):
-
-            faa = self.faa_dict[pid]
-
-            with faa.battle_lock:
-
-                CUS_LOGGER.debug(f"[战斗执行器] ThreadTimePutCardTimer - use_gemstone 宝石{gid}启动")
-                match gid:
-                    case 1:
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=23, y=200)
-                    case 2:
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=23, y=250)
-                    case 3:
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=23, y=297)
-                    case _:
-                        CUS_LOGGER.warning(f"[战斗执行器] ThreadTimePutCardTimer - use_gemstone - 错误: id={id} 不存在")
-
-            CUS_LOGGER.debug("成功定时宝石技能")
 
         match func_name:
             case "insert_use_shovel":
-                func = insert_use_shovel
+                func = self._insert_use_shovel
             case "insert_use_card":
-                func = insert_use_card
+                func = self._insert_use_card
             case "insert_use_gem":
-                func = insert_use_gem
+                func = self._insert_use_gem
 
         timer = Timer(interval=interval, function=lambda: func(**func_kwargs))
         timer.start()
