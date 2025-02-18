@@ -10,7 +10,7 @@ from function.globals import EXTRA
 from function.globals.get_paths import PATHS
 
 if TYPE_CHECKING:
-    from function.core.faa import FAA
+    from function.core.faa.faa_mix import FAA
 
 
 def loots_and_chests_statistics_to_json(faa: "FAA", loots_dict, chests_dict) -> None:

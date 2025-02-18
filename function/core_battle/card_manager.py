@@ -22,7 +22,7 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 if TYPE_CHECKING:
     from function.core.todo import ThreadTodo
-    from function.core.faa import FAA
+    from function.core.faa.faa_mix import FAA
 
 
 def is_special_card(card_name):

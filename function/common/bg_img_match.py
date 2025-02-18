@@ -407,8 +407,7 @@ def loop_match_ps_in_w(
 
 
 if __name__ == '__main__':
-    from function.core.faa import faa_get_handle
-
+    from function.scattered.gat_handle import faa_get_handle
 
     def main():
         handle = faa_get_handle(channel="锑食", mode="browser")

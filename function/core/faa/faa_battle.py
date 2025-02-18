@@ -12,7 +12,7 @@ from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 if TYPE_CHECKING:
-    from function.core.faa import FAA
+    from function.core.faa.faa_mix import FAA
 
 
 class FAABattle:

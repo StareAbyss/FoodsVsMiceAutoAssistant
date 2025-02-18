@@ -10,7 +10,7 @@ from function.globals.g_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 if TYPE_CHECKING:
-    from function.core.faa import FAA
+    from function.core.faa.faa_mix import FAA
 
 
 class FAAActionReceiveQuestRewards:
