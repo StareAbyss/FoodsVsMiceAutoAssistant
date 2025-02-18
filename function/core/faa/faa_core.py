@@ -12,12 +12,15 @@ from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_m
 from function.common.bg_img_screenshot import capture_image_png
 from function.common.overlay_images import overlay_images
 from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
+from function.core.qmw_2_load_settings import get_QQ_login_info
+from function.core.my_crypto import decrypt_data
 from function.globals import g_resources, SIGNAL, EXTRA
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
 from function.globals.location_card_cell_in_battle import COORDINATE_CARD_CELL_IN_BATTLE
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
+from function.globals.get_paths import PATHS
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.match_ocr_text.get_food_quest_by_ocr import food_match_ocr_text, extract_text_from_images
 from function.scattered.match_ocr_text.text_to_battle_info import food_texts_to_battle_info
@@ -35,14 +38,15 @@ class FAABase:
     """
 
     def __init__(self: "FAA", channel: str = "锑食", player: int = 1, character_level: int = 1,
-                 is_auto_battle: bool = True, is_auto_pickup: bool = False, random_seed: int = 0):
+                 is_auto_battle: bool = True, is_auto_pickup: bool = False, QQ_login_info=None, extra_sleep=None, random_seed: int = 0):
 
         # 获取窗口句柄
         self.channel = channel  # 在刷新窗口后会需要再重新获取flash的句柄, 故保留
         self.handle = faa_get_handle(channel=self.channel, mode="flash")
         self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
         self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
-
+        self.QQ_login_info=QQ_login_info
+        self.extra_sleep=extra_sleep
         # 这个参数主要用于启动时防熊，避免线程已终止faa类内仍在循环识图
         self.should_stop = False
 
@@ -1158,7 +1162,11 @@ class FAABase:
                 # 点击刷新按钮 该按钮在360窗口上
                 self.print_debug(text="[刷新游戏] 点击刷新按钮...")
                 self.click_refresh_btn()
-
+                
+                # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
+                if self.extra_sleep["need_sleep"]:
+                    time.sleep(self.extra_sleep["sleep_time"]) 
+                    
                 # 依次判断是否在选择服务器界面
                 self.print_debug(text="[刷新游戏] 判定平台...")
 
@@ -1168,6 +1176,10 @@ class FAABase:
                     self.print_debug(text="[刷新游戏] 成功进入 - 4399微端平台")
                 elif try_enter_server_qq_space():
                     self.print_debug(text="[刷新游戏] 成功进入 - QQ空间平台")
+                    # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
+                    if self.extra_sleep["need_sleep"]:
+                        time.sleep(self.extra_sleep["sleep_time"]) 
+                        
                 elif try_enter_server_qq_game_hall():
                     self.print_debug(text="[刷新游戏] 成功进入 - QQ游戏大厅平台")
                 else:
@@ -1175,19 +1187,126 @@ class FAABase:
                     self.print_debug(
                         text="[刷新游戏] 未找到进入服务器按钮, 可能 1.QQ空间需重新登录 2.360X4399微端 3.需断线重连 4.意外情况")
 
-                    result = loop_match_p_in_w(
+                    # 密码登录模式
+                    if self.QQ_login_info and self.QQ_login_info["use_password"]:
+                        with open(self.QQ_login_info["path"]+"/QQ_account.json","r") as json_file:
+                            QQ_account=json.load(json_file)
+                        username=QQ_account['{}p'.format(self.player)]['username']
+                        password=QQ_account['{}p'.format(self.player)]['password']
+                        password=decrypt_data(password)
+                        
+                        # 2p 多等待一段时间，保证1p先完成登录，避免抢占焦点
+                        if self.player==2:
+                            print("2p正在等待")
+                            time.sleep(10)
+                            print("2p等待完成")
+                            
+                            
+                        # 开始进入密码登录页面
+                        result = loop_match_p_in_w(
+                            source_handle=self.handle_browser,
+                            source_root_handle=self.handle_360,
+                            source_range=[0, 0, 2000, 2000],
+                            template=RESOURCE_P["common"]["登录"]["密码登录.png"],
+                            match_tolerance=0.90,
+                            match_interval=0.5,
+                            match_failed_check=5,
+                            after_sleep=2,
+                            click=True)
+                        
+                        # 进入密码登录页面成功，由于360可能记住账号，因此先要点叉号清除账号
+                        if result:
+                            result = loop_match_p_in_w(
+                            source_handle=self.handle_browser,
+                            source_root_handle=self.handle_360,
+                            source_range=[0, 0, 2000, 2000],
+                            template=RESOURCE_P["common"]["登录"]["叉号.png"],
+                            match_tolerance=0.90,
+                            match_interval=0.5,
+                            match_failed_check=5,
+                            after_sleep=1,
+                            click=True)
+                        else:
+                            self.print_debug(text="进入QQ密码登录页面失败")
+                            continue
+                        # 点叉号清除账号成功，开始获取账号输入框的焦点
+                        # （如果没成功说明不需要点击，因此也可以开始获取账号输入框的焦点）
+                        result = loop_match_p_in_w(
                         source_handle=self.handle_browser,
                         source_root_handle=self.handle_360,
                         source_range=[0, 0, 2000, 2000],
-                        template=g_resources.RESOURCE_CP["用户自截"]["空间服登录界面_{}P.png".format(self.player)],
-                        match_tolerance=0.95,
+                        template=RESOURCE_P["common"]["登录"]["账号输入框.png"],
+                        match_tolerance=0.90,
                         match_interval=0.5,
                         match_failed_check=5,
-                        after_sleep=5,
+                        after_sleep=0.5,
                         click=True)
+                        
+                        # 注意这里不能 sleep ，否则容易因为抢占焦点而失败
+                        # 账号输入框获取焦点成功，开始输入账号
+                        if result:
+                            for key in username:
+                                T_ACTION_QUEUE_TIMER.char_input(handle=self.handle_browser, char=key)
+                                time.sleep(0.1)
+                        else:
+                            self.print_debug(text="账号输入框获取焦点失败")
+                            continue
+                        # 注意360有可能记住QQ账号，这里如果result==False就大概率是因为这个原因，所以不用输入账号
+                        # (实测发现可能是由于faa获取截图的方式比较特殊，即使记住了QQ账号他也能获取到账号输入框，总之代码能跑)
+                        # 输入账号完成，开始获取密码输入框的焦点
+                        result = loop_match_p_in_w(
+                        source_handle=self.handle_browser,
+                        source_root_handle=self.handle_360,
+                        source_range=[0, 0, 2000, 2000],
+                        template=RESOURCE_P["common"]["登录"]["密码输入框.png"],
+                        match_tolerance=0.90,
+                        match_interval=0.5,
+                        match_failed_check=5,
+                        after_sleep=0.5,
+                        click=True)
+                        # 注意这里不能 sleep ，否则容易因为抢占焦点而失败
+                        # 密码输入框获取焦点成功，开始输入密码
+                        if result:
+                            for key in password:
+                                T_ACTION_QUEUE_TIMER.char_input(handle=self.handle_browser, char=key)
+                                time.sleep(0.1)
+                        else:
+                            self.print_debug(text="密码输入框获取焦点失败")
+                            continue
+                        
+                        # 输入密码完成，开始点击登录按钮
+                        result = loop_match_p_in_w(
+                        source_handle=self.handle_browser,
+                        source_root_handle=self.handle_360,
+                        source_range=[0, 0, 2000, 2000],
+                        template=RESOURCE_P["common"]["登录"]["登录.png"],
+                        match_tolerance=0.90,
+                        match_interval=0.5,
+                        match_failed_check=5,
+                        after_sleep=3,
+                        click=True)
+                        
+                        # 点击登录按钮成功，等待选服
+                        # 这里不用time.sleep，直接修改上面的after_sleep参数即可
+                    
+                    # 非密码登录模式，通过点击QQ头像进行快捷登录
+                    else:
+                        result = loop_match_p_in_w(
+                            source_handle=self.handle_browser,
+                            source_root_handle=self.handle_360,
+                            source_range=[0, 0, 2000, 2000],
+                            template=g_resources.RESOURCE_CP["用户自截"]["空间服登录界面_{}P.png".format(self.player)],
+                            match_tolerance=0.95,
+                            match_interval=0.5,
+                            match_failed_check=5,
+                            after_sleep=3,
+                            click=True)
 
                     if result:
                         self.print_debug(text="[刷新游戏] 找到QQ空间服一键登录, 正在登录")
+                        # 直接尝试登录QQ空间服务器
+                        if try_enter_server_qq_space():
+                            self.print_debug(text="[刷新游戏] 成功进入 - QQ空间平台")
                     else:
                         # 如果还未找到进入服务器的方式，则进行断线重连的判断
                         self.print_debug(text="[刷新游戏] 进入断线重连判断...")

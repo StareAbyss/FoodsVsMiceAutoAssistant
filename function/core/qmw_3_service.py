@@ -29,6 +29,9 @@ from function.core.qmw_tip_stage_id import QMWTipStageID
 from function.core.qmw_tip_warm_gift import QMWTipWarmGift
 from function.core.qmw_useful_tools_widget import UsefulToolsWidget
 from function.core.todo import ThreadTodo
+from function.core.my_crypto import encrypt_data
+from function.core.qmw_tip_qqlogin import QMWTipQQlogin
+from function.core.qmw_tip_sleep import QMWTipSleep
 from function.globals import EXTRA, SIGNAL
 from function.globals import g_resources
 from function.globals.get_paths import PATHS
@@ -136,6 +139,14 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.window_tip_accelerate_settings = QMWTipAccelerateSettings()
         self.AccelerateTipButton.clicked.connect(self.click_btn_tip_accelerate_settings)
 
+        # 额外窗口 - QQ密码登录说明
+        self.window_tip_qqlogin=QMWTipQQlogin()
+        self.QQloginTipButton.clicked.connect(self.click_btn_tip_qqlogin)
+
+        # 额外窗口 - QQ登录额外休眠说明
+        self.window_tip_sleep=QMWTipSleep()
+        self.SleepTipButton.clicked.connect(self.click_btn_tip_sleep)
+
         # 米苏物流 - tip窗口
         self.window_tip_misu_logistics = QMWTipMisuLogistics()
         self.MisuLogisticsTipButton.clicked.connect(self.click_btn_tip_misu_logistics)
@@ -198,6 +209,50 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 连接自定义信号到槽函数，从而修改编辑框内容
         self.Label_drag.windowNameChanged1.connect(self.updateEditBox1)
         self.Label_drag.windowNameChanged2.connect(self.updateEditBox2)
+        """QQ密码登录模块"""
+
+        self.SavePasswordButton.clicked.connect(self.save_password_button_on_clicked)
+        self.ChoosePathButton.clicked.connect(self.choose_path_button_on_clicked)
+
+    def choose_path_button_on_clicked(self):
+        """"用于连接ChoosePathButton的函数，选择存储路径"""
+        # 弹出一个文件夹选择对话框
+        folder_path = QFileDialog.getExistingDirectory(self, "选择文件夹")
+
+        # 如果用户选择了文件夹，保存路径到编辑框
+        if folder_path:
+            self.path_edit.setText(folder_path)
+            
+            
+    def save_password_button_on_clicked(self):
+        """"用于连接SavePasswordButton的函数，保存QQ密码信息"""
+        # 1p
+        username_1p=self.username_edit_1.text()
+        password_1p=self.password_edit_1.text()
+        
+        password_1p=encrypt_data(password_1p)
+        
+        # 2p
+        username_2p=self.username_edit_2.text()
+        password_2p=self.password_edit_2.text()
+        password_2p=encrypt_data(password_2p)
+        
+        save_path=self.path_edit.text()
+        QQ_account= {
+            "1p": {
+                "username": username_1p,
+                "password": password_1p
+            },
+            "2p": {
+                "username": username_2p,
+                "password": password_2p
+            }
+        }
+        
+        save_path = os.path.join(save_path, "QQ_account.json")
+        with open(save_path,"w",encoding="utf-8") as json_file:
+            json.dump(QQ_account, json_file,ensure_ascii=False, indent=4)
+        QMessageBox.information(self, "提示",f"您的登录信息已经保存到{save_path}",QMessageBox.StandardButton.Ok)
 
     """公会管理器页面"""
 
@@ -501,6 +556,8 @@ class QMainWindowService(QMainWindowLoadSettings):
                 character_level=self.opt["base_settings"]["level_1p"],
                 is_auto_battle=self.opt["advanced_settings"]["auto_use_card"],
                 is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_1p"],
+                QQ_login_info=self.opt["QQ_login_info"],
+                extra_sleep=self.opt["extra_sleep"],
                 random_seed=random_seed),
             2: FAA(
                 channel=channel_2p,
@@ -508,6 +565,8 @@ class QMainWindowService(QMainWindowLoadSettings):
                 character_level=self.opt["base_settings"]["level_2p"],
                 is_auto_battle=self.opt["advanced_settings"]["auto_use_card"],
                 is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_2p"],
+                QQ_login_info=self.opt["QQ_login_info"],
+                extra_sleep=self.opt["extra_sleep"],
                 random_seed=random_seed)
         }
 
@@ -823,6 +882,18 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def click_btn_tip_misu_logistics(self):
         window = self.window_tip_misu_logistics
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
+
+    def click_btn_tip_qqlogin(self):
+        window = self.window_tip_qqlogin
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
+
+    def click_btn_tip_sleep(self):
+        window = self.window_tip_sleep
         window.setFont(self.font)
         self.set_stylesheet(window)
         window.show()
