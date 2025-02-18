@@ -9,7 +9,7 @@ text = """
 
 具体的休眠时间请根据自己的情况自行设置，默认的5秒不一定对所有人都适用，建议使用时自己测试一下效果。
 """
-class QMWTipQQlogin(QMainWindow):
+class QMWTipSleep(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('QQ空间密码登录教学')

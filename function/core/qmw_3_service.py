@@ -31,6 +31,7 @@ from function.core.qmw_useful_tools_widget import UsefulToolsWidget
 from function.core.todo import ThreadTodo
 from function.core.my_crypto import encrypt_data
 from function.core.qmw_tip_qqlogin import QMWTipQQlogin
+from function.core.qmw_tip_sleep import QMWTipSleep
 from function.globals import EXTRA, SIGNAL
 from function.globals import g_resources
 from function.globals.get_paths import PATHS
@@ -143,8 +144,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.QQloginTipButton.clicked.connect(self.click_btn_tip_qqlogin)
 
         # 额外窗口 - QQ登录额外休眠说明
-        self.window_tip_qqlogin=QMWTipQQlogin()
-        self.QQloginTipButton.clicked.connect(self.click_btn_tip_qqlogin)
+        self.window_tip_sleep=QMWTipSleep()
+        self.SleepTipButton.clicked.connect(self.click_btn_tip_sleep)
 
         # 米苏物流 - tip窗口
         self.window_tip_misu_logistics = QMWTipMisuLogistics()
@@ -887,6 +888,12 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def click_btn_tip_qqlogin(self):
         window = self.window_tip_qqlogin
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
+
+    def click_btn_tip_sleep(self):
+        window = self.window_tip_sleep
         window.setFont(self.font)
         self.set_stylesheet(window)
         window.show()
