@@ -1003,7 +1003,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         :return: None
         """
 
-        if not self.be_edited_loop_use_cards_one_card_index:
+        if self.be_edited_loop_use_cards_one_card_index is None:
             QMessageBox.information(self, "操作错误！", "请先选择一个对象(卡片)!")
             return False
 
@@ -1025,7 +1025,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         :return: None
         """
 
-        if not self.be_edited_insert_use_card_index:
+        if self.be_edited_insert_use_card_index is None:
             QMessageBox.information(self, "操作错误！", "请先选择一个对象(定时放卡)!")
             return False
 
