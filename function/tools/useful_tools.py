@@ -27,13 +27,13 @@ def once_gacha_gold_trevi_fountain(handle):
             source_handle=handle,
             source_range=[387, 336, 563, 367],
             template=RESOURCE_P["common"]["通用_确定.png"],
-            match_failed_check=1,
-            match_tolerance=0.9
+            match_failed_check=0,
+            match_tolerance=0.9,
+            match_interval=0,
+            after_sleep=0
     ):
         # 等待200毫秒
         QThread.msleep(200)
-    else:
-        return False, "没有找到确定按钮，你的金币是不是不够了？"
     return True, None
 
 
