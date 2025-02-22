@@ -863,6 +863,17 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["level_1p"] = self.Level1P_Input.value()
             my_opt["level_2p"] = self.Level2P_Input.value()
 
+        def check_time_settings() -> None:
+            for i in range(1,6):
+                # 依次检查文本内容是否为空
+                if getattr(self, f"Timer{i}_H").text() == "":
+                    h_text = str("0").zfill(2)
+                    getattr(self, f"Timer{i}_H").setText(h_text)
+
+                if getattr(self, f"Timer{i}_M").text() == "":
+                    m_text = str("0").zfill(2)
+                    getattr(self, f"Timer{i}_M").setText(m_text)
+
         def timer_settings() -> None:
             for i in range(1, 6):
                 my_opt = self.opt["timer"][f"{i}"]
@@ -870,6 +881,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 my_opt["h"] = int(getattr(self, f"Timer{i}_H").text())
                 my_opt["m"] = int(getattr(self, f"Timer{i}_M").text())
                 my_opt["plan"] = getattr(self, f"Timer{i}_Plan").currentIndex()
+
 
         def advanced_settings() -> None:
             my_opt = self.opt["advanced_settings"]
@@ -1062,6 +1074,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         
         base_settings()
         accelerate_settings()
+        check_time_settings()
         timer_settings()
         advanced_settings()
         senior_settings()

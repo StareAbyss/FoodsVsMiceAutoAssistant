@@ -658,6 +658,22 @@ class QMainWindowService(QMainWindowLoadSettings):
     def todo_timer_start(self):
         # 先读取界面上的方案
         self.ui_to_opt()
+        # 检查时间是否重复，方案是否存在
+        time_list = []
+        for i in range(1, 6):
+            timer_opt = self.opt["timer"][str(i)]
+            if timer_opt["active"]:
+                h_text = getattr(self, f'Timer{i}_H').text()
+                m_text = getattr(self, f'Timer{i}_M').text()
+                tar_time = {"h": h_text, "m": m_text}
+                plan_index = timer_opt["plan"]
+                if plan_index == -1:
+                    SIGNAL.PRINT_TO_UI.emit(f"[定时任务] {h_text}:{m_text} 的定时任务未选择方案，启动失败!",color_level=1)
+                    return
+                if tar_time in time_list:
+                    SIGNAL.PRINT_TO_UI.emit(f"[定时任务] {h_text}:{m_text} 的定时任务时间重复，启动失败!",color_level=1)
+                    return
+                time_list.append(tar_time)
         # 清屏并输出
         self.TextBrowser.clear()
         self.start_print()
