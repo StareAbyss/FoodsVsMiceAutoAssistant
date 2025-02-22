@@ -617,6 +617,13 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt=self.opt["QQ_login_info"]
             self.checkbox_use_password.setChecked(my_opt["use_password"])
             self.path_edit.setText(my_opt["path"])
+            if os.path.isfile(my_opt["path"]+"/QQ_account.json"):
+                with open(my_opt["path"]+"/QQ_account.json","r") as json_file:
+                    QQ_account=json.load(json_file)
+                username1=QQ_account['1p']['username']
+                username2=QQ_account['2p']['username']
+                self.username_edit_1.setText(username1)
+                self.username_edit_2.setText(username2)
             
         def sleep_opt_to_ui() ->None:
             """""从配置中读取额外睡眠时间到ui中"""""
