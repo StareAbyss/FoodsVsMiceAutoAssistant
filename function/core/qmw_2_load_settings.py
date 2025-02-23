@@ -617,6 +617,13 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt=self.opt["QQ_login_info"]
             self.checkbox_use_password.setChecked(my_opt["use_password"])
             self.path_edit.setText(my_opt["path"])
+            if os.path.isfile(my_opt["path"]+"/QQ_account.json"):
+                with open(my_opt["path"]+"/QQ_account.json","r") as json_file:
+                    QQ_account=json.load(json_file)
+                username1=QQ_account['1p']['username']
+                username2=QQ_account['2p']['username']
+                self.username_edit_1.setText(username1)
+                self.username_edit_2.setText(username2)
             
         def sleep_opt_to_ui() ->None:
             """""从配置中读取额外睡眠时间到ui中"""""
@@ -863,6 +870,17 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["level_1p"] = self.Level1P_Input.value()
             my_opt["level_2p"] = self.Level2P_Input.value()
 
+        def check_time_settings() -> None:
+            for i in range(1,6):
+                # 依次检查文本内容是否为空
+                if getattr(self, f"Timer{i}_H").text() == "":
+                    h_text = str("0").zfill(2)
+                    getattr(self, f"Timer{i}_H").setText(h_text)
+
+                if getattr(self, f"Timer{i}_M").text() == "":
+                    m_text = str("0").zfill(2)
+                    getattr(self, f"Timer{i}_M").setText(m_text)
+
         def timer_settings() -> None:
             for i in range(1, 6):
                 my_opt = self.opt["timer"][f"{i}"]
@@ -870,6 +888,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 my_opt["h"] = int(getattr(self, f"Timer{i}_H").text())
                 my_opt["m"] = int(getattr(self, f"Timer{i}_M").text())
                 my_opt["plan"] = getattr(self, f"Timer{i}_Plan").currentIndex()
+
 
         def advanced_settings() -> None:
             my_opt = self.opt["advanced_settings"]
@@ -1062,6 +1081,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         
         base_settings()
         accelerate_settings()
+        check_time_settings()
         timer_settings()
         advanced_settings()
         senior_settings()
