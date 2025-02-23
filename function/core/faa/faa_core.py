@@ -11,16 +11,14 @@ import pytz
 from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
 from function.common.bg_img_screenshot import capture_image_png
 from function.common.overlay_images import overlay_images
-from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
-from function.core.qmw_2_load_settings import get_QQ_login_info
 from function.core.my_crypto import decrypt_data
+from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
 from function.globals import g_resources, SIGNAL, EXTRA
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
 from function.globals.location_card_cell_in_battle import COORDINATE_CARD_CELL_IN_BATTLE
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
-from function.globals.get_paths import PATHS
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.match_ocr_text.get_food_quest_by_ocr import food_match_ocr_text, extract_text_from_images
 from function.scattered.match_ocr_text.text_to_battle_info import food_texts_to_battle_info
@@ -37,7 +35,7 @@ class FAABase:
     其中部分较麻烦的模块的实现被分散在了其他的类里, 此处只留下了接口以供调用
     """
 
-    def __init__(self: "FAA", channel: str = "锑食", player: int = 1, character_level: int = 1,
+    def __init__(self: "FAA", channel: str = "锑食", player: int = 1, character_level: int = 80,
                  is_auto_battle: bool = True, is_auto_pickup: bool = False, QQ_login_info=None, extra_sleep=None, random_seed: int = 0):
 
         # 获取窗口句柄

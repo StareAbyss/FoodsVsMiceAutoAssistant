@@ -17,17 +17,17 @@ log_emitter = LogEmitter()
 
 
 class QMessageBoxHandler(logging.Handler):
-    """自定义Handler用于触发PyQt弹窗"""
+    """自定义Handler用于触发PyQt弹窗 (仅CRITICAL级别)"""
 
     def __init__(self):
         super().__init__()
-        self.setLevel(logging.ERROR)  # 只处理ERROR及以上级别
+        self.setLevel(logging.CRITICAL)  # 仅处理CRITICAL级别
 
     def emit(self, record):
         if record.levelno >= logging.ERROR:
             msg = self.format(record)
             # 通过信号发送到主线程显示弹窗
-            log_emitter.show_error_signal.emit("什么！居然报错了？", msg)
+            log_emitter.show_error_signal.emit("未捕获的程序错误!", msg)
 
 
 class KeywordFilter(logging.Filter):
@@ -57,27 +57,49 @@ class CusLogger(logging.Logger):
         keywords = ["property", "widget", "push", "layout"]
         keyword_filter = KeywordFilter(keywords)
 
-        # 常规日志文件处理器
+        # --------- 常规日志文件处理器 ---------
+
         file_handler = logging.FileHandler(
-            filename=PATHS["logs"] + '\\running_log.log',
+            filename=PATHS["logs"] + '\\normal_log.log',
             mode='w',
             encoding='utf-8'
         )
-        file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s - %(levelname)s - %(message)s'
+        ))
         file_handler.addFilter(keyword_filter)
         self.addHandler(file_handler)
 
-        # 错误日志文件处理器
+        # --------- 错误日志文件处理器 ---------
+
         error_file_handler = logging.FileHandler(
             filename=PATHS["logs"] + '\\error_log.log',
             mode='w',
             encoding='utf-8'
         )
         error_file_handler.setLevel(logging.ERROR)
-        error_file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        error_file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s - %(levelname)s - %(pathname)s:%(lineno)d\n'
+            '>> %(message)s'
+        ))
         self.addHandler(error_file_handler)
 
-        # 控制台处理器
+        # --------- 高危日志文件处理器 ---------
+
+        critical_file_handler = logging.FileHandler(
+            filename=PATHS["logs"] + '\\critical_log.log',
+            mode='w',
+            encoding='utf-8'
+        )
+        critical_file_handler.setLevel(logging.CRITICAL)
+        critical_file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s - %(levelname)s - %(pathname)s:%(lineno)d\n'
+            '>> %(message)s'
+        ))
+        self.addHandler(critical_file_handler)
+
+        # --------- 控制台处理器 ---------
+
         stream_handler = colorlog.StreamHandler()
         stream_formatter = colorlog.ColoredFormatter('%(log_color)s%(asctime)s - %(levelname)s - %(message)s')
         stream_handler.setFormatter(stream_formatter)
@@ -111,5 +133,7 @@ CUS_LOGGER = logging.getLogger('my customize logger')
 
 if __name__ == '__main__':
     # 测试用例
-    CUS_LOGGER.error("这是一个测试错误，应该触发弹窗！")
+    CUS_LOGGER.info("这是一个普通日志!")
+    CUS_LOGGER.error("这是一个普通错误，应该加入报错日志!")
+    CUS_LOGGER.critical("这是一个严重错误，应该触发未捕获报错弹窗+日志!")
     sys.exit(app.exec())

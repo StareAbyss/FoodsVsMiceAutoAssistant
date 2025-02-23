@@ -2512,13 +2512,13 @@ class ThreadTodo(QThread):
 
     def run(self):
 
-        try:
-            if self.todo_id == 1:
-                self.run_1()
-            if self.todo_id == 2:
-                self.run_2()
-        except Exception as e:
-            SIGNAL.PRINT_TO_UI.emit(text=f"[Todo] 运行时发生错误! 内容:{e}", color_level=1)
+        if self.todo_id == 1:
+            self.run_1()
+        if self.todo_id == 2:
+            self.run_2()
+        # except Exception as e:
+        #     SIGNAL.PRINT_TO_UI.emit(text=f"[Todo] 运行时发生错误! 内容:{e}", color_level=1)
+        #     CUS_LOGGER.error(f"[Todo] 运行时发生错误!")
 
     def run_1(self):
         """配置检查"""
