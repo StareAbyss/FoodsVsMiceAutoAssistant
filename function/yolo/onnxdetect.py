@@ -90,14 +90,16 @@ def get_mouse_position(input_image,is_log,is_gpu):
     # 从NMS结果中提取过滤后的boxes和class_ids
     filtered_boxes = [list(np.array(boxes[i]) * scale) for i in result_boxes]
     filtered_class_ids = [class_ids[i] for i in result_boxes]  # 非极大值抑制过后产生的框和类别
-    # annotated_image = original_image.copy()
-    # for i in range(len(result_boxes)):
-    #     index = result_boxes[i]
-    #     box = boxes[index]
-    #     draw_bounding_box(annotated_image, class_ids[index], scores[index], round(box[0] * scale), round(box[1] * scale),
-    #                           round((box[0] + box[2]) * scale), round((box[1] + box[3]) * scale))
-    # annotated_image=cv2.resize(annotated_image, (960,540))
-    # cv_show('test',annotated_image)
+    test_mode = True
+    if test_mode:
+        annotated_image = original_image.copy()
+        for i in range(len(result_boxes)):
+            index = result_boxes[i]
+            box = boxes[index]
+            draw_bounding_box(annotated_image, class_ids[index], scores[index], round(box[0] * scale), round(box[1] * scale),
+                                  round((box[0] + box[2]) * scale), round((box[1] + box[3]) * scale))
+        annotated_image=cv2.resize(annotated_image, (960,540))
+        cv_show('test',annotated_image)
     need_write = is_log  # 是否保存图片及对应标签，未来将对接前端
     if need_write or len(result_boxes) > 0:
         cv_write(original_image, result_boxes, class_ids, boxes, scale)
@@ -154,5 +156,6 @@ if __name__ == '__main__':
     parser.add_argument('--img', default=str('20240728154824_236031.png'), help='Path to input image.')
     print(cv2.__version__)
     args = parser.parse_args()
-    get_mouse_position(args.img)
+    original_image: np.ndarray = cv2.imread(args.img)
+    get_mouse_position(original_image,False,True)
 
