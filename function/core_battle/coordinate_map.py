@@ -11,7 +11,7 @@ def parse_positions(coordinate, base_info):
     # 初始化输出变量
     wave = False
     god_wind = False
-    positions = []
+    positions = set()
 
     for index, base_value in enumerate(base_info):
 
@@ -41,17 +41,14 @@ def parse_positions(coordinate, base_info):
                 y_segment = min(math.ceil((y - y_min) / ((y_max - y_min) / y_segments)), y_segments)
 
             # 添加位置到列表
-            positions.append(f"{x_segment}-{y_segment}")
+            positions.add(f"{x_segment}-{y_segment}")
 
-    return wave, god_wind, positions  # 返回是否有神风，是否有波次，待爆炸点位
+    return wave, god_wind, list(positions)  # 返回是否有神风，是否有波次，待爆炸点位
 
 # 示例调用
-# base_info = [0, 0, 1, 6, 2, 2, 1]
-# coordinate = [
-#     [1000, 1000], [400, 200], [500, 300], [700, 500],
-#     [600, 600], [750, 700], [350, 100]
-# ]
-# wave, godwind, positions = parse_positions(base_info, coordinate)
+# base_info = [0, 0, 4, 6]
+# coordinate = [ [np.float32(1195.9874), np.float32(870.25305), np.float32(104.10489), np.float32(126.19858)], [np.float32(1307.134), np.float32(169.3344), np.float32(104.08145), np.float32(130.58484)], [np.float32(1526.3342), np.float32(637.1599), np.float32(106.510345), np.float32(125.32411)], [np.float32(758.6747), np.float32(769.79004), np.float32(107.91458), np.float32(125.20587)]]
+# wave, godwind, positions = parse_positions(coordinate, base_info)
 # print("Wave:", wave)
 # print("Godwind:", godwind)
 # print("Positions:", positions)
