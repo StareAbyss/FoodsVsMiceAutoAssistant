@@ -5,6 +5,7 @@ from math import floor
 
 import cv2.dnn
 import numpy as np
+import onnxruntime as ort
 
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
@@ -45,11 +46,8 @@ def get_mouse_position(input_image,is_log,is_gpu):
     # 使用opencv读取onnx文件
     onnx_model = PATHS["model"] + "/mouse.onnx"
     model: cv2.dnn.Net = cv2.dnn.readNetFromONNX(onnx_model)
-    if is_gpu and cv2.cuda.getCudaEnabledDeviceCount():
-        model.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
-        model.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
-    else:
-        CUS_LOGGER.debug(f"警告：gpu未正确启用，你正在使用cpu推理模型，可能造成开销过大，请确保清楚知道你在做什么 ")
+    providers = ['CUDAExecutionProvider', 'CPUExecutionProvider'] if is_gpu else ['CPUExecutionProvider']
+    session = ort.InferenceSession(onnx_model, providers=providers)
     # 读取原图
     # original_image: np.ndarray = cv2.imread(input_image)
     original_image = input_image[:, :, :3]  # 去除阿尔法通道
@@ -60,10 +58,13 @@ def get_mouse_position(input_image,is_log,is_gpu):
     scale = length / 640  # 缩放比例
     # 设置模型输入
     blob = cv2.dnn.blobFromImage(image, scalefactor=1 / 255, size=(640, 640), swapRB=True)  # 通道是匹配的，不用交换红蓝
-    model.setInput(blob)
     # 推理
-    outputs = model.forward()  # output: 1 X 8400 x 84
-    outputs = np.array([cv2.transpose(outputs[0])])
+    outputs = session.run(
+        output_names=[session.get_outputs()[0].name],
+        input_feed={session.get_inputs()[0].name: blob}
+    )[0]
+
+    outputs = np.transpose(outputs, (0, 2, 1))
     rows = outputs.shape[1]
 
     boxes = []
@@ -71,7 +72,6 @@ def get_mouse_position(input_image,is_log,is_gpu):
     class_ids = []
     # outputs有8400行，遍历每一行，筛选最优检测结果
     for i in range(rows):
-        # 找到第i个候选目标在80个类别中，最可能的类别
         classes_scores = outputs[0][i][4:]  # classes_scores:80 X 1
         (minScore, maxScore, minClassLoc, (x, maxClassIndex)) = cv2.minMaxLoc(classes_scores)
         if maxScore >= 0.25:
