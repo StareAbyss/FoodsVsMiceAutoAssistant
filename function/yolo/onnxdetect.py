@@ -11,7 +11,7 @@ import onnxruntime as ort
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 def initialize_session(is_gpu):
-    onnx_model = PATHS["model"] + "/mouse.onnx"
+    onnx_model = PATHS["model"] + "/mouseV2.onnx"
     providers = [
         'DmlExecutionProvider',
         'CPUExecutionProvider'
@@ -22,7 +22,8 @@ def initialize_session(is_gpu):
 注意：如果你推理自己的模型，以下类别需要改成你自己的具体类别
 '''
 # 老许类别
-CLASSES = {0: 'shell', 1: 'flypig', 2: 'pope', 3: 'Vali', 4: 'wave', 5: 'GodWind', 6: 'skull'}  # 对应6种特殊老鼠与波次
+CLASSES = {0: 'shell', 1: 'flypig', 2: 'pope', 3: 'Vali', 4: 'wave', 5: 'GodWind', 6: 'skull',7: 'snowstorm',8:'obstacle',9:'boss165',10:'icetype'}
+# 对应6种特殊老鼠与波次 v2版本新增障碍、暴风雪、魔塔165层boss需炸技能、冰块识别
 colors = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 
 
@@ -96,7 +97,7 @@ def get_mouse_position(input_image,is_log,session):
     # 从NMS结果中提取过滤后的boxes和class_ids
     filtered_boxes = [list(np.array(boxes[i]) * scale) for i in result_boxes]
     filtered_class_ids = [class_ids[i] for i in result_boxes]  # 非极大值抑制过后产生的框和类别
-    test_mode = False#打开就能看见小框框看效果
+    test_mode = True#打开就能看见小框框看效果
     if test_mode:
         annotated_image = original_image.copy()
         for i in range(len(result_boxes)):
@@ -158,8 +159,8 @@ def cv_show(name, img):  # 图片展示
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', default='mouse.onnx', help='将模型放到当前目录')
-    parser.add_argument('--img', default=str('20240728154824_236031.png'), help='将图片放到当前目录')
+    parser.add_argument('--model', default='mouseV2.onnx', help='将模型放到当前目录')
+    parser.add_argument('--img', default=str('0002_81.jpg'), help='将图片放到当前目录')
     print(cv2.__version__)
     args = parser.parse_args()
     original_image: np.ndarray = cv2.imread(args.img)
@@ -168,7 +169,7 @@ if __name__ == '__main__':
     gpu_times = []
     cpu_times = []
 
-    for _ in range(5):  # 每个配置运行5次
+    for _ in range(1):  # 每个配置运行5次
         for use_gpu in [True, False]:
             session = session1 if use_gpu else session2
             print(f"\n{'=' * 30} 测试开始 {'=' * 30}")

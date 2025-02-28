@@ -23,9 +23,9 @@ def parse_positions(coordinate, base_info):
             god_wind = True
             continue
 
-        elif base_value in [0, 1, 2, 3, 6]:
+        elif base_value in [0, 1, 2, 3, 6, 9]:
             x = coordinate[index][0] + 0.5 * coordinate[index][2]
-            if base_value == 1:
+            if base_value == 1:#飞猪的高度要降低一点
                 y = coordinate[index][1] + 0.5 * coordinate[index][3] + 50
             else:
                 y = coordinate[index][1] + 0.5 * coordinate[index][3]
