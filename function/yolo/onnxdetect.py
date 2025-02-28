@@ -97,7 +97,7 @@ def get_mouse_position(input_image,is_log,session):
     # 从NMS结果中提取过滤后的boxes和class_ids
     filtered_boxes = [list(np.array(boxes[i]) * scale) for i in result_boxes]
     filtered_class_ids = [class_ids[i] for i in result_boxes]  # 非极大值抑制过后产生的框和类别
-    test_mode = True#打开就能看见小框框看效果
+    test_mode = False#打开就能看见小框框看效果
     if test_mode:
         annotated_image = original_image.copy()
         for i in range(len(result_boxes)):
