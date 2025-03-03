@@ -2,8 +2,6 @@ import datetime
 import time
 from typing import TYPE_CHECKING
 
-import pytz
-
 from function.common.bg_img_match import loop_match_p_in_w
 from function.globals import SIGNAL
 from function.globals.g_resources import RESOURCE_P
@@ -21,8 +19,6 @@ class FAAActionReceiveQuestRewards:
     def action_receive_quest_rewards_normal(self: "FAA"):
         """领取普通任务奖励"""
 
-        handle = self.handle
-        handle_360 = self.handle_360
         player = self.player
 
         def scan_one_page():
@@ -34,8 +30,8 @@ class FAAActionReceiveQuestRewards:
             # 循环遍历点击完成
             for try_count in range(max_attempts):
                 find = loop_match_p_in_w(
-                    source_handle=handle,
-                    source_root_handle=handle_360,
+                    source_handle=self.handle,
+                    source_root_handle=self.handle_360,
                     source_range=[335, 120, 420, 545],
                     template=RESOURCE_P["common"]["任务_完成.png"],
                     match_tolerance=0.95,
@@ -44,7 +40,7 @@ class FAAActionReceiveQuestRewards:
                     click=True)
                 if find:
                     # 领取奖励
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=643, y=534)
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=643, y=534)
                     time.sleep(0.2)
                 else:
                     break
@@ -60,7 +56,7 @@ class FAAActionReceiveQuestRewards:
         self.action_bottom_menu(mode="任务")
 
         # 复位滑块
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=413, y=155)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=413, y=155)
         time.sleep(0.25)
 
         for i in range(8):
@@ -68,7 +64,7 @@ class FAAActionReceiveQuestRewards:
             # 不是第一次滑块向下移动3次
             if i != 0:
                 for j in range(3):
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=413, y=524)
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=413, y=524)
                     time.sleep(0.05)
 
             scan_one_page()
@@ -77,23 +73,8 @@ class FAAActionReceiveQuestRewards:
 
     def action_receive_quest_rewards_guild(self: "FAA"):
 
-        handle = self.handle
-        handle_360 = self.handle_360
-        action_bottom_menu = self.action_bottom_menu
-        print_info = self.print_info
-        player = self.player
-
-        # 判定时间, 如果是北京时间周四的0到12点, 直接return
-        # 获取北京时间
-        beijing_tz = pytz.timezone('Asia/Shanghai')
-        now = datetime.datetime.now(beijing_tz)
-
-        if now.weekday() == 3 and 0 <= now.hour < 12:
-            print_info("[公会任务] 周四0-12点, 跳过领取.")
-            return
-
         # 跳转到任务界面
-        action_bottom_menu(mode="跳转_公会任务")
+        self.action_bottom_menu(mode="跳转_公会任务")
 
         # 最大尝试次数
         max_attempts = 20
@@ -103,21 +84,21 @@ class FAAActionReceiveQuestRewards:
 
             # 点一下 让左边的选中任务颜色消失
             loop_match_p_in_w(
-                source_handle=handle,
-                source_root_handle=handle_360,
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["quest_guild"]["ui_quest_list.png"],
                 after_sleep=5.0,
                 click=True)
 
             # 向下拖一下
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=415, y=510)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=415, y=510)
             time.sleep(0.5)
 
             # 检查是否有已完成的任务
             result = loop_match_p_in_w(
-                source_handle=handle,
-                source_root_handle=handle_360,
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["quest_guild"]["completed.png"],
                 match_tolerance=0.99,
@@ -129,8 +110,8 @@ class FAAActionReceiveQuestRewards:
 
             # 点击“领取”按钮
             loop_match_p_in_w(
-                source_handle=handle,
-                source_root_handle=handle_360,
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["quest_guild"]["gather.png"],
                 match_tolerance=0.99,
@@ -143,7 +124,7 @@ class FAAActionReceiveQuestRewards:
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             SIGNAL.DIALOG.emit(
                 "背包满了！(╬◣д◢)",
-                f"{player}P因背包爆满, 导致 [领取公会任务奖励] 失败!\n"
+                f"{self.player}P因背包爆满, 导致 [领取公会任务奖励] 失败!\n"
                 f"出错时间:{current_time}, 尝试次数:{max_attempts}")
 
         # 退出任务界面
@@ -151,13 +132,8 @@ class FAAActionReceiveQuestRewards:
 
     def action_receive_quest_rewards_spouse(self: "FAA"):
 
-        handle = self.handle
-        handle_360 = self.handle_360
-        action_bottom_menu = self.action_bottom_menu
-        player = self.player
-
         # 跳转到任务界面
-        action_bottom_menu(mode="跳转_情侣任务")
+        self.action_bottom_menu(mode="跳转_情侣任务")
 
         # 最大尝试次数
         max_attempts = 10
@@ -166,8 +142,8 @@ class FAAActionReceiveQuestRewards:
         for try_count in range(max_attempts):
 
             result = loop_match_p_in_w(
-                source_handle=handle,
-                source_root_handle=handle_360,
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["quest_spouse"]["completed.png"],
                 match_tolerance=0.99,
@@ -183,7 +159,7 @@ class FAAActionReceiveQuestRewards:
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             SIGNAL.DIALOG.emit(
                 "背包满了！(╬◣д◢)",
-                f"{player}P因背包爆满, 导致 [领取情侣任务奖励] 失败!\n"
+                f"{self.player}P因背包爆满, 导致 [领取情侣任务奖励] 失败!\n"
                 f"出错时间:{current_time}, 尝试次数:{max_attempts}")
 
         # 点两下右下角的领取
@@ -200,12 +176,8 @@ class FAAActionReceiveQuestRewards:
         :return: None
         """
 
-        handle = self.handle
-        handle_360 = self.handle_360
-        action_top_menu = self.action_top_menu
-        player = self.player
         # 进入X年活动界面
-        action_top_menu(mode="X年活动")
+        self.action_top_menu(mode="X年活动")
 
         # 最大尝试次数
         max_attempts = 10
@@ -213,8 +185,8 @@ class FAAActionReceiveQuestRewards:
         # 循环遍历点击完成
         for try_count in range(max_attempts):
             result = loop_match_p_in_w(
-                source_handle=handle,
-                source_root_handle=handle_360,
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["common"]["悬赏任务_领取奖励.png"],
                 match_tolerance=0.99,
@@ -229,7 +201,7 @@ class FAAActionReceiveQuestRewards:
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             SIGNAL.DIALOG.emit(
                 "背包满了！(╬◣д◢)",
-                f"{player}P因背包爆满, 导致 [领取悬赏任务奖励]失败!\n"
+                f"{self.player}P因背包爆满, 导致 [领取悬赏任务奖励]失败!\n"
                 f"出错时间:{current_time}, 尝试次数:{max_attempts}")
 
         # 退出任务界面
@@ -237,15 +209,10 @@ class FAAActionReceiveQuestRewards:
 
     def action_receive_quest_rewards_food_competition(self: "FAA"):
 
-        handle = self.handle
-        handle_360 = self.handle_360
-        action_top_menu = self.action_top_menu
-        print_warning = self.print_warning
-        player = self.player
         found_flag = False  # 记录是否有完成任何一次任务
 
         # 进入美食大赛界面
-        find = action_top_menu(mode="美食大赛")
+        find = self.action_top_menu(mode="美食大赛")
 
         if find:
 
@@ -253,7 +220,7 @@ class FAAActionReceiveQuestRewards:
             for i in range(6):
 
                 # 先移动一次位置
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=536, y=my_dict[i])
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=my_dict[i])
                 time.sleep(0.2)
 
                 # 最大尝试次数
@@ -262,8 +229,8 @@ class FAAActionReceiveQuestRewards:
                 # 循环遍历点击完成
                 for try_count in range(max_attempts):
                     find = loop_match_p_in_w(
-                        source_handle=handle,
-                        source_root_handle=handle_360,
+                        source_handle=self.handle,
+                        source_root_handle=self.handle_360,
                         source_range=[0, 0, 950, 600],
                         template=RESOURCE_P["common"]["美食大赛_领取.png"],
                         match_tolerance=0.95,
@@ -284,15 +251,15 @@ class FAAActionReceiveQuestRewards:
                     current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     SIGNAL.DIALOG.emit(
                         "背包满了！(╬◣д◢)",
-                        f"{player}P因背包爆满, 导致 [领取悬赏任务奖励]失败!\n"
+                        f"{self.player}P因背包爆满, 导致 [领取悬赏任务奖励]失败!\n"
                         f"出错时间:{current_time}, 尝试次数:{max_attempts}")
 
             # 退出美食大赛界面
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=888, y=53)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=888, y=53)
             time.sleep(0.5)
 
         else:
-            print_warning(text="[领取奖励] [美食大赛] 未打开界面, 可能大赛未刷新")
+            self.print_warning(text="[领取奖励] [美食大赛] 未打开界面, 可能大赛未刷新")
 
         if not found_flag:
             self.print_debug(text="[领取奖励] [美食大赛] 未完成任意任务")
@@ -333,17 +300,14 @@ class FAAActionReceiveQuestRewards:
 
     def action_receive_quest_rewards_camp(self: "FAA"):
 
-        handle = self.handle
-        action_goto_map = self.action_goto_map
-
         # 进入界面
-        find = action_goto_map(map_id=10)
+        find = self.action_goto_map(map_id=10)
 
         if find:
             for _ in range(10):
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=175, y=325)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=175, y=325)
                 time.sleep(0.2)
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=175, y=365)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=175, y=365)
                 time.sleep(0.2)
 
     def action_receive_quest_rewards(self: "FAA", mode) -> None:
