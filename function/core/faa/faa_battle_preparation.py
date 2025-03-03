@@ -907,7 +907,7 @@ class BattlePreparation:
             # 定义保存路径和文件名格式
             img_path = "{}\\{}_{}P_{}.png".format(
                 PATHS["logs"] + "\\loots_image",
-                stage_info["id"],
+                stage_info["id"],  # 注意 此处一定要使用内部一定正确的id! b_id可能是用户随笔输入的
                 player,
                 time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
             )
