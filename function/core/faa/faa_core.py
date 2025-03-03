@@ -152,6 +152,30 @@ class FAABase:
         else:
             return True
 
+    def check_stage_id_is_true(self: "FAA") -> bool:
+        """检查关卡ID是否合法"""
+        stage_id = self.stage_info["id"]
+        if stage_id in EXTRA.TRUE_STAGE_ID:
+            return True
+        return False
+
+    def check_stage_is_active(self: "FAA") -> bool:
+        """关卡是否保持激活"""
+
+        # 拆成数组["关卡类型","地图id","关卡id"]
+        stage_list = self.stage_info["id"].split("-")
+        stage_0 = stage_list[0]  # type
+
+        if stage_0 == "CZ":
+            # Chinese Zodiac 生肖关卡, 特殊关卡.
+            # 北京时间(注意时区) 周4567的 7点到7点半可以进入
+            # 先不做星期检测, 只做时间段检测, 节假日比较迷惑
+            beijing_tz = pytz.timezone('Asia/Shanghai')
+            now = datetime.now(beijing_tz)
+            return now.hour == 7 and 0 <= now.minute < 30
+
+        return True
+
     def screen_check_server_boom(self: "FAA") -> bool:
         """
         检测是不是炸服了
