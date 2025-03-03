@@ -22,7 +22,7 @@ def food_texts_to_battle_info(texts, self):
         "木盘子",
         "咖啡粉",
         "麦芽糖",
-        "冰淇淋",
+        "冰激凌",
         "幻幻鸡",
         "创造神",
         "魔法软糖"

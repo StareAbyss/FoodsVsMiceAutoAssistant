@@ -146,18 +146,26 @@ class FAABase:
     """"对flash游戏界面或自身参数的最基础 [检测]"""
 
     def check_level(self: "FAA") -> bool:
-        """检测角色等级和关卡等级(调用于输入关卡信息之后)"""
+        """
+        检测角色等级和关卡等级
+        调用于输入关卡信息之后
+        """
         if self.character_level < self.stage_info["level"]:
             return False
         else:
             return True
 
     def check_stage_id_is_true(self: "FAA") -> bool:
-        """检查关卡ID是否合法"""
-        stage_id = self.stage_info["id"]
-        if stage_id in EXTRA.TRUE_STAGE_ID:
-            return True
-        return False
+        """
+        检查关卡ID是否合法, id指的是 FAA内的模式标识. b_id为关卡的战斗用地图信息id.
+        模式标识: 用于上传到米苏物流等用途.
+        战斗标识: 默认复制自模式标识, 如果为自建房, 则来自用户的输入, 之后还会被关卡名称的OCR做二次修正.
+        """
+        if self.stage_info["id"] not in EXTRA.TRUE_STAGE_ID:
+            return False
+        if self.stage_info["b_id"] not in EXTRA.TRUE_STAGE_ID:
+            return False
+        return True
 
     def check_stage_is_active(self: "FAA") -> bool:
         """关卡是否保持激活"""
@@ -220,9 +228,12 @@ class FAABase:
             quest_card=None,
             ban_card_list=None,
             max_card_num=None,
-            battle_plan_uuid: str = "00000000-0000-0000-0000-000000000000") -> None:
+            battle_plan_uuid: str = "00000000-0000-0000-0000-000000000000",
+            is_cu: bool = False,
+    ) -> None:
         """
         战斗相关参数的re_init
+        :param is_cu: 是否为自建房, 此类战斗需要修改stage id 为 CU-0-0, 以防用户自建房随便输入StageID污染数据集!!!
         :param is_group: 是否组队
         :param is_main: 是否是主要账号(单人为True 双人房主为True)
         :param need_key: 是否使用钥匙
@@ -251,7 +262,10 @@ class FAABase:
         # 如果缺失, 外部的检测函数会拦下来不继续的
         self.battle_plan = g_resources.RESOURCE_B.get(battle_plan_uuid, None)
 
-        self.stage_info = read_json_to_stage_info(stage_id)
+        if not is_cu:
+            self.stage_info = read_json_to_stage_info(stage_id)
+        else:
+            self.stage_info = read_json_to_stage_info(stage_id="CU-0-0", stage_id_for_battle=stage_id)
 
     """战斗完整的过程中的任务函数"""
 

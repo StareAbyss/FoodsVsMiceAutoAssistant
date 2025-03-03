@@ -71,15 +71,15 @@ def get_true_stage_id():
     # 跨服
     stage_ids += generate_stage_ids("CS", [1, 6], [1, 8])
     # 魔塔
-    stage_ids += generate_stage_ids("MT", [1, 1], [1, 165])
-    stage_ids += generate_stage_ids("MT", [2, 2], [1, 100])
+    stage_ids += generate_stage_ids("MT", [1, 1], [0, 165])  # 0为爬塔模式
+    stage_ids += generate_stage_ids("MT", [2, 2], [0, 100])  # 0为爬塔模式
     stage_ids += generate_stage_ids("MT", [3, 3], [1, 4])
     # 宠物
-    stage_ids += generate_stage_ids("PT", [0, 0], [1, 25])
+    stage_ids += generate_stage_ids("PT", [0, 0], [0, 25])  # 0为爬塔模式
     # 悬赏
     stage_ids += generate_stage_ids("OR", [0, 0], [1, 4])
     # 假期
-    stage_ids += generate_stage_ids("HH", [0, 0], [0, 0])
+    stage_ids += ["HH-0-0"]
     # 生肖
     stage_ids += generate_stage_ids("CZ", [0, 0], [1, 4])
 

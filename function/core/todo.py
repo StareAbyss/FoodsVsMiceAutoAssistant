@@ -835,7 +835,7 @@ class ThreadTodo(QThread):
             if is_group:
                 result_id = max(result_id, self.thread_2p.get_return_value())
 
-        CUS_LOGGER.debug("检测是否成功进入房间 已完成")
+        CUS_LOGGER.info("[战斗主流程] 检测是否成功进入房间 已完成")
 
         """修改卡组"""
         if result_id == 0:
@@ -865,7 +865,7 @@ class ThreadTodo(QThread):
                 if is_group:
                     result_id = max(result_id, self.thread_2p.get_return_value())
 
-        CUS_LOGGER.debug("修改卡组 已完成")
+        CUS_LOGGER.info("[战斗主流程] 修改卡组 已完成")
 
         """不同时开始战斗, 并检测是否成功进入游戏"""
         if result_id == 0:
@@ -896,7 +896,7 @@ class ThreadTodo(QThread):
             if is_group:
                 result_id = max(result_id, self.thread_2p.get_return_value())
 
-        CUS_LOGGER.debug("开始战斗 已完成")
+        CUS_LOGGER.info("[战斗主流程] 开始战斗 已完成")
         # 记录准确开始时间 如果加载时间少于0.3s 会造成等额的误差!
         start_time = time.time()
 
@@ -930,7 +930,7 @@ class ThreadTodo(QThread):
             if is_group:
                 result_id = max(result_id, self.thread_2p.get_return_value())
 
-        CUS_LOGGER.debug("加速游戏 已完成")
+        CUS_LOGGER.info("[战斗主流程] 加速游戏 已完成")
 
         """多线程进行战斗 此处1p-ap 2p-bp 战斗部分没有返回值"""
 
@@ -956,7 +956,7 @@ class ThreadTodo(QThread):
                 self.thread_2p.join()
 
             if self.opt["senior_settings"]["auto_senior_settings"]:
-                if senior_setting:  #双重开关，当全局的启用了，对应的关卡也要启用
+                if senior_setting:  # 双重开关，当全局的启用了，对应的关卡也要启用
                     self.process, queue_todo = read_and_get_return_information(
                         self.faa_dict[player_a],
                         self.opt["senior_settings"]["senior_log_state"],
@@ -998,7 +998,7 @@ class ThreadTodo(QThread):
 
             result_spend_time = time.time() - start_time
 
-        CUS_LOGGER.debug("战斗循环 已完成")
+        CUS_LOGGER.info("[战斗主流程] 战斗循环 已完成")
 
         """多线程进行战利品和宝箱检查 此处1p-ap 2p-bp"""
 
@@ -1121,10 +1121,12 @@ class ThreadTodo(QThread):
                     text = f"{title} [有向无环图] [更新] 失败! 本次数据无法构筑 DAG，存在环. 可能是截图卡住了. 放弃记录和上传"
                     CUS_LOGGER.warning(text)
                     continue
-                else:
-                    CUS_LOGGER.info(f"{title} [有向无环图] [更新] 成功! 成功构筑 DAG.")
 
-                """至此所有校验通过!"""
+                CUS_LOGGER.info(f"{title} [有向无环图] [更新] 成功! 成功构筑 DAG.")
+
+                """
+                至此所有校验通过!
+                """
 
                 result_drop_by_dict[p_id] = {"loots": loots_dict, "chests": chests_dict}
 
@@ -1133,40 +1135,40 @@ class ThreadTodo(QThread):
                     faa=self.faa_dict[p_id],
                     loots_dict=loots_dict,
                     chests_dict=chests_dict)
-                CUS_LOGGER.info(f"{title} [保存日志] 成功保存一条详细数据!")
+                CUS_LOGGER.info(f"{title} [保存日志] [详细数据] 成功保存!")
 
                 # 保存汇总统计数据到json
                 detail_data = loots_and_chests_detail_to_json(
                     faa=self.faa_dict[p_id],
                     loots_dict=loots_dict,
                     chests_dict=chests_dict)
-                CUS_LOGGER.info(f"{title} [保存日志] 成功保存至统计数据!")
+                CUS_LOGGER.info(f"{title} [保存日志] [统计数据] 成功保存!")
+                CUS_LOGGER.debug(f"{title} [保存日志] [统计数据] 数据: {detail_data}")
 
                 # 发送到服务器
                 upload_result = loots_and_chests_data_post_to_sever(
                     detail_data=detail_data,
                     url=EXTRA.MISU_LOGISTICS)
                 if upload_result:
-                    CUS_LOGGER.info(f"{title} [发送服务器] 成功发送一条数据到米苏物流!")
+                    CUS_LOGGER.info(f"{title} [保存日志] [统计数据] 成功发送一条数据到米苏物流!")
                 else:
-                    CUS_LOGGER.warning(f"{title} [发送服务器] 超时! 可能是米苏物流服务器炸了...")
+                    CUS_LOGGER.warning(f"{title} [保存日志] [统计数据] 超时! 可能是米苏物流服务器炸了...")
 
             if not update_dag_success_at_least_once:
-                text = f"[战利品识别] [有向无环图] item_ranking_dag_graph.json 更新失败! 本次战斗未获得任何有效数据!"
-                CUS_LOGGER.warning(text)
+                CUS_LOGGER.warning(
+                    f"[战利品识别] [有向无环图] item_ranking_dag_graph.json 更新失败! 本次战斗未获得任何有效数据!")
             else:
-                # 如果成功更新了 item_dag_graph.json, 更新ranking
-                ranking_new = find_longest_path_from_dag()  # 成功返回更新后的 ranking 失败返回None
+                # 如果成功更新了 item_dag_graph.json, 更新ranking, 成功返回更新后的 ranking 失败返回None
+                ranking_new = find_longest_path_from_dag()
                 if ranking_new:
-                    text = (f"[战利品识别] [有向无环图] item_ranking_dag_graph.json 已更新,"
-                            f" 结果:{ranking_new}")
-                    CUS_LOGGER.info(text)
+                    CUS_LOGGER.debug(
+                        f"[战利品识别] [有向无环图] item_ranking_dag_graph.json 已成功更新")
                 else:
-                    text = (f"[战利品识别] [有向无环图] item_ranking_dag_graph.json 更新失败,"
-                            f" 文件被删除 或 因程序错误成环! 请联系开发者!")
-                    CUS_LOGGER.error(text)
+                    CUS_LOGGER.error(
+                        f"[战利品识别] [有向无环图] item_ranking_dag_graph.json 更新失败, "
+                        f" 文件被删除 或 因程序错误成环! 请联系开发者!")
 
-        CUS_LOGGER.debug("多线程进行战利品和宝箱检查 已完成")
+        CUS_LOGGER.info("[战斗主流程] 多线程进行战利品和宝箱检查 已完成")
 
         """分开进行战后检查"""
         if result_id == 0:
@@ -1174,7 +1176,7 @@ class ThreadTodo(QThread):
             if is_group:
                 result_id = self.faa_dict[player_b].battle_a_round_warp_up()
 
-        CUS_LOGGER.debug("战后检查完成 battle 函数执行结束")
+        CUS_LOGGER.info("[战斗主流程] 战后检查完成 battle 函数执行结束")
 
         return result_id, result_drop_by_dict, result_spend_time
 
@@ -1205,10 +1207,20 @@ class ThreadTodo(QThread):
         # 判断是不是组队
         is_group = len(player) > 1
 
-        # 如果是多人跨服 防呆重写 2,1 为 1,2
+        # 如果是多人跨服 防呆重写 变回 1房主
         if is_cs and is_group:
             player = [1, 2]
 
+        # 处理多人信息 (这些信息只影响函数内, 所以不判断是否组队)
+        pid_a = player[0]  # 房主 创建房间者
+        pid_b = (1 if pid_a == 2 else 2) if is_group else None
+
+        # 默认肯定是不跳过的
+        skip = False
+        # 限制即使勾选了设置中的启用高级战斗，也需要在全局战斗设置中修改对应关卡
+        senior_setting = False
+
+        # 是否采用 全局方案配置
         def get_stage_plan_by_id():
             """
             获取stage_plan
@@ -1236,16 +1248,6 @@ class ThreadTodo(QThread):
                         "00000000-0000-0000-0000-000000000001"]}
             return plan
 
-        # 处理多人信息 (这些信息只影响函数内, 所以不判断是否组队)
-        pid_a = player[0]  # 房主 创建房间者
-        pid_b = (1 if pid_a == 2 else 2) if is_group else None
-
-        # 默认肯定是不跳过的
-        skip = False
-        #限制即使勾选了设置中的启用高级战斗，也需要在全局战斗设置中修改对应关卡
-        senior_setting = False
-
-        # 是否采用 全局方案配置
         if global_plan_active:
             stage_plan_by_id = get_stage_plan_by_id()
             skip = stage_plan_by_id["skip"]
@@ -1263,7 +1265,7 @@ class ThreadTodo(QThread):
         battle_plan_a = battle_plan_1p if pid_a == 1 else battle_plan_2p
         battle_plan_b = (battle_plan_1p if pid_b == 1 else battle_plan_2p) if is_group else None
 
-        def check_skip(faa_a, faa_b, skip, max_times, battle_plan_1p, battle_plan_2p):
+        def check_skip():
             """
             检查各种条件 例如
             人物等级 / 次数 / 时间条件 是否充足
@@ -1278,21 +1280,11 @@ class ThreadTodo(QThread):
                 SIGNAL.PRINT_TO_UI.emit(text=f"{title} [{pid_a}P] 关卡名称错误, 跳过")
                 return False
 
-            if is_group:
-                if not faa_b.check_stage_id_is_true():
-                    SIGNAL.PRINT_TO_UI.emit(text=f"{title} [{pid_b}P] 关卡名称错误, 跳过")
-                    return False
-
             # 关卡激活校验
 
             if not faa_a.check_stage_is_active():
                 SIGNAL.PRINT_TO_UI.emit(text=f"{title} [{pid_a}P] 关卡未激活, 跳过")
                 return False
-
-            if is_group:
-                if not faa_b.check_stage_is_active():
-                    SIGNAL.PRINT_TO_UI.emit(text=f"{title} [{pid_b}P] 关卡未激活, 跳过")
-                    return False
 
             # 关卡等级校验
 
@@ -1324,7 +1316,49 @@ class ThreadTodo(QThread):
 
             return True
 
+        def goto_stage(need_goto_stage, need_change_card):
+            # 初始
+            result_id = 0
+
+            if not is_cu:
+                # 非自建房
+                if not is_mt:
+                    # 非魔塔
+                    if need_goto_stage:
+                        if not is_group:
+                            # 单人前往副本
+                            faa_a.action_goto_stage()
+                        else:
+                            # 多人前往副本
+                            result_id = self.goto_stage_and_invite(
+                                stage_id=stage_id,
+                                mt_first_time=False,
+                                player_a=pid_a,
+                                player_b=pid_b
+                            )
+                else:
+                    # 魔塔
+                    if not is_group:
+                        # 单人前往副本
+                        faa_a.action_goto_stage(
+                            mt_first_time=need_goto_stage)  # 第一次使用 mt_first_time, 之后则不用
+                    else:
+                        # 多人前往副本
+                        result_id = self.goto_stage_and_invite(
+                            stage_id=stage_id,
+                            mt_first_time=need_goto_stage,
+                            player_a=pid_a,
+                            player_b=pid_b
+                        )
+
+                    need_change_card = True  # 魔塔显然需要重新选卡组
+
+                need_goto_stage = False  # 进入后Flag变化
+
+                return result_id, need_change_card, need_goto_stage
+
         def multi_round_battle():
+
             # 标记是否需要进入副本
             need_goto_stage = True
             need_change_card = True
@@ -1335,43 +1369,8 @@ class ThreadTodo(QThread):
             # 轮次作战
             while battle_count < max_times:
 
-                # 初始
-                result_id = 0
-
-                if not is_cu:
-                    # 非自建房
-                    if not is_mt:
-                        # 非魔塔
-                        if need_goto_stage:
-                            if not is_group:
-                                # 单人前往副本
-                                faa_a.action_goto_stage()
-                            else:
-                                # 多人前往副本
-                                result_id = self.goto_stage_and_invite(
-                                    stage_id=stage_id,
-                                    mt_first_time=False,
-                                    player_a=pid_a,
-                                    player_b=pid_b
-                                )
-                    else:
-                        # 魔塔
-                        if not is_group:
-                            # 单人前往副本
-                            faa_a.action_goto_stage(
-                                mt_first_time=need_goto_stage)  # 第一次使用 mt_first_time, 之后则不用
-                        else:
-                            # 多人前往副本
-                            result_id = self.goto_stage_and_invite(
-                                stage_id=stage_id,
-                                mt_first_time=need_goto_stage,
-                                player_a=pid_a,
-                                player_b=pid_b
-                            )
-
-                        need_change_card = True  # 魔塔显然需要重新选卡组
-
-                    need_goto_stage = False  # 进入后Flag变化
+                result_id, need_change_card, need_goto_stage = goto_stage(
+                    need_goto_stage=need_goto_stage, need_change_card=need_change_card)
 
                 if result_id == 2:
                     # 跳过本次 计数+1
@@ -1389,8 +1388,8 @@ class ThreadTodo(QThread):
                 result_id, result_drop, result_spend_time = self.battle(
                     player_a=pid_a,
                     player_b=pid_b,
-                    change_card=need_change_card
-                    , senior_setting=senior_setting)
+                    change_card=need_change_card,
+                    senior_setting=senior_setting)
 
                 if result_id == 0:
 
@@ -1531,7 +1530,7 @@ class ThreadTodo(QThread):
             结束后进行 本次 多本轮战的 战利品 统计和输出, 由于其统计为本次多本轮战, 故不能改变其位置
             """
 
-            CUS_LOGGER.debug("result_list:")
+            CUS_LOGGER.debug("战斗数据, 最终统计: ")
             CUS_LOGGER.debug(str(result_list))
 
             valid_total_count = len(result_list)
@@ -1568,6 +1567,7 @@ class ThreadTodo(QThread):
                 self.output_player_loot(player_id=2, result_list=result_list)
 
         def main():
+
             SIGNAL.PRINT_TO_UI.emit(text=f"{title}{stage_id} {max_times}次 开始", color_level=5)
 
             opt_ad = self.opt["advanced_settings"]
@@ -1584,7 +1584,9 @@ class ThreadTodo(QThread):
                 ban_card_list=ban_card_list,
                 max_card_num=max_card_num,
                 battle_plan_uuid=battle_plan_a,
-                stage_id=stage_id)
+                stage_id=stage_id,
+                is_cu=is_cu)
+
             if is_group:
                 faa_b.set_config_for_battle(
                     is_main=False,
@@ -1596,16 +1598,11 @@ class ThreadTodo(QThread):
                     ban_card_list=ban_card_list,
                     max_card_num=max_card_num,
                     battle_plan_uuid=battle_plan_b,
-                    stage_id=stage_id)
+                    stage_id=stage_id,
+                    is_cu=is_cu)
 
             # 基本参数检测
-            check_result = check_skip(
-                faa_a=faa_a,
-                faa_b=faa_b,
-                skip=skip,
-                max_times=max_times,
-                battle_plan_1p=battle_plan_1p,
-                battle_plan_2p=battle_plan_2p)
+            check_result = check_skip()
             if not check_result:
                 return False
 
@@ -1617,7 +1614,9 @@ class ThreadTodo(QThread):
 
             SIGNAL.PRINT_TO_UI.emit(text=f"{title}{stage_id} {max_times}次 完成 ", color_level=5)
 
-        main()
+            return True
+
+        return main()
 
     def output_player_loot(self, player_id, result_list):
         """
@@ -1713,70 +1712,57 @@ class ThreadTodo(QThread):
 
             quest = quest_list[i]
 
-            # 判断显著错误的关卡名称
-            true_stage_first_id = ["NO", "EX", "MT", "CS", "OR", "PT", "GD", "HH", "WA", "CZ"]
-            if quest["stage_id"].split("-")[0] not in true_stage_first_id:
-                SIGNAL.PRINT_TO_UI.emit(
-                    text="{}事项{},{},错误的关卡名称!跳过".format(
-                        title,
-                        quest["battle_id"] if "battle_id" in quest else (i + 1),
-                        quest["stage_id"]),
-                    color_level=1
-                )
-                continue
+            # 处理允许缺失的值
+            quest_card = quest.get("quest_card", None)
+            ban_card_list = quest.get("ban_card_list", None)
+            max_card_num = quest.get("max_card_num", None)
+            is_cu = quest.get("is_cu", False)
 
-            else:
-                # 处理允许缺失的值
-                quest_card = quest.get("quest_card", None)
-                ban_card_list = quest.get("ban_card_list", None)
-                max_card_num = quest.get("max_card_num", None)
-                is_cu = quest.get("is_cu", False)
+            text_parts = [
+                "{}事项{}".format(
+                    title,
+                    quest["battle_id"] if "battle_id" in quest else (i + 1)),
+                "开始",
+                "组队" if len(quest["player"]) == 2 else "单人",
+                f"{quest["stage_id"]}",
+                f"{quest["max_times"]}次",
+            ]
+            if quest_card:
+                text_parts.append("带卡:{}".format(quest_card))
+            if ban_card_list:
+                text_parts.append("禁卡:{}".format(ban_card_list))
+            if max_card_num:
+                text_parts.append("限数:{}".format(max_card_num))
+            if is_cu:
+                text_parts.append("自建房:{}".format(is_cu))
 
-                text_parts = [
-                    "{}事项{}".format(
-                        title,
-                        quest["battle_id"] if "battle_id" in quest else (i + 1)),
-                    "开始",
-                    "组队" if len(quest["player"]) == 2 else "单人",
-                    f"{quest["stage_id"]}",
-                    f"{quest["max_times"]}次",
-                ]
-                if quest_card:
-                    text_parts.append("带卡:{}".format(quest_card))
-                if ban_card_list:
-                    text_parts.append("禁卡:{}".format(ban_card_list))
-                if max_card_num:
-                    text_parts.append("限数:{}".format(max_card_num))
-                if is_cu:
-                    text_parts.append("自建房:{}".format(is_cu))
+            SIGNAL.PRINT_TO_UI.emit(text=",".join(text_parts), color_level=4)
 
-                SIGNAL.PRINT_TO_UI.emit(text=",".join(text_parts), color_level=4)
+            self.battle_1_1_n(
+                stage_id=quest["stage_id"],
+                player=quest["player"],
+                need_key=quest["need_key"],
+                max_times=quest["max_times"],
+                dict_exit=quest["dict_exit"],
+                global_plan_active=quest["global_plan_active"],
+                deck=quest["deck"],
+                battle_plan_1p=quest["battle_plan_1p"],
+                battle_plan_2p=quest["battle_plan_2p"],
+                quest_card=quest_card,
+                ban_card_list=ban_card_list,
+                max_card_num=max_card_num,
+                title_text=extra_title,
+                is_cu=quest.get("is_cu", False),
+                need_lock=need_lock
+            )
 
-                self.battle_1_1_n(
-                    stage_id=quest["stage_id"],
-                    player=quest["player"],
-                    need_key=quest["need_key"],
-                    max_times=quest["max_times"],
-                    dict_exit=quest["dict_exit"],
-                    global_plan_active=quest["global_plan_active"],
-                    deck=quest["deck"],
-                    battle_plan_1p=quest["battle_plan_1p"],
-                    battle_plan_2p=quest["battle_plan_2p"],
-                    quest_card=quest_card,
-                    ban_card_list=ban_card_list,
-                    max_card_num=max_card_num,
-                    title_text=extra_title,
-                    is_cu=quest.get("is_cu", False),
-                    need_lock=need_lock
-                )
-
-                SIGNAL.PRINT_TO_UI.emit(
-                    text="{}事项{}, 完成".format(
-                        title,
-                        quest["battle_id"] if "battle_id" in quest else (i + 1)
-                    ),
-                    color_level=4
-                )
+            SIGNAL.PRINT_TO_UI.emit(
+                text="{}事项{}, 完成".format(
+                    title,
+                    quest["battle_id"] if "battle_id" in quest else (i + 1)
+                ),
+                color_level=4
+            )
 
         SIGNAL.PRINT_TO_UI.emit(text=f"{title}完成", color_level=3)
 

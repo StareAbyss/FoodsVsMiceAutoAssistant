@@ -32,6 +32,7 @@ def read_json_to_stage_info(stage_id, stage_id_for_battle=None):
         stage_id_for_battle = stage_id
     stage_info = stages_info["default"]
     stage_info["id"] = stage_id
+    stage_info["b_id"] = stage_id_for_battle
 
     # 拆分关卡名称
     stage_0, stage_1, stage_2 = stage_id_for_battle.split("-")  # type map stage

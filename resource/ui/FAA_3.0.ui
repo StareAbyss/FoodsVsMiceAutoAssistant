@@ -5093,6 +5093,12 @@ Link Start</string>
                  <property name="tabletTracking">
                   <bool>false</bool>
                  </property>
+                 <property name="toolTip">
+                  <string>此处的关卡, 用于:
+1. 提供关卡承载卡和障碍物等关卡信息. 
+2. 若开启全局/关卡方案, 据此获取关卡战斗方案.
+如不需要此服务, 可填写NO-1-7之类的可用关卡代号.</string>
+                 </property>
                  <property name="autoFillBackground">
                   <bool>false</bool>
                  </property>
@@ -6584,8 +6590,9 @@ Link Start</string>
                   </size>
                  </property>
                  <property name="toolTip">
-                  <string>该功能仅能单独启用!
-不可与其他功能配合!</string>
+                  <string>* 该功能仅能单独启用!不可与其他功能配合!
+* 该功能仅用于带其他人刷关.通常的战斗, 均应该使用常规单本连战. 
+* 该模式下, !!!不含任何防卡死!!! 机制!</string>
                  </property>
                  <property name="text">
                   <string>自建房对战</string>
@@ -9289,7 +9296,7 @@ Link Start</string>
                 <property name="geometry">
                  <rect>
                   <x>2</x>
-                  <y>-1660</y>
+                  <y>0</y>
                   <width>560</width>
                   <height>2300</height>
                  </rect>
