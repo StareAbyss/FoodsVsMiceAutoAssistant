@@ -2,8 +2,6 @@ import datetime
 import time
 from typing import TYPE_CHECKING
 
-import pytz
-
 from function.common.bg_img_match import loop_match_p_in_w
 from function.globals import SIGNAL
 from function.globals.g_resources import RESOURCE_P
@@ -74,15 +72,6 @@ class FAAActionReceiveQuestRewards:
         self.action_exit(mode="普通红叉")
 
     def action_receive_quest_rewards_guild(self: "FAA"):
-
-        # 判定时间, 如果是北京时间周四的0到12点, 直接return
-        # 获取北京时间
-        beijing_tz = pytz.timezone('Asia/Shanghai')
-        now = datetime.datetime.now(beijing_tz)
-
-        if now.weekday() == 3 and 0 <= now.hour < 12:
-            print_info("[公会任务] 周四0-12点, 跳过领取.")
-            return
 
         # 跳转到任务界面
         self.action_bottom_menu(mode="跳转_公会任务")

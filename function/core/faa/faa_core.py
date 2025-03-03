@@ -2030,8 +2030,14 @@ class FAABase:
 
         def fed_and_watered_main():
 
+            # 判定时间, 如果是北京时间周四的0到12点, 直接return
+            beijing_tz = pytz.timezone('Asia/Shanghai')
+            now = datetime.now(beijing_tz)
+            if now.weekday() == 3 and 0 <= now.hour < 12:
+                SIGNAL.PRINT_TO_UI.emit("[浇水 施肥 摘果 领取] 周四0-12点, 跳过本流程, 以防领取到上一期道具.")
+                return
+
             SIGNAL.PRINT_TO_UI.emit(f"[浇水 施肥 摘果 领取] [{self.player}p] 开始执行...")
-            self.print_debug(text="开始公会浇水施肥")
 
             for reload_time in range(1, 4):
 
