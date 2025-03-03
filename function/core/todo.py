@@ -1263,13 +1263,38 @@ class ThreadTodo(QThread):
         battle_plan_a = battle_plan_1p if pid_a == 1 else battle_plan_2p
         battle_plan_b = (battle_plan_1p if pid_b == 1 else battle_plan_2p) if is_group else None
 
-        def check_skip():
+        def check_skip(faa_a, faa_b, skip, max_times, battle_plan_1p, battle_plan_2p):
             """
-            检查人物等级和次数是否充足
+            检查各种条件 例如
+            人物等级 / 次数 / 时间条件 是否充足
             """
             if skip:
                 SIGNAL.PRINT_TO_UI.emit(text=f"{title} 根据全局关卡设置, 跳过")
                 return False
+
+            # 关卡名称正确性校验
+
+            if not faa_a.check_stage_id_is_true():
+                SIGNAL.PRINT_TO_UI.emit(text=f"{title} [{pid_a}P] 关卡名称错误, 跳过")
+                return False
+
+            if is_group:
+                if not faa_b.check_stage_id_is_true():
+                    SIGNAL.PRINT_TO_UI.emit(text=f"{title} [{pid_b}P] 关卡名称错误, 跳过")
+                    return False
+
+            # 关卡激活校验
+
+            if not faa_a.check_stage_is_active():
+                SIGNAL.PRINT_TO_UI.emit(text=f"{title} [{pid_a}P] 关卡未激活, 跳过")
+                return False
+
+            if is_group:
+                if not faa_b.check_stage_is_active():
+                    SIGNAL.PRINT_TO_UI.emit(text=f"{title} [{pid_b}P] 关卡未激活, 跳过")
+                    return False
+
+            # 关卡等级校验
 
             if not faa_a.check_level():
                 SIGNAL.PRINT_TO_UI.emit(text=f"{title} [{pid_a}P] 等级不足, 跳过")
@@ -1279,6 +1304,8 @@ class ThreadTodo(QThread):
                 if not faa_b.check_level():
                     SIGNAL.PRINT_TO_UI.emit(text=f"{title} [{pid_b}P] 等级不足, 跳过")
                     return False
+
+            # FAA内关卡的设置参数完整性校验
 
             if max_times < 1:
                 SIGNAL.PRINT_TO_UI.emit(text=f"{title} {stage_id} 设置次数不足, 跳过")
@@ -1571,7 +1598,15 @@ class ThreadTodo(QThread):
                     battle_plan_uuid=battle_plan_b,
                     stage_id=stage_id)
 
-            if not check_skip():
+            # 基本参数检测
+            check_result = check_skip(
+                faa_a=faa_a,
+                faa_b=faa_b,
+                skip=skip,
+                max_times=max_times,
+                battle_plan_1p=battle_plan_1p,
+                battle_plan_2p=battle_plan_2p)
+            if not check_result:
                 return False
 
             # 进行 1本n次 返回 成功的每次战斗结果组成的list
