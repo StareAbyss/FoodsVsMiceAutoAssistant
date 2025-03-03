@@ -670,7 +670,7 @@ class BattlePreparation:
             can_failed_list += [False]
 
         # 添加冰沙 复制类
-        sorted_list += ["冰淇淋-2", "创造神", "幻幻鸡"]
+        sorted_list += ["冰激凌-2", "创造神", "幻幻鸡"]
         can_failed_list += [True, True, True]
 
         # 如果有效承载数量 >= 2

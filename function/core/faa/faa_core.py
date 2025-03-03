@@ -273,7 +273,7 @@ class FAABase:
 
         smoothie_resource_list = [
             f"{card}-{i}.png"
-            for card in ["冰淇淋"]
+            for card in ["冰激凌"]
             for i in range(6)
             if f"{card}-{i}.png" in RESOURCE_P["card"]["战斗"]
         ]
