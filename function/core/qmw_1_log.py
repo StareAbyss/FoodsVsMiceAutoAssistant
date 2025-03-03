@@ -159,7 +159,7 @@ class QMainWindowLog(QMainWindowLoadUI):
             color_level=1,
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            "<a href='https://stareabyss.top/FAA-WebSite'>点 &hearts; 我 &hearts; 看 &hearts; 在 &hearts; 线 &hearts; 文 &hearts; 档</a>",
+            "<a href='https://stareabyss.top/FAA-WebSite'>点 &hearts; 我 &hearts; 看 &hearts; 在 &hearts; 线 &hearts; 文 &hearts; 档 &hearts; 和 &hearts; 视 &hearts; 频 &hearts; 教 &hearts; 学</a>",
             color_level=2,
             time=False)
         SIGNAL.PRINT_TO_UI.emit(

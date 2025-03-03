@@ -265,13 +265,9 @@ class FAAActionInterfaceJump:
 
         handle = self.handle
         handle_360 = self.handle_360
-        print_error = self.print_error
-        stage_info = self.stage_info
-        random_seed = self.random_seed
-        is_main = self.is_main
 
         # 拆成数组["关卡类型","地图id","关卡id"]
-        stage_list = stage_info["id"].split("-")
+        stage_list = self.stage_info["id"].split("-")
         stage_0 = stage_list[0]  # type
         stage_1 = stage_list[1]  # map
         stage_2 = stage_list[2]  # stage
@@ -288,7 +284,7 @@ class FAAActionInterfaceJump:
             time.sleep(1)
 
         def change_to_region(region_list):
-            random.seed(random_seed)
+            random.seed(self.random_seed)
             region_id = random.randint(region_list[0], region_list[1])
 
             time.sleep(5.0)
@@ -310,7 +306,7 @@ class FAAActionInterfaceJump:
             change_to_region(region_list=my_dict[stage_1])
 
             # 仅限主角色创建关卡
-            if is_main:
+            if self.is_main:
                 # 防止被活动列表遮住
                 self.action_change_activity_list(serial_num=2)
 
@@ -319,7 +315,7 @@ class FAAActionInterfaceJump:
                     source_handle=handle,
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
-                    template=RESOURCE_P["stage"]["{}.png".format(stage_info["id"])],
+                    template=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
                     match_tolerance=0.995,
                     after_sleep=1,
                     click=True)
@@ -345,7 +341,7 @@ class FAAActionInterfaceJump:
                 # 选区
                 change_to_region(region_list=[1, 2])
 
-            if is_main and mt_first_time:
+            if self.is_main and mt_first_time:
                 # 进入魔塔
                 loop_match_p_in_w(
                     source_handle=handle,
@@ -363,7 +359,7 @@ class FAAActionInterfaceJump:
                 time.sleep(0.5)
 
             # 不是房主, 不进行关卡选择和创建房间
-            if not is_main:
+            if not self.is_main:
                 return
 
             # 选择了密室 直接识图找关卡
@@ -372,7 +368,7 @@ class FAAActionInterfaceJump:
                     source_handle=handle,
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
-                    template=RESOURCE_P["stage"]["{}.png".format(stage_info["id"])],
+                    template=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
                     after_sleep=0.3,
                     click=True)
 
@@ -424,7 +420,7 @@ class FAAActionInterfaceJump:
             # 进入跨服远征界面
             self.action_top_menu(mode="跨服远征")
 
-            if is_main:
+            if self.is_main:
                 # 创建房间
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=853, y=553)
                 time.sleep(1.0)
@@ -510,7 +506,7 @@ class FAAActionInterfaceJump:
                 source_handle=handle,
                 source_root_handle=handle_360,
                 source_range=[0, 0, 950, 600],
-                template=RESOURCE_P["stage"]["{}.png".format(stage_info["id"])],
+                template=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
                 match_tolerance=0.95,
                 after_sleep=3,
                 click=True)
@@ -520,7 +516,7 @@ class FAAActionInterfaceJump:
             change_to_region(region_list=my_dict[stage_2])
 
             # 仅限创房间的人
-            if is_main:
+            if self.is_main:
                 # 设置密码
                 click_set_password()
                 # 创建队伍
@@ -565,13 +561,13 @@ class FAAActionInterfaceJump:
             change_to_region(region_list=[1, 2])
 
             # 仅限主角色创建关卡
-            if is_main:
+            if self.is_main:
                 # 选择关卡
                 loop_match_p_in_w(
                     source_handle=handle,
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
-                    template=RESOURCE_P["stage"]["{}.png".format(stage_info["id"])],
+                    template=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
                     after_sleep=0.5,
                     click=True)
 
@@ -593,7 +589,7 @@ class FAAActionInterfaceJump:
             self.action_goto_map(map_id=5)
 
             # 仅限主角色创建关卡
-            if is_main:
+            if self.is_main:
 
                 # 点击进入萌宠神殿
                 self.action_top_menu(mode="萌宠神殿")
@@ -641,7 +637,7 @@ class FAAActionInterfaceJump:
             change_to_region(region_list=[3, 11])
 
             # 仅限主角色创建关卡
-            if is_main:
+            if self.is_main:
                 # 创建队伍
                 loop_match_p_in_w(
                     source_handle=handle,
@@ -680,7 +676,7 @@ class FAAActionInterfaceJump:
             change_to_region(region_list=[1, 11])
 
             # 仅限主角色创建关卡
-            if is_main:
+            if self.is_main:
                 # 进入欢乐假期页面
                 self.action_top_menu(mode="欢乐假期")
 
@@ -699,7 +695,7 @@ class FAAActionInterfaceJump:
             change_to_region(region_list=[1, 2])
 
             # 仅限主角色创建关卡
-            if is_main:
+            if self.is_main:
 
                 # 选择勇士关卡列表
                 loop_match_p_in_w(
@@ -752,9 +748,6 @@ class FAAActionInterfaceJump:
                     click=True)
 
         def main_cz():
-            # Chinese Zodiac 生肖关卡, 特殊关卡.
-            # 北京时间(注意时区) 周467的 7点到7点半可以进入
-            # 先不做时间检测, 节假日比较迷惑
 
             # 进入对应地图
             my_dict = {"1": "1", "2": "2", "3": "4", "4": "6"}
@@ -765,7 +758,7 @@ class FAAActionInterfaceJump:
             change_to_region(region_list=my_dict[stage_2])
 
             # 仅限主角色创建关卡
-            if is_main:
+            if self.is_main:
                 # 防止被活动列表遮住
                 self.action_change_activity_list(serial_num=2)
 
@@ -794,8 +787,7 @@ class FAAActionInterfaceJump:
                     after_sleep=1,
                     click=True)
 
-        try:
-
+        def main():
             if stage_0 == "NO":
                 main_no()
             elif stage_0 == "MT":
@@ -817,10 +809,8 @@ class FAAActionInterfaceJump:
             elif stage_0 == "CZ":
                 main_cz()
             else:
-                print_error(text="请输入正确的关卡名称！")
+                SIGNAL.PRINT_TO_UI.emit(text="跳转关卡失败，请检查关卡代号是否正确", color_level=1)
+                SIGNAL.DIALOG.emit("ERROR", "跳转关卡失败! 请检查关卡代号是否正确")
+                SIGNAL.END.emit()
 
-        except KeyError:
-
-            SIGNAL.PRINT_TO_UI.emit(text="跳转关卡失败，请检查关卡代号是否正确", color_level=1)
-            SIGNAL.DIALOG.emit("ERROR", "跳转关卡失败! 请检查关卡代号是否正确")
-            SIGNAL.END.emit()
+        return main()
