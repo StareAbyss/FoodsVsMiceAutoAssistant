@@ -1,6 +1,7 @@
-from PyQt6.QtWidgets import QPushButton, QMenu
-from PyQt6.QtCore import pyqtSignal
 from functools import partial
+
+from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtWidgets import QPushButton, QMenu
 
 
 class MultiLevelMenu(QPushButton):
@@ -35,4 +36,3 @@ class MultiLevelMenu(QPushButton):
         self.setText(text)
         self.menu.close()
         self.on_selected.emit(text, data)
-        print(text, data)
