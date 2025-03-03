@@ -377,6 +377,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 self.chessboard_layout = QGridLayout()
                 self.LayoutMainBottom.addLayout(self.chessboard_layout)
 
+                # 设置行列间距
+                self.chessboard_layout.setSpacing(1)
+
                 # 生成棋盘布局中的元素
                 self.chessboard_buttons = []
                 self.chessboard_frames = []  # 用于存储QFrame的列表
@@ -386,7 +389,6 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     row_frames = []
 
                     for j in range(9):
-
                         # 创建QFrame作为高亮效果的载体
                         frame = QFrame(self)
 
@@ -396,16 +398,16 @@ class QMWEditorOfBattlePlan(QMainWindow):
                         frame.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)  # 防止遮挡按钮
 
                         # 尽可能让宽和高占满剩余空间
-                        frame.setFixedSize(82, 82)
+                        frame.setFixedSize(85, 85)
 
                         row_frames.append(frame)
-                    
+
                         # 创建按钮部分
                         btn = ChessButton('')
 
                         btn.clicked.connect(lambda checked, x=i, y=j: self.left_click_card_pos(y, x))
                         btn.rightClicked.connect(lambda x=i, y=j: self.right_click_card_pos(y, x))
-                        self.chessboard_layout.addWidget(btn, i, j, alignment= Qt.AlignmentFlag.AlignCenter)
+                        self.chessboard_layout.addWidget(btn, i, j, alignment=Qt.AlignmentFlag.AlignCenter)
                         btn.setToolTip(f"当前位置: {j + 1}-{i + 1}")
                         row_buttons.append(btn)
 
@@ -1339,6 +1341,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
             current_card_locations = []
 
+
             if self.be_edited_player:
                 current_card_locations = self.battle_plan.meta_data.player_position
             else:
@@ -1351,7 +1354,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 x, y = map(int, location.split('-'))
                 selected_cells.add((x, y))
                 # 如果是选中的卡片 蓝色
-                self.chessboard_frames[y - 1][x - 1].setStyleSheet("background-color: rgba(30, 144, 255, 100);")
+                self.chessboard_frames[y - 1][x - 1].setStyleSheet("background-color: rgba(30, 144, 255, 150);")
 
         if self.editing_mode == 2:
 
@@ -1365,7 +1368,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     x, y = map(int, location.split('-'))
                     selected_cells.add((x, y))
                     # 如果是选中的卡片 蓝色
-                    self.chessboard_frames[y - 1][x - 1].setStyleSheet("background-color: rgba(30, 144, 255, 100);")
+                    self.chessboard_frames[y - 1][x - 1].setStyleSheet("background-color: rgba(30, 144, 255, 150);")
 
         # 还没有选中任何关卡 直接返回
         if self.stage_info:
@@ -1376,11 +1379,11 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     if (x, y) in selected_cells:
                         # 如果是被选中的格子，设置为紫色 警告
                         self.chessboard_frames[y - 1][x - 1].setStyleSheet(
-                            "background-color: rgba(145, 44, 238, 100);")
+                            "background-color: rgba(145, 44, 238, 150);")
                     else:
                         # 否则设置为红色 代表障碍位置
                         self.chessboard_frames[y - 1][x - 1].setStyleSheet(
-                            "background-color: rgba(255, 0, 0, 100);")
+                            "background-color: rgba(255, 0, 0, 150);")
 
     """储存战斗方案"""
 
@@ -1676,7 +1679,6 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
             # 如果没有任何现有波次，则使用默认方案
             if wave not in existing_wave_ids:
-
                 smaller_waves = [w for w in existing_wave_ids if w < wave]
                 max_smaller_wave = max(smaller_waves)
 
