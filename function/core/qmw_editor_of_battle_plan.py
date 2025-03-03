@@ -1767,8 +1767,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
     """更改当前关卡"""
 
-    def stage_changed(self, stage_id: str):
+    def stage_changed(self, stage_name: str, stage_id: str):
         """
+        :param stage_name: 关卡名称
         :param stage_id：XX-X-X
         根据stage_info，使某些格子显示成障碍物或更多内容
         """
