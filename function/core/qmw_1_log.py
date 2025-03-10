@@ -278,12 +278,45 @@ class QMainWindowLog(QMainWindowLoadUI):
     # 用于展示弹窗信息的方法
     @QtCore.pyqtSlot(str, str)
     def show_dialog(self, title, message):
-        msg = QtWidgets.QMessageBox()
-        msg.setIcon(QtWidgets.QMessageBox.Icon.Warning)
-        msg.setWindowTitle(title)
-        msg.setText(message)
-        msg.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
-        msg.exec()
+        # 创建/获取对话框实例
+        if not hasattr(self, 'log_dialog') or not self.log_dialog:
+            self.log_dialog = QtWidgets.QDialog()
+            self.log_dialog.setWindowTitle("用户级报错日志")
+            self.log_dialog.resize(800, 400)
+
+            # 创建带滚动条的文本框
+            self.text_browser = QtWidgets.QTextBrowser(self.log_dialog)
+            layout = QtWidgets.QVBoxLayout(self.log_dialog)
+            layout.addWidget(self.text_browser)
+
+            # 添加关闭按钮
+            btn_close = QtWidgets.QPushButton("关闭", self.log_dialog)
+            btn_close.clicked.connect(self.cleanup_dialog)  # 修改连接方法
+
+            layout.addWidget(btn_close)
+
+            # 绑定关闭事件
+            self.log_dialog.finished.connect(self.cleanup_dialog)
+
+        # 格式化日志内容
+        log_content = f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {title}: {message}"
+
+        # 追加内容并自动滚动
+        self.text_browser.append(log_content)
+        self.text_browser.verticalScrollBar().setValue(
+            self.text_browser.verticalScrollBar().maximum()
+        )
+
+        # 显示对话框
+        if not self.log_dialog.isVisible():
+            self.log_dialog.show()
+
+    def cleanup_dialog(self):
+        """清理对话框资源"""
+        if self.log_dialog:
+            self.text_browser.clear()  # 清空内容
+            self.log_dialog.deleteLater()
+            self.log_dialog = None
 
     def print_to_ui(self, text, color, time, *args):
         """打印文本到输出框 """
