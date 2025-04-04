@@ -2890,6 +2890,9 @@ class ThreadTodo(QThread):
                 color_level=1)
             SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
 
+        """完成FAA的任务列表后，开始执行插件脚本"""
+                
+        
         """全部完成"""
 
         if main_task_active or extra_active:

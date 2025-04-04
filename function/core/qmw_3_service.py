@@ -7,7 +7,7 @@ import webbrowser
 import win32con
 import win32gui
 from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtWidgets import QMessageBox, QFileDialog
+from PyQt6.QtWidgets import QMessageBox, QFileDialog, QTableWidgetItem
 
 from function.common.process_and_window_manager import get_path_and_sub_titles
 from function.common.startup import *
@@ -213,6 +213,33 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         self.SavePasswordButton.clicked.connect(self.save_password_button_on_clicked)
         self.ChoosePathButton.clicked.connect(self.choose_path_button_on_clicked)
+        
+        """插件脚本执行模块"""
+        # 关键：监听单元格变化，实现自动追加行
+        self.tableWidget_extension.cellChanged.connect(self.on_cell_changed)
+
+    def on_cell_changed(self, row, column):
+        # 防重复触发标志
+        if hasattr(self, "_is_adding_row") and self._is_adding_row:
+            return
+        
+        # 仅当编辑的是最后一行且第一列(脚本路径)有内容时触发
+        if row == self.tableWidget_extension.rowCount() - 1 and column == 0:
+            item = self.tableWidget_extension.item(row, 0)
+            if item and item.text().strip():  # 检查第一列是否非空
+                self._is_adding_row = True
+                
+                # 追加新行
+                new_row = self.tableWidget_extension.rowCount()
+                self.tableWidget_extension.insertRow(new_row)
+                
+                # 设置新行第二列(重复次数)默认为1
+                self.tableWidget_extension.setItem(new_row, 1, QTableWidgetItem("1"))
+                
+                # 自动聚焦到新行的第一列(脚本路径)
+                self.tableWidget_extension.setCurrentCell(new_row, 0)
+                
+                self._is_adding_row = False
 
     def choose_path_button_on_clicked(self):
         """"用于连接ChoosePathButton的函数，选择存储路径"""
