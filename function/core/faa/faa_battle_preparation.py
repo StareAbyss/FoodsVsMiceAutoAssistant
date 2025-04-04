@@ -670,7 +670,7 @@ class BattlePreparation:
             can_failed_list += [False]
 
         # 添加冰沙 复制类
-        sorted_list += ["冰淇淋-2", "创造神", "幻幻鸡"]
+        sorted_list += ["冰激凌-2", "创造神", "幻幻鸡"]
         can_failed_list += [True, True, True]
 
         # 如果有效承载数量 >= 2
@@ -907,7 +907,7 @@ class BattlePreparation:
             # 定义保存路径和文件名格式
             img_path = "{}\\{}_{}P_{}.png".format(
                 PATHS["logs"] + "\\loots_image",
-                stage_info["id"],
+                stage_info["id"],  # 注意 此处一定要使用内部一定正确的id! b_id可能是用户随笔输入的
                 player,
                 time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
             )

@@ -11,16 +11,14 @@ import pytz
 from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
 from function.common.bg_img_screenshot import capture_image_png
 from function.common.overlay_images import overlay_images
-from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
-from function.core.qmw_2_load_settings import get_QQ_login_info
 from function.core.my_crypto import decrypt_data
+from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
 from function.globals import g_resources, SIGNAL, EXTRA
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
 from function.globals.location_card_cell_in_battle import COORDINATE_CARD_CELL_IN_BATTLE
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
-from function.globals.get_paths import PATHS
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.match_ocr_text.get_food_quest_by_ocr import food_match_ocr_text, extract_text_from_images
 from function.scattered.match_ocr_text.text_to_battle_info import food_texts_to_battle_info
@@ -37,16 +35,17 @@ class FAABase:
     其中部分较麻烦的模块的实现被分散在了其他的类里, 此处只留下了接口以供调用
     """
 
-    def __init__(self: "FAA", channel: str = "锑食", player: int = 1, character_level: int = 1,
-                 is_auto_battle: bool = True, is_auto_pickup: bool = False, QQ_login_info=None, extra_sleep=None, random_seed: int = 0):
+    def __init__(self: "FAA", channel: str = "锑食", player: int = 1, character_level: int = 80,
+                 is_auto_battle: bool = True, is_auto_pickup: bool = False,
+                 QQ_login_info=None, extra_sleep=None, random_seed: int = 0):
 
         # 获取窗口句柄
         self.channel = channel  # 在刷新窗口后会需要再重新获取flash的句柄, 故保留
         self.handle = faa_get_handle(channel=self.channel, mode="flash")
         self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
         self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
-        self.QQ_login_info=QQ_login_info
-        self.extra_sleep=extra_sleep
+        self.QQ_login_info = QQ_login_info
+        self.extra_sleep = extra_sleep
         # 这个参数主要用于启动时防熊，避免线程已终止faa类内仍在循环识图
         self.should_stop = False
 
@@ -147,11 +146,43 @@ class FAABase:
     """"对flash游戏界面或自身参数的最基础 [检测]"""
 
     def check_level(self: "FAA") -> bool:
-        """检测角色等级和关卡等级(调用于输入关卡信息之后)"""
+        """
+        检测角色等级和关卡等级
+        调用于输入关卡信息之后
+        """
         if self.character_level < self.stage_info["level"]:
             return False
         else:
             return True
+
+    def check_stage_id_is_true(self: "FAA") -> bool:
+        """
+        检查关卡ID是否合法, id指的是 FAA内的模式标识. b_id为关卡的战斗用地图信息id.
+        模式标识: 用于上传到米苏物流等用途.
+        战斗标识: 默认复制自模式标识, 如果为自建房, 则来自用户的输入, 之后还会被关卡名称的OCR做二次修正.
+        """
+        if self.stage_info["id"] not in EXTRA.TRUE_STAGE_ID:
+            return False
+        if self.stage_info["b_id"] not in EXTRA.TRUE_STAGE_ID:
+            return False
+        return True
+
+    def check_stage_is_active(self: "FAA") -> bool:
+        """关卡是否保持激活"""
+
+        # 拆成数组["关卡类型","地图id","关卡id"]
+        stage_list = self.stage_info["id"].split("-")
+        stage_0 = stage_list[0]  # type
+
+        if stage_0 == "CZ":
+            # Chinese Zodiac 生肖关卡, 特殊关卡.
+            # 北京时间(注意时区) 周4567的 7点到7点半可以进入
+            # 先不做星期检测, 只做时间段检测, 节假日比较迷惑
+            beijing_tz = pytz.timezone('Asia/Shanghai')
+            now = datetime.now(beijing_tz)
+            return now.hour == 7 and 0 <= now.minute < 30
+
+        return True
 
     def screen_check_server_boom(self: "FAA") -> bool:
         """
@@ -197,9 +228,12 @@ class FAABase:
             quest_card=None,
             ban_card_list=None,
             max_card_num=None,
-            battle_plan_uuid: str = "00000000-0000-0000-0000-000000000000") -> None:
+            battle_plan_uuid: str = "00000000-0000-0000-0000-000000000000",
+            is_cu: bool = False,
+    ) -> None:
         """
         战斗相关参数的re_init
+        :param is_cu: 是否为自建房, 此类战斗需要修改stage id 为 CU-0-0, 以防用户自建房随便输入StageID污染数据集!!!
         :param is_group: 是否组队
         :param is_main: 是否是主要账号(单人为True 双人房主为True)
         :param need_key: 是否使用钥匙
@@ -228,7 +262,10 @@ class FAABase:
         # 如果缺失, 外部的检测函数会拦下来不继续的
         self.battle_plan = g_resources.RESOURCE_B.get(battle_plan_uuid, None)
 
-        self.stage_info = read_json_to_stage_info(stage_id)
+        if not is_cu:
+            self.stage_info = read_json_to_stage_info(stage_id)
+        else:
+            self.stage_info = read_json_to_stage_info(stage_id="CU-0-0", stage_id_for_battle=stage_id)
 
     """战斗完整的过程中的任务函数"""
 
@@ -250,7 +287,7 @@ class FAABase:
 
         smoothie_resource_list = [
             f"{card}-{i}.png"
-            for card in ["冰淇淋"]
+            for card in ["冰激凌"]
             for i in range(6)
             if f"{card}-{i}.png" in RESOURCE_P["card"]["战斗"]
         ]
@@ -629,7 +666,7 @@ class FAABase:
 
     """其他非战斗功能"""
 
-    def match_quests(self: "FAA", mode: str, qg_cs:bool=False) -> list:
+    def match_quests(self: "FAA", mode: str, qg_cs: bool = False) -> list:
         """
         获取任务列表 -> 需要的完成的关卡步骤
         :param mode: "公会任务" "情侣任务" "美食大赛" "美食大赛-新"
@@ -1162,12 +1199,12 @@ class FAABase:
                 # 点击刷新按钮 该按钮在360窗口上
                 self.print_debug(text="[刷新游戏] 点击刷新按钮...")
                 self.click_refresh_btn()
-                
+
                 # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
                 if self.extra_sleep["need_sleep"]:
-                    time.sleep(self.extra_sleep["sleep_time"]) 
-                    
-                # 依次判断是否在选择服务器界面
+                    time.sleep(self.extra_sleep["sleep_time"])
+
+                    # 依次判断是否在选择服务器界面
                 self.print_debug(text="[刷新游戏] 判定平台...")
 
                 if try_enter_server_4399():
@@ -1178,8 +1215,8 @@ class FAABase:
                     self.print_debug(text="[刷新游戏] 成功进入 - QQ空间平台")
                     # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
                     if self.extra_sleep["need_sleep"]:
-                        time.sleep(self.extra_sleep["sleep_time"]) 
-                        
+                        time.sleep(self.extra_sleep["sleep_time"])
+
                 elif try_enter_server_qq_game_hall():
                     self.print_debug(text="[刷新游戏] 成功进入 - QQ游戏大厅平台")
                 else:
@@ -1189,19 +1226,18 @@ class FAABase:
 
                     # 密码登录模式
                     if self.QQ_login_info and self.QQ_login_info["use_password"]:
-                        with open(self.QQ_login_info["path"]+"/QQ_account.json","r") as json_file:
-                            QQ_account=json.load(json_file)
-                        username=QQ_account['{}p'.format(self.player)]['username']
-                        password=QQ_account['{}p'.format(self.player)]['password']
-                        password=decrypt_data(password)
-                        
+                        with open(self.QQ_login_info["path"] + "/QQ_account.json", "r") as json_file:
+                            QQ_account = json.load(json_file)
+                        username = QQ_account['{}p'.format(self.player)]['username']
+                        password = QQ_account['{}p'.format(self.player)]['password']
+                        password = decrypt_data(password)
+
                         # 2p 多等待一段时间，保证1p先完成登录，避免抢占焦点
-                        if self.player==2:
+                        if self.player == 2:
                             print("2p正在等待")
                             time.sleep(10)
                             print("2p等待完成")
-                            
-                            
+
                         # 开始进入密码登录页面
                         result = loop_match_p_in_w(
                             source_handle=self.handle_browser,
@@ -1213,35 +1249,35 @@ class FAABase:
                             match_failed_check=5,
                             after_sleep=2,
                             click=True)
-                        
+
                         # 进入密码登录页面成功，由于360可能记住账号，因此先要点叉号清除账号
                         if result:
                             result = loop_match_p_in_w(
-                            source_handle=self.handle_browser,
-                            source_root_handle=self.handle_360,
-                            source_range=[0, 0, 2000, 2000],
-                            template=RESOURCE_P["common"]["登录"]["叉号.png"],
-                            match_tolerance=0.90,
-                            match_interval=0.5,
-                            match_failed_check=5,
-                            after_sleep=1,
-                            click=True)
+                                source_handle=self.handle_browser,
+                                source_root_handle=self.handle_360,
+                                source_range=[0, 0, 2000, 2000],
+                                template=RESOURCE_P["common"]["登录"]["叉号.png"],
+                                match_tolerance=0.90,
+                                match_interval=0.5,
+                                match_failed_check=5,
+                                after_sleep=1,
+                                click=True)
                         else:
                             self.print_debug(text="进入QQ密码登录页面失败")
                             continue
                         # 点叉号清除账号成功，开始获取账号输入框的焦点
                         # （如果没成功说明不需要点击，因此也可以开始获取账号输入框的焦点）
                         result = loop_match_p_in_w(
-                        source_handle=self.handle_browser,
-                        source_root_handle=self.handle_360,
-                        source_range=[0, 0, 2000, 2000],
-                        template=RESOURCE_P["common"]["登录"]["账号输入框.png"],
-                        match_tolerance=0.90,
-                        match_interval=0.5,
-                        match_failed_check=5,
-                        after_sleep=0.5,
-                        click=True)
-                        
+                            source_handle=self.handle_browser,
+                            source_root_handle=self.handle_360,
+                            source_range=[0, 0, 2000, 2000],
+                            template=RESOURCE_P["common"]["登录"]["账号输入框.png"],
+                            match_tolerance=0.90,
+                            match_interval=0.5,
+                            match_failed_check=5,
+                            after_sleep=0.5,
+                            click=True)
+
                         # 注意这里不能 sleep ，否则容易因为抢占焦点而失败
                         # 账号输入框获取焦点成功，开始输入账号
                         if result:
@@ -1255,15 +1291,15 @@ class FAABase:
                         # (实测发现可能是由于faa获取截图的方式比较特殊，即使记住了QQ账号他也能获取到账号输入框，总之代码能跑)
                         # 输入账号完成，开始获取密码输入框的焦点
                         result = loop_match_p_in_w(
-                        source_handle=self.handle_browser,
-                        source_root_handle=self.handle_360,
-                        source_range=[0, 0, 2000, 2000],
-                        template=RESOURCE_P["common"]["登录"]["密码输入框.png"],
-                        match_tolerance=0.90,
-                        match_interval=0.5,
-                        match_failed_check=5,
-                        after_sleep=0.5,
-                        click=True)
+                            source_handle=self.handle_browser,
+                            source_root_handle=self.handle_360,
+                            source_range=[0, 0, 2000, 2000],
+                            template=RESOURCE_P["common"]["登录"]["密码输入框.png"],
+                            match_tolerance=0.90,
+                            match_interval=0.5,
+                            match_failed_check=5,
+                            after_sleep=0.5,
+                            click=True)
                         # 注意这里不能 sleep ，否则容易因为抢占焦点而失败
                         # 密码输入框获取焦点成功，开始输入密码
                         if result:
@@ -1273,22 +1309,22 @@ class FAABase:
                         else:
                             self.print_debug(text="密码输入框获取焦点失败")
                             continue
-                        
+
                         # 输入密码完成，开始点击登录按钮
                         result = loop_match_p_in_w(
-                        source_handle=self.handle_browser,
-                        source_root_handle=self.handle_360,
-                        source_range=[0, 0, 2000, 2000],
-                        template=RESOURCE_P["common"]["登录"]["登录.png"],
-                        match_tolerance=0.90,
-                        match_interval=0.5,
-                        match_failed_check=5,
-                        after_sleep=3,
-                        click=True)
-                        
+                            source_handle=self.handle_browser,
+                            source_root_handle=self.handle_360,
+                            source_range=[0, 0, 2000, 2000],
+                            template=RESOURCE_P["common"]["登录"]["登录.png"],
+                            match_tolerance=0.90,
+                            match_interval=0.5,
+                            match_failed_check=5,
+                            after_sleep=3,
+                            click=True)
+
                         # 点击登录按钮成功，等待选服
                         # 这里不用time.sleep，直接修改上面的after_sleep参数即可
-                    
+
                     # 非密码登录模式，通过点击QQ头像进行快捷登录
                     else:
                         result = loop_match_p_in_w(
@@ -2032,8 +2068,14 @@ class FAABase:
 
         def fed_and_watered_main():
 
+            # 判定时间, 如果是北京时间周四的0到12点, 直接return
+            beijing_tz = pytz.timezone('Asia/Shanghai')
+            now = datetime.now(beijing_tz)
+            if now.weekday() == 3 and 0 <= now.hour < 12:
+                SIGNAL.PRINT_TO_UI.emit("[浇水 施肥 摘果 领取] 周四0-12点, 跳过本流程, 以防领取到上一期道具.")
+                return
+
             SIGNAL.PRINT_TO_UI.emit(f"[浇水 施肥 摘果 领取] [{self.player}p] 开始执行...")
-            self.print_debug(text="开始公会浇水施肥")
 
             for reload_time in range(1, 4):
 
@@ -2462,7 +2504,7 @@ class FAABase:
         # 下拉20次正好到底, 所以循环8次. 游戏自带复位 不需要手动复位
         for page in range(8):
 
-            self.print_info(f"[删除物品] 背包第{page+1}页, 将开始查找删除目标...")
+            self.print_info(f"[删除物品] 背包第{page + 1}页, 将开始查找删除目标...")
 
             # 下拉三次每轮 慢点执行....
             if page != 0:

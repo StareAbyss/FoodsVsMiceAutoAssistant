@@ -10,7 +10,7 @@
                 2,
                 1
             ],
-            "global_plan_active": false,
+            "global_plan_active": true,
             "deck": 0,
             "battle_plan_1p": "1587e54f-8ef1-11ef-a8a9-f44efc5bf671",
             "battle_plan_2p": "1d53e81e-ad86-11ef-b864-c2f2346a1393",
@@ -39,7 +39,7 @@
                 2,
                 1
             ],
-            "global_plan_active": false,
+            "global_plan_active": true,
             "deck": 0,
             "battle_plan_1p": "1587e54f-8ef1-11ef-a8a9-f44efc5bf671",
             "battle_plan_2p": "1d53e81e-ad86-11ef-b864-c2f2346a1393",
@@ -68,7 +68,7 @@
                 2,
                 1
             ],
-            "global_plan_active": false,
+            "global_plan_active": true,
             "deck": 0,
             "battle_plan_1p": "1587e54f-8ef1-11ef-a8a9-f44efc5bf671",
             "battle_plan_2p": "1d53e81e-ad86-11ef-b864-c2f2346a1393",
@@ -119,7 +119,7 @@
         "task_type": "战斗",
         "task_id": 5,
         "task_args": {
-            "stage_id": "EX-2-8",
+            "stage_id": "EX-2-7",
             "max_times": 1,
             "need_key": true,
             "player": [
@@ -148,7 +148,7 @@
         "task_type": "战斗",
         "task_id": 6,
         "task_args": {
-            "stage_id": "EX-2-9",
+            "stage_id": "EX-2-8",
             "max_times": 1,
             "need_key": true,
             "player": [

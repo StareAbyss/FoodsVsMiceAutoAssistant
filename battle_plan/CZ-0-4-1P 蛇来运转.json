@@ -15,7 +15,7 @@
         },
         {
             "card_id": 2,
-            "name": "散点追踪"
+            "name": "布丁"
         },
         {
             "card_id": 4,
@@ -48,6 +48,10 @@
         {
             "card_id": 10,
             "name": "10周年烟花"
+        },
+        {
+            "card_id": 3,
+            "name": "散点追踪"
         }
     ],
     "events": [
@@ -58,7 +62,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 11,
@@ -71,7 +74,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 2,
+                        "card_id": 3,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -303,7 +306,8 @@
                         "location": [],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         },
         {
@@ -313,7 +317,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 11,
@@ -326,7 +329,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 2,
+                        "card_id": 3,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -560,7 +563,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]

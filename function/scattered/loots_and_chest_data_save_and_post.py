@@ -25,7 +25,8 @@ def loots_and_chests_statistics_to_json(faa: "FAA", loots_dict, chests_dict) -> 
     player = faa.player
 
     file_path = "{}\\result_json\\{}P掉落汇总.json".format(PATHS["logs"], player)
-    stage_name = faa.stage_info["id"]
+    # 注意 此处一定要使用内部一定正确的id! b_id可能是用户随笔输入的
+    stage_id = faa.stage_info["id"]
 
     # 获取本次战斗是否使用了钥匙
     if faa.is_used_key:
@@ -43,7 +44,7 @@ def loots_and_chests_statistics_to_json(faa: "FAA", loots_dict, chests_dict) -> 
         json_data = {}
 
     # 检查键 不存在添加
-    json_data_stage = json_data.setdefault(stage_name, {})
+    json_data_stage = json_data.setdefault(stage_id, {})
     json_data_used_key = json_data_stage.setdefault(used_key_str, {})
     json_data_loots = json_data_used_key.setdefault("loots", {})
     json_data_chests = json_data_used_key.setdefault("chests", {})
@@ -72,11 +73,12 @@ def loots_and_chests_detail_to_json(faa: "FAA", loots_dict, chests_dict) -> dict
     """
 
     file_path = "{}\\result_json\\{}P掉落明细.json".format(PATHS["logs"], faa.player)
-    stage_name = faa.stage_info["id"]
+    # 注意 此处一定要使用内部一定正确的id! b_id可能是用户随笔输入的
+    stage_id = faa.stage_info["id"]
     new_data = {
         "version": EXTRA.VERSION,  # 版本号
         "timestamp": time.time(),  # 时间戳
-        "stage": stage_name,  # 关卡代号
+        "stage": stage_id,  # 关卡代号
         "is_used_key": faa.is_used_key,
         "loots": loots_dict,
         "chests": chests_dict
