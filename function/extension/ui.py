@@ -631,6 +631,7 @@ class MainWindow(QMainWindow):
         self.execute_btn.setText("结束脚本")
         QApplication.processEvents()
         # 创建执行线程，并将是否显示识图效果的状态赋值给线程的一个属性
+        
         self.execute_thread = ExecuteThread(window_name, self.current_config_path, loop_times, need_test)
         self.execute_thread.start()
         

@@ -1121,7 +1121,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
         
         def extension_ui_to_opt() -> None:
             """将脚本表格从ui写入到opt"""
-            my_opt=self.opt["extension"] # 一个列表
+            my_opt=self.opt["extension"] 
+            my_opt["scripts"]=[] # 先清空列表
             for row in range(self.tableWidget_extension.rowCount()):
                 # 获取单元格数据
                 path_item = self.tableWidget_extension.item(row, 0)  # 脚本路径

@@ -32,7 +32,7 @@ from function.scattered.get_task_sequence_list import get_task_sequence_list
 from function.scattered.guild_manager import GuildManager
 from function.scattered.loots_and_chest_data_save_and_post import loots_and_chests_detail_to_json, \
     loots_and_chests_data_post_to_sever, loots_and_chests_statistics_to_json
-
+from function.extension.function_faa import ExecuteThread,execute
 
 class ThreadTodo(QThread):
     signal_start_todo_2_battle = pyqtSignal(dict)
@@ -2891,8 +2891,19 @@ class ThreadTodo(QThread):
             SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
 
         """完成FAA的任务列表后，开始执行插件脚本"""
-                
+        name_1p=self.opt["base_settings"]["name_1p"]+ ' | ' +  self.opt['base_settings']['game_name']
+        name_2p=self.opt["base_settings"]["name_2p"] + ' | '+  self.opt['base_settings']['game_name'] 
+        scripts=self.opt["extension"]["scripts"]
+        # 这块本来就是多线程执行的，所以不需要再用线程，不会阻塞FAA的
+        for script in scripts:
+            SIGNAL.PRINT_TO_UI.emit(text=f"开始执行插件脚本 {name_1p,script['path']}", color_level=2)
+            for _ in range(script['repeat']):
+                execute(name_1p,script['path'])
+            SIGNAL.PRINT_TO_UI.emit(text=f"插件脚本 {name_1p,script['path']} 执行结束", color_level=2)
+            
+        SIGNAL.PRINT_TO_UI.emit(text=f"所有插件脚本均已执行结束", color_level=1)
         
+    
         """全部完成"""
 
         if main_task_active or extra_active:
