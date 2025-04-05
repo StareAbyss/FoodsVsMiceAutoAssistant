@@ -9295,7 +9295,7 @@ Link Start</string>
                <widget class="QWidget" name="AdvancedSettingsAreaWidget">
                 <property name="geometry">
                  <rect>
-                  <x>0</x>
+                  <x>2</x>
                   <y>0</y>
                   <width>560</width>
                   <height>2500</height>
@@ -9886,8 +9886,11 @@ Link Start</string>
                         <height>150</height>
                        </size>
                       </property>
+                      <property name="toolTip">
+                       <string>角色：1为1p，2为2p，3为1p+2p，4为不执行</string>
+                      </property>
                       <attribute name="horizontalHeaderDefaultSectionSize">
-                       <number>200</number>
+                       <number>150</number>
                       </attribute>
                       <attribute name="horizontalHeaderStretchLastSection">
                        <bool>true</bool>
@@ -9901,15 +9904,28 @@ Link Start</string>
                        <property name="text">
                         <string>脚本路径</string>
                        </property>
+                       <property name="toolTip">
+                        <string>角色：1为1p，2为2p，3为1p和2p</string>
+                       </property>
                       </column>
                       <column>
                        <property name="text">
                         <string>重复次数</string>
                        </property>
                       </column>
+                      <column>
+                       <property name="text">
+                        <string>角色</string>
+                       </property>
+                      </column>
                       <item row="0" column="1">
                        <property name="text">
                         <string>1</string>
+                       </property>
+                      </item>
+                      <item row="0" column="2">
+                       <property name="text">
+                        <string>3</string>
                        </property>
                       </item>
                      </widget>

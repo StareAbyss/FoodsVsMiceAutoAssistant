@@ -236,6 +236,9 @@ class QMainWindowService(QMainWindowLoadSettings):
                 # 设置新行第二列(重复次数)默认为1
                 self.tableWidget_extension.setItem(new_row, 1, QTableWidgetItem("1"))
                 
+                # 设置新行第三列(角色代号)默认为3
+                self.tableWidget_extension.setItem(new_row, 2, QTableWidgetItem("3"))
+                
                 # 自动聚焦到新行的第一列(脚本路径)
                 self.tableWidget_extension.setCurrentCell(new_row, 0)
                 
