@@ -2898,6 +2898,7 @@ class ThreadTodo(QThread):
         for script in scripts:
             SIGNAL.PRINT_TO_UI.emit(text=f"开始执行插件脚本 {name_1p,script['path']}", color_level=2)
             player=script['player']
+            
             for _ in range(script['repeat']):
                 if player==1:
                     execute(name_1p,script['path'])
