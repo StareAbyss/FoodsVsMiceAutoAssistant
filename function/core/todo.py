@@ -2906,7 +2906,7 @@ class ThreadTodo(QThread):
         scripts=self.opt["extension"]["scripts"]
         # 这块本来就是多线程执行的，所以不需要再用线程，不会阻塞FAA的
         for script in scripts:
-            SIGNAL.PRINT_TO_UI.emit(text=f"开始执行插件脚本 {name_1p,script['path']}", color_level=2)
+            SIGNAL.PRINT_TO_UI.emit(text=f"开始执行插件脚本 {script['path']}", color_level=2)
             player=script['player']
             
             
