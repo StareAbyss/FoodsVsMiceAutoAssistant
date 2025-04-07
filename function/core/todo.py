@@ -2922,7 +2922,7 @@ class ThreadTodo(QThread):
                 for _ in range(script['repeat']):
                     execute(name_2p,script['path'])
                     
-            SIGNAL.PRINT_TO_UI.emit(text=f"插件脚本 {script['name']} 执行结束", color_level=2)
+            SIGNAL.PRINT_TO_UI.emit(text=f"插件脚本 {script['name']}: {script['path']} 执行结束", color_level=2)
             
         SIGNAL.PRINT_TO_UI.emit(text=f"所有插件脚本均已执行结束", color_level=1)
         
