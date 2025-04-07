@@ -2909,13 +2909,17 @@ class ThreadTodo(QThread):
             SIGNAL.PRINT_TO_UI.emit(text=f"开始执行插件脚本 {name_1p,script['path']}", color_level=2)
             player=script['player']
             
-            for _ in range(script['repeat']):
-                if player==1:
+            
+            if player==1:
+                for _ in range(script['repeat']):
                     execute(name_1p,script['path'])
-                elif player==2:
+            elif player==2:
+                for _ in range(script['repeat']):
                     execute(name_2p,script['path'])
-                elif player==3:
+            elif player==3:
+                for _ in range(script['repeat']):
                     execute(name_1p,script['path'])
+                for _ in range(script['repeat']):
                     execute(name_2p,script['path'])
                     
             SIGNAL.PRINT_TO_UI.emit(text=f"插件脚本 {name_1p,script['path']} 执行结束", color_level=2)
