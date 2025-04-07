@@ -224,8 +224,8 @@ class QMainWindowService(QMainWindowLoadSettings):
             return
         
         # 仅当编辑的是最后一行且第一列(脚本路径)有内容时触发
-        if row == self.tableWidget_extension.rowCount() - 1 and column == 0:
-            item = self.tableWidget_extension.item(row, 0)
+        if row == self.tableWidget_extension.rowCount() - 1 and column == 1:
+            item = self.tableWidget_extension.item(row, 1)
             if item and item.text().strip():  # 检查第一列是否非空
                 self._is_adding_row = True
                 
@@ -233,13 +233,13 @@ class QMainWindowService(QMainWindowLoadSettings):
                 new_row = self.tableWidget_extension.rowCount()
                 self.tableWidget_extension.insertRow(new_row)
                 
-                # 设置新行第二列(重复次数)默认为1
-                self.tableWidget_extension.setItem(new_row, 1, QTableWidgetItem("1"))
+                # 设置新行第三列(重复次数)默认为1
+                self.tableWidget_extension.setItem(new_row, 2, QTableWidgetItem("1"))
                 
-                # 设置新行第三列(角色代号)默认为3
-                self.tableWidget_extension.setItem(new_row, 2, QTableWidgetItem("3"))
+                # 设置新行第四列(角色代号)默认为3
+                self.tableWidget_extension.setItem(new_row, 3, QTableWidgetItem("3"))
                 
-                # 自动聚焦到新行的第一列(脚本路径)
+                # 自动聚焦到新行的第一列(脚本名)
                 self.tableWidget_extension.setCurrentCell(new_row, 0)
                 
                 self._is_adding_row = False

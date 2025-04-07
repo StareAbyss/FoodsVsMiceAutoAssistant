@@ -9887,10 +9887,10 @@ Link Start</string>
                        </size>
                       </property>
                       <property name="toolTip">
-                       <string>角色：1为1p，2为2p，3为1p+2p，4为不执行</string>
+                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;请使用自定义插件来编写脚本，然后在此处填入脚本的路径。&lt;/p&gt;&lt;p&gt;这些任务会在FAA的“任务列表”都执行完之后再执行。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                       </property>
                       <attribute name="horizontalHeaderDefaultSectionSize">
-                       <number>150</number>
+                       <number>120</number>
                       </attribute>
                       <attribute name="horizontalHeaderStretchLastSection">
                        <bool>true</bool>
@@ -9902,28 +9902,42 @@ Link Start</string>
                       </row>
                       <column>
                        <property name="text">
+                        <string>脚本名</string>
+                       </property>
+                       <property name="toolTip">
+                        <string>脚本名可以随便设置，用来表示脚本的功能。（可以为空）</string>
+                       </property>
+                      </column>
+                      <column>
+                       <property name="text">
                         <string>脚本路径</string>
                        </property>
                        <property name="toolTip">
-                        <string>角色：1为1p，2为2p，3为1p和2p</string>
+                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;填入json文件的绝对路径，而不是json文件所在的文件夹。&lt;/p&gt;&lt;p&gt;注意：这个表格会自动添加末行，不具备删除行的功能，但当脚本路径为空时，软件会自动跳过那一行,并且保存并重新打开FAA后，脚本路径为空的行会自动删去。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                        </property>
                       </column>
                       <column>
                        <property name="text">
                         <string>重复次数</string>
                        </property>
+                       <property name="toolTip">
+                        <string>默认为1次，为0次时不执行</string>
+                       </property>
                       </column>
                       <column>
                        <property name="text">
                         <string>角色</string>
                        </property>
+                       <property name="toolTip">
+                        <string>角色：1为1p，2为2p，3为1p和2p，为其他值时不执行</string>
+                       </property>
                       </column>
-                      <item row="0" column="1">
+                      <item row="0" column="2">
                        <property name="text">
                         <string>1</string>
                        </property>
                       </item>
-                      <item row="0" column="2">
+                      <item row="0" column="3">
                        <property name="text">
                         <string>3</string>
                        </property>

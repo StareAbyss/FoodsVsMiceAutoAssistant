@@ -661,23 +661,27 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 row = self.tableWidget_extension.rowCount()
                 self.tableWidget_extension.insertRow(row)
                 
-                # 第一列：脚本路径（必填）
-                path = script.get("path", "").strip()
+                # 第一列：脚本名（默认空）
+                path = script.get("name", "").strip()
                 self.tableWidget_extension.setItem(row, 0, QTableWidgetItem(path))
                 
-                # 第二列：重复次数（默认1）
-                repeat = str(script.get("repeat", 1))
-                self.tableWidget_extension.setItem(row, 1, QTableWidgetItem(repeat))
+                # 第二列：脚本路径（必填）
+                path = script.get("path", "").strip()
+                self.tableWidget_extension.setItem(row, 1, QTableWidgetItem(path))
                 
-                # 第三列：角色代号（默认3，表示1p和2p都要执行）
+                # 第三列：重复次数（默认1）
+                repeat = str(script.get("repeat", 1))
+                self.tableWidget_extension.setItem(row, 2, QTableWidgetItem(repeat))
+                
+                # 第四列：角色代号（默认3，表示1p和2p都要执行）
                 player = str(script.get("player", 3))
-                self.tableWidget_extension.setItem(row, 2, QTableWidgetItem(player))
+                self.tableWidget_extension.setItem(row, 3, QTableWidgetItem(player))
             
             # 自动添加一个空行（用于继续输入）
             last_row = self.tableWidget_extension.rowCount()
             self.tableWidget_extension.insertRow(last_row)
-            self.tableWidget_extension.setItem(last_row, 1, QTableWidgetItem("1"))  # 默认重复次数
-            self.tableWidget_extension.setItem(last_row, 2, QTableWidgetItem("3"))  # 默认角色代号
+            self.tableWidget_extension.setItem(last_row, 2, QTableWidgetItem("1"))  # 默认重复次数
+            self.tableWidget_extension.setItem(last_row, 3, QTableWidgetItem("3"))  # 默认角色代号
 
         
         base_settings()
@@ -1130,13 +1134,16 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["scripts"]=[] # 先清空列表
             for row in range(self.tableWidget_extension.rowCount()):
                 # 获取单元格数据
-                path_item = self.tableWidget_extension.item(row, 0)  # 脚本路径
-                repeat_item = self.tableWidget_extension.item(row, 1)  # 重复次数
-                player_item = self.tableWidget_extension.item(row, 2)  # 重复次数
+                name_item = self.tableWidget_extension.item(row, 0)  # 脚本路径
+                
+                path_item = self.tableWidget_extension.item(row, 1)  # 脚本路径
+                repeat_item = self.tableWidget_extension.item(row, 2)  # 重复次数
+                player_item = self.tableWidget_extension.item(row, 3)  # 重复次数
                 
                 # 跳过空行（第一列为空时忽略）
                 if path_item and path_item.text().strip():
                     my_opt["scripts"].append({
+                        "name":name_item.text().strip() if (name_item and name_item.text()) else "",
                         "path": path_item.text().strip(),
                         "repeat": int(repeat_item.text()) if (repeat_item and repeat_item.text()) else 1,
                         "player": int(player_item.text()) if (player_item and player_item.text()) else 3
