@@ -2891,8 +2891,18 @@ class ThreadTodo(QThread):
             SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
 
         """完成FAA的任务列表后，开始执行插件脚本"""
-        name_1p=self.opt["base_settings"]["name_1p"]+ ' | ' +  self.opt['base_settings']['game_name']
-        name_2p=self.opt["base_settings"]["name_2p"] + ' | '+  self.opt['base_settings']['game_name'] 
+        name_1p = self.opt["base_settings"]["name_1p"]
+        if name_1p=='':
+            name_1p=self.opt['base_settings']['game_name']
+        else:
+            name_1p=name_1p + ' | ' +  self.opt['base_settings']['game_name']
+
+        name_2p = self.opt["base_settings"]["name_2p"]
+        if name_2p == '':
+            name_2p = self.opt['base_settings']['game_name']
+        else:
+            name_2p = name_2p + ' | ' +  self.opt['base_settings']['game_name']
+
         scripts=self.opt["extension"]["scripts"]
         # 这块本来就是多线程执行的，所以不需要再用线程，不会阻塞FAA的
         for script in scripts:
