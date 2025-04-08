@@ -1668,8 +1668,13 @@ class QMWEditorOfBattlePlan(QMainWindow):
         existing_wave_ids = [w.trigger.wave_id for w in self.loop_use_cards_events]
 
         if 0 not in existing_wave_ids:
-            CUS_LOGGER.debug(f"[战斗方案编辑器] [加载方案] 填充循环放卡方案的空白波次, 波次0不存在 文件已损坏!")
-            return False
+            CUS_LOGGER.debug(f"[战斗方案编辑器] [加载方案] 填充循环放卡方案的空白波次, 波次0不存在, 花瓶方案, 补充第0波方案.")
+            self.loop_use_cards_events.append(
+                Event(
+                    trigger=TriggerWaveTimer(wave_id=0, time=0),
+                    action=ActionLoopUseCards(cards=[], type="loop_use_cards"))
+            )
+            existing_wave_ids = [0]
 
         for wave in range(14):
 
