@@ -45,3 +45,5 @@ logs/*.json
 
 # 忽略 main.spec
 main.spec
+
+打包 & 部署 copy.md
