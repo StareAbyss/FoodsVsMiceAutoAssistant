@@ -1,0 +1,85 @@
+# 打包
+
+## 打包
+
+### 正式版
+
+先使用cmd, 运行以下指令;   
+再使用`打包-资源文件.py` 完成打包;  
+路径请自行调整,默认是在项目上一级新建目录以打包;   
+此处以: `I:\MyCode\` 为项目存放目录为例.
+
+    pyinstaller -i "I:\MyCode\FoodsVsMiceAutoAssistant\resource\logo\圆角-FetDeathWing-256x-AllSize.ico" -w -D -n "FAA" -y --upx-dir "I:\MyCode\upx-3.96-win64" --distpath="I:\MyCode\_ExeWorkSpace\dist" --workpath="I:\MyCode\_ExeWorkSpace\build" "I:\MyCode\FoodsVsMiceAutoAssistant\function\faa_main.py"
+
+### 调试版
+
+仅需修改一个参数 `-w` -> `-c`. 运行后会显示cmd窗口, 展示详细日志.
+
+    pyinstaller -i "I:\MyCode\FoodsVsMiceAutoAssistant\resource\logo\圆角-FetDeathWing-256x-AllSize.ico" -c -D -n "FAA" -y --upx-dir "I:\MyCode\upx-3.96-win64" --distpath="I:\MyCode\_ExeWorkSpace\dist" --workpath="I:\MyCode\_ExeWorkSpace\build" "I:\MyCode\FoodsVsMiceAutoAssistant\function\faa_main.py"
+
+-----------------------
+
+## 环境迁移
+
+### 下载python安装程序 v3.12.5
+
+    https://www.python.org/ftp/python/
+
+### 生成配置文件
+
+    cd "I:\MyCode\FoodsVsMiceAutoAssistant"
+    pip freeze > requirements.txt
+
+### 导入配置文件
+
+    pip install -r requirements.txt
+
+-----------------------
+
+## git抽风无法提交到github
+
+### 在git仓库打开终端 并输入下文
+
+    git config --global --unset http.proxy
+    git config --global --unset https.proxy
+
+    git config --global http.proxy http://127.0.0.1:10809
+    git config --global https.proxy http://127.0.0.1:10809
+
+-----------------------
+
+## opencv gpu加速环境部署指北
+### 显卡驱动环境配置
+使用NVIDIA显卡，更新显卡驱动，确保版本号大于555.85<br />如何更新驱动此处不再赘述
+
+## 安装opencv-python gpu版
+### 卸载原有opencv环境
+    pip uninstall opencv-python
+### 依赖链接库压缩包
+[点此下载依赖](https://github.com/StareAbyss/FoodsVsMiceAutoAssistant/releases/download/gpu-opencv/Dependent_Libraries_lightweight.7z)
+解压到自定义文件夹下
+### 修改dll链接路径
+打开project/python_loader/cv2路径<br />
+打开config.py和config-3.12文件，编辑依赖路径
+### 安装opencv-python gpu版
+    pip install ./python_loader
+### 验证是否安装成功
+    cd test
+    python test_cuda.py
+若显示
+> 检测到支持CUDA的设备数量: 1
+>
+说明opencv gpu版已经正确安装
+### 卸载opencv-python gpu版
+    pip uninstall opencv
+### 报错处理
+>ImportError: DLL load failed while importing cv2: 找不到指定的模块。
+>
+~~如遇缺这库少那库之难请联系开发者听召前来嘲笑~~
+使用[ProcessMonitor](https://learn.microsoft.com/zh-cn/sysinternals/downloads/procmon)自行查看缺少什么dll，自行补上即可
+## gpu版打包部署
+1.先安装好opencv-gpu依赖<br />
+2.按照常规打包先执行pyinstaller命令再运行打包_资源文件.py<br />
+3.迁移opencv-gpu依赖至打包目录\_internal\cv2下<br />
+4.修改打包后目录\_internal\cv2下的config.py和config-3.12文件，把路径改为相对路径<br />
+5.删除\_internal\PyQt6\Qt6\bin目录下的名为MSVCP140.dll的多余dll(只删名字叫这一个的，别多删了)
