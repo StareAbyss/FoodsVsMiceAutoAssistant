@@ -6,23 +6,38 @@ from math import floor
 
 import cv2.dnn
 import numpy as np
-import onnxruntime as ort
+import onnxruntime
 
 from function.globals.get_paths import PATHS
-from function.globals.log import CUS_LOGGER
+
+
 def initialize_session(is_gpu):
     onnx_model = PATHS["model"] + "/mouseV2.onnx"
     providers = [
         'DmlExecutionProvider',
         'CPUExecutionProvider'
     ] if is_gpu else ['CPUExecutionProvider']
-    session = ort.InferenceSession(onnx_model, providers=providers)
+    session = onnxruntime.InferenceSession(onnx_model, providers=providers)
     return session
+
+
 '''
 注意：如果你推理自己的模型，以下类别需要改成你自己的具体类别
 '''
 # 老许类别
-CLASSES = {0: 'shell', 1: 'flypig', 2: 'pope', 3: 'Vali', 4: 'wave', 5: 'GodWind', 6: 'skull',7: 'snowstorm',8:'obstacle',9:'boss165',10:'icetype'}
+CLASSES = {
+    0: 'shell',
+    1: 'flypig',
+    2: 'pope',
+    3: 'Vali',
+    4: 'wave',
+    5: 'GodWind',
+    6: 'skull',
+    7: 'snowstorm',
+    8: 'obstacle',
+    9: 'boss165',
+    10: 'icetype'}
+
 # 对应6种特殊老鼠与波次 v2版本新增障碍、暴风雪、魔塔165层boss需炸技能、冰块识别
 colors = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 
@@ -47,7 +62,7 @@ def draw_bounding_box(img, class_id, confidence, x, y, x_plus_w, y_plus_h):
     cv2.putText(img, label, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
 
-def get_mouse_position(input_image,is_log,session):
+def get_mouse_position(input_image, is_log, session):
     """
     :param input_image:
     :return:
@@ -97,16 +112,17 @@ def get_mouse_position(input_image,is_log,session):
     # 从NMS结果中提取过滤后的boxes和class_ids
     filtered_boxes = [list(np.array(boxes[i]) * scale) for i in result_boxes]
     filtered_class_ids = [class_ids[i] for i in result_boxes]  # 非极大值抑制过后产生的框和类别
-    test_mode = False#打开就能看见小框框看效果
+    test_mode = False  #打开就能看见小框框看效果
     if test_mode:
         annotated_image = original_image.copy()
         for i in range(len(result_boxes)):
             index = result_boxes[i]
             box = boxes[index]
-            draw_bounding_box(annotated_image, class_ids[index], scores[index], round(box[0] * scale), round(box[1] * scale),
-                                  round((box[0] + box[2]) * scale), round((box[1] + box[3]) * scale))
-        annotated_image=cv2.resize(annotated_image, (960,540))
-        cv_show('test',annotated_image)
+            draw_bounding_box(annotated_image, class_ids[index], scores[index], round(box[0] * scale),
+                              round(box[1] * scale),
+                              round((box[0] + box[2]) * scale), round((box[1] + box[3]) * scale))
+        annotated_image = cv2.resize(annotated_image, (960, 540))
+        cv_show('test', annotated_image)
     need_write = is_log  # 是否保存图片及对应标签
     if need_write or len(result_boxes) > 0:
         cv_write(original_image, result_boxes, class_ids, boxes, scale)
@@ -124,7 +140,7 @@ def cv_write(original_image, result_boxes, class_ids, boxes, scale):
     output_img_path = f"{output_base_path}/images/{timestamp}_{rand_num}.png"
     output_txt = f"{output_base_path}/labels/{timestamp}_{rand_num}.txt"
     cv2.imwrite(output_img_path, original_image)
-    if len(result_boxes)>0:
+    if len(result_boxes) > 0:
         with open(output_txt, 'a') as f:
             for i in range(len(result_boxes)):
                 index = result_boxes[i]
@@ -164,8 +180,8 @@ if __name__ == '__main__':
     print(cv2.__version__)
     args = parser.parse_args()
     original_image: np.ndarray = cv2.imread(args.img)
-    session1=initialize_session(True)
-    session2=initialize_session(False)
+    session1 = initialize_session(True)
+    session2 = initialize_session(False)
     gpu_times = []
     cpu_times = []
 

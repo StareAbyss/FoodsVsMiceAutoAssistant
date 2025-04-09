@@ -35,11 +35,12 @@ def get_machine_code():
         disk = c.Win32_DiskDrive()
         if disk and disk[0].SerialNumber and disk[0].SerialNumber.strip():
             return disk[0].SerialNumber.strip()
-        
+
     except Exception as e:
         print(f"[ERROR] 获取机器码失败: {e}")
 
     return None  # 没有可用的机器码
+
 
 # 测试代码
 print(get_machine_code())

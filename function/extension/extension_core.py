@@ -1,23 +1,34 @@
+import json
+import os
+import threading
+import time
 from ctypes import windll, byref, c_ubyte
 from ctypes.wintypes import RECT, HWND
-import win32con, win32gui, win32api
+from time import sleep
+from typing import Union
+
 import cv2
-from numpy import uint8, frombuffer
 import numpy as np
-import os
+import win32api
+import win32con
+import win32gui
+from PyQt6.QtCore import QObject, pyqtSignal
+from numpy import uint8, frombuffer
 
 
-def _input_str(handle,input:str,interval_time=0.05):
+def _input_str(handle, input: str, interval_time=0.05):
     """向窗口中输入字符串"""
     for ch in input:
         win32gui.PostMessage(handle, win32con.WM_CHAR, ord(ch), 0)
         sleep(0.05)
 
 
+"""
+新版点击函数集成
+"""
 
 
-# ---------------------- 新版点击函数集成 ----------------------
-def do_left_mouse_click( handle, x, y):
+def extension_do_left_mouse_click(handle, x, y):
     """执行动作函数 子函数"""
     x = int(x)
     y = int(y)
@@ -27,16 +38,19 @@ def do_left_mouse_click( handle, x, y):
     win32api.PostMessage(handle, win32con.WM_LBUTTONUP, 0, point)
 
 
-def do_left_mouse_move_to( handle, x, y):
+def extension_do_left_mouse_move_to(handle, x, y):
     """执行动作函数 子函数"""
-    x = int(x )
-    y = int(y )
+    x = int(x)
+    y = int(y)
     windll.user32.PostMessageW(handle, 0x0200, 0, y << 16 | x)
 
 
+"""
+坐标转换增强函数
+"""
 
-# ---------------------- 坐标转换增强函数 ----------------------
-def get_scaling_factor():
+
+def extension_get_scaling_factor():
     """获取窗口缩放比例（处理高DPI）"""
     hdc = windll.user32.GetDC(0)
     # 获取屏幕的水平DPI
@@ -45,15 +59,20 @@ def get_scaling_factor():
     return my_dpi / 96.0
 
 
-# ---------------------- 窗口操作函数 ----------------------
-def get_window_handle(name):
+"""
+窗口操作函数
+"""
+
+
+def extension_get_window_handle(name):
     """增强版窗口查找函数"""
-    source_root_handle = win32gui.FindWindow(None,name)
+    source_root_handle = win32gui.FindWindow(None, name)
     if source_root_handle == 0:
         # 尝试枚举窗口
         def callback(source_root_handle, extra):
             if win32gui.GetWindowText(source_root_handle) == name:
                 extra.append(source_root_handle)
+
         handles = []
         win32gui.EnumWindows(callback, source_root_handle)
         if handles:
@@ -61,16 +80,21 @@ def get_window_handle(name):
         print(f"未找到标题为 '{name}' 的窗口")
         raise Exception(f"未找到标题为 '{name}' 的窗口")
     handle = win32gui.FindWindowEx(source_root_handle, None, "TabContentWnd", "")
-    handle = win32gui.FindWindowEx(handle, None, "CefBrowserWindow", "")      
-    handle = win32gui.FindWindowEx(handle, None, "Chrome_WidgetWin_0", "")  
-    handle = win32gui.FindWindowEx(handle, None, "WrapperNativeWindowClass", "")  
-    handle = win32gui.FindWindowEx(handle, None, "NativeWindowClass", "") 
+    handle = win32gui.FindWindowEx(handle, None, "CefBrowserWindow", "")
+    handle = win32gui.FindWindowEx(handle, None, "Chrome_WidgetWin_0", "")
+    handle = win32gui.FindWindowEx(handle, None, "WrapperNativeWindowClass", "")
+    handle = win32gui.FindWindowEx(handle, None, "NativeWindowClass", "")
     if not handle:
-        handle=source_root_handle
-    return source_root_handle,handle
+        handle = source_root_handle
+    return source_root_handle, handle
 
-# ---------------------- 截图函数（保持原样）----------------------
-def capture_image_png_once(handle: HWND):
+
+"""
+截图和识图函数, 进行了一些魔改
+"""
+
+
+def extension_capture_image_png_once(handle: HWND):
     # 获取窗口客户区的大小
     r = RECT()
     windll.user32.GetClientRect(handle, byref(r))  # 获取指定窗口句柄的客户区大小
@@ -101,12 +125,10 @@ def capture_image_png_once(handle: HWND):
     # 将缓冲区数据转换为numpy数组，并重塑为图像的形状 (高度,宽度,[B G R A四通道])
     image = frombuffer(buffer, dtype=uint8).reshape(height, width, 4)
     # return cv2.cvtColor(image, cv2.COLOR_RGBA2RGB) # 这里比起FAA原版有一点修改，在返回前先做了图像处理
-    return image # 原版
+    return image  # 原版
 
 
-    
-
-def restore_window_if_minimized(handle) -> bool:
+def extension_restore_window_if_minimized(handle) -> bool:
     """
     :param handle: 类名为DUIWindow句柄
     :return: 如果是最小化, 并恢复至激活窗口的底层, 则返回True, 否则返回False.
@@ -119,12 +141,12 @@ def restore_window_if_minimized(handle) -> bool:
 
         # 将窗口置于Z序的底部，但不改变活动状态
         win32gui.SetWindowPos(handle, win32con.HWND_BOTTOM, 0, 0, 0, 0,
-                            win32con.SWP_NOMOVE | win32con.SWP_NOSIZE | win32con.SWP_NOACTIVATE)
+                              win32con.SWP_NOMOVE | win32con.SWP_NOSIZE | win32con.SWP_NOACTIVATE)
         return True
     return False
 
 
-def apply_dpi_scaling(x,y,scale_factor=1.0):
+def extension_apply_dpi_scaling(x, y, scale_factor=1.0):
     """
     对坐标应用 DPI 缩放，并返回缩放后的坐标。
 
@@ -139,13 +161,10 @@ def apply_dpi_scaling(x,y,scale_factor=1.0):
 
     scaled_x = int(x * scale_factor)
     scaled_y = int(y * scale_factor)
-    return scaled_x,scaled_y
+    return scaled_x, scaled_y
 
 
-
-
-
-def png_cropping(image, raw_range: list = None):
+def extension_png_cropping(image, raw_range: list = None):
     """
     裁剪图像
     :param image:
@@ -157,8 +176,7 @@ def png_cropping(image, raw_range: list = None):
     return image[raw_range[1]:raw_range[3], raw_range[0]:raw_range[2], :]
 
 
-
-def is_mostly_black(image, sample_points=9):
+def extension_is_mostly_black(image, sample_points=9):
     """
     检查图像是否主要是黑色, 通过抽样像素来判断, 能减少占用.
     :param image: NumPy数组表示的图像.
@@ -192,8 +210,7 @@ def is_mostly_black(image, sample_points=9):
     return True
 
 
-
-def capture_image_png(handle: HWND, raw_range: list, root_handle: HWND = None):
+def extension_capture_image_png(handle: HWND, raw_range: list, root_handle: HWND = None):
     """
     窗口客户区截图
     Args:
@@ -206,28 +223,28 @@ def capture_image_png(handle: HWND, raw_range: list, root_handle: HWND = None):
     """
 
     # 尝试截图一次
-    image = capture_image_png_once(handle=handle)
+    image = extension_capture_image_png_once(handle=handle)
 
     # image == [], 句柄错误, 返回一个对应大小的全0图像
     if image is None:
         return np.zeros((raw_range[3] - raw_range[1], raw_range[2] - raw_range[0], 3), dtype=np.uint8)
 
     # 检查是否为全黑 如果全0 大概率是最小化了
-    if is_mostly_black(image=image, sample_points=9):
+    if extension_is_mostly_black(image=image, sample_points=9):
         # 检查窗口是否最小化
         if root_handle:
             # 尝试恢复至激活窗口的底层
-            if restore_window_if_minimized(handle=root_handle):
+            if extension_restore_window_if_minimized(handle=root_handle):
                 # 如果恢复成功, 再次尝试截图一次
-                image = capture_image_png_once(handle=handle)
+                image = extension_capture_image_png_once(handle=handle)
 
     # 裁剪图像到指定区域
-    image = png_cropping(image=image, raw_range=raw_range)
+    image = extension_png_cropping(image=image, raw_range=raw_range)
 
     return image
 
 
-def mask_transform_color_to_black(mask, quick_method=True) -> np.ndarray:
+def extension_mask_transform_color_to_black(mask, quick_method=True) -> np.ndarray:
     """
     将掩模板处理 把非白色都变黑色 三通道->单通道
     如果使用quick_method 将直接取 第一个颜色通道, 这要求使用的手动掩模为 的前三通道是黑白的(每个像素的BGR值都相等)
@@ -243,8 +260,8 @@ def mask_transform_color_to_black(mask, quick_method=True) -> np.ndarray:
     return mask[:, :, 0]
 
 
-
-def match_template_with_optional_mask(source, template, mask=None, quick_method=True, test_show=False) -> np.ndarray:
+def extension_match_template_with_optional_mask(source, template, mask=None, quick_method=True,
+                                                test_show=False) -> np.ndarray:
     """
     使用可选掩模进行模板匹配-从源图搜索模板, 步骤如下.
     1. 生成 mask_from_template 将根据template图像是否存在Alpha通道, 取颜色为纯白的部分作为掩模纯白, 其他色均为黑.
@@ -310,7 +327,7 @@ def match_template_with_optional_mask(source, template, mask=None, quick_method=
             # 有三个通道 RGB的掩模 直接覆盖识别template的透明度得到的mask
 
             # 处理彩色为黑白 (三通道->单通道, 非白色均视为黑色)
-            mask = mask_transform_color_to_black(mask=mask, quick_method=quick_method)
+            mask = extension_mask_transform_color_to_black(mask=mask, quick_method=quick_method)
 
         else:
             # 有四个通道 RGBA的掩模
@@ -321,7 +338,7 @@ def match_template_with_optional_mask(source, template, mask=None, quick_method=
             _, mask_alpha_channel = cv2.threshold(mask_alpha_channel, 254, 255, cv2.THRESH_BINARY)
 
             # 去除Alpha通道 处理彩色为黑白 (三通道->单通道, 非白色均视为黑色)
-            mask = mask_transform_color_to_black(mask=mask[:, :, :3], quick_method=quick_method)
+            mask = extension_mask_transform_color_to_black(mask=mask[:, :, :3], quick_method=quick_method)
 
             # 根据mask保留的阿尔法通道, 在其透明的区域, 取mask_from_template的对应区域进行合并
             mask[mask_alpha_channel != 255] = mask_from_template[mask_alpha_channel != 255]
@@ -346,14 +363,7 @@ def match_template_with_optional_mask(source, template, mask=None, quick_method=
         return result
 
 
-
-
-
-
-
-from typing import Union
-
-def match_p_in_w(
+def extension_match_p_in_w(
         template,
         source_handle=None,
         source_root_handle=None,
@@ -388,14 +398,15 @@ def match_p_in_w(
 
     # 截取原始图像(windows窗口) 否则读取窗口截图
     if source_img is None:
-        source_img = capture_image_png(handle=source_handle, raw_range=source_range, root_handle=source_root_handle)
+        source_img = extension_capture_image_png(handle=source_handle, raw_range=source_range,
+                                                 root_handle=source_root_handle)
     else:
-        source_img = png_cropping(image=source_img, raw_range=source_range)
+        source_img = extension_png_cropping(image=source_img, raw_range=source_range)
     # 若为BGRA -> BGR
     source_img = source_img[:, :, :3]
     # cv2.imshow('a',source_img)
     # cv2.waitKey(0)
-    
+
     # 根据 路径 或者 numpy.array 选择是否读取
     if type(template) is not np.ndarray:
         # 未规定输出名称
@@ -407,7 +418,7 @@ def match_p_in_w(
     # print(f"即将识图, size_source{source_img.shape},size_template：{template.shape}")
 
     # 自定义的复杂模板匹配
-    result = match_template_with_optional_mask(source=source_img, template=template, mask=mask)
+    result = extension_match_template_with_optional_mask(source=source_img, template=template, mask=mask)
     (minVal, maxVal, minLoc, maxLoc) = cv2.minMaxLoc(src=result)
 
     # 如果匹配度<阈值，就认为没有找到
@@ -438,11 +449,11 @@ def match_p_in_w(
         # 在图像上绘制边框
         cv2.rectangle(img=source_img, pt1=(start_x, start_y), pt2=(end_x, end_y), color=(0, 0, 255), thickness=1)
         # 绘制边框中心点
-        cv2.circle(source_img, center_point, 2, (0,0,255), -1)
+        cv2.circle(source_img, center_point, 2, (0, 0, 255), -1)
         # # 显示输出图像
         # cv2.imshow(winname="SourceImg.png", mat=source_img)
         # cv2.waitKey(0)
-        return [center_point[0],center_point[1],source_img]
+        return [center_point[0], center_point[1], source_img]
     return center_point
 
     # 弃用，全改为中心点，偏移让用户自己算
@@ -451,9 +462,8 @@ def match_p_in_w(
     # else:
     #     return [start_x, start_y]
 
-import time
 
-def loop_match_p_in_w(
+def extension_loop_match_p_in_w(
         source_handle,
         source_range: list,
         template,
@@ -470,10 +480,9 @@ def loop_match_p_in_w(
         offset_enabled=False,
         offset_x=0,
         offset_y=0,
-        
         event_stop=None,
         test=False,
-        point=[-1,-1]
+        point=[-1, -1]
 ) -> bool:
     """
     根据句柄截图, 并在截图中寻找一个较小的图片资源.
@@ -501,7 +510,7 @@ def loop_match_p_in_w(
     while True:
         if event_stop and event_stop.is_set():
             return
-        find_target = match_p_in_w(
+        find_target = extension_match_p_in_w(
             source_handle=source_handle,
             source_range=source_range,
             template=template,
@@ -510,7 +519,7 @@ def loop_match_p_in_w(
             source_root_handle=source_root_handle,
             test_show=test,
             test_print=test,
-            )
+        )
         if find_target:
             break
         else:
@@ -524,24 +533,23 @@ def loop_match_p_in_w(
     if not click:
         time.sleep(after_sleep)
         return True
-    x=find_target[0] + source_range[0]
-    y=find_target[1] + source_range[1]
-    point[0]=x
-    point[1]=y
+    x = find_target[0] + source_range[0]
+    y = find_target[1] + source_range[1]
+    point[0] = x
+    point[1] = y
     if offset_enabled:
-        x+=offset_x
-        y+=offset_y
-    
+        x += offset_x
+        y += offset_y
+
     if test:
         # # 显示输出图像
         # 绘制偏移后的点
-        cv2.circle(find_target[2], (x,y), 2, (0,0,255), -1)
-        
+        cv2.circle(find_target[2], (x, y), 2, (0, 0, 255), -1)
+
         cv2.imshow(winname="SourceImg.png", mat=find_target[2])
         cv2.waitKey(0)
-        
-    
-    do_left_mouse_click(source_handle,x,y)
+
+    extension_do_left_mouse_click(source_handle, x, y)
 
     if after_click_template is None:
         # 不需要检查是否切换到另一个界面
@@ -549,7 +557,7 @@ def loop_match_p_in_w(
         return True
 
     while True:
-        find_after_target = match_p_in_w(
+        find_after_target = extension_match_p_in_w(
             source_handle=source_handle,
             source_range=source_range,
             template=after_click_template,
@@ -569,36 +577,33 @@ def loop_match_p_in_w(
     time.sleep(after_sleep)
     return True
 
-import json
-from time import sleep
-def load_config(config_path):
-    """读取JSON配置文件"""
-    with open(config_path, "r", encoding="utf-8") as f:
-        return json.load(f)
-    
-def execute(window_name, configs_path,need_test=False,event_stop=None):
+
+def execute(window_name, configs_path, need_test=False, event_stop=None):
     """执行自动化脚本流程"""
-    source_root_handle,handle=get_window_handle(window_name)
+    source_root_handle, handle = extension_get_window_handle(window_name)
     if not handle:
         # print("获取窗口句柄失败，请检查窗口名是否设置正确")
         return
-    configs=load_config(configs_path)
+
+    with open(configs_path, "r", encoding="utf-8") as f:
+        configs = json.load(f)
+
     for step_config in configs:
         # 获取当前步骤配置参数
         # 执行匹配点击操作
         if event_stop and event_stop.is_set():
             return
-        after_click_template=None
-        
+        after_click_template = None
+
         # 点击后校验，暂时弃用
         # if step_config["check_enabled"]:
         #     after_click_template=step_config["template_path"]
-        
+
         if not os.path.exists(step_config["template_path"]):
             print(f"图片【{step_config["template_path"]}】不存在，请检查图片路径")
             return
-        point=[-1,-1]
-        result=loop_match_p_in_w(
+        point = [-1, -1]
+        result = extension_loop_match_p_in_w(
             source_handle=handle,
             source_root_handle=source_root_handle,
             match_tolerance=step_config["tolerance"],
@@ -607,7 +612,7 @@ def execute(window_name, configs_path,need_test=False,event_stop=None):
             match_failed_check=step_config["timeout"],
             source_range=step_config["source_range"],
             after_click_template=after_click_template,
-            after_sleep = step_config["after_sleep"],
+            after_sleep=step_config["after_sleep"],
             offset_enabled=step_config["check_offset_enabled"],
             offset_x=step_config["offset_x"],
             offset_y=step_config["offset_y"],
@@ -616,40 +621,36 @@ def execute(window_name, configs_path,need_test=False,event_stop=None):
             test=need_test,
             point=point
         )
-        x=point[0]
-        y=point[1]
+        x = point[0]
+        y = point[1]
         if result:
             print(f"识别图片【{step_config['template_path']}】成功")
         else:
             print(f"识别图片【{step_config['template_path']}】失败")
-        
-        # 点击后输入内容
-        _input_str(handle,step_config["click_input"])
 
-        def click(x,y,test=False):
+        # 点击后输入内容
+        _input_str(handle, step_config["click_input"])
+
+        def click(x, y, test=False):
             """给用户插入代码时用的点击函数"""
             if test:
-                point = (x,y)
-                source_img = capture_image_png_once(handle)
-                cv2.circle(source_img, point, 5, (0,0,255), -1)
-                cv2.imshow("result",source_img)
+                point = (x, y)
+                source_img = extension_capture_image_png_once(handle)
+                cv2.circle(source_img, point, 5, (0, 0, 255), -1)
+                cv2.imshow("result", source_img)
                 cv2.waitKey(0)
-            do_left_mouse_click(handle, x, y)
-                
-        
-        def input_str(string:str):
+            extension_do_left_mouse_click(handle, x, y)
+
+        def input_str(string: str):
             """给用户插入代码时用的输入函数"""
-            _input_str(handle,string)
-        
+            _input_str(handle, string)
+
         # 最后运行代码
         if step_config["check_run_code"]:
             exec(step_config["code"])
-        
 
-import threading
-from PyQt6.QtCore import QObject, pyqtSignal
 
-class ExecuteThread(threading.Thread,QObject):
+class ExecuteThread(threading.Thread, QObject):
     """
     用于执行脚本的线程类，执行完成后会弹出提示框，使用多线程是为了保证ui窗口不被阻塞。
     
@@ -665,61 +666,50 @@ class ExecuteThread(threading.Thread,QObject):
     # PyQt 的元类无法在类定义阶段捕获和处理这些信号。
     # 最终生成的信号对象只是一个普通的 pyqtSignal 包装器，不具备 connect 或 emit 功能。
     message_signal = pyqtSignal(str, str)
-    def __init__(self,window_name, configs_path,loop_times,need_test=False):
+
+    def __init__(self, window_name, configs_path, loop_times, need_test=False):
         # 显式调用所有父类构造函数
         QObject.__init__(self)
         threading.Thread.__init__(self)
-        self.window_name=window_name
-        self.configs_path=configs_path
-        self.loop_times=loop_times
-        self.need_test=need_test
-        self._event_stop=threading.Event() #标志位，用来安全中断线程
-        
-    def run(self):
-        start_time=time.time()
-        for i in range(self.loop_times):
-            if self._event_stop.is_set(): # 安全退出
-                self.message_signal.emit("失败", "脚本执行已被中断")
-                return  
-            print(f"第{i+1}次执行中")
-            execute(self.window_name, self.configs_path,self.need_test,self._event_stop)
-        self.message_signal.emit("成功", "脚本执行已完成")
-        end_time=time.time()
-        print(f"执行完毕，共花费 {end_time-start_time} 秒")
+        self.window_name = window_name
+        self.configs_path = configs_path
+        self.loop_times = loop_times
+        self.need_test = need_test
+        self._event_stop = threading.Event()  #标志位，用来安全中断线程
 
-    
+    def run(self):
+        start_time = time.time()
+        for i in range(self.loop_times):
+            if self._event_stop.is_set():  # 安全退出
+                self.message_signal.emit("失败", "脚本执行已被中断")
+                return
+            print(f"第{i + 1}次执行中")
+            execute(self.window_name, self.configs_path, self.need_test, self._event_stop)
+        self.message_signal.emit("成功", "脚本执行已完成")
+        end_time = time.time()
+        print(f"执行完毕，共花费 {end_time - start_time} 秒")
+
     def stop(self):
         """安全停止线程"""
         self._event_stop.set()
-        
-        
 
 
-
-
-
-# 测试识图效果
-def test():
-    # 获取窗口信息
-    source_root_handle,handle=get_window_handle("美食大战老鼠")
-    result=loop_match_p_in_w(
-        source_handle=handle,
-        source_range=[0, 0, 2000, 2000],
-        template='2.png', # 目标图片，即需要点击的区域
-        
-        match_tolerance=0.95,
-        match_interval=0.5,
-        match_failed_check=5,
-        after_sleep=5,
-        click=True)
-    print(result)
-
-    
-# # ---------------------- 主程序 ----------------------
 if __name__ == "__main__":
-    code_str="""
+    # 测试识图效果
+    def test():
+        # 获取窗口信息
+        source_root_handle, handle = extension_get_window_handle("美食大战老鼠")
+        result = extension_loop_match_p_in_w(
+            source_handle=handle,
+            source_range=[0, 0, 2000, 2000],
+            template='2.png',  # 目标图片，即需要点击的区域
 
-execute("美食大战老鼠",'点击qq头像.json',need_test=True)
+            match_tolerance=0.95,
+            match_interval=0.5,
+            match_failed_check=5,
+            after_sleep=5,
+            click=True)
+        print(result)
 
-    """
+    code_str = """execute("美食大战老鼠",'点击qq头像.json',need_test=True)"""
     exec(code_str)
