@@ -2,7 +2,6 @@ altgraph==0.17.4
 certifi==2024.7.4
 charset-normalizer==3.3.2
 colorama==0.4.6
-coloredlogs==15.0.1
 colorlog==6.8.2
 dacite==1.9.1
 et_xmlfile==2.0.0

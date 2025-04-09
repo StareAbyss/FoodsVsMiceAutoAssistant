@@ -12,7 +12,7 @@ from function.yolo import onnxdetect
 # 生产者函数
 def producer(time_num, handle, read_queue, is_log, is_gpu):
     try:
-        session=onnxdetect.initialize_session(is_gpu)
+        session = onnxdetect.initialize_session(is_gpu)
         while True:
             # 获取图像并进行目标检测
             result = onnxdetect.get_mouse_position(
@@ -29,7 +29,8 @@ def producer(time_num, handle, read_queue, is_log, is_gpu):
                 wave, godwind, positions = information
                 # 遍历所有检测到的目标
                 CUS_LOGGER.debug(f"待解析信息为{result} ")
-                CUS_LOGGER.debug(f"识图信息为是否检测到波次 {wave} 是否检测到波神风 {godwind},剩下待炸点位 {positions} ")
+                CUS_LOGGER.debug(
+                    f"识图信息为是否检测到波次 {wave} 是否检测到波神风 {godwind},剩下待炸点位 {positions} ")
 
             # 暂停一段时间
             time.sleep(time_num)

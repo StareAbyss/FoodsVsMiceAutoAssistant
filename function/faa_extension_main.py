@@ -2,7 +2,7 @@
 
 import multiprocessing
 
-from function.core.qmw_3_service import faa_start_main
+from function.extension.extension_ui import faa_extension_start_main
 
 if __name__ == '__main__':
     # 游戏[固定]分辨率 950* 600 19:12 完全可以在识别图像时提前裁剪来减小消耗
@@ -12,5 +12,4 @@ if __name__ == '__main__':
     multiprocessing.freeze_support()
 
     # 全部启动
-    faa_start_main()
-
+    faa_extension_start_main()

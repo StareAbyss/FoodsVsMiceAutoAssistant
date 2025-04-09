@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['I:\\MyCode\\FoodsVsMiceAutoAssistant\\function\\faa_main.py'],
+    ['F:\\My Project\\Python\\FoodsVsMousesAutoAssistant\\function\\faa_main.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -32,7 +32,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['I:\\MyCode\\FoodsVsMiceAutoAssistant\\resource\\logo\\圆角-FetDeathWing-256x-AllSize.ico'],
+    icon=['F:\\My Project\\Python\\FoodsVsMousesAutoAssistant\\resource\\logo\\圆角-FetDeathWing-256x-AllSize.ico'],
 )
 coll = COLLECT(
     exe,
