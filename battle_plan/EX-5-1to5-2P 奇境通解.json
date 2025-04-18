@@ -1,7 +1,7 @@
 {
     "meta_data": {
         "uuid": "784d056e-4175-11ef-a250-f44efc5bf671",
-        "tips": "硬解方案, 支持从奇境EX-5-1 到 EX-5-5",
+        "tips": "硬解方案, 支持从奇境EX-5-1 到 EX-5-6",
         "player_position": [
             "5-7",
             "6-7"
@@ -54,15 +54,12 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 9,
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "7-7",
-                            "7-1",
                             "1-4",
                             "1-3",
                             "1-5",
@@ -150,7 +147,8 @@
                             "6-2",
                             "6-6",
                             "6-3",
-                            "6-5"
+                            "6-5",
+                            "6-7"
                         ],
                         "kun": 0
                     },
@@ -169,7 +167,7 @@
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "2-3"
+                            "7-1"
                         ],
                         "kun": 0
                     },
@@ -204,7 +202,8 @@
                         ],
                         "kun": 1
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]
