@@ -1318,45 +1318,53 @@ class ThreadTodo(QThread):
             return True
 
         def goto_stage(need_goto_stage, need_change_card):
+            """
+            :param need_goto_stage:
+            :param need_change_card:
+            :return: result_id, need_change_card, need_goto_stage
+            """
             # 初始
             result_id = 0
 
-            if not is_cu:
-                # 非自建房
-                if not is_mt:
-                    # 非魔塔
-                    if need_goto_stage:
-                        if not is_group:
-                            # 单人前往副本
-                            faa_a.action_goto_stage()
-                        else:
-                            # 多人前往副本
-                            result_id = self.goto_stage_and_invite(
-                                stage_id=stage_id,
-                                mt_first_time=False,
-                                player_a=pid_a,
-                                player_b=pid_b
-                            )
-                else:
-                    # 魔塔
+            # 自建房 直接返回
+            if is_cu:
+                return result_id, need_change_card, need_goto_stage
+
+            # 非自建房
+            if not is_mt:
+                # 非魔塔
+                if need_goto_stage:
                     if not is_group:
                         # 单人前往副本
-                        faa_a.action_goto_stage(
-                            mt_first_time=need_goto_stage)  # 第一次使用 mt_first_time, 之后则不用
+                        faa_a.action_goto_stage()
                     else:
                         # 多人前往副本
                         result_id = self.goto_stage_and_invite(
                             stage_id=stage_id,
-                            mt_first_time=need_goto_stage,
+                            mt_first_time=False,
                             player_a=pid_a,
                             player_b=pid_b
                         )
+            else:
+                # 魔塔
+                if not is_group:
+                    # 单人前往副本
+                    faa_a.action_goto_stage(
+                        mt_first_time=need_goto_stage)  # 第一次使用 mt_first_time, 之后则不用
+                else:
+                    # 多人前往副本
+                    result_id = self.goto_stage_and_invite(
+                        stage_id=stage_id,
+                        mt_first_time=need_goto_stage,
+                        player_a=pid_a,
+                        player_b=pid_b
+                    )
 
-                    need_change_card = True  # 魔塔显然需要重新选卡组
+                need_change_card = True  # 魔塔显然需要重新选卡组
 
-                need_goto_stage = False  # 进入后Flag变化
+            need_goto_stage = False  # 进入后Flag变化
 
-                return result_id, need_change_card, need_goto_stage
+            return result_id, need_change_card, need_goto_stage
 
         def multi_round_battle():
 

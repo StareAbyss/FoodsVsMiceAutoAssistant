@@ -161,7 +161,8 @@ class FAABase:
         模式标识: 用于上传到米苏物流等用途.
         战斗标识: 默认复制自模式标识, 如果为自建房, 则来自用户的输入, 之后还会被关卡名称的OCR做二次修正.
         """
-        if self.stage_info["id"] not in EXTRA.TRUE_STAGE_ID:
+
+        if self.stage_info["id"] not in EXTRA.TRUE_STAGE_ID and self.stage_info["id"] != "CU-0-0":
             return False
         if self.stage_info["b_id"] not in EXTRA.TRUE_STAGE_ID:
             return False
