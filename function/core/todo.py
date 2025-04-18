@@ -1224,7 +1224,7 @@ class ThreadTodo(QThread):
         # 是否采用 全局方案配置
         def get_stage_plan_by_id():
             """
-            获取stage_plan
+            获取关卡的指定方案 -> 使用全局方案 -> 使用兜底方案
             """
 
             try:
@@ -1235,9 +1235,11 @@ class ThreadTodo(QThread):
                 stage_plan = {}
 
             plan = stage_plan.get(stage_id, None)
+
             if not plan:
                 # 2.1.0-beta.2+ 包含全局方案的情况
                 plan = stage_plan.get("global", None)
+
             if not plan:
                 # 2.1.0-beta.1- 不包含全局方案的情况.
                 plan = {
@@ -1247,6 +1249,7 @@ class ThreadTodo(QThread):
                     "battle_plan": [
                         "00000000-0000-0000-0000-000000000000",
                         "00000000-0000-0000-0000-000000000001"]}
+
             return plan
 
         if global_plan_active:
@@ -2901,41 +2904,39 @@ class ThreadTodo(QThread):
 
         """完成FAA的任务列表后，开始执行插件脚本"""
         name_1p = self.opt["base_settings"]["name_1p"]
-        if name_1p=='':
-            name_1p=self.opt['base_settings']['game_name']
+        if name_1p == '':
+            name_1p = self.opt['base_settings']['game_name']
         else:
-            name_1p=name_1p + ' | ' +  self.opt['base_settings']['game_name']
+            name_1p = name_1p + ' | ' + self.opt['base_settings']['game_name']
 
         name_2p = self.opt["base_settings"]["name_2p"]
         if name_2p == '':
             name_2p = self.opt['base_settings']['game_name']
         else:
-            name_2p = name_2p + ' | ' +  self.opt['base_settings']['game_name']
+            name_2p = name_2p + ' | ' + self.opt['base_settings']['game_name']
 
-        scripts=self.opt["extension"]["scripts"]
+        scripts = self.opt["extension"]["scripts"]
         # 这块本来就是多线程执行的，所以不需要再用线程，不会阻塞FAA的
         for script in scripts:
             SIGNAL.PRINT_TO_UI.emit(text=f"开始执行插件脚本 {script['name']}: {script['path']}", color_level=2)
-            player=script['player']
-            
-            
-            if player==1:
+            player = script['player']
+
+            if player == 1:
                 for _ in range(script['repeat']):
-                    execute(name_1p,script['path'])
-            elif player==2:
+                    execute(name_1p, script['path'])
+            elif player == 2:
                 for _ in range(script['repeat']):
-                    execute(name_2p,script['path'])
-            elif player==3:
+                    execute(name_2p, script['path'])
+            elif player == 3:
                 for _ in range(script['repeat']):
-                    execute(name_1p,script['path'])
+                    execute(name_1p, script['path'])
                 for _ in range(script['repeat']):
-                    execute(name_2p,script['path'])
-                    
+                    execute(name_2p, script['path'])
+
             SIGNAL.PRINT_TO_UI.emit(text=f"插件脚本 {script['name']}: {script['path']} 执行结束", color_level=2)
-            
+
         SIGNAL.PRINT_TO_UI.emit(text=f"所有插件脚本均已执行结束", color_level=1)
-        
-    
+
         """全部完成"""
 
         if main_task_active or extra_active:

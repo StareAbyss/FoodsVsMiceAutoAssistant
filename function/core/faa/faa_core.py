@@ -242,7 +242,7 @@ class FAABase:
         :param auto_carry_card: bool 是否激活自动带卡
         :param quest_card: str 自动携带任务卡的名称
         :param ban_card_list: list[str,...] ban卡列表
-        :param max_card_num: 最大卡片数 - 仅自动带卡时 会去除id更低的卡片, 保证完成任务要求.
+        :param max_card_num: 最大卡片数 - 仅自动带卡时启用 会去除id更低的卡片, 保证完成任务要求.
         :param battle_plan_uuid: 战斗方案的uuid
         :param stage_id: 关卡的id
         :return:

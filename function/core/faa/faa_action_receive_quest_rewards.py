@@ -164,7 +164,7 @@ class FAAActionReceiveQuestRewards:
 
         # 点两下右下角的领取
         for _ in range(2):
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=795, y=525)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=795, y=525)
             time.sleep(0.1)
 
         # 退出任务界面
