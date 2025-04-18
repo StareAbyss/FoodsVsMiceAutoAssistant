@@ -161,7 +161,8 @@ class FAABase:
         模式标识: 用于上传到米苏物流等用途.
         战斗标识: 默认复制自模式标识, 如果为自建房, 则来自用户的输入, 之后还会被关卡名称的OCR做二次修正.
         """
-        if self.stage_info["id"] not in EXTRA.TRUE_STAGE_ID:
+
+        if self.stage_info["id"] not in EXTRA.TRUE_STAGE_ID and self.stage_info["id"] != "CU-0-0":
             return False
         if self.stage_info["b_id"] not in EXTRA.TRUE_STAGE_ID:
             return False
@@ -176,11 +177,11 @@ class FAABase:
 
         if stage_0 == "CZ":
             # Chinese Zodiac 生肖关卡, 特殊关卡.
-            # 北京时间(注意时区) 周4567的 7点到7点半可以进入
+            # 北京时间(注意时区) 周4567的 晚上7点到7点半可以进入
             # 先不做星期检测, 只做时间段检测, 节假日比较迷惑
             beijing_tz = pytz.timezone('Asia/Shanghai')
             now = datetime.now(beijing_tz)
-            return now.hour == 7 and 0 <= now.minute < 30
+            return now.hour == 19 and 0 <= now.minute < 30
 
         return True
 
