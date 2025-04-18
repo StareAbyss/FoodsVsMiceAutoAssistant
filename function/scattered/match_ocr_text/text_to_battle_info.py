@@ -117,9 +117,11 @@ def food_texts_to_battle_info(texts, self) -> list:
             "max_card_num": max_card_num,
             "quest_card": quest_card,
             "ban_card_list": ban_card_list,
-            "deck": None,  # 外部输入 0-6
-            "battle_plan_1p": None,  # 外部输入
-            "battle_plan_2p": None,  # 外部输入
+            "global_plan_active": True, # 强制激活全局关卡方案
+            "deck": 0,  # 不生效 占位符
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",  # 不生效 占位符
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",  # 不生效 占位符
+            "quest_text": text,
         }
 
         if player == [self.player]:

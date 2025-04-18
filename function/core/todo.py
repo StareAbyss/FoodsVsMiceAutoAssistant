@@ -2068,7 +2068,7 @@ class ThreadTodo(QThread):
         # 战斗结束
         self.model_end_print(text=text_)
 
-    def auto_food(self, deck):
+    def auto_food(self):
 
         def a_round():
             """
@@ -2143,11 +2143,6 @@ class ThreadTodo(QThread):
 
                 SIGNAL.PRINT_TO_UI.emit(text=text, color_level=3)
 
-            for i in range(len(quest_list)):
-                quest_list[i]["global_plan_active"] = False
-                quest_list[i]["deck"] = deck
-                quest_list[i]["battle_plan_1p"] = "00000000-0000-0000-0000-000000000000"
-                quest_list[i]["battle_plan_2p"] = "00000000-0000-0000-0000-000000000001"
 
             if "单人" in player_text:
                 self.signal_start_todo_2_battle.emit({
@@ -2840,9 +2835,7 @@ class ThreadTodo(QThread):
 
         my_opt = c_opt["auto_food"]
         if my_opt["active"]:
-            self.auto_food(
-                deck=my_opt["deck"],
-            )
+            self.auto_food()
 
         my_opt = c_opt["loop_cross_server"]
         if my_opt["active"]:
