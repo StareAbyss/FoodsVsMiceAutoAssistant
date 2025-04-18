@@ -73,8 +73,10 @@ def loots_and_chests_detail_to_json(faa: "FAA", loots_dict, chests_dict) -> dict
     """
 
     file_path = "{}\\result_json\\{}P掉落明细.json".format(PATHS["logs"], faa.player)
-    # 注意 此处一定要使用内部一定正确的id! b_id可能是用户随笔输入的
+
+    # 注意 此处一定要使用内部一定正确的id字段! b_id字段可能是用户在自建房模式下, 随笔输入的
     stage_id = faa.stage_info["id"]
+
     new_data = {
         "version": EXTRA.VERSION,  # 版本号
         "timestamp": time.time(),  # 时间戳

@@ -4,7 +4,7 @@ from function.scattered.extract_names_and_ids_from_json import extract_names_and
 from function.scattered.read_json_to_stage_info import *
 
 
-def food_texts_to_battle_info(texts, self):
+def food_texts_to_battle_info(texts, self) -> list:
     """
     :param self:
     :param texts: 文本列表，每项代表文档中的一行。
