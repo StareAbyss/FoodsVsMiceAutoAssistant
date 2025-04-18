@@ -377,7 +377,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.LoopCrossServer_Group.setChecked(my_opt["loop_cross_server"]["is_group"])
 
         self.AutoFood_Active.setChecked(my_opt["auto_food"]["active"])
-        self.AutoFood_Deck.setCurrentIndex(my_opt["auto_food"]["deck"] - 1)
 
         # 自建房对战
         self.CustomizeBattle_Active.setChecked(my_opt["customize_battle"]["active"])
@@ -892,7 +891,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
         my_opt["loop_cross_server"]["is_group"] = self.LoopCrossServer_Group.isChecked()
 
         my_opt["auto_food"]["active"] = self.AutoFood_Active.isChecked()
-        my_opt["auto_food"]["deck"] = self.AutoFood_Deck.currentIndex() + 1
 
         # 自建房对战
         my_opt["customize_battle"]["active"] = self.CustomizeBattle_Active.isChecked()

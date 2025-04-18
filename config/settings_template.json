@@ -202,8 +202,7 @@
                 "stage": 1
             },
             "auto_food": {
-                "active": false,
-                "deck": 1
+                "active": false
             },
             "tce": {
                 "active": false,
@@ -371,8 +370,7 @@
                 "stage": 1
             },
             "auto_food": {
-                "active": true,
-                "deck": 1
+                "active": true
             },
             "tce": {
                 "active": false,
@@ -540,8 +538,7 @@
                 "stage": 1
             },
             "auto_food": {
-                "active": false,
-                "deck": 1
+                "active": false
             },
             "tce": {
                 "active": false,
@@ -709,8 +706,7 @@
                 "stage": 1
             },
             "auto_food": {
-                "active": true,
-                "deck": 1
+                "active": true
             },
             "tce": {
                 "active": false,
@@ -878,8 +874,7 @@
                 "stage": 1
             },
             "auto_food": {
-                "active": false,
-                "deck": 1
+                "active": false
             },
             "tce": {
                 "active": false,
@@ -1047,8 +1042,7 @@
                 "stage": 1
             },
             "auto_food": {
-                "active": false,
-                "deck": 1
+                "active": false
             },
             "tce": {
                 "active": false,
@@ -1216,8 +1210,7 @@
                 "stage": 1
             },
             "auto_food": {
-                "active": false,
-                "deck": 1
+                "active": false
             },
             "tce": {
                 "active": false,
