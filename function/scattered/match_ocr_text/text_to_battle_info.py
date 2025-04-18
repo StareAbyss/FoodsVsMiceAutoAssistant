@@ -10,27 +10,9 @@ def food_texts_to_battle_info(texts, self) -> list:
     :param texts: 文本列表，每项代表文档中的一行。
     :return: 两字典列表，一个包含单人任务，另一个包含多人任务。
     """
-    default_deck = [
-        "海星",
-        "产火",
-        "防空",
-        "护罩",
-        "对地",
-        "照明",
-        "布丁",
-        "苏打气泡",
-        "木盘子",
-        "咖啡粉",
-        "麦芽糖",
-        "冰激凌",
-        "幻幻鸡",
-        "创造神",
-        "魔法软糖"
-    ]
 
     name_stage_info = extract_names_and_ids_from_json()
-    single_player_quests = []
-    multi_player_quests = []
+    quests = []
 
     for text in texts:
         # 初始化变量
@@ -43,12 +25,15 @@ def food_texts_to_battle_info(texts, self) -> list:
 
         # 提取stage_id
         for key, value in name_stage_info.items():
+            # 例如 key 茴香竹筏-日 value NO-4-1
             if key in text:
+                # 游戏内文本和json完全对应
                 stage_id = value
                 break
             if '-' in key:
                 location, time = key.split('-')  # 地点-日/夜（水/陆）
-                if (location in text) and ((time in key) and (time in text)):
+                if (location in text)  and (time in text):
+                    # 游戏使用了 例如 茴香竹筏(日) 或 茴香竹筏（日） 也可以识别成功!
                     stage_id = value
                     break
 
@@ -76,31 +61,16 @@ def food_texts_to_battle_info(texts, self) -> list:
                 limit_type, limit_number = match.groups()
                 limit_number = int(limit_number)
 
-                # 移除已被禁用的卡片
-                for already_ban in ban_card_list:
-                    if already_ban in default_deck:
-                        default_deck.remove(already_ban)
-
-                # 根据地图要求重新排序卡组
-                mat_card_opt = read_json_to_stage_info(stage_id=stage_id)["mat_card"]
-
-                if "木盘子" in mat_card_opt:
-                    default_deck.remove("木盘子")
-                    default_deck.insert(0, "木盘子")
-                if "麦芽糖" in mat_card_opt:
-                    default_deck.remove("麦芽糖")
-                    default_deck.insert(0, "麦芽糖")
-                    default_deck.remove("咖啡粉")
-                    default_deck.insert(0, "咖啡粉")
-
                 # 根据限制数目选择最后几张卡片进行禁用
                 if limit_type == "超过":
                     max_card_num = limit_number
-                    ban_card_list.extend(default_deck[max_card_num:])
                 elif limit_type == "少于":
                     # 对于“少于”情况，需要保留的卡片数量为limit_number-1
                     max_card_num = (limit_number - 1)
-                    ban_card_list.extend(default_deck[max_card_num:])
+
+        if "不放置任何" in text:
+            CUS_LOGGER.info("暂时无法完成 '进入战斗后X秒内不放置任何美食' 类任务, 跳过")
+            continue
 
         # 将战斗信息字典添加到列表中
         quest_info = {
@@ -124,25 +94,10 @@ def food_texts_to_battle_info(texts, self) -> list:
             "quest_text": text,
         }
 
-        if player == [self.player]:
-            single_player_quests.append(quest_info)
-        else:
-            multi_player_quests.append(quest_info)
+        quests.append(quest_info)
 
     # 对 quest_list 按照 stage_id 进行排序
-    single_player_quests.sort(key=lambda x: x["stage_id"])
-    multi_player_quests.sort(key=lambda x: x["stage_id"])
+    quests.sort(key=lambda x: x["stage_id"])
 
-    # 找到 stage_id 最小的任务
-    if multi_player_quests:
-        min_stage_id = multi_player_quests[0]["stage_id"]
-        filtered_quests = [quest for quest in multi_player_quests if quest["stage_id"] == min_stage_id]
-
-        # 找到限制条件最多的任务
-        max_restriction_quest = max(filtered_quests, key=lambda x: len(x["ban_card_list"]) if x["ban_card_list"] else 0)
-        filtered_multi_player_quests = [max_restriction_quest]
-    else:
-        filtered_multi_player_quests = []
-
-    return single_player_quests, filtered_multi_player_quests
+    return quests
 
