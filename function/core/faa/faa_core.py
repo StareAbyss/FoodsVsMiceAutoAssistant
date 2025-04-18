@@ -818,11 +818,10 @@ class FAABase:
             ！！！！注意 该模块已经废弃！！！！
             """
 
-            y_dict = {0: 359, 1: 405, 2: 448, 3: 491, 4: 534, 5: 570}
-            for i in range(6):
+            for click_y in [359, 390, 420, 450, 480, 510, 540, 570]:
                 # 先移动到新的一页
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=y_dict[i])
-                time.sleep(0.1)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=click_y)
+                time.sleep(0.25)
                 for quest_text, img in RESOURCE_P["quest_food"].items():
                     find_p = match_p_in_w(
                         source_handle=self.handle,
@@ -857,7 +856,7 @@ class FAABase:
                         quest_list.append(
                             {
                                 "stage_id": stage_id,
-                                "player": player,
+                                "player": player,  # [1] or [2] or [2, 1]
                                 "need_key": need_key,  # 注意类型转化
                                 "max_times": 1,
                                 "dict_exit": {
@@ -877,6 +876,7 @@ class FAABase:
         if mode == "美食大赛-新":
             # 获取图片 list 可能包含alpha通道
             quest_imgs = food_match_ocr_text(self)
+
             # 提取文字
             texts = extract_text_from_images(images=quest_imgs)
 

@@ -216,11 +216,10 @@ class FAAActionReceiveQuestRewards:
 
         if find:
 
-            my_dict = {0: 362, 1: 405, 2: 448, 3: 491, 4: 534, 5: 570}
-            for i in range(6):
+            for click_y in [359, 390, 420, 450, 480, 510, 540, 570]:
 
                 # 先移动一次位置
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=my_dict[i])
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=click_y)
                 time.sleep(0.2)
 
                 # 最大尝试次数

@@ -13,12 +13,10 @@ def food_match_ocr_text(self):
 
     quest_imgs = []
 
-    my_dict = {0: 358, 1: 401, 2: 444, 3: 487, 4: 530, 5: 566}
-
-    for i in range(6):
+    for click_y in [359, 390, 420, 450, 480, 510, 540, 570]:
 
         # 先移动一次位置
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=536, y=my_dict[i])
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=536, y=click_y)
         time.sleep(0.2)
 
         Y = 355
