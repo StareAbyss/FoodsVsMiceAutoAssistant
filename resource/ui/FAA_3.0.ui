@@ -4215,61 +4215,6 @@ Link Start</string>
                  </property>
                 </widget>
                </item>
-               <item row="27" column="6">
-                <widget class="QComboBox" name="AutoFood_Deck">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>60</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>60</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <property name="toolTip">
-                  <string>大赛功能, 暂不支持自动带卡! 必须手动编辑!</string>
-                 </property>
-                 <item>
-                  <property name="text">
-                   <string>1</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>2</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>3</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>4</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>5</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>6</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
                <item row="14" column="8">
                 <widget class="QLabel" name="QuestSpouse_2P">
                  <property name="sizePolicy">
@@ -6128,7 +6073,7 @@ Link Start</string>
                   </size>
                  </property>
                  <property name="text">
-                  <string>强制 1-通用-1P</string>
+                  <string>关卡方案 或 全局方案</string>
                  </property>
                 </widget>
                </item>
@@ -7371,7 +7316,7 @@ Link Start</string>
                   </size>
                  </property>
                  <property name="text">
-                  <string>强制 1-通用-2P</string>
+                  <string>关卡方案 或 全局方案</string>
                  </property>
                 </widget>
                </item>
@@ -9070,6 +9015,13 @@ Link Start</string>
                  </property>
                  <property name="orientation">
                   <enum>Qt::Vertical</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="27" column="6">
+                <widget class="QLabel" name="label_17">
+                 <property name="text">
+                  <string>自动带</string>
                  </property>
                 </widget>
                </item>
