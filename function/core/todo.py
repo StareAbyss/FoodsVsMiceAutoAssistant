@@ -1258,8 +1258,14 @@ class ThreadTodo(QThread):
             stage_plan_by_id = get_stage_plan_by_id()
             skip = stage_plan_by_id["skip"]
             deck = stage_plan_by_id["deck"]
-            battle_plan_1p = stage_plan_by_id["battle_plan"][0]
-            battle_plan_2p = stage_plan_by_id["battle_plan"][1]
+            if pid_b is None:
+                # 单人
+                battle_plan_1p = stage_plan_by_id["battle_plan"][0]
+                battle_plan_2p = stage_plan_by_id["battle_plan"][0]
+            else:
+                # 双人
+                battle_plan_1p = stage_plan_by_id["battle_plan"][0]
+                battle_plan_2p = stage_plan_by_id["battle_plan"][1]
         try:
             stage_plan_by_id = get_stage_plan_by_id()
             senior_setting = stage_plan_by_id["senior_setting"]
