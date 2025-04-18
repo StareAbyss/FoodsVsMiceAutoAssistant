@@ -3,6 +3,7 @@ import time
 from function.common.bg_img_match import match_p_in_w
 from function.common.bg_img_screenshot import capture_image_png
 from function.globals.g_resources import RESOURCE_P
+from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.match_ocr_text.match_text import match
 
@@ -65,19 +66,23 @@ def food_match_ocr_text(self):
 
 def extract_text_from_images(images):
     """
-
+    美食大赛模块 - 批量从图片获取文本
     """
     seen = set()  # 用于记录已见过的元素
     unique_results = []  # 存储去重后的结果
 
     for source in images:
-        text_result = match(source=source,mode="美食大赛")
+        text_result = match(source=source, mode="美食大赛")
         # 只有当text_result不在seen集合中时才添加到unique_results和seen中
         if text_result not in seen:
             unique_results.append(text_result)
             seen.add(text_result)
 
+    results = "美食大赛OCR结果:\n"
     for result in unique_results:
-        print(result)
+        results += result
+        results += "\n"
+
+    CUS_LOGGER.info(results)
 
     return unique_results

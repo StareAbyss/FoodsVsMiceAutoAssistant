@@ -672,7 +672,16 @@ class FAABase:
         获取任务列表 -> 需要的完成的关卡步骤
         :param mode: "公会任务" "情侣任务" "美食大赛" "美食大赛-新"
         :param qg_cs: 公会任务模式下 是否需要跨服
-        :return: [{"stage_id":str, "max_times":int, "quest_card":str, "ban_card":None},...]
+        :return: [
+            {
+                "stage_id": str,
+                "max_times": int,
+                "quest_card": str,
+                "ban_card": None,
+                "quest_text": str, 仅用于标识任务原文, 仅美食大赛模块包含, 其他模式没有该字段
+            },
+            ...
+        ]
         """
         # 跳转到对应界面
         if mode == "公会任务":
@@ -869,15 +878,15 @@ class FAABase:
             # 获取图片 list 可能包含alpha通道
             quest_imgs = food_match_ocr_text(self)
             # 提取文字
-            texts = extract_text_from_images(quest_imgs)
+            texts = extract_text_from_images(images=quest_imgs)
+
             # 解析文本
-            single_player_quests, multi_player_quests = food_texts_to_battle_info(texts, self)
-            # 优先单人然后组队
-            quest_list = single_player_quests if single_player_quests else multi_player_quests
+            quest_list = food_texts_to_battle_info(texts=texts, self=self)
 
         # 关闭公会任务列表(红X)
         if mode == "公会任务" or mode == "情侣任务":
             self.action_exit(mode="普通红叉")
+
         if mode == "美食大赛" or mode == "美食大赛-新":
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=888, y=53)
             time.sleep(0.5)

@@ -58,7 +58,9 @@ class ThreadTodo(QThread):
         self.opt = copy.deepcopy(opt)  # 深拷贝 在作战中如果进行更改, 不会生效
         self.opt_todo_plans = self.opt["todo_plans"][running_todo_plan_index]  # 选择运行的 opt 的 todo plan 部分
         self.battle_check_interval = 1  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
-        self.auto_food_stage_ban_list = []  # 用于防止缺乏钥匙/次数时无限重复某些关卡
+
+        # 用于防止缺乏钥匙/次数时无限重复某些关卡, key: (player: int, quest_text: str), value: int
+        self.auto_food_stage_ban_dict = {}
 
         # 多线程管理
         self.thread_1p: ThreadWithException | None = None
@@ -1450,18 +1452,6 @@ class ThreadTodo(QThread):
                     else:
                         CUS_LOGGER.debug(
                             f"{title}钥匙使用要求和实际情况不同! 要求: {need_key}, 实际: {is_used_key}")
-                        self.auto_food_stage_ban_list.append(
-                            {
-                                "stage_id": stage_id,
-                                "player": player,  # 1 单人 2 组队
-                                "need_key": need_key,  # 注意类型转化
-                                "max_times": max_times,
-                                "quest_card": quest_card,
-                                "ban_card_list": ban_card_list,
-                                "max_card_num": max_card_num,
-                                "dict_exit": dict_exit
-                            }
-                        )
 
                     # 成功的战斗 之后不需要选择卡组
                     need_change_card = False
@@ -2081,80 +2071,132 @@ class ThreadTodo(QThread):
             quest_list_2 = self.faa_dict[2].match_quests(mode="美食大赛-新")
             quest_list = quest_list_1 + quest_list_2
 
-            # 用于区分单人和组队任务
-            player_text = None
-            single_player_quests = [quest for quest in quest_list if len(quest["player"]) == 1]
-
             if not quest_list:
                 return False
 
-            # 去重
+            # 去重两边都一毛一样的双人任务
             unique_data = []
             for quest in quest_list:
                 if quest not in unique_data:
                     unique_data.append(quest)
             quest_list = unique_data
 
-            CUS_LOGGER.debug("[全自动大赛] 去重后任务列表如下:")
-            CUS_LOGGER.debug(quest_list)
-
-            # 去被ban的任务 一般是由于 需要使用钥匙但没有使用钥匙 或 没有某些关卡的次数 但尝试进入
+            # 初始化尝试次数记录
             for quest in quest_list:
-                if quest in self.auto_food_stage_ban_list:
-                    CUS_LOGGER.debug(f"[全自动大赛] 该任务已经被ban, 故移出任务列表: {quest}")
-                    quest_list.remove(quest)
+                quest_key = (str(quest["player"]), quest["quest_text"])
+                if quest_key not in self.auto_food_stage_ban_dict.keys():
+                    self.auto_food_stage_ban_dict[quest_key] = 0
 
-            CUS_LOGGER.debug("[全自动大赛] 去Ban后任务列表如下:")
-            CUS_LOGGER.debug(quest_list)
+            # 去除尝试过多的任务
+            quest_list_will_do = []
+            for quest in quest_list:
+                if self.auto_food_stage_ban_dict[(str(quest["player"]), quest["quest_text"])] < 3:
+                    quest_list_will_do.append(quest)
+                else:
+                    quest["tag"] = "禁用, 尝试过多"
 
-            SIGNAL.PRINT_TO_UI.emit(
-                text="[全自动大赛] 已完成任务获取, 结果如下:",
-                color_level=3
-            )
+            CUS_LOGGER.debug(self.auto_food_stage_ban_dict)
+            CUS_LOGGER.debug("[全自动大赛] 去除 **多次尝试禁用** 任务后, 列表如下:")
+            CUS_LOGGER.debug(quest_list_will_do)
 
-            quest_list = single_player_quests if single_player_quests else quest_list
+            # 全部单人任务
+            solo_quests = [quest for quest in quest_list_will_do if len(quest["player"]) == 1]
+            # 全部双人任务
+            multi_player_quests = [quest for quest in quest_list_will_do if len(quest["player"]) > 1]
 
+            if solo_quests:
+                quest_list_will_do = solo_quests if solo_quests else multi_player_quests
+                for quest in multi_player_quests:
+                    quest["tag"] = "暂时跳过, 先做单人任务"
+            else:
+                if multi_player_quests:
+                    quest_list_will_do = multi_player_quests
+                    # 找到 stage_id 最小的任务, 并只执行该关卡对应的双人任务, 以减少次数
+                    min_stage_id = quest_list_will_do[0]["stage_id"]
+                    quest_list_min_stage_id = [quest for quest in quest_list_will_do if quest["stage_id"] == min_stage_id]
+                    # 找到限制条件最多的任务, 以减少次数
+                    quest_list_min_stage_id = [max(
+                        quest_list_min_stage_id, key=lambda x: len(x["ban_card_list"]) if x["ban_card_list"] else 0)]
+                    # 关卡id更大的任务打tag 先不做它
+                    for quest in quest_list_will_do:
+                        if quest not in quest_list_min_stage_id:
+                            quest["tag"] = "暂时跳过, 先做关卡id小的任务"
+                    quest_list_will_do = quest_list_min_stage_id
+                else:
+                    return False
+
+            # 记录 尝试次数
+            for quest in quest_list_will_do:
+                quest_key = (str(quest["player"]), quest["quest_text"])
+                self.auto_food_stage_ban_dict[quest_key] += 1
+
+            # 生成输出的文本
+            texts_list = []
             for i in range(len(quest_list)):
+                quest = quest_list[i]
 
-                if len(quest_list[i]["player"]) == 2:
+                if len(quest["player"]) == 2:
                     player_text = "组队"
                 else:
-                    player_text = "单人1P" if quest_list[i]["player"] == [1] else "单人2P"
-
-                quest_card = quest_list[i].get("quest_card", None)
-                ban_card_list = quest_list[i].get("ban_card_list", None)
-                max_card_num = quest_list[i].get("max_card_num", None)
+                    player_text = f"单人{quest["player"][0]}P"
 
                 text_parts = [
                     f"[全自动大赛] 事项{i + 1}",
                     f"{player_text}",
-                    f"{quest_list[i]["stage_id"]}",
-                    "用钥匙" if quest_list[i]["stage_id"] else "无钥匙",
-                    f"{quest_list[i]["max_times"]}次",
+                    f"{quest["stage_id"]}",
+                    "用钥匙" if quest["stage_id"] else "无钥匙",
+                    f"{quest["max_times"]}次",
                 ]
 
+                quest_card = quest.get("quest_card", None)
                 if quest_card:
-                    text_parts.append("带卡:{}".format(quest_card))
+                    text_parts.append(f"带卡:{quest_card}")
+
+                ban_card_list = quest.get("ban_card_list", None)
                 if ban_card_list:
-                    text_parts.append("禁卡:{}".format(ban_card_list))
+                    text_parts.append(f"禁卡:{ban_card_list}")
+
+                max_card_num = quest.get("max_card_num", None)
                 if max_card_num:
-                    text_parts.append("限数:{}".format(max_card_num))
+                    text_parts.append(f"限数:{max_card_num}")
+
+                quest_tag = quest.get("tag", "即将执行")
+                if "暂时跳过" not in quest_tag:
+                    # 输出尝试次数
+                    quest_try_times = self.auto_food_stage_ban_dict[(str(quest["player"]), quest["quest_text"])]
+                    text_parts.append(f"尝试次数:{quest_try_times}/3")
+                text_parts.append(f"{quest_tag}")
+
                 text = ",".join(text_parts)
+                texts_list.append(text)
 
-                SIGNAL.PRINT_TO_UI.emit(text=text, color_level=3)
+            # 输出识别结果
+            SIGNAL.PRINT_TO_UI.emit(text="[全自动大赛] 步骤: 识别任务目标, 已完成, 结果如下:", color_level=2)
+            for text in texts_list:
+                SIGNAL.PRINT_TO_UI.emit(text=text, color_level=2)
 
+            # 单人双线程 or 双人单线程启动
+            if solo_quests:
 
-            if "单人" in player_text:
-                self.signal_start_todo_2_battle.emit({
-                    "quest_list": [quest for quest in quest_list if 2 in quest.get('player', [])],
-                    "extra_title": "多线程单人] [2P",
-                    "need_lock": True
-                })
-                self.battle_1_n_n(quest_list=[quest for quest in quest_list if 1 in quest.get('player', [])],
-                                  extra_title="多线程单人] [1P",
-                                  need_lock=True)
+                solo_quests_1 = [quest for quest in quest_list_will_do if 1 in quest.get('player', [])]
+                solo_quests_2 = [quest for quest in quest_list_will_do if 2 in quest.get('player', [])]
+
+                if solo_quests_1 and solo_quests_2:
+                    self.signal_start_todo_2_battle.emit({
+                        "quest_list": [quest for quest in quest_list_will_do if 1 in quest.get('player', [])],
+                        "extra_title": "多线程单人] [1P",
+                        "need_lock": True
+                    })
+                    self.battle_1_n_n(
+                        quest_list=[quest for quest in quest_list_will_do if 1 in quest.get('player', [])],
+                        extra_title="多线程单人] [1P",
+                        need_lock=True)
+                else:
+                    self.battle_1_n_n(quest_list=quest_list_will_do)
+
             else:
-                self.battle_1_n_n(quest_list=quest_list)
+
+                self.battle_1_n_n(quest_list=quest_list_will_do)
 
             return True
 
@@ -2166,21 +2208,22 @@ class ThreadTodo(QThread):
             self.faa_dict[1].action_receive_quest_rewards(mode="美食大赛")
             self.faa_dict[2].action_receive_quest_rewards(mode="美食大赛")
 
-            # 重置美食大赛任务 ban list
-            self.auto_food_stage_ban_list = []  # 用于防止缺乏钥匙/次数时无限重复某些关卡
+            # 重置美食大赛任务 ban dict
+            # 用于防止缺乏钥匙/次数时无限重复某些关卡, key: (player: int, quest_text: str), value: int
+            self.auto_food_stage_ban_dict = {}
 
             i = 0
             while True:
                 i += 1
-                SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 第{i}次循环，开始", color_level=2)
+                SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 第{i}次循环，开始", color_level=1)
 
                 round_result = a_round()
 
-                SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 第{i}次循环，结束", color_level=2)
+                SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 第{i}次循环，结束", color_level=1)
                 if not round_result:
                     break
 
-            SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 所有被记录的任务已完成!", color_level=2)
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 所有被记录的任务已完成!", color_level=1)
 
             self.model_end_print(text=text_)
 
