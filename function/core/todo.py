@@ -2150,7 +2150,7 @@ class ThreadTodo(QThread):
                     f"[全自动大赛] 事项{i + 1}",
                     f"{player_text}",
                     f"{quest["stage_id"]}",
-                    "用钥匙" if quest["stage_id"] else "无钥匙",
+                    "用钥匙" if quest["need_key"] else "无钥匙",
                     f"{quest["max_times"]}次",
                 ]
 
