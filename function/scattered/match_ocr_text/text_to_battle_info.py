@@ -20,7 +20,7 @@ def food_texts_to_battle_info(texts, self) -> list:
         quest_card = None
         max_card_num = None
         player = [self.player] if "单人" in text else [2, 1]
-        need_key = True
+        need_key = False
         ban_card_list = []
 
         # 提取stage_id
@@ -32,7 +32,7 @@ def food_texts_to_battle_info(texts, self) -> list:
                 break
             if '-' in key:
                 location, time = key.split('-')  # 地点-日/夜（水/陆）
-                if (location in text)  and (time in text):
+                if (location in text) and (time in text):
                     # 游戏使用了 例如 茴香竹筏(日) 或 茴香竹筏（日） 也可以识别成功!
                     stage_id = value
                     break
@@ -40,6 +40,10 @@ def food_texts_to_battle_info(texts, self) -> list:
         # 如果没有找到stage_id，跳过本次循环
         if stage_id is None:
             continue
+
+        # 解析是否需要用钥匙 or 徽章
+        if "击杀" in text or "清除" in text or "评分" in text or "S" in text or "A" in text:
+            need_key = True
 
         # 检查特定卡片
         if "使用" in text:
@@ -68,10 +72,6 @@ def food_texts_to_battle_info(texts, self) -> list:
                     # 对于“少于”情况，需要保留的卡片数量为limit_number-1
                     max_card_num = (limit_number - 1)
 
-        if "不放置任何" in text:
-            CUS_LOGGER.info("暂时无法完成 '进入战斗后X秒内不放置任何美食' 类任务, 跳过")
-            continue
-
         # 将战斗信息字典添加到列表中
         quest_info = {
             "stage_id": stage_id,
@@ -87,12 +87,22 @@ def food_texts_to_battle_info(texts, self) -> list:
             "max_card_num": max_card_num,
             "quest_card": quest_card,
             "ban_card_list": ban_card_list,
-            "global_plan_active": True, # 强制激活全局关卡方案
+            "global_plan_active": True,  # 强制激活全局关卡方案
             "deck": 0,  # 不生效 占位符
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",  # 不生效 占位符
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",  # 不生效 占位符
             "quest_text": text,
         }
+
+        if "不放置任何" in text or "同时存在不超过" in text:
+            CUS_LOGGER.info("暂时无法完成 '进入战斗后X秒内不放置任何美食' 类任务, 跳过")
+            quest_info["global_plan_active"] = False
+            quest_info["deck"] = 0  # 自动带卡
+            quest_info["battle_plan_1p"] = "00000000-0000-0000-0000-000000000002"  # 特殊方案
+            quest_info["battle_plan_2p"] = "00000000-0000-0000-0000-000000000002"  # 特殊方案
+
+        if "美食等级" in text:
+            continue
 
         quests.append(quest_info)
 
@@ -100,4 +110,3 @@ def food_texts_to_battle_info(texts, self) -> list:
     quests.sort(key=lambda x: x["stage_id"])
 
     return quests
-

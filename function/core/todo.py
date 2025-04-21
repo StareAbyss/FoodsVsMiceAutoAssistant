@@ -2119,7 +2119,8 @@ class ThreadTodo(QThread):
                     quest_list_will_do = multi_player_quests
                     # 找到 stage_id 最小的任务, 并只执行该关卡对应的双人任务, 以减少次数
                     min_stage_id = quest_list_will_do[0]["stage_id"]
-                    quest_list_min_stage_id = [quest for quest in quest_list_will_do if quest["stage_id"] == min_stage_id]
+                    quest_list_min_stage_id = [
+                        quest for quest in quest_list_will_do if quest["stage_id"] == min_stage_id]
                     # 找到限制条件最多的任务, 以减少次数
                     quest_list_min_stage_id = [max(
                         quest_list_min_stage_id, key=lambda x: len(x["ban_card_list"]) if x["ban_card_list"] else 0)]

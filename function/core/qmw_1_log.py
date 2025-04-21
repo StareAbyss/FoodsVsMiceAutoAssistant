@@ -299,7 +299,7 @@ class QMainWindowLog(QMainWindowLoadUI):
             self.log_dialog.finished.connect(self.cleanup_dialog)
 
         # 格式化日志内容
-        log_content = f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {title}: {message}"
+        log_content = f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {title}: {message}\n"
 
         # 追加内容并自动滚动
         self.text_browser.append(log_content)
