@@ -2181,7 +2181,7 @@ class ThreadTodo(QThread):
             for text in texts_list:
                 SIGNAL.PRINT_TO_UI.emit(text=text, color_level=2)
 
-            # 单人双线程 or 双人单线程启动
+            # 双线程单人 or 单线程双人启动
             if solo_quests:
 
                 solo_quests_1 = [quest for quest in quest_list_will_do if 1 in quest.get('player', [])]
@@ -2189,19 +2189,18 @@ class ThreadTodo(QThread):
 
                 if solo_quests_1 and solo_quests_2:
                     self.signal_start_todo_2_battle.emit({
-                        "quest_list": [quest for quest in quest_list_will_do if 1 in quest.get('player', [])],
-                        "extra_title": "多线程单人] [1P",
+                        "quest_list": solo_quests_2,
+                        "extra_title": "多线程单人] [2P",
                         "need_lock": True
                     })
                     self.battle_1_n_n(
-                        quest_list=[quest for quest in quest_list_will_do if 1 in quest.get('player', [])],
+                        quest_list=solo_quests_1,
                         extra_title="多线程单人] [1P",
                         need_lock=True)
                 else:
                     self.battle_1_n_n(quest_list=quest_list_will_do)
 
             else:
-
                 self.battle_1_n_n(quest_list=quest_list_will_do)
 
             return True
