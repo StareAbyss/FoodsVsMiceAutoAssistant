@@ -233,8 +233,8 @@ class FAAActionReceiveQuestRewards:
                         source_range=[0, 0, 950, 600],
                         template=RESOURCE_P["common"]["美食大赛_领取.png"],
                         match_tolerance=0.95,
-                        match_failed_check=0.5,
-                        after_sleep=0.5,
+                        match_failed_check=0.2,
+                        after_sleep=0.05,
                         click=True)
                     if find:
                         # 领取升级有动画
