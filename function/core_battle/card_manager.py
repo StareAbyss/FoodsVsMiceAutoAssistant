@@ -906,7 +906,7 @@ class ThreadInsertUseCardTimer(QThread):
 
             if battle_event["action"]["before_shovel"]:
                 self.manager.create_insert_timer_and_start(
-                    interval=max(0.0, wait_time - 0.5),
+                    interval=max(0.0, wait_time - 0.6),
                     func_name="insert_use_shovel",
                     func_kwargs={
                         "pid": self.pid,
