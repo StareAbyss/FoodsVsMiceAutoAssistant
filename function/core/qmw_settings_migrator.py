@@ -12,7 +12,7 @@ from function.globals.get_paths import PATHS
 class QMWSettingsMigrator(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("配置迁移工具")
+        self.setWindowTitle("配置迁移工具 - 请注意查看鼠标提示信息!")
         self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
 
         # 设定窗口初始大小 否则将无法自动对齐到上级窗口中心
@@ -134,7 +134,8 @@ class QMWSettingsMigrator(QMainWindow):
                 checkbox.setToolTip(
                     "文件夹迁移\n"
                     "仅迁移.json文件\n"
-                    "将会**覆盖**当前配置中的同名文件夹!"
+                    "将**覆盖**当前配置中的同名文件夹!\n"
+                    "如需保留FAA更新的内置方案不被旧方案取代, 请手动复制粘贴迁移,并重启FAA"
                 )
 
             if config["type"] == "folder_battle_plan":
@@ -204,7 +205,9 @@ class QMWSettingsMigrator(QMainWindow):
             self.perform_migration()
 
     def perform_migration(self):
-        """实际完成迁移"""
+        """
+        实际完成迁移
+        """
 
         def process_json_files(folder_from, folder_to):
             """
@@ -213,6 +216,13 @@ class QMWSettingsMigrator(QMainWindow):
             :param folder_from: 文件夹 A 的路径
             :param folder_to: 文件夹 B 的路径
             """
+
+            # 这些uuid值 总是不迁移
+            default_uuids = [
+                "00000000-0000-0000-0000-000000000000",
+                "00000000-0000-0000-0000-000000000001",
+                "00000000-0000-0000-0000-000000000002"
+            ]
 
             # 查找所有 .json 文件
             files_a = [f for f in os.listdir(folder_from) if f.endswith('.json')]
@@ -224,24 +234,32 @@ class QMWSettingsMigrator(QMainWindow):
                 file_path = os.path.join(folder_from, file)
                 with open(file_path, mode='r', encoding='utf-8') as f:
                     data = json.load(f)
-                    uuid = data.get('uuid')
-                    if uuid:
-                        # 不保存默认的uuid
-                        if uuid in ["00000000-0000-0000-0000-000000000000", "00000000-0000-0000-0000-000000000001"]:
-                            continue
-                        uuids_a[uuid] = file
+
+                uuid = data.get('uuid', None)
+                if not uuid:
+                    uuid = data.get('meta_data', {}).get('uuid', None)
+                if not uuid:
+                    continue
+                if uuid in default_uuids:
+                    continue
+
+                uuids_a[uuid] = file
 
             uuids_b = {}
             for file in files_b:
                 file_path = os.path.join(folder_to, file)
                 with open(file_path, mode='r', encoding='utf-8') as f:
                     data = json.load(f)
-                    uuid = data.get('uuid')
-                    if uuid:
-                        # 不保存默认的uuid
-                        if uuid in ["00000000-0000-0000-0000-000000000000", "00000000-0000-0000-0000-000000000001"]:
-                            continue
-                        uuids_b[uuid] = file
+
+                uuid = data.get('uuid', None)
+                if not uuid:
+                    uuid = data.get('meta_data', {}).get('uuid', None)
+                if not uuid:
+                    continue
+                if uuid in default_uuids:
+                    continue
+
+                uuids_b[uuid] = file
 
             # 分类 uuid 值
             common_uuids = set(uuids_a.keys()) & set(uuids_b.keys())  # 共有的uuid

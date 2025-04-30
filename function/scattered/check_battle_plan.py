@@ -34,7 +34,7 @@ def fresh_and_check_all_battle_plan():
                 with open(file=file_name, mode='r', encoding='utf-8') as file:
                     json_data = json.load(file)
             except:
-                added[plan_name] += "包含致命故障! 请勿使用文本编辑器瞎改! 请删除对应方案, FAA已保护性自爆!"
+                added[plan_name] += "json格式错误无法解析! 请勿使用文本编辑器瞎改! 请删除对应方案, FAA已保护性自爆!"
                 continue
 
             battle_plan_version = json_data.get("meta_data",{}).get("version", None)
@@ -45,7 +45,7 @@ def fresh_and_check_all_battle_plan():
                     need_save = True
                     added[plan_name] += "成功从v2.0迁至最新"
                 except:
-                    added[plan_name] += "方案版本过低!"
+                    added[plan_name] += "方案版本过低! 请使用FAA 2.0-2.1 版本迁移至v2.0"
                     continue
 
             uuid_v1 = json_data["meta_data"]['uuid']
@@ -54,7 +54,7 @@ def fresh_and_check_all_battle_plan():
                 # 撞了uuid就生成
                 uuid_v1 = str(uuid.uuid1())
                 json_data["meta_data"]["uuid"] = uuid_v1
-                added[plan_name] += "方案 uuid撞车, 已重新生成;"
+                added[plan_name] += "方案的uuid撞车, 已重新生成;"
                 need_save = True
                 # 确保uuid唯一性
                 time.sleep(0.001)
