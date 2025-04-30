@@ -685,6 +685,22 @@ class FAAActionInterfaceJump:
 
                 # 创建队伍 - 该按钮可能需要修正位置
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=660, y=200)
+        def main_wb():
+
+            # 进入美味岛并切区
+            self.action_goto_map(map_id=1)
+            change_to_region(region_list=[1, 11])
+
+            # 仅限主角色创建关卡
+            if self.is_main:
+                # 进入欢乐假期页面
+                self.action_top_menu(mode="巅峰对决")
+
+                # 给一点加载时间
+                time.sleep(2)
+
+                # 创建队伍 - 该按钮可能需要修正位置
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=770, y=560)
 
         def main_wa():
 
@@ -804,6 +820,8 @@ class FAAActionInterfaceJump:
                 main_gd()
             elif stage_0 == "HH":
                 main_hh()
+            elif stage_0 == "WB":
+                main_wb()
             elif stage_0 == "WA":
                 main_wa()
             elif stage_0 == "CZ":
