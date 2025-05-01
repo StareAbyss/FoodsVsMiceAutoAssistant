@@ -53,10 +53,6 @@
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "2-4",
-                            "3-4",
-                            "4-4",
-                            "5-4",
                             "6-4",
                             "6-3",
                             "6-5",
@@ -253,6 +249,92 @@
                         "location": [
                             "4-1",
                             "4-7",
+                            "5-2",
+                            "5-7",
+                            "5-3",
+                            "5-5",
+                            "4-5"
+                        ],
+                        "kun": 1
+                    },
+                    {
+                        "card_id": 4,
+                        "ergodic": true,
+                        "queue": false,
+                        "location": [
+                            "4-6",
+                            "4-1",
+                            "5-2",
+                            "5-7",
+                            "8-4",
+                            "8-3",
+                            "8-5",
+                            "8-6"
+                        ],
+                        "kun": 0
+                    }
+                ],
+                "type": "loop_use_cards"
+            }
+        },
+        {
+            "trigger": {
+                "wave_id": 5,
+                "time": 0,
+                "type": "wave_timer"
+            },
+            "action": {
+                "cards": [
+                    {
+                        "card_id": 5,
+                        "ergodic": true,
+                        "queue": false,
+                        "location": [
+                            "1-5"
+                        ],
+                        "kun": 0
+                    },
+                    {
+                        "card_id": 1,
+                        "ergodic": true,
+                        "queue": false,
+                        "location": [
+                            "2-4",
+                            "3-4",
+                            "4-4",
+                            "5-4",
+                            "6-4",
+                            "6-3",
+                            "6-5",
+                            "7-3",
+                            "7-5",
+                            "8-4",
+                            "8-3",
+                            "8-5",
+                            "8-6"
+                        ],
+                        "kun": 0
+                    },
+                    {
+                        "card_id": 2,
+                        "ergodic": true,
+                        "queue": false,
+                        "location": [
+                            "1-4",
+                            "2-3",
+                            "2-5"
+                        ],
+                        "kun": 0
+                    },
+                    {
+                        "card_id": 3,
+                        "ergodic": true,
+                        "queue": false,
+                        "location": [
+                            "4-1",
+                            "4-7",
+                            "1-1",
+                            "1-7",
                             "5-2",
                             "5-7",
                             "5-3",
