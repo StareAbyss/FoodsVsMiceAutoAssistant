@@ -183,6 +183,16 @@ class FAABase:
             now = datetime.now(beijing_tz)
             return now.hour == 19 and 0 <= now.minute < 30
 
+        if stage_0 == "WB":
+            # 世界boss 每天18:00 - 23:50 开放
+            beijing_tz = pytz.timezone('Asia/Shanghai')
+            now = datetime.now(beijing_tz)
+            if now.hour == 23 and now.minute <= 50:
+                return True
+            if now.hour >= 18:
+                return True
+            return False
+
         return True
 
     def screen_check_server_boom(self: "FAA") -> bool:
