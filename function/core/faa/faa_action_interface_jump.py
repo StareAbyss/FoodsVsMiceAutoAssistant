@@ -685,6 +685,7 @@ class FAAActionInterfaceJump:
 
                 # 创建队伍 - 该按钮可能需要修正位置
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=660, y=200)
+
         def main_wb():
 
             # 进入美味岛并切区
