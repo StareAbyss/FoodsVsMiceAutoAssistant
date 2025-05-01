@@ -1123,6 +1123,7 @@ def faa_start_main():
     if start_with_task:
         print("检测到启动参数 --start_with_task，将自动开始任务")
         window.todo_click_btn()
+    app.setQuitOnLastWindowClosed(False)  # 禁止自动退出
 
     # 运行主循环，必须调用此函数才可以开始事件处理
     app.exec()

@@ -80,6 +80,8 @@ def get_true_stage_id():
     stage_ids += generate_stage_ids("OR", [0, 0], [1, 4])
     # 假期
     stage_ids += ["HH-0-0"]
+    #世界boss
+    stage_ids += ["WB-0-0"]
     # 生肖
     stage_ids += generate_stage_ids("CZ", [0, 0], [1, 4])
 

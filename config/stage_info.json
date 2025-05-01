@@ -11455,6 +11455,16 @@
         },
         "tooltip": "HH = Happy Holidays 欢乐假期"
     },
+    "WB": {
+        "name": "巅峰对决",
+        "0": {
+            "name": "占位",
+            "0": {
+                "name": "巅峰对决"
+            }
+        },
+        "tooltip": "WB = WORLD BOSS 世界boss"
+    },
     "OR": {
         "name": "悬赏任务",
         "0": {
