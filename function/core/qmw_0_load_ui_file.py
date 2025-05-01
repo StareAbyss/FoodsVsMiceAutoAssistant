@@ -1,5 +1,6 @@
 import os
 import sys
+import types
 
 from PyQt6 import uic, QtGui, QtCore, QtWidgets
 from PyQt6.QtCore import Qt
@@ -15,8 +16,6 @@ from function.qrc import test_rc, theme_rc, GTRONICK_rc
 # 虽然ide显示上面这行没用，但实际是用来加载相关资源的，不可删除,我用奇妙的方式强制加载了
 from function.widget.CusIcon import create_qt_icon
 from function.widget.SearchableComboBox import SearchableComboBox
-
-
 
 ZOOM_RATE = None
 
@@ -55,7 +54,8 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
         # 配置 进阶设置 导航栏交互
         self.adv_opt_synchronizing = None
-        self.adv_opt_sections:list = []
+        self.adv_opt_sections: list = []
+        self.replace_widgets_no_wheel()
         self.init_advanced_settings_connection()
 
         # 添加系统托盘功能
@@ -257,6 +257,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         next_month_button.setIcon(next_icon)
 
     """重写拖动窗口"""
+
     def init_tray_icon(self):
         # 创建系统托盘图标
         self.tray_icon = QSystemTrayIcon(self)
@@ -448,6 +449,33 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
                 QListWidget.ScrollHint.PositionAtCenter
             )
             self.adv_opt_synchronizing = False
+
+    """
+    移除部分控件的鼠标操作
+    """
+
+    def replace_widgets_no_wheel(self):
+
+        def new_wheel_event(self, event):
+            event.ignore()
+
+        w_names = [
+            "login_first",
+            "login_second",
+            "CusCPSValueInput",
+            "CusLowestFPSValueInput",
+            "CusFullBanTimeValueInput",
+            "MaxBattleTime_Value",
+            "CusAutoCarryCardValueInput",
+            "AccelerateValue",
+            "AccelerateCustomizeValue",
+            "BattleSeniorIntervalValueInput",
+            "senior_log_clean",
+            "other_log_clean",
+        ]
+        for w_name in w_names:
+            widget = getattr(self, w_name)
+            widget.wheelEvent = types.MethodType(new_wheel_event, widget)
 
 
 if __name__ == "__main__":
