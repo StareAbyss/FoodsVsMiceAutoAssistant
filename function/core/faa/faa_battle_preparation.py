@@ -752,6 +752,9 @@ class BattlePreparation:
     def start_and_ensure_entry(self: "FAA"):
         """开始并确保进入成功"""
 
+        # 复核 确定加速已经关掉了
+        self.click_accelerate_btn(mode="stop")
+
         # 点击开始
         find = loop_match_p_in_w(
             source_handle=self.handle,
