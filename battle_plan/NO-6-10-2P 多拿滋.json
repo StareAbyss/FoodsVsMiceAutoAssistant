@@ -58,7 +58,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 9,
@@ -252,7 +251,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         },
         {
@@ -262,7 +262,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 9,
@@ -409,7 +408,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         },
         {
@@ -419,7 +419,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 9,
@@ -574,7 +573,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         },
         {
@@ -584,7 +584,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 9,
@@ -732,18 +731,8 @@
                         ],
                         "kun": 0
                     }
-                ]
-            }
-        },
-        {
-            "trigger": {
-                "wave_id": 10,
-                "time": 0,
-                "type": "wave_timer"
-            },
-            "action": {
-                "type": "loop_use_cards",
-                "cards": []
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]
