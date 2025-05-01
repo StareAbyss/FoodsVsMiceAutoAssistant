@@ -2061,7 +2061,7 @@ class FAABase:
 
             return False
 
-        def fed_and_watered_multi_action():
+        def fed_and_watered_multi_action(max_try_times):
             """
             :return: 是否完成了任务, 尝试次数, 是否是bug
             """
@@ -2077,7 +2077,7 @@ class FAABase:
                     return True, try_times, False
                 if is_bug:
                     return False, try_times, True
-                if try_times >= 15:
+                if try_times >= max_try_times:
                     return False, try_times, False
 
                 is_bug = fed_and_watered_once(try_times=try_times)
@@ -2088,6 +2088,9 @@ class FAABase:
 
         def fed_and_watered_main():
 
+            # 最大施肥尝试次数
+            max_try_times = 20
+
             # 判定时间, 如果是北京时间周四的0到12点, 直接return
             beijing_tz = pytz.timezone('Asia/Shanghai')
             now = datetime.now(beijing_tz)
@@ -2095,7 +2098,7 @@ class FAABase:
                 SIGNAL.PRINT_TO_UI.emit("[浇水 施肥 摘果 领取] 周四0-12点, 跳过本流程, 以防领取到上一期道具.")
                 return
 
-            SIGNAL.PRINT_TO_UI.emit(f"[浇水 施肥 摘果 领取] [{self.player}p] 开始执行...")
+            SIGNAL.PRINT_TO_UI.emit(f"[浇水 施肥 摘果 领取] [{self.player}p] 开始执行... 最多{max_try_times}次")
 
             for reload_time in range(1, 4):
 
@@ -2114,7 +2117,7 @@ class FAABase:
                         break
 
                 # 循环到任务完成或出现bug
-                completed, try_times, is_bug = fed_and_watered_multi_action()
+                completed, try_times, is_bug = fed_and_watered_multi_action(max_try_times=max_try_times)
 
                 if is_bug:
                     if reload_time < 3:
@@ -2139,9 +2142,9 @@ class FAABase:
                     self.action_receive_quest_rewards(mode="公会任务")
                     break
 
-                if try_times >= 5:
+                if try_times >= max_try_times:
                     SIGNAL.PRINT_TO_UI.emit(
-                        f"[浇水 施肥 摘果 领取] [{self.player}p] 尝试5次, 肥料不够! 刷新, 跳过 ")
+                        f"[浇水 施肥 摘果 领取] [{self.player}p] 尝试{max_try_times}次, 肥料不够! 或全是解散公会! 刷新, 跳过 ")
                     self.reload_game()
                     break
 
