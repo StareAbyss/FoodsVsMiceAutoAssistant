@@ -24,7 +24,7 @@ class Card:
 @dataclass
 class TriggerWaveTimer:
     wave_id: int
-    time: int
+    time: float
     type: str = "wave_timer"
 
 

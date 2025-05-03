@@ -1123,7 +1123,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.fresh_all_ui()
             return
 
-        ui_value = int(self.EditorAction.WidgetTimeInput.value())
+        ui_value = float(self.EditorAction.WidgetTimeInput.value())
         if e.trigger.time != ui_value:
             e.trigger.time = ui_value
             self.fresh_all_ui()
