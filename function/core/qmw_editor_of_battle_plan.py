@@ -372,6 +372,25 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 self.ListTimelineActions.setMaximumWidth(260)  # 经过验证的完美数字
                 self.LayTimelineActionList.addWidget(self.ListTimelineActions)
 
+            def init_ui_lay_gem_actions():
+                """宝石操作列表"""
+                self.LayGemActionList = QVBoxLayout()
+                self.LayoutMainBottom.addLayout(self.LayGemActionList)
+
+                title_label = QLabel('左键-选中宝石   右键-编辑参数')
+                title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.LayGemActionList.addWidget(title_label)
+
+                self.ButtonAddGemAction = QPushButton('新增宝石使用操作')
+                self.LayGemActionList.addWidget(self.ButtonAddGemAction)
+
+                self.ButtonDeleteGemAction = QPushButton('删除选中宝石操作')
+                self.LayGemActionList.addWidget(self.ButtonDeleteGemAction)
+
+                self.ListGemActions = QListWidgetDraggable()
+                self.ListGemActions.setMaximumWidth(260)
+                self.LayGemActionList.addWidget(self.ListGemActions)
+
             def init_ui_lay_chessboard():
                 """棋盘布局"""
                 self.chessboard_layout = QGridLayout()
@@ -419,10 +438,12 @@ class QMWEditorOfBattlePlan(QMainWindow):
             init_ui_lay_left()
             init_ui_lay_normal_actions()
             init_ui_lay_timeline_actions()
+            init_ui_lay_gem_actions()
             init_ui_lay_chessboard()
 
             # 隐藏定时操作列表
             hide_layout(self.LayTimelineActionList)
+            hide_layout(self.LayGemActionList)
 
         init_ui_lay_tip()
         init_ui_layout_bottom()
@@ -467,6 +488,11 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.ButtonPlayer.clicked.connect(self.click_player_button)
 
             self.ButtonModeChange.clicked.connect(self.change_edit_mode)
+
+            self.ButtonAddGemAction.clicked.connect(self.add_use_gem)
+            self.ButtonDeleteGemAction.clicked.connect(self.delete_use_gem)
+            self.ListGemActions.itemClicked.connect(self.be_edited_gem_change)
+            self.ListGemActions.editRequested.connect(self.show_edit_window)
 
         connect_signal_and_slot()
 
@@ -613,9 +639,15 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.be_edited_loop_use_cards_one_card_index = None
 
         elif self.editing_mode == 2:
+            self.editing_mode = 3
+            self.LabelEditorMode.setText("当前模式 - 特殊操作放卡编辑")
+            hide_layout(self.LayTimelineActionList)
+            show_layout(self.LayGemActionList)
+            self.be_edited_insert_use_card_index = None
+        elif self.editing_mode == 3:
             self.editing_mode = 1
             self.LabelEditorMode.setText("当前模式 - 常规循环放卡编辑")
-            hide_layout(self.LayTimelineActionList)
+            hide_layout(self.LayGemActionList)
             show_layout(self.LayNormalActionList)
             self.ButtonCopyWave.setEnabled(True)
             self.ButtonPasteWave.setEnabled(True)
@@ -715,6 +747,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 重绘 UI的放卡动作列表
         self.load_data_to_ui_list_mode_1()
         self.load_data_to_ui_list_mode_2()
+        self.load_data_to_ui_list_mode_3()
 
         # 重绘 UI棋盘网格
         self.refresh_chessboard()
@@ -762,6 +795,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         print(f"编辑 - 位置 - 定时动作编辑 目标改变: {self.be_edited_insert_use_card_index}")
 
+    def be_edited_gem_change(self, item):
+        """被单击后, 被选中的宝石操作改变了"""
+        self.be_edited_gem_index = self.ListGemActions.indexFromItem(item).row()
+        print(f"编辑 - 宝石操作 目标改变: {self.be_edited_gem_index}")
     def load_data_to_ui_list_mode_1(self):
         """从 [内部数据表] 载入数据到 [ui的放卡动作列表]"""
 
@@ -858,6 +895,16 @@ class QMWEditorOfBattlePlan(QMainWindow):
             item = QListWidgetItem(text)
             self.ListTimelineActions.addItem(item)
 
+    def load_data_to_ui_list_mode_3(self):
+        """宝石操作列表数据加载"""
+        self.ListGemActions.clear()
+        events = [e for e in self.insert_use_gem_events
+                  if e.trigger.wave_id == self.be_edited_wave_id]
+
+        for event in events:
+            item_text = f"波次{event.trigger.wave_id} {event.trigger.time}s 宝石{event.action.gem_id}"
+            self.ListGemActions.addItem(QListWidgetItem(item_text))
+
     def event_list_be_moved(self, index_from, index_to):
         """在list的drop事件中调用, 用于更新内部数据表"""
 
@@ -921,7 +968,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 func_update=self.update_loop_use_cards_one_card_info
             )
 
-        else:
+
+        elif self.editing_mode == 2:
 
             print("即将显示 定时动作编辑窗口 索引 - ", self.be_edited_insert_use_card_index)
 
@@ -940,6 +988,18 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.EditorAction = InsertUseCardInfoEditor(
                 data=data,
                 func_update=self.update_insert_use_card_info
+            )
+        elif self.editing_mode == 3:
+            # 处理模式3: 宝石操作
+            events = [e for e in self.insert_use_gem_events if e.trigger.wave_id == self.be_edited_wave_id]
+            event = events[self.be_edited_gem_index]
+            data = {
+                "gem_id": event.action.gem_id,
+                "time": event.trigger.time
+            }
+            self.EditorAction = GemInfoEditor(
+                data=data,
+                func_update=self.update_gem_info
             )
 
         # 计算显示位置
@@ -997,6 +1057,29 @@ class QMWEditorOfBattlePlan(QMainWindow):
             )
         )
 
+        self.fresh_all_ui()
+
+    def add_use_gem(self):
+        self.insert_use_gem_events.append(
+            Event(
+                trigger=TriggerWaveTimer(
+                    wave_id=self.be_edited_wave_id,
+                    time=0
+                ),
+                action=ActionUseGem(
+                    gem_id=1
+                )
+            )
+        )
+        self.fresh_all_ui()
+
+    def delete_use_gem(self):
+        if self.be_edited_gem_index is None:
+            QMessageBox.information(self, "错误！", "请先选择宝石操作")
+            return
+
+        event = self.insert_use_gem_events[self.be_edited_gem_index]
+        self.insert_use_gem_events.remove(event)
         self.fresh_all_ui()
 
     def delete_loop_use_cards_one_card(self):
@@ -1146,6 +1229,35 @@ class QMWEditorOfBattlePlan(QMainWindow):
             e.action.after_shovel_time = ui_value
             self.fresh_all_ui()
             return
+
+    def update_gem_info(self):
+        """
+        更新宝石操作事件的UI与数据
+        """
+        try:
+            # 添加空值检查
+            gem_id_text = self.EditorAction.WidgetGemIdInput.currentText()
+            if not gem_id_text.strip():
+                raise ValueError("宝石ID不能为空")
+
+            events = [e for e in self.insert_use_gem_events if e.trigger.wave_id == self.be_edited_wave_id]
+            event = events[self.be_edited_gem_index]
+
+            ui_gem_id = int(gem_id_text)
+            if event.action.gem_id != ui_gem_id:
+                event.action.gem_id = ui_gem_id
+                self.fresh_all_ui()
+                return
+
+            ui_time = self.EditorAction.WidgetTimeInput.value()
+            if event.trigger.time != ui_time:
+                event.trigger.time = ui_time
+                self.fresh_all_ui()
+                return
+
+        except ValueError as ve:
+            QMessageBox.warning(self, "输入错误", f"请输入有效的宝石ID: {str(ve)}")
+            self.EditorAction.WidgetGemIdInput.setFocus()
 
     """棋盘操作"""
 
@@ -2124,6 +2236,74 @@ class InsertUseCardInfoEditor(QDialog):
         self.WidgetBeforeShovelInput.currentIndexChanged.connect(self.func_update)
         self.WidgetAfterShovelInput.currentIndexChanged.connect(self.func_update)
         self.WidgetAfterTimeInput.valueChanged.connect(self.func_update)
+
+
+class GemInfoEditor(QDialog):
+    def __init__(self, data, func_update):
+        super().__init__()
+        self.data = data
+        self.func_update = func_update
+
+        # 初始化时确保有默认值
+        if "gem_id" not in self.data or not str(self.data["gem_id"]).strip():
+            self.data["gem_id"] = 1  # 设置默认值
+        if "time" not in self.data:
+            self.data["time"] = 0.0
+
+        # UI组件初始化
+        self.WidgetTimeInput = QDoubleSpinBox()
+        self.WidgetGemIdInput = QComboBox()
+
+        # 填充宝石ID选项
+        for i in range(1, 4):  # 假设宝石ID范围是1-3
+            self.WidgetGemIdInput.addItem(str(i))
+
+        self.setWindowTitle("编辑宝石操作参数")
+        self.setWindowFlags(Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowCloseButtonHint)
+        self.init_ui()
+        self.load_data()
+        self.connect_functions()
+
+    def init_ui(self):
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)  # 设置窗口边距
+        layout.setSpacing(15)  # 控件间垂直间距
+
+        # 时间输入行
+        time_layout = QHBoxLayout()
+        time_layout.setSpacing(10)  # 行内控件间距
+        time_label = QLabel("触发时间(s):")
+        time_label.setFixedWidth(80)  # 固定标签宽度
+        self.WidgetTimeInput.setFixedWidth(140)
+        self.WidgetTimeInput.setToolTip("识别到对应波次后，会在该时间放置宝石")
+        time_layout.addWidget(time_label)
+        time_layout.addWidget(self.WidgetTimeInput, 1)
+        layout.addLayout(time_layout)
+
+        # 宝石ID选择行
+        gem_layout = QHBoxLayout()
+        gem_layout.setSpacing(10)
+        gem_label = QLabel("宝石ID:")
+        gem_label.setFixedWidth(80)
+        self.WidgetGemIdInput.setFixedWidth(140)
+        self.WidgetGemIdInput.setToolTip("选择宝石在卡组中的编号（1-3）")
+        gem_layout.addWidget(gem_label)
+        gem_layout.addWidget(self.WidgetGemIdInput, 1)
+        layout.addLayout(gem_layout)
+
+    def load_data(self):
+        # 确保加载时使用有效数据
+        self.WidgetTimeInput.setValue(float(self.data.get("time", 0)))
+        gem_id = self.data.get("gem_id", 1)
+        index = self.WidgetGemIdInput.findText(str(gem_id))
+        if index >= 0:
+            self.WidgetGemIdInput.setCurrentIndex(index)
+        else:
+            self.WidgetGemIdInput.setCurrentIndex(0)  # 默认选第一个
+
+    def connect_functions(self):
+        self.WidgetTimeInput.valueChanged.connect(self.func_update)
+        self.WidgetGemIdInput.currentIndexChanged.connect(self.func_update)
 
 
 if __name__ == '__main__':
