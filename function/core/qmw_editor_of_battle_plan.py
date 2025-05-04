@@ -652,7 +652,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.ButtonCopyWave.setEnabled(True)
             self.ButtonPasteWave.setEnabled(True)
             self.ButtonApplyToAll.setEnabled(True)
-            self.be_edited_insert_use_card_index = None
+            self.be_edited_gem_index = None
 
         self.fresh_all_ui()
 
@@ -1074,12 +1074,35 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.fresh_all_ui()
 
     def delete_use_gem(self):
+        """
+        删除选中的宝石操作
+        """
         if self.be_edited_gem_index is None:
             QMessageBox.information(self, "错误！", "请先选择宝石操作")
             return
 
-        event = self.insert_use_gem_events[self.be_edited_gem_index]
-        self.insert_use_gem_events.remove(event)
+        # 获取当前波次的所有宝石事件
+        current_gem_events = [e for e in self.insert_use_gem_events
+                              if e.trigger.wave_id == self.be_edited_wave_id]
+
+        if not current_gem_events:
+            return
+
+        # 确保索引有效
+        if self.be_edited_gem_index >= len(current_gem_events):
+            CUS_LOGGER.warning(f"[战斗方案编辑器] 宝石操作索引越界: {self.be_edited_gem_index}")
+            return
+
+        # 获取要删除的事件
+        event_to_delete = current_gem_events[self.be_edited_gem_index]
+
+        # 从原始列表中删除
+        self.insert_use_gem_events.remove(event_to_delete)
+
+        # 清空选中状态
+        self.be_edited_gem_index = None
+
+        # 刷新UI
         self.fresh_all_ui()
 
     def delete_loop_use_cards_one_card(self):
