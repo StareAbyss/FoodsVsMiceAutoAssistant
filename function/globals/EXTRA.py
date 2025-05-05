@@ -78,6 +78,8 @@ def get_true_stage_id():
     stage_ids += generate_stage_ids("PT", [0, 0], [0, 25])  # 0为爬塔模式
     # 悬赏
     stage_ids += generate_stage_ids("OR", [0, 0], [1, 4])
+    # 公会副本
+    stage_ids += generate_stage_ids("GD", [0, 0], [1, 4])
     # 假期
     stage_ids += ["HH-0-0"]
     # 世界boss
