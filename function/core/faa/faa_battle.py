@@ -24,6 +24,14 @@ class FAABattle:
         self.smoothie_usable = self.player == 1
         self.wave = 0  # 当前波次归零
         self.start_time = time.time()
+        # 获取所有定时宝石事件
+        gem_events = [e for e in self.battle_plan["events"] if e["action"]["type"] == "insert_use_gem"]
+
+        if gem_events:
+            # 获取最大波次
+            self.max_wave = max(e["trigger"]["wave_id"] for e in gem_events)
+        else:
+            self.max_wave = -1
 
     """铲子"""
 
@@ -360,9 +368,9 @@ class FAABattle:
     def use_gem_skill(self: "FAA"):
         """使用武器技能"""
 
-        # 如果有定时操作 就不自动使用
-        gem_timer = next((e for e in self.battle_plan["events"] if e["action"]["type"] == "insert_use_gem"), None)
-        if gem_timer is not None:
+        # 如果当前波次小于等于最大定时波次，禁止自动宝石点击
+        if self.wave <= self.max_wave:
+            CUS_LOGGER.debug(f"当前波次:{self.wave}, 最大定时波次:{self.max_wave}, 禁止自动宝石点击")
             return
 
         # 上锁, 防止和放卡冲突
