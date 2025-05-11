@@ -924,12 +924,18 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.load_data_to_ui_list_mode_1()
 
         if self.editing_mode == 2:
-            events = [e for e in self.insert_use_card_events if e.trigger.wave_id == self.be_edited_wave_id]
-            tar_event = events.pop(index_from)
-            self.insert_use_card_events.remove(tar_event)
-            self.insert_use_card_events.insert(index_to, tar_event)
+            indices = [i for i, e in enumerate(self.insert_use_card_events)
+                       if e.trigger.wave_id == self.be_edited_wave_id]
 
-            CUS_LOGGER.debug(tar_event)
+            if 0 <= index_from < len(indices) and 0 <= index_to < len(indices):
+                global_from = indices[index_from]
+                global_to = indices[index_to]
+
+                # 在原始列表中移动事件
+                event = self.insert_use_card_events.pop(global_from)
+                self.insert_use_card_events.insert(global_to, event)
+
+            # CUS_LOGGER.debug(tar_event)
             CUS_LOGGER.debug("当前波次 插入放卡 数据已更新: {}".format(self.insert_use_card_events))
 
             self.load_data_to_ui_list_mode_2()
