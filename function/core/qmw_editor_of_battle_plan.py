@@ -1590,6 +1590,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             :return:
             """
             self.battle_plan.events.clear()
+            self.insert_use_card_events.sort(key=lambda x: (x.trigger.wave_id, x.trigger.time))
             self.battle_plan.events.extend(copy.deepcopy(event) for event in self.loop_use_cards_events)
             self.battle_plan.events.extend(copy.deepcopy(event) for event in self.insert_use_card_events)
             self.battle_plan.events.extend(copy.deepcopy(event) for event in self.insert_use_gem_events)
