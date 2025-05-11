@@ -622,38 +622,45 @@ class QMWEditorOfBattlePlan(QMainWindow):
             button.setStyleSheet(f"background-color: {color_with_alpha}")
             last_action = cursor_action
 
-    def change_edit_mode(self):
+    def change_edit_mode(self, mode=None):
+        """
+        切换编辑模式
+        :param mode: 目标模式编号(1-3)，为None时进入循环切换模式
+        """
+        if mode is not None and 1 <= mode <= 3:
+            self.editing_mode = mode
+        else:
+            # 原有循环切换逻辑
+            self.editing_mode = (self.editing_mode % 3) + 1
 
+        # 管理布局可见性
+        hide_layout(self.LayNormalActionList)
+        hide_layout(self.LayTimelineActionList)
+        hide_layout(self.LayGemActionList)
+
+        # 根据当前模式显示对应布局
         if self.editing_mode == 1:
-            self.editing_mode = 2
+            self.LabelEditorMode.setText("当前模式 - 常规循环放卡编辑")
+            show_layout(self.LayNormalActionList)
+            self.ButtonCopyWave.setEnabled(True)
+            self.ButtonPasteWave.setEnabled(True)
+            self.ButtonApplyToAll.setEnabled(True)
+
+        elif self.editing_mode == 2:
             self.LabelEditorMode.setText("当前模式 - 定时放卡编辑")
-            hide_layout(self.LayNormalActionList)
             show_layout(self.LayTimelineActionList)
             self.ButtonCopyWave.setEnabled(False)
             self.ButtonPasteWave.setEnabled(False)
             self.ButtonApplyToAll.setEnabled(False)
 
-            # 取消正在编辑玩家
-            self.be_edited_player = False
-            self.ButtonPlayer.setText("玩家位置")
-            self.be_edited_loop_use_cards_one_card_index = None
-
-        elif self.editing_mode == 2:
-            self.editing_mode = 3
-            self.LabelEditorMode.setText("当前模式 - 特殊操作放卡编辑")
-            hide_layout(self.LayTimelineActionList)
-            show_layout(self.LayGemActionList)
-            self.be_edited_insert_use_card_index = None
         elif self.editing_mode == 3:
-            self.editing_mode = 1
-            self.LabelEditorMode.setText("当前模式 - 常规循环放卡编辑")
-            hide_layout(self.LayGemActionList)
-            show_layout(self.LayNormalActionList)
-            self.ButtonCopyWave.setEnabled(True)
-            self.ButtonPasteWave.setEnabled(True)
-            self.ButtonApplyToAll.setEnabled(True)
-            self.be_edited_gem_index = None
+            self.LabelEditorMode.setText("当前模式 - 特殊操作放卡编辑")
+            show_layout(self.LayGemActionList)
+            self.ButtonCopyWave.setEnabled(False)
+            self.ButtonPasteWave.setEnabled(False)
+            self.ButtonApplyToAll.setEnabled(False)
 
+        # 刷新所有UI状态
         self.fresh_all_ui()
 
     def change_wave(self, wave: int):
@@ -1673,6 +1680,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.load_json(file_path=new_file_path)
 
         self.init_battle_plan()
+        self.change_edit_mode(1)
 
         self.ButtonSave.setEnabled(True)
 
