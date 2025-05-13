@@ -14,14 +14,6 @@
             "name": "产火"
         },
         {
-            "card_id": 9,
-            "name": "棕榈吹风机"
-        },
-        {
-            "card_id": 10,
-            "name": "防风草沙拉"
-        },
-        {
             "card_id": 2,
             "name": "海星"
         },
@@ -38,20 +30,28 @@
             "name": "散点增幅"
         },
         {
-            "card_id": 8,
-            "name": "防空"
-        },
-        {
-            "card_id": 11,
-            "name": "护罩"
-        },
-        {
             "card_id": 6,
             "name": "巧克力投手"
         },
         {
             "card_id": 7,
             "name": "巧克力大炮"
+        },
+        {
+            "card_id": 8,
+            "name": "防空"
+        },
+        {
+            "card_id": 9,
+            "name": "棕榈吹风机"
+        },
+        {
+            "card_id": 10,
+            "name": "防风草沙拉"
+        },
+        {
+            "card_id": 11,
+            "name": "护罩"
         }
     ],
     "events": [

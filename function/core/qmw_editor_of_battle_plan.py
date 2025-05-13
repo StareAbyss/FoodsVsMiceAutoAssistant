@@ -1522,6 +1522,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 转化为json
         json_data = obj_to_json(self.battle_plan)
 
+        # 排序一下cards
+        json_data["cards"].sort(key=lambda x: x["card_id"])
+
         # 保存
         with EXTRA.FILE_LOCK:
             with open(file=new_file_path, mode='w', encoding='utf-8') as file:

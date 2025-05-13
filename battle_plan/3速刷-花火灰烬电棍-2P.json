@@ -17,16 +17,16 @@
             "name": "灰烬投手"
         },
         {
-            "card_id": 4,
-            "name": "雷电长棍面包"
-        },
-        {
             "card_id": 2,
             "name": "护罩"
         },
         {
             "card_id": 3,
             "name": "照明"
+        },
+        {
+            "card_id": 4,
+            "name": "雷电长棍面包"
         }
     ],
     "events": [
@@ -37,7 +37,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 1,
@@ -120,7 +119,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]

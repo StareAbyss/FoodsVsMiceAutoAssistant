@@ -14,12 +14,16 @@
             "name": "产火"
         },
         {
-            "card_id": 10,
-            "name": "香辣年糕蟹"
-        },
-        {
             "card_id": 2,
             "name": "海星"
+        },
+        {
+            "card_id": 3,
+            "name": "防空"
+        },
+        {
+            "card_id": 4,
+            "name": "护罩a"
         },
         {
             "card_id": 5,
@@ -30,16 +34,8 @@
             "name": "冰桶炸弹"
         },
         {
-            "card_id": 3,
-            "name": "防空"
-        },
-        {
             "card_id": 7,
             "name": "布丁"
-        },
-        {
-            "card_id": 4,
-            "name": "护罩a"
         },
         {
             "card_id": 8,
@@ -48,6 +44,10 @@
         {
             "card_id": 9,
             "name": "护罩c"
+        },
+        {
+            "card_id": 10,
+            "name": "香辣年糕蟹"
         }
     ],
     "events": [
@@ -58,7 +58,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 1,
@@ -295,7 +294,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]

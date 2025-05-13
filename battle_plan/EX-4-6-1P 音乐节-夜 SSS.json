@@ -13,16 +13,12 @@
             "name": "花火龙"
         },
         {
-            "card_id": 8,
-            "name": "驻场炸弹a"
+            "card_id": 2,
+            "name": "海星"
         },
         {
-            "card_id": 9,
-            "name": "驻场炸弹b"
-        },
-        {
-            "card_id": 10,
-            "name": "驻场炸弹c"
+            "card_id": 3,
+            "name": "防空"
         },
         {
             "card_id": 4,
@@ -33,20 +29,24 @@
             "name": "散点增幅"
         },
         {
-            "card_id": 2,
-            "name": "海星"
-        },
-        {
-            "card_id": 3,
-            "name": "防空"
-        },
-        {
             "card_id": 6,
             "name": "护罩"
         },
         {
             "card_id": 7,
             "name": "布丁"
+        },
+        {
+            "card_id": 8,
+            "name": "驻场炸弹a"
+        },
+        {
+            "card_id": 9,
+            "name": "驻场炸弹b"
+        },
+        {
+            "card_id": 10,
+            "name": "驻场炸弹c"
         },
         {
             "card_id": 11,
@@ -65,7 +65,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 1,
@@ -242,7 +241,8 @@
                         ],
                         "kun": 2
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         },
         {
@@ -252,7 +252,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 1,
@@ -428,7 +427,8 @@
                         ],
                         "kun": 2
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         },
         {
@@ -438,7 +438,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 1,
@@ -612,7 +611,8 @@
                         ],
                         "kun": 2
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]

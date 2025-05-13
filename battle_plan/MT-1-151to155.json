@@ -17,16 +17,16 @@
             "name": "海星"
         },
         {
-            "card_id": 5,
-            "name": "散点追踪"
-        },
-        {
-            "card_id": 10,
-            "name": "投手"
+            "card_id": 3,
+            "name": "散点增幅"
         },
         {
             "card_id": 4,
             "name": "护罩"
+        },
+        {
+            "card_id": 5,
+            "name": "散点追踪"
         },
         {
             "card_id": 6,
@@ -45,8 +45,8 @@
             "name": "10周年烟花"
         },
         {
-            "card_id": 3,
-            "name": "散点增幅"
+            "card_id": 10,
+            "name": "投手"
         }
     ],
     "events": [
@@ -57,7 +57,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 1,
@@ -189,7 +188,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]

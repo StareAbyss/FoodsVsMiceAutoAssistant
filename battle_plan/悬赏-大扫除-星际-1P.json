@@ -10,10 +10,6 @@
     },
     "cards": [
         {
-            "card_id": 6,
-            "name": "产火"
-        },
-        {
             "card_id": 1,
             "name": "散点追踪"
         },
@@ -32,6 +28,10 @@
         {
             "card_id": 5,
             "name": "防风草沙拉"
+        },
+        {
+            "card_id": 6,
+            "name": "产火"
         }
     ],
     "events": [
@@ -42,7 +42,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 6,
@@ -130,7 +129,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]

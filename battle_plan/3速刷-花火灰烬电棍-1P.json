@@ -21,18 +21,6 @@
             "name": "灰烬投手"
         },
         {
-            "card_id": 8,
-            "name": "雷电长棍面包"
-        },
-        {
-            "card_id": 7,
-            "name": "投手增幅"
-        },
-        {
-            "card_id": 5,
-            "name": "对地"
-        },
-        {
             "card_id": 3,
             "name": "防空"
         },
@@ -41,8 +29,20 @@
             "name": "护罩"
         },
         {
+            "card_id": 5,
+            "name": "对地"
+        },
+        {
             "card_id": 6,
             "name": "照明"
+        },
+        {
+            "card_id": 7,
+            "name": "投手增幅"
+        },
+        {
+            "card_id": 8,
+            "name": "雷电长棍面包"
         }
     ],
     "events": [
@@ -53,7 +53,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 1,
@@ -189,7 +188,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]
