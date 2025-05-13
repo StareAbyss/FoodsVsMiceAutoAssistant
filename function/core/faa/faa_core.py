@@ -2495,24 +2495,38 @@ class FAABase:
 
         # 打开暗晶商店
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=800, y=485)
-        time.sleep(1)
 
-        # 进入暗晶兑换
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=180, y=70)
-        time.sleep(1)
+        # 确保加载正确完成
+        r = loop_match_p_in_w(
+            source_handle=self.handle,
+            source_range=[255, 15, 655, 60],
+            template=RESOURCE_P["common"]["暗晶商店_ui.png"],
+            match_tolerance=0.95,
+            match_interval=0.2,
+            match_failed_check=10,
+            after_sleep=2,
+            click=False
+        )
+        if r:
+            # 进入暗晶兑换
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=180, y=70)
+            time.sleep(1)
 
-        # 3x3次点击 确认兑换
-        for i in range(3):
-            for location in [[405, 190], [405, 320], [860, 190]]:
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=location[0], y=location[1])
-                # 这个破商店点快了兑换不了
-                time.sleep(2)
+            # 3x3次点击 确认兑换
+            for i in range(3):
+                for location in [[405, 190], [405, 320], [860, 190]]:
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=location[0], y=location[1])
+                    # 这个破商店点快了兑换不了
+                    time.sleep(2)
 
         # 退出商店界面
         for i in range(2):
             self.action_exit(mode="普通红叉")
 
-        SIGNAL.PRINT_TO_UI.emit(text=f"[兑换暗晶] [{self.player}P] 结束.")
+        if r:
+            SIGNAL.PRINT_TO_UI.emit(text=f"[兑换暗晶] [{self.player}P] 执行完成.")
+        else:
+            SIGNAL.PRINT_TO_UI.emit(text=f"[兑换暗晶] [{self.player}P] 失败放弃. 游戏太卡")
 
     def delete_items(self: "FAA"):
         """用于删除多余的技能书类消耗品, 使用前需要输入二级或无二级密码"""
