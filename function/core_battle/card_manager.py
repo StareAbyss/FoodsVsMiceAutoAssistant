@@ -251,7 +251,7 @@ class CardManager(QThread):
                             card_type=result["card_type"])
                         self.the_9th_fan_dict_list[pid].append(s_card)
 
-                    elif result["card_type"] < 14:
+                    elif result["card_type"] <= 15:
                         # 各种炸弹类卡片 包括瓜皮类炸弹
                         s_card = SpecialCard(
                             faa=faa,
@@ -1087,18 +1087,18 @@ class ThreadUseSpecialCardTimer(QThread):
                 for card in self.special_card_list[pid]:
                     if card.state_images["冷却"] is None:
                         not_got_state_images_cards.append(card)
-
+                CUS_LOGGER.debug(f"未完成列表{not_got_state_images_cards}")
                 if not_got_state_images_cards:
                     # 如果有卡片未完成状态监测, 则将未完成状态监测的卡片加入到待处理列表中
                     self.card_list_can_use[pid] = not_got_state_images_cards
                 else:
                     # 如果均完成了状态监测, 则将所有状态为可用的卡片加入待处理列表中
                     self.card_list_can_use[pid] = []
-                    for card in self.special_card_list[pid]:
-                        card.fresh_status()
-                        if card.status_usable:
-                            self.card_list_can_use[pid].append(card)
-
+                for card in (set(self.special_card_list[pid])-set(self.card_list_can_use[pid])):
+                    card.fresh_status()
+                    if card.status_usable:
+                        self.card_list_can_use[pid].append(card)
+            CUS_LOGGER.debug(f"当前可用卡片队列{self.card_list_can_use}")
             result = solve_special_card_problem(
                 points_to_cover=need_boom_locations,
                 obstacles=self.faa_dict[1].stage_info["obstacle"],
