@@ -649,31 +649,29 @@ class BattlePreparation:
 
     def _get_card_name_list_from_battle_plan(self: "FAA"):
 
-        # 和 card_list 一一对应 顺序一致 代表这张卡是否允许被跳过
-        battle_plan = copy.deepcopy(self.battle_plan)
 
         my_dict = {}
+        mats = copy.deepcopy(self.stage_info["mat_card"])
 
         # 直接从cards 中获取 顺带保险排序一下
-        for card in battle_plan["cards"]:
+        for card in self.battle_plan["cards"]:
             my_dict[card["card_id"]] = card["name"]
 
         # 根据id 排序 并取其中的value为list
         sorted_list = list(dict(sorted(my_dict.items())).values())
+        # 和 card_list 一一对应 顺序一致 代表这张卡是否允许被跳过
         can_failed_list = [False for _ in sorted_list]
 
-        # 增承载卡
-        mats = copy.deepcopy(self.stage_info["mat_card"])
-        # 如果需要任意承载卡 第一张卡设定为 字段 有效承载
+        # 如果需要任意承载卡 第一张卡设定为 有效承载 置于末位
         if len(mats) >= 1:
             sorted_list += ["有效承载"]
             can_failed_list += [False]
 
-        # 添加冰沙 复制类
+        # 添加冰沙 复制类 置于末位 允许找不到
         sorted_list += ["冰激凌-2", "创造神", "幻幻鸡"]
         can_failed_list += [True, True, True]
 
-        # 如果有效承载数量 >= 2
+        # 如果有效承载数量 >= 2 置于末位 允许找不到
         if len(mats) >= 2:
             for _ in range(len(mats) - 1):
                 sorted_list += ["有效承载"]
@@ -681,9 +679,15 @@ class BattlePreparation:
 
         # 根据最大卡片数量限制 移除卡片
         if self.max_card_num is not None:
-            self.print_debug(text=f"[自动带卡] 最大卡片数量限制为{self.max_card_num}张, 激活自动剔除")
+            self.print_debug(text=f"[自动带卡] 最大卡片数量限制为{self.max_card_num}张, 激活自动剔除, 并Ban掉咖啡粉")
             sorted_list = sorted_list[:self.max_card_num]
             can_failed_list = can_failed_list[:self.max_card_num]
+
+            # 只要有禁用 就把咖啡粉顺手ban了.
+            if not self.ban_card_list:
+                self.ban_card_list = ["咖啡粉"]
+            else:
+                self.ban_card_list += ["咖啡粉"]
 
         return sorted_list, can_failed_list
 
@@ -742,7 +746,8 @@ class BattlePreparation:
                 return 3
 
         else:
-            #  任务需求的带卡 在自动带卡中会自动处理, 此处是无自动带卡时的处理
+            # 任务需求的带卡
+            # 在自动带卡中会自动处理该流程, 此处是手动带卡时对任务要求的处理
             self._add_quest_card()
 
         self._remove_ban_card()

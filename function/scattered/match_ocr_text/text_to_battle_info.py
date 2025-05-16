@@ -42,7 +42,8 @@ def food_texts_to_battle_info(texts, self) -> list:
             continue
 
         # 解析是否需要用钥匙 or 徽章
-        # if "击杀" in text or "清除" in text or "评分" in text or "S" in text or "A" in text:
+        # tar_list = ["击杀", "清除", "评分", "S", "A"]
+        # if any(tar in text for tar in tar_list):
         #     need_key = True
 
         # 检查特定卡片
