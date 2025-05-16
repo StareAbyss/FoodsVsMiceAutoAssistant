@@ -9,24 +9,20 @@
     },
     "cards": [
         {
-            "card_id": 7,
-            "name": "产火"
+            "card_id": 1,
+            "name": "海星"
+        },
+        {
+            "card_id": 2,
+            "name": "布丁"
         },
         {
             "card_id": 3,
             "name": "散点追踪"
         },
         {
-            "card_id": 1,
-            "name": "海星"
-        },
-        {
             "card_id": 4,
             "name": "散点增幅"
-        },
-        {
-            "card_id": 2,
-            "name": "布丁"
         },
         {
             "card_id": 5,
@@ -35,6 +31,10 @@
         {
             "card_id": 6,
             "name": "照明"
+        },
+        {
+            "card_id": 7,
+            "name": "产火"
         }
     ],
     "events": [
@@ -45,7 +45,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 7,
@@ -192,7 +191,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]

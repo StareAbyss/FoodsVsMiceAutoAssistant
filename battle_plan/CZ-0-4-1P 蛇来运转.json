@@ -10,20 +10,20 @@
     },
     "cards": [
         {
-            "card_id": 11,
-            "name": "产火"
+            "card_id": 1,
+            "name": "海星"
         },
         {
             "card_id": 2,
             "name": "布丁"
         },
         {
-            "card_id": 4,
-            "name": "散点增幅"
+            "card_id": 3,
+            "name": "散点追踪"
         },
         {
-            "card_id": 1,
-            "name": "海星"
+            "card_id": 4,
+            "name": "散点增幅"
         },
         {
             "card_id": 5,
@@ -50,8 +50,8 @@
             "name": "10周年烟花"
         },
         {
-            "card_id": 3,
-            "name": "散点追踪"
+            "card_id": 11,
+            "name": "产火"
         }
     ],
     "events": [

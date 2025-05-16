@@ -10,14 +10,6 @@
     },
     "cards": [
         {
-            "card_id": 9,
-            "name": "小火炉"
-        },
-        {
-            "card_id": 10,
-            "name": "大火炉"
-        },
-        {
             "card_id": 1,
             "name": "海星"
         },
@@ -48,6 +40,14 @@
         {
             "card_id": 8,
             "name": "香辣年糕蟹"
+        },
+        {
+            "card_id": 9,
+            "name": "小火炉"
+        },
+        {
+            "card_id": 10,
+            "name": "大火炉"
         }
     ],
     "events": [

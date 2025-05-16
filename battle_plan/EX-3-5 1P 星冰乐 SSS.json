@@ -18,16 +18,16 @@
             "name": "海星"
         },
         {
-            "card_id": 5,
-            "name": "对地"
+            "card_id": 3,
+            "name": "布丁"
         },
         {
             "card_id": 4,
             "name": "防空"
         },
         {
-            "card_id": 3,
-            "name": "布丁"
+            "card_id": 5,
+            "name": "对地"
         },
         {
             "card_id": 6,
@@ -50,7 +50,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 1,
@@ -164,7 +163,8 @@
                         "location": [],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         },
         {
@@ -174,7 +174,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 6,
@@ -331,7 +330,8 @@
                         "location": [],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         },
         {
@@ -341,7 +341,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 6,
@@ -476,7 +475,8 @@
                         "location": [],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]
