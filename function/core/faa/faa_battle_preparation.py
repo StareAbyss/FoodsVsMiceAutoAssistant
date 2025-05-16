@@ -746,7 +746,8 @@ class BattlePreparation:
                 return 3
 
         else:
-            #  任务需求的带卡 在自动带卡中会自动处理, 此处是无自动带卡时的处理
+            # 任务需求的带卡
+            # 在自动带卡中会自动处理该流程, 此处是手动带卡时对任务要求的处理
             self._add_quest_card()
 
         self._remove_ban_card()
