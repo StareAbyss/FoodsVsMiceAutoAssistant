@@ -1,16 +1,29 @@
-# coding:utf-8
-
+import sys
 import multiprocessing
 
-from function.core.qmw_3_service import faa_start_main
+from PyQt6.QtCore import QTimer
+from PyQt6.QtWidgets import QApplication
 
-if __name__ == '__main__':
-    # 游戏[固定]分辨率 950* 600 19:12 完全可以在识别图像时提前裁剪来减小消耗
-    # 截图[不会]缩放, 点击位置[需要]缩放, 这为制作脚本提供了极大便利
 
-    # 多进程锁定主进程
+def main():
     multiprocessing.freeze_support()
 
-    # 全部启动
-    faa_start_main()
+    app = QApplication(sys.argv)
 
+    from function.core.loading_window import LoadingWindow
+    loading = LoadingWindow()
+    loading.update_progress(0)
+    loading.show()
+
+    QTimer.singleShot(100, lambda: delayed_init(app,loading))
+
+    sys.exit(app.exec())
+
+
+def delayed_init(app,loading):
+    from function.core.qmw_3_service import faa_start_main
+    faa_start_main(app,loading)
+
+
+if __name__ == '__main__':
+    main()

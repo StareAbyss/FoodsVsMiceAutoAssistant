@@ -43,7 +43,6 @@ from function.scattered.get_stage_info_online import get_stage_info_online
 from function.scattered.test_route_connectivity import test_route_connectivity
 from function.scattered.todo_timer_manager import TodoTimerManager
 
-
 class QMainWindowService(QMainWindowLoadSettings):
     signal_todo_end = QtCore.pyqtSignal()
     signal_todo_start = QtCore.pyqtSignal(int)  # 可通过该信号以某个 方案id 开启一趟流程
@@ -1087,11 +1086,8 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         CUS_LOGGER.warning("重置卡片状态自学习记忆, 结束")
 
-
-def faa_start_main():
-    # 实例化 PyQt后台管理
-    app = QtWidgets.QApplication(sys.argv)
-
+def faa_start_main(app=None,loading=None):
+    loading.update_progress(95)
     # app.setStyle("Windows")
     # app.setStyle("WindowsVista")
     # app.setStyle("Fusion")
@@ -1109,9 +1105,10 @@ def faa_start_main():
 
     # 设置 窗口字体
     window.font = font
-
+    loading.update_progress(100)
     # 主窗口 实现
     window.show()
+    loading.hide()
 
     # 性能分析监控启动
     run_analysis_in_thread(window)
@@ -1128,8 +1125,7 @@ def faa_start_main():
     # 运行主循环，必须调用此函数才可以开始事件处理
     app.exec()
 
-    # 退出程序
-    sys.exit()
+
 
 
 if __name__ == "__main__":
