@@ -1,6 +1,6 @@
 from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QWidget, QProgressBar, QLabel, QVBoxLayout, QApplication, QGraphicsDropShadowEffect
-from PyQt6.QtCore import Qt, QPointF
+from PyQt6.QtCore import Qt, QPointF, QPropertyAnimation, QEasingCurve
 
 
 class LoadingWindow(QWidget):
@@ -38,6 +38,9 @@ class LoadingWindow(QWidget):
                 text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
             }
         """)
+        self.animation = QPropertyAnimation(self, b"windowOpacity")  # 注意是 b"windowOpacity"
+        self.animation.setDuration(500)  # 动画持续时间（毫秒）
+        self.animation.setEasingCurve(QEasingCurve.Type.OutQuad)
 
     def init_ui(self):
         self.setWindowFlags(Qt.WindowType.SplashScreen |
@@ -75,4 +78,13 @@ class LoadingWindow(QWidget):
         self.resize(300, 150)
     def update_progress(self, value):
         self.progress_bar.setValue(value)
+        if value >= 100:
+            self.start_fade_out()
         QApplication.processEvents()
+
+    def start_fade_out(self):
+        self.animation.stop()
+        self.animation.setStartValue(1.0)
+        self.animation.setEndValue(0.0)
+        self.animation.start()
+        self.animation.finished.connect(self.hide)
