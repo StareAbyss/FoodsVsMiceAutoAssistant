@@ -1108,6 +1108,7 @@ def faa_start_main(app=None,loading=None):
     loading.update_progress(100)
     # 主窗口 实现
     window.show()
+    window.fade_in_animation.start()
 
     # 性能分析监控启动
     run_analysis_in_thread(window)
