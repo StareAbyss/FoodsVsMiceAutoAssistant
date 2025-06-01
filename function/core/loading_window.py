@@ -1,48 +1,31 @@
 import random
 
 from PyQt6.QtGui import QColor, QMovie
-from PyQt6.QtWidgets import QWidget, QProgressBar, QLabel, QVBoxLayout, QApplication, QGraphicsDropShadowEffect
-from PyQt6.QtCore import Qt, QPointF, QPropertyAnimation, QEasingCurve, QPoint, QSize
+from PyQt6.QtWidgets import QWidget, QProgressBar, QLabel, QVBoxLayout, QGraphicsDropShadowEffect
+from PyQt6.QtCore import Qt, QPointF, QPropertyAnimation, QEasingCurve, QPoint, QSize, QThread
 from function.globals.get_paths import PATHS
+class AnimationThread(QThread):
 
+    def __init__(self,loading):
+        super().__init__()
+        self._is_running = True  # 线程运行状态标志
+        self.loading=loading
+    def run(self):
+        while self._is_running:
+            QThread.msleep(50)  # 控制帧率 (单位：毫秒)
+            self.loading.gif_movie.jumpToNextFrame(),
+            self.loading.repaint()
+    def stop(self):
+        """安全停止线程的方法"""
+        self._is_running = False
+        self.wait()  # 等待线程自然退出
 class LoadingWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.init_ui()
-        self.setStyleSheet("""
-            #container {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                    stop:0 #2b2b2b, stop:1 #1a1a1a);
-                border-radius: 8px;
-            }
-            QWidget {
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                    stop:0 #2b2b2b, stop:1 #1a1a1a);
-                border-radius: 8px;
-                color: #ffffff;
-            }
-            QProgressBar {
-                background-color: rgba(255, 255, 255, 0.1);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 4px;
-                height: 20px;
-                text-align: center;
-            }
-            QProgressBar::chunk {
-                background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                    stop:0 #00ff88, stop:1 #00ccff);
-                border-radius: 4px;
-            }
-            QLabel {
-                font-size: 16px;
-                font-weight: 500;
-                color: #ffffff;
-                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-            }
-        """)
-        self.animation = QPropertyAnimation(self, b"windowOpacity")  # 注意是 b"windowOpacity"
-        self.animation.setDuration(500)  # 动画持续时间（毫秒）
-        self.animation.setEasingCurve(QEasingCurve.Type.OutQuad)
+        self.anim=AnimationThread(self)
+
+
 
     def init_ui(self):
         self.setWindowFlags(Qt.WindowType.SplashScreen |
@@ -70,26 +53,20 @@ class LoadingWindow(QWidget):
         self.gif_label.setScaledContents(True)
         self.gif_movie = QMovie(PATHS["ui"] + "\\progress.gif")
         self.gif_movie.setScaledSize(QSize(77, 96))
-        # self.gif_movie.setCacheMode(QMovie.CacheMode.CacheAll)
         self.gif_label.setMovie(self.gif_movie)
-        # self.gif_movie.start()
-        self.gif_label.hide()
 
         container_layout.addWidget(self.label)
         container_layout.addWidget(self.progress_bar)
         container.setLayout(container_layout)
-
         # 主窗口布局
         main_layout = QVBoxLayout()
         main_layout.addWidget(container)
         self.setLayout(main_layout)
-
-        # 将阴影效果应用到容器
+        # 阴影效果
         container.setGraphicsEffect(QGraphicsDropShadowEffect(
             blurRadius=40, color=QColor(0, 0, 0, 120),
             offset=QPointF(0, 0)))
-
-        # 居中显示
+        #位置移动
         screen = self.screen().geometry()
         self.move(int(screen.width() / 2 - 150), int(screen.height() / 2 - 75))
         self.resize(300, 150)
@@ -103,20 +80,58 @@ class LoadingWindow(QWidget):
             "正在强化海星...",
             "即将完成初始化..."
         ]
+        #淡出动画
+        self.animation = QPropertyAnimation(self, b"windowOpacity")
+        self.animation.setDuration(500)
+        self.animation.setEasingCurve(QEasingCurve.Type.OutQuad)
+        #样式表
+        self.setStyleSheet("""
+                    #container {
+                        background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                            stop:0 #2b2b2b, stop:1 #1a1a1a);
+                        border-radius: 8px;
+                    }
+                    QWidget {
+                        background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                            stop:0 #2b2b2b, stop:1 #1a1a1a);
+                        border-radius: 8px;
+                        color: #ffffff;
+                    }
+                    QProgressBar {
+                        background-color: rgba(255, 255, 255, 0.1);
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        border-radius: 4px;
+                        height: 20px;
+                        text-align: center;
+                    }
+                    QProgressBar::chunk {
+                        background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                            stop:0 #00ff88, stop:1 #00ccff);
+                        border-radius: 4px;
+                    }
+                    QLabel {
+                        font-size: 16px;
+                        font-weight: 500;
+                        color: #ffffff;
+                        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+                    }
+                """)
     def update_progress(self, value,text=None):
         self.progress_bar.setValue(value)
         if value>0:
             self.update_gif_position(value)
         if value >= 100:
-            # self.gif_movie.stop()
+            #进度条到达100触发淡出动画
             self.start_fade_out()
         if text:
             self.label.setText(text)
         else:
+            #没有指定文本则从默认文本池中抽选一条
             random_text = random.choice(self.loading_texts_pool)
             self.label.setText(random_text)
 
     def start_fade_out(self):
+        """淡出动画"""
         self.animation.stop()
         self.animation.setStartValue(1.0)
         self.animation.setEndValue(0.0)
@@ -138,12 +153,12 @@ class LoadingWindow(QWidget):
         bar_global_pos = self.progress_bar.mapToGlobal(QPoint(0, 0))
         window_global_pos = self.mapToGlobal(QPoint(0, 0))
         bar_in_window_pos = bar_global_pos - window_global_pos
-
+        self.gif_label.raise_()
+        self.gif_label.show()
         # 设置 GIF 位置（修正锚点偏移）
         self.gif_label.move(
             bar_in_window_pos.x() + current_x,
             bar_in_window_pos.y() + (bar_height - gif_size) // 2
         )
-        self.gif_label.raise_()
-        self.gif_label.show()
+
 

@@ -1086,7 +1086,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         CUS_LOGGER.warning("重置卡片状态自学习记忆, 结束")
 
-def faa_start_main(app=None,loading=None,anim_thread= None):
+def faa_start_main(app=None,loading=None):
     loading.update_progress(95)
     # app.setStyle("Windows")
     # app.setStyle("WindowsVista")
@@ -1105,10 +1105,12 @@ def faa_start_main(app=None,loading=None,anim_thread= None):
 
     # 设置 窗口字体
     window.font = font
-    anim_thread.stop()
+    #先停止播放gif再更新进度到100避免线程安全问题
+    loading.anim.stop()
     loading.update_progress(100,"载入完成！！！")
     # 主窗口 实现
     window.show()
+    #主窗口淡入动画
     window.fade_in_animation.start()
 
 
@@ -1124,8 +1126,6 @@ def faa_start_main(app=None,loading=None,anim_thread= None):
         window.todo_click_btn()
     app.setQuitOnLastWindowClosed(False)  # 禁止自动退出
 
-    # 运行主循环，必须调用此函数才可以开始事件处理
-    # app.exec()
 
 
 
