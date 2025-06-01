@@ -291,6 +291,7 @@ def loop_match_p_in_w(
         after_click_template=None,
         after_click_template_mask=None,
         source_root_handle=None,
+        deviation=None
 ) -> bool:
     """
     根据句柄截图, 并在截图中寻找一个较小的图片资源.
@@ -310,6 +311,7 @@ def loop_match_p_in_w(
         :param after_click_template: 点击后进行检查, 若能找到该图片, 视为无效, 不输出True, 继承前者的 tolerance interval
         :param after_click_template_mask: 检查 - 掩模
         :param source_root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层 可空置
+        :param deviation: 实际窗口点击改变后，点击的偏移值
 
     return:
         是否在限定时间内找到图片
@@ -337,13 +339,21 @@ def loop_match_p_in_w(
     if not click:
         time.sleep(after_sleep)
         return True
-
-    T_ACTION_QUEUE_TIMER.add_click_to_queue(
-        handle=click_handle if click_handle else source_handle,
+    if click_handle:
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(
+            handle=click_handle,
+            x=find_target[0] + source_range[0] + deviation[0],
+            y=find_target[1] + source_range[1] + deviation[1]
+        )
+        # print(
+        #     f"成功点击{click_handle}的{find_target[0] + source_range[0] + deviation[0]}，{find_target[1] + source_range[1] + deviation[1]}")
+    else:
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(
+        handle=source_handle,
         x=find_target[0] + source_range[0],
         y=find_target[1] + source_range[1]
-    )
-
+        )
+        # print(f"成功点击{source_handle}的{find_target[0] + source_range[0]}，{find_target[1] + source_range[1]}")
     if after_click_template is None:
         # 不需要检查是否切换到另一个界面
         time.sleep(after_sleep)
