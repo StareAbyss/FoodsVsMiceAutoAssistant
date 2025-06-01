@@ -3,7 +3,7 @@ import sys
 import types
 
 from PyQt6 import uic, QtGui, QtCore, QtWidgets
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QListWidgetItem, QListWidget, QSystemTrayIcon, QMenu
 
@@ -64,6 +64,12 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
         # 绑定最小化按钮
         self.Button_Minimized.clicked.connect(self.minimize_to_tray)
+        #淡入动画
+        self.fade_in_animation = QPropertyAnimation(self, b"windowOpacity")
+        self.fade_in_animation.setDuration(300)
+        self.fade_in_animation.setEasingCurve(QEasingCurve.Type.InCubic)
+        self.fade_in_animation.setStartValue(0.0)
+        self.fade_in_animation.setEndValue(1.0)
 
     def get_theme(self):
         if self.palette().color(QtGui.QPalette.ColorRole.Window).lightness() < 128:

@@ -3,7 +3,8 @@ import os
 import threading
 
 import psutil
-
+from function.globals.loadings import loading
+loading.update_progress(42,"正在全力性能分析中...")
 from function.widget.GaugePanel import GaugePanel
 
 
