@@ -1,6 +1,7 @@
 import itertools
 import threading
-
+from function.globals.loadings import loading
+loading.update_progress(18,"正在载入全局设置...")
 from PyQt6 import QtGui
 
 from function.globals.get_paths import PATHS

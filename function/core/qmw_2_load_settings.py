@@ -3,7 +3,8 @@ import json
 import os
 import shutil
 import sys
-
+from function.globals.loadings import loading
+loading.update_progress(45,"正在加载配置中...")
 from PyQt6.QtCore import QRegularExpression
 from PyQt6.QtGui import QRegularExpressionValidator, QIntValidator
 from PyQt6.QtWidgets import QApplication, QMessageBox, QInputDialog, QTableWidgetItem

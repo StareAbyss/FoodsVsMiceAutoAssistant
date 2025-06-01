@@ -1,7 +1,8 @@
 import json
 import os.path
 import shutil
-
+from function.globals.loadings import loading
+loading.update_progress(65,"正在加载FAA迁移工具...")
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QMessageBox, \
     QFileDialog, QHBoxLayout, QCheckBox
