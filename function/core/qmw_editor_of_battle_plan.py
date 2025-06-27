@@ -12,13 +12,13 @@ from PyQt6.QtGui import QKeySequence, QIcon, QShortcut
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QGridLayout, QPushButton, QWidget, QFileDialog, QVBoxLayout, QLabel, QComboBox,
     QLineEdit, QHBoxLayout, QTextEdit, QListWidget, QMessageBox, QSpinBox, QListWidgetItem, QFrame, QAbstractItemView,
-    QSpacerItem, QSizePolicy, QDoubleSpinBox, QDialog)
+    QSpacerItem, QSizePolicy, QDoubleSpinBox, QDialog, QDialogButtonBox)
 
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 from function.scattered.class_battle_plan_v3d0 import json_to_obj, TriggerWaveTimer, \
-    ActionLoopUseCards, ActionInsertUseCard,ActionShovel, ActionUseGem, Event, BattlePlan, obj_to_json, Card, MetaData, \
+    ActionLoopUseCards, ActionInsertUseCard,ActionShovel, ActionUseGem,ActionEscape,ActionBanCard, Event, BattlePlan, obj_to_json, Card, MetaData, \
     CardLoopConfig
 from function.widget.MultiLevelMenu import MultiLevelMenu
 
@@ -139,6 +139,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.LayMain = QVBoxLayout()
 
         self.LayTimelineActionList = None
+        self.ListSpecialActions = None
         self.LayNormalActionList = None
 
         self.ButtonModeChange = None
@@ -374,24 +375,24 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 self.ListTimelineActions.setMaximumWidth(260)  # 经过验证的完美数字
                 self.LayTimelineActionList.addWidget(self.ListTimelineActions)
 
-            def init_ui_lay_gem_actions():
-                """宝石操作列表"""
-                self.LayGemActionList = QVBoxLayout()
-                self.LayoutMainBottom.addLayout(self.LayGemActionList)
+            def init_ui_lay_special_actions():
+                """特殊操作列表"""
+                self.LaySpecialActionList = QVBoxLayout()
+                self.LayoutMainBottom.addLayout(self.LaySpecialActionList)
 
-                title_label = QLabel('左键-选中宝石   右键-编辑参数')
+                title_label = QLabel('左键-选中操作   右键-编辑参数')
                 title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.LayGemActionList.addWidget(title_label)
+                self.LaySpecialActionList.addWidget(title_label)
 
-                self.ButtonAddGemAction = QPushButton('新增宝石使用操作')
-                self.LayGemActionList.addWidget(self.ButtonAddGemAction)
+                self.ButtonAddSpecialAction = QPushButton('新增特殊操作')
+                self.LaySpecialActionList.addWidget(self.ButtonAddSpecialAction)
 
-                self.ButtonDeleteGemAction = QPushButton('删除选中宝石操作')
-                self.LayGemActionList.addWidget(self.ButtonDeleteGemAction)
+                self.ButtonDeleteSpecialAction = QPushButton('删除选中特殊操作')
+                self.LaySpecialActionList.addWidget(self.ButtonDeleteSpecialAction)
 
-                self.ListGemActions = QListWidgetDraggable()
-                self.ListGemActions.setMaximumWidth(260)
-                self.LayGemActionList.addWidget(self.ListGemActions)
+                self.ListSpecialActions = QListWidgetDraggable()
+                self.ListSpecialActions.setMaximumWidth(260)
+                self.LaySpecialActionList.addWidget(self.ListSpecialActions)
 
             def init_ui_lay_chessboard():
                 """棋盘布局"""
@@ -440,12 +441,12 @@ class QMWEditorOfBattlePlan(QMainWindow):
             init_ui_lay_left()
             init_ui_lay_normal_actions()
             init_ui_lay_timeline_actions()
-            init_ui_lay_gem_actions()
+            init_ui_lay_special_actions()
             init_ui_lay_chessboard()
 
             # 隐藏定时操作列表
             hide_layout(self.LayTimelineActionList)
-            hide_layout(self.LayGemActionList)
+            hide_layout(self.LaySpecialActionList)
 
         init_ui_lay_tip()
         init_ui_layout_bottom()
@@ -491,10 +492,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
             self.ButtonModeChange.clicked.connect(self.change_edit_mode)
 
-            self.ButtonAddGemAction.clicked.connect(self.add_use_gem)
-            self.ButtonDeleteGemAction.clicked.connect(self.delete_use_gem)
-            self.ListGemActions.itemClicked.connect(self.be_edited_gem_change)
-            self.ListGemActions.editRequested.connect(self.show_edit_window)
+            self.ButtonAddSpecialAction.clicked.connect(self.add_use_special_action)
+            self.ButtonDeleteSpecialAction.clicked.connect(self.delete_use_special_action)
+            self.ListSpecialActions.itemClicked.connect(self.be_edited_special_change)
+            self.ListSpecialActions.editRequested.connect(self.show_edit_window)
 
         connect_signal_and_slot()
 
@@ -544,7 +545,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         )
 
         # 根据事件类型分类的事件子类
-        self.insert_use_gem_events: List[Event] = []
+        self.insert_use_special_events: List[Event] = []
         self.insert_use_card_events: List[Event] = []
         self.loop_use_cards_events: List[Event] = []
 
@@ -638,7 +639,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 管理布局可见性
         hide_layout(self.LayNormalActionList)
         hide_layout(self.LayTimelineActionList)
-        hide_layout(self.LayGemActionList)
+        hide_layout(self.LaySpecialActionList)
 
         # 根据当前模式显示对应布局
         if self.editing_mode == 1:
@@ -657,7 +658,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         elif self.editing_mode == 3:
             self.LabelEditorMode.setText("当前模式 - 特殊操作放卡编辑")
-            show_layout(self.LayGemActionList)
+            show_layout(self.LaySpecialActionList)
             self.ButtonCopyWave.setEnabled(False)
             self.ButtonPasteWave.setEnabled(False)
             self.ButtonApplyToAll.setEnabled(False)
@@ -804,10 +805,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         #print(f"编辑 - 位置 - 定时动作编辑 目标改变: {self.be_edited_insert_use_card_index}")
 
-    def be_edited_gem_change(self, item):
+    def be_edited_special_change(self, item):
         """被单击后, 被选中的宝石操作改变了"""
-        self.be_edited_gem_index = self.ListGemActions.indexFromItem(item).row()
-        #print(f"编辑 - 宝石操作 目标改变: {self.be_edited_gem_index}")
+        self.be_edited_special_action_index = self.ListSpecialActions.indexFromItem(item).row()
+        #print(f"编辑 - 宝石操作 目标改变: {self.be_edited_special_action_index}")
     def load_data_to_ui_list_mode_1(self):
         """从 [内部数据表] 载入数据到 [ui的放卡动作列表]"""
 
@@ -916,13 +917,18 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
     def load_data_to_ui_list_mode_3(self):
         """宝石操作列表数据加载"""
-        self.ListGemActions.clear()
-        events = [e for e in self.insert_use_gem_events
+        self.ListSpecialActions.clear()
+        events = [e for e in self.insert_use_special_events
                   if e.trigger.wave_id == self.be_edited_wave_id]
 
         for event in events:
-            item_text = f"波次{event.trigger.wave_id} {event.trigger.time}s 宝石{event.action.gem_id}"
-            self.ListGemActions.addItem(QListWidgetItem(item_text))
+            if isinstance(event.action, ActionEscape):
+                item_text = f"波次{event.trigger.wave_id} {event.trigger.time}s 逃跑操作"
+            elif isinstance(event.action, ActionBanCard):
+                item_text = f"波次{event.trigger.wave_id} {event.action.start_time}-{event.action.end_time}s 禁用卡{event.action.card_id}"
+            else:
+                item_text = f"波次{event.trigger.wave_id} {event.trigger.time}s 宝石{event.action.gem_id}"
+            self.ListSpecialActions.addItem(QListWidgetItem(item_text))
 
     def event_list_be_moved(self, index_from, index_to):
         """在list的drop事件中调用, 用于更新内部数据表"""
@@ -1069,18 +1075,38 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 )
 
 
+
         elif self.editing_mode == 3:
-            # 处理模式3: 宝石操作
-            events = [e for e in self.insert_use_gem_events if e.trigger.wave_id == self.be_edited_wave_id]
-            event = events[self.be_edited_gem_index]
-            data = {
-                "gem_id": event.action.gem_id,
-                "time": event.trigger.time
-            }
-            self.EditorAction = GemInfoEditor(
-                data=data,
-                func_update=self.update_gem_info
-            )
+
+            events = [e for e in self.insert_use_special_events if e.trigger.wave_id == self.be_edited_wave_id]
+
+            event = events[self.be_edited_special_action_index]
+
+            if isinstance(event.action, ActionEscape):
+
+                data = {"time": event.trigger.time}
+
+                self.EditorAction = EscapeActionEditor(data=data, func_update=self.update_escape_action_info)
+
+            elif isinstance(event.action, ActionBanCard):
+
+                data = {
+
+                    "start_time": event.action.start_time,
+
+                    "end_time": event.action.end_time,
+
+                    "card_id": event.action.card_id
+
+                }
+
+                self.EditorAction = BanCardActionEditor(data=data, func_update=self.update_ban_card_info)
+
+            else:
+
+                data = {"gem_id": event.action.gem_id, "time": event.trigger.time}
+
+                self.EditorAction = GemInfoEditor(data=data, func_update=self.update_special_action_info)
 
         # 计算显示位置
         global_pos = self.ListNormalActions.viewport().mapToGlobal(
@@ -1120,6 +1146,33 @@ class QMWEditorOfBattlePlan(QMainWindow):
         except Exception as e:
             QMessageBox.warning(self, "输入错误", f"请输入有效的参数: {str(e)}")
             self.EditorAction.WidgetTimeInput.setFocus()
+
+    def update_escape_action_info(self):
+        try:
+            events = [e for e in self.insert_use_special_events if e.trigger.wave_id == self.be_edited_wave_id]
+            event = events[self.be_edited_special_action_index]
+            new_data = self.EditorAction.get_data()
+
+            event.action = ActionEscape(time=new_data["time"])
+            event.trigger.time = new_data["time"]
+            self.fresh_all_ui()
+        except Exception as ve:
+            QMessageBox.warning(self, "输入错误", f"请输入有效的参数: {str(ve)}")
+
+    def update_ban_card_info(self):
+        try:
+            events = [e for e in self.insert_use_special_events if e.trigger.wave_id == self.be_edited_wave_id]
+            event = events[self.be_edited_special_action_index]
+            new_data = self.EditorAction.get_data()
+
+            event.action = ActionBanCard(
+                start_time=new_data["start_time"],
+                end_time=new_data["end_time"],
+                card_id=new_data["card_id"])
+            event.trigger.time = new_data["start_time"]  # 使用开始时间作为触发时间
+            self.fresh_all_ui()
+        except Exception as ve:
+            QMessageBox.warning(self, "输入错误", f"请输入有效的参数: {str(ve)}")
 
     def add_loop_use_cards_one_card(self):
 
@@ -1166,48 +1219,55 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         self.fresh_all_ui()
 
-    def add_use_gem(self):
-        self.insert_use_gem_events.append(
-            Event(
-                trigger=TriggerWaveTimer(
-                    wave_id=self.be_edited_wave_id,
-                    time=0
-                ),
-                action=ActionUseGem(
-                    gem_id=1
-                )
-            )
-        )
+    def add_use_special_action(self):
+        dialog = SpecialActionTypeDialog()
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            action_type = dialog.get_selected_type()
+            if action_type == "escape":
+                self.insert_use_special_events.append(
+                    Event(
+                        trigger=TriggerWaveTimer(wave_id=self.be_edited_wave_id, time=0),
+                        action=ActionEscape(time=0)))
+            elif action_type == "disable_card":
+                self.insert_use_special_events.append(
+                    Event(
+                        trigger=TriggerWaveTimer(wave_id=self.be_edited_wave_id, time=0),
+                        action=ActionBanCard(start_time=0, end_time=0, card_id=1)))
+            elif action_type == "gem":  # 原有宝石操作
+                self.insert_use_special_events.append(
+                    Event(
+                        trigger=TriggerWaveTimer(wave_id=self.be_edited_wave_id, time=0),
+                        action=ActionUseGem(gem_id=1)))
         self.fresh_all_ui()
 
-    def delete_use_gem(self):
+    def delete_use_special_action(self):
         """
         删除选中的宝石操作
         """
-        if self.be_edited_gem_index is None:
+        if self.be_edited_special_action_index is None:
             QMessageBox.information(self, "错误！", "请先选择宝石操作")
             return
 
         # 获取当前波次的所有宝石事件
-        current_gem_events = [e for e in self.insert_use_gem_events
+        current_events = [e for e in self.insert_use_special_events
                               if e.trigger.wave_id == self.be_edited_wave_id]
 
-        if not current_gem_events:
+        if not current_events:
             return
 
         # 确保索引有效
-        if self.be_edited_gem_index >= len(current_gem_events):
-            CUS_LOGGER.warning(f"[战斗方案编辑器] 宝石操作索引越界: {self.be_edited_gem_index}")
+        if self.be_edited_special_action_index >= len(current_events):
+            CUS_LOGGER.warning(f"[战斗方案编辑器] 宝石操作索引越界: {self.be_edited_special_action_index}")
             return
 
         # 获取要删除的事件
-        event_to_delete = current_gem_events[self.be_edited_gem_index]
+        event_to_delete = current_events[self.be_edited_special_action_index]
 
         # 从原始列表中删除
-        self.insert_use_gem_events.remove(event_to_delete)
+        self.insert_use_special_events.remove(event_to_delete)
 
         # 清空选中状态
-        self.be_edited_gem_index = None
+        self.be_edited_special_action_index = None
 
         # 刷新UI
         self.fresh_all_ui()
@@ -1348,30 +1408,42 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         self.fresh_all_ui()
 
-    def update_gem_info(self):
-        """
-        更新宝石操作事件的UI与数据
-        """
+    def update_special_action_info(self):
+        """更新宝石操作事件的UI与数据"""
         try:
-            # 添加空值检查
-            gem_id_text = self.EditorAction.WidgetGemIdInput.currentText()
-            if not gem_id_text.strip():
+            events = [e for e in self.insert_use_special_events if e.trigger.wave_id == self.be_edited_wave_id]
+            event = events[self.be_edited_special_action_index]
+
+            # 获取当前UI数据
+            ui_gem_id = self.EditorAction.WidgetGemIdInput.currentText()
+            if not ui_gem_id.strip():
                 raise ValueError("宝石ID不能为空")
 
-            events = [e for e in self.insert_use_gem_events if e.trigger.wave_id == self.be_edited_wave_id]
-            event = events[self.be_edited_gem_index]
+            # 创建新的操作对象
+            if isinstance(event.action, ActionEscape):
+                new_data = self.EditorAction.get_data()
+                new_action = ActionEscape(time=new_data["time"])
+                event.trigger.time = new_data["time"]
+            elif isinstance(event.action, ActionBanCard):
+                new_data = self.EditorAction.get_data()
+                new_action = ActionBanCard(
+                    start_time=new_data["start_time"],
+                    end_time=new_data["end_time"],
+                    card_id=new_data["card_id"])
+                event.trigger.time = new_data["start_time"]
+            else:  # ActionUseGem
+                # 显式定义new_data
+                new_data = {
+                    "gem_id": int(ui_gem_id),
+                    "time": self.EditorAction.WidgetTimeInput.value()
+                }
+                new_action = ActionUseGem(gem_id=new_data["gem_id"])
+                event.trigger.time = new_data["time"]
 
-            ui_gem_id = int(gem_id_text)
-            if event.action.gem_id != ui_gem_id:
-                event.action.gem_id = ui_gem_id
-                self.fresh_all_ui()
-                return
+            # 替换事件中的action对象
+            event.action = new_action
 
-            ui_time = self.EditorAction.WidgetTimeInput.value()
-            if event.trigger.time != ui_time:
-                event.trigger.time = ui_time
-                self.fresh_all_ui()
-                return
+            self.fresh_all_ui()
 
         except ValueError as ve:
             QMessageBox.warning(self, "输入错误", f"请输入有效的宝石ID: {str(ve)}")
@@ -1700,7 +1772,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.insert_use_card_events.sort(key=lambda x: (x.trigger.wave_id, x.trigger.time))
             self.battle_plan.events.extend(copy.deepcopy(event) for event in self.loop_use_cards_events)
             self.battle_plan.events.extend(copy.deepcopy(event) for event in self.insert_use_card_events)
-            self.battle_plan.events.extend(copy.deepcopy(event) for event in self.insert_use_gem_events)
+            self.battle_plan.events.extend(copy.deepcopy(event) for event in self.insert_use_special_events)
 
         view_to_obj_battle_plan()
 
@@ -1883,10 +1955,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
         ]
 
         # 类型3 波次定时宝石
-        self.insert_use_gem_events: List[Event] = [
+        self.insert_use_special_events: List[Event] = [
             event for event in self.battle_plan.events
             if (isinstance(event.trigger, TriggerWaveTimer) and
-                isinstance(event.action, ActionUseGem))
+                isinstance(event.action, (ActionUseGem, ActionEscape, ActionBanCard)))
         ]
 
         # 填充构造所有波次的 变阵操作 保存的时候再去掉重复项
@@ -2574,6 +2646,106 @@ class GemInfoEditor(QDialog):
         self.WidgetGemIdInput.currentIndexChanged.connect(self.func_update)
 
 
+class SpecialActionTypeDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("选择特殊操作类型")
+        layout = QVBoxLayout(self)
+
+        self.type_combo = QComboBox()
+        self.type_combo.addItems(["逃跑操作", "禁用卡片", "宝石操作"])
+
+        layout.addWidget(self.type_combo)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+    def get_selected_type(self):
+        return {
+            "逃跑操作": "escape",
+            "禁用卡片": "disable_card",
+            "宝石操作": "gem"
+        }[self.type_combo.currentText()]
+
+
+class EscapeActionEditor(QDialog):
+    def __init__(self, data, func_update):
+        super().__init__()
+        self.data = data.copy() if data else {"time": 0.0}
+        self.func_update = func_update
+
+        self.WidgetTimeInput = QDoubleSpinBox()
+        self.WidgetTimeInput.setRange(0, 9999)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20,20)
+        layout.setSpacing(15)
+        self.WidgetTimeInput.setFixedWidth(140)
+        layout.addWidget(QLabel("触发时间(秒)"))
+        layout.addWidget(self.WidgetTimeInput)
+
+        self.setLayout(layout)
+        self.setWindowTitle("编辑逃跑操作")
+        self.setWindowFlags(Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowCloseButtonHint)
+
+        self.load_data()
+        self.WidgetTimeInput.valueChanged.connect(self.func_update)
+
+    def load_data(self):
+        self.WidgetTimeInput.setValue(self.data.get("time", 0))
+
+    def get_data(self):
+        return {"time": self.WidgetTimeInput.value(), "type": "escape"}
+
+
+class BanCardActionEditor(QDialog):
+    def __init__(self, data, func_update):
+        super().__init__()
+        self.data = data.copy() if data else {"start_time": 0.0, "end_time": 0.0, "card_id": 1}
+        self.func_update = func_update
+
+        self.start_time = QDoubleSpinBox()
+        self.start_time.setRange(0, 9999)
+        self.end_time = QDoubleSpinBox()
+        self.end_time.setRange(0, 9999)
+        self.card_id = QSpinBox()
+        self.card_id.setRange(0, 21)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+        layout.addWidget(QLabel("开始时间(秒)"))
+        layout.addWidget(self.start_time)
+        layout.addWidget(QLabel("结束时间(秒)"))
+        layout.addWidget(self.end_time)
+        layout.addWidget(QLabel("禁用的卡片ID(0-21)"))
+        layout.addWidget(self.card_id)
+
+        self.setLayout(layout)
+        self.setWindowTitle("编辑禁用卡片")
+        self.setWindowFlags(Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowCloseButtonHint)
+
+        self.load_data()
+        self.start_time.valueChanged.connect(self.func_update)
+        self.end_time.valueChanged.connect(self.func_update)
+        self.card_id.valueChanged.connect(self.func_update)
+
+    def load_data(self):
+        self.start_time.setValue(self.data.get("start_time", 0))
+        self.end_time.setValue(self.data.get("end_time", 0))
+        self.card_id.setValue(self.data.get("card_id", 1))
+
+    def get_data(self):
+        return {
+            "start_time": self.start_time.value(),
+            "end_time": self.end_time.value(),
+            "card_id": self.card_id.value(),
+            "type": "disable_card"
+        }
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = QMWEditorOfBattlePlan()
