@@ -52,6 +52,11 @@ class ActionInsertUseCard:
     after_shovel_time: int
     type: str = "insert_use_card"
 
+@dataclass
+class ActionShovel:
+    time: float
+    location: str
+    type: str = "shovel"
 
 @dataclass
 class ActionUseGem:
@@ -62,7 +67,7 @@ class ActionUseGem:
 @dataclass
 class Event:
     trigger: Union[TriggerWaveTimer]
-    action: Union[ActionLoopUseCards, ActionInsertUseCard, ActionUseGem]
+    action: Union[ActionLoopUseCards, ActionInsertUseCard, ActionUseGem, ActionShovel]
 
 
 @dataclass

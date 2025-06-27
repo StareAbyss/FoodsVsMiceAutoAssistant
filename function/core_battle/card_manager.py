@@ -818,6 +818,10 @@ class ThreadInsertUseCardTimer(QThread):
                 event["trigger"]["type"] == "wave_timer" and
                 event["action"]["type"] == "insert_use_card"
         )]
+        self.insert_use_shovel = [event for event in self.faa.battle_plan["events"] if (
+                event["trigger"]["type"] == "wave_timer" and
+                event["action"]["type"] == "shovel"
+        )]
         self.insert_use_gem_plan = [event for event in self.faa.battle_plan["events"] if (
                 event["trigger"]["type"] == "wave_timer" and
                 event["action"]["type"] == "insert_use_gem"
@@ -931,6 +935,21 @@ class ThreadInsertUseCardTimer(QThread):
                         "pid": self.pid,
                         "location": battle_event["action"]["location"]}
                 )
+
+        current_wave_plan = [
+            event for event in self.insert_use_shovel if event["trigger"]["wave_id"] == int(wave)]
+
+        # 遍历铲子定时器
+        for battle_event in current_wave_plan:
+            # 铲卡定时器
+            self.manager.create_insert_timer_and_start(
+                interval=max(0.0, battle_event["trigger"]["time"] - time_change),
+                func_name="insert_use_shovel",
+                func_kwargs={
+                    "pid": self.pid,
+                    "location": battle_event["action"]["location"]}
+            )
+
 
         current_wave_plan = [
             event for event in self.insert_use_gem_plan if event["trigger"]["wave_id"] == int(wave)]
