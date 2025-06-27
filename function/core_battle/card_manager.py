@@ -132,6 +132,7 @@ class CardManager(QThread):
 
         self.running = False
         self.card_list_dict = {}
+        self.card_list_unique = {}
         self.special_card_list = {}
         self.kun_cards_dict = {}
         self.card_queue_dict = {}
@@ -307,6 +308,16 @@ class CardManager(QThread):
                 for card in self.card_list_dict[pid]:
                     if card.kun > 0:
                         card.kun_cards = kun_cards
+            for pid in self.pid_list:
+                sorted_cards = sorted(self.card_list_dict[pid], key=lambda x: x.c_id)
+                unique_cards = []
+                seen = set()
+                for card in sorted_cards:
+                    if card.c_id not in seen:
+                        seen.add(card.c_id)
+                        unique_cards.append(card)
+                # 按照c_id（卡槽位置）排序并去重
+                self.card_list_unique[pid] = unique_cards
 
         def init_card_queue_dict():
             for pid in self.pid_list:
@@ -481,6 +492,20 @@ class CardManager(QThread):
             time.sleep(self.click_sleep)
 
         CUS_LOGGER.debug(f"成功定时铲")
+    def _ban_card_state_change(self, pid, cid,state):
+        faa = self.faa_dict[pid]
+        #cid参数为零将会通一对所有卡的ban状态进行修改
+        if cid!=0:
+            card=self.card_list_unique[pid][cid-1]
+
+            with faa.battle_lock:
+                card.banning=state
+                CUS_LOGGER.debug(f"成功改变ban卡{card.name}状态{state}")
+        else:
+            with faa.battle_lock:
+                for card in self.card_list_unique[pid]:
+                    card.banning=state
+            CUS_LOGGER.debug(f"成功改变所有卡状态{state}")
 
     def _insert_use_card(self, pid, card_id, location):
 
@@ -536,6 +561,8 @@ class CardManager(QThread):
                 func = self._insert_use_card
             case "insert_use_gem":
                 func = self._insert_use_gem
+            case "ban_card":
+                func=self._ban_card_state_change
 
         timer = Timer(interval=interval, function=lambda: func(**func_kwargs))
         timer.start()
@@ -826,6 +853,14 @@ class ThreadInsertUseCardTimer(QThread):
                 event["trigger"]["type"] == "wave_timer" and
                 event["action"]["type"] == "insert_use_gem"
         )]
+        self.insert_escape_plan = [event for event in self.faa.battle_plan["events"] if (
+                event["trigger"]["type"] == "wave_timer" and
+                event["action"]["type"] == "escape"
+        )]
+        self.insert_ban_card_plan = [event for event in self.faa.battle_plan["events"] if (
+                event["trigger"]["type"] == "wave_timer" and
+                event["action"]["type"] == "ban_card"
+        )]
 
         # 内联 card_name 字段
         for event in self.insert_use_card_plan:
@@ -949,7 +984,28 @@ class ThreadInsertUseCardTimer(QThread):
                     "pid": self.pid,
                     "location": battle_event["action"]["location"]}
             )
+        current_wave_plan = [
+            event for event in self.insert_ban_card_plan if event["trigger"]["wave_id"] == int(wave)]
 
+        # 遍历ban卡定时器
+        for battle_event in current_wave_plan:
+            # 铲卡定时器
+            self.manager.create_insert_timer_and_start(
+                interval=max(0.0, battle_event["action"]["start_time"] - time_change),
+                func_name="ban_card",
+                func_kwargs={
+                    "pid": self.pid,
+                    "cid": battle_event["action"]["card_id"],
+                    "state": True}
+            )
+            self.manager.create_insert_timer_and_start(
+                interval=max(0.0, battle_event["action"]["end_time"] - time_change),
+                func_name="ban_card",
+                func_kwargs={
+                    "pid": self.pid,
+                    "cid": battle_event["action"]["card_id"],
+                    "state": False}
+            )
 
         current_wave_plan = [
             event for event in self.insert_use_gem_plan if event["trigger"]["wave_id"] == int(wave)]

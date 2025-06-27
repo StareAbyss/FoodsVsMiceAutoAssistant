@@ -62,12 +62,22 @@ class ActionShovel:
 class ActionUseGem:
     gem_id: int
     type: str = "insert_use_gem"
+@dataclass
+class ActionEscape:
+    time: float
+    type: str = "escape"
 
+@dataclass
+class ActionBanCard:
+    start_time: float
+    end_time: float
+    card_id: int
+    type: str = "ban_card"
 
 @dataclass
 class Event:
     trigger: Union[TriggerWaveTimer]
-    action: Union[ActionLoopUseCards, ActionInsertUseCard, ActionUseGem, ActionShovel]
+    action: Union[ActionLoopUseCards, ActionInsertUseCard, ActionUseGem, ActionShovel, ActionBanCard, ActionEscape]
 
 
 @dataclass

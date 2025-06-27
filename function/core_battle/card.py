@@ -131,6 +131,8 @@ class Card:
 
         # 是否可以放卡（主要是瓜皮类）
         self.can_use = True
+        #默认禁用为false
+        self.banning=False
 
     def choice_card(self):
         """
@@ -307,7 +309,8 @@ class Card:
                 EXTRA.SMOOTHIE_LOCK_TIME = 7
 
         # 线程放瓜皮时不巧撞上了正在计算炸弹类或者计算完成后炸弹需要该瓜皮
-        if not self.can_use:
+        if not self.can_use or self.banning:
+            CUS_LOGGER.debug(f"[战斗执行器] [{self.player}P] [{self.name}] 禁用中不可使用")
             return
 
         # 输出
