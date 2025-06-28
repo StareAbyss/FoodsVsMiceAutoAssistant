@@ -239,7 +239,6 @@ class FAABase:
             quest_card=None,
             ban_card_list=None,
             max_card_num=None,
-            battle_plan_uuid: str = "00000000-0000-0000-0000-000000000000",
             is_cu: bool = False,
     ) -> None:
         """
@@ -253,7 +252,6 @@ class FAABase:
         :param quest_card: str 自动携带任务卡的名称
         :param ban_card_list: list[str,...] ban卡列表
         :param max_card_num: 最大卡片数 - 仅自动带卡时启用 会去除id更低的卡片, 保证完成任务要求.
-        :param battle_plan_uuid: 战斗方案的uuid
         :param stage_id: 关卡的id
         :return:
         """
@@ -270,13 +268,24 @@ class FAABase:
         self.ban_card_list = ban_card_list
         self.max_card_num = max_card_num
 
-        # 如果缺失, 外部的检测函数会拦下来不继续的
-        self.battle_plan = g_resources.RESOURCE_B.get(battle_plan_uuid, None)
-
         if not is_cu:
             self.stage_info = read_json_to_stage_info(stage_id)
         else:
             self.stage_info = read_json_to_stage_info(stage_id="CU-0-0", stage_id_for_battle=stage_id)
+
+    def set_battle_plan(
+            self,
+            battle_plan_uuid: str = "00000000-0000-0000-0000-000000000000"
+
+    ):
+        """
+        设置战斗方案
+        :param battle_plan_uuid: 战斗方案的uuid
+        :return:
+        """
+
+        # 如果缺失, 外部的检测函数会拦下来不继续的
+        self.battle_plan = g_resources.RESOURCE_B.get(battle_plan_uuid, None)
 
     """战斗完整的过程中的任务函数"""
 
