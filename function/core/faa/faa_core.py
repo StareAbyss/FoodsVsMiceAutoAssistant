@@ -316,7 +316,7 @@ class FAABase:
             for mat_card in resource_list:
 
                 # 需要使用0.99相似度参数 相似度阈值过低可能导致一张图片被识别为两张卡
-                find = match_p_in_w(
+                _, find = match_p_in_w(
                     source_img=image,
                     source_range=[190, 10, 950, 80],
                     template=RESOURCE_P["card"]["战斗"][mat_card],
@@ -324,7 +324,7 @@ class FAABase:
                 if find:
                     return_dict[mat_card.split("-")[0]] = [int(190 + find[0]), int(10 + find[1])]
                 else:
-                    find = match_p_in_w(
+                    _, find = match_p_in_w(
                         source_img=image,
                         source_range=[880, 80, 950, 600],
                         template=RESOURCE_P["card"]["战斗"][mat_card],
@@ -723,7 +723,7 @@ class FAABase:
             for i in [1, 2, 3, 4, 5, 6, 7, 10, 11]:
                 for quest_text, img in RESOURCE_P["quest_guild"][str(i)].items():
                     # 找到任务 加入任务列表
-                    find_p = match_p_in_w(
+                    _, find_p = match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
                         source_range=[125, 180, 407, 540],
@@ -786,7 +786,7 @@ class FAABase:
 
             for i in ["1", "2", "3"]:
                 # 任务未完成
-                find_p = match_p_in_w(
+                _, find_p = match_p_in_w(
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
                     source_range=[0, 0, 950, 600],
@@ -796,7 +796,7 @@ class FAABase:
                     # 遍历任务
                     for quest_text, img in RESOURCE_P["quest_spouse"][i].items():
                         # 找到任务 加入任务列表
-                        find_p = match_p_in_w(
+                        _, find_p = match_p_in_w(
                             source_handle=self.handle,
                             source_root_handle=self.handle_360,
                             source_range=[0, 0, 950, 600],
@@ -833,7 +833,7 @@ class FAABase:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=click_y)
                 time.sleep(0.25)
                 for quest_text, img in RESOURCE_P["quest_food"].items():
-                    find_p = match_p_in_w(
+                    _, find_p = match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
                         source_range=[130, 350, 470, 585],
@@ -1076,7 +1076,7 @@ class FAABase:
 
         def try_close_sub_account_list():
             # 是否有小号列表
-            my_result = match_p_in_w(
+            _, my_result = match_p_in_w(
                 source_handle=self.handle_360,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 300, 300],
@@ -1094,7 +1094,7 @@ class FAABase:
 
         def try_enter_server_4399():
             # 4399 进入服务器
-            my_result = match_p_in_w(
+            _, my_result = match_p_in_w(
                 source_handle=self.handle_browser,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 2000],
@@ -1112,7 +1112,7 @@ class FAABase:
 
         def try_enter_server_4399_wd():
             # 4399 进入服务器
-            my_result = match_p_in_w(
+            _, my_result = match_p_in_w(
                 source_handle=self.handle_browser,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 2000],
@@ -1127,7 +1127,7 @@ class FAABase:
                     y=my_result[1] + 30)
                 return True
             else:
-                my_result = match_p_in_w(
+                _, my_result = match_p_in_w(
                     source_handle=self.handle_browser,
                     source_root_handle=self.handle_360,
                     source_range=[0, 0, 2000, 2000],
@@ -1145,7 +1145,7 @@ class FAABase:
 
         def try_enter_server_qq_space():
             # QQ空间 进入服务器
-            my_result = match_p_in_w(
+            _, my_result = match_p_in_w(
                 source_handle=self.handle_browser,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 2000],
@@ -1163,7 +1163,7 @@ class FAABase:
 
         def try_enter_server_qq_game_hall():
             # QQ游戏大厅 进入服务器
-            my_result = match_p_in_w(
+            _, my_result = match_p_in_w(
                 source_handle=self.handle_browser,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 2000],
@@ -2224,7 +2224,7 @@ class FAABase:
                         click=True)
 
                     # 在限定范围内 找物品
-                    find = match_p_in_w(
+                    _, find = match_p_in_w(
                         source_handle=self.handle,
                         source_range=[466, 88, 910, 435],
                         template=item_image,
@@ -2557,7 +2557,7 @@ class FAABase:
             for i_name, i_image in g_resources.RESOURCE_CP["背包_道具_需删除的"].items():
 
                 # 在限定范围内 找物品
-                find = match_p_in_w(
+                _, find = match_p_in_w(
                     source_handle=self.handle,
                     source_range=[466, 88, 910, 435],
                     template=i_image,
@@ -2654,7 +2654,7 @@ class FAABase:
                 continue
 
             # 防止被 [没有带xx卡] or 包满 的提示卡死
-            find = match_p_in_w(
+            _, find = match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 950, 600],

@@ -219,7 +219,7 @@ class BattlePreparation:
                 # 未找到
                 if not match_img_result_dict[target]["found"]:
 
-                    result = match_p_in_w(
+                    _, result = match_p_in_w(
                         source_img=img,
                         template=resource_p[target],
                         mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
@@ -777,7 +777,7 @@ class BattlePreparation:
 
         # 防止被 [没有带对策卡] or [背包已满] or [经验已刷满] 卡住
         for i in range(10):
-            tar = match_p_in_w(
+            _, tar = match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
                 source_range=[300, 180, 650, 420],
@@ -1121,7 +1121,7 @@ if __name__ == '__main__':
                 raw_range=[0, 0, 950, 600],
                 root_handle=handle_360)
             img = crop_and_concat_columns(img=img)
-            result = match_p_in_w(
+            _, result = match_p_in_w(
                 source_img=img,
                 template=img_tar,
                 mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
