@@ -1982,8 +1982,8 @@ class ThreadTodo(QThread):
         :return:
         """
 
-        def split_task_sequence(task_sequence: list):
-            """将任务序列列表拆分为单独的任务列表"""
+        def merge_continuous_battle_task(task_sequence: list):
+            """将任务序列中, 连续的独立战斗事项完整合并"""
             task_list = []
             battle_dict = {
                 "task_type": "战斗",
@@ -2008,6 +2008,91 @@ class ThreadTodo(QThread):
 
             return task_list
 
+        def normal_battle_task_to_d_thread(task_sequence):
+            """
+            将自定义任务序列中完成合并的 连续的 战斗任务, 智能拆分组合 为连续的多线程单人 或 单线程 战斗任务
+            原则: 连续且仅有1p2p单独参与的任务, 将被智能分配到多线程单人. 且 无视12p之间的前后任务顺序!
+            :param task_sequence:
+            :return:
+            """
+
+            def to_double_thread_args(quest_info_list):
+                solo_quests_1 = []
+                solo_quests_2 = []
+                for quest_info_solo in quest_info_list:
+                    if quest_info_solo["player"] == [1]:
+                        solo_quests_1.append(quest_info_solo)
+                    if quest_info_solo["player"] == [2]:
+                        solo_quests_2.append(quest_info_solo)
+                return {
+                    "solo_quests_1": solo_quests_1,
+                    "solo_quests_2": solo_quests_2
+                }
+
+            new_task_list = []
+            for task in task_sequence:
+                # 非战斗任务事项不变
+                if task["task_type"] != "战斗":
+                    new_task_list.append(task)
+                else:
+                    p1_active = False
+                    p2_active = False
+                    thread_1_task_list = []
+                    thread_2_task_list = []
+                    unknown_task_list = []
+
+                    new_task_list = []
+                    for quest_info in task["task_args"]:
+                        if len(quest_info["player"]) == 2:
+                            if thread_2_task_list:
+                                new_task_list.append({
+                                    "task_type": "战斗-多线程",
+                                    "task_args": to_double_thread_args(quest_info_list=thread_2_task_list)
+                                })
+                                thread_2_task_list = []
+                            thread_1_task_list += unknown_task_list
+                            thread_1_task_list.append(quest_info)
+                            unknown_task_list = []
+                            p1_active = False
+                            p2_active = False
+
+                        if len(quest_info["player"]) == 1:
+                            if quest_info["player"] == [1]:
+                                p1_active = True
+                            if quest_info["player"] == [2]:
+                                p2_active = True
+                            if p1_active and p2_active:
+                                if thread_1_task_list:
+                                    new_task_list.append({
+                                        "task_type": "战斗",
+                                        "task_args": thread_1_task_list
+                                    })
+                                    thread_1_task_list = []
+                                thread_2_task_list += unknown_task_list
+                                thread_2_task_list.append(quest_info)
+                                unknown_task_list = []
+                            else:
+                                unknown_task_list.append(quest_info)
+                    # 收尾工作
+                    if unknown_task_list:
+                        new_task_list.append({
+                            "task_type": "战斗",
+                            "task_args": thread_1_task_list + unknown_task_list
+                        })
+                    else:
+                        if thread_1_task_list:
+                            new_task_list.append({
+                                "task_type": "战斗",
+                                "task_args": thread_1_task_list
+                            })
+                        if thread_2_task_list:
+                            new_task_list.append({
+                                "task_type": "战斗-多线程",
+                                "task_args": to_double_thread_args(quest_info_list=thread_2_task_list)
+                            })
+
+            return new_task_list
+
         def read_json_to_task_sequence():
             task_sequence_list = get_task_sequence_list(with_extension=True)
             task_sequence_path = "{}\\{}".format(
@@ -2021,70 +2106,89 @@ class ThreadTodo(QThread):
 
             return data
 
-        self.model_start_print(text=text_)
+        def main():
+            self.model_start_print(text=text_)
 
-        # 读取json文件
-        task_sequence = read_json_to_task_sequence()
+            # 读取json文件
+            task_sequence = read_json_to_task_sequence()
 
-        # 获取最大task_id
-        max_tid = 1
-        for quest in task_sequence:
-            max_tid = max(max_tid, quest["task_id"])
+            # 获取最大task_id
+            max_tid = 1
+            for quest in task_sequence:
+                max_tid = max(max_tid, quest["task_id"])
 
-        if task_begin_id > max_tid:
-            SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 开始事项id > 该方案最高id! 将直接跳过!")
-            return
+            if task_begin_id > max_tid:
+                SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 开始事项id > 该方案最高id! 将直接跳过!")
+                return
 
-        # 由于任务id从1开始, 故需要减1
-        # 去除序号小于stage_begin的任务
-        task_sequence = [task for task in task_sequence if task["task_id"] >= task_begin_id]
+            # 由于任务id从1开始, 故需要减1
+            # 去除序号小于stage_begin的任务
+            task_sequence = [task for task in task_sequence if task["task_id"] >= task_begin_id]
 
-        # 根据战斗和其他事项拆分 让战斗事项的参数构成 n本 n次 为一组的汇总
-        task_sequence = split_task_sequence(task_sequence=task_sequence)
+            # 根据战斗和其他事项拆分 让战斗事项的参数构成 n本 n次 为一组的汇总
+            task_sequence = merge_continuous_battle_task(task_sequence=task_sequence)
 
-        for task in task_sequence:
+            # 让战斗事项按 多线程单人 和 单线程常规 拆分
+            task_sequence = normal_battle_task_to_d_thread(task_sequence=task_sequence)
 
-            match task["task_type"]:
+            CUS_LOGGER.debug(f"自定义任务序列, 已完成全部处理, 结果: {task_sequence}")
 
-                case "战斗":
-                    self.battle_1_n_n(
-                        quest_list=task["task_args"],
-                        extra_title=text_
-                    )
-                case "双暴卡":
-                    self.batch_use_items_double_card(
-                        player=task["task_args"]["player"],
-                        max_times=task["task_args"]["max_times"]
-                    )
+            for task in task_sequence:
 
-                case "刷新游戏":
-                    self.batch_reload_game(
-                        player=task["task_args"]["player"],
-                    )
+                match task["task_type"]:
 
-                case "清背包":
-                    self.batch_level_2_action(
-                        player=task["task_args"]["player"],
-                        dark_crystal=False
-                    )
+                    case "战斗":
+                        self.battle_1_n_n(
+                            quest_list=task["task_args"],
+                            extra_title=text_
+                        )
+                    case "战斗-多线程":
+                        self.signal_start_todo_2_battle.emit({
+                            "quest_list": task["task_args"]["solo_quests_2"],
+                            "extra_title": f"{text_}] [多线程单人",
+                            "need_lock": True
+                        })
+                        self.battle_1_n_n(
+                            quest_list=task["task_args"]["solo_quests_1"],
+                            extra_title=f"{text_}] [多线程单人",
+                            need_lock=True)
 
-                case "领取任务奖励":
-                    all_quests = {
-                        "normal": "普通任务",
-                        "guild": "公会任务",
-                        "spouse": "情侣任务",
-                        "offer_reward": "悬赏任务",
-                        "food_competition": "美食大赛",
-                        "monopoly": "大富翁",
-                        "camp": "营地任务"
-                    }
-                    self.batch_receive_all_quest_rewards(
-                        player=task["task_args"]["player"],
-                        quests=[v for k, v in all_quests.items() if task["task_args"][k]]
-                    )
+                    case "双暴卡":
+                        self.batch_use_items_double_card(
+                            player=task["task_args"]["player"],
+                            max_times=task["task_args"]["max_times"]
+                        )
 
-        # 战斗结束
-        self.model_end_print(text=text_)
+                    case "刷新游戏":
+                        self.batch_reload_game(
+                            player=task["task_args"]["player"],
+                        )
+
+                    case "清背包":
+                        self.batch_level_2_action(
+                            player=task["task_args"]["player"],
+                            dark_crystal=False
+                        )
+
+                    case "领取任务奖励":
+                        all_quests = {
+                            "normal": "普通任务",
+                            "guild": "公会任务",
+                            "spouse": "情侣任务",
+                            "offer_reward": "悬赏任务",
+                            "food_competition": "美食大赛",
+                            "monopoly": "大富翁",
+                            "camp": "营地任务"
+                        }
+                        self.batch_receive_all_quest_rewards(
+                            player=task["task_args"]["player"],
+                            quests=[v for k, v in all_quests.items() if task["task_args"][k]]
+                        )
+
+            # 战斗结束
+            self.model_end_print(text=text_)
+
+        return main()
 
     def auto_food(self):
 
@@ -2257,7 +2361,7 @@ class ThreadTodo(QThread):
 
         auto_food_main()
 
-    """使用n_n_battle为核心的变种 [双线程][单人]"""
+    """使用battle_1_n_n为核心的变种 [双线程][单人]"""
 
     def alone_magic_tower(self):
 
