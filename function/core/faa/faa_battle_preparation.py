@@ -15,7 +15,6 @@ from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
-from function.scattered.match_ocr_text.get_stage_name_by_ocr import screen_get_stage_name
 from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 
 if TYPE_CHECKING:
@@ -597,52 +596,73 @@ class BattlePreparation:
             banned_card_index = sorted(banned_card_index)
             self.banned_card_index = banned_card_index
 
-    def _check_stage_name(self: "FAA", stage_name):
+    def _check_stage_name(self: "FAA", text, t_type="id"):
         """
-        根据检测出的关卡名，改变faa当前的stage_info
+        :param text str 对应的值
+        :param t_type str "id" or "name"
+        根据检测出的关卡ID或关卡名，改变faa当前的stage_info
         """
 
         # 原有的关卡id
-        stage_id = self.stage_info["id"]
+        old_stage_id = copy.deepcopy(self.stage_info["id"])
 
         # 特殊关卡列表占位符
         happy_holiday_list = []
         reward_list = []
         roaming_list = []
 
-        special_stage = True
-        match stage_name:
-            case _ if "魔塔蛋糕" in stage_name:
-                level = stage_name.replace("魔塔蛋糕第", "").replace("层", "")
-                self.stage_info = read_json_to_stage_info(
-                    stage_id=stage_id,
-                    stage_id_for_battle=f"MT-1-{level}"
-                )
+        special_stage = False
 
-            case _ if "双人魔塔" in stage_name:
-                level = stage_name.replace("双人魔塔第", "").replace("层", "")
-                self.stage_info = read_json_to_stage_info(
-                    stage_id=stage_id,
-                    stage_id_for_battle=f"MT-2-{level}")
+        if t_type == "id":
 
-            case _ if "萌宠神殿" in stage_name:
-                level = stage_name.replace("萌宠神殿第", "").replace("层", "")
-                self.stage_info = read_json_to_stage_info(
-                    stage_id=stage_id,
-                    stage_id_for_battle=f"PT-0-{level}"
-                )
+            self.stage_info = read_json_to_stage_info(
+                stage_id=old_stage_id,
+                stage_id_for_battle=text
+            )
+            special_stage = True
+            stage_name = self.stage_info["name"]
 
-            case _ if stage_name in happy_holiday_list:
-                pass
+        elif t_type == "name":
 
-            case _ if stage_name in reward_list:
-                pass
+            stage_name = text
+            special_stage = True
 
-            case _ if stage_name in roaming_list:
-                pass
+            match stage_name:
+                case _ if "魔塔蛋糕" in stage_name:
+                    level = stage_name.replace("魔塔蛋糕第", "").replace("层", "")
+                    self.stage_info = read_json_to_stage_info(
+                        stage_id=old_stage_id,
+                        stage_id_for_battle=f"MT-1-{level}"
+                    )
 
-            case _:
-                special_stage = False
+                case _ if "双人魔塔" in stage_name:
+                    level = stage_name.replace("双人魔塔第", "").replace("层", "")
+                    self.stage_info = read_json_to_stage_info(
+                        stage_id=old_stage_id,
+                        stage_id_for_battle=f"MT-2-{level}")
+
+                case _ if "萌宠神殿" in stage_name:
+                    level = stage_name.replace("萌宠神殿第", "").replace("层", "")
+                    self.stage_info = read_json_to_stage_info(
+                        stage_id=old_stage_id,
+                        stage_id_for_battle=f"PT-0-{level}"
+                    )
+
+                case _ if stage_name in happy_holiday_list:
+                    pass
+
+                case _ if stage_name in reward_list:
+                    pass
+
+                case _ if stage_name in roaming_list:
+                    pass
+
+                case _:
+                    # 查找失败
+                    special_stage = False
+
+        else:
+            stage_name = "UnKnown"
 
         if special_stage:
             SIGNAL.PRINT_TO_UI.emit(f"检测到特殊关卡：{stage_name}，已为你启用对应关卡方案", 7)
@@ -714,17 +734,11 @@ class BattlePreparation:
             return 2
         return 0
 
-    def battle_preparation_change_deck(self: "FAA"):
+    def battle_preparation_change_deck(self: "FAA") -> int:
         """
         战前准备 修改卡组
         :return: 0-正常结束 1-重启本次 2-跳过本次 3-跳过所有次数
         """
-        # 识别出当前关卡名称
-        stage_name = screen_get_stage_name(self.handle, self.handle_360)
-        self.print_debug(text=f"关卡名称识别结果: 当前关卡 - {stage_name}")
-
-        # 检测关卡名变种，如果符合特定关卡，则修改当前战斗的关卡信息
-        self._check_stage_name(stage_name)
 
         # 选择卡组
         self.print_debug(text=f"选择卡组编号-{self.deck}, 并开始加入新卡和ban卡")
@@ -1071,7 +1085,7 @@ class BattlePreparation:
         print_debug = self.print_debug
         print_error = self.print_error
 
-        print_debug(text="[开始/准备/魔塔蛋糕UI] 尝试捕获正确标志, 以完成战斗流程.")
+        print_debug(text="[结束校验] 尝试捕获正确标志, 以完成战斗流程. 标志包括: 开始/准备/魔塔蛋糕UI/巅峰对决UI")
         find = loop_match_ps_in_w(
             source_handle=handle,
             source_root_handle=handle_360,
@@ -1084,15 +1098,21 @@ class BattlePreparation:
                     "source_range": [200, 0, 750, 100],
                     "template": RESOURCE_P["common"]["魔塔蛋糕_ui.png"],
                     "match_tolerance": 0.99
-                }],
+                },
+                {
+                    "source_range": [0, 0, 260, 70],
+                    "template": RESOURCE_P["common"]["巅峰对决_ui.png"],
+                    "match_tolerance": 0.99
+                }
+            ],
             return_mode="or",
             match_failed_check=10,
             match_interval=0.2)
         if find:
-            print_debug(text="成功捕获[开始/准备/魔塔蛋糕UI], 完成战斗流程.")
+            print_debug(text="[结束校验] 成功捕获任意标志, 完成战斗流程.")
             return 0  # 0-正常结束
         else:
-            print_error(text="10s没能捕获[开始/准备/魔塔蛋糕UI], 出现意外错误, 直接跳过本次")
+            print_error(text="[结束校验] 10s没能捕获任意标志, 出现意外错误, 直接跳过本次")
             return 2  # 2-跳过本次
 
 

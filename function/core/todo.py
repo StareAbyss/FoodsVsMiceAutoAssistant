@@ -1220,65 +1220,73 @@ class ThreadTodo(QThread):
         # 处理多人信息 (这些信息只影响函数内, 所以不判断是否组队)
         pid_a = player[0]  # 房主 创建房间者
         pid_b = (1 if pid_a == 2 else 2) if is_group else None
+        faa_a = self.faa_dict[pid_a]
+        faa_b = self.faa_dict[pid_b] if pid_b else None
 
         # 默认肯定是不跳过的
         skip = False
         # 限制即使勾选了设置中的启用高级战斗，也需要在全局战斗设置中修改对应关卡
         senior_setting = False
 
-        # 是否采用 全局方案配置
-        def get_stage_plan_by_id():
-            """
-            获取关卡的指定方案 -> 使用全局方案 -> 使用兜底方案
-            """
+        def load_g_plan(skip_, deck_, battle_plan_1p_, battle_plan_2p_, senior_setting_, stage_id_=None):
 
-            try:
-                with EXTRA.FILE_LOCK:
-                    with open(file=PATHS["config"] + "//stage_plan.json", mode="r", encoding="UTF-8") as file:
-                        stage_plan = json.load(file)
-            except FileNotFoundError:
-                stage_plan = {}
+            if stage_id_ is None:
+                stage_id_ = faa_a.stage_info["b_id"]
 
-            plan = stage_plan.get(stage_id, None)
+            if global_plan_active:
+                # 获取 g_plan
 
-            if not plan:
-                # 2.1.0-beta.2+ 包含全局方案的情况
-                plan = stage_plan.get("global", None)
+                try:
+                    with EXTRA.FILE_LOCK:
+                        with open(file=PATHS["config"] + "//stage_plan.json", mode="r", encoding="UTF-8") as file:
+                            stage_plan = json.load(file)
+                except FileNotFoundError:
+                    stage_plan = {}
 
-            if not plan:
-                # 2.1.0-beta.1- 不包含全局方案的情况.
-                plan = {
-                    "skip": False,
-                    "deck": 0,
-                    "senior_setting": False,
-                    "battle_plan": [
-                        "00000000-0000-0000-0000-000000000000",
-                        "00000000-0000-0000-0000-000000000001"]}
+                g_plan = stage_plan.get(stage_id_, None)
 
-            return plan
+                if not g_plan:
+                    # 2.1.0-beta.2+ 包含全局方案的情况
+                    g_plan = stage_plan.get("global", None)
 
-        if global_plan_active:
-            stage_plan_by_id = get_stage_plan_by_id()
-            skip = stage_plan_by_id["skip"]
-            deck = stage_plan_by_id["deck"]
-            if pid_b is None:
-                # 单人
-                battle_plan_1p = stage_plan_by_id["battle_plan"][0]
-                battle_plan_2p = stage_plan_by_id["battle_plan"][0]
-            else:
-                # 双人
-                battle_plan_1p = stage_plan_by_id["battle_plan"][0]
-                battle_plan_2p = stage_plan_by_id["battle_plan"][1]
-        try:
-            stage_plan_by_id = get_stage_plan_by_id()
-            senior_setting = stage_plan_by_id["senior_setting"]
-        except KeyError:
-            pass
+                if not g_plan:
+                    # 2.1.0-beta.1- 不包含全局方案的情况.
+                    g_plan = {
+                        "skip": False,
+                        "deck": 0,
+                        "senior_setting": False,
+                        "battle_plan": [
+                            "00000000-0000-0000-0000-000000000000",
+                            "00000000-0000-0000-0000-000000000001"]}
 
-        faa_a = self.faa_dict[pid_a]
-        faa_b = self.faa_dict[pid_b] if pid_b else None
-        battle_plan_a = battle_plan_1p if pid_a == 1 else battle_plan_2p
-        battle_plan_b = (battle_plan_1p if pid_b == 1 else battle_plan_2p) if is_group else None
+                # 加载 g_plan
+                skip_ = g_plan["skip"]
+                deck_ = g_plan["deck"]
+                senior_setting_ = g_plan.get("senior_setting", False)
+
+                if is_group:
+                    # 双人组队
+                    battle_plan_1p_ = g_plan["battle_plan"][0]
+                    battle_plan_2p_ = g_plan["battle_plan"][1]
+                else:
+                        # 可组队关卡, 但设置了仅单人作战
+                        battle_plan_1p_ = g_plan["battle_plan"][0]
+                        battle_plan_2p_ = g_plan["battle_plan"][0]
+
+            battle_plan_a_ = battle_plan_1p_ if pid_a == 1 else battle_plan_2p_
+            battle_plan_b_ = (battle_plan_1p_ if pid_b == 1 else battle_plan_2p_) if is_group else None
+
+            return skip_, deck_, battle_plan_a_, battle_plan_b_, senior_setting_
+
+        # 加载全局关卡方案
+        skip, deck, battle_plan_a, battle_plan_b, senior_setting = load_g_plan(
+            skip_=skip,
+            deck_=deck,
+            battle_plan_1p_=battle_plan_1p,
+            battle_plan_2p_=battle_plan_2p,
+            senior_setting_=senior_setting,
+            stage_id_=stage_id
+        )
 
         def check_skip():
             """
@@ -1390,6 +1398,29 @@ class ThreadTodo(QThread):
 
                 result_id, need_change_card, need_goto_stage = goto_stage(
                     need_goto_stage=need_goto_stage, need_change_card=need_change_card)
+
+                # 再次加载全局关卡方案, goto_stage 过程中 可能检测到子集关卡
+                skip, deck, battle_plan_a, battle_plan_b, senior_setting = load_g_plan(
+                    skip_=skip,
+                    deck_=deck,
+                    battle_plan_1p_=battle_plan_1p,
+                    battle_plan_2p_=battle_plan_2p,
+                    senior_setting_=senior_setting,
+                    stage_id_=None,
+                )
+
+                # 将战斗方案加载至FAA
+                faa_a.set_battle_plan(battle_plan_uuid=battle_plan_a)
+                if is_group:
+                    faa_b.set_battle_plan(battle_plan_uuid=battle_plan_b)
+
+                # SIGNAL.PRINT_TO_UI.emit(
+                #     text=f"{title} [{faa_a.player}P] 房主, "
+                #          f"方案: {EXTRA.BATTLE_PLAN_UUID_TO_PATH[battle_plan_a].split("\\")[-1].split(".")[0]}")
+                # if is_group:
+                #     SIGNAL.PRINT_TO_UI.emit(
+                #         text=f"{title} [{faa_b.player}P] 队友, "
+                #              f"方案: {EXTRA.BATTLE_PLAN_UUID_TO_PATH[battle_plan_b].split("\\")[-1].split(".")[0]}")
 
                 if result_id == 2:
                     # 跳过本次 计数+1
@@ -1590,7 +1621,6 @@ class ThreadTodo(QThread):
                 quest_card=quest_card,
                 ban_card_list=ban_card_list,
                 max_card_num=max_card_num,
-                battle_plan_uuid=battle_plan_a,
                 stage_id=stage_id,
                 is_cu=is_cu)
 
@@ -1604,7 +1634,6 @@ class ThreadTodo(QThread):
                     quest_card=quest_card,
                     ban_card_list=ban_card_list,
                     max_card_num=max_card_num,
-                    battle_plan_uuid=battle_plan_b,
                     stage_id=stage_id,
                     is_cu=is_cu)
 
