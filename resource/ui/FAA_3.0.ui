@@ -5913,28 +5913,6 @@ Link Start</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="3" column="6">
-                  <widget class="SearchableComboBox" name="MagicTowerPrison2_1P">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>200</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>200</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                  </widget>
-                 </item>
                  <item row="5" column="2">
                   <widget class="QLabel" name="PetTemple2_MaxTimes">
                    <property name="sizePolicy">
@@ -6067,28 +6045,6 @@ Link Start</string>
                    </property>
                    <property name="text">
                     <string/>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="5" column="6">
-                  <widget class="SearchableComboBox" name="PetTemple2_1P">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>200</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>200</width>
-                     <height>20</height>
-                    </size>
                    </property>
                   </widget>
                  </item>
@@ -6288,28 +6244,6 @@ Link Start</string>
                    </property>
                    <property name="text">
                     <string/>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="6">
-                  <widget class="SearchableComboBox" name="MagicTowerAlone2_1P">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>200</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>200</width>
-                     <height>20</height>
-                    </size>
                    </property>
                   </widget>
                  </item>
@@ -6573,6 +6507,72 @@ Link Start</string>
                    </property>
                   </widget>
                  </item>
+                 <item row="1" column="7">
+                  <widget class="SearchableComboBox" name="MagicTowerAlone2_1P">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>200</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>200</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="7">
+                  <widget class="SearchableComboBox" name="MagicTowerPrison2_1P">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>200</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>200</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="5" column="7">
+                  <widget class="SearchableComboBox" name="PetTemple2_1P">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>200</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>200</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
                 </layout>
                </item>
                <item>
@@ -6777,34 +6777,6 @@ Link Start</string>
                    </property>
                    <property name="text">
                     <string>跨服副本-威望</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="4">
-                  <widget class="QFrame" name="ReceiveAwards_Space">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>17</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>17</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="frameShape">
-                    <enum>QFrame::StyledPanel</enum>
-                   </property>
-                   <property name="frameShadow">
-                    <enum>QFrame::Raised</enum>
                    </property>
                   </widget>
                  </item>
@@ -7129,6 +7101,37 @@ Link Start</string>
                    </property>
                   </widget>
                  </item>
+                 <item row="2" column="4">
+                  <widget class="QFrame" name="ReceiveAwards_Space">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>17</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>17</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="frameShape">
+                    <enum>QFrame::StyledPanel</enum>
+                   </property>
+                   <property name="frameShadow">
+                    <enum>QFrame::Raised</enum>
+                   </property>
+                  </widget>
+                 </item>
                 </layout>
                </item>
                <item>
@@ -7223,7 +7226,9 @@ Link Start</string>
                    <property name="toolTip">
                     <string>* 该功能仅能单独启用!不可与其他功能配合!
 * 该功能仅用于带其他人刷关.通常的战斗, 均应该使用常规单本连战. 
-* 该模式下, !!!不含任何防卡死!!! 机制!</string>
+* 该模式下, !!!不含任何防卡死!!! 机制!
+* 该模式仅能在战斗结束后仍在房间内的关卡多次连续作战. 否则仅能打一次. 包括但不限于: 魔塔蛋糕/巅峰对决.
+</string>
                    </property>
                    <property name="text">
                     <string>自建房对战</string>
@@ -7657,7 +7662,7 @@ Link Start</string>
                <widget class="QWidget" name="AdvancedSettingsAreaWidget">
                 <property name="geometry">
                  <rect>
-                  <x>2</x>
+                  <x>0</x>
                   <y>0</y>
                   <width>560</width>
                   <height>2500</height>

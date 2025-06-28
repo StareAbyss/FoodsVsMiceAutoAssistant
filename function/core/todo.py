@@ -263,7 +263,7 @@ class ThreadTodo(QThread):
         SIGNAL.PRINT_TO_UI.emit(
             text=f"[{title_text}] 已启用. " +
                  (f"兑换暗晶 + " if dark_crystal else f"") +
-                 f"删除多余技能书, 目标:{player}P",
+                 f"清理无用道具, 目标:{player}P",
             color_level=2)
 
         # 高危动作 慢慢执行
