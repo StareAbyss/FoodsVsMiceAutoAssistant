@@ -731,10 +731,10 @@ class ThreadTodo(QThread):
 
         return True
 
-    def goto_stage_and_invite(self, stage_id, mt_first_time, player_a, player_b):
+    def goto_stage_and_invite(self, stage_id, mt_wb_first_time, player_a, player_b):
         """
         :param stage_id:
-        :param mt_first_time:
+        :param mt_wb_first_time: 世界boss或魔塔关卡, 第一次进入房间.
         :param player_a: 房主pid
         :param player_b: 队友pid
         :return:
@@ -759,9 +759,9 @@ class ThreadTodo(QThread):
                     faa_b.action_goto_stage()
                 else:
                     # 魔塔进入
-                    faa_a.action_goto_stage(mt_first_time=mt_first_time)
-                    if mt_first_time:
-                        faa_b.action_goto_stage(mt_first_time=mt_first_time)
+                    faa_a.action_goto_stage(mt_wb_first_time=mt_wb_first_time)
+                    if mt_wb_first_time:
+                        faa_b.action_goto_stage(mt_wb_first_time=mt_wb_first_time)
 
                 sleep(3)
 
@@ -776,7 +776,7 @@ class ThreadTodo(QThread):
                     return 0
 
                 failed_time += 1
-                mt_first_time = True
+                mt_wb_first_time = True
 
                 SIGNAL.PRINT_TO_UI.emit(text=f"[单本轮战] 邀请失败... 建房失败 or 服务器抽风, 尝试({failed_time}/3)")
 
@@ -1193,18 +1193,21 @@ class ThreadTodo(QThread):
     def battle_1_1_n(self, stage_id, player, need_key, max_times, dict_exit,
                      global_plan_active, deck, battle_plan_1p, battle_plan_2p,
                      quest_card, ban_card_list, max_card_num,
-                     title_text, is_cu=False, need_lock=False):
+                     title_text, is_cu=False):
         """
         1轮次 1关卡 n次数
         副本外 -> (副本内战斗 * n次) -> 副本外
         player: [1], [2], [1,2], [2,1] 分别代表 1P单人 2P单人 1P队长 2P队长
         """
 
+        """参数预处理"""
+
         # 组合完整的title
         title = f"[单本轮战] {title_text}"
 
-        # 判断是不是打魔塔 或 自建房
+        # 判断是不是打魔塔 世界BOSS 或 自建房
         is_mt = "MT" in stage_id
+        is_wb = "WB" in stage_id
         is_cs = "CS" in stage_id
 
         # 判断是不是组队
@@ -1342,7 +1345,20 @@ class ThreadTodo(QThread):
                 return result_id, need_change_card, need_goto_stage
 
             # 非自建房
-            if not is_mt:
+            if is_mt:
+                # 魔塔
+                if not is_group:
+                    # 单人前往副本
+                    faa_a.action_goto_stage(mt_wb_first_time=need_goto_stage)  # 第一次使用 mt_wb_first_time, 之后则不用
+                else:
+                    # 多人前往副本
+                    result_id = self.goto_stage_and_invite(
+                        stage_id=stage_id, mt_wb_first_time=need_goto_stage, player_a=pid_a, player_b=pid_b)
+                need_change_card = True  # 魔塔显然需要重新选卡组
+            elif is_wb:
+                faa_a.action_goto_stage(mt_wb_first_time=need_goto_stage)  # 第一次使用 mt_wb_first_time, 之后则不用
+                need_change_card = True  # 巅峰对决显然需要重新选卡组
+            else:
                 # 非魔塔
                 if need_goto_stage:
                     if not is_group:
@@ -1351,33 +1367,16 @@ class ThreadTodo(QThread):
                     else:
                         # 多人前往副本
                         result_id = self.goto_stage_and_invite(
-                            stage_id=stage_id,
-                            mt_first_time=False,
-                            player_a=pid_a,
-                            player_b=pid_b
-                        )
-            else:
-                # 魔塔
-                if not is_group:
-                    # 单人前往副本
-                    faa_a.action_goto_stage(
-                        mt_first_time=need_goto_stage)  # 第一次使用 mt_first_time, 之后则不用
-                else:
-                    # 多人前往副本
-                    result_id = self.goto_stage_and_invite(
-                        stage_id=stage_id,
-                        mt_first_time=need_goto_stage,
-                        player_a=pid_a,
-                        player_b=pid_b
-                    )
-
-                need_change_card = True  # 魔塔显然需要重新选卡组
+                            stage_id=stage_id, mt_wb_first_time=False, player_a=pid_a, player_b=pid_b)
 
             need_goto_stage = False  # 进入后Flag变化
 
             return result_id, need_change_card, need_goto_stage
 
         def multi_round_battle():
+
+            # 声明: 这些函数来自外部作用域, 以便进行修改
+            nonlocal skip, deck, battle_plan_a, battle_plan_b, senior_setting
 
             # 标记是否需要进入副本
             need_goto_stage = True
@@ -1475,7 +1474,7 @@ class ThreadTodo(QThread):
                     need_goto_stage = True
 
                     # 结束提示文本
-                    SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count + 1}次, 异常结束, 重启再来")
+                    SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count + 1}次, 流程出现错误, 重启再来")
 
                     if not need_lock:
                         # 非单人多线程
@@ -1489,7 +1488,7 @@ class ThreadTodo(QThread):
 
                 if result_id == 2:
 
-                    # 跳过本次
+                    # 进入异常, 跳过
 
                     if is_cu:
                         # 进入异常 但是自定义
@@ -1499,11 +1498,11 @@ class ThreadTodo(QThread):
                     # 跳过本次 计数+1
                     battle_count += 1
 
-                    # 进入异常, 跳过
+                    # 刷新了 需要重新进入关卡初始位置
                     need_goto_stage = True
 
                     # 结束提示文本
-                    SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count}次, 开始游戏异常, 重启跳过")
+                    SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count}次, 流程出现错误, 重启跳过")
 
                     if not need_lock:
                         # 非单人多线程
@@ -1760,8 +1759,7 @@ class ThreadTodo(QThread):
                 ban_card_list=ban_card_list,
                 max_card_num=max_card_num,
                 title_text=extra_title,
-                is_cu=quest.get("is_cu", False),
-                need_lock=need_lock
+                is_cu=quest.get("is_cu", False)
             )
 
             SIGNAL.PRINT_TO_UI.emit(
@@ -1787,7 +1785,7 @@ class ThreadTodo(QThread):
                 while self.my_lock:
                     sleep(1)
 
-    """使用n_n_battle为核心的变种 [单线程][单人或双人]"""
+    """使用battle_1_n_n为核心的变种 [单线程][单人或双人]"""
 
     def easy_battle(
             self, text_, stage_id, player, max_times,
