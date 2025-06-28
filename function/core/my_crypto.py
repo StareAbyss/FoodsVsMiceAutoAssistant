@@ -2,6 +2,8 @@ import base64
 import hashlib
 
 import wmi
+from function.globals.loadings import loading
+loading.update_progress(40,"正在载入安全加密...")
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 
