@@ -5,7 +5,7 @@ from function.scattered.match_ocr_text.match_text import match
 
 def screen_get_stage_name(handle, handle_360) -> str:
     """
-    在关卡备战界面 获得关卡名字 该函数未完工
+    在关卡备战界面 根据左下文字 获得关卡名字
     """
 
     img = capture_image_png(
