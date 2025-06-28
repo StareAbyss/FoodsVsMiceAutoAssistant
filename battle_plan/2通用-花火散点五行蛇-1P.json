@@ -1,7 +1,7 @@
 {
     "meta_data": {
-        "uuid": "1d53e81e-ad86-11ef-b864-c2f2346a1393",
-        "tips": "花火龙+海星+散点追踪的平民0氪中配套餐！\n据不完全统计是FAA用户中最常用的卡组！\n2P 不产火 不放拐",
+        "uuid": "e678f09a-4e6f-11f0-b982-f44efc5bf671",
+        "tips": "带五行蛇的平民顶配版超强方案\n",
         "player_position": [
             "4-3",
             "4-5",
@@ -19,27 +19,39 @@
     "cards": [
         {
             "card_id": 1,
-            "name": "海星"
+            "name": "产火"
         },
         {
             "card_id": 2,
-            "name": "布丁"
+            "name": "海星"
         },
         {
             "card_id": 3,
-            "name": "散点追踪"
+            "name": "布丁"
         },
         {
             "card_id": 4,
-            "name": "散点增幅"
+            "name": "散点追踪"
         },
         {
             "card_id": 5,
-            "name": "护罩"
+            "name": "散点增幅"
         },
         {
             "card_id": 6,
+            "name": "护罩"
+        },
+        {
+            "card_id": 7,
             "name": "照明"
+        },
+        {
+            "card_id": 8,
+            "name": "五行蛇"
+        },
+        {
+            "card_id": 9,
+            "name": "美味计时器"
         }
     ],
     "events": [
@@ -52,7 +64,18 @@
             "action": {
                 "cards": [
                     {
-                        "card_id": 3,
+                        "card_id": 1,
+                        "ergodic": true,
+                        "queue": false,
+                        "location": [
+                            "2-4",
+                            "6-1",
+                            "6-7"
+                        ],
+                        "kun": 0
+                    },
+                    {
+                        "card_id": 4,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -77,17 +100,15 @@
                             "4-1",
                             "4-7",
                             "5-4",
-                            "5-3",
                             "5-5",
                             "5-2",
-                            "5-6",
                             "5-1",
                             "5-7"
                         ],
                         "kun": 2
                     },
                     {
-                        "card_id": 1,
+                        "card_id": 2,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -98,28 +119,35 @@
                             "7-3",
                             "7-5",
                             "8-4",
-                            "8-3",
                             "8-5",
-                            "6-6",
                             "6-2",
-                            "7-6",
+                            "6-6",
                             "7-2",
-                            "8-6",
+                            "7-6",
                             "8-2",
-                            "8-1",
                             "8-7",
                             "9-4",
                             "9-3",
                             "9-5",
                             "9-2",
                             "9-6",
-                            "9-1",
-                            "9-7"
+                            "9-7",
+                            "8-1",
+                            "9-1"
                         ],
                         "kun": 1
                     },
                     {
-                        "card_id": 4,
+                        "card_id": 9,
+                        "ergodic": true,
+                        "queue": false,
+                        "location": [
+                            "6-4"
+                        ],
+                        "kun": 0
+                    },
+                    {
+                        "card_id": 5,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -129,7 +157,19 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 2,
+                        "card_id": 8,
+                        "ergodic": true,
+                        "queue": false,
+                        "location": [
+                            "8-3",
+                            "8-6",
+                            "5-6",
+                            "5-3"
+                        ],
+                        "kun": 0
+                    },
+                    {
+                        "card_id": 3,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -142,7 +182,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 5,
+                        "card_id": 6,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -213,11 +253,11 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 6,
+                        "card_id": 7,
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "7-7"
+                            "7-1"
                         ],
                         "kun": 0
                     }
