@@ -551,6 +551,41 @@ class CardManager(QThread):
                     CUS_LOGGER.warning(f"[战斗执行器] ThreadTimePutCardTimer - use_gemstone - 错误: id={id} 不存在")
 
         CUS_LOGGER.debug("成功定时宝石技能")
+    def _escape(self, pid):
+
+        faa = self.faa_dict[pid]
+
+        with faa.battle_lock:
+
+            CUS_LOGGER.debug(f"[战斗执行器] ThreadTimePutCardTimer - _escape 玩家{pid}逃跑中")
+            if self.is_group:
+                if self.thread_dict.get(pid):#检测线程
+                    self.thread_dict[pid].stop()
+                    self.thread_dict[pid]=None
+                if self.thread_dict.get(pid+2):#用卡线程
+                    self.thread_dict[pid+2].stop()
+                    self.thread_dict[pid+2]=None
+                if self.thread_dict.get(pid+4):#定时线程
+                    self.thread_dict[pid+4].stop()
+                    self.thread_dict[pid+4]=None
+                #将打关参数改为单人
+                self.pid_list.remove(pid)
+                self.is_group=False
+                if self.thread_dict.get(7):
+                    self.thread_dict[7].is_group=False
+                    self.thread_dict[7].pid_list.remove(pid)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=924, y=576)
+                time.sleep(self.click_sleep)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=422, y=388)
+                CUS_LOGGER.debug(f"玩家{pid}成功逃跑")
+            else:
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=924, y=576)
+                time.sleep(self.click_sleep)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=422, y=388)
+                CUS_LOGGER.debug(f"单人玩家成功逃跑")
+                self.stop()
+
+
 
     def create_insert_timer_and_start(self, interval, func_name, func_kwargs):
 
@@ -563,6 +598,8 @@ class CardManager(QThread):
                 func = self._insert_use_gem
             case "ban_card":
                 func=self._ban_card_state_change
+            case "escape":
+                func=self._escape
 
         timer = Timer(interval=interval, function=lambda: func(**func_kwargs))
         timer.start()
@@ -1006,7 +1043,15 @@ class ThreadInsertUseCardTimer(QThread):
                     "cid": battle_event["action"]["card_id"],
                     "state": False}
             )
-
+        current_wave_plan = [
+            event for event in self.insert_escape_plan if event["trigger"]["wave_id"] == int(wave)]
+        for battle_event in current_wave_plan:
+            self.manager.create_insert_timer_and_start(
+                interval=max(0.0, battle_event["trigger"]["time"] - time_change),
+                func_name="escape",
+                func_kwargs={
+                    "pid": self.pid}
+            )
         current_wave_plan = [
             event for event in self.insert_use_gem_plan if event["trigger"]["wave_id"] == int(wave)]
 
