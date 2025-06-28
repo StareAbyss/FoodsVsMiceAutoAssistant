@@ -1269,6 +1269,11 @@ class ThreadTodo(QThread):
                     battle_plan_1p_ = g_plan["battle_plan"][0]
                     battle_plan_2p_ = g_plan["battle_plan"][1]
                 else:
+                    if "WB" in stage_id or "MT-1" in stage_id or "MT-3" in stage_id:
+                        # 世界Boss关卡 魔塔单人和密室 完全单人关卡, 使用 1P 和 2P各自的 方案
+                        battle_plan_1p_ = g_plan["battle_plan"][0]
+                        battle_plan_2p_ = g_plan["battle_plan"][1]
+                    else:
                         # 可组队关卡, 但设置了仅单人作战
                         battle_plan_1p_ = g_plan["battle_plan"][0]
                         battle_plan_2p_ = g_plan["battle_plan"][0]
