@@ -1210,11 +1210,17 @@ class ThreadTodo(QThread):
         is_wb = "WB" in stage_id
         is_cs = "CS" in stage_id
 
+        # 如果是板上钉钉的单人关卡还tm组队, 强制修正为仅1P单人.
+        if len(player) > 1 and ("MT-1" in stage_id or "MT-3" in stage_id or "WB" in stage_id):
+            SIGNAL.PRINT_TO_UI.emit(text=f"{title} 检测到组队, 强制修正为仅1P单人")
+            player = [1]
+
         # 判断是不是组队
         is_group = len(player) > 1
 
         # 如果是多人跨服 防呆重写 变回 1房主
         if is_cs and is_group:
+            SIGNAL.PRINT_TO_UI.emit(text=f"{title} 检测到多人跨服, 强制修正为1P房主")
             player = [1, 2]
 
         # 处理多人信息 (这些信息只影响函数内, 所以不判断是否组队)
@@ -1434,8 +1440,8 @@ class ThreadTodo(QThread):
                     need_goto_stage = True
                     # 结束提示文本
                     SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count}次, 创建房间多次异常, 重启跳过")
-
-                    self.batch_reload_game()
+                    # 根据角色数刷新
+                    self.batch_reload_game(player=player)
 
                 SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count + 1}次, 开始")
 
@@ -1512,12 +1518,7 @@ class ThreadTodo(QThread):
                     # 结束提示文本
                     SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count + 1}次, 流程出现错误, 重启再来")
 
-                    if not need_lock:
-                        # 非单人多线程
-                        self.batch_reload_game()
-                    else:
-                        # 单人多线程 只reload自己
-                        faa_a.reload_game()
+                    self.batch_reload_game(player=player)
 
                     # 重新进入 因此需要重新选卡组
                     need_change_card = True
@@ -1540,29 +1541,18 @@ class ThreadTodo(QThread):
                     # 结束提示文本
                     SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count}次, 流程出现错误, 重启跳过")
 
-                    if not need_lock:
-                        # 非单人多线程
-                        self.batch_reload_game()
-                    else:
-                        # 单人多线程 只reload自己
-                        faa_a.reload_game()
+                    self.batch_reload_game(player=player)
 
                     # 重新进入 因此需要重新选卡组
                     need_change_card = True
 
                 if result_id == 3:
-
                     # 放弃所有次数
                     # 自动选卡 但没有对应的卡片! 最严重的报错!
                     SIGNAL.PRINT_TO_UI.emit(
                         text=f"{title} 自动选卡失败! 放弃本关全部作战! 您是否拥有对应绑定卡?")
 
-                    if not need_lock:
-                        # 非单人多线程
-                        self.batch_reload_game()
-                    else:
-                        # 单人多线程 只reload自己
-                        faa_a.reload_game()
+                    self.batch_reload_game(player=player)
 
                     break
 
