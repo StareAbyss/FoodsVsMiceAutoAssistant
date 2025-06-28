@@ -256,11 +256,10 @@ class FAAActionInterfaceJump:
         )
         return find
 
-    def action_goto_stage(self: "FAA", mt_first_time: bool = False) -> None:
+    def action_goto_stage(self: "FAA", mt_wb_first_time: bool = False) -> None:
         """
         只要右上能看到地球 就可以到目标关卡
-        Args:
-            mt_first_time: 魔塔关卡下 是否是第一次打(第一次塔需要进塔 第二次只需要选关卡序号)
+        :param mt_wb_first_time: 魔塔关卡世界boss, 是否是第一次打. 魔塔第一次塔需要进塔, 第二次只需要选关卡序号; 世界boss第一次需要进入界面, 第二次只需要创建房间.
         """
 
         handle = self.handle
@@ -334,14 +333,14 @@ class FAAActionInterfaceJump:
 
         def main_mt():
 
-            if mt_first_time:
+            if mt_wb_first_time:
                 # 前往海底
                 self.action_goto_map(map_id=5)
 
                 # 选区
                 change_to_region(region_list=[1, 2])
 
-            if self.is_main and mt_first_time:
+            if self.is_main and mt_wb_first_time:
                 # 进入魔塔
                 loop_match_p_in_w(
                     source_handle=handle,
@@ -686,22 +685,22 @@ class FAAActionInterfaceJump:
                 # 创建队伍 - 该按钮可能需要修正位置
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=660, y=200)
 
-        def main_wb():
+        def main_wb() -> int:
 
-            # 进入美味岛并切区
-            self.action_goto_map(map_id=1)
-            change_to_region(region_list=[1, 11])
+            if mt_wb_first_time:
+                # 进入美味岛并切区
+                self.action_goto_map(map_id=1)
+                change_to_region(region_list=[1, 11])
 
-            # 仅限主角色创建关卡
-            if self.is_main:
                 # 进入欢乐假期页面
                 self.action_top_menu(mode="巅峰对决")
 
                 # 给一点加载时间
-                time.sleep(2)
+                time.sleep(5)
 
-                # 创建队伍 - 该按钮可能需要修正位置
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=770, y=560)
+
+            # 创建队伍 - 该按钮可能需要修正位置
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=770, y=560)
 
         def main_wa():
 
