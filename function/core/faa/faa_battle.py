@@ -117,7 +117,7 @@ class FAABattle:
         if self.is_used_key:
             return False
 
-        find = match_p_in_w(
+        _, find = match_p_in_w(
             source_handle=self.handle,
             source_range=[386, 332, 463, 362],
             match_tolerance=0.95,
@@ -150,7 +150,7 @@ class FAABattle:
                 click=True)
 
             # 是否还在选继续界面
-            find = match_p_in_w(
+            _, find = match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
                 source_range=[302, 263, 396, 289],

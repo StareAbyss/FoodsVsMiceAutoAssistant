@@ -281,7 +281,7 @@ class QMainWindowLog(QMainWindowLoadUI):
         # 创建/获取对话框实例
         if not hasattr(self, 'log_dialog') or not self.log_dialog:
             self.log_dialog = QtWidgets.QDialog()
-            self.log_dialog.setWindowTitle("用户级报错日志")
+            self.log_dialog.setWindowTitle("对话框 - 用户级运行日志")
             self.log_dialog.resize(800, 400)
 
             # 创建带滚动条的文本框

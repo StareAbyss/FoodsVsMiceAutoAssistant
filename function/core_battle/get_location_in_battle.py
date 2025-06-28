@@ -5,7 +5,7 @@ from function.globals.g_resources import RESOURCE_P
 def get_location_card_deck_in_battle(handle, handle_360):
     """识别火苗偏移 True 代表13+张卡 否则 12-张卡，位置为每张卡最左上的一个像素"""
     # 循环查找火苗图标 找到战斗开始
-    find = match_p_in_w(
+    _, find = match_p_in_w(
         source_handle=handle,
         source_root_handle=handle_360,
         source_range=[0, 0, 950, 600],

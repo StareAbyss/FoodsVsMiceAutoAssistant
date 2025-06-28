@@ -217,7 +217,7 @@ class FAAActionInterfaceJump:
         handle = self.handle
         handle_360 = self.handle_360
 
-        find = match_p_in_w(
+        _, find = match_p_in_w(
             source_handle=handle,
             source_root_handle=handle_360,
             source_range=[0, 0, 950, 600],
@@ -648,14 +648,14 @@ class FAAActionInterfaceJump:
                     click=True)
             else:
                 # 识图，寻找需要邀请目标的位置
-                result = match_p_in_w(
+                _, result = match_p_in_w(
                     source_handle=handle,
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["common"]["战斗"]["房间图标_男.png"],
                     match_tolerance=0.95)
                 if not result:
-                    result = match_p_in_w(
+                    _, result = match_p_in_w(
                         source_handle=handle,
                         source_root_handle=handle_360,
                         source_range=[0, 0, 950, 600],
@@ -728,7 +728,7 @@ class FAAActionInterfaceJump:
                 img = capture_image_png(handle=handle, raw_range=[205, 385, 242, 405], root_handle=handle_360)
 
                 for i in range(1, 24):
-                    find = match_p_in_w(
+                    _, find = match_p_in_w(
                         source_img=img,
                         template=RESOURCE_P["stage"][f"WA-0-{i}.png"],
                         match_tolerance=0.995,
