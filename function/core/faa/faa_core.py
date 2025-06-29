@@ -232,8 +232,6 @@ class FAABase:
             is_group: bool = False,
             is_main: bool = True,
             need_key: bool = True,
-            deck: int = 1,
-            auto_carry_card: bool = False,
             quest_card=None,
             ban_card_list=None,
             max_card_num=None,
@@ -245,8 +243,7 @@ class FAABase:
         :param is_group: 是否组队
         :param is_main: 是否是主要账号(单人为True 双人房主为True)
         :param need_key: 是否使用钥匙
-        :param deck: int 1-6 选中的卡槽数 (0值已被处理为 auto_carry_card 参数)
-        :param auto_carry_card: bool 是否激活自动带卡
+
         :param quest_card: str 自动携带任务卡的名称
         :param ban_card_list: list[str,...] ban卡列表
         :param max_card_num: 最大卡片数 - 仅自动带卡时启用 会去除id更低的卡片, 保证完成任务要求.
@@ -260,8 +257,7 @@ class FAABase:
         self.is_main = is_main
         self.is_group = is_group
         self.need_key = need_key
-        self.deck = deck
-        self.auto_carry_card = auto_carry_card
+
         self.quest_card = quest_card
         self.ban_card_list = ban_card_list
         self.max_card_num = max_card_num
@@ -273,14 +269,22 @@ class FAABase:
 
     def set_battle_plan(
             self,
+            deck: int,
+            auto_carry_card: bool,
             battle_plan_uuid: str = "00000000-0000-0000-0000-000000000000"
 
     ):
         """
         设置战斗方案
+        :param deck: int 1-6 选中的卡槽数 (0值已被处理为 auto_carry_card 参数)
+        :param auto_carry_card: bool 是否激活自动带卡
         :param battle_plan_uuid: 战斗方案的uuid
         :return:
         """
+
+        # 设置卡组策略
+        self.deck = deck
+        self.auto_carry_card = auto_carry_card
 
         # 如果缺失, 外部的检测函数会拦下来不继续的
         self.battle_plan = g_resources.RESOURCE_B.get(battle_plan_uuid, None)

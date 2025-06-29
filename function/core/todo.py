@@ -1420,10 +1420,18 @@ class ThreadTodo(QThread):
                     stage_id_=None,
                 )
 
+                auto_carry_card = deck == 0
+
+                if deck == 0:
+                    if self.opt["advanced_settings"]["cus_auto_carry_card_active"]:
+                        deck = self.opt["advanced_settings"]["cus_auto_carry_card_value"]
+                    else:
+                        deck = 6
+
                 # 将战斗方案加载至FAA
-                faa_a.set_battle_plan(battle_plan_uuid=battle_plan_a)
+                faa_a.set_battle_plan(deck=deck, auto_carry_card=auto_carry_card, battle_plan_uuid=battle_plan_a)
                 if is_group:
-                    faa_b.set_battle_plan(battle_plan_uuid=battle_plan_b)
+                    faa_b.set_battle_plan(deck=deck, auto_carry_card=auto_carry_card, battle_plan_uuid=battle_plan_b)
 
                 # SIGNAL.PRINT_TO_UI.emit(
                 #     text=f"{title} [{faa_a.player}P] 房主, "
@@ -1603,16 +1611,11 @@ class ThreadTodo(QThread):
 
             SIGNAL.PRINT_TO_UI.emit(text=f"{title}{stage_id} {max_times}次 开始", color_level=5)
 
-            opt_ad = self.opt["advanced_settings"]
-            c_a_c_c_deck = opt_ad["cus_auto_carry_card_value"] if opt_ad["cus_auto_carry_card_active"] else 6
-
             # 填入战斗方案和关卡信息, 之后会大量动作和更改类属性, 所以需要判断是否组队
             faa_a.set_config_for_battle(
                 is_main=True,
                 is_group=is_group,
                 need_key=need_key,
-                deck=c_a_c_c_deck if deck == 0 else deck,
-                auto_carry_card=deck == 0,
                 quest_card=quest_card,
                 ban_card_list=ban_card_list,
                 max_card_num=max_card_num,
@@ -1624,8 +1627,6 @@ class ThreadTodo(QThread):
                     is_main=False,
                     is_group=is_group,
                     need_key=need_key,
-                    deck=c_a_c_c_deck if deck == 0 else deck,
-                    auto_carry_card=deck == 0,
                     quest_card=quest_card,
                     ban_card_list=ban_card_list,
                     max_card_num=max_card_num,
