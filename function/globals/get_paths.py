@@ -30,6 +30,7 @@ def build_paths(root):
         "logo": os.path.join(root, "resource", "logo"),
         "model": os.path.join(root, "resource", "model"),
         "theme": os.path.join(root, "resource", "theme"),
+        "ui": os.path.join(root, "resource", "ui"),
         "image": {
             "current": os.path.join(root, "resource", "image"),
             "common": os.path.join(root, "resource", "image", "common"),

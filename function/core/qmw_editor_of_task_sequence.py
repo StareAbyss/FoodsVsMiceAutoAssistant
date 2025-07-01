@@ -1,6 +1,7 @@
 import json
 import sys
-
+from function.globals.loadings import loading
+loading.update_progress(60,"正在加载FAA任务序列编辑器...")
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSpinBox, QCheckBox, QWidget, QListWidgetItem, QFileDialog, QMessageBox, QApplication, QListWidget, QSpacerItem, \

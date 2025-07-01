@@ -1,16 +1,22 @@
-# coding:utf-8
-
+import sys
 import multiprocessing
+from function.globals.loadings import loading, app
+def main():
+    def delayed_init(app, loading):
+        from function.core.qmw_3_service import faa_start_main
+        faa_start_main(app, loading)
+    #锁定主进程
+    multiprocessing.freeze_support()
+    #展示加载窗口
+    loading.show()
+    loading.update_progress(1)
+    loading.anim.start()
+    delayed_init(app, loading)
+    sys.exit(app.exec())
 
-from function.core.qmw_3_service import faa_start_main
+
+
+
 
 if __name__ == '__main__':
-    # 游戏[固定]分辨率 950* 600 19:12 完全可以在识别图像时提前裁剪来减小消耗
-    # 截图[不会]缩放, 点击位置[需要]缩放, 这为制作脚本提供了极大便利
-
-    # 多进程锁定主进程
-    multiprocessing.freeze_support()
-
-    # 全部启动
-    faa_start_main()
-
+    main()
