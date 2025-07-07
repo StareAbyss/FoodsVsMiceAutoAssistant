@@ -446,6 +446,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.AutoPickUp_1P.setChecked(my_opt["auto_pickup_1p"])
             self.AutoPickUp_2P.setChecked(my_opt["auto_pickup_2p"])
 
+            # 翻牌次数
+            self.CusFlopTimesActive.setChecked(my_opt["cus_flop_times_active"])
+            self.CusFlopTimesValueInput.setValue(my_opt["cus_flop_times_value"])
+            EXTRA.FLOP_TIMES = my_opt["cus_flop_times_value"] if my_opt["cus_flop_times_active"] else 2
+
             # 点击频率
             self.CusCPSActive.setChecked(my_opt["cus_cps_active"])
             self.CusCPSValueInput.setValue(my_opt["cus_cps_value"])
@@ -466,8 +471,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.CusAutoCarryCardValueInput.setCurrentIndex(my_opt["cus_auto_carry_card_value"] - 1)
 
             # 单局最大战斗时间
-            self.MaxBattleTime_Active.setChecked(my_opt["max_battle_time_active"])
-            self.MaxBattleTime_Value.setValue(my_opt["max_battle_time_value"])
+            self.MaxBattleTimeActive.setChecked(my_opt["max_battle_time_active"])
+            self.MaxBattleTimeValueInput.setValue(my_opt["max_battle_time_value"])
             EXTRA.MAX_BATTLE_TIME = my_opt["max_battle_time_value"] if my_opt["max_battle_time_active"] else 0
 
             # 是否启动用卡
@@ -955,6 +960,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["auto_pickup_1p"] = self.AutoPickUp_1P.isChecked()
             my_opt["auto_pickup_2p"] = self.AutoPickUp_2P.isChecked()
 
+            # 翻牌次数
+            my_opt["cus_flop_times_active"] = self.CusFlopTimesActive.isChecked()
+            my_opt["cus_flop_times_value"] = self.CusFlopTimesValueInput.value()
+            EXTRA.FLOP_TIMES = my_opt["cus_flop_times_value"] if my_opt["cus_flop_times_active"] else 2
+
             # 点击频率
             my_opt["cus_cps_active"] = self.CusCPSActive.isChecked()
             my_opt["cus_cps_value"] = self.CusCPSValueInput.value()
@@ -975,8 +985,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["cus_auto_carry_card_value"] = self.CusAutoCarryCardValueInput.currentIndex() + 1
 
             # 单局最大战斗时间
-            my_opt["max_battle_time_active"] = self.MaxBattleTime_Active.isChecked()
-            my_opt["max_battle_time_value"] = self.MaxBattleTime_Value.value()
+            my_opt["max_battle_time_active"] = self.MaxBattleTimeActive.isChecked()
+            my_opt["max_battle_time_value"] = self.MaxBattleTimeValueInput.value()
             EXTRA.MAX_BATTLE_TIME = my_opt["max_battle_time_value"] if my_opt["max_battle_time_active"] else 0
 
             # 自动放卡
@@ -1252,6 +1262,12 @@ class QMainWindowLoadSettings(QMainWindowLog):
             lambda state: toggle_widgets_on_unchecked(
                 state, [self.CustomizeBattle_Deck, self.CustomizeBattle_1P, self.CustomizeBattle_2P]))
 
+        # 点击频率
+        self.CusFlopTimesActive.stateChanged.connect(
+            lambda state: toggle_widgets_on_checked(
+                state, [self.CusFlopTimesValueInput])
+        )
+
         # 战斗设定 - 常规
         self.CusCPSActive.stateChanged.connect(
             lambda state: toggle_widgets_on_checked(
@@ -1272,9 +1288,9 @@ class QMainWindowLoadSettings(QMainWindowLog):
             lambda state: toggle_widgets_on_checked(
                 state, [self.CusAutoCarryCardValueInput])
         )
-        self.MaxBattleTime_Active.stateChanged.connect(
+        self.MaxBattleTimeActive.stateChanged.connect(
             lambda state: toggle_widgets_on_checked(
-                state, [self.MaxBattleTime_Value])
+                state, [self.MaxBattleTimeValueInput])
         )
 
         # 战斗设定 - 加速

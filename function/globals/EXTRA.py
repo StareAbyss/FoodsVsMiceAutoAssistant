@@ -93,6 +93,9 @@ def get_true_stage_id():
 # 版本号
 VERSION = "v2.2.0"
 
+# 翻牌次数
+FLOP_TIMES = 2
+
 # 每秒点击次数
 CLICK_PER_SECOND = 120
 

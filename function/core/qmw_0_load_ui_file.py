@@ -462,10 +462,11 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         w_names = [
             "login_first",
             "login_second",
+            "CusFlopTimesValueInput",
             "CusCPSValueInput",
             "CusLowestFPSValueInput",
             "CusFullBanTimeValueInput",
-            "MaxBattleTime_Value",
+            "MaxBattleTimeValueInput",
             "CusAutoCarryCardValueInput",
             "AccelerateValue",
             "AccelerateCustomizeValue",
