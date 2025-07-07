@@ -4,6 +4,8 @@ import json
 import os
 import subprocess
 import time
+from function.globals.loadings import loading
+loading.update_progress(80,"正在加载任务执行协议...")
 from collections import defaultdict
 from time import sleep
 

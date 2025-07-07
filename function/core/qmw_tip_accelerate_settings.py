@@ -1,5 +1,6 @@
 from PyQt6.QtWidgets import QMainWindow, QTextEdit, QVBoxLayout, QWidget
-
+from function.globals.loadings import loading
+loading.update_progress(70,"正在加载妙妙小提示...")
 text = """\
 该功能将尝试点击 *360游戏大厅右上角的变速按钮* 两次以进行短时间加速.
 

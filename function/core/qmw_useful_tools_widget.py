@@ -1,5 +1,6 @@
 import sys
-
+from function.globals.loadings import loading
+loading.update_progress(75,"正在加载妙妙小工具...")
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal
 from PyQt6.QtGui import QPixmap, QPainter, QColor, QPen, QIcon
 from PyQt6.QtWidgets import (
