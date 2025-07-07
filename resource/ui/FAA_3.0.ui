@@ -7662,8 +7662,8 @@ Link Start</string>
                <widget class="QWidget" name="AdvancedSettingsAreaWidget">
                 <property name="geometry">
                  <rect>
-                  <x>0</x>
-                  <y>0</y>
+                  <x>2</x>
+                  <y>-874</y>
                   <width>560</width>
                   <height>2500</height>
                  </rect>
@@ -10312,6 +10312,72 @@ Link Start</string>
                         </layout>
                        </item>
                        <item>
+                        <layout class="QHBoxLayout" name="CusFlopTimesLayout">
+                         <property name="spacing">
+                          <number>5</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>0</number>
+                         </property>
+                         <item>
+                          <widget class="QCheckBox" name="CusFlopTimesActive">
+                           <property name="sizePolicy">
+                            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                             <horstretch>0</horstretch>
+                             <verstretch>0</verstretch>
+                            </sizepolicy>
+                           </property>
+                           <property name="toolTip">
+                            <string>不激活即为使用默认值</string>
+                           </property>
+                           <property name="text">
+                            <string>翻牌次数</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <layout class="QHBoxLayout" name="CusFlopTimesValueLayout">
+                           <property name="spacing">
+                            <number>5</number>
+                           </property>
+                           <item>
+                            <widget class="QSpinBox" name="CusFlopTimesValueInput">
+                             <property name="sizePolicy">
+                              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                               <horstretch>0</horstretch>
+                               <verstretch>0</verstretch>
+                              </sizepolicy>
+                             </property>
+                             <property name="toolTip">
+                              <string>自定义翻牌次数
+值范围: 1-6
+特别注意! 如果翻牌次数&gt;2, 请注意留足礼卷! 否则消耗点卷后果自负!
+由于该游戏翻牌时物品按稀有度顺序排序, 因此按顺序翻牌收益即最大化无需设置.
+</string>
+                             </property>
+                             <property name="minimum">
+                              <number>1</number>
+                             </property>
+                             <property name="maximum">
+                              <number>6</number>
+                             </property>
+                             <property name="value">
+                              <number>2</number>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QLabel" name="CusFlopTimesValueLabel">
+                             <property name="text">
+                              <string>次数</string>
+                             </property>
+                            </widget>
+                           </item>
+                          </layout>
+                         </item>
+                        </layout>
+                       </item>
+                       <item>
                         <layout class="QHBoxLayout" name="CusCPSLayout" stretch="1,1">
                          <property name="spacing">
                           <number>5</number>
@@ -10784,7 +10850,7 @@ FAA放卡核心原理简述:
                           <number>0</number>
                          </property>
                          <item>
-                          <widget class="QCheckBox" name="MaxBattleTime_Active">
+                          <widget class="QCheckBox" name="MaxBattleTimeActive">
                            <property name="enabled">
                             <bool>true</bool>
                            </property>
@@ -10835,7 +10901,7 @@ FAA放卡核心原理简述:
                             <number>0</number>
                            </property>
                            <item>
-                            <widget class="QSpinBox" name="MaxBattleTime_Value">
+                            <widget class="QSpinBox" name="MaxBattleTimeValueInput">
                              <property name="sizePolicy">
                               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                                <horstretch>0</horstretch>
