@@ -93,13 +93,18 @@ def main():
     )
 
     # 添加文件或文件夹
-    mover.add_file("新手入门 看我!!! 看我!!! 看我!!!.txt")
-    mover.add_file("LICENSE")
-    mover.add_file("README.md")
-    mover.add_file("README - 高级放卡.md")
-    mover.add_file("致谢名单.md")
-    mover.add_file("致谢名单.png")
-    mover.add_file("logs/item_ranking_dag_graph.json")
+    tar_files = [
+        "新手入门 看我!!! 看我!!! 看我!!!.txt",
+        "LICENSE",
+        "README.md",
+        "README - 高级放卡.md",
+        "致谢名单.md",
+        "致谢名单.png",
+        "点我获取更多图像资源.xlsx",
+        "logs/item_ranking_dag_graph.json",
+    ]
+    for tar_file in tar_files:
+        mover.add_file(tar_file)
 
     # 预览移动
     mover.preview()

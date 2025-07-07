@@ -1,6 +1,7 @@
 import itertools
 import threading
-
+from function.globals.loadings import loading
+loading.update_progress(18,"正在载入全局设置...")
 from PyQt6 import QtGui
 
 from function.globals.get_paths import PATHS
@@ -83,7 +84,7 @@ def get_true_stage_id():
     # 假期
     stage_ids += ["HH-0-0"]
     # 世界boss
-    stage_ids += ["WB-0-0"]
+    stage_ids += generate_stage_ids("WB", [0, 0], [0, 100])
     # 生肖
     stage_ids += generate_stage_ids("CZ", [0, 0], [1, 4])
 
@@ -92,6 +93,9 @@ def get_true_stage_id():
 
 # 版本号
 VERSION = "v2.2.0"
+
+# 翻牌次数
+FLOP_TIMES = 2
 
 # 每秒点击次数
 CLICK_PER_SECOND = 120

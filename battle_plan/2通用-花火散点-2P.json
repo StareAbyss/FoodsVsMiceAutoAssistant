@@ -1,7 +1,7 @@
 {
     "meta_data": {
         "uuid": "1d53e81e-ad86-11ef-b864-c2f2346a1393",
-        "tips": "糖葫芦已经被优化了!",
+        "tips": "花火龙+海星+散点追踪的平民0氪中配套餐！\n据不完全统计是FAA用户中最常用的卡组！\n2P 不产火 不放拐",
         "player_position": [
             "4-3",
             "4-5",
@@ -18,20 +18,20 @@
     },
     "cards": [
         {
-            "card_id": 3,
-            "name": "散点追踪"
-        },
-        {
             "card_id": 1,
             "name": "海星"
         },
         {
-            "card_id": 4,
-            "name": "散点增幅"
-        },
-        {
             "card_id": 2,
             "name": "布丁"
+        },
+        {
+            "card_id": 3,
+            "name": "散点追踪"
+        },
+        {
+            "card_id": 4,
+            "name": "散点增幅"
         },
         {
             "card_id": 5,
@@ -50,7 +50,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 3,
@@ -85,7 +84,7 @@
                             "5-1",
                             "5-7"
                         ],
-                        "kun": 3
+                        "kun": 2
                     },
                     {
                         "card_id": 1,
@@ -218,12 +217,12 @@
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "7-1",
                             "7-7"
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]

@@ -17,14 +17,6 @@
             "name": "海星"
         },
         {
-            "card_id": 5,
-            "name": "散点追踪"
-        },
-        {
-            "card_id": 10,
-            "name": "投手"
-        },
-        {
             "card_id": 3,
             "name": "散点增幅"
         },
@@ -33,19 +25,27 @@
             "name": "护罩"
         },
         {
-            "card_id": 6,
-            "name": "肉松清明粿"
+            "card_id": 5,
+            "name": "散点追踪"
         },
         {
-            "card_id": 8,
+            "card_id": 6,
+            "name": "照明"
+        },
+        {
+            "card_id": 7,
             "name": "雷电长棍面包"
         },
         {
-            "card_id": 9,
+            "card_id": 8,
             "name": "10周年烟花"
         },
         {
-            "card_id": 11,
+            "card_id": 9,
+            "name": "投手"
+        },
+        {
+            "card_id": 10,
             "name": "冰桶炸弹"
         }
     ],
@@ -57,7 +57,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 1,
@@ -115,7 +114,7 @@
                         "kun": 3
                     },
                     {
-                        "card_id": 10,
+                        "card_id": 9,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -162,7 +161,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 8,
+                        "card_id": 7,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -172,7 +171,7 @@
                         "kun": 1
                     },
                     {
-                        "card_id": 9,
+                        "card_id": 8,
                         "ergodic": false,
                         "queue": true,
                         "location": [
@@ -181,7 +180,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 11,
+                        "card_id": 10,
                         "ergodic": false,
                         "queue": true,
                         "location": [
@@ -189,7 +188,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]

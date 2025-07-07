@@ -46,9 +46,7 @@ class FAABase:
         self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
         self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
         self.QQ_login_info = QQ_login_info
-        self.extra_sleep = extra_sleep
-        # 这个参数主要用于启动时防熊，避免线程已终止faa类内仍在循环识图
-        self.should_stop = False
+        self.extra_sleep = extra_sleep  # dict 包含部分参数的包
 
         """
         每次战斗中都保持一致的参数
@@ -185,14 +183,14 @@ class FAABase:
             return now.hour == 19 and 0 <= now.minute < 30
 
         if stage_0 == "WB":
-            # 世界boss 每天18:00 - 23:50 开放
+            # 世界boss 每天00:05 - 23:50 开放
             beijing_tz = pytz.timezone('Asia/Shanghai')
             now = datetime.now(beijing_tz)
-            if now.hour == 23 and now.minute <= 50:
-                return True
-            if now.hour >= 18:
-                return True
-            return False
+            if now.hour == 23 and now.minute >= 50:
+                return False
+            if now.hour == 00 and now.minute <= 5:
+                return False
+            return True
 
         return True
 
@@ -235,12 +233,9 @@ class FAABase:
             is_group: bool = False,
             is_main: bool = True,
             need_key: bool = True,
-            deck: int = 1,
-            auto_carry_card: bool = False,
             quest_card=None,
             ban_card_list=None,
             max_card_num=None,
-            battle_plan_uuid: str = "00000000-0000-0000-0000-000000000000",
             is_cu: bool = False,
     ) -> None:
         """
@@ -249,12 +244,10 @@ class FAABase:
         :param is_group: 是否组队
         :param is_main: 是否是主要账号(单人为True 双人房主为True)
         :param need_key: 是否使用钥匙
-        :param deck: int 1-6 选中的卡槽数 (0值已被处理为 auto_carry_card 参数)
-        :param auto_carry_card: bool 是否激活自动带卡
+
         :param quest_card: str 自动携带任务卡的名称
         :param ban_card_list: list[str,...] ban卡列表
         :param max_card_num: 最大卡片数 - 仅自动带卡时启用 会去除id更低的卡片, 保证完成任务要求.
-        :param battle_plan_uuid: 战斗方案的uuid
         :param stage_id: 关卡的id
         :return:
         """
@@ -265,19 +258,37 @@ class FAABase:
         self.is_main = is_main
         self.is_group = is_group
         self.need_key = need_key
-        self.deck = deck
-        self.auto_carry_card = auto_carry_card
+
         self.quest_card = quest_card
         self.ban_card_list = ban_card_list
         self.max_card_num = max_card_num
-
-        # 如果缺失, 外部的检测函数会拦下来不继续的
-        self.battle_plan = g_resources.RESOURCE_B.get(battle_plan_uuid, None)
 
         if not is_cu:
             self.stage_info = read_json_to_stage_info(stage_id)
         else:
             self.stage_info = read_json_to_stage_info(stage_id="CU-0-0", stage_id_for_battle=stage_id)
+
+    def set_battle_plan(
+            self,
+            deck: int,
+            auto_carry_card: bool,
+            battle_plan_uuid: str = "00000000-0000-0000-0000-000000000000"
+
+    ):
+        """
+        设置战斗方案
+        :param deck: int 1-6 选中的卡槽数 (0值已被处理为 auto_carry_card 参数)
+        :param auto_carry_card: bool 是否激活自动带卡
+        :param battle_plan_uuid: 战斗方案的uuid
+        :return:
+        """
+
+        # 设置卡组策略
+        self.deck = deck
+        self.auto_carry_card = auto_carry_card
+
+        # 如果缺失, 外部的检测函数会拦下来不继续的
+        self.battle_plan = g_resources.RESOURCE_B.get(battle_plan_uuid, None)
 
     """战斗完整的过程中的任务函数"""
 
@@ -317,7 +328,7 @@ class FAABase:
             for mat_card in resource_list:
 
                 # 需要使用0.99相似度参数 相似度阈值过低可能导致一张图片被识别为两张卡
-                find = match_p_in_w(
+                _, find = match_p_in_w(
                     source_img=image,
                     source_range=[190, 10, 950, 80],
                     template=RESOURCE_P["card"]["战斗"][mat_card],
@@ -325,7 +336,7 @@ class FAABase:
                 if find:
                     return_dict[mat_card.split("-")[0]] = [int(190 + find[0]), int(10 + find[1])]
                 else:
-                    find = match_p_in_w(
+                    _, find = match_p_in_w(
                         source_img=image,
                         source_range=[880, 80, 950, 600],
                         template=RESOURCE_P["card"]["战斗"][mat_card],
@@ -724,7 +735,7 @@ class FAABase:
             for i in [1, 2, 3, 4, 5, 6, 7, 10, 11]:
                 for quest_text, img in RESOURCE_P["quest_guild"][str(i)].items():
                     # 找到任务 加入任务列表
-                    find_p = match_p_in_w(
+                    _, find_p = match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
                         source_range=[125, 180, 407, 540],
@@ -787,7 +798,7 @@ class FAABase:
 
             for i in ["1", "2", "3"]:
                 # 任务未完成
-                find_p = match_p_in_w(
+                _, find_p = match_p_in_w(
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
                     source_range=[0, 0, 950, 600],
@@ -797,7 +808,7 @@ class FAABase:
                     # 遍历任务
                     for quest_text, img in RESOURCE_P["quest_spouse"][i].items():
                         # 找到任务 加入任务列表
-                        find_p = match_p_in_w(
+                        _, find_p = match_p_in_w(
                             source_handle=self.handle,
                             source_root_handle=self.handle_360,
                             source_range=[0, 0, 950, 600],
@@ -834,7 +845,7 @@ class FAABase:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=536, y=click_y)
                 time.sleep(0.25)
                 for quest_text, img in RESOURCE_P["quest_food"].items():
-                    find_p = match_p_in_w(
+                    _, find_p = match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
                         source_range=[130, 350, 470, 585],
@@ -1075,9 +1086,9 @@ class FAABase:
 
     def reload_game(self: "FAA") -> None:
 
-        def try_close_sub_account_list():
+        def try_close_sub_account_list() -> bool:
             # 是否有小号列表
-            my_result = match_p_in_w(
+            _, my_result = match_p_in_w(
                 source_handle=self.handle_360,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 300, 300],
@@ -1093,9 +1104,9 @@ class FAABase:
                 return True
             return False
 
-        def try_enter_server_4399():
+        def try_enter_server_4399() -> bool:
             # 4399 进入服务器
-            my_result = match_p_in_w(
+            _, my_result = match_p_in_w(
                 source_handle=self.handle_browser,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 2000],
@@ -1111,9 +1122,9 @@ class FAABase:
                 return True
             return False
 
-        def try_enter_server_4399_wd():
+        def try_enter_server_4399_wd() -> bool:
             # 4399 进入服务器
-            my_result = match_p_in_w(
+            _, my_result = match_p_in_w(
                 source_handle=self.handle_browser,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 2000],
@@ -1128,7 +1139,7 @@ class FAABase:
                     y=my_result[1] + 30)
                 return True
             else:
-                my_result = match_p_in_w(
+                _, my_result = match_p_in_w(
                     source_handle=self.handle_browser,
                     source_root_handle=self.handle_360,
                     source_range=[0, 0, 2000, 2000],
@@ -1144,9 +1155,9 @@ class FAABase:
                     return True
             return False
 
-        def try_enter_server_qq_space():
+        def try_enter_server_qq_space() -> bool:
             # QQ空间 进入服务器
-            my_result = match_p_in_w(
+            _, my_result = match_p_in_w(
                 source_handle=self.handle_browser,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 2000],
@@ -1162,9 +1173,9 @@ class FAABase:
                 return True
             return False
 
-        def try_enter_server_qq_game_hall():
+        def try_enter_server_qq_game_hall() -> bool:
             # QQ游戏大厅 进入服务器
-            my_result = match_p_in_w(
+            _, my_result = match_p_in_w(
                 source_handle=self.handle_browser,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 2000],
@@ -1180,33 +1191,36 @@ class FAABase:
                 return True
             return False
 
-        def try_relink():
+        def try_relink() -> bool:
             """
-            循环判断是否处于页面无法访问网页上(刷新无用，因为那是单独的网页)，如果是就点击中央按钮，不是就继续
+            循环判断是否处于页面无法访问网页上(刷新无用，因为那是单独的网页)
+            如果是, 就点击红色按钮 + 返回上一页
             """
-            for i in range(50):
-                my_result = match_p_in_w(
-                    source_handle=self.handle_browser,
-                    source_root_handle=self.handle_360,
-                    source_range=[0, 0, 2000, 2000],
-                    template=RESOURCE_P["error"]["retry_btn.png"],
-                    match_tolerance=0.95
-                )
-                if not my_result:
-                    return True
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                    handle=self.handle_browser,
-                    x=my_result[0],
-                    y=my_result[1])
+
+            # 查找 + 点击红色按钮（但点击不一定有效果!）
+            my_result = loop_match_p_in_w(
+                source_handle=self.handle_browser,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 2000, 2000],
+                template=RESOURCE_P["error"]["retry_btn.png"],
+                match_tolerance=0.95,
+                click=True,
+                after_sleep=3,
+                match_interval=0.5,
+                match_failed_check=10
+            )
+            if my_result:
+                # 再回到上一个网页 基本上稳定可以修复
+                self.click_return_btn()
                 time.sleep(6)
-            else:
-                self.print_error(text="[刷新游戏] 循环判定断线重连失败，请检查网络是否正常...")
-                return False
+                return True
 
-        def main():
+            self.print_error(text="[刷新游戏] 循环判定断线重连失败, 请检查网络是否正常...")
+            return False
 
-            while not self.should_stop:
+        def main() -> None:
 
+            while True:
                 # 先重新获取 360 和 浏览器的句柄
                 self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
                 self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
@@ -1245,8 +1259,8 @@ class FAABase:
                     self.print_debug(
                         text="[刷新游戏] 未找到进入服务器按钮, 可能 1.QQ空间需重新登录 2.360X4399微端 3.需断线重连 4.意外情况")
 
-                    # 密码登录模式
                     if self.QQ_login_info and self.QQ_login_info["use_password"]:
+                        # 密码登录模式
                         with open(self.QQ_login_info["path"] + "/QQ_account.json", "r") as json_file:
                             QQ_account = json.load(json_file)
                         username = QQ_account['{}p'.format(self.player)]['username']
@@ -1255,9 +1269,9 @@ class FAABase:
 
                         # 2p 多等待一段时间，保证1p先完成登录，避免抢占焦点
                         if self.player == 2:
-                            print("2p正在等待")
+                            self.print_debug("[刷新游戏] [QQ登录] 2p正在等待")
                             time.sleep(10)
-                            print("2p等待完成")
+                            self.print_debug("[刷新游戏] [QQ登录] 2p等待完成")
 
                         # 开始进入密码登录页面
                         result = loop_match_p_in_w(
@@ -1270,24 +1284,24 @@ class FAABase:
                             match_failed_check=5,
                             after_sleep=2,
                             click=True)
+                        if not result:
+                            self.print_debug(text="进入QQ密码登录页面失败")
+                            return False
 
                         # 进入密码登录页面成功，由于360可能记住账号，因此先要点叉号清除账号
-                        if result:
-                            result = loop_match_p_in_w(
-                                source_handle=self.handle_browser,
-                                source_root_handle=self.handle_360,
-                                source_range=[0, 0, 2000, 2000],
-                                template=RESOURCE_P["common"]["登录"]["叉号.png"],
-                                match_tolerance=0.90,
-                                match_interval=0.5,
-                                match_failed_check=5,
-                                after_sleep=1,
-                                click=True)
-                        else:
-                            self.print_debug(text="进入QQ密码登录页面失败")
-                            continue
+                        loop_match_p_in_w(
+                            source_handle=self.handle_browser,
+                            source_root_handle=self.handle_360,
+                            source_range=[0, 0, 2000, 2000],
+                            template=RESOURCE_P["common"]["登录"]["叉号.png"],
+                            match_tolerance=0.90,
+                            match_interval=0.5,
+                            match_failed_check=5,
+                            after_sleep=1,
+                            click=True)
+
                         # 点叉号清除账号成功，开始获取账号输入框的焦点
-                        # （如果没成功说明不需要点击，因此也可以开始获取账号输入框的焦点）
+                        # 如果没成功说明不需要点击，因此也可以开始获取账号输入框的焦点
                         result = loop_match_p_in_w(
                             source_handle=self.handle_browser,
                             source_root_handle=self.handle_360,
@@ -1298,16 +1312,16 @@ class FAABase:
                             match_failed_check=5,
                             after_sleep=0.5,
                             click=True)
+                        if not result:
+                            self.print_debug(text="账号输入框获取焦点失败")
+                            continue
 
                         # 注意这里不能 sleep ，否则容易因为抢占焦点而失败
                         # 账号输入框获取焦点成功，开始输入账号
-                        if result:
-                            for key in username:
-                                T_ACTION_QUEUE_TIMER.char_input(handle=self.handle_browser, char=key)
-                                time.sleep(0.1)
-                        else:
-                            self.print_debug(text="账号输入框获取焦点失败")
-                            continue
+                        for key in username:
+                            T_ACTION_QUEUE_TIMER.char_input(handle=self.handle_browser, char=key)
+                            time.sleep(0.1)
+
                         # 注意360有可能记住QQ账号，这里如果result==False就大概率是因为这个原因，所以不用输入账号
                         # (实测发现可能是由于faa获取截图的方式比较特殊，即使记住了QQ账号他也能获取到账号输入框，总之代码能跑)
                         # 输入账号完成，开始获取密码输入框的焦点
@@ -1321,15 +1335,15 @@ class FAABase:
                             match_failed_check=5,
                             after_sleep=0.5,
                             click=True)
-                        # 注意这里不能 sleep ，否则容易因为抢占焦点而失败
-                        # 密码输入框获取焦点成功，开始输入密码
-                        if result:
-                            for key in password:
-                                T_ACTION_QUEUE_TIMER.char_input(handle=self.handle_browser, char=key)
-                                time.sleep(0.1)
-                        else:
+                        if not result:
                             self.print_debug(text="密码输入框获取焦点失败")
                             continue
+
+                        # 注意这里不能 sleep ，否则容易因为抢占焦点而失败
+                        # 密码输入框获取焦点成功，开始输入密码
+                        for key in password:
+                            T_ACTION_QUEUE_TIMER.char_input(handle=self.handle_browser, char=key)
+                            time.sleep(0.1)
 
                         # 输入密码完成，开始点击登录按钮
                         result = loop_match_p_in_w(
@@ -1346,8 +1360,8 @@ class FAABase:
                         # 点击登录按钮成功，等待选服
                         # 这里不用time.sleep，直接修改上面的after_sleep参数即可
 
-                    # 非密码登录模式，通过点击QQ头像进行快捷登录
                     else:
+                        # 非密码登录模式，通过点击QQ头像进行快捷登录
                         result = loop_match_p_in_w(
                             source_handle=self.handle_browser,
                             source_root_handle=self.handle_360,
@@ -1394,9 +1408,8 @@ class FAABase:
                         }
                     ],
                     return_mode="and",
-                    match_failed_check=30,
-                    match_interval=1
-                )
+                    match_interval=1,
+                    match_failed_check=30)
 
                 if result:
                     self.print_debug(text="[刷新游戏] 循环识图成功, 确认进入游戏! 即将刷新Flash句柄")
@@ -1412,6 +1425,7 @@ class FAABase:
                         source_range=[0, 0, 950, 600],
                         template=RESOURCE_P["common"]["登录"]["3_健康游戏公告_确定.png"],
                         match_tolerance=0.97,
+                        match_interval=0.2,
                         match_failed_check=5,
                         after_sleep=1,
                         click=True)
@@ -1421,9 +1435,10 @@ class FAABase:
                     loop_match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
-                        source_range=[875, 30, 925, 75],
+                        source_range=[0, 0, 950, 600],
                         template=RESOURCE_P["common"]["登录"]["4_退出假期特惠.png"],
                         match_tolerance=0.99,
+                        match_interval=0.2,
                         match_failed_check=3,
                         after_sleep=1,
                         click=True)
@@ -2236,7 +2251,7 @@ class FAABase:
                         click=True)
 
                     # 在限定范围内 找物品
-                    find = match_p_in_w(
+                    _, find = match_p_in_w(
                         source_handle=self.handle,
                         source_range=[466, 88, 910, 435],
                         template=item_image,
@@ -2495,24 +2510,38 @@ class FAABase:
 
         # 打开暗晶商店
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=800, y=485)
-        time.sleep(1)
 
-        # 进入暗晶兑换
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=180, y=70)
-        time.sleep(1)
+        # 确保加载正确完成
+        r = loop_match_p_in_w(
+            source_handle=self.handle,
+            source_range=[255, 15, 655, 60],
+            template=RESOURCE_P["common"]["暗晶商店_ui.png"],
+            match_tolerance=0.95,
+            match_interval=0.2,
+            match_failed_check=10,
+            after_sleep=2,
+            click=False
+        )
+        if r:
+            # 进入暗晶兑换
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=180, y=70)
+            time.sleep(1)
 
-        # 3x3次点击 确认兑换
-        for i in range(3):
-            for location in [[405, 190], [405, 320], [860, 190]]:
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=location[0], y=location[1])
-                # 这个破商店点快了兑换不了
-                time.sleep(2)
+            # 3x3次点击 确认兑换
+            for i in range(3):
+                for location in [[405, 190], [405, 320], [860, 190]]:
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=location[0], y=location[1])
+                    # 这个破商店点快了兑换不了
+                    time.sleep(2)
 
         # 退出商店界面
         for i in range(2):
             self.action_exit(mode="普通红叉")
 
-        SIGNAL.PRINT_TO_UI.emit(text=f"[兑换暗晶] [{self.player}P] 结束.")
+        if r:
+            SIGNAL.PRINT_TO_UI.emit(text=f"[兑换暗晶] [{self.player}P] 执行完成.")
+        else:
+            SIGNAL.PRINT_TO_UI.emit(text=f"[兑换暗晶] [{self.player}P] 失败放弃. 游戏太卡")
 
     def delete_items(self: "FAA"):
         """用于删除多余的技能书类消耗品, 使用前需要输入二级或无二级密码"""
@@ -2555,7 +2584,7 @@ class FAABase:
             for i_name, i_image in g_resources.RESOURCE_CP["背包_道具_需删除的"].items():
 
                 # 在限定范围内 找物品
-                find = match_p_in_w(
+                _, find = match_p_in_w(
                     source_handle=self.handle,
                     source_range=[466, 88, 910, 435],
                     template=i_image,
@@ -2652,7 +2681,7 @@ class FAABase:
                 continue
 
             # 防止被 [没有带xx卡] or 包满 的提示卡死
-            find = match_p_in_w(
+            _, find = match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 950, 600],

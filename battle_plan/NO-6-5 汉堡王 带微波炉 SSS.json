@@ -14,10 +14,6 @@
             "name": "产火"
         },
         {
-            "card_id": 9,
-            "name": "香辣年糕蟹"
-        },
-        {
             "card_id": 2,
             "name": "海星"
         },
@@ -46,6 +42,10 @@
             "name": "护罩c"
         },
         {
+            "card_id": 9,
+            "name": "香辣年糕蟹"
+        },
+        {
             "card_id": 10,
             "name": "冰桶炸弹"
         },
@@ -62,7 +62,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 1,
@@ -312,7 +311,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]

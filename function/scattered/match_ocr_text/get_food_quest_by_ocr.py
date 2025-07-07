@@ -24,7 +24,7 @@ def food_match_ocr_text(self):
         # while True:
         # 使用掩模匹配图片
         for j in range(3):
-            find = match_p_in_w(
+            _, find = match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
                 source_range=[82, Y + 55 * j, 533, 459 + 53 * j],

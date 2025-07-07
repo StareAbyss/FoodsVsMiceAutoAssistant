@@ -10,8 +10,12 @@
     },
     "cards": [
         {
-            "card_id": 9,
-            "name": "产火"
+            "card_id": 1,
+            "name": "海星"
+        },
+        {
+            "card_id": 2,
+            "name": "布丁"
         },
         {
             "card_id": 3,
@@ -22,28 +26,24 @@
             "name": "散点增幅"
         },
         {
-            "card_id": 6,
-            "name": "扑克牌护罩"
+            "card_id": 5,
+            "name": "照明"
         },
         {
-            "card_id": 8,
-            "name": "炸炸菇"
+            "card_id": 6,
+            "name": "扑克牌护罩"
         },
         {
             "card_id": 7,
             "name": "护罩"
         },
         {
-            "card_id": 1,
-            "name": "海星"
+            "card_id": 8,
+            "name": "炸炸菇"
         },
         {
-            "card_id": 2,
-            "name": "布丁"
-        },
-        {
-            "card_id": 5,
-            "name": "照明"
+            "card_id": 9,
+            "name": "产火"
         }
     ],
     "events": [

@@ -7,8 +7,8 @@ import win32gui
 import win32process
 
 from function.globals.log import CUS_LOGGER
-
-
+from function.globals.loadings import loading
+loading.update_progress(5,"正在加载FAA进程协议...")
 def close_all_software_by_name(software_name: str):
     """
     根据软件名称关闭所有相关进程

@@ -15,7 +15,6 @@ from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
-from function.scattered.match_ocr_text.get_stage_name_by_ocr import screen_get_stage_name
 from function.scattered.read_json_to_stage_info import read_json_to_stage_info
 
 if TYPE_CHECKING:
@@ -219,7 +218,7 @@ class BattlePreparation:
                 # 未找到
                 if not match_img_result_dict[target]["found"]:
 
-                    result = match_p_in_w(
+                    _, result = match_p_in_w(
                         source_img=img,
                         template=resource_p[target],
                         mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],
@@ -597,83 +596,102 @@ class BattlePreparation:
             banned_card_index = sorted(banned_card_index)
             self.banned_card_index = banned_card_index
 
-    def _check_stage_name(self: "FAA", stage_name):
+    def _check_stage_name(self: "FAA", text, t_type="id"):
         """
-        根据检测出的关卡名，改变faa当前的stage_info
+        :param text str 对应的值
+        :param t_type str "id" or "name"
+        根据检测出的关卡ID或关卡名，改变faa当前的stage_info
         """
 
         # 原有的关卡id
-        stage_id = self.stage_info["id"]
+        old_stage_id = copy.deepcopy(self.stage_info["id"])
 
         # 特殊关卡列表占位符
         happy_holiday_list = []
         reward_list = []
         roaming_list = []
 
-        special_stage = True
-        match stage_name:
-            case _ if "魔塔蛋糕" in stage_name:
-                level = stage_name.replace("魔塔蛋糕第", "").replace("层", "")
-                self.stage_info = read_json_to_stage_info(
-                    stage_id=stage_id,
-                    stage_id_for_battle=f"MT-1-{level}"
-                )
+        special_stage = False
 
-            case _ if "双人魔塔" in stage_name:
-                level = stage_name.replace("双人魔塔第", "").replace("层", "")
-                self.stage_info = read_json_to_stage_info(
-                    stage_id=stage_id,
-                    stage_id_for_battle=f"MT-2-{level}")
+        if t_type == "id":
 
-            case _ if "萌宠神殿" in stage_name:
-                level = stage_name.replace("萌宠神殿第", "").replace("层", "")
-                self.stage_info = read_json_to_stage_info(
-                    stage_id=stage_id,
-                    stage_id_for_battle=f"PT-0-{level}"
-                )
+            self.stage_info = read_json_to_stage_info(
+                stage_id=old_stage_id,
+                stage_id_for_battle=text
+            )
+            special_stage = True
+            stage_name = self.stage_info["name"]
 
-            case _ if stage_name in happy_holiday_list:
-                pass
+        elif t_type == "name":
 
-            case _ if stage_name in reward_list:
-                pass
+            stage_name = text
+            special_stage = True
 
-            case _ if stage_name in roaming_list:
-                pass
+            match stage_name:
+                case _ if "魔塔蛋糕" in stage_name:
+                    level = stage_name.replace("魔塔蛋糕第", "").replace("层", "")
+                    self.stage_info = read_json_to_stage_info(
+                        stage_id=old_stage_id,
+                        stage_id_for_battle=f"MT-1-{level}"
+                    )
 
-            case _:
-                special_stage = False
+                case _ if "双人魔塔" in stage_name:
+                    level = stage_name.replace("双人魔塔第", "").replace("层", "")
+                    self.stage_info = read_json_to_stage_info(
+                        stage_id=old_stage_id,
+                        stage_id_for_battle=f"MT-2-{level}")
+
+                case _ if "萌宠神殿" in stage_name:
+                    level = stage_name.replace("萌宠神殿第", "").replace("层", "")
+                    self.stage_info = read_json_to_stage_info(
+                        stage_id=old_stage_id,
+                        stage_id_for_battle=f"PT-0-{level}"
+                    )
+
+                case _ if stage_name in happy_holiday_list:
+                    pass
+
+                case _ if stage_name in reward_list:
+                    pass
+
+                case _ if stage_name in roaming_list:
+                    pass
+
+                case _:
+                    # 查找失败
+                    special_stage = False
+
+        else:
+            stage_name = "UnKnown"
 
         if special_stage:
             SIGNAL.PRINT_TO_UI.emit(f"检测到特殊关卡：{stage_name}，已为你启用对应关卡方案", 7)
 
     def _get_card_name_list_from_battle_plan(self: "FAA"):
 
-        # 和 card_list 一一对应 顺序一致 代表这张卡是否允许被跳过
-        battle_plan = copy.deepcopy(self.battle_plan)
 
         my_dict = {}
+        mats = copy.deepcopy(self.stage_info["mat_card"])
 
         # 直接从cards 中获取 顺带保险排序一下
-        for card in battle_plan["cards"]:
+        for card in self.battle_plan["cards"]:
             my_dict[card["card_id"]] = card["name"]
 
         # 根据id 排序 并取其中的value为list
         sorted_list = list(dict(sorted(my_dict.items())).values())
+        # 和 card_list 一一对应 顺序一致 代表这张卡是否允许被跳过
         can_failed_list = [False for _ in sorted_list]
 
-        # 增承载卡
-        mats = copy.deepcopy(self.stage_info["mat_card"])
-        # 如果需要任意承载卡 第一张卡设定为 字段 有效承载
+        # 如果需要任意承载卡 第一张卡设定为 有效承载 置于末位
         if len(mats) >= 1:
             sorted_list += ["有效承载"]
             can_failed_list += [False]
 
-        # 添加冰沙 复制类
+        # 添加冰沙 复制类 置于末位 允许找不到
         sorted_list += ["冰激凌-2", "创造神", "幻幻鸡"]
         can_failed_list += [True, True, True]
 
-        # 如果有效承载数量 >= 2
+        # 如果有效承载数量 >= 2 置于末位 允许找不到
         if len(mats) >= 2:
             for _ in range(len(mats) - 1):
                 sorted_list += ["有效承载"]
@@ -681,9 +699,15 @@ class BattlePreparation:
 
         # 根据最大卡片数量限制 移除卡片
         if self.max_card_num is not None:
-            self.print_debug(text=f"[自动带卡] 最大卡片数量限制为{self.max_card_num}张, 激活自动剔除")
+            self.print_debug(text=f"[自动带卡] 最大卡片数量限制为{self.max_card_num}张, 激活自动剔除, 并Ban掉咖啡粉")
             sorted_list = sorted_list[:self.max_card_num]
             can_failed_list = can_failed_list[:self.max_card_num]
+
+            # 只要有禁用 就把咖啡粉顺手ban了.
+            if not self.ban_card_list:
+                self.ban_card_list = ["咖啡粉"]
+            else:
+                self.ban_card_list += ["咖啡粉"]
 
         return sorted_list, can_failed_list
 
@@ -710,17 +734,11 @@ class BattlePreparation:
             return 2
         return 0
 
-    def battle_preparation_change_deck(self: "FAA"):
+    def battle_preparation_change_deck(self: "FAA") -> int:
         """
         战前准备 修改卡组
         :return: 0-正常结束 1-重启本次 2-跳过本次 3-跳过所有次数
         """
-        # 识别出当前关卡名称
-        stage_name = screen_get_stage_name(self.handle, self.handle_360)
-        self.print_debug(text=f"关卡名称识别结果: 当前关卡 - {stage_name}")
-
-        # 检测关卡名变种，如果符合特定关卡，则修改当前战斗的关卡信息
-        self._check_stage_name(stage_name)
 
         # 选择卡组
         self.print_debug(text=f"选择卡组编号-{self.deck}, 并开始加入新卡和ban卡")
@@ -742,7 +760,8 @@ class BattlePreparation:
                 return 3
 
         else:
-            #  任务需求的带卡 在自动带卡中会自动处理, 此处是无自动带卡时的处理
+            # 任务需求的带卡
+            # 在自动带卡中会自动处理该流程, 此处是手动带卡时对任务要求的处理
             self._add_quest_card()
 
         self._remove_ban_card()
@@ -772,7 +791,7 @@ class BattlePreparation:
 
         # 防止被 [没有带对策卡] or [背包已满] or [经验已刷满] 卡住
         for i in range(10):
-            tar = match_p_in_w(
+            _, tar = match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
                 source_range=[300, 180, 650, 420],
@@ -1066,7 +1085,7 @@ class BattlePreparation:
         print_debug = self.print_debug
         print_error = self.print_error
 
-        print_debug(text="[开始/准备/魔塔蛋糕UI] 尝试捕获正确标志, 以完成战斗流程.")
+        print_debug(text="[结束校验] 尝试捕获正确标志, 以完成战斗流程. 标志包括: 开始/准备/魔塔蛋糕UI/巅峰对决UI")
         find = loop_match_ps_in_w(
             source_handle=handle,
             source_root_handle=handle_360,
@@ -1079,15 +1098,21 @@ class BattlePreparation:
                     "source_range": [200, 0, 750, 100],
                     "template": RESOURCE_P["common"]["魔塔蛋糕_ui.png"],
                     "match_tolerance": 0.99
-                }],
+                },
+                {
+                    "source_range": [0, 0, 260, 70],
+                    "template": RESOURCE_P["common"]["巅峰对决_ui.png"],
+                    "match_tolerance": 0.99
+                }
+            ],
             return_mode="or",
             match_failed_check=10,
             match_interval=0.2)
         if find:
-            print_debug(text="成功捕获[开始/准备/魔塔蛋糕UI], 完成战斗流程.")
+            print_debug(text="[结束校验] 成功捕获任意标志, 完成战斗流程.")
             return 0  # 0-正常结束
         else:
-            print_error(text="10s没能捕获[开始/准备/魔塔蛋糕UI], 出现意外错误, 直接跳过本次")
+            print_error(text="[结束校验] 10s没能捕获任意标志, 出现意外错误, 直接跳过本次")
             return 2  # 2-跳过本次
 
 
@@ -1116,7 +1141,7 @@ if __name__ == '__main__':
                 raw_range=[0, 0, 950, 600],
                 root_handle=handle_360)
             img = crop_and_concat_columns(img=img)
-            result = match_p_in_w(
+            _, result = match_p_in_w(
                 source_img=img,
                 template=img_tar,
                 mask=RESOURCE_P["card"]["卡片-房间-掩模-绑定.png"],

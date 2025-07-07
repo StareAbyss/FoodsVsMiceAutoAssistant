@@ -9,20 +9,20 @@
     },
     "cards": [
         {
-            "card_id": 3,
-            "name": "散点追踪"
-        },
-        {
             "card_id": 1,
             "name": "海星"
         },
         {
-            "card_id": 4,
-            "name": "散点增幅"
-        },
-        {
             "card_id": 2,
             "name": "布丁"
+        },
+        {
+            "card_id": 3,
+            "name": "散点追踪"
+        },
+        {
+            "card_id": 4,
+            "name": "散点增幅"
         },
         {
             "card_id": 5,
@@ -41,7 +41,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 3,
@@ -178,7 +177,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]

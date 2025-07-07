@@ -20,7 +20,7 @@ def food_texts_to_battle_info(texts, self) -> list:
         quest_card = None
         max_card_num = None
         player = [self.player] if "单人" in text else [2, 1]
-        need_key = False
+        need_key = True
         ban_card_list = []
 
         # 提取stage_id
@@ -42,8 +42,9 @@ def food_texts_to_battle_info(texts, self) -> list:
             continue
 
         # 解析是否需要用钥匙 or 徽章
-        if "击杀" in text or "清除" in text or "评分" in text or "S" in text or "A" in text:
-            need_key = True
+        # tar_list = ["击杀", "清除", "评分", "S", "A"]
+        # if any(tar in text for tar in tar_list):
+        #     need_key = True
 
         # 检查特定卡片
         if "使用" in text:

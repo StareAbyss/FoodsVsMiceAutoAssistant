@@ -21,16 +21,20 @@
             "name": "糖葫芦炮弹"
         },
         {
+            "card_id": 4,
+            "name": "瓜皮护罩"
+        },
+        {
             "card_id": 5,
             "name": "狮子座"
         },
         {
-            "card_id": 7,
-            "name": "樱桃反弹布丁"
+            "card_id": 6,
+            "name": "肉松清明粿"
         },
         {
-            "card_id": 4,
-            "name": "瓜皮护罩"
+            "card_id": 7,
+            "name": "樱桃反弹布丁"
         },
         {
             "card_id": 8,
@@ -39,10 +43,6 @@
         {
             "card_id": 9,
             "name": "瓜皮护罩"
-        },
-        {
-            "card_id": 6,
-            "name": "肉松清明粿"
         },
         {
             "card_id": 11,
@@ -61,7 +61,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 1,
@@ -223,7 +222,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]

@@ -1,24 +1,40 @@
+◈ Part.1 - 在线文档 ◈
 FAA 现已启用网络文档！祝您轻松搞定配置入坑~
-
 该文档新手入门部分已施工完成, 取代原内置PDF文档. 其他部分仍在施工！
 
-新手教程 - 入门必看，20分钟搞定部署
+◇ 新手教程 - 入门必看，20分钟搞定部署 ◇
 https://stareabyss.top/FAA-WebSite/guide/start/
 
-除错指南 - 遇到问题，逐一排查
+◇ 除错指南 - 遇到问题，逐一排查 ◇
 https://stareabyss.top/FAA-WebSite/guide/start/error.html
 
-功能一览 - 看看FAA是否有你不知道的功能
+◇ 功能一览 - 看看FAA是否有你不知道的功能 ◇
 https://stareabyss.top/FAA-WebSite/
 
-解锁日氪 - 秘 密 内 容~
+◇ 解锁日氪 - 秘 密 内 容 ◇
 https://stareabyss.top/FAA-WebSite/guide/advanced/pay_to_win_star.html
 
-反馈问题 - 参考以下文档
+◇ 反馈问题 - 参考以下文档 ◇
 https://stareabyss.top/FAA-WebSite/guide/start/error.html#反馈-提问的步骤
-确定排除大多数基础错误后, 请遵循以下守则进行私下求助:
-1. 复制 logs 文件夹中的 running_log.log 文件!!! 
-2. 文本详细描述遭遇的问题. 直接甩图片 / 甩视频 将被忽略.
-3. 问号 / 嘲讽 / 怨气 / 理所当然的白嫖党毫无对他人劳动尊重 的不礼貌人士请滚远.
+
+◈ Part.2 - 视频教学 ◈
+FAA 也有许多视频教程! 请注意, 不同版本间操作可能有些许不同, 请注意时效性.
+
+版本：FAA V2.0.0+
+来自：b站 - 哲小绪
+
+◇ 入门教学，学会神殿刷关第一步 ◇
+https://www.bilibili.com/video/BV1qvqxYvEzJ
+
+◇ 进阶教学，自定义战斗方案 ◇
+https://www.bilibili.com/video/BV1Rtq6YiEHP
+
+◇ 一键日常，悬赏任务 & 公会任务 & 全局关卡方案 ◇
+https://www.bilibili.com/video/BV1RpBgYHEA8
+
+◇ 自动带卡 ◇
+https://www.bilibili.com/video/BV1MvrQYKEc
+
+
 
 
