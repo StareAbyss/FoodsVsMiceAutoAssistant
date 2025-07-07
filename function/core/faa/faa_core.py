@@ -11,6 +11,7 @@ import pytz
 from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
 from function.common.bg_img_screenshot import capture_image_png
 from function.common.overlay_images import overlay_images
+from function.common.get_system_dpi import get_window_position,get_system_dpi
 from function.core.my_crypto import decrypt_data
 from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
 from function.globals import g_resources, SIGNAL, EXTRA
@@ -1727,7 +1728,11 @@ class FAABase:
             # 退出充值界面
             exit_ui()
             return "今天氪过了~"
-
+        or_rect=get_window_position(self.handle)
+        browser_rect=get_window_position(self.handle_browser)
+        zoom_rate=get_system_dpi()/96
+        print(or_rect, browser_rect)
+        deviation=[(or_rect[0]-browser_rect[0])//zoom_rate,(or_rect[1]-browser_rect[1])//zoom_rate]
         # 没有完成, 进入充值界面
         CUS_LOGGER.debug("充值界面 点击切换为游币")
         source_range_2 = [150, 110, 800, 490]  # 游币兑换按钮 查找范围
@@ -1742,7 +1747,9 @@ class FAABase:
             match_failed_check=10,
             after_sleep=3,
             click=True,
-            click_handle=self.handle_browser)
+            click_handle=self.handle_browser,
+            deviation=deviation
+            )
         if not find:
             return "步骤: 充值界面-点击游币兑换. 出现致命失误! 请联系开发者!"
 
@@ -1760,7 +1767,9 @@ class FAABase:
             match_failed_check=10,
             after_sleep=3,
             click=True,
-            click_handle=self.handle_browser)
+            click_handle=self.handle_browser,
+            deviation=deviation
+        )
         if not find:
             return "步骤: 充值界面-点击-氪金值输入框. 出现致命失误! 请联系开发者!"
 
@@ -1780,7 +1789,8 @@ class FAABase:
             match_failed_check=10,
             after_sleep=3,
             click=True,
-            click_handle=self.handle_browser)
+            click_handle=self.handle_browser,
+            deviation=deviation            )
         if not find:
             return "步骤: 充值界面-复核-氪金值输入1元. 出现致命失误! 请联系开发者!"
 
@@ -1796,7 +1806,8 @@ class FAABase:
             match_failed_check=10,
             after_sleep=3,
             click=True,
-            click_handle=self.handle_browser)
+            click_handle=self.handle_browser,
+            deviation=deviation            )
         if not find:
             return "步骤: 充值界面-点击-立刻充值按钮. 出现致命失误! 请联系开发者!"
 
@@ -1812,7 +1823,8 @@ class FAABase:
             match_failed_check=10,
             after_sleep=3,
             click=True,
-            click_handle=self.handle_browser)
+            click_handle=self.handle_browser,
+            deviation=deviation            )
         if not find:
             return "步骤: 充值界面-点击-退出充值界面按钮. 出现致命失误! 请联系开发者!"
 

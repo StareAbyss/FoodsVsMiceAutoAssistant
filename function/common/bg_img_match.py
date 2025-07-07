@@ -320,6 +320,7 @@ def loop_match_p_in_w(
         after_click_template=None,
         after_click_template_mask=None,
         source_root_handle=None,
+        deviation=None
 ) -> bool:
     """
     根据句柄截图, 并在截图中寻找一个较小的图片资源.
@@ -327,7 +328,7 @@ def loop_match_p_in_w(
     可选: 点击后是否复核为另一图片(切换界面成功). 如果未找到仍会返回False.
     Args:
         :param source_handle: 截图句柄
-        :param source_range: 截图后截取范围 [左上x,左上y,右下x,右下y]
+        :param source_range: [左上x,左上y,右下x,右下y] 截图后截取范围 
         :param template: 目标图片. 路径或数组.
         :param template_mask: 可选: 目标图片掩模, 为None则不启用.
         :param match_tolerance: 可选: 自定捕捉准确度阈值 0-1, 默认0.95
@@ -339,6 +340,7 @@ def loop_match_p_in_w(
         :param after_click_template: 点击后进行检查, 若能找到该图片, 视为无效, 不输出True, 继承前者的 tolerance interval
         :param after_click_template_mask: 检查 - 掩模
         :param source_root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层 可空置
+        :param deviation: [x,y] 实际窗口点击改变后，点击的偏移值
 
     return:
         是否在限定时间内找到图片
@@ -372,8 +374,8 @@ def loop_match_p_in_w(
 
     T_ACTION_QUEUE_TIMER.add_click_to_queue(
         handle=click_handle if click_handle else source_handle,
-        x=match_result[0] + source_range[0],
-        y=match_result[1] + source_range[1]
+        x=match_result[0] + source_range[0] + deviation[0],
+        y=match_result[1] + source_range[1] + deviation[1]
     )
 
     if after_click_template is None:
