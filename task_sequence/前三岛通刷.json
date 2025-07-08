@@ -4,7 +4,7 @@
         "task_id": 1,
         "task_args": {
             "stage_id": "NO-1-7",
-            "max_times": 25,
+            "max_times": 22,
             "need_key": true,
             "player": [
                 2,
@@ -33,7 +33,7 @@
         "task_id": 2,
         "task_args": {
             "stage_id": "NO-1-14",
-            "max_times": 25,
+            "max_times": 22,
             "need_key": true,
             "player": [
                 2,

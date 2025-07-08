@@ -27,11 +27,11 @@ from function.core.qmw_tip_login_settings import QMWTipLoginSettings
 from function.core.qmw_tip_misu_logistics import QMWTipMisuLogistics
 from function.core.qmw_tip_stage_id import QMWTipStageID
 from function.core.qmw_tip_warm_gift import QMWTipWarmGift
+from function.core.qmw_tip_qqlogin import QMWTipQQlogin
+from function.core.qmw_tip_sleep import QMWTipSleep
 from function.core.qmw_useful_tools_widget import UsefulToolsWidget
 from function.core.todo import ThreadTodo
 from function.core.my_crypto import encrypt_data
-from function.core.qmw_tip_qqlogin import QMWTipQQlogin
-from function.core.qmw_tip_sleep import QMWTipSleep
 from function.globals import EXTRA, SIGNAL
 from function.globals import g_resources
 from function.globals.get_paths import PATHS
@@ -42,7 +42,6 @@ from function.scattered.get_channel_name import get_channel_name
 from function.scattered.get_stage_info_online import get_stage_info_online
 from function.scattered.test_route_connectivity import test_route_connectivity
 from function.scattered.todo_timer_manager import TodoTimerManager
-
 
 class QMainWindowService(QMainWindowLoadSettings):
     signal_todo_end = QtCore.pyqtSignal()
@@ -1087,11 +1086,8 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         CUS_LOGGER.warning("重置卡片状态自学习记忆, 结束")
 
-
-def faa_start_main():
-    # 实例化 PyQt后台管理
-    app = QtWidgets.QApplication(sys.argv)
-
+def faa_start_main(app=None,loading=None):
+    loading.update_progress(95)
     # app.setStyle("Windows")
     # app.setStyle("WindowsVista")
     # app.setStyle("Fusion")
@@ -1109,9 +1105,14 @@ def faa_start_main():
 
     # 设置 窗口字体
     window.font = font
-
+    #先停止播放gif再更新进度到100避免线程安全问题
+    loading.anim.stop()
+    loading.update_progress(100,"载入完成！！！")
     # 主窗口 实现
     window.show()
+    #主窗口淡入动画
+    window.fade_in_animation.start()
+
 
     # 性能分析监控启动
     run_analysis_in_thread(window)
@@ -1125,11 +1126,8 @@ def faa_start_main():
         window.todo_click_btn()
     app.setQuitOnLastWindowClosed(False)  # 禁止自动退出
 
-    # 运行主循环，必须调用此函数才可以开始事件处理
-    app.exec()
 
-    # 退出程序
-    sys.exit()
+
 
 
 if __name__ == "__main__":

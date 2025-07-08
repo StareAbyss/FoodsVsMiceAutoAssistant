@@ -20,5 +20,17 @@
         "version": "3.0"
     },
     "cards": [],
-    "events": []
+    "events": [
+        {
+            "trigger": {
+                "wave_id": 0,
+                "time": 0,
+                "type": "wave_timer"
+            },
+            "action": {
+                "cards": [],
+                "type": "loop_use_cards"
+            }
+        }
+    ]
 }

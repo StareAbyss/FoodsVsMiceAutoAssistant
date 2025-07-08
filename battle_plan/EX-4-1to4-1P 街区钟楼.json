@@ -50,7 +50,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 1,
@@ -176,7 +175,8 @@
                         "location": [],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         },
         {
@@ -186,7 +186,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 1,
@@ -305,7 +304,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]

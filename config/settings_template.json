@@ -1221,6 +1221,8 @@
     "advanced_settings": {
         "auto_pickup_1p": false,
         "auto_pickup_2p": false,
+        "cus_flop_times_active": false,
+        "cus_flop_times_value": 2,
         "cus_cps_active": false,
         "cus_cps_value": 120,
         "cus_lowest_fps_active": false,

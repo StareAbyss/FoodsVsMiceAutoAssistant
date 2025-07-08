@@ -3,6 +3,8 @@ import json
 import os
 import sys
 import uuid
+from function.globals.loadings import loading
+loading.update_progress(50,"正在加载FAA关卡编辑器...")
 from typing import List
 
 from PyQt6.QtCore import pyqtSignal, Qt, QPoint
@@ -1670,6 +1672,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         # 转化为json
         json_data = obj_to_json(self.battle_plan)
+
+        # 排序一下cards
+        json_data["cards"].sort(key=lambda x: x["card_id"])
 
         # 保存
         with EXTRA.FILE_LOCK:

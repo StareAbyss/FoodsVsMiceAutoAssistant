@@ -55,7 +55,7 @@ class ThreadWithException(threading.Thread):
         try:
             return self.return_value
         except Exception:
-            CUS_LOGGER.debug(Exception)
+            CUS_LOGGER.error(Exception)
             return None
 
     def raise_exception(self):

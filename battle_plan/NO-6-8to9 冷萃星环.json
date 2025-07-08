@@ -18,8 +18,8 @@
             "name": "海星"
         },
         {
-            "card_id": 10,
-            "name": "香辣年糕蟹"
+            "card_id": 3,
+            "name": "布丁"
         },
         {
             "card_id": 4,
@@ -28,10 +28,6 @@
         {
             "card_id": 5,
             "name": "散点追踪"
-        },
-        {
-            "card_id": 3,
-            "name": "布丁"
         },
         {
             "card_id": 6,
@@ -48,6 +44,10 @@
         {
             "card_id": 9,
             "name": "三向冰冻小笼包"
+        },
+        {
+            "card_id": 10,
+            "name": "香辣年糕蟹"
         }
     ],
     "events": [
@@ -58,7 +58,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 1,
@@ -213,7 +212,8 @@
                         "location": [],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         },
         {
@@ -223,7 +223,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 1,
@@ -445,7 +444,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]

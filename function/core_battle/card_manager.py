@@ -251,7 +251,7 @@ class CardManager(QThread):
                             card_type=result["card_type"])
                         self.the_9th_fan_dict_list[pid].append(s_card)
 
-                    elif result["card_type"] < 14:
+                    elif result["card_type"] <= 15:
                         # 各种炸弹类卡片 包括瓜皮类炸弹
                         s_card = SpecialCard(
                             faa=faa,

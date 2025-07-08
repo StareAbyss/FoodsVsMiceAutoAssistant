@@ -10,14 +10,6 @@
     },
     "cards": [
         {
-            "card_id": 8,
-            "name": "炸炸菇"
-        },
-        {
-            "card_id": 7,
-            "name": "扑克牌护罩"
-        },
-        {
             "card_id": 1,
             "name": "海星"
         },
@@ -40,6 +32,14 @@
         {
             "card_id": 6,
             "name": "护罩"
+        },
+        {
+            "card_id": 7,
+            "name": "扑克牌护罩"
+        },
+        {
+            "card_id": 8,
+            "name": "炸炸菇"
         }
     ],
     "events": [
@@ -50,7 +50,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 8,
@@ -187,7 +186,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         },
         {
@@ -197,7 +197,6 @@
                 "type": "wave_timer"
             },
             "action": {
-                "type": "loop_use_cards",
                 "cards": [
                     {
                         "card_id": 8,
@@ -324,7 +323,8 @@
                         ],
                         "kun": 0
                     }
-                ]
+                ],
+                "type": "loop_use_cards"
             }
         }
     ]

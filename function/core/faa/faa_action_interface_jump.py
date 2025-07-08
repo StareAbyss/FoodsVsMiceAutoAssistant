@@ -7,6 +7,7 @@ from function.common.bg_img_screenshot import capture_image_png
 from function.globals import g_resources, SIGNAL
 from function.globals.g_resources import RESOURCE_P
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
+from function.scattered.match_ocr_text.get_stage_name_by_ocr import screen_get_stage_name
 
 if TYPE_CHECKING:
     from function.core.faa.faa_mix import FAA
@@ -217,7 +218,7 @@ class FAAActionInterfaceJump:
         handle = self.handle
         handle_360 = self.handle_360
 
-        find = match_p_in_w(
+        _, find = match_p_in_w(
             source_handle=handle,
             source_root_handle=handle_360,
             source_range=[0, 0, 950, 600],
@@ -256,11 +257,10 @@ class FAAActionInterfaceJump:
         )
         return find
 
-    def action_goto_stage(self: "FAA", mt_first_time: bool = False) -> None:
+    def action_goto_stage(self: "FAA", mt_wb_first_time: bool = False) -> None:
         """
         只要右上能看到地球 就可以到目标关卡
-        Args:
-            mt_first_time: 魔塔关卡下 是否是第一次打(第一次塔需要进塔 第二次只需要选关卡序号)
+        :param mt_wb_first_time: 魔塔关卡世界boss, 是否是第一次打. 魔塔第一次塔需要进塔, 第二次只需要选关卡序号; 世界boss第一次需要进入界面, 第二次只需要创建房间.
         """
 
         handle = self.handle
@@ -334,14 +334,14 @@ class FAAActionInterfaceJump:
 
         def main_mt():
 
-            if mt_first_time:
+            if mt_wb_first_time:
                 # 前往海底
                 self.action_goto_map(map_id=5)
 
                 # 选区
                 change_to_region(region_list=[1, 2])
 
-            if self.is_main and mt_first_time:
+            if self.is_main and mt_wb_first_time:
                 # 进入魔塔
                 loop_match_p_in_w(
                     source_handle=handle,
@@ -414,6 +414,9 @@ class FAAActionInterfaceJump:
                 template=RESOURCE_P["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
                 after_sleep=1,
                 click=True)
+
+            # 识别出当前关卡名称
+            return screen_get_stage_name(self.handle, self.handle_360)
 
         def main_cs():
 
@@ -648,14 +651,14 @@ class FAAActionInterfaceJump:
                     click=True)
             else:
                 # 识图，寻找需要邀请目标的位置
-                result = match_p_in_w(
+                _, result = match_p_in_w(
                     source_handle=handle,
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["common"]["战斗"]["房间图标_男.png"],
                     match_tolerance=0.95)
                 if not result:
-                    result = match_p_in_w(
+                    _, result = match_p_in_w(
                         source_handle=handle,
                         source_root_handle=handle_360,
                         source_range=[0, 0, 950, 600],
@@ -686,22 +689,45 @@ class FAAActionInterfaceJump:
                 # 创建队伍 - 该按钮可能需要修正位置
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=660, y=200)
 
-        def main_wb():
+        def main_wb() -> int:
 
-            # 进入美味岛并切区
-            self.action_goto_map(map_id=1)
-            change_to_region(region_list=[1, 11])
+            if mt_wb_first_time:
+                # 进入美味岛并切区
+                self.action_goto_map(map_id=1)
+                change_to_region(region_list=[1, 11])
 
-            # 仅限主角色创建关卡
-            if self.is_main:
                 # 进入欢乐假期页面
                 self.action_top_menu(mode="巅峰对决")
 
                 # 给一点加载时间
-                time.sleep(2)
+                time.sleep(5)
 
-                # 创建队伍 - 该按钮可能需要修正位置
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=770, y=560)
+            buff_id = 0
+            for b in range(1,100):
+
+                # 确定对应图片存在
+                if RESOURCE_P["world_boss"].get(f"buff-{b}.png") is None:
+                    continue
+
+                result = loop_match_p_in_w(
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[830, 270, 910, 350],
+                    template=RESOURCE_P["world_boss"][f"buff-{b}.png"],
+                    match_tolerance=0.99,
+                    match_interval=0.2,
+                    match_failed_check=1,
+                    after_sleep=0,
+                    click=False,
+                )
+                if result:
+                    buff_id = b
+                    break
+
+            # 创建队伍 - 该按钮可能需要修正位置
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=770, y=560)
+
+            return buff_id
 
         def main_wa():
 
@@ -728,7 +754,7 @@ class FAAActionInterfaceJump:
                 img = capture_image_png(handle=handle, raw_range=[205, 385, 242, 405], root_handle=handle_360)
 
                 for i in range(1, 24):
-                    find = match_p_in_w(
+                    _, find = match_p_in_w(
                         source_img=img,
                         template=RESOURCE_P["stage"][f"WA-0-{i}.png"],
                         match_tolerance=0.995,
@@ -805,6 +831,7 @@ class FAAActionInterfaceJump:
                     click=True)
 
         def main():
+            stage_id_extra = None
             if stage_0 == "NO":
                 main_no()
             elif stage_0 == "MT":
@@ -821,15 +848,27 @@ class FAAActionInterfaceJump:
                 main_gd()
             elif stage_0 == "HH":
                 main_hh()
-            elif stage_0 == "WB":
-                main_wb()
             elif stage_0 == "WA":
                 main_wa()
             elif stage_0 == "CZ":
                 main_cz()
+            elif stage_0 == "WB":
+                b_id = main_wb()
+                stage_id_extra = f"WB-0-{b_id}"
             else:
                 SIGNAL.PRINT_TO_UI.emit(text="跳转关卡失败，请检查关卡代号是否正确", color_level=1)
                 SIGNAL.DIALOG.emit("ERROR", "跳转关卡失败! 请检查关卡代号是否正确")
                 SIGNAL.END.emit()
+
+            # 识别出当前关卡名称
+            stage_name = screen_get_stage_name(self.handle, self.handle_360)
+            self.print_debug(text=f"关卡名称识别结果: 当前关卡 - {stage_name}")
+
+            if stage_id_extra:
+                # 根据新的关卡id 作为战斗id覆盖 模式id不变
+                self._check_stage_name(text=stage_id_extra, t_type="id")
+            else:
+                # 检测关卡名变种，如果符合特定关卡，则修改当前战斗的关卡信息
+                self._check_stage_name(text=stage_name, t_type="name")
 
         return main()
