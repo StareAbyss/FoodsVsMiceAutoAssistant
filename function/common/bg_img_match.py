@@ -374,8 +374,8 @@ def loop_match_p_in_w(
 
     T_ACTION_QUEUE_TIMER.add_click_to_queue(
         handle=click_handle if click_handle else source_handle,
-        x=match_result[0] + source_range[0] + deviation[0],
-        y=match_result[1] + source_range[1] + deviation[1]
+        x=match_result[0] + source_range[0] + deviation[0] if deviation else 0,
+        y=match_result[1] + source_range[1] + deviation[1] if deviation else 0
     )
 
     if after_click_template is None:
