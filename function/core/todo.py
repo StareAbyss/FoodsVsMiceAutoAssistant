@@ -4,7 +4,11 @@ import json
 import os
 import subprocess
 import time
+
+from function.core.qmw_task_plan_editor import init_db
 from function.globals.loadings import loading
+from function.scattered.split_task import load_tasks_from_db_and_create_puzzle
+
 loading.update_progress(80,"正在加载任务执行协议...")
 from collections import defaultdict
 from time import sleep
@@ -573,6 +577,66 @@ class ThreadTodo(QThread):
                 self.thread_1p.join()
             if 2 in player:
                 self.thread_2p.join()
+
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] [{mode}] 完成")
+
+        self.model_end_print(text=title_text)
+    def batch_scan_all_task(self, player: list = None, quests: list = None):
+        """
+        :param player: 默认[1,2] 可选: [1] [2] [1,2] [2,1]
+        :param quests: list 可包含内容: "扫描 刷关"
+        :return:
+        """
+
+        title_text = "扫描任务"
+
+        player = self.check_player(title=title_text, player=player)
+        # 获取数据库连接
+        db_conn = init_db(PATHS["db"] + "/tasks.db")
+        # 创建拼图
+        load_tasks_from_db_and_create_puzzle(db_conn)
+        # 关闭连接
+        db_conn.close()
+        if quests is None:
+            quests = ["扫描"]
+
+        self.model_start_print(text=title_text)
+
+        for mode in quests:
+
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] [{mode}] 开始...")
+
+            # 创建进程 -> 开始进程 -> 阻塞主进程
+            if 1 in player:
+                self.thread_1p = ThreadWithException(
+                    target=self.faa_dict[1].action_scan_task_type,
+                    name=f"1P Thread - ScanTask - {mode}",
+                    kwargs={
+                        "mode": mode
+                    })
+                self.thread_1p.start()
+
+            if 1 in player and 2 in player:
+                sleep(0.333)
+            #必须异步，不然会乱
+            if 1 in player:
+                task_quest_1p=self.thread_1p.get_return_value()
+                if task_quest_1p:
+                    self.battle_1_n_n(quest_list=task_quest_1p)
+            if 2 in player:
+                self.thread_2p = ThreadWithException(
+                    target=self.faa_dict[2].action_scan_task_type,
+                    name=f"2P Thread - ScanTask - {mode}",
+                    kwargs={
+                        "mode": mode
+                    })
+                self.thread_2p.start()
+
+
+            if 2 in player:
+                task_quest_2p=self.thread_2p.get_return_value()
+                if task_quest_2p:
+                    self.battle_1_n_n(quest_list=task_quest_2p)
 
             SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] [{mode}] 完成")
 
@@ -1341,13 +1405,13 @@ class ThreadTodo(QThread):
 
             if battle_plan_1p not in g_resources.RESOURCE_B.keys():
                 SIGNAL.PRINT_TO_UI.emit(
-                    text=f"{title} [1P] 无法通过UUID找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
+                    text=f"{title} [1P] 无法通过UUID{battle_plan_1p}找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
                 return False
 
             if is_group:
                 if battle_plan_2p not in g_resources.RESOURCE_B.keys():
                     SIGNAL.PRINT_TO_UI.emit(
-                        text=f"{title} [2P] 无法通过UUID找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
+                        text=f"{title} [2P] 无法通过UUID{battle_plan_2p}找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
                     return False
 
             return True
@@ -1740,6 +1804,7 @@ class ThreadTodo(QThread):
             self.my_lock = True
 
         SIGNAL.PRINT_TO_UI.emit(text=f"{title}开始...", color_level=3)
+        print(f"将要刷取清单{quest_list}")
 
         # 遍历完成每一个任务
         for i in range(len(quest_list)):
@@ -2184,6 +2249,15 @@ class ThreadTodo(QThread):
                             "camp": "营地任务"
                         }
                         self.batch_receive_all_quest_rewards(
+                            player=task["task_args"]["player"],
+                            quests=[v for k, v in all_quests.items() if task["task_args"][k]]
+                        )
+                    case "扫描任务列表":
+                        all_quests = {
+                            "scan": "扫描",
+                            "battle": "刷关"
+                        }
+                        self.batch_scan_all_task(
                             player=task["task_args"]["player"],
                             quests=[v for k, v in all_quests.items() if task["task_args"][k]]
                         )
