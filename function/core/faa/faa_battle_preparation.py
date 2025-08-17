@@ -420,6 +420,7 @@ class BattlePreparation:
 
             # 插入卡片
             all_cards_precise_names.insert(max_card_id, qc_precise_names)
+            card_name_list.insert(max_card_id, qc_precise_names[-1])
             # 不允许失败
             can_failed_list.insert(max_card_id, False)
 
@@ -441,10 +442,11 @@ class BattlePreparation:
         for index in range(len(can_failed_list)):
             if (scan_card_name_list[index] is None) and (not can_failed_list[index]):
                 failed_card_list.append(card_name_list[index])
+                self.print_debug(text="[缺失卡片] 卡片列表: {}, 缺失索引: {}".format(card_name_list, index))
 
         if failed_card_list:
             self.print_debug(text="[选取卡片] 结束, 结果: 因查找失败中断")
-            SIGNAL.PRINT_TO_UI.emit(text=f"[{self.player}P] 缺失必要卡片: {', '.join(failed_card_list)}")
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{self.player}P] 缺失必要绑定卡片: {', '.join(failed_card_list)}")
             return False
 
         for index in range(len(scan_card_name_list)):
