@@ -1,31 +1,42 @@
 import random
 
+from PyQt6.QtCore import Qt, QPointF, QPropertyAnimation, QEasingCurve, QPoint, QSize, QThread
 from PyQt6.QtGui import QColor, QMovie
 from PyQt6.QtWidgets import QWidget, QProgressBar, QLabel, QVBoxLayout, QGraphicsDropShadowEffect
-from PyQt6.QtCore import Qt, QPointF, QPropertyAnimation, QEasingCurve, QPoint, QSize, QThread
+
 from function.globals.get_paths import PATHS
+
+
 class AnimationThread(QThread):
 
-    def __init__(self,loading):
+    def __init__(self, loading):
         super().__init__()
         self._is_running = True  # 线程运行状态标志
-        self.loading=loading
+        self.loading = loading
+
     def run(self):
         while self._is_running:
             QThread.msleep(50)  # 控制帧率 (单位：毫秒)
             self.loading.gif_movie.jumpToNextFrame(),
             self.loading.repaint()
+
     def stop(self):
         """安全停止线程的方法"""
         self._is_running = False
         self.wait()  # 等待线程自然退出
+
+
 class LoadingWindow(QWidget):
     def __init__(self):
         super().__init__()
+        self.animation = None
+        self.loading_texts_pool = None
+        self.gif_movie = None
+        self.gif_label = None
+        self.progress_bar = None
+        self.label = None
         self.init_ui()
-        self.anim=AnimationThread(self)
-
-
+        self.anim = AnimationThread(self)
 
     def init_ui(self):
         self.setWindowFlags(Qt.WindowType.SplashScreen |
@@ -66,7 +77,7 @@ class LoadingWindow(QWidget):
         container.setGraphicsEffect(QGraphicsDropShadowEffect(
             blurRadius=40, color=QColor(0, 0, 0, 120),
             offset=QPointF(0, 0)))
-        #位置移动
+        # 位置移动
         screen = self.screen().geometry()
         self.move(int(screen.width() / 2 - 150), int(screen.height() / 2 - 75))
         self.resize(300, 150)
@@ -80,11 +91,11 @@ class LoadingWindow(QWidget):
             "正在强化海星...",
             "即将完成初始化..."
         ]
-        #淡出动画
+        # 淡出动画
         self.animation = QPropertyAnimation(self, b"windowOpacity")
         self.animation.setDuration(500)
         self.animation.setEasingCurve(QEasingCurve.Type.OutQuad)
-        #样式表
+        # 样式表
         self.setStyleSheet("""
                     #container {
                         background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
@@ -116,17 +127,18 @@ class LoadingWindow(QWidget):
                         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
                     }
                 """)
-    def update_progress(self, value,text=None):
+
+    def update_progress(self, value, text=None):
         self.progress_bar.setValue(value)
-        if value>0:
+        if value > 0:
             self.update_gif_position(value)
         if value >= 100:
-            #进度条到达100触发淡出动画
+            # 进度条到达100触发淡出动画
             self.start_fade_out()
         if text:
             self.label.setText(text)
         else:
-            #没有指定文本则从默认文本池中抽选一条
+            # 没有指定文本则从默认文本池中抽选一条
             random_text = random.choice(self.loading_texts_pool)
             self.label.setText(random_text)
 
@@ -160,5 +172,3 @@ class LoadingWindow(QWidget):
             bar_in_window_pos.x() + current_x,
             bar_in_window_pos.y() + (bar_height - gif_size) // 2
         )
-
-

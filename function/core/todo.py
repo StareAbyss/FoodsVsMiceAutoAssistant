@@ -1291,7 +1291,7 @@ class ThreadTodo(QThread):
 
             return skip_, deck_, battle_plan_a_, battle_plan_b_, senior_setting_
 
-        # 加载全局关卡方案
+        # 加载全局关卡方案, 首次加载主要是为了 skip 参数的重新获取
         skip, deck, battle_plan_a, battle_plan_b, senior_setting = load_g_plan(
             skip_=skip,
             deck_=deck,
@@ -1301,11 +1301,12 @@ class ThreadTodo(QThread):
             stage_id_=stage_id
         )
 
-        def check_skip():
+        def check_skip() -> bool:
             """
             检查各种条件 例如
             人物等级 / 次数 / 时间条件 是否充足
             """
+
             if skip:
                 SIGNAL.PRINT_TO_UI.emit(text=f"{title} 根据全局关卡设置, 跳过")
                 return False
@@ -1409,10 +1410,11 @@ class ThreadTodo(QThread):
             # 轮次作战
             while battle_count < max_times:
 
+                # 前往关卡 + 尝试根据某些特征查找子集关卡; 并修正 faa 内部的 stage info 的 b_id 参数;
                 result_id, need_change_card, need_goto_stage = goto_stage(
                     need_goto_stage=need_goto_stage, need_change_card=need_change_card)
 
-                # 再次加载全局关卡方案, goto_stage 过程中 可能检测到子集关卡
+                # 再次加载全局关卡方案.
                 skip, deck, battle_plan_a, battle_plan_b, senior_setting = load_g_plan(
                     skip_=skip,
                     deck_=deck,
@@ -1422,6 +1424,7 @@ class ThreadTodo(QThread):
                     stage_id_=None,
                 )
 
+                # 根据卡组编号(0-6), 转化为游戏内操作时选择的卡组编号(1-6)和是否激活启动带卡策略
                 auto_carry_card = deck == 0
 
                 if deck == 0:
@@ -1430,7 +1433,7 @@ class ThreadTodo(QThread):
                     else:
                         deck = 6
 
-                # 将战斗方案加载至FAA
+                # 将战斗方案和卡组设定加载至FAA
                 faa_a.set_battle_plan(deck=deck, auto_carry_card=auto_carry_card, battle_plan_uuid=battle_plan_a)
                 if is_group:
                     faa_b.set_battle_plan(deck=deck, auto_carry_card=auto_carry_card, battle_plan_uuid=battle_plan_b)
