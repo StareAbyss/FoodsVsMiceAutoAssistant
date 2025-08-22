@@ -320,7 +320,7 @@ def loop_match_p_in_w(
         after_click_template=None,
         after_click_template_mask=None,
         source_root_handle=None,
-        deviation=None
+        deviation=[0,0]
 ) -> bool:
     """
     根据句柄截图, 并在截图中寻找一个较小的图片资源.
