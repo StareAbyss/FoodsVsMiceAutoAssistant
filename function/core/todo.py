@@ -620,9 +620,9 @@ class ThreadTodo(QThread):
                 sleep(0.333)
             #必须异步，不然会乱
             if 1 in player:
-                task_quest_1p=self.thread_1p.get_return_value()
-                if task_quest_1p:
-                    self.battle_1_n_n(quest_list=task_quest_1p)
+                pack1p=self.thread_1p.get_return_value()
+                if pack1p:
+                    self.battle_1_n_n(quest_list=pack1p[0],task_names=pack1p[1])
             if 2 in player:
                 self.thread_2p = ThreadWithException(
                     target=self.faa_dict[2].action_scan_task_type,
@@ -634,9 +634,9 @@ class ThreadTodo(QThread):
 
 
             if 2 in player:
-                task_quest_2p=self.thread_2p.get_return_value()
-                if task_quest_2p:
-                    self.battle_1_n_n(quest_list=task_quest_2p)
+                pack2p=self.thread_2p.get_return_value()
+                if pack2p:
+                    self.battle_1_n_n(quest_list=pack2p[0],task_names=pack2p[1])
 
             SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] [{mode}] 完成")
 
@@ -1788,13 +1788,14 @@ class ThreadTodo(QThread):
         SIGNAL.PRINT_TO_UI.emit(text=text, time=False)
         SIGNAL.IMAGE_TO_UI.emit(image=create_drops_image(count_dict=count_dict["chests"]))
 
-    def battle_1_n_n(self, quest_list, extra_title=None, need_lock=False):
+    def battle_1_n_n(self, quest_list, extra_title=None, need_lock=False,task_names=None):
         """
         1轮次 n关卡 n次数
         (副本外 -> (副本内战斗 * n次) -> 副本外) * 重复n次
         :param quest_list: 任务清单
         :param extra_title: 输出中的额外文本 会自动加上 [ ]
         :param need_lock:  用于多线程单人作战时设定为True 以进行上锁解锁
+        :param task_names:  用于显示单个任务名称
         """
         # 输出文本的title
         extra_title = f"[{extra_title}] " if extra_title else ""
@@ -1812,6 +1813,9 @@ class ThreadTodo(QThread):
         for i in range(len(quest_list)):
 
             quest = quest_list[i]
+            if task_names is not None:
+                SIGNAL.PRINT_TO_UI.emit(text=f"[双线程单人] {self.todo_id}P已开始任务{task_names[i]}!", color_level=3)
+
 
             # 处理允许缺失的值
             quest_card = quest.get("quest_card", None)

@@ -212,6 +212,7 @@ class FAAActionReceiveQuestRewards:
             # 退出任务界面
             self.action_exit(mode="普通红叉")
             quest_list=[]
+            task_names=[]
             goto_information=False
             for task in task_battle_quest:
                 task_id, task_name, task_type, parameters, stage_param = task
@@ -245,12 +246,13 @@ class FAAActionReceiveQuestRewards:
                     if parameters.get("banned_card") not in (None, ''):
                         quest_item["ban_card_list"] = parameters.get("banned_card").split(',')  # 禁用卡片
                     quest_list.append(quest_item)
+                    task_names.append(task_name)
                 elif task_type=="情报":
                     goto_information=True
             if goto_information:
                 self.action_goto_information_island_and_click()
             print(f"即将刷取{quest_list}")
-            return quest_list
+            return [quest_list, task_names]
 
     def _scan_and_process_tasks(self,  puzzle_image, tasks,task_battle_quest):
         """扫描并处理单页任务"""
@@ -628,12 +630,12 @@ class FAAActionReceiveQuestRewards:
         :param mode
         :return quest
         """
-        quest=None
+        pack=None
         self.print_debug(text="[领取奖励] [{}] 开始".format(mode))
         if mode== "扫描":
             self.action_get_task_menus_normal()
         elif mode== "刷关":
-            quest=self.action_battle_task_menus_normal()
+            pack=self.action_battle_task_menus_normal()
 
         self.print_debug(text="[领取奖励] [{}] 结束".format(mode))
-        return quest
+        return pack
