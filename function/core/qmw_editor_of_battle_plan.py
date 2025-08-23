@@ -18,8 +18,9 @@ from function.globals import EXTRA
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 from function.scattered.class_battle_plan_v3d0 import json_to_obj, TriggerWaveTimer, \
-    ActionLoopUseCards, ActionInsertUseCard,ActionShovel, ActionUseGem,ActionEscape,ActionBanCard, Event, BattlePlan, obj_to_json, Card, MetaData, \
-    CardLoopConfig
+    ActionLoopUseCards, ActionInsertUseCard, ActionShovel, ActionUseGem, ActionEscape, ActionBanCard, Event, BattlePlan, \
+    obj_to_json, Card, MetaData, \
+    CardLoopConfig, ActionRandomSingleCard, ActionRandomMultiCard
 from function.widget.MultiLevelMenu import MultiLevelMenu
 
 double_click_card_list = pyqtSignal(object)
@@ -922,12 +923,18 @@ class QMWEditorOfBattlePlan(QMainWindow):
                   if e.trigger.wave_id == self.be_edited_wave_id]
 
         for event in events:
-            if isinstance(event.action, ActionEscape):
+            item_text = ""
+            if isinstance(event.action, ActionUseGem):
+                item_text = f"波次{event.trigger.wave_id} {event.trigger.time}s 宝石{event.action.gem_id}"
+            elif isinstance(event.action, ActionEscape):
                 item_text = f"波次{event.trigger.wave_id} {event.trigger.time}s 逃跑操作"
             elif isinstance(event.action, ActionBanCard):
-                item_text = f"波次{event.trigger.wave_id} {event.action.start_time}-{event.action.end_time}s 禁用卡{event.action.card_id}"
-            else:
-                item_text = f"波次{event.trigger.wave_id} {event.trigger.time}s 宝石{event.action.gem_id}"
+                item_text = f"波次{event.trigger.wave_id} {event.trigger.time}s 禁用卡片{event.action.card_id}"
+            elif isinstance(event.action, ActionRandomSingleCard):
+                item_text = f"波次{event.trigger.wave_id} {event.trigger.time}s 单卡随机{event.action.card_index}"
+            elif isinstance(event.action, ActionRandomMultiCard):
+                indices_str = ",".join(map(str, event.action.card_indices))
+                item_text = f"波次{event.trigger.wave_id} {event.trigger.time}s 多卡随机[{indices_str}]"
             self.ListSpecialActions.addItem(QListWidgetItem(item_text))
 
     def event_list_be_moved(self, index_from, index_to):
@@ -1101,6 +1108,22 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 }
 
                 self.EditorAction = BanCardActionEditor(data=data, func_update=self.update_ban_card_info)
+            elif isinstance(event.action, ActionRandomSingleCard):
+                data = {
+                    "time": event.trigger.time,
+                    "card_index": event.action.card_index
+                }
+                self.EditorAction = RandomSingleCardActionEditor(
+                    data=data,
+                    func_update=self.update_random_single_card_info)
+            elif isinstance(event.action, ActionRandomMultiCard):
+                data = {
+                    "time": event.trigger.time,
+                    "card_indices": event.action.card_indices
+                }
+                self.EditorAction = RandomMultiCardActionEditor(
+                    data=data,
+                    func_update=self.update_random_multi_card_info)
 
             else:
 
@@ -1121,6 +1144,43 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.EditorAction.exec()
         self.fresh_all_ui()
 
+    def update_random_single_card_info(self):
+        """
+        更新单卡随机操作的UI与数据
+        """
+        try:
+            events = [e for e in self.insert_use_special_events
+                      if e.trigger.wave_id == self.be_edited_wave_id]
+            event = events[self.be_edited_special_action_index]
+
+            if isinstance(event.action, ActionRandomSingleCard):
+                new_data = self.EditorAction.get_data()
+                if event.action.card_index != new_data["card_index"]:
+                    event.action.card_index = new_data["card_index"]
+                    self.fresh_all_ui()
+
+        except Exception as e:
+            QMessageBox.warning(self, "输入错误", f"请输入有效的参数: {str(e)}")
+            self.EditorAction.card_index.setFocus()
+
+    def update_random_multi_card_info(self):
+        """
+        更新多卡随机操作的UI与数据
+        """
+        try:
+            events = [e for e in self.insert_use_special_events
+                      if e.trigger.wave_id == self.be_edited_wave_id]
+            event = events[self.be_edited_special_action_index]
+
+            if isinstance(event.action, ActionRandomMultiCard):
+                new_data = self.EditorAction.get_data()
+                if event.action.card_indices != new_data["card_indices"]:
+                    event.action.card_indices = new_data["card_indices"]
+                    self.fresh_all_ui()
+
+        except Exception as e:
+            QMessageBox.warning(self, "输入错误", f"请输入有效的参数: {str(e)}")
+            self.EditorAction.card_indices_edit.setFocus()
     def update_shovel_action_info(self):
         """更新铲子操作事件的UI与数据"""
         try:
@@ -1220,25 +1280,41 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.fresh_all_ui()
 
     def add_use_special_action(self):
+        """
+        新增特殊操作
+        """
+        if self.be_edited_wave_id is None:
+            QMessageBox.information(self, "错误！", "请先选择波次")
+            return
+
         dialog = SpecialActionTypeDialog()
         if dialog.exec() == QDialog.DialogCode.Accepted:
             action_type = dialog.get_selected_type()
+
+            # 创建基础触发器
+            trigger = TriggerWaveTimer(wave_id=self.be_edited_wave_id, time=0)
+
+            # 根据操作类型创建对应的动作
             if action_type == "escape":
-                self.insert_use_special_events.append(
-                    Event(
-                        trigger=TriggerWaveTimer(wave_id=self.be_edited_wave_id, time=0),
-                        action=ActionEscape(time=0)))
+                action = ActionEscape(time=0)
             elif action_type == "disable_card":
-                self.insert_use_special_events.append(
-                    Event(
-                        trigger=TriggerWaveTimer(wave_id=self.be_edited_wave_id, time=0),
-                        action=ActionBanCard(start_time=0, end_time=0, card_id=1)))
-            elif action_type == "gem":  # 原有宝石操作
-                self.insert_use_special_events.append(
-                    Event(
-                        trigger=TriggerWaveTimer(wave_id=self.be_edited_wave_id, time=0),
-                        action=ActionUseGem(gem_id=1)))
-        self.fresh_all_ui()
+                action = ActionBanCard(start_time=0, end_time=0, card_id=1)
+            elif action_type == "gem":
+                action = ActionUseGem(gem_id=1)
+            elif action_type == "random_single_card":
+                action = ActionRandomSingleCard(card_index=1)
+            elif action_type == "random_multi_card":
+                action = ActionRandomMultiCard(card_indices=[1, 2])
+            else:
+                QMessageBox.warning(self, "错误", "未知的操作类型")
+                return
+
+            # 创建事件并添加到列表
+            event = Event(trigger=trigger, action=action)
+            self.insert_use_special_events.append(event)
+
+            # 刷新UI
+            self.fresh_all_ui()
 
     def delete_use_special_action(self):
         """
@@ -1954,11 +2030,12 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 isinstance(event.action, (ActionInsertUseCard, ActionShovel)))
         ]
 
-        # 类型3 波次定时宝石
+        # 类型3 特殊操作
         self.insert_use_special_events: List[Event] = [
             event for event in self.battle_plan.events
             if (isinstance(event.trigger, TriggerWaveTimer) and
-                isinstance(event.action, (ActionUseGem, ActionEscape, ActionBanCard)))
+                isinstance(event.action, (ActionUseGem, ActionEscape, ActionBanCard,
+                                        ActionRandomSingleCard, ActionRandomMultiCard)))
         ]
 
         # 填充构造所有波次的 变阵操作 保存的时候再去掉重复项
@@ -2653,7 +2730,8 @@ class SpecialActionTypeDialog(QDialog):
         layout = QVBoxLayout(self)
 
         self.type_combo = QComboBox()
-        self.type_combo.addItems(["逃跑操作", "禁用卡片", "宝石操作"])
+        self.type_combo.addItems(["逃跑操作", "禁用卡片", "宝石操作", "单卡随机", "多卡随机"])
+
 
         layout.addWidget(self.type_combo)
 
@@ -2668,10 +2746,83 @@ class SpecialActionTypeDialog(QDialog):
         return {
             "逃跑操作": "escape",
             "禁用卡片": "disable_card",
-            "宝石操作": "gem"
+            "宝石操作": "gem",
+            "单卡随机": "random_single_card",
+            "多卡随机": "random_multi_card"
         }[self.type_combo.currentText()]
 
+class RandomSingleCardActionEditor(QDialog):
+    def __init__(self, data, func_update):
+        super().__init__()
+        self.data = data.copy() if data else {"time": 0.0, "card_index": 1}
+        self.func_update = func_update
 
+        self.card_index = QSpinBox()
+        self.card_index.setValue(self.data.get("card_index", 1))
+        self.card_index.valueChanged.connect(self.on_value_changed)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel("选择单卡索引(1-21)"))
+        layout.addWidget(self.card_index)
+
+        self.setLayout(layout)
+        self.setWindowTitle("编辑单卡随机")
+        self.setWindowFlags(Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowCloseButtonHint)
+
+    def on_value_changed(self):
+        self.data["card_index"] = self.card_index.value()
+        if self.func_update:
+            self.func_update()
+
+    def get_data(self):
+        return {
+            "card_index": self.card_index.value(),
+            "type": "random_single_card",
+            "time": self.data.get("time", 0)
+        }
+
+
+
+
+
+
+class RandomMultiCardActionEditor(QDialog):
+    def __init__(self, data, func_update):
+        super().__init__()
+        self.data = data.copy() if data else {"time": 0.0, "card_indices": [1, 2]}
+        self.func_update = func_update
+
+        self.card_indices_edit = QLineEdit()
+        self.card_indices_edit.setText(",".join(map(str, self.data.get("card_indices", [1, 2]))))
+        self.card_indices_edit.setPlaceholderText("输入多个索引，用逗号分隔")
+        self.card_indices_edit.textEdited.connect(self.on_text_edited)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel("选择多卡索引(用逗号分隔)"))
+        layout.addWidget(self.card_indices_edit)
+
+        self.setLayout(layout)
+        self.setWindowTitle("编辑多卡随机")
+        self.setWindowFlags(Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowCloseButtonHint)
+
+    def on_text_edited(self):
+        card_indices_text = self.card_indices_edit.text()
+        try:
+            card_indices = [int(id.strip()) for id in card_indices_text.split(",")] if card_indices_text else []
+            self.data["card_indices"] = card_indices
+            if self.func_update:
+                self.func_update()
+        except ValueError:
+            pass  # 忽略无效输入
+
+    def get_data(self):
+        card_indices_text = self.card_indices_edit.text()
+        card_indices = [int(id.strip()) for id in card_indices_text.split(",")] if card_indices_text else []
+        return {
+            "card_indices": card_indices,
+            "type": "random_multi_card",
+            "time": self.data.get("time", 0)
+        }
 class EscapeActionEditor(QDialog):
     def __init__(self, data, func_update):
         super().__init__()

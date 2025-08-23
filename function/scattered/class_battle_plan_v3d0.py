@@ -66,7 +66,14 @@ class ActionUseGem:
 class ActionEscape:
     time: float
     type: str = "escape"
-
+@dataclass
+class ActionRandomSingleCard:
+    card_index: int
+    type: str = "random_single_card"
+@dataclass
+class ActionRandomMultiCard:
+    card_indices: List[int]
+    type: str = "random_multi_card"
 @dataclass
 class ActionBanCard:
     start_time: float
@@ -77,7 +84,7 @@ class ActionBanCard:
 @dataclass
 class Event:
     trigger: Union[TriggerWaveTimer]
-    action: Union[ActionLoopUseCards, ActionInsertUseCard, ActionUseGem, ActionShovel, ActionBanCard, ActionEscape]
+    action: Union[ActionLoopUseCards, ActionInsertUseCard, ActionUseGem, ActionShovel, ActionBanCard, ActionEscape, ActionRandomSingleCard, ActionRandomMultiCard]
 
 
 @dataclass
