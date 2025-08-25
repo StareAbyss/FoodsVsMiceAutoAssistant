@@ -2762,7 +2762,7 @@ class RandomSingleCardActionEditor(QDialog):
         self.card_index.valueChanged.connect(self.on_value_changed)
 
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel("选择单卡索引(1-21)"))
+        layout.addWidget(QLabel("输入单卡索引"))
         layout.addWidget(self.card_index)
 
         self.setLayout(layout)

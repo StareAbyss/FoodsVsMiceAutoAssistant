@@ -587,8 +587,77 @@ class CardManager(QThread):
                 CUS_LOGGER.debug(f"单人玩家成功逃跑")
                 self.stop()
 
+    def _handle_random_single_card(self, pid, card_index):
+        """处理单卡随机：打乱指定卡片的位置顺序"""
+        CUS_LOGGER.debug(f"尝试打乱单卡位置顺序{card_index}")
+        if pid not in self.card_queue_dict:
+            return
 
+        card_queue = self.card_queue_dict[pid]
+        if not card_queue.card_list:
+            return
 
+        if 0 <= card_index < len(card_queue.card_list):
+            card = card_queue.card_list[card_index]
+
+            # 打乱位置顺序
+            import random
+            if len(card.coordinate_to) > 1:
+                random.shuffle(card.coordinate_to)
+            CUS_LOGGER.debug(f"打乱卡{card.name}位置顺序{card.coordinate_to}")
+
+    def _handle_random_multi_card(self, pid, card_indices):
+        """处理多卡随机：仅在指定索引位置之间随机变换，其余保持原位置"""
+        # time.sleep(1)
+        CUS_LOGGER.debug(f"尝试打乱多卡玩家{pid}位置顺序{card_indices}")
+
+        card_queue = self.card_queue_dict[pid]
+
+        # 获取队列中所有卡片（每个item是(priority, card)的元组）
+        items = []
+        count=0
+        while card_queue.empty():
+            time.sleep(0.1)
+            count+=1
+            if count>100:
+                break
+        if card_queue.empty():
+            CUS_LOGGER.debug(f"获取队列超时")
+            return
+        while not card_queue.empty():
+            items.append(card_queue.get())
+        CUS_LOGGER.debug(items)
+        # 验证索引有效性并提取有效索引
+        valid_indices = sorted([i for i in card_indices if 0 <= i < len(items)])
+        if not valid_indices:
+            # 无效索引直接恢复原队列
+            for item in items:
+                card_queue.put(item)
+            return
+
+        # 提取需要随机的卡片及其原始位置（保留priority信息）
+        selected = [(i, items[i]) for i in valid_indices]
+        original_positions = [i for i, _ in selected]
+        cards_to_shuffle = [item for _, item in selected]  # 保留(priority, card)元组
+        random.shuffle(cards_to_shuffle)
+
+        # 创建新的重组列表
+        reordered = items.copy()
+
+        # 将打乱后的卡片放回原指定位置
+        for pos, item in zip(original_positions, cards_to_shuffle):
+            reordered[pos] = item  # 直接替换整个元组
+
+        # 为打乱后的卡片分配新的优先级
+        for idx, (priority, card) in enumerate(reordered):
+            if idx in valid_indices:
+                card.set_priority = idx  # 修改卡片的优先级
+        # 重新恢复队列
+        for priority, card in reordered:
+            card_queue.put((card.set_priority, card))  # 使用新的优先级重新入队
+        CUS_LOGGER.debug(f"打乱前: {[item[1].name for item in items]}")
+        CUS_LOGGER.debug(f"打乱后: {[item[1].name for item in reordered]}")
+        card_queue.print_self()
     def create_insert_timer_and_start(self, interval, func_name, func_kwargs):
 
         match func_name:
@@ -602,6 +671,10 @@ class CardManager(QThread):
                 func=self._ban_card_state_change
             case "escape":
                 func=self._escape
+            case "random_single_card":  # 新增单卡随机处理
+                func = self._handle_random_single_card
+            case "random_multi_card":  # 新增多卡随机处理
+                func = self._handle_random_multi_card
 
         timer = Timer(interval=interval, function=lambda: func(**func_kwargs))
         timer.start()
@@ -948,6 +1021,14 @@ class ThreadInsertUseCardTimer(QThread):
                 event["trigger"]["type"] == "wave_timer" and
                 event["action"]["type"] == "ban_card"
         )]
+        self.insert_random_single_plan = [event for event in self.faa.battle_plan["events"] if (
+                event["trigger"]["type"] == "wave_timer" and
+                event["action"]["type"] == "random_single_card"
+        )]
+        self.insert_random_multi_plan = [event for event in self.faa.battle_plan["events"] if (
+                event["trigger"]["type"] == "wave_timer" and
+                event["action"]["type"] == "random_multi_card"
+        )]
 
         # 内联 card_name 字段
         for event in self.insert_use_card_plan:
@@ -959,7 +1040,7 @@ class ThreadInsertUseCardTimer(QThread):
     def run(self):
 
         # 没有定时放卡plan，那就整个线程一开始就结束好了
-        if (not self.insert_use_card_plan) and (not self.insert_use_gem_plan):
+        if (not self.insert_use_card_plan) and (not self.insert_use_shovel) and (not self.insert_use_gem_plan) and (not self.insert_escape_plan) and (not self.insert_ban_card_plan) and (not self.insert_random_single_plan) and (not self.insert_random_multi_plan):
             self.faa.print_debug('[战斗执行器] ThreadInsertUseCardTimer 方案不包含定时操作 不启用')
             return
 
@@ -1112,6 +1193,28 @@ class ThreadInsertUseCardTimer(QThread):
                 func_kwargs={
                     "pid": self.pid,
                     "gid": battle_event["action"]["gem_id"]}
+            )
+        current_wave_plan = [
+            event for event in self.insert_random_single_plan if event["trigger"]["wave_id"] == int(wave)]
+
+        for battle_event in current_wave_plan:
+            self.manager.create_insert_timer_and_start(
+                interval=max(0.0, battle_event["trigger"]["time"] - time_change),
+                func_name="random_single_card",
+                func_kwargs={
+                    "pid": self.pid,
+                    "card_index": battle_event["action"]["card_index"]}
+            )
+        current_wave_plan = [
+            event for event in self.insert_random_multi_plan if event["trigger"]["wave_id"] == int(wave)]
+
+        for battle_event in current_wave_plan:
+            self.manager.create_insert_timer_and_start(
+                interval=max(0.0, battle_event["trigger"]["time"] - time_change),
+                func_name="random_multi_card",
+                func_kwargs={
+                    "pid": self.pid,
+                    "card_indices": battle_event["action"]["card_indices"]}
             )
 
 
