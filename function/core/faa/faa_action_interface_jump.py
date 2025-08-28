@@ -830,6 +830,52 @@ class FAAActionInterfaceJump:
                     after_sleep=1,
                     click=True)
 
+        def main_mu():
+            # 进入对应地图
+            self.action_goto_map(map_id=stage_1)
+
+            # 切区
+            my_dict = {"1": [3, 11], "2": [1, 2], "3": [1, 1], "4": [1, 2], "5": [1, 2], "6": [1, 2]}
+            change_to_region(region_list=my_dict[stage_1])
+
+            # 仅限主角色创建关卡
+            if self.is_main:
+                # 防止被活动列表遮住
+                self.action_change_activity_list(serial_num=2)
+                exchange_dict = {"MU-1-0": "NO-1-7", "MU-1-1": "NO-1-14", "MU-2-2": "NO-2-5", "MU-2-3": "NO-2-10",
+                                 "MU-2-4": "NO-2-15",
+                                 "MU-4-5": "NO-4-5", "MU-4-6": "NO-4-10", "MU-4-7": "NO-4-15"}
+                # 选择关卡
+                loop_match_p_in_w(
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[0, 0, 950, 600],
+                    template=RESOURCE_P["stage"]["{}.png".format(exchange_dict[self.stage_info["id"]])],
+                    match_tolerance=0.995,
+                    after_sleep=1,
+                    click=True)
+                # 选择关卡
+                loop_match_p_in_w(
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[90, 200, 130, 300],
+                    template=RESOURCE_P["stage"]["MU-1.png"],
+                    match_tolerance=0.995,
+                    after_sleep=1,
+                    click=True)
+                # 设置密码
+                time.sleep(0.5)
+                click_set_password()
+
+                # 创建队伍
+                loop_match_p_in_w(
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[0, 0, 950, 600],
+                    template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
+                    after_sleep=1,
+                    click=True)
+
         def main():
             stage_id_extra = None
             if stage_0 == "NO":
@@ -852,6 +898,8 @@ class FAAActionInterfaceJump:
                 main_wa()
             elif stage_0 == "CZ":
                 main_cz()
+            elif stage_0 == "MU":
+                main_mu()
             elif stage_0 == "WB":
                 b_id = main_wb()
                 stage_id_extra = f"WB-0-{b_id}"
