@@ -134,10 +134,10 @@ class FAABattle:
         while find:
             if self.need_key:
                 template = RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"]
-                source_range = [394, 340, 456, 354]
+                source_range = [446, 340, 502, 354]
             else:
                 template = RESOURCE_P["common"]["战斗"]["战斗中_领取奖品.png"]
-                source_range = [492, 340, 554, 354]
+                source_range = [544, 340, 606, 354]
             loop_match_p_in_w(
                 template=template,
                 source_handle=self.handle,
