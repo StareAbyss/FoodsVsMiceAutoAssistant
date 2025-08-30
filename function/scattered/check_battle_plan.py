@@ -132,9 +132,9 @@ def fresh_and_check_all_tweak_plan():
     for plan_name, msg in added.items():
         if msg != "":
             info += f"{plan_name} -> {msg}\n"
-    if info != "":
-        SIGNAL.DIALOG.emit("微调方案检测和修复完成", info)
+    # if info != "":
+    #     SIGNAL.DIALOG.emit("微调方案检测和修复完成", info)
 
 if __name__ == '__main__':
-    fresh_and_check_all_battle_plan()
-    print(EXTRA.BATTLE_PLAN_UUID_TO_PATH)
+    fresh_and_check_all_tweak_plan()
+    print(EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH)

@@ -8,8 +8,8 @@ from PyQt6.QtWidgets import QMainWindow
 
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
-from function.scattered.check_battle_plan import fresh_and_check_all_battle_plan
-from function.scattered.get_list_battle_plan import get_list_battle_plan
+from function.scattered.check_battle_plan import fresh_and_check_all_battle_plan, fresh_and_check_all_tweak_plan
+from function.scattered.get_list_battle_plan import get_list_battle_plan, get_list_tweak_plan
 
 """
 关卡方案编辑器
@@ -32,7 +32,9 @@ class QMWEditorOfStagePlan(QMainWindow):
 
         # 初始化战斗方案变量
         self.battle_plan_uuid_list = None
+        self.tweak_plan_uuid_list = None
         self.battle_plan_name_list = None
+        self.tweak_plan_name_list = None
 
         # 初始化战斗方案选择框
         self.init_battle_plan_selector()
@@ -54,7 +56,7 @@ class QMWEditorOfStagePlan(QMainWindow):
             self.stage_plan["global"] = {
                 "skip": False,
                 "deck": 0,
-            "senior_setting":False,
+                "tweak_plan": "00000000-0000-0000-0000-000000000000",
                 "battle_plan": [
                     "00000000-0000-0000-0000-000000000000",
                     "00000000-0000-0000-0000-000000000001"]
@@ -77,7 +79,8 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.StageDeckBox.currentIndexChanged.connect(self.stage_state_changed)
         self.StageBattlePlanBox1P.currentIndexChanged.connect(self.stage_state_changed)
         self.StageBattlePlanBox2P.currentIndexChanged.connect(self.stage_state_changed)
-        self.senior_battle_check.stateChanged.connect(self.stage_state_changed)
+        self.StageTweakBattlePlanBox.currentIndexChanged.connect(self.stage_state_changed)
+
 
         # 加载全局方案到ui
         self.init_global_state_ui()
@@ -118,21 +121,29 @@ class QMWEditorOfStagePlan(QMainWindow):
         初始化战斗方案选择框
         """
         fresh_and_check_all_battle_plan()
+        fresh_and_check_all_tweak_plan()
         self.battle_plan_name_list = get_list_battle_plan(with_extension=False)
+        self.tweak_plan_name_list = get_list_tweak_plan(with_extension=False)
         self.battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
+        self.tweak_plan_uuid_list = list(EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH.keys())
         for index in self.battle_plan_name_list:
             self.GlobalBattlePlanBox1P.addItem(index)
             self.GlobalBattlePlanBox2P.addItem(index)
             self.StageBattlePlanBox1P.addItem(index)
             self.StageBattlePlanBox2P.addItem(index)
+        for index in self.tweak_plan_name_list:
+            self.StageTweakBattlePlanBox.addItem(index)
 
     def refresh_battle_plan_selector(self):
         """
         刷新战斗方案选择框，保持指向的战斗方案不变, 并读取最新的战斗方案们.
         """
         fresh_and_check_all_battle_plan()
+        fresh_and_check_all_tweak_plan()
         self.battle_plan_name_list = get_list_battle_plan(with_extension=False)
+        self.tweak_plan_name_list = get_list_tweak_plan(with_extension=False)
         self.battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
+        self.tweak_plan_uuid_list = list(EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH.keys())
 
         def change_one(widget):
             # 存储当前的索引
@@ -147,11 +158,25 @@ class QMWEditorOfStagePlan(QMainWindow):
             widget.setCurrentIndex(current_index)
             # 恢复控件信号
             widget.blockSignals(False)
+        def change_two(widget):
+            # 存储当前的索引
+            current_index = widget.currentIndex()
+            # 暂时屏蔽控件信号
+            widget.blockSignals(True)
+            # 清空选择框列表
+            widget.clear()
+            for index in self.tweak_plan_name_list:
+                widget.addItem(index)
+            # 恢复当前索引
+            widget.setCurrentIndex(current_index)
+            # 恢复控件信号
+            widget.blockSignals(False)
 
         change_one(widget=self.GlobalBattlePlanBox1P)
         change_one(widget=self.GlobalBattlePlanBox1P)
         change_one(widget=self.StageBattlePlanBox1P)
         change_one(widget=self.StageBattlePlanBox2P)
+        change_two(widget=self.StageTweakBattlePlanBox)
 
     def stage_selector_changed(self, text, stage):
         """
@@ -240,8 +265,9 @@ class QMWEditorOfStagePlan(QMainWindow):
             case "StageBattlePlanBox2P":
                 self.stage_plan[self.current_stage]["battle_plan"][1] = self.battle_plan_uuid_list[
                     self.StageBattlePlanBox2P.currentIndex()]
-            case "senior_battle_check":
-                    self.stage_plan[self.current_stage]["senior_setting"] = sender.isChecked()
+            case "StageTweakBattlePlanBox":
+                self.stage_plan[self.current_stage]["tweak_plan"] = self.tweak_plan_uuid_list[
+                    self.StageTweakBattlePlanBox.currentIndex()]
 
         if self.stage_plan.get(self.current_stage, None):
             if self.stage_plan["global"] == self.stage_plan[self.current_stage]:
@@ -264,17 +290,14 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.StageDeckBox.blockSignals(True)
         self.StageBattlePlanBox1P.blockSignals(True)
         self.StageBattlePlanBox2P.blockSignals(True)
-        self.senior_battle_check.blockSignals(True)
+        self.StageTweakBattlePlanBox.blockSignals(True)
 
         # 更新状态
 
         self.StageSkipCheck.setChecked(self.stage_plan[self.current_stage]["skip"])
 
         self.StageDeckBox.setCurrentIndex(self.stage_plan[self.current_stage]["deck"])
-        try:
-            self.senior_battle_check.setChecked(self.stage_plan[self.current_stage]["senior_setting"])
-        except KeyError:# 兼容旧版本
-            self.senior_battle_check.setChecked(False)
+
         # 尝试获取当前任务的战斗方案
         try:
             index = self.battle_plan_uuid_list.index(self.stage_plan[self.current_stage]["battle_plan"][0])
@@ -287,13 +310,30 @@ class QMWEditorOfStagePlan(QMainWindow):
         except ValueError:
             index = 0
         self.StageBattlePlanBox2P.setCurrentIndex(index)
+        try:
+            index = self.tweak_plan_uuid_list.index(self.stage_plan[self.current_stage].get("tweak_plan",0))
+        except ValueError:
+            index = 0
+        self.StageTweakBattlePlanBox.setCurrentIndex(index)
+        try:
+            tweak_plan_uuid = self.stage_plan[self.current_stage].get("tweak_plan",
+                                                                      "00000000-0000-0000-0000-000000000000")
+            if self.stage_plan[self.current_stage].get("senior_setting", False):
+                tweak_plan_uuid = "00000000-0000-0000-0000-000000000001"
+                if "senior_setting" in self.stage_plan[self.current_stage]:
+                    del self.stage_plan[self.current_stage]["senior_setting"]
+
+            index = self.tweak_plan_uuid_list.index(tweak_plan_uuid)
+        except ValueError:
+            index = self.tweak_plan_uuid_list.index("00000000-0000-0000-0000-000000000000")
+        self.StageTweakBattlePlanBox.setCurrentIndex(index)
 
         # 恢复信号
         self.StageSkipCheck.blockSignals(False)
         self.StageDeckBox.blockSignals(False)
         self.StageBattlePlanBox1P.blockSignals(False)
         self.StageBattlePlanBox2P.blockSignals(False)
-        self.senior_battle_check.blockSignals(False)
+        self.StageTweakBattlePlanBox.blockSignals(False)
 
     def init_global_state_ui(self):
         """
@@ -347,4 +387,4 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.StageDeckBox.setEnabled(state)
         self.StageBattlePlanBox1P.setEnabled(state)
         self.StageBattlePlanBox2P.setEnabled(state)
-        self.senior_battle_check.setEnabled(state)
+        self.StageTweakBattlePlanBox.setEnabled(state)
