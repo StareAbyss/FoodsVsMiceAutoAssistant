@@ -797,7 +797,7 @@ class ThreadTodo(QThread):
                 faa_a.action_exit(mode="竞技岛")
                 faa_b.action_exit(mode="竞技岛")
 
-    def battle(self, player_a, player_b, senior_setting, change_card=True):
+    def battle(self, player_a, player_b, senior_setting,change_card=True):
         """
         从进入房间到回到房间的流程
         :param player_a: 玩家A
@@ -1197,7 +1197,7 @@ class ThreadTodo(QThread):
     def battle_1_1_n(self, stage_id, player, need_key, max_times, dict_exit,
                      global_plan_active, deck, battle_plan_1p, battle_plan_2p,
                      quest_card, ban_card_list, max_card_num,
-                     title_text, is_cu=False):
+                     title_text,battle_plan_tweak=None, is_cu=False):
         """
         1轮次 1关卡 n次数
         副本外 -> (副本内战斗 * n次) -> 副本外
@@ -1208,7 +1208,8 @@ class ThreadTodo(QThread):
 
         # 组合完整的title
         title = f"[单本轮战] {title_text}"
-
+        if battle_plan_tweak is None:
+            battle_plan_tweak = "00000000-0000-0000-0000-000000000000"
         # 判断是不是打魔塔 世界BOSS 或 自建房
         is_mt = "MT" in stage_id
         is_wb = "WB" in stage_id
@@ -1352,7 +1353,10 @@ class ThreadTodo(QThread):
                     SIGNAL.PRINT_TO_UI.emit(
                         text=f"{title} [2P] 无法通过UUID找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
                     return False
-
+            if battle_plan_tweak not in g_resources.RESOURCE_T.keys():
+                SIGNAL.PRINT_TO_UI.emit(
+                    text=f"{title} 无法通过UUID{battle_plan_tweak}找到战斗微调方案! 您使用的微调关卡方案已被删除. 请重新设置!")
+                return False
             return True
 
         def goto_stage(need_goto_stage, need_change_card):
@@ -1400,7 +1404,7 @@ class ThreadTodo(QThread):
         def multi_round_battle():
 
             # 声明: 这些函数来自外部作用域, 以便进行修改
-            nonlocal skip, deck, battle_plan_a, battle_plan_b, senior_setting
+            nonlocal skip, deck, battle_plan_a, battle_plan_b, senior_setting,battle_plan_tweak
 
             # 标记是否需要进入副本
             need_goto_stage = True
@@ -1438,7 +1442,7 @@ class ThreadTodo(QThread):
                 # 将战斗方案和卡组设定加载至FAA
                 faa_a.set_battle_plan(deck=deck, auto_carry_card=auto_carry_card, battle_plan_uuid=battle_plan_a)
                 if is_group:
-                    faa_b.set_battle_plan(deck=deck, auto_carry_card=auto_carry_card, battle_plan_uuid=battle_plan_b)
+                    faa_b.set_battle_plan(deck=deck, auto_carry_card=auto_carry_card, battle_plan_uuid=battle_plan_b,battle_plan_tweak_uuid=battle_plan_tweak)
 
                 # SIGNAL.PRINT_TO_UI.emit(
                 #     text=f"{title} [{faa_a.player}P] 房主, "
@@ -1755,6 +1759,8 @@ class ThreadTodo(QThread):
             ban_card_list = quest.get("ban_card_list", None)
             max_card_num = quest.get("max_card_num", None)
             is_cu = quest.get("is_cu", False)
+            #没有微调方案默认采用"!!无"微调方案
+            battle_plan_tweak = quest.get("battle_plan_tweak", '00000000-0000-0000-0000-000000000000')
 
             text_parts = [
                 "{}事项{}".format(
@@ -1786,6 +1792,7 @@ class ThreadTodo(QThread):
                 deck=quest["deck"],
                 battle_plan_1p=quest["battle_plan_1p"],
                 battle_plan_2p=quest["battle_plan_2p"],
+                battle_plan_tweak=battle_plan_tweak,
                 quest_card=quest_card,
                 ban_card_list=ban_card_list,
                 max_card_num=max_card_num,

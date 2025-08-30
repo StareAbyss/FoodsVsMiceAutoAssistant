@@ -82,6 +82,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         # 更新完毕后重新刷新对应资源
         g_resources.fresh_resource_cus_img()
         g_resources.fresh_resource_b()
+        g_resources.fresh_resource_t()
 
         # 为部分ui控件添加特性
         self.widget_extra_settings()
@@ -724,6 +725,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         fresh_and_check_all_battle_plan()
         fresh_and_check_all_tweak_plan()
         g_resources.fresh_resource_b()
+        g_resources.fresh_resource_t()
 
         # 新的uuid list
         battle_plan_uuid_list_new = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
