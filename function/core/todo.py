@@ -1208,13 +1208,12 @@ class ThreadTodo(QThread):
 
         # 组合完整的title
         title = f"[单本轮战] {title_text}"
-        if battle_plan_tweak is None:
-            battle_plan_tweak = "00000000-0000-0000-0000-000000000000"
         # 判断是不是打魔塔 世界BOSS 或 自建房
         is_mt = "MT" in stage_id
         is_wb = "WB" in stage_id
         is_cs = "CS" in stage_id
-
+        #保留是否传入一个微调方案的信息确保不会被全局方案错误覆盖
+        the_tweak_plan=battle_plan_tweak
         # 如果是板上钉钉的单人关卡还tm组队, 强制修正为仅1P单人.
         if len(player) > 1 and ("MT-1" in stage_id or "MT-3" in stage_id or "WB" in stage_id):
             SIGNAL.PRINT_TO_UI.emit(text=f"{title} 检测到组队, 强制修正为仅1P单人")
@@ -1237,11 +1236,11 @@ class ThreadTodo(QThread):
         # 默认肯定是不跳过的
         skip = False
 
-        def load_g_plan(skip_, deck_, battle_plan_1p_, battle_plan_2p_,  stage_id_=None):
-
+        def load_g_plan(skip_, deck_, battle_plan_1p_, battle_plan_2p_,battle_plan_tweak_,  stage_id_=None):
+            nonlocal battle_plan_tweak
             if stage_id_ is None:
                 stage_id_ = faa_a.stage_info["b_id"]
-
+            tweak_="00000000-0000-0000-0000-000000000000"
             if global_plan_active:
                 # 获取 g_plan
 
@@ -1263,6 +1262,7 @@ class ThreadTodo(QThread):
                     g_plan = {
                         "skip": False,
                         "deck": 0,
+                        "tweak_plan": "00000000-0000-0000-0000-000000000000",
                         "battle_plan": [
                             "00000000-0000-0000-0000-000000000000",
                             "00000000-0000-0000-0000-000000000001"]}
@@ -1270,6 +1270,7 @@ class ThreadTodo(QThread):
                 # 加载 g_plan
                 skip_ = g_plan["skip"]
                 deck_ = g_plan["deck"]
+                tweak_ = g_plan.get("tweak_plan", "00000000-0000-0000-0000-000000000000")
 
                 if is_group:
                     # 双人组队
@@ -1284,18 +1285,21 @@ class ThreadTodo(QThread):
                         # 可组队关卡, 但设置了仅单人作战
                         battle_plan_1p_ = g_plan["battle_plan"][0]
                         battle_plan_2p_ = g_plan["battle_plan"][0]
-
+            #传入的将优先覆盖全局再覆盖无微调方案
+            if battle_plan_tweak is None:
+                battle_plan_tweak_ = tweak_
             battle_plan_a_ = battle_plan_1p_ if pid_a == 1 else battle_plan_2p_
             battle_plan_b_ = (battle_plan_1p_ if pid_b == 1 else battle_plan_2p_) if is_group else None
 
-            return skip_, deck_, battle_plan_a_, battle_plan_b_
+            return skip_, deck_, battle_plan_a_, battle_plan_b_,battle_plan_tweak_
 
         # 加载全局关卡方案
-        skip, deck, battle_plan_a, battle_plan_b = load_g_plan(
+        skip, deck, battle_plan_a, battle_plan_b,the_tweak_plan = load_g_plan(
             skip_=skip,
             deck_=deck,
             battle_plan_1p_=battle_plan_1p,
             battle_plan_2p_=battle_plan_2p,
+            battle_plan_tweak_=the_tweak_plan,
             stage_id_=stage_id
         )
 
@@ -1348,9 +1352,9 @@ class ThreadTodo(QThread):
                     SIGNAL.PRINT_TO_UI.emit(
                         text=f"{title} [2P] 无法通过UUID找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
                     return False
-            if battle_plan_tweak not in g_resources.RESOURCE_T.keys():
+            if the_tweak_plan not in g_resources.RESOURCE_T.keys():
                 SIGNAL.PRINT_TO_UI.emit(
-                    text=f"{title} 无法通过UUID{battle_plan_tweak}找到战斗微调方案! 您使用的微调关卡方案已被删除. 请重新设置!")
+                    text=f"{title} 无法通过UUID{the_tweak_plan}找到战斗微调方案! 您使用的微调关卡方案已被删除. 请重新设置!")
                 return False
             return True
 
@@ -1399,7 +1403,7 @@ class ThreadTodo(QThread):
         def multi_round_battle():
 
             # 声明: 这些函数来自外部作用域, 以便进行修改
-            nonlocal skip, deck, battle_plan_a, battle_plan_b, battle_plan_tweak
+            nonlocal skip, deck, battle_plan_a, battle_plan_b, the_tweak_plan
 
             # 标记是否需要进入副本
             need_goto_stage = True
@@ -1416,11 +1420,12 @@ class ThreadTodo(QThread):
                     need_goto_stage=need_goto_stage, need_change_card=need_change_card)
 
                 # 再次加载全局关卡方案.
-                skip, deck, battle_plan_a, battle_plan_b = load_g_plan(
+                skip, deck, battle_plan_a, battle_plan_b,the_tweak_plan = load_g_plan(
                     skip_=skip,
                     deck_=deck,
                     battle_plan_1p_=battle_plan_1p,
                     battle_plan_2p_=battle_plan_2p,
+                    battle_plan_tweak_=the_tweak_plan,
                     stage_id_=None,
                 )
 
@@ -1433,10 +1438,10 @@ class ThreadTodo(QThread):
                     else:
                         deck = 6
 
-                # 将战斗方案和卡组设定加载至FAA
-                faa_a.set_battle_plan(deck=deck, auto_carry_card=auto_carry_card, battle_plan_uuid=battle_plan_a)
+                # 将战斗方案加载至FAA
+                faa_a.set_battle_plan(deck=deck, auto_carry_card=auto_carry_card, battle_plan_uuid=battle_plan_a,battle_plan_tweak_uuid=the_tweak_plan)
                 if is_group:
-                    faa_b.set_battle_plan(deck=deck, auto_carry_card=auto_carry_card, battle_plan_uuid=battle_plan_b,battle_plan_tweak_uuid=battle_plan_tweak)
+                    faa_b.set_battle_plan(deck=deck, auto_carry_card=auto_carry_card, battle_plan_uuid=battle_plan_b,battle_plan_tweak_uuid=the_tweak_plan)
 
                 # SIGNAL.PRINT_TO_UI.emit(
                 #     text=f"{title} [{faa_a.player}P] 房主, "
