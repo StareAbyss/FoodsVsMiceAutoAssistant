@@ -328,6 +328,7 @@ class QMWEditorOfStagePlan(QMainWindow):
             index = self.tweak_plan_uuid_list.index(tweak_plan_uuid)
         except ValueError:
             index = self.tweak_plan_uuid_list.index("00000000-0000-0000-0000-000000000000")
+        self.StageTweakBattlePlanBox.blockSignals(False)
         self.StageTweakBattlePlanBox.setCurrentIndex(index)
 
         # 恢复信号
@@ -335,7 +336,7 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.StageDeckBox.blockSignals(False)
         self.StageBattlePlanBox1P.blockSignals(False)
         self.StageBattlePlanBox2P.blockSignals(False)
-        self.StageTweakBattlePlanBox.blockSignals(False)
+
 
     def init_global_state_ui(self):
         """
