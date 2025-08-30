@@ -22,6 +22,7 @@ def build_paths(root):
     return {
         "root": root,
         "battle_plan": os.path.join(root, "battle_plan"),
+        "tweak_battle_plan": os.path.join(root, "tweak_plan"),
         "config": os.path.join(root, "config"),
         "task_sequence": os.path.join(root, "task_sequence"),
         "logs": os.path.join(root, "logs"),
@@ -68,6 +69,7 @@ def check_paths():
     """检测所有路径是否存在"""
     paths = [
         "\\battle_plan_not_active",
+        "\\tweak_plan",
         "\\logs",
         "\\logs\\chests_image",
         "\\logs\\loots_image",
