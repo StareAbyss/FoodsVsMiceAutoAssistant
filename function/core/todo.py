@@ -797,13 +797,12 @@ class ThreadTodo(QThread):
                 faa_a.action_exit(mode="竞技岛")
                 faa_b.action_exit(mode="竞技岛")
 
-    def battle(self, player_a, player_b, senior_setting,change_card=True):
+    def battle(self, player_a, player_b, change_card=True):
         """
         从进入房间到回到房间的流程
         :param player_a: 玩家A
         :param player_b: 玩家B
         :param change_card: 是否需要选择卡组
-        :param senior_setting: 是否此关卡开启高级战斗
         :return:
             int id 用于判定战斗是 成功 或某种原因的失败 1-成功 2-服务器卡顿,需要重来 3-玩家设置的次数不足,跳过;
             dict 包含player_a和player_b的[战利品]和[宝箱]识别到的情况; 内容为聚合数量后的 dict。 如果识别异常, 返回值为两个None
@@ -815,6 +814,7 @@ class ThreadTodo(QThread):
         result_drop_by_list = {}  # {pid:{"loots":["item",...],"chest":["item",...]},...}
         result_drop_by_dict = {}  # {pid:{"loots":{"item":count,...},"chest":{"item":count,...}},...}
         result_spend_time = 0
+        senior_setting=self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("senior_setting", False)
 
         """检测是否成功进入房间"""
         if result_id == 0:
@@ -1236,10 +1236,8 @@ class ThreadTodo(QThread):
 
         # 默认肯定是不跳过的
         skip = False
-        # 限制即使勾选了设置中的启用高级战斗，也需要在全局战斗设置中修改对应关卡
-        senior_setting = False
 
-        def load_g_plan(skip_, deck_, battle_plan_1p_, battle_plan_2p_, senior_setting_, stage_id_=None):
+        def load_g_plan(skip_, deck_, battle_plan_1p_, battle_plan_2p_,  stage_id_=None):
 
             if stage_id_ is None:
                 stage_id_ = faa_a.stage_info["b_id"]
@@ -1265,7 +1263,6 @@ class ThreadTodo(QThread):
                     g_plan = {
                         "skip": False,
                         "deck": 0,
-                        "senior_setting": False,
                         "battle_plan": [
                             "00000000-0000-0000-0000-000000000000",
                             "00000000-0000-0000-0000-000000000001"]}
@@ -1273,7 +1270,6 @@ class ThreadTodo(QThread):
                 # 加载 g_plan
                 skip_ = g_plan["skip"]
                 deck_ = g_plan["deck"]
-                senior_setting_ = g_plan.get("senior_setting", False)
 
                 if is_group:
                     # 双人组队
@@ -1292,15 +1288,14 @@ class ThreadTodo(QThread):
             battle_plan_a_ = battle_plan_1p_ if pid_a == 1 else battle_plan_2p_
             battle_plan_b_ = (battle_plan_1p_ if pid_b == 1 else battle_plan_2p_) if is_group else None
 
-            return skip_, deck_, battle_plan_a_, battle_plan_b_, senior_setting_
+            return skip_, deck_, battle_plan_a_, battle_plan_b_
 
-        # 加载全局关卡方案, 首次加载主要是为了 skip 参数的重新获取
-        skip, deck, battle_plan_a, battle_plan_b, senior_setting = load_g_plan(
+        # 加载全局关卡方案
+        skip, deck, battle_plan_a, battle_plan_b = load_g_plan(
             skip_=skip,
             deck_=deck,
             battle_plan_1p_=battle_plan_1p,
             battle_plan_2p_=battle_plan_2p,
-            senior_setting_=senior_setting,
             stage_id_=stage_id
         )
 
@@ -1404,7 +1399,7 @@ class ThreadTodo(QThread):
         def multi_round_battle():
 
             # 声明: 这些函数来自外部作用域, 以便进行修改
-            nonlocal skip, deck, battle_plan_a, battle_plan_b, senior_setting,battle_plan_tweak
+            nonlocal skip, deck, battle_plan_a, battle_plan_b, battle_plan_tweak
 
             # 标记是否需要进入副本
             need_goto_stage = True
@@ -1421,12 +1416,11 @@ class ThreadTodo(QThread):
                     need_goto_stage=need_goto_stage, need_change_card=need_change_card)
 
                 # 再次加载全局关卡方案.
-                skip, deck, battle_plan_a, battle_plan_b, senior_setting = load_g_plan(
+                skip, deck, battle_plan_a, battle_plan_b = load_g_plan(
                     skip_=skip,
                     deck_=deck,
                     battle_plan_1p_=battle_plan_1p,
                     battle_plan_2p_=battle_plan_2p,
-                    senior_setting_=senior_setting,
                     stage_id_=None,
                 )
 
@@ -1468,8 +1462,7 @@ class ThreadTodo(QThread):
                 result_id, result_drop, result_spend_time = self.battle(
                     player_a=pid_a,
                     player_b=pid_b,
-                    change_card=need_change_card,
-                    senior_setting=senior_setting)
+                    change_card=need_change_card)
 
                 if result_id == 0:
 
