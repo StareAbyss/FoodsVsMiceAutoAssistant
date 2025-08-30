@@ -2,6 +2,7 @@ import copy
 import datetime
 import math
 import os
+import random
 import time
 from ctypes import windll
 from threading import Timer
@@ -348,6 +349,7 @@ class CardManager(QThread):
                     signal_stop=self.signal_stop,
                     signal_used_key=self.signal_used_key,
                     signal_change_card_plan=self.signal_change_card_plan,
+                    thread_dict=self.thread_dict,
                 )
                 self.thread_dict[pid + 2] = ThreadUseCardTimer(
                     card_queue=self.card_queue_dict[pid],
@@ -549,7 +551,7 @@ class ThreadCheckTimer(QThread):
     """
 
     def __init__(self, card_queue, faa, kun_cards, check_interval,
-                 signal_change_card_plan, signal_used_key, signal_stop):
+                 signal_change_card_plan, signal_used_key, signal_stop,thread_dict):
 
         super().__init__()
 
@@ -567,6 +569,7 @@ class ThreadCheckTimer(QThread):
         self.timer = None
         self.checked_round = 0
         self.check_interval = check_interval  # 默认0.5s
+        self.thread_dict = thread_dict  #线程列表，以便动态修改参数
 
     def run(self):
         self.timer = Timer(self.check_interval, self.callback_timer)
@@ -613,6 +616,24 @@ class ThreadCheckTimer(QThread):
             self.timer = Timer(self.check_interval, self.callback_timer)
             self.timer.start()
 
+    def _update_thread_intervals(self, interval):
+        """更新所有线程中的间隔参数"""
+        for thread_id, thread in self.thread_dict.items():
+            random_interval = random.uniform(float(interval[0]), float(interval[1]))
+            try:
+                # 检查线程是否存活
+                if thread and hasattr(thread, 'isRunning') and thread.isRunning():
+                    # 检查线程类名以便修改对应属性
+                    if thread.__class__.__name__ == 'ThreadUseCardTimer':
+                        # 直接更新属性
+                        thread.interval_use_card= random_interval
+                        CUS_LOGGER.debug(f"更新线程 {thread_id} 的间隔参数为: {random_interval:.3f}")
+
+                else:
+                    CUS_LOGGER.debug(f"线程 {thread_id} 不可用，跳过更新")
+
+            except Exception as e:
+                CUS_LOGGER.error(f"更新线程 {thread_id} 参数失败: {str(e)}")
     def check(self):
         self.checked_round += 1
 
@@ -639,6 +660,21 @@ class ThreadCheckTimer(QThread):
 
         if not self.faa.is_auto_battle:
             return
+        if hasattr(self.faa, 'battle_plan_tweak') and isinstance(self.faa.battle_plan_tweak, dict):
+            CUS_LOGGER.debug(f"[战斗执行器] ThreadCheckTimer - check - 微调方案{self.faa.battle_plan_tweak}")
+            meta_data = self.faa.battle_plan_tweak.get('meta_data', {})
+            interval = meta_data.get('interval')
+            try:
+                # 生成指定范围的随机浮点数
+                random_interval = random.uniform(float(interval[0]), float(interval[1]))
+                # 修改 click_sleep 属性
+                self.faa.click_sleep = random_interval
+                self._update_thread_intervals(interval)
+                CUS_LOGGER.debug(f"成功设置 click_sleep 为随机值: {random_interval:.3f}")
+            except (ValueError, TypeError) as e:
+                CUS_LOGGER.error(f"生成随机间隔失败: {str(e)}")
+        else:
+            CUS_LOGGER.warning("battle_plan_tweak 或其 meta_data 不存在或格式错误")
 
         # 仅截图一次, 降低重复次数
         game_image = capture_image_png(
