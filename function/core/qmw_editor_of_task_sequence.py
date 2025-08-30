@@ -10,8 +10,8 @@ from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QComboBox, QH
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
-from function.scattered.check_battle_plan import fresh_and_check_all_battle_plan
-from function.scattered.get_list_battle_plan import get_list_battle_plan
+from function.scattered.check_battle_plan import fresh_and_check_all_battle_plan, fresh_and_check_all_tweak_plan
+from function.scattered.get_list_battle_plan import get_list_battle_plan, get_list_tweak_plan
 
 
 def QCVerticalLine():
@@ -122,8 +122,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
         self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
 
         # 大小
-        self.setMaximumSize(1350, 5000)
-        self.setMinimumSize(1350, 600)
+        self.setMaximumSize(1500, 5000)
+        self.setMinimumSize(1500, 600)
 
     def set_my_font(self, my_font):
         """用于继承字体, 而不需要多次读取"""
@@ -364,6 +364,11 @@ class QMWEditorOfTaskSequence(QMainWindow):
             w_2p_input = QComboBox()
             add_element(line_layout=line_layout, w_label=w_label, w_input=w_2p_input)
 
+            # 微调方案 创建控件
+            w_label = QLabel('微调方案')
+            w_tweak_input = QComboBox()
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_tweak_input)
+
             def toggle_widgets(state, widgets):
                 for widget in widgets:
                     widget.setEnabled(state == 0)
@@ -372,7 +377,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 lambda state: toggle_widgets(state, [w_d_input, w_1p_input, w_2p_input]))
 
             # 初始化一次
-            toggle_widgets(w_gba_input.checkState().value, [w_d_input, w_1p_input, w_2p_input])
+            toggle_widgets(w_gba_input.checkState().value, [w_d_input, w_1p_input, w_2p_input, w_tweak_input])
 
             # 战斗卡组 修改数值
             w_d_input.setObjectName("w_deck")
@@ -385,6 +390,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
             battle_plan_name_list = get_list_battle_plan(with_extension=False)
             battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
 
+            # 微调方案文件夹路径
+            fresh_and_check_all_tweak_plan()
+            tweak_plan_name_list = get_list_tweak_plan(with_extension=False)
+            tweak_plan_uuid_list = list(EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH.keys())
             # 战斗方案 1P 修改数值
             w_1p_input.setObjectName("w_battle_plan_1p")
             w_1p_input.setMaximumWidth(225)
@@ -408,6 +417,17 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 self.could_not_find_battle_plan_uuid = True
                 index = 1
             w_2p_input.setCurrentIndex(index)
+
+            # 微调方案 修改数值
+            w_tweak_input.setObjectName("w_battle_plan_tweak")
+            w_tweak_input.setMaximumWidth(225)
+            for index in tweak_plan_name_list:
+                w_tweak_input.addItem(index)
+            try:
+                index = tweak_plan_uuid_list.index(task["task_args"].get("battle_plan_tweak", ""))
+            except ValueError:
+                index = -1  # 未找到匹配项
+            w_tweak_input.setCurrentIndex(index if index >= 0 else 0)
 
         def double_card(line_layout):
 
@@ -690,6 +710,11 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     battle_plan_name_list = get_list_battle_plan(with_extension=False)
                     battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
 
+                    # 微调方案
+                    tweak_plan_path = PATHS["tweak_battle_plan"]
+                    tweak_plan_name_list = get_list_tweak_plan(with_extension=False)
+                    tweak_plan_uuid_list = list(EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH.keys())
+
                     widget_input = w_line.findChild(QComboBox, 'w_battle_plan_1p')
                     text = widget_input.currentText()
                     index = battle_plan_name_list.index(text)
@@ -701,6 +726,17 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     index = battle_plan_name_list.index(text)
                     uuid = battle_plan_uuid_list[index]
                     args['battle_plan_2p'] = uuid
+
+                    # 微调方案
+                    widget_input = w_line.findChild(QComboBox, 'w_battle_plan_tweak')
+                    if widget_input.count() > 0:  # 确保有选项
+                        text = widget_input.currentText()
+                        if text in tweak_plan_name_list:
+                            index = tweak_plan_name_list.index(text)
+                            uuid = tweak_plan_uuid_list[index]
+                            args['battle_plan_tweak'] = uuid
+                        else:
+                            args['battle_plan_tweak'] = ""  # 无匹配项时清空
 
                     # 固定值 请不要用于 魔塔 / 萌宠神殿 这两类特殊关卡！
                     args["quest_card"] = "None"
