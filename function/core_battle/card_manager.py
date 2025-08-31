@@ -570,7 +570,16 @@ class ThreadCheckTimer(QThread):
         self.checked_round = 0
         self.check_interval = check_interval  # 默认0.5s
         self.thread_dict = thread_dict  #线程列表，以便动态修改参数
-
+        self.interval=None
+        self.check_interval_count=None
+        if hasattr(self.faa, 'battle_plan_tweak') and isinstance(self.faa.battle_plan_tweak, dict):
+            CUS_LOGGER.debug(f"[战斗执行器] ThreadCheckTimer - check - 微调方案{self.faa.battle_plan_tweak}")
+            meta_data = self.faa.battle_plan_tweak.get('meta_data', {})
+            self.interval = meta_data.get('interval')
+            if self.interval:
+                #深度battle调参未果（…^-^)
+                #放卡间隔与重置单轮放卡间隔原初比例大约为0.036：1
+                self.check_interval_count = (self.interval[0]+self.interval[1])//0.144
     def run(self):
         self.timer = Timer(interval=self.check_interval, function=self.callback_timer)
         self.running = True
@@ -660,21 +669,16 @@ class ThreadCheckTimer(QThread):
 
         if not self.faa.is_auto_battle:
             return
-        if hasattr(self.faa, 'battle_plan_tweak') and isinstance(self.faa.battle_plan_tweak, dict):
-            CUS_LOGGER.debug(f"[战斗执行器] ThreadCheckTimer - check - 微调方案{self.faa.battle_plan_tweak}")
-            meta_data = self.faa.battle_plan_tweak.get('meta_data', {})
-            interval = meta_data.get('interval')
+        if self.interval:
             try:
                 # 生成指定范围的随机浮点数
-                random_interval = random.uniform(float(interval[0]), float(interval[1]))
+                random_interval = random.uniform(float(self.interval[0]), float(self.interval[1]))
                 # 修改 click_sleep 属性
                 self.faa.click_sleep = random_interval
-                self._update_thread_intervals(interval)
+                self._update_thread_intervals(self.interval)
                 CUS_LOGGER.debug(f"成功设置 click_sleep 为随机值: {random_interval:.3f}")
             except (ValueError, TypeError) as e:
                 CUS_LOGGER.error(f"生成随机间隔失败: {str(e)}")
-        else:
-            CUS_LOGGER.warning("battle_plan_tweak 或其 meta_data 不存在或格式错误")
 
         # 仅截图一次, 降低重复次数
         game_image = capture_image_png(
@@ -692,10 +696,14 @@ class ThreadCheckTimer(QThread):
                 return
 
         # 先清空现有队列 再初始化队列
-        self.card_queue.queue.clear()
-        self.card_queue.init_card_queue(
-            game_image=game_image,
-            check_interval=self.check_interval)
+        #这里的重置队列要适应放卡间隔
+        if self.check_interval_count is None or (self.checked_round %self.check_interval_count==1):
+            self.card_queue.queue.clear()
+            self.card_queue.init_card_queue(
+                game_image=game_image,
+                check_interval=self.check_interval)
+            CUS_LOGGER.debug(f"成功重置队列，本轮次{self.checked_round}")
+
 
         # 更新火苗
         self.faa.update_fire_elemental_1000(img=game_image)
