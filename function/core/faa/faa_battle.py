@@ -6,8 +6,10 @@ import numpy as np
 
 from function.common.bg_img_match import match_p_in_w, match_ps_in_w, loop_match_p_in_w
 from function.common.bg_img_screenshot import capture_image_png
+from function.common.window_recorder import WindowRecorder
 from function.globals import EXTRA
 from function.globals.g_resources import RESOURCE_P
+from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
@@ -16,6 +18,9 @@ if TYPE_CHECKING:
 
 
 class FAABattle:
+
+    def __init__(self):
+        self.recorder = None
 
     def faa_battle_re_init(self: "FAA"):
         """战斗前调用, 重新初始化部分每场战斗都要重新刷新的该内私有属性"""
@@ -408,3 +413,18 @@ class FAABattle:
         # if self.player == 1:
         #     # self.print_debug("战斗火苗能量>1000:", self.fire_elemental_1000)
         #     CUS_LOGGER.debug(f"有没有1000火{self.fire_elemental_1000}")
+
+    def start_battle_recording(self,timestamp):
+        """战斗开始时启动录制"""
+        if hasattr(self, 'handle'):
+            self.recorder = WindowRecorder(output_file=PATHS["logs"]+"//recording//",window_title=self.channel,handle=self.handle,see_time= timestamp)
+            self.recorder.start_recording()
+            CUS_LOGGER.info("战斗录制已启动")
+
+    def stop_battle_recording(self):
+        """战斗结束时停止录制"""
+        if hasattr(self, 'recorder') and self.recorder:
+            if self.recorder is not None:
+                self.recorder.stop_recording()
+                CUS_LOGGER.info(f"战斗录制已保存")
+                self.recorder= None

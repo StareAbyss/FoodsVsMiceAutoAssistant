@@ -92,6 +92,7 @@ def check_paths():
         "\\logs\\yolo_output\\labels",
         "\\logs\\guild_manager",
         "\\logs\\guild_manager\\guild_member_images",
+        "\\logs\\recording",
         "\\resource\\image\\task"
     ]
     for path in paths:
