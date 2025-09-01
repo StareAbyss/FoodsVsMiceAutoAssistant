@@ -118,12 +118,13 @@ class ThreadTodo(QThread):
             self.thread_card_manager = None  # 清除调用
             self.msleep(10)
 
-        # 释放战斗锁
+        # 释放战斗锁与无脑停止录制
         if self.faa_dict:
             for faa in self.faa_dict.values():
                 if faa:
                     if faa.battle_lock.locked():
                         faa.battle_lock.release()
+                    faa.stop_battle_recording()
 
         # 非安全退出超长的run方法. 该方法可能导致内存泄漏或其他不知名问题
         self.terminate()
@@ -815,6 +816,8 @@ class ThreadTodo(QThread):
         result_drop_by_dict = {}  # {pid:{"loots":{"item":count,...},"chest":{"item":count,...}},...}
         result_spend_time = 0
         senior_setting=self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("senior_setting", False)
+        recording=self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("recording", False)
+        seetime=self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("timestamp", False)
 
         """检测是否成功进入房间"""
         if result_id == 0:
@@ -989,9 +992,14 @@ class ThreadTodo(QThread):
                 senior_callback_interval=self.opt["senior_settings"]["interval"],
                 start_time=start_time
             )
-
+            if recording:
+                    self.faa_dict[player_a].start_battle_recording(seetime)
+                    CUS_LOGGER.info(f"录制已启动: {self.faa_dict[1].player}P 战斗")
             self.thread_card_manager.start()
             self.exec()
+            if recording:
+                    self.faa_dict[player_a].stop_battle_recording()
+                    CUS_LOGGER.info(f"录制已停止: {self.faa_dict[1].player}P 战斗")
 
             # 此处的重新变为None是为了让中止todo实例时时该属性仍存在
             self.thread_card_manager = None
