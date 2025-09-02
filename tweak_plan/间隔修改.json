@@ -2,8 +2,9 @@
     "meta_data": {
         "uuid": "e058f993-857a-11f0-9fae-f4c88a4ed544",
         "tips": "作用是修改战斗执行器中放卡操作响应间隔",
-        "version": "0.1",
+        "version": "0.2",
         "recording": true,
+        "timestamp": true,
         "interval": [1,1.5]
     }
 }

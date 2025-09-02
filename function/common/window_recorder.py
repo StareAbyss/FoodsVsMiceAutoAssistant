@@ -82,85 +82,115 @@ class WindowRecorder:
             while self.recording:
                 # 获取窗口DC
                 hwndDC = win32gui.GetWindowDC(self.hwnd)
-                mfcDC = win32ui.CreateDCFromHandle(hwndDC)
-                saveDC = mfcDC.CreateCompatibleDC()
+                if not hwndDC:
+                    print("无法获取窗口DC")
+                    continue  # 跳过本次循环
+                try:
+                    mfcDC = win32ui.CreateDCFromHandle(hwndDC)
+                    saveDC = mfcDC.CreateCompatibleDC()
 
-                # 创建位图
-                saveBitMap = win32ui.CreateBitmap()
-                saveBitMap.CreateCompatibleBitmap(mfcDC, self.width, self.height)
+                    # 创建位图
+                    saveBitMap = win32ui.CreateBitmap()
+                    saveBitMap.CreateCompatibleBitmap(mfcDC, self.width, self.height)
 
-                # 拷贝图像
-                saveDC.SelectObject(saveBitMap)
-                saveDC.BitBlt((0, 0), (self.width, self.height), mfcDC, (0, 0), win32con.SRCCOPY)
+                    # 拷贝图像
+                    saveDC.SelectObject(saveBitMap)
+                    saveDC.BitBlt((0, 0), (self.width, self.height), mfcDC, (0, 0), win32con.SRCCOPY)
 
-                # 转换为numpy数组
-                bmpinfo = saveBitMap.GetInfo()
-                bmpstr = saveBitMap.GetBitmapBits(True)
-                img = np.frombuffer(bmpstr, dtype=np.uint8)
-                img.shape = (bmpinfo['bmHeight'], bmpinfo['bmWidth'], 4)
-                img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
-                if self.see_time:
-                    # 添加时间戳（关键修改部分）
-                    current_date = datetime.datetime.now().strftime("%Y-%m-%d")
-                    current_time = datetime.datetime.now().strftime("%H:%M:%S")
+                    # 转换为numpy数组
+                    bmpinfo = saveBitMap.GetInfo()
+                    bmpstr = saveBitMap.GetBitmapBits(True)
+                    img = np.frombuffer(bmpstr, dtype=np.uint8)
+                    img.shape = (bmpinfo['bmHeight'], bmpinfo['bmWidth'], 4)
+                    img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+                    if self.see_time:
+                        # 添加时间戳（关键修改部分）
+                        current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+                        current_time = datetime.datetime.now().strftime("%H:%M:%S")
 
-                    # 配置参数（优化版）
-                    font_scale = 0.5
-                    font_thickness = 2
-                    font = cv2.FONT_HERSHEY_SIMPLEX
-                    line_spacing = 15  # 行间距
-                    h_padding = 6  # 水平内边距（原为12）
-                    v_padding = 20  # 垂直内边距保持不变
+                        # 配置参数（优化版）
+                        font_scale = 0.5
+                        font_thickness = 2
+                        font = cv2.FONT_HERSHEY_SIMPLEX
+                        line_spacing = 15  # 行间距
+                        h_padding = 6  # 水平内边距（原为12）
+                        v_padding = 20  # 垂直内边距保持不变
 
-                    # 获取文本尺寸
-                    (text_width1, text_height1), _ = cv2.getTextSize(current_date, font, font_scale, font_thickness)
-                    (text_width2, text_height2), _ = cv2.getTextSize(current_time, font, font_scale, font_thickness)
+                        # 获取文本尺寸
+                        (text_width1, text_height1), _ = cv2.getTextSize(current_date, font, font_scale, font_thickness)
+                        (text_width2, text_height2), _ = cv2.getTextSize(current_time, font, font_scale, font_thickness)
 
-                    # 计算最大宽度和总高度
-                    max_text_width = max(text_width1, text_width2)
-                    total_text_height = text_height1 + text_height2 + line_spacing
+                        # 计算最大宽度和总高度
+                        max_text_width = max(text_width1, text_width2)
+                        total_text_height = text_height1 + text_height2 + line_spacing
 
-                    # 优化背景框尺寸计算
-                    rect_width = max_text_width + h_padding * 2  # 水平方向压缩
-                    rect_height = total_text_height + v_padding * 2
+                        # 优化背景框尺寸计算
+                        rect_width = max_text_width + h_padding * 2  # 水平方向压缩
+                        rect_height = total_text_height + v_padding * 2
 
-                    # 绘制白色背景矩形（更紧凑）
-                    cv2.rectangle(img,
-                                  (5, 5),
-                                  (5 + rect_width, 5 + rect_height),
-                                  (255, 255, 255),
-                                  -1)
+                        # 绘制白色背景矩形（更紧凑）
+                        cv2.rectangle(img,
+                                      (5, 5),
+                                      (5 + rect_width, 5 + rect_height),
+                                      (255, 255, 255),
+                                      -1)
 
-                    # 优化文字绘制位置
-                    line1_y = 5 + v_padding + text_height1
-                    line2_y = line1_y + text_height2 + line_spacing
+                        # 优化文字绘制位置
+                        line1_y = 5 + v_padding + text_height1
+                        line2_y = line1_y + text_height2 + line_spacing
 
-                    cv2.putText(img, current_date,
-                                (5 + h_padding, line1_y),  # 水平位置调整
-                                font,
-                                font_scale,
-                                (0, 0, 255),
-                                font_thickness)
+                        cv2.putText(img, current_date,
+                                    (5 + h_padding, line1_y),  # 水平位置调整
+                                    font,
+                                    font_scale,
+                                    (0, 0, 255),
+                                    font_thickness)
 
-                    cv2.putText(img, current_time,
-                                (5 + h_padding, line2_y),  # 水平位置调整
-                                font,
-                                font_scale,
-                                (0, 0, 255),
-                                font_thickness)
+                        cv2.putText(img, current_time,
+                                    (5 + h_padding, line2_y),  # 水平位置调整
+                                    font,
+                                    font_scale,
+                                    (0, 0, 255),
+                                    font_thickness)
 
-                # 写入视频文件
-                self.out.write(img)
-                if self.is_show:
-                    # 实时显示当前帧（可选）
-                    cv2.imshow('Window Recorder', img)
-                    if cv2.waitKey(1) & 0xFF == ord('q'):
-                        print("用户按 q 键，停止录制")
-                        self.stop_recording()
-                        break
+                    # 写入视频文件
+                    self.out.write(img)
+                    if self.is_show:
+                        # 实时显示当前帧（可选）
+                        cv2.imshow('Window Recorder', img)
+                        if cv2.waitKey(1) & 0xFF == ord('q'):
+                            print("用户按 q 键，停止录制")
+                            self.stop_recording()
+                            break
 
-                # 控制帧率
-                time.sleep(1 / self.fps)
+                    # 控制帧率
+                    time.sleep(1 / self.fps)
+                #释放资源避免内存泄露
+                finally:
+                    # 释放GDI资源
+                    try:
+                        if 'saveBitMap' in locals():
+                            saveBitMap.DeleteObject()
+                    except:
+                        pass
+
+                    try:
+                        if 'saveDC' in locals():
+                            saveDC.DeleteDC()
+                    except:
+                        pass
+
+                    try:
+                        if 'mfcDC' in locals():
+                            mfcDC.DeleteDC()
+                    except:
+                        pass
+
+                    try:
+                        if hwndDC:
+                            win32gui.ReleaseDC(self.hwnd, hwndDC)
+                    except:
+                        pass
 
         except Exception as e:
             print(f"录制过程中发生错误: {e}")
