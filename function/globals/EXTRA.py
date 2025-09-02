@@ -86,9 +86,9 @@ def get_true_stage_id():
     # 世界boss
     stage_ids += generate_stage_ids("WB", [0, 0], [0, 100])
     # 多元奇遇
-    stage_ids += generate_stage_ids("MU", [1, 1], [0, 1])
-    stage_ids += generate_stage_ids("MU", [2, 2], [2, 4])
-    stage_ids += generate_stage_ids("MU", [4, 4], [5, 7])
+    stage_ids += generate_stage_ids("MU", [1, 1], [1, 2])
+    stage_ids += generate_stage_ids("MU", [2, 2], [1, 3])
+    stage_ids += generate_stage_ids("MU", [4, 4], [1, 3])
     # 生肖
     stage_ids += generate_stage_ids("CZ", [0, 0], [1, 4])
 

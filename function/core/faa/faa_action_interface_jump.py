@@ -842,9 +842,10 @@ class FAAActionInterfaceJump:
             if self.is_main:
                 # 防止被活动列表遮住
                 self.action_change_activity_list(serial_num=2)
-                exchange_dict = {"MU-1-0": "NO-1-7", "MU-1-1": "NO-1-14", "MU-2-2": "NO-2-5", "MU-2-3": "NO-2-10",
-                                 "MU-2-4": "NO-2-15",
-                                 "MU-4-5": "NO-4-5", "MU-4-6": "NO-4-10", "MU-4-7": "NO-4-15"}
+                exchange_dict = {
+                    "MU-1-1": "NO-1-7", "MU-1-2": "NO-1-14",
+                    "MU-2-1": "NO-2-5", "MU-2-2": "NO-2-10", "MU-2-3": "NO-2-15",
+                    "MU-4-1": "NO-4-5", "MU-4-2": "NO-4-10", "MU-4-3": "NO-4-15"}
                 # 选择关卡
                 loop_match_p_in_w(
                     source_handle=handle,
