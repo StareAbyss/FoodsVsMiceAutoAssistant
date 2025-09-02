@@ -979,41 +979,79 @@ class BattlePreparation:
             source_root_handle=handle_360,
             source_range=[400, 35, 550, 75],
             template=RESOURCE_P["common"]["战斗"]["战斗后_4_翻宝箱.png"],
-            match_interval=0.1,
-            match_failed_check=15,
-            after_sleep=1,
+            match_interval=0.05,
+            match_failed_check=10,
+            after_sleep=0.05,
             click=False
         )
         if not find:
             print_warning(text="[翻宝箱UI] 10s未能捕获正确标志, 出问题了!")
             return []
 
-        print_info(text="[翻宝箱UI] 捕获到正确标志, 翻牌并退出...")
-
         if EXTRA.ACCELERATE_SETTLEMENT_VALUE:
-            print_info(text="[翻宝箱UI] 停止加速...")
+            print_info(text="[翻宝箱UI] 捕获到正确标志, 停止加速...")
             self.click_accelerate_btn(mode="normal")
             # 检查已经关闭加速
             self.click_accelerate_btn(mode="stop")
+        else:
+            print_info(text="[翻宝箱UI] 捕获到正确标志, 继续...")
+
+        print_info(text=f"[翻宝箱UI] 即将翻牌, 翻牌数: {EXTRA.FLOP_TIMES}")
 
         # 翻牌 1+2 bug法
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=550, y=265)
-        time.sleep(0.1)
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=265)
-        time.sleep(1.0)
-
-        img = [
-            capture_image_png(
-                handle=handle,
-                raw_range=[249, 89, 293, 133],
-                root_handle=handle_360),
-            capture_image_png(
-                handle=handle,
-                raw_range=[317, 89, 361, 133],
-                root_handle=handle_360),
+        click_positions = [
+            {'x': 550, 'y': 265},
+            {'x': 550 + 158, 'y': 265},
+            {'x': 550 + 158 * 2, 'y': 265},
+            {'x': 550, 'y': 265 + 200},
+            {'x': 550 + 158, 'y': 265 + 200},
+            {'x': 550 + 158 * 2, 'y': 265 + 200}
         ]
+        for i in range(EXTRA.FLOP_TIMES):
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=click_positions[i]['x'], y=click_positions[i]['y'])
+            time.sleep(0.2)
+        time.sleep(1)
+        print_info(text="[翻宝箱UI] 翻牌完成, 即将记录图像...")
 
-        img = cv2.hconcat(img)
+        capture_ranges = [
+            {
+                'x1': 249,
+                'y1': 89,
+                'x2': 249 + 44,
+                'y2': 89 + 44
+            }, {
+                'x1': 249 + 68,
+                'y1': 89,
+                'x2': 249 + 68 + 44,
+                'y2': 89 + 44
+            }, {
+                'x1': 249 + 68 * 2,
+                'y1': 89,
+                'x2': 249 + 68 * 2 + 44,
+                'y2': 89 + 44
+            }, {
+                'x1': 249,
+                'y1': 89 + 54,
+                'x2': 249 + 44,
+                'y2': 89 + 54 + 44
+            }, {
+                'x1': 249 + 68,
+                'y1': 89 + 54,
+                'x2': 249 + 68 + 44,
+                'y2': 89 + 54 + 44
+            }, {
+                'x1': 249 + 68 * 2,
+                'y1': 89 + 54,
+                'x2': 249 + 68 * 2 + 44,
+                'y2': 89 + 54 + 44
+            },
+        ]
+        chest_image = capture_image_png(handle=handle, root_handle=handle_360, raw_range=[0, 0, 950, 600])
+        chest_images = []
+        for capture_range in capture_ranges:
+            chest_images.append(
+                chest_image[capture_range['y1']:capture_range['y2'], capture_range['x1']:capture_range['x2']])
+        chest_items_image = cv2.hconcat(chest_images)
 
         # 定义保存路径和文件名格式
         img_path = "{}\\{}_{}P_{}.png".format(
@@ -1026,18 +1064,20 @@ class BattlePreparation:
         # 分析图片，获取战利品字典
         drop_list = match_items_from_image_and_save(
             img_save_path=img_path,
-            image=img,
+            image=chest_items_image,
             mode="chests",
             test_print=True)
         print_info(text="[翻宝箱UI] 宝箱已 捕获/识别/保存".format(drop_list))
 
         # 组队2P慢点结束翻牌 保证双人魔塔后自己是房主
+        time.sleep(0.3)
         if is_group and is_main:
             time.sleep(1.0)
 
         # 开始洗牌
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=502)
         time.sleep(0.25)
+
         # 结束翻牌
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=708, y=502)
         time.sleep(1.0)
