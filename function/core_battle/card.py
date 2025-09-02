@@ -1,4 +1,5 @@
 import os
+import random
 import time
 
 import cv2
@@ -316,9 +317,10 @@ class Card:
 
         # 战斗放卡锁，用于防止与特殊放卡放置冲突，点击队列不连贯
         with self.faa.battle_lock:
-
+            self.fresh_status()
             # 如果不可用状态 放弃本次用卡
             if not self.status_usable:
+                CUS_LOGGER.debug(f"不可用状态")
                 return
 
             # 点击 选中卡片
@@ -341,11 +343,11 @@ class Card:
                 #     CUS_LOGGER.debug(f"[1P] {self.name} 因使用后仍可用进行了自ban")
                 #     T_ACTION_QUEUE_TIMER.print_queue_statue()
 
-                return
+                return True
 
             # 放置成功 如果是坤目标, 复制自身放卡的逻辑
             if not self.is_kun_target:
-                return
+                return True
 
             # 坤-如果不可用状态 放弃本次用卡
             kun_count = 0
@@ -372,7 +374,7 @@ class Card:
                 kun_card.fresh_status()
 
                 kun_count += 1
-
+            return True
     def destroy(self):
         """中止运行时释放内存, 顺带如果遇到了全新的状态图片保存一下"""
         self.faa = None
@@ -423,6 +425,11 @@ class CardKun(Card):
         self.name = name
         self.c_id = c_id
         self.coordinate_from = coordinate_from
+        self.interval=None
+        if hasattr(self.faa, 'battle_plan_tweak') and isinstance(self.faa.battle_plan_tweak, dict):
+            CUS_LOGGER.debug(f"坤卡进行微调初始化！！！")
+            meta_data = self.faa.battle_plan_tweak.get('meta_data', {})
+            self.interval = meta_data.get('interval')
 
     def use_card(self):
         """
@@ -431,6 +438,22 @@ class CardKun(Card):
         """
         pass
 
+    def choice_card(self):
+        """
+        取卡操作
+        """
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(
+            handle=self.handle,
+            x=self.coordinate_from[0] + 25,
+            y=self.coordinate_from[1] + 35)
+        #坤卡特有的选择后发呆一会儿~主要是正常延迟太短，如果被检测到坤卡与正常卡间时间过短会很麻烦
+        if self.interval:
+            try:
+                random_interval = random.uniform(float(self.interval[0]), float(self.interval[1]))
+                time.sleep(random_interval)
+                CUS_LOGGER.debug(f"坤卡随机延迟成功！！: {random_interval:.3f}")
+            except (ValueError, TypeError) as e:
+                CUS_LOGGER.error(f"生成随机间隔失败: {str(e)}")
     def put_card(self):
         """
         坤卡没有使用卡片函数, 仅依附于其他卡片进行使用
