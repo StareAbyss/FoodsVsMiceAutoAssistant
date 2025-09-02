@@ -10,8 +10,8 @@ import pytz
 
 from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
 from function.common.bg_img_screenshot import capture_image_png
+from function.common.get_system_dpi import get_window_position, get_system_dpi
 from function.common.overlay_images import overlay_images
-from function.common.get_system_dpi import get_window_position,get_system_dpi
 from function.core.my_crypto import decrypt_data
 from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
 from function.globals import g_resources, SIGNAL, EXTRA
@@ -1087,6 +1087,10 @@ class FAABase:
     def reload_game(self: "FAA") -> None:
 
         def try_close_sub_account_list() -> bool:
+
+            # 等待一下 确保操作完成
+            time.sleep(0.5)
+
             # 是否有小号列表
             _, my_result = match_p_in_w(
                 source_handle=self.handle_360,
@@ -1095,14 +1099,17 @@ class FAABase:
                 template=RESOURCE_P["common"]["登录"]["小号列表.png"],
                 match_tolerance=0.99
             )
-            if my_result:
-                # 点击关闭它
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                    handle=self.handle_360,
-                    x=30,
-                    y=55)
-                return True
-            return False
+            if not my_result:
+                return False
+
+            # 点击关闭它
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                handle=self.handle_360,
+                x=30,
+                y=55)
+            # 等待一下 确保操作完成
+            time.sleep(0.5)
+            return True
 
         def try_enter_server_4399() -> bool:
             # 4399 进入服务器
