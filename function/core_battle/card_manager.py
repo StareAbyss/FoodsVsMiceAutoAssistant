@@ -579,7 +579,7 @@ class ThreadCheckTimer(QThread):
             if self.interval:
                 #深度battle调参未果（…^-^)
                 #放卡间隔与重置单轮放卡间隔原初比例大约为0.036：1
-                self.check_interval_count = (self.interval[0]+self.interval[1])//0.144
+                self.check_interval_count = (self.interval[0]+self.interval[1])*5//1
     def run(self):
         self.timer = Timer(interval=self.check_interval, function=self.callback_timer)
         self.running = True
@@ -636,10 +636,11 @@ class ThreadCheckTimer(QThread):
                     if thread.__class__.__name__ == 'ThreadUseCardTimer':
                         # 直接更新属性
                         thread.interval_use_card= random_interval
-                        CUS_LOGGER.debug(f"更新线程 {thread_id} 的间隔参数为: {random_interval:.3f}")
+                        # CUS_LOGGER.debug(f"更新线程 {thread_id} 的间隔参数为: {random_interval:.3f}")
 
                 else:
-                    CUS_LOGGER.debug(f"线程 {thread_id} 不可用，跳过更新")
+                    # CUS_LOGGER.debug(f"线程 {thread_id} 不可用，跳过更新")
+                    pass
 
             except Exception as e:
                 CUS_LOGGER.error(f"更新线程 {thread_id} 参数失败: {str(e)}")
@@ -796,6 +797,8 @@ class ThreadUseCardTimer(QThread):
         self.running = False
         self.timer = None
         self.interval_use_card = self.faa.click_sleep
+        # 默认的快速使用卡的间隔
+        self.fast_use_card_interval = 0.018
 
     def run(self):
         self.timer = Timer(interval=self.interval_use_card, function=self.callback_timer)
@@ -826,9 +829,9 @@ class ThreadUseCardTimer(QThread):
         # print("[战斗执行器] ThreadUseCardTimer - stop - 线程已等待完成")
 
     def callback_timer(self):
-
+        fast_fail=False
         try:
-            self.card_queue.use_top_card()
+            fast_fail=self.card_queue.use_top_card()
         except Exception as e:
             CUS_LOGGER.warning(
                 f"[战斗执行器] ThreadUseCardTimer - callback_timer - 在运行中遭遇错误"
@@ -837,7 +840,10 @@ class ThreadUseCardTimer(QThread):
 
         # 回调
         if self.running:
-            self.timer = Timer(interval=self.interval_use_card, function=self.callback_timer)
+            if fast_fail:
+                self.timer = Timer(interval=self.fast_use_card_interval, function=self.callback_timer)
+            else:
+                self.timer = Timer(interval=self.interval_use_card, function=self.callback_timer)
             self.timer.start()
 
 
