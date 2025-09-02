@@ -1,6 +1,8 @@
 import itertools
 import threading
+
 from function.globals.loadings import loading
+
 loading.update_progress(18,"正在载入全局设置...")
 from PyQt6 import QtGui
 
@@ -96,7 +98,7 @@ def get_true_stage_id():
 
 
 # 版本号
-VERSION = "v2.2.0"
+VERSION = "v2.2.1"
 
 # 翻牌次数
 FLOP_TIMES = 2
