@@ -569,7 +569,7 @@ class ThreadCheckTimer(QThread):
         self.check_interval = check_interval  # 默认0.5s
 
     def run(self):
-        self.timer = Timer(self.check_interval, self.callback_timer)
+        self.timer = Timer(interval=self.check_interval, function=self.callback_timer)
         self.running = True
         self.timer.start()
 
@@ -610,7 +610,7 @@ class ThreadCheckTimer(QThread):
 
         # 回调
         if self.running:
-            self.timer = Timer(self.check_interval, self.callback_timer)
+            self.timer = Timer(interval=self.check_interval, function=self.callback_timer)
             self.timer.start()
 
     def check(self):
@@ -754,7 +754,7 @@ class ThreadUseCardTimer(QThread):
         self.interval_use_card = self.faa.click_sleep
 
     def run(self):
-        self.timer = Timer(self.interval_use_card, self.callback_timer)
+        self.timer = Timer(interval=self.interval_use_card, function=self.callback_timer)
         self.running = True
         self.timer.start()
 
@@ -793,7 +793,7 @@ class ThreadUseCardTimer(QThread):
 
         # 回调
         if self.running:
-            self.timer = Timer(self.interval_use_card, self.callback_timer)
+            self.timer = Timer(interval=self.interval_use_card, function=self.callback_timer)
             self.timer.start()
 
 
@@ -840,7 +840,7 @@ class ThreadInsertUseCardTimer(QThread):
         self.faa.print_debug('[战斗执行器] ThreadInsertUseCardTimer 启动')
         self.running = True
 
-        self.timer = Timer(self.callback_interval, self.callback_timer)
+        self.timer = Timer(interval=self.callback_interval, function=self.callback_timer)
         self.timer.start()
         self.exec()
 
@@ -890,7 +890,7 @@ class ThreadInsertUseCardTimer(QThread):
 
         # 回调
         if self.running:
-            self.timer = Timer(self.callback_interval, self.callback_timer)
+            self.timer = Timer(interval=self.callback_interval, function=self.callback_timer)
             self.timer.start()
 
     def set_timer_for_wave(self, wave, time_change=0.0):
@@ -981,7 +981,7 @@ class ThreadUseSpecialCardTimer(QThread):
         self.shield_used_dict_list = {1: [], 2: []}
 
     def run(self):
-        self.timer = Timer(self.callback_interval, self.callback_timer)
+        self.timer = Timer(interval=self.callback_interval, function=self.callback_timer)
         self.running = True
         self.timer.start()
 
@@ -1145,7 +1145,7 @@ class ThreadUseSpecialCardTimer(QThread):
             )
 
         if self.running:
-            self.timer = Timer(self.callback_interval, self.callback_timer)
+            self.timer = Timer(interval=self.callback_interval, function=self.callback_timer)
             self.timer.start()
 
     def use_card(self, player):
