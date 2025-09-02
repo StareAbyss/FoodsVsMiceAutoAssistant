@@ -2018,9 +2018,22 @@ class ThreadTodo(QThread):
         def normal_battle_task_to_d_thread(task_sequence):
             """
             将自定义任务序列中完成合并的 连续的 战斗任务, 智能拆分组合 为连续的多线程单人 或 单线程 战斗任务
-            原则: 连续且仅有1p2p单独参与的任务, 将被智能分配到多线程单人. 且 无视12p之间的前后任务顺序!
+            原则: 连续的一段, 有且仅有1p2p单独参与的任务, 将被智能分配到多线程单人. 且 无视12p之间的前后任务顺序!
             :param task_sequence:
-            :return:
+            :return: example:
+            {
+                {
+                    "task_type": 战斗.
+                    "task_args": [stage_info: dict, ...]
+                },{
+                    "task_type": 战斗-多线程.
+                    "task_args": {
+                        "solo_quests_1": [stage_info: dict, ...],
+                        "solo_quests_2": [stage_info: dict, ...]
+                    }
+                }
+            }
+
             """
 
             def to_double_thread_args(quest_info_list):
@@ -2036,69 +2049,74 @@ class ThreadTodo(QThread):
                     "solo_quests_2": solo_quests_2
                 }
 
-            new_task_list = []
+            return_task_list = []
             for task in task_sequence:
+
                 # 非战斗任务事项不变
                 if task["task_type"] != "战斗":
-                    new_task_list.append(task)
-                else:
-                    p1_active = False
-                    p2_active = False
-                    thread_1_task_list = []
-                    thread_2_task_list = []
-                    unknown_task_list = []
+                    return_task_list.append(task)
+                    continue
 
-                    new_task_list = []
-                    for quest_info in task["task_args"]:
-                        if len(quest_info["player"]) == 2:
-                            if thread_2_task_list:
-                                new_task_list.append({
-                                    "task_type": "战斗-多线程",
-                                    "task_args": to_double_thread_args(quest_info_list=thread_2_task_list)
-                                })
-                                thread_2_task_list = []
-                            thread_1_task_list += unknown_task_list
-                            thread_1_task_list.append(quest_info)
-                            unknown_task_list = []
-                            p1_active = False
-                            p2_active = False
+                p1_active = False
+                p2_active = False
+                multi_player_task_list = []
+                one_player_task_list = []
+                unknown_task_list = []
 
-                        if len(quest_info["player"]) == 1:
-                            if quest_info["player"] == [1]:
-                                p1_active = True
-                            if quest_info["player"] == [2]:
-                                p2_active = True
-                            if p1_active and p2_active:
-                                if thread_1_task_list:
-                                    new_task_list.append({
-                                        "task_type": "战斗",
-                                        "task_args": thread_1_task_list
-                                    })
-                                    thread_1_task_list = []
-                                thread_2_task_list += unknown_task_list
-                                thread_2_task_list.append(quest_info)
-                                unknown_task_list = []
-                            else:
-                                unknown_task_list.append(quest_info)
-                    # 收尾工作
-                    if unknown_task_list:
-                        new_task_list.append({
-                            "task_type": "战斗",
-                            "task_args": thread_1_task_list + unknown_task_list
-                        })
-                    else:
-                        if thread_1_task_list:
-                            new_task_list.append({
-                                "task_type": "战斗",
-                                "task_args": thread_1_task_list
-                            })
-                        if thread_2_task_list:
-                            new_task_list.append({
+                for quest_info in task["task_args"]:
+                    # 有双人任务, 此前的单人任务完成添加
+                    if len(quest_info["player"]) == 2:
+                        if one_player_task_list:
+                            return_task_list.append({
                                 "task_type": "战斗-多线程",
-                                "task_args": to_double_thread_args(quest_info_list=thread_2_task_list)
+                                "task_args": to_double_thread_args(quest_info_list=one_player_task_list)
                             })
+                            one_player_task_list = []
+                        if unknown_task_list:
+                            multi_player_task_list += unknown_task_list
+                            unknown_task_list = []
+                        multi_player_task_list.append(quest_info)
+                        p1_active = False
+                        p2_active = False
 
-            return new_task_list
+                    elif len(quest_info["player"]) == 1:
+                        if quest_info["player"] == [1]:
+                            p1_active = True
+                        if quest_info["player"] == [2]:
+                            p2_active = True
+                        if not (p1_active and p2_active):
+                            unknown_task_list.append(quest_info)
+                        else:
+                            if multi_player_task_list:
+                                return_task_list.append({
+                                    "task_type": "战斗",
+                                    "task_args": multi_player_task_list
+                                })
+                                multi_player_task_list = []
+                            if unknown_task_list:
+                                one_player_task_list += unknown_task_list
+                                unknown_task_list = []
+                            one_player_task_list.append(quest_info)
+
+                # 收尾工作
+                if unknown_task_list:
+                    return_task_list.append({
+                        "task_type": "战斗",
+                        "task_args": multi_player_task_list + unknown_task_list
+                    })
+                else:
+                    if multi_player_task_list:
+                        return_task_list.append({
+                            "task_type": "战斗",
+                            "task_args": multi_player_task_list
+                        })
+                    if one_player_task_list:
+                        return_task_list.append({
+                            "task_type": "战斗-多线程",
+                            "task_args": to_double_thread_args(quest_info_list=one_player_task_list)
+                        })
+
+            return return_task_list
 
         def read_json_to_task_sequence():
             task_sequence_list = get_task_sequence_list(with_extension=True)
