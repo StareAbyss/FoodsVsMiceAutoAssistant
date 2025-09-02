@@ -100,7 +100,7 @@ def main():
         "README - 高级放卡.md",
         "致谢名单.md",
         "致谢名单.png",
-        "点我获取更多图像资源.xlsx",
+        "点我获取更多图像资源 2025-08-28.xlsx",
         "logs/item_ranking_dag_graph.json",
     ]
     for tar_file in tar_files:

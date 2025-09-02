@@ -130,6 +130,7 @@ The original intention of developing this tool is to fulfill a childhood wish fr
 * 战利品和开宝箱记录
   * 精准图像识别, 自动纠错, 保存历史记录.
   * 上传至[美食数据站 - FAA米苏物流](https://faa.msdzls.cn/)统计副本掉率.
+* 联动天知强卡器! 允许将其作为一个FAA事项启动.
 
 # 免责声明 | Disclaimer
 

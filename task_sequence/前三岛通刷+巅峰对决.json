@@ -3,17 +3,16 @@
         "task_type": "战斗",
         "task_id": 1,
         "task_args": {
-            "stage_id": "NO-1-7",
-            "max_times": 1,
+            "stage_id": "WB-0-0",
+            "max_times": 5,
             "need_key": true,
             "player": [
-                2,
                 1
             ],
-            "global_plan_active": false,
+            "global_plan_active": true,
             "deck": 0,
-            "battle_plan_1p": "654e418d-ad07-11ef-9999-c2f2346a1393",
-            "battle_plan_2p": "7512848d-ad07-11ef-828e-c2f2346a1393",
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -32,17 +31,16 @@
         "task_type": "战斗",
         "task_id": 2,
         "task_args": {
-            "stage_id": "NO-1-14",
-            "max_times": 1,
+            "stage_id": "WB-0-0",
+            "max_times": 5,
             "need_key": true,
             "player": [
-                2,
-                1
+                2
             ],
-            "global_plan_active": false,
+            "global_plan_active": true,
             "deck": 0,
-            "battle_plan_1p": "654e418d-ad07-11ef-9999-c2f2346a1393",
-            "battle_plan_2p": "7512848d-ad07-11ef-828e-c2f2346a1393",
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -61,7 +59,7 @@
         "task_type": "战斗",
         "task_id": 3,
         "task_args": {
-            "stage_id": "NO-2-5",
+            "stage_id": "NO-1-7",
             "max_times": 1,
             "need_key": true,
             "player": [
@@ -90,6 +88,64 @@
         "task_type": "战斗",
         "task_id": 4,
         "task_args": {
+            "stage_id": "NO-1-14",
+            "max_times": 1,
+            "need_key": true,
+            "player": [
+                2,
+                1
+            ],
+            "global_plan_active": false,
+            "deck": 0,
+            "battle_plan_1p": "654e418d-ad07-11ef-9999-c2f2346a1393",
+            "battle_plan_2p": "7512848d-ad07-11ef-828e-c2f2346a1393",
+            "quest_card": "None",
+            "ban_card_list": [],
+            "dict_exit": {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": [
+                    "竞技岛"
+                ],
+                "last_time_player_b": [
+                    "竞技岛"
+                ]
+            }
+        }
+    },
+    {
+        "task_type": "战斗",
+        "task_id": 5,
+        "task_args": {
+            "stage_id": "NO-2-5",
+            "max_times": 1,
+            "need_key": true,
+            "player": [
+                2,
+                1
+            ],
+            "global_plan_active": false,
+            "deck": 0,
+            "battle_plan_1p": "654e418d-ad07-11ef-9999-c2f2346a1393",
+            "battle_plan_2p": "7512848d-ad07-11ef-828e-c2f2346a1393",
+            "quest_card": "None",
+            "ban_card_list": [],
+            "dict_exit": {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": [
+                    "竞技岛"
+                ],
+                "last_time_player_b": [
+                    "竞技岛"
+                ]
+            }
+        }
+    },
+    {
+        "task_type": "战斗",
+        "task_id": 6,
+        "task_args": {
             "stage_id": "NO-1-7",
             "max_times": 14,
             "need_key": true,
@@ -117,7 +173,7 @@
     },
     {
         "task_type": "战斗",
-        "task_id": 5,
+        "task_id": 7,
         "task_args": {
             "stage_id": "NO-1-14",
             "max_times": 14,
@@ -146,7 +202,7 @@
     },
     {
         "task_type": "战斗",
-        "task_id": 6,
+        "task_id": 8,
         "task_args": {
             "stage_id": "NO-2-5",
             "max_times": 14,
