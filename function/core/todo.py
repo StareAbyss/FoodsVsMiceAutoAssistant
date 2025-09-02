@@ -4,7 +4,9 @@ import json
 import os
 import subprocess
 import time
+
 from function.globals.loadings import loading
+
 loading.update_progress(80,"正在加载任务执行协议...")
 from collections import defaultdict
 from time import sleep
@@ -1639,8 +1641,7 @@ class ThreadTodo(QThread):
                     is_cu=is_cu)
 
             # 基本参数检测
-            check_result = check_skip()
-            if not check_result:
+            if not check_skip():
                 return False
 
             # 进行 1本n次 返回 成功的每次战斗结果组成的list
