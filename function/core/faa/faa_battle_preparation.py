@@ -203,6 +203,9 @@ class BattlePreparation:
 
         for i in range(21):
 
+            # 设定保底时间, 图像刷新 ≠ 控件刷新
+            time.sleep(0.1)
+
             # 截图复用
             img = capture_image_png(
                 handle=handle,
@@ -230,6 +233,7 @@ class BattlePreparation:
 
             if i == 20:
                 break
+
             # 仅还没找到继续下滑
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=400)
             # 动态确认滑成功
@@ -269,10 +273,10 @@ class BattlePreparation:
 
         return scan_card_result_list, scan_card_position_list
 
-    def _add_card(self: "FAA", card_name, tar_position=None) -> bool:
+    def _add_card(self: "FAA", card_name, tar_page_num=None) -> bool:
         """
         战备选卡阶段 - 选中添加一张卡到卡组
-        :param tar_position: 预扫描在第几次下拉找到了对应卡片, 如果有该值 直达
+        :param tar_page_num: 预扫描在第几次下拉找到了对应卡片, 如果有该值 直达
         :param card_name: 卡片标识名称 可以为 合法类名 模糊名(初始名称) 精准名(初始名称-转职数字)
         :return:
         """
@@ -280,7 +284,7 @@ class BattlePreparation:
         handle = self.handle
         handle_360 = self.handle_360
 
-        if tar_position is None:
+        if tar_page_num is None:
             targets = self._card_name_to_tar_list(card_name=card_name)
         else:
             # 有预扫描步骤 一步到位
@@ -308,10 +312,10 @@ class BattlePreparation:
             time.sleep(0.25)
 
             for i in range(21):
-                if tar_position is None or i >= tar_position:
+                if tar_page_num is None or i >= tar_page_num:
 
-                    # 到达了对应位置, 先等一下实际的游戏控件刷新, 画面刷新 ≠ 控件刷新
-                    time.sleep(0.2)
+                    # 等一下实际的游戏控件刷新, 因为画面刷新 ≠ 控件刷新
+                    time.sleep(0.3)
 
                     # 需要刷新游戏帧数
                     find = loop_match_p_in_w(
@@ -449,7 +453,7 @@ class BattlePreparation:
             if card_name is None:
                 continue
             # 理论上 经过了筛查 选卡失败基本上仅是因为 和其他卡片有冲突 这只会出现在非必要承载卡 可以忽视
-            result = self._add_card(card_name=card_name, tar_position=tar_position)
+            result = self._add_card(card_name=card_name, tar_page_num=tar_position)
             self.print_debug(text="[选取卡片] [{}]完成, 结果: {}".format(card_name, "成功" if result else "失败"))
 
         return True
