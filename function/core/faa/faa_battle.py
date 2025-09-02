@@ -119,7 +119,7 @@ class FAABattle:
 
         _, find = match_p_in_w(
             source_handle=self.handle,
-            source_range=[386, 332, 463, 362],
+            source_range=[430, 332, 510, 362],
             match_tolerance=0.95,
             template=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
 
@@ -134,10 +134,10 @@ class FAABattle:
         while find:
             if self.need_key:
                 template = RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"]
-                source_range = [446, 340, 502, 354]
+                source_range = [430, 332, 510, 362]
             else:
                 template = RESOURCE_P["common"]["战斗"]["战斗中_领取奖品.png"]
-                source_range = [544, 340, 606, 354]
+                source_range = [530, 332, 605, 362]
             loop_match_p_in_w(
                 template=template,
                 source_handle=self.handle,
@@ -153,7 +153,7 @@ class FAABattle:
             _, find = match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
-                source_range=[302, 263, 396, 289],
+                source_range=[345, 263, 445, 289],
                 match_tolerance=0.95,
                 template=RESOURCE_P["common"]["战斗"]["战斗中_精英鼠军.png"])
 

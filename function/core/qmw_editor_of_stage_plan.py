@@ -1,7 +1,9 @@
 import copy
 import json
+
 from function.globals.loadings import loading
-loading.update_progress(55,"正在加载FAA全局编辑器...")
+
+loading.update_progress(55,"正在加载FAA全局&关卡方案编辑器...")
 from PyQt6 import uic
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow

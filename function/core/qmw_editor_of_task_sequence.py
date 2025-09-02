@@ -1,6 +1,8 @@
 import json
 import sys
+
 from function.globals.loadings import loading
+
 loading.update_progress(60,"正在加载FAA任务序列编辑器...")
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QComboBox, QHBoxLayout, QLabel, QLineEdit, \
@@ -735,13 +737,20 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
         try:
             export_list = self.ui_to_list()
-            print("导出结果:", export_list)
+            CUS_LOGGER.info(f"[任务序列编辑器] 导出结果:{export_list}", )
+
         except Exception as e:
+            # 获取完整的调用栈信息
+            import traceback
+            error_traceback = traceback.format_exc()
             # 报错弹窗
             QMessageBox.critical(
                 self,
                 "错误!",
-                f"转化ui内容到list失败\n请联系开发者!!!\n错误信息: {str(e)}")
+                f"转化ui内容到list失败\n\n"
+                f"完整错误调用栈:\n"
+                f"{error_traceback}\n"
+                f"请联系开发者!!!")
             return
 
         file_name, _ = QFileDialog.getSaveFileName(
