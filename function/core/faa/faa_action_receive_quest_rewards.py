@@ -251,7 +251,7 @@ class FAAActionReceiveQuestRewards:
                     goto_information=True
             if goto_information:
                 self.action_goto_information_island_and_click()
-            print(f"即将刷取{quest_list}")
+            #print(f"即将刷取{quest_list}")
             return [quest_list, task_names]
 
     def _scan_and_process_tasks(self,  puzzle_image, tasks,task_battle_quest):
