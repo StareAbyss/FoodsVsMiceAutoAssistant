@@ -234,7 +234,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
         try:
             line_widget = self.add_task_line_widget(task)
         except Exception as e:
-            print(f"Error in create_task_line: {e}")
+            #print(f"Error in create_task_line: {e}")
             # 标记存在读取失败的情况!
             self.could_not_load_json_succeed = True
             return

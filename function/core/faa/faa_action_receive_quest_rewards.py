@@ -264,7 +264,7 @@ class FAAActionReceiveQuestRewards:
         )
 
         if task_list_image is None:
-            print("任务列表截图失败")
+            #print("任务列表截图失败")
             return task_battle_quest
         task_images = split_edge(task_list_image)  # 注意：需要调整函数返回值以支持返回分割后的图像列表
         # 处理每个任务项
@@ -294,7 +294,7 @@ class FAAActionReceiveQuestRewards:
                         "关卡": stage_param
                     }
 
-                    print(f"数据库索引{db_index}对应任务信息：{task_info}")
+                    #print(f"数据库索引{db_index}对应任务信息：{task_info}")
 
 
 

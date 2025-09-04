@@ -42,8 +42,8 @@ if __name__ == '__main__':
             self.spend_time += self.check_interval
             # 假设T_ACTION_QUEUE_TIMER是您的全局线程类实例
             if T_ACTION_QUEUE_TIMER.print_queue_statue() == 0:
-                print(f"队列已归零. 使用了{self.spend_time}s")
-                print(f"每秒处理了{self.test_num_click / self.spend_time}次点击")
+                # print(f"队列已归零. 使用了{self.spend_time}s")
+                # print(f"每秒处理了{self.test_num_click / self.spend_time}次点击")
                 self.timer.stop()
                 self.quit()
 
