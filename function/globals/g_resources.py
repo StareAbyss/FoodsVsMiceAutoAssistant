@@ -155,6 +155,7 @@ def fresh_resource_log_img():
 """RESOURCE_B 战斗方案资源 由于会出现变动, 请务import .py而非单独的全局变量"""
 
 RESOURCE_B = {}
+RESOURCE_T = {}
 
 
 def fresh_resource_b():
@@ -166,7 +167,15 @@ def fresh_resource_b():
             with open(file=b_path, mode='r', encoding='utf-8') as file:
                 json_data = json.load(file)
         RESOURCE_B[b_uuid] = json_data
-
+def fresh_resource_t():
+    # 清空
+    global RESOURCE_T
+    RESOURCE_T = {}
+    for b_uuid, b_path in EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH.items():
+        with EXTRA.FILE_LOCK:
+            with open(file=b_path, mode='r', encoding='utf-8') as file:
+                json_data = json.load(file)
+        RESOURCE_T[b_uuid] = json_data
 
 fresh_resource_img()
 fresh_resource_cus_img()

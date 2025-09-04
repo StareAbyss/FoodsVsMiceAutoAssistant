@@ -2,6 +2,7 @@ import copy
 import datetime
 import math
 import os
+import random
 import time
 from ctypes import windll
 from threading import Timer
@@ -348,6 +349,7 @@ class CardManager(QThread):
                     signal_stop=self.signal_stop,
                     signal_used_key=self.signal_used_key,
                     signal_change_card_plan=self.signal_change_card_plan,
+                    thread_dict=self.thread_dict,
                 )
                 self.thread_dict[pid + 2] = ThreadUseCardTimer(
                     card_queue=self.card_queue_dict[pid],
@@ -549,7 +551,7 @@ class ThreadCheckTimer(QThread):
     """
 
     def __init__(self, card_queue, faa, kun_cards, check_interval,
-                 signal_change_card_plan, signal_used_key, signal_stop):
+                 signal_change_card_plan, signal_used_key, signal_stop,thread_dict):
 
         super().__init__()
 
@@ -567,7 +569,17 @@ class ThreadCheckTimer(QThread):
         self.timer = None
         self.checked_round = 0
         self.check_interval = check_interval  # 默认0.5s
-
+        self.thread_dict = thread_dict  #线程列表，以便动态修改参数
+        self.interval=None
+        self.check_interval_count=None
+        if hasattr(self.faa, 'battle_plan_tweak') and isinstance(self.faa.battle_plan_tweak, dict):
+            CUS_LOGGER.debug(f"[战斗执行器] ThreadCheckTimer - check - 微调方案{self.faa.battle_plan_tweak}")
+            meta_data = self.faa.battle_plan_tweak.get('meta_data', {})
+            self.interval = meta_data.get('interval')
+            if self.interval:
+                #深度battle调参未果（…^-^)
+                #放卡间隔与重置单轮放卡间隔原初比例大约为0.036：1
+                self.check_interval_count = (self.interval[0]+self.interval[1])*5//1
     def run(self):
         self.timer = Timer(interval=self.check_interval, function=self.callback_timer)
         self.running = True
@@ -613,6 +625,25 @@ class ThreadCheckTimer(QThread):
             self.timer = Timer(interval=self.check_interval, function=self.callback_timer)
             self.timer.start()
 
+    def _update_thread_intervals(self, interval):
+        """更新所有线程中的间隔参数"""
+        for thread_id, thread in self.thread_dict.items():
+            random_interval = random.uniform(float(interval[0]), float(interval[1]))
+            try:
+                # 检查线程是否存活
+                if thread and hasattr(thread, 'isRunning') and thread.isRunning():
+                    # 检查线程类名以便修改对应属性
+                    if thread.__class__.__name__ == 'ThreadUseCardTimer':
+                        # 直接更新属性
+                        thread.interval_use_card= random_interval
+                        # CUS_LOGGER.debug(f"更新线程 {thread_id} 的间隔参数为: {random_interval:.3f}")
+
+                else:
+                    # CUS_LOGGER.debug(f"线程 {thread_id} 不可用，跳过更新")
+                    pass
+
+            except Exception as e:
+                CUS_LOGGER.error(f"更新线程 {thread_id} 参数失败: {str(e)}")
     def check(self):
         self.checked_round += 1
 
@@ -639,6 +670,16 @@ class ThreadCheckTimer(QThread):
 
         if not self.faa.is_auto_battle:
             return
+        if self.interval:
+            try:
+                # 生成指定范围的随机浮点数
+                random_interval = random.uniform(float(self.interval[0]), float(self.interval[1]))
+                # 修改 click_sleep 属性
+                self.faa.click_sleep = random_interval
+                self._update_thread_intervals(self.interval)
+                CUS_LOGGER.debug(f"成功设置 click_sleep 为随机值: {random_interval:.3f}")
+            except (ValueError, TypeError) as e:
+                CUS_LOGGER.error(f"生成随机间隔失败: {str(e)}")
 
         # 仅截图一次, 降低重复次数
         game_image = capture_image_png(
@@ -656,10 +697,14 @@ class ThreadCheckTimer(QThread):
                 return
 
         # 先清空现有队列 再初始化队列
-        self.card_queue.queue.clear()
-        self.card_queue.init_card_queue(
-            game_image=game_image,
-            check_interval=self.check_interval)
+        #这里的重置队列要适应放卡间隔
+        if self.check_interval_count is None or (self.checked_round %self.check_interval_count==1):
+            self.card_queue.queue.clear()
+            self.card_queue.init_card_queue(
+                game_image=game_image,
+                check_interval=self.check_interval)
+            CUS_LOGGER.debug(f"成功重置队列，本轮次{self.checked_round}")
+
 
         # 更新火苗
         self.faa.update_fire_elemental_1000(img=game_image)
@@ -752,6 +797,8 @@ class ThreadUseCardTimer(QThread):
         self.running = False
         self.timer = None
         self.interval_use_card = self.faa.click_sleep
+        # 默认的快速使用卡的间隔
+        self.fast_use_card_interval = 0.018
 
     def run(self):
         self.timer = Timer(interval=self.interval_use_card, function=self.callback_timer)
@@ -782,9 +829,9 @@ class ThreadUseCardTimer(QThread):
         # print("[战斗执行器] ThreadUseCardTimer - stop - 线程已等待完成")
 
     def callback_timer(self):
-
+        fast_fail=False
         try:
-            self.card_queue.use_top_card()
+            fast_fail=self.card_queue.use_top_card()
         except Exception as e:
             CUS_LOGGER.warning(
                 f"[战斗执行器] ThreadUseCardTimer - callback_timer - 在运行中遭遇错误"
@@ -793,7 +840,10 @@ class ThreadUseCardTimer(QThread):
 
         # 回调
         if self.running:
-            self.timer = Timer(interval=self.interval_use_card, function=self.callback_timer)
+            if fast_fail:
+                self.timer = Timer(interval=self.fast_use_card_interval, function=self.callback_timer)
+            else:
+                self.timer = Timer(interval=self.interval_use_card, function=self.callback_timer)
             self.timer.start()
 
 

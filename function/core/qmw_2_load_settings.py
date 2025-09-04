@@ -14,7 +14,7 @@ from function.globals import EXTRA, SIGNAL
 from function.globals import g_resources
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
-from function.scattered.check_battle_plan import fresh_and_check_all_battle_plan
+from function.scattered.check_battle_plan import fresh_and_check_all_battle_plan, fresh_and_check_all_tweak_plan
 from function.scattered.get_list_battle_plan import get_list_battle_plan
 from function.scattered.get_task_sequence_list import get_task_sequence_list
 from function.scattered.test_route_connectivity import test_route_connectivity
@@ -77,10 +77,12 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         # 检测uuid是否存在于battle plan 没有则添加 并将其读入到内存资源中
         fresh_and_check_all_battle_plan()
+        fresh_and_check_all_tweak_plan()
 
         # 更新完毕后重新刷新对应资源
         g_resources.fresh_resource_cus_img()
         g_resources.fresh_resource_b()
+        g_resources.fresh_resource_t()
 
         # 为部分ui控件添加特性
         self.widget_extra_settings()
@@ -721,7 +723,9 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         # 检测uuid是否存在于 可能新加入的 battle plan 没有则添加 并将其读入到内存资源中
         fresh_and_check_all_battle_plan()
+        fresh_and_check_all_tweak_plan()
         g_resources.fresh_resource_b()
+        g_resources.fresh_resource_t()
 
         # 新的uuid list
         battle_plan_uuid_list_new = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())

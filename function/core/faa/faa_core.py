@@ -77,6 +77,7 @@ class FAABase:
         self.ban_card_list = None
         self.max_card_num = None
         self.battle_plan = None  # 读取自json的初始战斗方案
+        self.battle_plan_tweak = None
         self.battle_mode = None
 
         """
@@ -272,7 +273,8 @@ class FAABase:
             self,
             deck: int,
             auto_carry_card: bool,
-            battle_plan_uuid: str = "00000000-0000-0000-0000-000000000000"
+            battle_plan_uuid: str = "00000000-0000-0000-0000-000000000000",
+            battle_plan_tweak_uuid: str = "00000000-0000-0000-0000-000000000000"
 
     ):
         """
@@ -289,6 +291,7 @@ class FAABase:
 
         # 如果缺失, 外部的检测函数会拦下来不继续的
         self.battle_plan = g_resources.RESOURCE_B.get(battle_plan_uuid, None)
+        self.battle_plan_tweak = g_resources.RESOURCE_T.get(battle_plan_tweak_uuid, None)
 
     """战斗完整的过程中的任务函数"""
 
