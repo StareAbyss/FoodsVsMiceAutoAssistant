@@ -1824,13 +1824,11 @@ class ThreadTodo(QThread):
             is_cu = quest.get("is_cu", False)
 
             text_parts = [
-                "{}事项{}".format(
-                    title,
-                    quest["battle_id"] if "battle_id" in quest else (i + 1)),
+                "{}事项{}".format(title,quest['battle_id'] if 'battle_id' in quest else (i + 1)),
                 "开始",
                 "组队" if len(quest["player"]) == 2 else "单人",
-                f"{quest["stage_id"]}",
-                f"{quest["max_times"]}次",
+                f"{quest['stage_id']}",
+                f"{quest['max_times']}次",
             ]
             if quest_card:
                 text_parts.append("带卡:{}".format(quest_card))
@@ -1979,7 +1977,7 @@ class ThreadTodo(QThread):
         quest_list = quest_list_1 + [i for i in quest_list_2 if i not in quest_list_1]
 
         for i in quest_list:
-            text_parts = [f"副本:{i["stage_id"]}"]
+            text_parts = [f"副本:{i['stage_id']}"]
             quest_card = i.get("quest_card", None)
             ban_card_list = i.get("ban_card_list", None)
             max_card_num = i.get("max_card_num", None)
@@ -2372,14 +2370,14 @@ class ThreadTodo(QThread):
                 if len(quest["player"]) == 2:
                     player_text = "组队"
                 else:
-                    player_text = f"单人{quest["player"][0]}P"
+                    player_text = f"单人{quest['player'][0]}P"
 
                 text_parts = [
                     f"[全自动大赛] 事项{i + 1}",
                     f"{player_text}",
-                    f"{quest["stage_id"]}",
+                    f"{quest['stage_id']}",
                     "用钥匙" if quest["need_key"] else "无钥匙",
-                    f"{quest["max_times"]}次",
+                    f"{quest['max_times']}次",
                 ]
 
                 quest_card = quest.get("quest_card", None)
@@ -2908,7 +2906,7 @@ class ThreadTodo(QThread):
             if my_opt["active"]:
                 self.easy_battle(
                     text_="勇士挑战",
-                    stage_id=f"WA-0-{my_opt["stage"]}",
+                    stage_id=f"WA-0-{my_opt['stage']}",
                     player=[2, 1] if my_opt["is_group"] else [1],
                     max_times=int(my_opt["max_times"]),
                     global_plan_active=my_opt["global_plan_active"],
