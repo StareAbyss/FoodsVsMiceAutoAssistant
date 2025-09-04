@@ -39,13 +39,14 @@ def get_machine_code():
             return disk[0].SerialNumber.strip()
 
     except Exception as e:
-        print(f"[ERROR] 获取机器码失败: {e}")
+        #print(f"[ERROR] 获取机器码失败: {e}")
+        pass
 
     return None  # 没有可用的机器码
 
 
 # 测试代码
-print(get_machine_code())
+#print(get_machine_code())
 
 
 # 根据机器码生成密钥

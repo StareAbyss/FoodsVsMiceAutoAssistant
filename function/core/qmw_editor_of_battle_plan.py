@@ -791,7 +791,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 高亮棋盘
         self.highlight_chessboard()
 
-        print(f"编辑 - 位置 - 普通动作编辑 目标改变: {self.be_edited_loop_use_cards_one_card_index}")
+        #print(f"编辑 - 位置 - 普通动作编辑 目标改变: {self.be_edited_loop_use_cards_one_card_index}")
 
     def be_edited_insert_use_card_change(self, item):
         """被单击后, 被选中的卡片改变了"""
@@ -802,12 +802,12 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 高亮棋盘
         self.highlight_chessboard()
 
-        print(f"编辑 - 位置 - 定时动作编辑 目标改变: {self.be_edited_insert_use_card_index}")
+        #print(f"编辑 - 位置 - 定时动作编辑 目标改变: {self.be_edited_insert_use_card_index}")
 
     def be_edited_gem_change(self, item):
         """被单击后, 被选中的宝石操作改变了"""
         self.be_edited_gem_index = self.ListGemActions.indexFromItem(item).row()
-        print(f"编辑 - 宝石操作 目标改变: {self.be_edited_gem_index}")
+        #print(f"编辑 - 宝石操作 目标改变: {self.be_edited_gem_index}")
     def load_data_to_ui_list_mode_1(self):
         """从 [内部数据表] 载入数据到 [ui的放卡动作列表]"""
 
@@ -966,7 +966,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         if self.editing_mode == 1:
 
-            print("即将显示 常规动作编辑窗口 索引 - ", self.be_edited_loop_use_cards_one_card_index)
+            #print("即将显示 常规动作编辑窗口 索引 - ", self.be_edited_loop_use_cards_one_card_index)
 
             event = next(e for e in self.loop_use_cards_events if e.trigger.wave_id == self.be_edited_wave_id)
             a_card = event.action.cards[self.be_edited_loop_use_cards_one_card_index]
@@ -986,7 +986,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         elif self.editing_mode == 2:
 
-            print("即将显示 定时动作编辑窗口 索引 - ", self.be_edited_insert_use_card_index)
+            #print("即将显示 定时动作编辑窗口 索引 - ", self.be_edited_insert_use_card_index)
 
             events = [e for e in self.insert_use_card_events if e.trigger.wave_id == self.be_edited_wave_id]
             event = events[self.be_edited_insert_use_card_index]

@@ -7481,7 +7481,7 @@ Link Start</string>
               <number>5</number>
              </property>
              <item>
-              <layout class="QVBoxLayout" name="Tab3LeftLayout1" stretch="6,1,1,1,1,1">
+              <layout class="QVBoxLayout" name="Tab3LeftLayout1" stretch="6,1,1,1,1,1,0">
                <property name="spacing">
                 <number>5</number>
                </property>
@@ -7640,6 +7640,31 @@ Link Start</string>
                  </property>
                 </widget>
                </item>
+               <item>
+                <widget class="QPushButton" name="OpenOtherTools_Button">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>60</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>更多工具</string>
+                 </property>
+                </widget>
+               </item>
               </layout>
              </item>
              <item>
@@ -7662,8 +7687,8 @@ Link Start</string>
                <widget class="QWidget" name="AdvancedSettingsAreaWidget">
                 <property name="geometry">
                  <rect>
-                  <x>2</x>
-                  <y>-874</y>
+                  <x>0</x>
+                  <y>0</y>
                   <width>560</width>
                   <height>2500</height>
                  </rect>
