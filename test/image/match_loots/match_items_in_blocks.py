@@ -12,7 +12,7 @@ def f_test_match_items_from_image_and_save():
 
     drop_dict = match_items_from_image_and_save(img_save_path=img_path, image=img_array, mode='loots', test_print=True)
 
-    print("[Test] [捕获战利品] 处在战利品UI 战利品已 捕获/识别/保存".format(drop_dict))
+    #print("[Test] [捕获战利品] 处在战利品UI 战利品已 捕获/识别/保存".format(drop_dict))
 
 
 def f_test_match_block_is_item():
@@ -22,10 +22,10 @@ def f_test_match_block_is_item():
     img_tar_path = "F://My Project//Python//FoodsVsMousesAutoAssistant//resource//image//item//战利品//花园钥匙.png"
     img_tar = cv2.imdecode(buf=np.fromfile(file=img_tar_path, dtype=np.uint8), flags=-1)
 
-    print(one_item_match(
-        img_block=img_block,
-        img_tar=img_tar,
-        mode="match_template_with_mask_tradable"))
+    # print(one_item_match(
+    #     img_block=img_block,
+    #     img_tar=img_tar,
+    #     mode="match_template_with_mask_tradable"))
 
 
 f_test_match_items_from_image_and_save()

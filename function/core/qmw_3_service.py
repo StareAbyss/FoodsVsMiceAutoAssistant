@@ -2,12 +2,13 @@ import datetime
 import json
 import random
 import shutil
+import sqlite3
 import webbrowser
 
 import win32con
 import win32gui
 from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtWidgets import QMessageBox, QFileDialog, QTableWidgetItem
+from PyQt6.QtWidgets import QMessageBox, QFileDialog, QTableWidgetItem, QVBoxLayout, QPushButton, QWidget
 
 from function.common.process_and_window_manager import get_path_and_sub_titles
 from function.common.startup import *
@@ -18,6 +19,7 @@ from function.core.qmw_editor_of_battle_plan import QMWEditorOfBattlePlan
 from function.core.qmw_editor_of_stage_plan import QMWEditorOfStagePlan
 from function.core.qmw_editor_of_task_sequence import QMWEditorOfTaskSequence
 from function.core.qmw_settings_migrator import QMWSettingsMigrator
+from function.core.qmw_task_plan_editor import TaskEditor
 from function.core.qmw_tip_accelerate_settings import QMWTipAccelerateSettings
 from function.core.qmw_tip_battle import QMWTipBattle
 from function.core.qmw_tip_battle_senior import QMWTipBattleSenior
@@ -98,6 +100,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 额外窗口 - 实用小工具
         self.window_useful_tools = UsefulToolsWidget(self)
         self.OpenUsefulTools_Button.clicked.connect(self.click_btn_open_useful_tools)
+        # # 额外窗口 - 其它工具
+        self.OpenOtherTools_Button.clicked.connect(self.click_btn_open_other_tools)
 
         # 额外窗口 - 日氪链接
         self.TopUpMoneyTipButton.clicked.connect(
@@ -865,6 +869,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         window.show()
 
     def click_btn_open_useful_tools(self):
+        pass
         window = self.window_useful_tools
         window.resize(300, 200)
         window.setFont(self.font)
@@ -1085,6 +1090,33 @@ class QMainWindowService(QMainWindowLoadSettings):
             )
 
         CUS_LOGGER.warning("重置卡片状态自学习记忆, 结束")
+    def click_btn_open_other_tools(self):
+        # 创建新窗口
+        self.tools_window = QWidget()
+        self.tools_window.setWindowTitle("其它工具")
+        self.tools_window.resize(300, 200)
+
+        # 创建垂直布局
+        layout = QVBoxLayout(self.tools_window)
+
+        # 创建按钮
+        self.open_task_btn = QPushButton("任务计划编辑器")
+        layout.addWidget(self.open_task_btn)
+
+        # 数据库连接
+        db_path = PATHS["db"] + "/tasks.db"
+        db_conn = sqlite3.connect(db_path)
+
+        # 按钮点击连接
+        self.open_task_btn.clicked.connect(lambda: self.open_task_editor(db_conn))
+
+        # 显示窗口
+        self.tools_window.show()
+
+    def open_task_editor(self, db_conn):
+        """打开任务计划编辑器"""
+        self.task_editor = TaskEditor(db_conn)
+        self.task_editor.show()
 
 def faa_start_main(app=None,loading=None):
     loading.update_progress(95)
@@ -1125,8 +1157,6 @@ def faa_start_main(app=None,loading=None):
         print("检测到启动参数 --start_with_task，将自动开始任务")
         window.todo_click_btn()
     app.setQuitOnLastWindowClosed(False)  # 禁止自动退出
-
-
 
 
 
