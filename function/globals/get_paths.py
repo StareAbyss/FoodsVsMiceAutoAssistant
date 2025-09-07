@@ -26,12 +26,14 @@ def build_paths(root):
         "config": os.path.join(root, "config"),
         "task_sequence": os.path.join(root, "task_sequence"),
         "logs": os.path.join(root, "logs"),
+        "plugins": os.path.join(root, "plugins"),
         # 资源文件
         "font": os.path.join(root, "resource", "font"),
         "logo": os.path.join(root, "resource", "logo"),
         "model": os.path.join(root, "resource", "model"),
         "theme": os.path.join(root, "resource", "theme"),
         "ui": os.path.join(root, "resource", "ui"),
+        "db": os.path.join(root, "resource", "db"),
         "image": {
             "current": os.path.join(root, "resource", "image"),
             "common": os.path.join(root, "resource", "image", "common"),
@@ -45,6 +47,11 @@ def build_paths(root):
             "map": os.path.join(root, "resource", "image", "map"),
             "item": os.path.join(root, "resource", "image", "item"),
             "error": os.path.join(root, "resource", "image", "error"),
+            "task": {
+                "chaos": os.path.join(root, "resource", "image", "task","chaos"),
+                "desc": os.path.join(root, "resource", "image", "task","desc"),
+                "puzzle": os.path.join(root, "resource", "image", "task","puzzle"),
+            },
         }
     }
 

@@ -660,7 +660,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             
             # 检查数据有效性
             if not my_opt or not isinstance(my_opt, dict):
-                print("错误：无效的输入数据")
+                #print("错误：无效的输入数据")
                 return
             
             # 遍历字典填充表格
