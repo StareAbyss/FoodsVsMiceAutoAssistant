@@ -1267,7 +1267,7 @@ class ThreadTodo(QThread):
     def battle_1_1_n(self, stage_id, player, need_key, max_times, dict_exit,
                      global_plan_active, deck, battle_plan_1p, battle_plan_2p,
                      quest_card, ban_card_list, max_card_num,
-                     title_text,battle_plan_tweak=None, is_cu=False):
+                     title_text, battle_plan_tweak_from_quest_set=None, is_cu=False):
         """
         1轮次 1关卡 n次数
         副本外 -> (副本内战斗 * n次) -> 副本外
@@ -1282,8 +1282,6 @@ class ThreadTodo(QThread):
         is_mt = "MT" in stage_id
         is_wb = "WB" in stage_id
         is_cs = "CS" in stage_id
-        #保留是否传入一个微调方案的信息确保不会被全局方案错误覆盖
-        the_tweak_plan=battle_plan_tweak
         # 如果是板上钉钉的单人关卡还tm组队, 强制修正为仅1P单人.
         if len(player) > 1 and ("MT-1" in stage_id or "MT-3" in stage_id or "WB" in stage_id):
             SIGNAL.PRINT_TO_UI.emit(text=f"{title} 检测到组队, 强制修正为仅1P单人")
@@ -1306,14 +1304,13 @@ class ThreadTodo(QThread):
         # 默认肯定是不跳过的
         skip = False
 
-        def load_g_plan(skip_, deck_, battle_plan_1p_, battle_plan_2p_,battle_plan_tweak_,  stage_id_=None):
-            nonlocal battle_plan_tweak
+        def load_g_plan(skip_, deck_, battle_plan_1p_, battle_plan_2p_, battle_plan_tweak_, stage_id_=None):
+
             if stage_id_ is None:
                 stage_id_ = faa_a.stage_info["b_id"]
-            tweak_="00000000-0000-0000-0000-000000000000"
+
             if global_plan_active:
                 # 获取 g_plan
-
                 try:
                     with EXTRA.FILE_LOCK:
                         with open(file=PATHS["config"] + "//stage_plan.json", mode="r", encoding="UTF-8") as file:
@@ -1328,19 +1325,23 @@ class ThreadTodo(QThread):
                     g_plan = stage_plan.get("global", None)
 
                 if not g_plan:
-                    # 2.1.0-beta.1- 不包含全局方案的情况.
+                    # 2.1.0-beta.1- 不包含全局方案的情况
                     g_plan = {
                         "skip": False,
                         "deck": 0,
-                        "tweak_plan": "00000000-0000-0000-0000-000000000000",
                         "battle_plan": [
                             "00000000-0000-0000-0000-000000000000",
                             "00000000-0000-0000-0000-000000000001"]}
 
+                # 2.2.2- 不包含 tweak_plan 的情况
+                if g_plan.get("tweak_plan"):
+                    g_plan["tweak_plan"] = None
+
                 # 加载 g_plan
                 skip_ = g_plan["skip"]
                 deck_ = g_plan["deck"]
-                tweak_ = g_plan.get("tweak_plan", "00000000-0000-0000-0000-000000000000")
+                if g_plan["tweak_plan"]:
+                    battle_plan_tweak_ = g_plan["tweak_plan"]
 
                 if is_group:
                     # 双人组队
@@ -1355,21 +1356,20 @@ class ThreadTodo(QThread):
                         # 可组队关卡, 但设置了仅单人作战
                         battle_plan_1p_ = g_plan["battle_plan"][0]
                         battle_plan_2p_ = g_plan["battle_plan"][0]
-            #传入的将优先覆盖全局再覆盖无微调方案
-            if battle_plan_tweak is None:
-                battle_plan_tweak_ = tweak_
+
             battle_plan_a_ = battle_plan_1p_ if pid_a == 1 else battle_plan_2p_
             battle_plan_b_ = (battle_plan_1p_ if pid_b == 1 else battle_plan_2p_) if is_group else None
 
-            return skip_, deck_, battle_plan_a_, battle_plan_b_,battle_plan_tweak_
+            return skip_, deck_, battle_plan_a_, battle_plan_b_, battle_plan_tweak_
 
+        battle_plan_tweak = "00000000-0000-0000-0000-000000000000"
         # 加载全局关卡方案
-        skip, deck, battle_plan_a, battle_plan_b,the_tweak_plan = load_g_plan(
+        skip, deck, battle_plan_a, battle_plan_b, battle_plan_tweak = load_g_plan(
             skip_=skip,
             deck_=deck,
             battle_plan_1p_=battle_plan_1p,
             battle_plan_2p_=battle_plan_2p,
-            battle_plan_tweak_=the_tweak_plan,
+            battle_plan_tweak_=battle_plan_tweak,
             stage_id_=stage_id
         )
 
@@ -1422,10 +1422,12 @@ class ThreadTodo(QThread):
                     SIGNAL.PRINT_TO_UI.emit(
                         text=f"{title} [2P] 无法通过UUID{battle_plan_2p}找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
                     return False
-            if the_tweak_plan not in g_resources.RESOURCE_T.keys():
+
+            if battle_plan_tweak not in g_resources.RESOURCE_T.keys():
                 SIGNAL.PRINT_TO_UI.emit(
-                    text=f"{title} 无法通过UUID{the_tweak_plan}找到战斗微调方案! 您使用的微调关卡方案已被删除. 请重新设置!")
+                    text=f"{title} 无法通过UUID{battle_plan_tweak}找到战斗微调方案! 您使用的微调关卡方案已被删除. 请重新设置!")
                 return False
+
             return True
 
         def goto_stage(need_goto_stage, need_change_card):
@@ -1473,7 +1475,7 @@ class ThreadTodo(QThread):
         def multi_round_battle():
 
             # 声明: 这些函数来自外部作用域, 以便进行修改
-            nonlocal skip, deck, battle_plan_a, battle_plan_b, the_tweak_plan
+            nonlocal skip, deck, battle_plan_a, battle_plan_b, battle_plan_tweak
 
             # 标记是否需要进入副本
             need_goto_stage = True
@@ -1490,14 +1492,17 @@ class ThreadTodo(QThread):
                     need_goto_stage=need_goto_stage, need_change_card=need_change_card)
 
                 # 再次加载全局关卡方案.
-                skip, deck, battle_plan_a, battle_plan_b,the_tweak_plan = load_g_plan(
+                skip, deck, battle_plan_a, battle_plan_b, battle_plan_tweak = load_g_plan(
                     skip_=skip,
                     deck_=deck,
                     battle_plan_1p_=battle_plan_1p,
                     battle_plan_2p_=battle_plan_2p,
-                    battle_plan_tweak_=the_tweak_plan,
+                    battle_plan_tweak_=battle_plan_tweak,
                     stage_id_=None,
                 )
+                # 微调方案 手动设定传入 > 全局 > 无而使用默认
+                if battle_plan_tweak_from_quest_set:
+                    battle_plan_tweak = battle_plan_tweak_from_quest_set
 
                 # 根据卡组编号(0-6), 转化为游戏内操作时选择的卡组编号(1-6)和是否激活启动带卡策略
                 auto_carry_card = deck == 0
@@ -1509,9 +1514,17 @@ class ThreadTodo(QThread):
                         deck = 6
 
                 # 将战斗方案加载至FAA
-                faa_a.set_battle_plan(deck=deck, auto_carry_card=auto_carry_card, battle_plan_uuid=battle_plan_a,battle_plan_tweak_uuid=the_tweak_plan)
+                faa_a.set_battle_plan(
+                    deck=deck,
+                    auto_carry_card=auto_carry_card,
+                    battle_plan_uuid=battle_plan_a,
+                    battle_plan_tweak_uuid=battle_plan_tweak)
                 if is_group:
-                    faa_b.set_battle_plan(deck=deck, auto_carry_card=auto_carry_card, battle_plan_uuid=battle_plan_b,battle_plan_tweak_uuid=the_tweak_plan)
+                    faa_b.set_battle_plan(
+                        deck=deck,
+                        auto_carry_card=auto_carry_card,
+                        battle_plan_uuid=battle_plan_b,
+                        battle_plan_tweak_uuid=battle_plan_tweak)
 
                 # SIGNAL.PRINT_TO_UI.emit(
                 #     text=f"{title} [{faa_a.player}P] 房主, "
@@ -1832,11 +1845,10 @@ class ThreadTodo(QThread):
             ban_card_list = quest.get("ban_card_list", None)
             max_card_num = quest.get("max_card_num", None)
             is_cu = quest.get("is_cu", False)
-            #没有微调方案默认采用"!!无"微调方案
-            battle_plan_tweak = quest.get("battle_plan_tweak", '00000000-0000-0000-0000-000000000000')
+            battle_plan_tweak = quest.get("battle_plan_tweak", None)
 
             text_parts = [
-                "{}事项{}".format(title,quest['battle_id'] if 'battle_id' in quest else (i + 1)),
+                "{}事项{}".format(title, quest['battle_id'] if 'battle_id' in quest else (i + 1)),
                 "开始",
                 "组队" if len(quest["player"]) == 2 else "单人",
                 f"{quest['stage_id']}",
@@ -1863,7 +1875,7 @@ class ThreadTodo(QThread):
                 deck=quest["deck"],
                 battle_plan_1p=quest["battle_plan_1p"],
                 battle_plan_2p=quest["battle_plan_2p"],
-                battle_plan_tweak=battle_plan_tweak,
+                battle_plan_tweak_from_quest_set=battle_plan_tweak,
                 quest_card=quest_card,
                 ban_card_list=ban_card_list,
                 max_card_num=max_card_num,

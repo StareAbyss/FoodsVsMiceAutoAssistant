@@ -77,7 +77,7 @@ class FAABase:
         self.ban_card_list = None
         self.max_card_num = None
         self.battle_plan = None  # 读取自json的初始战斗方案
-        self.battle_plan_tweak = None
+        self.battle_plan_tweak = None  # 读取自json的战斗微调方案
         self.battle_mode = None
 
         """
@@ -282,6 +282,7 @@ class FAABase:
         :param deck: int 1-6 选中的卡槽数 (0值已被处理为 auto_carry_card 参数)
         :param auto_carry_card: bool 是否激活自动带卡
         :param battle_plan_uuid: 战斗方案的uuid
+        :param battle_plan_tweak_uuid: 战斗微调方案的uuid
         :return:
         """
 
