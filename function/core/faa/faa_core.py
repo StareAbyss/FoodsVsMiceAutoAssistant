@@ -12,6 +12,8 @@ from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_m
 from function.common.bg_img_screenshot import capture_image_png
 from function.common.get_system_dpi import get_window_position, get_system_dpi
 from function.common.overlay_images import overlay_images
+from function.common.process_and_window_manager import close_software_by_title, get_path_and_sub_titles, \
+    close_all_software_by_name, start_software_with_args
 from function.core.my_crypto import decrypt_data
 from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
 from function.globals import g_resources, SIGNAL, EXTRA
@@ -38,7 +40,7 @@ class FAABase:
 
     def __init__(self: "FAA", channel: str = "锑食", player: int = 1, character_level: int = 80,
                  is_auto_battle: bool = True, is_auto_pickup: bool = False,
-                 QQ_login_info=None, extra_sleep=None, random_seed: int = 0):
+                 QQ_login_info=None, extra_sleep=None,opt=None,the_360_lock=None, random_seed: int = 0):
 
         # 获取窗口句柄
         self.channel = channel  # 在刷新窗口后会需要再重新获取flash的句柄, 故保留
@@ -47,7 +49,8 @@ class FAABase:
         self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
         self.QQ_login_info = QQ_login_info
         self.extra_sleep = extra_sleep  # dict 包含部分参数的包
-
+        self.opt = opt
+        self.the_360_lock = the_360_lock
         """
         每次战斗中都保持一致的参数
         """
@@ -1229,9 +1232,9 @@ class FAABase:
             self.print_error(text="[刷新游戏] 循环判定断线重连失败, 请检查网络是否正常...")
             return False
 
-        def main() -> None:
-
-            while True:
+        def main() -> bool:
+            count=0
+            while count<0:
                 # 先重新获取 360 和 浏览器的句柄
                 self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
                 self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
@@ -1457,12 +1460,87 @@ class FAABase:
                     self.print_debug(text="[刷新游戏] 已完成")
                     time.sleep(0.5)
 
-                    return
+                    return True
                 else:
-                    self.print_warning(text="[刷新游戏] 查找大地图失败, 点击服务器后未能成功进入游戏, 刷新重来")
+                    count += 1
+                    CUS_LOGGER.warning(f"[刷新游戏] 查找大地图失败, 点击服务器后未能成功进入游戏, 刷新重来,当前刷新次数: {count}")
+            return False
+        fresh_success=main()
+        if not fresh_success:
+            CUS_LOGGER.warning("[刷新游戏] 刷新次数过多，可能网络爆炸了/360大厅抽风，刷新点不动,现在关闭360再逝一次")
+            if not self.opt["login_settings"]["login_open_settings"]:
+                CUS_LOGGER.error("[刷新游戏] 刷新次数过多，可能网络爆炸了/360大厅抽风，刷新点不动,并且未打开自动打开360")
+                return
+            with self.the_360_lock:
+                self.close_360()
+                time.sleep(1)
+                self.start_360()
+            main()
+    def start_360(self):
 
-        main()
 
+        faa_get_handle(channel=self.channel, mode="360")
+
+
+        def start_one(pid, game_id, account_id, executable_path, wait_sleep_time):
+
+
+            if account_id == 0:
+                return
+
+            args = ["-action:opengame", f"-gid:{game_id}", f"-gaid:{account_id}"]
+            start_software_with_args(executable_path, *args)
+            time.sleep(wait_sleep_time)
+
+            SIGNAL.PRINT_TO_UI.emit(text=f"[控制游戏大厅] {pid}P游戏大厅已启动.", color_level=1)
+
+
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text="[控制游戏大厅] 重启大厅中...",
+            color_level=1
+        )
+        if self.player==1:
+            start_one(
+                pid=1,
+                game_id=1,
+                account_id=self.opt["login_settings"]["first_num"],
+                executable_path=self.opt["login_settings"]["login_path"],
+                wait_sleep_time=1
+            )
+        else:
+            start_one(
+                pid=2,
+                game_id=1,
+                account_id=self.opt["login_settings"]["second_num"],
+                executable_path=self.opt["login_settings"]["login_path"],
+                wait_sleep_time=5
+            )
+
+    def close_360(self):
+        window_title = self.channel
+        CUS_LOGGER.debug(f"[操作游戏大厅] 关闭名称为: [{window_title}] 的窗口, 开始")
+        close_software_by_title(window_title=window_title)
+        time.sleep(1)
+        CUS_LOGGER.debug(f"[操作游戏大厅] 关闭名称为: [{window_title}] 的窗口, 成功")
+
+        _, sub_window_titles = get_path_and_sub_titles()
+
+        if len(sub_window_titles) == 1 and sub_window_titles[0] == "360游戏大厅":
+            # 只有一个360大厅主窗口, 鲨了它
+            window_title = "360游戏大厅"
+            CUS_LOGGER.debug(f"[操作游戏大厅] 关闭名称为: [{window_title}] 的窗口, 开始")
+            close_software_by_title("360游戏大厅")
+            CUS_LOGGER.debug(f"[操作游戏大厅] 关闭名称为: [{window_title}] 的窗口, 成功")
+            # 等待悄悄打开的360后台 准备一网打尽
+            time.sleep(2)
+
+        if len(sub_window_titles) == 0:
+            # 不再有窗口了, 可以直接根据软件名称把后台杀干净
+            software_name = "360Game.exe"
+            CUS_LOGGER.debug(f"[操作游戏大厅] 关闭名称为: [{software_name}] 的应用程序下的所有窗口, 开始")
+            close_all_software_by_name(software_name=software_name)
+            CUS_LOGGER.debug(f"[操作游戏大厅] 关闭名称为: [{software_name}] 的应用程序下的所有窗口, 成功")
     def sign_in(self: "FAA") -> None:
 
         def sign_in_vip():
