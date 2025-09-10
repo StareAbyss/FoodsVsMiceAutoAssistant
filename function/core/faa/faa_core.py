@@ -1234,7 +1234,7 @@ class FAABase:
 
         def main() -> bool:
             count=0
-            while count<0:
+            while count<100:
                 # 先重新获取 360 和 浏览器的句柄
                 self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
                 self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
