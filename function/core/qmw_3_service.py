@@ -3,6 +3,7 @@ import json
 import random
 import shutil
 import sqlite3
+import threading
 import webbrowser
 
 import win32con
@@ -580,7 +581,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 生成随机数种子
         random_seed = random.randint(-100, 100)
-
+        the_360_lock=threading.Lock()
         # 开始创建faa
         faa_dict = {
             1: FAA(
@@ -591,6 +592,8 @@ class QMainWindowService(QMainWindowLoadSettings):
                 is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_1p"],
                 QQ_login_info=self.opt["QQ_login_info"],
                 extra_sleep=self.opt["extra_sleep"],
+                opt=self.opt,
+                the_360_lock=the_360_lock,
                 random_seed=random_seed),
             2: FAA(
                 channel=channel_2p,
@@ -600,6 +603,8 @@ class QMainWindowService(QMainWindowLoadSettings):
                 is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_2p"],
                 QQ_login_info=self.opt["QQ_login_info"],
                 extra_sleep=self.opt["extra_sleep"],
+                opt=self.opt,
+                the_360_lock=the_360_lock,
                 random_seed=random_seed)
         }
 
