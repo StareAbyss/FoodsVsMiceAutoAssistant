@@ -2,14 +2,12 @@ import glob
 import os
 
 import cv2
-import matplotlib
 import numpy as np
 
 from function.common.bg_img_match import  match_p_in_w
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 
-matplotlib.use('TkAgg')
 
 
 def create_or_load_puzzle_image(target_dir):

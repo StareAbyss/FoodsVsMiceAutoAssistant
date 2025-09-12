@@ -52,17 +52,39 @@ class ActionInsertUseCard:
     after_shovel_time: int
     type: str = "insert_use_card"
 
+@dataclass
+class ActionShovel:
+    time: float
+    location: str
+    type: str = "shovel"
 
 @dataclass
 class ActionUseGem:
     gem_id: int
     type: str = "insert_use_gem"
-
+@dataclass
+class ActionEscape:
+    time: float
+    type: str = "escape"
+@dataclass
+class ActionRandomSingleCard:
+    card_index: int
+    type: str = "random_single_card"
+@dataclass
+class ActionRandomMultiCard:
+    card_indices: List[int]
+    type: str = "random_multi_card"
+@dataclass
+class ActionBanCard:
+    start_time: float
+    end_time: float
+    card_id: int
+    type: str = "ban_card"
 
 @dataclass
 class Event:
     trigger: Union[TriggerWaveTimer]
-    action: Union[ActionLoopUseCards, ActionInsertUseCard, ActionUseGem]
+    action: Union[ActionLoopUseCards, ActionInsertUseCard, ActionUseGem, ActionShovel, ActionBanCard, ActionEscape, ActionRandomSingleCard, ActionRandomMultiCard]
 
 
 @dataclass

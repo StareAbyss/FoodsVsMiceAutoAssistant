@@ -12,14 +12,15 @@ from PyQt6.QtGui import QKeySequence, QIcon, QShortcut
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QGridLayout, QPushButton, QWidget, QFileDialog, QVBoxLayout, QLabel, QComboBox,
     QLineEdit, QHBoxLayout, QTextEdit, QListWidget, QMessageBox, QSpinBox, QListWidgetItem, QFrame, QAbstractItemView,
-    QSpacerItem, QSizePolicy, QDoubleSpinBox, QDialog)
+    QSpacerItem, QSizePolicy, QDoubleSpinBox, QDialog, QDialogButtonBox)
 
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 from function.scattered.class_battle_plan_v3d0 import json_to_obj, TriggerWaveTimer, \
-    ActionLoopUseCards, ActionInsertUseCard, ActionUseGem, Event, BattlePlan, obj_to_json, Card, MetaData, \
-    CardLoopConfig
+    ActionLoopUseCards, ActionInsertUseCard, ActionShovel, ActionUseGem, ActionEscape, ActionBanCard, Event, BattlePlan, \
+    obj_to_json, Card, MetaData, \
+    CardLoopConfig, ActionRandomSingleCard, ActionRandomMultiCard
 from function.widget.MultiLevelMenu import MultiLevelMenu
 
 double_click_card_list = pyqtSignal(object)
@@ -139,6 +140,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.LayMain = QVBoxLayout()
 
         self.LayTimelineActionList = None
+        self.ListSpecialActions = None
         self.LayNormalActionList = None
 
         self.ButtonModeChange = None
@@ -374,24 +376,24 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 self.ListTimelineActions.setMaximumWidth(260)  # 经过验证的完美数字
                 self.LayTimelineActionList.addWidget(self.ListTimelineActions)
 
-            def init_ui_lay_gem_actions():
-                """宝石操作列表"""
-                self.LayGemActionList = QVBoxLayout()
-                self.LayoutMainBottom.addLayout(self.LayGemActionList)
+            def init_ui_lay_special_actions():
+                """特殊操作列表"""
+                self.LaySpecialActionList = QVBoxLayout()
+                self.LayoutMainBottom.addLayout(self.LaySpecialActionList)
 
-                title_label = QLabel('左键-选中宝石   右键-编辑参数')
+                title_label = QLabel('左键-选中操作   右键-编辑参数')
                 title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.LayGemActionList.addWidget(title_label)
+                self.LaySpecialActionList.addWidget(title_label)
 
-                self.ButtonAddGemAction = QPushButton('新增宝石使用操作')
-                self.LayGemActionList.addWidget(self.ButtonAddGemAction)
+                self.ButtonAddSpecialAction = QPushButton('新增特殊操作')
+                self.LaySpecialActionList.addWidget(self.ButtonAddSpecialAction)
 
-                self.ButtonDeleteGemAction = QPushButton('删除选中宝石操作')
-                self.LayGemActionList.addWidget(self.ButtonDeleteGemAction)
+                self.ButtonDeleteSpecialAction = QPushButton('删除选中特殊操作')
+                self.LaySpecialActionList.addWidget(self.ButtonDeleteSpecialAction)
 
-                self.ListGemActions = QListWidgetDraggable()
-                self.ListGemActions.setMaximumWidth(260)
-                self.LayGemActionList.addWidget(self.ListGemActions)
+                self.ListSpecialActions = QListWidgetDraggable()
+                self.ListSpecialActions.setMaximumWidth(260)
+                self.LaySpecialActionList.addWidget(self.ListSpecialActions)
 
             def init_ui_lay_chessboard():
                 """棋盘布局"""
@@ -440,12 +442,12 @@ class QMWEditorOfBattlePlan(QMainWindow):
             init_ui_lay_left()
             init_ui_lay_normal_actions()
             init_ui_lay_timeline_actions()
-            init_ui_lay_gem_actions()
+            init_ui_lay_special_actions()
             init_ui_lay_chessboard()
 
             # 隐藏定时操作列表
             hide_layout(self.LayTimelineActionList)
-            hide_layout(self.LayGemActionList)
+            hide_layout(self.LaySpecialActionList)
 
         init_ui_lay_tip()
         init_ui_layout_bottom()
@@ -491,10 +493,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
             self.ButtonModeChange.clicked.connect(self.change_edit_mode)
 
-            self.ButtonAddGemAction.clicked.connect(self.add_use_gem)
-            self.ButtonDeleteGemAction.clicked.connect(self.delete_use_gem)
-            self.ListGemActions.itemClicked.connect(self.be_edited_gem_change)
-            self.ListGemActions.editRequested.connect(self.show_edit_window)
+            self.ButtonAddSpecialAction.clicked.connect(self.add_use_special_action)
+            self.ButtonDeleteSpecialAction.clicked.connect(self.delete_use_special_action)
+            self.ListSpecialActions.itemClicked.connect(self.be_edited_special_change)
+            self.ListSpecialActions.editRequested.connect(self.show_edit_window)
 
         connect_signal_and_slot()
 
@@ -544,7 +546,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         )
 
         # 根据事件类型分类的事件子类
-        self.insert_use_gem_events: List[Event] = []
+        self.insert_use_special_events: List[Event] = []
         self.insert_use_card_events: List[Event] = []
         self.loop_use_cards_events: List[Event] = []
 
@@ -638,7 +640,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 管理布局可见性
         hide_layout(self.LayNormalActionList)
         hide_layout(self.LayTimelineActionList)
-        hide_layout(self.LayGemActionList)
+        hide_layout(self.LaySpecialActionList)
 
         # 根据当前模式显示对应布局
         if self.editing_mode == 1:
@@ -657,7 +659,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         elif self.editing_mode == 3:
             self.LabelEditorMode.setText("当前模式 - 特殊操作放卡编辑")
-            show_layout(self.LayGemActionList)
+            show_layout(self.LaySpecialActionList)
             self.ButtonCopyWave.setEnabled(False)
             self.ButtonPasteWave.setEnabled(False)
             self.ButtonApplyToAll.setEnabled(False)
@@ -804,10 +806,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         #print(f"编辑 - 位置 - 定时动作编辑 目标改变: {self.be_edited_insert_use_card_index}")
 
-    def be_edited_gem_change(self, item):
+    def be_edited_special_change(self, item):
         """被单击后, 被选中的宝石操作改变了"""
-        self.be_edited_gem_index = self.ListGemActions.indexFromItem(item).row()
-        #print(f"编辑 - 宝石操作 目标改变: {self.be_edited_gem_index}")
+        self.be_edited_special_action_index = self.ListSpecialActions.indexFromItem(item).row()
+        #print(f"编辑 - 宝石操作 目标改变: {self.be_edited_special_action_index}")
     def load_data_to_ui_list_mode_1(self):
         """从 [内部数据表] 载入数据到 [ui的放卡动作列表]"""
 
@@ -860,7 +862,6 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
     def load_data_to_ui_list_mode_2(self):
         """从 [内部数据表] 载入数据到 [ui的放卡动作列表]"""
-
         if self.editing_mode != 2:
             return
 
@@ -871,48 +872,70 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 根据中文和西文分别记录最高宽度
         name_max_width_c = 0
         name_max_width_e = 0
+
+        # 仅处理普通放卡事件
         for event in events:
-            card_name = next(c.name for c in self.battle_plan.cards if c.card_id == event.action.card_id)
-            width_c, width_e = calculate_text_width(card_name)
-            name_max_width_c = max(name_max_width_c, width_c)
-            name_max_width_e = max(name_max_width_e, width_e)
-
-        # 找到最长的id长度
-        if not events:
-            return
-        max_id_length = max(len(str(event.action.card_id)) for event in events)
+            if isinstance(event.action, ActionInsertUseCard):
+                try:
+                    card_name = next(c.name for c in self.battle_plan.cards
+                                     if c.card_id == event.action.card_id)
+                    width_c, width_e = calculate_text_width(card_name)
+                    name_max_width_c = max(name_max_width_c, width_c)
+                    name_max_width_e = max(name_max_width_e, width_e)
+                except StopIteration:
+                    continue
 
         for event in events:
-            # 根据中文和西文 分别根据距离相应的最大宽度的差值填充中西文空格
-            card_name = next(c.name for c in self.battle_plan.cards if c.card_id == event.action.card_id)
-            width_c, width_e = calculate_text_width(card_name)
-            padded_name = str(card_name)
-            padded_name += "\u2002" * (name_max_width_e - width_e)  # 半宽空格
-            padded_name += '\u3000' * (name_max_width_c - width_c)  # 表意空格(方块字空格)
+            # 根据操作类型生成摘要
+            if isinstance(event.action, ActionShovel):
+                text = f"{event.trigger.time}s 铲子操作 {event.action.location}"
+            elif isinstance(event.action, ActionInsertUseCard):
+                try:
+                    card_name = next(c.name for c in self.battle_plan.cards
+                                     if c.card_id == event.action.card_id)
+                    width_c, width_e = calculate_text_width(card_name)
+                    padded_name = str(card_name)
+                    padded_name += "\u2002" * (name_max_width_e - width_e)
+                    padded_name += '\u3000' * (name_max_width_c - width_c)
 
-            padded_id = str(event.action.card_id).ljust(max_id_length)
+                    padded_id = str(event.action.card_id).ljust(2)
 
-            text = "{}s {}  ID:{} 先铲{} 放后{}s 后铲{} ".format(
-                event.trigger.time,
-                padded_name,
-                padded_id,
-                "√" if event.action.before_shovel else "X",
-                event.action.after_shovel_time,
-                "√" if event.action.after_shovel else "X"
-            )
+                    text = "{}s {}  ID:{} 先铲{} 放后{}s 后铲{}".format(
+                        event.trigger.time,
+                        padded_name,
+                        padded_id,
+                        "√" if event.action.before_shovel else "X",
+                        event.action.after_shovel_time,
+                        "√" if event.action.after_shovel else "X"
+                    )
+                except StopIteration:
+                    continue
+            else:
+                continue
 
             item = QListWidgetItem(text)
             self.ListTimelineActions.addItem(item)
 
     def load_data_to_ui_list_mode_3(self):
         """宝石操作列表数据加载"""
-        self.ListGemActions.clear()
-        events = [e for e in self.insert_use_gem_events
+        self.ListSpecialActions.clear()
+        events = [e for e in self.insert_use_special_events
                   if e.trigger.wave_id == self.be_edited_wave_id]
 
         for event in events:
-            item_text = f"波次{event.trigger.wave_id} {event.trigger.time}s 宝石{event.action.gem_id}"
-            self.ListGemActions.addItem(QListWidgetItem(item_text))
+            item_text = ""
+            if isinstance(event.action, ActionUseGem):
+                item_text = f"波次{event.trigger.wave_id} {event.trigger.time}s 宝石{event.action.gem_id}"
+            elif isinstance(event.action, ActionEscape):
+                item_text = f"波次{event.trigger.wave_id} {event.trigger.time}s 逃跑操作"
+            elif isinstance(event.action, ActionBanCard):
+                item_text = f"波次{event.trigger.wave_id} {event.trigger.time}s 禁用卡片{event.action.card_id}"
+            elif isinstance(event.action, ActionRandomSingleCard):
+                item_text = f"波次{event.trigger.wave_id} {event.trigger.time}s 单卡随机{event.action.card_index}"
+            elif isinstance(event.action, ActionRandomMultiCard):
+                indices_str = ",".join(map(str, event.action.card_indices))
+                item_text = f"波次{event.trigger.wave_id} {event.trigger.time}s 多卡随机[{indices_str}]"
+            self.ListSpecialActions.addItem(QListWidgetItem(item_text))
 
     def event_list_be_moved(self, index_from, index_to):
         """在list的drop事件中调用, 用于更新内部数据表"""
@@ -984,38 +1007,129 @@ class QMWEditorOfBattlePlan(QMainWindow):
             )
 
 
+
+
+
+
+
         elif self.editing_mode == 2:
 
             #print("即将显示 定时动作编辑窗口 索引 - ", self.be_edited_insert_use_card_index)
+            events = [e for e in self.insert_use_card_events
 
-            events = [e for e in self.insert_use_card_events if e.trigger.wave_id == self.be_edited_wave_id]
+                      if e.trigger.wave_id == self.be_edited_wave_id]
+
             event = events[self.be_edited_insert_use_card_index]
-            o_card = next(o_card for o_card in self.battle_plan.cards if o_card.card_id == event.action.card_id)
-            data = {
-                "card_id": event.action.card_id,
-                "name": o_card.name,
-                "time": event.trigger.time,
-                "before_shovel": event.action.before_shovel,
-                "after_shovel": event.action.after_shovel,
-                "after_shovel_time": event.action.after_shovel_time
-            }
 
-            self.EditorAction = InsertUseCardInfoEditor(
-                data=data,
-                func_update=self.update_insert_use_card_info
-            )
+            # 根据操作类型创建不同的编辑器实例
+
+            if event.action.type == "shovel":
+
+                data = {
+
+                    "time": event.trigger.time,
+
+                    "type": "shovel",
+
+                    "location": event.action.location
+
+                }
+
+                self.EditorAction = ShovelActionEditor(
+
+                    data=data,
+
+                    func_update=self.update_shovel_action_info,
+
+                    editor_parent=self,
+
+                    event_index=self.be_edited_insert_use_card_index
+
+                )
+
+            else:
+
+                data = {
+
+                    "time": event.trigger.time,
+
+                    "type": event.action.type,
+
+                    "location": event.action.location,
+
+                    "card_id": event.action.card_id,
+
+                    "name": next(c.name for c in self.battle_plan.cards if c.card_id == event.action.card_id),
+
+                    "before_shovel": event.action.before_shovel,
+
+                    "after_shovel": event.action.after_shovel,
+
+                    "after_shovel_time": event.action.after_shovel_time
+
+                }
+
+                self.EditorAction = InsertUseCardInfoEditor(
+
+                    data=data,
+
+                    func_update=self.update_insert_use_card_info,
+
+                    editor_parent=self,
+
+                    event_index=self.be_edited_insert_use_card_index
+
+                )
+
+
+
         elif self.editing_mode == 3:
-            # 处理模式3: 宝石操作
-            events = [e for e in self.insert_use_gem_events if e.trigger.wave_id == self.be_edited_wave_id]
-            event = events[self.be_edited_gem_index]
-            data = {
-                "gem_id": event.action.gem_id,
-                "time": event.trigger.time
-            }
-            self.EditorAction = GemInfoEditor(
-                data=data,
-                func_update=self.update_gem_info
-            )
+
+            events = [e for e in self.insert_use_special_events if e.trigger.wave_id == self.be_edited_wave_id]
+
+            event = events[self.be_edited_special_action_index]
+
+            if isinstance(event.action, ActionEscape):
+
+                data = {"time": event.trigger.time}
+
+                self.EditorAction = EscapeActionEditor(data=data, func_update=self.update_escape_action_info)
+
+            elif isinstance(event.action, ActionBanCard):
+
+                data = {
+
+                    "start_time": event.action.start_time,
+
+                    "end_time": event.action.end_time,
+
+                    "card_id": event.action.card_id
+
+                }
+
+                self.EditorAction = BanCardActionEditor(data=data, func_update=self.update_ban_card_info)
+            elif isinstance(event.action, ActionRandomSingleCard):
+                data = {
+                    "time": event.trigger.time,
+                    "card_index": event.action.card_index
+                }
+                self.EditorAction = RandomSingleCardActionEditor(
+                    data=data,
+                    func_update=self.update_random_single_card_info)
+            elif isinstance(event.action, ActionRandomMultiCard):
+                data = {
+                    "time": event.trigger.time,
+                    "card_indices": event.action.card_indices
+                }
+                self.EditorAction = RandomMultiCardActionEditor(
+                    data=data,
+                    func_update=self.update_random_multi_card_info)
+
+            else:
+
+                data = {"gem_id": event.action.gem_id, "time": event.trigger.time}
+
+                self.EditorAction = GemInfoEditor(data=data, func_update=self.update_special_action_info)
 
         # 计算显示位置
         global_pos = self.ListNormalActions.viewport().mapToGlobal(
@@ -1028,6 +1142,97 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         # 事件循环!~
         self.EditorAction.exec()
+        self.fresh_all_ui()
+
+    def update_random_single_card_info(self):
+        """
+        更新单卡随机操作的UI与数据
+        """
+        try:
+            events = [e for e in self.insert_use_special_events
+                      if e.trigger.wave_id == self.be_edited_wave_id]
+            event = events[self.be_edited_special_action_index]
+
+            if isinstance(event.action, ActionRandomSingleCard):
+                new_data = self.EditorAction.get_data()
+                if event.action.card_index != new_data["card_index"]:
+                    event.action.card_index = new_data["card_index"]
+                    self.fresh_all_ui()
+
+        except Exception as e:
+            QMessageBox.warning(self, "输入错误", f"请输入有效的参数: {str(e)}")
+            self.EditorAction.card_index.setFocus()
+
+    def update_random_multi_card_info(self):
+        """
+        更新多卡随机操作的UI与数据
+        """
+        try:
+            events = [e for e in self.insert_use_special_events
+                      if e.trigger.wave_id == self.be_edited_wave_id]
+            event = events[self.be_edited_special_action_index]
+
+            if isinstance(event.action, ActionRandomMultiCard):
+                new_data = self.EditorAction.get_data()
+                if event.action.card_indices != new_data["card_indices"]:
+                    event.action.card_indices = new_data["card_indices"]
+                    self.fresh_all_ui()
+
+        except Exception as e:
+            QMessageBox.warning(self, "输入错误", f"请输入有效的参数: {str(e)}")
+            self.EditorAction.card_indices_edit.setFocus()
+    def update_shovel_action_info(self):
+        """更新铲子操作事件的UI与数据"""
+        try:
+            events = [e for e in self.insert_use_card_events
+                      if e.trigger.wave_id == self.be_edited_wave_id]
+            event = events[self.be_edited_insert_use_card_index]
+
+            # 获取当前UI数据
+            new_data = self.EditorAction.get_data()
+
+            # 替换整个action对象保证数据同步
+            event.action = ActionShovel(
+                time=new_data["time"],
+                location=new_data["location"]
+            )
+
+            # 同步更新触发器时间
+            event.trigger.time = new_data["time"]
+
+            # 强制触发所有UI更新
+            self.fresh_all_ui()
+
+        except Exception as e:
+            QMessageBox.warning(self, "输入错误", f"请输入有效的参数: {str(e)}")
+            self.EditorAction.WidgetTimeInput.setFocus()
+
+    def update_escape_action_info(self):
+        try:
+            events = [e for e in self.insert_use_special_events if e.trigger.wave_id == self.be_edited_wave_id]
+            event = events[self.be_edited_special_action_index]
+            new_data = self.EditorAction.get_data()
+
+            event.action = ActionEscape(time=new_data["time"])
+            event.trigger.time = new_data["time"]
+            self.fresh_all_ui()
+        except Exception as ve:
+            QMessageBox.warning(self, "输入错误", f"请输入有效的参数: {str(ve)}")
+
+    def update_ban_card_info(self):
+        try:
+            events = [e for e in self.insert_use_special_events if e.trigger.wave_id == self.be_edited_wave_id]
+            event = events[self.be_edited_special_action_index]
+            new_data = self.EditorAction.get_data()
+
+            event.action = ActionBanCard(
+                start_time=new_data["start_time"],
+                end_time=new_data["end_time"],
+                card_id=new_data["card_id"])
+            event.trigger.time = new_data["start_time"]  # 使用开始时间作为触发时间
+            self.fresh_all_ui()
+        except Exception as ve:
+            QMessageBox.warning(self, "输入错误", f"请输入有效的参数: {str(ve)}")
 
     def add_loop_use_cards_one_card(self):
 
@@ -1074,48 +1279,71 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         self.fresh_all_ui()
 
-    def add_use_gem(self):
-        self.insert_use_gem_events.append(
-            Event(
-                trigger=TriggerWaveTimer(
-                    wave_id=self.be_edited_wave_id,
-                    time=0
-                ),
-                action=ActionUseGem(
-                    gem_id=1
-                )
-            )
-        )
-        self.fresh_all_ui()
+    def add_use_special_action(self):
+        """
+        新增特殊操作
+        """
+        if self.be_edited_wave_id is None:
+            QMessageBox.information(self, "错误！", "请先选择波次")
+            return
 
-    def delete_use_gem(self):
+        dialog = SpecialActionTypeDialog()
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            action_type = dialog.get_selected_type()
+
+            # 创建基础触发器
+            trigger = TriggerWaveTimer(wave_id=self.be_edited_wave_id, time=0)
+
+            # 根据操作类型创建对应的动作
+            if action_type == "escape":
+                action = ActionEscape(time=0)
+            elif action_type == "disable_card":
+                action = ActionBanCard(start_time=0, end_time=0, card_id=1)
+            elif action_type == "gem":
+                action = ActionUseGem(gem_id=1)
+            elif action_type == "random_single_card":
+                action = ActionRandomSingleCard(card_index=1)
+            elif action_type == "random_multi_card":
+                action = ActionRandomMultiCard(card_indices=[1, 2])
+            else:
+                QMessageBox.warning(self, "错误", "未知的操作类型")
+                return
+
+            # 创建事件并添加到列表
+            event = Event(trigger=trigger, action=action)
+            self.insert_use_special_events.append(event)
+
+            # 刷新UI
+            self.fresh_all_ui()
+
+    def delete_use_special_action(self):
         """
         删除选中的宝石操作
         """
-        if self.be_edited_gem_index is None:
+        if self.be_edited_special_action_index is None:
             QMessageBox.information(self, "错误！", "请先选择宝石操作")
             return
 
         # 获取当前波次的所有宝石事件
-        current_gem_events = [e for e in self.insert_use_gem_events
+        current_events = [e for e in self.insert_use_special_events
                               if e.trigger.wave_id == self.be_edited_wave_id]
 
-        if not current_gem_events:
+        if not current_events:
             return
 
         # 确保索引有效
-        if self.be_edited_gem_index >= len(current_gem_events):
-            CUS_LOGGER.warning(f"[战斗方案编辑器] 宝石操作索引越界: {self.be_edited_gem_index}")
+        if self.be_edited_special_action_index >= len(current_events):
+            CUS_LOGGER.warning(f"[战斗方案编辑器] 宝石操作索引越界: {self.be_edited_special_action_index}")
             return
 
         # 获取要删除的事件
-        event_to_delete = current_gem_events[self.be_edited_gem_index]
+        event_to_delete = current_events[self.be_edited_special_action_index]
 
         # 从原始列表中删除
-        self.insert_use_gem_events.remove(event_to_delete)
+        self.insert_use_special_events.remove(event_to_delete)
 
         # 清空选中状态
-        self.be_edited_gem_index = None
+        self.be_edited_special_action_index = None
 
         # 刷新UI
         self.fresh_all_ui()
@@ -1220,78 +1448,78 @@ class QMWEditorOfBattlePlan(QMainWindow):
         并刷新到左侧列表和棋盘等位置
         :return: None
         """
-
         print("即将更新 当前波次的 定时用卡中 被选中卡片的数据, 索引: ", self.be_edited_insert_use_card_index)
 
         # 将当前状态压入栈中
         self.append_undo_stack()
 
         events = [e for e in self.insert_use_card_events if e.trigger.wave_id == self.be_edited_wave_id]
-        e = events[self.be_edited_insert_use_card_index]
-        o_card = next(o_card for o_card in self.battle_plan.cards if o_card.card_id == e.action.card_id)
+        event = events[self.be_edited_insert_use_card_index]
 
-        ui_value = int(self.EditorAction.WidgetIdInput2.value())
-        if e.action.card_id != ui_value:
-            e.action.card_id = ui_value
-            card_name = next(o_card.name for o_card in self.battle_plan.cards if o_card.card_id == e.action.card_id)
-            self.EditorAction.WidgetNameInput2.setText(card_name)
-            self.fresh_all_ui()
-            return
+        # 获取当前UI数据
+        ui_data = self.EditorAction.get_data()
 
-        ui_value = self.EditorAction.WidgetNameInput2.text()
-        if o_card.name != ui_value:
-            o_card.name = ui_value
-            self.fresh_all_ui()
-            return
+        # 创建新的操作对象
+        if ui_data["type"] == "shovel":
+            # 创建新的铲子操作对象
+            new_action = ActionShovel(
+                time=ui_data["time"],
+                location=event.action.location
+            )
+        else:
+            # 创建新的普通放卡对象
+            new_action = ActionInsertUseCard(
+                card_id=event.action.card_id,  # 直接使用现有值
+                location=event.action.location,
+                before_shovel=ui_data.get("before_shovel", False),
+                after_shovel=ui_data.get("after_shovel", False),
+                after_shovel_time=ui_data.get("after_shovel_time", 0)
+            )
 
-        ui_value = float(self.EditorAction.WidgetTimeInput.value())
-        if e.trigger.time != ui_value:
-            e.trigger.time = ui_value
-            self.fresh_all_ui()
-            return
+        # 替换事件中的action对象
+        event.action = new_action
 
-        ui_value = bool(self.EditorAction.WidgetBeforeShovelInput.currentText() == 'true')
-        if e.action.before_shovel != ui_value:
-            e.action.before_shovel = ui_value
-            self.fresh_all_ui()
-            return
+        # 更新触发器时间
+        event.trigger.time = ui_data["time"]
 
-        ui_value = bool(self.EditorAction.WidgetAfterShovelInput.currentText() == 'true')
-        if e.action.after_shovel != ui_value:
-            e.action.after_shovel = ui_value
-            self.fresh_all_ui()
-            return
+        self.fresh_all_ui()
 
-        ui_value = int(self.EditorAction.WidgetAfterTimeInput.value())
-        if e.action.after_shovel_time != ui_value:
-            e.action.after_shovel_time = ui_value
-            self.fresh_all_ui()
-            return
-
-    def update_gem_info(self):
-        """
-        更新宝石操作事件的UI与数据
-        """
+    def update_special_action_info(self):
+        """更新宝石操作事件的UI与数据"""
         try:
-            # 添加空值检查
-            gem_id_text = self.EditorAction.WidgetGemIdInput.currentText()
-            if not gem_id_text.strip():
+            events = [e for e in self.insert_use_special_events if e.trigger.wave_id == self.be_edited_wave_id]
+            event = events[self.be_edited_special_action_index]
+
+            # 获取当前UI数据
+            ui_gem_id = self.EditorAction.WidgetGemIdInput.currentText()
+            if not ui_gem_id.strip():
                 raise ValueError("宝石ID不能为空")
 
-            events = [e for e in self.insert_use_gem_events if e.trigger.wave_id == self.be_edited_wave_id]
-            event = events[self.be_edited_gem_index]
+            # 创建新的操作对象
+            if isinstance(event.action, ActionEscape):
+                new_data = self.EditorAction.get_data()
+                new_action = ActionEscape(time=new_data["time"])
+                event.trigger.time = new_data["time"]
+            elif isinstance(event.action, ActionBanCard):
+                new_data = self.EditorAction.get_data()
+                new_action = ActionBanCard(
+                    start_time=new_data["start_time"],
+                    end_time=new_data["end_time"],
+                    card_id=new_data["card_id"])
+                event.trigger.time = new_data["start_time"]
+            else:  # ActionUseGem
+                # 显式定义new_data
+                new_data = {
+                    "gem_id": int(ui_gem_id),
+                    "time": self.EditorAction.WidgetTimeInput.value()
+                }
+                new_action = ActionUseGem(gem_id=new_data["gem_id"])
+                event.trigger.time = new_data["time"]
 
-            ui_gem_id = int(gem_id_text)
-            if event.action.gem_id != ui_gem_id:
-                event.action.gem_id = ui_gem_id
-                self.fresh_all_ui()
-                return
+            # 替换事件中的action对象
+            event.action = new_action
 
-            ui_time = self.EditorAction.WidgetTimeInput.value()
-            if event.trigger.time != ui_time:
-                event.trigger.time = ui_time
-                self.fresh_all_ui()
-                return
+            self.fresh_all_ui()
 
         except ValueError as ve:
             QMessageBox.warning(self, "输入错误", f"请输入有效的宝石ID: {str(ve)}")
@@ -1347,11 +1575,16 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
             events = [e for e in self.insert_use_card_events if e.trigger.wave_id == self.be_edited_wave_id]
             event = events[self.be_edited_insert_use_card_index]
-            event.action.location = "" if event.action.location == location_key else location_key
+            # 根据操作类型处理位置选择
+            if isinstance(event.action, ActionInsertUseCard):
+                event.action.location = "" if event.action.location == location_key else location_key
+            elif isinstance(event.action, ActionShovel):
+                event.action.location = location_key
 
         self.refresh_chessboard()
         self.refresh_wave_button_color()
         self.highlight_chessboard()
+        self.fresh_all_ui()
 
     def right_click_card_pos(self, x, y):
         """
@@ -1464,14 +1697,24 @@ class QMWEditorOfBattlePlan(QMainWindow):
                         text_block.append(text)
 
                 if self.editing_mode == 2:
-
                     for event in self.insert_use_card_events:
                         if event.trigger.wave_id != self.be_edited_wave_id:
                             continue
+
+                        # 只显示当前选中格子的操作
                         if event.action.location == this_location:
-                            card_name = next(
-                                c.name for c in self.battle_plan.cards if c.card_id == event.action.card_id)
-                            text_block.append(f"{card_name} {event.trigger.time}s")
+                            # 统一处理所有操作类型
+                            if isinstance(event.action, ActionInsertUseCard):
+                                try:
+                                    card_name = next(
+                                        c.name for c in self.battle_plan.cards
+                                        if c.card_id == event.action.card_id
+                                    )
+                                    text_block.append(f"{card_name} {event.trigger.time}s")
+                                except StopIteration:
+                                    continue
+                            elif isinstance(event.action, ActionShovel):
+                                text_block.append(f"铲子 {event.trigger.time}s")
 
                 # 用\n连接每一个block
                 btn.setText("\n".join(text_block))
@@ -1507,18 +1750,21 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 self.chessboard_frames[y - 1][x - 1].setStyleSheet("background-color: rgba(30, 144, 255, 150);")
 
         if self.editing_mode == 2:
-
             if self.be_edited_insert_use_card_index is not None:
+                events = [e for e in self.insert_use_card_events
+                          if e.trigger.wave_id == self.be_edited_wave_id]
 
-                events = [e for e in self.insert_use_card_events if e.trigger.wave_id == self.be_edited_wave_id]
-                event = events[self.be_edited_insert_use_card_index]
-                location = event.action.location
+                if 0 <= self.be_edited_insert_use_card_index < len(events):
+                    event = events[self.be_edited_insert_use_card_index]
 
-                if location:
-                    x, y = map(int, location.split('-'))
-                    selected_cells.add((x, y))
-                    # 如果是选中的卡片 蓝色
-                    self.chessboard_frames[y - 1][x - 1].setStyleSheet("background-color: rgba(30, 144, 255, 150);")
+                    # 统一处理所有操作类型
+                    if isinstance(event.action, ActionInsertUseCard) or isinstance(event.action, ActionShovel):
+                        location = event.action.location
+                        if location:
+                            x, y = map(int, location.split('-'))
+                            selected_cells.add((x, y))
+                            self.chessboard_frames[y - 1][x - 1].setStyleSheet(
+                                "background-color: rgba(30, 144, 255, 150);")
 
         # 还没有选中任何关卡 直接返回
         if self.stage_info:
@@ -1602,7 +1848,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.insert_use_card_events.sort(key=lambda x: (x.trigger.wave_id, x.trigger.time))
             self.battle_plan.events.extend(copy.deepcopy(event) for event in self.loop_use_cards_events)
             self.battle_plan.events.extend(copy.deepcopy(event) for event in self.insert_use_card_events)
-            self.battle_plan.events.extend(copy.deepcopy(event) for event in self.insert_use_gem_events)
+            self.battle_plan.events.extend(copy.deepcopy(event) for event in self.insert_use_special_events)
 
         view_to_obj_battle_plan()
 
@@ -1685,7 +1931,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.load_json(file_path=new_file_path)
 
         self.init_battle_plan()
-        self.change_edit_mode(1)
+
 
         self.ButtonSave.setEnabled(True)
 
@@ -1781,14 +2027,15 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.insert_use_card_events: List[Event] = [
             event for event in self.battle_plan.events
             if (isinstance(event.trigger, TriggerWaveTimer) and
-                isinstance(event.action, ActionInsertUseCard))
+                isinstance(event.action, (ActionInsertUseCard, ActionShovel)))
         ]
 
-        # 类型3 波次定时宝石
-        self.insert_use_gem_events: List[Event] = [
+        # 类型3 特殊操作
+        self.insert_use_special_events: List[Event] = [
             event for event in self.battle_plan.events
             if (isinstance(event.trigger, TriggerWaveTimer) and
-                isinstance(event.action, ActionUseGem))
+                isinstance(event.action, (ActionUseGem, ActionEscape, ActionBanCard,
+                                        ActionRandomSingleCard, ActionRandomMultiCard)))
         ]
 
         # 填充构造所有波次的 变阵操作 保存的时候再去掉重复项
@@ -1799,6 +2046,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         # 初始化当前选中
         self.editing_mode = 1
+        self.change_edit_mode(1)
         self.be_edited_wave_id = 0
         self.be_edited_loop_use_cards_one_card_index = None
         self.be_edited_insert_use_card_index = None
@@ -2127,159 +2375,285 @@ class LoopUseCardsOneCardInfoEditor(QDialog):
 
 
 class InsertUseCardInfoEditor(QDialog):
-    def __init__(self, data, func_update):
+    def __init__(self, data, func_update, editor_parent, event_index):
         super().__init__()
-        self.data = data
+        self.data = data.copy() if data else {}  # 数据隔离
         self.func_update = func_update
+        self.editor_parent = editor_parent
+        self.event_index = event_index
 
-        # 窗口标题栏
-        self.setWindowTitle("编辑定时放卡动作参数")
+        # 初始化必要字段
+        self._ensure_required_fields()
 
-        # 关键组合：彻底移除系统菜单图标
-        self.setWindowFlags(
-            Qt.WindowType.CustomizeWindowHint |  # 允许自定义窗口装饰
-            Qt.WindowType.WindowCloseButtonHint |  # 仅保留关闭按钮
-            Qt.WindowType.WindowStaysOnTopHint  # 窗口置顶
-        )
-
-        # UI
-        self.WidgetIdInput2 = None
-        self.WidgetNameInput2 = None
-        self.WidgetTimeInput = None
-        self.WidgetBeforeShovelInput = None
-        self.WidgetAfterShovelInput = None
-        self.WidgetAfterTimeInput = None
+        # UI组件初始化
         self.init_ui()
-
-        # 初始化数据
         self.load_data()
-
-        # 绑定变化信号
         self.connect_functions()
 
-    def init_ui(self):
-        """单组放卡操作 - 状态编辑器"""
+        # 设置窗口属性
+        self.setWindowTitle("编辑定时操作参数")
+        self.setWindowFlags(
+            Qt.WindowType.CustomizeWindowHint |
+            Qt.WindowType.WindowCloseButtonHint |
+            Qt.WindowType.WindowStaysOnTopHint
+        )
 
+    def _ensure_required_fields(self):
+        """确保基础字段存在"""
+        if 'type' not in self.data:
+            self.data['type'] = 'insert_use_card'
+        if 'time' not in self.data:
+            self.data['time'] = 0.0
+        if 'location' not in self.data:
+            self.data['location'] = ''
+
+    def init_ui(self):
+        """初始化定时操作参数编辑界面"""
         LayMain = QVBoxLayout()
         self.setLayout(LayMain)
 
-        # 放卡时间
-        layout = QHBoxLayout()
-        LayMain.addLayout(layout)
+        # 操作类型选择
+        type_layout = QHBoxLayout()
+        type_label = QLabel('操作类型')
+        self.WidgetTypeSelect = QComboBox()
+        self.WidgetTypeSelect.addItems(['定时放卡', '定时铲子'])
+        type_layout.addWidget(type_label)
+        type_layout.addWidget(self.WidgetTypeSelect)
+        LayMain.addLayout(type_layout)
 
-        tooltips = "识别到对应波次后，会在对应秒数后放置卡片"
-
-        label = QLabel('放卡定时')
-        label.setToolTip(tooltips)
-        layout.addWidget(label)
-
+        # 时间参数
+        time_layout = QHBoxLayout()
+        time_label = QLabel('执行时间')
         self.WidgetTimeInput = QDoubleSpinBox()
         self.WidgetTimeInput.setFixedWidth(140)
-        self.WidgetTimeInput.setToolTip(tooltips)
+        self.WidgetTimeInput.setToolTip("识别到对应波次后，会在对应秒数后执行操作")
         self.WidgetTimeInput.setRange(0, 9999)
-        layout.addWidget(self.WidgetTimeInput)
+        time_layout.addWidget(time_label)
+        time_layout.addWidget(self.WidgetTimeInput)
+        LayMain.addLayout(time_layout)
 
-        # 分割线
-        LayMain.addWidget(create_vertical_line())
+        # 普通放卡参数组
+        self.normal_params = QWidget()
+        normal_layout = QVBoxLayout()
+        self.normal_params.setLayout(normal_layout)
 
-        # ID
-        layout = QHBoxLayout()
-        LayMain.addLayout(layout)
-
-        label = QLabel('ID')
-        layout.addWidget(label)
-
+        # ID参数
+        id_layout = QHBoxLayout()
+        id_label = QLabel('ID')
         self.WidgetIdInput2 = QSpinBox()
         self.WidgetIdInput2.setFixedWidth(140)
         self.WidgetIdInput2.setToolTip("id代表卡在卡组中的顺序")
         self.WidgetIdInput2.setRange(1, 21)
-        layout.addWidget(self.WidgetIdInput2)
+        id_layout.addWidget(id_label)
+        id_layout.addWidget(self.WidgetIdInput2)
+        normal_layout.addLayout(id_layout)
 
-        # 名称
-        layout = QHBoxLayout()
-        LayMain.addLayout(layout)
-
-        label = QLabel('名称')
-        layout.addWidget(label)
+        # 名称参数
+        name_layout = QHBoxLayout()
+        name_label = QLabel('名称')
         self.WidgetNameInput2 = QLineEdit()
         self.WidgetNameInput2.setFixedWidth(140)
-        self.WidgetNameInput2.setToolTip(
-            "名称标识是什么卡片\n"
-            "能让用户看懂该带啥就行.\n"
-        )
-        layout.addWidget(self.WidgetNameInput2)
+        self.WidgetNameInput2.setToolTip("名称标识是什么卡片\n能让用户看懂该带啥就行.\n")
+        name_layout.addWidget(name_label)
+        name_layout.addWidget(self.WidgetNameInput2)
+        normal_layout.addLayout(name_layout)
 
         # 分割线
-        LayMain.addWidget(create_vertical_line())
+        normal_layout.addWidget(create_vertical_line())
 
-        # 前铲
-        layout = QHBoxLayout()
-        LayMain.addLayout(layout)
-
-        tooltips = "是否会在放卡的前0.5秒铲除该点以腾出位置放卡"
-        label = QLabel('前铲')
-        label.setToolTip(tooltips)
-        layout.addWidget(label)
-
+        # 前铲参数
+        before_shovel_layout = QHBoxLayout()
+        before_shovel_label = QLabel('前铲')
+        before_shovel_label.setToolTip("是否会在操作前0.5秒铲除该点以腾出位置")
         self.WidgetBeforeShovelInput = QComboBox()
         self.WidgetBeforeShovelInput.setFixedWidth(140)
         self.WidgetBeforeShovelInput.addItems(['true', 'false'])
-        self.WidgetBeforeShovelInput.setToolTip(tooltips)
+        self.WidgetBeforeShovelInput.setToolTip("是否会在操作前0.5秒铲除该点以腾出位置")
         self.WidgetBeforeShovelInput.setCurrentIndex(1)
-        layout.addWidget(self.WidgetBeforeShovelInput)
+        before_shovel_layout.addWidget(before_shovel_label)
+        before_shovel_layout.addWidget(self.WidgetBeforeShovelInput)
+        normal_layout.addLayout(before_shovel_layout)
 
-        # 后铲
-        layout = QHBoxLayout()
-        LayMain.addLayout(layout)
-
-        tooltips = "是否会在指定的秒数后铲除该点"
-
-        label = QLabel('后铲')
-        label.setToolTip(tooltips)
-        layout.addWidget(label)
-
+        # 后铲参数
+        after_shovel_layout = QHBoxLayout()
+        after_shovel_label = QLabel('后铲')
+        after_shovel_label.setToolTip("是否会在指定的秒数后执行清理操作")
         self.WidgetAfterShovelInput = QComboBox()
         self.WidgetAfterShovelInput.setFixedWidth(140)
         self.WidgetAfterShovelInput.addItems(['true', 'false'])
-        self.WidgetAfterShovelInput.setToolTip(tooltips)
+        self.WidgetAfterShovelInput.setToolTip("是否会在指定的秒数后执行清理操作")
         self.WidgetAfterShovelInput.setCurrentIndex(1)
-        layout.addWidget(self.WidgetAfterShovelInput)
+        after_shovel_layout.addWidget(after_shovel_label)
+        after_shovel_layout.addWidget(self.WidgetAfterShovelInput)
+        normal_layout.addLayout(after_shovel_layout)
 
-        # 放卡时间
-        layout = QHBoxLayout()
-        LayMain.addLayout(layout)
-
-        tooltips = "放置卡片后，几秒后铲除"
-
-        label = QLabel('后铲时间')
-        label.setToolTip(tooltips)
-        layout.addWidget(label)
-
+        # 后铲时间参数
+        after_time_layout = QHBoxLayout()
+        after_time_label = QLabel('清理延迟')
+        after_time_label.setToolTip("操作完成后，几秒后执行清理")
         self.WidgetAfterTimeInput = QDoubleSpinBox()
         self.WidgetAfterTimeInput.setFixedWidth(140)
-        self.WidgetAfterTimeInput.setToolTip(tooltips)
+        self.WidgetAfterTimeInput.setToolTip("操作完成后，几秒后执行清理")
         self.WidgetAfterTimeInput.setRange(0, 9999)
-        layout.addWidget(self.WidgetAfterTimeInput)
+        after_time_layout.addWidget(after_time_label)
+        after_time_layout.addWidget(self.WidgetAfterTimeInput)
+        normal_layout.addLayout(after_time_layout)
 
-    def load_data(self):
-        self.WidgetIdInput2.setValue(self.data['card_id'])
-        self.WidgetNameInput2.setText(self.data['name'])
-        self.WidgetTimeInput.setValue(self.data['time'])
-        self.WidgetBeforeShovelInput.setCurrentText(str(self.data['before_shovel']).lower())
-        self.WidgetAfterShovelInput.setCurrentText(str(self.data['after_shovel']).lower())
-        self.WidgetAfterTimeInput.setValue(self.data['after_shovel_time'])
+        LayMain.addWidget(self.normal_params)
 
     def connect_functions(self):
         """绑定信号"""
+        # 类型切换时更新UI和数据模型
+        self.WidgetTypeSelect.currentIndexChanged.connect(self.on_type_changed)
 
-        # 定时放卡相关变动函数绑定
-        self.WidgetIdInput2.valueChanged.connect(self.func_update)
-        self.WidgetNameInput2.textChanged.connect(self.func_update)
+        # 时间参数绑定
         self.WidgetTimeInput.valueChanged.connect(self.func_update)
-        self.WidgetBeforeShovelInput.currentIndexChanged.connect(self.func_update)
-        self.WidgetAfterShovelInput.currentIndexChanged.connect(self.func_update)
-        self.WidgetAfterTimeInput.valueChanged.connect(self.func_update)
 
+        # 普通放卡参数绑定
+        for widget in [
+            self.WidgetIdInput2,
+            self.WidgetNameInput2,
+            self.WidgetBeforeShovelInput,
+            self.WidgetAfterShovelInput,
+            self.WidgetAfterTimeInput
+        ]:
+            if hasattr(widget, 'valueChanged'):
+                widget.valueChanged.connect(self.func_update)
+            elif hasattr(widget, 'currentIndexChanged'):
+                widget.currentIndexChanged.connect(self.func_update)
+
+    def on_type_changed(self):
+        """处理操作类型切换"""
+        is_shovel = self.WidgetTypeSelect.currentIndex() == 1
+
+        # 更新数据模型
+        self.data['type'] = 'shovel' if is_shovel else 'insert_use_card'
+
+        # 清理非必要字段
+        if is_shovel:
+            for key in ['card_id', 'name', 'before_shovel', 'after_shovel', 'after_shovel_time']:
+                self.data.pop(key, None)
+        else:
+            if 'card_id' not in self.data:
+                self.data['card_id'] = 1
+            if 'name' not in self.data:
+                self.data['name'] = ''
+            if 'before_shovel' not in self.data:
+                self.data['before_shovel'] = False
+            if 'after_shovel' not in self.data:
+                self.data['after_shovel'] = False
+            if 'after_shovel_time' not in self.data:
+                self.data['after_shovel_time'] = 0.0
+
+        # 强制重新加载数据到UI
+        self.load_data()
+
+        # 强制触发外部更新
+        self.func_update()
+        self.editor_parent.fresh_all_ui()
+
+    def load_data(self):
+        """加载数据到UI"""
+        # 基础字段
+        self.WidgetTimeInput.setValue(self.data.get('time', 0))
+
+        # 类型选择器
+        self.WidgetTypeSelect.setCurrentIndex(
+            1 if self.data.get('type') == 'shovel' else 0)
+
+        # 普通放卡字段
+        if self.data.get('type') != 'shovel':
+            self.WidgetIdInput2.setValue(self.data.get('card_id', 1))
+            self.WidgetNameInput2.setText(self.data.get('name', ''))
+            self.WidgetBeforeShovelInput.setCurrentText(
+                str(self.data.get('before_shovel', False)).lower())
+            self.WidgetAfterShovelInput.setCurrentText(
+                str(self.data.get('after_shovel', False)).lower())
+            self.WidgetAfterTimeInput.setValue(
+                self.data.get('after_shovel_time', 0))
+
+        # 更新UI可见性
+        self.normal_params.setVisible(self.data.get('type') != 'shovel')
+
+    def get_data(self):
+        """获取当前UI数据"""
+        data = {
+            "time": self.WidgetTimeInput.value(),
+            "type": "shovel" if self.WidgetTypeSelect.currentIndex() == 1 else "insert_use_card",
+            "location": self.data.get("location", "")
+        }
+
+        # 普通放卡特有字段
+        if data["type"] != "shovel":
+            data.update({
+                "card_id": self.WidgetIdInput2.value(),
+                "name": self.WidgetNameInput2.text(),
+                "before_shovel": self.WidgetBeforeShovelInput.currentText() == "true",
+                "after_shovel": self.WidgetAfterShovelInput.currentText() == "true",
+                "after_shovel_time": self.WidgetAfterTimeInput.value()
+            })
+
+        return data
+
+
+class ShovelActionEditor(QDialog):
+    def __init__(self, data, func_update, editor_parent, event_index):
+        super().__init__()
+        self.data = data.copy() if data else {}
+        self.func_update = func_update
+        self.editor_parent = editor_parent
+        self.event_index = event_index
+
+
+
+        # 确保必要字段
+        if 'time' not in self.data:
+            self.data['time'] = 0.0
+        if 'location' not in self.data:
+            self.data['location'] = ''
+
+        # UI初始化
+        self.init_ui()
+        self.load_data()
+        self.WidgetTimeInput.valueChanged.connect(self.func_update)
+
+        # 窗口设置
+        self.setWindowTitle("编辑定时铲子参数")
+        self.setWindowFlags(
+            Qt.WindowType.CustomizeWindowHint |
+            Qt.WindowType.WindowCloseButtonHint |
+            Qt.WindowType.WindowStaysOnTopHint
+        )
+
+    def init_ui(self):
+        """初始化铲子操作参数编辑界面"""
+        LayMain = QVBoxLayout()
+        self.setLayout(LayMain)
+
+        # 时间参数
+        time_layout = QHBoxLayout()
+        time_label = QLabel('执行时间')
+        self.WidgetTimeInput = QDoubleSpinBox()
+        self.WidgetTimeInput.setFixedWidth(140)
+        self.WidgetTimeInput.setToolTip("识别到对应波次后，会在对应秒数后执行操作")
+        self.WidgetTimeInput.setRange(0, 9999)
+        time_layout.addWidget(time_label)
+        time_layout.addWidget(self.WidgetTimeInput)
+        LayMain.addLayout(time_layout)
+
+
+
+    def load_data(self):
+        """加载数据到UI"""
+        self.WidgetTimeInput.setValue(self.data.get('time', 0))
+
+    def get_data(self):
+        """获取当前UI数据"""
+        return {
+            "time": self.WidgetTimeInput.value(),
+            "type": "shovel",
+            "location": self.data.get("location", "")
+        }
 
 class GemInfoEditor(QDialog):
     def __init__(self, data, func_update):
@@ -2349,6 +2723,180 @@ class GemInfoEditor(QDialog):
         self.WidgetGemIdInput.currentIndexChanged.connect(self.func_update)
 
 
+class SpecialActionTypeDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("选择特殊操作类型")
+        layout = QVBoxLayout(self)
+
+        self.type_combo = QComboBox()
+        self.type_combo.addItems(["逃跑操作", "禁用卡片", "宝石操作", "单卡随机", "多卡随机"])
+
+
+        layout.addWidget(self.type_combo)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+    def get_selected_type(self):
+        return {
+            "逃跑操作": "escape",
+            "禁用卡片": "disable_card",
+            "宝石操作": "gem",
+            "单卡随机": "random_single_card",
+            "多卡随机": "random_multi_card"
+        }[self.type_combo.currentText()]
+
+class RandomSingleCardActionEditor(QDialog):
+    def __init__(self, data, func_update):
+        super().__init__()
+        self.data = data.copy() if data else {"time": 0.0, "card_index": 1}
+        self.func_update = func_update
+
+        self.card_index = QSpinBox()
+        self.card_index.setValue(self.data.get("card_index", 1))
+        self.card_index.valueChanged.connect(self.on_value_changed)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel("输入单卡索引"))
+        layout.addWidget(self.card_index)
+
+        self.setLayout(layout)
+        self.setWindowTitle("编辑单卡随机")
+        self.setWindowFlags(Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowCloseButtonHint)
+
+    def on_value_changed(self):
+        self.data["card_index"] = self.card_index.value()
+        if self.func_update:
+            self.func_update()
+
+    def get_data(self):
+        return {
+            "card_index": self.card_index.value(),
+            "type": "random_single_card",
+            "time": self.data.get("time", 0)
+        }
+
+
+
+
+
+
+class RandomMultiCardActionEditor(QDialog):
+    def __init__(self, data, func_update):
+        super().__init__()
+        self.data = data.copy() if data else {"time": 0.0, "card_indices": [1, 2]}
+        self.func_update = func_update
+
+        self.card_indices_edit = QLineEdit()
+        self.card_indices_edit.setText(",".join(map(str, self.data.get("card_indices", [1, 2]))))
+        self.card_indices_edit.setPlaceholderText("输入多个索引，用逗号分隔")
+        self.card_indices_edit.textEdited.connect(self.on_text_edited)
+
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel("选择多卡索引(用逗号分隔)"))
+        layout.addWidget(self.card_indices_edit)
+
+        self.setLayout(layout)
+        self.setWindowTitle("编辑多卡随机")
+        self.setWindowFlags(Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowCloseButtonHint)
+
+    def on_text_edited(self):
+        card_indices_text = self.card_indices_edit.text()
+        try:
+            card_indices = [int(id.strip()) for id in card_indices_text.split(",")] if card_indices_text else []
+            self.data["card_indices"] = card_indices
+            if self.func_update:
+                self.func_update()
+        except ValueError:
+            pass  # 忽略无效输入
+
+    def get_data(self):
+        card_indices_text = self.card_indices_edit.text()
+        card_indices = [int(id.strip()) for id in card_indices_text.split(",")] if card_indices_text else []
+        return {
+            "card_indices": card_indices,
+            "type": "random_multi_card",
+            "time": self.data.get("time", 0)
+        }
+class EscapeActionEditor(QDialog):
+    def __init__(self, data, func_update):
+        super().__init__()
+        self.data = data.copy() if data else {"time": 0.0}
+        self.func_update = func_update
+
+        self.WidgetTimeInput = QDoubleSpinBox()
+        self.WidgetTimeInput.setRange(0, 9999)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20,20)
+        layout.setSpacing(15)
+        self.WidgetTimeInput.setFixedWidth(140)
+        layout.addWidget(QLabel("触发时间(秒)"))
+        layout.addWidget(self.WidgetTimeInput)
+
+        self.setLayout(layout)
+        self.setWindowTitle("编辑逃跑操作")
+        self.setWindowFlags(Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowCloseButtonHint)
+
+        self.load_data()
+        self.WidgetTimeInput.valueChanged.connect(self.func_update)
+
+    def load_data(self):
+        self.WidgetTimeInput.setValue(self.data.get("time", 0))
+
+    def get_data(self):
+        return {"time": self.WidgetTimeInput.value(), "type": "escape"}
+
+
+class BanCardActionEditor(QDialog):
+    def __init__(self, data, func_update):
+        super().__init__()
+        self.data = data.copy() if data else {"start_time": 0.0, "end_time": 0.0, "card_id": 1}
+        self.func_update = func_update
+
+        self.start_time = QDoubleSpinBox()
+        self.start_time.setRange(0, 9999)
+        self.end_time = QDoubleSpinBox()
+        self.end_time.setRange(0, 9999)
+        self.card_id = QSpinBox()
+        self.card_id.setRange(0, 21)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(15)
+        layout.addWidget(QLabel("开始时间(秒)"))
+        layout.addWidget(self.start_time)
+        layout.addWidget(QLabel("结束时间(秒)"))
+        layout.addWidget(self.end_time)
+        layout.addWidget(QLabel("禁用的卡片ID(0-21)"))
+        layout.addWidget(self.card_id)
+
+        self.setLayout(layout)
+        self.setWindowTitle("编辑禁用卡片")
+        self.setWindowFlags(Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowCloseButtonHint)
+
+        self.load_data()
+        self.start_time.valueChanged.connect(self.func_update)
+        self.end_time.valueChanged.connect(self.func_update)
+        self.card_id.valueChanged.connect(self.func_update)
+
+    def load_data(self):
+        self.start_time.setValue(self.data.get("start_time", 0))
+        self.end_time.setValue(self.data.get("end_time", 0))
+        self.card_id.setValue(self.data.get("card_id", 1))
+
+    def get_data(self):
+        return {
+            "start_time": self.start_time.value(),
+            "end_time": self.end_time.value(),
+            "card_id": self.card_id.value(),
+            "type": "disable_card"
+        }
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = QMWEditorOfBattlePlan()
