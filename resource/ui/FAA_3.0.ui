@@ -6593,92 +6593,10 @@ Link Start</string>
                  <property name="verticalSpacing">
                   <number>3</number>
                  </property>
-                 <item row="3" column="0">
-                  <widget class="QCheckBox" name="StartTCE_Active">
+                 <item row="3" column="3">
+                  <widget class="QLabel" name="AutoFood_Stage">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>120</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>120</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>启动天知强卡器</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="3" column="1">
-                  <widget class="QComboBox" name="TCE_Group">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>60</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <item>
-                    <property name="text">
-                     <string>1P</string>
-                    </property>
-                   </item>
-                   <item>
-                    <property name="text">
-                     <string>2P</string>
-                    </property>
-                   </item>
-                  </widget>
-                 </item>
-                 <item row="4" column="5">
-                  <widget class="QLabel" name="LoopCrossServer_Deck">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>60</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>60</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>同公会</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="4" column="2">
-                  <widget class="QLabel" name="LoopCrossServer_MaxTimes">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
@@ -6686,21 +6604,21 @@ Link Start</string>
                    <property name="minimumSize">
                     <size>
                      <width>90</width>
-                     <height>0</height>
+                     <height>20</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
                      <width>90</width>
-                     <height>50</height>
+                     <height>20</height>
                     </size>
                    </property>
                    <property name="text">
-                    <string>无限</string>
+                    <string>自动识别</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="4" column="1">
+                 <item row="5" column="1">
                   <widget class="QCheckBox" name="LoopCrossServer_Group">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -6725,8 +6643,8 @@ Link Start</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="4" column="3">
-                  <widget class="QLabel" name="LoopCrossServer_Sdage">
+                 <item row="0" column="1">
+                  <widget class="QCheckBox" name="ReceiveAwards_Group">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -6735,109 +6653,18 @@ Link Start</string>
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>90</width>
+                     <width>0</width>
                      <height>20</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>90</width>
+                     <width>60</width>
                      <height>20</height>
                     </size>
                    </property>
                    <property name="text">
-                    <string>CS-5-2</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="4" column="0">
-                  <widget class="QCheckBox" name="LoopCrossServer_Active">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>120</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>120</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>该功能会无限循环
-直至游戏崩溃
-或定时启动其他任务将其中断</string>
-                   </property>
-                   <property name="text">
-                    <string>跨服副本-威望</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="0">
-                  <widget class="QCheckBox" name="AutoFood_Active">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>120</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>120</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>使用FAA-文字识别技术 X 语义解析
-自动生成战斗方案
-该功能会无限循环
-直至没有任务
-或所有任务均已失败三次被跳过.
-更多详情见战斗逻辑介绍相应章节.</string>
-                   </property>
-                   <property name="text">
-                    <string>全自动识别-大赛</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="0">
-                  <widget class="QCheckBox" name="UseItems_Active">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>120</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>120</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>若背包爆满会卡死! </string>
-                   </property>
-                   <property name="text">
-                    <string>使用消耗品</string>
+                    <string>双人</string>
                    </property>
                   </widget>
                  </item>
@@ -6873,8 +6700,199 @@ Link Start</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="1" column="1">
-                  <widget class="QCheckBox" name="UseItems_Group">
+                 <item row="3" column="0">
+                  <widget class="QCheckBox" name="AutoFood_Active">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>120</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>120</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>使用FAA-文字识别技术 X 语义解析
+自动生成战斗方案
+该功能会无限循环
+直至没有任务
+或所有任务均已失败三次被跳过.
+更多详情见战斗逻辑介绍相应章节.</string>
+                   </property>
+                   <property name="text">
+                    <string>全自动识别-大赛</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="5" column="3">
+                  <widget class="QLabel" name="LoopCrossServer_Sdage">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>90</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>90</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>CS-5-2</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="5" column="0">
+                  <widget class="QCheckBox" name="LoopCrossServer_Active">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>120</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>120</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>该功能会无限循环
+直至游戏崩溃
+或定时启动其他任务将其中断</string>
+                   </property>
+                   <property name="text">
+                    <string>跨服副本-威望</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="2">
+                  <widget class="QLabel" name="AutoFood_MaxTimes">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>90</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>90</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>直到完成</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="6">
+                  <widget class="QLabel" name="AutoFood_1P">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>200</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>200</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>关卡方案 或 全局方案</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QCheckBox" name="UseItems_Active">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>120</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>120</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="toolTip">
+                    <string>若背包爆满会卡死! </string>
+                   </property>
+                   <property name="text">
+                    <string>使用消耗品</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="5" column="2">
+                  <widget class="QLabel" name="LoopCrossServer_MaxTimes">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>90</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>90</width>
+                     <height>50</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>无限</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="4" column="1">
+                  <widget class="QComboBox" name="TCE_Group">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -6893,8 +6911,96 @@ Link Start</string>
                      <height>20</height>
                     </size>
                    </property>
+                   <item>
+                    <property name="text">
+                     <string>1P</string>
+                    </property>
+                   </item>
+                   <item>
+                    <property name="text">
+                     <string>2P</string>
+                    </property>
+                   </item>
+                  </widget>
+                 </item>
+                 <item row="4" column="0">
+                  <widget class="QCheckBox" name="StartTCE_Active">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>120</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>120</width>
+                     <height>20</height>
+                    </size>
+                   </property>
                    <property name="text">
-                    <string>双人</string>
+                    <string>启动天知强卡器</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="4">
+                  <widget class="QFrame" name="ReceiveAwards_Space">
+                   <property name="enabled">
+                    <bool>false</bool>
+                   </property>
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>17</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>17</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                   <property name="frameShape">
+                    <enum>QFrame::StyledPanel</enum>
+                   </property>
+                   <property name="frameShadow">
+                    <enum>QFrame::Raised</enum>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="1">
+                  <widget class="QLabel" name="AutoFood_Group">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>50</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>60</width>
+                     <height>50</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>仅双人</string>
                    </property>
                   </widget>
                  </item>
@@ -6926,32 +7032,7 @@ Link Start</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="2" column="3">
-                  <widget class="QLabel" name="AutoFood_Stage">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>90</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>90</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>自动识别</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="5">
+                 <item row="3" column="5">
                   <widget class="QLabel" name="label_17">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -6976,8 +7057,8 @@ Link Start</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="2" column="6">
-                  <widget class="QLabel" name="AutoFood_1P">
+                 <item row="5" column="5">
+                  <widget class="QLabel" name="LoopCrossServer_Deck">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -6986,23 +7067,23 @@ Link Start</string>
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>200</width>
+                     <width>60</width>
                      <height>20</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>200</width>
+                     <width>60</width>
                      <height>20</height>
                     </size>
                    </property>
                    <property name="text">
-                    <string>关卡方案 或 全局方案</string>
+                    <string>同公会</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="0" column="1">
-                  <widget class="QCheckBox" name="ReceiveAwards_Group">
+                 <item row="1" column="1">
+                  <widget class="QCheckBox" name="UseItems_Group">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
@@ -7026,57 +7107,7 @@ Link Start</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="2" column="2">
-                  <widget class="QLabel" name="AutoFood_MaxTimes">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>90</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>90</width>
-                     <height>20</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>直到完成</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="1">
-                  <widget class="QLabel" name="AutoFood_Group">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>50</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>60</width>
-                     <height>50</height>
-                    </size>
-                   </property>
-                   <property name="text">
-                    <string>仅双人</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="7">
+                 <item row="3" column="7">
                   <widget class="QLabel" name="AutoFood_1P_2">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
@@ -7101,34 +7132,52 @@ Link Start</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="2" column="4">
-                  <widget class="QFrame" name="ReceiveAwards_Space">
-                   <property name="enabled">
-                    <bool>false</bool>
+                 <item row="2" column="0">
+                  <widget class="QCheckBox" name="CheckingEndBox">
+                   <property name="text">
+                    <string>查漏补缺</string>
                    </property>
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
+                  </widget>
+                 </item>
+                 <item row="2" column="1">
+                  <widget class="QCheckBox" name="CheckingEndBox_Group">
+                   <property name="text">
+                    <string>双人</string>
                    </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>17</width>
-                     <height>20</height>
-                    </size>
+                  </widget>
+                 </item>
+                 <item row="6" column="0">
+                  <widget class="QCheckBox" name="LoopCrossExperience_Active">
+                   <property name="text">
+                    <string>跨服副本-经验</string>
                    </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>17</width>
-                     <height>20</height>
-                    </size>
+                  </widget>
+                 </item>
+                 <item row="6" column="1">
+                  <widget class="QCheckBox" name="LoopCrossExperience_Group">
+                   <property name="text">
+                    <string>双人</string>
                    </property>
-                   <property name="frameShape">
-                    <enum>QFrame::StyledPanel</enum>
+                  </widget>
+                 </item>
+                 <item row="6" column="2">
+                  <widget class="QLabel" name="LoopCrossExperience_MaxTimes">
+                   <property name="text">
+                    <string>无限</string>
                    </property>
-                   <property name="frameShadow">
-                    <enum>QFrame::Raised</enum>
+                  </widget>
+                 </item>
+                 <item row="6" column="3">
+                  <widget class="QLabel" name="LoopCrossExperinece_Sdage">
+                   <property name="text">
+                    <string>CS-4-6</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="6" column="4">
+                  <widget class="QLabel" name="LoopCrossExperinece_Global">
+                   <property name="text">
+                    <string>√</string>
                    </property>
                   </widget>
                  </item>
