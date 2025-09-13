@@ -7163,7 +7163,7 @@ Link Start</string>
                  <item row="6" column="2">
                   <widget class="QLabel" name="LoopCrossExperience_MaxTimes">
                    <property name="text">
-                    <string>无限</string>
+                    <string>600</string>
                    </property>
                   </widget>
                  </item>

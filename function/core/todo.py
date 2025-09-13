@@ -709,36 +709,55 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=title_text)
 
-    def batch_loop_cross_server(self, player: list = None, deck: int = 1):
+    def batch_loop_cross_server(self, player: list = None, deck: int = 1,name:str="威望"):
 
-        title_text = "无限跨服刷威望"
+        title_text = "无限跨服刷"+ name
 
         player = self.check_player(title=title_text, player=player)
 
         self.model_start_print(text=title_text)
+        if name=="威望":
+            # 创建进程 -> 开始进程 -> 阻塞主进程
+            if 1 in player:
+                self.thread_1p = ThreadWithException(
+                    target=self.faa_dict[1].loop_cross_server,
+                    name="1P Thread - LoopCS",
+                    kwargs={"deck": deck})
+                self.thread_1p.start()
 
-        # 创建进程 -> 开始进程 -> 阻塞主进程
-        if 1 in player:
-            self.thread_1p = ThreadWithException(
-                target=self.faa_dict[1].loop_cross_server,
-                name="1P Thread - LoopCS",
-                kwargs={"deck": deck})
-            self.thread_1p.start()
+            if 2 in player and 1 in player:
+                sleep(0.333)
 
-        if 2 in player and 1 in player:
-            sleep(0.333)
+            if 2 in player:
+                self.thread_2p = ThreadWithException(
+                    target=self.faa_dict[2].loop_cross_server,
+                    name="2P Thread - LoopCS",
+                    kwargs={"deck": deck})
+                self.thread_2p.start()
 
-        if 2 in player:
-            self.thread_2p = ThreadWithException(
-                target=self.faa_dict[2].loop_cross_server,
-                name="2P Thread - LoopCS",
-                kwargs={"deck": deck})
-            self.thread_2p.start()
-
-        if 1 in player:
-            self.thread_1p.join()
-        if 2 in player:
-            self.thread_2p.join()
+            if 1 in player:
+                self.thread_1p.join()
+            if 2 in player:
+                self.thread_2p.join()
+        else:
+            quest_list = [
+                {
+                    "stage_id": "CS-4-6",
+                    "max_times": 600,
+                    "need_key": False,
+                    "player": player,
+                    "global_plan_active": True,
+                    "deck": 0,
+                    "battle_plan_1p": None,
+                    "battle_plan_2p": None,
+                    "dict_exit": {
+                    "other_time_player_a": [],
+                    "other_time_player_b": [],
+                    "last_time_player_a": ["竞技岛"],
+                    "last_time_player_b": ["竞技岛"]},
+                    "is_cu": False
+                }]
+            self.battle_1_n_n(quest_list=quest_list,extra_title=title_text)
 
     """业务代码 - 战斗相关"""
 
@@ -1334,7 +1353,7 @@ class ThreadTodo(QThread):
                             "00000000-0000-0000-0000-000000000001"]}
 
                 # 2.2.2- 不包含 tweak_plan 的情况
-                if g_plan.get("tweak_plan"):
+                if not g_plan.get("tweak_plan"):
                     g_plan["tweak_plan"] = None
 
                 # 加载 g_plan
@@ -1412,13 +1431,13 @@ class ThreadTodo(QThread):
                 SIGNAL.PRINT_TO_UI.emit(text=f"{title} {stage_id} 设置次数不足, 跳过")
                 return False
 
-            if battle_plan_1p not in g_resources.RESOURCE_B.keys():
+            if battle_plan_a not in g_resources.RESOURCE_B.keys():
                 SIGNAL.PRINT_TO_UI.emit(
                     text=f"{title} [1P] 无法通过UUID{battle_plan_1p}找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
                 return False
 
             if is_group:
-                if battle_plan_2p not in g_resources.RESOURCE_B.keys():
+                if battle_plan_b not in g_resources.RESOURCE_B.keys():
                     SIGNAL.PRINT_TO_UI.emit(
                         text=f"{title} [2P] 无法通过UUID{battle_plan_2p}找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
                     return False
@@ -1830,7 +1849,7 @@ class ThreadTodo(QThread):
             self.my_lock = True
 
         SIGNAL.PRINT_TO_UI.emit(text=f"{title}开始...", color_level=3)
-        print(f"将要刷取清单{quest_list}")
+        # print(f"将要刷取清单{quest_list}")
 
         # 遍历完成每一个任务
         for i in range(len(quest_list)):
@@ -3098,10 +3117,12 @@ class ThreadTodo(QThread):
         extra_active = False
         extra_active = extra_active or c_opt["receive_awards"]["active"]
         extra_active = extra_active or c_opt["use_items"]["active"]
+        extra_active = extra_active or c_opt["checking"]["active"]
         extra_active = extra_active or c_opt["auto_food"]["active"]
         # 循环任务
         extra_active = extra_active or c_opt["tce"]["active"]
         extra_active = extra_active or c_opt["loop_cross_server"]["active"]
+        extra_active = extra_active or c_opt["loop_cross_experience"]["active"]
 
         if extra_active:
             SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
@@ -3140,7 +3161,15 @@ class ThreadTodo(QThread):
         if my_opt["active"]:
             self.batch_loop_cross_server(
                 player=[1, 2] if my_opt["is_group"] else [1],
-                deck=c_opt["quest_guild"]["deck"])
+                deck=c_opt["quest_guild"]["deck"],
+                name="威望")
+
+        my_opt = c_opt["loop_cross_experience"]
+        if my_opt["active"]:
+            self.batch_loop_cross_server(
+                player=[1, 2] if my_opt["is_group"] else [1],
+                deck=c_opt["quest_guild"]["deck"],
+                name="经验")
 
         my_opt = c_opt["tce"]
         if my_opt["active"]:
