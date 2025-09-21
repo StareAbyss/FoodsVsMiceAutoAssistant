@@ -19,7 +19,7 @@ from PyQt6.QtCore import *
 from requests import RequestException
 
 from function.common.TCEPipeCommunicationThread import TCEPipeCommunicationThread
-from function.common.bg_img_match import loop_match_p_in_w
+from function.common.bg_img_match import loop_match_p_in_w, match_p_in_w
 from function.common.process_and_window_manager import close_software_by_title, get_path_and_sub_titles, \
     close_all_software_by_name, start_software_with_args
 from function.common.thread_with_exception import ThreadWithException
@@ -1433,13 +1433,13 @@ class ThreadTodo(QThread):
 
             if battle_plan_a not in g_resources.RESOURCE_B.keys():
                 SIGNAL.PRINT_TO_UI.emit(
-                    text=f"{title} [1P] 无法通过UUID{battle_plan_1p}找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
+                    text=f"{title} [1P] 无法通过UUID{battle_plan_a}找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
                 return False
 
             if is_group:
                 if battle_plan_b not in g_resources.RESOURCE_B.keys():
                     SIGNAL.PRINT_TO_UI.emit(
-                        text=f"{title} [2P] 无法通过UUID{battle_plan_2p}找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
+                        text=f"{title} [2P] 无法通过UUID{battle_plan_b}找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
                     return False
 
             if battle_plan_tweak not in g_resources.RESOURCE_T.keys():
@@ -2506,6 +2506,223 @@ class ThreadTodo(QThread):
 
     """使用battle_1_n_n为核心的变种 [双线程][单人]"""
 
+    def checking_nodo(self, player: list = None):
+
+        title_text = "查漏补缺"
+
+        player = self.check_player(title=title_text, player=player)
+
+        self.model_start_print(text=title_text)
+        # 创建进程 -> 开始进程 -> 阻塞主进程
+        if 1 in player:
+            self.thread_1p = ThreadWithException(
+                target=self.faa_dict[1].check_not_doing,
+                name="1P Thread - CheckingNotDoing",
+                kwargs={"c_opt":self.opt_todo_plans})
+            self.thread_1p.start()
+
+        if 1 in player and 2 in player:
+            sleep(0.333)
+
+        if 2 in player:
+            self.thread_2p = ThreadWithException(
+                target=self.faa_dict[2].check_not_doing,
+                name="2P Thread - CheckingNotDoing",
+                kwargs={"c_opt":self.opt_todo_plans})
+            self.thread_2p.start()
+        quest_list_1=[]
+        quest_list_2=[]
+        reputation_status_1=0
+        reputation_status_2=0
+        completed_fertilization_1=False
+        completed_fertilization_2=False
+        if 1 in player:
+            quest_list_1,reputation_status_1,reputation_now_1,completed_fertilization_1=self.thread_1p.get_return_value()
+        if 2 in player:
+            quest_list_2,reputation_status_2,reputation_now_2,completed_fertilization_2=self.thread_2p.get_return_value()
+        quest_list = quest_list_1 + [i for i in quest_list_2 if i not in quest_list_1]
+        #再执行公会任务
+        if quest_list:
+            self.battle_1_n_n(quest_list=quest_list)
+            # 创建进程 -> 开始进程 -> 阻塞主进程
+            if 1 in player:
+                self.thread_1p = ThreadWithException(
+                    target=self.faa_dict[1].check_task_of_guild,
+                    name="1P Thread - CheckingGuild",
+                    kwargs={"c_opt":self.opt_todo_plans})
+                self.thread_1p.start()
+
+            if 1 in player and 2 in player:
+                sleep(0.333)
+
+            if 2 in player:
+                self.thread_2p = ThreadWithException(
+                    target=self.faa_dict[2].check_task_of_guild,
+                    name="2P Thread - CheckingGuild",
+                    kwargs={"c_opt":self.opt_todo_plans})
+                self.thread_2p.start()
+            if 1 in player:
+                quest_list_1,_=self.thread_1p.get_return_value()
+                if len(quest_list_1)>0:
+                    SIGNAL.DIALOG.emit(
+                        "查漏补缺报告",
+                        f"1p仍然存在未完成刷关任务，可能为缺乏指定卡片/方案缺失/刷关失败，请检查\n")
+                else:
+                    CUS_LOGGER.warning(f"1p完成公会任务查漏补缺")
+            if 2 in player:
+                quest_list_2,_=self.thread_2p.get_return_value()
+                if len(quest_list_2)>0:
+                    SIGNAL.DIALOG.emit(
+                        "查漏补缺报告",
+                        f"2p仍然存在未完成刷关任务，可能为缺乏指定卡片/方案缺失/刷关失败，请检查\n")
+                else:
+                    CUS_LOGGER.warning(f"2p完成公会任务查漏补缺")
+            if 1 in player and completed_fertilization_1:#未完成施肥的则进行施肥
+                self.thread_1p = ThreadWithException(
+                    target=self.faa_dict[1].fed_and_watered,
+                    name=f"1P Thread - FedAndWatered",
+                    kwargs={})
+                self.thread_1p.start()
+                self.thread_1p.join()
+            if 2 in player and completed_fertilization_2:
+                self.thread_2p = ThreadWithException(
+                    target=self.faa_dict[2].fed_and_watered,
+                    name=f"2P Thread - FedAndWatered",
+                    kwargs={})
+                self.thread_1p.start()
+                self.thread_1p.join()
+        if (1 in player and reputation_status_1!=2) or (2 in player and reputation_status_2!=2):
+            my_opt = self.opt_todo_plans["offer_reward"]
+            now_player = [2,1]if 2 in player else [1]
+            for max_stage in [4,3,2,1]:#从高到低测出最高声望可能关卡
+                quest_list=[{
+                    "player": now_player,
+                    "need_key": True,
+                    "global_plan_active": my_opt["global_plan_active"],
+                    "deck": my_opt["deck"],
+                    "battle_plan_1p": my_opt["battle_plan_1p"],
+                    "battle_plan_2p": my_opt["battle_plan_2p"],
+                    "stage_id": "OR-0-" + str(max_stage),
+                    "max_times": 1,
+                    "dict_exit": {
+                        "other_time_player_a": [],
+                        "other_time_player_b": [],
+                        "last_time_player_a": ["竞技岛"],
+                        "last_time_player_b": ["竞技岛"]}
+                }]
+
+                self.battle_1_n_n(quest_list=quest_list)
+                if 1 in player and reputation_status_1!=2:
+                    self.thread_1p = ThreadWithException(
+                        target=self.faa_dict[1].check_task_of_bounty,
+                        name="1P Thread - CheckingBounty",
+                        kwargs={})
+                    self.thread_1p.start()
+
+                if 1 in player and 2 in player and reputation_status_1!=2 and reputation_status_2!=2:
+                    sleep(0.333)
+
+                if 2 in player and reputation_status_2!=2:
+                    self.thread_2p = ThreadWithException(
+                        target=self.faa_dict[2].check_task_of_bounty,
+                        name="2P Thread - CheckingBounty",
+                        kwargs={})
+                    self.thread_2p.start()
+                if 1 in player and reputation_status_1!=2:
+                    new_reputation_status,new_reputation_now = self.thread_1p.get_return_value()
+                    if new_reputation_status==2:#检查声望是否打满
+                        reputation_status_1=new_reputation_status
+                    else:
+                        # 查找声望对比原来是否改变
+                        status, _ = match_p_in_w(
+                            template=new_reputation_now,
+                            source_img=reputation_now_1,
+                            match_tolerance=0.95,
+                            test_show=False
+                        )
+                        if status==2:#声望没有变化
+                            SIGNAL.DIALOG.emit(
+                                "查漏补缺报告",
+                                f"1p声望悬赏第{max_stage}关失败，请自行检查\n")
+                            continue
+                        else:
+                            break
+
+                if 2 in player and reputation_status_2!=2:
+                    new_reputation_status,new_reputation_now = self.thread_2p.get_return_value()
+                    if new_reputation_status==2:
+                        reputation_status_2=new_reputation_status
+                    else:
+                        status, _ = match_p_in_w(
+                            template=new_reputation_now,
+                            source_img=reputation_now_2,
+                            match_tolerance=0.95,
+                            test_show=False
+                        )
+                        if status==2:
+                            SIGNAL.DIALOG.emit(
+                                "查漏补缺报告",
+                                f"2p声望悬赏第{max_stage}关失败，请自行检查\n")
+                            continue
+                        else:
+                            break
+            count=0
+            MaxBountyTime=11
+            while (reputation_status_1!=2 or reputation_status_2!=2 ) and count<MaxBountyTime:
+                quest_list=[{
+                    "player": now_player,
+                    "need_key": True,
+                    "global_plan_active": my_opt["global_plan_active"],
+                    "deck": my_opt["deck"],
+                    "battle_plan_1p": my_opt["battle_plan_1p"],
+                    "battle_plan_2p": my_opt["battle_plan_2p"],
+                    "stage_id": "OR-0-" + str(max_stage),
+                    "max_times": 1,
+                    "dict_exit": {
+                        "other_time_player_a": [],
+                        "other_time_player_b": [],
+                        "last_time_player_a": ["竞技岛"],
+                        "last_time_player_b": ["竞技岛"]}
+                }]
+                self.battle_1_n_n(quest_list=quest_list)
+                count+=1
+                #打完一把检查是否声望满了
+                if 1 in player and reputation_status_1!=2:
+                    self.thread_1p = ThreadWithException(
+                        target=self.faa_dict[1].check_task_of_bounty,
+                        name="1P Thread - CheckingBounty",
+                        kwargs={})
+                    self.thread_1p.start()
+
+                if 1 in player and 2 in player and reputation_status_1!=2 and reputation_status_2!=2:
+                    sleep(0.333)
+
+                if 2 in player and reputation_status_2!=2:
+                    self.thread_2p = ThreadWithException(
+                        target=self.faa_dict[2].check_task_of_bounty,
+                        name="2P Thread - CheckingBounty",
+                        kwargs={})
+                    self.thread_2p.start()
+                if 1 in player and reputation_status_1!=2:
+                    new_reputation_status,new_reputation_now = self.thread_1p.get_return_value()
+                    if new_reputation_status==2:#检查声望是否打满
+                        reputation_status_1=new_reputation_status
+
+
+                if 2 in player and reputation_status_2!=2:
+                    new_reputation_status,new_reputation_now = self.thread_2p.get_return_value()
+                    if new_reputation_status==2:
+                        reputation_status_2=new_reputation_status
+            if count==MaxBountyTime:
+                #有个不大不小的奇妙bug，当背包满了的时候，会导致无法领取奖励，进而使悬赏刷关无法跳转
+                SIGNAL.DIALOG.emit(
+                    "查漏补缺报告",
+                    f"声望刷取次数过多，请自行检查\n")
+            else:
+                CUS_LOGGER.warning(f"声望刷满任务完成")
+
+
+        self.model_end_print(text=title_text)
     def alone_magic_tower(self):
 
         c_opt = self.opt_todo_plans
@@ -3152,6 +3369,9 @@ class ThreadTodo(QThread):
             self.batch_use_items_consumables(
                 player=[1, 2] if my_opt["is_group"] else [1],
             )
+        my_opt = c_opt["checking"]
+        if my_opt["active"]:
+            self.checking_nodo(player=[1, 2] if my_opt["is_group"] else [1],)
 
         my_opt = c_opt["auto_food"]
         if my_opt["active"]:
