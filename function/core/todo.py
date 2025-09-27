@@ -2577,20 +2577,20 @@ class ThreadTodo(QThread):
                         f"2p仍然存在未完成刷关任务，可能为缺乏指定卡片/方案缺失/刷关失败，请检查\n")
                 else:
                     CUS_LOGGER.warning(f"2p完成公会任务查漏补缺")
-            if 1 in player and completed_fertilization_1:#未完成施肥的则进行施肥
-                self.thread_1p = ThreadWithException(
-                    target=self.faa_dict[1].fed_and_watered,
-                    name=f"1P Thread - FedAndWatered",
-                    kwargs={})
-                self.thread_1p.start()
-                self.thread_1p.join()
-            if 2 in player and completed_fertilization_2:
-                self.thread_2p = ThreadWithException(
-                    target=self.faa_dict[2].fed_and_watered,
-                    name=f"2P Thread - FedAndWatered",
-                    kwargs={})
-                self.thread_1p.start()
-                self.thread_1p.join()
+        if 1 in player and completed_fertilization_1:#未完成施肥的则进行施肥
+            self.thread_1p = ThreadWithException(
+                target=self.faa_dict[1].fed_and_watered,
+                name=f"1P Thread - FedAndWatered",
+                kwargs={})
+            self.thread_1p.start()
+            self.thread_1p.join()
+        if 2 in player and completed_fertilization_2:
+            self.thread_2p = ThreadWithException(
+                target=self.faa_dict[2].fed_and_watered,
+                name=f"2P Thread - FedAndWatered",
+                kwargs={})
+            self.thread_2p.start()
+            self.thread_2p.join()
         if (1 in player and reputation_status_1!=2) or (2 in player and reputation_status_2!=2):
             my_opt = self.opt_todo_plans["offer_reward"]
             now_player = [2,1]if 2 in player else [1]
