@@ -1458,7 +1458,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         # 获取当前UI数据
         ui_data = self.EditorAction.get_data()
-
+        print("UI数据: ", ui_data)
         # 创建新的操作对象
         if ui_data["type"] == "shovel":
             # 创建新的铲子操作对象
@@ -1469,7 +1469,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         else:
             # 创建新的普通放卡对象
             new_action = ActionInsertUseCard(
-                card_id=event.action.card_id,  # 直接使用现有值
+                card_id=ui_data.get("card_id", 1),
                 location=event.action.location,
                 before_shovel=ui_data.get("before_shovel", False),
                 after_shovel=ui_data.get("after_shovel", False),
