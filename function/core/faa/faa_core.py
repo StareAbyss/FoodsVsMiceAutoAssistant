@@ -1208,7 +1208,8 @@ class FAABase:
         def try_relink() -> bool:
             """
             循环判断是否处于页面无法访问网页上(刷新无用，因为那是单独的网页)
-            如果是, 就点击红色按钮 + 返回上一页
+            如果是, 就点击红色按钮
+            否则返回上一页
             """
 
             # 查找 + 点击红色按钮（但点击不一定有效果!）
@@ -1217,13 +1218,13 @@ class FAABase:
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 2000],
                 template=RESOURCE_P["error"]["retry_btn.png"],
-                match_tolerance=0.95,
+                match_tolerance=0.90,
                 click=True,
                 after_sleep=3,
                 match_interval=0.5,
                 match_failed_check=10
             )
-            if my_result:
+            if not my_result:#执念锐评：定位半天为啥用不了断网刷新，还以为按钮特别点不动，感情是这少了个not，点击刷新成功了又回退回了断网界面
                 # 再回到上一个网页 基本上稳定可以修复
                 self.click_return_btn()
                 time.sleep(6)
