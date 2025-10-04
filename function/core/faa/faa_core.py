@@ -1226,9 +1226,34 @@ class FAABase:
             )
             if not my_result:#执念锐评：定位半天为啥用不了断网刷新，还以为按钮特别点不动，感情是这少了个not，点击刷新成功了又回退回了断网界面
                 # 再回到上一个网页 基本上稳定可以修复
-                self.click_return_btn()
-                time.sleep(6)
-                return True
+                result = loop_match_ps_in_w(
+                    source_handle=self.handle_browser,
+                    source_root_handle=self.handle_360,
+                    template_opts=[
+                        {
+                            "source_range": [850, 570, 2000, 2000],
+                            "template": RESOURCE_P["common"]["底部菜单"]["跳转.png"],
+                            "match_tolerance": 0.99,
+                        }, {
+                            "source_range": [615, 570, 2000, 2000],
+                            "template": RESOURCE_P["common"]["底部菜单"]["任务.png"],
+                            "match_tolerance": 0.99,
+                        }, {
+                            "source_range": [890, 570, 2000, 2000],
+                            "template": RESOURCE_P["common"]["底部菜单"]["后退.png"],
+                            "match_tolerance": 0.99,
+                        }
+                    ],
+                    return_mode="and",
+                    match_interval=1,
+                    match_failed_check=30)
+                if not result:
+                    #没进地图，回退重开
+                    self.click_return_btn()
+                    time.sleep(6)
+                    return False
+                else:
+                    return True
 
             self.print_error(text="[刷新游戏] 循环判定断线重连失败, 请检查网络是否正常...")
             return False
