@@ -1509,19 +1509,20 @@ class ThreadTodo(QThread):
 
                 if deck == 0:
                     if self.opt["advanced_settings"]["cus_auto_carry_card_active"]:
-                        deck = self.opt["advanced_settings"]["cus_auto_carry_card_value"]
+                        new_deck = self.opt["advanced_settings"]["cus_auto_carry_card_value"]
                     else:
-                        deck = 6
-
+                        new_deck = 6
+                else:
+                    new_deck = deck
                 # 将战斗方案加载至FAA
                 faa_a.set_battle_plan(
-                    deck=deck,
+                    deck=new_deck,
                     auto_carry_card=auto_carry_card,
                     battle_plan_uuid=battle_plan_a,
                     battle_plan_tweak_uuid=battle_plan_tweak)
                 if is_group:
                     faa_b.set_battle_plan(
-                        deck=deck,
+                        deck=new_deck,
                         auto_carry_card=auto_carry_card,
                         battle_plan_uuid=battle_plan_b,
                         battle_plan_tweak_uuid=battle_plan_tweak)
