@@ -675,7 +675,7 @@ class ThreadCheckTimer(QThread):
                 # 生成指定范围的随机浮点数
                 random_interval = random.uniform(float(self.interval[0]), float(self.interval[1]))
                 # 修改 click_sleep 属性
-                self.faa.click_sleep = random_interval
+                # self.faa.click_sleep = random_interval
                 self._update_thread_intervals(self.interval)
                 CUS_LOGGER.debug(f"成功设置 click_sleep 为随机值: {random_interval:.3f}")
             except (ValueError, TypeError) as e:
