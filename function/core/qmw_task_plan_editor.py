@@ -47,7 +47,7 @@ def init_db(db_path="tasks.db"):
 
 
 class StageSelector(QWidget):
-    on_selected = pyqtSignal(str, str)  # 信号：显示文本、编码
+    on_selected = pyqtSignal(str, str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -64,10 +64,9 @@ class StageSelector(QWidget):
 
     def add_menu(self, data):
         """强制更新菜单数据"""
-        # 强制覆盖原有数据
         self.menu_data = data
         self.button.setText("请选择关卡")
-        self.button.update()  # 立即刷新按钮状态
+        self.button.update()
 
     def show_menu(self):
         """显示多级菜单"""
@@ -84,10 +83,10 @@ class StageSelector(QWidget):
     def _build_menu(self, parent_menu, data):
         """递归构建菜单"""
         for key, value in data.items():
-            if isinstance(value, dict):  # 子菜单
+            if isinstance(value, dict):
                 submenu = parent_menu.addMenu(key)
                 self._build_menu(submenu, value)
-            elif isinstance(value, list):  # 叶子节点
+            elif isinstance(value, list):
                 for name, code in value:
                     action = QAction(name, self)
                     action.setData(code)
@@ -105,39 +104,41 @@ class TaskEditor(QMainWindow):
         self.image_data = None
         self.description_image_data = None
 
-        # 获取图像目录
         self.image_dir = PATHS["image"]["task"]["chaos"]
         self.description_image_dir = PATHS["image"]["task"]["desc"]
 
-        # 主界面布局
+
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
         layout = QHBoxLayout(main_widget)
 
-        # 左侧面板
+
         left_panel = QWidget()
         left_layout = QVBoxLayout(left_panel)
         left_layout.setContentsMargins(0, 0, 0, 0)
 
-        # 任务列表
+
         self.task_list = QListWidget()
         self.task_list.itemClicked.connect(self.on_task_selected)
 
-        # 图像列表
+
         self.image_list = QListWidget()
         self.image_list.itemClicked.connect(self.on_image_selected)
 
-        # 按钮
+
         btn_frame = QWidget()
         btn_layout = QHBoxLayout(btn_frame)
         btn_layout.setContentsMargins(0, 0, 0, 0)
 
         self.update_btn = QPushButton("修改")
         delete_btn = QPushButton("删除")
+        self.sort_btn = QPushButton("按名称排序")  # 新增排序按钮
         self.update_btn.clicked.connect(self.save_task)
         delete_btn.clicked.connect(self.delete_task)
+        self.sort_btn.clicked.connect(self.sort_tasks_by_name)  # 连接排序功能
         btn_layout.addWidget(self.update_btn)
         btn_layout.addWidget(delete_btn)
+        btn_layout.addWidget(self.sort_btn)
 
         left_layout.addWidget(QLabel("任务列表"))
         left_layout.addWidget(self.task_list)
@@ -145,12 +146,10 @@ class TaskEditor(QMainWindow):
         left_layout.addWidget(self.image_list)
         left_layout.addWidget(btn_frame)
 
-        # 右侧面板
         right_panel = QWidget()
         right_layout = QVBoxLayout(right_panel)
         right_layout.setContentsMargins(0, 0, 0, 0)
 
-        # 表单输入
         form_frame = QFrame()
         form_frame.setFrameStyle(QFrame.Shape.StyledPanel)
         form_layout = QFormLayout(form_frame)
@@ -160,27 +159,25 @@ class TaskEditor(QMainWindow):
         self.task_type = QComboBox()
         self.task_type.addItems(["刷关", "强卡", "情报",  "其它"])
         self.task_type.currentTextChanged.connect(self.update_params)
-        # 初始化参数容器
+
         self.param_container = QWidget()
         self.param_container_layout = QVBoxLayout(self.param_container)
 
-        # 创建滚动区域
+
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidget(self.param_container)
-        self.scroll_area.setWidgetResizable(True)  # 允许内容随区域缩放
+        self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
-        # 设置滚动区域的尺寸策略，允许垂直扩展
-        self.scroll_area.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.scroll_area.setMinimumHeight(300)  # 设置最小高度为 300 像素
 
-        # 将滚动区域添加到表单布局中
+        self.scroll_area.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.scroll_area.setMinimumHeight(300)
+
         form_layout.addRow("参数设置:", self.scroll_area)
         form_layout.addRow("任务名称:", self.task_name)
         form_layout.addRow("任务类型:", self.task_type)
 
-        # 操作按钮
         btn_panel = QWidget()
         btn_layout = QHBoxLayout(btn_panel)
         btn_layout.setContentsMargins(0, 0, 0, 0)
@@ -192,55 +189,50 @@ class TaskEditor(QMainWindow):
         btn_layout.addWidget(save_btn)
         btn_layout.addWidget(clear_btn)
 
-        # 分割面板
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.addWidget(left_panel)
         splitter.addWidget(right_panel)
         splitter.setSizes([300, 1300])
         layout.addWidget(splitter)
 
-        # 初始化数据
         self.initialization_tasks()
         self.load_image_directory()
 
-        # 新增关卡数据
+
         self.stage_info = self.load_stage_info()
-        self.stage_selector = StageSelector()  # 多级选择器
+        self.stage_selector = StageSelector()
         self.stage_selector.setVisible(False)
         self.stage_selector.on_selected.connect(self.on_stage_selected)
 
-        # 替换参数选择器为StageSelector
-        form_layout.addRow("关卡:", self.stage_selector)  # 保持单一参数输入
+
+        form_layout.addRow("关卡:", self.stage_selector)
         form_layout.addRow("备注:", self.remarks)
 
-        # 创建水平分割器用于主内容和OCR
         main_ocr_splitter = QSplitter(Qt.Orientation.Horizontal)
 
-        # 原有右侧内容容器（表单+按钮）
+
         main_content = QWidget()
         main_content_layout = QVBoxLayout(main_content)
         main_content_layout.setContentsMargins(0, 0, 0, 0)
 
-        # 表单框架
+
         main_content_layout.addWidget(form_frame)
-        # 按钮面板
+
         main_content_layout.addWidget(btn_panel)
 
-        # OCR功能区域
+
         ocr_group = QWidget()
-        ocr_group.setFixedWidth(300)  # 固定右侧宽度
+        ocr_group.setFixedWidth(300)
         ocr_layout = QVBoxLayout(ocr_group)
         ocr_layout.setContentsMargins(5, 5, 5, 5)
 
-        # 将图像预览添加到OCR区域顶部
-        # 主图像预览
         self.image_label = QLabel("主图像预览")
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.image_label.setFixedSize(290, 200)
         self.image_label.setStyleSheet("background: #f0f0f0; border: 1px solid #ccc")
         ocr_layout.addWidget(self.image_label)
         
-        # 描述图像预览
+
         self.description_image_label = QLabel("描述图像预览")
         self.description_image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.description_image_label.setFixedSize(290, 180)
@@ -260,22 +252,22 @@ class TaskEditor(QMainWindow):
         ocr_layout.addWidget(QLabel("任务描述OCR结果:"))
         self.desc_ocr_result = QTextEdit()
         self.desc_ocr_result.setReadOnly(True)
-        self.desc_ocr_result.setFixedHeight(100)  # 固定高度
+        self.desc_ocr_result.setFixedHeight(100)
         ocr_layout.addWidget(self.desc_ocr_result)
 
-        # 将内容添加到水平分割器
+
         main_ocr_splitter.addWidget(main_content)
         main_ocr_splitter.addWidget(ocr_group)
         main_ocr_splitter.setSizes([1000, 300])  # 初始比例分配
 
-        # 替换原有布局为分割器
+
         right_layout.addWidget(main_ocr_splitter)
 
-        # 新增OCR按钮连接
+
         self.ocr_button.clicked.connect(self.perform_ocr)
         self.install_ocr_button.clicked.connect(self.install_ocr_environment)
 
-        # 刷新界面
+
         self.update_params()
 
     def install_ocr_environment(self):
@@ -367,7 +359,6 @@ class TaskEditor(QMainWindow):
                         self.select_stage_by_code(matched_code)
                         QMessageBox.information(self, "成功", f"已自动选择关卡：{matched_name}")
 
-            # 描述图像处理（新增）
             if hasattr(self, 'current_desc_image_path') and os.path.exists(self.current_desc_image_path):
                 desc_result = try_ocr(path=self.current_desc_image_path,size=896)
                 processed_text = "，".join([re.sub(r'^\d+、', '', text).strip() for box, text, score in desc_result])
@@ -393,8 +384,8 @@ class TaskEditor(QMainWindow):
 
     def add_task(self):
         """强制新增任务"""
-        self.current_task_id = None  # 清除任务ID以触发新增逻辑
-        self.save_task()  # 调用保存方法
+        self.current_task_id = None
+        self.save_task()
 
 
     def load_stage_info(self):
@@ -410,13 +401,13 @@ class TaskEditor(QMainWindow):
 
     def load_image_directory(self):
         """加载指定目录下的图像文件（按数字顺序排序）"""
-        print(f"开始加载目录: {self.image_dir}")  # 调试输出
+        print(f"开始加载目录: {self.image_dir}")
         if not os.path.exists(self.image_dir):
-            print("目录不存在")  # 调试输出
+            print("目录不存在")
             self.image_list.addItem("目录不存在")
             return
 
-        # 支持的图像格式
+
         image_extensions = (".jpg", ".png", ".bmp")
 
         # 自然排序辅助函数
@@ -424,26 +415,25 @@ class TaskEditor(QMainWindow):
             return [int(text) if text.isdigit() else text.lower()
                     for text in re.split('(\d+)', s)]
 
-        # 清空列表
         self.image_list.clear()
 
         try:
-            # 遍历目录，添加图像文件（使用自然排序）
+
             files = os.listdir(self.image_dir)
 
-            # 按数字顺序排序文件名
+
             sorted_files = sorted(files, key=natural_sort_key)
 
             for filename in sorted_files:
                 if filename.lower().endswith(image_extensions):
                     item = QListWidgetItem(filename)
                     item.setData(Qt.ItemDataRole.UserRole,
-                                 os.path.join(self.image_dir, filename))  # 存储完整路径
-                    item.setData(Qt.ItemDataRole.UserRole + 1,  # 存储描述图像路径
+                                 os.path.join(self.image_dir, filename))
+                    item.setData(Qt.ItemDataRole.UserRole + 1,
                                  os.path.join(self.description_image_dir, filename))
                     self.image_list.addItem(item)
         except Exception as e:
-            print(f"加载目录失败: {e}")  # 调试输出
+            print(f"加载目录失败: {e}")
             QMessageBox.critical(self, "错误", f"加载目录失败：{str(e)}")
 
     def on_image_selected(self, item):
@@ -453,7 +443,6 @@ class TaskEditor(QMainWindow):
         self.current_main_image_path = main_image_path
         self.current_desc_image_path = desc_image_path  # 新增：保存描述图像路径
 
-        # 加载主图像
         try:
             with open(main_image_path, "rb") as file:
                 self.image_data = file.read()
@@ -461,7 +450,7 @@ class TaskEditor(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "错误", f"无法加载主图像：{str(e)}")
 
-        # 加载描述图像（如果存在）
+
         try:
             if os.path.exists(desc_image_path):
                 with open(desc_image_path, "rb") as file:
@@ -509,17 +498,14 @@ class TaskEditor(QMainWindow):
     def update_params(self):
         selected_type = self.task_type.currentText()
 
-        # 原始StageSelector逻辑保留
         if selected_type == "刷关" and not self.stage_selector.menu_data:
             self.build_stage_selector()
 
-        # 清空扩展参数容器（直接操作布局）
         while self.param_container_layout.count():
             child = self.param_container_layout.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
 
-        # 参数显示逻辑重构
         if selected_type == "刷关":
             self.stage_selector.setVisible(True)
             self.create_shuaguan_params()
@@ -531,13 +517,11 @@ class TaskEditor(QMainWindow):
 
     def create_shuaguan_params(self):
         """创建刷关扩展参数"""
-        # 清空现有布局
         while self.param_container_layout.count():
             child = self.param_container_layout.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
 
-        # 创建参数控件
         self.use_key_checkbox = QCheckBox()
         self.card_name_edit = QLineEdit()
         self.times_spinbox = QSpinBox()
@@ -588,20 +572,17 @@ class TaskEditor(QMainWindow):
 
     def create_qiangka_params(self):
         """创建强卡扩展参数"""
-        # 清空现有布局
         while self.param_container_layout.count():
             child = self.param_container_layout.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
 
-        # 创建参数控件
         self.star_combo = QComboBox()
         self.star_combo.addItems(["0星","1星", "2星", "3星", "4星", "5星","6星","7星", "8星", "9星", "10星", "11星","12星","13星", "14星", "15星", "16星"])
         self.quantity_spinbox = QSpinBox()
         self.quantity_spinbox.setRange(1, 999)
         self.card_name_edit = QLineEdit()
 
-        # 添加参数控件
         self._add_param_pair("星级:", self.star_combo)
         self._add_param_pair("数量:", self.quantity_spinbox)
         self._add_param_pair("制卡名称:", self.card_name_edit)
@@ -615,19 +596,17 @@ class TaskEditor(QMainWindow):
         label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         label.setFixedHeight(fixed_height)
 
-        # 设置控件最小高度
         widget.setMinimumHeight(fixed_height)
-        widget.setMaximumHeight(fixed_height + 10)  # 允许轻微扩展
+        widget.setMaximumHeight(fixed_height + 10)
 
-        # 创建水平布局容器
         container = QWidget()
         h_layout = QHBoxLayout(container)
         h_layout.setContentsMargins(0, 0, 0, 0)
         h_layout.setSpacing(8)
 
-        # 添加控件到布局
-        h_layout.addWidget(label, 1)  # 1:1比例
-        h_layout.addWidget(widget, 2)  # 2:1比例
+
+        h_layout.addWidget(label, 1)
+        h_layout.addWidget(widget, 2)
 
         self.param_container_layout.addWidget(container)
 
@@ -656,23 +635,21 @@ class TaskEditor(QMainWindow):
                     stage_code = f"{type_id}-{sub_type_id}-{stage_id}"
                     stage_dict[type_name][sub_type_name].append((stage_name, stage_code))
 
-        self.stage_selector.add_menu(data=stage_dict)  # 传递多级结构
+        self.stage_selector.add_menu(data=stage_dict)
 
 
     def on_stage_selected(self, text, stage_code):
         """处理关卡选择"""
         self.current_stage_code = stage_code
-        self.stage_selector.setToolTip(text)  # 显示当前选择
+        self.stage_selector.setToolTip(text)
     def initialization_tasks(self):
         self.task_list.clear()
         cursor = self.db_conn.cursor()
         cursor.execute("SELECT id, task_name FROM tasks")
-        # 使用列表索引作为显示ID（从1开始）
         for index, row in enumerate(cursor.fetchall(), 1):
             self.task_list.addItem(f"{index} - {row[1]}")
 
     def on_task_selected(self, item):
-        # 使用列表索引而不是数据库ID
         task_index = self.task_list.row(item)
         cursor = self.db_conn.cursor()
         cursor.execute("SELECT id FROM tasks")
@@ -687,25 +664,23 @@ class TaskEditor(QMainWindow):
         cursor.execute("SELECT * FROM tasks WHERE id=?", (task_id,))
         task = cursor.fetchone()
 
-        # 清空原有状态
         self.task_name.clear()
         self.remarks.clear()
         self.image_label.clear()
         self.description_image_label.clear()
 
-        # 设置基础信息
         self.task_name.setText(task[1])
         self.task_type.setCurrentText(task[2])
 
-        # 图像数据处理
-        if task[3]:  # 主图像数据
+
+        if task[3]:
             with open(PATHS["config"] + "//stage_info.json", "r", encoding="UTF-8") as f:
                 self.stage_info = json.load(f)
 
             self.image_data = task[3]
             self.show_image_from_data(self.image_data)
 
-        if task[4]:  # 描述图像数据
+        if task[4]:
             if isinstance(task[4], bytes):
                 self.description_image_data = task[4]
                 self.show_description_image_from_data(self.description_image_data)
@@ -714,15 +689,13 @@ class TaskEditor(QMainWindow):
                 self.db_conn.commit()
                 self.description_image_label.setText("描述图像数据已修复")
 
-        # 参数处理
+
         if task[2] == "刷关":
-            # 强制构建菜单数据
-            self.build_stage_selector()  # 保证菜单数据存在
+            self.build_stage_selector()
             self.stage_selector.setVisible(True)
 
-            # 回显关卡选择
-            if task[7]:  # stage_param字段
-                self.select_stage_by_code(task[7])  # 此时确保menu_data已存在
+            if task[7]:
+                self.select_stage_by_code(task[7])
             else:
                 self.stage_selector.button.setText("请选择关卡")
                 self.current_stage_code = None
@@ -731,7 +704,7 @@ class TaskEditor(QMainWindow):
             self.stage_selector.button.setText("请选择关卡")
             self.current_stage_code = None
         try:
-            if task[2] == "刷关" and task[5]:  # 刷关参数
+            if task[2] == "刷关" and task[5]:
                 params = json.loads(task[5])
                 self.use_key_checkbox.setChecked(params.get("use_key", False))
                 self.card_name_edit.setText(params.get("card_name", ""))
@@ -751,7 +724,7 @@ class TaskEditor(QMainWindow):
                 if params.get("battle_plan_2p"):
                     self.battle_plan_2p.setCurrentIndex(self.battle_plan_uuid_list.index(params["battle_plan_2p"]))
 
-            elif task[2] == "强卡" and task[5]:  # 强卡参数
+            elif task[2] == "强卡" and task[5]:
                 params = json.loads(task[5])
                 self.star_combo.setCurrentText(params.get("star", "0星"))
                 self.quantity_spinbox.setValue(params.get("quantity", 1))
@@ -761,10 +734,8 @@ class TaskEditor(QMainWindow):
 
     def select_stage_by_code(self, target_code):
         """强制查找并回显关卡"""
-        # 清空当前状态
         self.stage_selector.button.setText("请选择关卡")
 
-        # 精确匹配逻辑
         for parent, children in self.stage_selector.menu_data.items():
             for sub_parent, items in children.items():
                 for name, code in items:
@@ -774,11 +745,39 @@ class TaskEditor(QMainWindow):
                         self.current_stage_code = code
                         return
 
-        # 默认状态保持
         self.stage_selector.button.setText("请选择关卡")
         self.current_stage_code = None
 
+    def sort_tasks_by_name(self):
+        """按任务名称排序数据库中的任务"""
+        reply = QMessageBox.question(self, "确认", "确定要按名称重新排序所有任务吗？")
+        if reply == QMessageBox.StandardButton.Yes:
+            try:
+                cursor = self.db_conn.cursor()
 
+                cursor.execute("SELECT id, task_name, task_type, image_data, description_image_data, parameters, stage_param, remarks FROM tasks ORDER BY task_name")
+                sorted_tasks = cursor.fetchall()
+
+                self.db_conn.execute("BEGIN TRANSACTION")
+
+                cursor.execute("DELETE FROM tasks")
+
+                for new_index, task_data in enumerate(sorted_tasks):
+                    original_id, task_name, task_type, image_data, description_image_data, parameters, stage_param, remarks = task_data
+                    cursor.execute("""INSERT INTO tasks 
+                                   (id, task_name, task_type, image_data, description_image_data, parameters, stage_param, remarks)
+                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", 
+                                   (new_index + 1, task_name, task_type, image_data, description_image_data, parameters, stage_param, remarks))
+
+                self.db_conn.commit()
+
+                self.initialization_tasks()
+                self.clear_form()
+                
+                QMessageBox.information(self, "成功", "任务已按名称排序！")
+            except Exception as e:
+                self.db_conn.rollback()
+                QMessageBox.critical(self, "错误", f"排序失败：{str(e)}")
 
     def delete_task(self):
         if not self.current_task_id:
@@ -795,9 +794,8 @@ class TaskEditor(QMainWindow):
             QMessageBox.information(self, "成功", "任务已删除！")
 
     def save_task(self):
-        sender = self.sender()  # 获取触发信号的对象
+        sender = self.sender()
 
-        # 如果是修改按钮触发，必须有选中任务
         if sender == self.update_btn and not self.current_task_id:
             QMessageBox.warning(self, "警告", "请先选择一个任务！")
             return
@@ -813,7 +811,6 @@ class TaskEditor(QMainWindow):
         desc_image_bytes = self.description_image_data if isinstance(self.description_image_data, bytes) else None
 
         cursor = self.db_conn.cursor()
-        # 区分参数类型
         if self.task_type.currentText() == "刷关":
             params = {
                 "use_key": self.use_key_checkbox.isChecked(),
@@ -830,7 +827,7 @@ class TaskEditor(QMainWindow):
                 "deck": int(self.deck_selector.currentText()),
                 "battle_plan_1p": self.battle_plan_1p.currentData(),
                 "battle_plan_2p": self.battle_plan_2p.currentData(),
-                "skip": self.skip_checkbox.isChecked()  # 保存"是否跳过"参数
+                "skip": self.skip_checkbox.isChecked()
             }
             stage_param = getattr(self, "current_stage_code", None)
             param = None
@@ -846,10 +843,8 @@ class TaskEditor(QMainWindow):
             params = {}
             stage_param = None
 
-            # 转换为JSON存储
         param_json = json.dumps(params, ensure_ascii=False)
 
-        # 修改数据库操作（替换原参数字段处理）
         if self.current_task_id:
             cursor.execute("""UPDATE tasks SET 
                         task_name=?, task_type=?, image_data=?, 
@@ -869,16 +864,13 @@ class TaskEditor(QMainWindow):
         self.initialization_tasks()
         self.clear_form()
         QMessageBox.information(self, "成功", "任务已保存！")
-        # 在保存任务后移除选中的图像项
-        if not self.current_task_id:  # 仅在新增任务时移除
+        if not self.current_task_id:
             if hasattr(self, 'current_main_image_path') and hasattr(self, 'current_desc_image_path'):
-                # 从图像列表中移除项
                 for i in range(self.image_list.count()):
                     item = self.image_list.item(i)
                     if item.data(Qt.ItemDataRole.UserRole) == self.current_main_image_path:
                         self.image_list.takeItem(i)
                         break
-                # 清理相关变量
                 self.clear_form()
 
     def clear_form(self):
@@ -893,7 +885,7 @@ class TaskEditor(QMainWindow):
 
 
 
-# 主程序入口
+
 if __name__ == "__main__":
     path=PATHS["db"]+"/tasks.db"
     db_conn = init_db(path)
