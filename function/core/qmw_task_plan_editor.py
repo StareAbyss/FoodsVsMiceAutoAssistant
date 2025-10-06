@@ -150,31 +150,12 @@ class TaskEditor(QMainWindow):
         right_layout = QVBoxLayout(right_panel)
         right_layout.setContentsMargins(0, 0, 0, 0)
 
-        # 图像预览容器
-        image_preview_container = QWidget()
-        image_preview_layout = QHBoxLayout(image_preview_container)
-        image_preview_layout.setContentsMargins(0, 0, 0, 0)
-        image_preview_layout.setSpacing(10)
-
-        # 主图像预览
-        self.image_label = QLabel("主图像预览")
-        self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.image_label.setFixedSize(400, 300)
-        self.image_label.setStyleSheet("background: #f0f0f0; border: 1px solid #ccc")
-
-        # 描述图像预览
-        self.description_image_label = QLabel("描述图像预览")
-        self.description_image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.description_image_label.setFixedSize(420, 270)
-        self.description_image_label.setStyleSheet("background: #000000; border: 1px solid #ccc")
-        image_preview_layout.addWidget(self.image_label)
-        image_preview_layout.addWidget(self.description_image_label)
-
         # 表单输入
         form_frame = QFrame()
         form_frame.setFrameStyle(QFrame.Shape.StyledPanel)
         form_layout = QFormLayout(form_frame)
         self.remarks = QTextEdit()
+        self.remarks.setMaximumHeight(60)
         self.task_name = QLineEdit()
         self.task_type = QComboBox()
         self.task_type.addItems(["刷关", "强卡", "情报",  "其它"])
@@ -192,16 +173,12 @@ class TaskEditor(QMainWindow):
 
         # 设置滚动区域的尺寸策略，允许垂直扩展
         self.scroll_area.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.scroll_area.setMinimumHeight(200)  # 设置最小高度为 300 像素
+        self.scroll_area.setMinimumHeight(300)  # 设置最小高度为 300 像素
 
         # 将滚动区域添加到表单布局中
         form_layout.addRow("参数设置:", self.scroll_area)
         form_layout.addRow("任务名称:", self.task_name)
         form_layout.addRow("任务类型:", self.task_type)
-
-
-
-
 
         # 操作按钮
         btn_panel = QWidget()
@@ -239,13 +216,11 @@ class TaskEditor(QMainWindow):
         # 创建水平分割器用于主内容和OCR
         main_ocr_splitter = QSplitter(Qt.Orientation.Horizontal)
 
-        # 原有右侧内容容器（图像预览+表单+按钮）
+        # 原有右侧内容容器（表单+按钮）
         main_content = QWidget()
         main_content_layout = QVBoxLayout(main_content)
         main_content_layout.setContentsMargins(0, 0, 0, 0)
 
-        # 图像预览容器
-        main_content_layout.addWidget(image_preview_container)
         # 表单框架
         main_content_layout.addWidget(form_frame)
         # 按钮面板
@@ -257,12 +232,26 @@ class TaskEditor(QMainWindow):
         ocr_layout = QVBoxLayout(ocr_group)
         ocr_layout.setContentsMargins(5, 5, 5, 5)
 
+        # 将图像预览添加到OCR区域顶部
+        # 主图像预览
+        self.image_label = QLabel("主图像预览")
+        self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.image_label.setFixedSize(290, 200)
+        self.image_label.setStyleSheet("background: #f0f0f0; border: 1px solid #ccc")
+        ocr_layout.addWidget(self.image_label)
+        
+        # 描述图像预览
+        self.description_image_label = QLabel("描述图像预览")
+        self.description_image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.description_image_label.setFixedSize(290, 180)
+        self.description_image_label.setStyleSheet("background: #000000; border: 1px solid #ccc")
+        ocr_layout.addWidget(self.description_image_label)
+
         self.ocr_button = QPushButton("执行OCR识别")
         self.ocr_result = QTextEdit()
         self.ocr_result.setReadOnly(True)
         self.ocr_result.setPlaceholderText("OCR识别结果将显示在此处")
 
-        ocr_layout.addWidget(self.ocr_button)
         ocr_layout.addWidget(self.ocr_button)
         self.install_ocr_button = QPushButton("安装OCR环境")
         ocr_layout.addWidget(self.install_ocr_button)
@@ -274,7 +263,6 @@ class TaskEditor(QMainWindow):
         self.desc_ocr_result.setFixedHeight(100)  # 固定高度
         ocr_layout.addWidget(self.desc_ocr_result)
 
-
         # 将内容添加到水平分割器
         main_ocr_splitter.addWidget(main_content)
         main_ocr_splitter.addWidget(ocr_group)
@@ -282,7 +270,6 @@ class TaskEditor(QMainWindow):
 
         # 替换原有布局为分割器
         right_layout.addWidget(main_ocr_splitter)
-
 
         # 新增OCR按钮连接
         self.ocr_button.clicked.connect(self.perform_ocr)
@@ -503,9 +490,6 @@ class TaskEditor(QMainWindow):
             QMessageBox.warning(self, "警告", f"描述图像显示失败：{str(e)}")
             self.description_image_label.setText("描述图像无效")
 
-
-
-
     def show_image_from_data(self, image_data):
         """从二进制数据显示图像"""
         try:
@@ -574,16 +558,17 @@ class TaskEditor(QMainWindow):
         self.battle_plan_1p = QComboBox()
         self.battle_plan_2p = QComboBox()
         self._init_battle_plan_selector()
+        self.skip_checkbox = QCheckBox()
 
-        # 添加参数控件（带固定高度）
         self._add_param_pair("启用全局方案:", self.global_plan_checkbox)
+        self._add_param_pair("是否单人:", self.is_single_player_checkbox)
+        self._add_param_pair("是否跳过:", self.skip_checkbox)
         self._add_param_pair("1P方案:", self.battle_plan_1p)
         self._add_param_pair("2P方案:", self.battle_plan_2p)
         self._add_param_pair("使用钥匙:", self.use_key_checkbox)
         self._add_param_pair("带卡名称:", self.card_name_edit)
         self._add_param_pair("禁卡名称:", self.banned_card_edit)
         self._add_param_pair("是否双人:", self.player_mode_combo)
-        self._add_param_pair("是否单人:", self.is_single_player_checkbox)
         self._add_param_pair("选择卡组:", self.deck_selector)
         self._add_param_pair("次数:", self.times_spinbox)
         self._add_param_pair("禁用星级:", self.disable_stars_combo)
@@ -682,12 +667,19 @@ class TaskEditor(QMainWindow):
         self.task_list.clear()
         cursor = self.db_conn.cursor()
         cursor.execute("SELECT id, task_name FROM tasks")
-        for row in cursor.fetchall():
-            self.task_list.addItem(f"{row[0]} - {row[1]}")
+        # 使用列表索引作为显示ID（从1开始）
+        for index, row in enumerate(cursor.fetchall(), 1):
+            self.task_list.addItem(f"{index} - {row[1]}")
 
     def on_task_selected(self, item):
-        task_id = int(item.text().split(" - ")[0])
-        self.load_task(task_id)
+        # 使用列表索引而不是数据库ID
+        task_index = self.task_list.row(item)
+        cursor = self.db_conn.cursor()
+        cursor.execute("SELECT id FROM tasks")
+        task_ids = [row[0] for row in cursor.fetchall()]
+        if 0 <= task_index < len(task_ids):
+            task_id = task_ids[task_index]
+            self.load_task(task_id)
 
     def load_task(self, task_id):
         self.current_task_id = task_id
@@ -753,6 +745,7 @@ class TaskEditor(QMainWindow):
                 self.disable_weapon_checkbox.setChecked(params.get("disable_weapon", False))
                 self.global_plan_checkbox.setChecked(params.get("use_global_plan", False))
                 self.deck_selector.setCurrentText(str(params.get("deck", 0)))
+                self.skip_checkbox.setChecked(params.get("skip", False))  # 加载"是否跳过"参数
                 if params.get("battle_plan_1p"):
                     self.battle_plan_1p.setCurrentIndex(self.battle_plan_uuid_list.index(params["battle_plan_1p"]))
                 if params.get("battle_plan_2p"):
@@ -836,7 +829,8 @@ class TaskEditor(QMainWindow):
                 "use_global_plan": self.global_plan_checkbox.isChecked(),
                 "deck": int(self.deck_selector.currentText()),
                 "battle_plan_1p": self.battle_plan_1p.currentData(),
-                "battle_plan_2p": self.battle_plan_2p.currentData()
+                "battle_plan_2p": self.battle_plan_2p.currentData(),
+                "skip": self.skip_checkbox.isChecked()  # 保存"是否跳过"参数
             }
             stage_param = getattr(self, "current_stage_code", None)
             param = None
