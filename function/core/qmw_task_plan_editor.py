@@ -576,23 +576,33 @@ class TaskEditor(QMainWindow):
         self.battle_plan_name_list = get_list_battle_plan(with_extension=False)
         self.battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
 
+        # 先清空下拉框
+        self.battle_plan_1p.clear()
+        self.battle_plan_2p.clear()
+
+        # 添加所有选项
         for name in self.battle_plan_name_list:
             self.battle_plan_1p.addItem(name)
             self.battle_plan_2p.addItem(name)
         
-        # 设置默认选择：查找对应UUID的名称并设置
-        uuid_to_name = {uuid: name for name, uuid in zip(self.battle_plan_name_list, self.battle_plan_uuid_list)}
+        # 查找默认名称并设置默认值
+        default_1p_name = None
+        default_2p_name = None
         
-        # 为1P设置默认值
-        if "00000000-0000-0000-0000-000000000000" in uuid_to_name:
-            default_1p_name = uuid_to_name["00000000-0000-0000-0000-000000000000"]
-            self.battle_plan_1p.setCurrentText(default_1p_name)
+        for name in self.battle_plan_name_list:
+            if "1通用-海星-1P" in name:
+                default_1p_name = name
+            if "1通用-海星-2P" in name:
+                default_2p_name = name
         
-        # 为2P设置默认值
-        if "00000000-0000-0000-0000-000000000001" in uuid_to_name:
-            default_2p_name = uuid_to_name["00000000-0000-0000-0000-000000000001"]
-            self.battle_plan_2p.setCurrentText(default_2p_name)
-
+        # 设置默认值
+        if default_1p_name:
+            index_1p = self.battle_plan_name_list.index(default_1p_name)
+            self.battle_plan_1p.setCurrentIndex(index_1p)
+            
+        if default_2p_name:
+            index_2p = self.battle_plan_name_list.index(default_2p_name)
+            self.battle_plan_2p.setCurrentIndex(index_2p)
     def _init_tweak_plan_selector(self):
         """初始化微调方案选择器"""
         self.tweak_plan_name_list = get_list_tweak_plan(with_extension=False)
@@ -1008,10 +1018,25 @@ class TaskEditor(QMainWindow):
         self.description_image_label.clear()
         self.image_data = None
         self.description_image_data = None
-
-
-
-
+        
+        # 重置战斗方案选择器的默认值
+        default_1p_name = None
+        default_2p_name = None
+        
+        for name in self.battle_plan_name_list:
+            if "1通用-海星-1P" in name:
+                default_1p_name = name
+            if "1通用-海星-2P" in name:
+                default_2p_name = name
+        
+        # 设置默认值
+        if default_1p_name:
+            index_1p = self.battle_plan_name_list.index(default_1p_name)
+            self.battle_plan_1p.setCurrentIndex(index_1p)
+            
+        if default_2p_name:
+            index_2p = self.battle_plan_name_list.index(default_2p_name)
+            self.battle_plan_2p.setCurrentIndex(index_2p)
 if __name__ == "__main__":
     path=PATHS["db"]+"/tasks.db"
     db_conn = init_db(path)
