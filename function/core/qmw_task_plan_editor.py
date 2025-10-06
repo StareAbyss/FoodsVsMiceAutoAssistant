@@ -133,12 +133,15 @@ class TaskEditor(QMainWindow):
         self.update_btn = QPushButton("修改")
         delete_btn = QPushButton("删除")
         self.sort_btn = QPushButton("按名称排序")  # 新增排序按钮
+        self.clean_invalid_btn = QPushButton("清除非法数据")  # 添加清除非法数据按钮
         self.update_btn.clicked.connect(self.save_task)
         delete_btn.clicked.connect(self.delete_task)
         self.sort_btn.clicked.connect(self.sort_tasks_by_name)  # 连接排序功能
+        self.clean_invalid_btn.clicked.connect(self.clean_invalid_data)  # 连接清除非法数据功能
         btn_layout.addWidget(self.update_btn)
         btn_layout.addWidget(delete_btn)
         btn_layout.addWidget(self.sort_btn)
+        btn_layout.addWidget(self.clean_invalid_btn)  # 添加按钮到布局
 
         left_layout.addWidget(QLabel("任务列表"))
         left_layout.addWidget(self.task_list)
@@ -538,6 +541,7 @@ class TaskEditor(QMainWindow):
         self.disable_pet_checkbox = QCheckBox()
         self.disable_weapon_checkbox = QCheckBox()
         self.global_plan_checkbox = QCheckBox()
+        self.global_plan_checkbox.stateChanged.connect(self.on_global_plan_changed)  # 添加状态改变连接
         self.deck_selector = QComboBox()
         self.deck_selector.addItems([str(i) for i in range(0,7)])
         self.deck_selector.setCurrentText("0")
@@ -575,6 +579,19 @@ class TaskEditor(QMainWindow):
         for name in self.battle_plan_name_list:
             self.battle_plan_1p.addItem(name)
             self.battle_plan_2p.addItem(name)
+        
+        # 设置默认选择：查找对应UUID的名称并设置
+        uuid_to_name = {uuid: name for name, uuid in zip(self.battle_plan_name_list, self.battle_plan_uuid_list)}
+        
+        # 为1P设置默认值
+        if "00000000-0000-0000-0000-000000000000" in uuid_to_name:
+            default_1p_name = uuid_to_name["00000000-0000-0000-0000-000000000000"]
+            self.battle_plan_1p.setCurrentText(default_1p_name)
+        
+        # 为2P设置默认值
+        if "00000000-0000-0000-0000-000000000001" in uuid_to_name:
+            default_2p_name = uuid_to_name["00000000-0000-0000-0000-000000000001"]
+            self.battle_plan_2p.setCurrentText(default_2p_name)
 
     def _init_tweak_plan_selector(self):
         """初始化微调方案选择器"""
@@ -657,6 +674,14 @@ class TaskEditor(QMainWindow):
         """处理关卡选择"""
         self.current_stage_code = stage_code
         self.stage_selector.setToolTip(text)
+
+    def on_global_plan_changed(self, state):
+        """当全局方案勾选状态改变时的处理"""
+        # 根据勾选状态启用或禁用1P和2P方案选择器
+        enabled = state == 0  # 未勾选时启用
+        self.battle_plan_1p.setEnabled(enabled)
+        self.battle_plan_2p.setEnabled(enabled)
+
     def initialization_tasks(self):
         self.task_list.clear()
         cursor = self.db_conn.cursor()
@@ -734,13 +759,47 @@ class TaskEditor(QMainWindow):
                 self.global_plan_checkbox.setChecked(params.get("use_global_plan", False))
                 self.deck_selector.setCurrentText(str(params.get("deck", 0)))
                 self.skip_checkbox.setChecked(params.get("skip", False))
-                if params.get("battle_plan_1p"):
-                    self.battle_plan_1p.setCurrentIndex(self.battle_plan_uuid_list.index(params["battle_plan_1p"]))
-                if params.get("battle_plan_2p"):
-                    self.battle_plan_2p.setCurrentIndex(self.battle_plan_uuid_list.index(params["battle_plan_2p"]))
+                
+                # 处理战斗方案选择
+                if params.get("battle_plan_1p") and params["battle_plan_1p"] in self.battle_plan_uuid_list:
+                    index_1p = self.battle_plan_uuid_list.index(params["battle_plan_1p"])
+                    self.battle_plan_1p.setCurrentIndex(index_1p)
+                
+                if params.get("battle_plan_2p") and params["battle_plan_2p"] in self.battle_plan_uuid_list:
+                    index_2p = self.battle_plan_uuid_list.index(params["battle_plan_2p"])
+                    self.battle_plan_2p.setCurrentIndex(index_2p)
+                
                 # 加载微调方案参数
                 if params.get("battle_plan_tweak") and params["battle_plan_tweak"] in self.tweak_plan_uuid_list:
                     self.battle_plan_tweak.setCurrentIndex(self.tweak_plan_uuid_list.index(params["battle_plan_tweak"]))
+                
+                self.player_mode_combo.setChecked(params.get("is_two_players", False))
+                self.is_single_player_checkbox.setChecked(params.get("is_single_player", False))
+                self.banned_card_edit.setText(params.get("banned_card", ""))
+                self.banned_card_count_spinbox.setValue(params.get("banned_card_count", 0))
+                self.disable_pet_checkbox.setChecked(params.get("disable_pet", False))
+                self.disable_weapon_checkbox.setChecked(params.get("disable_weapon", False))
+                self.global_plan_checkbox.setChecked(params.get("use_global_plan", False))
+                self.deck_selector.setCurrentText(str(params.get("deck", 0)))
+                self.skip_checkbox.setChecked(params.get("skip", False))
+                
+                # 处理战斗方案选择
+                if params.get("battle_plan_1p") and params["battle_plan_1p"] in self.battle_plan_uuid_list:
+                    index_1p = self.battle_plan_uuid_list.index(params["battle_plan_1p"])
+                    self.battle_plan_1p.setCurrentIndex(index_1p)
+                
+                if params.get("battle_plan_2p") and params["battle_plan_2p"] in self.battle_plan_uuid_list:
+                    index_2p = self.battle_plan_uuid_list.index(params["battle_plan_2p"])
+                    self.battle_plan_2p.setCurrentIndex(index_2p)
+                
+                # 加载微调方案参数
+                if params.get("battle_plan_tweak") and params["battle_plan_tweak"] in self.tweak_plan_uuid_list:
+                    self.battle_plan_tweak.setCurrentIndex(self.tweak_plan_uuid_list.index(params["battle_plan_tweak"]))
+                
+                # 根据是否启用全局方案设置1P和2P方案的可用状态
+                use_global = params.get("use_global_plan", False)
+                self.battle_plan_1p.setEnabled(not use_global)
+                self.battle_plan_2p.setEnabled(not use_global)
 
             elif task[2] == "强卡" and task[5]:
                 params = json.loads(task[5])
@@ -797,6 +856,54 @@ class TaskEditor(QMainWindow):
                 self.db_conn.rollback()
                 QMessageBox.critical(self, "错误", f"排序失败：{str(e)}")
 
+    def clean_invalid_data(self):
+        """清除非法数据：当启用全局方案时，清除1P和2P方案的数据"""
+        reply = QMessageBox.question(self, "确认", "确定要清除非法数据吗？\n这将移除所有启用全局方案任务中的1P和2P方案参数。")
+        if reply == QMessageBox.StandardButton.Yes:
+            try:
+                cursor = self.db_conn.cursor()
+                
+                # 获取所有任务
+                cursor.execute("SELECT id, parameters FROM tasks WHERE task_type='刷关'")
+                tasks = cursor.fetchall()
+                
+                # 记录清除的数据数量
+                cleaned_count = 0
+                
+                # 更新每个启用全局方案的任务
+                for task_id, params_json in tasks:
+                    if params_json:
+                        try:
+                            params = json.loads(params_json)
+                            # 如果启用了全局方案，并且存在1P或2P方案参数，则清除它们
+                            if params.get("use_global_plan", False) and (
+                                    "battle_plan_1p" in params or "battle_plan_2p" in params):
+                                params.pop("battle_plan_1p", None)
+                                params.pop("battle_plan_2p", None)
+                                
+                                # 保存更新后的参数
+                                updated_params_json = json.dumps(params, ensure_ascii=False)
+                                cursor.execute("UPDATE tasks SET parameters=? WHERE id=?", 
+                                             (updated_params_json, task_id))
+                                cleaned_count += 1
+                        except json.JSONDecodeError:
+                            # 跳过无法解析的参数
+                            continue
+                
+                self.db_conn.commit()
+                QMessageBox.information(self, "成功", f"非法数据已清除！共清理了 {cleaned_count} 个任务的非法数据。")
+                
+                # 如果当前正在编辑的任务启用了全局方案，也需要更新UI
+                if (hasattr(self, 'current_task_id') and self.current_task_id and 
+                    self.task_type.currentText() == "刷关" and 
+                    self.global_plan_checkbox.isChecked()):
+                    self.battle_plan_1p.setCurrentIndex(-1)
+                    self.battle_plan_2p.setCurrentIndex(-1)
+                    
+            except Exception as e:
+                self.db_conn.rollback()
+                QMessageBox.critical(self, "错误", f"清除非法数据失败：{str(e)}")
+
     def delete_task(self):
         if not self.current_task_id:
             QMessageBox.warning(self, "警告", "请先选择一个任务！")
@@ -843,8 +950,8 @@ class TaskEditor(QMainWindow):
                 "disable_weapon": self.disable_weapon_checkbox.isChecked(),
                 "use_global_plan": self.global_plan_checkbox.isChecked(),
                 "deck": int(self.deck_selector.currentText()),
-                "battle_plan_1p": self.battle_plan_1p.currentData(),
-                "battle_plan_2p": self.battle_plan_2p.currentData(),
+                "battle_plan_1p": self.battle_plan_uuid_list[self.battle_plan_1p.currentIndex()] if self.battle_plan_1p.currentIndex() >= 0 and not self.global_plan_checkbox.isChecked() else "",
+                "battle_plan_2p": self.battle_plan_uuid_list[self.battle_plan_2p.currentIndex()] if self.battle_plan_2p.currentIndex() >= 0 and not self.global_plan_checkbox.isChecked() else "",
                 "skip": self.skip_checkbox.isChecked(),
                 "battle_plan_tweak": self.tweak_plan_uuid_list[self.battle_plan_tweak.currentIndex()] if self.battle_plan_tweak.currentIndex() >= 0 else ""  # 保存微调方案参数
             }
