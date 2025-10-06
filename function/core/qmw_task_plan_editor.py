@@ -18,7 +18,7 @@ from PyQt6.QtGui import QPixmap, QAction
 
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
-from function.scattered.get_list_battle_plan import get_list_battle_plan
+from function.scattered.get_list_battle_plan import get_list_battle_plan, get_list_tweak_plan
 
 
 # 初始化数据库
@@ -517,11 +517,13 @@ class TaskEditor(QMainWindow):
 
     def create_shuaguan_params(self):
         """创建刷关扩展参数"""
+        # 清空现有布局
         while self.param_container_layout.count():
             child = self.param_container_layout.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
 
+        # 创建参数控件
         self.use_key_checkbox = QCheckBox()
         self.card_name_edit = QLineEdit()
         self.times_spinbox = QSpinBox()
@@ -543,12 +545,17 @@ class TaskEditor(QMainWindow):
         self.battle_plan_2p = QComboBox()
         self._init_battle_plan_selector()
         self.skip_checkbox = QCheckBox()
+        
+        # 添加微调方案选择器
+        self.battle_plan_tweak = QComboBox()
+        self._init_tweak_plan_selector()
 
         self._add_param_pair("启用全局方案:", self.global_plan_checkbox)
         self._add_param_pair("是否单人:", self.is_single_player_checkbox)
         self._add_param_pair("是否跳过:", self.skip_checkbox)
         self._add_param_pair("1P方案:", self.battle_plan_1p)
         self._add_param_pair("2P方案:", self.battle_plan_2p)
+        self._add_param_pair("微调方案:", self.battle_plan_tweak)  # 添加微调方案控件
         self._add_param_pair("使用钥匙:", self.use_key_checkbox)
         self._add_param_pair("带卡名称:", self.card_name_edit)
         self._add_param_pair("禁卡名称:", self.banned_card_edit)
@@ -569,6 +576,14 @@ class TaskEditor(QMainWindow):
             self.battle_plan_1p.addItem(name)
             self.battle_plan_2p.addItem(name)
 
+    def _init_tweak_plan_selector(self):
+        """初始化微调方案选择器"""
+        self.tweak_plan_name_list = get_list_tweak_plan(with_extension=False)
+        self.tweak_plan_uuid_list = list(EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH.keys())
+        
+        # 添加所有微调方案到下拉框
+        for name in self.tweak_plan_name_list:
+            self.battle_plan_tweak.addItem(name)
 
     def create_qiangka_params(self):
         """创建强卡扩展参数"""
@@ -718,11 +733,14 @@ class TaskEditor(QMainWindow):
                 self.disable_weapon_checkbox.setChecked(params.get("disable_weapon", False))
                 self.global_plan_checkbox.setChecked(params.get("use_global_plan", False))
                 self.deck_selector.setCurrentText(str(params.get("deck", 0)))
-                self.skip_checkbox.setChecked(params.get("skip", False))  # 加载"是否跳过"参数
+                self.skip_checkbox.setChecked(params.get("skip", False))
                 if params.get("battle_plan_1p"):
                     self.battle_plan_1p.setCurrentIndex(self.battle_plan_uuid_list.index(params["battle_plan_1p"]))
                 if params.get("battle_plan_2p"):
                     self.battle_plan_2p.setCurrentIndex(self.battle_plan_uuid_list.index(params["battle_plan_2p"]))
+                # 加载微调方案参数
+                if params.get("battle_plan_tweak") and params["battle_plan_tweak"] in self.tweak_plan_uuid_list:
+                    self.battle_plan_tweak.setCurrentIndex(self.tweak_plan_uuid_list.index(params["battle_plan_tweak"]))
 
             elif task[2] == "强卡" and task[5]:
                 params = json.loads(task[5])
@@ -827,7 +845,8 @@ class TaskEditor(QMainWindow):
                 "deck": int(self.deck_selector.currentText()),
                 "battle_plan_1p": self.battle_plan_1p.currentData(),
                 "battle_plan_2p": self.battle_plan_2p.currentData(),
-                "skip": self.skip_checkbox.isChecked()
+                "skip": self.skip_checkbox.isChecked(),
+                "battle_plan_tweak": self.tweak_plan_uuid_list[self.battle_plan_tweak.currentIndex()] if self.battle_plan_tweak.currentIndex() >= 0 else ""  # 保存微调方案参数
             }
             stage_param = getattr(self, "current_stage_code", None)
             param = None
