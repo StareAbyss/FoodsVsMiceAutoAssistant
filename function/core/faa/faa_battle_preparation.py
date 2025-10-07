@@ -151,13 +151,16 @@ class BattlePreparation:
 
         """第二 匹配转职"""
         targets_1 = []
-        for card in targets_0:
-            # 精准匹配
-            if "-" in card:
-                targets_1.append(card)
-            # 模糊匹配 允许任意变种
-            else:
-                targets_1 += [f"{card}-{i}" for i in range(3, -1, -1)]
+        if "-" in card_name:
+            targets_1.append(card_name)#真：精确匹配
+        else:
+            for card in targets_0:
+                # 精准匹配
+                if "-" in card:
+                    targets_1.append(card)
+                # 模糊匹配 允许任意变种
+                else:
+                    targets_1 += [f"{card}-{i}" for i in range(3, -1, -1)]
 
         # 只携带被记录图片的卡
         targets_1 = [card for card in targets_1 if (card + ".png") in RESOURCE_P["card"]["准备房间"]]
