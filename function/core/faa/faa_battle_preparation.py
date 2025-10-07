@@ -420,7 +420,10 @@ class BattlePreparation:
 
             # 插入卡片
             all_cards_precise_names.insert(max_card_id, qc_precise_names)
-            card_name_list.insert(max_card_id, qc_precise_names[-1])
+            if len(qc_precise_names)!=0:
+                card_name_list.insert(max_card_id, qc_precise_names[-1])
+            else:
+                card_name_list.insert(max_card_id, "不存在的卡片名称")
             # 不允许失败
             can_failed_list.insert(max_card_id, False)
 
