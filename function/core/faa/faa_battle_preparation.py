@@ -677,8 +677,21 @@ class BattlePreparation:
             SIGNAL.PRINT_TO_UI.emit(f"检测到特殊关卡：{stage_name}，已为你启用对应关卡方案", 7)
 
     def _get_card_name_list_from_battle_plan(self: "FAA"):
-
-
+        #强制禁用状态
+        ban_mat = False
+        ban_icecream = False
+        ban_god = False
+        ban_ikun = False
+        ban_coffee = False
+        if self.battle_plan_tweak:
+            ban_state = self.battle_plan_tweak["meta_data"].get("ban_state", None)
+            if ban_state:
+                ban_mat=ban_state.get("mat", False)
+                ban_icecream=ban_state.get("icecream", False)
+                ban_god=ban_state.get("god", False)
+                ban_ikun=ban_state.get("ikun", False)
+                ban_coffee=ban_state.get("coffee", False)
+            pass
         my_dict = {}
         mats = copy.deepcopy(self.stage_info["mat_card"])
 
@@ -692,16 +705,23 @@ class BattlePreparation:
         can_failed_list = [False for _ in sorted_list]
 
         # 如果需要任意承载卡 第一张卡设定为 有效承载 置于末位
-        if len(mats) >= 1:
+        if len(mats) >= 1 and not ban_mat:
             sorted_list += ["有效承载"]
             can_failed_list += [False]
 
         # 添加冰沙 复制类 置于末位 允许找不到
-        sorted_list += ["冰激凌-2", "创造神", "幻幻鸡"]
-        can_failed_list += [True, True, True]
+        if not ban_icecream:
+            sorted_list += ["冰激凌-2"]
+            can_failed_list += [True]
+        if not ban_god:
+            sorted_list += ["创造神"]
+            can_failed_list += [True]
+        if not ban_ikun:
+            sorted_list += ["幻幻鸡"]
+            can_failed_list += [True]
 
         # 如果有效承载数量 >= 2 置于末位 允许找不到
-        if len(mats) >= 2:
+        if len(mats) >= 2 and not ban_mat:
             for _ in range(len(mats) - 1):
                 sorted_list += ["有效承载"]
                 can_failed_list += [True]
@@ -717,7 +737,11 @@ class BattlePreparation:
                 self.ban_card_list = ["咖啡粉"]
             else:
                 self.ban_card_list += ["咖啡粉"]
-
+        if ban_coffee:
+            if not self.ban_card_list:
+                self.ban_card_list = ["咖啡粉"]
+            elif "咖啡粉" not in self.ban_card_list:
+                self.ban_card_list += ["咖啡粉"]
         return sorted_list, can_failed_list
 
     def check_create_room_success(self: "FAA"):
