@@ -376,7 +376,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     widget.setEnabled(state == 0)
 
             w_gba_input.stateChanged.connect(
-                lambda state: toggle_widgets(state, [w_d_input, w_1p_input, w_2p_input]))
+                lambda state: toggle_widgets(state, [w_d_input, w_1p_input, w_2p_input, w_tweak_input]))
 
             # 初始化一次
             toggle_widgets(w_gba_input.checkState().value, [w_d_input, w_1p_input, w_2p_input, w_tweak_input])
@@ -738,7 +738,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
                             uuid = tweak_plan_uuid_list[index]
                             args['battle_plan_tweak'] = uuid
                         else:
-                            args['battle_plan_tweak'] = ""  # 无匹配项时清空
+                            args.pop('battle_plan_tweak', None) # 无匹配项时清空
+                    if args['global_plan_active']:
+                        # 移除微调方案UUID
+                        args.pop('battle_plan_tweak', None)
 
                     # 固定值 请不要用于 魔塔 / 萌宠神殿 这两类特殊关卡！
                     args["quest_card"] = "None"
