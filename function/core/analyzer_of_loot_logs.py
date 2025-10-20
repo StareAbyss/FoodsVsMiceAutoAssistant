@@ -1,12 +1,11 @@
 import copy
 import json
+import networkx as nx
 import os
 import time
-
-import networkx as nx
 from cv2 import imencode
 
-from function.common.same_size_match import one_item_match, match_block_equal_in_images
+from function.common.image_processing.same_size_match import one_item_match, match_block_equal_in_images
 from function.globals import EXTRA
 from function.globals import g_resources
 from function.globals.get_paths import PATHS

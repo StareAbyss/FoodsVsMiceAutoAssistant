@@ -1,14 +1,11 @@
+import psutil
 import subprocess
 import time
-
-import psutil
 import win32con
 import win32gui
 import win32process
 
-from function.globals.log import CUS_LOGGER
-from function.globals.loadings import loading
-loading.update_progress(5,"正在加载FAA进程协议...")
+
 def close_all_software_by_name(software_name: str):
     """
     根据软件名称关闭所有相关进程
@@ -22,9 +19,9 @@ def close_all_software_by_name(software_name: str):
         try:
             if proc.info['name'] == software_name:
                 proc.terminate()
-                CUS_LOGGER.info(f"[程序开关] 已关闭 {software_name} (PID: {proc.info['pid']})")
+                print(f"[程序开关] 已关闭 {software_name} (PID: {proc.info['pid']})")
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess) as e:
-            CUS_LOGGER.error(f"[程序开关] 关闭 {software_name} 时出错: {e}")
+            print(f"[程序开关] 关闭 {software_name} 时出错: {e}")
             pass
 
 
@@ -48,10 +45,10 @@ def close_software_by_title(window_title: str):
 def start_software_with_args(executable_path, *args):
     try:
         process = subprocess.Popen([executable_path] + list(args))
-        CUS_LOGGER.debug(f"已启动 {executable_path} 并传递参数 {args}")
+        print(f"已启动 {executable_path} 并传递参数 {args}")
         return process
     except Exception as e:
-        CUS_LOGGER.error(f"启动 {executable_path} 时出错: {e}")
+        print(f"启动 {executable_path} 时出错: {e}")
         return None
 
 
@@ -99,7 +96,7 @@ def get_all_hwnd(hwnd, mouse, login_handle, window_title_list, exe_name):
             # print(abc,win32gui.GetWindowText(hwnd))
             if not pro == exe_name:
                 continue
-            # CUS_LOGGER.debug(f"进程ID:{abc}, 窗口句柄:{hwnd}, 标题:{win32gui.GetWindowText(hwnd)}")
+            # print(f"进程ID:{abc}, 窗口句柄:{hwnd}, 标题:{win32gui.GetWindowText(hwnd)}")
             login_handle[abc] = hwnd
             if win32gui.GetWindowText(hwnd):
                 window_title_list.append(win32gui.GetWindowText(hwnd))
@@ -124,7 +121,7 @@ def get_path_and_sub_titles(exe_name: str = "360Game.exe"):
     # 对 log_int_title 列表进行排序，以便按字母顺序返回窗口标题
     window_title_list.sort()
 
-    CUS_LOGGER.debug(f"[窗口操作] 根据软件名称{exe_name}, 获取其文件系统路径为:{path}, 窗口标题list为:{window_title_list}")
+    print(f"[窗口操作] 根据软件名称{exe_name}, 获取其文件系统路径为:{path}, 窗口标题list为:{window_title_list}")
     return path, window_title_list
 
 

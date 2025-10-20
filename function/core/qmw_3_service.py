@@ -5,15 +5,15 @@ import shutil
 import sqlite3
 import threading
 import webbrowser
-
 import win32con
 import win32gui
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QMessageBox, QFileDialog, QTableWidgetItem, QVBoxLayout, QPushButton, QWidget
+from function.common.process_manager import get_path_and_sub_titles
+from function.common.startup_manager import *
 
-from function.common.process_and_window_manager import get_path_and_sub_titles
-from function.common.startup import *
 from function.core.faa.faa_mix import FAA
+from function.core.my_crypto import encrypt_data
 from function.core.performance_analysis import run_analysis_in_thread
 from function.core.qmw_2_load_settings import CommonHelper, QMainWindowLoadSettings
 from function.core.qmw_editor_of_battle_plan import QMWEditorOfBattlePlan
@@ -28,13 +28,12 @@ from function.core.qmw_tip_editor_of_battle_plan import QMWTipEditorOfBattlePlan
 from function.core.qmw_tip_level2 import QMWTipLevels2
 from function.core.qmw_tip_login_settings import QMWTipLoginSettings
 from function.core.qmw_tip_misu_logistics import QMWTipMisuLogistics
-from function.core.qmw_tip_stage_id import QMWTipStageID
-from function.core.qmw_tip_warm_gift import QMWTipWarmGift
 from function.core.qmw_tip_qqlogin import QMWTipQQlogin
 from function.core.qmw_tip_sleep import QMWTipSleep
+from function.core.qmw_tip_stage_id import QMWTipStageID
+from function.core.qmw_tip_warm_gift import QMWTipWarmGift
 from function.core.qmw_useful_tools_widget import UsefulToolsWidget
 from function.core.todo import ThreadTodo
-from function.core.my_crypto import encrypt_data
 from function.globals import EXTRA, SIGNAL
 from function.globals import g_resources
 from function.globals.get_paths import PATHS
@@ -45,6 +44,7 @@ from function.scattered.get_channel_name import get_channel_name
 from function.scattered.get_stage_info_online import get_stage_info_online
 from function.scattered.test_route_connectivity import test_route_connectivity
 from function.scattered.todo_timer_manager import TodoTimerManager
+
 
 class QMainWindowService(QMainWindowLoadSettings):
     signal_todo_end = QtCore.pyqtSignal()

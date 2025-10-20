@@ -1,11 +1,8 @@
+import numpy as np
 import time
 from ctypes import windll, byref, c_ubyte
 from ctypes.wintypes import RECT, HWND
-
-import numpy as np
 from numpy import uint8, frombuffer
-
-from function.scattered.restore_window_if_minimized import restore_window_if_minimized
 
 
 # 如果没有依赖
@@ -14,6 +11,26 @@ from function.scattered.restore_window_if_minimized import restore_window_if_min
 # 排除缩放干扰 但有的时候会出错 可以在这里多测试测试
 # windll.user32.SetProcessDPIAware()
 
+def restore_window_if_minimized(handle) -> bool:
+    """
+    :param handle: 句柄
+    :return: 如果是最小化, 并恢复至激活窗口的底层, 则返回True, 否则返回False.
+    """
+
+    # 检查窗口是否最小化
+    if win32gui.IsIconic(handle):
+        # 恢复窗口（但不会将其置于最前面）
+        win32gui.ShowWindow(handle, win32con.SW_RESTORE)
+
+        # 将窗口置于Z序的底部，但不改变活动状态
+        win32gui.SetWindowPos(
+            handle,
+            win32con.HWND_BOTTOM,
+            0, 0, 0, 0,
+            win32con.SWP_NOMOVE | win32con.SWP_NOSIZE | win32con.SWP_NOACTIVATE)
+
+        return True
+    return False
 
 def capture_image_png(handle: HWND, raw_range: list, root_handle: HWND = None):
     """
@@ -30,7 +47,7 @@ def capture_image_png(handle: HWND, raw_range: list, root_handle: HWND = None):
     # 尝试截图一次
     image = capture_image_png_once(handle=handle)
 
-    # image == [], 句柄错误, 返回一个对应大小的全0图像
+    # image == [], 句柄错误, 返回一个对应大小的 全0 图像
     if image is None:
         return np.zeros((raw_range[3] - raw_range[1], raw_range[2] - raw_range[0], 3), dtype=np.uint8)
 
@@ -57,7 +74,7 @@ def capture_image_png_all(handle: HWND, root_handle: HWND = None):
     # 尝试截图一次
     image = capture_image_png_once(handle=handle)
 
-    # image == [], 句柄错误, 返回一个对应大小的全0图像
+    # image == [], 句柄错误, 返回一个对应大小的 全0 图像
     if image is None:
         return np.zeros((1, 1, 3), dtype=np.uint8)
 

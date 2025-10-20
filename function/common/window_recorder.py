@@ -1,13 +1,14 @@
-import datetime
-
+import ctypes
 import cv2
+import datetime
 import numpy as np
+import time
+import win32con
 import win32gui
 import win32ui
-import win32con
-import ctypes
-import time
 from threading import Thread
+
+
 # try:
 #     ctypes.windll.shcore.SetProcessDpiAwareness(2)  # 2 = Per-monitor v2 DPI awareness
 # except:
@@ -15,9 +16,10 @@ from threading import Thread
 
 
 class WindowRecorder:
-    def __init__(self, output_file="window_recording.mp4",handle=None, fps=30.0, window_title=None,see_time=False,is_show=False):
+    def __init__(self, output_file="window_recording.mp4", handle=None, fps=30.0, window_title=None, see_time=False,
+                 is_show=False):
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.output_file = output_file+f"{timestamp}.mp4"
+        self.output_file = output_file + f"{timestamp}.mp4"
         self.fps = fps
         self.window_title = window_title
         self.recording = False
@@ -57,8 +59,8 @@ class WindowRecorder:
             print(f"检测到DPI缩放因子: {self.scale_factor:.2f}")
 
             # 如果需要，可以调整尺寸以匹配实际物理像素
-            self.width = int(self.width //self.scale_factor)
-            self.height = int(self.height //self.scale_factor)
+            self.width = int(self.width // self.scale_factor)
+            self.height = int(self.height // self.scale_factor)
 
         except Exception as e:
             print(f"获取DPI信息失败: {e}")
@@ -165,7 +167,7 @@ class WindowRecorder:
 
                     # 控制帧率
                     time.sleep(1 / self.fps)
-                #释放资源避免内存泄露
+                # 释放资源避免内存泄露
                 finally:
                     # 释放GDI资源
                     try:
@@ -209,9 +211,6 @@ class WindowRecorder:
             self.out.release()
             self.out = None
         print("视频写入器已释放")
-
-
-
 
 
 if __name__ == "__main__":

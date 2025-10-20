@@ -9,7 +9,7 @@ from function.core.qmw_task_plan_editor import init_db
 from function.globals.loadings import loading
 from function.scattered.split_task import load_tasks_from_db_and_create_puzzle
 
-loading.update_progress(80,"正在加载任务执行协议...")
+loading.update_progress(80, "正在加载任务执行协议...")
 from collections import defaultdict
 from time import sleep
 
@@ -18,9 +18,9 @@ import requests
 from PyQt6.QtCore import *
 from requests import RequestException
 
-from function.common.TCEPipeCommunicationThread import TCEPipeCommunicationThread
+from function.common.tce_pipe_communication_thread import TCEPipeCommunicationThread
 from function.common.bg_img_match import loop_match_p_in_w
-from function.common.process_and_window_manager import close_software_by_title, get_path_and_sub_titles, \
+from function.common.process_manager import close_software_by_title, get_path_and_sub_titles, \
     close_all_software_by_name, start_software_with_args
 from function.common.thread_with_exception import ThreadWithException
 from function.core.analyzer_of_loot_logs import update_dag_graph, find_longest_path_from_dag, ranking_read_data
@@ -582,6 +582,7 @@ class ThreadTodo(QThread):
             SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] [{mode}] 完成")
 
         self.model_end_print(text=title_text)
+
     def batch_scan_all_task(self, player: list = None, quests: list = None):
         """
         :param player: 默认[1,2] 可选: [1] [2] [1,2] [2,1]
@@ -619,11 +620,11 @@ class ThreadTodo(QThread):
 
             if 1 in player and 2 in player:
                 sleep(0.333)
-            #必须异步，不然会乱
+            # 必须异步，不然会乱
             if 1 in player:
-                pack1p=self.thread_1p.get_return_value()
+                pack1p = self.thread_1p.get_return_value()
                 if pack1p:
-                    self.battle_1_n_n(quest_list=pack1p[0],task_names=pack1p[1])
+                    self.battle_1_n_n(quest_list=pack1p[0], task_names=pack1p[1])
             if 2 in player:
                 self.thread_2p = ThreadWithException(
                     target=self.faa_dict[2].action_scan_task_type,
@@ -633,11 +634,10 @@ class ThreadTodo(QThread):
                     })
                 self.thread_2p.start()
 
-
             if 2 in player:
-                pack2p=self.thread_2p.get_return_value()
+                pack2p = self.thread_2p.get_return_value()
                 if pack2p:
-                    self.battle_1_n_n(quest_list=pack2p[0],task_names=pack2p[1])
+                    self.battle_1_n_n(quest_list=pack2p[0], task_names=pack2p[1])
 
             SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] [{mode}] 完成")
 
@@ -877,9 +877,9 @@ class ThreadTodo(QThread):
         result_drop_by_list = {}  # {pid:{"loots":["item",...],"chest":["item",...]},...}
         result_drop_by_dict = {}  # {pid:{"loots":{"item":count,...},"chest":{"item":count,...}},...}
         result_spend_time = 0
-        senior_setting=self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("senior_setting", False)
-        recording=self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("recording", False)
-        seetime=self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("timestamp", False)
+        senior_setting = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("senior_setting", False)
+        recording = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("recording", False)
+        seetime = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("timestamp", False)
 
         """检测是否成功进入房间"""
         if result_id == 0:
@@ -2325,6 +2325,7 @@ class ThreadTodo(QThread):
             # 两个号分别读取任务
             quest_list_1 = self.faa_dict[1].match_quests(mode="美食大赛-新")
             quest_list_2 = self.faa_dict[2].match_quests(mode="美食大赛-新")
+
             quest_list = quest_list_1 + quest_list_2
 
             if not quest_list:
