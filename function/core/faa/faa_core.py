@@ -40,7 +40,7 @@ class FAABase:
 
     def __init__(self: "FAA", channel: str = "锑食", player: int = 1, character_level: int = 80,
                  is_auto_battle: bool = True, is_auto_pickup: bool = False,
-                 QQ_login_info=None, extra_sleep=None,opt=None,the_360_lock=None, random_seed: int = 0):
+                 QQ_login_info=None, extra_sleep=None, opt=None, the_360_lock=None, random_seed: int = 0):
 
         # 获取窗口句柄
         self.channel = channel  # 在刷新窗口后会需要再重新获取flash的句柄, 故保留

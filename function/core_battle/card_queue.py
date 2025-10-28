@@ -59,11 +59,14 @@ class CardQueue(queue.PriorityQueue):
         if self.card_using:
             return False
 
+        # 上锁
         self.card_using = True
 
         # 查看队列顶部的元素
         card = self.peek()[1]
-        CUS_LOGGER.debug(f"尝试使用使用卡片 {card.name}")
+
+        # CUS_LOGGER.debug(f"{card.player} {card.name} 尝试使用使用卡片")
+
         # 卡片没有需要放置的位置 如果该卡正好是全新的卡背+没有可放置位置 会卡死 所以只要没有可放位置就移出队列
         if not card.coordinate_to:
             self.get()
@@ -72,7 +75,7 @@ class CardQueue(queue.PriorityQueue):
 
         # 如果这张卡被锁 移出队列
         if card.status_ban > 0:
-            CUS_LOGGER.debug(f"卡被ban")
+            # CUS_LOGGER.debug(f"{card.player} {card.name} 卡被ban")
             self.get()
             self.card_using = False
             return False
@@ -93,6 +96,7 @@ class CardQueue(queue.PriorityQueue):
                 self.card_using = False
                 return False
         card.fresh_status()
+
         # 如果卡片在cd中 移出队列
         if card.status_cd:
             # CUS_LOGGER.debug(f"{card.player} {card.name} 卡cd中")

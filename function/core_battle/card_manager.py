@@ -177,7 +177,7 @@ class CardManager(QThread):
 
     def stop(self):
 
-        CUS_LOGGER.info("[战斗执行器] CardManager - stop 开始")
+        CUS_LOGGER.info("[战斗执行器] [CardManager] stop 开始")
 
         self.stop_sub_threads()  # 停止子线程
         self.faa_dict.clear()  # 清空faa字典
@@ -191,10 +191,10 @@ class CardManager(QThread):
         self.exit()
         self.wait()
 
-        CUS_LOGGER.debug("[战斗执行器] CardManager - stop 结束")
+        CUS_LOGGER.debug("[战斗执行器] [CardManager] stop 结束")
 
         # 在战斗结束后 打印上一次战斗到这一次战斗之间, 累计的点击队列状态
-        CUS_LOGGER.info(f"[战斗执行器] 在本场战斗中, 点击队列变化状态如下, 可判断是否出现点击队列积压的情况")
+        CUS_LOGGER.info(f"[战斗执行器] [CardManager] 在本场战斗中, 点击队列变化状态如下, 可判断是否出现点击队列积压的情况")
         undone_times = T_ACTION_QUEUE_TIMER.print_queue_statue()
         if undone_times > 100:
             SIGNAL.DIALOG.emit(
@@ -688,7 +688,7 @@ class ThreadCheckTimer(QThread):
     """
 
     def __init__(self, card_queue, faa, kun_cards, check_interval,
-                 signal_change_card_plan, signal_used_key, signal_stop,thread_dict):
+                 signal_change_card_plan, signal_used_key, signal_stop, thread_dict):
 
         super().__init__()
 
@@ -723,11 +723,11 @@ class ThreadCheckTimer(QThread):
         self.running = True
         self.timer.start()
 
-        self.faa.print_info('[战斗执行器] ThreadCheckTimer 启动事件循环')
+        self.faa.print_info(f'[战斗执行器] ThreadCheckTimer 启动事件循环')
         self.exec()
 
     def stop(self):
-        self.faa.print_info(text="[战斗执行器] ThreadCheckTimer - stop - 已激活, 将关闭战斗中检测线程")
+        self.faa.print_info(text=f"[战斗执行器] ThreadCheckTimer - stop - 已激活, 将关闭战斗中检测线程")
 
         self.running = False
         if self.timer:
@@ -752,7 +752,7 @@ class ThreadCheckTimer(QThread):
         try:
             self.check()
         except Exception as e:
-            CUS_LOGGER.warning(
+            self.faa.print_warning(
                 f"[战斗执行器] ThreadCheckTimer - callback_timer - 在运行中遭遇错误"
                 f"可能是Timer线程所需参数已被释放. 后有Timer进入执行状态. 这是正常情况. 错误信息: {e}"
             )
@@ -805,15 +805,12 @@ class ThreadCheckTimer(QThread):
                 self.signal_change_card_plan.emit()
                 return
 
-        # 先清空现有队列 再初始化队列
-        #这里的重置队列要适应放卡间隔
-        if self.check_interval_count is None or (self.checked_round %self.check_interval_count==1):
+        # 先清空现有队列 再初始化队列 这里的重置队列要适应放卡间隔
+        if self.check_interval_count is None or (self.checked_round % self.check_interval_count == 1):
             self.card_queue.queue.clear()
             self.card_queue.init_card_queue(
                 game_image=game_image,
                 check_interval=self.check_interval)
-            CUS_LOGGER.debug(f"成功重置队列，本轮次{self.checked_round}")
-
 
         # 更新火苗
         self.faa.update_fire_elemental_1000(img=game_image)
@@ -832,7 +829,7 @@ class ThreadCheckTimer(QThread):
         # 调试打印 - 目前 <战斗管理器> 的状态
         if EXTRA.EXTRA_LOG_BATTLE:
             if self.faa.player == 1:
-                text = f"[战斗执行器] [{self.faa.player}P] "
+                text = f"[战斗执行器] [{self.faa.player}P] [第{self.checked_round}轮状态]"
                 for card in self.card_queue.card_list:
                     text += "[{}|状:{}|CD:{}|用:{}|禁:{}|坤:{}] ".format(
                         card.name[:2] if len(card.name) >= 2 else card.name,
@@ -1337,7 +1334,7 @@ class ThreadUseSpecialCardTimer(QThread):
                 else:
                     # 如果均完成了状态监测, 则将所有状态为可用的卡片加入待处理列表中
                     self.card_list_can_use[pid] = []
-                for card in (set(self.special_card_list[pid])-set(self.card_list_can_use[pid])):
+                for card in (set(self.special_card_list[pid]) - set(self.card_list_can_use[pid])):
                     card.fresh_status()
                     if card.status_usable:
                         self.card_list_can_use[pid].append(card)

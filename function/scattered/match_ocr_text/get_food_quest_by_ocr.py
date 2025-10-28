@@ -2,6 +2,7 @@ import time
 
 from function.common.bg_img_match import match_p_in_w
 from function.common.bg_img_screenshot import capture_image_png
+from function.globals import SIGNAL
 from function.globals.g_resources import RESOURCE_P
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
@@ -81,5 +82,8 @@ def extract_text_from_images(images):
         results += result
         results += "\n"
     CUS_LOGGER.info(results)
+
+    for i, text_line in enumerate(unique_results, 1):
+        SIGNAL.PRINT_TO_UI.emit(text=f"{i}.{text_line}", time=False)
 
     return unique_results
