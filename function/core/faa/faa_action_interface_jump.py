@@ -702,18 +702,16 @@ class FAAActionInterfaceJump:
                 # 给一点加载时间
                 time.sleep(5)
 
-            buff_id = 0
-            for b in range(1,100):
+            boss_name = "WB-1"
+            boss_buff_name = "WB-1-0"
 
-                # 确定对应图片存在
-                if RESOURCE_P["world_boss"].get(f"buff-{b}.png") is None:
-                    continue
-
+            boss_img_names_list = [img_name for img_name in RESOURCE_P["world_boss"].keys() if img_name.count('-') == 1]
+            for boss_img_name in boss_img_names_list:
                 result = loop_match_p_in_w(
                     source_handle=handle,
                     source_root_handle=handle_360,
-                    source_range=[830, 270, 910, 350],
-                    template=RESOURCE_P["world_boss"][f"buff-{b}.png"],
+                    source_range=[680, 20, 850, 65],
+                    template=RESOURCE_P["world_boss"][boss_img_name],
                     match_tolerance=0.99,
                     match_interval=0.2,
                     match_failed_check=1,
@@ -721,13 +719,30 @@ class FAAActionInterfaceJump:
                     click=False,
                 )
                 if result:
-                    buff_id = b
+                    boss_name = boss_img_name.split('.')[0]
+                    break
+
+            buff_img_names_list = [img_name for img_name in RESOURCE_P["world_boss"].keys() if img_name.startswith(boss_name + "-")]
+            for buff_img_name in buff_img_names_list:
+                result = loop_match_p_in_w(
+                    source_handle=handle,
+                    source_root_handle=handle_360,
+                    source_range=[830, 270, 910, 350],
+                    template=RESOURCE_P["world_boss"][buff_img_name],
+                    match_tolerance=0.99,
+                    match_interval=0.2,
+                    match_failed_check=1,
+                    after_sleep=0,
+                    click=False,
+                )
+                if result:
+                    boss_buff_name = buff_img_name.split('.')[0]
                     break
 
             # 创建队伍 - 该按钮可能需要修正位置
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=770, y=560)
 
-            return buff_id
+            return boss_buff_name
 
         def main_wa():
 
@@ -902,8 +917,7 @@ class FAAActionInterfaceJump:
             elif stage_0 == "MU":
                 main_mu()
             elif stage_0 == "WB":
-                b_id = main_wb()
-                stage_id_extra = f"WB-0-{b_id}"
+                stage_id_extra = main_wb()
             else:
                 SIGNAL.PRINT_TO_UI.emit(text="跳转关卡失败，请检查关卡代号是否正确", color_level=1)
                 SIGNAL.DIALOG.emit("ERROR", "跳转关卡失败! 请检查关卡代号是否正确")
