@@ -66,7 +66,7 @@ class ThreadTodo(QThread):
         self.battle_check_interval = 1  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
 
         # 用于防止缺乏钥匙/次数时无限重复某些关卡, key: (player: int, quest_text: str), value: int
-        self.auto_food_stage_ban_dict = {}
+        self.auto_food_try_count_dict = {}
 
         # 多线程管理
         self.thread_1p: ThreadWithException | None = None
@@ -1074,13 +1074,13 @@ class ThreadTodo(QThread):
                 start_time=start_time
             )
             if recording:
-                    self.faa_dict[player_a].start_battle_recording(seetime)
-                    CUS_LOGGER.info(f"录制已启动: {self.faa_dict[1].player}P 战斗")
+                self.faa_dict[player_a].start_battle_recording(seetime)
+                CUS_LOGGER.info(f"录制已启动: {self.faa_dict[1].player}P 战斗")
             self.thread_card_manager.start()
             self.exec()
             if recording:
-                    self.faa_dict[player_a].stop_battle_recording()
-                    CUS_LOGGER.info(f"录制已停止: {self.faa_dict[1].player}P 战斗")
+                self.faa_dict[player_a].stop_battle_recording()
+                CUS_LOGGER.info(f"录制已停止: {self.faa_dict[1].player}P 战斗")
 
             # 此处的重新变为None是为了让中止todo实例时时该属性仍存在
             self.thread_card_manager = None
@@ -1359,7 +1359,7 @@ class ThreadTodo(QThread):
                 # 加载 g_plan
                 skip_ = g_plan["skip"]
                 deck_ = g_plan["deck"]
-                if g_plan["tweak_plan"]:
+                if g_plan.get("tweak_plan", None):
                     battle_plan_tweak_ = g_plan["tweak_plan"]
 
                 if is_group:
@@ -1523,6 +1523,7 @@ class ThreadTodo(QThread):
                 # 微调方案 手动设定传入 > 全局 > 无而使用默认
                 if battle_plan_tweak_from_quest_set:
                     battle_plan_tweak = battle_plan_tweak_from_quest_set
+                    CUS_LOGGER.debug("来自任务事项的微调方案已启用, 覆盖全局微调方案")
 
                 # 根据卡组编号(0-6), 转化为游戏内操作时选择的卡组编号(1-6)和是否激活启动带卡策略
                 auto_carry_card = deck == 0
@@ -1851,7 +1852,7 @@ class ThreadTodo(QThread):
             self.my_lock = True
 
         SIGNAL.PRINT_TO_UI.emit(text=f"{title}开始...", color_level=3)
-        # print(f"将要刷取清单{quest_list}")
+        CUS_LOGGER.info(f"将要刷取清单{quest_list}")
 
         # 遍历完成每一个任务
         for i in range(len(quest_list)):
@@ -1859,7 +1860,6 @@ class ThreadTodo(QThread):
             quest = quest_list[i]
             if task_names is not None:
                 SIGNAL.PRINT_TO_UI.emit(text=f"[双线程单人] {self.todo_id}P已开始任务{task_names[i]}!", color_level=3)
-
 
             # 处理允许缺失的值
             quest_card = quest.get("quest_card", None)
@@ -2344,12 +2344,16 @@ class ThreadTodo(QThread):
             """
 
             # 两个号分别读取任务
+            SIGNAL.PRINT_TO_UI.emit(text=f"[全自动大赛] [1P] 文字识别结果如下: ", color_level=2)
             quest_list_1 = self.faa_dict[1].match_quests(mode="美食大赛-新")
+
+            SIGNAL.PRINT_TO_UI.emit(text=f"[全自动大赛] [2P] 文字识别结果如下: ", color_level=2)
             quest_list_2 = self.faa_dict[2].match_quests(mode="美食大赛-新")
 
             quest_list = quest_list_1 + quest_list_2
 
             if not quest_list:
+                SIGNAL.PRINT_TO_UI.emit(text=f"[全自动大赛] 识别不到任何任务, 已完成")
                 return False
 
             # 去重两边都一毛一样的双人任务
@@ -2362,20 +2366,20 @@ class ThreadTodo(QThread):
             # 初始化尝试次数记录
             for quest in quest_list:
                 quest_key = (str(quest["player"]), quest["quest_text"])
-                if quest_key not in self.auto_food_stage_ban_dict.keys():
-                    self.auto_food_stage_ban_dict[quest_key] = 0
+                if quest_key not in self.auto_food_try_count_dict.keys():
+                    self.auto_food_try_count_dict[quest_key] = 0
 
             # 去除尝试过多的任务
             quest_list_will_do = []
             for quest in quest_list:
-                if self.auto_food_stage_ban_dict[(str(quest["player"]), quest["quest_text"])] < 3:
+                if self.auto_food_try_count_dict[(str(quest["player"]), quest["quest_text"])] < 3:
                     quest_list_will_do.append(quest)
                 else:
                     quest["tag"] = "禁用, 尝试过多"
 
-            CUS_LOGGER.debug(self.auto_food_stage_ban_dict)
-            CUS_LOGGER.debug("[全自动大赛] 去除 **多次尝试禁用** 任务后, 列表如下:")
-            CUS_LOGGER.debug(quest_list_will_do)
+            CUS_LOGGER.info("[全自动大赛] 去除 **多次尝试禁用** 任务后, 列表如下:")
+            for quest in quest_list_will_do:
+                CUS_LOGGER.info(quest)
 
             # 全部单人任务
             solo_quests = [quest for quest in quest_list_will_do if len(quest["player"]) == 1]
@@ -2407,7 +2411,7 @@ class ThreadTodo(QThread):
             # 记录 尝试次数
             for quest in quest_list_will_do:
                 quest_key = (str(quest["player"]), quest["quest_text"])
-                self.auto_food_stage_ban_dict[quest_key] += 1
+                self.auto_food_try_count_dict[quest_key] += 1
 
             # 生成输出的文本
             texts_list = []
@@ -2442,7 +2446,7 @@ class ThreadTodo(QThread):
                 quest_tag = quest.get("tag", "即将执行")
                 if "暂时跳过" not in quest_tag:
                     # 输出尝试次数
-                    quest_try_times = self.auto_food_stage_ban_dict[(str(quest["player"]), quest["quest_text"])]
+                    quest_try_times = self.auto_food_try_count_dict[(str(quest["player"]), quest["quest_text"])]
                     text_parts.append(f"尝试次数:{quest_try_times}/3")
                 text_parts.append(f"{quest_tag}")
 
@@ -2488,7 +2492,7 @@ class ThreadTodo(QThread):
 
             # 重置美食大赛任务 ban dict
             # 用于防止缺乏钥匙/次数时无限重复某些关卡, key: (player: int, quest_text: str), value: int
-            self.auto_food_stage_ban_dict = {}
+            self.auto_food_try_count_dict = {}
 
             i = 0
             while True:
