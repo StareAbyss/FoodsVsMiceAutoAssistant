@@ -39,6 +39,12 @@ def create_qt_icon(q_color, mode):
             painter.drawLine(11, 12, 13, 14)  # 放大镜的把手
             painter.drawLine(12, 11, 14, 13)  # 放大镜的把手
             painter.drawLine(12, 12, 14, 14)  # 放大镜的把手
+        case "v":
+            painter.setPen(QtGui.QPen(q_color, 2))
+            painter.drawLine(3, 4, 13, 4)  # 顶部横线
+            painter.drawLine(3, 1, 13, 1)  # 顶部横线
+            painter.drawLine(3, 4, 8, 12)  # 左边线
+            painter.drawLine(13, 4, 8, 12)  # 右边线
         case _:
             pass
 
