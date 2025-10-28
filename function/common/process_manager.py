@@ -1,6 +1,7 @@
-import psutil
 import subprocess
 import time
+
+import psutil
 import win32con
 import win32gui
 import win32process

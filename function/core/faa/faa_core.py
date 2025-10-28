@@ -6,14 +6,13 @@ import time
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-import cv2
 import pytz
 
 from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w, match_all_p_in_w
 from function.common.bg_img_screenshot import capture_image_png, png_cropping
 from function.common.get_system_dpi import get_window_position, get_system_dpi
-from function.common.overlay_images import overlay_images
-from function.common.process_and_window_manager import close_software_by_title, get_path_and_sub_titles, \
+from function.common.image_processing.overlay_images import overlay_images
+from function.common.process_manager import close_software_by_title, get_path_and_sub_titles, \
     close_all_software_by_name, start_software_with_args
 from function.core.my_crypto import decrypt_data
 from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
@@ -1291,7 +1290,7 @@ class FAABase:
                     click=True)
 
                 if not find:
-                    self.print_warning(text="未找到360大厅回退按钮, 是失败了")
+                    self.print_warning(text="尝试点击360大厅回退按钮, 但失败了!")
                     return False
         return True
 
@@ -1764,12 +1763,9 @@ class FAABase:
             main()
     def start_360(self):
 
-
         faa_get_handle(channel=self.channel, mode="360")
 
-
         def start_one(pid, game_id, account_id, executable_path, wait_sleep_time):
-
 
             if account_id == 0:
                 return
@@ -1780,13 +1776,11 @@ class FAABase:
 
             SIGNAL.PRINT_TO_UI.emit(text=f"[控制游戏大厅] {pid}P游戏大厅已启动.", color_level=1)
 
-
-
         SIGNAL.PRINT_TO_UI.emit(
             text="[控制游戏大厅] 重启大厅中...",
             color_level=1
         )
-        if self.player==1:
+        if self.player == 1:
             start_one(
                 pid=1,
                 game_id=1,
@@ -1827,6 +1821,7 @@ class FAABase:
             CUS_LOGGER.debug(f"[操作游戏大厅] 关闭名称为: [{software_name}] 的应用程序下的所有窗口, 开始")
             close_all_software_by_name(software_name=software_name)
             CUS_LOGGER.debug(f"[操作游戏大厅] 关闭名称为: [{software_name}] 的应用程序下的所有窗口, 成功")
+
     def sign_in(self: "FAA") -> None:
 
         def sign_in_vip():
@@ -2103,11 +2098,11 @@ class FAABase:
             # 退出充值界面
             exit_ui()
             return "今天氪过了~"
-        or_rect=get_window_position(self.handle)
-        browser_rect=get_window_position(self.handle_browser)
-        zoom_rate=get_system_dpi()/96
+        or_rect = get_window_position(self.handle)
+        browser_rect = get_window_position(self.handle_browser)
+        zoom_rate = get_system_dpi() / 96
         print(or_rect, browser_rect)
-        deviation=[(or_rect[0]-browser_rect[0])//zoom_rate,(or_rect[1]-browser_rect[1])//zoom_rate]
+        deviation = [(or_rect[0] - browser_rect[0]) // zoom_rate, (or_rect[1] - browser_rect[1]) // zoom_rate]
         # 没有完成, 进入充值界面
         CUS_LOGGER.debug("充值界面 点击切换为游币")
         source_range_2 = [150, 110, 800, 490]  # 游币兑换按钮 查找范围
@@ -2124,7 +2119,7 @@ class FAABase:
             click=True,
             click_handle=self.handle_browser,
             deviation=deviation
-            )
+        )
         if not find:
             return "步骤: 充值界面-点击游币兑换. 出现致命失误! 请联系开发者!"
 
@@ -2165,7 +2160,7 @@ class FAABase:
             after_sleep=3,
             click=True,
             click_handle=self.handle_browser,
-            deviation=deviation            )
+            deviation=deviation)
         if not find:
             return "步骤: 充值界面-复核-氪金值输入1元. 出现致命失误! 请联系开发者!"
 
@@ -2182,7 +2177,7 @@ class FAABase:
             after_sleep=3,
             click=True,
             click_handle=self.handle_browser,
-            deviation=deviation            )
+            deviation=deviation)
         if not find:
             return "步骤: 充值界面-点击-立刻充值按钮. 出现致命失误! 请联系开发者!"
 
@@ -2199,7 +2194,7 @@ class FAABase:
             after_sleep=3,
             click=True,
             click_handle=self.handle_browser,
-            deviation=deviation            )
+            deviation=deviation)
         if not find:
             return "步骤: 充值界面-点击-退出充值界面按钮. 出现致命失误! 请联系开发者!"
 

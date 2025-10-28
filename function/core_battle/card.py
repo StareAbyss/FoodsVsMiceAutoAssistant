@@ -110,11 +110,11 @@ class Card:
             "不可用": None,  # 遇到新图片则保存下来以便初始判断, 也用于判断是否遇到了新的状态图片
         }
 
-        # 放卡间隔
+        # 点击间隔
         self.click_sleep = self.faa.click_sleep
 
-        # 游戏最低帧间隔
-        self.frame_interval = 1 / EXTRA.LOWEST_FPS
+        # 游戏最大帧间隔(最低FPS计算而来)
+        self.max_game_frame_interval = 1 / EXTRA.LOWEST_FPS
 
         # 状态
         self.status_cd = False  # 冷却完成 默认已完成
@@ -243,12 +243,12 @@ class Card:
             self.try_get_img_for_check_card_states_choice_card()
 
             # 等待游戏画面刷新, 这里的值为 FAA 可以正常运行识别的游戏最低FPS对应的帧间隔
-            time.sleep(self.frame_interval)
+            time.sleep(self.max_game_frame_interval)
 
             T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=200, y=350)
 
             # 等待游戏画面刷新, * 5 以确保稳定运行
-            time.sleep(self.frame_interval * 5)
+            time.sleep(self.max_game_frame_interval * 5)
 
             current_img_clicked = self.get_card_current_img()
             if np.array_equal(current_img, current_img_clicked):
@@ -265,7 +265,7 @@ class Card:
             self.try_get_img_for_check_card_states_put_card()
 
             # 等待游戏画面刷新, * 5 以确保CD较长的卡片也完成了一像素高度的冷却动画
-            time.sleep(self.frame_interval * 5)
+            time.sleep(self.max_game_frame_interval * 5)
 
         # 放卡后, 获取到的第三种颜色必须不同于另外两种, 才记录为cd色, 否则可能由于冰沙冷却效果导致录入可用为cd色.
         current_img_after_put = self.get_card_current_img()
@@ -293,26 +293,30 @@ class Card:
         """预留接口, 让高级放卡可以仅覆写这一小部分"""
         self.put_card()
 
-    def use_card(self):
+    def use_card(self) -> bool:
+        """
+        使用这张卡本身
+        :return: 是否成功进行本卡的使用
+        """
 
         # 未启动自动战斗
         if not self.is_auto_battle:
-            return
+            return False
 
         # 自身是冰沙但不符合使用条件
         if self.is_smoothie:
             if not self.faa.fire_elemental_1000:
-                return
+                return False
             # 仅双人锁
             if self.faa.is_group:
                 if EXTRA.SMOOTHIE_LOCK_TIME > 0:
-                    return
+                    return False
                 EXTRA.SMOOTHIE_LOCK_TIME = 7
 
         # 线程放瓜皮时不巧撞上了正在计算炸弹类或者计算完成后炸弹需要该瓜皮
         if not self.can_use or self.banning:
             CUS_LOGGER.debug(f"[战斗执行器] [{self.player}P] [{self.name}] 禁用中不可使用")
-            return
+            return False
 
         # 输出
         # if EXTRA.EXTRA_LOG_BATTLE and self.faa.player == 1:
@@ -323,8 +327,8 @@ class Card:
             self.fresh_status()
             # 如果不可用状态 放弃本次用卡
             if not self.status_usable:
-                CUS_LOGGER.debug(f"不可用状态")
-                return
+                # CUS_LOGGER.debug(f"不可用状态")
+                return False
 
             # 点击 选中卡片
             self.choice_card()
@@ -333,9 +337,8 @@ class Card:
             # 放卡
             self.put_card()
 
-            # 等待游戏画面刷新
-            time.sleep(self.frame_interval)
-
+            # 等待游戏画面刷新后更新状态
+            time.sleep(self.max_game_frame_interval)
             self.fresh_status()  # 如果放卡后还可用,自ban 若干s
 
             if self.status_usable and (self.name not in self.ban_white_list):
@@ -346,38 +349,39 @@ class Card:
                 #     CUS_LOGGER.debug(f"[1P] {self.name} 因使用后仍可用进行了自ban")
                 #     T_ACTION_QUEUE_TIMER.print_queue_statue()
 
-                return True
+                return False
+
 
             # 放置成功 如果是坤目标, 复制自身放卡的逻辑
-            if not self.is_kun_target:
-                return True
+            if self.is_kun_target:
 
-            # 坤-如果不可用状态 放弃本次用卡
-            kun_count = 0
-            for kun_card in self.kun_cards:
+                kun_count = 0
+                for kun_card in self.kun_cards:
 
-                if not kun_card.status_usable:
-                    continue
+                    # 坤-如果不可用状态 放弃本次用卡
+                    if not kun_card.status_usable:
+                        continue
 
-                # 防止多坤撞车, 妈的智障, 变身期间完全无实体, 就只能靠这个设定来防一手
-                if kun_count >= 1:
-                    # 先等待, 确保普通坤完成变身后, 金坤再变身~
-                    time.sleep(1.5)
+                    # 防止多坤撞车, 妈的智障, 变身期间完全无实体, 就只能靠这个设定来防一手
+                    if kun_count >= 1:
+                        # 先等待, 确保普通坤完成变身后, 金坤再变身~
+                        time.sleep(1.5)
 
-                # 坤-点击 选中卡片
-                kun_card.choice_card()
-                time.sleep(self.click_sleep)
+                    # 坤-点击 选中卡片
+                    kun_card.choice_card()
+                    time.sleep(self.click_sleep)
 
-                # 坤-放卡
-                self.put_card()
+                    # 坤-放卡
+                    self.put_card()
 
-                # 等待游戏画面刷新
-                time.sleep(self.frame_interval)
+                    # 等待游戏画面刷新后更新状态
+                    time.sleep(self.max_game_frame_interval)
+                    kun_card.fresh_status()
 
-                kun_card.fresh_status()
+                    kun_count += 1
 
-                kun_count += 1
             return True
+
     def destroy(self):
         """中止运行时释放内存, 顺带如果遇到了全新的状态图片保存一下"""
         self.faa = None

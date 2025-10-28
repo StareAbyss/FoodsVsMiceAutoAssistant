@@ -1519,6 +1519,7 @@ class ThreadTodo(QThread):
                     battle_plan_tweak_=battle_plan_tweak,
                     stage_id_=None,
                 )
+
                 # 微调方案 手动设定传入 > 全局 > 无而使用默认
                 if battle_plan_tweak_from_quest_set:
                     battle_plan_tweak = battle_plan_tweak_from_quest_set
@@ -1831,7 +1832,7 @@ class ThreadTodo(QThread):
         SIGNAL.PRINT_TO_UI.emit(text=text, time=False)
         SIGNAL.IMAGE_TO_UI.emit(image=create_drops_image(count_dict=count_dict["chests"]))
 
-    def battle_1_n_n(self, quest_list, extra_title=None, need_lock=False,task_names=None):
+    def battle_1_n_n(self, quest_list, extra_title=None, need_lock=False, task_names=None):
         """
         1轮次 n关卡 n次数
         (副本外 -> (副本内战斗 * n次) -> 副本外) * 重复n次

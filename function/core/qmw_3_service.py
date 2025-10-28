@@ -1,17 +1,19 @@
 import datetime
 import json
+import os
 import random
 import shutil
 import sqlite3
 import threading
 import webbrowser
+
 import win32con
 import win32gui
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QMessageBox, QFileDialog, QTableWidgetItem, QVBoxLayout, QPushButton, QWidget
+
 from function.common.process_manager import get_path_and_sub_titles
 from function.common.startup_manager import *
-
 from function.core.faa.faa_mix import FAA
 from function.core.my_crypto import encrypt_data
 from function.core.performance_analysis import run_analysis_in_thread

@@ -80,7 +80,6 @@ def extract_text_from_images(images):
     for result in unique_results:
         results += result
         results += "\n"
-
     CUS_LOGGER.info(results)
 
     return unique_results

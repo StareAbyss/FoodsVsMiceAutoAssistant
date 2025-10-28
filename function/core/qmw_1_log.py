@@ -318,11 +318,8 @@ class QMainWindowLog(QMainWindowLoadUI):
             self.log_dialog.deleteLater()
             self.log_dialog = None
 
-    def print_to_ui(self, text, color, time, *args):
+    def print_to_ui(self, text, color, time):
         """打印文本到输出框 """
-        if args:
-            # 使用空格连接多个参数
-            text = text + " " + " ".join(str(arg) for arg in args)
 
         # 时间文本
         text_time = "[{}] ".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) if time else ""

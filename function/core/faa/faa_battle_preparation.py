@@ -8,7 +8,7 @@ import numpy as np
 
 from function.common.bg_img_match import loop_match_ps_in_w, loop_match_p_in_w, match_p_in_w
 from function.common.bg_img_screenshot import capture_image_png
-from function.common.overlay_images import overlay_images
+from function.common.image_processing.overlay_images import overlay_images
 from function.core.analyzer_of_loot_logs import match_items_from_image_and_save
 from function.globals import SIGNAL, EXTRA
 from function.globals.g_resources import RESOURCE_P
@@ -459,7 +459,8 @@ class BattlePreparation:
                 continue
             # 理论上 经过了筛查 选卡失败基本上仅是因为 和其他卡片有冲突 这只会出现在非必要承载卡 可以忽视
             result = self._add_card(card_name=card_name, tar_page_num=tar_position)
-            self.print_debug(text="[选取卡片] [{}]完成, 结果: {}".format(card_name, "成功" if result else "失败"))
+
+            self.print_debug(text="[选取卡片] [{}] 完成, 结果: {}".format(card_name, "成功" if result else "失败"))
 
         return True
 
