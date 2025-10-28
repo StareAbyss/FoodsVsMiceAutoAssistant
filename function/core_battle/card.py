@@ -78,6 +78,11 @@ class Card:
         self.need_key = self.faa.need_key
         self.is_auto_battle = self.faa.is_auto_battle
         self.player = self.faa.player
+        self.cd_after_use_random_range = self.faa.battle_plan_tweak.get('meta_data', {}).get('cd_after_use_random_range', None)
+        if self.cd_after_use_random_range:
+            self.cd_after_use_random_active = True
+        else:
+            self.cd_after_use_random_active = False
 
         """从 FAA类 的 battle_plan_card 中读取的属性"""
         plan = self.faa.battle_plan_card
@@ -351,6 +356,13 @@ class Card:
 
                 return False
 
+            # 放置成功 应用放卡间隔
+            if self.cd_after_use_random_active:
+                cd_after_use = random.uniform(self.cd_after_use_random_range[0], self.cd_after_use_random_range[1])
+            else:
+                cd_after_use = 0.018
+            # CUS_LOGGER.debug(f"名:{self.name} CID:{self.c_id} 放卡成功, 放后时延:{cd_after_use:.3f}")
+            time.sleep(cd_after_use)
 
             # 放置成功 如果是坤目标, 复制自身放卡的逻辑
             if self.is_kun_target:
@@ -432,11 +444,11 @@ class CardKun(Card):
         self.name = name
         self.c_id = c_id
         self.coordinate_from = coordinate_from
-        self.interval=None
-        if hasattr(self.faa, 'battle_plan_tweak') and isinstance(self.faa.battle_plan_tweak, dict):
-            CUS_LOGGER.debug(f"坤卡进行微调初始化！！！")
-            meta_data = self.faa.battle_plan_tweak.get('meta_data', {})
-            self.interval = meta_data.get('interval')
+        self.cd_after_use_random_range = self.faa.battle_plan_tweak.get('meta_data', {}).get('cd_after_use_random_range', None)
+        if self.cd_after_use_random_range:
+            self.cd_after_use_random_active = True
+        else:
+            self.cd_after_use_random_active = False
 
     def use_card(self):
         """
@@ -453,14 +465,7 @@ class CardKun(Card):
             handle=self.handle,
             x=self.coordinate_from[0] + 25,
             y=self.coordinate_from[1] + 35)
-        #坤卡特有的选择后发呆一会儿~主要是正常延迟太短，如果被检测到坤卡与正常卡间时间过短会很麻烦
-        if self.interval:
-            try:
-                random_interval = random.uniform(float(self.interval[0]), float(self.interval[1]))
-                time.sleep(random_interval)
-                CUS_LOGGER.debug(f"坤卡随机延迟成功！！: {random_interval:.3f}")
-            except (ValueError, TypeError) as e:
-                CUS_LOGGER.error(f"生成随机间隔失败: {str(e)}")
+
     def put_card(self):
         """
         坤卡没有使用卡片函数, 仅依附于其他卡片进行使用
@@ -481,6 +486,14 @@ class CardKun(Card):
 
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=295, y=485)
         time.sleep(self.click_sleep)
+
+        # 放置成功 应用放卡间隔
+        if self.cd_after_use_random_active:
+            cd_after_use = random.uniform(self.cd_after_use_random_range[0], self.cd_after_use_random_range[1])
+        else:
+            cd_after_use = 0.018
+        # CUS_LOGGER.debug(f"名:{self.name} CID:{self.c_id} 复制类卡片已尝试放卡, 放后时延:{cd_after_use:.3f}")
+        time.sleep(cd_after_use)
 
 
 class SpecialCard(Card):

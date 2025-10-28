@@ -582,6 +582,11 @@ class FAABase:
         self.battle_plan = g_resources.RESOURCE_B.get(battle_plan_uuid, None)
         self.battle_plan_tweak = g_resources.RESOURCE_T.get(battle_plan_tweak_uuid, None)
 
+        # 格式校验[float, float]
+        if self.battle_plan_tweak.get("meta_data", {}).get("cd_after_use_random_range", {}):
+            self.battle_plan_tweak["meta_data"]["cd_after_use_random_range"] = [
+                float(x) for x in self.battle_plan_tweak["meta_data"]["cd_after_use_random_range"]]
+
     """战斗完整的过程中的任务函数"""
 
     def init_mat_smoothie_kun_card_info(self: "FAA") -> None:

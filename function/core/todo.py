@@ -1359,7 +1359,7 @@ class ThreadTodo(QThread):
                 # 加载 g_plan
                 skip_ = g_plan["skip"]
                 deck_ = g_plan["deck"]
-                if g_plan["tweak_plan"]:
+                if g_plan.get("tweak_plan", None):
                     battle_plan_tweak_ = g_plan["tweak_plan"]
 
                 if is_group:
@@ -1523,6 +1523,7 @@ class ThreadTodo(QThread):
                 # 微调方案 手动设定传入 > 全局 > 无而使用默认
                 if battle_plan_tweak_from_quest_set:
                     battle_plan_tweak = battle_plan_tweak_from_quest_set
+                    CUS_LOGGER.debug("来自任务事项的微调方案已启用, 覆盖全局微调方案")
 
                 # 根据卡组编号(0-6), 转化为游戏内操作时选择的卡组编号(1-6)和是否激活启动带卡策略
                 auto_carry_card = deck == 0

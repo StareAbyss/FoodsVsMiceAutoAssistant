@@ -706,17 +706,18 @@ class ThreadCheckTimer(QThread):
         self.timer = None
         self.checked_round = 0
         self.check_interval = check_interval  # 默认0.5s
-        self.thread_dict = thread_dict  #线程列表，以便动态修改参数
-        self.interval=None
-        self.check_interval_count=None
-        if hasattr(self.faa, 'battle_plan_tweak') and isinstance(self.faa.battle_plan_tweak, dict):
-            CUS_LOGGER.debug(f"[战斗执行器] ThreadCheckTimer - check - 微调方案{self.faa.battle_plan_tweak}")
+        self.thread_dict = thread_dict  # 线程列表，以便动态修改参数
+        self.check_interval_count = None
+        if faa.battle_plan_tweak:
+            self.faa.print_info(f"[战斗执行器] ThreadCheckTimer - check - 应用微调方案: {self.faa.battle_plan_tweak}")
             meta_data = self.faa.battle_plan_tweak.get('meta_data', {})
-            self.interval = meta_data.get('interval')
-            if self.interval:
-                #深度battle调参未果（…^-^)
-                #放卡间隔与重置单轮放卡间隔原初比例大约为0.036：1
-                self.check_interval_count = (self.interval[0]+self.interval[1])*5//1
+            cd_after_use_random_range = meta_data.get('cd_after_use_random_range')
+            if cd_after_use_random_range:
+                # 放卡间隔与重置单轮放卡间隔原初比例大约为0.036：1
+                self.check_interval_count = (cd_after_use_random_range[0] + cd_after_use_random_range[1]) * 5 // 1
+        else:
+            self.faa.print_info(f"[战斗执行器] ThreadCheckTimer - check - 不应用微调方案")
+
     def run(self):
         self.timer = Timer(interval=self.check_interval, function=self.callback_timer)
         self.running = True
@@ -762,25 +763,6 @@ class ThreadCheckTimer(QThread):
             self.timer = Timer(interval=self.check_interval, function=self.callback_timer)
             self.timer.start()
 
-    def _update_thread_intervals(self, interval):
-        """更新所有线程中的间隔参数"""
-        for thread_id, thread in self.thread_dict.items():
-            random_interval = random.uniform(float(interval[0]), float(interval[1]))
-            try:
-                # 检查线程是否存活
-                if thread and hasattr(thread, 'isRunning') and thread.isRunning():
-                    # 检查线程类名以便修改对应属性
-                    if thread.__class__.__name__ == 'ThreadUseCardTimer':
-                        # 直接更新属性
-                        thread.interval_use_card= random_interval
-                        # CUS_LOGGER.debug(f"更新线程 {thread_id} 的间隔参数为: {random_interval:.3f}")
-
-                else:
-                    # CUS_LOGGER.debug(f"线程 {thread_id} 不可用，跳过更新")
-                    pass
-
-            except Exception as e:
-                CUS_LOGGER.error(f"更新线程 {thread_id} 参数失败: {str(e)}")
     def check(self):
         self.checked_round += 1
 
@@ -807,16 +789,6 @@ class ThreadCheckTimer(QThread):
 
         if not self.faa.is_auto_battle:
             return
-        if self.interval:
-            try:
-                # 生成指定范围的随机浮点数
-                random_interval = random.uniform(float(self.interval[0]), float(self.interval[1]))
-                # 修改 click_sleep 属性
-                self.faa.click_sleep = random_interval
-                self._update_thread_intervals(self.interval)
-                CUS_LOGGER.debug(f"成功设置 click_sleep 为随机值: {random_interval:.3f}")
-            except (ValueError, TypeError) as e:
-                CUS_LOGGER.error(f"生成随机间隔失败: {str(e)}")
 
         # 仅截图一次, 降低重复次数
         game_image = capture_image_png(
@@ -934,8 +906,6 @@ class ThreadUseCardTimer(QThread):
         self.running = False
         self.timer = None
         self.interval_use_card = self.faa.click_sleep
-        # 默认的快速使用卡的间隔
-        self.fast_use_card_interval = 0.018
 
     def run(self):
         self.timer = Timer(interval=self.interval_use_card, function=self.callback_timer)
@@ -966,10 +936,11 @@ class ThreadUseCardTimer(QThread):
         # print("[战斗执行器] ThreadUseCardTimer - stop - 线程已等待完成")
 
     def callback_timer(self):
-        fast_fail=False
         try:
-            fast_fail=self.card_queue.use_top_card()
+            self.card_queue.use_top_card()
         except Exception as e:
+            # 获取完整的堆栈跟踪信息
+            error_info = traceback.format_exc()
             CUS_LOGGER.warning(
                 f"[战斗执行器] ThreadUseCardTimer - callback_timer - 在运行中遭遇错误"
                 f"可能是Timer线程调用的参数已被释放后, 有Timer进入执行状态. 这是正常情况. 错误信息: {e}"
@@ -977,10 +948,7 @@ class ThreadUseCardTimer(QThread):
 
         # 回调
         if self.running:
-            if fast_fail:
-                self.timer = Timer(interval=self.fast_use_card_interval, function=self.callback_timer)
-            else:
-                self.timer = Timer(interval=self.interval_use_card, function=self.callback_timer)
+            self.timer = Timer(interval=self.interval_use_card, function=self.callback_timer)
             self.timer.start()
 
 
@@ -1090,6 +1058,8 @@ class ThreadInsertUseCardTimer(QThread):
                     self.set_timer_for_wave(wave=self.wave, time_change=0)
 
         except Exception as e:
+            # 获取完整的堆栈跟踪信息
+            error_info = traceback.format_exc()
             CUS_LOGGER.warning(
                 f"[战斗执行器] ThreadInsertUseCardTimer - callback_timer - 在运行中遭遇错误"
                 f"可能是Timer线程调用的参数已被释放后, 有Timer进入执行状态. 这是正常情况. 错误信息: {e}"
@@ -1412,6 +1382,8 @@ class ThreadUseSpecialCardTimer(QThread):
         try:
             self.check_special_card()
         except Exception as e:
+            # 获取完整的堆栈跟踪信息
+            error_info = traceback.format_exc()
             CUS_LOGGER.warning(
                 f"[战斗执行器] ThreadUseSpecialCardTimer - callback_timer - 在运行中遭遇错误"
                 f"可能是Timer线程调用的参数已被释放后, 有Timer进入执行状态. 这是正常情况. 错误信息: {e}"
