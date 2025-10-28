@@ -198,7 +198,7 @@ class FAABase:
 
         return True
 
-    def check_not_doing(self: "FAA",c_opt):
+    def check_not_doing(self: "FAA", c_opt):
         """查漏补缺"""
 
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 开始")
@@ -240,12 +240,12 @@ class FAABase:
         self.action_exit(mode="普通红叉")
         time.sleep(1)
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查悬赏开始")
-        reputation_status,reputation_now=self.check_task_of_bounty()
+        reputation_status, reputation_now = self.check_task_of_bounty()
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查悬赏结束")
         time.sleep(1)
         # 跳转到任务界面
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查公会任务开始")
-        quest_list,completed_fertilization=self.check_task_of_guild(c_opt)
+        quest_list, completed_fertilization = self.check_task_of_guild(c_opt)
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查公会任务结束")
         beijing_tz = pytz.timezone('Asia/Shanghai')
         now = datetime.now(beijing_tz)
@@ -263,7 +263,8 @@ class FAABase:
                 "查漏补缺报告",
                 f"今天是炸卡日，记得检查兑换签到卡包\n")
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 结束")
-        return quest_list,reputation_status,reputation_now,completed_fertilization
+        return quest_list, reputation_status, reputation_now, completed_fertilization
+
     def check_task_of_bounty(self: "FAA"):
         # 进入X年活动界面
         self.action_top_menu(mode="X年活动")
@@ -312,15 +313,17 @@ class FAABase:
 
         if reputation_status == 2:  # 匹配成功,说明声望满了
             CUS_LOGGER.debug(f"[{self.player}] 成功匹配")
-        else:#声望没有满
+        else:
+            # 声望没有满
             CUS_LOGGER.debug(f"[{self.player}] 失败匹配")
 
         self.action_exit(mode="关闭悬赏窗口")
-        return reputation_status,reputation_now
-    def check_task_of_guild(self: "FAA",c_opt):
+        return reputation_status, reputation_now
+
+    def check_task_of_guild(self: "FAA", c_opt):
         self.action_bottom_menu(mode="跳转_公会任务")
-        qg_cs=c_opt["quest_guild"]["stage"]
-        quest_not_completed=False
+        qg_cs = c_opt["quest_guild"]["stage"]
+        quest_not_completed = False
         # 最大尝试次数
         max_attempts = 20
 
@@ -371,14 +374,15 @@ class FAABase:
                 "查漏补缺报告",
                 f"{self.player}P因背包爆满, 查漏补缺[领取公会任务奖励] 失败!\n"
                 f"出错时间:{current_time}, 尝试次数:{max_attempts}")
-        code,locations=match_all_p_in_w(template=RESOURCE_P["common"]["任务_进行中.png"],
-                         source_handle=self.handle,
-                         source_root_handle=self.handle_360,
-                         source_range=[350,180,406,532],
-                         threshold=0.95,
-                         test_show=False)
+        code, locations = match_all_p_in_w(
+            template=RESOURCE_P["common"]["任务_进行中.png"],
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=[350, 180, 406, 532],
+            threshold=0.95,
+            test_show=False)
         quest_list = []
-        if code==2:
+        if code == 2:
             if locations:
                 full_image = capture_image_png(handle=self.handle, raw_range=[0, 0, 3000, 3000])
                 for pos in locations:
@@ -482,7 +486,8 @@ class FAABase:
                 CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 已完成公会浇水施肥")
         # 退出任务界面
         self.action_exit(mode="普通红叉")
-        return quest_list,quest_not_completed
+        return quest_list, quest_not_completed
+
     def screen_check_server_boom(self: "FAA") -> bool:
         """
         检测是不是炸服了
