@@ -1500,15 +1500,10 @@ class FAABase:
 
         def action_after_success() -> None:
             """
-            循环判断是否处于页面无法访问网页上(刷新无用，因为那是单独的网页)
-            如果是, 就点击红色按钮 + 返回上一页
             成功进入游戏的收尾动作
             :return:
             """
 
-            # 查找 + 点击红色按钮（但点击不一定有效果!）
-            my_result = loop_match_p_in_w(
-                source_handle=self.handle_browser,
             self.print_debug(text="[刷新游戏] 确认进入游戏! 即将刷新Flash句柄")
             # 重新获取句柄, 此时游戏界面的句柄已经改变
             self.handle = faa_get_handle(channel=self.channel, mode="flash")
@@ -1518,19 +1513,6 @@ class FAABase:
             loop_match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
-                source_range=[0, 0, 2000, 2000],
-                template=RESOURCE_P["error"]["retry_btn.png"],
-                match_tolerance=0.95,
-                click=True,
-                after_sleep=3,
-                match_interval=0.5,
-                match_failed_check=10
-            )
-            if my_result:
-                # 再回到上一个网页 基本上稳定可以修复
-                self.click_return_btn()
-                time.sleep(6)
-                return True
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["common"]["登录"]["3_健康游戏公告_确定.png"],
                 match_tolerance=0.97,
@@ -1539,8 +1521,6 @@ class FAABase:
                 after_sleep=1,
                 click=True)
 
-            self.print_error(text="[刷新游戏] 循环判定断线重连失败, 请检查网络是否正常...")
-            return False
             self.print_debug(text="[刷新游戏] 尝试关闭每日必充界面")
             # [每天第一次登陆] 每日必充界面关闭
             loop_match_p_in_w(
@@ -1555,20 +1535,27 @@ class FAABase:
                 click=True)
 
         def main() -> bool:
-            count=0
-            while count<100:
+            """
+            刷新主函数
+            :return: 是否成功完成刷新并进入游戏
+            """
+
+            for fresh_count in range(1, 100):
+
+                self.print_info(text=f"[刷新游戏] [第{fresh_count}轮] 即将开始...")
+
                 # 先重新获取 360 和 浏览器的句柄
                 self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
                 self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
 
                 # 确保关闭小号列表
                 if try_close_sub_account_list():
-                    self.print_debug(text="[刷新游戏] 成功关闭小号列表")
+                    self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 寻找小号列表, 发现目标, 已成功关闭小号列表")
                 else:
-                    self.print_debug(text="[刷新游戏] 未找到小号列表, 很好...")
+                    self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 寻找小号列表, 未找到, 很好...")
 
                 # 点击刷新按钮 该按钮在360窗口上
-                self.print_debug(text="[刷新游戏] 点击刷新按钮...")
+                self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 点击刷新按钮...")
                 self.click_refresh_btn()
 
                 # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
@@ -1576,20 +1563,23 @@ class FAABase:
                     time.sleep(self.extra_sleep["sleep_time"])
 
                     # 依次判断是否在选择服务器界面
-                self.print_debug(text="[刷新游戏] 判定平台...")
+                self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 判定平台...")
 
                 if try_enter_server_4399():
-                    self.print_debug(text="[刷新游戏] 成功进入 - 4399平台")
+                    self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 成功进入 - 4399平台")
+
                 elif try_enter_server_4399_wd():
-                    self.print_debug(text="[刷新游戏] 成功进入 - 4399微端平台")
+                    self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 成功进入 - 4399微端平台")
+
                 elif try_enter_server_qq_space():
-                    self.print_debug(text="[刷新游戏] 成功进入 - QQ空间平台")
+                    self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 成功进入 - QQ空间平台")
                     # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
                     if self.extra_sleep["need_sleep"]:
                         time.sleep(self.extra_sleep["sleep_time"])
 
                 elif try_enter_server_qq_game_hall():
-                    self.print_debug(text="[刷新游戏] 成功进入 - QQ游戏大厅平台")
+                    self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 成功进入 - QQ游戏大厅平台")
+
                 else:
                     # QQ空间需重新登录
                     self.print_debug(
@@ -1605,9 +1595,9 @@ class FAABase:
 
                         # 2p 多等待一段时间，保证1p先完成登录，避免抢占焦点
                         if self.player == 2:
-                            self.print_debug("[刷新游戏] [QQ登录] 2p正在等待")
+                            self.print_debug(f"[刷新游戏] [第{fresh_count}轮] [QQ登录] 2p正在等待")
                             time.sleep(10)
-                            self.print_debug("[刷新游戏] [QQ登录] 2p等待完成")
+                            self.print_debug(f"[刷新游戏] [第{fresh_count}轮] [QQ登录] 2p等待完成")
 
                         # 开始进入密码登录页面
                         result = loop_match_p_in_w(
@@ -1682,11 +1672,11 @@ class FAABase:
                             time.sleep(0.1)
 
                         # 输入密码完成，开始点击登录按钮
-                        result = loop_match_p_in_w(
+                        qq_login_result = loop_match_p_in_w(
                             source_handle=self.handle_browser,
                             source_root_handle=self.handle_360,
                             source_range=[0, 0, 2000, 2000],
-                            template=RESOURCE_P["common"]["登录"]["登录.png"],
+                            template=RESOURCE_P["common"]["登录"]["QQ登录_登录按钮.png"],
                             match_tolerance=0.90,
                             match_interval=0.5,
                             match_failed_check=5,
@@ -1694,11 +1684,13 @@ class FAABase:
                             click=True)
 
                         # 点击登录按钮成功，等待选服
-                        # 这里不用time.sleep，直接修改上面的after_sleep参数即可
 
                     else:
+
+                        self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 找到QQ空间服一键登录, 正在登录")
+
                         # 非密码登录模式，通过点击QQ头像进行快捷登录
-                        result = loop_match_p_in_w(
+                        qq_login_result = loop_match_p_in_w(
                             source_handle=self.handle_browser,
                             source_root_handle=self.handle_360,
                             source_range=[0, 0, 2000, 2000],
@@ -1709,7 +1701,6 @@ class FAABase:
                             after_sleep=3,
                             click=True)
 
-                    if result:
                         self.print_debug(text="[刷新游戏] 找到QQ空间服一键登录, 正在登录")
                         # 直接尝试登录QQ空间服务器
                         if try_enter_server_qq_space():
@@ -1725,7 +1716,7 @@ class FAABase:
                 """查找大地图确认进入游戏"""
                 self.print_debug(text="[刷新游戏] 循环识图中, 以确认进入游戏...")
                 # 更严格的匹配 防止登录界面有相似图案组合
-                result = loop_match_ps_in_w(
+                goto_game_home_page_success = loop_match_ps_in_w(
                     source_handle=self.handle_browser,
                     source_root_handle=self.handle_360,
                     template_opts=[
@@ -1747,11 +1738,11 @@ class FAABase:
                     match_interval=1,
                     match_failed_check=30)
 
-                if result:
                     self.print_debug(text="[刷新游戏] 循环识图成功, 确认进入游戏! 即将刷新Flash句柄")
 
                     # 重新获取句柄, 此时游戏界面的句柄已经改变
                     self.handle = faa_get_handle(channel=self.channel, mode="flash")
+                if not goto_game_home_page_success:
 
                     self.print_debug(text="[刷新游戏] 已完成")
                     time.sleep(0.5)
@@ -1762,7 +1753,6 @@ class FAABase:
                     CUS_LOGGER.warning(f"[刷新游戏] 查找大地图失败, 点击服务器后未能成功进入游戏, 刷新重来,当前刷新次数: {count}")
                 action_after_success()
             return False
-        fresh_success=main()
         if not fresh_success:
             CUS_LOGGER.warning("[刷新游戏] 刷新次数过多，可能网络爆炸了/360大厅抽风，刷新点不动,现在关闭360再逝一次")
             if not self.opt["login_settings"]["login_open_settings"]:
@@ -1773,6 +1763,9 @@ class FAABase:
                 time.sleep(1)
                 self.start_360()
             main()
+
+        # 第一次
+        fresh_success = main()
     def start_360(self):
 
         faa_get_handle(channel=self.channel, mode="360")
