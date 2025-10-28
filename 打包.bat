@@ -11,6 +11,7 @@ pyinstaller ^
     --upx-dir "D:\Program Files\upx-4.2.4-win64" ^
     --distpath="F:\My Project\Python\_ExeWorkSpace\dist" ^
     --workpath="F:\My Project\Python\_ExeWorkSpace\build" ^
+    --collect-data pulp  ^
     "F:\My Project\Python\FoodsVsMousesAutoAssistant\function\faa_main.py"
 
 :: 执行资源文件处理

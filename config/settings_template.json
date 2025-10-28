@@ -186,6 +186,14 @@
                 "active": false,
                 "is_group": true
             },
+            "loop_cross_experience": {
+                "active": false,
+                "is_group": true
+            },
+            "checking": {
+                "active": false,
+                "is_group": true
+            },
             "customize_battle": {
                 "active": false,
                 "is_group": 1,
@@ -354,6 +362,14 @@
                 "active": false,
                 "is_group": false
             },
+            "loop_cross_experience": {
+                "active": false,
+                "is_group": true
+            },
+            "checking": {
+                "active": false,
+                "is_group": true
+            },
             "customize_battle": {
                 "active": false,
                 "is_group": 1,
@@ -519,6 +535,14 @@
                 "is_group": true
             },
             "loop_cross_server": {
+                "active": false,
+                "is_group": true
+            },
+            "loop_cross_experience": {
+                "active": false,
+                "is_group": true
+            },
+            "checking": {
                 "active": false,
                 "is_group": true
             },
@@ -690,6 +714,14 @@
                 "active": false,
                 "is_group": true
             },
+            "loop_cross_experience": {
+                "active": false,
+                "is_group": true
+            },
+            "checking": {
+                "active": false,
+                "is_group": true
+            },
             "customize_battle": {
                 "active": false,
                 "is_group": 1,
@@ -855,6 +887,14 @@
                 "is_group": true
             },
             "loop_cross_server": {
+                "active": false,
+                "is_group": true
+            },
+            "loop_cross_experience": {
+                "active": false,
+                "is_group": true
+            },
+            "checking": {
                 "active": false,
                 "is_group": true
             },
@@ -1026,6 +1066,14 @@
                 "active": false,
                 "is_group": true
             },
+            "loop_cross_experience": {
+                "active": false,
+                "is_group": true
+            },
+            "checking": {
+                "active": false,
+                "is_group": true
+            },
             "customize_battle": {
                 "active": false,
                 "is_group": 1,
@@ -1191,6 +1239,14 @@
                 "is_group": true
             },
             "loop_cross_server": {
+                "active": false,
+                "is_group": true
+            },
+            "loop_cross_experience": {
+                "active": false,
+                "is_group": true
+            },
+            "checking": {
                 "active": false,
                 "is_group": true
             },
