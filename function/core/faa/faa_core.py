@@ -1381,7 +1381,7 @@ class FAABase:
         else:
             return close()
 
-    def reload_game(self: "FAA") -> None:
+    def reload_game(self: "FAA") -> bool:
 
         def try_close_sub_account_list() -> bool:
 
@@ -1496,14 +1496,27 @@ class FAABase:
             return False
 
         def try_relink() -> bool:
+            pass
+
+        def action_after_success() -> None:
             """
             循环判断是否处于页面无法访问网页上(刷新无用，因为那是单独的网页)
             如果是, 就点击红色按钮 + 返回上一页
+            成功进入游戏的收尾动作
+            :return:
             """
 
             # 查找 + 点击红色按钮（但点击不一定有效果!）
             my_result = loop_match_p_in_w(
                 source_handle=self.handle_browser,
+            self.print_debug(text="[刷新游戏] 确认进入游戏! 即将刷新Flash句柄")
+            # 重新获取句柄, 此时游戏界面的句柄已经改变
+            self.handle = faa_get_handle(channel=self.channel, mode="flash")
+
+            # [4399] [QQ空间]关闭健康游戏公告
+            self.print_debug(text="[刷新游戏] [4399] [QQ空间] 尝试关闭健康游戏公告")
+            loop_match_p_in_w(
+                source_handle=self.handle,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 2000],
                 template=RESOURCE_P["error"]["retry_btn.png"],
@@ -1518,9 +1531,28 @@ class FAABase:
                 self.click_return_btn()
                 time.sleep(6)
                 return True
+                source_range=[0, 0, 950, 600],
+                template=RESOURCE_P["common"]["登录"]["3_健康游戏公告_确定.png"],
+                match_tolerance=0.97,
+                match_interval=0.2,
+                match_failed_check=5,
+                after_sleep=1,
+                click=True)
 
             self.print_error(text="[刷新游戏] 循环判定断线重连失败, 请检查网络是否正常...")
             return False
+            self.print_debug(text="[刷新游戏] 尝试关闭每日必充界面")
+            # [每天第一次登陆] 每日必充界面关闭
+            loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 950, 600],
+                template=RESOURCE_P["common"]["登录"]["4_退出假期特惠.png"],
+                match_tolerance=0.99,
+                match_interval=0.2,
+                match_failed_check=3,
+                after_sleep=1,
+                click=True)
 
         def main() -> bool:
             count=0
@@ -1721,32 +1753,6 @@ class FAABase:
                     # 重新获取句柄, 此时游戏界面的句柄已经改变
                     self.handle = faa_get_handle(channel=self.channel, mode="flash")
 
-                    # [4399] [QQ空间]关闭健康游戏公告
-                    self.print_debug(text="[刷新游戏] [4399] [QQ空间] 尝试关闭健康游戏公告")
-                    loop_match_p_in_w(
-                        source_handle=self.handle,
-                        source_root_handle=self.handle_360,
-                        source_range=[0, 0, 950, 600],
-                        template=RESOURCE_P["common"]["登录"]["3_健康游戏公告_确定.png"],
-                        match_tolerance=0.97,
-                        match_interval=0.2,
-                        match_failed_check=5,
-                        after_sleep=1,
-                        click=True)
-
-                    self.print_debug(text="[刷新游戏] 尝试关闭每日必充界面")
-                    # [每天第一次登陆] 每日必充界面关闭
-                    loop_match_p_in_w(
-                        source_handle=self.handle,
-                        source_root_handle=self.handle_360,
-                        source_range=[0, 0, 950, 600],
-                        template=RESOURCE_P["common"]["登录"]["4_退出假期特惠.png"],
-                        match_tolerance=0.99,
-                        match_interval=0.2,
-                        match_failed_check=3,
-                        after_sleep=1,
-                        click=True)
-
                     self.print_debug(text="[刷新游戏] 已完成")
                     time.sleep(0.5)
 
@@ -1754,6 +1760,7 @@ class FAABase:
                 else:
                     count += 1
                     CUS_LOGGER.warning(f"[刷新游戏] 查找大地图失败, 点击服务器后未能成功进入游戏, 刷新重来,当前刷新次数: {count}")
+                action_after_success()
             return False
         fresh_success=main()
         if not fresh_success:
