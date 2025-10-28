@@ -4,6 +4,7 @@ import math
 import os
 import random
 import time
+import traceback
 from ctypes import windll
 from threading import Timer
 from typing import Union, TYPE_CHECKING
@@ -939,8 +940,9 @@ class ThreadUseCardTimer(QThread):
             # 获取完整的堆栈跟踪信息
             error_info = traceback.format_exc()
             CUS_LOGGER.warning(
-                f"[战斗执行器] ThreadUseCardTimer - callback_timer - 在运行中遭遇错误"
-                f"可能是Timer线程调用的参数已被释放后, 有Timer进入执行状态. 这是正常情况. 错误信息: {e}"
+                f"[战斗执行器] ThreadUseCardTimer - callback_timer - 在运行中遭遇错误\n"
+                f"可能是Timer线程调用的参数已被释放后, 有Timer进入执行状态. 这是正常情况. 错误信息: {e}\n"
+                f"详细堆栈信息:\n{error_info}"
             )
 
         # 回调
@@ -1058,8 +1060,9 @@ class ThreadInsertUseCardTimer(QThread):
             # 获取完整的堆栈跟踪信息
             error_info = traceback.format_exc()
             CUS_LOGGER.warning(
-                f"[战斗执行器] ThreadInsertUseCardTimer - callback_timer - 在运行中遭遇错误"
-                f"可能是Timer线程调用的参数已被释放后, 有Timer进入执行状态. 这是正常情况. 错误信息: {e}"
+                f"[战斗执行器] ThreadInsertUseCardTimer - callback_timer - 在运行中遭遇错误\n"
+                f"可能是Timer线程调用的参数已被释放后, 有Timer进入执行状态. 这是正常情况. 错误信息: {e}\n"
+                f"详细堆栈信息:\n{error_info}"
             )
 
         # 回调
@@ -1382,8 +1385,9 @@ class ThreadUseSpecialCardTimer(QThread):
             # 获取完整的堆栈跟踪信息
             error_info = traceback.format_exc()
             CUS_LOGGER.warning(
-                f"[战斗执行器] ThreadUseSpecialCardTimer - callback_timer - 在运行中遭遇错误"
-                f"可能是Timer线程调用的参数已被释放后, 有Timer进入执行状态. 这是正常情况. 错误信息: {e}"
+                f"[战斗执行器] ThreadUseSpecialCardTimer - callback_timer - 在运行中遭遇错误\n"
+                f"可能是Timer线程调用的参数已被释放后, 有Timer进入执行状态. 这是正常情况. 错误信息: {e}\n"
+                f"详细堆栈信息:\n{error_info}"
             )
 
         if self.running:
