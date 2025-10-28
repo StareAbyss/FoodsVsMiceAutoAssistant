@@ -4,10 +4,9 @@ import os
 import cv2
 import numpy as np
 
-from function.common.bg_img_match import  match_p_in_w
+from function.common.bg_img_match import match_p_in_w
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
-
 
 
 def create_or_load_puzzle_image(target_dir):
@@ -30,7 +29,7 @@ def check_image_exists_in_puzzle(puzzle_image, segment):
     # 设置参数用于match_p_in_w
     source_img = puzzle_image  # 使用拼图列表作为源图像
     source_range = [0, 0, source_img.shape[1], source_img.shape[0]]  # 源图像的全图范围
-    tem=segment[4:26, :]
+    tem = segment[4:26, :]
     # 使用match_p_in_w检查图片是否存在
     status_code, _ = match_p_in_w(
         template=tem,
@@ -86,13 +85,11 @@ def add_to_puzzle_image(puzzle_image, segment):
         # 创建与segment相同尺寸的空白拼图
         return segment.copy()  # 使用拷贝避免内存问题
 
-
     # 获取尺寸
     puzzle_height, puzzle_width = puzzle_image.shape[:2]
     segment_height, segment_width = segment.shape[:2]
 
     CUS_LOGGER.debug(f"拼图尺寸: {puzzle_width}x{puzzle_height}, 段尺寸: {segment_width}x{segment_height}")
-
 
     # 垂直拼接图片
     try:
@@ -199,12 +196,12 @@ def detect_horizontal_edges(image):
                     new_y_end = y_start + 29
                     segment = image[y_start:new_y_end, :]
                 elif height >= 31:
-                    segment = image[y_start+2:y_end, :]
+                    segment = image[y_start + 2:y_end, :]
                 else:
                     segment = image[y_start:y_end, :]  # 保留原尺寸
 
                 # 原有保存逻辑（排除首尾分段）
-                if i >= 1 :
+                if i >= 1:
                     if not check_image_exists_in_puzzle(puzzle_image, segment):
                         # 如果不存在，保存并拼接
                         file_count += 1
@@ -276,7 +273,7 @@ def split_edge(image):
         # 添加图像顶部和底部作为分割边界
         image_height = image.shape[0]
         merged_lines = [0] + merged_lines + [image_height]
-        images_list=[]
+        images_list = []
         # 分割图像
         for i in range(len(merged_lines) - 1):
             y_start = merged_lines[i]
@@ -294,12 +291,12 @@ def split_edge(image):
                     new_y_end = y_start + 29
                     segment = image[y_start:new_y_end, :]
                 elif height >= 31:
-                    segment = image[y_start+2:y_end, :]
+                    segment = image[y_start + 2:y_end, :]
                 else:
                     segment = image[y_start:y_end, :]  # 保留原尺寸
 
                 # 原有保存逻辑（排除首尾分段）
-                if i >= 1 :
+                if i >= 1:
                     images_list.append(segment)
         return images_list
 

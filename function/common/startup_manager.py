@@ -1,9 +1,8 @@
-import os
 import sys
 import winreg
+
 from function.globals.get_paths import PATHS
-from function.globals.loadings import loading
-loading.update_progress(10,"正在加载FAA启动协议...")
+
 # 程序名称
 APP_NAME = "FAA-Your Automatic Assistant"
 # 启动参数

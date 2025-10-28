@@ -62,7 +62,7 @@ class ThreadWithException(threading.Thread):
         """发送错误 终止线程"""
         thread_id = self.get_id()
         # 精髓就是这句话，给线程发过去一个exceptions，线程就那边响应完就停了
-        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id,ctypes.py_object(SystemExit))
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, ctypes.py_object(SystemExit))
         if res > 1:
             ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0)
             CUS_LOGGER.debug('Exception raise failure')

@@ -196,7 +196,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         self.set_arrow_btn_icon()
 
         # 设置tab栏特殊样式
-        self.set_tab_bar_style()
+        self.set_tab_bar_stylesheet()
 
     def set_main_window_shadow(self):
         # 添加阴影
@@ -206,7 +206,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         effect_shadow.setColor(QtCore.Qt.GlobalColor.black)  # 阴影颜色
         self.MainFrame.setGraphicsEffect(effect_shadow)  # 将设置套用到widget窗口中
 
-    def set_tab_bar_style(self):
+    def set_tab_bar_stylesheet(self):
 
         style_sheet = self.MainFrame.styleSheet()
         selected_text_color = "#FFFFFF" if self.theme == "dark" else "#000000"

@@ -1,16 +1,15 @@
-import datetime
-
-import cv2
-import numpy as np
-import win32gui
-import win32ui
-import win32con
 import ctypes
+import datetime
 import time
 from threading import Thread
 
-from function.globals.log import CUS_LOGGER
+import cv2
+import numpy as np
+import win32con
+import win32gui
+import win32ui
 
+from function.globals.log import CUS_LOGGER
 
 # try:
 #     ctypes.windll.shcore.SetProcessDpiAwareness(2)  # 2 = Per-monitor v2 DPI awareness
@@ -19,9 +18,10 @@ from function.globals.log import CUS_LOGGER
 
 
 class WindowRecorder:
-    def __init__(self, output_file="window_recording.mp4",handle=None, fps=30.0, window_title=None,see_time=False,is_show=False):
+    def __init__(self, output_file="window_recording.mp4", handle=None, fps=30.0, window_title=None, see_time=False,
+                 is_show=False):
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.output_file = output_file+f"{timestamp}.mp4"
+        self.output_file = output_file + f"{timestamp}.mp4"
         self.fps = fps
         self.window_title = window_title
         self.recording = False
@@ -66,8 +66,8 @@ class WindowRecorder:
             print(f"检测到DPI缩放因子: {self.scale_factor:.2f}")
 
             # 如果需要，可以调整尺寸以匹配实际物理像素
-            self.width = int(self.width //self.scale_factor)
-            self.height = int(self.height //self.scale_factor)
+            self.width = int(self.width // self.scale_factor)
+            self.height = int(self.height // self.scale_factor)
 
         except Exception as e:
             print(f"获取DPI信息失败: {e}")
@@ -93,7 +93,7 @@ class WindowRecorder:
             if not self.hwndDC:
                 print("无法获取窗口DC")
                 return
-                
+
             self.mfcDC = win32ui.CreateDCFromHandle(self.hwndDC)
             self.saveDC = self.mfcDC.CreateCompatibleDC()
             if not self.saveDC:
@@ -103,7 +103,7 @@ class WindowRecorder:
             # 创建位图
             self.saveBitMap = win32ui.CreateBitmap()
             self.saveBitMap.CreateCompatibleBitmap(self.mfcDC, self.width, self.height)
-            
+
             while self.recording:
                 try:
                     # 选择位图对象
@@ -182,7 +182,7 @@ class WindowRecorder:
                 except Exception as e:
                     print(f"录制单帧时发生错误: {e}")
                     continue
-                    
+
         except Exception as e:
             CUS_LOGGER.error(f"录制过程中发生错误: {e}")
             import traceback
@@ -209,7 +209,7 @@ class WindowRecorder:
                     win32gui.ReleaseDC(self.hwnd, self.hwndDC)
             except:
                 pass
-                
+
             # 释放视频写入器
             if self.out:
                 self.out.release()
@@ -224,9 +224,6 @@ class WindowRecorder:
             self.out.release()
             self.out = None
         print("视频写入器已释放")
-
-
-
 
 
 if __name__ == "__main__":
