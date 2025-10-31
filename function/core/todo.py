@@ -1286,7 +1286,7 @@ class ThreadTodo(QThread):
     def battle_1_1_n(self, stage_id, player, need_key, max_times, dict_exit,
                      global_plan_active, deck, battle_plan_1p, battle_plan_2p,
                      quest_card, ban_card_list, max_card_num,
-                     title_text, battle_plan_tweak_from_quest_set=None, is_cu=False):
+                     title_text,vase_num=None, battle_plan_tweak_from_quest_set=None, is_cu=False):
         """
         1轮次 1关卡 n次数
         副本外 -> (副本内战斗 * n次) -> 副本外
@@ -1375,9 +1375,18 @@ class ThreadTodo(QThread):
                         # 可组队关卡, 但设置了仅单人作战
                         battle_plan_1p_ = g_plan["battle_plan"][0]
                         battle_plan_2p_ = g_plan["battle_plan"][0]
-
+            #"f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"是大赛专用花瓶方案
+            if vase_num:
+                if vase_num ==1:
+                    battle_plan_1p_ ="f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"
+                    battle_plan_tweak_ ="00000000-0000-0000-0000-000000000003"
+                elif vase_num ==2:
+                    battle_plan_2p_ ="f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"
+                    battle_plan_tweak_ ="00000000-0000-0000-0000-000000000003"
             battle_plan_a_ = battle_plan_1p_ if pid_a == 1 else battle_plan_2p_
             battle_plan_b_ = (battle_plan_1p_ if pid_b == 1 else battle_plan_2p_) if is_group else None
+
+
 
             return skip_, deck_, battle_plan_a_, battle_plan_b_, battle_plan_tweak_
 
@@ -1865,6 +1874,7 @@ class ThreadTodo(QThread):
             quest_card = quest.get("quest_card", None)
             ban_card_list = quest.get("ban_card_list", None)
             max_card_num = quest.get("max_card_num", None)
+            vase_num = quest.get("vase_player", None)
             is_cu = quest.get("is_cu", False)
             battle_plan_tweak = quest.get("battle_plan_tweak", None)
 
@@ -1883,6 +1893,8 @@ class ThreadTodo(QThread):
                 text_parts.append("限数:{}".format(max_card_num))
             if is_cu:
                 text_parts.append("自建房:{}".format(is_cu))
+            if vase_num:
+                text_parts.append("花瓶玩家:{}p".format(vase_num))
 
             SIGNAL.PRINT_TO_UI.emit(text=",".join(text_parts), color_level=4)
 
@@ -1901,6 +1913,7 @@ class ThreadTodo(QThread):
                 ban_card_list=ban_card_list,
                 max_card_num=max_card_num,
                 title_text=extra_title,
+                vase_num=vase_num,
                 is_cu=quest.get("is_cu", False)
             )
 
@@ -2442,6 +2455,10 @@ class ThreadTodo(QThread):
                 max_card_num = quest.get("max_card_num", None)
                 if max_card_num:
                     text_parts.append(f"限数:{max_card_num}")
+
+                vase_num = quest.get("vase_player", None)
+                if vase_num:
+                    text_parts.append(f"设置为花瓶的玩家:{vase_num}p")
 
                 quest_tag = quest.get("tag", "即将执行")
                 if "暂时跳过" not in quest_tag:

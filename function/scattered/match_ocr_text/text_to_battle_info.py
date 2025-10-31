@@ -72,7 +72,10 @@ def food_texts_to_battle_info(texts, self) -> list:
                 elif limit_type == "少于":
                     # 对于“少于”情况，需要保留的卡片数量为limit_number-1
                     max_card_num = (limit_number - 1)
-
+        must_be_take_fly=None
+        #谁扫到的任务就把谁的方案置为特制花瓶方案
+        if "星级" in text:
+            must_be_take_fly= self.player
         # 将战斗信息字典添加到列表中
         quest_info = {
             "stage_id": stage_id,
@@ -93,6 +96,7 @@ def food_texts_to_battle_info(texts, self) -> list:
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",  # 不生效 占位符
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",  # 不生效 占位符
             "quest_text": text,
+            "vase_player": must_be_take_fly,
         }
 
         if "不放置任何" in text or "同时存在不超过" in text:
