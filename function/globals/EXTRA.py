@@ -98,7 +98,7 @@ def get_true_stage_id():
 
 
 # 版本号
-VERSION = "v2.2.1"
+VERSION = "v2.3.1"
 
 # 翻牌次数
 FLOP_TIMES = 2

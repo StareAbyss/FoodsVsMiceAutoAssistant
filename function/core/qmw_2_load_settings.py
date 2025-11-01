@@ -376,8 +376,14 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.UseItems_Active.setChecked(my_opt["use_items"]["active"])
         self.UseItems_Group.setChecked(my_opt["use_items"]["is_group"])
 
+        self.CheckingEndBox.setChecked(my_opt["checking"]["active"])
+        self.CheckingEndBox_Group.setChecked(my_opt["checking"]["is_group"])
+
         self.LoopCrossServer_Active.setChecked(my_opt["loop_cross_server"]["active"])
         self.LoopCrossServer_Group.setChecked(my_opt["loop_cross_server"]["is_group"])
+
+        self.LoopCrossExperience_Active.setChecked(my_opt["loop_cross_experience"]["active"])
+        self.LoopCrossExperience_Group.setChecked(my_opt["loop_cross_experience"]["is_group"])
 
         self.AutoFood_Active.setChecked(my_opt["auto_food"]["active"])
 
@@ -897,8 +903,14 @@ class QMainWindowLoadSettings(QMainWindowLog):
         my_opt["use_items"]["active"] = self.UseItems_Active.isChecked()
         my_opt["use_items"]["is_group"] = self.UseItems_Group.isChecked()
 
+        my_opt["checking"]["active"] = self.CheckingEndBox.isChecked()
+        my_opt["checking"]["is_group"] = self.CheckingEndBox_Group.isChecked()
+
         my_opt["loop_cross_server"]["active"] = self.LoopCrossServer_Active.isChecked()
         my_opt["loop_cross_server"]["is_group"] = self.LoopCrossServer_Group.isChecked()
+
+        my_opt["loop_cross_experience"]["active"] = self.LoopCrossExperience_Active.isChecked()
+        my_opt["loop_cross_experience"]["is_group"] = self.LoopCrossExperience_Group.isChecked()
 
         my_opt["auto_food"]["active"] = self.AutoFood_Active.isChecked()
 

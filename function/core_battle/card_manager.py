@@ -4,6 +4,7 @@ import math
 import os
 import random
 import time
+import traceback
 from ctypes import windll
 from threading import Timer
 from typing import Union, TYPE_CHECKING
@@ -133,6 +134,7 @@ class CardManager(QThread):
 
         self.running = False
         self.card_list_dict = {}
+        self.card_list_unique = {}
         self.special_card_list = {}
         self.kun_cards_dict = {}
         self.card_queue_dict = {}
@@ -176,7 +178,7 @@ class CardManager(QThread):
 
     def stop(self):
 
-        CUS_LOGGER.info("[战斗执行器] CardManager - stop 开始")
+        CUS_LOGGER.info("[战斗执行器] [CardManager] stop 开始")
 
         self.stop_sub_threads()  # 停止子线程
         self.faa_dict.clear()  # 清空faa字典
@@ -190,10 +192,10 @@ class CardManager(QThread):
         self.exit()
         self.wait()
 
-        CUS_LOGGER.debug("[战斗执行器] CardManager - stop 结束")
+        CUS_LOGGER.debug("[战斗执行器] [CardManager] stop 结束")
 
         # 在战斗结束后 打印上一次战斗到这一次战斗之间, 累计的点击队列状态
-        CUS_LOGGER.info(f"[战斗执行器] 在本场战斗中, 点击队列变化状态如下, 可判断是否出现点击队列积压的情况")
+        CUS_LOGGER.info(f"[战斗执行器] [CardManager] 在本场战斗中, 点击队列变化状态如下, 可判断是否出现点击队列积压的情况")
         undone_times = T_ACTION_QUEUE_TIMER.print_queue_statue()
         if undone_times > 100:
             SIGNAL.DIALOG.emit(
@@ -308,6 +310,16 @@ class CardManager(QThread):
                 for card in self.card_list_dict[pid]:
                     if card.kun > 0:
                         card.kun_cards = kun_cards
+            for pid in self.pid_list:
+                sorted_cards = sorted(self.card_list_dict[pid], key=lambda x: x.c_id)
+                unique_cards = []
+                seen = set()
+                for card in sorted_cards:
+                    if card.c_id not in seen:
+                        seen.add(card.c_id)
+                        unique_cards.append(card)
+                # 按照c_id（卡槽位置）排序并去重
+                self.card_list_unique[pid] = unique_cards
 
         def init_card_queue_dict():
             for pid in self.pid_list:
@@ -483,6 +495,20 @@ class CardManager(QThread):
             time.sleep(self.click_sleep)
 
         CUS_LOGGER.debug(f"成功定时铲")
+    def _ban_card_state_change(self, pid, cid,state):
+        faa = self.faa_dict[pid]
+        #cid参数为零将会通一对所有卡的ban状态进行修改
+        if cid!=0:
+            card=self.card_list_unique[pid][cid-1]
+
+            with faa.battle_lock:
+                card.banning=state
+                CUS_LOGGER.debug(f"成功改变ban卡{card.name}状态{state}")
+        else:
+            with faa.battle_lock:
+                for card in self.card_list_unique[pid]:
+                    card.banning=state
+            CUS_LOGGER.debug(f"成功改变所有卡状态{state}")
 
     def _insert_use_card(self, pid, card_id, location):
 
@@ -528,7 +554,111 @@ class CardManager(QThread):
                     CUS_LOGGER.warning(f"[战斗执行器] ThreadTimePutCardTimer - use_gemstone - 错误: id={id} 不存在")
 
         CUS_LOGGER.debug("成功定时宝石技能")
+    def _escape(self, pid):
 
+        faa = self.faa_dict[pid]
+
+        with faa.battle_lock:
+
+            CUS_LOGGER.debug(f"[战斗执行器] ThreadTimePutCardTimer - _escape 玩家{pid}逃跑中")
+            if self.is_group:
+                if self.thread_dict.get(pid):#检测线程
+                    self.thread_dict[pid].stop()
+                    self.thread_dict[pid]=None
+                if self.thread_dict.get(pid+2):#用卡线程
+                    self.thread_dict[pid+2].stop()
+                    self.thread_dict[pid+2]=None
+                if self.thread_dict.get(pid+4):#定时线程
+                    self.thread_dict[pid+4].stop()
+                    self.thread_dict[pid+4]=None
+                #将打关参数改为单人
+                self.pid_list.remove(pid)
+                self.is_group=False
+                if self.thread_dict.get(7):
+                    self.thread_dict[7].is_group=False
+                    self.thread_dict[7].pid_list.remove(pid)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=924, y=576)
+                time.sleep(self.click_sleep)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=422, y=388)
+                CUS_LOGGER.debug(f"玩家{pid}成功逃跑")
+            else:
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=924, y=576)
+                time.sleep(self.click_sleep)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=422, y=388)
+                CUS_LOGGER.debug(f"单人玩家成功逃跑")
+                self.stop()
+
+    def _handle_random_single_card(self, pid, card_index):
+        """处理单卡随机：打乱指定卡片的位置顺序"""
+        CUS_LOGGER.debug(f"尝试打乱单卡位置顺序{card_index}")
+        if pid not in self.card_queue_dict:
+            return
+
+        card_queue = self.card_queue_dict[pid]
+        if not card_queue.card_list:
+            return
+
+        if 0 <= card_index < len(card_queue.card_list):
+            card = card_queue.card_list[card_index]
+
+            # 打乱位置顺序
+            import random
+            if len(card.coordinate_to) > 1:
+                random.shuffle(card.coordinate_to)
+            CUS_LOGGER.debug(f"打乱卡{card.name}位置顺序{card.coordinate_to}")
+
+    def _handle_random_multi_card(self, pid, card_indices):
+        """处理多卡随机：仅在指定索引位置之间随机变换，其余保持原位置"""
+        # time.sleep(1)
+        CUS_LOGGER.debug(f"尝试打乱多卡玩家{pid}位置顺序{card_indices}")
+
+        card_queue = self.card_queue_dict[pid]
+
+        # 获取队列中所有卡片（每个item是(priority, card)的元组）
+        items = []
+        count=0
+        while card_queue.empty():
+            time.sleep(0.1)
+            count+=1
+            if count>100:
+                break
+        if card_queue.empty():
+            CUS_LOGGER.debug(f"获取队列超时")
+            return
+        while not card_queue.empty():
+            items.append(card_queue.get())
+        CUS_LOGGER.debug(items)
+        # 验证索引有效性并提取有效索引
+        valid_indices = sorted([i for i in card_indices if 0 <= i < len(items)])
+        if not valid_indices:
+            # 无效索引直接恢复原队列
+            for item in items:
+                card_queue.put(item)
+            return
+
+        # 提取需要随机的卡片及其原始位置（保留priority信息）
+        selected = [(i, items[i]) for i in valid_indices]
+        original_positions = [i for i, _ in selected]
+        cards_to_shuffle = [item for _, item in selected]  # 保留(priority, card)元组
+        random.shuffle(cards_to_shuffle)
+
+        # 创建新的重组列表
+        reordered = items.copy()
+
+        # 将打乱后的卡片放回原指定位置
+        for pos, item in zip(original_positions, cards_to_shuffle):
+            reordered[pos] = item  # 直接替换整个元组
+
+        # 为打乱后的卡片分配新的优先级
+        for idx, (priority, card) in enumerate(reordered):
+            if idx in valid_indices:
+                card.set_priority = idx  # 修改卡片的优先级
+        # 重新恢复队列
+        for priority, card in reordered:
+            card_queue.put((card.set_priority, card))  # 使用新的优先级重新入队
+        CUS_LOGGER.debug(f"打乱前: {[item[1].name for item in items]}")
+        CUS_LOGGER.debug(f"打乱后: {[item[1].name for item in reordered]}")
+        card_queue.print_self()
     def create_insert_timer_and_start(self, interval, func_name, func_kwargs):
 
         match func_name:
@@ -538,6 +668,14 @@ class CardManager(QThread):
                 func = self._insert_use_card
             case "insert_use_gem":
                 func = self._insert_use_gem
+            case "ban_card":
+                func=self._ban_card_state_change
+            case "escape":
+                func=self._escape
+            case "random_single_card":  # 新增单卡随机处理
+                func = self._handle_random_single_card
+            case "random_multi_card":  # 新增多卡随机处理
+                func = self._handle_random_multi_card
 
         timer = Timer(interval=interval, function=lambda: func(**func_kwargs))
         timer.start()
@@ -551,7 +689,7 @@ class ThreadCheckTimer(QThread):
     """
 
     def __init__(self, card_queue, faa, kun_cards, check_interval,
-                 signal_change_card_plan, signal_used_key, signal_stop,thread_dict):
+                 signal_change_card_plan, signal_used_key, signal_stop, thread_dict):
 
         super().__init__()
 
@@ -569,27 +707,28 @@ class ThreadCheckTimer(QThread):
         self.timer = None
         self.checked_round = 0
         self.check_interval = check_interval  # 默认0.5s
-        self.thread_dict = thread_dict  #线程列表，以便动态修改参数
-        self.interval=None
-        self.check_interval_count=None
-        if hasattr(self.faa, 'battle_plan_tweak') and isinstance(self.faa.battle_plan_tweak, dict):
-            CUS_LOGGER.debug(f"[战斗执行器] ThreadCheckTimer - check - 微调方案{self.faa.battle_plan_tweak}")
+        self.thread_dict = thread_dict  # 线程列表，以便动态修改参数
+        self.check_interval_count = None
+        if faa.battle_plan_tweak:
+            self.faa.print_info(f"[战斗执行器] ThreadCheckTimer - check - 应用微调方案: {self.faa.battle_plan_tweak}")
             meta_data = self.faa.battle_plan_tweak.get('meta_data', {})
-            self.interval = meta_data.get('interval')
-            if self.interval:
-                #深度battle调参未果（…^-^)
-                #放卡间隔与重置单轮放卡间隔原初比例大约为0.036：1
-                self.check_interval_count = (self.interval[0]+self.interval[1])*5//1
+            cd_after_use_random_range = meta_data.get('cd_after_use_random_range')
+            if cd_after_use_random_range:
+                # 放卡间隔与重置单轮放卡间隔原初比例大约为0.036：1
+                self.check_interval_count = (cd_after_use_random_range[0] + cd_after_use_random_range[1]) * 5 // 1
+        else:
+            self.faa.print_info(f"[战斗执行器] ThreadCheckTimer - check - 不应用微调方案")
+
     def run(self):
         self.timer = Timer(interval=self.check_interval, function=self.callback_timer)
         self.running = True
         self.timer.start()
 
-        self.faa.print_info('[战斗执行器] ThreadCheckTimer 启动事件循环')
+        self.faa.print_info(f'[战斗执行器] ThreadCheckTimer 启动事件循环')
         self.exec()
 
     def stop(self):
-        self.faa.print_info(text="[战斗执行器] ThreadCheckTimer - stop - 已激活, 将关闭战斗中检测线程")
+        self.faa.print_info(text=f"[战斗执行器] ThreadCheckTimer - stop - 已激活, 将关闭战斗中检测线程")
 
         self.running = False
         if self.timer:
@@ -614,7 +753,7 @@ class ThreadCheckTimer(QThread):
         try:
             self.check()
         except Exception as e:
-            CUS_LOGGER.warning(
+            self.faa.print_warning(
                 f"[战斗执行器] ThreadCheckTimer - callback_timer - 在运行中遭遇错误"
                 f"可能是Timer线程所需参数已被释放. 后有Timer进入执行状态. 这是正常情况. 错误信息: {e}"
             )
@@ -625,25 +764,6 @@ class ThreadCheckTimer(QThread):
             self.timer = Timer(interval=self.check_interval, function=self.callback_timer)
             self.timer.start()
 
-    def _update_thread_intervals(self, interval):
-        """更新所有线程中的间隔参数"""
-        for thread_id, thread in self.thread_dict.items():
-            random_interval = random.uniform(float(interval[0]), float(interval[1]))
-            try:
-                # 检查线程是否存活
-                if thread and hasattr(thread, 'isRunning') and thread.isRunning():
-                    # 检查线程类名以便修改对应属性
-                    if thread.__class__.__name__ == 'ThreadUseCardTimer':
-                        # 直接更新属性
-                        thread.interval_use_card= random_interval
-                        # CUS_LOGGER.debug(f"更新线程 {thread_id} 的间隔参数为: {random_interval:.3f}")
-
-                else:
-                    # CUS_LOGGER.debug(f"线程 {thread_id} 不可用，跳过更新")
-                    pass
-
-            except Exception as e:
-                CUS_LOGGER.error(f"更新线程 {thread_id} 参数失败: {str(e)}")
     def check(self):
         self.checked_round += 1
 
@@ -670,16 +790,6 @@ class ThreadCheckTimer(QThread):
 
         if not self.faa.is_auto_battle:
             return
-        if self.interval:
-            try:
-                # 生成指定范围的随机浮点数
-                random_interval = random.uniform(float(self.interval[0]), float(self.interval[1]))
-                # 修改 click_sleep 属性
-                # self.faa.click_sleep = random_interval
-                self._update_thread_intervals(self.interval)
-                CUS_LOGGER.debug(f"成功设置 click_sleep 为随机值: {random_interval:.3f}")
-            except (ValueError, TypeError) as e:
-                CUS_LOGGER.error(f"生成随机间隔失败: {str(e)}")
 
         # 仅截图一次, 降低重复次数
         game_image = capture_image_png(
@@ -696,15 +806,12 @@ class ThreadCheckTimer(QThread):
                 self.signal_change_card_plan.emit()
                 return
 
-        # 先清空现有队列 再初始化队列
-        #这里的重置队列要适应放卡间隔
-        if self.check_interval_count is None or (self.checked_round %self.check_interval_count==1):
+        # 先清空现有队列 再初始化队列 这里的重置队列要适应放卡间隔
+        if self.check_interval_count is None or (self.checked_round % self.check_interval_count == 1):
             self.card_queue.queue.clear()
             self.card_queue.init_card_queue(
                 game_image=game_image,
                 check_interval=self.check_interval)
-            CUS_LOGGER.debug(f"成功重置队列，本轮次{self.checked_round}")
-
 
         # 更新火苗
         self.faa.update_fire_elemental_1000(img=game_image)
@@ -723,7 +830,7 @@ class ThreadCheckTimer(QThread):
         # 调试打印 - 目前 <战斗管理器> 的状态
         if EXTRA.EXTRA_LOG_BATTLE:
             if self.faa.player == 1:
-                text = f"[战斗执行器] [{self.faa.player}P] "
+                text = f"[战斗执行器] [{self.faa.player}P] [第{self.checked_round}轮状态]"
                 for card in self.card_queue.card_list:
                     text += "[{}|状:{}|CD:{}|用:{}|禁:{}|坤:{}] ".format(
                         card.name[:2] if len(card.name) >= 2 else card.name,
@@ -797,8 +904,6 @@ class ThreadUseCardTimer(QThread):
         self.running = False
         self.timer = None
         self.interval_use_card = self.faa.click_sleep
-        # 默认的快速使用卡的间隔
-        self.fast_use_card_interval = 0.018
 
     def run(self):
         self.timer = Timer(interval=self.interval_use_card, function=self.callback_timer)
@@ -829,21 +934,20 @@ class ThreadUseCardTimer(QThread):
         # print("[战斗执行器] ThreadUseCardTimer - stop - 线程已等待完成")
 
     def callback_timer(self):
-        fast_fail=False
         try:
-            fast_fail=self.card_queue.use_top_card()
+            self.card_queue.use_top_card()
         except Exception as e:
+            # 获取完整的堆栈跟踪信息
+            error_info = traceback.format_exc()
             CUS_LOGGER.warning(
-                f"[战斗执行器] ThreadUseCardTimer - callback_timer - 在运行中遭遇错误"
-                f"可能是Timer线程调用的参数已被释放后, 有Timer进入执行状态. 这是正常情况. 错误信息: {e}"
+                f"[战斗执行器] ThreadUseCardTimer - callback_timer - 在运行中遭遇错误\n"
+                f"可能是Timer线程调用的参数已被释放后, 有Timer进入执行状态. 这是正常情况. 错误信息: {e}\n"
+                f"详细堆栈信息:\n{error_info}"
             )
 
         # 回调
         if self.running:
-            if fast_fail:
-                self.timer = Timer(interval=self.fast_use_card_interval, function=self.callback_timer)
-            else:
-                self.timer = Timer(interval=self.interval_use_card, function=self.callback_timer)
+            self.timer = Timer(interval=self.interval_use_card, function=self.callback_timer)
             self.timer.start()
 
 
@@ -868,9 +972,29 @@ class ThreadInsertUseCardTimer(QThread):
                 event["trigger"]["type"] == "wave_timer" and
                 event["action"]["type"] == "insert_use_card"
         )]
+        self.insert_use_shovel = [event for event in self.faa.battle_plan["events"] if (
+                event["trigger"]["type"] == "wave_timer" and
+                event["action"]["type"] == "shovel"
+        )]
         self.insert_use_gem_plan = [event for event in self.faa.battle_plan["events"] if (
                 event["trigger"]["type"] == "wave_timer" and
                 event["action"]["type"] == "insert_use_gem"
+        )]
+        self.insert_escape_plan = [event for event in self.faa.battle_plan["events"] if (
+                event["trigger"]["type"] == "wave_timer" and
+                event["action"]["type"] == "escape"
+        )]
+        self.insert_ban_card_plan = [event for event in self.faa.battle_plan["events"] if (
+                event["trigger"]["type"] == "wave_timer" and
+                event["action"]["type"] == "ban_card"
+        )]
+        self.insert_random_single_plan = [event for event in self.faa.battle_plan["events"] if (
+                event["trigger"]["type"] == "wave_timer" and
+                event["action"]["type"] == "random_single_card"
+        )]
+        self.insert_random_multi_plan = [event for event in self.faa.battle_plan["events"] if (
+                event["trigger"]["type"] == "wave_timer" and
+                event["action"]["type"] == "random_multi_card"
         )]
 
         # 内联 card_name 字段
@@ -883,7 +1007,7 @@ class ThreadInsertUseCardTimer(QThread):
     def run(self):
 
         # 没有定时放卡plan，那就整个线程一开始就结束好了
-        if (not self.insert_use_card_plan) and (not self.insert_use_gem_plan):
+        if (not self.insert_use_card_plan) and (not self.insert_use_shovel) and (not self.insert_use_gem_plan) and (not self.insert_escape_plan) and (not self.insert_ban_card_plan) and (not self.insert_random_single_plan) and (not self.insert_random_multi_plan):
             self.faa.print_debug('[战斗执行器] ThreadInsertUseCardTimer 方案不包含定时操作 不启用')
             return
 
@@ -933,9 +1057,12 @@ class ThreadInsertUseCardTimer(QThread):
                     self.set_timer_for_wave(wave=self.wave, time_change=0)
 
         except Exception as e:
+            # 获取完整的堆栈跟踪信息
+            error_info = traceback.format_exc()
             CUS_LOGGER.warning(
-                f"[战斗执行器] ThreadInsertUseCardTimer - callback_timer - 在运行中遭遇错误"
-                f"可能是Timer线程调用的参数已被释放后, 有Timer进入执行状态. 这是正常情况. 错误信息: {e}"
+                f"[战斗执行器] ThreadInsertUseCardTimer - callback_timer - 在运行中遭遇错误\n"
+                f"可能是Timer线程调用的参数已被释放后, 有Timer进入执行状态. 这是正常情况. 错误信息: {e}\n"
+                f"详细堆栈信息:\n{error_info}"
             )
 
         # 回调
@@ -983,6 +1110,50 @@ class ThreadInsertUseCardTimer(QThread):
                 )
 
         current_wave_plan = [
+            event for event in self.insert_use_shovel if event["trigger"]["wave_id"] == int(wave)]
+
+        # 遍历铲子定时器
+        for battle_event in current_wave_plan:
+            # 铲卡定时器
+            self.manager.create_insert_timer_and_start(
+                interval=max(0.0, battle_event["trigger"]["time"] - time_change),
+                func_name="insert_use_shovel",
+                func_kwargs={
+                    "pid": self.pid,
+                    "location": battle_event["action"]["location"]}
+            )
+        current_wave_plan = [
+            event for event in self.insert_ban_card_plan if event["trigger"]["wave_id"] == int(wave)]
+
+        # 遍历ban卡定时器
+        for battle_event in current_wave_plan:
+            # 铲卡定时器
+            self.manager.create_insert_timer_and_start(
+                interval=max(0.0, battle_event["action"]["start_time"] - time_change),
+                func_name="ban_card",
+                func_kwargs={
+                    "pid": self.pid,
+                    "cid": battle_event["action"]["card_id"],
+                    "state": True}
+            )
+            self.manager.create_insert_timer_and_start(
+                interval=max(0.0, battle_event["action"]["end_time"] - time_change),
+                func_name="ban_card",
+                func_kwargs={
+                    "pid": self.pid,
+                    "cid": battle_event["action"]["card_id"],
+                    "state": False}
+            )
+        current_wave_plan = [
+            event for event in self.insert_escape_plan if event["trigger"]["wave_id"] == int(wave)]
+        for battle_event in current_wave_plan:
+            self.manager.create_insert_timer_and_start(
+                interval=max(0.0, battle_event["trigger"]["time"] - time_change),
+                func_name="escape",
+                func_kwargs={
+                    "pid": self.pid}
+            )
+        current_wave_plan = [
             event for event in self.insert_use_gem_plan if event["trigger"]["wave_id"] == int(wave)]
 
         for battle_event in current_wave_plan:
@@ -992,6 +1163,28 @@ class ThreadInsertUseCardTimer(QThread):
                 func_kwargs={
                     "pid": self.pid,
                     "gid": battle_event["action"]["gem_id"]}
+            )
+        current_wave_plan = [
+            event for event in self.insert_random_single_plan if event["trigger"]["wave_id"] == int(wave)]
+
+        for battle_event in current_wave_plan:
+            self.manager.create_insert_timer_and_start(
+                interval=max(0.0, battle_event["trigger"]["time"] - time_change),
+                func_name="random_single_card",
+                func_kwargs={
+                    "pid": self.pid,
+                    "card_index": battle_event["action"]["card_index"]}
+            )
+        current_wave_plan = [
+            event for event in self.insert_random_multi_plan if event["trigger"]["wave_id"] == int(wave)]
+
+        for battle_event in current_wave_plan:
+            self.manager.create_insert_timer_and_start(
+                interval=max(0.0, battle_event["trigger"]["time"] - time_change),
+                func_name="random_multi_card",
+                func_kwargs={
+                    "pid": self.pid,
+                    "card_indices": battle_event["action"]["card_indices"]}
             )
 
 
@@ -1144,7 +1337,7 @@ class ThreadUseSpecialCardTimer(QThread):
                 else:
                     # 如果均完成了状态监测, 则将所有状态为可用的卡片加入待处理列表中
                     self.card_list_can_use[pid] = []
-                for card in (set(self.special_card_list[pid])-set(self.card_list_can_use[pid])):
+                for card in (set(self.special_card_list[pid]) - set(self.card_list_can_use[pid])):
                     card.fresh_status()
                     if card.status_usable:
                         self.card_list_can_use[pid].append(card)
@@ -1189,9 +1382,12 @@ class ThreadUseSpecialCardTimer(QThread):
         try:
             self.check_special_card()
         except Exception as e:
+            # 获取完整的堆栈跟踪信息
+            error_info = traceback.format_exc()
             CUS_LOGGER.warning(
-                f"[战斗执行器] ThreadUseSpecialCardTimer - callback_timer - 在运行中遭遇错误"
-                f"可能是Timer线程调用的参数已被释放后, 有Timer进入执行状态. 这是正常情况. 错误信息: {e}"
+                f"[战斗执行器] ThreadUseSpecialCardTimer - callback_timer - 在运行中遭遇错误\n"
+                f"可能是Timer线程调用的参数已被释放后, 有Timer进入执行状态. 这是正常情况. 错误信息: {e}\n"
+                f"详细堆栈信息:\n{error_info}"
             )
 
         if self.running:

@@ -9,7 +9,7 @@ from function.core.qmw_task_plan_editor import init_db
 from function.globals.loadings import loading
 from function.scattered.split_task import load_tasks_from_db_and_create_puzzle
 
-loading.update_progress(80,"正在加载任务执行协议...")
+loading.update_progress(80, "正在加载任务执行协议...")
 from collections import defaultdict
 from time import sleep
 
@@ -18,9 +18,9 @@ import requests
 from PyQt6.QtCore import *
 from requests import RequestException
 
-from function.common.TCEPipeCommunicationThread import TCEPipeCommunicationThread
-from function.common.bg_img_match import loop_match_p_in_w
-from function.common.process_and_window_manager import close_software_by_title, get_path_and_sub_titles, \
+from function.common.tce_pipe_communication_thread import TCEPipeCommunicationThread
+from function.common.bg_img_match import loop_match_p_in_w, match_p_in_w
+from function.common.process_manager import close_software_by_title, get_path_and_sub_titles, \
     close_all_software_by_name, start_software_with_args
 from function.common.thread_with_exception import ThreadWithException
 from function.core.analyzer_of_loot_logs import update_dag_graph, find_longest_path_from_dag, ranking_read_data
@@ -66,7 +66,7 @@ class ThreadTodo(QThread):
         self.battle_check_interval = 1  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
 
         # 用于防止缺乏钥匙/次数时无限重复某些关卡, key: (player: int, quest_text: str), value: int
-        self.auto_food_stage_ban_dict = {}
+        self.auto_food_try_count_dict = {}
 
         # 多线程管理
         self.thread_1p: ThreadWithException | None = None
@@ -582,6 +582,7 @@ class ThreadTodo(QThread):
             SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] [{mode}] 完成")
 
         self.model_end_print(text=title_text)
+
     def batch_scan_all_task(self, player: list = None, quests: list = None):
         """
         :param player: 默认[1,2] 可选: [1] [2] [1,2] [2,1]
@@ -619,11 +620,11 @@ class ThreadTodo(QThread):
 
             if 1 in player and 2 in player:
                 sleep(0.333)
-            #必须异步，不然会乱
+            # 必须异步，不然会乱
             if 1 in player:
-                pack1p=self.thread_1p.get_return_value()
+                pack1p = self.thread_1p.get_return_value()
                 if pack1p:
-                    self.battle_1_n_n(quest_list=pack1p[0],task_names=pack1p[1])
+                    self.battle_1_n_n(quest_list=pack1p[0], task_names=pack1p[1])
             if 2 in player:
                 self.thread_2p = ThreadWithException(
                     target=self.faa_dict[2].action_scan_task_type,
@@ -633,11 +634,10 @@ class ThreadTodo(QThread):
                     })
                 self.thread_2p.start()
 
-
             if 2 in player:
-                pack2p=self.thread_2p.get_return_value()
+                pack2p = self.thread_2p.get_return_value()
                 if pack2p:
-                    self.battle_1_n_n(quest_list=pack2p[0],task_names=pack2p[1])
+                    self.battle_1_n_n(quest_list=pack2p[0], task_names=pack2p[1])
 
             SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] [{mode}] 完成")
 
@@ -709,36 +709,55 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=title_text)
 
-    def batch_loop_cross_server(self, player: list = None, deck: int = 1):
+    def batch_loop_cross_server(self, player: list = None, deck: int = 1,name:str="威望"):
 
-        title_text = "无限跨服刷威望"
+        title_text = "无限跨服刷"+ name
 
         player = self.check_player(title=title_text, player=player)
 
         self.model_start_print(text=title_text)
+        if name=="威望":
+            # 创建进程 -> 开始进程 -> 阻塞主进程
+            if 1 in player:
+                self.thread_1p = ThreadWithException(
+                    target=self.faa_dict[1].loop_cross_server,
+                    name="1P Thread - LoopCS",
+                    kwargs={"deck": deck})
+                self.thread_1p.start()
 
-        # 创建进程 -> 开始进程 -> 阻塞主进程
-        if 1 in player:
-            self.thread_1p = ThreadWithException(
-                target=self.faa_dict[1].loop_cross_server,
-                name="1P Thread - LoopCS",
-                kwargs={"deck": deck})
-            self.thread_1p.start()
+            if 2 in player and 1 in player:
+                sleep(0.333)
 
-        if 2 in player and 1 in player:
-            sleep(0.333)
+            if 2 in player:
+                self.thread_2p = ThreadWithException(
+                    target=self.faa_dict[2].loop_cross_server,
+                    name="2P Thread - LoopCS",
+                    kwargs={"deck": deck})
+                self.thread_2p.start()
 
-        if 2 in player:
-            self.thread_2p = ThreadWithException(
-                target=self.faa_dict[2].loop_cross_server,
-                name="2P Thread - LoopCS",
-                kwargs={"deck": deck})
-            self.thread_2p.start()
-
-        if 1 in player:
-            self.thread_1p.join()
-        if 2 in player:
-            self.thread_2p.join()
+            if 1 in player:
+                self.thread_1p.join()
+            if 2 in player:
+                self.thread_2p.join()
+        else:
+            quest_list = [
+                {
+                    "stage_id": "CS-4-6",
+                    "max_times": 600,
+                    "need_key": False,
+                    "player": player,
+                    "global_plan_active": True,
+                    "deck": 0,
+                    "battle_plan_1p": None,
+                    "battle_plan_2p": None,
+                    "dict_exit": {
+                    "other_time_player_a": [],
+                    "other_time_player_b": [],
+                    "last_time_player_a": ["竞技岛"],
+                    "last_time_player_b": ["竞技岛"]},
+                    "is_cu": False
+                }]
+            self.battle_1_n_n(quest_list=quest_list,extra_title=title_text)
 
     """业务代码 - 战斗相关"""
 
@@ -877,9 +896,9 @@ class ThreadTodo(QThread):
         result_drop_by_list = {}  # {pid:{"loots":["item",...],"chest":["item",...]},...}
         result_drop_by_dict = {}  # {pid:{"loots":{"item":count,...},"chest":{"item":count,...}},...}
         result_spend_time = 0
-        senior_setting=self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("senior_setting", False)
-        recording=self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("recording", False)
-        seetime=self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("timestamp", False)
+        senior_setting = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("senior_setting", False)
+        recording = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("recording", False)
+        seetime = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("timestamp", False)
 
         """检测是否成功进入房间"""
         if result_id == 0:
@@ -1055,13 +1074,13 @@ class ThreadTodo(QThread):
                 start_time=start_time
             )
             if recording:
-                    self.faa_dict[player_a].start_battle_recording(seetime)
-                    CUS_LOGGER.info(f"录制已启动: {self.faa_dict[1].player}P 战斗")
+                self.faa_dict[player_a].start_battle_recording(seetime)
+                CUS_LOGGER.info(f"录制已启动: {self.faa_dict[1].player}P 战斗")
             self.thread_card_manager.start()
             self.exec()
             if recording:
-                    self.faa_dict[player_a].stop_battle_recording()
-                    CUS_LOGGER.info(f"录制已停止: {self.faa_dict[1].player}P 战斗")
+                self.faa_dict[player_a].stop_battle_recording()
+                CUS_LOGGER.info(f"录制已停止: {self.faa_dict[1].player}P 战斗")
 
             # 此处的重新变为None是为了让中止todo实例时时该属性仍存在
             self.thread_card_manager = None
@@ -1334,13 +1353,13 @@ class ThreadTodo(QThread):
                             "00000000-0000-0000-0000-000000000001"]}
 
                 # 2.2.2- 不包含 tweak_plan 的情况
-                if g_plan.get("tweak_plan"):
+                if not g_plan.get("tweak_plan"):
                     g_plan["tweak_plan"] = None
 
                 # 加载 g_plan
                 skip_ = g_plan["skip"]
                 deck_ = g_plan["deck"]
-                if g_plan["tweak_plan"]:
+                if g_plan.get("tweak_plan", None):
                     battle_plan_tweak_ = g_plan["tweak_plan"]
 
                 if is_group:
@@ -1412,15 +1431,15 @@ class ThreadTodo(QThread):
                 SIGNAL.PRINT_TO_UI.emit(text=f"{title} {stage_id} 设置次数不足, 跳过")
                 return False
 
-            if battle_plan_1p not in g_resources.RESOURCE_B.keys():
+            if battle_plan_a not in g_resources.RESOURCE_B.keys():
                 SIGNAL.PRINT_TO_UI.emit(
-                    text=f"{title} [1P] 无法通过UUID{battle_plan_1p}找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
+                    text=f"{title} [房主] 无法通过UUID{battle_plan_a}找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
                 return False
 
             if is_group:
-                if battle_plan_2p not in g_resources.RESOURCE_B.keys():
+                if battle_plan_b not in g_resources.RESOURCE_B.keys():
                     SIGNAL.PRINT_TO_UI.emit(
-                        text=f"{title} [2P] 无法通过UUID{battle_plan_2p}找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
+                        text=f"{title} [队友] 无法通过UUID{battle_plan_b}找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
                     return False
 
             if battle_plan_tweak not in g_resources.RESOURCE_T.keys():
@@ -1500,28 +1519,31 @@ class ThreadTodo(QThread):
                     battle_plan_tweak_=battle_plan_tweak,
                     stage_id_=None,
                 )
+
                 # 微调方案 手动设定传入 > 全局 > 无而使用默认
                 if battle_plan_tweak_from_quest_set:
                     battle_plan_tweak = battle_plan_tweak_from_quest_set
+                    CUS_LOGGER.debug("来自任务事项的微调方案已启用, 覆盖全局微调方案")
 
                 # 根据卡组编号(0-6), 转化为游戏内操作时选择的卡组编号(1-6)和是否激活启动带卡策略
                 auto_carry_card = deck == 0
 
                 if deck == 0:
                     if self.opt["advanced_settings"]["cus_auto_carry_card_active"]:
-                        deck = self.opt["advanced_settings"]["cus_auto_carry_card_value"]
+                        new_deck = self.opt["advanced_settings"]["cus_auto_carry_card_value"]
                     else:
-                        deck = 6
-
+                        new_deck = 6
+                else:
+                    new_deck = deck
                 # 将战斗方案加载至FAA
                 faa_a.set_battle_plan(
-                    deck=deck,
+                    deck=new_deck,
                     auto_carry_card=auto_carry_card,
                     battle_plan_uuid=battle_plan_a,
                     battle_plan_tweak_uuid=battle_plan_tweak)
                 if is_group:
                     faa_b.set_battle_plan(
-                        deck=deck,
+                        deck=new_deck,
                         auto_carry_card=auto_carry_card,
                         battle_plan_uuid=battle_plan_b,
                         battle_plan_tweak_uuid=battle_plan_tweak)
@@ -1811,7 +1833,7 @@ class ThreadTodo(QThread):
         SIGNAL.PRINT_TO_UI.emit(text=text, time=False)
         SIGNAL.IMAGE_TO_UI.emit(image=create_drops_image(count_dict=count_dict["chests"]))
 
-    def battle_1_n_n(self, quest_list, extra_title=None, need_lock=False,task_names=None):
+    def battle_1_n_n(self, quest_list, extra_title=None, need_lock=False, task_names=None):
         """
         1轮次 n关卡 n次数
         (副本外 -> (副本内战斗 * n次) -> 副本外) * 重复n次
@@ -1830,7 +1852,7 @@ class ThreadTodo(QThread):
             self.my_lock = True
 
         SIGNAL.PRINT_TO_UI.emit(text=f"{title}开始...", color_level=3)
-        print(f"将要刷取清单{quest_list}")
+        CUS_LOGGER.info(f"将要刷取清单{quest_list}")
 
         # 遍历完成每一个任务
         for i in range(len(quest_list)):
@@ -1838,7 +1860,6 @@ class ThreadTodo(QThread):
             quest = quest_list[i]
             if task_names is not None:
                 SIGNAL.PRINT_TO_UI.emit(text=f"[双线程单人] {self.todo_id}P已开始任务{task_names[i]}!", color_level=3)
-
 
             # 处理允许缺失的值
             quest_card = quest.get("quest_card", None)
@@ -2323,11 +2344,16 @@ class ThreadTodo(QThread):
             """
 
             # 两个号分别读取任务
+            SIGNAL.PRINT_TO_UI.emit(text=f"[全自动大赛] [1P] 文字识别结果如下: ", color_level=2)
             quest_list_1 = self.faa_dict[1].match_quests(mode="美食大赛-新")
+
+            SIGNAL.PRINT_TO_UI.emit(text=f"[全自动大赛] [2P] 文字识别结果如下: ", color_level=2)
             quest_list_2 = self.faa_dict[2].match_quests(mode="美食大赛-新")
+
             quest_list = quest_list_1 + quest_list_2
 
             if not quest_list:
+                SIGNAL.PRINT_TO_UI.emit(text=f"[全自动大赛] 识别不到任何任务, 已完成")
                 return False
 
             # 去重两边都一毛一样的双人任务
@@ -2340,20 +2366,20 @@ class ThreadTodo(QThread):
             # 初始化尝试次数记录
             for quest in quest_list:
                 quest_key = (str(quest["player"]), quest["quest_text"])
-                if quest_key not in self.auto_food_stage_ban_dict.keys():
-                    self.auto_food_stage_ban_dict[quest_key] = 0
+                if quest_key not in self.auto_food_try_count_dict.keys():
+                    self.auto_food_try_count_dict[quest_key] = 0
 
             # 去除尝试过多的任务
             quest_list_will_do = []
             for quest in quest_list:
-                if self.auto_food_stage_ban_dict[(str(quest["player"]), quest["quest_text"])] < 3:
+                if self.auto_food_try_count_dict[(str(quest["player"]), quest["quest_text"])] < 3:
                     quest_list_will_do.append(quest)
                 else:
                     quest["tag"] = "禁用, 尝试过多"
 
-            CUS_LOGGER.debug(self.auto_food_stage_ban_dict)
-            CUS_LOGGER.debug("[全自动大赛] 去除 **多次尝试禁用** 任务后, 列表如下:")
-            CUS_LOGGER.debug(quest_list_will_do)
+            CUS_LOGGER.info("[全自动大赛] 去除 **多次尝试禁用** 任务后, 列表如下:")
+            for quest in quest_list_will_do:
+                CUS_LOGGER.info(quest)
 
             # 全部单人任务
             solo_quests = [quest for quest in quest_list_will_do if len(quest["player"]) == 1]
@@ -2385,7 +2411,7 @@ class ThreadTodo(QThread):
             # 记录 尝试次数
             for quest in quest_list_will_do:
                 quest_key = (str(quest["player"]), quest["quest_text"])
-                self.auto_food_stage_ban_dict[quest_key] += 1
+                self.auto_food_try_count_dict[quest_key] += 1
 
             # 生成输出的文本
             texts_list = []
@@ -2420,7 +2446,7 @@ class ThreadTodo(QThread):
                 quest_tag = quest.get("tag", "即将执行")
                 if "暂时跳过" not in quest_tag:
                     # 输出尝试次数
-                    quest_try_times = self.auto_food_stage_ban_dict[(str(quest["player"]), quest["quest_text"])]
+                    quest_try_times = self.auto_food_try_count_dict[(str(quest["player"]), quest["quest_text"])]
                     text_parts.append(f"尝试次数:{quest_try_times}/3")
                 text_parts.append(f"{quest_tag}")
 
@@ -2466,7 +2492,7 @@ class ThreadTodo(QThread):
 
             # 重置美食大赛任务 ban dict
             # 用于防止缺乏钥匙/次数时无限重复某些关卡, key: (player: int, quest_text: str), value: int
-            self.auto_food_stage_ban_dict = {}
+            self.auto_food_try_count_dict = {}
 
             i = 0
             while True:
@@ -2487,6 +2513,223 @@ class ThreadTodo(QThread):
 
     """使用battle_1_n_n为核心的变种 [双线程][单人]"""
 
+    def checking_nodo(self, player: list = None):
+
+        title_text = "查漏补缺"
+
+        player = self.check_player(title=title_text, player=player)
+
+        self.model_start_print(text=title_text)
+        # 创建进程 -> 开始进程 -> 阻塞主进程
+        if 1 in player:
+            self.thread_1p = ThreadWithException(
+                target=self.faa_dict[1].check_not_doing,
+                name="1P Thread - CheckingNotDoing",
+                kwargs={"c_opt":self.opt_todo_plans})
+            self.thread_1p.start()
+
+        if 1 in player and 2 in player:
+            sleep(0.333)
+
+        if 2 in player:
+            self.thread_2p = ThreadWithException(
+                target=self.faa_dict[2].check_not_doing,
+                name="2P Thread - CheckingNotDoing",
+                kwargs={"c_opt":self.opt_todo_plans})
+            self.thread_2p.start()
+        quest_list_1=[]
+        quest_list_2=[]
+        reputation_status_1=0
+        reputation_status_2=0
+        completed_fertilization_1=False
+        completed_fertilization_2=False
+        if 1 in player:
+            quest_list_1,reputation_status_1,reputation_now_1,completed_fertilization_1=self.thread_1p.get_return_value()
+        if 2 in player:
+            quest_list_2,reputation_status_2,reputation_now_2,completed_fertilization_2=self.thread_2p.get_return_value()
+        quest_list = quest_list_1 + [i for i in quest_list_2 if i not in quest_list_1]
+        #再执行公会任务
+        if quest_list:
+            self.battle_1_n_n(quest_list=quest_list)
+            # 创建进程 -> 开始进程 -> 阻塞主进程
+            if 1 in player:
+                self.thread_1p = ThreadWithException(
+                    target=self.faa_dict[1].check_task_of_guild,
+                    name="1P Thread - CheckingGuild",
+                    kwargs={"c_opt":self.opt_todo_plans})
+                self.thread_1p.start()
+
+            if 1 in player and 2 in player:
+                sleep(0.333)
+
+            if 2 in player:
+                self.thread_2p = ThreadWithException(
+                    target=self.faa_dict[2].check_task_of_guild,
+                    name="2P Thread - CheckingGuild",
+                    kwargs={"c_opt":self.opt_todo_plans})
+                self.thread_2p.start()
+            if 1 in player:
+                quest_list_1,_=self.thread_1p.get_return_value()
+                if len(quest_list_1)>0:
+                    SIGNAL.DIALOG.emit(
+                        "查漏补缺报告",
+                        f"1p仍然存在未完成刷关任务，可能为缺乏指定卡片/方案缺失/刷关失败，请检查\n")
+                else:
+                    CUS_LOGGER.warning(f"1p完成公会任务查漏补缺")
+            if 2 in player:
+                quest_list_2,_=self.thread_2p.get_return_value()
+                if len(quest_list_2)>0:
+                    SIGNAL.DIALOG.emit(
+                        "查漏补缺报告",
+                        f"2p仍然存在未完成刷关任务，可能为缺乏指定卡片/方案缺失/刷关失败，请检查\n")
+                else:
+                    CUS_LOGGER.warning(f"2p完成公会任务查漏补缺")
+        if 1 in player and completed_fertilization_1:#未完成施肥的则进行施肥
+            self.thread_1p = ThreadWithException(
+                target=self.faa_dict[1].fed_and_watered,
+                name=f"1P Thread - FedAndWatered",
+                kwargs={})
+            self.thread_1p.start()
+            self.thread_1p.join()
+        if 2 in player and completed_fertilization_2:
+            self.thread_2p = ThreadWithException(
+                target=self.faa_dict[2].fed_and_watered,
+                name=f"2P Thread - FedAndWatered",
+                kwargs={})
+            self.thread_2p.start()
+            self.thread_2p.join()
+        if (1 in player and reputation_status_1!=2) or (2 in player and reputation_status_2!=2):
+            my_opt = self.opt_todo_plans["offer_reward"]
+            now_player = [2,1]if 2 in player else [1]
+            for max_stage in [4,3,2,1]:#从高到低测出最高声望可能关卡
+                quest_list=[{
+                    "player": now_player,
+                    "need_key": True,
+                    "global_plan_active": my_opt["global_plan_active"],
+                    "deck": my_opt["deck"],
+                    "battle_plan_1p": my_opt["battle_plan_1p"],
+                    "battle_plan_2p": my_opt["battle_plan_2p"],
+                    "stage_id": "OR-0-" + str(max_stage),
+                    "max_times": 1,
+                    "dict_exit": {
+                        "other_time_player_a": [],
+                        "other_time_player_b": [],
+                        "last_time_player_a": ["竞技岛"],
+                        "last_time_player_b": ["竞技岛"]}
+                }]
+
+                self.battle_1_n_n(quest_list=quest_list)
+                if 1 in player and reputation_status_1!=2:
+                    self.thread_1p = ThreadWithException(
+                        target=self.faa_dict[1].check_task_of_bounty,
+                        name="1P Thread - CheckingBounty",
+                        kwargs={})
+                    self.thread_1p.start()
+
+                if 1 in player and 2 in player and reputation_status_1!=2 and reputation_status_2!=2:
+                    sleep(0.333)
+
+                if 2 in player and reputation_status_2!=2:
+                    self.thread_2p = ThreadWithException(
+                        target=self.faa_dict[2].check_task_of_bounty,
+                        name="2P Thread - CheckingBounty",
+                        kwargs={})
+                    self.thread_2p.start()
+                if 1 in player and reputation_status_1!=2:
+                    new_reputation_status,new_reputation_now = self.thread_1p.get_return_value()
+                    if new_reputation_status==2:#检查声望是否打满
+                        reputation_status_1=new_reputation_status
+                    else:
+                        # 查找声望对比原来是否改变
+                        status, _ = match_p_in_w(
+                            template=new_reputation_now,
+                            source_img=reputation_now_1,
+                            match_tolerance=0.95,
+                            test_show=False
+                        )
+                        if status==2:#声望没有变化
+                            SIGNAL.DIALOG.emit(
+                                "查漏补缺报告",
+                                f"1p声望悬赏第{max_stage}关失败，请自行检查\n")
+                            continue
+                        else:
+                            break
+
+                if 2 in player and reputation_status_2!=2:
+                    new_reputation_status,new_reputation_now = self.thread_2p.get_return_value()
+                    if new_reputation_status==2:
+                        reputation_status_2=new_reputation_status
+                    else:
+                        status, _ = match_p_in_w(
+                            template=new_reputation_now,
+                            source_img=reputation_now_2,
+                            match_tolerance=0.95,
+                            test_show=False
+                        )
+                        if status==2:
+                            SIGNAL.DIALOG.emit(
+                                "查漏补缺报告",
+                                f"2p声望悬赏第{max_stage}关失败，请自行检查\n")
+                            continue
+                        else:
+                            break
+            count=0
+            MaxBountyTime=11
+            while (reputation_status_1!=2 or reputation_status_2!=2 ) and count<MaxBountyTime:
+                quest_list=[{
+                    "player": now_player,
+                    "need_key": True,
+                    "global_plan_active": my_opt["global_plan_active"],
+                    "deck": my_opt["deck"],
+                    "battle_plan_1p": my_opt["battle_plan_1p"],
+                    "battle_plan_2p": my_opt["battle_plan_2p"],
+                    "stage_id": "OR-0-" + str(max_stage),
+                    "max_times": 1,
+                    "dict_exit": {
+                        "other_time_player_a": [],
+                        "other_time_player_b": [],
+                        "last_time_player_a": ["竞技岛"],
+                        "last_time_player_b": ["竞技岛"]}
+                }]
+                self.battle_1_n_n(quest_list=quest_list)
+                count+=1
+                #打完一把检查是否声望满了
+                if 1 in player and reputation_status_1!=2:
+                    self.thread_1p = ThreadWithException(
+                        target=self.faa_dict[1].check_task_of_bounty,
+                        name="1P Thread - CheckingBounty",
+                        kwargs={})
+                    self.thread_1p.start()
+
+                if 1 in player and 2 in player and reputation_status_1!=2 and reputation_status_2!=2:
+                    sleep(0.333)
+
+                if 2 in player and reputation_status_2!=2:
+                    self.thread_2p = ThreadWithException(
+                        target=self.faa_dict[2].check_task_of_bounty,
+                        name="2P Thread - CheckingBounty",
+                        kwargs={})
+                    self.thread_2p.start()
+                if 1 in player and reputation_status_1!=2:
+                    new_reputation_status,new_reputation_now = self.thread_1p.get_return_value()
+                    if new_reputation_status==2:#检查声望是否打满
+                        reputation_status_1=new_reputation_status
+
+
+                if 2 in player and reputation_status_2!=2:
+                    new_reputation_status,new_reputation_now = self.thread_2p.get_return_value()
+                    if new_reputation_status==2:
+                        reputation_status_2=new_reputation_status
+            if count==MaxBountyTime:
+                #有个不大不小的奇妙bug，当背包满了的时候，会导致无法领取奖励，进而使悬赏刷关无法跳转
+                SIGNAL.DIALOG.emit(
+                    "查漏补缺报告",
+                    f"声望刷取次数过多，请自行检查\n")
+            else:
+                CUS_LOGGER.warning(f"声望刷满任务完成")
+
+
+        self.model_end_print(text=title_text)
     def alone_magic_tower(self):
 
         c_opt = self.opt_todo_plans
@@ -3098,10 +3341,12 @@ class ThreadTodo(QThread):
         extra_active = False
         extra_active = extra_active or c_opt["receive_awards"]["active"]
         extra_active = extra_active or c_opt["use_items"]["active"]
+        extra_active = extra_active or c_opt["checking"]["active"]
         extra_active = extra_active or c_opt["auto_food"]["active"]
         # 循环任务
         extra_active = extra_active or c_opt["tce"]["active"]
         extra_active = extra_active or c_opt["loop_cross_server"]["active"]
+        extra_active = extra_active or c_opt["loop_cross_experience"]["active"]
 
         if extra_active:
             SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
@@ -3131,6 +3376,9 @@ class ThreadTodo(QThread):
             self.batch_use_items_consumables(
                 player=[1, 2] if my_opt["is_group"] else [1],
             )
+        my_opt = c_opt["checking"]
+        if my_opt["active"]:
+            self.checking_nodo(player=[1, 2] if my_opt["is_group"] else [1],)
 
         my_opt = c_opt["auto_food"]
         if my_opt["active"]:
@@ -3140,7 +3388,15 @@ class ThreadTodo(QThread):
         if my_opt["active"]:
             self.batch_loop_cross_server(
                 player=[1, 2] if my_opt["is_group"] else [1],
-                deck=c_opt["quest_guild"]["deck"])
+                deck=c_opt["quest_guild"]["deck"],
+                name="威望")
+
+        my_opt = c_opt["loop_cross_experience"]
+        if my_opt["active"]:
+            self.batch_loop_cross_server(
+                player=[1, 2] if my_opt["is_group"] else [1],
+                deck=c_opt["quest_guild"]["deck"],
+                name="经验")
 
         my_opt = c_opt["tce"]
         if my_opt["active"]:

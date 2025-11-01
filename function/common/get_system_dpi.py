@@ -3,7 +3,7 @@ from ctypes import windll
 
 def get_system_dpi():
     """
-    需要注意 该函数必须在ui类中调用才能正常的生效，原因不明
+    需要注意 该函数必须在ui类中调用才能正常地生效，原因不明
     """
     # 创建一个设备上下文（DC）用于屏幕
     hdc = windll.user32.GetDC(0)
