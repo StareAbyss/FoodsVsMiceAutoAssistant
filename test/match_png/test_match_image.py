@@ -1,5 +1,5 @@
 from function.common.bg_img_match import match_p_in_w
-from function.common.overlay_images import overlay_images
+from function.common.image_processing.overlay_images import overlay_images
 from function.globals.g_resources import RESOURCE_P
 from function.scattered.gat_handle import faa_get_handle
 

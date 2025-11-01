@@ -88,6 +88,9 @@ def main():
         target="task_sequence"
     )
     mover.add_folder(
+        target="tweak_plan"
+    )
+    mover.add_folder(
         target="resource",
         exclude_types=[".pyc"]
     )

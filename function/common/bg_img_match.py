@@ -443,6 +443,75 @@ def loop_match_ps_in_w(
             return False
 
 
+def match_all_p_in_w(
+        template,
+        source_img=None,
+        source_handle=None,
+        source_root_handle=None,
+        source_range=None,
+        mask=None,
+        threshold: float = 0.8,
+        min_distance: int = 15,
+        test_show=False
+) -> [int, Union[None, list]]:
+    """
+    在图像中查找所有匹配的模板目标
+
+    Args:
+        template: 模板图像路径或numpy数组
+        source_img: 源图像数组
+        source_handle: 窗口句柄
+        source_root_handle: 根窗口句柄
+        source_range: 截图范围
+        mask: 掩模图像
+        threshold: 多目标匹配阈值
+        min_distance: 最小匹配距离（防止重复匹配）
+        test_show: 是否显示结果
+
+    Returns:
+        状态码和匹配结果列表
+    """
+    # 获取源图像
+    if source_img is None and source_handle is not None:
+        source_img = capture_image_png(handle=source_handle, raw_range=source_range, root_handle=source_root_handle)
+    elif source_img is not None and source_range is not None:
+        source_img = png_cropping(image=source_img, raw_range=source_range)
+
+    # 转换为BGR格式
+    source_img = source_img[:, :, :3]
+
+    # 读取模板
+    if isinstance(template, str):
+        template = cv2.imdecode(np.fromfile(template, dtype=np.uint8), -1)
+
+    # 获取匹配结果
+    _, match_result = match_template_with_optional_mask(source=source_img, template=template, mask=mask)
+    if _ == 0:
+        return 0, None
+
+    # 获取所有匹配位置
+    locations = np.where(match_result <= 1 - threshold)
+    locations = list(zip(locations[1], locations[0]))  # 转换为(x,y)坐标
+
+    # 去重处理（非极大值抑制）
+    filtered_locations = []
+    for loc in locations:
+        if all(np.linalg.norm(np.array(loc) - np.array(f_loc)) > min_distance for f_loc in filtered_locations):
+            filtered_locations.append(loc)
+    # 返回结果
+    if not filtered_locations:
+        return 1, None
+
+    if test_show:
+        # 绘制所有匹配结果
+        h, w = template.shape[:2]
+        output_img = source_img.copy()
+        for pt in filtered_locations:
+            cv2.rectangle(output_img, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 1)
+        cv2.imshow("All Matches", output_img)
+        cv2.waitKey(0)
+
+    return 2, filtered_locations
 if __name__ == '__main__':
     from function.scattered.gat_handle import faa_get_handle
 

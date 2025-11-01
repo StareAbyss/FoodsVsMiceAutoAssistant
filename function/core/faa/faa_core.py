@@ -8,11 +8,11 @@ from typing import TYPE_CHECKING
 
 import pytz
 
-from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w
-from function.common.bg_img_screenshot import capture_image_png
+from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w, match_all_p_in_w
+from function.common.bg_img_screenshot import capture_image_png, png_cropping
 from function.common.get_system_dpi import get_window_position, get_system_dpi
-from function.common.overlay_images import overlay_images
-from function.common.process_and_window_manager import close_software_by_title, get_path_and_sub_titles, \
+from function.common.image_processing.overlay_images import overlay_images
+from function.common.process_manager import close_software_by_title, get_path_and_sub_titles, \
     close_all_software_by_name, start_software_with_args
 from function.core.my_crypto import decrypt_data
 from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
@@ -40,7 +40,7 @@ class FAABase:
 
     def __init__(self: "FAA", channel: str = "锑食", player: int = 1, character_level: int = 80,
                  is_auto_battle: bool = True, is_auto_pickup: bool = False,
-                 QQ_login_info=None, extra_sleep=None,opt=None,the_360_lock=None, random_seed: int = 0):
+                 QQ_login_info=None, extra_sleep=None, opt=None, the_360_lock=None, random_seed: int = 0):
 
         # 获取窗口句柄
         self.channel = channel  # 在刷新窗口后会需要再重新获取flash的句柄, 故保留
@@ -198,6 +198,296 @@ class FAABase:
 
         return True
 
+    def check_not_doing(self: "FAA", c_opt):
+        """查漏补缺"""
+
+        CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 开始")
+        CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查签到开始")
+        self.action_top_menu(mode="每日签到")
+
+        find = loop_match_p_in_w(
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=[0, 0, 950, 600],
+            template=RESOURCE_P["common"]["签到"]["每日签到_确定.png"],
+            match_tolerance=0.99,
+            match_failed_check=5,
+            after_sleep=1,
+            click=True)
+
+        if find:
+            # 点击下面四个奖励
+            CUS_LOGGER.warning(f"[{self.player}] [查漏补缺] 检查到漏签！！现已补签")
+            time.sleep(1)
+            find = loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 950, 600],
+                template=RESOURCE_P["common"]["签到"]["每日签到_确定.png"],
+                match_tolerance=0.99,
+                match_failed_check=5,
+                after_sleep=1,
+                click=True)
+            if find:
+                current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                SIGNAL.DIALOG.emit(
+                    "查漏补缺报告",
+                    f"{self.player}P因背包爆满,查漏补缺[每日签到]失败!\n"
+                    f"出错时间:{current_time}")
+        else:
+            CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 未检查到漏签,非常好")
+        CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查签到结束")
+        self.action_exit(mode="普通红叉")
+        time.sleep(1)
+        CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查悬赏开始")
+        reputation_status, reputation_now = self.check_task_of_bounty()
+        CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查悬赏结束")
+        time.sleep(1)
+        # 跳转到任务界面
+        CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查公会任务开始")
+        quest_list, completed_fertilization = self.check_task_of_guild(c_opt)
+        CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查公会任务结束")
+        beijing_tz = pytz.timezone('Asia/Shanghai')
+        now = datetime.now(beijing_tz)
+        if now.weekday() == 2:
+            SIGNAL.DIALOG.emit(
+                "查漏补缺报告",
+                f"今天是星期三，记得检查兑换悬赏卡包，施肥卡包\n")
+        elif now.weekday() == 3:
+            SIGNAL.DIALOG.emit(
+                "查漏补缺报告",
+                f"今天是星期四，若是悬赏更新，记得更换方案\n"
+                f"若是三岛更新，记得切换当前刷关配置\n")
+        if datetime.today().day == 26:
+            SIGNAL.DIALOG.emit(
+                "查漏补缺报告",
+                f"今天是炸卡日，记得检查兑换签到卡包\n")
+        CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 结束")
+        return quest_list, reputation_status, reputation_now, completed_fertilization
+
+    def check_task_of_bounty(self: "FAA"):
+        # 进入X年活动界面
+        self.action_top_menu(mode="X年活动")
+        # 最大尝试次数
+        max_attempts = 10
+        # 循环遍历点击完成
+        for try_count in range(max_attempts):
+            result = loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 950, 600],
+                template=RESOURCE_P["common"]["悬赏任务_领取奖励.png"],
+                match_tolerance=0.99,
+                match_failed_check=2,
+                click=True,
+                after_sleep=2)
+            if not result:
+                break
+            else:
+                CUS_LOGGER.warning(f"[{self.player}] [查漏补缺] 检查到未成功领取悬赏！！现已领取")
+
+        # 如果达到了最大尝试次数
+        if try_count == max_attempts - 1:
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            SIGNAL.DIALOG.emit(
+                "查漏补缺报告",
+                f"{self.player}P因背包爆满, 查漏补缺[领取悬赏任务奖励]失败!\n"
+                f"出错时间:{current_time}, 尝试次数:{max_attempts}")
+
+        # 退出任务界面
+        # 截取整个窗口图像
+        full_image = capture_image_png(handle=self.handle, raw_range=[0, 0, 3000, 3000])
+
+        # 裁剪出第一个区域
+        reputation_all = png_cropping(image=full_image, raw_range=[612, 470, 640, 482])
+
+        # 裁剪出第二个区域并转换为模板格式
+        reputation_now = png_cropping(image=full_image, raw_range=[574, 470, 600, 482])
+        # 使用match_p_in_w进行相似度比对
+        reputation_status, result = match_p_in_w(
+            template=reputation_now,  # 将区域2作为模板
+            source_img=reputation_all,  # 在区域1中查找
+            match_tolerance=0.95,
+            test_show=False  # 不显示测试窗口
+        )
+
+        if reputation_status == 2:  # 匹配成功,说明声望满了
+            CUS_LOGGER.debug(f"[{self.player}] 成功匹配")
+        else:
+            # 声望没有满
+            CUS_LOGGER.debug(f"[{self.player}] 失败匹配")
+
+        self.action_exit(mode="关闭悬赏窗口")
+        return reputation_status, reputation_now
+
+    def check_task_of_guild(self: "FAA", c_opt):
+        self.action_bottom_menu(mode="跳转_公会任务")
+        qg_cs = c_opt["quest_guild"]["stage"]
+        quest_not_completed = False
+        # 最大尝试次数
+        max_attempts = 20
+
+        # 循环遍历点击完成
+        for try_count in range(max_attempts):
+
+            # 点一下 让左边的选中任务颜色消失
+            loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 950, 600],
+                template=RESOURCE_P["quest_guild"]["ui_quest_list.png"],
+                after_sleep=5.0,
+                click=True)
+
+            # 向下拖一下
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=415, y=510)
+            time.sleep(0.5)
+
+            # 检查是否有已完成的任务
+            result = loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 950, 600],
+                template=RESOURCE_P["quest_guild"]["completed.png"],
+                match_tolerance=0.99,
+                click=True,
+                match_failed_check=5,  # 1+4s 因为偶尔会弹出美食大赛完成动画4s 需要充足时间！这个确实脑瘫...
+                after_sleep=0.5)
+            if not result:
+                break
+            CUS_LOGGER.warning(f"[{self.player}] [查漏补缺] 检查到未成功领取公会奖励！！现已领取")
+            # 点击“领取”按钮
+            loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 950, 600],
+                template=RESOURCE_P["quest_guild"]["gather.png"],
+                match_tolerance=0.99,
+                click=True,
+                match_failed_check=2,
+                after_sleep=2)  # 2s 完成任务有显眼动画
+
+        # 如果达到了最大尝试次数
+        if try_count == max_attempts - 1:
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            SIGNAL.DIALOG.emit(
+                "查漏补缺报告",
+                f"{self.player}P因背包爆满, 查漏补缺[领取公会任务奖励] 失败!\n"
+                f"出错时间:{current_time}, 尝试次数:{max_attempts}")
+        code, locations = match_all_p_in_w(
+            template=RESOURCE_P["common"]["任务_进行中.png"],
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=[350, 180, 406, 532],
+            threshold=0.95,
+            test_show=False)
+        quest_list = []
+        if code == 2:
+            if locations:
+                full_image = capture_image_png(handle=self.handle, raw_range=[0, 0, 3000, 3000])
+                for pos in locations:
+                    # 截取整个窗口图像
+                    abs_x = pos[0] + 350
+                    abs_y = pos[1] + 180
+                    # 定义左侧搜索区域，裁小不裁多
+                    name_search_range = [
+                        max(0, abs_x - 220),
+                        abs_y,
+                        abs_x - 10,
+                        abs_y + 15
+                    ]
+                    task_img = png_cropping(image=full_image, raw_range=name_search_range)
+                    # 在左侧区域查找任务名称图像
+                    found_task = False
+
+                    for i in [1, 2, 3, 4, 5, 6, 7, 10, 11]:
+                        for quest_text, img in g_resources.RESOURCE_P["quest_guild"][str(i)].items():
+                            _, name_pos = match_p_in_w(
+                                source_img=img,
+                                template=task_img,
+                                match_tolerance=0.95)
+
+                            if name_pos:
+                                # 找到任务名称，解析任务信息
+                                quest_card = None
+                                ban_card_list = []
+                                max_card_num = None
+
+                                # 处理解析字符串 格式 "关卡id" + "_附加词条"
+                                quest_text = quest_text.split(".")[0]
+                                quest_split_list = quest_text.split("_")
+
+                                stage_id = quest_split_list[0]
+                                for one_split in quest_split_list:
+                                    if "带#" in one_split:
+                                        quest_card = one_split.split("#")[1]
+                                    if "禁#" in one_split:
+                                        ban_card_list = one_split.split("#")[1].split(",")
+                                    if "数#" in one_split:
+                                        max_card_num = int(one_split.split("#")[1])
+
+                                # 如果不打CS任务且是CS任务，则跳过
+                                if stage_id.split("-")[0] == "CS" and (not qg_cs):
+                                    continue
+
+                                # 添加到任务列表
+                                quest_list.append({
+                                    "stage_id": stage_id,
+                                    "player": [2, 1],
+                                    "need_key": True,
+                                    "max_times": 1,
+                                    "dict_exit": {
+                                        "other_time_player_a": [],
+                                        "other_time_player_b": [],
+                                        "last_time_player_a": ["竞技岛"],
+                                        "last_time_player_b": ["竞技岛"]
+                                    },
+                                    "quest_card": quest_card,
+                                    "ban_card_list": ban_card_list,
+                                    "max_card_num": max_card_num,
+                                    "global_plan_active": c_opt["quest_guild"]["global_plan_active"],
+                                    "deck": c_opt["quest_guild"]["deck"],
+                                    "battle_plan_1p": c_opt["quest_guild"]["battle_plan_1p"],
+                                    "battle_plan_2p": c_opt["quest_guild"]["battle_plan_2p"],
+                                })
+
+                                found_task = True
+                                break  # 找到一个任务名称即可跳出内层循环
+
+                        if found_task:
+                            break  # 找到任务后跳出外层循环
+            # 检测施肥任务完成情况 任务是进行中的话为True
+            quest_not_completed = loop_match_ps_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                template_opts=[
+                    {
+                        "source_range": [75, 80, 430, 500],
+                        "template": RESOURCE_P["quest_guild"]["fed_0.png"],
+                        "match_tolerance": 0.98
+                    }, {
+                        "source_range": [75, 80, 430, 500],
+                        "template": RESOURCE_P["quest_guild"]["fed_1.png"],
+                        "match_tolerance": 0.98
+                    }, {
+                        "source_range": [75, 80, 430, 500],
+                        "template": RESOURCE_P["quest_guild"]["fed_2.png"],
+                        "match_tolerance": 0.98,
+                    }, {
+                        "source_range": [75, 80, 430, 500],
+                        "template": RESOURCE_P["quest_guild"]["fed_3.png"],
+                        "match_tolerance": 0.98,
+                    }
+                ],
+                return_mode="or",
+                match_failed_check=2)
+
+            if not quest_not_completed:
+                CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 已完成公会浇水施肥")
+        # 退出任务界面
+        self.action_exit(mode="普通红叉")
+        return quest_list, quest_not_completed
+
     def screen_check_server_boom(self: "FAA") -> bool:
         """
         检测是不是炸服了
@@ -296,6 +586,11 @@ class FAABase:
         # 如果缺失, 外部的检测函数会拦下来不继续的
         self.battle_plan = g_resources.RESOURCE_B.get(battle_plan_uuid, None)
         self.battle_plan_tweak = g_resources.RESOURCE_T.get(battle_plan_tweak_uuid, None)
+
+        # 格式校验[float, float]
+        if self.battle_plan_tweak.get("meta_data", {}).get("cd_after_use_random_range", {}):
+            self.battle_plan_tweak["meta_data"]["cd_after_use_random_range"] = [
+                float(x) for x in self.battle_plan_tweak["meta_data"]["cd_after_use_random_range"]]
 
     """战斗完整的过程中的任务函数"""
 
@@ -1005,7 +1300,7 @@ class FAABase:
                     click=True)
 
                 if not find:
-                    self.print_warning(text="未找到360大厅回退按钮, 是失败了")
+                    self.print_warning(text="尝试点击360大厅回退按钮, 但失败了!")
                     return False
         return True
 
@@ -1091,7 +1386,7 @@ class FAABase:
         else:
             return close()
 
-    def reload_game(self: "FAA") -> None:
+    def reload_game(self: "FAA") -> bool:
 
         def try_close_sub_account_list() -> bool:
 
@@ -1257,22 +1552,64 @@ class FAABase:
 
             self.print_error(text="[刷新游戏] 循环判定断线重连失败, 请检查网络是否正常...")
             return False
+        def action_after_success() -> None:
+            """
+            成功进入游戏的收尾动作
+            :return:
+            """
+
+            self.print_debug(text="[刷新游戏] 确认进入游戏! 即将刷新Flash句柄")
+            # 重新获取句柄, 此时游戏界面的句柄已经改变
+            self.handle = faa_get_handle(channel=self.channel, mode="flash")
+
+            # [4399] [QQ空间]关闭健康游戏公告
+            self.print_debug(text="[刷新游戏] [4399] [QQ空间] 尝试关闭健康游戏公告")
+            loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 950, 600],
+                template=RESOURCE_P["common"]["登录"]["3_健康游戏公告_确定.png"],
+                match_tolerance=0.97,
+                match_interval=0.2,
+                match_failed_check=5,
+                after_sleep=1,
+                click=True)
+
+            self.print_debug(text="[刷新游戏] 尝试关闭每日必充界面")
+            # [每天第一次登陆] 每日必充界面关闭
+            loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 950, 600],
+                template=RESOURCE_P["common"]["登录"]["4_退出假期特惠.png"],
+                match_tolerance=0.99,
+                match_interval=0.2,
+                match_failed_check=3,
+                after_sleep=1,
+                click=True)
 
         def main() -> bool:
-            count=0
-            while count<100:
+            """
+            刷新主函数
+            :return: 是否成功完成刷新并进入游戏
+            """
+
+            for fresh_count in range(1, 100):
+
+                self.print_info(text=f"[刷新游戏] [第{fresh_count}轮] 即将开始...")
+
                 # 先重新获取 360 和 浏览器的句柄
                 self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
                 self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
 
                 # 确保关闭小号列表
                 if try_close_sub_account_list():
-                    self.print_debug(text="[刷新游戏] 成功关闭小号列表")
+                    self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 寻找小号列表, 发现目标, 已成功关闭小号列表")
                 else:
-                    self.print_debug(text="[刷新游戏] 未找到小号列表, 很好...")
+                    self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 寻找小号列表, 未找到, 很好...")
 
                 # 点击刷新按钮 该按钮在360窗口上
-                self.print_debug(text="[刷新游戏] 点击刷新按钮...")
+                self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 点击刷新按钮...")
                 self.click_refresh_btn()
 
                 # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
@@ -1280,24 +1617,28 @@ class FAABase:
                     time.sleep(self.extra_sleep["sleep_time"])
 
                     # 依次判断是否在选择服务器界面
-                self.print_debug(text="[刷新游戏] 判定平台...")
+                self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 判定平台...")
 
                 if try_enter_server_4399():
-                    self.print_debug(text="[刷新游戏] 成功进入 - 4399平台")
+                    self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 成功进入 - 4399平台")
+
                 elif try_enter_server_4399_wd():
-                    self.print_debug(text="[刷新游戏] 成功进入 - 4399微端平台")
+                    self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 成功进入 - 4399微端平台")
+
                 elif try_enter_server_qq_space():
-                    self.print_debug(text="[刷新游戏] 成功进入 - QQ空间平台")
+                    self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 成功进入 - QQ空间平台")
                     # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
                     if self.extra_sleep["need_sleep"]:
                         time.sleep(self.extra_sleep["sleep_time"])
 
                 elif try_enter_server_qq_game_hall():
-                    self.print_debug(text="[刷新游戏] 成功进入 - QQ游戏大厅平台")
+                    self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 成功进入 - QQ游戏大厅平台")
+
                 else:
                     # QQ空间需重新登录
                     self.print_debug(
-                        text="[刷新游戏] 未找到进入服务器按钮, 可能 1.QQ空间需重新登录 2.360X4399微端 3.需断线重连 4.意外情况")
+                        text=f"[刷新游戏] [第{fresh_count}轮] 未找到进入服务器按钮, 可能原因: "
+                             f"1.QQ空间需重新登录 2.360X4399微端直接进入了游戏 3.需断线重连 4.意外情况 (丢失自动登录)")
 
                     if self.QQ_login_info and self.QQ_login_info["use_password"]:
                         # 密码登录模式
@@ -1309,24 +1650,23 @@ class FAABase:
 
                         # 2p 多等待一段时间，保证1p先完成登录，避免抢占焦点
                         if self.player == 2:
-                            self.print_debug("[刷新游戏] [QQ登录] 2p正在等待")
+                            self.print_debug(f"[刷新游戏] [第{fresh_count}轮] [QQ登录] 2p正在等待")
                             time.sleep(10)
-                            self.print_debug("[刷新游戏] [QQ登录] 2p等待完成")
+                            self.print_debug(f"[刷新游戏] [第{fresh_count}轮] [QQ登录] 2p等待完成")
 
                         # 开始进入密码登录页面
-                        result = loop_match_p_in_w(
-                            source_handle=self.handle_browser,
-                            source_root_handle=self.handle_360,
-                            source_range=[0, 0, 2000, 2000],
-                            template=RESOURCE_P["common"]["登录"]["密码登录.png"],
-                            match_tolerance=0.90,
-                            match_interval=0.5,
-                            match_failed_check=5,
-                            after_sleep=2,
-                            click=True)
-                        if not result:
-                            self.print_debug(text="进入QQ密码登录页面失败")
-                            return False
+                        if not loop_match_p_in_w(
+                                source_handle=self.handle_browser,
+                                source_root_handle=self.handle_360,
+                                source_range=[0, 0, 2000, 2000],
+                                template=RESOURCE_P["common"]["登录"]["密码登录.png"],
+                                match_tolerance=0.90,
+                                match_interval=0.5,
+                                match_failed_check=5,
+                                after_sleep=2,
+                                click=True):
+                            self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] [QQ登录] 进入QQ密码登录页面失败")
+                            continue
 
                         # 进入密码登录页面成功，由于360可能记住账号，因此先要点叉号清除账号
                         loop_match_p_in_w(
@@ -1342,18 +1682,17 @@ class FAABase:
 
                         # 点叉号清除账号成功，开始获取账号输入框的焦点
                         # 如果没成功说明不需要点击，因此也可以开始获取账号输入框的焦点
-                        result = loop_match_p_in_w(
-                            source_handle=self.handle_browser,
-                            source_root_handle=self.handle_360,
-                            source_range=[0, 0, 2000, 2000],
-                            template=RESOURCE_P["common"]["登录"]["账号输入框.png"],
-                            match_tolerance=0.90,
-                            match_interval=0.5,
-                            match_failed_check=5,
-                            after_sleep=0.5,
-                            click=True)
-                        if not result:
-                            self.print_debug(text="账号输入框获取焦点失败")
+                        if not loop_match_p_in_w(
+                                source_handle=self.handle_browser,
+                                source_root_handle=self.handle_360,
+                                source_range=[0, 0, 2000, 2000],
+                                template=RESOURCE_P["common"]["登录"]["账号输入框.png"],
+                                match_tolerance=0.90,
+                                match_interval=0.5,
+                                match_failed_check=5,
+                                after_sleep=0.5,
+                                click=True):
+                            self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] [QQ登录] 账号输入框获取焦点失败")
                             continue
 
                         # 注意这里不能 sleep ，否则容易因为抢占焦点而失败
@@ -1365,18 +1704,17 @@ class FAABase:
                         # 注意360有可能记住QQ账号，这里如果result==False就大概率是因为这个原因，所以不用输入账号
                         # (实测发现可能是由于faa获取截图的方式比较特殊，即使记住了QQ账号他也能获取到账号输入框，总之代码能跑)
                         # 输入账号完成，开始获取密码输入框的焦点
-                        result = loop_match_p_in_w(
-                            source_handle=self.handle_browser,
-                            source_root_handle=self.handle_360,
-                            source_range=[0, 0, 2000, 2000],
-                            template=RESOURCE_P["common"]["登录"]["密码输入框.png"],
-                            match_tolerance=0.90,
-                            match_interval=0.5,
-                            match_failed_check=5,
-                            after_sleep=0.5,
-                            click=True)
-                        if not result:
-                            self.print_debug(text="密码输入框获取焦点失败")
+                        if not loop_match_p_in_w(
+                                source_handle=self.handle_browser,
+                                source_root_handle=self.handle_360,
+                                source_range=[0, 0, 2000, 2000],
+                                template=RESOURCE_P["common"]["登录"]["密码输入框.png"],
+                                match_tolerance=0.90,
+                                match_interval=0.5,
+                                match_failed_check=5,
+                                after_sleep=0.5,
+                                click=True):
+                            self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] [QQ登录] 密码输入框获取焦点失败")
                             continue
 
                         # 注意这里不能 sleep ，否则容易因为抢占焦点而失败
@@ -1386,11 +1724,11 @@ class FAABase:
                             time.sleep(0.1)
 
                         # 输入密码完成，开始点击登录按钮
-                        result = loop_match_p_in_w(
+                        qq_login_result = loop_match_p_in_w(
                             source_handle=self.handle_browser,
                             source_root_handle=self.handle_360,
                             source_range=[0, 0, 2000, 2000],
-                            template=RESOURCE_P["common"]["登录"]["登录.png"],
+                            template=RESOURCE_P["common"]["登录"]["QQ登录_登录按钮.png"],
                             match_tolerance=0.90,
                             match_interval=0.5,
                             match_failed_check=5,
@@ -1398,11 +1736,13 @@ class FAABase:
                             click=True)
 
                         # 点击登录按钮成功，等待选服
-                        # 这里不用time.sleep，直接修改上面的after_sleep参数即可
 
                     else:
+
+                        self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 找到QQ空间服一键登录, 正在登录")
+
                         # 非密码登录模式，通过点击QQ头像进行快捷登录
-                        result = loop_match_p_in_w(
+                        qq_login_result = loop_match_p_in_w(
                             source_handle=self.handle_browser,
                             source_root_handle=self.handle_360,
                             source_range=[0, 0, 2000, 2000],
@@ -1413,11 +1753,13 @@ class FAABase:
                             after_sleep=3,
                             click=True)
 
-                    if result:
-                        self.print_debug(text="[刷新游戏] 找到QQ空间服一键登录, 正在登录")
+                    if qq_login_result:
                         # 直接尝试登录QQ空间服务器
                         if try_enter_server_qq_space():
-                            self.print_debug(text="[刷新游戏] 成功进入 - QQ空间平台")
+                            self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] QQ空间平台 - 成功点击进入按钮")
+                        else:
+                            self.print_warning(
+                                text=f"[刷新游戏] [第{fresh_count}轮] QQQ空间平台 - 登陆后, 未能点击进入按钮")
                     else:
                         # 如果还未找到进入服务器的方式，则进行断线重连的判断
                         self.print_debug(text="[刷新游戏] 进入断线重连判断...")
@@ -1429,7 +1771,7 @@ class FAABase:
                 """查找大地图确认进入游戏"""
                 self.print_debug(text="[刷新游戏] 循环识图中, 以确认进入游戏...")
                 # 更严格的匹配 防止登录界面有相似图案组合
-                result = loop_match_ps_in_w(
+                goto_game_home_page_success = loop_match_ps_in_w(
                     source_handle=self.handle_browser,
                     source_root_handle=self.handle_360,
                     template_opts=[
@@ -1451,65 +1793,53 @@ class FAABase:
                     match_interval=1,
                     match_failed_check=30)
 
-                if result:
-                    self.print_debug(text="[刷新游戏] 循环识图成功, 确认进入游戏! 即将刷新Flash句柄")
+                if not goto_game_home_page_success:
+                    CUS_LOGGER.warning(
+                        f"[刷新游戏] [第{fresh_count}轮] 查找大地图失败, 选择服务器后未能成功进入游戏, 退后重来")
+                    # 进行断线重连的判断
+                    self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 向上返回两次 进入下一次刷新尝试...")
+                    self.click_return_btn()
+                    time.sleep(1)
+                    self.click_return_btn()
+                    time.sleep(6)
+                    continue
 
-                    # 重新获取句柄, 此时游戏界面的句柄已经改变
-                    self.handle = faa_get_handle(channel=self.channel, mode="flash")
+                action_after_success()
+                self.print_info(text=f"[刷新游戏] [第{fresh_count}轮] 顺利完成")
+                time.sleep(0.5)
+                return True
 
-                    # [4399] [QQ空间]关闭健康游戏公告
-                    self.print_debug(text="[刷新游戏] [4399] [QQ空间] 尝试关闭健康游戏公告")
-                    loop_match_p_in_w(
-                        source_handle=self.handle,
-                        source_root_handle=self.handle_360,
-                        source_range=[0, 0, 950, 600],
-                        template=RESOURCE_P["common"]["登录"]["3_健康游戏公告_确定.png"],
-                        match_tolerance=0.97,
-                        match_interval=0.2,
-                        match_failed_check=5,
-                        after_sleep=1,
-                        click=True)
-
-                    self.print_debug(text="[刷新游戏] 尝试关闭每日必充界面")
-                    # [每天第一次登陆] 每日必充界面关闭
-                    loop_match_p_in_w(
-                        source_handle=self.handle,
-                        source_root_handle=self.handle_360,
-                        source_range=[0, 0, 950, 600],
-                        template=RESOURCE_P["common"]["登录"]["4_退出假期特惠.png"],
-                        match_tolerance=0.99,
-                        match_interval=0.2,
-                        match_failed_check=3,
-                        after_sleep=1,
-                        click=True)
-
-                    self.print_debug(text="[刷新游戏] 已完成")
-                    time.sleep(0.5)
-
-                    return True
-                else:
-                    count += 1
-                    CUS_LOGGER.warning(f"[刷新游戏] 查找大地图失败, 点击服务器后未能成功进入游戏, 刷新重来,当前刷新次数: {count}")
             return False
-        fresh_success=main()
-        if not fresh_success:
-            CUS_LOGGER.warning("[刷新游戏] 刷新次数过多，可能网络爆炸了/360大厅抽风，刷新点不动,现在关闭360再逝一次")
-            if not self.opt["login_settings"]["login_open_settings"]:
-                CUS_LOGGER.error("[刷新游戏] 刷新次数过多，可能网络爆炸了/360大厅抽风，刷新点不动,并且未打开自动打开360")
-                return
-            with self.the_360_lock:
-                self.close_360()
-                time.sleep(1)
-                self.start_360()
-            main()
-    def start_360(self):
 
+        # 第一次
+        fresh_success = main()
+        if fresh_success:
+            return True
+
+        CUS_LOGGER.warning("[刷新游戏] 尝试次数过多且仍没有进入游戏，可能网络爆炸了/360大厅抽风，刷新点不动")
+        CUS_LOGGER.warning("[刷新游戏] 即将尝试通过重启360以进入游戏")
+        if not self.opt["login_settings"]["login_open_settings"]:
+            CUS_LOGGER.error("[刷新游戏] 未设置360自启动, 尝试放弃")
+            return False
+        CUS_LOGGER.warning("[刷新游戏] 重启360即将开始")
+        with self.the_360_lock:
+            self.close_360()
+            time.sleep(1)
+            self.start_360()
+        CUS_LOGGER.warning("[刷新游戏] 重启360已结束")
+
+        # 重启360后 第二次
+        fresh_success = main()
+        if fresh_success:
+            return True
+
+        return False
+
+    def start_360(self):
 
         faa_get_handle(channel=self.channel, mode="360")
 
-
         def start_one(pid, game_id, account_id, executable_path, wait_sleep_time):
-
 
             if account_id == 0:
                 return
@@ -1520,13 +1850,11 @@ class FAABase:
 
             SIGNAL.PRINT_TO_UI.emit(text=f"[控制游戏大厅] {pid}P游戏大厅已启动.", color_level=1)
 
-
-
         SIGNAL.PRINT_TO_UI.emit(
             text="[控制游戏大厅] 重启大厅中...",
             color_level=1
         )
-        if self.player==1:
+        if self.player == 1:
             start_one(
                 pid=1,
                 game_id=1,
@@ -1567,6 +1895,7 @@ class FAABase:
             CUS_LOGGER.debug(f"[操作游戏大厅] 关闭名称为: [{software_name}] 的应用程序下的所有窗口, 开始")
             close_all_software_by_name(software_name=software_name)
             CUS_LOGGER.debug(f"[操作游戏大厅] 关闭名称为: [{software_name}] 的应用程序下的所有窗口, 成功")
+
     def sign_in(self: "FAA") -> None:
 
         def sign_in_vip():
@@ -1843,11 +2172,11 @@ class FAABase:
             # 退出充值界面
             exit_ui()
             return "今天氪过了~"
-        or_rect=get_window_position(self.handle)
-        browser_rect=get_window_position(self.handle_browser)
-        zoom_rate=get_system_dpi()/96
+        or_rect = get_window_position(self.handle)
+        browser_rect = get_window_position(self.handle_browser)
+        zoom_rate = get_system_dpi() / 96
         print(or_rect, browser_rect)
-        deviation=[(or_rect[0]-browser_rect[0])//zoom_rate,(or_rect[1]-browser_rect[1])//zoom_rate]
+        deviation = [(or_rect[0] - browser_rect[0]) // zoom_rate, (or_rect[1] - browser_rect[1]) // zoom_rate]
         # 没有完成, 进入充值界面
         CUS_LOGGER.debug("充值界面 点击切换为游币")
         source_range_2 = [150, 110, 800, 490]  # 游币兑换按钮 查找范围
@@ -1864,7 +2193,7 @@ class FAABase:
             click=True,
             click_handle=self.handle_browser,
             deviation=deviation
-            )
+        )
         if not find:
             return "步骤: 充值界面-点击游币兑换. 出现致命失误! 请联系开发者!"
 
@@ -1905,7 +2234,7 @@ class FAABase:
             after_sleep=3,
             click=True,
             click_handle=self.handle_browser,
-            deviation=deviation            )
+            deviation=deviation)
         if not find:
             return "步骤: 充值界面-复核-氪金值输入1元. 出现致命失误! 请联系开发者!"
 
@@ -1922,7 +2251,7 @@ class FAABase:
             after_sleep=3,
             click=True,
             click_handle=self.handle_browser,
-            deviation=deviation            )
+            deviation=deviation)
         if not find:
             return "步骤: 充值界面-点击-立刻充值按钮. 出现致命失误! 请联系开发者!"
 
@@ -1939,7 +2268,7 @@ class FAABase:
             after_sleep=3,
             click=True,
             click_handle=self.handle_browser,
-            deviation=deviation            )
+            deviation=deviation)
         if not find:
             return "步骤: 充值界面-点击-退出充值界面按钮. 出现致命失误! 请联系开发者!"
 
