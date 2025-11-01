@@ -1504,7 +1504,6 @@ class FAABase:
             """
             循环判断是否处于页面无法访问网页上(刷新无用，因为那是单独的网页)
             如果是, 就点击红色按钮
-            否则返回上一页
             """
 
             # 查找 + 点击红色按钮（但点击不一定有效果!）
@@ -1519,39 +1518,8 @@ class FAABase:
                 match_interval=0.5,
                 match_failed_check=10
             )
-            if not my_result:#执念锐评：定位半天为啥用不了断网刷新，还以为按钮特别点不动，感情是这少了个not，点击刷新成功了又回退回了断网界面
-                # 再回到上一个网页 基本上稳定可以修复
-                result = loop_match_ps_in_w(
-                    source_handle=self.handle_browser,
-                    source_root_handle=self.handle_360,
-                    template_opts=[
-                        {
-                            "source_range": [850, 570, 2000, 2000],
-                            "template": RESOURCE_P["common"]["底部菜单"]["跳转.png"],
-                            "match_tolerance": 0.99,
-                        }, {
-                            "source_range": [615, 570, 2000, 2000],
-                            "template": RESOURCE_P["common"]["底部菜单"]["任务.png"],
-                            "match_tolerance": 0.99,
-                        }, {
-                            "source_range": [890, 570, 2000, 2000],
-                            "template": RESOURCE_P["common"]["底部菜单"]["后退.png"],
-                            "match_tolerance": 0.99,
-                        }
-                    ],
-                    return_mode="and",
-                    match_interval=1,
-                    match_failed_check=30)
-                if not result:
-                    #没进地图，回退重开
-                    self.click_return_btn()
-                    time.sleep(6)
-                    return False
-                else:
-                    return True
 
-            self.print_error(text="[刷新游戏] 循环判定断线重连失败, 请检查网络是否正常...")
-            return False
+            return my_result
         def action_after_success() -> None:
             """
             成功进入游戏的收尾动作
@@ -1615,7 +1583,12 @@ class FAABase:
                 # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
                 if self.extra_sleep["need_sleep"]:
                     time.sleep(self.extra_sleep["sleep_time"])
-
+                # 进行断线重连的判断
+                self.print_debug(text="[刷新游戏] 进入断线重连判断...")
+                if try_relink():
+                    self.print_debug(text="[刷新游戏] 成功点击断线重连")
+                else:
+                    self.print_debug(text="[刷新游戏] 无需断线重连")
                     # 依次判断是否在选择服务器界面
                 self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 判定平台...")
 
@@ -1760,13 +1733,6 @@ class FAABase:
                         else:
                             self.print_warning(
                                 text=f"[刷新游戏] [第{fresh_count}轮] QQQ空间平台 - 登陆后, 未能点击进入按钮")
-                    else:
-                        # 如果还未找到进入服务器的方式，则进行断线重连的判断
-                        self.print_debug(text="[刷新游戏] 进入断线重连判断...")
-                        if try_relink():
-                            self.print_debug(text="[刷新游戏] 无需断线重连/成功点击断线重连")
-                        else:
-                            self.print_debug(text="[刷新游戏] 点不动断线重连，可能是网络爆炸/其他情况")
 
                 """查找大地图确认进入游戏"""
                 self.print_debug(text="[刷新游戏] 循环识图中, 以确认进入游戏...")
