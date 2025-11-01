@@ -1,0 +1,14 @@
+{
+    "meta_data": {
+        "uuid": "00000000-0000-0000-0000-000000000003",
+        "tips": "该方案设置了强制禁用卡片垫子，冰沙，创造神，幻坤",
+        "version": "0.3",
+        "ban_state": {
+        "mat": true,
+        "icecream": true,
+        "god": true,
+        "ikun": true,
+        "coffee": false
+        }        
+    }
+}
