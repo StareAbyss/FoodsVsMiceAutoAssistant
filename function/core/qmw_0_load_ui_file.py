@@ -63,7 +63,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         self.init_tray_icon()
 
         # 绑定最小化按钮
-        self.Button_Minimized.clicked.connect(self.minimize_to_tray)
+        self.Button_MostMinimized.clicked.connect(self.minimize_to_tray)
         #淡入动画
         self.fade_in_animation = QPropertyAnimation(self, b"windowOpacity")
         self.fade_in_animation.setDuration(300)
@@ -144,6 +144,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         q_color = QtGui.QColor(240, 240, 240) if self.theme == "dark" else QtGui.QColor(15, 15, 15)
         self.Button_Exit.setIcon(create_qt_icon(q_color=q_color, mode="x"))
         self.Button_Minimized.setIcon(create_qt_icon(q_color=q_color, mode="-"))
+        self.Button_MostMinimized.setIcon(create_qt_icon(q_color=q_color, mode="v"))
 
     def set_customize_widget_style(self):
         # 查找所有 SearchableComboBox 实例
@@ -195,7 +196,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         self.set_arrow_btn_icon()
 
         # 设置tab栏特殊样式
-        self.set_tab_bar_style()
+        self.set_tab_bar_stylesheet()
 
     def set_main_window_shadow(self):
         # 添加阴影
@@ -205,7 +206,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         effect_shadow.setColor(QtCore.Qt.GlobalColor.black)  # 阴影颜色
         self.MainFrame.setGraphicsEffect(effect_shadow)  # 将设置套用到widget窗口中
 
-    def set_tab_bar_style(self):
+    def set_tab_bar_stylesheet(self):
 
         style_sheet = self.MainFrame.styleSheet()
         selected_text_color = "#FFFFFF" if self.theme == "dark" else "#000000"
@@ -268,7 +269,8 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         # 创建系统托盘图标
         self.tray_icon = QSystemTrayIcon(self)
         self.tray_icon.setIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-256x-AllSize.ico"))
-        self.tray_icon.setToolTip("FAA - 正在后台运行")
+        name=self.Name1P_Input.text()
+        self.tray_icon.setToolTip(f"FAA -{name} 正在后台运行")
 
         # 创建托盘菜单
         tray_menu = QMenu()

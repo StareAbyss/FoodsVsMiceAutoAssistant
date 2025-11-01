@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png
-from function.common.same_size_match import match_block_equal_in_images
+from function.common.image_processing.same_size_match import match_block_equal_in_images
 from function.globals import g_resources, EXTRA
 from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER

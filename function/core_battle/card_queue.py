@@ -59,23 +59,26 @@ class CardQueue(queue.PriorityQueue):
         if self.card_using:
             return False
 
+        # 上锁
         self.card_using = True
 
         # 查看队列顶部的元素
         card = self.peek()[1]
-        CUS_LOGGER.debug(f"尝试使用使用卡片 {card.name}")
+
+        # CUS_LOGGER.debug(f"{card.player} {card.name} 尝试使用使用卡片")
+
         # 卡片没有需要放置的位置 如果该卡正好是全新的卡背+没有可放置位置 会卡死 所以只要没有可放位置就移出队列
         if not card.coordinate_to:
             self.get()
             self.card_using = False
-            return True
+            return False
 
         # 如果这张卡被锁 移出队列
         if card.status_ban > 0:
-            CUS_LOGGER.debug(f"卡被ban")
+            # CUS_LOGGER.debug(f"{card.player} {card.name} 卡被ban")
             self.get()
             self.card_using = False
-            return True
+            return False
 
         # 未知卡片状态图 使用它(无限使用 直至更高顺位卡片完成冷却, 或成功获得状态)
         if card.state_images["冷却"] is None:
@@ -84,7 +87,7 @@ class CardQueue(queue.PriorityQueue):
                 # 试色成功 移出队列 (已经完成使用)
                 self.get()
                 self.card_using = False
-                return True
+                return False
             if try_result == 1:
                 # 直接读取成功 获取状态
                 card.fresh_status()
@@ -93,19 +96,18 @@ class CardQueue(queue.PriorityQueue):
                 self.card_using = False
                 return False
         card.fresh_status()
+
         # 如果卡片在cd中 移出队列
         if card.status_cd:
-            CUS_LOGGER.debug(f"卡cd中")
+            # CUS_LOGGER.debug(f"{card.player} {card.name} 卡cd中")
             self.get()
-            #说明队列触底了，需要立即回溯
-            if self.empty():
-                self.init_card_queue()
+            # 说明队列触底了，需要立即回溯
+            # if self.empty():
+            #     self.init_card_queue()
             self.card_using = False
             return False
-        CUS_LOGGER.debug(f"使用卡片: {card.name}成功")
+        # CUS_LOGGER.debug(f"{card.player} {card.name} 使用卡片成功")
         # 去使用这张卡
-        fast_fail=card.use_card()
+        is_use_success = card.use_card()
         self.card_using = False
-        if fast_fail is None:
-            return True
-        return False
+        return is_use_success

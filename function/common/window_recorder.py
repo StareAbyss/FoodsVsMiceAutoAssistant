@@ -1,13 +1,16 @@
+import ctypes
 import datetime
+import time
+from threading import Thread
 
 import cv2
 import numpy as np
+import win32con
 import win32gui
 import win32ui
-import win32con
-import ctypes
-import time
-from threading import Thread
+
+from function.globals.log import CUS_LOGGER
+
 # try:
 #     ctypes.windll.shcore.SetProcessDpiAwareness(2)  # 2 = Per-monitor v2 DPI awareness
 # except:
@@ -15,9 +18,10 @@ from threading import Thread
 
 
 class WindowRecorder:
-    def __init__(self, output_file="window_recording.mp4",handle=None, fps=30.0, window_title=None,see_time=False,is_show=False):
+    def __init__(self, output_file="window_recording.mp4", handle=None, fps=30.0, window_title=None, see_time=False,
+                 is_show=False):
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.output_file = output_file+f"{timestamp}.mp4"
+        self.output_file = output_file + f"{timestamp}.mp4"
         self.fps = fps
         self.window_title = window_title
         self.recording = False
@@ -28,6 +32,11 @@ class WindowRecorder:
         self.height = 0
         self.see_time = see_time
         self.is_show = is_show
+        # 添加DC相关属性
+        self.hwndDC = None
+        self.mfcDC = None
+        self.saveDC = None
+        self.saveBitMap = None
 
     def start_recording(self):
         """开始录制指定窗口"""
@@ -57,8 +66,8 @@ class WindowRecorder:
             print(f"检测到DPI缩放因子: {self.scale_factor:.2f}")
 
             # 如果需要，可以调整尺寸以匹配实际物理像素
-            self.width = int(self.width //self.scale_factor)
-            self.height = int(self.height //self.scale_factor)
+            self.width = int(self.width // self.scale_factor)
+            self.height = int(self.height // self.scale_factor)
 
         except Exception as e:
             print(f"获取DPI信息失败: {e}")
@@ -79,27 +88,32 @@ class WindowRecorder:
     def _record_window(self):
         """实际的窗口录制线程"""
         try:
+            # 初始化DC资源
+            self.hwndDC = win32gui.GetWindowDC(self.hwnd)
+            if not self.hwndDC:
+                print("无法获取窗口DC")
+                return
+
+            self.mfcDC = win32ui.CreateDCFromHandle(self.hwndDC)
+            self.saveDC = self.mfcDC.CreateCompatibleDC()
+            if not self.saveDC:
+                print("创建兼容DC失败")
+                return
+
+            # 创建位图
+            self.saveBitMap = win32ui.CreateBitmap()
+            self.saveBitMap.CreateCompatibleBitmap(self.mfcDC, self.width, self.height)
+
             while self.recording:
-                # 获取窗口DC
-                hwndDC = win32gui.GetWindowDC(self.hwnd)
-                if not hwndDC:
-                    print("无法获取窗口DC")
-                    continue  # 跳过本次循环
                 try:
-                    mfcDC = win32ui.CreateDCFromHandle(hwndDC)
-                    saveDC = mfcDC.CreateCompatibleDC()
-
-                    # 创建位图
-                    saveBitMap = win32ui.CreateBitmap()
-                    saveBitMap.CreateCompatibleBitmap(mfcDC, self.width, self.height)
-
+                    # 选择位图对象
+                    self.saveDC.SelectObject(self.saveBitMap)
                     # 拷贝图像
-                    saveDC.SelectObject(saveBitMap)
-                    saveDC.BitBlt((0, 0), (self.width, self.height), mfcDC, (0, 0), win32con.SRCCOPY)
+                    self.saveDC.BitBlt((0, 0), (self.width, self.height), self.mfcDC, (0, 0), win32con.SRCCOPY)
 
                     # 转换为numpy数组
-                    bmpinfo = saveBitMap.GetInfo()
-                    bmpstr = saveBitMap.GetBitmapBits(True)
+                    bmpinfo = self.saveBitMap.GetInfo()
+                    bmpstr = self.saveBitMap.GetBitmapBits(True)
                     img = np.frombuffer(bmpstr, dtype=np.uint8)
                     img.shape = (bmpinfo['bmHeight'], bmpinfo['bmWidth'], 4)
                     img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
@@ -165,37 +179,38 @@ class WindowRecorder:
 
                     # 控制帧率
                     time.sleep(1 / self.fps)
-                #释放资源避免内存泄露
-                finally:
-                    # 释放GDI资源
-                    try:
-                        if 'saveBitMap' in locals():
-                            saveBitMap.DeleteObject()
-                    except:
-                        pass
-
-                    try:
-                        if 'saveDC' in locals():
-                            saveDC.DeleteDC()
-                    except:
-                        pass
-
-                    try:
-                        if 'mfcDC' in locals():
-                            mfcDC.DeleteDC()
-                    except:
-                        pass
-
-                    try:
-                        if hwndDC:
-                            win32gui.ReleaseDC(self.hwnd, hwndDC)
-                    except:
-                        pass
+                except Exception as e:
+                    print(f"录制单帧时发生错误: {e}")
+                    continue
 
         except Exception as e:
-            print(f"录制过程中发生错误: {e}")
+            CUS_LOGGER.error(f"录制过程中发生错误: {e}")
+            import traceback
+            traceback.print_exc()  # 打印完整的错误堆栈
         finally:
-            # 释放资源
+            # 释放GDI资源
+            try:
+                if self.saveBitMap:
+                    self.saveBitMap.DeleteObject()
+            except:
+                pass
+            try:
+                if self.saveDC:
+                    self.saveDC.DeleteDC()
+            except:
+                pass
+            try:
+                if self.mfcDC:
+                    self.mfcDC.DeleteDC()
+            except:
+                pass
+            try:
+                if self.hwndDC:
+                    win32gui.ReleaseDC(self.hwnd, self.hwndDC)
+            except:
+                pass
+
+            # 释放视频写入器
             if self.out:
                 self.out.release()
                 self.out = None
@@ -209,9 +224,6 @@ class WindowRecorder:
             self.out.release()
             self.out = None
         print("视频写入器已释放")
-
-
-
 
 
 if __name__ == "__main__":
