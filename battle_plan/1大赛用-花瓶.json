@@ -1,0 +1,60 @@
+{
+    "meta_data": {
+        "uuid": "f0a6a87f-abcc-11f0-9b77-f4c88a4ed544",
+        "tips": "为什么要携带吐司面包？因为这是初始四件套，不可能没有(除非你买降解剂把吐司面包杀了），自动带卡下夜晚关卡因为没有咖啡粉会导致提示不带卡牌进不去关卡",
+        "player_position": [
+            "3-3",
+            "3-5",
+            "4-3",
+            "4-5",
+            "1-1",
+            "2-1",
+            "3-1",
+            "4-1",
+            "5-1",
+            "6-1",
+            "7-1",
+            "8-1",
+            "9-1"
+        ],
+        "version": "3.0"
+    },
+    "cards": [
+        {
+            "card_id": 1,
+            "name": "土司面包"
+        }
+    ],
+    "events": [
+        {
+            "trigger": {
+                "wave_id": 0,
+                "time": 0,
+                "type": "wave_timer"
+            },
+            "action": {
+                "cards": [
+                    {
+                        "card_id": 1,
+                        "ergodic": true,
+                        "queue": true,
+                        "location": [],
+                        "kun": 0
+                    }
+                ],
+                "type": "loop_use_cards"
+            }
+        },
+        {
+            "trigger": {
+                "wave_id": 1,
+                "time": 0,
+                "type": "wave_timer"
+            },
+            "action": {
+                "cards": [],
+                "type": "loop_use_cards"
+            }
+        }
+    ]
+}
