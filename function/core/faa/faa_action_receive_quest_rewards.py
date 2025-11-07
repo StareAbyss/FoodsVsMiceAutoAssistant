@@ -218,6 +218,9 @@ class FAAActionReceiveQuestRewards:
                 task_id, task_name, task_type, parameters, stage_param = task
                 parameters=json.loads(parameters)
                 if task_type=="刷关":
+                    if parameters.get("skip", False):
+                        self.print_debug(text=f"[扫描普通任务]跳过任务{task_name}")
+                        continue
                     if parameters.get("is_two_players", False):
                         player = [2, 1]
                     elif parameters.get("is_single_player", False):
@@ -239,6 +242,7 @@ class FAAActionReceiveQuestRewards:
                         "deck": parameters.get("deck", 0) or 0,  # 卡组选择
                         "battle_plan_1p": parameters.get("battle_plan_1p") or "00000000-0000-0000-0000-000000000000",  # battle_plan_1p 从参数或默认值获取
                         "battle_plan_2p": parameters.get("battle_plan_2p") or "00000000-0000-0000-0000-000000000001",  # battle_plan_2p 从参数或默认值获取
+                        "battle_plan_tweak": parameters.get("battle_plan_tweak") or "00000000-0000-0000-0000-000000000001",  #微调方案
                         "max_card_num": None if parameters.get("banned_card_count", 0)==0 else parameters.get("banned_card_count", None)  # 限制卡片最大数量
                     }
                     if parameters.get("card_name") not in (None, ''):
