@@ -1,5 +1,6 @@
 import copy
 import time
+import json
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -22,6 +23,9 @@ class FAABattle:
     def __init__(self):
         self.recorder = None
 
+
+
+
     def faa_battle_re_init(self: "FAA"):
         """战斗前调用, 重新初始化部分每场战斗都要重新刷新的该内私有属性"""
         self.is_used_key = False
@@ -37,6 +41,15 @@ class FAABattle:
             self.max_wave = max(e["trigger"]["wave_id"] for e in gem_events)
         else:
             self.max_wave = -1
+
+        # 读取禁用卡片名单
+        self.banned_card_names = []
+        try:
+            with open(PATHS["config"] + "//banned_cards.json", "r", encoding="utf-8") as file:
+                self.banned_card_names = json.load(file)
+        except FileNotFoundError:
+            # 如果文件不存在，使用默认名单
+            self.banned_card_names = ["护罩", "瓜皮"]
 
     """铲子"""
 
@@ -254,6 +267,7 @@ class FAABattle:
 
         CUS_LOGGER.info(f"[{self.player}P] 当前波次:{new_wave}, 已检测到转变, 即将启动变阵方案")
 
+
         # 备份旧方案
         plans = {
             "old": copy.deepcopy(self.battle_plan_card),
@@ -285,7 +299,14 @@ class FAABattle:
 
                         if location in card["location"]:
                             if card["name"] != "":
-                                if ("护罩" not in card["name"]) and ("瓜皮" not in card["name"]):
+                                # 检查卡片是否在禁用名单中
+                                is_banned = False
+                                for banned_name in self.banned_card_names:
+                                    if banned_name in card["name"]:
+                                        is_banned = True
+                                        break
+
+                                if not is_banned:
                                     location_cid[p_type][location].append(card["card_id"])
 
                 if location_cid["old"][location] == location_cid["new"][location]:
