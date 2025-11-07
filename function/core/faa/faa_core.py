@@ -1501,8 +1501,25 @@ class FAABase:
             return False
 
         def try_relink() -> bool:
-            pass
+            """
+            循环判断是否处于页面无法访问网页上(刷新无用，因为那是单独的网页)
+            如果是, 就点击红色按钮
+            """
 
+            # 查找 + 点击红色按钮（但点击不一定有效果!）
+            my_result = loop_match_p_in_w(
+                source_handle=self.handle_browser,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 2000, 2000],
+                template=RESOURCE_P["error"]["retry_btn.png"],
+                match_tolerance=0.90,
+                click=True,
+                after_sleep=3,
+                match_interval=0.5,
+                match_failed_check=10
+            )
+
+            return my_result
         def action_after_success() -> None:
             """
             成功进入游戏的收尾动作
@@ -1584,7 +1601,12 @@ class FAABase:
                 # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
                 if self.extra_sleep["need_sleep"]:
                     time.sleep(self.extra_sleep["sleep_time"])
-
+                # 进行断线重连的判断
+                self.print_debug(text="[刷新游戏] 进入断线重连判断...")
+                if try_relink():
+                    self.print_debug(text="[刷新游戏] 成功点击断线重连")
+                else:
+                    self.print_debug(text="[刷新游戏] 无需断线重连")
                     # 依次判断是否在选择服务器界面
                 self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 判定平台...")
 
@@ -1604,6 +1626,7 @@ class FAABase:
                     self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 成功进入 - QQ游戏大厅平台")
 
                 else:
+                    # QQ空间需重新登录
                     self.print_debug(
                         text=f"[刷新游戏] [第{fresh_count}轮] 未找到进入服务器按钮, 可能原因: "
                              f"1.QQ空间需重新登录 2.360X4399微端直接进入了游戏 3.需断线重连 4.意外情况 (丢失自动登录)")
