@@ -1526,18 +1526,36 @@ class FAABase:
                 after_sleep=1,
                 click=True)
 
-            self.print_debug(text="[刷新游戏] 尝试关闭每日必充界面")
-            # [每天第一次登陆] 每日必充界面关闭
+            # 周年庆打卡界面实测要近5s才会弹出，预留2s加载时间
+            self.print_debug(text="[刷新游戏] 等待周年庆打卡页面弹出")
+            time.sleep(7)
+            self.print_debug(text="[刷新游戏] 尝试关闭周年庆打卡界面")
+            # [每天第一次登陆]周年庆打卡界面关闭
             loop_match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 950, 600],
-                template=RESOURCE_P["common"]["登录"]["4_退出假期特惠.png"],
+                template=RESOURCE_P["common"]["登录"]["4_退出周年庆打卡.png"],
                 match_tolerance=0.99,
                 match_interval=0.2,
                 match_failed_check=3,
                 after_sleep=1,
-                click=True)
+                click=True,
+            )
+
+            self.print_debug(text="[刷新游戏] 尝试关闭假期特惠界面")
+            # [每天第一次登陆] 假期特惠界面关闭
+            loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=[0, 0, 950, 600],
+                template=RESOURCE_P["common"]["登录"]["5_退出假期特惠.png"],
+                match_tolerance=0.99,
+                match_interval=0.2,
+                match_failed_check=3,
+                after_sleep=1,
+                click=True,
+            )
 
         def main() -> bool:
             """
