@@ -6,16 +6,18 @@ import random
 import time
 import traceback
 from ctypes import windll
-from threading import Timer
+from threading import Timer, Thread
 from typing import Union, TYPE_CHECKING
-
+import numpy as np
 import cv2
+
 from PyQt6.QtCore import QThread, pyqtSignal
 
 from function.common.bg_img_screenshot import capture_image_png, capture_image_png_all
 from function.core_battle.card import Card, CardKun, SpecialCard
 from function.core_battle.card_queue import CardQueue
-from function.core_battle.special_card_strategy import solve_special_card_problem
+from function.core_battle.special_card_strategy import solve_special_card_problem, solve_maximize_score_problem, \
+    STRATEGIES_OB, STRATEGIES_2_OB
 from function.globals import EXTRA, SIGNAL
 from function.globals.get_paths import PATHS
 from function.globals.location_card_cell_in_battle import COORDINATE_CARD_CELL_IN_BATTLE
@@ -66,7 +68,41 @@ def is_special_card(card_name):
 
     # 如果没有找到匹配的文件，返回匹配状态为False
     return {"found": False}
+def is_obstacle_card(card_name):
+    """判断是否为清障类卡，并返回匹配文件所在子目录的名称"""
+    base_path = PATHS["image"]["card"] + "\\障碍对策"
+    card_name = os.path.splitext(card_name)[0]  # 移除传入名字的扩展名
 
+    # 遍历目录及其子目录
+    for root, dirs, files in os.walk(base_path):
+        for file in files:
+            # 解析文件名并移除扩展名
+            base_name = os.path.splitext(file)[0]
+            rows = None
+            cols = None
+            if '_' in base_name:
+                parts = base_name.split('_')
+                base_name = parts[0]
+                card_type = parts[1]
+                if len(parts) > 2:
+                    cols = int(parts[2])
+                if len(parts) > 3:
+                    rows = int(parts[3])
+
+            # 检查是否匹配
+            if base_name == card_name:
+                # 计算子目录的名称
+                subdir_name = os.path.relpath(root, base_path)
+                return {
+                    "found": True,
+                    "subdir_name": subdir_name,
+                    "card_type": int(card_type),
+                    "rows": rows,
+                    "cols": cols}
+                # 返回匹配状态和匹配文件所在子目录的名称
+
+    # 如果没有找到匹配的文件，返回匹配状态为False
+    return {"found": False}
 
 # # 示例使用
 # card_name = "电音镭射喵"
@@ -136,6 +172,8 @@ class CardManager(QThread):
         self.card_list_dict = {}
         self.card_list_unique = {}
         self.special_card_list = {}
+
+        self.break_ice_card_list = {}
         self.kun_cards_dict = {}
         self.card_queue_dict = {}
 
@@ -153,6 +191,7 @@ class CardManager(QThread):
         self.ice_boom_dict_list = {1: [], 2: []}
         self.the_9th_fan_dict_list = {1: [], 2: []}
         self.shield_dict_list = {1: [], 2: []}
+        self.obstacle_card_list = {1: [], 2: []}
 
         # 刷新全局冰沙锁
         EXTRA.SMOOTHIE_LOCK_TIME = 0
@@ -227,60 +266,86 @@ class CardManager(QThread):
                 # 激活了高级战斗
                 for set_priority in range(len(cards_plan)):
 
-                    result = is_special_card(cards_plan[set_priority]["name"])
+                    result1 = is_special_card(cards_plan[set_priority]["name"])
+                    result2 = is_obstacle_card(cards_plan[set_priority]["name"])
 
-                    if not result["found"]:
+                    if not result1["found"] and not result2["found"]:
                         # 普通卡
                         card = Card(faa=faa, set_priority=set_priority)
                         self.card_list_dict[pid].append(card)
                         continue
-
+                    if result1["found"]:
                         # 高级战斗目标
-                    if result["card_type"] == 11:
-                        # 冰桶类
-                        s_card = SpecialCard(
-                            faa=faa,
-                            set_priority=set_priority,
-                            energy=result["energy"],
-                            card_type=result["card_type"])
-                        self.ice_boom_dict_list[pid].append(s_card)
-
-                    elif result["card_type"] == 14:
-                        # 草扇
-                        s_card = SpecialCard(
-                            faa=faa,
-                            set_priority=set_priority,
-                            energy=result["energy"],
-                            card_type=result["card_type"])
-                        self.the_9th_fan_dict_list[pid].append(s_card)
-
-                    elif result["card_type"] <= 15:
-                        # 各种炸弹类卡片 包括瓜皮类炸弹
-                        s_card = SpecialCard(
-                            faa=faa,
-                            set_priority=set_priority,
-                            energy=result["energy"],
-                            card_type=result["card_type"],
-                            rows=result["rows"],
-                            cols=result["cols"])
-                        self.special_card_list[pid].append(s_card)
-
-                        if result["card_type"] == 12:
-                            # 护罩类，除了炸弹还可能是常驻的罩子
-                            card_shield = Card(faa=faa, set_priority=set_priority)
+                        if result1["card_type"] == 11:
+                            # 冰桶类
                             s_card = SpecialCard(
                                 faa=faa,
                                 set_priority=set_priority,
-                                energy=result["energy"],
-                                card_type=result["card_type"],
-                                rows=result["rows"],
-                                cols=result["cols"],
-                                n_card=card_shield)  # 建立特殊卡护罩与常规卡护罩之间的连接
-                            # 以特殊卡加入特殊放卡
-                            self.shield_dict_list[pid].append(s_card)
-                            # 以普通卡版本加入放卡
-                            self.card_list_dict[pid].append(card_shield)
+                                energy=result1["energy"],
+                                card_type=result1["card_type"])
+                            self.ice_boom_dict_list[pid].append(s_card)
 
+                        elif result1["card_type"] == 14:
+                            # 草扇
+                            s_card = SpecialCard(
+                                faa=faa,
+                                set_priority=set_priority,
+                                energy=result1["energy"],
+                                card_type=result1["card_type"])
+                            self.the_9th_fan_dict_list[pid].append(s_card)
+
+                        elif result1["card_type"] <= 15:
+                            # 各种炸弹类卡片 包括瓜皮类炸弹
+                            s_card = SpecialCard(
+                                faa=faa,
+                                set_priority=set_priority,
+                                energy=result1["energy"],
+                                card_type=result1["card_type"],
+                                rows=result1["rows"],
+                                cols=result1["cols"])
+                            self.special_card_list[pid].append(s_card)
+
+                            if result1["card_type"] == 12:
+                                # 护罩类，除了炸弹还可能是常驻的罩子
+                                card_shield = Card(faa=faa, set_priority=set_priority)
+                                s_card = SpecialCard(
+                                    faa=faa,
+                                    set_priority=set_priority,
+                                    energy=result1["energy"],
+                                    card_type=result1["card_type"],
+                                    rows=result1["rows"],
+                                    cols=result1["cols"],
+                                    n_card=card_shield)  # 建立特殊卡护罩与常规卡护罩之间的连接
+                                # 以特殊卡加入特殊放卡
+                                self.shield_dict_list[pid].append(s_card)
+                                # 以普通卡版本加入放卡
+                                self.card_list_dict[pid].append(card_shield)
+                    if result2["found"]:
+                        if result2["card_type"] == 17:
+                            # 各种碎冰类卡片
+                            s_card = SpecialCard(
+                                faa=faa,
+                                set_priority=set_priority,
+                                card_type=result2["card_type"],
+                                rows=result2["rows"],
+                                cols=result2["cols"])
+                            self.break_ice_card_list[pid].append(s_card)
+                        elif result2["card_type"] == 18:
+                            # 各种清障类卡片
+                            s_card = SpecialCard(
+                                faa=faa,
+                                set_priority=set_priority,
+                                card_type=result2["card_type"],
+                                rows=result2["rows"],
+                                cols=result2["cols"])
+                            self.obstacle_card_list[pid].append(s_card)
+                        elif result2["card_type"] == 19:
+                            # 全屏清障类卡片
+                            s_card = SpecialCard(
+                                faa=faa,
+                                set_priority=set_priority,
+                                card_type=result2["card_type"])
+                            self.obstacle_card_list[pid].append(s_card)
             for pid in self.pid_list:
 
                 faa = self.faa_dict[pid]
@@ -384,7 +449,9 @@ class CardManager(QThread):
                     is_group=self.is_group,
                     ice_boom_dict_list=self.ice_boom_dict_list,
                     the_9th_fan_dict_list=self.the_9th_fan_dict_list,
-                    shield_dict_list=self.shield_dict_list
+                    shield_dict_list=self.shield_dict_list,
+                    obstacle_card_list=self.obstacle_card_list,
+                    break_ice_card_list=self.break_ice_card_list
                 )
 
             CUS_LOGGER.info("[战斗执行器] 线程已全部实例化")
@@ -1190,13 +1257,15 @@ class ThreadInsertUseCardTimer(QThread):
 
 class ThreadUseSpecialCardTimer(QThread):
     def __init__(self, faa_dict, callback_interval, read_queue, is_group: bool,
-                 bomb_card_list, ice_boom_dict_list, the_9th_fan_dict_list, shield_dict_list):
+                 bomb_card_list,obstacle_card_list,break_ice_card_list, ice_boom_dict_list, the_9th_fan_dict_list, shield_dict_list):
         """
         :param faa_dict:faa实例字典
         :param callback_interval:读取频率
         :param read_queue:高危目标队列
         :param is_group:是否组队
         :param bomb_card_list: 该类卡片为炸弹 在战斗方案中写入其from位置 在此处计算得出to位置 并进行其使用
+        :param obstacle_card_list: 该类卡片为清障卡 在战斗方案中写入其from位置 在此处计算得出to位置 并进行其使用
+        :param break_ice_card_list: 该类卡片为碎冰卡 在战斗方案中写入其from位置 在此处计算得出to位置 并进行其使用
         :param ice_boom_dict_list: 该类卡片为冰冻 在战斗方案中指定其from和to位置 在此处仅进行使用
         :param the_9th_fan_dict_list: 该类卡片为草扇 在战斗方案中指定其from和to位置 在此处仅进行使用
         :param shield_dict_list: 该类卡片为 炸弹类护罩 额外记录 以方便锁定和解锁相应的卡片的普通放卡
@@ -1212,26 +1281,98 @@ class ThreadUseSpecialCardTimer(QThread):
         self.flag = None
         self.todo_dict = {1: [], 2: []}
         self.card_list_can_use = {1: [], 2: []}
+        self.card_list_can_use_obstacle = {1: [], 2: []}
         self.pid_list = [1, 2] if self.is_group else [1]
 
         # 记录每种类型的卡片 有哪些 格式
         # { 1: [obj_s_card_1, obj_s_card_2, ...], 2:[...] }
         self.special_card_list = bomb_card_list
+        self.obstacle_card_list = obstacle_card_list
+        self.break_ice_card_list = break_ice_card_list
         self.ice_boom_dict_list = ice_boom_dict_list
         self.the_9th_fan_dict_list = the_9th_fan_dict_list
         self.shield_dict_list = shield_dict_list
 
         self.shield_used_dict_list = {1: [], 2: []}
+        
+        # 添加记忆化障碍情况的属性
+        self.obstacle_memory = []  # 存储最近几次的障碍情况
+        self.score_matrix = np.zeros((7, 9))  # 7x9的评分矩阵，初始化为0
+        self.max_memory_length = 5  # 最大记忆长度
+        
+        # 添加策略执行历史记录
+        self.strategy_history = []  # 存储最近几次的策略执行记录
+        self.max_strategy_history_length = 3  # 最大策略历史记录长度
+        
+        # 添加可调节参数
+        self.min_appearances_for_real_obstacle = 2  # 判断为真实障碍的最小出现次数
+        self.strategy_effect_duration = 3.3  # 策略效果持续时间（秒）
+        self.score_reduction_during_strategy = 3  # 策略影响期间的评分降低值
+        self.score_reduction_when_absent = 1  # 当前不存在时的评分降低值
+        self.min_score_after_strategy_effect = 1.0  # 策略影响期间的最低评分
+        """
+        1. 障碍判断参数
+        min_appearances_for_real_obstacle (默认值: 2)
+        用途：判断一个位置是否为真实障碍所需的最小出现次数
+        调整建议：
+        增大该值：系统变得更保守，只有非常确定的障碍才会被处理
+        减小该值：系统变得更敏感，可能会处理一些偶发的障碍
+        2. 策略效果参数
+        strategy_effect_duration (默认值: 3.3)
+        用途：策略被认为有效的持续时间（秒）
+        调整建议：
+        增大该值：系统会给策略更长的生效时间窗口
+        减小该值：系统会更快地重新评估策略效果
+        3. 评分调整参数
+        score_reduction_during_strategy (默认值: 3)
+        用途：当位置受策略影响时的评分降低值
+        调整建议：
+        增大该值：系统更倾向于认为策略正在生效，会更大程度地降低评分
+        减小该值：系统对策略效果持更保守态度
+        min_score_after_strategy_effect (默认值: 1.0)
+        用途：策略影响期间的最低评分（防止评分降至0）
+        调整建议：
+        增大该值：即使在策略影响下，障碍仍会被认为有一定重要性
+        减小该值：策略影响下障碍的重要性会更低
+        score_reduction_when_absent (默认值: 1)
+        用途：当障碍当前不存在时的评分降低值
+        调整建议：
+        增大该值：系统更快地忘记已不存在的障碍
+        减小该值：系统更缓慢地降低不存在障碍的评分
+        4. 记忆长度参数
+        max_memory_length (默认值: 5)
+        用途：保存的障碍检测历史记录的最大数量
+        调整建议：
+        增大该值：系统考虑更多的历史信息，判断更稳定但响应较慢
+        减小该值：系统更关注近期信息，响应更快但可能不够稳定
+        max_strategy_history_length (默认值: 3)
+        用途：保存的策略执行历史记录的最大数量
+        调整建议：
+        增大该值：系统考虑更多的策略历史，但可能增加计算负担
+        减小该值：系统只关注最近的策略，计算更快但可能遗漏信息
+        """
+        
+        # 添加可视化相关的属性
+        self.visualization_thread = None
+        self.visualization_running = False
+        
+        # 添加用于存储策略影响前评分矩阵的属性
+        self.previous_score_matrix = np.zeros((7, 9))  # 7x9的评分矩阵，初始化为0
+        self.now_score_matrix = np.zeros((7, 9))  # 7x9的评分矩阵，初始化为0
 
     def run(self):
         self.timer = Timer(interval=self.callback_interval, function=self.callback_timer)
         self.running = True
         self.timer.start()
 
+        # 启动清障可视化线程（供调试看效果用）
+        # self.start_visualization()
+
         self.faa_dict[1].print_debug('[战斗执行器] 启动特殊放卡线程')
         self.exec()
 
         self.running = False
+
 
     def stop(self):
         self.faa_dict[1].print_info("[战斗执行器] ThreadUseSpecialCardTimer stop方法已激活")
@@ -1240,6 +1381,9 @@ class ThreadUseSpecialCardTimer(QThread):
         if self.timer:
             self.timer.cancel()
         self.timer = None
+
+        # 停止可视化线程
+        self.stop_visualization()
 
         # 清除引用; 释放内存; 如果对应的timer正在运行中 会当场报错强制退出
         self.faa_dict = None
@@ -1252,6 +1396,7 @@ class ThreadUseSpecialCardTimer(QThread):
         self.wait()
         # print("[战斗执行器] ThreadUseCardTimer - stop - 线程已等待完成")
 
+
     def fresh_all_card_status(self):
         for pid in self.pid_list:
             faa = self.faa_dict[pid]
@@ -1263,10 +1408,11 @@ class ThreadUseSpecialCardTimer(QThread):
                 for card in card_list_list:
                     card.fresh_status(game_image)
 
+
     def check_special_card(self):
 
         result = self.read_queue.get()  # 不管能不能用对策卡先提取信息再说，免得队列堆积
-        CUS_LOGGER.debug(f"待二次加工信息为{result} ")
+        CUS_LOGGER.debug(f"从管道获取到状态信息：{result} ")
         if result is None:
             return
 
@@ -1277,9 +1423,17 @@ class ThreadUseSpecialCardTimer(QThread):
         if not self.pid_list:
             return
 
-        wave, god_wind, need_boom_locations = result  # 分别为是否波次，是否神风及待炸点位列表
+        wave, god_wind, need_boom_locations, obstacle = result  # 分别为是否波次，是否神风及待炸点位列表,可清除障碍列表
 
-        if wave or god_wind or need_boom_locations:  # 任意一个就刷新状态
+        # 更新障碍记忆
+        if obstacle is not None:
+            self.update_obstacle_memory(obstacle)
+            
+            # 打印当前评分矩阵用于调试
+            CUS_LOGGER.debug(f"当前障碍评分矩阵:\n{self.score_matrix}")
+
+        
+        if wave or god_wind or need_boom_locations or  obstacle:  # 任意一个就刷新状态
             CUS_LOGGER.debug(f"刷新特殊放卡状态")
             self.todo_dict = {1: [], 2: []}  # 1 2 对应两个角色
         else:
@@ -1313,6 +1467,31 @@ class ThreadUseSpecialCardTimer(QThread):
 
         if god_wind:
             wave_or_god_wind_append_to_todo(card_list=self.the_9th_fan_dict_list)
+
+        # 处理可清除障碍的最大化得分策略（与爆炸点位最小化成本策略独立并行）
+        if obstacle is not None:
+            self.card_list_can_use_obstacle = {1: [], 2: []}
+
+            for pid in self.pid_list:
+
+                # 获取 是否有卡片 没有完成状态监测
+                not_got_state_images_cards = []
+                for card in self.obstacle_card_list[pid]:
+                    if card.state_images["冷却"] is None:
+                        not_got_state_images_cards.append(card)
+                CUS_LOGGER.debug(f"未完成列表{not_got_state_images_cards}")
+                if not_got_state_images_cards:
+                    # 如果有卡片未完成状态监测, 则将未完成状态监测的卡片加入到待处理列表中
+                    self.card_list_can_use_obstacle[pid] = not_got_state_images_cards
+                else:
+                    # 如果均完成了状态监测, 则将所有状态为可用的卡片加入待处理列表中
+                    self.card_list_can_use_obstacle[pid] = []
+                for card in (set(self.obstacle_card_list[pid]) - set(self.card_list_can_use_obstacle[pid])):
+                    card.fresh_status()
+                    if card.status_usable:
+                        self.card_list_can_use_obstacle[pid].append(card)
+            CUS_LOGGER.debug(f"当前可用清障卡片队列{self.card_list_can_use_obstacle}")
+            self.handle_maximize_score_strategy(obstacle)
 
         if need_boom_locations:
             self.card_list_can_use = {1: [], 2: []}
@@ -1369,7 +1548,7 @@ class ThreadUseSpecialCardTimer(QThread):
                 for card in unused_shields:
                     card.n_card.can_use = True
 
-        if wave or god_wind or need_boom_locations:  # 任意一个就刷新状态
+        if wave or god_wind or need_boom_locations or obstacle is not None:  # 任意一个就刷新状态
             CUS_LOGGER.debug(f"特殊用卡队列: {self.todo_dict}")
             CUS_LOGGER.debug(f"0.01秒后开始特殊对策卡放卡")
             self.timer = Timer(interval=0.01, function=self.use_card, args=(1,))  # 1p 0.01秒后开始放卡
@@ -1423,3 +1602,357 @@ class ThreadUseSpecialCardTimer(QThread):
 
             # 清空对应任务
             self.todo_dict[player] = []
+
+    def update_obstacle_memory(self, current_obstacles):
+        """
+        更新障碍记忆，维护一个固定长度的历史记录
+        :param current_obstacles: 当前障碍列表
+        """
+        # 将当前障碍添加到记忆中，包含时间戳
+        self.obstacle_memory.append({
+            "time": time.time(),
+            "obstacles": set(current_obstacles)
+        })
+        
+        # 如果记忆超过最大长度，则移除最旧的记录
+        if len(self.obstacle_memory) > self.max_memory_length:
+            self.obstacle_memory.pop(0)
+            
+        CUS_LOGGER.debug(f"更新障碍记忆，当前记忆长度: {len(self.obstacle_memory)}")
+
+    def handle_maximize_score_strategy(self, current_obstacles):
+        """
+        处理最大化得分策略（与爆炸点位最小化成本策略独立）
+        :param current_obstacles: 当前障碍列表
+        """
+
+        
+        # 根据记忆化的历史障碍信息生成可靠的评分矩阵
+        self.update_score_matrix_from_memory(current_obstacles)
+
+        # 设定阈值，用于区分真正存在的障碍和误识别/漏识别的障碍
+        score_threshold = self.min_appearances_for_real_obstacle  # 使用可调节参数
+
+        # 保存策略执行前的评分矩阵用于可视化显示
+        self.now_score_matrix = self.score_matrix.copy()
+
+        # 调用 solve_maximize_score_problem 获取最佳策略
+        result = solve_maximize_score_problem(
+            obstacles=self.faa_dict[1].stage_info["obstacle"],  # 传递固定障碍物列表
+            score_matrix=self.score_matrix.tolist(),
+            card_list_can_use=self.card_list_can_use_obstacle,
+            score_threshold=score_threshold
+        )
+
+        if result is not None:
+            strategy1, strategy2, strategy1_scores, strategy2_scores = result
+            
+            # 导入策略字典
+            from function.core_battle.special_card_strategy import STRATEGIES_OB, STRATEGIES_2_OB
+            
+            # 为策略1添加覆盖范围信息
+            strategy1_with_coverage = {}
+            for card, pos in strategy1.items():
+                coverage = STRATEGIES_OB.get(card, {}).get("coverage", [])
+                strategy1_with_coverage[card] = {"pos": pos, "coverage": coverage}
+            
+            # 为策略2添加覆盖范围信息
+            strategy2_with_coverage = {}
+            for card, pos in strategy2.items():
+                coverage = STRATEGIES_2_OB.get(card, {}).get("coverage", [])
+                strategy2_with_coverage[card] = {"pos": pos, "coverage": coverage}
+
+            # 创建策略记录
+            strategy_record = {
+                "time": time.time(),
+                "strategy1": strategy1_with_coverage,
+                "strategy2": strategy2_with_coverage,
+                "scores1": strategy1_scores,
+                "scores2": strategy2_scores
+            }
+            
+            # 正式记录策略执行历史
+            self.strategy_history.append(strategy_record)
+            
+            # 如果历史记录超过最大长度，则移除最旧的记录
+            if len(self.strategy_history) > self.max_strategy_history_length:
+                self.strategy_history.pop(0)
+
+            # 根据策略执行操作
+            strategy_dict = {1: strategy1, 2: strategy2}
+
+            for pid in self.pid_list:
+                for card, pos in strategy_dict[pid].items():
+                    # 将计算完成的放卡结构 写入到对应角色的todo dict 中
+                    self.todo_dict[pid].append({"card": card, "location": [f"{pos[0]}-{pos[1]}"]})
+
+
+
+    def update_score_matrix_from_memory(self, current_obstacles, strategy_history=None):
+        """
+        根据记忆化的障碍历史更新评分矩阵，用于确定真正存在的障碍
+        :param current_obstacles: 当前障碍列表
+        :param strategy_history: 策略历史记录（可选，默认使用self.strategy_history）
+        """
+        # 重置评分矩阵
+        self.score_matrix = np.zeros((7, 9))
+        
+        # 如果没有历史记录，则无需更新
+        if not self.obstacle_memory:
+            return
+        
+        current_time = time.time()
+        
+        # 统计每个位置在历史中作为障碍出现的次数，并考虑时间因素
+        for record in self.obstacle_memory:
+            time_diff = current_time - record["time"]
+            # 根据时间差计算权重，越近的记录权重越高
+            time_weight = 1.0
+            if self.strategy_effect_duration > 0:
+                # 距离现在越近权重越高，最多1.5倍权重
+                time_weight = min(1.5, max(0.5, 1.0 + (0.5 * (self.strategy_effect_duration - time_diff) / self.strategy_effect_duration)))
+            
+            for obstacle in record["obstacles"]:
+                # 解析障碍位置 "x-y" 格式
+                x, y = map(int, obstacle.split('-'))
+                # 转换为0基索引
+                if 1 <= x <= 9 and 1 <= y <= 7:
+                    self.score_matrix[y-1][x-1] += time_weight
+        
+        current_time = time.time()
+        current_obstacle_set = set(current_obstacles)
+        # 在执行策略前保存评分矩阵，确保正确反映策略执行前的状态
+        self.previous_score_matrix = self.score_matrix.copy()
+        # 对于每个位置，根据出现频率和策略影响来调整评分
+        for y in range(7):
+            for x in range(9):
+                coord = f"{x+1}-{y+1}"
+                
+                # 检查该位置在最近几次检测中的出现次数
+                recent_appearances = 0
+                for record in self.obstacle_memory:
+                    if coord in record["obstacles"]:
+                        recent_appearances += 1
+                
+                # 检查最近是否有策略作用于该位置
+                recent_strategy_effect = self.check_recent_strategy_effect(x+1, y+1, current_time, strategy_history)
+                
+                # 使用可调节参数的核心逻辑：
+                # 1. 如果位置在最近记忆中多次出现（≥min_appearances_for_real_obstacle）
+                #    - 如果最近没有策略影响：认为是真实障碍，使用原始评分
+                #    - 如果最近有策略影响：暂时降低评分（策略可能正在生效）
+                # 2. 如果位置出现次数较少（<min_appearances_for_real_obstacle）
+                #    - 如果最近有策略影响：进一步降低评分（策略可能已生效）
+                #    - 如果最近无策略影响：可能是偶尔出现的误检，降低评分
+                # 3. 如果当前位置没有该障碍：降低评分（可能已被清除）
+                
+                if recent_appearances >= self.min_appearances_for_real_obstacle:  # 最近多次出现
+                    if recent_strategy_effect > 0:  # 最近有策略影响
+                        # 策略可能正在生效，暂时降低评分
+                        # 直接使用设定的评分降低值
+                        reduction = self.score_reduction_during_strategy
+                        self.score_matrix[y][x] = max(
+                            self.min_score_after_strategy_effect, 
+                            self.score_matrix[y][x] - reduction)
+                    # 如果最近无策略影响，保持原始评分（认为是真实障碍）
+                else:  # 出现次数较少
+                    if recent_strategy_effect > 0:  # 有策略影响
+                        # 策略可能已生效，降低评分
+                        # 直接使用设定的评分降低值
+                        reduction = self.score_reduction_during_strategy
+                        self.score_matrix[y][x] = max(0, self.score_matrix[y][x] - reduction)
+                    # 如果无策略影响且出现次数少，评分已在初始化时设为0
+                
+        # 对于当前未检测到的障碍，进一步降低评分
+        for y in range(7):
+            for x in range(9):
+                coord = f"{x+1}-{y+1}"
+                # 如果该位置当前不是障碍但历史评分大于0，则降低评分
+                if self.score_matrix[y][x] > 0 and coord not in current_obstacle_set:
+                    self.score_matrix[y][x] = max(0, self.score_matrix[y][x] - self.score_reduction_when_absent)
+
+    def check_recent_strategy_effect(self, x, y, current_time, strategy_history=None):
+        """
+        检查最近是否有策略作用于指定位置
+        :param x: x坐标 (1-9)
+        :param y: y坐标 (1-7)
+        :param current_time: 当前时间
+        :param strategy_history: 策略历史记录（可选，默认使用self.strategy_history）
+        :return: 是否有最近策略作用
+        """
+        
+        # 如果提供了策略历史记录，则使用它，否则使用默认的历史记录
+        if strategy_history is None:
+            strategy_history = self.strategy_history
+        
+        # 检查最近的策略执行记录
+        for record in strategy_history:
+            # 使用可调节参数：只考虑策略效果持续时间内的策略执行记录
+            time_diff = current_time - record["time"]
+            if time_diff <= self.strategy_effect_duration:
+                # 检查策略1
+                for card, info in record["strategy1"].items():
+                    pos = info["pos"]
+                    coverage = info["coverage"]
+                    # 遍历卡片的覆盖范围
+                    for offset_x, offset_y in coverage:
+                        target_x, target_y = pos[0] + offset_x, pos[1] + offset_y
+                        # 检查该策略是否覆盖了指定位置
+                        if target_x == x and target_y == y:
+                            return 1.0  # 返回固定权重1.0，确保评分降低值为2
+                
+                # 检查策略2
+                for card, info in record["strategy2"].items():
+                    pos = info["pos"]
+                    coverage = info["coverage"]
+                    # 遍历卡片的覆盖范围
+                    for offset_x, offset_y in coverage:
+                        target_x, target_y = pos[0] + offset_x, pos[1] + offset_y
+                        # 检查该策略是否覆盖了指定位置
+                        if target_x == x and target_y == y:
+                            return 1.0  # 返回固定权重1.0，确保评分降低值为2
+        
+        return 0.0  # 没有策略影响则返回0
+
+    def start_visualization(self):
+        """
+        启动可视化线程，专门用于显示障碍评分情况
+        """
+        if self.visualization_thread is None or not self.visualization_thread.is_alive():
+            self.visualization_running = True
+            self.visualization_thread = Thread(target=self.visualization_worker)
+            self.visualization_thread.daemon = True
+            self.visualization_thread.start()
+            CUS_LOGGER.info("[战斗执行器] 障碍评分可视化线程已启动")
+
+    def stop_visualization(self):
+        """
+        停止可视化线程
+        """
+        self.visualization_running = False
+        if self.visualization_thread and self.visualization_thread.is_alive():
+            self.visualization_thread.join(timeout=1.0)
+        self.visualization_thread=None
+        CUS_LOGGER.info("[战斗执行器] 障碍评分可视化线程已停止")
+
+    def visualization_worker(self):
+        """
+        可视化工作线程函数
+        """
+        while self.visualization_running:
+            try:
+                # 创建一个图像来显示评分矩阵
+                self.display_score_matrix()
+                time.sleep(1.0)  # 每秒更新一次
+            except Exception as e:
+                CUS_LOGGER.error(f"[战斗执行器] 可视化线程出错: {e}")
+                time.sleep(1.0)  # 出错时也继续运行
+
+    def display_score_matrix(self):
+        """
+        显示当前的评分矩阵和策略影响前的评分矩阵
+        """
+        if not self.visualization_running:
+            return
+        display_height, display_width = 350, 450
+        img = np.zeros((display_height, display_width, 3), dtype=np.uint8)
+
+        img[:] = (30, 30, 30)
+        cell_height = display_height // 7
+        cell_width = display_width // 9
+        
+        # 计算两个矩阵的最大评分
+        max_score_before = np.max(self.previous_score_matrix) if np.max(self.previous_score_matrix) > 0 else 1
+        max_score_after = np.max(self.score_matrix) if np.max(self.score_matrix) > 0 else 1
+        max_score = max(max_score_before, max_score_after)
+        
+        for y in range(7):
+            for x in range(9):
+                # 计算单元格位置
+                x1 = x * cell_width
+                y1 = y * cell_height
+                x2 = x1 + cell_width
+                y2 = y1 + cell_height
+                score_before = self.previous_score_matrix[y, x]
+                score_after = self.now_score_matrix[y, x]
+                if score_after > 0:
+                    normalized_score = score_after / max_score
+                    if normalized_score < 0.5:
+                        b = int(255 * (1 - normalized_score * 2))
+                        g = int(255 * normalized_score * 2)
+                        r = 0
+                    else:
+                        b = 0
+                        g = int(255 * (1 - (normalized_score - 0.5) * 2))
+                        r = int(255 * (normalized_score - 0.5) * 2)
+                    cv2.rectangle(img, (x1, y1), (x2, y2), (b, g, r), -1)
+                elif score_before > 0:
+                    cv2.rectangle(img, (x1, y1), (x2, y2), (100, 100, 100), -1)
+                else:
+
+                    cv2.rectangle(img, (x1, y1), (x2, y2), (50, 50, 50), -1)
+                cv2.rectangle(img, (x1, y1), (x2, y2), (100, 100, 100), 1)
+                if score_before > 0 or score_after > 0:
+                    # 在同一个位置显示两个评分，用/区分
+                    text = f"{score_before:.1f}/{score_after:.1f}"
+                    text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.4, 1)[0]
+                    text_x = x1 + (cell_width - text_size[0]) // 2
+                    text_y = y1 + (cell_height + text_size[1]) // 2
+                    cv2.putText(img, text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)
+        
+        # 显示当前生效的策略
+        self.overlay_active_strategies(img, cell_width, cell_height)
+        cv2.imshow("障碍评分矩阵及清障卡预判覆盖范围", img)
+        cv2.waitKey(1)
+
+    def overlay_active_strategies(self, img, cell_width, cell_height, offset_y=0):
+        """
+        在评分矩阵上叠加显示当前生效的策略
+        :param img: 图像对象
+        :param cell_width: 单元格宽度
+        :param cell_height: 单元格高度
+        :param offset_y: Y轴偏移量
+        """
+        current_time = time.time()
+        for record in self.strategy_history:
+            time_diff = current_time - record["time"]
+            
+            # 检查策略是否仍在生效期内
+            if time_diff <= self.strategy_effect_duration:
+                alpha = 0.3  # 透明度
+                for card, info in record["strategy1"].items():
+                    coverage = info["coverage"]
+                    pos = info["pos"]
+                    self.draw_card_coverage(img, coverage, pos, (0, 255, 0), alpha, cell_width, cell_height, offset_y)  # 绿色表示策略1
+                for card, info in record["strategy2"].items():
+                    coverage = info["coverage"]
+                    pos = info["pos"]
+                    self.draw_card_coverage(img, coverage, pos, (255, 0, 0), alpha, cell_width, cell_height, offset_y)  # 红色表示策略2
+
+    def draw_card_coverage(self, img, coverage, pos, color, alpha, cell_width, cell_height, offset_y=0):
+        """
+        绘制卡片的覆盖范围
+        :param img: 图像对象
+        :param coverage: 卡片覆盖范围 [(offset_x, offset_y), ...]
+        :param pos: 卡片放置位置 [x, y]
+        :param color: 颜色 (B, G, R)
+        :param alpha: 透明度
+        :param cell_width: 单元格宽度
+        :param cell_height: 单元格高度
+        :param offset_y: Y轴偏移量
+        """
+        card_x, card_y = pos[0], pos[1]
+        
+        for offset_x, offset_y in coverage:
+            target_x = card_x + offset_x
+            target_y = card_y + offset_y
+            if 1 <= target_x <= 9 and 1 <= target_y <= 7:
+                # 计算单元格位置 (注意y轴索引需要转换)
+                x1 = (target_x - 1) * cell_width
+                y1 = offset_y + (target_y - 1) * cell_height
+                x2 = x1 + cell_width
+                y2 = y1 + cell_height
+                overlay = img.copy()
+                cv2.rectangle(overlay, (x1, y1), (x2, y2), color, -1)
+                cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0, img)
+                cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
