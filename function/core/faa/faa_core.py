@@ -601,7 +601,7 @@ class FAABase:
         """
 
         self.print_info("战斗中识图查找承载卡/冰沙/坤位置, 开始")
-
+        #代码是这样写的，这个闭包不好改，索性把图片名字改了
         # 筛选出所有 有图片资源的卡片 包含变种
         mat_resource_list = [
             f"{card}-{i}.png"
