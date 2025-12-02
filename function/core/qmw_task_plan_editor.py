@@ -134,14 +134,17 @@ class TaskEditor(QMainWindow):
         delete_btn = QPushButton("删除")
         self.sort_btn = QPushButton("按名称排序")  # 新增排序按钮
         self.clean_invalid_btn = QPushButton("清除非法数据")  # 添加清除非法数据按钮
+        self.clean_images_btn = QPushButton("清除图像文件")  # 添加清除图像文件按钮
         self.update_btn.clicked.connect(self.save_task)
         delete_btn.clicked.connect(self.delete_task)
         self.sort_btn.clicked.connect(self.sort_tasks_by_name)  # 连接排序功能
         self.clean_invalid_btn.clicked.connect(self.clean_invalid_data)  # 连接清除非法数据功能
+        self.clean_images_btn.clicked.connect(self.clean_image_files)  # 连接清除图像文件功能
         btn_layout.addWidget(self.update_btn)
         btn_layout.addWidget(delete_btn)
         btn_layout.addWidget(self.sort_btn)
         btn_layout.addWidget(self.clean_invalid_btn)  # 添加按钮到布局
+        btn_layout.addWidget(self.clean_images_btn)  # 添加清除图像文件按钮到布局
 
         left_layout.addWidget(QLabel("任务列表"))
         left_layout.addWidget(self.task_list)
@@ -913,6 +916,42 @@ class TaskEditor(QMainWindow):
             except Exception as e:
                 self.db_conn.rollback()
                 QMessageBox.critical(self, "错误", f"清除非法数据失败：{str(e)}")
+
+    def clean_image_files(self):
+        """清除PATHS["image"]["task"]路径下的所有文件和文件夹"""
+        reply = QMessageBox.question(self, "确认", f"确定要清除所有任务图像文件吗？\n这将删除以下路径下的所有文件和文件夹：\n{PATHS['image']['task']}")
+        if reply == QMessageBox.StandardButton.Yes:
+            try:
+                # 删除 chaos 子目录及其内容
+                chaos_path = PATHS["image"]["task"]["chaos"]
+                if os.path.exists(chaos_path):
+                    shutil.rmtree(chaos_path)
+                    os.makedirs(chaos_path, exist_ok=True)  # 重新创建空目录
+
+                # 删除 desc 子目录及其内容
+                desc_path = PATHS["image"]["task"]["desc"]
+                if os.path.exists(desc_path):
+                    shutil.rmtree(desc_path)
+                    os.makedirs(desc_path, exist_ok=True)  # 重新创建空目录
+
+                # 删除 puzzle 子目录及其内容
+                puzzle_path = PATHS["image"]["task"]["puzzle"]
+                if os.path.exists(puzzle_path):
+                    shutil.rmtree(puzzle_path)
+                    os.makedirs(puzzle_path, exist_ok=True)  # 重新创建空目录
+
+                # 刷新图像列表
+                self.load_image_directory()
+
+                # 清空图像预览
+                self.image_label.clear()
+                self.description_image_label.clear()
+                self.image_data = None
+                self.description_image_data = None
+
+                QMessageBox.information(self, "成功", "所有任务图像文件已清除！")
+            except Exception as e:
+                QMessageBox.critical(self, "错误", f"清除图像文件失败：{str(e)}")
 
     def delete_task(self):
         if not self.current_task_id:
