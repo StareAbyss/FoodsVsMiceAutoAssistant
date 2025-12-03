@@ -2,6 +2,12 @@ import math
 
 
 def parse_positions(coordinate, base_info):
+    """
+
+    {0: '贝壳', 1: '飞猪', 2: '教皇', 3: '瓦力', 4: '波次', 5: '神风', 6: '骷髅',7: '暴风雪',8:'障碍',9:'酒瓶与光球',10:'冰块'}
+
+    """
+
     # 更新边界和分割数量
     x_min, x_max = 303, 839
     y_min, y_max = 110, 560
@@ -12,6 +18,7 @@ def parse_positions(coordinate, base_info):
     wave = False
     god_wind = False
     positions = set()
+    obstacle=set()
 
     for index, base_value in enumerate(base_info):
 
@@ -42,8 +49,23 @@ def parse_positions(coordinate, base_info):
 
             # 添加位置到列表
             positions.add(f"{x_segment}-{y_segment}")
+        elif base_value ==8:
+            x = coordinate[index][0] + 0.5 * coordinate[index][2]
+            y = coordinate[index][1] + 0.5 * coordinate[index][3]
+            # 将坐标映射到分割后的格子
+            if x < x_min:
+                x_segment = 1
+            else:
+                x_segment = min(math.ceil((x - x_min) / ((x_max - x_min) / x_segments)), x_segments)
+            if y < y_min:
+                y_segment = 1
+            else:
+                y_segment = min(math.ceil((y - y_min) / ((y_max - y_min) / y_segments)), y_segments)
 
-    return wave, god_wind, list(positions)  # 返回是否有神风，是否有波次，待爆炸点位
+            # 添加障碍位置到列表
+            obstacle.add(f"{x_segment}-{y_segment}")
+
+    return wave, god_wind, list(positions), list(obstacle)  # 返回是否有神风，是否有波次，待爆炸点位
 
 # 示例调用
 # base_info = [0, 0, 4, 6]

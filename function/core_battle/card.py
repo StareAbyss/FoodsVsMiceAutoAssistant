@@ -334,14 +334,11 @@ class Card:
             if not self.status_usable:
                 # CUS_LOGGER.debug(f"不可用状态")
                 return False
-
             # 点击 选中卡片
             self.choice_card()
             time.sleep(self.click_sleep)
-
             # 放卡
             self.put_card()
-
             # 等待游戏画面刷新后更新状态
             time.sleep(self.max_game_frame_interval)
             self.fresh_status()  # 如果放卡后还可用,自ban 若干s
@@ -509,8 +506,8 @@ class SpecialCard(Card):
 
         self.card_type = card_type  # 11冰桶 12护罩 14草扇 其他炸弹
 
-        # 要秒铲的有草扇跟护罩炸弹
-        self.need_shovel = self.card_type == 12 or self.card_type == 14
+        # 要秒铲的有草扇（吹风类）跟护罩炸弹
+        self.need_shovel = self.card_type == 12 or (self.card_type == 14 and self.energy==1)
 
         # 炸弹类卡的自我属性
         self.rows = rows
@@ -556,6 +553,11 @@ class SpecialCard(Card):
                 # 点击 放下卡片
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle, x=self.coordinate_to[0][0], y=self.coordinate_to[0][1])
+                #避免已有承载导致放置失败
+                T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=295, y=485)
+                time.sleep(self.click_sleep)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=295, y=485)
+                time.sleep(self.click_sleep)
         time.sleep(self.click_sleep)
 
     def use_card(self):
@@ -570,10 +572,8 @@ class SpecialCard(Card):
             # 点击 选中卡片
             self.choice_card()
             time.sleep(self.click_sleep)
-
             # 选中 放下卡片自身
             self.put_card()
-
             self.use_card_after()
 
     def use_card_before(self):
