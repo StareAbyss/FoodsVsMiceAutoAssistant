@@ -603,27 +603,27 @@ class FAABase:
         self.print_info("战斗中识图查找承载卡/冰沙/坤位置, 开始")
 
         # 筛选出所有 有图片资源的卡片 包含变种
-        mat_resource_list = [
-            f"{card}-{i}.png"
-            for card in copy.deepcopy(self.stage_info["mat_card"])
-            for i in range(6)
-            if f"{card}-{i}.png" in RESOURCE_P["card"]["战斗"]
-        ]
 
-        smoothie_resource_list = [
-            f"{card}-{i}.png"
-            for card in ["冰激凌"]
-            for i in range(6)
-            if f"{card}-{i}.png" in RESOURCE_P["card"]["战斗"]
-        ]
+        mat_resource_list = []
+        for card in copy.deepcopy(self.stage_info["mat_card"]):
+            if "-" in card:
+                mat_resource_list.append(f"{card}.png")
+            else:
+                for i in range(6):
+                    if f"{card}-{i}.png" in RESOURCE_P["card"]["战斗"]:
+                        mat_resource_list.append(f"{card}-{i}.png")
 
-        # 筛选出所有 有图片资源的卡片 包含变种
-        kun_resource_list = [
-            f"{card}-{i}.png"
-            for card in ["幻幻鸡", "创造神"]
-            for i in range(6)
-            if f"{card}-{i}.png" in RESOURCE_P["card"]["战斗"]
-        ]
+        smoothie_resource_list = []
+        for card in ["冰激凌"]:
+            for i in range(6):
+                if f"{card}-{i}.png" in RESOURCE_P["card"]["战斗"]:
+                    smoothie_resource_list.append(f"{card}-{i}.png")
+
+        kun_resource_list = []
+        for card in ["幻幻鸡", "创造神"]:
+            for i in range(6):
+                if f"{card}-{i}.png" in RESOURCE_P["card"]["战斗"]:
+                    kun_resource_list.append(f"{card}-{i}.png")
 
         def scan(resource_list):
             return_dict = {}
@@ -1520,6 +1520,7 @@ class FAABase:
             )
 
             return my_result
+
         def action_after_success() -> None:
             """
             成功进入游戏的收尾动作
