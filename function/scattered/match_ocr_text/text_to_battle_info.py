@@ -74,7 +74,7 @@ def food_texts_to_battle_info(texts, self) -> list:
                     max_card_num = (limit_number - 1)
         must_be_take_fly=None
         #谁扫到的任务就把谁的方案置为特制花瓶方案
-        if "星级" in text:
+        if "星级" in text or "等级" in text:
             must_be_take_fly= self.player
         # 将战斗信息字典添加到列表中
         quest_info = {

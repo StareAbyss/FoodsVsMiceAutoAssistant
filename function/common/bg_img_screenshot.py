@@ -2,6 +2,9 @@ import numpy as np
 import time
 from ctypes import windll, byref, c_ubyte
 from ctypes.wintypes import RECT, HWND
+
+import win32con
+import win32gui
 from numpy import uint8, frombuffer
 
 
