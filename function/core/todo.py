@@ -2273,75 +2273,72 @@ class ThreadTodo(QThread):
             # 由于任务id从1开始, 故需要减1
             # 去除序号小于stage_begin的任务
             task_sequence = [task for task in task_sequence if task["task_id"] >= task_begin_id]
-
             # 根据战斗和其他事项拆分 让战斗事项的参数构成 n本 n次 为一组的汇总
             task_sequence = merge_continuous_battle_task(task_sequence=task_sequence)
-
             # 让战斗事项按 多线程单人 和 单线程常规 拆分
             task_sequence = normal_battle_task_to_d_thread(task_sequence=task_sequence)
 
             CUS_LOGGER.debug(f"自定义任务序列, 已完成全部处理, 结果: {task_sequence}")
 
             for task in task_sequence:
+                if task.get("enabled",True):
+                    match task["task_type"]:
+                        case "战斗":
+                            self.battle_1_n_n(
+                                quest_list=task["task_args"],
+                                extra_title=text_
+                            )
+                        case "战斗-多线程":
+                            self.signal_start_todo_2_battle.emit({
+                                "quest_list": task["task_args"]["solo_quests_2"],
+                                "extra_title": f"{text_}] [多线程单人",
+                                "need_lock": True
+                            })
+                            self.battle_1_n_n(
+                                quest_list=task["task_args"]["solo_quests_1"],
+                                extra_title=f"{text_}] [多线程单人",
+                                need_lock=True)
 
-                match task["task_type"]:
+                        case "双暴卡":
+                            self.batch_use_items_double_card(
+                                player=task["task_args"]["player"],
+                                max_times=task["task_args"]["max_times"]
+                            )
 
-                    case "战斗":
-                        self.battle_1_n_n(
-                            quest_list=task["task_args"],
-                            extra_title=text_
-                        )
-                    case "战斗-多线程":
-                        self.signal_start_todo_2_battle.emit({
-                            "quest_list": task["task_args"]["solo_quests_2"],
-                            "extra_title": f"{text_}] [多线程单人",
-                            "need_lock": True
-                        })
-                        self.battle_1_n_n(
-                            quest_list=task["task_args"]["solo_quests_1"],
-                            extra_title=f"{text_}] [多线程单人",
-                            need_lock=True)
+                        case "刷新游戏":
+                            self.batch_reload_game(
+                                player=task["task_args"]["player"],
+                            )
 
-                    case "双暴卡":
-                        self.batch_use_items_double_card(
-                            player=task["task_args"]["player"],
-                            max_times=task["task_args"]["max_times"]
-                        )
+                        case "清背包":
+                            self.batch_level_2_action(
+                                player=task["task_args"]["player"],
+                                dark_crystal=False
+                            )
 
-                    case "刷新游戏":
-                        self.batch_reload_game(
-                            player=task["task_args"]["player"],
-                        )
-
-                    case "清背包":
-                        self.batch_level_2_action(
-                            player=task["task_args"]["player"],
-                            dark_crystal=False
-                        )
-
-                    case "领取任务奖励":
-                        all_quests = {
-                            "normal": "普通任务",
-                            "guild": "公会任务",
-                            "spouse": "情侣任务",
-                            "offer_reward": "悬赏任务",
-                            "food_competition": "美食大赛",
-                            "monopoly": "大富翁",
-                            "camp": "营地任务"
-                        }
-                        self.batch_receive_all_quest_rewards(
-                            player=task["task_args"]["player"],
-                            quests=[v for k, v in all_quests.items() if task["task_args"][k]]
-                        )
-                    case "扫描任务列表":
-                        all_quests = {
-                            "scan": "扫描",
-                            "battle": "刷关"
-                        }
-                        self.batch_scan_all_task(
-                            player=task["task_args"]["player"],
-                            quests=[v for k, v in all_quests.items() if task["task_args"][k]]
-                        )
+                        case "领取任务奖励":
+                            all_quests = {
+                                "normal": "普通任务",
+                                "guild": "公会任务",
+                                "spouse": "情侣任务",
+                                "offer_reward": "悬赏任务",
+                                "food_competition": "美食大赛",
+                                "monopoly": "大富翁",
+                                "camp": "营地任务"
+                            }
+                            self.batch_receive_all_quest_rewards(
+                                player=task["task_args"]["player"],
+                                quests=[v for k, v in all_quests.items() if task["task_args"][k]]
+                            )
+                        case "扫描任务列表":
+                            all_quests = {
+                                "scan": "扫描",
+                                "battle": "刷关"
+                            }
+                            self.batch_scan_all_task(
+                                player=task["task_args"]["player"],
+                                quests=[v for k, v in all_quests.items() if task["task_args"][k]]
+                            )
 
             # 战斗结束
             self.model_end_print(text=text_)

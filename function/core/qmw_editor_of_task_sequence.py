@@ -160,6 +160,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
         task = {
             "task_type": task_type,
             "task_id": 0,
+            "enabled": True,
             "task_args": dict()
         }
         match task_type:
@@ -270,6 +271,13 @@ class QMWEditorOfTaskSequence(QMainWindow):
         line_widget.setObjectName('line_widget')
         line_layout = QHBoxLayout(line_widget)
 
+        # 启用状态复选框
+        w_enabled = QCheckBox()
+        w_enabled.setObjectName('w_enabled')
+        w_enabled.setChecked(task.get("enabled", True))  # 默认为启用
+        w_enabled.setToolTip("启用/禁用此任务")
+        line_layout.addWidget(w_enabled)
+        
         # task_id + type
         layout = QHBoxLayout()
         line_layout.addLayout(layout)
@@ -683,6 +691,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
             task_id = label_task_id.text()
             data_line['task_id'] = int(task_id)
 
+            # 获取启用状态
+            enabled_widget = w_line.findChild(QCheckBox, 'w_enabled')
+            data_line['enabled'] = enabled_widget.isChecked()
+            
             data_line["task_args"] = {}
             args = data_line["task_args"]
 
@@ -804,7 +816,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     self,
                     "Json格式错误!",
                     f"读取<任务序列>失败! \n"
-                    f"这是由于您使用文本编辑器魔改后,格式不符合Json规范导致\n"
+                    f"这是由于您使用文本编辑器魔改后, 格式不符合Json规范导致\n"
                     f"错误信息: {str(e)}")
 
     def save_json(self):
