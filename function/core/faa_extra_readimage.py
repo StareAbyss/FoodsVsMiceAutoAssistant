@@ -26,10 +26,10 @@ def producer(time_num, handle, read_queue, is_log, is_gpu):
                 information = parse_positions(*result)  # 加工信息
                 # 将检测结果放入队列
                 read_queue.put(information)
-                wave, godwind, positions,obstacle = information
+                wave, godwind, positions,obstacle,ice = information
                 # 遍历所有检测到的目标
                 CUS_LOGGER.debug(
-                    f"识图信息为是否检测到波次 {wave} 是否检测到波神风 {godwind},剩下待炸点位 {positions},障碍物 {obstacle} ")
+                    f"识图信息为是否检测到波次 {wave} 是否检测到波神风 {godwind},剩下待炸点位 {positions},障碍物 {obstacle},冰块{ice} ")
 
             # 暂停一段时间
             time.sleep(time_num)

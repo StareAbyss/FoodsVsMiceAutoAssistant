@@ -1283,7 +1283,10 @@ class ThreadUseSpecialCardTimer(QThread):
         self.card_list_can_use = {1: [], 2: []}
         self.card_list_can_use_obstacle = {1: [], 2: []}
         self.pid_list = [1, 2] if self.is_group else [1]
-
+        self.obstacle=self.faa_dict[1].stage_info["obstacle"].copy()
+        self.obstacle.extend(self.faa_dict[1].battle_plan["meta_data"]["player_position"])
+        if self.is_group:
+            self.obstacle.extend(self.faa_dict[2].battle_plan["meta_data"]["player_position"])
         # 记录每种类型的卡片 有哪些 格式
         # { 1: [obj_s_card_1, obj_s_card_2, ...], 2:[...] }
         self.special_card_list = bomb_card_list
@@ -1423,7 +1426,12 @@ class ThreadUseSpecialCardTimer(QThread):
         if not self.pid_list:
             return
 
-        wave, god_wind, need_boom_locations, obstacle = result  # 分别为是否波次，是否神风及待炸点位列表,可清除障碍列表
+        wave, god_wind, need_boom_locations, obstacle,ice = result  # 分别为是否波次，是否神风及待炸点位列表,可清除障碍列表
+
+        # 合并障碍物列表，将冰块位置也作为障碍物处理
+        combined_obstacles = self.obstacle.copy()
+        if ice:
+            combined_obstacles.extend(ice)
 
         # 更新障碍记忆
         if obstacle is not None:
@@ -1491,7 +1499,7 @@ class ThreadUseSpecialCardTimer(QThread):
                     if card.status_usable:
                         self.card_list_can_use_obstacle[pid].append(card)
             CUS_LOGGER.debug(f"当前可用清障卡片队列{self.card_list_can_use_obstacle}")
-            self.handle_maximize_score_strategy(obstacle)
+            self.handle_maximize_score_strategy(obstacle,combined_obstacles)
 
         if need_boom_locations:
             self.card_list_can_use = {1: [], 2: []}
@@ -1523,7 +1531,7 @@ class ThreadUseSpecialCardTimer(QThread):
             CUS_LOGGER.debug(f"当前可用卡片队列{self.card_list_can_use}")
             result = solve_special_card_problem(
                 points_to_cover=need_boom_locations,
-                obstacles=self.faa_dict[1].stage_info["obstacle"],
+                obstacles=combined_obstacles,
                 card_list_can_use=self.card_list_can_use)
 
             if result is not None:
@@ -1620,10 +1628,11 @@ class ThreadUseSpecialCardTimer(QThread):
             
         CUS_LOGGER.debug(f"更新障碍记忆，当前记忆长度: {len(self.obstacle_memory)}")
 
-    def handle_maximize_score_strategy(self, current_obstacles):
+    def handle_maximize_score_strategy(self, current_obstacles,combined_obstacles):
         """
         处理最大化得分策略（与爆炸点位最小化成本策略独立）
         :param current_obstacles: 当前障碍列表
+        :param combined_obstacles: 结合了冰块的完整障碍列表
         """
 
         
@@ -1638,7 +1647,7 @@ class ThreadUseSpecialCardTimer(QThread):
 
         # 调用 solve_maximize_score_problem 获取最佳策略
         result = solve_maximize_score_problem(
-            obstacles=self.faa_dict[1].stage_info["obstacle"],  # 传递固定障碍物列表
+            obstacles=combined_obstacles,  # 传递固定障碍物列表
             score_matrix=self.score_matrix.tolist(),
             card_list_can_use=self.card_list_can_use_obstacle,
             score_threshold=score_threshold
