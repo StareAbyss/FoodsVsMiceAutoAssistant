@@ -2281,65 +2281,128 @@ class ThreadTodo(QThread):
             CUS_LOGGER.debug(f"自定义任务序列, 已完成全部处理, 结果: {task_sequence}")
 
             for task in task_sequence:
-                # if task.get("enabled",True):
-                    match task["task_type"]:
-                        case "战斗":
-                            self.battle_1_n_n(
-                                quest_list=task["task_args"],
-                                extra_title=text_
-                            )
-                        case "战斗-多线程":
-                            self.signal_start_todo_2_battle.emit({
-                                "quest_list": task["task_args"]["solo_quests_2"],
-                                "extra_title": f"{text_}] [多线程单人",
-                                "need_lock": True
-                            })
-                            self.battle_1_n_n(
-                                quest_list=task["task_args"]["solo_quests_1"],
-                                extra_title=f"{text_}] [多线程单人",
-                                need_lock=True)
+                match task["task_type"]:
+                    case "战斗":
+                        self.battle_1_n_n(
+                            quest_list=task["task_args"],
+                            extra_title=text_
+                        )
+                    case "战斗-多线程":
+                        self.signal_start_todo_2_battle.emit({
+                            "quest_list": task["task_args"]["solo_quests_2"],
+                            "extra_title": f"{text_}] [多线程单人",
+                            "need_lock": True
+                        })
+                        self.battle_1_n_n(
+                            quest_list=task["task_args"]["solo_quests_1"],
+                            extra_title=f"{text_}] [多线程单人",
+                            need_lock=True)
 
-                        case "双暴卡":
-                            self.batch_use_items_double_card(
-                                player=task["task_args"]["player"],
-                                max_times=task["task_args"]["max_times"]
-                            )
+                    case "双暴卡":
+                        self.batch_use_items_double_card(
+                            player=task["task_args"]["player"],
+                            max_times=task["task_args"]["max_times"]
+                        )
 
-                        case "刷新游戏":
-                            self.batch_reload_game(
-                                player=task["task_args"]["player"],
-                            )
+                    case "刷新游戏":
+                        self.batch_reload_game(
+                            player=task["task_args"]["player"],
+                        )
 
-                        case "清背包":
-                            self.batch_level_2_action(
-                                player=task["task_args"]["player"],
-                                dark_crystal=False
-                            )
+                    case "清背包":
+                        self.batch_level_2_action(
+                            player=task["task_args"]["player"],
+                            dark_crystal=False
+                        )
 
-                        case "领取任务奖励":
-                            all_quests = {
-                                "normal": "普通任务",
-                                "guild": "公会任务",
-                                "spouse": "情侣任务",
-                                "offer_reward": "悬赏任务",
-                                "food_competition": "美食大赛",
-                                "monopoly": "大富翁",
-                                "camp": "营地任务"
-                            }
-                            self.batch_receive_all_quest_rewards(
-                                player=task["task_args"]["player"],
-                                quests=[v for k, v in all_quests.items() if task["task_args"][k]]
-                            )
-                        case "扫描任务列表":
-                            all_quests = {
-                                "scan": "扫描",
-                                "battle": "刷关"
-                            }
-                            self.batch_scan_all_task(
-                                player=task["task_args"]["player"],
-                                quests=[v for k, v in all_quests.items() if task["task_args"][k]]
-                            )
-
+                    case "领取任务奖励":
+                        all_quests = {
+                            "normal": "普通任务",
+                            "guild": "公会任务",
+                            "spouse": "情侣任务",
+                            "offer_reward": "悬赏任务",
+                            "food_competition": "美食大赛",
+                            "monopoly": "大富翁",
+                            "camp": "营地任务"
+                        }
+                        self.batch_receive_all_quest_rewards(
+                            player=task["task_args"]["player"],
+                            quests=[v for k, v in all_quests.items() if task["task_args"][k]]
+                        )
+                    case "扫描任务列表":
+                        all_quests = {
+                            "scan": "扫描",
+                            "battle": "刷关"
+                        }
+                        self.batch_scan_all_task(
+                            player=task["task_args"]["player"],
+                            quests=[v for k, v in all_quests.items() if task["task_args"][k]]
+                        )
+                    case "签到":
+                        # 删除物品高危功能(可选) + 领取奖励一次
+                        self.batch_level_2_action(dark_crystal=False)
+                        # 领取温馨礼包
+                        self.batch_get_warm_gift(player=task["task_args"]["player"])
+                        # 日氪
+                        self.batch_top_up_money(player=task["task_args"]["player"])
+                        # 常规日常签到
+                        self.batch_sign_in(player=task["task_args"]["player"])
+                    case "施肥浇水摘果":
+                        self.batch_fed_and_watered(
+                            player=task["task_args"]["player"]
+                        )
+                    case "公会任务":
+                        self.guild_or_spouse_quest(
+                            text_="公会任务",
+                            quest_mode="公会任务",
+                            global_plan_active=task["task_args"]["global_plan_active"],
+                            deck=task["task_args"]["deck"],
+                            battle_plan_1p=task["task_args"]["battle_plan_1p"],
+                            battle_plan_2p=task["task_args"]["battle_plan_2p"],
+                            stage=task["task_args"]["cross_server"])
+                    case "情侣任务":
+                        self.guild_or_spouse_quest(
+                            text_="情侣任务",
+                            quest_mode="情侣任务",
+                            global_plan_active=task["task_args"]["global_plan_active"],
+                            deck=task["task_args"]["deck"],
+                            battle_plan_1p=task["task_args"]["battle_plan_1p"],
+                            battle_plan_2p=task["task_args"]["battle_plan_2p"])
+                    case "使用消耗品":
+                        self.batch_use_items_consumables(
+                            player=task["task_args"]["player"],
+                        )
+                    case "查漏补缺":
+                        self.checking_nodo(player=task["task_args"]["player"],)
+                    case "天知强卡器":
+                        self.tce(
+                            player=task["task_args"]["player"]
+                        )
+                    case "美食大赛":
+                        self.auto_food()
+                    case "跨服刷威望":
+                        self.batch_loop_cross_server(
+                            player=task["task_args"]["player"],
+                            deck=1,
+                            name="威望")
+                    case "自建房战斗":
+                        self.easy_battle(
+                            text_="自建房战斗",
+                            stage_id=task["task_args"]["stage"],
+                            player=task["task_args"]["player"],
+                            max_times=int(task["task_args"]["max_times"]),
+                            global_plan_active=task["task_args"]["global_plan_active"],
+                            deck=task["task_args"]["deck"],
+                            battle_plan_1p=task["task_args"]["battle_plan_1p"],
+                            battle_plan_2p=task["task_args"]["battle_plan_2p"],
+                            dict_exit={
+                                "other_time_player_a": [],
+                                "other_time_player_b": [],
+                                "last_time_player_a": [],
+                                "last_time_player_b": []
+                            },
+                            is_cu=True
+                        )
             # 战斗结束
             self.model_end_print(text=text_)
 
