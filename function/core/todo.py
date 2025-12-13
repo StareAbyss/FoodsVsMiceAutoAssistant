@@ -2272,7 +2272,7 @@ class ThreadTodo(QThread):
 
             # 由于任务id从1开始, 故需要减1
             # 去除序号小于stage_begin的任务
-            task_sequence = [task for task in task_sequence if task["task_id"] >= task_begin_id]
+            task_sequence = [task for task in task_sequence if task["task_id"] >= task_begin_id and task.get("enabled",True)]
             # 根据战斗和其他事项拆分 让战斗事项的参数构成 n本 n次 为一组的汇总
             task_sequence = merge_continuous_battle_task(task_sequence=task_sequence)
             # 让战斗事项按 多线程单人 和 单线程常规 拆分
@@ -2281,7 +2281,7 @@ class ThreadTodo(QThread):
             CUS_LOGGER.debug(f"自定义任务序列, 已完成全部处理, 结果: {task_sequence}")
 
             for task in task_sequence:
-                if task.get("enabled",True):
+                # if task.get("enabled",True):
                     match task["task_type"]:
                         case "战斗":
                             self.battle_1_n_n(
