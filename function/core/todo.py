@@ -2403,6 +2403,11 @@ class ThreadTodo(QThread):
                             },
                             is_cu=True
                         )
+                    case "任务序列":
+                        self.task_sequence(
+                            text_="自定义任务序列",
+                            task_begin_id=task["task_args"]["sequence_integer"],
+                            task_sequence_index=task["task_args"]["task_sequence_index"])
             # 战斗结束
             self.model_end_print(text=text_)
 

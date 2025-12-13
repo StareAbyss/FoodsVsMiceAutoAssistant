@@ -151,6 +151,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
         self.widget_combo_box_task.addItem('天知强卡器')
         self.widget_combo_box_task.addItem('美食大赛')
         self.widget_combo_box_task.addItem('自建房战斗')
+        self.widget_combo_box_task.addItem('任务序列')
         # 待实现
         # self.ComboBoxTask.addItem('扫描公会贡献')
 
@@ -270,6 +271,11 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     "deck": 0,
                     "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
                     "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+                }
+            case '任务序列':
+                task["task_args"] = {
+                    "sequence_integer": 1,
+                    "task_sequence_index": 0,
                 }
 
         self.add_task(task=task)
@@ -877,6 +883,40 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 pass
             case '自建房战斗':
                 battle(line_layout=line_layout)
+            case '任务序列':
+                # 添加整数输入框
+                w_label = QLabel('起始序列号')
+                w_input = QSpinBox()
+                w_input.setObjectName("w_sequence_integer")
+                w_input.setFixedWidth(70)
+                w_input.setMinimum(1)
+                w_input.setMaximum(999)
+                w_input.setValue(task["task_args"]["sequence_integer"])
+                add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
+                
+                # 添加任务序列选择下拉框（使用SearchableComboBox）
+                w_label = QLabel('任务序列')
+                from function.widget.SearchableComboBox import SearchableComboBox
+                w_input = SearchableComboBox()
+                w_input.setObjectName("w_task_sequence_index")
+                w_input.setFixedWidth(200)
+                
+                # 获取任务序列列表
+                from function.scattered.get_task_sequence_list import get_task_sequence_list
+                task_sequence_list = get_task_sequence_list(with_extension=False)
+                
+                # 添加选项到下拉框
+                for index, sequence_name in enumerate(task_sequence_list):
+                    w_input.addItem(sequence_name)
+                
+                # 设置当前选中项
+                current_index = task["task_args"]["task_sequence_index"]
+                if current_index < w_input.count():
+                    w_input.setCurrentIndex(current_index)
+                else:
+                    w_input.setCurrentIndex(0)
+                    
+                add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
 
         # 创建一个水平弹簧
         spacer = QSpacerItem(0, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
@@ -1239,6 +1279,15 @@ class QMWEditorOfTaskSequence(QMainWindow):
                         "last_time_player_a": ["竞技岛"],
                         "last_time_player_b": ["竞技岛"]
                     }
+                case "任务序列":
+                    # 获取整数输入框的值
+                    widget_input = w_line.findChild(QSpinBox, 'w_sequence_integer')
+                    args['sequence_integer'] = widget_input.value()
+                    
+                    # 获取任务序列下拉框的值
+                    from function.widget.SearchableComboBox import SearchableComboBox
+                    widget_input = w_line.findChild(SearchableComboBox, 'w_task_sequence_index')
+                    args['task_sequence_index'] = widget_input.currentIndex()
 
             data_line["task_args"] = args
 
