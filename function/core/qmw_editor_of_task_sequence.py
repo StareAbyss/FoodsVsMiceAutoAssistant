@@ -1,13 +1,15 @@
 import json
 import sys
 
+from PyQt6.QtCore import Qt
+
 from function.globals.loadings import loading
 
 loading.update_progress(60,"正在加载FAA任务序列编辑器...")
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSpinBox, QCheckBox, QWidget, QListWidgetItem, QFileDialog, QMessageBox, QApplication, QListWidget, QSpacerItem, \
-    QSizePolicy, QFrame, QAbstractItemView
+    QSizePolicy, QFrame, QAbstractItemView, QInputDialog
 
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
@@ -166,6 +168,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
             "task_type": task_type,
             "task_id": 0,
             "enabled": True,
+            "alias": "",  # 添加别名字段
+            "tooltip": "",  # 添加提示字段
             "task_args": dict()
         }
         match task_type:
@@ -293,8 +297,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
         # 生成控件行
         try:
             line_widget = self.add_task_line_widget(task)
+            # 在控件中存储原始任务数据，以便后续访问
+            line_widget.setProperty('task_data', task)
         except Exception as e:
-            #print(f"Error in create_task_line: {e}")
+            print(f"Error in create_task_line: {e}")
             # 标记存在读取失败的情况!
             self.could_not_load_json_succeed = True
             return
@@ -347,9 +353,19 @@ class QMWEditorOfTaskSequence(QMainWindow):
         layout.addWidget(w_label)
 
         task_type = task['task_type']
-        w_label = QLabel(task_type)
+        # 显示别名，如果没有别名则显示任务类型
+        display_text = task.get('alias', '') if task.get('alias', '') else task_type
+        w_label = QLabel(display_text)
         w_label.setObjectName("label_task_type")
         w_label.setFixedWidth(80)
+        # 添加双击编辑别名功能
+        w_label.setCursor(Qt.CursorShape.PointingHandCursor)
+        tooltip_text = task.get("tooltip", "")
+        if not tooltip_text:
+            tooltip_text = "双击编辑别名，右键编辑提示信息"
+        w_label.setToolTip(tooltip_text)
+        w_label.mouseDoubleClickEvent = lambda event, label=w_label, t=task: self.edit_alias(label, t)
+        w_label.contextMenuEvent = lambda event, label=w_label, t=task: self.edit_tooltip(event, label, t)
         layout.addWidget(w_label)
 
         line_layout.addWidget(QCVerticalLine())
@@ -985,6 +1001,11 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
         # 读取
         for task in task_sequence_list:
+            # 兼容旧版本任务序列，添加默认的alias和tooltip字段
+            if "alias" not in task:
+                task["alias"] = ""
+            if "tooltip" not in task:
+                task["tooltip"] = ""
             self.add_task(task)
             # 出现读取失败, 中止
             if self.could_not_load_json_succeed:
@@ -1030,8 +1051,11 @@ class QMWEditorOfTaskSequence(QMainWindow):
         for w_line in list_line_widgets:
             data_line = {}
 
-            label_task_type = w_line.findChild(QLabel, 'label_task_type')
-            task_type = label_task_type.text()
+            # 从控件属性中获取原始任务数据
+            task = w_line.property('task_data')
+            
+            # 使用原始任务数据中的task_type，而不是从标签文本中获取
+            task_type = task.get('task_type', '') if task else ''
             data_line['task_type'] = task_type
 
             label_task_id = w_line.findChild(QLabel, 'label_task_id')
@@ -1041,6 +1065,12 @@ class QMWEditorOfTaskSequence(QMainWindow):
             # 获取启用状态
             enabled_widget = w_line.findChild(QCheckBox, 'w_enabled')
             data_line['enabled'] = enabled_widget.isChecked()
+            
+            # 获取别名和提示信息
+            alias = task.get('alias', '') if task else ''
+            tooltip = task.get('tooltip', '') if task else ''
+            data_line['alias'] = alias
+            data_line['tooltip'] = tooltip
             
             data_line["task_args"] = {}
             args = data_line["task_args"]
@@ -1097,7 +1127,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                             uuid = tweak_plan_uuid_list[index]
                             args['battle_plan_tweak'] = uuid
                         else:
-                            args.pop('battle_plan_tweak', None) # 无匹配项时清空
+                            args.pop('battle_plan_tweak', None)  # 无匹配项时清空
                     if args['global_plan_active']:
                         # 移除微调方案UUID
                         args.pop('battle_plan_tweak', None)
@@ -1362,6 +1392,35 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     self,
                     "错误!",
                     f"保存<任务序列>失败\n请联系开发者!!!\n错误信息: {str(e)}")
+
+    def edit_alias(self, label, task):
+        """编辑任务项别名"""
+        current_alias = task.get('alias', '')
+        new_alias, ok = QInputDialog.getText(self, "编辑别名", "请输入别名:", text=current_alias)
+        if ok:
+            task['alias'] = new_alias
+            # 更新显示文本，有别名显示别名，否则显示任务类型
+            task_type = task['task_type']
+            display_text = new_alias if new_alias else task_type
+            label.setText(display_text)
+            
+            # 同时更新父控件的属性，确保保存时能获取到最新的数据
+            parent_widget = label.parentWidget()
+            if parent_widget:
+                parent_widget.setProperty('task_data', task)
+
+    def edit_tooltip(self, event, label, task):
+        """编辑任务项提示信息"""
+        current_tooltip = task.get('tooltip', '')
+        new_tooltip, ok = QInputDialog.getText(self, "编辑提示", "请输入提示信息:", text=current_tooltip)
+        if ok:
+            task['tooltip'] = new_tooltip
+            label.setToolTip(new_tooltip if new_tooltip else "双击编辑别名，右键编辑提示信息")
+            
+            # 同时更新父控件的属性，确保保存时能获取到最新的数据
+            parent_widget = label.parentWidget()
+            if parent_widget:
+                parent_widget.setProperty('task_data', task)
 
 
 if __name__ == '__main__':
