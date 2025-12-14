@@ -3276,7 +3276,8 @@ class ThreadTodo(QThread):
             if self.todo_id == 2:
                 self.run_2()
     def run_1(self):
-        """配置检查"""
+        """
+        (已弃用)执念标记"""
 
         # 尝试启动360游戏大厅和对应的小号
         self.start_360()
