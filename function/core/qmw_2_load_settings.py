@@ -429,7 +429,10 @@ class QMainWindowLoadSettings(QMainWindowLog):
         # comboBox.clear时 会把所有选项设定为默认选项
         battle_plan_name_list = get_list_battle_plan(with_extension=False)
         task_sequence_name_list = get_task_sequence_list(with_extension=False)
-
+        fresh_and_check_all_battle_plan()
+        fresh_and_check_all_tweak_plan()
+        g_resources.fresh_resource_b()
+        g_resources.fresh_resource_t()
         def base_settings() -> None:
             my_opt = self.opt["base_settings"]
             self.GameName_Input.setText(my_opt["game_name"])

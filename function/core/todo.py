@@ -63,14 +63,8 @@ class ThreadTodo(QThread):
         # 功能需要
         self.faa_dict: dict[int, FAA] = faa_dict
         self.opt = copy.deepcopy(opt)  # 深拷贝 在作战中如果进行更改, 不会生效
-        
-        # 判断是运行方案还是任务序列
-        if running_task_sequence_index is not None:
-            self.opt_todo_plans = None  # 不使用方案
-            self.task_sequence_index = running_task_sequence_index
-        else:
-            self.opt_todo_plans = self.opt["todo_plans"][running_todo_plan_index]  # 选择运行的 opt 的 todo plan 部分
-            self.task_sequence_index = None
+
+        self.task_sequence_index = running_task_sequence_index
             
         self.battle_check_interval = 1  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
 
@@ -2649,7 +2643,7 @@ class ThreadTodo(QThread):
             self.thread_1p = ThreadWithException(
                 target=self.faa_dict[1].check_not_doing,
                 name="1P Thread - CheckingNotDoing",
-                kwargs={"c_opt":self.opt_todo_plans})
+                kwargs={})
             self.thread_1p.start()
 
         if 1 in player and 2 in player:
@@ -2659,7 +2653,7 @@ class ThreadTodo(QThread):
             self.thread_2p = ThreadWithException(
                 target=self.faa_dict[2].check_not_doing,
                 name="2P Thread - CheckingNotDoing",
-                kwargs={"c_opt":self.opt_todo_plans})
+                kwargs={})
             self.thread_2p.start()
         quest_list_1=[]
         quest_list_2=[]
@@ -2680,7 +2674,7 @@ class ThreadTodo(QThread):
                 self.thread_1p = ThreadWithException(
                     target=self.faa_dict[1].check_task_of_guild,
                     name="1P Thread - CheckingGuild",
-                    kwargs={"c_opt":self.opt_todo_plans})
+                    kwargs={})
                 self.thread_1p.start()
 
             if 1 in player and 2 in player:
@@ -2690,7 +2684,7 @@ class ThreadTodo(QThread):
                 self.thread_2p = ThreadWithException(
                     target=self.faa_dict[2].check_task_of_guild,
                     name="2P Thread - CheckingGuild",
-                    kwargs={"c_opt":self.opt_todo_plans})
+                    kwargs={})
                 self.thread_2p.start()
             if 1 in player:
                 quest_list_1,_=self.thread_1p.get_return_value()
@@ -2723,16 +2717,15 @@ class ThreadTodo(QThread):
             self.thread_2p.start()
             self.thread_2p.join()
         if (1 in player and reputation_status_1!=2) or (2 in player and reputation_status_2!=2):
-            my_opt = self.opt_todo_plans["offer_reward"]
             now_player = [2,1]if 2 in player else [1]
             for max_stage in [4,3,2,1]:#从高到低测出最高声望可能关卡
                 quest_list=[{
                     "player": now_player,
                     "need_key": True,
-                    "global_plan_active": my_opt["global_plan_active"],
-                    "deck": my_opt["deck"],
-                    "battle_plan_1p": my_opt["battle_plan_1p"],
-                    "battle_plan_2p": my_opt["battle_plan_2p"],
+                    "global_plan_active": True,
+                    "deck": 0,
+                    "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+                    "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
                     "stage_id": "OR-0-" + str(max_stage),
                     "max_times": 1,
                     "dict_exit": {
@@ -2803,10 +2796,10 @@ class ThreadTodo(QThread):
                 quest_list=[{
                     "player": now_player,
                     "need_key": True,
-                    "global_plan_active": my_opt["global_plan_active"],
-                    "deck": my_opt["deck"],
-                    "battle_plan_1p": my_opt["battle_plan_1p"],
-                    "battle_plan_2p": my_opt["battle_plan_2p"],
+                    "global_plan_active": True,
+                    "deck": 0,
+                    "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+                    "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
                     "stage_id": "OR-0-" + str(max_stage),
                     "max_times": 1,
                     "dict_exit": {

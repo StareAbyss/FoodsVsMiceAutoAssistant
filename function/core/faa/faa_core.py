@@ -198,7 +198,7 @@ class FAABase:
 
         return True
 
-    def check_not_doing(self: "FAA", c_opt):
+    def check_not_doing(self: "FAA"):
         """查漏补缺"""
 
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 开始")
@@ -245,7 +245,7 @@ class FAABase:
         time.sleep(1)
         # 跳转到任务界面
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查公会任务开始")
-        quest_list, completed_fertilization = self.check_task_of_guild(c_opt)
+        quest_list, completed_fertilization = self.check_task_of_guild()
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查公会任务结束")
         beijing_tz = pytz.timezone('Asia/Shanghai')
         now = datetime.now(beijing_tz)
@@ -320,9 +320,10 @@ class FAABase:
         self.action_exit(mode="关闭悬赏窗口")
         return reputation_status, reputation_now
 
-    def check_task_of_guild(self: "FAA", c_opt):
+    def check_task_of_guild(self: "FAA"):
         self.action_bottom_menu(mode="跳转_公会任务")
-        qg_cs = c_opt["quest_guild"]["stage"]
+        # qg_cs = c_opt["quest_guild"]["stage"]
+        qg_cs = True#被拆散了，不能直接从ui读取是否跳过跨服了，直接默认
         quest_not_completed = False
         # 最大尝试次数
         max_attempts = 20
@@ -445,10 +446,10 @@ class FAABase:
                                     "quest_card": quest_card,
                                     "ban_card_list": ban_card_list,
                                     "max_card_num": max_card_num,
-                                    "global_plan_active": c_opt["quest_guild"]["global_plan_active"],
-                                    "deck": c_opt["quest_guild"]["deck"],
-                                    "battle_plan_1p": c_opt["quest_guild"]["battle_plan_1p"],
-                                    "battle_plan_2p": c_opt["quest_guild"]["battle_plan_2p"],
+                                    "global_plan_active": True,
+                                    "deck": 0,
+                                    "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+                                    "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
                                 })
 
                                 found_task = True
