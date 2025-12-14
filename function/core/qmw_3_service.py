@@ -182,7 +182,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.Button_CreatePlan.clicked.connect(self.create_new_plan)
 
         # 当前方案变化 函数绑定
-        self.CurrentPlan.currentIndexChanged.connect(self.opt_to_ui_todo_plans)
+        # self.CurrentPlan.currentIndexChanged.connect(self.opt_to_ui_todo_plans)
 
         # 隐藏(拖动)窗口到屏幕视图外 函数绑定
         self.Button_Hide.clicked.connect(self.click_btn_hide_window)
@@ -549,8 +549,9 @@ class QMainWindowService(QMainWindowLoadSettings):
             running_todo_plan_index = plan_index
             running_task_sequence_index = None
         else:
-            running_todo_plan_index = self.CurrentPlan.currentIndex()
-            running_task_sequence_index = None
+            # CurrentPlan现在显示的是任务序列，所以这里获取的是任务序列索引
+            running_task_sequence_index = self.CurrentPlan.currentIndex()
+            running_todo_plan_index = -1  # 标记为使用任务序列
 
         # 先检测是否已经在启动状态, 如果是, 立刻关闭 然后继续执行
         if self.thread_todo_running:
@@ -648,6 +649,7 @@ class QMainWindowService(QMainWindowLoadSettings):
             running_todo_plan_index=running_todo_plan_index,
             todo_id=2,
             running_task_sequence_index=running_task_sequence_index)
+
         # 链接信号以进行多线程单人
         self.thread_todo_1.signal_start_todo_2_battle.connect(self.thread_todo_2.set_extra_opt_and_start)
         self.thread_todo_2.signal_todo_lock.connect(self.thread_todo_1.change_lock)

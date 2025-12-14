@@ -2269,7 +2269,8 @@ class ThreadTodo(QThread):
 
             # 读取json文件
             task_sequence = read_json_to_task_sequence()
-
+            main_task_active=False
+            active_singleton=False
             # 获取最大task_id
             max_tid = 1
             for quest in task_sequence:
@@ -2296,6 +2297,8 @@ class ThreadTodo(QThread):
                             quest_list=task["task_args"],
                             extra_title=text_
                         )
+                        main_task_active = True
+                        active_singleton = False
                     case "战斗-多线程":
                         self.signal_start_todo_2_battle.emit({
                             "quest_list": task["task_args"]["solo_quests_2"],
@@ -2306,12 +2309,15 @@ class ThreadTodo(QThread):
                             quest_list=task["task_args"]["solo_quests_1"],
                             extra_title=f"{text_}] [多线程单人",
                             need_lock=True)
+                        main_task_active = True
+                        active_singleton = False
 
                     case "双暴卡":
                         self.batch_use_items_double_card(
                             player=task["task_args"]["player"],
                             max_times=task["task_args"]["max_times"]
                         )
+                        main_task_active = True
 
                     case "刷新游戏":
                         self.batch_reload_game(
@@ -2323,6 +2329,8 @@ class ThreadTodo(QThread):
                             player=task["task_args"]["player"],
                             dark_crystal=False
                         )
+                        main_task_active = True
+                        active_singleton = False
 
                     case "领取任务奖励":
                         all_quests = {
@@ -2338,6 +2346,8 @@ class ThreadTodo(QThread):
                             player=task["task_args"]["player"],
                             quests=[v for k, v in all_quests.items() if task["task_args"][k]]
                         )
+                        main_task_active = True
+                        active_singleton = False
                     case "扫描任务列表":
                         all_quests = {
                             "scan": "扫描",
@@ -2347,6 +2357,8 @@ class ThreadTodo(QThread):
                             player=task["task_args"]["player"],
                             quests=[v for k, v in all_quests.items() if task["task_args"][k]]
                         )
+                        main_task_active = True
+                        active_singleton = False
                     case "签到":
                         # 删除物品高危功能(可选) + 领取奖励一次
                         self.batch_level_2_action(dark_crystal=False)
@@ -2356,10 +2368,14 @@ class ThreadTodo(QThread):
                         self.batch_top_up_money(player=task["task_args"]["player"])
                         # 常规日常签到
                         self.batch_sign_in(player=task["task_args"]["player"])
+                        main_task_active = True
+                        active_singleton = False
                     case "施肥浇水摘果":
                         self.batch_fed_and_watered(
                             player=task["task_args"]["player"]
                         )
+                        main_task_active = True
+                        active_singleton = False
                     case "公会任务":
                         self.guild_or_spouse_quest(
                             text_="公会任务",
@@ -2369,6 +2385,8 @@ class ThreadTodo(QThread):
                             battle_plan_1p=task["task_args"]["battle_plan_1p"],
                             battle_plan_2p=task["task_args"]["battle_plan_2p"],
                             stage=task["task_args"]["cross_server"])
+                        main_task_active = True
+                        active_singleton = False
                     case "情侣任务":
                         self.guild_or_spouse_quest(
                             text_="情侣任务",
@@ -2377,23 +2395,35 @@ class ThreadTodo(QThread):
                             deck=task["task_args"]["deck"],
                             battle_plan_1p=task["task_args"]["battle_plan_1p"],
                             battle_plan_2p=task["task_args"]["battle_plan_2p"])
+                        main_task_active = True
+                        active_singleton = False
                     case "使用消耗品":
                         self.batch_use_items_consumables(
                             player=task["task_args"]["player"],
                         )
+                        main_task_active = True
+                        active_singleton = False
                     case "查漏补缺":
                         self.checking_nodo(player=task["task_args"]["player"],)
+                        main_task_active = True
+                        active_singleton = False
                     case "天知强卡器":
                         self.tce(
                             player=task["task_args"]["player"]
                         )
+                        main_task_active = True
+                        active_singleton = False
                     case "美食大赛":
                         self.auto_food()
+                        main_task_active = True
+                        active_singleton = False
                     case "跨服刷威望":
                         self.batch_loop_cross_server(
                             player=task["task_args"]["player"],
                             deck=1,
                             name="威望")
+                        main_task_active = True
+                        active_singleton = False
                     case "自建房战斗":
                         self.easy_battle(
                             text_="自建房战斗",
@@ -2412,13 +2442,16 @@ class ThreadTodo(QThread):
                             },
                             is_cu=True
                         )
+                        active_singleton = True
                     case "任务序列":
-                        self.task_sequence(
+                        main_task_active,in_active_singleton=self.task_sequence(
                             text_="自定义任务序列",
                             task_begin_id=task["task_args"]["sequence_integer"],
                             task_sequence_index=task["task_args"]["task_sequence_index"])
+                        active_singleton=active_singleton and in_active_singleton
             # 战斗结束
             self.model_end_print(text=text_)
+            return main_task_active,active_singleton
 
         return main()
 
@@ -3175,16 +3208,78 @@ class ThreadTodo(QThread):
         """线程执行主体"""
         
         # 判断是运行任务序列还是方案
-        if self.task_sequence_index is not None:
+        if self.todo_id == 1:
             # 运行任务序列
-            self.task_sequence(
+            # 尝试启动360游戏大厅和对应的小号
+            self.start_360()
+            SIGNAL.PRINT_TO_UI.emit("每一个大类的任务开始前均会重启游戏以防止bug...")
+
+            self.remove_outdated_log_images()
+            main_task_active,active_singleton=self.task_sequence(
                 text_="自定义任务序列",
                 task_begin_id=1,
                 task_sequence_index=self.task_sequence_index)
+            """完成FAA的任务列表后，开始执行插件脚本"""
+            name_1p = self.opt["base_settings"]["name_1p"]
+            if name_1p == '':
+                name_1p = self.opt['base_settings']['game_name']
+            else:
+                name_1p = name_1p + ' | ' + self.opt['base_settings']['game_name']
+
+            name_2p = self.opt["base_settings"]["name_2p"]
+            if name_2p == '':
+                name_2p = self.opt['base_settings']['game_name']
+            else:
+                name_2p = name_2p + ' | ' + self.opt['base_settings']['game_name']
+
+            scripts = self.opt["extension"]["scripts"]
+            # 这块本来就是多线程执行的，所以不需要再用线程，不会阻塞FAA的
+            for script in scripts:
+                SIGNAL.PRINT_TO_UI.emit(text=f"开始执行插件脚本 {script['name']}: {script['path']}", color_level=2)
+                player = script['player']
+
+                if player == 1:
+                    for _ in range(script['repeat']):
+                        execute(name_1p, script['path'])
+                elif player == 2:
+                    for _ in range(script['repeat']):
+                        execute(name_2p, script['path'])
+                elif player == 3:
+                    for _ in range(script['repeat']):
+                        execute(name_1p, script['path'])
+                    for _ in range(script['repeat']):
+                        execute(name_2p, script['path'])
+
+                SIGNAL.PRINT_TO_UI.emit(text=f"插件脚本 {script['name']}: {script['path']} 执行结束", color_level=2)
+
+            SIGNAL.PRINT_TO_UI.emit(text=f"所有插件脚本均已执行结束", color_level=1)
+            if main_task_active:
+                if self.opt["login_settings"]["login_close_settings"]:
+                    SIGNAL.PRINT_TO_UI.emit(
+                        text="[开关游戏大厅] 任务全部完成, 关闭360游戏大厅对应窗口, 降低系统负载.",
+                        color_level=1
+                    )
+                    self.close_360()
+                else:
+                    if self.opt["advanced_settings"]["end_exit_game"]:
+                        SIGNAL.PRINT_TO_UI.emit(text="任务全部完成, 刷新返回登录界面, 降低系统负载.", color_level=1)
+                        self.batch_click_final_refresh_btn()
+                    else:
+                        SIGNAL.PRINT_TO_UI.emit(
+                            text="[推荐] 进阶功能中, 可设置完成所有任务后, 关闭360游戏大厅对应窗口 or 返回登录页, 降低系统负载.",
+                            color_level=1)
+            else:
+                if active_singleton:
+                    SIGNAL.PRINT_TO_UI.emit(
+                        text="您启动了完成后操作, 但仅运行了自建房对战, 故不进行任何操作",
+                        color_level=1)
+                else:
+                    SIGNAL.PRINT_TO_UI.emit(text="您启动了完成后操作, 但并未运行任务, 故不进行任何操作", color_level=1)
+
+            # 全部完成了发个信号
+            SIGNAL.END.emit()
         else:
             # 运行方案
-            if self.todo_id == 1:
-                self.run_1()
             if self.todo_id == 2:
                 self.run_2()
     def run_1(self):

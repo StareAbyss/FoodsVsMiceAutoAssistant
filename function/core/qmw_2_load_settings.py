@@ -408,7 +408,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
         # comboBox.setCurrentIndex时 如果超过了已有预设 会显示为空 不会报错
         # comboBox.clear时 会把所有选项设定为默认选项
 
-        todo_plan_name_list = [plan["name"] for plan in self.opt["todo_plans"]]
+        # 获取任务序列列表而不是方案列表
+        task_sequence_name_list = get_task_sequence_list(with_extension=False)
 
         def base_settings() -> None:
             my_opt = self.opt["base_settings"]
@@ -717,9 +718,9 @@ class QMainWindowLoadSettings(QMainWindowLog):
         extension_opt_to_ui()
 
         self.CurrentPlan.clear()
-        self.CurrentPlan.addItems(todo_plan_name_list)
+        self.CurrentPlan.addItems(task_sequence_name_list)
         self.CurrentPlan.setCurrentIndex(self.opt["current_plan"])
-        self.opt_to_ui_todo_plans()
+        # self.opt_to_ui_todo_plans()
 
     # ui -> opt
 
@@ -1196,7 +1197,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         extension_ui_to_opt()
 
         self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
-        self.ui_to_opt_todo_plans()
+        # self.ui_to_opt_todo_plans()
 
         # 一个提示弹窗
         self.cant_find_battle_plan_in_uuid_show_dialog()
