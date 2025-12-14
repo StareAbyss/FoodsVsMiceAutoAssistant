@@ -20,7 +20,6 @@ from function.core.performance_analysis import run_analysis_in_thread
 from function.core.qmw_2_load_settings import CommonHelper, QMainWindowLoadSettings
 from function.core.qmw_editor_of_battle_plan import QMWEditorOfBattlePlan
 from function.core.qmw_editor_of_stage_plan import QMWEditorOfStagePlan
-from function.core.qmw_editor_of_task_sequence import QMWEditorOfTaskSequence
 from function.core.qmw_settings_migrator import QMWSettingsMigrator
 from function.core.qmw_task_plan_editor import TaskEditor
 from function.core.qmw_tip_accelerate_settings import QMWTipAccelerateSettings
@@ -176,10 +175,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 方案修改按钮 函数绑定
         self.Button_DeletePlan.clicked.connect(self.delete_current_plan)
         self.Button_RenamePlan.clicked.connect(self.rename_current_plan)
-        self.Button_CreatePlan.clicked.connect(self.create_new_plan)
 
-        # 当前方案变化 函数绑定
-        # self.CurrentPlan.currentIndexChanged.connect(self.opt_to_ui_todo_plans)
 
         # 隐藏(拖动)窗口到屏幕视图外 函数绑定
         self.Button_Hide.clicked.connect(self.click_btn_hide_window)

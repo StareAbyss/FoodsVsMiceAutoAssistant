@@ -66,12 +66,12 @@ class QCListWidgetDraggable(QListWidget):
 
 
 class QMWEditorOfTaskSequence(QMainWindow):
-    def __init__(self):
+    def __init__(self,father=None):
         """
         初始化，完成界面布局，绑定信号与槽，初始化变量
         """
         super().__init__()
-
+        self.father = father
         # 主布局
         self.lay_main = QVBoxLayout()
 
@@ -1337,6 +1337,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
             filter="JSON Files (*.json)")
 
         if file_name:
+            try:
+                self.father.CurrentPlan_Label_Change.setText(file_name)
+            except Exception:
+                pass
             try:
                 with open(file_name, 'r', encoding='utf-8') as file:
                     self.list_to_ui(json.load(file))

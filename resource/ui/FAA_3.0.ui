@@ -2115,7 +2115,7 @@ border:none</string>
                 </layout>
                </item>
                <item>
-                <layout class="QHBoxLayout" name="Lay_CurrentPlan_2" stretch="0,0,0">
+                <layout class="QHBoxLayout" name="Lay_CurrentPlan_2" stretch="0,0">
                  <property name="sizeConstraint">
                   <enum>QLayout::SetDefaultConstraint</enum>
                  </property>
@@ -2184,34 +2184,6 @@ border:none</string>
                    </property>
                    <property name="text">
                     <string>删除此方案</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="Button_CreatePlan">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>新建的方案会继承Default的一切设置，但不能给新方案取名Default</string>
-                   </property>
-                   <property name="text">
-                    <string>创建新方案</string>
                    </property>
                   </widget>
                  </item>
@@ -2741,7 +2713,7 @@ Link Start</string>
                <widget class="QWidget" name="AdvancedSettingsAreaWidget">
                 <property name="geometry">
                  <rect>
-                  <x>2</x>
+                  <x>0</x>
                   <y>0</y>
                   <width>560</width>
                   <height>2500</height>

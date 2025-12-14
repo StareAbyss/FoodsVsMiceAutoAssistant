@@ -7,7 +7,7 @@ from function.globals.loadings import loading
 loading.update_progress(45,"正在加载配置中...")
 from PyQt6.QtCore import QRegularExpression
 from PyQt6.QtGui import QRegularExpressionValidator, QIntValidator
-from PyQt6.QtWidgets import QApplication, QMessageBox, QInputDialog, QTableWidgetItem, QVBoxLayout
+from PyQt6.QtWidgets import QApplication, QMessageBox, QInputDialog, QTableWidgetItem, QVBoxLayout,QSizePolicy
 
 from function.core.qmw_1_log import QMainWindowLog
 from function.core.qmw_editor_of_task_sequence import QMWEditorOfTaskSequence
@@ -19,7 +19,6 @@ from function.scattered.check_battle_plan import fresh_and_check_all_battle_plan
 from function.scattered.get_list_battle_plan import get_list_battle_plan
 from function.scattered.get_task_sequence_list import get_task_sequence_list
 from function.scattered.test_route_connectivity import test_route_connectivity
-
 
 def ensure_file_exists(file_path, template_suffix="_template") -> None:
     """
@@ -61,7 +60,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         # 继承父类构造方法
         super().__init__()
         
-        # 替换 verticalLayout_23 为任务序列编辑器
+        # 替换 taskeditor_layout 为任务序列编辑器
         self.replace_taskeditor_layout_with_task_editor()
 
         # opt路径
@@ -88,12 +87,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
         g_resources.fresh_resource_b()
         g_resources.fresh_resource_t()
 
-        # 为部分ui控件添加特性
-        # self.widget_extra_settings()
-
-        # 绑定
-        # self.set_connect_for_lock_widget()
-
         # 从json文件中读取opt 并刷新ui
         self.opt = None
         self.json_to_opt()
@@ -119,7 +112,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         将 taskeditor_layout 替换为任务序列编辑器
         """
         # 创建任务序列编辑器实例
-        self.task_editor = QMWEditorOfTaskSequence()
+        self.task_editor = QMWEditorOfTaskSequence(self)
         
         # 设置任务编辑器的字体与主窗口一致
         self.task_editor.set_my_font(self.font())
@@ -133,9 +126,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             if child.widget():
                 child.widget().deleteLater()
         layout.addWidget(self.task_editor)
-        
-        # 设置任务编辑器的尺寸策略，让它可以正确填充布局
-        from PyQt6.QtWidgets import QSizePolicy
+
         self.task_editor.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
     def correct_settings_file(self, template_suffix="_template") -> None:
@@ -237,6 +228,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
     def opt_to_ui_todo_plans(self) -> None:
         """
+        （已弃用）执念标记
         先从ui上读取目前todo plan index, 然后从opt读取对应的设置到todo plan 配置界面
         :return:
         """
@@ -435,8 +427,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
     def opt_to_ui_init(self) -> None:
         # comboBox.setCurrentIndex时 如果超过了已有预设 会显示为空 不会报错
         # comboBox.clear时 会把所有选项设定为默认选项
-
-        # 获取任务序列列表而不是方案列表
+        battle_plan_name_list = get_list_battle_plan(with_extension=False)
         task_sequence_name_list = get_task_sequence_list(with_extension=False)
 
         def base_settings() -> None:
@@ -746,14 +737,21 @@ class QMainWindowLoadSettings(QMainWindowLog):
         extension_opt_to_ui()
 
         self.CurrentPlan.clear()
-        self.CurrentPlan.addItems(task_sequence_name_list)
+        self.CurrentPlan.addItems(get_task_sequence_list(with_extension=False))
         self.CurrentPlan.setCurrentIndex(self.opt["current_plan"])
-        # self.opt_to_ui_todo_plans()
+        
+        # 如果当前选中项超出范围，则选中最后一项
+        if self.CurrentPlan.currentIndex() >= self.CurrentPlan.count():
+            self.CurrentPlan.setCurrentIndex(self.CurrentPlan.count() - 1)
 
     # ui -> opt
 
     def ui_to_opt_todo_plans(self) -> None:
+        """
 
+        （已弃用）执念标记
+
+        """
         self.cant_find_battle_plan_in_uuid = False
 
         # battle_plan_list
@@ -1225,7 +1223,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
         extension_ui_to_opt()
 
         self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
-        # self.ui_to_opt_todo_plans()
 
         # 一个提示弹窗
         self.cant_find_battle_plan_in_uuid_show_dialog()
@@ -1233,6 +1230,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
     # 勾选 全局方案 -> 锁定其他几项设置
     def set_connect_for_lock_widget(self) -> None:
         """
+        （已弃用）执念标记
         是否激活一个元素, 如果激活, 再允许编辑对应的下级元素
         完成大量这样的操作
         """
@@ -1384,55 +1382,76 @@ class QMainWindowLoadSettings(QMainWindowLog):
         SIGNAL.PRINT_TO_UI.emit(text="", time=False)
         self.ui_to_opt()
         self.opt_to_json()
-        SIGNAL.PRINT_TO_UI.emit(text=f"方案:[{self.CurrentPlan.currentText()}] 已保存!", color_level=3)
+        self.opt_to_ui_init()
+        SIGNAL.PRINT_TO_UI.emit(text=f"任务序列:[{self.CurrentPlan.currentText()}] 已保存!", color_level=3)
 
     def delete_current_plan(self) -> None:
-        """用来删掉当前被选中的 todo plan 但不能删掉默认方案"""
+        """用来删掉当前被选中的 任务序列 但不能删掉默认任务序列"""
         if self.CurrentPlan.currentIndex() == 0:
-            QMessageBox.information(self, "警告", "默认方案不能删除呢...")
+            QMessageBox.information(self, "警告", "默认任务序列不能删除呢...")
             return
+        
+        # 获取要删除的任务序列的名称
+        plan_name = self.opt["todo_plans"][self.CurrentPlan.currentIndex()]["name"]
+        
+        # 删除实际的JSON文件
+        task_sequence_path = os.path.join(PATHS["task_sequence"], f"{plan_name}.json")
+        if os.path.exists(task_sequence_path):
+            try:
+                os.remove(task_sequence_path)
+            except Exception as e:
+                QMessageBox.critical(self, "错误!", f"删除任务序列文件失败: {str(e)}")
+        else:
+            QMessageBox.warning(self, "警告", f"未找到任务序列文件: {plan_name}.json")
+        
+        # 删除内存中的配置
         del self.opt["todo_plans"][self.CurrentPlan.currentIndex()]
         # 重载ui
         self.opt_to_ui_init()
 
     def rename_current_plan(self) -> None:
-        """用来重命名当前被选中的 todo plan 但不能重命名默认方案"""
-        if self.CurrentPlan.currentIndex() == 0:
-            QMessageBox.information(self, "警告", "默认方案不能重命名呢...")
-            return
+        """用来重命名当前被选中的 任务序列 但不能重命名默认任务序列"""
 
+
+        # 获取原名称（从实际文件列表中获取当前索引对应的文件名）
+        task_sequence_files = get_task_sequence_list(with_extension=True)
+        if self.CurrentPlan.currentIndex() >= len(task_sequence_files):
+            QMessageBox.critical(self, "错误!", "无法找到对应的任务序列文件")
+            return
+            
+        old_filename = task_sequence_files[self.CurrentPlan.currentIndex()]
+        old_name = old_filename[:-5]  # 去掉.json后缀
+        if old_name == "默认方案任务序列":
+            QMessageBox.information(self, "警告", "默认任务序列不能重命名呢...")
+            return
         # 弹出对话框获取新名称
-        new_name, ok = QInputDialog.getText(self, "重命名方案", "请输入新的方案名称:")
+        new_name, ok = QInputDialog.getText(self, "重命名任务序列", "请输入新的任务序列名称:")
 
         if ok and new_name:
+            # 重命名实际的JSON文件
+            old_file_path = os.path.join(PATHS["task_sequence"], f"{old_name}.json")
+            new_file_path = os.path.join(PATHS["task_sequence"], f"{new_name}.json")
+            
+            # 直接重命名文件
+            if os.path.exists(old_file_path):
+                try:
+                    os.rename(old_file_path, new_file_path)
+                except Exception as e:
+                    QMessageBox.critical(self, "错误!", f"重命名任务序列文件失败: {str(e)}")
+                    return
+            else:
+                QMessageBox.warning(self, "警告", f"未找到原任务序列文件: {old_name}.json")
+            
             self.opt["todo_plans"][self.CurrentPlan.currentIndex()]["name"] = copy.deepcopy(new_name)
             current_index = self.CurrentPlan.currentIndex()
             # 重载ui
             self.opt_to_ui_init()
-            # 默认选中重命名后方案
+            # 默认选中重命名后任务序列
             self.CurrentPlan.setCurrentIndex(current_index)
         else:
-            QMessageBox.information(self, "提示", "方案名称未改变。")
+            QMessageBox.information(self, "提示", "任务序列名称未改变。")
 
-    def create_new_plan(self) -> None:
-        """新建一个 todo plan, 但不能取名为Default"""
-        # 弹出对话框获取新方案名称
-        new_name, ok = QInputDialog.getText(self, "新建方案", "请输入新的方案名称:")
 
-        if ok and new_name:
-            if new_name == "Default":
-                QMessageBox.information(self, "警告", "不能使用 Default 作为新的 TodoPlan 名呢...")
-                return
-
-            # 注意深拷贝
-            self.opt["todo_plans"].append(copy.deepcopy(self.opt["todo_plans"][self.CurrentPlan.currentIndex()]))
-            self.opt["todo_plans"][-1]["name"] = copy.deepcopy(new_name)
-            # 重载ui
-            self.opt_to_ui_init()
-            # 默认选中新方案
-            self.CurrentPlan.setCurrentIndex(len(self.opt["todo_plans"]) - 1)
-        else:
-            QMessageBox.information(self, "提示", "方案未创建。")
 
     """其他"""
 
@@ -1493,6 +1512,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
     def widget_extra_settings(self):
         """
+        (已弃用)执念标记
         为部分控件在加载时添加额外的属性
         :return:
         """
