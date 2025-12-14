@@ -423,6 +423,9 @@ class QMainWindowLoadSettings(QMainWindowLog):
             h_validator = QRegularExpressionValidator(QRegularExpression(r"^(?:[01][0-9]|2[0-3])$"))
             m_validator = QRegularExpressionValidator(QRegularExpression(r"^[0-5]?[0-9]$"))
 
+            # 获取任务序列列表而不是方案列表
+            task_sequence_name_list = get_task_sequence_list(with_extension=False)
+
             for timer_index in range(1, 6):
                 my_opt = self.opt["timer"][f"{timer_index}"]
                 getattr(self, f"Timer{timer_index}_Active").setChecked(my_opt["active"])
@@ -434,8 +437,9 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 getattr(self, f"Timer{timer_index}_H").setText(h_text)
                 getattr(self, f"Timer{timer_index}_M").setText(m_text)
 
+                # 使用任务序列列表替换原来的方案列表
                 getattr(self, f"Timer{timer_index}_Plan").clear()
-                getattr(self, f"Timer{timer_index}_Plan").addItems(todo_plan_name_list)
+                getattr(self, f"Timer{timer_index}_Plan").addItems(task_sequence_name_list)
                 getattr(self, f"Timer{timer_index}_Plan").setCurrentIndex(my_opt["plan"])
 
                 getattr(self, f"Timer{timer_index}_H").setValidator(h_validator)

@@ -45,12 +45,13 @@ class ThreadTodo(QThread):
     signal_start_todo_2_battle = pyqtSignal(dict)
     signal_todo_lock = pyqtSignal(bool)
 
-    def __init__(self, faa_dict, opt, running_todo_plan_index, todo_id):
+    def __init__(self, faa_dict, opt, running_todo_plan_index, todo_id, running_task_sequence_index=None):
         """
         :param faa_dict:
         :param opt:
         :param running_todo_plan_index:
         :param todo_id: id == 1 默认 id==2 处理双单人多线程
+        :param running_task_sequence_index: 如果提供，则运行指定的任务序列而不是方案
         """
         super().__init__()
 
@@ -62,7 +63,15 @@ class ThreadTodo(QThread):
         # 功能需要
         self.faa_dict: dict[int, FAA] = faa_dict
         self.opt = copy.deepcopy(opt)  # 深拷贝 在作战中如果进行更改, 不会生效
-        self.opt_todo_plans = self.opt["todo_plans"][running_todo_plan_index]  # 选择运行的 opt 的 todo plan 部分
+        
+        # 判断是运行方案还是任务序列
+        if running_task_sequence_index is not None:
+            self.opt_todo_plans = None  # 不使用方案
+            self.task_sequence_index = running_task_sequence_index
+        else:
+            self.opt_todo_plans = self.opt["todo_plans"][running_todo_plan_index]  # 选择运行的 opt 的 todo plan 部分
+            self.task_sequence_index = None
+            
         self.battle_check_interval = 1  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
 
         # 用于防止缺乏钥匙/次数时无限重复某些关卡, key: (player: int, quest_text: str), value: int
@@ -3163,15 +3172,21 @@ class ThreadTodo(QThread):
         self.start()
 
     def run(self):
-
-        if self.todo_id == 1:
-            self.run_1()
-        if self.todo_id == 2:
-            self.run_2()
-        # except Exception as e:
-        #     SIGNAL.PRINT_TO_UI.emit(text=f"[Todo] 运行时发生错误! 内容:{e}", color_level=1)
-        #     CUS_LOGGER.error(f"[Todo] 运行时发生错误!")
-
+        """线程执行主体"""
+        
+        # 判断是运行任务序列还是方案
+        if self.task_sequence_index is not None:
+            # 运行任务序列
+            self.task_sequence(
+                text_="自定义任务序列",
+                task_begin_id=1,
+                task_sequence_index=self.task_sequence_index)
+        else:
+            # 运行方案
+            if self.todo_id == 1:
+                self.run_1()
+            if self.todo_id == 2:
+                self.run_2()
     def run_1(self):
         """配置检查"""
 

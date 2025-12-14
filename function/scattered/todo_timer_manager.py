@@ -19,8 +19,8 @@ class TodoTimerManager:
             timer_opt = self.opt["timer"][str(i)]
             if timer_opt["active"]:
                 tar_time = {"h": timer_opt["h"], "m": timer_opt["m"]}
-                plan_index = timer_opt["plan"]
-                self.init_todo_timer(timer_index=i, tar_time=tar_time, plan_index=plan_index)
+                task_sequence_index = timer_opt["plan"]
+                self.init_todo_timer(timer_index=i, tar_time=tar_time, task_sequence_index=task_sequence_index)
         # 开始timers
         for key, timer in self.todo_timers.items():
             timer.start()
@@ -37,21 +37,21 @@ class TodoTimerManager:
     def set_opt(self, opt):
         self.opt = copy.deepcopy(opt)  # 深拷贝 意味着开始运行后再配置不会有反应
 
-    def init_todo_timer(self, timer_index, tar_time, plan_index):
+    def init_todo_timer(self, timer_index, tar_time, task_sequence_index):
         h = tar_time["h"]
         m = tar_time["m"]
         delta_seconds = calculate_sec_to_next_time(next_hour=h, next_minute=m)
         CUS_LOGGER.debug(
-            f"[定时启动] 即将创建Timer, 下次启动时间{h:02d}:{m:02d}, 即 {delta_seconds} 秒后, 计划索引为 {plan_index}")
+            f"[定时启动] 即将创建Timer, 下次启动时间{h:02d}:{m:02d}, 即 {delta_seconds} 秒后, 任务序列索引为 {task_sequence_index}")
         timer = Timer(
             interval=delta_seconds,
             function=self.call_back,
-            kwargs={"timer_index": timer_index, "plan_index": plan_index, "tar_time": tar_time})
+            kwargs={"timer_index": timer_index, "task_sequence_index": task_sequence_index, "tar_time": tar_time})
         self.todo_timers[timer_index] = timer
 
-    def call_back(self, timer_index, plan_index, tar_time):
-        # 启动线程
-        self.thread_todo_start.emit(plan_index)
+    def call_back(self, timer_index, task_sequence_index, tar_time):
+        # 启动线程 - 使用负数索引来表示这是任务序列而不是方案
+        self.thread_todo_start.emit(-task_sequence_index - 1)
         # 动态校准时间
         delta_seconds = 0
         while delta_seconds < 60:
@@ -60,12 +60,12 @@ class TodoTimerManager:
             m = tar_time["m"]
             delta_seconds = calculate_sec_to_next_time(next_hour=h, next_minute=m)
         CUS_LOGGER.debug(
-            f"即将创建timer, 下次启动时间{h:02d}:{m:02d}, 即 {delta_seconds} 秒后, 计划索引为 {plan_index}")
+            f"即将创建timer, 下次启动时间{h:02d}:{m:02d}, 即 {delta_seconds} 秒后, 任务序列索引为 {task_sequence_index}")
         # 回调 循环
         timer = Timer(
             interval=delta_seconds,
             function=self.call_back,
-            kwargs={"timer_index": timer_index, "plan_index": plan_index, "tar_time": tar_time}
+            kwargs={"timer_index": timer_index, "task_sequence_index": task_sequence_index, "tar_time": tar_time}
         )
         timer.start()
         # 覆盖原有的timer引用, 以防止内存泄漏
