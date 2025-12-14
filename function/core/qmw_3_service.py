@@ -89,9 +89,6 @@ class QMainWindowService(QMainWindowLoadSettings):
             func_open_tip=self.click_btn_tip_editor_of_battle_plan)
         self.OpenEditorOfBattlePlan_Button.clicked.connect(self.click_btn_open_editor_of_battle_plan)
 
-        # 额外窗口 - 任务序列编辑器
-        self.window_editor_of_task_sequence = QMWEditorOfTaskSequence()
-        self.OpenEditorOfTaskSequence_Button.clicked.connect(self.click_btn_open_editor_of_task_sequence)
 
         # 额外窗口 - 关卡方案编辑器
         self.window_editor_of_stage_plan = QMWEditorOfStagePlan()
@@ -881,11 +878,6 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.set_stylesheet(window)
         window.show()
 
-    def click_btn_open_editor_of_task_sequence(self):
-        window = self.window_editor_of_task_sequence
-        window.set_my_font(self.font)
-        self.set_stylesheet(window)
-        window.show()
 
     def click_btn_open_editor_of_stage_plan(self):
         window = self.window_editor_of_stage_plan

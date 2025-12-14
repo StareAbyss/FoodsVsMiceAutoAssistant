@@ -7,9 +7,10 @@ from function.globals.loadings import loading
 loading.update_progress(45,"正在加载配置中...")
 from PyQt6.QtCore import QRegularExpression
 from PyQt6.QtGui import QRegularExpressionValidator, QIntValidator
-from PyQt6.QtWidgets import QApplication, QMessageBox, QInputDialog, QTableWidgetItem
+from PyQt6.QtWidgets import QApplication, QMessageBox, QInputDialog, QTableWidgetItem, QVBoxLayout
 
 from function.core.qmw_1_log import QMainWindowLog
+from function.core.qmw_editor_of_task_sequence import QMWEditorOfTaskSequence
 from function.globals import EXTRA, SIGNAL
 from function.globals import g_resources
 from function.globals.get_paths import PATHS
@@ -59,6 +60,9 @@ class QMainWindowLoadSettings(QMainWindowLog):
     def __init__(self):
         # 继承父类构造方法
         super().__init__()
+        
+        # 替换 verticalLayout_23 为任务序列编辑器
+        self.replace_taskeditor_layout_with_task_editor()
 
         # opt路径
         self.opt_path = PATHS["root"] + "\\config\\settings.json"
@@ -85,10 +89,10 @@ class QMainWindowLoadSettings(QMainWindowLog):
         g_resources.fresh_resource_t()
 
         # 为部分ui控件添加特性
-        self.widget_extra_settings()
+        # self.widget_extra_settings()
 
         # 绑定
-        self.set_connect_for_lock_widget()
+        # self.set_connect_for_lock_widget()
 
         # 从json文件中读取opt 并刷新ui
         self.opt = None
@@ -109,6 +113,30 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 "path":"",
                 "use_password":False
             }
+
+    def replace_taskeditor_layout_with_task_editor(self):
+        """
+        将 taskeditor_layout 替换为任务序列编辑器
+        """
+        # 创建任务序列编辑器实例
+        self.task_editor = QMWEditorOfTaskSequence()
+        
+        # 设置任务编辑器的字体与主窗口一致
+        self.task_editor.set_my_font(self.font())
+        
+        # 获取 verticalLayout_23 布局
+        layout = self.findChild(QVBoxLayout, "taskeditor_layout")
+        
+        # 清空原有布局中的所有控件
+        while layout.count():
+            child = layout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+        layout.addWidget(self.task_editor)
+        
+        # 设置任务编辑器的尺寸策略，让它可以正确填充布局
+        from PyQt6.QtWidgets import QSizePolicy
+        self.task_editor.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
     def correct_settings_file(self, template_suffix="_template") -> None:
         """

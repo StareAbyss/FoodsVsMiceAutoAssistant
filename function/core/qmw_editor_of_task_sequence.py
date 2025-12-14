@@ -127,8 +127,9 @@ class QMWEditorOfTaskSequence(QMainWindow):
         self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
 
         # 大小
-        self.setMaximumSize(1500, 5000)
-        self.setMinimumSize(1500, 600)
+        # 移除固定大小限制，让布局管理器可以控制大小
+        # self.setMaximumSize(1500, 5000)
+        # self.setMinimumSize(1500, 600)
 
     def set_my_font(self, my_font):
         """用于继承字体, 而不需要多次读取"""
