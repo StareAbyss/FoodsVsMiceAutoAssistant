@@ -10,6 +10,7 @@ from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSpinBox, QCheckBox, QWidget, QListWidgetItem, QFileDialog, QMessageBox, QApplication, QListWidget, QSpacerItem, \
     QSizePolicy, QFrame, QAbstractItemView, QInputDialog
+from function.widget.SearchableComboBox import SearchableComboBox
 
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
@@ -441,17 +442,17 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
             # 战斗方案 1P 创建控件
             w_label = QLabel('1P方案')
-            w_1p_input = QComboBox()
+            w_1p_input = SearchableComboBox()
             add_element(line_layout=line_layout, w_label=w_label, w_input=w_1p_input)
 
             # 战斗方案 2P 创建控件
             w_label = QLabel('2P方案')
-            w_2p_input = QComboBox()
+            w_2p_input = SearchableComboBox()
             add_element(line_layout=line_layout, w_label=w_label, w_input=w_2p_input)
 
             # 微调方案 创建控件
             w_label = QLabel('微调方案')
-            w_tweak_input = QComboBox()
+            w_tweak_input = SearchableComboBox()
             add_element(line_layout=line_layout, w_label=w_label, w_input=w_tweak_input)
 
             def toggle_widgets(state, widgets):
@@ -744,12 +745,12 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
             # 战斗方案 1P 创建控件
             w_label = QLabel('1P方案')
-            w_1p_input = QComboBox()
+            w_1p_input = SearchableComboBox()
             add_element(line_layout=line_layout, w_label=w_label, w_input=w_1p_input)
 
             # 战斗方案 2P 创建控件
             w_label = QLabel('2P方案')
-            w_2p_input = QComboBox()
+            w_2p_input = SearchableComboBox()
             add_element(line_layout=line_layout, w_label=w_label, w_input=w_2p_input)
 
             def toggle_widgets(state, widgets):
@@ -812,12 +813,12 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
             # 战斗方案 1P 创建控件
             w_label = QLabel('1P方案')
-            w_1p_input = QComboBox()
+            w_1p_input = SearchableComboBox()
             add_element(line_layout=line_layout, w_label=w_label, w_input=w_1p_input)
 
             # 战斗方案 2P 创建控件
             w_label = QLabel('2P方案')
-            w_2p_input = QComboBox()
+            w_2p_input = SearchableComboBox()
             add_element(line_layout=line_layout, w_label=w_label, w_input=w_2p_input)
 
             def toggle_widgets(state, widgets):
@@ -912,7 +913,6 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 
                 # 添加任务序列选择下拉框（使用SearchableComboBox）
                 w_label = QLabel('任务序列')
-                from function.widget.SearchableComboBox import SearchableComboBox
                 w_input = SearchableComboBox()
                 w_input.setObjectName("w_task_sequence_index")
                 w_input.setFixedWidth(200)
@@ -1102,24 +1102,23 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
 
                     # 微调方案
-                    tweak_plan_path = PATHS["tweak_battle_plan"]
                     tweak_plan_name_list = get_list_tweak_plan(with_extension=False)
                     tweak_plan_uuid_list = list(EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH.keys())
 
-                    widget_input = w_line.findChild(QComboBox, 'w_battle_plan_1p')
+                    widget_input = w_line.findChild(SearchableComboBox, 'w_battle_plan_1p')
                     text = widget_input.currentText()
                     index = battle_plan_name_list.index(text)
                     uuid = battle_plan_uuid_list[index]
                     args['battle_plan_1p'] = uuid
 
-                    widget_input = w_line.findChild(QComboBox, 'w_battle_plan_2p')
+                    widget_input = w_line.findChild(SearchableComboBox, 'w_battle_plan_2p')
                     text = widget_input.currentText()
                     index = battle_plan_name_list.index(text)
                     uuid = battle_plan_uuid_list[index]
                     args['battle_plan_2p'] = uuid
 
                     # 微调方案
-                    widget_input = w_line.findChild(QComboBox, 'w_battle_plan_tweak')
+                    widget_input = w_line.findChild(SearchableComboBox, 'w_battle_plan_tweak')
                     if widget_input.count() > 0:  # 确保有选项
                         text = widget_input.currentText()
                         if text in tweak_plan_name_list:
@@ -1141,7 +1140,6 @@ class QMWEditorOfTaskSequence(QMainWindow):
                         "last_time_player_a": ["竞技岛"],
                         "last_time_player_b": ["竞技岛"]
                     }
-
                 case "双暴卡":
                     args = player(w_line=w_line, args=args)
 
@@ -1181,13 +1179,13 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     battle_plan_name_list = get_list_battle_plan(with_extension=False)
                     battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
 
-                    widget_input = w_line.findChild(QComboBox, 'w_battle_plan_1p')
+                    widget_input = w_line.findChild(SearchableComboBox, 'w_battle_plan_1p')
                     text = widget_input.currentText()
                     index = battle_plan_name_list.index(text)
                     uuid = battle_plan_uuid_list[index]
                     args['battle_plan_1p'] = uuid
 
-                    widget_input = w_line.findChild(QComboBox, 'w_battle_plan_2p')
+                    widget_input = w_line.findChild(SearchableComboBox, 'w_battle_plan_2p')
                     text = widget_input.currentText()
                     index = battle_plan_name_list.index(text)
                     uuid = battle_plan_uuid_list[index]
@@ -1213,13 +1211,13 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     battle_plan_name_list = get_list_battle_plan(with_extension=False)
                     battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
 
-                    widget_input = w_line.findChild(QComboBox, 'w_battle_plan_1p')
+                    widget_input = w_line.findChild(SearchableComboBox, 'w_battle_plan_1p')
                     text = widget_input.currentText()
                     index = battle_plan_name_list.index(text)
                     uuid = battle_plan_uuid_list[index]
                     args['battle_plan_1p'] = uuid
 
-                    widget_input = w_line.findChild(QComboBox, 'w_battle_plan_2p')
+                    widget_input = w_line.findChild(SearchableComboBox, 'w_battle_plan_2p')
                     text = widget_input.currentText()
                     index = battle_plan_name_list.index(text)
                     uuid = battle_plan_uuid_list[index]
@@ -1274,20 +1272,20 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     tweak_plan_name_list = get_list_tweak_plan(with_extension=False)
                     tweak_plan_uuid_list = list(EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH.keys())
 
-                    widget_input = w_line.findChild(QComboBox, 'w_battle_plan_1p')
+                    widget_input = w_line.findChild(SearchableComboBox, 'w_battle_plan_1p')
                     text = widget_input.currentText()
                     index = battle_plan_name_list.index(text)
                     uuid = battle_plan_uuid_list[index]
                     args['battle_plan_1p'] = uuid
 
-                    widget_input = w_line.findChild(QComboBox, 'w_battle_plan_2p')
+                    widget_input = w_line.findChild(SearchableComboBox, 'w_battle_plan_2p')
                     text = widget_input.currentText()
                     index = battle_plan_name_list.index(text)
                     uuid = battle_plan_uuid_list[index]
                     args['battle_plan_2p'] = uuid
 
                     # 微调方案
-                    widget_input = w_line.findChild(QComboBox, 'w_battle_plan_tweak')
+                    widget_input = w_line.findChild(SearchableComboBox, 'w_battle_plan_tweak')
                     if widget_input.count() > 0:  # 确保有选项
                         text = widget_input.currentText()
                         if text in tweak_plan_name_list:
@@ -1315,7 +1313,6 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     args['sequence_integer'] = widget_input.value()
                     
                     # 获取任务序列下拉框的值
-                    from function.widget.SearchableComboBox import SearchableComboBox
                     widget_input = w_line.findChild(SearchableComboBox, 'w_task_sequence_index')
                     args['task_sequence_index'] = widget_input.currentIndex()
 
@@ -1372,6 +1369,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 f"完整错误调用栈:\n"
                 f"{error_traceback}\n"
                 f"请联系开发者!!!")
+            print(error_traceback)
             return
 
         file_name, _ = QFileDialog.getSaveFileName(
