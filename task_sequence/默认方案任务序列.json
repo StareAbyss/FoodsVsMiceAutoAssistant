@@ -363,7 +363,7 @@
         "task_type": "战斗",
         "task_id": 17,
         "enabled": true,
-        "alias": "公会副本1",
+        "alias": "月光果园",
         "tooltip": "45把掉落衰减: 不占用\n双倍掉落：可用，但无必要",
         "task_args": {
             "stage_id": "GD-0-1",
@@ -395,7 +395,7 @@
         "task_type": "战斗",
         "task_id": 18,
         "enabled": true,
-        "alias": "公会副本2",
+        "alias": "堕落深渊",
         "tooltip": "45把掉落衰减: 不占用\n双倍掉落：可用，但无必要",
         "task_args": {
             "stage_id": "GD-0-2",
@@ -427,7 +427,7 @@
         "task_type": "战斗",
         "task_id": 19,
         "enabled": true,
-        "alias": "公会副本3",
+        "alias": "死亡之棘",
         "tooltip": "45把掉落衰减: 不占用\n双倍掉落：可用，但无必要",
         "task_args": {
             "stage_id": "GD-0-3",
@@ -591,7 +591,7 @@
         "task_type": "战斗",
         "task_id": 25,
         "enabled": true,
-        "alias": "1p魔塔-密室",
+        "alias": "1p炼金室",
         "tooltip": "45把掉落衰减: 不占用\n双倍掉落：没有需求",
         "task_args": {
             "stage_id": "MT-3-1",
@@ -622,7 +622,7 @@
         "task_type": "战斗",
         "task_id": 26,
         "enabled": true,
-        "alias": "2p魔塔-密室",
+        "alias": "2p炼金室",
         "tooltip": "45把掉落衰减: 不占用\n双倍掉落：没有需求",
         "task_args": {
             "stage_id": "MT-3-1",
@@ -653,7 +653,7 @@
         "task_type": "战斗",
         "task_id": 27,
         "enabled": true,
-        "alias": "1p魔塔-密室",
+        "alias": "1p藏经阁",
         "tooltip": "45把掉落衰减: 不占用\n双倍掉落：没有需求",
         "task_args": {
             "stage_id": "MT-3-2",
@@ -684,7 +684,7 @@
         "task_type": "战斗",
         "task_id": 28,
         "enabled": true,
-        "alias": "2p魔塔-密室",
+        "alias": "2p藏经阁",
         "tooltip": "45把掉落衰减: 不占用\n双倍掉落：没有需求",
         "task_args": {
             "stage_id": "MT-3-2",
@@ -715,7 +715,7 @@
         "task_type": "战斗",
         "task_id": 29,
         "enabled": true,
-        "alias": "1p魔塔-密室",
+        "alias": "1p水晶宫",
         "tooltip": "45把掉落衰减: 不占用\n双倍掉落：没有需求",
         "task_args": {
             "stage_id": "MT-3-3",
@@ -746,7 +746,7 @@
         "task_type": "战斗",
         "task_id": 30,
         "enabled": true,
-        "alias": "2p魔塔-密室",
+        "alias": "2p水晶宫",
         "tooltip": "45把掉落衰减: 不占用\n双倍掉落：没有需求",
         "task_args": {
             "stage_id": "MT-3-3",
@@ -777,7 +777,7 @@
         "task_type": "战斗",
         "task_id": 31,
         "enabled": true,
-        "alias": "1p魔塔-密室",
+        "alias": "1p威望屋",
         "tooltip": "45把掉落衰减: 不占用\n双倍掉落：没有需求",
         "task_args": {
             "stage_id": "MT-3-4",
@@ -808,7 +808,7 @@
         "task_type": "战斗",
         "task_id": 32,
         "enabled": true,
-        "alias": "2p魔塔-密室",
+        "alias": "2p威望屋",
         "tooltip": "45把掉落衰减: 不占用\n双倍掉落：没有需求",
         "task_args": {
             "stage_id": "MT-3-4",
