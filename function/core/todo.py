@@ -2421,7 +2421,7 @@ class ThreadTodo(QThread):
                     case "自建房战斗":
                         self.easy_battle(
                             text_="自建房战斗",
-                            stage_id=task["task_args"]["stage"],
+                            stage_id=task["task_args"]["stage_id"],
                             player=task["task_args"]["player"],
                             max_times=int(task["task_args"]["max_times"]),
                             global_plan_active=task["task_args"]["global_plan_active"],
