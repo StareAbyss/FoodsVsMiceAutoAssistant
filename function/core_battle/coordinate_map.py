@@ -19,6 +19,7 @@ def parse_positions(coordinate, base_info):
     god_wind = False
     positions = set()
     obstacle=set()
+    ice=set()
 
     for index, base_value in enumerate(base_info):
 
@@ -64,8 +65,21 @@ def parse_positions(coordinate, base_info):
 
             # 添加障碍位置到列表
             obstacle.add(f"{x_segment}-{y_segment}")
+        elif base_value == 10:
+            x = coordinate[index][0] + 0.5 * coordinate[index][2]
+            y = coordinate[index][1] + 0.5 * coordinate[index][3]
+            # 将坐标映射到分割后的格子
+            if x < x_min:
+                x_segment = 1
+            else:
+                x_segment = min(math.ceil((x - x_min) / ((x_max - x_min) / x_segments)), x_segments)
+            if y < y_min:
+                y_segment = 1
+            else:
+                y_segment = min(math.ceil((y - y_min) / ((y_max - y_min) / y_segments)), y_segments)
+            ice.add(f"{x_segment}-{y_segment}")
 
-    return wave, god_wind, list(positions), list(obstacle)  # 返回是否有神风，是否有波次，待爆炸点位
+    return wave, god_wind, list(positions), list(obstacle), list(ice)     # 返回是否有神风，是否有波次，待爆炸点位, 可消除障碍点位, 冰块点位
 
 # 示例调用
 # base_info = [0, 0, 4, 6]
