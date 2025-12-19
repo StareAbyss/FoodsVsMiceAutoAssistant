@@ -37,8 +37,12 @@ def loots_and_chests_statistics_to_json(faa: "FAA", loots_dict, chests_dict) -> 
     if os.path.exists(file_path):
         # 尝试读取现有的JSON文件 自旋锁读写, 防止多线程读写问题
         with EXTRA.FILE_LOCK:
-            with open(file=file_path, mode="r", encoding="utf-8") as json_file:
-                json_data = json.load(json_file)
+            try:
+                with open(file=file_path, mode="r", encoding="utf-8") as json_file:
+                    json_data = json.load(json_file)
+            except (json.JSONDecodeError, Exception):
+                # 如果JSON文件损坏，初始化一个新的空字典
+                json_data = {}
     else:
         # 如果文件不存在，初始化
         json_data = {}
@@ -88,9 +92,12 @@ def loots_and_chests_detail_to_json(faa: "FAA", loots_dict, chests_dict) -> dict
 
     if os.path.exists(file_path):
         with EXTRA.FILE_LOCK:
-            with open(file=file_path, mode="r", encoding="utf-8") as json_file:
-                json_data = json.load(json_file)
-
+            try:
+                with open(file=file_path, mode="r", encoding="utf-8") as json_file:
+                    json_data = json.load(json_file)
+            except (json.JSONDecodeError, Exception):
+                # 如果JSON文件损坏，初始化一个新的空字典
+                json_data = {}
     else:
         # 如果文件不存在，初始化
         json_data = {}
