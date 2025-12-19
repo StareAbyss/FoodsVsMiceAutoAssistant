@@ -1001,7 +1001,7 @@ border:none</string>
                 </layout>
                </item>
                <item>
-                <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,1">
+                <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,1,0">
                  <property name="spacing">
                   <number>5</number>
                  </property>
@@ -1055,7 +1055,7 @@ border:none</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QPushButton" name="Button_Hide">
+                  <widget class="QPushButton" name="Button_WindowHide">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                      <horstretch>0</horstretch>
@@ -1078,7 +1078,14 @@ border:none</string>
                     <bool>true</bool>
                    </property>
                    <property name="text">
-                    <string>点击切换 - 将窗口拖到窗口底端~</string>
+                    <string>点击切换 - 将窗口拖到屏幕最底层</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="Button_WindowReSize">
+                   <property name="text">
+                    <string>点击调整 - 自动调整布局窗口位置</string>
                    </property>
                   </widget>
                  </item>
