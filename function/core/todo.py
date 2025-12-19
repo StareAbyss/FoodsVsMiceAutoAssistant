@@ -45,12 +45,13 @@ class ThreadTodo(QThread):
     signal_start_todo_2_battle = pyqtSignal(dict)
     signal_todo_lock = pyqtSignal(bool)
 
-    def __init__(self, faa_dict, opt, running_todo_plan_index, todo_id):
+    def __init__(self, faa_dict, opt, running_todo_plan_index, todo_id, running_task_sequence_index=None):
         """
         :param faa_dict:
         :param opt:
         :param running_todo_plan_index:
         :param todo_id: id == 1 默认 id==2 处理双单人多线程
+        :param running_task_sequence_index: 如果提供，则运行指定的任务序列而不是方案
         """
         super().__init__()
 
@@ -62,7 +63,9 @@ class ThreadTodo(QThread):
         # 功能需要
         self.faa_dict: dict[int, FAA] = faa_dict
         self.opt = copy.deepcopy(opt)  # 深拷贝 在作战中如果进行更改, 不会生效
-        self.opt_todo_plans = self.opt["todo_plans"][running_todo_plan_index]  # 选择运行的 opt 的 todo plan 部分
+
+        self.task_sequence_index = running_task_sequence_index
+            
         self.battle_check_interval = 1  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
 
         # 用于防止缺乏钥匙/次数时无限重复某些关卡, key: (player: int, quest_text: str), value: int
@@ -2262,7 +2265,8 @@ class ThreadTodo(QThread):
 
             # 读取json文件
             task_sequence = read_json_to_task_sequence()
-
+            main_task_active=False
+            active_singleton=False
             # 获取最大task_id
             max_tid = 1
             for quest in task_sequence:
@@ -2274,25 +2278,23 @@ class ThreadTodo(QThread):
 
             # 由于任务id从1开始, 故需要减1
             # 去除序号小于stage_begin的任务
-            task_sequence = [task for task in task_sequence if task["task_id"] >= task_begin_id]
-
+            task_sequence = [task for task in task_sequence if task["task_id"] >= task_begin_id and task.get("enabled",True)]
             # 根据战斗和其他事项拆分 让战斗事项的参数构成 n本 n次 为一组的汇总
             task_sequence = merge_continuous_battle_task(task_sequence=task_sequence)
-
             # 让战斗事项按 多线程单人 和 单线程常规 拆分
             task_sequence = normal_battle_task_to_d_thread(task_sequence=task_sequence)
 
             CUS_LOGGER.debug(f"自定义任务序列, 已完成全部处理, 结果: {task_sequence}")
 
             for task in task_sequence:
-
                 match task["task_type"]:
-
                     case "战斗":
                         self.battle_1_n_n(
                             quest_list=task["task_args"],
                             extra_title=text_
                         )
+                        main_task_active = True
+                        active_singleton = False
                     case "战斗-多线程":
                         self.signal_start_todo_2_battle.emit({
                             "quest_list": task["task_args"]["solo_quests_2"],
@@ -2303,12 +2305,15 @@ class ThreadTodo(QThread):
                             quest_list=task["task_args"]["solo_quests_1"],
                             extra_title=f"{text_}] [多线程单人",
                             need_lock=True)
+                        main_task_active = True
+                        active_singleton = False
 
                     case "双暴卡":
                         self.batch_use_items_double_card(
                             player=task["task_args"]["player"],
                             max_times=task["task_args"]["max_times"]
                         )
+                        main_task_active = True
 
                     case "刷新游戏":
                         self.batch_reload_game(
@@ -2320,6 +2325,8 @@ class ThreadTodo(QThread):
                             player=task["task_args"]["player"],
                             dark_crystal=False
                         )
+                        main_task_active = True
+                        active_singleton = False
 
                     case "领取任务奖励":
                         all_quests = {
@@ -2335,6 +2342,8 @@ class ThreadTodo(QThread):
                             player=task["task_args"]["player"],
                             quests=[v for k, v in all_quests.items() if task["task_args"][k]]
                         )
+                        main_task_active = True
+                        active_singleton = False
                     case "扫描任务列表":
                         all_quests = {
                             "scan": "扫描",
@@ -2344,9 +2353,101 @@ class ThreadTodo(QThread):
                             player=task["task_args"]["player"],
                             quests=[v for k, v in all_quests.items() if task["task_args"][k]]
                         )
-
+                        main_task_active = True
+                        active_singleton = False
+                    case "签到":
+                        # 删除物品高危功能(可选) + 领取奖励一次
+                        self.batch_level_2_action(dark_crystal=False)
+                        # 领取温馨礼包
+                        self.batch_get_warm_gift(player=task["task_args"]["player"])
+                        # 日氪
+                        self.batch_top_up_money(player=task["task_args"]["player"])
+                        # 常规日常签到
+                        self.batch_sign_in(player=task["task_args"]["player"])
+                        main_task_active = True
+                        active_singleton = False
+                    case "施肥浇水摘果":
+                        self.batch_fed_and_watered(
+                            player=task["task_args"]["player"]
+                        )
+                        main_task_active = True
+                        active_singleton = False
+                    case "公会任务":
+                        self.guild_or_spouse_quest(
+                            text_="公会任务",
+                            quest_mode="公会任务",
+                            global_plan_active=task["task_args"]["global_plan_active"],
+                            deck=task["task_args"]["deck"],
+                            battle_plan_1p=task["task_args"]["battle_plan_1p"],
+                            battle_plan_2p=task["task_args"]["battle_plan_2p"],
+                            stage=task["task_args"]["cross_server"])
+                        main_task_active = True
+                        active_singleton = False
+                    case "情侣任务":
+                        self.guild_or_spouse_quest(
+                            text_="情侣任务",
+                            quest_mode="情侣任务",
+                            global_plan_active=task["task_args"]["global_plan_active"],
+                            deck=task["task_args"]["deck"],
+                            battle_plan_1p=task["task_args"]["battle_plan_1p"],
+                            battle_plan_2p=task["task_args"]["battle_plan_2p"])
+                        main_task_active = True
+                        active_singleton = False
+                    case "使用消耗品":
+                        self.batch_use_items_consumables(
+                            player=task["task_args"]["player"],
+                        )
+                        main_task_active = True
+                        active_singleton = False
+                    case "查漏补缺":
+                        self.checking_nodo(player=task["task_args"]["player"],)
+                        main_task_active = True
+                        active_singleton = False
+                    case "天知强卡器":
+                        self.tce(
+                            player=task["task_args"]["player"]
+                        )
+                        main_task_active = True
+                        active_singleton = False
+                    case "美食大赛":
+                        self.auto_food()
+                        main_task_active = True
+                        active_singleton = False
+                    case "跨服刷威望":
+                        self.batch_loop_cross_server(
+                            player=task["task_args"]["player"],
+                            deck=1,
+                            name="威望")
+                        main_task_active = True
+                        active_singleton = False
+                    case "自建房战斗":
+                        self.easy_battle(
+                            text_="自建房战斗",
+                            stage_id=task["task_args"]["stage_id"],
+                            player=task["task_args"]["player"],
+                            max_times=int(task["task_args"]["max_times"]),
+                            global_plan_active=task["task_args"]["global_plan_active"],
+                            deck=task["task_args"]["deck"],
+                            battle_plan_1p=task["task_args"]["battle_plan_1p"],
+                            battle_plan_2p=task["task_args"]["battle_plan_2p"],
+                            dict_exit={
+                                "other_time_player_a": [],
+                                "other_time_player_b": [],
+                                "last_time_player_a": [],
+                                "last_time_player_b": []
+                            },
+                            is_cu=True
+                        )
+                        active_singleton = True
+                    case "任务序列":
+                        main_task_active,in_active_singleton=self.task_sequence(
+                            text_="自定义任务序列",
+                            task_begin_id=task["task_args"]["sequence_integer"],
+                            task_sequence_index=task["task_args"]["task_sequence_index"])
+                        active_singleton=active_singleton and in_active_singleton
             # 战斗结束
             self.model_end_print(text=text_)
+            return main_task_active,active_singleton
 
         return main()
 
@@ -2544,7 +2645,7 @@ class ThreadTodo(QThread):
             self.thread_1p = ThreadWithException(
                 target=self.faa_dict[1].check_not_doing,
                 name="1P Thread - CheckingNotDoing",
-                kwargs={"c_opt":self.opt_todo_plans})
+                kwargs={})
             self.thread_1p.start()
 
         if 1 in player and 2 in player:
@@ -2554,7 +2655,7 @@ class ThreadTodo(QThread):
             self.thread_2p = ThreadWithException(
                 target=self.faa_dict[2].check_not_doing,
                 name="2P Thread - CheckingNotDoing",
-                kwargs={"c_opt":self.opt_todo_plans})
+                kwargs={})
             self.thread_2p.start()
         quest_list_1=[]
         quest_list_2=[]
@@ -2575,7 +2676,7 @@ class ThreadTodo(QThread):
                 self.thread_1p = ThreadWithException(
                     target=self.faa_dict[1].check_task_of_guild,
                     name="1P Thread - CheckingGuild",
-                    kwargs={"c_opt":self.opt_todo_plans})
+                    kwargs={})
                 self.thread_1p.start()
 
             if 1 in player and 2 in player:
@@ -2585,7 +2686,7 @@ class ThreadTodo(QThread):
                 self.thread_2p = ThreadWithException(
                     target=self.faa_dict[2].check_task_of_guild,
                     name="2P Thread - CheckingGuild",
-                    kwargs={"c_opt":self.opt_todo_plans})
+                    kwargs={})
                 self.thread_2p.start()
             if 1 in player:
                 quest_list_1,_=self.thread_1p.get_return_value()
@@ -2618,16 +2719,15 @@ class ThreadTodo(QThread):
             self.thread_2p.start()
             self.thread_2p.join()
         if (1 in player and reputation_status_1!=2) or (2 in player and reputation_status_2!=2):
-            my_opt = self.opt_todo_plans["offer_reward"]
             now_player = [2,1]if 2 in player else [1]
             for max_stage in [4,3,2,1]:#从高到低测出最高声望可能关卡
                 quest_list=[{
                     "player": now_player,
                     "need_key": True,
-                    "global_plan_active": my_opt["global_plan_active"],
-                    "deck": my_opt["deck"],
-                    "battle_plan_1p": my_opt["battle_plan_1p"],
-                    "battle_plan_2p": my_opt["battle_plan_2p"],
+                    "global_plan_active": True,
+                    "deck": 0,
+                    "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+                    "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
                     "stage_id": "OR-0-" + str(max_stage),
                     "max_times": 1,
                     "dict_exit": {
@@ -2698,10 +2798,10 @@ class ThreadTodo(QThread):
                 quest_list=[{
                     "player": now_player,
                     "need_key": True,
-                    "global_plan_active": my_opt["global_plan_active"],
-                    "deck": my_opt["deck"],
-                    "battle_plan_1p": my_opt["battle_plan_1p"],
-                    "battle_plan_2p": my_opt["battle_plan_2p"],
+                    "global_plan_active": True,
+                    "deck": 0,
+                    "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+                    "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
                     "stage_id": "OR-0-" + str(max_stage),
                     "max_times": 1,
                     "dict_exit": {
@@ -3100,17 +3200,86 @@ class ThreadTodo(QThread):
         self.start()
 
     def run(self):
-
+        """线程执行主体"""
+        
+        # 判断是运行任务序列还是方案
         if self.todo_id == 1:
-            self.run_1()
-        if self.todo_id == 2:
-            self.run_2()
-        # except Exception as e:
-        #     SIGNAL.PRINT_TO_UI.emit(text=f"[Todo] 运行时发生错误! 内容:{e}", color_level=1)
-        #     CUS_LOGGER.error(f"[Todo] 运行时发生错误!")
+            # 运行任务序列
+            # 尝试启动360游戏大厅和对应的小号
+            self.start_360()
+            SIGNAL.PRINT_TO_UI.emit("每一个大类的任务开始前均会重启游戏以防止bug...")
 
+            self.remove_outdated_log_images()
+            main_task_active,active_singleton=self.task_sequence(
+                text_="自定义任务序列",
+                task_begin_id=1,
+                task_sequence_index=self.task_sequence_index)
+            """完成FAA的任务列表后，开始执行插件脚本"""
+            name_1p = self.opt["base_settings"]["name_1p"]
+            if name_1p == '':
+                name_1p = self.opt['base_settings']['game_name']
+            else:
+                name_1p = name_1p + ' | ' + self.opt['base_settings']['game_name']
+
+            name_2p = self.opt["base_settings"]["name_2p"]
+            if name_2p == '':
+                name_2p = self.opt['base_settings']['game_name']
+            else:
+                name_2p = name_2p + ' | ' + self.opt['base_settings']['game_name']
+
+            scripts = self.opt["extension"]["scripts"]
+            # 这块本来就是多线程执行的，所以不需要再用线程，不会阻塞FAA的
+            for script in scripts:
+                SIGNAL.PRINT_TO_UI.emit(text=f"开始执行插件脚本 {script['name']}: {script['path']}", color_level=2)
+                player = script['player']
+
+                if player == 1:
+                    for _ in range(script['repeat']):
+                        execute(name_1p, script['path'])
+                elif player == 2:
+                    for _ in range(script['repeat']):
+                        execute(name_2p, script['path'])
+                elif player == 3:
+                    for _ in range(script['repeat']):
+                        execute(name_1p, script['path'])
+                    for _ in range(script['repeat']):
+                        execute(name_2p, script['path'])
+
+                SIGNAL.PRINT_TO_UI.emit(text=f"插件脚本 {script['name']}: {script['path']} 执行结束", color_level=2)
+
+            SIGNAL.PRINT_TO_UI.emit(text=f"所有插件脚本均已执行结束", color_level=1)
+            if main_task_active:
+                if self.opt["login_settings"]["login_close_settings"]:
+                    SIGNAL.PRINT_TO_UI.emit(
+                        text="[开关游戏大厅] 任务全部完成, 关闭360游戏大厅对应窗口, 降低系统负载.",
+                        color_level=1
+                    )
+                    self.close_360()
+                else:
+                    if self.opt["advanced_settings"]["end_exit_game"]:
+                        SIGNAL.PRINT_TO_UI.emit(text="任务全部完成, 刷新返回登录界面, 降低系统负载.", color_level=1)
+                        self.batch_click_final_refresh_btn()
+                    else:
+                        SIGNAL.PRINT_TO_UI.emit(
+                            text="[推荐] 进阶功能中, 可设置完成所有任务后, 关闭360游戏大厅对应窗口 or 返回登录页, 降低系统负载.",
+                            color_level=1)
+            else:
+                if active_singleton:
+                    SIGNAL.PRINT_TO_UI.emit(
+                        text="您启动了完成后操作, 但仅运行了自建房对战, 故不进行任何操作",
+                        color_level=1)
+                else:
+                    SIGNAL.PRINT_TO_UI.emit(text="您启动了完成后操作, 但并未运行任务, 故不进行任何操作", color_level=1)
+
+            # 全部完成了发个信号
+            SIGNAL.END.emit()
+        else:
+            # 运行方案
+            if self.todo_id == 2:
+                self.run_2()
     def run_1(self):
-        """配置检查"""
+        """
+        (已弃用)执念标记"""
 
         # 尝试启动360游戏大厅和对应的小号
         self.start_360()
