@@ -146,11 +146,11 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.AccelerateTipButton.clicked.connect(self.click_btn_tip_accelerate_settings)
 
         # 额外窗口 - QQ密码登录说明
-        self.window_tip_qqlogin=QMWTipQQlogin()
+        self.window_tip_qqlogin = QMWTipQQlogin()
         self.QQloginTipButton.clicked.connect(self.click_btn_tip_qqlogin)
 
         # 额外窗口 - QQ登录额外休眠说明
-        self.window_tip_sleep=QMWTipSleep()
+        self.window_tip_sleep = QMWTipSleep()
         self.SleepTipButton.clicked.connect(self.click_btn_tip_sleep)
 
         # 米苏物流 - tip窗口
@@ -219,7 +219,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         self.SavePasswordButton.clicked.connect(self.save_password_button_on_clicked)
         self.ChoosePathButton.clicked.connect(self.choose_path_button_on_clicked)
-        
+
         """插件脚本执行模块"""
         # 关键：监听单元格变化，实现自动追加行
         self.tableWidget_extension.cellChanged.connect(self.on_cell_changed)
@@ -228,26 +228,26 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 防重复触发标志
         if hasattr(self, "_is_adding_row") and self._is_adding_row:
             return
-        
+
         # 仅当编辑的是最后一行且第一列(脚本路径)有内容时触发
         if row == self.tableWidget_extension.rowCount() - 1 and column == 1:
             item = self.tableWidget_extension.item(row, 1)
             if item and item.text().strip():  # 检查第一列是否非空
                 self._is_adding_row = True
-                
+
                 # 追加新行
                 new_row = self.tableWidget_extension.rowCount()
                 self.tableWidget_extension.insertRow(new_row)
-                
+
                 # 设置新行第三列(重复次数)默认为1
                 self.tableWidget_extension.setItem(new_row, 2, QTableWidgetItem("1"))
-                
+
                 # 设置新行第四列(角色代号)默认为3
                 self.tableWidget_extension.setItem(new_row, 3, QTableWidgetItem("3"))
-                
+
                 # 自动聚焦到新行的第一列(脚本名)
                 self.tableWidget_extension.setCurrentCell(new_row, 0)
-                
+
                 self._is_adding_row = False
 
     def choose_path_button_on_clicked(self):
@@ -258,23 +258,22 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 如果用户选择了文件夹，保存路径到编辑框
         if folder_path:
             self.path_edit.setText(folder_path)
-            
-            
+
     def save_password_button_on_clicked(self):
         """"用于连接SavePasswordButton的函数，保存QQ密码信息"""
         # 1p
-        username_1p=self.username_edit_1.text()
-        password_1p=self.password_edit_1.text()
-        
-        password_1p=encrypt_data(password_1p)
-        
+        username_1p = self.username_edit_1.text()
+        password_1p = self.password_edit_1.text()
+
+        password_1p = encrypt_data(password_1p)
+
         # 2p
-        username_2p=self.username_edit_2.text()
-        password_2p=self.password_edit_2.text()
-        password_2p=encrypt_data(password_2p)
-        
-        save_path=self.path_edit.text()
-        QQ_account= {
+        username_2p = self.username_edit_2.text()
+        password_2p = self.password_edit_2.text()
+        password_2p = encrypt_data(password_2p)
+
+        save_path = self.path_edit.text()
+        QQ_account = {
             "1p": {
                 "username": username_1p,
                 "password": password_1p
@@ -284,11 +283,11 @@ class QMainWindowService(QMainWindowLoadSettings):
                 "password": password_2p
             }
         }
-        
+
         save_path = os.path.join(save_path, "QQ_account.json")
-        with open(save_path,"w",encoding="utf-8") as json_file:
-            json.dump(QQ_account, json_file,ensure_ascii=False, indent=4)
-        QMessageBox.information(self, "提示",f"您的登录信息已经保存到{save_path}",QMessageBox.StandardButton.Ok)
+        with open(save_path, "w", encoding="utf-8") as json_file:
+            json.dump(QQ_account, json_file, ensure_ascii=False, indent=4)
+        QMessageBox.information(self, "提示", f"您的登录信息已经保存到{save_path}", QMessageBox.StandardButton.Ok)
 
     """公会管理器页面"""
 
@@ -583,7 +582,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 生成随机数种子
         random_seed = random.randint(-100, 100)
-        the_360_lock=threading.Lock()
+        the_360_lock = threading.Lock()
         # 开始创建faa
         faa_dict = {
             1: FAA(
@@ -708,10 +707,11 @@ class QMainWindowService(QMainWindowLoadSettings):
                 tar_time = {"h": h_text, "m": m_text}
                 plan_index = timer_opt["plan"]
                 if plan_index == -1:
-                    SIGNAL.PRINT_TO_UI.emit(f"[定时任务] {h_text}:{m_text} 的定时任务未选择方案，启动失败!",color_level=1)
+                    SIGNAL.PRINT_TO_UI.emit(f"[定时任务] {h_text}:{m_text} 的定时任务未选择方案，启动失败!",
+                                            color_level=1)
                     return
                 if tar_time in time_list:
-                    SIGNAL.PRINT_TO_UI.emit(f"[定时任务] {h_text}:{m_text} 的定时任务时间重复，启动失败!",color_level=1)
+                    SIGNAL.PRINT_TO_UI.emit(f"[定时任务] {h_text}:{m_text} 的定时任务时间重复，启动失败!", color_level=1)
                     return
                 time_list.append(tar_time)
         # 清屏并输出
@@ -789,7 +789,10 @@ class QMainWindowService(QMainWindowLoadSettings):
             widget.setStyleSheet("")
 
     def click_btn_hide_window(self):
-        """因为 Flash 在窗口外无法正常渲染画面(Chrome可以), 所以老板键只能做成z轴设为最低级"""
+        """
+        因为 Flash 在窗口外无法正常渲染画面(Chrome可以), 所以老板键只能做成z轴设为最低级
+        """
+
         # 获取窗口名称
         channel_1p, channel_2p = get_channel_name(
             game_name=self.opt["base_settings"]["game_name"],
@@ -1097,6 +1100,7 @@ class QMainWindowService(QMainWindowLoadSettings):
             )
 
         CUS_LOGGER.warning("重置卡片状态自学习记忆, 结束")
+
     def click_btn_open_other_tools(self):
         # 创建新窗口
         self.tools_window = QWidget()
@@ -1125,7 +1129,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.task_editor = TaskEditor(db_conn)
         self.task_editor.show()
 
-def faa_start_main(app=None,loading=None):
+
+def faa_start_main(app=None, loading=None):
     loading.update_progress(95)
     # app.setStyle("Windows")
     # app.setStyle("WindowsVista")
@@ -1144,14 +1149,13 @@ def faa_start_main(app=None,loading=None):
 
     # 设置 窗口字体
     window.font = font
-    #先停止播放gif再更新进度到100避免线程安全问题
+    # 先停止播放gif再更新进度到100避免线程安全问题
     loading.anim.stop()
-    loading.update_progress(100,"载入完成！！！")
+    loading.update_progress(100, "载入完成！！！")
     # 主窗口 实现
     window.show()
-    #主窗口淡入动画
+    # 主窗口淡入动画
     window.fade_in_animation.start()
-
 
     # 性能分析监控启动
     run_analysis_in_thread(window)
@@ -1164,7 +1168,6 @@ def faa_start_main(app=None,loading=None):
         print("检测到启动参数 --start_with_task，将自动开始任务")
         window.todo_click_btn()
     app.setQuitOnLastWindowClosed(False)  # 禁止自动退出
-
 
 
 if __name__ == "__main__":
