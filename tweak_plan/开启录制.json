@@ -5,6 +5,6 @@
         "version": "0.2",
         "recording": true,
         "timestamp": true,
-        "player": 0
+        "recording_player": 0
     }
 }

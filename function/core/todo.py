@@ -899,7 +899,7 @@ class ThreadTodo(QThread):
         senior_setting = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("senior_setting", False)
         recording = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("recording", False)
         seetime = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("timestamp", False)
-        recording_player = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("player", 1)
+        recording_player = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("recording_player", 1)
 
         """检测是否成功进入房间"""
         if result_id == 0:
