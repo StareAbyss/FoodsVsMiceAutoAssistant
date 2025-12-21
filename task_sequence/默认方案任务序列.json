@@ -1,5 +1,11 @@
 [
     {
+        "meta_data": {
+            "uuid": "9c912f76-de80-11f0-8869-f4c88a4ed544",
+            "version": "1.0"
+        }
+    },
+    {
         "task_type": "刷新游戏",
         "task_id": 1,
         "enabled": true,

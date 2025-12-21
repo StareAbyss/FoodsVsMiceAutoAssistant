@@ -528,27 +528,15 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     """主线程管理"""
 
-    def todo_start(self, plan_index=None):
+    def todo_start(self):
         """
         todo线程的启动函数
         手动启动时 plan_index为 none
         自动启动时 plan_index为 int 即对应的战斗方案的值
         如果 plan_index 为负数，则表示这是一个任务序列索引
         """
-
-        # 根据输入判断当前需要运行的方案的index
-        if plan_index is not None and plan_index < 0:
-            # 负数表示这是一个任务序列索引
-            running_task_sequence_index = -(plan_index + 1)
-            # 使用特殊的标记值来表示我们运行的是任务序列而不是方案
-            running_todo_plan_index = -1
-        elif plan_index:
-            running_todo_plan_index = plan_index
-            running_task_sequence_index = None
-        else:
-            # CurrentPlan现在显示的是任务序列，所以这里获取的是任务序列索引
-            running_task_sequence_index = self.CurrentPlan.currentIndex()
-            running_todo_plan_index = -1  # 标记为使用任务序列
+        self.is_start = True
+        running_task_sequence_uuid = self.opt["current_plan"]
 
         # 先检测是否已经在启动状态, 如果是, 立刻关闭 然后继续执行
         if self.thread_todo_running:
@@ -579,28 +567,18 @@ class QMainWindowService(QMainWindowLoadSettings):
         
         # 设置输出文本
         SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom", color_level=2)
-        if running_task_sequence_index is not None:
-            # 获取任务序列名称
-            task_sequence_list = get_task_sequence_list(with_extension=False)
-            if running_task_sequence_index < len(task_sequence_list):
-                running_task_sequence_name = task_sequence_list[running_task_sequence_index]
-                # 获取任务序列UUID
-                running_task_sequence_uuid = None
-                if hasattr(EXTRA, 'TASK_SEQUENCE_UUID_TO_PATH'):
-                    uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
-                    if running_task_sequence_index < len(uuid_list):
-                        running_task_sequence_uuid = uuid_list[running_task_sequence_index]
-                SIGNAL.PRINT_TO_UI.emit(f"[任务序列] 链接开始 Todo线程开启 - 执行任务序列: {running_task_sequence_name}", color_level=1)
-                # 当前正在运行 的 文本 修改
-                self.Label_RunningState.setText(f"任务序列线程状态: 运行中       运行任务序列: {running_task_sequence_name}")
-            else:
-                SIGNAL.PRINT_TO_UI.emit(f"[任务序列] 链接开始 Todo线程开启 - 执行任务序列: 未知(索引错误)", color_level=1)
-                self.Label_RunningState.setText(f"任务序列线程状态: 运行中       运行任务序列: 未知(索引错误)")
-        else:
-            SIGNAL.PRINT_TO_UI.emit("[任务序列] 链接开始 Todo线程开启", color_level=1)
+        if running_task_sequence_uuid in list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys()):
+            running_task_sequence_path = EXTRA.TASK_SEQUENCE_UUID_TO_PATH[running_task_sequence_uuid]
+            running_task_sequence_name = os.path.splitext(os.path.basename(running_task_sequence_path))[0]
+            SIGNAL.PRINT_TO_UI.emit(f"[任务序列] 链接开始 Todo线程开启 - 执行任务序列: {running_task_sequence_name}", color_level=1)
             # 当前正在运行 的 文本 修改
-            running_todo_plan_name = self.opt["todo_plans"][running_todo_plan_index]["name"]
-            self.Label_RunningState.setText(f"任务序列线程状态: 运行中       运行方案: {running_todo_plan_name}")
+            self.Label_RunningState.setText(f"任务序列线程状态: 运行中       运行任务序列: {running_task_sequence_name}")
+        else:
+            SIGNAL.PRINT_TO_UI.emit(f"[任务序列] 未知(索引错误)", color_level=1)
+            self.is_start = False
+            self.todo_end()
+            return
+
 
         SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top", color_level=2)
 

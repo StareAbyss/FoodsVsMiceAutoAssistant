@@ -19,7 +19,7 @@ from function.scattered.check_battle_plan import fresh_and_check_all_battle_plan
 from function.scattered.get_list_battle_plan import get_list_battle_plan
 from function.scattered.get_task_sequence_list import get_task_sequence_list
 from function.scattered.test_route_connectivity import test_route_connectivity
-
+from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
 def ensure_file_exists(file_path, template_suffix="_template") -> None:
     """
     测某文件是否存在 如果不存在且存在_template的模板, 应用模板
@@ -433,9 +433,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         fresh_and_check_all_tweak_plan()
         g_resources.fresh_resource_b()
         g_resources.fresh_resource_t()
-        
-        # 获取任务序列的UUID列表
-        from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
+
         fresh_and_check_all_task_sequence()
         task_sequence_uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys()) if hasattr(EXTRA, 'TASK_SEQUENCE_UUID_TO_PATH') else []
         
@@ -766,8 +764,24 @@ class QMainWindowLoadSettings(QMainWindowLog):
         extension_opt_to_ui()
 
         self.CurrentPlan.clear()
-        self.CurrentPlan.addItems(get_task_sequence_list(with_extension=False))
-        self.CurrentPlan.setCurrentIndex(self.opt["current_plan"])
+        task_sequence_list = get_task_sequence_list(with_extension=False)
+
+        task_sequence_uuid_list = fresh_and_check_all_task_sequence()
+        
+        # 添加项目和UUID数据
+        for idx, name in enumerate(task_sequence_list):
+            uuid = task_sequence_uuid_list[idx] if idx < len(task_sequence_uuid_list) else ""
+            self.CurrentPlan.addItem(name, userData={"uuid": uuid})
+        
+        # 根据保存的UUID设置当前选中项
+        plan_identifier = self.opt["current_plan"]
+        current_index = 0  # 默认选中第一个
+        
+        # 只处理UUID，不处理索引
+        if isinstance(plan_identifier, str) and plan_identifier and plan_identifier in task_sequence_uuid_list:
+            current_index = task_sequence_uuid_list.index(plan_identifier)
+            
+        self.CurrentPlan.setCurrentIndex(current_index)
         
         # 如果当前选中项超出范围，则选中最后一项
         if self.CurrentPlan.currentIndex() >= self.CurrentPlan.count():
@@ -1031,6 +1045,13 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 else:
                     my_opt["plan"] = ""
 
+        # 保存当前选中项的UUID而不是索引
+        current_index = self.CurrentPlan.currentIndex()
+        if current_index >= 0 and current_index < self.CurrentPlan.count():
+            item_data = self.CurrentPlan.itemData(current_index)
+            if item_data and "uuid" in item_data:
+                self.opt["current_plan"] = item_data["uuid"]
+
         def advanced_settings() -> None:
             my_opt = self.opt["advanced_settings"]
 
@@ -1263,7 +1284,16 @@ class QMainWindowLoadSettings(QMainWindowLog):
         sleep_ui_to_opt()
         extension_ui_to_opt()
 
-        self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
+        # 保存当前选中项的UUID
+        current_index = self.CurrentPlan.currentIndex()
+        if current_index >= 0 and current_index < self.CurrentPlan.count():
+            item_data = self.CurrentPlan.itemData(current_index)
+            if item_data and isinstance(item_data, dict) and "uuid" in item_data:
+                self.opt["current_plan"] = item_data["uuid"]
+            else:
+                self.opt["current_plan"] = ""  # 如果没有UUID，则保存空字符串
+        else:
+            self.opt["current_plan"] = ""  # 默认值
 
         # 一个提示弹窗
         self.cant_find_battle_plan_in_uuid_show_dialog()
@@ -1428,13 +1458,27 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
     def delete_current_plan(self) -> None:
         """用来删掉当前被选中的 任务序列 但不能删掉默认任务序列"""
-        if self.CurrentPlan.currentIndex() == 0:
+        task_sequence_uuid_list = fresh_and_check_all_task_sequence()
+        
+        current_plan_uuid = self.opt["current_plan"]
+        try:
+            if current_plan_uuid in task_sequence_uuid_list:
+                current_plan_index = task_sequence_uuid_list.index(current_plan_uuid)
+            else:
+                QMessageBox.critical(self, "错误!", f"无法通过uuid{current_plan_uuid}找到对应的任务序列文件\n保存配置后才可以删除任务序列")
+                self.opt_to_ui_init()
+                return
+        except:
+            QMessageBox.critical(self, "错误!", f"保存配置后才可以删除任务序列")
+            self.opt_to_ui_init()
+            return
+            
+        if current_plan_uuid == "9c912f76-de80-11f0-8869-f4c88a4ed544":
             QMessageBox.information(self, "警告", "默认任务序列不能删除呢...")
             return
-        
-        # 获取要删除的任务序列的名称
-        plan_name = self.opt["todo_plans"][self.CurrentPlan.currentIndex()]["name"]
-        
+        task_sequence_files = get_task_sequence_list(with_extension=True)
+        plan_name = task_sequence_files[current_plan_index]
+        plan_name = plan_name[:-5]
         # 删除实际的JSON文件
         task_sequence_path = os.path.join(PATHS["task_sequence"], f"{plan_name}.json")
         if os.path.exists(task_sequence_path):
@@ -1446,21 +1490,35 @@ class QMainWindowLoadSettings(QMainWindowLog):
             QMessageBox.warning(self, "警告", f"未找到任务序列文件: {plan_name}.json")
         
         # 删除内存中的配置
-        del self.opt["todo_plans"][self.CurrentPlan.currentIndex()]
+        self.opt["current_plan"]= ""
         # 重载ui
         self.opt_to_ui_init()
 
     def rename_current_plan(self) -> None:
         """用来重命名当前被选中的 任务序列 但不能重命名默认任务序列"""
 
+        task_sequence_uuid_list = fresh_and_check_all_task_sequence()
+        
+        current_plan_uuid = self.opt["current_plan"]
+        try:
+            if current_plan_uuid in task_sequence_uuid_list:
+                current_plan_index = task_sequence_uuid_list.index(current_plan_uuid)
+            else:
+                QMessageBox.critical(self, "错误!", f"无法通过uuid{current_plan_uuid}找到对应的任务序列文件\n保存配置后才可以重命名任务序列")
+                self.opt_to_ui_init()
+                return
+        except:
+            QMessageBox.critical(self, "错误!", f"保存配置后才可以重命名任务序列")
+            self.opt_to_ui_init()
+            return
 
         # 获取原名称（从实际文件列表中获取当前索引对应的文件名）
         task_sequence_files = get_task_sequence_list(with_extension=True)
-        if self.CurrentPlan.currentIndex() >= len(task_sequence_files):
+        if current_plan_index >= len(task_sequence_files):
             QMessageBox.critical(self, "错误!", "无法找到对应的任务序列文件")
             return
             
-        old_filename = task_sequence_files[self.CurrentPlan.currentIndex()]
+        old_filename = task_sequence_files[current_plan_index]
         old_name = old_filename[:-5]  # 去掉.json后缀
         if old_name == "默认方案任务序列":
             QMessageBox.information(self, "警告", "默认任务序列不能重命名呢...")
@@ -1482,9 +1540,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
                     return
             else:
                 QMessageBox.warning(self, "警告", f"未找到原任务序列文件: {old_name}.json")
-            
-            self.opt["todo_plans"][self.CurrentPlan.currentIndex()]["name"] = copy.deepcopy(new_name)
-            current_index = self.CurrentPlan.currentIndex()
+
+            current_index = current_plan_index
             # 重载ui
             self.opt_to_ui_init()
             # 默认选中重命名后任务序列

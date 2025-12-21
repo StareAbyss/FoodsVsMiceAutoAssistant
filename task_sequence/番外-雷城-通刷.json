@@ -1,5 +1,11 @@
 [
     {
+        "meta_data": {
+            "uuid": "9c90bc0b-de80-11f0-a948-f4c88a4ed544",
+            "version": "1.0"
+        }
+    },
+    {
         "task_type": "清背包",
         "task_id": 1,
         "task_args": {
