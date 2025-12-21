@@ -584,6 +584,12 @@ class QMainWindowService(QMainWindowLoadSettings):
             task_sequence_list = get_task_sequence_list(with_extension=False)
             if running_task_sequence_index < len(task_sequence_list):
                 running_task_sequence_name = task_sequence_list[running_task_sequence_index]
+                # 获取任务序列UUID
+                running_task_sequence_uuid = None
+                if hasattr(EXTRA, 'TASK_SEQUENCE_UUID_TO_PATH'):
+                    uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
+                    if running_task_sequence_index < len(uuid_list):
+                        running_task_sequence_uuid = uuid_list[running_task_sequence_index]
                 SIGNAL.PRINT_TO_UI.emit(f"[任务序列] 链接开始 Todo线程开启 - 执行任务序列: {running_task_sequence_name}", color_level=1)
                 # 当前正在运行 的 文本 修改
                 self.Label_RunningState.setText(f"任务序列线程状态: 运行中       运行任务序列: {running_task_sequence_name}")
@@ -635,17 +641,15 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.thread_todo_1 = ThreadTodo(
             faa_dict=faa_dict,
             opt=self.opt,
-            running_todo_plan_index=running_todo_plan_index,
             todo_id=1,
-            running_task_sequence_index=running_task_sequence_index)
+            running_task_sequence_uuid=running_task_sequence_uuid)
 
         # 多线程作战时的第二线程
         self.thread_todo_2 = ThreadTodo(
             faa_dict=faa_dict,
             opt=self.opt,
-            running_todo_plan_index=running_todo_plan_index,
             todo_id=2,
-            running_task_sequence_index=running_task_sequence_index)
+            running_task_sequence_uuid=running_task_sequence_uuid)
 
         # 链接信号以进行多线程单人
         self.thread_todo_1.signal_start_todo_2_battle.connect(self.thread_todo_2.set_extra_opt_and_start)

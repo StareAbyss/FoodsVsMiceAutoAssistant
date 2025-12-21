@@ -81,6 +81,9 @@ class TodoTimerManager:
         :return: 任务序列索引
         """
         # 确保任务序列UUID映射是最新的
+        from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
+        fresh_and_check_all_task_sequence()
+        
         if hasattr(EXTRA, 'TASK_SEQUENCE_UUID_TO_PATH'):
             task_sequence_uuid_to_path = EXTRA.TASK_SEQUENCE_UUID_TO_PATH
             task_sequence_list = get_task_sequence_list(with_extension=False)

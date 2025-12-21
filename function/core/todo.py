@@ -45,13 +45,13 @@ class ThreadTodo(QThread):
     signal_start_todo_2_battle = pyqtSignal(dict)
     signal_todo_lock = pyqtSignal(bool)
 
-    def __init__(self, faa_dict, opt, running_todo_plan_index, todo_id, running_task_sequence_index=None):
+    def __init__(self, faa_dict, opt, todo_id, running_task_sequence_uuid=None):
         """
         :param faa_dict:
         :param opt:
         :param running_todo_plan_index:
         :param todo_id: id == 1 默认 id==2 处理双单人多线程
-        :param running_task_sequence_index: 如果提供，则运行指定的任务序列而不是方案
+        :param running_task_sequence_uuid: 如果提供，则运行指定的任务序列UUID而不是方案
         """
         super().__init__()
 
@@ -64,7 +64,7 @@ class ThreadTodo(QThread):
         self.faa_dict: dict[int, FAA] = faa_dict
         self.opt = copy.deepcopy(opt)  # 深拷贝 在作战中如果进行更改, 不会生效
 
-        self.task_sequence_index = running_task_sequence_index
+        self.task_sequence_uuid = running_task_sequence_uuid
             
         self.battle_check_interval = 1  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
 
@@ -2107,12 +2107,12 @@ class ThreadTodo(QThread):
 
     """高级模式"""
 
-    def task_sequence(self, text_, task_begin_id: int, task_sequence_index: int):
+    def task_sequence(self, text_, task_begin_id: int, task_sequence_uuid: str):
         """
         自定义任务序列
         :param text_: 其实是title
         :param task_begin_id: 从第几号任务开始
-        :param task_sequence_index: 任务序列的索引号(暂未使用uuid)
+        :param task_sequence_uuid: 任务序列的UUID
         :return:
         """
 
@@ -2245,7 +2245,26 @@ class ThreadTodo(QThread):
 
             return return_task_list
 
-        def read_json_to_task_sequence():
+        def read_json_to_task_sequence(uuid):
+            # 通过UUID获取任务序列索引
+            if self.task_sequence_uuid:
+                # 获取任务序列列表和UUID映射
+                task_sequence_list = get_task_sequence_list(with_extension=True)
+                if hasattr(EXTRA, 'TASK_SEQUENCE_UUID_TO_PATH'):
+                    uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
+                    try:
+                        # 通过UUID查找索引
+                        task_sequence_index = uuid_list.index(uuid)
+                    except ValueError:
+                        # UUID未找到，使用默认索引0
+                        task_sequence_index = 0
+                else:
+                    # 没有UUID映射，使用默认索引0
+                    task_sequence_index = 0
+            else:
+                # 没有提供UUID，使用默认索引0
+                task_sequence_index = 0
+                
             task_sequence_list = get_task_sequence_list(with_extension=True)
             task_sequence_path = "{}\\{}".format(
                 PATHS["task_sequence"],
@@ -2258,196 +2277,194 @@ class ThreadTodo(QThread):
 
             return data
 
-        def main():
-            self.model_start_print(text=text_)
 
-            # 读取json文件
-            task_sequence = read_json_to_task_sequence()
-            main_task_active=False
-            active_singleton=False
-            # 获取最大task_id
-            max_tid = 1
-            for quest in task_sequence:
-                max_tid = max(max_tid, quest["task_id"])
+        # 读取json文件
+        task_sequence = read_json_to_task_sequence(task_sequence_uuid)
+        main_task_active = False
+        active_singleton = False
+        # 获取最大task_id
+        max_tid = 1
+        for quest in task_sequence:
+            if "meta_data" in quest:
+                continue
+            max_tid = max(max_tid, quest["task_id"])
 
-            if task_begin_id > max_tid:
-                SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 开始事项id > 该方案最高id! 将直接跳过!")
-                return
+        if task_begin_id > max_tid:
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 开始事项id > 该方案最高id! 将直接跳过!")
+            return
 
-            # 由于任务id从1开始, 故需要减1
-            # 去除序号小于stage_begin的任务
-            task_sequence = [task for task in task_sequence if task["task_id"] >= task_begin_id and task.get("enabled",True)]
-            # 根据战斗和其他事项拆分 让战斗事项的参数构成 n本 n次 为一组的汇总
-            task_sequence = merge_continuous_battle_task(task_sequence=task_sequence)
-            # 让战斗事项按 多线程单人 和 单线程常规 拆分
-            task_sequence = normal_battle_task_to_d_thread(task_sequence=task_sequence)
+        # 由于任务id从1开始, 故需要减1
+        # 去除序号小于stage_begin的任务
+        task_sequence = [task for task in task_sequence if not task.get("meta_data",False) and task.get("enabled",True) and task["task_id"] >= task_begin_id]
+        # 根据战斗和其他事项拆分 让战斗事项的参数构成 n本 n次 为一组的汇总
+        task_sequence = merge_continuous_battle_task(task_sequence=task_sequence)
+        # 让战斗事项按 多线程单人 和 单线程常规 拆分
+        task_sequence = normal_battle_task_to_d_thread(task_sequence=task_sequence)
 
-            CUS_LOGGER.debug(f"自定义任务序列, 已完成全部处理, 结果: {task_sequence}")
+        CUS_LOGGER.debug(f"自定义任务序列, 已完成全部处理, 结果: {task_sequence}")
 
-            for task in task_sequence:
-                match task["task_type"]:
-                    case "战斗":
-                        self.battle_1_n_n(
-                            quest_list=task["task_args"],
-                            extra_title=text_
-                        )
-                        main_task_active = True
-                        active_singleton = False
-                    case "战斗-多线程":
-                        self.signal_start_todo_2_battle.emit({
-                            "quest_list": task["task_args"]["solo_quests_2"],
-                            "extra_title": f"{text_}] [多线程单人",
-                            "need_lock": True
-                        })
-                        self.battle_1_n_n(
-                            quest_list=task["task_args"]["solo_quests_1"],
-                            extra_title=f"{text_}] [多线程单人",
-                            need_lock=True)
-                        main_task_active = True
-                        active_singleton = False
+        for task in task_sequence:
+            match task["task_type"]:
+                case "战斗":
+                    self.battle_1_n_n(
+                        quest_list=task["task_args"],
+                        extra_title=text_
+                    )
+                    main_task_active = True
+                    active_singleton = False
+                case "战斗-多线程":
+                    self.signal_start_todo_2_battle.emit({
+                        "quest_list": task["task_args"]["solo_quests_2"],
+                        "extra_title": f"{text_}] [多线程单人",
+                        "need_lock": True
+                    })
+                    self.battle_1_n_n(
+                        quest_list=task["task_args"]["solo_quests_1"],
+                        extra_title=f"{text_}] [多线程单人",
+                        need_lock=True)
+                    main_task_active = True
+                    active_singleton = False
 
-                    case "双暴卡":
-                        self.batch_use_items_double_card(
-                            player=task["task_args"]["player"],
-                            max_times=task["task_args"]["max_times"]
-                        )
-                        main_task_active = True
+                case "双暴卡":
+                    self.batch_use_items_double_card(
+                        player=task["task_args"]["player"],
+                        max_times=task["task_args"]["max_times"]
+                    )
+                    main_task_active = True
 
-                    case "刷新游戏":
-                        self.batch_reload_game(
-                            player=task["task_args"]["player"],
-                        )
+                case "刷新游戏":
+                    self.batch_reload_game(
+                        player=task["task_args"]["player"],
+                    )
 
-                    case "清背包":
-                        self.batch_level_2_action(
-                            player=task["task_args"]["player"],
-                            dark_crystal=False
-                        )
-                        main_task_active = True
-                        active_singleton = False
+                case "清背包":
+                    self.batch_level_2_action(
+                        player=task["task_args"]["player"],
+                        dark_crystal=False
+                    )
+                    main_task_active = True
+                    active_singleton = False
 
-                    case "领取任务奖励":
-                        all_quests = {
-                            "normal": "普通任务",
-                            "guild": "公会任务",
-                            "spouse": "情侣任务",
-                            "offer_reward": "悬赏任务",
-                            "food_competition": "美食大赛",
-                            "monopoly": "大富翁",
-                            "camp": "营地任务"
-                        }
-                        self.batch_receive_all_quest_rewards(
-                            player=task["task_args"]["player"],
-                            quests=[v for k, v in all_quests.items() if task["task_args"][k]]
-                        )
-                        main_task_active = True
-                        active_singleton = False
-                    case "扫描任务列表":
-                        all_quests = {
-                            "scan": "扫描",
-                            "battle": "刷关"
-                        }
-                        self.batch_scan_all_task(
-                            player=task["task_args"]["player"],
-                            quests=[v for k, v in all_quests.items() if task["task_args"][k]]
-                        )
-                        main_task_active = True
-                        active_singleton = False
-                    case "签到":
-                        # 删除物品高危功能(可选) + 领取奖励一次
-                        self.batch_level_2_action(dark_crystal=False)
-                        # 领取温馨礼包
-                        self.batch_get_warm_gift(player=task["task_args"]["player"])
-                        # 日氪
-                        self.batch_top_up_money(player=task["task_args"]["player"])
-                        # 常规日常签到
-                        self.batch_sign_in(player=task["task_args"]["player"])
-                        main_task_active = True
-                        active_singleton = False
-                    case "施肥浇水摘果":
-                        self.batch_fed_and_watered(
-                            player=task["task_args"]["player"]
-                        )
-                        main_task_active = True
-                        active_singleton = False
-                    case "公会任务":
-                        self.guild_or_spouse_quest(
-                            text_="公会任务",
-                            quest_mode="公会任务",
-                            global_plan_active=task["task_args"]["global_plan_active"],
-                            deck=task["task_args"]["deck"],
-                            battle_plan_1p=task["task_args"]["battle_plan_1p"],
-                            battle_plan_2p=task["task_args"]["battle_plan_2p"],
-                            stage=task["task_args"]["cross_server"])
-                        main_task_active = True
-                        active_singleton = False
-                    case "情侣任务":
-                        self.guild_or_spouse_quest(
-                            text_="情侣任务",
-                            quest_mode="情侣任务",
-                            global_plan_active=task["task_args"]["global_plan_active"],
-                            deck=task["task_args"]["deck"],
-                            battle_plan_1p=task["task_args"]["battle_plan_1p"],
-                            battle_plan_2p=task["task_args"]["battle_plan_2p"])
-                        main_task_active = True
-                        active_singleton = False
-                    case "使用消耗品":
-                        self.batch_use_items_consumables(
-                            player=task["task_args"]["player"],
-                        )
-                        main_task_active = True
-                        active_singleton = False
-                    case "查漏补缺":
-                        self.checking_nodo(player=task["task_args"]["player"],)
-                        main_task_active = True
-                        active_singleton = False
-                    case "天知强卡器":
-                        self.tce(
-                            player=task["task_args"]["player"]
-                        )
-                        main_task_active = True
-                        active_singleton = False
-                    case "美食大赛":
-                        self.auto_food()
-                        main_task_active = True
-                        active_singleton = False
-                    case "跨服刷威望":
-                        self.batch_loop_cross_server(
-                            player=task["task_args"]["player"],
-                            deck=1,
-                            name="威望")
-                        main_task_active = True
-                        active_singleton = False
-                    case "自建房战斗":
-                        self.easy_battle(
-                            text_="自建房战斗",
-                            stage_id=task["task_args"]["stage_id"],
-                            player=task["task_args"]["player"],
-                            max_times=int(task["task_args"]["max_times"]),
-                            global_plan_active=task["task_args"]["global_plan_active"],
-                            deck=task["task_args"]["deck"],
-                            battle_plan_1p=task["task_args"]["battle_plan_1p"],
-                            battle_plan_2p=task["task_args"]["battle_plan_2p"],
-                            dict_exit={
-                                "other_time_player_a": [],
-                                "other_time_player_b": [],
-                                "last_time_player_a": [],
-                                "last_time_player_b": []
-                            },
-                            is_cu=True
-                        )
-                        active_singleton = True
-                    case "任务序列":
-                        main_task_active,in_active_singleton=self.task_sequence(
-                            text_="自定义任务序列",
-                            task_begin_id=task["task_args"]["sequence_integer"],
-                            task_sequence_index=task["task_args"]["task_sequence_index"])
-                        active_singleton=active_singleton and in_active_singleton
-            # 战斗结束
-            self.model_end_print(text=text_)
-            return main_task_active,active_singleton
-
-        return main()
+                case "领取任务奖励":
+                    all_quests = {
+                        "normal": "普通任务",
+                        "guild": "公会任务",
+                        "spouse": "情侣任务",
+                        "offer_reward": "悬赏任务",
+                        "food_competition": "美食大赛",
+                        "monopoly": "大富翁",
+                        "camp": "营地任务"
+                    }
+                    self.batch_receive_all_quest_rewards(
+                        player=task["task_args"]["player"],
+                        quests=[v for k, v in all_quests.items() if task["task_args"][k]]
+                    )
+                    main_task_active = True
+                    active_singleton = False
+                case "扫描任务列表":
+                    all_quests = {
+                        "scan": "扫描",
+                        "battle": "刷关"
+                    }
+                    self.batch_scan_all_task(
+                        player=task["task_args"]["player"],
+                        quests=[v for k, v in all_quests.items() if task["task_args"][k]]
+                    )
+                    main_task_active = True
+                    active_singleton = False
+                case "签到":
+                    # 删除物品高危功能(可选) + 领取奖励一次
+                    self.batch_level_2_action(dark_crystal=False)
+                    # 领取温馨礼包
+                    self.batch_get_warm_gift(player=task["task_args"]["player"])
+                    # 日氪
+                    self.batch_top_up_money(player=task["task_args"]["player"])
+                    # 常规日常签到
+                    self.batch_sign_in(player=task["task_args"]["player"])
+                    main_task_active = True
+                    active_singleton = False
+                case "施肥浇水摘果":
+                    self.batch_fed_and_watered(
+                        player=task["task_args"]["player"]
+                    )
+                    main_task_active = True
+                    active_singleton = False
+                case "公会任务":
+                    self.guild_or_spouse_quest(
+                        text_="公会任务",
+                        quest_mode="公会任务",
+                        global_plan_active=task["task_args"]["global_plan_active"],
+                        deck=task["task_args"]["deck"],
+                        battle_plan_1p=task["task_args"]["battle_plan_1p"],
+                        battle_plan_2p=task["task_args"]["battle_plan_2p"],
+                        stage=task["task_args"]["cross_server"])
+                    main_task_active = True
+                    active_singleton = False
+                case "情侣任务":
+                    self.guild_or_spouse_quest(
+                        text_="情侣任务",
+                        quest_mode="情侣任务",
+                        global_plan_active=task["task_args"]["global_plan_active"],
+                        deck=task["task_args"]["deck"],
+                        battle_plan_1p=task["task_args"]["battle_plan_1p"],
+                        battle_plan_2p=task["task_args"]["battle_plan_2p"])
+                    main_task_active = True
+                    active_singleton = False
+                case "使用消耗品":
+                    self.batch_use_items_consumables(
+                        player=task["task_args"]["player"],
+                    )
+                    main_task_active = True
+                    active_singleton = False
+                case "查漏补缺":
+                    self.checking_nodo(player=task["task_args"]["player"],)
+                    main_task_active = True
+                    active_singleton = False
+                case "天知强卡器":
+                    self.tce(
+                        player=task["task_args"]["player"]
+                    )
+                    main_task_active = True
+                    active_singleton = False
+                case "美食大赛":
+                    self.auto_food()
+                    main_task_active = True
+                    active_singleton = False
+                case "跨服刷威望":
+                    self.batch_loop_cross_server(
+                        player=task["task_args"]["player"],
+                        deck=1,
+                        name="威望")
+                    main_task_active = True
+                    active_singleton = False
+                case "自建房战斗":
+                    self.easy_battle(
+                        text_="自建房战斗",
+                        stage_id=task["task_args"]["stage_id"],
+                        player=task["task_args"]["player"],
+                        max_times=int(task["task_args"]["max_times"]),
+                        global_plan_active=task["task_args"]["global_plan_active"],
+                        deck=task["task_args"]["deck"],
+                        battle_plan_1p=task["task_args"]["battle_plan_1p"],
+                        battle_plan_2p=task["task_args"]["battle_plan_2p"],
+                        dict_exit={
+                            "other_time_player_a": [],
+                            "other_time_player_b": [],
+                            "last_time_player_a": [],
+                            "last_time_player_b": []
+                        },
+                        is_cu=True
+                    )
+                    active_singleton = True
+                case "任务序列":
+                    main_task_active,in_active_singleton=self.task_sequence(
+                        text_="自定义任务序列",
+                        task_begin_id=task["task_args"]["sequence_integer"],
+                        task_sequence_uuid=task["task_args"]["task_sequence_uuid"])
+                    active_singleton=active_singleton and in_active_singleton
+        # 战斗结束
+        self.model_end_print(text=text_)
+        return main_task_active,active_singleton
 
     def auto_food(self):
 
@@ -3211,7 +3228,7 @@ class ThreadTodo(QThread):
             main_task_active,active_singleton=self.task_sequence(
                 text_="自定义任务序列",
                 task_begin_id=1,
-                task_sequence_index=self.task_sequence_index)
+                task_sequence_uuid=self.task_sequence_uuid)
             """完成FAA的任务列表后，开始执行插件脚本"""
             name_1p = self.opt["base_settings"]["name_1p"]
             if name_1p == '':
@@ -3388,7 +3405,7 @@ class ThreadTodo(QThread):
                 self.task_sequence(
                     text_="自定义任务序列",
                     task_begin_id=my_opt["stage"],
-                    task_sequence_index=my_opt["battle_plan_1p"])
+                    task_sequence_uuid=my_opt["battle_plan_1p"])
 
             my_opt = c_opt["normal_battle"]
             if my_opt["active"]:
