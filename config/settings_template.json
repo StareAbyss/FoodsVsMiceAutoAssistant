@@ -12,31 +12,31 @@
             "active": true,
             "h": 0,
             "m": 30,
-            "plan": 1
+            "plan": ""
         },
         "2": {
             "active": true,
             "h": 12,
             "m": 0,
-            "plan": 2
+            "plan": ""
         },
         "3": {
             "active": true,
             "h": 14,
             "m": 0,
-            "plan": 3
+            "plan": ""
         },
         "4": {
             "active": true,
             "h": 19,
             "m": 0,
-            "plan": 4
+            "plan": ""
         },
         "5": {
             "active": true,
             "h": 23,
             "m": 55,
-            "plan": 5
+            "plan": ""
         }
     },
     "current_plan": 1,

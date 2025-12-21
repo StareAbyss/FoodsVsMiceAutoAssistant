@@ -433,6 +433,12 @@ class QMainWindowLoadSettings(QMainWindowLog):
         fresh_and_check_all_tweak_plan()
         g_resources.fresh_resource_b()
         g_resources.fresh_resource_t()
+        
+        # 获取任务序列的UUID列表
+        from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
+        fresh_and_check_all_task_sequence()
+        task_sequence_uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys()) if hasattr(EXTRA, 'TASK_SEQUENCE_UUID_TO_PATH') else []
+        
         def base_settings() -> None:
             my_opt = self.opt["base_settings"]
             self.GameName_Input.setText(my_opt["game_name"])
@@ -448,6 +454,10 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
             # 获取任务序列列表而不是方案列表
             task_sequence_name_list = get_task_sequence_list(with_extension=False)
+            
+            # 确保任务序列UUID映射是最新的
+            fresh_and_check_all_task_sequence()
+            task_sequence_uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys()) if hasattr(EXTRA, 'TASK_SEQUENCE_UUID_TO_PATH') else []
 
             for timer_index in range(1, 6):
                 my_opt = self.opt["timer"][f"{timer_index}"]
@@ -461,9 +471,25 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 getattr(self, f"Timer{timer_index}_M").setText(m_text)
 
                 # 使用任务序列列表替换原来的方案列表
-                getattr(self, f"Timer{timer_index}_Plan").clear()
-                getattr(self, f"Timer{timer_index}_Plan").addItems(task_sequence_name_list)
-                getattr(self, f"Timer{timer_index}_Plan").setCurrentIndex(my_opt["plan"])
+                combo_box = getattr(self, f"Timer{timer_index}_Plan")
+                combo_box.clear()
+                for idx, name in enumerate(task_sequence_name_list):
+                    uuid = task_sequence_uuid_list[idx] if idx < len(task_sequence_uuid_list) else ""
+                    combo_box.addItem(name, {"uuid": uuid})
+                
+                # 根据保存的UUID或索引设置当前选中项
+                plan_identifier = my_opt["plan"]
+                current_index = 0  # 默认选中第一个
+                
+                if isinstance(plan_identifier, str) and plan_identifier:  # UUID
+                    try:
+                        current_index = task_sequence_uuid_list.index(plan_identifier)
+                    except (ValueError, AttributeError):
+                        current_index = 0
+                elif isinstance(plan_identifier, int) and plan_identifier >= 0:  # 索引（向后兼容）
+                    current_index = plan_identifier
+                    
+                combo_box.setCurrentIndex(current_index)
 
                 getattr(self, f"Timer{timer_index}_H").setValidator(h_validator)
                 getattr(self, f"Timer{timer_index}_M").setValidator(m_validator)
@@ -990,8 +1016,20 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 my_opt["active"] = getattr(self, f"Timer{i}_Active").isChecked()
                 my_opt["h"] = int(getattr(self, f"Timer{i}_H").text())
                 my_opt["m"] = int(getattr(self, f"Timer{i}_M").text())
-                my_opt["plan"] = getattr(self, f"Timer{i}_Plan").currentIndex()
-
+                
+                # 获取当前选中的任务序列UUID而不是索引
+                combo_box = getattr(self, f"Timer{i}_Plan")
+                current_index = combo_box.currentIndex()
+                if current_index >= 0 and current_index < combo_box.count():
+                    # 从itemData获取UUID，如果不存在则使用索引作为后备
+                    item_data = combo_box.itemData(current_index)
+                    if item_data and "uuid" in item_data:
+                        my_opt["plan"] = item_data["uuid"]
+                    else:
+                        # 向后兼容：如果没有UUID，则保存索引
+                        my_opt["plan"] = current_index
+                else:
+                    my_opt["plan"] = ""
 
         def advanced_settings() -> None:
             my_opt = self.opt["advanced_settings"]

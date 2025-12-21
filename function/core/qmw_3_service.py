@@ -729,8 +729,8 @@ class QMainWindowService(QMainWindowLoadSettings):
                 h_text = getattr(self, f'Timer{i}_H').text()
                 m_text = getattr(self, f'Timer{i}_M').text()
                 tar_time = {"h": h_text, "m": m_text}
-                plan_index = timer_opt["plan"]
-                if plan_index == -1:
+                plan_identifier = timer_opt["plan"]
+                if plan_identifier == "" or plan_identifier == -1:
                     SIGNAL.PRINT_TO_UI.emit(f"[定时任务] {h_text}:{m_text} 的定时任务未选择方案，启动失败!",color_level=1)
                     return
                 if tar_time in time_list:

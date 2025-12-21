@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 from threading import Timer
 
 from function.globals.log import CUS_LOGGER
+from function.scattered.get_task_sequence_list import get_task_sequence_list
+from function.globals import EXTRA
 
 
 class TodoTimerManager:
@@ -19,7 +21,8 @@ class TodoTimerManager:
             timer_opt = self.opt["timer"][str(i)]
             if timer_opt["active"]:
                 tar_time = {"h": timer_opt["h"], "m": timer_opt["m"]}
-                task_sequence_index = timer_opt["plan"]
+                # 获取任务序列索引（通过UUID查找或者直接使用索引）
+                task_sequence_index = self._get_task_sequence_index(timer_opt["plan"])
                 self.init_todo_timer(timer_index=i, tar_time=tar_time, task_sequence_index=task_sequence_index)
         # 开始timers
         for key, timer in self.todo_timers.items():
@@ -70,6 +73,33 @@ class TodoTimerManager:
         timer.start()
         # 覆盖原有的timer引用, 以防止内存泄漏
         self.todo_timers[timer_index] = timer
+        
+    def _get_task_sequence_index(self, plan_identifier):
+        """
+        根据计划标识符（UUID或索引）获取任务序列索引
+        :param plan_identifier: 可能是UUID字符串或者是索引整数
+        :return: 任务序列索引
+        """
+        # 确保任务序列UUID映射是最新的
+        if hasattr(EXTRA, 'TASK_SEQUENCE_UUID_TO_PATH'):
+            task_sequence_uuid_to_path = EXTRA.TASK_SEQUENCE_UUID_TO_PATH
+            task_sequence_list = get_task_sequence_list(with_extension=False)
+            
+            # 如果是UUID字符串
+            if isinstance(plan_identifier, str) and plan_identifier:
+                # 通过UUID查找索引
+                uuid_list = list(task_sequence_uuid_to_path.keys())
+                try:
+                    return uuid_list.index(plan_identifier)
+                except ValueError:
+                    pass  # 如果找不到UUID，回退到默认行为
+            
+            # 如果是索引（向后兼容）
+            elif isinstance(plan_identifier, int):
+                return plan_identifier
+                
+        # 默认返回0（第一个任务序列）
+        return 0
 
 
 def calculate_sec_to_next_time(next_hour, next_minute):
@@ -77,7 +107,7 @@ def calculate_sec_to_next_time(next_hour, next_minute):
     now = datetime.now()
 
     # 构建下一次启动时间的datetime对象
-    # 注意：这里假设启动时间是今天，如果已经过了今天的这个时间，则应该设置为明天
+    # 注意：这里假设启动时间是今天，如果已经过了今天的这个时间，则应该设置为明天的这个时间
     next_time = now.replace(hour=next_hour, minute=next_minute, second=0, microsecond=0)
     if next_time < now:
         # 如果计算出的下一次启动时间已经在过去了，那么将它设置为明天的这个时间
