@@ -113,6 +113,9 @@ class QMWEditorOfTaskSequence(QMainWindow):
         self.could_not_find_battle_plan_uuid = False
         self.could_not_load_json_succeed = False
 
+        # 任务序列元数据
+        self.task_sequence_meta_data = None
+
         # 外观
         self.UICss()
 
@@ -279,9 +282,23 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
                 }
             case '任务序列':
+                # 初始化时创建UUID列表
+                from function.scattered.get_task_sequence_list import get_task_sequence_list
+                from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
+                fresh_and_check_all_task_sequence()
+                task_sequence_name_list = get_task_sequence_list(with_extension=False)
+                task_sequence_uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
+                
+                # 根据task_sequence_uuid查找对应的索引
+                try:
+                    selected_uuid = task["task_args"]["task_sequence_uuid"]
+                    default_index = task_sequence_uuid_list.index(selected_uuid)
+                except (ValueError, KeyError):
+                    default_index = 0 if task_sequence_uuid_list else 0
+                
                 task["task_args"] = {
-                    "sequence_integer": 1,
-                    "task_sequence_index": 0,
+                    "sequence_integer": task["task_args"].get("sequence_integer", 1),
+                    "task_sequence_uuid": task["task_args"].get("task_sequence_uuid", task_sequence_uuid_list[default_index] if task_sequence_uuid_list else "00000000-0000-0000-0000-000000000000"),
                 }
 
         self.add_task(task=task)
@@ -481,6 +498,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             fresh_and_check_all_tweak_plan()
             tweak_plan_name_list = get_list_tweak_plan(with_extension=False)
             tweak_plan_uuid_list = list(EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH.keys())
+
             # 战斗方案 1P 修改数值
             w_1p_input.setObjectName("w_battle_plan_1p")
             w_1p_input.setMaximumWidth(225)
@@ -915,19 +933,26 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 # 添加任务序列选择下拉框（使用SearchableComboBox）
                 w_label = QLabel('任务序列')
                 w_input = SearchableComboBox()
-                w_input.setObjectName("w_task_sequence_index")
+                w_input.setObjectName("w_task_sequence_uuid")
                 w_input.setFixedWidth(200)
                 
                 # 获取任务序列列表
                 from function.scattered.get_task_sequence_list import get_task_sequence_list
+                from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
+                fresh_and_check_all_task_sequence()
                 task_sequence_list = get_task_sequence_list(with_extension=False)
+                task_sequence_uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
                 
                 # 添加选项到下拉框
                 for index, sequence_name in enumerate(task_sequence_list):
                     w_input.addItem(sequence_name)
                 
-                # 设置当前选中项
-                current_index = task["task_args"]["task_sequence_index"]
+                # 设置当前选中项，根据UUID查找索引
+                try:
+                    current_uuid = task["task_args"]["task_sequence_uuid"]
+                    current_index = task_sequence_uuid_list.index(current_uuid)
+                except (ValueError, KeyError):
+                    current_index = 0
                 if current_index < w_input.count():
                     w_input.setCurrentIndex(current_index)
                 else:
@@ -1000,13 +1025,25 @@ class QMWEditorOfTaskSequence(QMainWindow):
         self.could_not_find_battle_plan_uuid = False
         self.could_not_load_json_succeed = False
 
+        # 保存元数据到实例变量
+        if len(task_sequence_list) > 0 and "meta_data" in task_sequence_list[0]:
+            self.task_sequence_meta_data = task_sequence_list[0]["meta_data"]
+            start_index = 1
+        else:
+            self.task_sequence_meta_data = None
+            start_index = 0
+
         # 读取
-        for task in task_sequence_list:
+        for i in range(start_index, len(task_sequence_list)):
+            task = task_sequence_list[i]
             # 兼容旧版本任务序列，添加默认的alias和tooltip字段
             if "alias" not in task:
                 task["alias"] = ""
             if "tooltip" not in task:
                 task["tooltip"] = ""
+            # 确保任务有task_id
+            if "task_id" not in task:
+                task["task_id"] = i
             self.add_task(task)
             # 出现读取失败, 中止
             if self.could_not_load_json_succeed:
@@ -1047,6 +1084,21 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
         data = []
 
+        # 添加元数据
+        if self.task_sequence_meta_data:
+            data.append({
+                "meta_data": self.task_sequence_meta_data
+            })
+        elif len(self.widget_task_sequence_list) > 0:
+            # 如果没有元数据但需要创建一个新的
+            import uuid
+            data.append({
+                "meta_data": {
+                    "uuid": str(uuid.uuid1()),
+                    "version": "1.0"
+                }
+            })
+
         list_line_widgets = self.widget_task_sequence_list.findChildren(QWidget, 'line_widget')
 
         for w_line in list_line_widgets:
@@ -1054,6 +1106,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
             # 从控件属性中获取原始任务数据
             task = w_line.property('task_data')
+            
+            # 跳过元数据任务
+            if task and 'meta_data' in task:
+                continue
             
             # 使用原始任务数据中的task_type，而不是从标签文本中获取
             task_type = task.get('task_type', '') if task else ''
@@ -1314,15 +1370,36 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     args['sequence_integer'] = widget_input.value()
                     
                     # 获取任务序列下拉框的值
-                    widget_input = w_line.findChild(SearchableComboBox, 'w_task_sequence_index')
-                    args['task_sequence_index'] = widget_input.currentIndex()
+                    widget_input = w_line.findChild(SearchableComboBox, 'w_task_sequence_uuid')
+                    
+                    # 获取任务序列列表
+                    from function.scattered.get_task_sequence_list import get_task_sequence_list
+                    from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
+                    fresh_and_check_all_task_sequence()
+                    task_sequence_list = get_task_sequence_list(with_extension=False)
+                    task_sequence_uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
+                    
+                    # 获取当前选中的UUID
+                    text = widget_input.currentText()
+                    try:
+                        index = task_sequence_list.index(text)
+                        uuid = task_sequence_uuid_list[index]
+                        args['task_sequence_uuid'] = uuid
+                    except (ValueError, IndexError):
+                        # 如果找不到匹配项，保留原有的UUID
+                        args['task_sequence_uuid'] = task.get('task_args', {}).get('task_sequence_uuid', "00000000-0000-0000-0000-000000000000")
 
             data_line["task_args"] = args
 
             data.append(data_line)
 
         # 根据id排序 输出
-        data = sorted(data, key=lambda x: x['task_id'])
+        # 只对有task_id的项进行排序，排除元数据项
+        data_with_id = [item for item in data if 'task_id' in item]
+        data_without_id = [item for item in data if 'task_id' not in item]
+        data_with_id = sorted(data_with_id, key=lambda x: x['task_id'])
+        # 合并结果，元数据项放在前面
+        data = data_without_id + data_with_id
         return data
 
     def load_json(self):

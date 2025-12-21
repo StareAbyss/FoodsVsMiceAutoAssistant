@@ -44,6 +44,7 @@ from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
 from function.scattered.get_stage_info_online import get_stage_info_online
 from function.scattered.get_task_sequence_list import get_task_sequence_list
+from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
 from function.scattered.test_route_connectivity import test_route_connectivity
 from function.scattered.todo_timer_manager import TodoTimerManager
 
@@ -193,6 +194,9 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 线程状态
         self.is_ending = False  # 线程是否正在结束
         self.is_start = False  # 线程是否正在启动
+
+        # 检查并生成任务序列的UUID
+        fresh_and_check_all_task_sequence()
 
         """公会管理器相关"""
         # 初始化公会管理器数据和表格视图
