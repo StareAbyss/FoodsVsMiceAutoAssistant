@@ -51,7 +51,7 @@ from function.scattered.todo_timer_manager import TodoTimerManager
 
 class QMainWindowService(QMainWindowLoadSettings):
     signal_todo_end = QtCore.pyqtSignal()
-    signal_todo_start = QtCore.pyqtSignal(int)  # 可通过该信号以某个 方案id 开启一趟流程
+    signal_todo_start = QtCore.pyqtSignal(object)  # 可通过该信号以某个 方案uuid 开启一趟流程
     signal_guild_manager_fresh = QtCore.pyqtSignal()  # 刷新公会管理器数据, 于扫描后
 
     def __init__(self):
@@ -528,15 +528,16 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     """主线程管理"""
 
-    def todo_start(self):
+    def todo_start(self,task_sequence_uuid):
         """
         todo线程的启动函数
-        手动启动时 plan_index为 none
-        自动启动时 plan_index为 int 即对应的战斗方案的值
-        如果 plan_index 为负数，则表示这是一个任务序列索引
+        task_sequence_uuid为定时启动的uuid
         """
         self.is_start = True
-        running_task_sequence_uuid = self.opt["current_plan"]
+        if task_sequence_uuid is None:
+            running_task_sequence_uuid = self.opt["current_plan"]
+        else:
+            running_task_sequence_uuid = task_sequence_uuid
 
         # 先检测是否已经在启动状态, 如果是, 立刻关闭 然后继续执行
         if self.thread_todo_running:

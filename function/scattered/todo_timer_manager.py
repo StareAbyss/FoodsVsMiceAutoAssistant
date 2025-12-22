@@ -21,9 +21,7 @@ class TodoTimerManager:
             timer_opt = self.opt["timer"][str(i)]
             if timer_opt["active"]:
                 tar_time = {"h": timer_opt["h"], "m": timer_opt["m"]}
-                # 获取任务序列索引（通过UUID查找或者直接使用索引）
-                task_sequence_index = self._get_task_sequence_index(timer_opt["plan"])
-                self.init_todo_timer(timer_index=i, tar_time=tar_time, task_sequence_index=task_sequence_index)
+                self.init_todo_timer(timer_index=i, tar_time=tar_time, task_sequence_uuid=timer_opt["plan"])
         # 开始timers
         for key, timer in self.todo_timers.items():
             timer.start()
@@ -40,21 +38,20 @@ class TodoTimerManager:
     def set_opt(self, opt):
         self.opt = copy.deepcopy(opt)  # 深拷贝 意味着开始运行后再配置不会有反应
 
-    def init_todo_timer(self, timer_index, tar_time, task_sequence_index):
+    def init_todo_timer(self, timer_index, tar_time, task_sequence_uuid):
         h = tar_time["h"]
         m = tar_time["m"]
         delta_seconds = calculate_sec_to_next_time(next_hour=h, next_minute=m)
         CUS_LOGGER.debug(
-            f"[定时启动] 即将创建Timer, 下次启动时间{h:02d}:{m:02d}, 即 {delta_seconds} 秒后, 任务序列索引为 {task_sequence_index}")
+            f"[定时启动] 即将创建Timer, 下次启动时间{h:02d}:{m:02d}, 即 {delta_seconds} 秒后, 任务序列uuid为 {task_sequence_uuid}")
         timer = Timer(
             interval=delta_seconds,
             function=self.call_back,
-            kwargs={"timer_index": timer_index, "task_sequence_index": task_sequence_index, "tar_time": tar_time})
+            kwargs={"timer_index": timer_index, "task_sequence_uuid": task_sequence_uuid, "tar_time": tar_time})
         self.todo_timers[timer_index] = timer
 
-    def call_back(self, timer_index, task_sequence_index, tar_time):
-        # 启动线程 - 使用负数索引来表示这是任务序列而不是方案
-        self.thread_todo_start.emit(-task_sequence_index - 1)
+    def call_back(self, timer_index, task_sequence_uuid, tar_time):
+        self.thread_todo_start.emit(task_sequence_uuid)
         # 动态校准时间
         delta_seconds = 0
         while delta_seconds < 60:
@@ -63,46 +60,17 @@ class TodoTimerManager:
             m = tar_time["m"]
             delta_seconds = calculate_sec_to_next_time(next_hour=h, next_minute=m)
         CUS_LOGGER.debug(
-            f"即将创建timer, 下次启动时间{h:02d}:{m:02d}, 即 {delta_seconds} 秒后, 任务序列索引为 {task_sequence_index}")
+            f"即将创建timer, 下次启动时间{h:02d}:{m:02d}, 即 {delta_seconds} 秒后, 任务序列uuid为 {task_sequence_uuid}")
         # 回调 循环
         timer = Timer(
             interval=delta_seconds,
             function=self.call_back,
-            kwargs={"timer_index": timer_index, "task_sequence_index": task_sequence_index, "tar_time": tar_time}
+            kwargs={"timer_index": timer_index, "task_sequence_uuid": task_sequence_uuid, "tar_time": tar_time}
         )
         timer.start()
         # 覆盖原有的timer引用, 以防止内存泄漏
         self.todo_timers[timer_index] = timer
-        
-    def _get_task_sequence_index(self, plan_identifier):
-        """
-        根据计划标识符（UUID或索引）获取任务序列索引
-        :param plan_identifier: 可能是UUID字符串或者是索引整数
-        :return: 任务序列索引
-        """
-        # 确保任务序列UUID映射是最新的
-        from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
-        fresh_and_check_all_task_sequence()
-        
-        if hasattr(EXTRA, 'TASK_SEQUENCE_UUID_TO_PATH'):
-            task_sequence_uuid_to_path = EXTRA.TASK_SEQUENCE_UUID_TO_PATH
-            task_sequence_list = get_task_sequence_list(with_extension=False)
-            
-            # 如果是UUID字符串
-            if isinstance(plan_identifier, str) and plan_identifier:
-                # 通过UUID查找索引
-                uuid_list = list(task_sequence_uuid_to_path.keys())
-                try:
-                    return uuid_list.index(plan_identifier)
-                except ValueError:
-                    pass  # 如果找不到UUID，回退到默认行为
-            
-            # 如果是索引（向后兼容）
-            elif isinstance(plan_identifier, int):
-                return plan_identifier
-                
-        # 默认返回0（第一个任务序列）
-        return 0
+
 
 
 def calculate_sec_to_next_time(next_hour, next_minute):
