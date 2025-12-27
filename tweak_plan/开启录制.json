@@ -4,6 +4,7 @@
         "tips": "作用是录制屏幕",
         "version": "0.2",
         "recording": true,
-        "timestamp": true
+        "timestamp": true,
+        "recording_player": 0
     }
 }

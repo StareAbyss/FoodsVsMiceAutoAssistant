@@ -899,6 +899,7 @@ class ThreadTodo(QThread):
         senior_setting = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("senior_setting", False)
         recording = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("recording", False)
         seetime = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("timestamp", False)
+        recording_player = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("recording_player", 1)
 
         """检测是否成功进入房间"""
         if result_id == 0:
@@ -1074,12 +1075,18 @@ class ThreadTodo(QThread):
                 start_time=start_time
             )
             if recording:
-                self.faa_dict[player_a].start_battle_recording(seetime)
+                if recording_player==1:
+                    self.faa_dict[player_a].start_battle_recording(seetime)
+                else:
+                    self.faa_dict[player_b].start_battle_recording(seetime)
                 CUS_LOGGER.info(f"录制已启动: {self.faa_dict[1].player}P 战斗")
             self.thread_card_manager.start()
             self.exec()
             if recording:
-                self.faa_dict[player_a].stop_battle_recording()
+                if recording_player == 1:
+                    self.faa_dict[player_a].stop_battle_recording()
+                else:
+                    self.faa_dict[player_b].stop_battle_recording()
                 CUS_LOGGER.info(f"录制已停止: {self.faa_dict[1].player}P 战斗")
 
             # 此处的重新变为None是为了让中止todo实例时时该属性仍存在
