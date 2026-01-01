@@ -902,6 +902,7 @@ class ThreadTodo(QThread):
         senior_setting = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("senior_setting", False)
         recording = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("recording", False)
         seetime = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("timestamp", False)
+        recording_player = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("recording_player", 1)
 
         """检测是否成功进入房间"""
         if result_id == 0:
@@ -1077,12 +1078,18 @@ class ThreadTodo(QThread):
                 start_time=start_time
             )
             if recording:
-                self.faa_dict[player_a].start_battle_recording(seetime)
+                if recording_player==1:
+                    self.faa_dict[player_a].start_battle_recording(seetime)
+                else:
+                    self.faa_dict[player_b].start_battle_recording(seetime)
                 CUS_LOGGER.info(f"录制已启动: {self.faa_dict[1].player}P 战斗")
             self.thread_card_manager.start()
             self.exec()
             if recording:
-                self.faa_dict[player_a].stop_battle_recording()
+                if recording_player == 1:
+                    self.faa_dict[player_a].stop_battle_recording()
+                else:
+                    self.faa_dict[player_b].stop_battle_recording()
                 CUS_LOGGER.info(f"录制已停止: {self.faa_dict[1].player}P 战斗")
 
             # 此处的重新变为None是为了让中止todo实例时时该属性仍存在
@@ -1235,23 +1242,25 @@ class ThreadTodo(QThread):
                     loots_dict=loots_dict,
                     chests_dict=chests_dict)
                 CUS_LOGGER.info(f"{title} [保存日志] [详细数据] 成功保存!")
+                try:
+                    # 保存汇总统计数据到json
+                    detail_data = loots_and_chests_detail_to_json(
+                        faa=self.faa_dict[p_id],
+                        loots_dict=loots_dict,
+                        chests_dict=chests_dict)
+                    CUS_LOGGER.info(f"{title} [保存日志] [统计数据] 成功保存!")
+                    CUS_LOGGER.debug(f"{title} [保存日志] [统计数据] 数据: {detail_data}")
+                    # 发送到服务器
+                    upload_result = loots_and_chests_data_post_to_sever(
+                        detail_data=detail_data,
+                        url=EXTRA.MISU_LOGISTICS)
+                    if upload_result:
+                        CUS_LOGGER.info(f"{title} [保存日志] [统计数据] 成功发送一条数据到米苏物流!")
+                    else:
+                        CUS_LOGGER.warning(f"{title} [保存日志] [统计数据] 超时! 可能是米苏物流服务器炸了...")
+                except Exception as e:
+                    CUS_LOGGER.warning(f"{title} [保存日志] [统计数据] 保存失败! 错误: {e}")
 
-                # 保存汇总统计数据到json
-                detail_data = loots_and_chests_detail_to_json(
-                    faa=self.faa_dict[p_id],
-                    loots_dict=loots_dict,
-                    chests_dict=chests_dict)
-                CUS_LOGGER.info(f"{title} [保存日志] [统计数据] 成功保存!")
-                CUS_LOGGER.debug(f"{title} [保存日志] [统计数据] 数据: {detail_data}")
-
-                # 发送到服务器
-                upload_result = loots_and_chests_data_post_to_sever(
-                    detail_data=detail_data,
-                    url=EXTRA.MISU_LOGISTICS)
-                if upload_result:
-                    CUS_LOGGER.info(f"{title} [保存日志] [统计数据] 成功发送一条数据到米苏物流!")
-                else:
-                    CUS_LOGGER.warning(f"{title} [保存日志] [统计数据] 超时! 可能是米苏物流服务器炸了...")
 
             if not update_dag_success_at_least_once:
                 CUS_LOGGER.warning(

@@ -72,7 +72,7 @@ def get_true_stage_id():
     stage_ids += generate_stage_ids("EX", [4, 4], [1, 6])
     stage_ids += generate_stage_ids("EX", [5, 5], [1, 8])
     # 跨服
-    stage_ids += generate_stage_ids("CS", [1, 6], [1, 8])
+    stage_ids += generate_stage_ids("CS", [1, 7], [1, 8])
     # 魔塔
     stage_ids += generate_stage_ids("MT", [1, 1], [0, 165])  # 0为爬塔模式
     stage_ids += generate_stage_ids("MT", [2, 2], [0, 100])  # 0为爬塔模式

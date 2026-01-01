@@ -48,10 +48,7 @@ class CusLogger(logging.Logger):
         super().__init__(name)
         self.setLevel(logging.DEBUG)
 
-        # 初始化Qt弹窗处理器
-        qt_handler = QMessageBoxHandler()
-        qt_handler.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
-        self.addHandler(qt_handler)
+
 
         # 其他原有处理器配置...
         keywords = ["property", "widget", "push", "layout"]
@@ -106,6 +103,10 @@ class CusLogger(logging.Logger):
         stream_handler.addFilter(keyword_filter)
         self.addHandler(stream_handler)
 
+        # 把qt报错弹窗后移，避免初始启动界面报错导致pyqt崩溃导致日志优先发送给qt导致失败导致日志程序崩溃导致写入日志失败
+        qt_handler = QMessageBoxHandler()
+        qt_handler.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
+        self.addHandler(qt_handler)
         # 异常处理
         sys.excepthook = self.handle_exception
 
