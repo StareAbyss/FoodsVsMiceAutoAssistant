@@ -136,6 +136,9 @@ EXTRA_LOG_MATCH = True  # 默认 True
 BATTLE_PLAN_UUID_TO_PATH = {}
 TWEAK_BATTLE_PLAN_UUID_TO_PATH = {}
 
+# 储存任务序列的 uuid -> 具体路径 key是保持了插入顺序因此是有序的
+TASK_SEQUENCE_UUID_TO_PATH = {}
+
 # 米苏物流url
 MISU_LOGISTICS = ""
 

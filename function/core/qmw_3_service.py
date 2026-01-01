@@ -20,7 +20,6 @@ from function.core.performance_analysis import run_analysis_in_thread
 from function.core.qmw_2_load_settings import CommonHelper, QMainWindowLoadSettings
 from function.core.qmw_editor_of_battle_plan import QMWEditorOfBattlePlan
 from function.core.qmw_editor_of_stage_plan import QMWEditorOfStagePlan
-from function.core.qmw_editor_of_task_sequence import QMWEditorOfTaskSequence
 from function.core.qmw_settings_migrator import QMWSettingsMigrator
 from function.core.qmw_task_plan_editor import TaskEditor
 from function.core.qmw_tip_accelerate_settings import QMWTipAccelerateSettings
@@ -44,13 +43,15 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
 from function.scattered.get_stage_info_online import get_stage_info_online
+from function.scattered.get_task_sequence_list import get_task_sequence_list
+from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
 from function.scattered.test_route_connectivity import test_route_connectivity
 from function.scattered.todo_timer_manager import TodoTimerManager
 
 
 class QMainWindowService(QMainWindowLoadSettings):
     signal_todo_end = QtCore.pyqtSignal()
-    signal_todo_start = QtCore.pyqtSignal(int)  # 可通过该信号以某个 方案id 开启一趟流程
+    signal_todo_start = QtCore.pyqtSignal(object)  # 可通过该信号以某个 方案uuid 开启一趟流程
     signal_guild_manager_fresh = QtCore.pyqtSignal()  # 刷新公会管理器数据, 于扫描后
 
     def __init__(self):
@@ -88,9 +89,6 @@ class QMainWindowService(QMainWindowLoadSettings):
             func_open_tip=self.click_btn_tip_editor_of_battle_plan)
         self.OpenEditorOfBattlePlan_Button.clicked.connect(self.click_btn_open_editor_of_battle_plan)
 
-        # 额外窗口 - 任务序列编辑器
-        self.window_editor_of_task_sequence = QMWEditorOfTaskSequence()
-        self.OpenEditorOfTaskSequence_Button.clicked.connect(self.click_btn_open_editor_of_task_sequence)
 
         # 额外窗口 - 关卡方案编辑器
         self.window_editor_of_stage_plan = QMWEditorOfStagePlan()
@@ -178,10 +176,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 方案修改按钮 函数绑定
         self.Button_DeletePlan.clicked.connect(self.delete_current_plan)
         self.Button_RenamePlan.clicked.connect(self.rename_current_plan)
-        self.Button_CreatePlan.clicked.connect(self.create_new_plan)
 
-        # 当前方案变化 函数绑定
-        self.CurrentPlan.currentIndexChanged.connect(self.opt_to_ui_todo_plans)
 
         # 隐藏(拖动)窗口到屏幕视图外 函数绑定
         self.Button_WindowHide.clicked.connect(self.click_btn_hide_window)
@@ -202,6 +197,9 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 线程状态
         self.is_ending = False  # 线程是否正在结束
         self.is_start = False  # 线程是否正在启动
+
+        # 检查并生成任务序列的UUID
+        fresh_and_check_all_task_sequence()
 
         """公会管理器相关"""
         # 初始化公会管理器数据和表格视图
@@ -532,18 +530,16 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     """主线程管理"""
 
-    def todo_start(self, plan_index=None):
+    def todo_start(self,task_sequence_uuid):
         """
         todo线程的启动函数
-        手动启动时 plan_index为 none
-        自动启动时 plan_index为 int 即对应的战斗方案的值
+        task_sequence_uuid为定时启动的uuid
         """
-
-        # 根据输入判断当前需要运行的方案的index
-        if plan_index:
-            running_todo_plan_index = plan_index
+        self.is_start = True
+        if task_sequence_uuid is None:
+            running_task_sequence_uuid = self.opt["current_plan"]
         else:
-            running_todo_plan_index = self.CurrentPlan.currentIndex()
+            running_task_sequence_uuid = task_sequence_uuid
 
         # 先检测是否已经在启动状态, 如果是, 立刻关闭 然后继续执行
         if self.thread_todo_running:
@@ -571,13 +567,23 @@ class QMainWindowService(QMainWindowLoadSettings):
             # 清屏并输出(仅限手动)
             self.TextBrowser.clear()
             self.start_print()
+        
         # 设置输出文本
         SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom", color_level=2)
-        SIGNAL.PRINT_TO_UI.emit("[任务序列] 链接开始 Todo线程开启", color_level=1)
+        if running_task_sequence_uuid in list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys()):
+            running_task_sequence_path = EXTRA.TASK_SEQUENCE_UUID_TO_PATH[running_task_sequence_uuid]
+            running_task_sequence_name = os.path.splitext(os.path.basename(running_task_sequence_path))[0]
+            SIGNAL.PRINT_TO_UI.emit(f"[任务序列] 链接开始 Todo线程开启 - 执行任务序列: {running_task_sequence_name}", color_level=1)
+            # 当前正在运行 的 文本 修改
+            self.Label_RunningState.setText(f"任务序列线程状态: 运行中       运行任务序列: {running_task_sequence_name}")
+        else:
+            SIGNAL.PRINT_TO_UI.emit(f"[任务序列] 未知(索引错误)", color_level=1)
+            self.is_start = False
+            self.todo_end()
+            return
+
+
         SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top", color_level=2)
-        # 当前正在运行 的 文本 修改
-        running_todo_plan_name = self.opt["todo_plans"][running_todo_plan_index]["name"]
-        self.Label_RunningState.setText(f"任务序列线程状态: 运行中       运行方案: {running_todo_plan_name}")
 
         """线程处理"""
         # 启动点击处理线程
@@ -616,15 +622,15 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.thread_todo_1 = ThreadTodo(
             faa_dict=faa_dict,
             opt=self.opt,
-            running_todo_plan_index=running_todo_plan_index,
-            todo_id=1)
+            todo_id=1,
+            running_task_sequence_uuid=running_task_sequence_uuid)
 
         # 多线程作战时的第二线程
         self.thread_todo_2 = ThreadTodo(
             faa_dict=faa_dict,
             opt=self.opt,
-            running_todo_plan_index=running_todo_plan_index,
-            todo_id=2)
+            todo_id=2,
+            running_task_sequence_uuid=running_task_sequence_uuid)
 
         # 链接信号以进行多线程单人
         self.thread_todo_1.signal_start_todo_2_battle.connect(self.thread_todo_2.set_extra_opt_and_start)
@@ -708,10 +714,9 @@ class QMainWindowService(QMainWindowLoadSettings):
                 h_text = getattr(self, f'Timer{i}_H').text()
                 m_text = getattr(self, f'Timer{i}_M').text()
                 tar_time = {"h": h_text, "m": m_text}
-                plan_index = timer_opt["plan"]
-                if plan_index == -1:
-                    SIGNAL.PRINT_TO_UI.emit(f"[定时任务] {h_text}:{m_text} 的定时任务未选择方案，启动失败!",
-                                            color_level=1)
+                plan_identifier = timer_opt["plan"]
+                if plan_identifier == "" or plan_identifier == -1:
+                    SIGNAL.PRINT_TO_UI.emit(f"[定时任务] {h_text}:{m_text} 的定时任务未选择方案，启动失败!",color_level=1)
                     return
                 if tar_time in time_list:
                     SIGNAL.PRINT_TO_UI.emit(f"[定时任务] {h_text}:{m_text} 的定时任务时间重复，启动失败!", color_level=1)
@@ -941,11 +946,6 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.set_stylesheet(window)
         window.show()
 
-    def click_btn_open_editor_of_task_sequence(self):
-        window = self.window_editor_of_task_sequence
-        window.set_my_font(self.font)
-        self.set_stylesheet(window)
-        window.show()
 
     def click_btn_open_editor_of_stage_plan(self):
         window = self.window_editor_of_stage_plan

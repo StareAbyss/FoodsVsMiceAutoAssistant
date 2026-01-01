@@ -1,5 +1,11 @@
 [
     {
+        "meta_data": {
+            "uuid": "9c8f08b5-de80-11f0-9f56-f4c88a4ed544",
+            "version": "1.0"
+        }
+    },
+    {
         "task_type": "战斗",
         "task_id": 1,
         "task_args": {

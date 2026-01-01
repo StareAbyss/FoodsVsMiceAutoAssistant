@@ -1,5 +1,11 @@
 [
     {
+        "meta_data": {
+            "uuid": "9c8ee1a9-de80-11f0-b97c-f4c88a4ed544",
+            "version": "1.0"
+        }
+    },
+    {
         "task_type": "领取任务奖励",
         "task_id": 1,
         "task_args": {
