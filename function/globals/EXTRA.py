@@ -138,11 +138,9 @@ EXTRA_LOG_BATTLE = False  # 默认 False
 # 额外日志 - 战斗中 会详细显示match图片的细节
 EXTRA_LOG_MATCH = True  # 默认 True
 
-# 储存战斗方案的 uuid -> 具体路径 key是保持了插入顺序因此是有序的
+# 储存战斗方案/微调方案/任务序列 的 uuid -> 具体路径 key是保持了插入顺序因此是有序的
 BATTLE_PLAN_UUID_TO_PATH = {}
 TWEAK_BATTLE_PLAN_UUID_TO_PATH = {}
-
-# 储存任务序列的 uuid -> 具体路径 key是保持了插入顺序因此是有序的
 TASK_SEQUENCE_UUID_TO_PATH = {}
 
 # 米苏物流url

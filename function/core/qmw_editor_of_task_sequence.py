@@ -351,19 +351,13 @@ class QMWEditorOfTaskSequence(QMainWindow):
             case '任务序列':
                 # 初始化时创建UUID列表
                 fresh_and_check_all_task_sequence()
-                task_sequence_name_list = get_task_sequence_list(with_extension=False)
                 task_sequence_uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
-                
-                # 根据task_sequence_uuid查找对应的索引
-                try:
-                    selected_uuid = task["task_args"]["task_sequence_uuid"]
-                    default_index = task_sequence_uuid_list.index(selected_uuid)
-                except (ValueError, KeyError):
-                    default_index = 0 if task_sequence_uuid_list else 0
-                
+                task_sequence_uuid_list.remove(self.current_task_sequence_meta_data["uuid"])
+                default_task_sequence_uuid = task_sequence_uuid_list[0]
+
                 task["task_args"] = {
-                    "sequence_integer": task["task_args"].get("sequence_integer", 1),
-                    "task_sequence_uuid": task["task_args"].get("task_sequence_uuid", task_sequence_uuid_list[default_index] if task_sequence_uuid_list else "00000000-0000-0000-0000-000000000000"),
+                    "sequence_integer": 1,
+                    "task_sequence_uuid": default_task_sequence_uuid,
                 }
 
         self.add_task(task=task)
@@ -951,6 +945,50 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 index = 1
             w_2p_input.setCurrentIndex(index)
 
+        def task_sequence(line_layout):
+            # 添加整数输入框
+            w_label = QLabel('起始序列号')
+
+            w_input = QSpinBox()
+            w_input.setObjectName("w_sequence_integer")
+            w_input.setFixedWidth(70)
+            w_input.setMinimum(1)
+            w_input.setMaximum(999)
+            w_input.setValue(task["task_args"]["sequence_integer"])
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
+
+            # 添加任务序列选择下拉框（使用SearchableComboBox）
+            w_label = QLabel('任务序列')
+
+            w_input = SearchableComboBox()
+            w_input.setObjectName("w_task_sequence_uuid")
+            w_input.setFixedWidth(200)
+
+            # 获取任务序列列表
+            fresh_and_check_all_task_sequence()
+            task_sequence_list = get_task_sequence_list(with_extension=False)
+            task_sequence_uuid_to_path_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
+
+            # 添加选项到下拉框 注意 由于跳过了和本方案相同的任务序列以避免套娃
+            # 所以 下拉栏中的list 和 完整list不再等价 从ui保存为json时务必注意
+            for index, sequence_name in enumerate(task_sequence_list):
+                if task_sequence_uuid_to_path_list.index(self.current_task_sequence_meta_data['uuid']) == index:
+                    continue
+                w_input.addItem(sequence_name)
+
+            # 设置当前选中项，根据UUID查找索引
+            try:
+                current_uuid = task["task_args"]["task_sequence_uuid"]
+                current_index = task_sequence_uuid_to_path_list.index(current_uuid)
+            except (ValueError, KeyError):
+                current_index = 0
+            if current_index < w_input.count():
+                w_input.setCurrentIndex(current_index)
+            else:
+                w_input.setCurrentIndex(0)
+
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
+
         match task_type:
             case '战斗':
                 battle(line_layout=line_layout)
@@ -986,45 +1024,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             case '自建房战斗':
                 battle(line_layout=line_layout)
             case '任务序列':
-                # 添加整数输入框
-                w_label = QLabel('起始序列号')
-                w_input = QSpinBox()
-                w_input.setObjectName("w_sequence_integer")
-                w_input.setFixedWidth(70)
-                w_input.setMinimum(1)
-                w_input.setMaximum(999)
-                w_input.setValue(task["task_args"]["sequence_integer"])
-                add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
-                
-                # 添加任务序列选择下拉框（使用SearchableComboBox）
-                w_label = QLabel('任务序列')
-                w_input = SearchableComboBox()
-                w_input.setObjectName("w_task_sequence_uuid")
-                w_input.setFixedWidth(200)
-                
-                # 获取任务序列列表
-                from function.scattered.get_task_sequence_list import get_task_sequence_list
-                from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
-                fresh_and_check_all_task_sequence()
-                task_sequence_list = get_task_sequence_list(with_extension=False)
-                task_sequence_uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
-                
-                # 添加选项到下拉框
-                for index, sequence_name in enumerate(task_sequence_list):
-                    w_input.addItem(sequence_name)
-                
-                # 设置当前选中项，根据UUID查找索引
-                try:
-                    current_uuid = task["task_args"]["task_sequence_uuid"]
-                    current_index = task_sequence_uuid_list.index(current_uuid)
-                except (ValueError, KeyError):
-                    current_index = 0
-                if current_index < w_input.count():
-                    w_input.setCurrentIndex(current_index)
-                else:
-                    w_input.setCurrentIndex(0)
-                    
-                add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
+                task_sequence(line_layout=line_layout)
 
         # 创建一个水平弹簧
         spacer = QSpacerItem(0, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
@@ -1450,7 +1450,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
                     # 获取任务序列下拉框的值（不是uuid 是方案名字）
                     widget_input = w_line.findChild(SearchableComboBox, 'w_task_sequence_uuid')
-                    
+
                     # 获取任务序列列表
 
                     fresh_and_check_all_task_sequence()
@@ -1462,12 +1462,16 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     try:
                         index = task_sequence_list.index(text)
                         uuid = task_sequence_uuid_list[index]
-                        args['task_sequence_uuid'] = uuid
+
                     except (ValueError, IndexError):
                         # 如果找不到匹配项，保留原有的UUID
-                        args['task_sequence_uuid'] = task.get('task_args', {}).get('task_sequence_uuid', "00000000-0000-0000-0000-000000000000")
+                        uuid = original_task_data.get(
+                            'task_args', {}).get(
+                            'task_sequence_uuid', "00000000-0000-0000-0000-000000000000")
 
-            data_line["task_args"] = args
+                    task_args['task_sequence_uuid'] = uuid
+
+            data_line["task_args"] = task_args
 
             data.append(data_line)
 
