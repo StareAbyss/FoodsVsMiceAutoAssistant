@@ -144,25 +144,90 @@ class QMWEditorOfTaskSequence(QMainWindow):
         """
         初始化任务选择下拉框
         """
-        self.widget_combo_box_task.addItem('战斗')
-        self.widget_combo_box_task.addItem('刷新游戏')
-        self.widget_combo_box_task.addItem('双暴卡')
-        self.widget_combo_box_task.addItem('清背包')
-        self.widget_combo_box_task.addItem('领取任务奖励')
-        self.widget_combo_box_task.addItem('扫描任务列表')
-        self.widget_combo_box_task.addItem('签到')
-        self.widget_combo_box_task.addItem('浇水施肥摘果')
-        self.widget_combo_box_task.addItem('公会任务')
-        self.widget_combo_box_task.addItem('情侣任务')
-        self.widget_combo_box_task.addItem('使用消耗品')
-        self.widget_combo_box_task.addItem('查漏补缺')
-        self.widget_combo_box_task.addItem('跨服刷威望')
-        self.widget_combo_box_task.addItem('天知强卡器')
-        self.widget_combo_box_task.addItem('美食大赛')
-        self.widget_combo_box_task.addItem('自建房战斗')
-        self.widget_combo_box_task.addItem('任务序列')
-        # 待实现
-        # self.ComboBoxTask.addItem('扫描公会贡献')
+        # 创建任务描述字典
+        task_descriptions = {
+            '战斗':
+                '从进入关卡到完成战斗的完整流程\n'
+                '支持几乎所有关卡, 具体请参考右上角的关卡代号一览',
+            '刷新游戏':
+                '刷新游戏\n'
+                '绝大部分情况下**请在开头**执行此项\n'
+                '部分依赖此模块复位的功能中包含了该操作',
+            '双暴卡':
+                '使用双暴卡',
+            '清背包':
+                '删除背包中的垃圾\n'
+                '需进阶设置-二级密码处进行设定\n'
+                '被嵌入在部分其他模块中\n'
+                '完整流程:\n'
+                '* 输入二级密码\n'
+                '* 清理背包\n'
+                '* 刷新游戏',
+            '兑换暗晶':
+                '进行暗晶兑换\n'
+                '需进阶设置完成二级密码设定\n'
+                '完整流程:\n'
+                '* 输入二级密码\n'
+                '* 兑换暗晶\n'
+                '* 刷新游戏',
+            '领取任务奖励':
+                '领取各种任务的奖励.\n'
+                '被嵌入在部分其他模块中\n'
+                '可自行添加避免漏任务',
+            '签到':
+                '执行每日签到\n'
+                '完整流程:\n'
+                '* 温馨礼包(需进阶设置-温馨礼包)\n'
+                '* 日氪(需进阶设置-日氪)\n'
+                '* VIP签到/每日签到/美食活动/塔罗/法老\n'
+                '* 会长发任务/营地领钥匙/月卡礼包',
+            '浇水施肥摘果':
+                '无需解释',
+            '公会任务':
+                '扫描并完成公会任务\n'
+                '完整流程:\n'
+                '* 清背包(需进阶设置-二级密码)\n'
+                '* 领取公会任务奖励\n'
+                '* 扫描任务并战斗\n'
+                '* 清背包(需进阶设置-二级密码)\n'
+                '* 领取公会任务奖励\n'
+                '* 领取普通任务奖励(公会点)',
+            '情侣任务':
+                '扫描并完成情侣任务\n'
+                '完整流程:\n'
+                '* 领取情侣任务奖励\n'
+                '* 扫描任务并战斗\n'
+                '* 领取情侣任务奖励\n'
+                '* 领取普通任务奖励(公会点)',
+            '使用消耗品':
+                '使用背包中的消耗品',
+            '查漏补缺':
+                '检查并补充缺少的物品或任务',
+            '跨服刷威望':
+                '跨服务器刷取威望值\n'
+                '无限执行直到被其他定时任务中止/手动停止',
+            '天知强卡器':
+                '联动激活天知强卡器\n'
+                '无限执行直到被其他定时任务中止/手动停止/天知强卡器自爆',
+            '美食大赛':
+                'FAA第三代全自动美食大赛模块\n'
+                '会自动触发美食大赛进度领取',
+            '任务序列':
+                '嵌套执行其他任务序列\n'
+                '自动去重, 防止套娃',
+            '扫描任务列表':
+                '扫描当前可执行的任务列表\n'
+                '执念全新功能 - 自动清空普通任务的一部分',
+            '自建房战斗':
+                '用户自行建房开始战斗\n'
+                '请勿和上述的所有其他功能混合使用\n'
+                '使用此功能前请勿刷新',
+        }
+
+        # 添加项目并设置 tooltip
+        for index, task_type in enumerate(task_descriptions.keys()):
+            self.widget_combo_box_task.addItem(task_type)
+            self.widget_combo_box_task.setItemData(index, task_descriptions[task_type], Qt.ItemDataRole.ToolTipRole)
 
     def add_task_by_button(self):
         """
