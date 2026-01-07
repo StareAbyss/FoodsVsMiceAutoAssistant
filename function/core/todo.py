@@ -65,7 +65,7 @@ class ThreadTodo(QThread):
         self.opt = copy.deepcopy(opt)  # 深拷贝 在作战中如果进行更改, 不会生效
 
         self.task_sequence_uuid = running_task_sequence_uuid
-            
+
         self.battle_check_interval = 1  # 战斗线程中, 进行一次战斗结束和卡片状态检测的间隔, 其他动作的间隔与该时间成比例
 
         # 用于防止缺乏钥匙/次数时无限重复某些关卡, key: (player: int, quest_text: str), value: int
@@ -712,14 +712,14 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=title_text)
 
-    def batch_loop_cross_server(self, player: list = None, deck: int = 1,name:str="威望"):
+    def batch_loop_cross_server(self, player: list = None, deck: int = 1, name: str = "威望"):
 
-        title_text = "无限跨服刷"+ name
+        title_text = "无限跨服刷" + name
 
         player = self.check_player(title=title_text, player=player)
 
         self.model_start_print(text=title_text)
-        if name=="威望":
+        if name == "威望":
             # 创建进程 -> 开始进程 -> 阻塞主进程
             if 1 in player:
                 self.thread_1p = ThreadWithException(
@@ -754,13 +754,13 @@ class ThreadTodo(QThread):
                     "battle_plan_1p": None,
                     "battle_plan_2p": None,
                     "dict_exit": {
-                    "other_time_player_a": [],
-                    "other_time_player_b": [],
-                    "last_time_player_a": ["竞技岛"],
-                    "last_time_player_b": ["竞技岛"]},
+                        "other_time_player_a": [],
+                        "other_time_player_b": [],
+                        "last_time_player_a": ["竞技岛"],
+                        "last_time_player_b": ["竞技岛"]},
                     "is_cu": False
                 }]
-            self.battle_1_n_n(quest_list=quest_list,extra_title=title_text)
+            self.battle_1_n_n(quest_list=quest_list, extra_title=title_text)
 
     """业务代码 - 战斗相关"""
 
@@ -1389,16 +1389,14 @@ class ThreadTodo(QThread):
                         battle_plan_2p_ = g_plan["battle_plan"][0]
             #"f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"是大赛专用花瓶方案
             if vase_num:
-                if vase_num ==1:
-                    battle_plan_1p_ ="f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"
-                    battle_plan_tweak_ ="00000000-0000-0000-0000-000000000003"
-                elif vase_num ==2:
-                    battle_plan_2p_ ="f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"
-                    battle_plan_tweak_ ="00000000-0000-0000-0000-000000000003"
+                if vase_num == 1:
+                    battle_plan_1p_ = "f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"
+                    battle_plan_tweak_ = "00000000-0000-0000-0000-000000000003"
+                elif vase_num == 2:
+                    battle_plan_2p_ = "f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"
+                    battle_plan_tweak_ = "00000000-0000-0000-0000-000000000003"
             battle_plan_a_ = battle_plan_1p_ if pid_a == 1 else battle_plan_2p_
             battle_plan_b_ = (battle_plan_1p_ if pid_b == 1 else battle_plan_2p_) if is_group else None
-
-
 
             return skip_, deck_, battle_plan_a_, battle_plan_b_, battle_plan_tweak_
 
@@ -2025,7 +2023,17 @@ class ThreadTodo(QThread):
 
     def guild_or_spouse_quest(self, text_, quest_mode,
                               global_plan_active, deck, battle_plan_1p, battle_plan_2p, stage=False):
-        """完成公会or情侣任务"""
+        """
+        完成公会or情侣任务
+        :param text_:
+        :param quest_mode:
+        :param global_plan_active:
+        :param deck:
+        :param battle_plan_1p:
+        :param battle_plan_2p:
+        :param stage: boll 是否执行跨服公会任务
+        :return:
+        """
 
         self.model_start_print(text=text_)
 
@@ -2034,7 +2042,7 @@ class ThreadTodo(QThread):
             self.model_end_print(text=text_)
             return
 
-        # 激活删除物品高危功能(可选) + 领取奖励一次
+        # 激活删除物品高危功能(可选)
         if quest_mode == "公会任务":
             self.batch_level_2_action(dark_crystal=False)
         SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 检查领取奖励...")
@@ -2273,7 +2281,7 @@ class ThreadTodo(QThread):
             else:
                 # 没有提供UUID，使用默认索引0
                 task_sequence_index = 0
-                
+
             task_sequence_list = get_task_sequence_list(with_extension=True)
             task_sequence_path = "{}\\{}".format(
                 PATHS["task_sequence"],
@@ -2392,12 +2400,14 @@ class ThreadTodo(QThread):
                     self.batch_sign_in(player=task["task_args"]["player"])
                     main_task_active = True
                     active_singleton = False
+
                 case "施肥浇水摘果":
                     self.batch_fed_and_watered(
                         player=task["task_args"]["player"]
                     )
                     main_task_active = True
                     active_singleton = False
+
                 case "公会任务":
                     self.guild_or_spouse_quest(
                         text_="公会任务",
@@ -2409,6 +2419,7 @@ class ThreadTodo(QThread):
                         stage=task["task_args"]["cross_server"])
                     main_task_active = True
                     active_singleton = False
+
                 case "情侣任务":
                     self.guild_or_spouse_quest(
                         text_="情侣任务",
@@ -2419,26 +2430,31 @@ class ThreadTodo(QThread):
                         battle_plan_2p=task["task_args"]["battle_plan_2p"])
                     main_task_active = True
                     active_singleton = False
+
                 case "使用消耗品":
                     self.batch_use_items_consumables(
                         player=task["task_args"]["player"],
                     )
                     main_task_active = True
                     active_singleton = False
+
                 case "查漏补缺":
                     self.checking_nodo(player=task["task_args"]["player"],)
                     main_task_active = True
                     active_singleton = False
+
                 case "天知强卡器":
                     self.tce(
                         player=task["task_args"]["player"]
                     )
                     main_task_active = True
                     active_singleton = False
+
                 case "美食大赛":
                     self.auto_food()
                     main_task_active = True
                     active_singleton = False
+
                 case "跨服刷威望":
                     self.batch_loop_cross_server(
                         player=task["task_args"]["player"],
@@ -2466,14 +2482,14 @@ class ThreadTodo(QThread):
                     )
                     active_singleton = True
                 case "任务序列":
-                    main_task_active,in_active_singleton=self.task_sequence(
+                    main_task_active, in_active_singleton = self.task_sequence(
                         text_="自定义任务序列",
                         task_begin_id=task["task_args"]["sequence_integer"],
                         task_sequence_uuid=task["task_args"]["task_sequence_uuid"])
-                    active_singleton=active_singleton and in_active_singleton
+                    active_singleton = active_singleton and in_active_singleton
         # 战斗结束
         self.model_end_print(text=text_)
-        return main_task_active,active_singleton
+        return main_task_active, active_singleton
 
     def auto_food(self):
 
@@ -2681,18 +2697,18 @@ class ThreadTodo(QThread):
                 name="2P Thread - CheckingNotDoing",
                 kwargs={})
             self.thread_2p.start()
-        quest_list_1=[]
-        quest_list_2=[]
-        reputation_status_1=0
-        reputation_status_2=0
-        completed_fertilization_1=False
-        completed_fertilization_2=False
+        quest_list_1 = []
+        quest_list_2 = []
+        reputation_status_1 = 0
+        reputation_status_2 = 0
+        completed_fertilization_1 = False
+        completed_fertilization_2 = False
         if 1 in player:
-            quest_list_1,reputation_status_1,reputation_now_1,completed_fertilization_1=self.thread_1p.get_return_value()
+            quest_list_1, reputation_status_1, reputation_now_1, completed_fertilization_1 = self.thread_1p.get_return_value()
         if 2 in player:
-            quest_list_2,reputation_status_2,reputation_now_2,completed_fertilization_2=self.thread_2p.get_return_value()
+            quest_list_2, reputation_status_2, reputation_now_2, completed_fertilization_2 = self.thread_2p.get_return_value()
         quest_list = quest_list_1 + [i for i in quest_list_2 if i not in quest_list_1]
-        #再执行公会任务
+        # 再执行公会任务
         if quest_list:
             self.battle_1_n_n(quest_list=quest_list)
             # 创建进程 -> 开始进程 -> 阻塞主进程
@@ -2713,22 +2729,22 @@ class ThreadTodo(QThread):
                     kwargs={})
                 self.thread_2p.start()
             if 1 in player:
-                quest_list_1,_=self.thread_1p.get_return_value()
-                if len(quest_list_1)>0:
+                quest_list_1, _ = self.thread_1p.get_return_value()
+                if len(quest_list_1) > 0:
                     SIGNAL.DIALOG.emit(
                         "查漏补缺报告",
                         f"1p仍然存在未完成刷关任务，可能为缺乏指定卡片/方案缺失/刷关失败，请检查\n")
                 else:
                     CUS_LOGGER.warning(f"1p完成公会任务查漏补缺")
             if 2 in player:
-                quest_list_2,_=self.thread_2p.get_return_value()
-                if len(quest_list_2)>0:
+                quest_list_2, _ = self.thread_2p.get_return_value()
+                if len(quest_list_2) > 0:
                     SIGNAL.DIALOG.emit(
                         "查漏补缺报告",
                         f"2p仍然存在未完成刷关任务，可能为缺乏指定卡片/方案缺失/刷关失败，请检查\n")
                 else:
                     CUS_LOGGER.warning(f"2p完成公会任务查漏补缺")
-        if 1 in player and completed_fertilization_1:#未完成施肥的则进行施肥
+        if 1 in player and completed_fertilization_1:  # 未完成施肥的则进行施肥
             self.thread_1p = ThreadWithException(
                 target=self.faa_dict[1].fed_and_watered,
                 name=f"1P Thread - FedAndWatered",
@@ -2742,10 +2758,10 @@ class ThreadTodo(QThread):
                 kwargs={})
             self.thread_2p.start()
             self.thread_2p.join()
-        if (1 in player and reputation_status_1!=2) or (2 in player and reputation_status_2!=2):
-            now_player = [2,1]if 2 in player else [1]
-            for max_stage in [4,3,2,1]:#从高到低测出最高声望可能关卡
-                quest_list=[{
+        if (1 in player and reputation_status_1 != 2) or (2 in player and reputation_status_2 != 2):
+            now_player = [2, 1] if 2 in player else [1]
+            for max_stage in [4, 3, 2, 1]:  # 从高到低测出最高声望可能关卡
+                quest_list = [{
                     "player": now_player,
                     "need_key": True,
                     "global_plan_active": True,
@@ -2762,26 +2778,26 @@ class ThreadTodo(QThread):
                 }]
 
                 self.battle_1_n_n(quest_list=quest_list)
-                if 1 in player and reputation_status_1!=2:
+                if 1 in player and reputation_status_1 != 2:
                     self.thread_1p = ThreadWithException(
                         target=self.faa_dict[1].check_task_of_bounty,
                         name="1P Thread - CheckingBounty",
                         kwargs={})
                     self.thread_1p.start()
 
-                if 1 in player and 2 in player and reputation_status_1!=2 and reputation_status_2!=2:
+                if 1 in player and 2 in player and reputation_status_1 != 2 and reputation_status_2 != 2:
                     sleep(0.333)
 
-                if 2 in player and reputation_status_2!=2:
+                if 2 in player and reputation_status_2 != 2:
                     self.thread_2p = ThreadWithException(
                         target=self.faa_dict[2].check_task_of_bounty,
                         name="2P Thread - CheckingBounty",
                         kwargs={})
                     self.thread_2p.start()
-                if 1 in player and reputation_status_1!=2:
-                    new_reputation_status,new_reputation_now = self.thread_1p.get_return_value()
-                    if new_reputation_status==2:#检查声望是否打满
-                        reputation_status_1=new_reputation_status
+                if 1 in player and reputation_status_1 != 2:
+                    new_reputation_status, new_reputation_now = self.thread_1p.get_return_value()
+                    if new_reputation_status == 2:  # 检查声望是否打满
+                        reputation_status_1 = new_reputation_status
                     else:
                         # 查找声望对比原来是否改变
                         status, _ = match_p_in_w(
@@ -2798,10 +2814,10 @@ class ThreadTodo(QThread):
                         else:
                             break
 
-                if 2 in player and reputation_status_2!=2:
-                    new_reputation_status,new_reputation_now = self.thread_2p.get_return_value()
-                    if new_reputation_status==2:
-                        reputation_status_2=new_reputation_status
+                if 2 in player and reputation_status_2 != 2:
+                    new_reputation_status, new_reputation_now = self.thread_2p.get_return_value()
+                    if new_reputation_status == 2:
+                        reputation_status_2 = new_reputation_status
                     else:
                         status, _ = match_p_in_w(
                             template=new_reputation_now,
@@ -2809,17 +2825,17 @@ class ThreadTodo(QThread):
                             match_tolerance=0.95,
                             test_show=False
                         )
-                        if status==2:
+                        if status == 2:
                             SIGNAL.DIALOG.emit(
                                 "查漏补缺报告",
                                 f"2p声望悬赏第{max_stage}关失败，请自行检查\n")
                             continue
                         else:
                             break
-            count=0
-            MaxBountyTime=11
-            while (reputation_status_1!=2 or reputation_status_2!=2 ) and count<MaxBountyTime:
-                quest_list=[{
+            count = 0
+            MaxBountyTime = 11
+            while (reputation_status_1 != 2 or reputation_status_2 != 2) and count < MaxBountyTime:
+                quest_list = [{
                     "player": now_player,
                     "need_key": True,
                     "global_plan_active": True,
@@ -2835,44 +2851,43 @@ class ThreadTodo(QThread):
                         "last_time_player_b": ["竞技岛"]}
                 }]
                 self.battle_1_n_n(quest_list=quest_list)
-                count+=1
-                #打完一把检查是否声望满了
-                if 1 in player and reputation_status_1!=2:
+                count += 1
+                # 打完一把检查是否声望满了
+                if 1 in player and reputation_status_1 != 2:
                     self.thread_1p = ThreadWithException(
                         target=self.faa_dict[1].check_task_of_bounty,
                         name="1P Thread - CheckingBounty",
                         kwargs={})
                     self.thread_1p.start()
 
-                if 1 in player and 2 in player and reputation_status_1!=2 and reputation_status_2!=2:
+                if 1 in player and 2 in player and reputation_status_1 != 2 and reputation_status_2 != 2:
                     sleep(0.333)
 
-                if 2 in player and reputation_status_2!=2:
+                if 2 in player and reputation_status_2 != 2:
                     self.thread_2p = ThreadWithException(
                         target=self.faa_dict[2].check_task_of_bounty,
                         name="2P Thread - CheckingBounty",
                         kwargs={})
                     self.thread_2p.start()
-                if 1 in player and reputation_status_1!=2:
-                    new_reputation_status,new_reputation_now = self.thread_1p.get_return_value()
-                    if new_reputation_status==2:#检查声望是否打满
-                        reputation_status_1=new_reputation_status
+                if 1 in player and reputation_status_1 != 2:
+                    new_reputation_status, new_reputation_now = self.thread_1p.get_return_value()
+                    if new_reputation_status == 2:  # 检查声望是否打满
+                        reputation_status_1 = new_reputation_status
 
-
-                if 2 in player and reputation_status_2!=2:
-                    new_reputation_status,new_reputation_now = self.thread_2p.get_return_value()
-                    if new_reputation_status==2:
-                        reputation_status_2=new_reputation_status
-            if count==MaxBountyTime:
-                #有个不大不小的奇妙bug，当背包满了的时候，会导致无法领取奖励，进而使悬赏刷关无法跳转
+                if 2 in player and reputation_status_2 != 2:
+                    new_reputation_status, new_reputation_now = self.thread_2p.get_return_value()
+                    if new_reputation_status == 2:
+                        reputation_status_2 = new_reputation_status
+            if count == MaxBountyTime:
+                # 有个不大不小的奇妙bug，当背包满了的时候，会导致无法领取奖励，进而使悬赏刷关无法跳转
                 SIGNAL.DIALOG.emit(
                     "查漏补缺报告",
                     f"声望刷取次数过多，请自行检查\n")
             else:
                 CUS_LOGGER.warning(f"声望刷满任务完成")
 
-
         self.model_end_print(text=title_text)
+
     def alone_magic_tower(self):
 
         c_opt = self.opt_todo_plans
@@ -3225,7 +3240,7 @@ class ThreadTodo(QThread):
 
     def run(self):
         """线程执行主体"""
-        
+
         # 判断是运行任务序列还是方案
         if self.todo_id == 1:
             # 运行任务序列
@@ -3234,7 +3249,7 @@ class ThreadTodo(QThread):
             SIGNAL.PRINT_TO_UI.emit("每一个大类的任务开始前均会重启游戏以防止bug...")
 
             self.remove_outdated_log_images()
-            main_task_active,active_singleton=self.task_sequence(
+            main_task_active, active_singleton = self.task_sequence(
                 text_="自定义任务序列",
                 task_begin_id=1,
                 task_sequence_uuid=self.task_sequence_uuid)
@@ -3301,6 +3316,7 @@ class ThreadTodo(QThread):
             # 运行方案
             if self.todo_id == 2:
                 self.run_2()
+
     def run_1(self):
         """
         (已弃用)执念标记"""

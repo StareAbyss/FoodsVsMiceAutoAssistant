@@ -9,7 +9,6 @@ from function.globals.get_paths import PATHS
 
 
 def im_read(img_path):
-
     # 读取图像，处理中文路径
     img = cv2.imdecode(np.fromfile(img_path, dtype=np.uint8), -1)
 
@@ -167,6 +166,8 @@ def fresh_resource_b():
             with open(file=b_path, mode='r', encoding='utf-8') as file:
                 json_data = json.load(file)
         RESOURCE_B[b_uuid] = json_data
+
+
 def fresh_resource_t():
     # 清空
     global RESOURCE_T
@@ -176,6 +177,7 @@ def fresh_resource_t():
             with open(file=b_path, mode='r', encoding='utf-8') as file:
                 json_data = json.load(file)
         RESOURCE_T[b_uuid] = json_data
+
 
 fresh_resource_img()
 fresh_resource_cus_img()

@@ -20,7 +20,7 @@ def fresh_and_check_all_task_sequence():
     added = {}  # 记录添加或更改了uuid的序列
 
     for sequence_name in task_sequences:
-        file_name = PATHS["task_sequence"] + "\\" + sequence_name + ".json"
+        file_path = PATHS["task_sequence"] + "\\" + sequence_name + ".json"
 
         # 自旋锁, 防多线程读写问题
         with EXTRA.FILE_LOCK:
@@ -29,14 +29,15 @@ def fresh_and_check_all_task_sequence():
             need_save = False
 
             try:
-                with open(file=file_name, mode='r', encoding='utf-8') as file:
+                with open(file=file_path, mode='r', encoding='utf-8') as file:
                     json_data = json.load(file)
             except:
                 added[sequence_name] += "json格式错误无法解析! 请勿使用文本编辑器瞎改! 请删除对应方案, FAA已保护性自爆!"
                 continue
 
             # 检查是否存在meta_data字段，如果不存在则创建
-            if not isinstance(json_data, list) or (isinstance(json_data, list) and len(json_data) > 0 and not isinstance(json_data[0], dict)):
+            if not isinstance(json_data, list) or (
+                    isinstance(json_data, list) and len(json_data) > 0 and not isinstance(json_data[0], dict)):
                 added[sequence_name] += "任务序列格式不正确!"
                 continue
 
@@ -61,7 +62,7 @@ def fresh_and_check_all_task_sequence():
                         json_data[0]["meta_data"]["uuid"] = uuid_v1
                         need_save = True
                         added[sequence_name] += "生成了新的UUID;"
-                    
+
                     if uuid_v1 in task_sequence_uuid_list:
                         # 撞了uuid就生成
                         uuid_v1 = str(uuid.uuid1())
@@ -70,10 +71,10 @@ def fresh_and_check_all_task_sequence():
                         need_save = True
                         # 确保uuid唯一性
                         time.sleep(0.001)
-                        
+
                     # 更新uuid列表
                     task_sequence_uuid_list.append(uuid_v1)
-                    task_sequence_uuid_to_path[uuid_v1] = file_name
+                    task_sequence_uuid_to_path[uuid_v1] = file_path
             else:
                 # 空的任务序列文件
                 uuid_v1 = str(uuid.uuid1())
@@ -85,14 +86,14 @@ def fresh_and_check_all_task_sequence():
                 })
                 need_save = True
                 added[sequence_name] += "为空序列添加了meta_data信息;"
-                
+
                 # 更新uuid列表
                 task_sequence_uuid_list.append(uuid_v1)
-                task_sequence_uuid_to_path[uuid_v1] = file_name
+                task_sequence_uuid_to_path[uuid_v1] = file_path
 
             # 保存
             if need_save:
-                with open(file=file_name, mode='w', encoding='utf-8') as file:
+                with open(file=file_path, mode='w', encoding='utf-8') as file:
                     json.dump(json_data, file, ensure_ascii=False, indent=4)
 
     EXTRA.TASK_SEQUENCE_UUID_TO_PATH = task_sequence_uuid_to_path
@@ -104,5 +105,5 @@ def fresh_and_check_all_task_sequence():
             info += f"{sequence_name} -> {msg}\n"
     if info != "":
         SIGNAL.DIALOG.emit("任务序列检测和修复完成", info)
-        
+
     return task_sequence_uuid_list

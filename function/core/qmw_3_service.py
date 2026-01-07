@@ -1,3 +1,4 @@
+import ctypes
 import datetime
 import json
 import os
@@ -40,11 +41,10 @@ from function.globals import g_resources
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
+from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
 from function.scattered.get_stage_info_online import get_stage_info_online
-from function.scattered.get_task_sequence_list import get_task_sequence_list
-from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
 from function.scattered.test_route_connectivity import test_route_connectivity
 from function.scattered.todo_timer_manager import TodoTimerManager
 
@@ -530,7 +530,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     """主线程管理"""
 
-    def todo_start(self,task_sequence_uuid):
+    def todo_start(self,task_sequence_uuid=None):
         """
         todo线程的启动函数
         task_sequence_uuid为定时启动的uuid
@@ -873,8 +873,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         handles = {
             1: faa_get_handle(channel=channel_1p, mode="360"),
             2: faa_get_handle(channel=channel_2p, mode="360")}
-        width = int(955 * self.zoom_rate)
-        height = int(668 * self.zoom_rate)
+        width = int(955 * EXTRA.ZOOM_RATE)
+        height = int(668 * EXTRA.ZOOM_RATE)
 
         # 获取屏幕工作区域大小
         user32 = ctypes.windll.user32
