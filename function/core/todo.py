@@ -292,7 +292,6 @@ class ThreadTodo(QThread):
         # 执行完毕后立刻刷新游戏 以清除二级输入状态
         SIGNAL.PRINT_TO_UI.emit(
             text=f"[{title_text}] 即将刷新游戏以清除二级输入的状态...", color_level=2)
-
         self.batch_reload_game(player=player)
 
         self.model_end_print(text=title_text)
@@ -1078,7 +1077,7 @@ class ThreadTodo(QThread):
                 start_time=start_time
             )
             if recording:
-                if recording_player==1:
+                if recording_player == 1:
                     self.faa_dict[player_a].start_battle_recording(seetime)
                 else:
                     self.faa_dict[player_b].start_battle_recording(seetime)
@@ -1261,7 +1260,6 @@ class ThreadTodo(QThread):
                 except Exception as e:
                     CUS_LOGGER.warning(f"{title} [保存日志] [统计数据] 保存失败! 错误: {e}")
 
-
             if not update_dag_success_at_least_once:
                 CUS_LOGGER.warning(
                     f"[战利品识别] [有向无环图] item_ranking_dag_graph.json 更新失败! 本次战斗未获得任何有效数据!")
@@ -1298,7 +1296,7 @@ class ThreadTodo(QThread):
     def battle_1_1_n(self, stage_id, player, need_key, max_times, dict_exit,
                      global_plan_active, deck, battle_plan_1p, battle_plan_2p,
                      quest_card, ban_card_list, max_card_num,
-                     title_text,vase_num=None, battle_plan_tweak_from_quest_set=None, is_cu=False):
+                     title_text, vase_num=None, battle_plan_tweak_from_quest_set=None, is_cu=False):
         """
         1轮次 1关卡 n次数
         副本外 -> (副本内战斗 * n次) -> 副本外
@@ -2294,7 +2292,6 @@ class ThreadTodo(QThread):
 
             return data
 
-
         # 读取json文件
         task_sequence = read_json_to_task_sequence(task_sequence_uuid)
         main_task_active = False
@@ -2312,7 +2309,10 @@ class ThreadTodo(QThread):
 
         # 由于任务id从1开始, 故需要减1
         # 去除序号小于stage_begin的任务
-        task_sequence = [task for task in task_sequence if not task.get("meta_data",False) and task.get("enabled",True) and task["task_id"] >= task_begin_id]
+        task_sequence = [
+            task for task in task_sequence
+            if not task.get("meta_data", False) and task.get("enabled", True) and task["task_id"] >= task_begin_id
+        ]
         # 根据战斗和其他事项拆分 让战斗事项的参数构成 n本 n次 为一组的汇总
         task_sequence = merge_continuous_battle_task(task_sequence=task_sequence)
         # 让战斗事项按 多线程单人 和 单线程常规 拆分
@@ -2392,9 +2392,9 @@ class ThreadTodo(QThread):
                 case "签到":
                     # 删除物品高危功能(可选) + 领取奖励一次
                     self.batch_level_2_action(dark_crystal=False)
-                    # 领取温馨礼包
+                    # 领取温馨礼包(可选)
                     self.batch_get_warm_gift(player=task["task_args"]["player"])
-                    # 日氪
+                    # 日氪(可选)
                     self.batch_top_up_money(player=task["task_args"]["player"])
                     # 常规日常签到
                     self.batch_sign_in(player=task["task_args"]["player"])
@@ -2439,7 +2439,7 @@ class ThreadTodo(QThread):
                     active_singleton = False
 
                 case "查漏补缺":
-                    self.checking_nodo(player=task["task_args"]["player"],)
+                    self.checking_undo(player=task["task_args"]["player"], )
                     main_task_active = True
                     active_singleton = False
 
@@ -2673,7 +2673,7 @@ class ThreadTodo(QThread):
 
     """使用battle_1_n_n为核心的变种 [双线程][单人]"""
 
-    def checking_nodo(self, player: list = None):
+    def checking_undo(self, player: list = None):
 
         title_text = "查漏补缺"
 
@@ -2806,7 +2806,7 @@ class ThreadTodo(QThread):
                             match_tolerance=0.95,
                             test_show=False
                         )
-                        if status==2:#声望没有变化
+                        if status == 2:  # 声望没有变化
                             SIGNAL.DIALOG.emit(
                                 "查漏补缺报告",
                                 f"1p声望悬赏第{max_stage}关失败，请自行检查\n")
@@ -3606,7 +3606,7 @@ class ThreadTodo(QThread):
             )
         my_opt = c_opt["checking"]
         if my_opt["active"]:
-            self.checking_nodo(player=[1, 2] if my_opt["is_group"] else [1],)
+            self.checking_undo(player=[1, 2] if my_opt["is_group"] else [1], )
 
         my_opt = c_opt["auto_food"]
         if my_opt["active"]:
