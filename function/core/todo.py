@@ -239,15 +239,20 @@ class ThreadTodo(QThread):
     业务代码 - 战斗以外
     """
 
-    def batch_level_2_action(self, player: list = None, dark_crystal: bool = False):
+    def batch_level_2_action(self, player: list = None, delete_item: bool = False, dark_crystal: bool = False):
         """
         批量启动 输入二级 -> 兑换暗晶(可选) -> 删除物品
         :param player: [1] [2] [1,2]
+        :param delete_item: bool 是否删除物品
         :param dark_crystal: bool 是否兑换暗晶
         :return:
         """
         title_text = "二级功能"
         self.model_start_print(text=title_text)
+        if not (delete_item or dark_crystal):
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 没有启用任意功能呢... 跳过!", color_level=2)
+            self.model_end_print(text=title_text)
+            return
 
         # 默认值
         player = player or [1, 2]
@@ -267,6 +272,8 @@ class ThreadTodo(QThread):
             if 2 in player:
                 player.remove(2)
         if not player:
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 压根没有设定二级功能呢... 跳过!", color_level=2)
+            self.model_end_print(text=title_text)
             return
 
         # 在该动作前已经完成了游戏刷新 可以尽可能保证欢乐互娱不作妖
@@ -276,18 +283,14 @@ class ThreadTodo(QThread):
                  f"清理无用道具, 目标:{player}P",
             color_level=2)
 
-        # 高危动作 慢慢执行
-        if 1 in player:
-            self.faa_dict[1].input_level_2_password(password=self.opt["level_2"]["1p"]["password"])
-            self.faa_dict[1].delete_items()
+        # 高危动作 慢慢执行 不双线程
+        for cur_player in player:
+            faa = self.faa_dict[cur_player]
+            faa.input_level_2_password(password=self.opt["level_2"][f"{cur_player}p"]["password"])
+            if delete_item:
+                faa.delete_items()
             if dark_crystal:
-                self.faa_dict[1].get_dark_crystal()
-
-        if 2 in player:
-            self.faa_dict[2].input_level_2_password(password=self.opt["level_2"]["2p"]["password"])
-            self.faa_dict[2].delete_items()
-            if dark_crystal:
-                self.faa_dict[2].get_dark_crystal()
+                faa.get_dark_crystal()
 
         # 执行完毕后立刻刷新游戏 以清除二级输入状态
         SIGNAL.PRINT_TO_UI.emit(
@@ -295,6 +298,7 @@ class ThreadTodo(QThread):
         self.batch_reload_game(player=player)
 
         self.model_end_print(text=title_text)
+        return
 
     def batch_reload_game(self, player: list = None):
         """
@@ -2042,7 +2046,9 @@ class ThreadTodo(QThread):
 
         # 激活删除物品高危功能(可选)
         if quest_mode == "公会任务":
-            self.batch_level_2_action(dark_crystal=False)
+            self.batch_level_2_action(player=[1,2], delete_item=True, dark_crystal=False)
+
+        # 领取奖励一次
         SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 检查领取奖励...")
         self.faa_dict[1].action_receive_quest_rewards(mode=quest_mode)
         self.faa_dict[2].action_receive_quest_rewards(mode=quest_mode)
@@ -2076,13 +2082,15 @@ class ThreadTodo(QThread):
         # 完成任务
         self.battle_1_n_n(quest_list=quest_list)
 
-        # 激活删除物品高危功能(可选) + 领取奖励一次 + 领取普通任务奖励(公会点)一次
+        # 激活删除物品高危功能(可选)
+        if quest_mode == "公会任务":
+            self.batch_level_2_action(player=[1,2], delete_item=True, dark_crystal=False)
+
+        # 领取奖励一次 + 公会任务模式下领取普通任务奖励(公会点)一次
+        SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 检查领取奖励中...")
         quests = [quest_mode]
         if quest_mode == "公会任务":
             quests.append("普通任务")
-            self.batch_level_2_action(dark_crystal=False)
-
-        SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 检查领取奖励中...")
         self.batch_receive_all_quest_rewards(player=[1, 2], quests=quests)
 
         self.model_end_print(text=text_)
@@ -2357,7 +2365,17 @@ class ThreadTodo(QThread):
                 case "清背包":
                     self.batch_level_2_action(
                         player=task["task_args"]["player"],
+                        delete_item=True,
                         dark_crystal=False
+                    )
+                    main_task_active = True
+                    active_singleton = False
+
+                case "兑换暗晶":
+                    self.batch_level_2_action(
+                        player=task["task_args"]["player"],
+                        delete_item=False,
+                        dark_crystal=True
                     )
                     main_task_active = True
                     active_singleton = False
@@ -2378,20 +2396,10 @@ class ThreadTodo(QThread):
                     )
                     main_task_active = True
                     active_singleton = False
-                case "扫描任务列表":
-                    all_quests = {
-                        "scan": "扫描",
-                        "battle": "刷关"
-                    }
-                    self.batch_scan_all_task(
-                        player=task["task_args"]["player"],
-                        quests=[v for k, v in all_quests.items() if task["task_args"][k]]
-                    )
-                    main_task_active = True
-                    active_singleton = False
+
                 case "签到":
-                    # 删除物品高危功能(可选) + 领取奖励一次
-                    self.batch_level_2_action(dark_crystal=False)
+                    # 二级密码 - 删除物品(可选)
+                    self.batch_level_2_action(player=[1,2], delete_item=True, dark_crystal=False)
                     # 领取温馨礼包(可选)
                     self.batch_get_warm_gift(player=task["task_args"]["player"])
                     # 日氪(可选)
@@ -2462,6 +2470,19 @@ class ThreadTodo(QThread):
                         name="威望")
                     main_task_active = True
                     active_singleton = False
+
+                case "扫描任务列表":
+                    all_quests = {
+                        "scan": "扫描",
+                        "battle": "刷关"
+                    }
+                    self.batch_scan_all_task(
+                        player=task["task_args"]["player"],
+                        quests=[v for k, v in all_quests.items() if task["task_args"][k]]
+                    )
+                    main_task_active = True
+                    active_singleton = False
+
                 case "自建房战斗":
                     self.easy_battle(
                         text_="自建房战斗",
@@ -3376,8 +3397,6 @@ class ThreadTodo(QThread):
             my_opt = c_opt["sign_in"]
             if my_opt["active"]:
                 player = [1, 2] if my_opt["is_group"] else [1]
-                # 删除物品高危功能(可选) + 领取奖励一次
-                self.batch_level_2_action(dark_crystal=False)
                 # 领取温馨礼包
                 self.batch_get_warm_gift(player=player)
                 # 日氪
@@ -3591,7 +3610,7 @@ class ThreadTodo(QThread):
             self.batch_scan_guild_info()
 
             # 删除物品高危功能
-            self.batch_level_2_action(dark_crystal=True)
+            self.batch_level_2_action(player=[1,2], delete_item=True, dark_crystal=False)
 
             # 主要函数
             self.batch_receive_all_quest_rewards(

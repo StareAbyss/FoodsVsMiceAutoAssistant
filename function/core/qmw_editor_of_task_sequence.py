@@ -268,7 +268,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
             case '清背包':
                 task["task_args"] = {
                     "player": [1, 2],  # or [1] [2]
-                    "dark_crystal": False
+                }
+            case '兑换暗晶':
+                task["task_args"] = {
+                    "player": [1, 2],  # or [1] [2]
                 }
             case '领取任务奖励':
                 task["task_args"] = {
@@ -655,6 +658,22 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 w_input.setCurrentIndex(index)
             add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
 
+        def exchange_dark_crystal(line_layout):
+
+            # 战斗Player
+            w_label = QLabel('玩家')
+            w_input = QComboBox()
+            w_input.setFixedWidth(70)
+            w_input.setObjectName("w_player")
+            for player in ['1P', '2P', '1+2P']:
+                w_input.addItem(player)
+            player_list_to_str_dict = {(1,): "1P", (2,): '2P', (1, 2): '1+2P', (2, 1): '1+2P'}
+            # 查找并设置当前选中的索引
+            index = w_input.findText(player_list_to_str_dict[tuple(task["task_args"]["player"])])
+            if index >= 0:
+                w_input.setCurrentIndex(index)
+            add_element(line_layout=line_layout, w_label=w_label, w_input=w_input)
+
         def receive_quest_rewards(line_layout):
 
             # 战斗Player
@@ -998,6 +1017,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 fresh_game(line_layout=line_layout)
             case '清背包':
                 clean_items(line_layout=line_layout)
+            case '兑换暗晶':
+                exchange_dark_crystal(line_layout=line_layout)
             case '领取任务奖励':
                 receive_quest_rewards(line_layout=line_layout)
             case '扫描任务列表':
@@ -1272,6 +1293,9 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     task_args['max_times'] = widget.value()
 
                 case "清背包":
+                    task_args = player(w_line=w_line, args=task_args)
+
+                case '兑换暗晶':
                     task_args = player(w_line=w_line, args=task_args)
 
                 case "刷新游戏":
