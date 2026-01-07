@@ -17,6 +17,8 @@ from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 from function.scattered.check_battle_plan import fresh_and_check_all_battle_plan, fresh_and_check_all_tweak_plan
 from function.scattered.get_list_battle_plan import get_list_battle_plan, get_list_tweak_plan
+from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
+from function.scattered.get_task_sequence_list import get_task_sequence_list
 
 
 def QCVerticalLine():
@@ -114,7 +116,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
         self.could_not_load_json_succeed = False
 
         # 任务序列元数据
-        self.task_sequence_meta_data = None
+        self.current_task_sequence_meta_data = None
 
         # 外观
         self.UICss()
@@ -142,25 +144,90 @@ class QMWEditorOfTaskSequence(QMainWindow):
         """
         初始化任务选择下拉框
         """
-        self.widget_combo_box_task.addItem('战斗')
-        self.widget_combo_box_task.addItem('刷新游戏')
-        self.widget_combo_box_task.addItem('双暴卡')
-        self.widget_combo_box_task.addItem('清背包')
-        self.widget_combo_box_task.addItem('领取任务奖励')
-        self.widget_combo_box_task.addItem('扫描任务列表')
-        self.widget_combo_box_task.addItem('签到')
-        self.widget_combo_box_task.addItem('浇水施肥摘果')
-        self.widget_combo_box_task.addItem('公会任务')
-        self.widget_combo_box_task.addItem('情侣任务')
-        self.widget_combo_box_task.addItem('使用消耗品')
-        self.widget_combo_box_task.addItem('查漏补缺')
-        self.widget_combo_box_task.addItem('跨服刷威望')
-        self.widget_combo_box_task.addItem('天知强卡器')
-        self.widget_combo_box_task.addItem('美食大赛')
-        self.widget_combo_box_task.addItem('自建房战斗')
-        self.widget_combo_box_task.addItem('任务序列')
-        # 待实现
-        # self.ComboBoxTask.addItem('扫描公会贡献')
+        # 创建任务描述字典
+        task_descriptions = {
+            '战斗':
+                '从进入关卡到完成战斗的完整流程\n'
+                '支持几乎所有关卡, 具体请参考右上角的关卡代号一览',
+            '刷新游戏':
+                '刷新游戏\n'
+                '绝大部分情况下**请在开头**执行此项\n'
+                '部分依赖此模块复位的功能中包含了该操作',
+            '双暴卡':
+                '使用双暴卡',
+            '清背包':
+                '删除背包中的垃圾\n'
+                '需进阶设置-二级密码处进行设定\n'
+                '被嵌入在部分其他模块中\n'
+                '完整流程:\n'
+                '* 输入二级密码\n'
+                '* 清理背包\n'
+                '* 刷新游戏',
+            '兑换暗晶':
+                '进行暗晶兑换\n'
+                '需进阶设置完成二级密码设定\n'
+                '完整流程:\n'
+                '* 输入二级密码\n'
+                '* 兑换暗晶\n'
+                '* 刷新游戏',
+            '领取任务奖励':
+                '领取各种任务的奖励.\n'
+                '被嵌入在部分其他模块中\n'
+                '可自行添加避免漏任务',
+            '签到':
+                '执行每日签到\n'
+                '完整流程:\n'
+                '* 温馨礼包(需进阶设置-温馨礼包)\n'
+                '* 日氪(需进阶设置-日氪)\n'
+                '* VIP签到/每日签到/美食活动/塔罗/法老\n'
+                '* 会长发任务/营地领钥匙/月卡礼包',
+            '浇水施肥摘果':
+                '无需解释',
+            '公会任务':
+                '扫描并完成公会任务\n'
+                '完整流程:\n'
+                '* 清背包(需进阶设置-二级密码)\n'
+                '* 领取公会任务奖励\n'
+                '* 扫描任务并战斗\n'
+                '* 清背包(需进阶设置-二级密码)\n'
+                '* 领取公会任务奖励\n'
+                '* 领取普通任务奖励(公会点)',
+            '情侣任务':
+                '扫描并完成情侣任务\n'
+                '完整流程:\n'
+                '* 领取情侣任务奖励\n'
+                '* 扫描任务并战斗\n'
+                '* 领取情侣任务奖励\n'
+                '* 领取普通任务奖励(公会点)',
+            '使用消耗品':
+                '使用背包中的消耗品',
+            '查漏补缺':
+                '检查并补充缺少的物品或任务',
+            '跨服刷威望':
+                '跨服务器刷取威望值\n'
+                '无限执行直到被其他定时任务中止/手动停止',
+            '天知强卡器':
+                '联动激活天知强卡器\n'
+                '无限执行直到被其他定时任务中止/手动停止/天知强卡器自爆',
+            '美食大赛':
+                'FAA第三代全自动美食大赛模块\n'
+                '会自动触发美食大赛进度领取',
+            '任务序列':
+                '嵌套执行其他任务序列\n'
+                '自动去重, 防止套娃',
+            '扫描任务列表':
+                '扫描当前可执行的任务列表\n'
+                '执念全新功能 - 自动清空普通任务的一部分',
+            '自建房战斗':
+                '用户自行建房开始战斗\n'
+                '请勿和上述的所有其他功能混合使用\n'
+                '使用此功能前请勿刷新',
+        }
+
+        # 添加项目并设置 tooltip
+        for index, task_type in enumerate(task_descriptions.keys()):
+            self.widget_combo_box_task.addItem(task_type)
+            self.widget_combo_box_task.setItemData(index, task_descriptions[task_type], Qt.ItemDataRole.ToolTipRole)
 
     def add_task_by_button(self):
         """
@@ -283,8 +350,6 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 }
             case '任务序列':
                 # 初始化时创建UUID列表
-                from function.scattered.get_task_sequence_list import get_task_sequence_list
-                from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
                 fresh_and_check_all_task_sequence()
                 task_sequence_name_list = get_task_sequence_list(with_extension=False)
                 task_sequence_uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
@@ -999,7 +1064,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             id_label = widget.findChild(QLabel, 'label_task_id')
             id_label.setText(str(new_id))  # 设置新的 ID 显示
 
-    def clear_tasks(self):
+    def ui_clear_tasks(self):
         """
         清空所有任务
         """
@@ -1021,17 +1086,17 @@ class QMWEditorOfTaskSequence(QMainWindow):
     def list_to_ui(self, task_sequence_list):
         """获取json中的数据, 转化为list并写入到ui"""
         # 清空
-        self.clear_tasks()
+        self.ui_clear_tasks()
 
         self.could_not_find_battle_plan_uuid = False
         self.could_not_load_json_succeed = False
 
         # 保存元数据到实例变量
         if len(task_sequence_list) > 0 and "meta_data" in task_sequence_list[0]:
-            self.task_sequence_meta_data = task_sequence_list[0]["meta_data"]
+            self.current_task_sequence_meta_data = task_sequence_list[0]["meta_data"]
             start_index = 1
         else:
-            self.task_sequence_meta_data = None
+            self.current_task_sequence_meta_data = None
             start_index = 0
 
         # 读取
@@ -1087,9 +1152,9 @@ class QMWEditorOfTaskSequence(QMainWindow):
         data = []
 
         # 添加元数据
-        if self.task_sequence_meta_data:
+        if self.current_task_sequence_meta_data:
             data.append({
-                "meta_data": self.task_sequence_meta_data
+                "meta_data": self.current_task_sequence_meta_data
             })
         elif len(self.widget_task_sequence_list) > 0:
             # 如果没有元数据但需要创建一个新的
@@ -1107,14 +1172,14 @@ class QMWEditorOfTaskSequence(QMainWindow):
             data_line = {}
 
             # 从控件属性中获取原始任务数据
-            task = w_line.property('task_data')
-            
+            original_task_data = w_line.property('task_data')
+
             # 跳过元数据任务
-            if task and 'meta_data' in task:
+            if original_task_data and 'meta_data' in original_task_data:
                 continue
-            
+
             # 使用原始任务数据中的task_type，而不是从标签文本中获取
-            task_type = task.get('task_type', '') if task else ''
+            task_type = original_task_data.get('task_type', '') if original_task_data else ''
             data_line['task_type'] = task_type
 
             label_task_id = w_line.findChild(QLabel, 'label_task_id')
@@ -1124,37 +1189,37 @@ class QMWEditorOfTaskSequence(QMainWindow):
             # 获取启用状态
             enabled_widget = w_line.findChild(QCheckBox, 'w_enabled')
             data_line['enabled'] = enabled_widget.isChecked()
-            
+
             # 获取别名和提示信息
-            alias = task.get('alias', '') if task else ''
-            tooltip = task.get('tooltip', '') if task else ''
+            alias = original_task_data.get('alias', '') if original_task_data else ''
+            tooltip = original_task_data.get('tooltip', '') if original_task_data else ''
             data_line['alias'] = alias
             data_line['tooltip'] = tooltip
-            
+
             data_line["task_args"] = {}
-            args = data_line["task_args"]
+            task_args = data_line["task_args"]
 
             match task_type:
                 case "战斗":
                     widget_input = w_line.findChild(QLineEdit, 'w_stage_id')
-                    args['stage_id'] = widget_input.text()
+                    task_args['stage_id'] = widget_input.text()
 
                     widget_input = w_line.findChild(QSpinBox, 'w_max_times')
-                    args['max_times'] = widget_input.value()
+                    task_args['max_times'] = widget_input.value()
 
                     widget_input = w_line.findChild(QCheckBox, 'w_need_key')
-                    args['need_key'] = widget_input.isChecked()
+                    task_args['need_key'] = widget_input.isChecked()
 
                     widget_input = w_line.findChild(QComboBox, 'w_player')
                     text = widget_input.currentText()
                     return_list = {"1P": [1], "2P": [2], "1P房主": [1, 2], "2P房主": [2, 1]}[text]
-                    args['player'] = return_list
+                    task_args['player'] = return_list
 
                     widget_input = w_line.findChild(QCheckBox, 'w_global_plan_active')
-                    args['global_plan_active'] = widget_input.isChecked()
+                    task_args['global_plan_active'] = widget_input.isChecked()
 
                     widget_input = w_line.findChild(QComboBox, 'w_deck')
-                    args['deck'] = int(widget_input.currentIndex())
+                    task_args['deck'] = int(widget_input.currentIndex())
 
                     # 战斗方案
                     battle_plan_name_list = get_list_battle_plan(with_extension=False)
@@ -1168,13 +1233,13 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     text = widget_input.currentText()
                     index = battle_plan_name_list.index(text)
                     uuid = battle_plan_uuid_list[index]
-                    args['battle_plan_1p'] = uuid
+                    task_args['battle_plan_1p'] = uuid
 
                     widget_input = w_line.findChild(SearchableComboBox, 'w_battle_plan_2p')
                     text = widget_input.currentText()
                     index = battle_plan_name_list.index(text)
                     uuid = battle_plan_uuid_list[index]
-                    args['battle_plan_2p'] = uuid
+                    task_args['battle_plan_2p'] = uuid
 
                     # 微调方案
                     widget_input = w_line.findChild(SearchableComboBox, 'w_battle_plan_tweak')
@@ -1183,56 +1248,60 @@ class QMWEditorOfTaskSequence(QMainWindow):
                         if text in tweak_plan_name_list:
                             index = tweak_plan_name_list.index(text)
                             uuid = tweak_plan_uuid_list[index]
-                            args['battle_plan_tweak'] = uuid
+                            task_args['battle_plan_tweak'] = uuid
                         else:
-                            args.pop('battle_plan_tweak', None)  # 无匹配项时清空
-                    if args['global_plan_active']:
+                            task_args.pop('battle_plan_tweak', None)  # 无匹配项时清空
+                    if task_args['global_plan_active']:
                         # 移除微调方案UUID
-                        args.pop('battle_plan_tweak', None)
+                        task_args.pop('battle_plan_tweak', None)
 
                     # 固定值 请不要用于 魔塔 / 萌宠神殿 这两类特殊关卡！
-                    args["quest_card"] = "None"
-                    args["ban_card_list"] = []
-                    args["dict_exit"] = {
+                    task_args["quest_card"] = "None"
+                    task_args["ban_card_list"] = []
+                    task_args["dict_exit"] = {
                         "other_time_player_a": [],
                         "other_time_player_b": [],
                         "last_time_player_a": ["竞技岛"],
                         "last_time_player_b": ["竞技岛"]
                     }
                 case "双暴卡":
-                    args = player(w_line=w_line, args=args)
+                    task_args = player(w_line=w_line, args=task_args)
 
                     # 最大次数
                     widget = w_line.findChild(QSpinBox, 'w_max_times')
-                    args['max_times'] = widget.value()
+                    task_args['max_times'] = widget.value()
 
                 case "清背包":
-                    args = player(w_line=w_line, args=args)
+                    task_args = player(w_line=w_line, args=task_args)
 
                 case "刷新游戏":
-                    args = player(w_line=w_line, args=args)
+                    task_args = player(w_line=w_line, args=task_args)
 
                 case "领取任务奖励":
-                    args = player(w_line=w_line, args=args)
+                    task_args = player(w_line=w_line, args=task_args)
                     for key in ["normal", "guild", "spouse", "offer_reward", "food_competition", "monopoly", "camp"]:
-                        args = check_box(w_line=w_line, args=args, key=key)
+                        task_args = check_box(w_line=w_line, args=task_args, key=key)
+
                 case "扫描任务列表":
-                    args = player(w_line=w_line, args=args)
+                    task_args = player(w_line=w_line, args=task_args)
                     for key in ["scan", "battle"]:
-                        args = check_box(w_line=w_line, args=args, key=key)
+                        task_args = check_box(w_line=w_line, args=task_args, key=key)
+
                 case "签到":
-                    args = player(w_line=w_line, args=args)
+                    task_args = player(w_line=w_line, args=task_args)
+
                 case "浇水施肥摘果":
-                    args = player(w_line=w_line, args=args)
+                    task_args = player(w_line=w_line, args=task_args)
+
                 case "公会任务":
                     widget_input = w_line.findChild(QCheckBox, 'w_cross_server')
-                    args['cross_server'] = widget_input.isChecked()
+                    task_args['cross_server'] = widget_input.isChecked()
 
                     widget_input = w_line.findChild(QCheckBox, 'w_global_plan_active')
-                    args['global_plan_active'] = widget_input.isChecked()
+                    task_args['global_plan_active'] = widget_input.isChecked()
 
                     widget_input = w_line.findChild(QComboBox, 'w_deck')
-                    args['deck'] = int(widget_input.currentIndex())
+                    task_args['deck'] = int(widget_input.currentIndex())
 
                     # 战斗方案
                     battle_plan_name_list = get_list_battle_plan(with_extension=False)
@@ -1242,18 +1311,18 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     text = widget_input.currentText()
                     index = battle_plan_name_list.index(text)
                     uuid = battle_plan_uuid_list[index]
-                    args['battle_plan_1p'] = uuid
+                    task_args['battle_plan_1p'] = uuid
 
                     widget_input = w_line.findChild(SearchableComboBox, 'w_battle_plan_2p')
                     text = widget_input.currentText()
                     index = battle_plan_name_list.index(text)
                     uuid = battle_plan_uuid_list[index]
-                    args['battle_plan_2p'] = uuid
+                    task_args['battle_plan_2p'] = uuid
 
                     # 固定值
-                    args["quest_card"] = "None"
-                    args["ban_card_list"] = []
-                    args["dict_exit"] = {
+                    task_args["quest_card"] = "None"
+                    task_args["ban_card_list"] = []
+                    task_args["dict_exit"] = {
                         "other_time_player_a": [],
                         "other_time_player_b": [],
                         "last_time_player_a": ["竞技岛"],
@@ -1262,10 +1331,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
                 case "情侣任务":
                     widget_input = w_line.findChild(QCheckBox, 'w_global_plan_active')
-                    args['global_plan_active'] = widget_input.isChecked()
+                    task_args['global_plan_active'] = widget_input.isChecked()
 
                     widget_input = w_line.findChild(QComboBox, 'w_deck')
-                    args['deck'] = int(widget_input.currentIndex())
+                    task_args['deck'] = int(widget_input.currentIndex())
 
                     # 战斗方案
                     battle_plan_name_list = get_list_battle_plan(with_extension=False)
@@ -1275,18 +1344,18 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     text = widget_input.currentText()
                     index = battle_plan_name_list.index(text)
                     uuid = battle_plan_uuid_list[index]
-                    args['battle_plan_1p'] = uuid
+                    task_args['battle_plan_1p'] = uuid
 
                     widget_input = w_line.findChild(SearchableComboBox, 'w_battle_plan_2p')
                     text = widget_input.currentText()
                     index = battle_plan_name_list.index(text)
                     uuid = battle_plan_uuid_list[index]
-                    args['battle_plan_2p'] = uuid
+                    task_args['battle_plan_2p'] = uuid
 
                     # 固定值
-                    args["quest_card"] = "None"
-                    args["ban_card_list"] = []
-                    args["dict_exit"] = {
+                    task_args["quest_card"] = "None"
+                    task_args["ban_card_list"] = []
+                    task_args["dict_exit"] = {
                         "other_time_player_a": [],
                         "other_time_player_b": [],
                         "last_time_player_a": ["竞技岛"],
@@ -1294,37 +1363,41 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     }
 
                 case "使用消耗品":
-                    args = player(w_line=w_line, args=args)
+                    task_args = player(w_line=w_line, args=task_args)
+
                 case "查漏补缺":
-                    args = player(w_line=w_line, args=args)
+                    task_args = player(w_line=w_line, args=task_args)
+
                 case "跨服刷威望":
-                    args = player(w_line=w_line, args=args)
+                    task_args = player(w_line=w_line, args=task_args)
+
                 case "天知强卡器":
-                    args = player(w_line=w_line, args=args)
+                    task_args = player(w_line=w_line, args=task_args)
+
                 case "美食大赛":
                     # 美食大赛任务没有参数
                     pass
 
                 case "自建房战斗":
                     widget_input = w_line.findChild(QLineEdit, 'w_stage_id')
-                    args['stage_id'] = widget_input.text()
+                    task_args['stage_id'] = widget_input.text()
 
                     widget_input = w_line.findChild(QSpinBox, 'w_max_times')
-                    args['max_times'] = widget_input.value()
+                    task_args['max_times'] = widget_input.value()
 
                     widget_input = w_line.findChild(QCheckBox, 'w_need_key')
-                    args['need_key'] = widget_input.isChecked()
+                    task_args['need_key'] = widget_input.isChecked()
 
                     widget_input = w_line.findChild(QComboBox, 'w_player')
                     text = widget_input.currentText()
                     return_list = {"1P": [1], "2P": [2], "1P房主": [1, 2], "2P房主": [2, 1]}[text]
-                    args['player'] = return_list
+                    task_args['player'] = return_list
 
                     widget_input = w_line.findChild(QCheckBox, 'w_global_plan_active')
-                    args['global_plan_active'] = widget_input.isChecked()
+                    task_args['global_plan_active'] = widget_input.isChecked()
 
                     widget_input = w_line.findChild(QComboBox, 'w_deck')
-                    args['deck'] = int(widget_input.currentIndex())
+                    task_args['deck'] = int(widget_input.currentIndex())
 
                     # 战斗方案
                     battle_plan_name_list = get_list_battle_plan(with_extension=False)
@@ -1338,13 +1411,13 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     text = widget_input.currentText()
                     index = battle_plan_name_list.index(text)
                     uuid = battle_plan_uuid_list[index]
-                    args['battle_plan_1p'] = uuid
+                    task_args['battle_plan_1p'] = uuid
 
                     widget_input = w_line.findChild(SearchableComboBox, 'w_battle_plan_2p')
                     text = widget_input.currentText()
                     index = battle_plan_name_list.index(text)
                     uuid = battle_plan_uuid_list[index]
-                    args['battle_plan_2p'] = uuid
+                    task_args['battle_plan_2p'] = uuid
 
                     # 微调方案
                     widget_input = w_line.findChild(SearchableComboBox, 'w_battle_plan_tweak')
@@ -1353,37 +1426,37 @@ class QMWEditorOfTaskSequence(QMainWindow):
                         if text in tweak_plan_name_list:
                             index = tweak_plan_name_list.index(text)
                             uuid = tweak_plan_uuid_list[index]
-                            args['battle_plan_tweak'] = uuid
+                            task_args['battle_plan_tweak'] = uuid
                         else:
-                            args.pop('battle_plan_tweak', None)  # 无匹配项时清空
-                    if args['global_plan_active']:
+                            task_args.pop('battle_plan_tweak', None)  # 无匹配项时清空
+                    if task_args['global_plan_active']:
                         # 移除微调方案UUID
-                        args.pop('battle_plan_tweak', None)
+                        task_args.pop('battle_plan_tweak', None)
 
                     # 固定值 请不要用于 魔塔 / 萌宠神殿 这两类特殊关卡！
-                    args["quest_card"] = "None"
-                    args["ban_card_list"] = []
-                    args["dict_exit"] = {
+                    task_args["quest_card"] = "None"
+                    task_args["ban_card_list"] = []
+                    task_args["dict_exit"] = {
                         "other_time_player_a": [],
                         "other_time_player_b": [],
                         "last_time_player_a": ["竞技岛"],
                         "last_time_player_b": ["竞技岛"]
                     }
+
                 case "任务序列":
                     # 获取整数输入框的值
                     widget_input = w_line.findChild(QSpinBox, 'w_sequence_integer')
-                    args['sequence_integer'] = widget_input.value()
-                    
-                    # 获取任务序列下拉框的值
+                    task_args['sequence_integer'] = widget_input.value()
+
+                    # 获取任务序列下拉框的值（不是uuid 是方案名字）
                     widget_input = w_line.findChild(SearchableComboBox, 'w_task_sequence_uuid')
                     
                     # 获取任务序列列表
-                    from function.scattered.get_task_sequence_list import get_task_sequence_list
-                    from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
+
                     fresh_and_check_all_task_sequence()
                     task_sequence_list = get_task_sequence_list(with_extension=False)
                     task_sequence_uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
-                    
+
                     # 获取当前选中的UUID
                     text = widget_input.currentText()
                     try:

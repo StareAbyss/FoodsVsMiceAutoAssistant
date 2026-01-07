@@ -441,8 +441,12 @@ class QMainWindowLoadSettings(QMainWindowLog):
         g_resources.fresh_resource_t()
 
         fresh_and_check_all_task_sequence()
-        task_sequence_uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys()) if hasattr(EXTRA, 'TASK_SEQUENCE_UUID_TO_PATH') else []
-        
+        task_sequence_uuid_list = (
+            list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
+            if hasattr(EXTRA,'TASK_SEQUENCE_UUID_TO_PATH')
+            else []
+        )
+
         def base_settings() -> None:
             my_opt = self.opt["base_settings"]
             self.GameName_Input.setText(my_opt["game_name"])
@@ -461,7 +465,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
             # 确保任务序列UUID映射是最新的
             fresh_and_check_all_task_sequence()
-            task_sequence_uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys()) if hasattr(EXTRA, 'TASK_SEQUENCE_UUID_TO_PATH') else []
+            task_sequence_uuid_list = (
+                list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
+                if hasattr(EXTRA, 'TASK_SEQUENCE_UUID_TO_PATH')
+                else []
+            )
 
             for timer_index in range(1, 6):
                 my_opt = self.opt["timer"][f"{timer_index}"]
