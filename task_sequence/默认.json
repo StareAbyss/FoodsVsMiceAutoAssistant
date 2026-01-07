@@ -1,13 +1,16 @@
 [
     {
         "meta_data": {
-            "uuid": "9c910864-de80-11f0-853a-f4c88a4ed544",
+            "uuid": "b43c70f2-e74f-11f0-8163-f44efc5bf671",
             "version": "1.0"
         }
     },
     {
-        "task_type": "清背包",
+        "task_type": "刷新游戏",
         "task_id": 1,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "player": [
                 1,
@@ -16,90 +19,16 @@
         }
     },
     {
-        "task_type": "战斗",
+        "task_type": "签到",
         "task_id": 2,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
-            "stage_id": "NO-1-7",
-            "max_times": 1,
-            "need_key": true,
             "player": [
-                2,
-                1
-            ],
-            "global_plan_active": false,
-            "deck": 0,
-            "battle_plan_1p": "654e418d-ad07-11ef-9999-c2f2346a1393",
-            "battle_plan_2p": "7512848d-ad07-11ef-828e-c2f2346a1393",
-            "quest_card": "None",
-            "ban_card_list": [],
-            "dict_exit": {
-                "other_time_player_a": [],
-                "other_time_player_b": [],
-                "last_time_player_a": [
-                    "竞技岛"
-                ],
-                "last_time_player_b": [
-                    "竞技岛"
-                ]
-            }
-        }
-    },
-    {
-        "task_type": "战斗",
-        "task_id": 3,
-        "task_args": {
-            "stage_id": "NO-1-14",
-            "max_times": 15,
-            "need_key": true,
-            "player": [
-                2,
-                1
-            ],
-            "global_plan_active": false,
-            "deck": 0,
-            "battle_plan_1p": "654e418d-ad07-11ef-9999-c2f2346a1393",
-            "battle_plan_2p": "7512848d-ad07-11ef-828e-c2f2346a1393",
-            "quest_card": "None",
-            "ban_card_list": [],
-            "dict_exit": {
-                "other_time_player_a": [],
-                "other_time_player_b": [],
-                "last_time_player_a": [
-                    "竞技岛"
-                ],
-                "last_time_player_b": [
-                    "竞技岛"
-                ]
-            }
-        }
-    },
-    {
-        "task_type": "战斗",
-        "task_id": 4,
-        "task_args": {
-            "stage_id": "NO-2-5",
-            "max_times": 20,
-            "need_key": true,
-            "player": [
-                2,
-                1
-            ],
-            "global_plan_active": false,
-            "deck": 0,
-            "battle_plan_1p": "654e418d-ad07-11ef-9999-c2f2346a1393",
-            "battle_plan_2p": "7512848d-ad07-11ef-828e-c2f2346a1393",
-            "quest_card": "None",
-            "ban_card_list": [],
-            "dict_exit": {
-                "other_time_player_a": [],
-                "other_time_player_b": [],
-                "last_time_player_a": [
-                    "竞技岛"
-                ],
-                "last_time_player_b": [
-                    "竞技岛"
-                ]
-            }
+                1,
+                2
+            ]
         }
     }
 ]

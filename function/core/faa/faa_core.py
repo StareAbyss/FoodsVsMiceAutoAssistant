@@ -1340,6 +1340,7 @@ class FAABase:
 
                 if not find:
                     self.print_error(text="未找到360大厅加速游戏按钮, 加速游戏失败了...")
+                    SIGNAL.PRINT_TO_UI.emit(text=f"未找到360大厅加速游戏按钮, 加速游戏失败了... 可能导致流程出错")
                     return False
             return True
 
@@ -1603,13 +1604,15 @@ class FAABase:
                 # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
                 if self.extra_sleep["need_sleep"]:
                     time.sleep(self.extra_sleep["sleep_time"])
+
                 # 进行断线重连的判断
                 self.print_debug(text="[刷新游戏] 进入断线重连判断...")
                 if try_relink():
                     self.print_debug(text="[刷新游戏] 成功点击断线重连")
                 else:
                     self.print_debug(text="[刷新游戏] 无需断线重连")
-                    # 依次判断是否在选择服务器界面
+
+                # 依次判断是否在选择服务器界面
                 self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 判定平台...")
 
                 if try_enter_server_4399():

@@ -5,6 +5,7 @@ from function.globals.loadings import loading, app
 
 
 def main():
+
     def delayed_init(app, loading):
         from function.core.qmw_3_service import faa_start_main
         faa_start_main(app, loading)
