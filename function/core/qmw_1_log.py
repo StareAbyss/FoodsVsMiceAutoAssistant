@@ -10,7 +10,7 @@ from PyQt6.QtGui import QTextCursor
 from PyQt6.QtWidgets import QApplication
 
 from function.core.qmw_0_load_ui_file import QMainWindowLoadUI
-from function.globals import SIGNAL
+from function.globals import SIGNAL, EXTRA
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 
@@ -28,7 +28,7 @@ class QMainWindowLog(QMainWindowLoadUI):
         self.signal_dialog.connect(self.show_dialog)
 
         # 并不是直接输出, 其emit方法是 一个可以输入 缺省的颜色 或 时间参数 来生成文本 调用 signal_print_to_ui_1
-        SIGNAL.PRINT_TO_UI = self.MidSignalPrint(signal_1=self.signal_print_to_ui, theme=self.theme)
+        SIGNAL.PRINT_TO_UI = self.MidSignalPrint(signal_1=self.signal_print_to_ui)
 
         # 真正的 发送信息激活 print 的函数, 被链接到直接发送信息到ui的函数
         self.signal_print_to_ui.connect(self.print_to_ui)
@@ -52,10 +52,10 @@ class QMainWindowLog(QMainWindowLoadUI):
         并调用信号发送真正的信息
         """
 
-        def __init__(self, signal_1, theme):
+        def __init__(self, signal_1):
             super().__init__()
             self.signal_1 = signal_1
-            match theme:
+            match EXTRA.THEME:
                 case 'light':
                     self.color_scheme = {
                         1: "C80000",  # 深红色

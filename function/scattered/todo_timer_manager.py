@@ -3,8 +3,6 @@ from datetime import datetime, timedelta
 from threading import Timer
 
 from function.globals.log import CUS_LOGGER
-from function.scattered.get_task_sequence_list import get_task_sequence_list
-from function.globals import EXTRA
 
 
 class TodoTimerManager:
@@ -70,7 +68,6 @@ class TodoTimerManager:
         timer.start()
         # 覆盖原有的timer引用, 以防止内存泄漏
         self.todo_timers[timer_index] = timer
-
 
 
 def calculate_sec_to_next_time(next_hour, next_minute):

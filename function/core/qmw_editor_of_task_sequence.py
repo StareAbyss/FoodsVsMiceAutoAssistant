@@ -5,7 +5,7 @@ from PyQt6.QtCore import Qt
 
 from function.globals.loadings import loading
 
-loading.update_progress(60,"正在加载FAA任务序列编辑器...")
+loading.update_progress(60, "正在加载FAA任务序列编辑器...")
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSpinBox, QCheckBox, QWidget, QListWidgetItem, QFileDialog, QMessageBox, QApplication, QListWidget, QSpacerItem, \
@@ -66,7 +66,7 @@ class QCListWidgetDraggable(QListWidget):
 
 
 class QMWEditorOfTaskSequence(QMainWindow):
-    def __init__(self,father=None):
+    def __init__(self, father=None):
         """
         初始化，完成界面布局，绑定信号与槽，初始化变量
         """
@@ -361,7 +361,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
         w_enabled.setChecked(task.get("enabled", True))  # 默认为启用
         w_enabled.setToolTip("启用/禁用此任务")
         line_layout.addWidget(w_enabled)
-        
+
         # task_id + type
         layout = QHBoxLayout()
         line_layout.addLayout(layout)
@@ -626,6 +626,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             add_quest("大赛", "food_competition")
             add_quest("营地", "camp")
             add_quest("富翁", "monopoly")
+
         def scan_task_menu(line_layout):
 
             # 战斗Player
@@ -1044,6 +1045,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             # 确保任务有task_id
             if "task_id" not in task:
                 task["task_id"] = i
+            # 添加一个任务到ui上
             self.add_task(task)
             # 出现读取失败, 中止
             if self.could_not_load_json_succeed:
@@ -1257,6 +1259,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                         "last_time_player_a": ["竞技岛"],
                         "last_time_player_b": ["竞技岛"]
                     }
+
                 case "情侣任务":
                     widget_input = w_line.findChild(QCheckBox, 'w_global_plan_active')
                     args['global_plan_active'] = widget_input.isChecked()
@@ -1289,6 +1292,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                         "last_time_player_a": ["竞技岛"],
                         "last_time_player_b": ["竞技岛"]
                     }
+
                 case "使用消耗品":
                     args = player(w_line=w_line, args=args)
                 case "查漏补缺":
@@ -1300,6 +1304,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 case "美食大赛":
                     # 美食大赛任务没有参数
                     pass
+
                 case "自建房战斗":
                     widget_input = w_line.findChild(QLineEdit, 'w_stage_id')
                     args['stage_id'] = widget_input.text()
@@ -1483,7 +1488,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             task_type = task['task_type']
             display_text = new_alias if new_alias else task_type
             label.setText(display_text)
-            
+
             # 同时更新父控件的属性，确保保存时能获取到最新的数据
             parent_widget = label.parentWidget()
             if parent_widget:
@@ -1496,7 +1501,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
         if ok:
             task['tooltip'] = new_tooltip
             label.setToolTip(new_tooltip if new_tooltip else "双击编辑别名，右键编辑提示信息")
-            
+
             # 同时更新父控件的属性，确保保存时能获取到最新的数据
             parent_widget = label.parentWidget()
             if parent_widget:

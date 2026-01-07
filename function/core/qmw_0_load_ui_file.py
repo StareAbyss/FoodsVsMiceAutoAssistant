@@ -17,8 +17,6 @@ from function.qrc import test_rc, theme_rc, GTRONICK_rc
 from function.widget.CusIcon import create_qt_icon
 from function.widget.SearchableComboBox import SearchableComboBox
 
-ZOOM_RATE = None
-
 
 class QMainWindowLoadUI(QtWidgets.QMainWindow):
     """读取.ui文件创建类 并加上一些常用方法"""
@@ -43,11 +41,11 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         self.Title_Version.setText(EXTRA.VERSION)
 
         # 获取 dpi & zoom 仅能在类中调用
-        self.zoom_rate = get_system_dpi() / 96
-        T_ACTION_QUEUE_TIMER.set_zoom_rate(self.zoom_rate)
+        EXTRA.ZOOM_RATE = get_system_dpi() / 96
+        T_ACTION_QUEUE_TIMER.set_zoom_rate(EXTRA.ZOOM_RATE)
 
         # 获取系统样式(日夜)
-        self.theme = self.get_theme()
+        EXTRA.THEME = self.get_theme()
 
         # 获取系统样式(高亮颜色)
         self.theme_highlight_color = QtWidgets.QApplication.palette().color(QtGui.QPalette.ColorRole.Highlight).name()
@@ -73,10 +71,9 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
     def get_theme(self):
         if self.palette().color(QtGui.QPalette.ColorRole.Window).lightness() < 128:
-            theme = "dark"
+            return "dark"
         else:
-            theme = "light"
-        return theme
+            return "light"
 
     """任何ui都要设置的样式表"""
 
@@ -113,7 +110,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         style_sheet = self.styleSheet()
 
         # 获取当前样式表 然后在此基础上增加背景色, 根据白天黑夜主题为不同颜色
-        match self.theme:
+        match EXTRA.THEME:
             case "dark":
                 style_sheet += "#MainFrame{background-color: #1e1e1e;}"
             case "light":
@@ -141,7 +138,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         :return:
         """
         # 根据系统样式,设定开关图标
-        q_color = QtGui.QColor(240, 240, 240) if self.theme == "dark" else QtGui.QColor(15, 15, 15)
+        q_color = QtGui.QColor(240, 240, 240) if EXTRA.THEME == "dark" else QtGui.QColor(15, 15, 15)
         self.Button_Exit.setIcon(create_qt_icon(q_color=q_color, mode="x"))
         self.Button_Minimized.setIcon(create_qt_icon(q_color=q_color, mode="-"))
         self.Button_MostMinimized.setIcon(create_qt_icon(q_color=q_color, mode="v"))
@@ -152,7 +149,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
         # 给他们全都改一改
         for combobox in searchable_comboboxes:
-            combobox.set_style(theme=self.theme)
+            combobox.set_style(theme=EXTRA.THEME)
 
     def set_image_resource(self):
 
@@ -209,7 +206,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
     def set_tab_bar_stylesheet(self):
 
         style_sheet = self.MainFrame.styleSheet()
-        selected_text_color = "#FFFFFF" if self.theme == "dark" else "#000000"
+        selected_text_color = "#FFFFFF" if EXTRA.THEME == "dark" else "#000000"
 
         style_sheet += f"""
             QTabBar::tab {{
@@ -252,7 +249,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
     def set_arrow_btn_icon(self):
 
         # 设置图标
-        color = QtGui.QColor(240, 240, 240) if self.theme == "dark" else QtGui.QColor(15, 15, 15)
+        color = QtGui.QColor(240, 240, 240) if EXTRA.THEME == "dark" else QtGui.QColor(15, 15, 15)
         prev_icon = create_qt_icon(q_color=color, mode="<-")
         next_icon = create_qt_icon(q_color=color, mode="->")
 

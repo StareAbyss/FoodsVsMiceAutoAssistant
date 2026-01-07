@@ -100,6 +100,12 @@ def get_true_stage_id():
 # 版本号
 VERSION = "v2.3.0"
 
+# 缩放倍率
+ZOOM_RATE = 1.0
+
+# 样式
+THEME = "dark"
+
 # 翻牌次数
 FLOP_TIMES = 2
 
