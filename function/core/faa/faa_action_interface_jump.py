@@ -876,7 +876,7 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[90, 200, 130, 300],
                     template=RESOURCE_P["stage"]["MU-1.png"],
-                    match_tolerance=0.995,
+                    match_tolerance=0.95,
                     after_sleep=1,
                     click=True)
                 # 设置密码
