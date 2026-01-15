@@ -617,6 +617,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.login_first.setValue(my_opt["first_num"])
             self.login_second.setValue(my_opt["second_num"])
             self.open360.setChecked(my_opt["login_open_settings"])
+            self.resize360.setChecked(my_opt["fresh_resize_360_windows"])
             self.close360.setChecked(my_opt["login_close_settings"])
             self.LoginSettings360PathInput.setText(my_opt["login_path"])
 
@@ -1219,6 +1220,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         def login_settings() -> None:
             my_opt = self.opt["login_settings"]
             my_opt["login_open_settings"] = self.open360.isChecked()
+            my_opt["fresh_resize_360_windows"] = self.resize360.isChecked()
             my_opt["login_close_settings"] = self.close360.isChecked()
             my_opt["login_path"] = self.LoginSettings360PathInput.text()
             my_opt["first_num"] = self.login_first.value()

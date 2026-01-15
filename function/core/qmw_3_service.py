@@ -1,4 +1,3 @@
-import ctypes
 import datetime
 import json
 import os
@@ -45,6 +44,7 @@ from function.scattered.check_task_sequence import fresh_and_check_all_task_sequ
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
 from function.scattered.get_stage_info_online import get_stage_info_online
+from function.scattered.resize_360_windows import batch_resize_window
 from function.scattered.test_route_connectivity import test_route_connectivity
 from function.scattered.todo_timer_manager import TodoTimerManager
 
@@ -88,7 +88,6 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.window_editor_of_battle_plan = QMWEditorOfBattlePlan(
             func_open_tip=self.click_btn_tip_editor_of_battle_plan)
         self.OpenEditorOfBattlePlan_Button.clicked.connect(self.click_btn_open_editor_of_battle_plan)
-
 
         # 额外窗口 - 关卡方案编辑器
         self.window_editor_of_stage_plan = QMWEditorOfStagePlan()
@@ -176,7 +175,6 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 方案修改按钮 函数绑定
         self.Button_DeletePlan.clicked.connect(self.delete_current_plan)
         self.Button_RenamePlan.clicked.connect(self.rename_current_plan)
-
 
         # 隐藏(拖动)窗口到屏幕视图外 函数绑定
         self.Button_WindowHide.clicked.connect(self.click_btn_hide_window)
@@ -530,7 +528,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     """主线程管理"""
 
-    def todo_start(self,task_sequence_uuid=None):
+    def todo_start(self, task_sequence_uuid=None):
         """
         todo线程的启动函数
         task_sequence_uuid为定时启动的uuid
@@ -567,21 +565,23 @@ class QMainWindowService(QMainWindowLoadSettings):
             # 清屏并输出(仅限手动)
             self.TextBrowser.clear()
             self.start_print()
-        
+
         # 设置输出文本
         SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom", color_level=2)
         if running_task_sequence_uuid in list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys()):
             running_task_sequence_path = EXTRA.TASK_SEQUENCE_UUID_TO_PATH[running_task_sequence_uuid]
             running_task_sequence_name = os.path.splitext(os.path.basename(running_task_sequence_path))[0]
-            SIGNAL.PRINT_TO_UI.emit(f"[任务序列] 链接开始 Todo线程开启 - 执行任务序列: {running_task_sequence_name}", color_level=1)
+            SIGNAL.PRINT_TO_UI.emit(
+                f"[任务序列] 链接开始 Todo线程开启 - 执行任务序列: {running_task_sequence_name}",
+                color_level=1)
             # 当前正在运行 的 文本 修改
-            self.Label_RunningState.setText(f"任务序列线程状态: 运行中       运行任务序列: {running_task_sequence_name}")
+            self.Label_RunningState.setText(
+                f"任务序列线程状态: 运行中       运行任务序列: {running_task_sequence_name}")
         else:
             SIGNAL.PRINT_TO_UI.emit(f"[任务序列] 未知(索引错误)", color_level=1)
             self.is_start = False
             self.todo_end()
             return
-
 
         SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top", color_level=2)
 
@@ -716,7 +716,9 @@ class QMainWindowService(QMainWindowLoadSettings):
                 tar_time = {"h": h_text, "m": m_text}
                 plan_identifier = timer_opt["plan"]
                 if plan_identifier == "" or plan_identifier == -1:
-                    SIGNAL.PRINT_TO_UI.emit(f"[定时任务] {h_text}:{m_text} 的定时任务未选择方案，启动失败!",color_level=1)
+                    SIGNAL.PRINT_TO_UI.emit(
+                        f"[定时任务] {h_text}:{m_text} 的定时任务未选择方案，启动失败!",
+                        color_level=1)
                     return
                 if tar_time in time_list:
                     SIGNAL.PRINT_TO_UI.emit(f"[定时任务] {h_text}:{m_text} 的定时任务时间重复，启动失败!", color_level=1)
@@ -859,84 +861,13 @@ class QMainWindowService(QMainWindowLoadSettings):
             self.game_window_is_hide = True
 
     def click_btn_batch_resize_window(self):
-        """
-        调整窗口大小并设置窗口位置
-        :return:
-        """
 
         # 获取窗口名称
-        channel_1p, channel_2p = get_channel_name(
+        batch_resize_window(
             game_name=self.opt["base_settings"]["game_name"],
             name_1p=self.opt["base_settings"]["name_1p"],
-            name_2p=self.opt["base_settings"]["name_2p"])
-
-        handles = {
-            1: faa_get_handle(channel=channel_1p, mode="360"),
-            2: faa_get_handle(channel=channel_2p, mode="360")}
-        width = int(955 * EXTRA.ZOOM_RATE)
-        height = int(668 * EXTRA.ZOOM_RATE)
-
-        # 获取屏幕工作区域大小
-        user32 = ctypes.windll.user32
-        screen_width = user32.GetSystemMetrics(0)
-        screen_height = user32.GetSystemMetrics(1)
-
-        if height * 2 <= screen_height:
-
-            # 第一个窗口放置在屏幕右上角,最小大小
-            win32gui.SetWindowPos(
-                handles[1],
-                win32con.HWND_TOP,
-                screen_width - width,  # X坐标：屏幕宽度减去窗口宽度
-                0,  # Y坐标：顶部对齐
-                width,
-                height,
-                win32con.SWP_SHOWWINDOW
-            )
-
-            if handles[2]:
-                # 第二个窗口放置在第一个窗口下方（紧贴）,最小大小
-                win32gui.SetWindowPos(
-                    handles[2],
-                    win32con.HWND_TOP,
-                    screen_width - width,  # X坐标
-                    height,  # Y坐标
-                    width,
-                    height,
-                    win32con.SWP_SHOWWINDOW
-                )
-        else:
-            if handles[2]:
-                # 顶部居中，宽度占满屏幕，高度最小
-                win32gui.SetWindowPos(
-                    handles[1],
-                    win32con.HWND_TOP,
-                    0,  # X坐标：屏幕宽度减去窗口宽度
-                    0,  # Y坐标：顶部对齐
-                    int(screen_width/2),
-                    height,
-                    win32con.SWP_SHOWWINDOW
-                )
-                win32gui.SetWindowPos(
-                    handles[2],
-                    win32con.HWND_TOP,
-                    int(screen_width/2),  # X坐标：屏幕宽度减去窗口宽度
-                    0,  # Y坐标：顶部对齐
-                    int(screen_width/2),
-                    height,
-                    win32con.SWP_SHOWWINDOW
-                )
-            else:
-                # 第一个窗口放置在屏幕右上角,最小大小
-                win32gui.SetWindowPos(
-                    handles[1],
-                    win32con.HWND_TOP,
-                    screen_width - width,  # X坐标：屏幕宽度减去窗口宽度
-                    0,  # Y坐标：顶部对齐
-                    width,
-                    height,
-                    win32con.SWP_SHOWWINDOW
-                )
+            name_2p=self.opt["base_settings"]["name_2p"]
+        )
 
     """打开其他窗口"""
 
@@ -945,7 +876,6 @@ class QMainWindowService(QMainWindowLoadSettings):
         window.set_my_font(self.font)
         self.set_stylesheet(window)
         window.show()
-
 
     def click_btn_open_editor_of_stage_plan(self):
         window = self.window_editor_of_stage_plan
