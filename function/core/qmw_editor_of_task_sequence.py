@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+import uuid
 
 from PyQt6.QtCore import Qt, QPoint
 
@@ -286,10 +287,26 @@ class QMWEditorOfTaskSequence(QMainWindow):
         self.WidgetComboBoxTask = QComboBox()
         self.LayoutAddTask.addWidget(self.WidgetComboBoxTask)
 
-        # 保存按钮
-        self.WidgetButtonSaveJson = QPushButton('保存任务序列')
-        self.lay_main.addWidget(self.WidgetButtonSaveJson)
-        self.WidgetButtonSaveJson.clicked.connect(self.save_json)
+
+        self.ButtonSave = QPushButton('保存')
+        self.ButtonSave.setEnabled(False)
+        self.ButtonSaveAs = QPushButton('另存为')
+
+        # 创建水平布局，来容纳保存和另存为按钮
+        LaySaveBottom = QHBoxLayout()
+        LaySaveBottom.addWidget(self.ButtonSave)
+        LaySaveBottom.addWidget(self.ButtonSaveAs)
+
+        # 创建垂直布局 放本栏title后水平布局按钮
+        LaySave = QVBoxLayout()
+        self.LabelCurrentTaskSequenceUUID = QLabel("当前方案UUID:无")
+        LaySave.addWidget(self.LabelCurrentTaskSequenceUUID)
+        LaySave.addLayout(LaySaveBottom)
+        self.lay_main.addLayout(LaySave)
+
+        # 连接信号和槽
+        self.ButtonSave.clicked.connect(self.save_json)
+        self.ButtonSaveAs.clicked.connect(self.save_json)
 
         # 初始化控件
         self.init_combo_box()
@@ -305,6 +322,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
         # 任务序列元数据
         self.current_task_sequence_meta_data = None
+        self.file_path = None
 
         # 外观
         self.UICss()
@@ -1496,8 +1514,16 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 pass
 
             try:
-                with open(file_path, 'r', encoding='utf-8') as file:
-                    self.list_to_ui(json.load(file))
+                with open(file_name, 'r', encoding='utf-8') as file:
+                    loaded_data = json.load(file)
+                    self.list_to_ui(loaded_data)
+                    # 更新文件路径
+                    self.file_path = file_name
+                    # 更新界面上显示的UUID
+                    if loaded_data and "meta_data" in loaded_data[0]:
+                        current_uuid = loaded_data[0]["meta_data"].get("uuid", "未知")
+                        self.LabelCurrentTaskSequenceUUID.setText(f"当前方案UUID:{current_uuid}")
+                    self.ButtonSave.setEnabled(True)
             except Exception as e:
                 # 报错弹窗
                 QMessageBox.critical(
@@ -1508,6 +1534,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     f"错误信息: {str(e)}")
 
     def save_json(self):
+        """
+        保存方法，拥有保存和另存为两种功能，还能创建uuid
+        """
+        is_save_as = self.sender() == self.ButtonSaveAs
 
         try:
             export_list = self.ui_to_list()
@@ -1528,24 +1558,90 @@ class QMWEditorOfTaskSequence(QMainWindow):
             print(error_traceback)
             return
 
-        file_name, _ = QFileDialog.getSaveFileName(
-            parent=self,
-            caption="保存任务序列.json",
-            directory=PATHS["task_sequence"],
-            filter="JSON Files (*.json)")
-        if file_name:
+        if is_save_as:
+            # 保存为
+            new_file_path, _ = QFileDialog.getSaveFileName(
+                parent=self,
+                caption="保存任务序列.json",
+                directory=PATHS["task_sequence"],
+                filter="JSON Files (*.json)"
+            )
+        else:
+            # 保存
+            if hasattr(self, 'file_path') and self.file_path:
+                new_file_path = self.file_path
+            else:
+                # 保存, 提示用户还未选择任何任务序列
+                QMessageBox.information(self, "禁止虚空保存！", "请先选择一个任务序列!")
+                return
+
+        if new_file_path:
             try:
-                with open(file_name, 'w', encoding='utf-8') as file:
+                # 如果是新文件，则创建新的UUID
+                if not os.path.exists(new_file_path):
+                    # 为新文件创建UUID
+                    if export_list and "meta_data" in export_list[0]:
+                        export_list[0]["meta_data"]["uuid"] = str(uuid.uuid1())
+                else:
+                    # 如果是覆盖现有文件，则尝试保留原有的UUID
+                    with EXTRA.FILE_LOCK:
+                        with open(file=new_file_path, mode='r', encoding='utf-8') as file:
+                            existing_data = json.load(file)
+                            if existing_data and len(existing_data) > 0 and "meta_data" in existing_data[0]:
+                                existing_uuid = existing_data[0]["meta_data"].get("uuid", None)
+                                if existing_uuid:
+                                    # 使用现有的UUID
+                                    if export_list and "meta_data" in export_list[0]:
+                                        export_list[0]["meta_data"]["uuid"] = existing_uuid
+                                    # 更新当前元数据中的UUID
+                                    if self.current_task_sequence_meta_data:
+                                        self.current_task_sequence_meta_data["uuid"] = existing_uuid
+
+                with open(new_file_path, 'w', encoding='utf-8') as file:
                     json.dump(export_list, file, ensure_ascii=False, indent=4)
                     QMessageBox.information(
                         self,
                         "成功!",
                         "<任务序列> 已保存成功~")
+
+                # 更新当前文件路径和显示信息
+                self.file_path = new_file_path
+                if export_list and "meta_data" in export_list[0]:
+                    current_uuid = export_list[0]["meta_data"].get("uuid", "未知")
+                    self.LabelCurrentTaskSequenceUUID.setText(f"当前方案UUID:{current_uuid}")
+                self.ButtonSave.setEnabled(True)
+
+                # 重新加载文件以确保内部数据一致性
+                self.load_json_from_path(new_file_path)
+
             except Exception as e:
                 QMessageBox.critical(
                     self,
                     "错误!",
                     f"保存<任务序列>失败\n请联系开发者!!!\n错误信息: {str(e)}")
+
+    def load_json_from_path(self, file_path):
+        """
+        从指定路径加载JSON文件，用于保存后重新加载保持一致性
+        """
+        try:
+            with open(file_path, 'r', encoding='utf-8') as file:
+                loaded_data = json.load(file)
+                self.list_to_ui(loaded_data)
+                # 更新文件路径
+                self.file_path = file_path
+                # 更新界面上显示的文件名和UUID
+                if loaded_data and "meta_data" in loaded_data[0]:
+                    current_uuid = loaded_data[0]["meta_data"].get("uuid", "未知")
+                    self.LabelCurrentTaskSequenceUUID.setText(f"当前方案UUID:{current_uuid}")
+        except Exception as e:
+            # 报错弹窗
+            QMessageBox.critical(
+                self,
+                "Json格式错误!",
+                f"读取<任务序列>失败! \n"
+                f"这是由于您使用文本编辑器魔改后, 格式不符合Json规范导致\n"
+                f"错误信息: {str(e)}")
 
     def edit_alias(self, label, task):
         """
