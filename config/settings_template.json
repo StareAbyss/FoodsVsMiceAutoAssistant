@@ -102,6 +102,7 @@
     },
     "login_settings": {
         "login_open_settings": false,
+        "fresh_resize_360_windows": false,
         "login_close_settings": false,
         "login_path": "",
         "first_num": 1,

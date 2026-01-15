@@ -1229,7 +1229,7 @@ class FAABase:
             source_handle=self.handle_360,
             source_root_handle=self.handle_360,
             source_range=[0, 0, 400, 75],
-            template=RESOURCE_P["common"]["登录"]["0_刷新.png"],
+            template=RESOURCE_P["common"]["360游戏大厅"]["刷新.png"],
             match_tolerance=0.9,
             after_sleep=3,
             click=True)
@@ -1239,7 +1239,7 @@ class FAABase:
                 source_handle=self.handle_360,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 400, 75],
-                template=RESOURCE_P["common"]["登录"]["0_刷新_被选中.png"],
+                template=RESOURCE_P["common"]["360游戏大厅"]["刷新_被选中.png"],
                 match_tolerance=0.98,
                 after_sleep=3,
                 click=True)
@@ -1250,7 +1250,7 @@ class FAABase:
                     source_handle=self.handle_360,
                     source_root_handle=self.handle_360,
                     source_range=[0, 0, 400, 75],
-                    template=RESOURCE_P["common"]["登录"]["0_刷新_被点击.png"],
+                    template=RESOURCE_P["common"]["360游戏大厅"]["刷新_被点击.png"],
                     match_tolerance=0.98,
                     after_sleep=3,
                     click=True)
@@ -1319,7 +1319,7 @@ class FAABase:
                 source_handle=self.handle_360,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 2000, 75],
-                template=RESOURCE_P["common"]["战斗"]["变速_默认或被点击.png"],
+                template=RESOURCE_P["common"]["360游戏大厅"]["变速_默认或被点击.png"],
                 match_tolerance=0.99,
                 match_interval=0.00001,
                 match_failed_check=0.00002,
@@ -1331,7 +1331,7 @@ class FAABase:
                     source_handle=self.handle_360,
                     source_root_handle=self.handle_360,
                     source_range=[0, 0, 2000, 75],
-                    template=RESOURCE_P["common"]["战斗"]["变速_被选中.png"],
+                    template=RESOURCE_P["common"]["360游戏大厅"]["变速_被选中.png"],
                     match_tolerance=0.99,
                     match_interval=0.00001,
                     match_failed_check=0.00002,
@@ -1352,7 +1352,7 @@ class FAABase:
                     source_handle=self.handle_360,
                     source_root_handle=self.handle_360,
                     source_range=[0, 0, 2000, 75],
-                    template=RESOURCE_P["common"]["战斗"]["未激活变速_默认.png"],
+                    template=RESOURCE_P["common"]["360游戏大厅"]["未激活变速_默认.png"],
                     match_tolerance=0.99,
                     match_interval=0.1,
                     match_failed_check=0.2,
@@ -1365,7 +1365,7 @@ class FAABase:
                         source_handle=self.handle_360,
                         source_root_handle=self.handle_360,
                         source_range=[0, 0, 2000, 75],
-                        template=RESOURCE_P["common"]["战斗"]["未激活变速_被选中或被点击.png"],
+                        template=RESOURCE_P["common"]["360游戏大厅"]["未激活变速_被选中或被点击.png"],
                         match_tolerance=0.99,
                         match_interval=0.00001,
                         match_failed_check=0.00002,
@@ -1517,8 +1517,8 @@ class FAABase:
                 match_tolerance=0.90,
                 click=True,
                 after_sleep=3,
-                match_interval=0.5,
-                match_failed_check=10
+                match_interval=0.2,
+                match_failed_check=1
             )
 
             return my_result
@@ -1780,7 +1780,7 @@ class FAABase:
                     ],
                     return_mode="and",
                     match_interval=1,
-                    match_failed_check=30)
+                    match_failed_check=60)
 
                 if not goto_game_home_page_success:
                     CUS_LOGGER.warning(

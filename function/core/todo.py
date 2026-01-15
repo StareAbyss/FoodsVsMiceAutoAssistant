@@ -7,6 +7,7 @@ import time
 
 from function.core.qmw_task_plan_editor import init_db
 from function.globals.loadings import loading
+from function.scattered.resize_360_windows import batch_resize_window
 from function.scattered.split_task import load_tasks_from_db_and_create_puzzle
 
 loading.update_progress(80, "正在加载任务执行协议...")
@@ -310,6 +311,14 @@ class ThreadTodo(QThread):
         player = self.check_player(title="刷新游戏", player=player)
 
         SIGNAL.PRINT_TO_UI.emit("刷新游戏, 开始", color_level=2)
+
+        if self.opt["login_settings"]["fresh_resize_360_windows"]:
+            # 获取窗口名称
+            batch_resize_window(
+                game_name=self.opt["base_settings"]["game_name"],
+                name_1p=self.opt["base_settings"]["name_1p"],
+                name_2p=self.opt["base_settings"]["name_2p"]
+            )
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         if 1 in player:
@@ -1858,7 +1867,11 @@ class ThreadTodo(QThread):
         """
         1轮次 n关卡 n次数
         (副本外 -> (副本内战斗 * n次) -> 副本外) * 重复n次
-        :param quest_list: 任务清单
+        其中每一项dict必要参数:
+        stage_id, player, need_key, max_times, dict_exit, global_plan_active, deck, battle_plan_1p, battle_plan_2p,
+        可选参数:
+        battle_plan_tweak, quest_card, ban_card_list, max_card_num, vase_num, is_cu
+        :param quest_list: list[dict]任务清单
         :param extra_title: 输出中的额外文本 会自动加上 [ ]
         :param need_lock:  用于多线程单人作战时设定为True 以进行上锁解锁
         :param task_names:  用于显示单个任务名称
@@ -1920,13 +1933,13 @@ class ThreadTodo(QThread):
                 deck=quest["deck"],
                 battle_plan_1p=quest["battle_plan_1p"],
                 battle_plan_2p=quest["battle_plan_2p"],
-                battle_plan_tweak_from_quest_set=battle_plan_tweak,
-                quest_card=quest_card,
-                ban_card_list=ban_card_list,
-                max_card_num=max_card_num,
+                battle_plan_tweak_from_quest_set=battle_plan_tweak,  # 可缺省
+                quest_card=quest_card,  # 可缺省
+                ban_card_list=ban_card_list,  # 可缺省
+                max_card_num=max_card_num,  # 可缺省
                 title_text=extra_title,
-                vase_num=vase_num,
-                is_cu=quest.get("is_cu", False)
+                vase_num=vase_num,    # 可缺省
+                is_cu=is_cu  # 可缺省
             )
 
             SIGNAL.PRINT_TO_UI.emit(
@@ -2023,8 +2036,9 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=text_)
 
-    def guild_or_spouse_quest(self, text_, quest_mode,
-                              global_plan_active, deck, battle_plan_1p, battle_plan_2p, stage=False):
+    def guild_or_spouse_quest(
+            self, text_, quest_mode,
+            global_plan_active, deck, battle_plan_1p, battle_plan_2p, battle_plan_tweak, stage=False):
         """
         完成公会or情侣任务
         :param text_:
@@ -2033,6 +2047,7 @@ class ThreadTodo(QThread):
         :param deck:
         :param battle_plan_1p:
         :param battle_plan_2p:
+        :param battle_plan_tweak:
         :param stage: boll 是否执行跨服公会任务
         :return:
         """
@@ -2046,7 +2061,7 @@ class ThreadTodo(QThread):
 
         # 激活删除物品高危功能(可选)
         if quest_mode == "公会任务":
-            self.batch_level_2_action(player=[1,2], delete_item=True, dark_crystal=False)
+            self.batch_level_2_action(player=[1, 2], delete_item=True, dark_crystal=False)
 
         # 领取奖励一次
         SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 检查领取奖励...")
@@ -2078,13 +2093,14 @@ class ThreadTodo(QThread):
             quest_list[i]["deck"] = deck
             quest_list[i]["battle_plan_1p"] = battle_plan_1p
             quest_list[i]["battle_plan_2p"] = battle_plan_2p
+            quest_list[i]["battle_plan_tweak"] = battle_plan_tweak
 
         # 完成任务
         self.battle_1_n_n(quest_list=quest_list)
 
         # 激活删除物品高危功能(可选)
         if quest_mode == "公会任务":
-            self.batch_level_2_action(player=[1,2], delete_item=True, dark_crystal=False)
+            self.batch_level_2_action(player=[1, 2], delete_item=True, dark_crystal=False)
 
         # 领取奖励一次 + 公会任务模式下领取普通任务奖励(公会点)一次
         SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 检查领取奖励中...")
@@ -2399,7 +2415,7 @@ class ThreadTodo(QThread):
 
                 case "签到":
                     # 二级密码 - 删除物品(可选)
-                    self.batch_level_2_action(player=[1,2], delete_item=True, dark_crystal=False)
+                    self.batch_level_2_action(player=[1, 2], delete_item=True, dark_crystal=False)
                     # 领取温馨礼包(可选)
                     self.batch_get_warm_gift(player=task["task_args"]["player"])
                     # 日氪(可选)
@@ -2424,7 +2440,9 @@ class ThreadTodo(QThread):
                         deck=task["task_args"]["deck"],
                         battle_plan_1p=task["task_args"]["battle_plan_1p"],
                         battle_plan_2p=task["task_args"]["battle_plan_2p"],
-                        stage=task["task_args"]["cross_server"])
+                        battle_plan_tweak=task["task_args"]["battle_plan_tweak"],
+                        stage=task["task_args"]["cross_server"],
+                    )
                     main_task_active = True
                     active_singleton = False
 
@@ -2435,7 +2453,9 @@ class ThreadTodo(QThread):
                         global_plan_active=task["task_args"]["global_plan_active"],
                         deck=task["task_args"]["deck"],
                         battle_plan_1p=task["task_args"]["battle_plan_1p"],
-                        battle_plan_2p=task["task_args"]["battle_plan_2p"])
+                        battle_plan_2p=task["task_args"]["battle_plan_2p"],
+                        battle_plan_tweak=task["task_args"]["battle_plan_tweak"],
+                    )
                     main_task_active = True
                     active_singleton = False
 
@@ -3610,7 +3630,7 @@ class ThreadTodo(QThread):
             self.batch_scan_guild_info()
 
             # 删除物品高危功能
-            self.batch_level_2_action(player=[1,2], delete_item=True, dark_crystal=False)
+            self.batch_level_2_action(player=[1, 2], delete_item=True, dark_crystal=False)
 
             # 主要函数
             self.batch_receive_all_quest_rewards(

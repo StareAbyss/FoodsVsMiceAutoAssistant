@@ -1,0 +1,212 @@
+[
+    {
+        "meta_data": {
+            "uuid": "9c8cc28d-de80-11f0-a1ab-f4c88a4ed544",
+            "version": "1.0"
+        }
+    },
+    {
+        "task_type": "刷新游戏",
+        "task_id": 1,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "清背包",
+        "task_id": 2,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "签到",
+        "task_id": 3,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "浇水施肥摘果",
+        "task_id": 4,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "双暴卡",
+        "task_id": 5,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ],
+            "max_times": 1
+        }
+    },
+    {
+        "task_type": "战斗",
+        "task_id": 6,
+        "enabled": true,
+        "alias": "战斗-勇士本",
+        "tooltip": "",
+        "task_args": {
+            "stage_id": "WA-0-23",
+            "max_times": 10,
+            "need_key": true,
+            "player": [
+                2,
+                1
+            ],
+            "global_plan_active": true,
+            "deck": 0,
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "quest_card": "None",
+            "ban_card_list": [],
+            "dict_exit": {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": [
+                    "竞技岛"
+                ],
+                "last_time_player_b": [
+                    "竞技岛"
+                ]
+            }
+        }
+    },
+    {
+        "task_type": "任务序列",
+        "task_id": 7,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "sequence_integer": 1,
+            "task_sequence_uuid": "9c8dbb74-de80-11f0-8b4e-f4c88a4ed544"
+        }
+    },
+    {
+        "task_type": "任务序列",
+        "task_id": 8,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "sequence_integer": 1,
+            "task_sequence_uuid": "b43c70f2-e74f-11f0-8163-f44efc5bf671"
+        }
+    },
+    {
+        "task_type": "公会任务",
+        "task_id": 9,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "cross_server": true,
+            "global_plan_active": true,
+            "deck": 0,
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "quest_card": "None",
+            "ban_card_list": [],
+            "dict_exit": {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": [
+                    "竞技岛"
+                ],
+                "last_time_player_b": [
+                    "竞技岛"
+                ]
+            }
+        }
+    },
+    {
+        "task_type": "情侣任务",
+        "task_id": 10,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "global_plan_active": true,
+            "deck": 0,
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "quest_card": "None",
+            "ban_card_list": [],
+            "dict_exit": {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": [
+                    "竞技岛"
+                ],
+                "last_time_player_b": [
+                    "竞技岛"
+                ]
+            }
+        }
+    },
+    {
+        "task_type": "清背包",
+        "task_id": 11,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "领取任务奖励",
+        "task_id": 12,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ],
+            "normal": true,
+            "guild": false,
+            "spouse": false,
+            "offer_reward": false,
+            "food_competition": true,
+            "monopoly": true,
+            "camp": true
+        }
+    }
+]
