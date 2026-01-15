@@ -1,0 +1,93 @@
+[
+    {
+        "meta_data": {
+            "uuid": "c2924061-e730-11f0-89f2-f44efc5bf671",
+            "version": "1.0"
+        }
+    },
+    {
+        "task_type": "刷新游戏",
+        "task_id": 1,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "查漏补缺",
+        "task_id": 2,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "公会任务",
+        "task_id": 3,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "cross_server": true,
+            "global_plan_active": true,
+            "deck": 0,
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "quest_card": "None",
+            "ban_card_list": [],
+            "dict_exit": {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": [
+                    "竞技岛"
+                ],
+                "last_time_player_b": [
+                    "竞技岛"
+                ]
+            }
+        }
+    },
+    {
+        "task_type": "清背包",
+        "task_id": 4,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "领取任务奖励",
+        "task_id": 5,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ],
+            "normal": true,
+            "guild": false,
+            "spouse": false,
+            "offer_reward": true,
+            "food_competition": true,
+            "monopoly": true,
+            "camp": true
+        }
+    }
+]
