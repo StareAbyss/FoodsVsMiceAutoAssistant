@@ -105,6 +105,7 @@ ZOOM_RATE = 1.0
 
 # 样式
 THEME = "dark"
+THEME_HIGHLIGHT_COLOR = "#FF0000"
 
 # 翻牌次数
 FLOP_TIMES = 2

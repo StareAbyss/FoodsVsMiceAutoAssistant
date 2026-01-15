@@ -48,7 +48,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         EXTRA.THEME = self.get_theme()
 
         # 获取系统样式(高亮颜色)
-        self.theme_highlight_color = QtWidgets.QApplication.palette().color(QtGui.QPalette.ColorRole.Highlight).name()
+        EXTRA.THEME_HIGHLIGHT_COLOR = QtWidgets.QApplication.palette().color(QtGui.QPalette.ColorRole.Highlight).name()
 
         # 配置 进阶设置 导航栏交互
         self.adv_opt_synchronizing = None
@@ -228,7 +228,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
                 border-top-color: transparent;
                 border-right-color: transparent;
                 border-left-color: transparent;
-                border-bottom-color: {self.theme_highlight_color};
+                border-bottom-color: {EXTRA.THEME_HIGHLIGHT_COLOR};
                 border-bottom-width: 2px;
                 border-style: solid;
                 color: {selected_text_color};
