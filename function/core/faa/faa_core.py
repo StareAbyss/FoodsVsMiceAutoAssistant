@@ -1517,8 +1517,8 @@ class FAABase:
                 match_tolerance=0.90,
                 click=True,
                 after_sleep=3,
-                match_interval=0.5,
-                match_failed_check=10
+                match_interval=0.2,
+                match_failed_check=1
             )
 
             return my_result
@@ -1780,7 +1780,7 @@ class FAABase:
                     ],
                     return_mode="and",
                     match_interval=1,
-                    match_failed_check=30)
+                    match_failed_check=60)
 
                 if not goto_game_home_page_success:
                     CUS_LOGGER.warning(
