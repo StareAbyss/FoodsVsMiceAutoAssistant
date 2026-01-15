@@ -7,6 +7,7 @@ import time
 
 from function.core.qmw_task_plan_editor import init_db
 from function.globals.loadings import loading
+from function.scattered.resize_360_windows import batch_resize_window
 from function.scattered.split_task import load_tasks_from_db_and_create_puzzle
 
 loading.update_progress(80, "正在加载任务执行协议...")
@@ -310,6 +311,14 @@ class ThreadTodo(QThread):
         player = self.check_player(title="刷新游戏", player=player)
 
         SIGNAL.PRINT_TO_UI.emit("刷新游戏, 开始", color_level=2)
+
+        if self.opt["login_settings"]["fresh_resize_360_windows"]:
+            # 获取窗口名称
+            batch_resize_window(
+                game_name=self.opt["base_settings"]["game_name"],
+                name_1p=self.opt["base_settings"]["name_1p"],
+                name_2p=self.opt["base_settings"]["name_2p"]
+            )
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
         if 1 in player:
@@ -2084,7 +2093,7 @@ class ThreadTodo(QThread):
 
         # 激活删除物品高危功能(可选)
         if quest_mode == "公会任务":
-            self.batch_level_2_action(player=[1,2], delete_item=True, dark_crystal=False)
+            self.batch_level_2_action(player=[1, 2], delete_item=True, dark_crystal=False)
 
         # 领取奖励一次 + 公会任务模式下领取普通任务奖励(公会点)一次
         SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 检查领取奖励中...")
@@ -3610,7 +3619,7 @@ class ThreadTodo(QThread):
             self.batch_scan_guild_info()
 
             # 删除物品高危功能
-            self.batch_level_2_action(player=[1,2], delete_item=True, dark_crystal=False)
+            self.batch_level_2_action(player=[1, 2], delete_item=True, dark_crystal=False)
 
             # 主要函数
             self.batch_receive_all_quest_rewards(
