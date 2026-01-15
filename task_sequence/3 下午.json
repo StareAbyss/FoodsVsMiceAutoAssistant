@@ -1,7 +1,7 @@
 [
     {
         "meta_data": {
-            "uuid": "f9e45c14-eb9b-11f0-9c00-f44efc5bf671",
+            "uuid": "c2912636-e730-11f0-8e4e-f44efc5bf671",
             "version": "1.0"
         }
     },
@@ -19,16 +19,22 @@
         }
     },
     {
-        "task_type": "签到",
+        "task_type": "任务序列",
         "task_id": 2,
         "enabled": true,
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "player": [
-                1,
-                2
-            ]
+            "sequence_integer": 1,
+            "task_sequence_uuid": "c292b87e-e730-11f0-a908-f44efc5bf671"
         }
+    },
+    {
+        "task_type": "美食大赛",
+        "task_id": 3,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {}
     }
 ]
