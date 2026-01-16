@@ -1398,7 +1398,8 @@ class ThreadTodo(QThread):
                         # 可组队关卡, 但设置了仅单人作战
                         battle_plan_1p_ = g_plan["battle_plan"][0]
                         battle_plan_2p_ = g_plan["battle_plan"][0]
-            #"f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"是大赛专用花瓶方案
+
+            # "f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"是大赛专用花瓶方案
             if vase_num:
                 if vase_num == 1:
                     battle_plan_1p_ = "f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"
@@ -1938,7 +1939,7 @@ class ThreadTodo(QThread):
                 ban_card_list=ban_card_list,  # 可缺省
                 max_card_num=max_card_num,  # 可缺省
                 title_text=extra_title,
-                vase_num=vase_num,    # 可缺省
+                vase_num=vase_num,  # 可缺省
                 is_cu=is_cu  # 可缺省
             )
 

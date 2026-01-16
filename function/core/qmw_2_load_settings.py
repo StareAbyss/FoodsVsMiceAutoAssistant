@@ -118,7 +118,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         将 taskeditor_layout 替换为任务序列编辑器
         """
         # 创建任务序列编辑器实例
-        self.task_editor = QMWEditorOfTaskSequence(self)
+        self.task_editor = QMWEditorOfTaskSequence(father=self)
 
         # 设置任务编辑器的字体与主窗口一致
         self.task_editor.set_my_font(self.font())

@@ -6,6 +6,7 @@ import uuid
 from PyQt6.QtCore import Qt, QPoint
 
 from function.globals.loadings import loading
+from function.scattered.error_dialog_and_log import error_dialog_and_log
 
 loading.update_progress(60, "正在加载FAA任务序列编辑器...")
 from PyQt6.QtGui import QIcon
@@ -45,14 +46,14 @@ def ui_to_list_get_cus_battle_opt(LineWidget, task_args):
     GlobalPlanActiveCheckBox = LineWidget.findChild(QCheckBox, 'w_global_plan_active')
     task_args['global_plan_active'] = GlobalPlanActiveCheckBox.isChecked()
 
-    DeckComboBox = LineWidget.findChild(QComboBox, 'w_deck')
+    DeckComboBox = LineWidget.plan_opt_window.findChild(QComboBox, 'w_deck')
     task_args['deck'] = int(DeckComboBox.currentIndex())
 
     # 战斗方案
     battle_plan_name_list = get_list_battle_plan(with_extension=False)
     battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
 
-    Plan1pComboBox = LineWidget.findChild(SearchableComboBox, 'w_battle_plan_1p')
+    Plan1pComboBox = LineWidget.plan_opt_window.findChild(SearchableComboBox, 'w_battle_plan_1p')
     text = Plan1pComboBox.currentText()
     if text in battle_plan_name_list:
         index = battle_plan_name_list.index(text)
@@ -62,7 +63,7 @@ def ui_to_list_get_cus_battle_opt(LineWidget, task_args):
         # 如果找不到对应名称，使用默认值
         task_args['battle_plan_1p'] = "00000000-0000-0000-0000-000000000000"
 
-    Plan2pComboBox = LineWidget.findChild(SearchableComboBox, 'w_battle_plan_2p')
+    Plan2pComboBox = LineWidget.plan_opt_window.findChild(SearchableComboBox, 'w_battle_plan_2p')
     text = Plan2pComboBox.currentText()
     if text in battle_plan_name_list:
         index = battle_plan_name_list.index(text)
@@ -76,7 +77,7 @@ def ui_to_list_get_cus_battle_opt(LineWidget, task_args):
     tweak_plan_name_list = get_list_tweak_plan(with_extension=False)
     tweak_plan_uuid_list = list(EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH.keys())
 
-    TweakPlanComboBox = LineWidget.findChild(SearchableComboBox, 'w_battle_plan_tweak')
+    TweakPlanComboBox = LineWidget.plan_opt_window.findChild(SearchableComboBox, 'w_battle_plan_tweak')
     if TweakPlanComboBox and TweakPlanComboBox.count() > 0:  # 确保有选项且控件存在
         text = TweakPlanComboBox.currentText()
         if text in tweak_plan_name_list and tweak_plan_uuid_list:
@@ -163,6 +164,7 @@ class BattlePlanOptionsWidget(QMainWindow):
         self.deck_layout = QHBoxLayout()
         self.deck_label = QLabel('卡组')
         self.deck_input = QComboBox()
+        self.deck_input.setObjectName("w_deck")
         self.deck_input.setParent(self, Qt.WindowType.Popup)
         self.deck_input.setFixedWidth(250)
         for index in ['自动', '1', '2', '3', '4', '5', '6']:
@@ -174,6 +176,7 @@ class BattlePlanOptionsWidget(QMainWindow):
         self.plan_1p_layout = QHBoxLayout()
         self.plan_1p_label = QLabel('1P方案')
         self.plan_1p_input = SearchableComboBox()
+        self.plan_1p_input.setObjectName("w_battle_plan_1p")
         self.plan_1p_input.setParent(self, Qt.WindowType.Popup)
         self.plan_1p_input.setFixedWidth(250)
         self.plan_1p_layout.addWidget(self.plan_1p_label)
@@ -183,6 +186,7 @@ class BattlePlanOptionsWidget(QMainWindow):
         self.plan_2p_layout = QHBoxLayout()
         self.plan_2p_label = QLabel('2P方案')
         self.plan_2p_input = SearchableComboBox()
+        self.plan_2p_input.setObjectName("w_battle_plan_2p")
         self.plan_2p_input.setParent(self, Qt.WindowType.Popup)
         self.plan_2p_input.setFixedWidth(250)
         self.plan_2p_layout.addWidget(self.plan_2p_label)
@@ -192,6 +196,7 @@ class BattlePlanOptionsWidget(QMainWindow):
         self.tweak_layout = QHBoxLayout()
         self.tweak_label = QLabel('微调方案')
         self.tweak_input = SearchableComboBox()
+        self.tweak_input.setObjectName("w_battle_plan_tweak")
         self.tweak_input.setParent(self, Qt.WindowType.Popup)
         self.tweak_input.setFixedWidth(250)
         self.tweak_layout.addWidget(self.tweak_label)
@@ -266,50 +271,21 @@ class QMWEditorOfTaskSequence(QMainWindow):
         # 主布局
         self.lay_main = QVBoxLayout()
 
-        # 加载按钮
-        self.WidgetButtonLoadJson = QPushButton('加载任务序列')
-        self.lay_main.addWidget(self.WidgetButtonLoadJson)
-        self.WidgetButtonLoadJson.clicked.connect(self.load_json)
-
         # 列表
         self.WidgetTaskSequenceList = QCListWidgetDraggable()
         self.WidgetTaskSequenceList.setDropFunction(drop_function=self.update_task_id)
         self.lay_main.addWidget(self.WidgetTaskSequenceList)
 
+        # 加载按钮
+        self.father.TaskSequenceButtonLoadJson.clicked.connect(self.open_task_sequence)
         # 添加任务按钮
-        self.LayoutAddTask = QHBoxLayout()
-        self.lay_main.addLayout(self.LayoutAddTask)
-
-        self.WidgetButtonAddTask = QPushButton('添加任务')
-        self.LayoutAddTask.addWidget(self.WidgetButtonAddTask)
-        self.WidgetButtonAddTask.clicked.connect(self.add_task_by_button)
-
-        self.WidgetComboBoxTask = QComboBox()
-        self.LayoutAddTask.addWidget(self.WidgetComboBoxTask)
-
-
-        self.ButtonSave = QPushButton('保存')
-        self.ButtonSave.setEnabled(False)
-        self.ButtonSaveAs = QPushButton('另存为')
-
-        # 创建水平布局，来容纳保存和另存为按钮
-        LaySaveBottom = QHBoxLayout()
-        LaySaveBottom.addWidget(self.ButtonSave)
-        LaySaveBottom.addWidget(self.ButtonSaveAs)
-
-        # 创建垂直布局 放本栏title后水平布局按钮
-        LaySave = QVBoxLayout()
-        self.LabelCurrentTaskSequenceUUID = QLabel("当前方案UUID:无")
-        LaySave.addWidget(self.LabelCurrentTaskSequenceUUID)
-        LaySave.addLayout(LaySaveBottom)
-        self.lay_main.addLayout(LaySave)
-
-        # 连接信号和槽
-        self.ButtonSave.clicked.connect(self.save_json)
-        self.ButtonSaveAs.clicked.connect(self.save_json)
-
-        # 初始化控件
-        self.init_combo_box()
+        self.father.TaskSequenceButtonAddTask.clicked.connect(self.add_task_by_button)
+        # 初始化添加任务列表
+        self.init_task_sequence_add_combo_box()
+        # 保存和另存为按钮
+        self.father.TaskSequenceButtonSaveJson.setEnabled(False)
+        self.father.TaskSequenceButtonSaveJson.clicked.connect(self.save_json)
+        self.father.TaskSequenceButtonSaveAsJson.clicked.connect(self.save_json)
 
         # 显示布局
         self.centralWidget = QWidget()
@@ -317,8 +293,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
         self.setCentralWidget(self.centralWidget)
 
         # 读取方案时, 如果出现了uuid找不到方案的情况, 弹窗用变量
-        self.could_not_find_battle_plan_uuid = False
-        self.could_not_load_json_succeed = False
+        self.could_not_find_battle_plan_uuid_list = []
 
         # 任务序列元数据
         self.current_task_sequence_meta_data = None
@@ -346,7 +321,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
         """用于继承字体, 而不需要多次读取"""
         self.setFont(my_font)
 
-    def init_combo_box(self):
+    def init_task_sequence_add_combo_box(self):
+
         """
         初始化任务选择下拉框
         """
@@ -432,14 +408,15 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
         # 添加项目并设置 tooltip
         for index, task_type in enumerate(task_descriptions.keys()):
-            self.WidgetComboBoxTask.addItem(task_type)
-            self.WidgetComboBoxTask.setItemData(index, task_descriptions[task_type], Qt.ItemDataRole.ToolTipRole)
+            self.father.TaskSequenceComboBoxAddTask.addItem(task_type)
+            self.father.TaskSequenceComboBoxAddTask.setItemData(
+                index, task_descriptions[task_type], Qt.ItemDataRole.ToolTipRole)
 
     def add_task_by_button(self):
         """
         点击按钮, 添加一项任务(行)
         """
-        task_type = self.WidgetComboBoxTask.currentText()
+        task_type = self.father.TaskSequenceComboBoxAddTask.currentText()
 
         # 默认值
         task = {
@@ -561,7 +538,9 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 # 初始化时创建UUID列表
                 fresh_and_check_all_task_sequence()
                 task_sequence_uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
-                task_sequence_uuid_list.remove(self.current_task_sequence_meta_data["uuid"])
+                if self.current_task_sequence_meta_data:
+                    if self.current_task_sequence_meta_data.get("uuid", None):
+                        task_sequence_uuid_list.remove(self.current_task_sequence_meta_data["uuid"])
                 default_task_sequence_uuid = task_sequence_uuid_list[0]
 
                 task["task_args"] = {
@@ -582,15 +561,9 @@ class QMWEditorOfTaskSequence(QMainWindow):
         task["task_id"] = self.WidgetTaskSequenceList.count() + 1
 
         # 生成控件行
-        try:
-            line_widget = self.create_task_line_widget(task)
-            # 在控件中存储原始任务数据，以便后续访问
-            line_widget.setProperty('task_data', task)
-        except Exception as e:
-            print(f"Error in create_task_line: {e}")
-            # 标记存在读取失败的情况!
-            self.could_not_load_json_succeed = True
-            return
+        line_widget = self.create_task_line_widget(task)
+        # 在控件中存储原始任务数据，以便后续访问
+        line_widget.setProperty('task_data', task)
 
         # 创建一个 QListWidgetItem，并将 line_widget 设置为其附加的 widget
         line_item = QListWidgetItem()
@@ -696,6 +669,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
             # 创建子窗口
             options_widget = BattlePlanOptionsWidget()
+            line_widget.plan_opt_window = options_widget
 
             # 设置战斗方案数据
             fresh_and_check_all_battle_plan()
@@ -715,7 +689,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 index_1p = battle_plan_uuid_list.index(task["task_args"]["battle_plan_1p"])
                 name_1p = battle_plan_name_list[index_1p]
             except ValueError:
-                self.could_not_find_battle_plan_uuid = True
+                self.could_not_find_battle_plan_uuid_list.append(task["task_args"]["battle_plan_1p"])
                 name_1p = battle_plan_name_list[0] if battle_plan_name_list else ""
             options_widget.set_1p_plan_value(name_1p)
 
@@ -723,7 +697,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 index_2p = battle_plan_uuid_list.index(task["task_args"]["battle_plan_2p"])
                 name_2p = battle_plan_name_list[index_2p]
             except ValueError:
-                self.could_not_find_battle_plan_uuid = True
+                self.could_not_find_battle_plan_uuid_list.append(task["task_args"]["battle_plan_2p"])
                 name_2p = battle_plan_name_list[1] if len(battle_plan_name_list) > 1 else ""
             options_widget.set_2p_plan_value(name_2p)
 
@@ -1059,25 +1033,23 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
             # 获取任务序列列表
             fresh_and_check_all_task_sequence()
-            task_sequence_list = get_task_sequence_list(with_extension=False)
-            task_sequence_uuid_to_path_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
+            task_sequence_name_list = get_task_sequence_list(with_extension=False)
+            task_sequence_uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
+            task_sequence_uuid_to_name_dict = dict(zip(task_sequence_uuid_list, task_sequence_name_list))
 
             # 添加选项到下拉框 注意 由于跳过了和本方案相同的任务序列以避免套娃
             # 所以 下拉栏中的list 和 完整list不再等价 从ui保存为json时务必注意
-            for index, sequence_name in enumerate(task_sequence_list):
-                if task_sequence_uuid_to_path_list.index(self.current_task_sequence_meta_data['uuid']) == index:
-                    continue
-                TaskSequenceComboBox.addItem(sequence_name)
+            for f_uuid, f_name in task_sequence_uuid_to_name_dict.items():
+                if self.current_task_sequence_meta_data:
+                    if self.current_task_sequence_meta_data.get("uuid", None) == f_uuid:
+                        continue
+                TaskSequenceComboBox.addItem(f_name)
 
             # 设置当前选中项，根据UUID查找索引
             try:
-                current_uuid = task["task_args"]["task_sequence_uuid"]
-                current_index = task_sequence_uuid_to_path_list.index(current_uuid)
-            except (ValueError, KeyError):
-                current_index = 0
-            if current_index < TaskSequenceComboBox.count():
-                TaskSequenceComboBox.setCurrentIndex(current_index)
-            else:
+                TaskSequenceComboBox.setCurrentText(
+                    task_sequence_uuid_to_name_dict[task["task_args"]["task_sequence_uuid"]])
+            except Exception as e:
                 TaskSequenceComboBox.setCurrentIndex(0)
 
             addElement(line_layout=line_layout, label_widget=TaskSequenceLabel, input_widget=TaskSequenceComboBox)
@@ -1178,13 +1150,12 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
     """ .json ↔ list ↔ UI """
 
-    def list_to_ui(self, task_sequence_list):
+    def json_dict_to_ui(self, task_sequence_list):
         """获取json中的数据, 转化为list并写入到ui"""
         # 清空
         self.ui_clear_tasks()
 
-        self.could_not_find_battle_plan_uuid = False
-        self.could_not_load_json_succeed = False
+        self.could_not_find_battle_plan_uuid_list = []
 
         # 保存元数据到实例变量
         if len(task_sequence_list) > 0 and "meta_data" in task_sequence_list[0]:
@@ -1207,28 +1178,16 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 task["task_id"] = i
             # 添加一个任务到ui上
             self.add_task(task)
-            # 出现读取失败, 中止
-            if self.could_not_load_json_succeed:
-                break
-
-        # 出现了读取失败, 意味着格式不符合协议...
-        if self.could_not_load_json_succeed:
-            QMessageBox.critical(
-                self,
-                "警告!!!",
-                f"该<任务序列>不符合协议! 读取失败! 可能原因如下:\n"
-                f"1. 您使用文本编辑器魔改后, 格式不符合协议.\n"
-                f"2. 该序列的版本过低, 无法兼容解析.\n"
-            )
-            return
 
         # 出现了uuid找不到对应战斗方案的情况 弹窗
-        if self.could_not_find_battle_plan_uuid:
+        if self.could_not_find_battle_plan_uuid_list:
             QMessageBox.critical(
                 self,
                 "警告!!!",
-                f"该<任务序列>的部分战斗方案uuid, 无法在您本地的战斗方案中找到对应目标.\n"
-                f"已设定为默认值, 请手动添加该<任务序列>需要的战斗方案, 或手动修改")
+                f"该<任务序列>中使用的部分战斗方案, 无法根据UUID在您本地的战斗方案中找到对应目标.\n"
+                f"已设定为默认值, 请手动添加该<任务序列>需要的战斗方案, 或手动修改\n"
+                f"问题UUID: {self.could_not_find_battle_plan_uuid_list}"
+            )
 
     def ui_to_list(self):
         """获取UI上的数据, 生成list"""
@@ -1360,9 +1319,6 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     }
 
                 case "情侣任务":
-                    GlobalPlanActiveCheckBox = LineWidget.findChild(QCheckBox, 'w_global_plan_active')
-                    task_args['global_plan_active'] = GlobalPlanActiveCheckBox.isChecked()
-
                     task_args = ui_to_list_get_cus_battle_opt(LineWidget=LineWidget, task_args=task_args)
 
                     # 固定值
@@ -1497,67 +1453,83 @@ class QMWEditorOfTaskSequence(QMainWindow):
         data = data_without_id + data_with_id
         return data
 
-    def load_json(self):
+    def open_task_sequence(self):
 
-        file_path, _ = QFileDialog.getOpenFileName(
+        file_name = self.open_json()
+
+        if file_name:
+            result = self.load_json(file_path=file_name)
+            if result:
+                self.father.TaskSequenceButtonSaveJson.setEnabled(True)
+
+    def open_json(self):
+        """打开窗口 打开json文件"""
+
+        file_name, _ = QFileDialog.getOpenFileName(
             parent=self,
-            caption="加载<任务序列>.json",
+            caption="打开 JSON 文件",
             directory=PATHS["task_sequence"],
             filter="JSON Files (*.json)")
 
-        if file_path:
+        return file_name
 
-            try:
-                file_name_without_ext = os.path.splitext(os.path.basename(file_path))[0]
-                self.father.CurrentPlan_Label_Change.setText(f'>> {file_name_without_ext} <<')
-            except Exception:
-                pass
+    def load_json(self, file_path):
+        """
+         读取对应的json文件, 几乎总是要接着 init_battle_plan()
+         """
+        try:
+            with EXTRA.FILE_LOCK:
+                with open(file=file_path, mode='r', encoding='utf-8') as file:
+                    json_dict = json.load(file)
+        except Exception as e:
+            message = (
+                f"读取<任务序列>失败! \n"
+                f"这是由于您使用文本编辑器魔改后, 格式不符合Json规范导致"
+            )
+            error_dialog_and_log(e=e,message=message,parent=self,title="Json格式错误")
+            return False
 
-            try:
-                with open(file_name, 'r', encoding='utf-8') as file:
-                    loaded_data = json.load(file)
-                    self.list_to_ui(loaded_data)
-                    # 更新文件路径
-                    self.file_path = file_name
-                    # 更新界面上显示的UUID
-                    if loaded_data and "meta_data" in loaded_data[0]:
-                        current_uuid = loaded_data[0]["meta_data"].get("uuid", "未知")
-                        self.LabelCurrentTaskSequenceUUID.setText(f"当前方案UUID:{current_uuid}")
-                    self.ButtonSave.setEnabled(True)
-            except Exception as e:
-                # 报错弹窗
-                QMessageBox.critical(
-                    self,
-                    "Json格式错误!",
-                    f"读取<任务序列>失败! \n"
-                    f"这是由于您使用文本编辑器魔改后, 格式不符合Json规范导致\n"
-                    f"错误信息: {str(e)}")
+        try:
+            self.json_dict_to_ui(json_dict)
+        except Exception as e:
+            message = (
+                "该<任务序列>不符合协议! 读取失败! 可能原因如下:\n"
+                f"1. 您使用文本编辑器魔改后, 格式不符合协议.\n"
+                f"2. 该序列的版本过低, 无法兼容解析."
+            )
+            error_dialog_and_log(e=e,message=message,parent=self,title="Json不符合战斗序列协议")
+            return False
+
+        # 储存当前方案路径
+        self.file_path = file_path
+
+        # 更新界面上显示的文件名
+        current_plan_name = os.path.basename(self.file_path).replace(".json", "")
+        CUS_LOGGER.debug(f"[任务序列编辑器] [加载方案] 开始读取:{current_plan_name}")
+        self.father.TaskSequenceLabelCurrentEditName.setText(f"{current_plan_name}")
+
+        # 更新界面上显示的UUID
+        if json_dict and "meta_data" in json_dict[0]:
+            current_uuid = json_dict[0]["meta_data"].get("uuid", "???")
+            self.father.TaskSequenceLabelCurrentEditUUID.setText(f"{current_uuid}")
+
+        return True
 
     def save_json(self):
         """
         保存方法，拥有保存和另存为两种功能，还能创建uuid
         """
-        is_save_as = self.sender() == self.ButtonSaveAs
 
         try:
             export_list = self.ui_to_list()
-            CUS_LOGGER.info(f"[任务序列编辑器] 导出结果:{export_list}", )
-
-        except Exception:
-            # 获取完整的调用栈信息
-            import traceback
-            error_traceback = traceback.format_exc()
-            # 报错弹窗
-            QMessageBox.critical(
-                self,
-                "错误!",
-                f"转化ui内容到list失败\n\n"
-                f"完整错误调用栈:\n"
-                f"{error_traceback}\n"
-                f"请联系开发者!!!")
-            print(error_traceback)
+        except Exception as e:
+            message = "读请联系开发者!!!"
+            error_dialog_and_log(e=e,message=message,parent=self,title="转化<任务序列>ui内容到list失败")
             return
 
+        CUS_LOGGER.info(f"[任务序列编辑器] 导出结果:{export_list}", )
+
+        is_save_as = self.sender() == self.father.TaskSequenceButtonSaveAsJson
         if is_save_as:
             # 保存为
             new_file_path, _ = QFileDialog.getSaveFileName(
@@ -1575,73 +1547,44 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 QMessageBox.information(self, "禁止虚空保存！", "请先选择一个任务序列!")
                 return
 
-        if new_file_path:
-            try:
-                # 如果是新文件，则创建新的UUID
-                if not os.path.exists(new_file_path):
-                    # 为新文件创建UUID
-                    if export_list and "meta_data" in export_list[0]:
-                        export_list[0]["meta_data"]["uuid"] = str(uuid.uuid1())
-                else:
-                    # 如果是覆盖现有文件，则尝试保留原有的UUID
-                    with EXTRA.FILE_LOCK:
-                        with open(file=new_file_path, mode='r', encoding='utf-8') as file:
-                            existing_data = json.load(file)
-                            if existing_data and len(existing_data) > 0 and "meta_data" in existing_data[0]:
-                                existing_uuid = existing_data[0]["meta_data"].get("uuid", None)
-                                if existing_uuid:
-                                    # 使用现有的UUID
-                                    if export_list and "meta_data" in export_list[0]:
-                                        export_list[0]["meta_data"]["uuid"] = existing_uuid
-                                    # 更新当前元数据中的UUID
-                                    if self.current_task_sequence_meta_data:
-                                        self.current_task_sequence_meta_data["uuid"] = existing_uuid
-
-                with open(new_file_path, 'w', encoding='utf-8') as file:
-                    json.dump(export_list, file, ensure_ascii=False, indent=4)
-                    QMessageBox.information(
-                        self,
-                        "成功!",
-                        "<任务序列> 已保存成功~")
-
-                # 更新当前文件路径和显示信息
-                self.file_path = new_file_path
-                if export_list and "meta_data" in export_list[0]:
-                    current_uuid = export_list[0]["meta_data"].get("uuid", "未知")
-                    self.LabelCurrentTaskSequenceUUID.setText(f"当前方案UUID:{current_uuid}")
-                self.ButtonSave.setEnabled(True)
-
-                # 重新加载文件以确保内部数据一致性
-                self.load_json_from_path(new_file_path)
-
-            except Exception as e:
-                QMessageBox.critical(
-                    self,
-                    "错误!",
-                    f"保存<任务序列>失败\n请联系开发者!!!\n错误信息: {str(e)}")
-
-    def load_json_from_path(self, file_path):
-        """
-        从指定路径加载JSON文件，用于保存后重新加载保持一致性
-        """
         try:
-            with open(file_path, 'r', encoding='utf-8') as file:
-                loaded_data = json.load(file)
-                self.list_to_ui(loaded_data)
-                # 更新文件路径
-                self.file_path = file_path
-                # 更新界面上显示的文件名和UUID
-                if loaded_data and "meta_data" in loaded_data[0]:
-                    current_uuid = loaded_data[0]["meta_data"].get("uuid", "未知")
-                    self.LabelCurrentTaskSequenceUUID.setText(f"当前方案UUID:{current_uuid}")
+            # 如果是另存为到新文件，则创建新的UUID
+            if not os.path.exists(new_file_path):
+                # 为新文件创建UUID
+                if export_list and "meta_data" in export_list[0]:
+                    export_list[0]["meta_data"]["uuid"] = str(uuid.uuid1())
+            else:
+                # 如果是覆盖现有文件，则尝试保留原有的UUID
+                with EXTRA.FILE_LOCK:
+                    with open(file=new_file_path, mode='r', encoding='utf-8') as file:
+                        existing_data = json.load(file)
+            # 确保该方案拥有UUID
+            if existing_data and len(existing_data) > 0 and "meta_data" in existing_data[0]:
+                existing_uuid = existing_data[0]["meta_data"].get("uuid", None)
+                if existing_uuid:
+                    # 使用现有的UUID
+                    if export_list and "meta_data" in export_list[0]:
+                        export_list[0]["meta_data"]["uuid"] = existing_uuid
+                    # 更新当前元数据中的UUID
+                    self.current_task_sequence_meta_data["uuid"] = existing_uuid
+
+            with open(new_file_path, 'w', encoding='utf-8') as file:
+                json.dump(export_list, file, ensure_ascii=False, indent=4)
+                QMessageBox.information(self, "成功!", "<任务序列> 已保存成功~")
+
+            # 更新当前文件路径和显示信息
+            self.file_path = new_file_path
+            if export_list and "meta_data" in export_list[0]:
+                current_uuid = export_list[0]["meta_data"].get("uuid", "未知")
+                self.father.TaskSequenceLabelCurrentEditUUID.setText(f"{current_uuid}")
+            self.father.TaskSequenceButtonSaveJson.setEnabled(True)
+
+            # 重新加载文件以确保内部数据一致性
+            self.load_json(new_file_path)
+
         except Exception as e:
-            # 报错弹窗
-            QMessageBox.critical(
-                self,
-                "Json格式错误!",
-                f"读取<任务序列>失败! \n"
-                f"这是由于您使用文本编辑器魔改后, 格式不符合Json规范导致\n"
-                f"错误信息: {str(e)}")
+            message = "读请联系开发者!!!"
+            error_dialog_and_log(e=e,message=message,parent=self,title="保存<任务序列>失败")
 
     def edit_alias(self, label, task):
         """
