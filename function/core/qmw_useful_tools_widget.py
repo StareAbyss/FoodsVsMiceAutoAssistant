@@ -1,5 +1,7 @@
 import sys
+
 from function.globals.loadings import loading
+
 loading.update_progress(75,"正在加载妙妙小工具...")
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal
 from PyQt6.QtGui import QPixmap, QPainter, QColor, QPen, QIcon
@@ -234,14 +236,14 @@ class UsefulToolsWidget(QWidget):
         )
 
     def on_gold_clicked(self):
-        #print("执行金币许愿池操作...")
+        # print("执行金币许愿池操作...")
         self.gacha_thread = GachaGoldThread(self.target_handle)
         self.btn_gold_start.setEnabled(False)
         self.btn_gold_stop.setEnabled(True)
         self.gacha_thread.start()
 
     def on_gold_stop_clicked(self):
-        #print("停止执行金币许愿池操作...")
+        # print("停止执行金币许愿池操作...")
         if self.gacha_thread:
             self.gacha_thread.stop()
             self.gacha_thread.wait()

@@ -1,10 +1,11 @@
 import sys
+
+from PyQt6.QtCore import Qt, QLineF
+from PyQt6.QtGui import QPainter, QPen, QTransform
 from PyQt6.QtWidgets import (
     QApplication, QGraphicsView, QGraphicsScene, QGraphicsRectItem, QVBoxLayout, QMainWindow, QWidget,
     QGraphicsLineItem, QGraphicsTextItem, QPushButton, QHBoxLayout
 )
-from PyQt6.QtCore import Qt, QRectF, QLineF
-from PyQt6.QtGui import QPainter, QPen, QTransform
 
 
 class TaskItem(QGraphicsRectItem):

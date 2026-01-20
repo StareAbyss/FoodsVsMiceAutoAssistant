@@ -31,7 +31,7 @@ def fresh_and_check_all_task_sequence():
             try:
                 with open(file=file_path, mode='r', encoding='utf-8') as file:
                     json_data = json.load(file)
-            except:
+            except Exception:
                 added[sequence_name] += "json格式错误无法解析! 请勿使用文本编辑器瞎改! 请删除对应方案, FAA已保护性自爆!"
                 continue
 

@@ -18,8 +18,8 @@ def parse_positions(coordinate, base_info):
     wave = False
     god_wind = False
     positions = set()
-    obstacle=set()
-    ice=set()
+    obstacle = set()
+    ice = set()
 
     for index, base_value in enumerate(base_info):
 
@@ -33,7 +33,7 @@ def parse_positions(coordinate, base_info):
 
         elif base_value in [0, 1, 2, 3, 6, 9]:
             x = coordinate[index][0] + 0.5 * coordinate[index][2]
-            if base_value == 1:#飞猪的高度要降低一点
+            if base_value == 1:  # 飞猪的高度要降低一点
                 y = coordinate[index][1] + 0.5 * coordinate[index][3] + 50
             else:
                 y = coordinate[index][1] + 0.5 * coordinate[index][3]
@@ -50,7 +50,7 @@ def parse_positions(coordinate, base_info):
 
             # 添加位置到列表
             positions.add(f"{x_segment}-{y_segment}")
-        elif base_value ==8:
+        elif base_value == 8:
             x = coordinate[index][0] + 0.5 * coordinate[index][2]
             y = coordinate[index][1] + 0.5 * coordinate[index][3]
             # 将坐标映射到分割后的格子
@@ -79,7 +79,8 @@ def parse_positions(coordinate, base_info):
                 y_segment = min(math.ceil((y - y_min) / ((y_max - y_min) / y_segments)), y_segments)
             ice.add(f"{x_segment}-{y_segment}")
 
-    return wave, god_wind, list(positions), list(obstacle), list(ice)     # 返回是否有神风，是否有波次，待爆炸点位, 可消除障碍点位, 冰块点位
+    # 返回是否有神风，是否有波次，待爆炸点位, 可消除障碍点位, 冰块点位
+    return wave, god_wind, list(positions), list(obstacle), list(ice)
 
 # 示例调用
 # base_info = [0, 0, 4, 6]

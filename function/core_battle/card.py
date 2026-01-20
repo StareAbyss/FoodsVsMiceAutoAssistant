@@ -78,7 +78,8 @@ class Card:
         self.need_key = self.faa.need_key
         self.is_auto_battle = self.faa.is_auto_battle
         self.player = self.faa.player
-        self.cd_after_use_random_range = self.faa.battle_plan_tweak.get('meta_data', {}).get('cd_after_use_random_range', None)
+        self.cd_after_use_random_range = (
+            self.faa.battle_plan_tweak.get('meta_data', {}).get('cd_after_use_random_range', None))
         if self.cd_after_use_random_range:
             self.cd_after_use_random_active = True
         else:
@@ -137,8 +138,8 @@ class Card:
 
         # 是否可以放卡（主要是瓜皮类）
         self.can_use = True
-        #默认禁用为false
-        self.banning=False
+        # 默认禁用为false
+        self.banning = False
 
     def choice_card(self):
         """
@@ -441,7 +442,8 @@ class CardKun(Card):
         self.name = name
         self.c_id = c_id
         self.coordinate_from = coordinate_from
-        self.cd_after_use_random_range = self.faa.battle_plan_tweak.get('meta_data', {}).get('cd_after_use_random_range', None)
+        self.cd_after_use_random_range = (
+            self.faa.battle_plan_tweak.get('meta_data', {}).get('cd_after_use_random_range', None))
         if self.cd_after_use_random_range:
             self.cd_after_use_random_active = True
         else:
@@ -507,7 +509,7 @@ class SpecialCard(Card):
         self.card_type = card_type  # 11冰桶 12护罩 14草扇 其他炸弹
 
         # 要秒铲的有草扇（吹风类）跟护罩炸弹
-        self.need_shovel = self.card_type == 12 or (self.card_type == 14 and self.energy==1)
+        self.need_shovel = self.card_type == 12 or (self.card_type == 14 and self.energy == 1)
 
         # 炸弹类卡的自我属性
         self.rows = rows
@@ -553,7 +555,7 @@ class SpecialCard(Card):
                 # 点击 放下卡片
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle, x=self.coordinate_to[0][0], y=self.coordinate_to[0][1])
-                #避免已有承载导致放置失败
+                # 避免已有承载导致放置失败
                 T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=295, y=485)
                 time.sleep(self.click_sleep)
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=295, y=485)

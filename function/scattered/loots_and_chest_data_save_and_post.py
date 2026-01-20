@@ -132,7 +132,7 @@ def loots_and_chests_data_post_to_sever(detail_data, url=None) -> bool:
         # 检查响应状态码,如果不是2xx则引发异常 会被log捕获
         response.raise_for_status()
         return True
-    except RequestException as e:
+    except RequestException:
         return False
 
 # if __name__ == '__main__':

@@ -1,20 +1,20 @@
 import json
+import os
 import re
 import shutil
-import sys
-import os
 import sqlite3
+import sys
 from difflib import get_close_matches
 
 from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QPixmap, QAction
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QSplitter,
     QListWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QLineEdit, QComboBox, QTextEdit, QPushButton,
     QMessageBox, QFormLayout, QFrame, QListWidgetItem, QMenu, QCheckBox,
-    QSpinBox,  QSizePolicy, QScrollArea
+    QSpinBox, QSizePolicy, QScrollArea
 )
-from PyQt6.QtGui import QPixmap, QAction
 
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
@@ -107,24 +107,19 @@ class TaskEditor(QMainWindow):
         self.image_dir = PATHS["image"]["task"]["chaos"]
         self.description_image_dir = PATHS["image"]["task"]["desc"]
 
-
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
         layout = QHBoxLayout(main_widget)
-
 
         left_panel = QWidget()
         left_layout = QVBoxLayout(left_panel)
         left_layout.setContentsMargins(0, 0, 0, 0)
 
-
         self.task_list = QListWidget()
         self.task_list.itemClicked.connect(self.on_task_selected)
 
-
         self.image_list = QListWidget()
         self.image_list.itemClicked.connect(self.on_image_selected)
-
 
         btn_frame = QWidget()
         btn_layout = QHBoxLayout(btn_frame)
@@ -163,19 +158,17 @@ class TaskEditor(QMainWindow):
         self.remarks.setMaximumHeight(60)
         self.task_name = QLineEdit()
         self.task_type = QComboBox()
-        self.task_type.addItems(["刷关", "强卡", "情报",  "其它"])
+        self.task_type.addItems(["刷关", "强卡", "情报", "其它"])
         self.task_type.currentTextChanged.connect(self.update_params)
 
         self.param_container = QWidget()
         self.param_container_layout = QVBoxLayout(self.param_container)
-
 
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidget(self.param_container)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-
 
         self.scroll_area.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.scroll_area.setMinimumHeight(300)
@@ -204,28 +197,23 @@ class TaskEditor(QMainWindow):
         self.initialization_tasks()
         self.load_image_directory()
 
-
         self.stage_info = self.load_stage_info()
         self.stage_selector = StageSelector()
         self.stage_selector.setVisible(False)
         self.stage_selector.on_selected.connect(self.on_stage_selected)
-
 
         form_layout.addRow("关卡:", self.stage_selector)
         form_layout.addRow("备注:", self.remarks)
 
         main_ocr_splitter = QSplitter(Qt.Orientation.Horizontal)
 
-
         main_content = QWidget()
         main_content_layout = QVBoxLayout(main_content)
         main_content_layout.setContentsMargins(0, 0, 0, 0)
 
-
         main_content_layout.addWidget(form_frame)
 
         main_content_layout.addWidget(btn_panel)
-
 
         ocr_group = QWidget()
         ocr_group.setFixedWidth(300)
@@ -237,7 +225,6 @@ class TaskEditor(QMainWindow):
         self.image_label.setFixedSize(290, 200)
         self.image_label.setStyleSheet("background: #f0f0f0; border: 1px solid #ccc")
         ocr_layout.addWidget(self.image_label)
-        
 
         self.description_image_label = QLabel("描述图像预览")
         self.description_image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -261,18 +248,14 @@ class TaskEditor(QMainWindow):
         self.desc_ocr_result.setFixedHeight(100)
         ocr_layout.addWidget(self.desc_ocr_result)
 
-
         main_ocr_splitter.addWidget(main_content)
         main_ocr_splitter.addWidget(ocr_group)
         main_ocr_splitter.setSizes([1000, 300])  # 初始比例分配
 
-
         right_layout.addWidget(main_ocr_splitter)
-
 
         self.ocr_button.clicked.connect(self.perform_ocr)
         self.install_ocr_button.clicked.connect(self.install_ocr_environment)
-
 
         self.update_params()
 
@@ -338,7 +321,6 @@ class TaskEditor(QMainWindow):
             QMessageBox.warning(self, "警告", "请先选择一张图片！")
             return
 
-
         try:
             from plugins.chineseocr_lite_onnx.chinese_ocr import try_ocr_sort, try_ocr
             # 主图像处理
@@ -366,13 +348,13 @@ class TaskEditor(QMainWindow):
                         QMessageBox.information(self, "成功", f"已自动选择关卡：{matched_name}")
 
             if hasattr(self, 'current_desc_image_path') and os.path.exists(self.current_desc_image_path):
-                desc_result = try_ocr(path=self.current_desc_image_path,size=896)
+                desc_result = try_ocr(path=self.current_desc_image_path, size=896)
                 processed_text = "，".join([re.sub(r'^\d+、', '', text).strip() for box, text, score in desc_result])
                 self.desc_ocr_result.setPlainText(processed_text)
 
                 if processed_text:
                     matches = re.findall(r"使用(.*?)卡", processed_text, re.DOTALL)
-                    if len(matches)>0 :
+                    if len(matches) > 0:
                         clean_name = re.sub(r'[^\u4e00-\u9fa5]', '', matches[-1].strip())
                         self.card_name_edit.setText(clean_name)
 
@@ -383,16 +365,15 @@ class TaskEditor(QMainWindow):
             msg = QMessageBox(self)
             msg.setIcon(QMessageBox.Icon.Critical)
             msg.setWindowTitle("错误")
-            msg.setText(f"OCR识别失败：该功能仅限github源码版使用，请先点下方按钮安装环境，安装之后如果提示缺库请自行通过pip安装Shapely,pyclipper,Pillow等库{str(e)}")
+            msg.setText(
+                f"OCR识别失败：该功能仅限github源码版使用，请先点下方按钮安装环境，安装之后如果提示缺库请自行通过pip安装Shapely,pyclipper,Pillow等库{str(e)}")
             msg.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
             msg.exec()
-
 
     def add_task(self):
         """强制新增任务"""
         self.current_task_id = None
         self.save_task()
-
 
     def load_stage_info(self):
         """加载关卡配置文件"""
@@ -403,8 +384,6 @@ class TaskEditor(QMainWindow):
             QMessageBox.warning(self, "警告", f"加载关卡配置失败：{str(e)}")
             return {}
 
-
-
     def load_image_directory(self):
         """加载指定目录下的图像文件（按数字顺序排序）"""
         print(f"开始加载目录: {self.image_dir}")
@@ -412,7 +391,6 @@ class TaskEditor(QMainWindow):
             print("目录不存在")
             self.image_list.addItem("目录不存在")
             return
-
 
         image_extensions = (".jpg", ".png", ".bmp")
 
@@ -426,7 +404,6 @@ class TaskEditor(QMainWindow):
         try:
 
             files = os.listdir(self.image_dir)
-
 
             sorted_files = sorted(files, key=natural_sort_key)
 
@@ -455,7 +432,6 @@ class TaskEditor(QMainWindow):
             self.show_image_from_data(self.image_data)
         except Exception as e:
             QMessageBox.critical(self, "错误", f"无法加载主图像：{str(e)}")
-
 
         try:
             if os.path.exists(desc_image_path):
@@ -535,7 +511,27 @@ class TaskEditor(QMainWindow):
         self.times_spinbox = QSpinBox()
         self.times_spinbox.setRange(1, 99)
         self.disable_stars_combo = QComboBox()
-        self.disable_stars_combo.addItems(["无禁用", "1星", "2星", "3星", "4星", "5星","6星", "7星", "8星", "9星", "10星", "11星","12星", "13星", "14星", "15星", "16星"])
+        self.disable_stars_combo.addItems(
+            [
+                "无禁用",
+                "1星",
+                "2星",
+                "3星",
+                "4星",
+                "5星",
+                "6星",
+                "7星",
+                "8星",
+                "9星",
+                "10星",
+                "11星",
+                "12星",
+                "13星",
+                "14星",
+                "15星",
+                "16星"
+            ]
+        )
         self.player_mode_combo = QCheckBox()
         self.is_single_player_checkbox = QCheckBox()
         self.banned_card_edit = QLineEdit()
@@ -546,13 +542,13 @@ class TaskEditor(QMainWindow):
         self.global_plan_checkbox = QCheckBox()
         self.global_plan_checkbox.stateChanged.connect(self.on_global_plan_changed)  # 添加状态改变连接
         self.deck_selector = QComboBox()
-        self.deck_selector.addItems([str(i) for i in range(0,7)])
+        self.deck_selector.addItems([str(i) for i in range(0, 7)])
         self.deck_selector.setCurrentText("0")
         self.battle_plan_1p = QComboBox()
         self.battle_plan_2p = QComboBox()
         self._init_battle_plan_selector()
         self.skip_checkbox = QCheckBox()
-        
+
         # 添加微调方案选择器
         self.battle_plan_tweak = QComboBox()
         self._init_tweak_plan_selector()
@@ -587,30 +583,31 @@ class TaskEditor(QMainWindow):
         for name in self.battle_plan_name_list:
             self.battle_plan_1p.addItem(name)
             self.battle_plan_2p.addItem(name)
-        
+
         # 查找默认名称并设置默认值
         default_1p_name = None
         default_2p_name = None
-        
+
         for name in self.battle_plan_name_list:
             if "1通用-海星-1P" in name:
                 default_1p_name = name
             if "1通用-海星-2P" in name:
                 default_2p_name = name
-        
+
         # 设置默认值
         if default_1p_name:
             index_1p = self.battle_plan_name_list.index(default_1p_name)
             self.battle_plan_1p.setCurrentIndex(index_1p)
-            
+
         if default_2p_name:
             index_2p = self.battle_plan_name_list.index(default_2p_name)
             self.battle_plan_2p.setCurrentIndex(index_2p)
+
     def _init_tweak_plan_selector(self):
         """初始化微调方案选择器"""
         self.tweak_plan_name_list = get_list_tweak_plan(with_extension=False)
         self.tweak_plan_uuid_list = list(EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH.keys())
-        
+
         # 添加所有微调方案到下拉框
         for name in self.tweak_plan_name_list:
             self.battle_plan_tweak.addItem(name)
@@ -623,7 +620,9 @@ class TaskEditor(QMainWindow):
                 child.widget().deleteLater()
 
         self.star_combo = QComboBox()
-        self.star_combo.addItems(["0星","1星", "2星", "3星", "4星", "5星","6星","7星", "8星", "9星", "10星", "11星","12星","13星", "14星", "15星", "16星"])
+        self.star_combo.addItems(
+            ["0星", "1星", "2星", "3星", "4星", "5星", "6星", "7星", "8星", "9星", "10星", "11星", "12星", "13星",
+             "14星", "15星", "16星"])
         self.quantity_spinbox = QSpinBox()
         self.quantity_spinbox.setRange(1, 999)
         self.card_name_edit = QLineEdit()
@@ -648,7 +647,6 @@ class TaskEditor(QMainWindow):
         h_layout = QHBoxLayout(container)
         h_layout.setContentsMargins(0, 0, 0, 0)
         h_layout.setSpacing(8)
-
 
         h_layout.addWidget(label, 1)
         h_layout.addWidget(widget, 2)
@@ -681,7 +679,6 @@ class TaskEditor(QMainWindow):
                     stage_dict[type_name][sub_type_name].append((stage_name, stage_code))
 
         self.stage_selector.add_menu(data=stage_dict)
-
 
     def on_stage_selected(self, text, stage_code):
         """处理关卡选择"""
@@ -725,7 +722,6 @@ class TaskEditor(QMainWindow):
         self.task_name.setText(task[1])
         self.task_type.setCurrentText(task[2])
 
-
         if task[3]:
             with open(PATHS["config"] + "//stage_info.json", "r", encoding="UTF-8") as f:
                 self.stage_info = json.load(f)
@@ -741,7 +737,6 @@ class TaskEditor(QMainWindow):
                 cursor.execute("UPDATE tasks SET description_image_data = NULL WHERE id=?", (task_id,))
                 self.db_conn.commit()
                 self.description_image_label.setText("描述图像数据已修复")
-
 
         if task[2] == "刷关":
             self.build_stage_selector()
@@ -772,20 +767,20 @@ class TaskEditor(QMainWindow):
                 self.global_plan_checkbox.setChecked(params.get("use_global_plan", False))
                 self.deck_selector.setCurrentText(str(params.get("deck", 0)))
                 self.skip_checkbox.setChecked(params.get("skip", False))
-                
+
                 # 处理战斗方案选择
                 if params.get("battle_plan_1p") and params["battle_plan_1p"] in self.battle_plan_uuid_list:
                     index_1p = self.battle_plan_uuid_list.index(params["battle_plan_1p"])
                     self.battle_plan_1p.setCurrentIndex(index_1p)
-                
+
                 if params.get("battle_plan_2p") and params["battle_plan_2p"] in self.battle_plan_uuid_list:
                     index_2p = self.battle_plan_uuid_list.index(params["battle_plan_2p"])
                     self.battle_plan_2p.setCurrentIndex(index_2p)
-                
+
                 # 加载微调方案参数
                 if params.get("battle_plan_tweak") and params["battle_plan_tweak"] in self.tweak_plan_uuid_list:
                     self.battle_plan_tweak.setCurrentIndex(self.tweak_plan_uuid_list.index(params["battle_plan_tweak"]))
-                
+
                 self.player_mode_combo.setChecked(params.get("is_two_players", False))
                 self.is_single_player_checkbox.setChecked(params.get("is_single_player", False))
                 self.banned_card_edit.setText(params.get("banned_card", ""))
@@ -795,20 +790,20 @@ class TaskEditor(QMainWindow):
                 self.global_plan_checkbox.setChecked(params.get("use_global_plan", False))
                 self.deck_selector.setCurrentText(str(params.get("deck", 0)))
                 self.skip_checkbox.setChecked(params.get("skip", False))
-                
+
                 # 处理战斗方案选择
                 if params.get("battle_plan_1p") and params["battle_plan_1p"] in self.battle_plan_uuid_list:
                     index_1p = self.battle_plan_uuid_list.index(params["battle_plan_1p"])
                     self.battle_plan_1p.setCurrentIndex(index_1p)
-                
+
                 if params.get("battle_plan_2p") and params["battle_plan_2p"] in self.battle_plan_uuid_list:
                     index_2p = self.battle_plan_uuid_list.index(params["battle_plan_2p"])
                     self.battle_plan_2p.setCurrentIndex(index_2p)
-                
+
                 # 加载微调方案参数
                 if params.get("battle_plan_tweak") and params["battle_plan_tweak"] in self.tweak_plan_uuid_list:
                     self.battle_plan_tweak.setCurrentIndex(self.tweak_plan_uuid_list.index(params["battle_plan_tweak"]))
-                
+
                 # 根据是否启用全局方案设置1P和2P方案的可用状态
                 use_global = params.get("use_global_plan", False)
                 self.battle_plan_1p.setEnabled(not use_global)
@@ -845,7 +840,8 @@ class TaskEditor(QMainWindow):
             try:
                 cursor = self.db_conn.cursor()
 
-                cursor.execute("SELECT id, task_name, task_type, image_data, description_image_data, parameters, stage_param, remarks FROM tasks ORDER BY task_name")
+                cursor.execute(
+                    "SELECT id, task_name, task_type, image_data, description_image_data, parameters, stage_param, remarks FROM tasks ORDER BY task_name")
                 sorted_tasks = cursor.fetchall()
 
                 self.db_conn.execute("BEGIN TRANSACTION")
@@ -856,14 +852,15 @@ class TaskEditor(QMainWindow):
                     original_id, task_name, task_type, image_data, description_image_data, parameters, stage_param, remarks = task_data
                     cursor.execute("""INSERT INTO tasks 
                                    (id, task_name, task_type, image_data, description_image_data, parameters, stage_param, remarks)
-                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", 
-                                   (new_index + 1, task_name, task_type, image_data, description_image_data, parameters, stage_param, remarks))
+                                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                                   (new_index + 1, task_name, task_type, image_data, description_image_data, parameters,
+                                    stage_param, remarks))
 
                 self.db_conn.commit()
 
                 self.initialization_tasks()
                 self.clear_form()
-                
+
                 QMessageBox.information(self, "成功", "任务已按名称排序！")
             except Exception as e:
                 self.db_conn.rollback()
@@ -871,18 +868,19 @@ class TaskEditor(QMainWindow):
 
     def clean_invalid_data(self):
         """清除非法数据：当启用全局方案时，清除1P和2P方案的数据"""
-        reply = QMessageBox.question(self, "确认", "确定要清除非法数据吗？\n这将移除所有启用全局方案任务中的1P和2P方案参数。")
+        reply = QMessageBox.question(self, "确认",
+                                     "确定要清除非法数据吗？\n这将移除所有启用全局方案任务中的1P和2P方案参数。")
         if reply == QMessageBox.StandardButton.Yes:
             try:
                 cursor = self.db_conn.cursor()
-                
+
                 # 获取所有任务
                 cursor.execute("SELECT id, parameters FROM tasks WHERE task_type='刷关'")
                 tasks = cursor.fetchall()
-                
+
                 # 记录清除的数据数量
                 cleaned_count = 0
-                
+
                 # 更新每个启用全局方案的任务
                 for task_id, params_json in tasks:
                     if params_json:
@@ -893,33 +891,34 @@ class TaskEditor(QMainWindow):
                                     "battle_plan_1p" in params or "battle_plan_2p" in params):
                                 params.pop("battle_plan_1p", None)
                                 params.pop("battle_plan_2p", None)
-                                
+
                                 # 保存更新后的参数
                                 updated_params_json = json.dumps(params, ensure_ascii=False)
-                                cursor.execute("UPDATE tasks SET parameters=? WHERE id=?", 
-                                             (updated_params_json, task_id))
+                                cursor.execute("UPDATE tasks SET parameters=? WHERE id=?",
+                                               (updated_params_json, task_id))
                                 cleaned_count += 1
                         except json.JSONDecodeError:
                             # 跳过无法解析的参数
                             continue
-                
+
                 self.db_conn.commit()
                 QMessageBox.information(self, "成功", f"非法数据已清除！共清理了 {cleaned_count} 个任务的非法数据。")
-                
+
                 # 如果当前正在编辑的任务启用了全局方案，也需要更新UI
-                if (hasattr(self, 'current_task_id') and self.current_task_id and 
-                    self.task_type.currentText() == "刷关" and 
-                    self.global_plan_checkbox.isChecked()):
+                if (hasattr(self, 'current_task_id') and self.current_task_id and
+                        self.task_type.currentText() == "刷关" and
+                        self.global_plan_checkbox.isChecked()):
                     self.battle_plan_1p.setCurrentIndex(-1)
                     self.battle_plan_2p.setCurrentIndex(-1)
-                    
+
             except Exception as e:
                 self.db_conn.rollback()
                 QMessageBox.critical(self, "错误", f"清除非法数据失败：{str(e)}")
 
     def clean_image_files(self):
         """清除PATHS["image"]["task"]路径下的所有文件和文件夹"""
-        reply = QMessageBox.question(self, "确认", f"确定要清除所有任务图像文件吗？\n这将删除以下路径下的所有文件和文件夹：\n{PATHS['image']['task']}")
+        reply = QMessageBox.question(self, "确认",
+                                     f"确定要清除所有任务图像文件吗？\n这将删除以下路径下的所有文件和文件夹：\n{PATHS['image']['task']}")
         if reply == QMessageBox.StandardButton.Yes:
             try:
                 # 删除 chaos 子目录及其内容
@@ -999,10 +998,14 @@ class TaskEditor(QMainWindow):
                 "disable_weapon": self.disable_weapon_checkbox.isChecked(),
                 "use_global_plan": self.global_plan_checkbox.isChecked(),
                 "deck": int(self.deck_selector.currentText()),
-                "battle_plan_1p": self.battle_plan_uuid_list[self.battle_plan_1p.currentIndex()] if self.battle_plan_1p.currentIndex() >= 0 and not self.global_plan_checkbox.isChecked() else "",
-                "battle_plan_2p": self.battle_plan_uuid_list[self.battle_plan_2p.currentIndex()] if self.battle_plan_2p.currentIndex() >= 0 and not self.global_plan_checkbox.isChecked() else "",
+                "battle_plan_1p": self.battle_plan_uuid_list[
+                    self.battle_plan_1p.currentIndex()] if self.battle_plan_1p.currentIndex() >= 0 and not self.global_plan_checkbox.isChecked() else "",
+                "battle_plan_2p": self.battle_plan_uuid_list[
+                    self.battle_plan_2p.currentIndex()] if self.battle_plan_2p.currentIndex() >= 0 and not self.global_plan_checkbox.isChecked() else "",
                 "skip": self.skip_checkbox.isChecked(),
-                "battle_plan_tweak": self.tweak_plan_uuid_list[self.battle_plan_tweak.currentIndex()] if self.battle_plan_tweak.currentIndex() >= 0 else ""  # 保存微调方案参数
+                "battle_plan_tweak": self.tweak_plan_uuid_list[
+                    self.battle_plan_tweak.currentIndex()] if self.battle_plan_tweak.currentIndex() >= 0 else ""
+                # 保存微调方案参数
             }
             stage_param = getattr(self, "current_stage_code", None)
             param = None
@@ -1057,27 +1060,29 @@ class TaskEditor(QMainWindow):
         self.description_image_label.clear()
         self.image_data = None
         self.description_image_data = None
-        
+
         # 重置战斗方案选择器的默认值
         default_1p_name = None
         default_2p_name = None
-        
+
         for name in self.battle_plan_name_list:
             if "1通用-海星-1P" in name:
                 default_1p_name = name
             if "1通用-海星-2P" in name:
                 default_2p_name = name
-        
+
         # 设置默认值
         if default_1p_name:
             index_1p = self.battle_plan_name_list.index(default_1p_name)
             self.battle_plan_1p.setCurrentIndex(index_1p)
-            
+
         if default_2p_name:
             index_2p = self.battle_plan_name_list.index(default_2p_name)
             self.battle_plan_2p.setCurrentIndex(index_2p)
+
+
 if __name__ == "__main__":
-    path=PATHS["db"]+"/tasks.db"
+    path = PATHS["db"] + "/tasks.db"
     db_conn = init_db(path)
     app = QApplication(sys.argv)
     window = TaskEditor(db_conn)

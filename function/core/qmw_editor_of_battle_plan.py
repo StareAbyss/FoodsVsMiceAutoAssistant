@@ -3,8 +3,10 @@ import json
 import os
 import sys
 import uuid
+
 from function.globals.loadings import loading
-loading.update_progress(50,"正在加载FAA关卡编辑器...")
+
+loading.update_progress(50, "正在加载FAA关卡编辑器...")
 from typing import List
 
 from PyQt6.QtCore import pyqtSignal, Qt, QPoint
@@ -793,7 +795,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 高亮棋盘
         self.highlight_chessboard()
 
-        #print(f"编辑 - 位置 - 普通动作编辑 目标改变: {self.be_edited_loop_use_cards_one_card_index}")
+        # print(f"编辑 - 位置 - 普通动作编辑 目标改变: {self.be_edited_loop_use_cards_one_card_index}")
 
     def be_edited_insert_use_card_change(self, item):
         """被单击后, 被选中的卡片改变了"""
@@ -804,12 +806,13 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 高亮棋盘
         self.highlight_chessboard()
 
-        #print(f"编辑 - 位置 - 定时动作编辑 目标改变: {self.be_edited_insert_use_card_index}")
+        # print(f"编辑 - 位置 - 定时动作编辑 目标改变: {self.be_edited_insert_use_card_index}")
 
     def be_edited_special_change(self, item):
         """被单击后, 被选中的宝石操作改变了"""
         self.be_edited_special_action_index = self.ListSpecialActions.indexFromItem(item).row()
-        #print(f"编辑 - 宝石操作 目标改变: {self.be_edited_special_action_index}")
+        # print(f"编辑 - 宝石操作 目标改变: {self.be_edited_special_action_index}")
+
     def load_data_to_ui_list_mode_1(self):
         """从 [内部数据表] 载入数据到 [ui的放卡动作列表]"""
 
@@ -989,7 +992,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         if self.editing_mode == 1:
 
-            #print("即将显示 常规动作编辑窗口 索引 - ", self.be_edited_loop_use_cards_one_card_index)
+            # print("即将显示 常规动作编辑窗口 索引 - ", self.be_edited_loop_use_cards_one_card_index)
 
             event = next(e for e in self.loop_use_cards_events if e.trigger.wave_id == self.be_edited_wave_id)
             a_card = event.action.cards[self.be_edited_loop_use_cards_one_card_index]
@@ -1006,107 +1009,60 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 func_update=self.update_loop_use_cards_one_card_info
             )
 
-
-
-
-
-
-
         elif self.editing_mode == 2:
 
-            #print("即将显示 定时动作编辑窗口 索引 - ", self.be_edited_insert_use_card_index)
+            # print("即将显示 定时动作编辑窗口 索引 - ", self.be_edited_insert_use_card_index)
             events = [e for e in self.insert_use_card_events
 
                       if e.trigger.wave_id == self.be_edited_wave_id]
-
             event = events[self.be_edited_insert_use_card_index]
 
             # 根据操作类型创建不同的编辑器实例
-
             if event.action.type == "shovel":
-
                 data = {
-
                     "time": event.trigger.time,
-
                     "type": "shovel",
-
                     "location": event.action.location
-
                 }
-
                 self.EditorAction = ShovelActionEditor(
-
                     data=data,
-
                     func_update=self.update_shovel_action_info,
-
                     editor_parent=self,
-
                     event_index=self.be_edited_insert_use_card_index
-
                 )
 
             else:
-
                 data = {
-
                     "time": event.trigger.time,
-
                     "type": event.action.type,
-
                     "location": event.action.location,
-
                     "card_id": event.action.card_id,
-
                     "name": next(c.name for c in self.battle_plan.cards if c.card_id == event.action.card_id),
-
                     "before_shovel": event.action.before_shovel,
-
                     "after_shovel": event.action.after_shovel,
-
                     "after_shovel_time": event.action.after_shovel_time
-
                 }
-
                 self.EditorAction = InsertUseCardInfoEditor(
-
                     data=data,
-
                     func_update=self.update_insert_use_card_info,
-
                     editor_parent=self,
-
                     event_index=self.be_edited_insert_use_card_index
-
                 )
-
-
 
         elif self.editing_mode == 3:
 
             events = [e for e in self.insert_use_special_events if e.trigger.wave_id == self.be_edited_wave_id]
-
             event = events[self.be_edited_special_action_index]
 
             if isinstance(event.action, ActionEscape):
-
                 data = {"time": event.trigger.time}
-
                 self.EditorAction = EscapeActionEditor(data=data, func_update=self.update_escape_action_info)
-
             elif isinstance(event.action, ActionBanCard):
-
                 data = {
-
                     "start_time": event.action.start_time,
-
                     "end_time": event.action.end_time,
-
                     "card_id": event.action.card_id
-
                 }
-
                 self.EditorAction = BanCardActionEditor(data=data, func_update=self.update_ban_card_info)
             elif isinstance(event.action, ActionRandomSingleCard):
                 data = {
@@ -1124,11 +1080,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 self.EditorAction = RandomMultiCardActionEditor(
                     data=data,
                     func_update=self.update_random_multi_card_info)
-
             else:
-
                 data = {"gem_id": event.action.gem_id, "time": event.trigger.time}
-
                 self.EditorAction = GemInfoEditor(data=data, func_update=self.update_special_action_info)
 
         # 计算显示位置
@@ -1181,6 +1134,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         except Exception as e:
             QMessageBox.warning(self, "输入错误", f"请输入有效的参数: {str(e)}")
             self.EditorAction.card_indices_edit.setFocus()
+
     def update_shovel_action_info(self):
         """更新铲子操作事件的UI与数据"""
         try:
@@ -1325,8 +1279,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             return
 
         # 获取当前波次的所有宝石事件
-        current_events = [e for e in self.insert_use_special_events
-                              if e.trigger.wave_id == self.be_edited_wave_id]
+        current_events = [e for e in self.insert_use_special_events if e.trigger.wave_id == self.be_edited_wave_id]
 
         if not current_events:
             return
@@ -1734,7 +1687,6 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
             current_card_locations = []
 
-
             if self.be_edited_player:
                 current_card_locations = self.battle_plan.meta_data.player_position
             else:
@@ -1932,7 +1884,6 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         self.init_battle_plan()
 
-
         self.ButtonSave.setEnabled(True)
 
     """打开战斗方案"""
@@ -2035,7 +1986,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             event for event in self.battle_plan.events
             if (isinstance(event.trigger, TriggerWaveTimer) and
                 isinstance(event.action, (ActionUseGem, ActionEscape, ActionBanCard,
-                                        ActionRandomSingleCard, ActionRandomMultiCard)))
+                                          ActionRandomSingleCard, ActionRandomMultiCard)))
         ]
 
         # 填充构造所有波次的 变阵操作 保存的时候再去掉重复项
@@ -2071,7 +2022,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
         existing_wave_ids = [w.trigger.wave_id for w in self.loop_use_cards_events]
 
         if 0 not in existing_wave_ids:
-            CUS_LOGGER.debug(f"[战斗方案编辑器] [加载方案] 填充循环放卡方案的空白波次, 波次0不存在, 花瓶方案, 补充第0波方案.")
+            CUS_LOGGER.debug(
+                f"[战斗方案编辑器] [加载方案] 填充循环放卡方案的空白波次, 波次0不存在, 花瓶方案, 补充第0波方案.")
             self.loop_use_cards_events.append(
                 Event(
                     trigger=TriggerWaveTimer(wave_id=0, time=0),
@@ -2604,8 +2556,6 @@ class ShovelActionEditor(QDialog):
         self.editor_parent = editor_parent
         self.event_index = event_index
 
-
-
         # 确保必要字段
         if 'time' not in self.data:
             self.data['time'] = 0.0
@@ -2641,8 +2591,6 @@ class ShovelActionEditor(QDialog):
         time_layout.addWidget(self.WidgetTimeInput)
         LayMain.addLayout(time_layout)
 
-
-
     def load_data(self):
         """加载数据到UI"""
         self.WidgetTimeInput.setValue(self.data.get('time', 0))
@@ -2654,6 +2602,7 @@ class ShovelActionEditor(QDialog):
             "type": "shovel",
             "location": self.data.get("location", "")
         }
+
 
 class GemInfoEditor(QDialog):
     def __init__(self, data, func_update):
@@ -2732,7 +2681,6 @@ class SpecialActionTypeDialog(QDialog):
         self.type_combo = QComboBox()
         self.type_combo.addItems(["逃跑操作", "禁用卡片", "宝石操作", "单卡随机", "多卡随机"])
 
-
         layout.addWidget(self.type_combo)
 
         buttons = QDialogButtonBox(
@@ -2750,6 +2698,7 @@ class SpecialActionTypeDialog(QDialog):
             "单卡随机": "random_single_card",
             "多卡随机": "random_multi_card"
         }[self.type_combo.currentText()]
+
 
 class RandomSingleCardActionEditor(QDialog):
     def __init__(self, data, func_update):
@@ -2780,10 +2729,6 @@ class RandomSingleCardActionEditor(QDialog):
             "type": "random_single_card",
             "time": self.data.get("time", 0)
         }
-
-
-
-
 
 
 class RandomMultiCardActionEditor(QDialog):
@@ -2823,6 +2768,8 @@ class RandomMultiCardActionEditor(QDialog):
             "type": "random_multi_card",
             "time": self.data.get("time", 0)
         }
+
+
 class EscapeActionEditor(QDialog):
     def __init__(self, data, func_update):
         super().__init__()
@@ -2833,7 +2780,7 @@ class EscapeActionEditor(QDialog):
         self.WidgetTimeInput.setRange(0, 9999)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20,20)
+        layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
         self.WidgetTimeInput.setFixedWidth(140)
         layout.addWidget(QLabel("触发时间(秒)"))
@@ -2897,6 +2844,8 @@ class BanCardActionEditor(QDialog):
             "card_id": self.card_id.value(),
             "type": "disable_card"
         }
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = QMWEditorOfBattlePlan()

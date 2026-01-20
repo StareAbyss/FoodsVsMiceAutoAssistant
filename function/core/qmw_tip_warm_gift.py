@@ -12,6 +12,8 @@ FAA为所有配置数据保存在本地, 请放心使用
 3.截取链接中ID = 后面的部分
 4.将链接输入FAA, 勾选激活, 将会在任务列表-签到模块自动完成"
 """
+
+
 class QMWTipWarmGift(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -24,8 +26,6 @@ class QMWTipWarmGift(QMainWindow):
     def initUI(self):
         self.text_edit = QTextEdit()
         self.text_edit.setReadOnly(True)  # 设置为只读模式
-
-
 
         # 插入文本
         self.text_edit.setPlainText(text)

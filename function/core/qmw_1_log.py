@@ -126,7 +126,8 @@ class QMainWindowLog(QMainWindowLoadUI):
             # 处理缺省参数
             self.signal_1.emit(image_ndarray)
 
-    def start_print(self):
+    @staticmethod
+    def start_print():
         """打印默认输出提示"""
 
         SIGNAL.PRINT_TO_UI.emit(
