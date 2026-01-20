@@ -328,6 +328,37 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
     _endPos = None
     _isTracking = None
 
+    # 移动检查
+    def moveEvent(self, event):
+        # 获取主屏幕几何信息
+        screen_geometry = self.screen().availableGeometry()
+
+        # 获取当前窗口几何信息
+        window_geometry = self.geometry()
+
+        # 检查窗口是否超出屏幕边界
+        x = window_geometry.x()
+        y = window_geometry.y()
+        width = window_geometry.width()
+        height = window_geometry.height()
+
+        # 限制窗口位置
+        if x < screen_geometry.left():
+            x = screen_geometry.left()
+        elif x + width > screen_geometry.right():
+            x = screen_geometry.right() - width
+
+        if y < screen_geometry.top():
+            y = screen_geometry.top()
+        elif y + height > screen_geometry.bottom():
+            y = screen_geometry.bottom() - height
+
+        # 如果位置需要调整，则重新设置位置
+        if x != window_geometry.x() or y != window_geometry.y():
+            self.move(x, y)
+
+        super().moveEvent(event)
+
     # 鼠标移动事件
     def mouseMoveEvent(self, a0: QtGui.QMouseEvent):
         if self._startPos:

@@ -137,7 +137,6 @@ def loop_battle(self):
 
                     if self.use_key_and_check_end():
                         end_flag = True
-                        break
 
             if end_flag:
                 break  # 根据flag 跳出外层循环

@@ -25,5 +25,3 @@ class BattlePlan:
     card: Card
     tips: str
     uuid: str
-
-

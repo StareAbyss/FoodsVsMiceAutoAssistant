@@ -9,6 +9,8 @@ text = """
 
 具体的休眠时间请根据自己的情况自行设置，默认的5秒不一定对所有人都适用，建议使用时自己测试一下效果。
 """
+
+
 class QMWTipSleep(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -21,8 +23,6 @@ class QMWTipSleep(QMainWindow):
     def initUI(self):
         self.text_edit = QTextEdit()
         self.text_edit.setReadOnly(True)  # 设置为只读模式
-
-
 
         # 插入文本
         self.text_edit.setPlainText(text)

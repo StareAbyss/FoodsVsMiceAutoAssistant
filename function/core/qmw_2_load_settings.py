@@ -118,7 +118,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         将 taskeditor_layout 替换为任务序列编辑器
         """
         # 创建任务序列编辑器实例
-        self.task_editor = QMWEditorOfTaskSequence(self)
+        self.task_editor = QMWEditorOfTaskSequence(father=self)
 
         # 设置任务编辑器的字体与主窗口一致
         self.task_editor.set_my_font(self.font())
@@ -261,7 +261,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         # 先重新获取ui上的 当前方案选项
         self.opt["current_plan"] = self.CurrentPlan.currentIndex()  # combobox 序号
         # 修改当前方案文本
-        self.CurrentPlan_Label_Change.setText(self.CurrentPlan.currentText())
+        # self.CurrentPlan_Label_Change.setText(self.CurrentPlan.currentText())
 
         # 获取前半部分
         my_opt = self.opt["todo_plans"][int(self.opt["current_plan"])]
@@ -1465,7 +1465,9 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.ui_to_opt()
         self.opt_to_json()
         self.opt_to_ui_init()
-        SIGNAL.PRINT_TO_UI.emit(text=f"任务序列:[{self.CurrentPlan.currentText()}] 已保存!", color_level=3)
+        SIGNAL.PRINT_TO_UI.emit(
+            text=f"任务序列:[{self.CurrentPlan.currentText()}] 已设为活跃序列! 点击开始将运行它 ~",
+            color_level=3)
 
     def delete_current_plan(self) -> None:
         """用来删掉当前被选中的 任务序列 但不能删掉默认任务序列"""

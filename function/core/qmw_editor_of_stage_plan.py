@@ -3,7 +3,7 @@ import json
 
 from function.globals.loadings import loading
 
-loading.update_progress(55,"正在加载FAA全局&关卡方案编辑器...")
+loading.update_progress(55, "正在加载FAA全局&关卡方案编辑器...")
 from PyQt6 import uic
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow
@@ -83,7 +83,6 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.StageBattlePlanBox2P.currentIndexChanged.connect(self.stage_state_changed)
         self.StageTweakBattlePlanBox.currentIndexChanged.connect(self.stage_state_changed)
 
-
         # 加载全局方案到ui
         self.init_global_state_ui()
 
@@ -160,6 +159,7 @@ class QMWEditorOfStagePlan(QMainWindow):
             widget.setCurrentIndex(current_index)
             # 恢复控件信号
             widget.blockSignals(False)
+
         def change_two(widget):
             # 存储当前的索引
             current_index = widget.currentIndex()
@@ -180,10 +180,9 @@ class QMWEditorOfStagePlan(QMainWindow):
         change_one(widget=self.StageBattlePlanBox2P)
         change_two(widget=self.StageTweakBattlePlanBox)
 
-    def stage_selector_changed(self, text, stage):
+    def stage_selector_changed(self, stage):
         """
         关卡选择改变，更新UI
-        :param text: 显示在菜单中的文本
         :param stage: 关卡id
         """
         self.current_stage = stage
@@ -313,7 +312,7 @@ class QMWEditorOfStagePlan(QMainWindow):
             index = 0
         self.StageBattlePlanBox2P.setCurrentIndex(index)
         try:
-            index = self.tweak_plan_uuid_list.index(self.stage_plan[self.current_stage].get("tweak_plan",0))
+            index = self.tweak_plan_uuid_list.index(self.stage_plan[self.current_stage].get("tweak_plan", 0))
         except ValueError:
             index = 0
         self.StageTweakBattlePlanBox.setCurrentIndex(index)
@@ -336,7 +335,6 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.StageDeckBox.blockSignals(False)
         self.StageBattlePlanBox1P.blockSignals(False)
         self.StageBattlePlanBox2P.blockSignals(False)
-
 
     def init_global_state_ui(self):
         """

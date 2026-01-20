@@ -21,6 +21,8 @@ def get_list_battle_plan(with_extension):
         for i in range(len(my_list)):
             my_list[i] = my_list[i].rsplit('.', 1)[0]
         return my_list
+
+
 def get_list_tweak_plan(with_extension):
     """
     :param with_extension: Include extension name

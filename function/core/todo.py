@@ -152,7 +152,9 @@ class ThreadTodo(QThread):
         self.condition.wakeAll()
         self.mutex.unlock()
 
-    """非脚本操作的业务代码"""
+    """
+    非脚本操作的业务代码
+    """
 
     def check_player(self, title, player=None):
         # 默认值
@@ -165,12 +167,14 @@ class ThreadTodo(QThread):
             player = [1]
         return player
 
-    def model_start_print(self, text):
+    @staticmethod
+    def model_start_print(text):
         # 在函数执行前发送的信号
         SIGNAL.PRINT_TO_UI.emit(text="", time=False)
         SIGNAL.PRINT_TO_UI.emit(text=f"[{text}] Link Start!", color_level=1)
 
-    def model_end_print(self, text):
+    @staticmethod
+    def model_end_print(text):
         SIGNAL.PRINT_TO_UI.emit(text=f"[{text}] Completed!", color_level=1)
 
     def change_lock(self, my_bool):
@@ -774,7 +778,9 @@ class ThreadTodo(QThread):
                 }]
             self.battle_1_n_n(quest_list=quest_list, extra_title=title_text)
 
-    """业务代码 - 战斗相关"""
+    """
+    业务代码 - 战斗相关
+    """
 
     def invite(self, player_a, player_b):
         """
@@ -1306,11 +1312,14 @@ class ThreadTodo(QThread):
         self.batch_reload_game()
         sleep(60 * 60 * 24)
 
-    def battle_1_1_n(self, stage_id, player, need_key, max_times, dict_exit,
-                     global_plan_active, deck, battle_plan_1p, battle_plan_2p,
-                     quest_card, ban_card_list, max_card_num,
-                     title_text, vase_num=None, battle_plan_tweak_from_quest_set=None, is_cu=False):
+    def battle_1_1_n(
+            self, stage_id, player, need_key, max_times, dict_exit,
+            global_plan_active, deck, battle_plan_1p, battle_plan_2p,
+            quest_card, ban_card_list, max_card_num,
+            extra_title, vase_num=None, battle_plan_tweak_from_quest_set=None, is_cu=False
+    ):
         """
+        核心詹欧函数
         1轮次 1关卡 n次数
         副本外 -> (副本内战斗 * n次) -> 副本外
         player: [1], [2], [1,2], [2,1] 分别代表 1P单人 2P单人 1P队长 2P队长
@@ -1319,7 +1328,11 @@ class ThreadTodo(QThread):
         """参数预处理"""
 
         # 组合完整的title
-        title = f"[单本轮战] {title_text}"
+        if extra_title:
+            title = f"[单本轮战] {extra_title}"
+        else:
+            title = f"[单本轮战] "
+
         # 判断是不是打魔塔 世界BOSS 或 自建房
         is_mt = "MT" in stage_id
         is_wb = "WB" in stage_id
@@ -1398,7 +1411,8 @@ class ThreadTodo(QThread):
                         # 可组队关卡, 但设置了仅单人作战
                         battle_plan_1p_ = g_plan["battle_plan"][0]
                         battle_plan_2p_ = g_plan["battle_plan"][0]
-            #"f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"是大赛专用花瓶方案
+
+            # "f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"是大赛专用花瓶方案
             if vase_num:
                 if vase_num == 1:
                     battle_plan_1p_ = "f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"
@@ -1435,46 +1449,46 @@ class ThreadTodo(QThread):
             # 关卡名称正确性校验
 
             if not faa_a.check_stage_id_is_true():
-                SIGNAL.PRINT_TO_UI.emit(text=f"{title} [{pid_a}P] 关卡名称错误, 跳过")
+                SIGNAL.PRINT_TO_UI.emit(text=f"{title}[{pid_a}P] 关卡名称错误, 跳过")
                 return False
 
             # 关卡激活校验
 
             if not faa_a.check_stage_is_active():
-                SIGNAL.PRINT_TO_UI.emit(text=f"{title} [{pid_a}P] 关卡未激活, 跳过")
+                SIGNAL.PRINT_TO_UI.emit(text=f"{title}[{pid_a}P] 关卡未激活, 跳过")
                 return False
 
             # 关卡等级校验
 
             if not faa_a.check_level():
-                SIGNAL.PRINT_TO_UI.emit(text=f"{title} [{pid_a}P] 等级不足, 跳过")
+                SIGNAL.PRINT_TO_UI.emit(text=f"{title}[{pid_a}P] 等级不足, 跳过")
                 return False
 
             if is_group:
                 if not faa_b.check_level():
-                    SIGNAL.PRINT_TO_UI.emit(text=f"{title} [{pid_b}P] 等级不足, 跳过")
+                    SIGNAL.PRINT_TO_UI.emit(text=f"{title}[{pid_b}P] 等级不足, 跳过")
                     return False
 
             # FAA内关卡的设置参数完整性校验
 
             if max_times < 1:
-                SIGNAL.PRINT_TO_UI.emit(text=f"{title} {stage_id} 设置次数不足, 跳过")
+                SIGNAL.PRINT_TO_UI.emit(text=f"{title}{stage_id} 设置次数不足, 跳过")
                 return False
 
             if battle_plan_a not in g_resources.RESOURCE_B.keys():
                 SIGNAL.PRINT_TO_UI.emit(
-                    text=f"{title} [房主] 无法通过UUID{battle_plan_a}找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
+                    text=f"{title}[房主] 无法通过UUID{battle_plan_a}找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
                 return False
 
             if is_group:
                 if battle_plan_b not in g_resources.RESOURCE_B.keys():
                     SIGNAL.PRINT_TO_UI.emit(
-                        text=f"{title} [队友] 无法通过UUID{battle_plan_b}找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
+                        text=f"{title}[队友] 无法通过UUID{battle_plan_b}找到战斗方案! 您使用的全局方案&关卡方案已被删除. 请重新设置!")
                     return False
 
             if battle_plan_tweak not in g_resources.RESOURCE_T.keys():
                 SIGNAL.PRINT_TO_UI.emit(
-                    text=f"{title} 无法通过UUID{battle_plan_tweak}找到战斗微调方案! 您使用的微调关卡方案已被删除. 请重新设置!")
+                    text=f"{title}无法通过UUID{battle_plan_tweak}找到战斗微调方案! 您使用的微调关卡方案已被删除. 请重新设置!")
                 return False
 
             return True
@@ -1793,7 +1807,8 @@ class ThreadTodo(QThread):
 
         return main()
 
-    def output_player_loot(self, player_id, result_list):
+    @staticmethod
+    def output_player_loot(player_id, result_list):
         """
         根据战斗的最终结果, 打印玩家战利品信息
         :param player_id:  player_a, player_b int 1 2
@@ -1937,8 +1952,8 @@ class ThreadTodo(QThread):
                 quest_card=quest_card,  # 可缺省
                 ban_card_list=ban_card_list,  # 可缺省
                 max_card_num=max_card_num,  # 可缺省
-                title_text=extra_title,
-                vase_num=vase_num,    # 可缺省
+                extra_title=extra_title,
+                vase_num=vase_num,  # 可缺省
                 is_cu=is_cu  # 可缺省
             )
 
@@ -1965,7 +1980,9 @@ class ThreadTodo(QThread):
                 while self.my_lock:
                     sleep(1)
 
-    """使用battle_1_n_n为核心的变种 [单线程][单人或双人]"""
+    """
+    使用battle_1_n_n为核心的变种 [单线程][单人或双人]
+    """
 
     def easy_battle(
             self, text_, stage_id, player, max_times,
@@ -2059,10 +2076,6 @@ class ThreadTodo(QThread):
             self.model_end_print(text=text_)
             return
 
-        # 激活删除物品高危功能(可选)
-        if quest_mode == "公会任务":
-            self.batch_level_2_action(player=[1, 2], delete_item=True, dark_crystal=False)
-
         # 领取奖励一次
         SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 检查领取奖励...")
         self.faa_dict[1].action_receive_quest_rewards(mode=quest_mode)
@@ -2144,790 +2157,9 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=text_)
 
-    """高级模式"""
-
-    def task_sequence(self, text_, task_begin_id: int, task_sequence_uuid: str):
-        """
-        自定义任务序列
-        :param text_: 其实是title
-        :param task_begin_id: 从第几号任务开始
-        :param task_sequence_uuid: 任务序列的UUID
-        :return:
-        """
-
-        def merge_continuous_battle_task(task_sequence: list):
-            """将任务序列中, 连续的独立战斗事项完整合并"""
-            task_list = []
-            battle_dict = {
-                "task_type": "战斗",
-                "task_args": []
-            }
-            for task in task_sequence:
-                if task["task_type"] == "战斗":
-                    task["task_args"]["battle_id"] = task["task_id"]
-                    battle_dict["task_args"].append(task["task_args"])
-                else:
-                    # 出现非战斗事项
-                    if battle_dict["task_args"]:
-                        task_list.append(battle_dict)
-                        battle_dict = {
-                            "task_type": "战斗",
-                            "task_args": []
-                        }
-                    task_list.append(task)
-            # 保存末位战斗
-            if battle_dict["task_args"]:
-                task_list.append(battle_dict)
-
-            return task_list
-
-        def normal_battle_task_to_d_thread(task_sequence):
-            """
-            将自定义任务序列中完成合并的 连续的 战斗任务, 智能拆分组合 为连续的多线程单人 或 单线程 战斗任务
-            原则: 连续的一段, 有且仅有1p2p单独参与的任务, 将被智能分配到多线程单人. 且 无视12p之间的前后任务顺序!
-            :param task_sequence:
-            :return: example:
-            {
-                {
-                    "task_type": 战斗.
-                    "task_args": [stage_info: dict, ...]
-                },{
-                    "task_type": 战斗-多线程.
-                    "task_args": {
-                        "solo_quests_1": [stage_info: dict, ...],
-                        "solo_quests_2": [stage_info: dict, ...]
-                    }
-                }
-            }
-
-            """
-
-            def to_double_thread_args(quest_info_list):
-                solo_quests_1 = []
-                solo_quests_2 = []
-                for quest_info_solo in quest_info_list:
-                    if quest_info_solo["player"] == [1]:
-                        solo_quests_1.append(quest_info_solo)
-                    if quest_info_solo["player"] == [2]:
-                        solo_quests_2.append(quest_info_solo)
-                return {
-                    "solo_quests_1": solo_quests_1,
-                    "solo_quests_2": solo_quests_2
-                }
-
-            return_task_list = []
-            for task in task_sequence:
-
-                # 非战斗任务事项不变
-                if task["task_type"] != "战斗":
-                    return_task_list.append(task)
-                    continue
-
-                p1_active = False
-                p2_active = False
-                multi_player_task_list = []
-                one_player_task_list = []
-                unknown_task_list = []
-
-                for quest_info in task["task_args"]:
-                    # 有双人任务, 此前的单人任务完成添加
-                    if len(quest_info["player"]) == 2:
-                        if one_player_task_list:
-                            return_task_list.append({
-                                "task_type": "战斗-多线程",
-                                "task_args": to_double_thread_args(quest_info_list=one_player_task_list)
-                            })
-                            one_player_task_list = []
-                        if unknown_task_list:
-                            multi_player_task_list += unknown_task_list
-                            unknown_task_list = []
-                        multi_player_task_list.append(quest_info)
-                        p1_active = False
-                        p2_active = False
-
-                    elif len(quest_info["player"]) == 1:
-                        if quest_info["player"] == [1]:
-                            p1_active = True
-                        if quest_info["player"] == [2]:
-                            p2_active = True
-                        if not (p1_active and p2_active):
-                            unknown_task_list.append(quest_info)
-                        else:
-                            if multi_player_task_list:
-                                return_task_list.append({
-                                    "task_type": "战斗",
-                                    "task_args": multi_player_task_list
-                                })
-                                multi_player_task_list = []
-                            if unknown_task_list:
-                                one_player_task_list += unknown_task_list
-                                unknown_task_list = []
-                            one_player_task_list.append(quest_info)
-
-                # 收尾工作
-                if unknown_task_list:
-                    return_task_list.append({
-                        "task_type": "战斗",
-                        "task_args": multi_player_task_list + unknown_task_list
-                    })
-                else:
-                    if multi_player_task_list:
-                        return_task_list.append({
-                            "task_type": "战斗",
-                            "task_args": multi_player_task_list
-                        })
-                    if one_player_task_list:
-                        return_task_list.append({
-                            "task_type": "战斗-多线程",
-                            "task_args": to_double_thread_args(quest_info_list=one_player_task_list)
-                        })
-
-            return return_task_list
-
-        def read_json_to_task_sequence(uuid):
-            # 通过UUID获取任务序列索引
-            if self.task_sequence_uuid:
-                # 获取任务序列列表和UUID映射
-                task_sequence_list = get_task_sequence_list(with_extension=True)
-                if hasattr(EXTRA, 'TASK_SEQUENCE_UUID_TO_PATH'):
-                    uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
-                    try:
-                        # 通过UUID查找索引
-                        task_sequence_index = uuid_list.index(uuid)
-                    except ValueError:
-                        # UUID未找到，使用默认索引0
-                        task_sequence_index = 0
-                else:
-                    # 没有UUID映射，使用默认索引0
-                    task_sequence_index = 0
-            else:
-                # 没有提供UUID，使用默认索引0
-                task_sequence_index = 0
-
-            task_sequence_list = get_task_sequence_list(with_extension=True)
-            task_sequence_path = "{}\\{}".format(
-                PATHS["task_sequence"],
-                task_sequence_list[task_sequence_index]
-            )
-
-            with EXTRA.FILE_LOCK:
-                with open(file=task_sequence_path, mode="r", encoding="UTF-8") as file:
-                    data = json.load(file)
-
-            return data
-
-        # 读取json文件
-        task_sequence = read_json_to_task_sequence(task_sequence_uuid)
-        main_task_active = False
-        active_singleton = False
-        # 获取最大task_id
-        max_tid = 1
-        for quest in task_sequence:
-            if "meta_data" in quest:
-                continue
-            max_tid = max(max_tid, quest["task_id"])
-
-        if task_begin_id > max_tid:
-            SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 开始事项id > 该方案最高id! 将直接跳过!")
-            return
-
-        # 由于任务id从1开始, 故需要减1
-        # 去除序号小于stage_begin的任务
-        task_sequence = [
-            task for task in task_sequence
-            if not task.get("meta_data", False) and task.get("enabled", True) and task["task_id"] >= task_begin_id
-        ]
-        # 根据战斗和其他事项拆分 让战斗事项的参数构成 n本 n次 为一组的汇总
-        task_sequence = merge_continuous_battle_task(task_sequence=task_sequence)
-        # 让战斗事项按 多线程单人 和 单线程常规 拆分
-        task_sequence = normal_battle_task_to_d_thread(task_sequence=task_sequence)
-
-        CUS_LOGGER.debug(f"自定义任务序列, 已完成全部处理, 结果: {task_sequence}")
-
-        for task in task_sequence:
-            match task["task_type"]:
-                case "战斗":
-                    self.battle_1_n_n(
-                        quest_list=task["task_args"],
-                        extra_title=text_
-                    )
-                    main_task_active = True
-                    active_singleton = False
-                case "战斗-多线程":
-                    self.signal_start_todo_2_battle.emit({
-                        "quest_list": task["task_args"]["solo_quests_2"],
-                        "extra_title": f"{text_}] [多线程单人",
-                        "need_lock": True
-                    })
-                    self.battle_1_n_n(
-                        quest_list=task["task_args"]["solo_quests_1"],
-                        extra_title=f"{text_}] [多线程单人",
-                        need_lock=True)
-                    main_task_active = True
-                    active_singleton = False
-
-                case "双暴卡":
-                    self.batch_use_items_double_card(
-                        player=task["task_args"]["player"],
-                        max_times=task["task_args"]["max_times"]
-                    )
-                    main_task_active = True
-
-                case "刷新游戏":
-                    self.batch_reload_game(
-                        player=task["task_args"]["player"],
-                    )
-
-                case "清背包":
-                    self.batch_level_2_action(
-                        player=task["task_args"]["player"],
-                        delete_item=True,
-                        dark_crystal=False
-                    )
-                    main_task_active = True
-                    active_singleton = False
-
-                case "兑换暗晶":
-                    self.batch_level_2_action(
-                        player=task["task_args"]["player"],
-                        delete_item=False,
-                        dark_crystal=True
-                    )
-                    main_task_active = True
-                    active_singleton = False
-
-                case "领取任务奖励":
-                    all_quests = {
-                        "normal": "普通任务",
-                        "guild": "公会任务",
-                        "spouse": "情侣任务",
-                        "offer_reward": "悬赏任务",
-                        "food_competition": "美食大赛",
-                        "monopoly": "大富翁",
-                        "camp": "营地任务"
-                    }
-                    self.batch_receive_all_quest_rewards(
-                        player=task["task_args"]["player"],
-                        quests=[v for k, v in all_quests.items() if task["task_args"][k]]
-                    )
-                    main_task_active = True
-                    active_singleton = False
-
-                case "签到":
-                    # 二级密码 - 删除物品(可选)
-                    self.batch_level_2_action(player=[1, 2], delete_item=True, dark_crystal=False)
-                    # 领取温馨礼包(可选)
-                    self.batch_get_warm_gift(player=task["task_args"]["player"])
-                    # 日氪(可选)
-                    self.batch_top_up_money(player=task["task_args"]["player"])
-                    # 常规日常签到
-                    self.batch_sign_in(player=task["task_args"]["player"])
-                    main_task_active = True
-                    active_singleton = False
-
-                case "施肥浇水摘果":
-                    self.batch_fed_and_watered(
-                        player=task["task_args"]["player"]
-                    )
-                    main_task_active = True
-                    active_singleton = False
-
-                case "公会任务":
-                    self.guild_or_spouse_quest(
-                        text_="公会任务",
-                        quest_mode="公会任务",
-                        global_plan_active=task["task_args"]["global_plan_active"],
-                        deck=task["task_args"]["deck"],
-                        battle_plan_1p=task["task_args"]["battle_plan_1p"],
-                        battle_plan_2p=task["task_args"]["battle_plan_2p"],
-                        battle_plan_tweak=task["task_args"]["battle_plan_tweak"],
-                        stage=task["task_args"]["cross_server"],
-                    )
-                    main_task_active = True
-                    active_singleton = False
-
-                case "情侣任务":
-                    self.guild_or_spouse_quest(
-                        text_="情侣任务",
-                        quest_mode="情侣任务",
-                        global_plan_active=task["task_args"]["global_plan_active"],
-                        deck=task["task_args"]["deck"],
-                        battle_plan_1p=task["task_args"]["battle_plan_1p"],
-                        battle_plan_2p=task["task_args"]["battle_plan_2p"],
-                        battle_plan_tweak=task["task_args"]["battle_plan_tweak"],
-                    )
-                    main_task_active = True
-                    active_singleton = False
-
-                case "使用消耗品":
-                    self.batch_use_items_consumables(
-                        player=task["task_args"]["player"],
-                    )
-                    main_task_active = True
-                    active_singleton = False
-
-                case "查漏补缺":
-                    self.checking_undo(player=task["task_args"]["player"], )
-                    main_task_active = True
-                    active_singleton = False
-
-                case "天知强卡器":
-                    self.tce(
-                        player=task["task_args"]["player"]
-                    )
-                    main_task_active = True
-                    active_singleton = False
-
-                case "美食大赛":
-                    self.auto_food()
-                    main_task_active = True
-                    active_singleton = False
-
-                case "跨服刷威望":
-                    self.batch_loop_cross_server(
-                        player=task["task_args"]["player"],
-                        deck=1,
-                        name="威望")
-                    main_task_active = True
-                    active_singleton = False
-
-                case "扫描任务列表":
-                    all_quests = {
-                        "scan": "扫描",
-                        "battle": "刷关"
-                    }
-                    self.batch_scan_all_task(
-                        player=task["task_args"]["player"],
-                        quests=[v for k, v in all_quests.items() if task["task_args"][k]]
-                    )
-                    main_task_active = True
-                    active_singleton = False
-
-                case "自建房战斗":
-                    self.easy_battle(
-                        text_="自建房战斗",
-                        stage_id=task["task_args"]["stage_id"],
-                        player=task["task_args"]["player"],
-                        max_times=int(task["task_args"]["max_times"]),
-                        global_plan_active=task["task_args"]["global_plan_active"],
-                        deck=task["task_args"]["deck"],
-                        battle_plan_1p=task["task_args"]["battle_plan_1p"],
-                        battle_plan_2p=task["task_args"]["battle_plan_2p"],
-                        dict_exit={
-                            "other_time_player_a": [],
-                            "other_time_player_b": [],
-                            "last_time_player_a": [],
-                            "last_time_player_b": []
-                        },
-                        is_cu=True
-                    )
-                    active_singleton = True
-                case "任务序列":
-                    main_task_active, in_active_singleton = self.task_sequence(
-                        text_="自定义任务序列",
-                        task_begin_id=task["task_args"]["sequence_integer"],
-                        task_sequence_uuid=task["task_args"]["task_sequence_uuid"])
-                    active_singleton = active_singleton and in_active_singleton
-        # 战斗结束
-        self.model_end_print(text=text_)
-        return main_task_active, active_singleton
-
-    def auto_food(self):
-
-        def a_round():
-            """
-            一轮美食大赛战斗
-            :return: 是否还有任务在美食大赛中
-            """
-
-            # 两个号分别读取任务
-            SIGNAL.PRINT_TO_UI.emit(text=f"[全自动大赛] [1P] 文字识别结果如下: ", color_level=2)
-            quest_list_1 = self.faa_dict[1].match_quests(mode="美食大赛-新")
-
-            SIGNAL.PRINT_TO_UI.emit(text=f"[全自动大赛] [2P] 文字识别结果如下: ", color_level=2)
-            quest_list_2 = self.faa_dict[2].match_quests(mode="美食大赛-新")
-
-            quest_list = quest_list_1 + quest_list_2
-
-            if not quest_list:
-                SIGNAL.PRINT_TO_UI.emit(text=f"[全自动大赛] 识别不到任何任务, 已完成")
-                return False
-
-            # 去重两边都一毛一样的双人任务
-            unique_data = []
-            for quest in quest_list:
-                if quest not in unique_data:
-                    unique_data.append(quest)
-            quest_list = unique_data
-
-            # 初始化尝试次数记录
-            for quest in quest_list:
-                quest_key = (str(quest["player"]), quest["quest_text"])
-                if quest_key not in self.auto_food_try_count_dict.keys():
-                    self.auto_food_try_count_dict[quest_key] = 0
-
-            # 去除尝试过多的任务
-            quest_list_will_do = []
-            for quest in quest_list:
-                if self.auto_food_try_count_dict[(str(quest["player"]), quest["quest_text"])] < 3:
-                    quest_list_will_do.append(quest)
-                else:
-                    quest["tag"] = "禁用, 尝试过多"
-
-            CUS_LOGGER.info("[全自动大赛] 去除 **多次尝试禁用** 任务后, 列表如下:")
-            for quest in quest_list_will_do:
-                CUS_LOGGER.info(quest)
-
-            # 全部单人任务
-            solo_quests = [quest for quest in quest_list_will_do if len(quest["player"]) == 1]
-            # 全部双人任务
-            multi_player_quests = [quest for quest in quest_list_will_do if len(quest["player"]) > 1]
-
-            if solo_quests:
-                quest_list_will_do = solo_quests if solo_quests else multi_player_quests
-                for quest in multi_player_quests:
-                    quest["tag"] = "暂时跳过, 先做单人任务"
-            else:
-                if multi_player_quests:
-                    quest_list_will_do = multi_player_quests
-                    # 找到 stage_id 最小的任务, 并只执行该关卡对应的双人任务, 以减少次数
-                    min_stage_id = quest_list_will_do[0]["stage_id"]
-                    quest_list_min_stage_id = [
-                        quest for quest in quest_list_will_do if quest["stage_id"] == min_stage_id]
-                    # 找到限制条件最多的任务, 以减少次数
-                    quest_list_min_stage_id = [max(
-                        quest_list_min_stage_id, key=lambda x: len(x["ban_card_list"]) if x["ban_card_list"] else 0)]
-                    # 关卡id更大的任务打tag 先不做它
-                    for quest in quest_list_will_do:
-                        if quest not in quest_list_min_stage_id:
-                            quest["tag"] = "暂时跳过, 先做关卡id小的任务"
-                    quest_list_will_do = quest_list_min_stage_id
-                else:
-                    return False
-
-            # 记录 尝试次数
-            for quest in quest_list_will_do:
-                quest_key = (str(quest["player"]), quest["quest_text"])
-                self.auto_food_try_count_dict[quest_key] += 1
-
-            # 生成输出的文本
-            texts_list = []
-            for i in range(len(quest_list)):
-                quest = quest_list[i]
-
-                if len(quest["player"]) == 2:
-                    player_text = "组队"
-                else:
-                    player_text = f"单人{quest['player'][0]}P"
-
-                text_parts = [
-                    f"[全自动大赛] 事项{i + 1}",
-                    f"{player_text}",
-                    f"{quest['stage_id']}",
-                    "用钥匙" if quest["need_key"] else "无钥匙",
-                    f"{quest['max_times']}次",
-                ]
-
-                quest_card = quest.get("quest_card", None)
-                if quest_card:
-                    text_parts.append(f"带卡:{quest_card}")
-
-                ban_card_list = quest.get("ban_card_list", None)
-                if ban_card_list:
-                    text_parts.append(f"禁卡:{ban_card_list}")
-
-                max_card_num = quest.get("max_card_num", None)
-                if max_card_num:
-                    text_parts.append(f"限数:{max_card_num}")
-
-                vase_num = quest.get("vase_player", None)
-                if vase_num:
-                    text_parts.append(f"设置为花瓶的玩家:{vase_num}p")
-
-                quest_tag = quest.get("tag", "即将执行")
-                if "暂时跳过" not in quest_tag:
-                    # 输出尝试次数
-                    quest_try_times = self.auto_food_try_count_dict[(str(quest["player"]), quest["quest_text"])]
-                    text_parts.append(f"尝试次数:{quest_try_times}/3")
-                text_parts.append(f"{quest_tag}")
-
-                text = ",".join(text_parts)
-                texts_list.append(text)
-
-            # 输出识别结果
-            SIGNAL.PRINT_TO_UI.emit(text="[全自动大赛] 步骤: 识别任务目标, 已完成, 结果如下:", color_level=2)
-            for text in texts_list:
-                SIGNAL.PRINT_TO_UI.emit(text=text, color_level=2)
-
-            # 双线程单人 or 单线程双人启动
-            if solo_quests:
-
-                solo_quests_1 = [quest for quest in quest_list_will_do if 1 in quest.get('player', [])]
-                solo_quests_2 = [quest for quest in quest_list_will_do if 2 in quest.get('player', [])]
-
-                if solo_quests_1 and solo_quests_2:
-                    self.signal_start_todo_2_battle.emit({
-                        "quest_list": solo_quests_2,
-                        "extra_title": "多线程单人] [2P",
-                        "need_lock": True
-                    })
-                    self.battle_1_n_n(
-                        quest_list=solo_quests_1,
-                        extra_title="多线程单人] [1P",
-                        need_lock=True)
-                else:
-                    self.battle_1_n_n(quest_list=quest_list_will_do)
-
-            else:
-                self.battle_1_n_n(quest_list=quest_list_will_do)
-
-            return True
-
-        def auto_food_main():
-            text_ = "全自动大赛"
-            self.model_start_print(text=text_)
-
-            # 先领一下已经完成的大赛任务
-            self.faa_dict[1].action_receive_quest_rewards(mode="美食大赛")
-            self.faa_dict[2].action_receive_quest_rewards(mode="美食大赛")
-
-            # 重置美食大赛任务 ban dict
-            # 用于防止缺乏钥匙/次数时无限重复某些关卡, key: (player: int, quest_text: str), value: int
-            self.auto_food_try_count_dict = {}
-
-            i = 0
-            while True:
-                i += 1
-                SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 第{i}次循环，开始", color_level=1)
-
-                round_result = a_round()
-
-                SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 第{i}次循环，结束", color_level=1)
-                if not round_result:
-                    break
-
-            SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 所有被记录的任务已完成!", color_level=1)
-
-            self.model_end_print(text=text_)
-
-        auto_food_main()
-
-    """使用battle_1_n_n为核心的变种 [双线程][单人]"""
-
-    def checking_undo(self, player: list = None):
-
-        title_text = "查漏补缺"
-
-        player = self.check_player(title=title_text, player=player)
-
-        self.model_start_print(text=title_text)
-        # 创建进程 -> 开始进程 -> 阻塞主进程
-        if 1 in player:
-            self.thread_1p = ThreadWithException(
-                target=self.faa_dict[1].check_not_doing,
-                name="1P Thread - CheckingNotDoing",
-                kwargs={})
-            self.thread_1p.start()
-
-        if 1 in player and 2 in player:
-            sleep(0.333)
-
-        if 2 in player:
-            self.thread_2p = ThreadWithException(
-                target=self.faa_dict[2].check_not_doing,
-                name="2P Thread - CheckingNotDoing",
-                kwargs={})
-            self.thread_2p.start()
-        quest_list_1 = []
-        quest_list_2 = []
-        reputation_status_1 = 0
-        reputation_status_2 = 0
-        completed_fertilization_1 = False
-        completed_fertilization_2 = False
-        if 1 in player:
-            quest_list_1, reputation_status_1, reputation_now_1, completed_fertilization_1 = self.thread_1p.get_return_value()
-        if 2 in player:
-            quest_list_2, reputation_status_2, reputation_now_2, completed_fertilization_2 = self.thread_2p.get_return_value()
-        quest_list = quest_list_1 + [i for i in quest_list_2 if i not in quest_list_1]
-        # 再执行公会任务
-        if quest_list:
-            self.battle_1_n_n(quest_list=quest_list)
-            # 创建进程 -> 开始进程 -> 阻塞主进程
-            if 1 in player:
-                self.thread_1p = ThreadWithException(
-                    target=self.faa_dict[1].check_task_of_guild,
-                    name="1P Thread - CheckingGuild",
-                    kwargs={})
-                self.thread_1p.start()
-
-            if 1 in player and 2 in player:
-                sleep(0.333)
-
-            if 2 in player:
-                self.thread_2p = ThreadWithException(
-                    target=self.faa_dict[2].check_task_of_guild,
-                    name="2P Thread - CheckingGuild",
-                    kwargs={})
-                self.thread_2p.start()
-            if 1 in player:
-                quest_list_1, _ = self.thread_1p.get_return_value()
-                if len(quest_list_1) > 0:
-                    SIGNAL.DIALOG.emit(
-                        "查漏补缺报告",
-                        f"1p仍然存在未完成刷关任务，可能为缺乏指定卡片/方案缺失/刷关失败，请检查\n")
-                else:
-                    CUS_LOGGER.warning(f"1p完成公会任务查漏补缺")
-            if 2 in player:
-                quest_list_2, _ = self.thread_2p.get_return_value()
-                if len(quest_list_2) > 0:
-                    SIGNAL.DIALOG.emit(
-                        "查漏补缺报告",
-                        f"2p仍然存在未完成刷关任务，可能为缺乏指定卡片/方案缺失/刷关失败，请检查\n")
-                else:
-                    CUS_LOGGER.warning(f"2p完成公会任务查漏补缺")
-        if 1 in player and completed_fertilization_1:  # 未完成施肥的则进行施肥
-            self.thread_1p = ThreadWithException(
-                target=self.faa_dict[1].fed_and_watered,
-                name=f"1P Thread - FedAndWatered",
-                kwargs={})
-            self.thread_1p.start()
-            self.thread_1p.join()
-        if 2 in player and completed_fertilization_2:
-            self.thread_2p = ThreadWithException(
-                target=self.faa_dict[2].fed_and_watered,
-                name=f"2P Thread - FedAndWatered",
-                kwargs={})
-            self.thread_2p.start()
-            self.thread_2p.join()
-        if (1 in player and reputation_status_1 != 2) or (2 in player and reputation_status_2 != 2):
-            now_player = [2, 1] if 2 in player else [1]
-            for max_stage in [4, 3, 2, 1]:  # 从高到低测出最高声望可能关卡
-                quest_list = [{
-                    "player": now_player,
-                    "need_key": True,
-                    "global_plan_active": True,
-                    "deck": 0,
-                    "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-                    "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-                    "stage_id": "OR-0-" + str(max_stage),
-                    "max_times": 1,
-                    "dict_exit": {
-                        "other_time_player_a": [],
-                        "other_time_player_b": [],
-                        "last_time_player_a": ["竞技岛"],
-                        "last_time_player_b": ["竞技岛"]}
-                }]
-
-                self.battle_1_n_n(quest_list=quest_list)
-                if 1 in player and reputation_status_1 != 2:
-                    self.thread_1p = ThreadWithException(
-                        target=self.faa_dict[1].check_task_of_bounty,
-                        name="1P Thread - CheckingBounty",
-                        kwargs={})
-                    self.thread_1p.start()
-
-                if 1 in player and 2 in player and reputation_status_1 != 2 and reputation_status_2 != 2:
-                    sleep(0.333)
-
-                if 2 in player and reputation_status_2 != 2:
-                    self.thread_2p = ThreadWithException(
-                        target=self.faa_dict[2].check_task_of_bounty,
-                        name="2P Thread - CheckingBounty",
-                        kwargs={})
-                    self.thread_2p.start()
-                if 1 in player and reputation_status_1 != 2:
-                    new_reputation_status, new_reputation_now = self.thread_1p.get_return_value()
-                    if new_reputation_status == 2:  # 检查声望是否打满
-                        reputation_status_1 = new_reputation_status
-                    else:
-                        # 查找声望对比原来是否改变
-                        status, _ = match_p_in_w(
-                            template=new_reputation_now,
-                            source_img=reputation_now_1,
-                            match_tolerance=0.95,
-                            test_show=False
-                        )
-                        if status == 2:  # 声望没有变化
-                            SIGNAL.DIALOG.emit(
-                                "查漏补缺报告",
-                                f"1p声望悬赏第{max_stage}关失败，请自行检查\n")
-                            continue
-                        else:
-                            break
-
-                if 2 in player and reputation_status_2 != 2:
-                    new_reputation_status, new_reputation_now = self.thread_2p.get_return_value()
-                    if new_reputation_status == 2:
-                        reputation_status_2 = new_reputation_status
-                    else:
-                        status, _ = match_p_in_w(
-                            template=new_reputation_now,
-                            source_img=reputation_now_2,
-                            match_tolerance=0.95,
-                            test_show=False
-                        )
-                        if status == 2:
-                            SIGNAL.DIALOG.emit(
-                                "查漏补缺报告",
-                                f"2p声望悬赏第{max_stage}关失败，请自行检查\n")
-                            continue
-                        else:
-                            break
-            count = 0
-            MaxBountyTime = 11
-            while (reputation_status_1 != 2 or reputation_status_2 != 2) and count < MaxBountyTime:
-                quest_list = [{
-                    "player": now_player,
-                    "need_key": True,
-                    "global_plan_active": True,
-                    "deck": 0,
-                    "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-                    "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-                    "stage_id": "OR-0-" + str(max_stage),
-                    "max_times": 1,
-                    "dict_exit": {
-                        "other_time_player_a": [],
-                        "other_time_player_b": [],
-                        "last_time_player_a": ["竞技岛"],
-                        "last_time_player_b": ["竞技岛"]}
-                }]
-                self.battle_1_n_n(quest_list=quest_list)
-                count += 1
-                # 打完一把检查是否声望满了
-                if 1 in player and reputation_status_1 != 2:
-                    self.thread_1p = ThreadWithException(
-                        target=self.faa_dict[1].check_task_of_bounty,
-                        name="1P Thread - CheckingBounty",
-                        kwargs={})
-                    self.thread_1p.start()
-
-                if 1 in player and 2 in player and reputation_status_1 != 2 and reputation_status_2 != 2:
-                    sleep(0.333)
-
-                if 2 in player and reputation_status_2 != 2:
-                    self.thread_2p = ThreadWithException(
-                        target=self.faa_dict[2].check_task_of_bounty,
-                        name="2P Thread - CheckingBounty",
-                        kwargs={})
-                    self.thread_2p.start()
-                if 1 in player and reputation_status_1 != 2:
-                    new_reputation_status, new_reputation_now = self.thread_1p.get_return_value()
-                    if new_reputation_status == 2:  # 检查声望是否打满
-                        reputation_status_1 = new_reputation_status
-
-                if 2 in player and reputation_status_2 != 2:
-                    new_reputation_status, new_reputation_now = self.thread_2p.get_return_value()
-                    if new_reputation_status == 2:
-                        reputation_status_2 = new_reputation_status
-            if count == MaxBountyTime:
-                # 有个不大不小的奇妙bug，当背包满了的时候，会导致无法领取奖励，进而使悬赏刷关无法跳转
-                SIGNAL.DIALOG.emit(
-                    "查漏补缺报告",
-                    f"声望刷取次数过多，请自行检查\n")
-            else:
-                CUS_LOGGER.warning(f"声望刷满任务完成")
-
-        self.model_end_print(text=title_text)
+    """
+    使用battle_1_n_n为核心的变种 [双线程][单人]
+    """
 
     def alone_magic_tower(self):
 
@@ -3181,7 +2413,794 @@ class ThreadTodo(QThread):
 
         main()
 
-    """天知强卡器"""
+    """
+    高级模式
+    """
+
+    def task_sequence(self, text_, task_begin_id: int, task_sequence_uuid: str):
+        """
+        自定义任务序列
+        :param text_: 其实是title
+        :param task_begin_id: 从第几号任务开始
+        :param task_sequence_uuid: 任务序列的UUID
+        :return:
+        """
+
+        def merge_continuous_battle_task(task_sequence: list):
+            """将任务序列中, 连续的独立战斗事项完整合并"""
+            task_list = []
+            battle_dict = {
+                "task_type": "战斗",
+                "task_args": []
+            }
+            for task in task_sequence:
+                if task["task_type"] == "战斗":
+                    task["task_args"]["battle_id"] = task["task_id"]
+                    battle_dict["task_args"].append(task["task_args"])
+                else:
+                    # 出现非战斗事项
+                    if battle_dict["task_args"]:
+                        task_list.append(battle_dict)
+                        battle_dict = {
+                            "task_type": "战斗",
+                            "task_args": []
+                        }
+                    task_list.append(task)
+            # 保存末位战斗
+            if battle_dict["task_args"]:
+                task_list.append(battle_dict)
+
+            return task_list
+
+        def normal_battle_task_to_d_thread(task_sequence):
+            """
+            将自定义任务序列中完成合并的 连续的 战斗任务, 智能拆分组合 为连续的多线程单人 或 单线程 战斗任务
+            原则: 连续的一段, 有且仅有1p2p单独参与的任务, 将被智能分配到多线程单人. 且 无视12p之间的前后任务顺序!
+            :param task_sequence:
+            :return: example:
+            {
+                {
+                    "task_type": 战斗.
+                    "task_args": [stage_info: dict, ...]
+                },{
+                    "task_type": 战斗-多线程.
+                    "task_args": {
+                        "solo_quests_1": [stage_info: dict, ...],
+                        "solo_quests_2": [stage_info: dict, ...]
+                    }
+                }
+            }
+
+            """
+
+            def to_double_thread_args(quest_info_list):
+                solo_quests_1 = []
+                solo_quests_2 = []
+                for quest_info_solo in quest_info_list:
+                    if quest_info_solo["player"] == [1]:
+                        solo_quests_1.append(quest_info_solo)
+                    if quest_info_solo["player"] == [2]:
+                        solo_quests_2.append(quest_info_solo)
+                return {
+                    "solo_quests_1": solo_quests_1,
+                    "solo_quests_2": solo_quests_2
+                }
+
+            return_task_list = []
+            for task in task_sequence:
+
+                # 非战斗任务事项不变
+                if task["task_type"] != "战斗":
+                    return_task_list.append(task)
+                    continue
+
+                p1_active = False
+                p2_active = False
+                multi_player_task_list = []
+                one_player_task_list = []
+                unknown_task_list = []
+
+                for quest_info in task["task_args"]:
+                    # 有双人任务, 此前的单人任务完成添加
+                    if len(quest_info["player"]) == 2:
+                        if one_player_task_list:
+                            return_task_list.append({
+                                "task_type": "战斗-多线程",
+                                "task_args": to_double_thread_args(quest_info_list=one_player_task_list)
+                            })
+                            one_player_task_list = []
+                        if unknown_task_list:
+                            multi_player_task_list += unknown_task_list
+                            unknown_task_list = []
+                        multi_player_task_list.append(quest_info)
+                        p1_active = False
+                        p2_active = False
+
+                    elif len(quest_info["player"]) == 1:
+                        if quest_info["player"] == [1]:
+                            p1_active = True
+                        if quest_info["player"] == [2]:
+                            p2_active = True
+                        if not (p1_active and p2_active):
+                            unknown_task_list.append(quest_info)
+                        else:
+                            if multi_player_task_list:
+                                return_task_list.append({
+                                    "task_type": "战斗",
+                                    "task_args": multi_player_task_list
+                                })
+                                multi_player_task_list = []
+                            if unknown_task_list:
+                                one_player_task_list += unknown_task_list
+                                unknown_task_list = []
+                            one_player_task_list.append(quest_info)
+
+                # 收尾工作
+                if unknown_task_list:
+                    return_task_list.append({
+                        "task_type": "战斗",
+                        "task_args": multi_player_task_list + unknown_task_list
+                    })
+                else:
+                    if multi_player_task_list:
+                        return_task_list.append({
+                            "task_type": "战斗",
+                            "task_args": multi_player_task_list
+                        })
+                    if one_player_task_list:
+                        return_task_list.append({
+                            "task_type": "战斗-多线程",
+                            "task_args": to_double_thread_args(quest_info_list=one_player_task_list)
+                        })
+
+            return return_task_list
+
+        def read_json_to_task_sequence(uuid):
+            # 通过UUID获取任务序列索引
+            if self.task_sequence_uuid:
+                # 获取任务序列列表和UUID映射
+                task_sequence_list = get_task_sequence_list(with_extension=True)
+                if hasattr(EXTRA, 'TASK_SEQUENCE_UUID_TO_PATH'):
+                    uuid_list = list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
+                    try:
+                        # 通过UUID查找索引
+                        task_sequence_index = uuid_list.index(uuid)
+                    except ValueError:
+                        # UUID未找到，使用默认索引0
+                        task_sequence_index = 0
+                else:
+                    # 没有UUID映射，使用默认索引0
+                    task_sequence_index = 0
+            else:
+                # 没有提供UUID，使用默认索引0
+                task_sequence_index = 0
+
+            task_sequence_list = get_task_sequence_list(with_extension=True)
+            task_sequence_path = "{}\\{}".format(
+                PATHS["task_sequence"],
+                task_sequence_list[task_sequence_index]
+            )
+
+            with EXTRA.FILE_LOCK:
+                with open(file=task_sequence_path, mode="r", encoding="UTF-8") as file:
+                    data = json.load(file)
+
+            return data
+
+        # 读取json文件
+        task_sequence = read_json_to_task_sequence(task_sequence_uuid)
+        main_task_active = False
+        active_singleton = False
+        # 获取最大task_id
+        max_tid = 1
+        for quest in task_sequence:
+            if "meta_data" in quest:
+                continue
+            max_tid = max(max_tid, quest["task_id"])
+
+        if task_begin_id > max_tid:
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 开始事项id > 该方案最高id! 将直接跳过!")
+            return
+
+        # 由于任务id从1开始, 故需要减1
+        # 去除序号小于stage_begin的任务
+        task_sequence = [
+            task for task in task_sequence
+            if not task.get("meta_data", False) and task.get("enabled", True) and task["task_id"] >= task_begin_id
+        ]
+        # 根据战斗和其他事项拆分 让战斗事项的参数构成 n本 n次 为一组的汇总
+        task_sequence = merge_continuous_battle_task(task_sequence=task_sequence)
+        # 让战斗事项按 多线程单人 和 单线程常规 拆分
+        task_sequence = normal_battle_task_to_d_thread(task_sequence=task_sequence)
+
+        CUS_LOGGER.debug(f"自定义任务序列, 已完成全部处理, 结果: {task_sequence}")
+
+        for task in task_sequence:
+            match task["task_type"]:
+                case "战斗":
+                    self.battle_1_n_n(
+                        quest_list=task["task_args"],
+                        extra_title=None
+                    )
+                    main_task_active = True
+                    active_singleton = False
+                case "战斗-多线程":
+                    self.signal_start_todo_2_battle.emit({
+                        "quest_list": task["task_args"]["solo_quests_2"],
+                        "extra_title": f"[多线程单人",
+                        "need_lock": True
+                    })
+                    self.battle_1_n_n(
+                        quest_list=task["task_args"]["solo_quests_1"],
+                        extra_title=f"多线程单人",
+                        need_lock=True)
+                    main_task_active = True
+                    active_singleton = False
+
+                case "双暴卡":
+                    self.batch_use_items_double_card(
+                        player=task["task_args"]["player"],
+                        max_times=task["task_args"]["max_times"]
+                    )
+                    main_task_active = True
+
+                case "刷新游戏":
+                    self.batch_reload_game(
+                        player=task["task_args"]["player"],
+                    )
+
+                case "清背包":
+                    self.batch_level_2_action(
+                        player=task["task_args"]["player"],
+                        delete_item=True,
+                        dark_crystal=False
+                    )
+                    main_task_active = True
+                    active_singleton = False
+
+                case "兑换暗晶":
+                    self.batch_level_2_action(
+                        player=task["task_args"]["player"],
+                        delete_item=False,
+                        dark_crystal=True
+                    )
+                    main_task_active = True
+                    active_singleton = False
+
+                case "领取任务奖励":
+                    all_quests = {
+                        "normal": "普通任务",
+                        "guild": "公会任务",
+                        "spouse": "情侣任务",
+                        "offer_reward": "悬赏任务",
+                        "food_competition": "美食大赛",
+                        "monopoly": "大富翁",
+                        "camp": "营地任务"
+                    }
+                    self.batch_receive_all_quest_rewards(
+                        player=task["task_args"]["player"],
+                        quests=[v for k, v in all_quests.items() if task["task_args"][k]]
+                    )
+                    main_task_active = True
+                    active_singleton = False
+
+                case "签到":
+                    # 二级密码 - 删除物品(可选)
+                    self.batch_level_2_action(player=[1, 2], delete_item=True, dark_crystal=False)
+                    # 领取温馨礼包(可选)
+                    self.batch_get_warm_gift(player=task["task_args"]["player"])
+                    # 日氪(可选)
+                    self.batch_top_up_money(player=task["task_args"]["player"])
+                    # 常规日常签到
+                    self.batch_sign_in(player=task["task_args"]["player"])
+                    main_task_active = True
+                    active_singleton = False
+
+                case "施肥浇水摘果":
+                    self.batch_fed_and_watered(
+                        player=task["task_args"]["player"]
+                    )
+                    main_task_active = True
+                    active_singleton = False
+
+                case "公会任务":
+                    self.guild_or_spouse_quest(
+                        text_="公会任务",
+                        quest_mode="公会任务",
+                        global_plan_active=task["task_args"]["global_plan_active"],
+                        deck=task["task_args"]["deck"],
+                        battle_plan_1p=task["task_args"]["battle_plan_1p"],
+                        battle_plan_2p=task["task_args"]["battle_plan_2p"],
+                        battle_plan_tweak=task["task_args"]["battle_plan_tweak"],
+                        stage=task["task_args"]["cross_server"],
+                    )
+                    main_task_active = True
+                    active_singleton = False
+
+                case "情侣任务":
+                    self.guild_or_spouse_quest(
+                        text_="情侣任务",
+                        quest_mode="情侣任务",
+                        global_plan_active=task["task_args"]["global_plan_active"],
+                        deck=task["task_args"]["deck"],
+                        battle_plan_1p=task["task_args"]["battle_plan_1p"],
+                        battle_plan_2p=task["task_args"]["battle_plan_2p"],
+                        battle_plan_tweak=task["task_args"]["battle_plan_tweak"],
+                    )
+                    main_task_active = True
+                    active_singleton = False
+
+                case "使用消耗品":
+                    self.batch_use_items_consumables(
+                        player=task["task_args"]["player"],
+                    )
+                    main_task_active = True
+                    active_singleton = False
+
+                case "查漏补缺":
+                    self.checking_undo(player=task["task_args"]["player"], )
+                    main_task_active = True
+                    active_singleton = False
+
+                case "天知强卡器":
+                    self.tce(
+                        player=task["task_args"]["player"]
+                    )
+                    main_task_active = True
+                    active_singleton = False
+
+                case "美食大赛":
+                    self.auto_food()
+                    main_task_active = True
+                    active_singleton = False
+
+                case "跨服刷威望":
+                    self.batch_loop_cross_server(
+                        player=task["task_args"]["player"],
+                        deck=1,
+                        name="威望")
+                    main_task_active = True
+                    active_singleton = False
+
+                case "扫描任务列表":
+                    all_quests = {
+                        "scan": "扫描",
+                        "battle": "刷关"
+                    }
+                    self.batch_scan_all_task(
+                        player=task["task_args"]["player"],
+                        quests=[v for k, v in all_quests.items() if task["task_args"][k]]
+                    )
+                    main_task_active = True
+                    active_singleton = False
+
+                case "自建房战斗":
+                    self.easy_battle(
+                        text_="自建房战斗",
+                        stage_id=task["task_args"]["stage_id"],
+                        player=task["task_args"]["player"],
+                        max_times=int(task["task_args"]["max_times"]),
+                        global_plan_active=task["task_args"]["global_plan_active"],
+                        deck=task["task_args"]["deck"],
+                        battle_plan_1p=task["task_args"]["battle_plan_1p"],
+                        battle_plan_2p=task["task_args"]["battle_plan_2p"],
+                        dict_exit={
+                            "other_time_player_a": [],
+                            "other_time_player_b": [],
+                            "last_time_player_a": [],
+                            "last_time_player_b": []
+                        },
+                        is_cu=True
+                    )
+                    active_singleton = True
+                case "任务序列":
+                    main_task_active, in_active_singleton = self.task_sequence(
+                        text_="自定义任务序列",
+                        task_begin_id=task["task_args"]["sequence_integer"],
+                        task_sequence_uuid=task["task_args"]["task_sequence_uuid"])
+                    active_singleton = active_singleton and in_active_singleton
+        # 战斗结束
+        self.model_end_print(text=text_)
+        return main_task_active, active_singleton
+
+    def checking_undo(self, player: list = None):
+
+        title_text = "查漏补缺"
+
+        player = self.check_player(title=title_text, player=player)
+
+        self.model_start_print(text=title_text)
+        # 创建进程 -> 开始进程 -> 阻塞主进程
+        if 1 in player:
+            self.thread_1p = ThreadWithException(
+                target=self.faa_dict[1].check_not_doing,
+                name="1P Thread - CheckingNotDoing",
+                kwargs={})
+            self.thread_1p.start()
+
+        if 1 in player and 2 in player:
+            sleep(0.333)
+
+        if 2 in player:
+            self.thread_2p = ThreadWithException(
+                target=self.faa_dict[2].check_not_doing,
+                name="2P Thread - CheckingNotDoing",
+                kwargs={})
+            self.thread_2p.start()
+        quest_list_1 = []
+        quest_list_2 = []
+        reputation_status_1 = 0
+        reputation_status_2 = 0
+        completed_fertilization_1 = False
+        completed_fertilization_2 = False
+        if 1 in player:
+            quest_list_1, reputation_status_1, reputation_now_1, completed_fertilization_1 = self.thread_1p.get_return_value()
+        if 2 in player:
+            quest_list_2, reputation_status_2, reputation_now_2, completed_fertilization_2 = self.thread_2p.get_return_value()
+        quest_list = quest_list_1 + [i for i in quest_list_2 if i not in quest_list_1]
+        # 再执行公会任务
+        if quest_list:
+            self.battle_1_n_n(quest_list=quest_list)
+            # 创建进程 -> 开始进程 -> 阻塞主进程
+            if 1 in player:
+                self.thread_1p = ThreadWithException(
+                    target=self.faa_dict[1].check_task_of_guild,
+                    name="1P Thread - CheckingGuild",
+                    kwargs={})
+                self.thread_1p.start()
+
+            if 1 in player and 2 in player:
+                sleep(0.333)
+
+            if 2 in player:
+                self.thread_2p = ThreadWithException(
+                    target=self.faa_dict[2].check_task_of_guild,
+                    name="2P Thread - CheckingGuild",
+                    kwargs={})
+                self.thread_2p.start()
+            if 1 in player:
+                quest_list_1, _ = self.thread_1p.get_return_value()
+                if len(quest_list_1) > 0:
+                    SIGNAL.DIALOG.emit(
+                        "查漏补缺报告",
+                        f"1p仍然存在未完成刷关任务，可能为缺乏指定卡片/方案缺失/刷关失败，请检查\n")
+                else:
+                    CUS_LOGGER.warning(f"1p完成公会任务查漏补缺")
+            if 2 in player:
+                quest_list_2, _ = self.thread_2p.get_return_value()
+                if len(quest_list_2) > 0:
+                    SIGNAL.DIALOG.emit(
+                        "查漏补缺报告",
+                        f"2p仍然存在未完成刷关任务，可能为缺乏指定卡片/方案缺失/刷关失败，请检查\n")
+                else:
+                    CUS_LOGGER.warning(f"2p完成公会任务查漏补缺")
+        if 1 in player and completed_fertilization_1:  # 未完成施肥的则进行施肥
+            self.thread_1p = ThreadWithException(
+                target=self.faa_dict[1].fed_and_watered,
+                name=f"1P Thread - FedAndWatered",
+                kwargs={})
+            self.thread_1p.start()
+            self.thread_1p.join()
+        if 2 in player and completed_fertilization_2:
+            self.thread_2p = ThreadWithException(
+                target=self.faa_dict[2].fed_and_watered,
+                name=f"2P Thread - FedAndWatered",
+                kwargs={})
+            self.thread_2p.start()
+            self.thread_2p.join()
+        if (1 in player and reputation_status_1 != 2) or (2 in player and reputation_status_2 != 2):
+            now_player = [2, 1] if 2 in player else [1]
+            for max_stage in [4, 3, 2, 1]:  # 从高到低测出最高声望可能关卡
+                quest_list = [{
+                    "player": now_player,
+                    "need_key": True,
+                    "global_plan_active": True,
+                    "deck": 0,
+                    "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+                    "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+                    "stage_id": "OR-0-" + str(max_stage),
+                    "max_times": 1,
+                    "dict_exit": {
+                        "other_time_player_a": [],
+                        "other_time_player_b": [],
+                        "last_time_player_a": ["竞技岛"],
+                        "last_time_player_b": ["竞技岛"]}
+                }]
+
+                self.battle_1_n_n(quest_list=quest_list)
+                if 1 in player and reputation_status_1 != 2:
+                    self.thread_1p = ThreadWithException(
+                        target=self.faa_dict[1].check_task_of_bounty,
+                        name="1P Thread - CheckingBounty",
+                        kwargs={})
+                    self.thread_1p.start()
+
+                if 1 in player and 2 in player and reputation_status_1 != 2 and reputation_status_2 != 2:
+                    sleep(0.333)
+
+                if 2 in player and reputation_status_2 != 2:
+                    self.thread_2p = ThreadWithException(
+                        target=self.faa_dict[2].check_task_of_bounty,
+                        name="2P Thread - CheckingBounty",
+                        kwargs={})
+                    self.thread_2p.start()
+                if 1 in player and reputation_status_1 != 2:
+                    new_reputation_status, new_reputation_now = self.thread_1p.get_return_value()
+                    if new_reputation_status == 2:  # 检查声望是否打满
+                        reputation_status_1 = new_reputation_status
+                    else:
+                        # 查找声望对比原来是否改变
+                        status, _ = match_p_in_w(
+                            template=new_reputation_now,
+                            source_img=reputation_now_1,
+                            match_tolerance=0.95,
+                            test_show=False
+                        )
+                        if status == 2:  # 声望没有变化
+                            SIGNAL.DIALOG.emit(
+                                "查漏补缺报告",
+                                f"1p声望悬赏第{max_stage}关失败，请自行检查\n")
+                            continue
+                        else:
+                            break
+
+                if 2 in player and reputation_status_2 != 2:
+                    new_reputation_status, new_reputation_now = self.thread_2p.get_return_value()
+                    if new_reputation_status == 2:
+                        reputation_status_2 = new_reputation_status
+                    else:
+                        status, _ = match_p_in_w(
+                            template=new_reputation_now,
+                            source_img=reputation_now_2,
+                            match_tolerance=0.95,
+                            test_show=False
+                        )
+                        if status == 2:
+                            SIGNAL.DIALOG.emit(
+                                "查漏补缺报告",
+                                f"2p声望悬赏第{max_stage}关失败，请自行检查\n")
+                            continue
+                        else:
+                            break
+            count = 0
+            MaxBountyTime = 11
+            while (reputation_status_1 != 2 or reputation_status_2 != 2) and count < MaxBountyTime:
+                quest_list = [{
+                    "player": now_player,
+                    "need_key": True,
+                    "global_plan_active": True,
+                    "deck": 0,
+                    "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+                    "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+                    "stage_id": "OR-0-" + str(max_stage),
+                    "max_times": 1,
+                    "dict_exit": {
+                        "other_time_player_a": [],
+                        "other_time_player_b": [],
+                        "last_time_player_a": ["竞技岛"],
+                        "last_time_player_b": ["竞技岛"]}
+                }]
+                self.battle_1_n_n(quest_list=quest_list)
+                count += 1
+                # 打完一把检查是否声望满了
+                if 1 in player and reputation_status_1 != 2:
+                    self.thread_1p = ThreadWithException(
+                        target=self.faa_dict[1].check_task_of_bounty,
+                        name="1P Thread - CheckingBounty",
+                        kwargs={})
+                    self.thread_1p.start()
+
+                if 1 in player and 2 in player and reputation_status_1 != 2 and reputation_status_2 != 2:
+                    sleep(0.333)
+
+                if 2 in player and reputation_status_2 != 2:
+                    self.thread_2p = ThreadWithException(
+                        target=self.faa_dict[2].check_task_of_bounty,
+                        name="2P Thread - CheckingBounty",
+                        kwargs={})
+                    self.thread_2p.start()
+                if 1 in player and reputation_status_1 != 2:
+                    new_reputation_status, new_reputation_now = self.thread_1p.get_return_value()
+                    if new_reputation_status == 2:  # 检查声望是否打满
+                        reputation_status_1 = new_reputation_status
+
+                if 2 in player and reputation_status_2 != 2:
+                    new_reputation_status, new_reputation_now = self.thread_2p.get_return_value()
+                    if new_reputation_status == 2:
+                        reputation_status_2 = new_reputation_status
+            if count == MaxBountyTime:
+                # 有个不大不小的奇妙bug，当背包满了的时候，会导致无法领取奖励，进而使悬赏刷关无法跳转
+                SIGNAL.DIALOG.emit(
+                    "查漏补缺报告",
+                    f"声望刷取次数过多，请自行检查\n")
+            else:
+                CUS_LOGGER.warning(f"声望刷满任务完成")
+
+        self.model_end_print(text=title_text)
+
+    def auto_food(self):
+
+        def a_round():
+            """
+            一轮美食大赛战斗
+            :return: 是否还有任务在美食大赛中
+            """
+
+            # 两个号分别读取任务
+            SIGNAL.PRINT_TO_UI.emit(text=f"[全自动大赛] [1P] 文字识别结果如下: ", color_level=2)
+            quest_list_1 = self.faa_dict[1].match_quests(mode="美食大赛-新")
+
+            SIGNAL.PRINT_TO_UI.emit(text=f"[全自动大赛] [2P] 文字识别结果如下: ", color_level=2)
+            quest_list_2 = self.faa_dict[2].match_quests(mode="美食大赛-新")
+
+            quest_list = quest_list_1 + quest_list_2
+
+            if not quest_list:
+                SIGNAL.PRINT_TO_UI.emit(text=f"[全自动大赛] 识别不到任何任务, 已完成")
+                return False
+
+            # 去重两边都一毛一样的双人任务
+            unique_data = []
+            for quest in quest_list:
+                if quest not in unique_data:
+                    unique_data.append(quest)
+            quest_list = unique_data
+
+            # 初始化尝试次数记录
+            for quest in quest_list:
+                quest_key = (str(quest["player"]), quest["quest_text"])
+                if quest_key not in self.auto_food_try_count_dict.keys():
+                    self.auto_food_try_count_dict[quest_key] = 0
+
+            # 去除尝试过多的任务
+            quest_list_will_do = []
+            for quest in quest_list:
+                if self.auto_food_try_count_dict[(str(quest["player"]), quest["quest_text"])] < 3:
+                    quest_list_will_do.append(quest)
+                else:
+                    quest["tag"] = "禁用, 尝试过多"
+
+            CUS_LOGGER.info("[全自动大赛] 去除 **多次尝试禁用** 任务后, 列表如下:")
+            for quest in quest_list_will_do:
+                CUS_LOGGER.info(quest)
+
+            # 全部单人任务
+            solo_quests = [quest for quest in quest_list_will_do if len(quest["player"]) == 1]
+            # 全部双人任务
+            multi_player_quests = [quest for quest in quest_list_will_do if len(quest["player"]) > 1]
+
+            if solo_quests:
+                quest_list_will_do = solo_quests if solo_quests else multi_player_quests
+                for quest in multi_player_quests:
+                    quest["tag"] = "暂时跳过, 先做单人任务"
+            else:
+                if multi_player_quests:
+                    quest_list_will_do = multi_player_quests
+                    # 找到 stage_id 最小的任务, 并只执行该关卡对应的双人任务, 以减少次数
+                    min_stage_id = quest_list_will_do[0]["stage_id"]
+                    quest_list_min_stage_id = [
+                        quest for quest in quest_list_will_do if quest["stage_id"] == min_stage_id]
+                    # 找到限制条件最多的任务, 以减少次数
+                    quest_list_min_stage_id = [max(
+                        quest_list_min_stage_id, key=lambda x: len(x["ban_card_list"]) if x["ban_card_list"] else 0)]
+                    # 关卡id更大的任务打tag 先不做它
+                    for quest in quest_list_will_do:
+                        if quest not in quest_list_min_stage_id:
+                            quest["tag"] = "暂时跳过, 先做关卡id小的任务"
+                    quest_list_will_do = quest_list_min_stage_id
+                else:
+                    return False
+
+            # 记录 尝试次数
+            for quest in quest_list_will_do:
+                quest_key = (str(quest["player"]), quest["quest_text"])
+                self.auto_food_try_count_dict[quest_key] += 1
+
+            # 生成输出的文本
+            texts_list = []
+            for i in range(len(quest_list)):
+                quest = quest_list[i]
+
+                if len(quest["player"]) == 2:
+                    player_text = "组队"
+                else:
+                    player_text = f"单人{quest['player'][0]}P"
+
+                text_parts = [
+                    f"[全自动大赛] 事项{i + 1}",
+                    f"{player_text}",
+                    f"{quest['stage_id']}",
+                    "用钥匙" if quest["need_key"] else "无钥匙",
+                    f"{quest['max_times']}次",
+                ]
+
+                quest_card = quest.get("quest_card", None)
+                if quest_card:
+                    text_parts.append(f"带卡:{quest_card}")
+
+                ban_card_list = quest.get("ban_card_list", None)
+                if ban_card_list:
+                    text_parts.append(f"禁卡:{ban_card_list}")
+
+                max_card_num = quest.get("max_card_num", None)
+                if max_card_num:
+                    text_parts.append(f"限数:{max_card_num}")
+
+                vase_num = quest.get("vase_player", None)
+                if vase_num:
+                    text_parts.append(f"设置为花瓶的玩家:{vase_num}p")
+
+                quest_tag = quest.get("tag", "即将执行")
+                if "暂时跳过" not in quest_tag:
+                    # 输出尝试次数
+                    quest_try_times = self.auto_food_try_count_dict[(str(quest["player"]), quest["quest_text"])]
+                    text_parts.append(f"尝试次数:{quest_try_times}/3")
+                text_parts.append(f"{quest_tag}")
+
+                text = ",".join(text_parts)
+                texts_list.append(text)
+
+            # 输出识别结果
+            SIGNAL.PRINT_TO_UI.emit(text="[全自动大赛] 步骤: 识别任务目标, 已完成, 结果如下:", color_level=2)
+            for text in texts_list:
+                SIGNAL.PRINT_TO_UI.emit(text=text, color_level=2)
+
+            # 双线程单人 or 单线程双人启动
+            if solo_quests:
+
+                solo_quests_1 = [quest for quest in quest_list_will_do if 1 in quest.get('player', [])]
+                solo_quests_2 = [quest for quest in quest_list_will_do if 2 in quest.get('player', [])]
+
+                if solo_quests_1 and solo_quests_2:
+                    self.signal_start_todo_2_battle.emit({
+                        "quest_list": solo_quests_2,
+                        "extra_title": "多线程单人] [2P",
+                        "need_lock": True
+                    })
+                    self.battle_1_n_n(
+                        quest_list=solo_quests_1,
+                        extra_title="多线程单人] [1P",
+                        need_lock=True)
+                else:
+                    self.battle_1_n_n(quest_list=quest_list_will_do)
+
+            else:
+                self.battle_1_n_n(quest_list=quest_list_will_do)
+
+            return True
+
+        def auto_food_main():
+            text_ = "全自动大赛"
+            self.model_start_print(text=text_)
+
+            # 先领一下已经完成的大赛任务
+            self.faa_dict[1].action_receive_quest_rewards(mode="美食大赛")
+            self.faa_dict[2].action_receive_quest_rewards(mode="美食大赛")
+
+            # 重置美食大赛任务 ban dict
+            # 用于防止缺乏钥匙/次数时无限重复某些关卡, key: (player: int, quest_text: str), value: int
+            self.auto_food_try_count_dict = {}
+
+            i = 0
+            while True:
+                i += 1
+                SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 第{i}次循环，开始", color_level=1)
+
+                round_result = a_round()
+
+                SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 第{i}次循环，结束", color_level=1)
+                if not round_result:
+                    break
+
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 所有被记录的任务已完成!", color_level=1)
+
+            self.model_end_print(text=text_)
+
+        auto_food_main()
+
+    """
+    天知强卡器
+    """
 
     def tce(self, player: str):
         """
@@ -3273,7 +3292,9 @@ class ThreadTodo(QThread):
         parent.terminate()
         parent.wait(timeout=5)  # 等待进程终止，超时时间为5秒
 
-    """主要线程"""
+    """
+    主要线程
+    """
 
     def set_extra_opt_and_start(self, extra_opt):
         self.extra_opt = extra_opt
@@ -3356,431 +3377,16 @@ class ThreadTodo(QThread):
         else:
             # 运行方案
             if self.todo_id == 2:
-                self.run_2()
+                self.run_thread_2()
 
-    def run_1(self):
-        """
-        (已弃用)执念标记"""
+    def run_thread_2(self):
+        """多线程作战时的第二线程, 负责2P"""
 
-        # 尝试启动360游戏大厅和对应的小号
-        self.start_360()
-
-        # 基础参数是否输入正确 输出错误直接当场夹
-        if not self.test_args():
-            return False
-
-        """单线程作战"""
-
-        # current todo plan option
-        c_opt = self.opt_todo_plans
-
-        SIGNAL.PRINT_TO_UI.emit("每一个大类的任务开始前均会重启游戏以防止bug...")
-
-        self.remove_outdated_log_images()
-
-        """主要任务"""
-
-        main_task_1p_active = False
-        main_task_1p_active = main_task_1p_active or c_opt["sign_in"]["active"]
-        main_task_1p_active = main_task_1p_active or c_opt["fed_and_watered"]["active"]
-        main_task_1p_active = main_task_1p_active or c_opt["use_double_card"]["active"]
-        main_task_1p_active = main_task_1p_active or c_opt["warrior"]["active"]
-        main_task_2p_active = False
-        main_task_2p_active = main_task_2p_active or c_opt["customize"]["active"]
-        main_task_2p_active = main_task_2p_active or c_opt["normal_battle"]["active"]
-        main_task_2p_active = main_task_2p_active or c_opt["offer_reward"]["active"]
-        main_task_2p_active = main_task_2p_active or c_opt["cross_server"]["active"]
-        main_task_3p_active = False
-        main_task_3p_active = main_task_3p_active or c_opt["quest_guild"]["active"]
-        main_task_3p_active = main_task_3p_active or c_opt["guild_dungeon"]["active"]
-        main_task_3p_active = main_task_3p_active or c_opt["quest_spouse"]["active"]
-        main_task_3p_active = main_task_3p_active or c_opt["relic"]["active"]
-        main_task_4p_active = False
-        main_task_4p_active = main_task_4p_active or c_opt["magic_tower_alone_1"]["active"]
-        main_task_4p_active = main_task_4p_active or c_opt["magic_tower_alone_2"]["active"]
-        main_task_4p_active = main_task_4p_active or c_opt["magic_tower_prison_1"]["active"]
-        main_task_4p_active = main_task_4p_active or c_opt["magic_tower_prison_2"]["active"]
-        main_task_4p_active = main_task_4p_active or c_opt["magic_tower_double"]["active"]
-        main_task_4p_active = main_task_4p_active or c_opt["pet_temple_1"]["active"]
-        main_task_4p_active = main_task_4p_active or c_opt["pet_temple_2"]["active"]
-        main_task_active = main_task_1p_active or main_task_2p_active or main_task_3p_active or main_task_4p_active
-
-        if main_task_active:
-            SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom")
-            SIGNAL.PRINT_TO_UI.emit(text="[主要任务] 开始!", color_level=1)
-            SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top")
-            start_time = datetime.datetime.now()
-
-        if main_task_1p_active:
-            self.batch_reload_game()
-
-            my_opt = c_opt["sign_in"]
-            if my_opt["active"]:
-                player = [1, 2] if my_opt["is_group"] else [1]
-                # 领取温馨礼包
-                self.batch_get_warm_gift(player=player)
-                # 日氪
-                self.batch_top_up_money(player=player)
-                # 常规日常签到
-                self.batch_sign_in(player=player)
-
-            my_opt = c_opt["fed_and_watered"]
-            if my_opt["active"]:
-                self.batch_fed_and_watered(
-                    player=[1, 2] if my_opt["is_group"] else [1]
-                )
-
-            my_opt = c_opt["use_double_card"]
-            if my_opt["active"]:
-                self.batch_use_items_double_card(
-                    player=[1, 2] if my_opt["is_group"] else [1],
-                    max_times=my_opt["max_times"],
-                )
-
-            my_opt = c_opt["warrior"]
-            if my_opt["active"]:
-                self.easy_battle(
-                    text_="勇士挑战",
-                    stage_id=f"WA-0-{my_opt['stage']}",
-                    player=[2, 1] if my_opt["is_group"] else [1],
-                    max_times=int(my_opt["max_times"]),
-                    global_plan_active=my_opt["global_plan_active"],
-                    deck=my_opt["deck"],
-                    battle_plan_1p=my_opt["battle_plan_1p"],
-                    battle_plan_2p=my_opt["battle_plan_2p"],
-                    dict_exit={
-                        "other_time_player_a": [],
-                        "other_time_player_b": [],
-                        "last_time_player_a": ["竞技岛"],
-                        "last_time_player_b": ["竞技岛"]
-                    })
-
-                # 勇士挑战在全部完成后, [进入竞技岛], 创建房间者[有概率]会保留勇士挑战选择关卡的界面.
-                # 对于创建房间者, 在触发后, 需要设定完成后退出方案为[进入竞技岛 → 点X] 才能完成退出.
-                # 对于非创建房间者, 由于号1不会出现选择关卡界面, 会因为找不到[X]而卡死.
-                # 无论如何都会出现卡死的可能性.
-                # 因此此处选择退出方案直接选择[进入竞技岛], 并将勇士挑战选择放在本大类的最后进行, 依靠下一个大类开始后的重启游戏刷新.
-
-        if main_task_2p_active:
-            self.batch_reload_game()
-
-            my_opt = c_opt["customize"]
-            if my_opt["active"]:
-                self.task_sequence(
-                    text_="自定义任务序列",
-                    task_begin_id=my_opt["stage"],
-                    task_sequence_uuid=my_opt["battle_plan_1p"])
-
-            my_opt = c_opt["normal_battle"]
-            if my_opt["active"]:
-                self.easy_battle(
-                    text_="常规刷本",
-                    stage_id=my_opt["stage"],
-                    player=[2, 1] if my_opt["is_group"] else [1],
-                    max_times=int(my_opt["max_times"]),
-                    global_plan_active=my_opt["global_plan_active"],
-                    deck=my_opt["deck"],
-                    battle_plan_1p=my_opt["battle_plan_1p"],
-                    battle_plan_2p=my_opt["battle_plan_2p"],
-                    dict_exit={
-                        "other_time_player_a": [],
-                        "other_time_player_b": [],
-                        "last_time_player_a": ["竞技岛"],
-                        "last_time_player_b": ["竞技岛"]
-                    })
-
-            my_opt = c_opt["offer_reward"]
-            if my_opt["active"]:
-                self.offer_reward(
-                    text_="悬赏任务",
-                    global_plan_active=my_opt["global_plan_active"],
-                    deck=my_opt["deck"],
-                    max_times_1=my_opt["max_times_1"],
-                    max_times_2=my_opt["max_times_2"],
-                    max_times_3=my_opt["max_times_3"],
-                    max_times_4=my_opt["max_times_4"],
-                    battle_plan_1p=my_opt["battle_plan_1p"],
-                    battle_plan_2p=my_opt["battle_plan_2p"])
-
-            my_opt = c_opt["cross_server"]
-            if my_opt["active"]:
-                self.easy_battle(
-                    text_="跨服副本",
-                    stage_id=my_opt["stage"],
-                    player=[1, 2] if my_opt["is_group"] else [1],
-                    max_times=int(my_opt["max_times"]),
-                    global_plan_active=my_opt["global_plan_active"],
-                    deck=my_opt["deck"],
-                    battle_plan_1p=my_opt["battle_plan_1p"],
-                    battle_plan_2p=my_opt["battle_plan_2p"],
-                    dict_exit={
-                        "other_time_player_a": [],
-                        "other_time_player_b": [],
-                        "last_time_player_a": ["竞技岛"],
-                        "last_time_player_b": ["竞技岛"]
-                    })
-
-        if main_task_3p_active:
-            self.batch_reload_game()
-
-            if c_opt["quest_guild"]["active"]:
-                self.guild_or_spouse_quest(
-                    text_="公会任务",
-                    quest_mode="公会任务",
-                    global_plan_active=c_opt["quest_guild"]["global_plan_active"],
-                    deck=c_opt["quest_guild"]["deck"],
-                    battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
-                    battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"],
-                    stage=c_opt["quest_guild"]["stage"])
-
-            if c_opt["guild_dungeon"]["active"]:
-                self.guild_dungeon(
-                    text_="公会副本",
-                    global_plan_active=c_opt["quest_guild"]["global_plan_active"],
-                    deck=c_opt["quest_guild"]["deck"],
-                    battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
-                    battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"])
-
-            if c_opt["quest_spouse"]["active"]:
-                self.guild_or_spouse_quest(
-                    text_="情侣任务",
-                    quest_mode="情侣任务",
-                    global_plan_active=c_opt["quest_guild"]["global_plan_active"],
-                    deck=c_opt["quest_guild"]["deck"],
-                    battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
-                    battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"])
-
-            my_opt = c_opt["relic"]
-            if my_opt["active"]:
-                self.easy_battle(
-                    text_="火山遗迹",
-                    stage_id=my_opt["stage"],
-                    player=[2, 1] if my_opt["is_group"] else [1],
-                    max_times=int(my_opt["max_times"]),
-                    global_plan_active=my_opt["global_plan_active"],
-                    deck=my_opt["deck"],
-                    battle_plan_1p=my_opt["battle_plan_1p"],
-                    battle_plan_2p=my_opt["battle_plan_2p"],
-                    dict_exit={
-                        "other_time_player_a": [],
-                        "other_time_player_b": [],
-                        "last_time_player_a": ["竞技岛"],
-                        "last_time_player_b": ["竞技岛"]
-                    })
-
-        if main_task_4p_active:
-            self.batch_reload_game()
-
-            self.alone_magic_tower()
-
-            self.alone_magic_tower_prison()
-
-            self.pet_temple()
-
-            my_opt = c_opt["magic_tower_double"]
-            if my_opt["active"]:
-                self.easy_battle(
-                    text_="魔塔双人",
-                    stage_id="MT-2-" + str(my_opt["stage"]),
-                    player=[2, 1],
-                    max_times=int(my_opt["max_times"]),
-                    global_plan_active=my_opt["global_plan_active"],
-                    deck=my_opt["deck"],
-                    battle_plan_1p=my_opt["battle_plan_1p"],
-                    battle_plan_2p=my_opt["battle_plan_2p"],
-                    dict_exit={
-                        "other_time_player_a": [],
-                        "other_time_player_b": ["回到上一级"],
-                        "last_time_player_a": ["普通红叉"],
-                        "last_time_player_b": ["回到上一级"]
-                    }
-                )
-
-        if main_task_active:
-            SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
-            SIGNAL.PRINT_TO_UI.emit(
-                text=f"[主要任务] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
-                color_level=1)
-            SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
-
-        """额外任务"""
-
-        extra_active = False
-        extra_active = extra_active or c_opt["receive_awards"]["active"]
-        extra_active = extra_active or c_opt["use_items"]["active"]
-        extra_active = extra_active or c_opt["checking"]["active"]
-        extra_active = extra_active or c_opt["auto_food"]["active"]
-        # 循环任务
-        extra_active = extra_active or c_opt["tce"]["active"]
-        extra_active = extra_active or c_opt["loop_cross_server"]["active"]
-        extra_active = extra_active or c_opt["loop_cross_experience"]["active"]
-
-        if extra_active:
-            SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
-            SIGNAL.PRINT_TO_UI.emit(text=f"[额外任务] 开始!", color_level=1)
-            SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
-
-        if extra_active:
-            self.batch_reload_game()
-            start_time = datetime.datetime.now()
-
-        my_opt = c_opt["receive_awards"]
-        if my_opt["active"]:
-            # 扫描公会
-            self.batch_scan_guild_info()
-
-            # 删除物品高危功能
-            self.batch_level_2_action(player=[1, 2], delete_item=True, dark_crystal=False)
-
-            # 主要函数
-            self.batch_receive_all_quest_rewards(
-                player=[1, 2] if my_opt["is_group"] else [1],
-                quests=["普通任务", "美食大赛", "大富翁"],
-            )
-
-        my_opt = c_opt["use_items"]
-        if my_opt["active"]:
-            self.batch_use_items_consumables(
-                player=[1, 2] if my_opt["is_group"] else [1],
-            )
-        my_opt = c_opt["checking"]
-        if my_opt["active"]:
-            self.checking_undo(player=[1, 2] if my_opt["is_group"] else [1], )
-
-        my_opt = c_opt["auto_food"]
-        if my_opt["active"]:
-            self.auto_food()
-
-        my_opt = c_opt["loop_cross_server"]
-        if my_opt["active"]:
-            self.batch_loop_cross_server(
-                player=[1, 2] if my_opt["is_group"] else [1],
-                deck=c_opt["quest_guild"]["deck"],
-                name="威望")
-
-        my_opt = c_opt["loop_cross_experience"]
-        if my_opt["active"]:
-            self.batch_loop_cross_server(
-                player=[1, 2] if my_opt["is_group"] else [1],
-                deck=c_opt["quest_guild"]["deck"],
-                name="经验")
-
-        my_opt = c_opt["tce"]
-        if my_opt["active"]:
-            self.tce(
-                player=my_opt["player"]
-            )
-
-        if extra_active:
-            SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
-            SIGNAL.PRINT_TO_UI.emit(
-                text=f"[额外任务] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
-                color_level=1)
-            SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
-
-        """自建房战斗"""
-
-        active_singleton = False
-        active_singleton = active_singleton or c_opt["customize_battle"]["active"]
-
-        if active_singleton:
-            SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom")
-            SIGNAL.PRINT_TO_UI.emit(text="[自建房战斗] 开始!", color_level=1)
-            SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top")
-            SIGNAL.PRINT_TO_UI.emit(text="如出现错误, 务必确保该功能是单独启动的!")
-            start_time = datetime.datetime.now()
-
-        my_opt = c_opt["customize_battle"]
-        if my_opt["active"]:
-            self.easy_battle(
-                text_="自建房战斗",
-                stage_id=my_opt["stage"],
-                player=[[1, 2], [2, 1], [1], [2]][my_opt["is_group"]],
-                max_times=int(my_opt["max_times"]),
-                global_plan_active=my_opt["global_plan_active"],
-                deck=my_opt["deck"],
-                battle_plan_1p=my_opt["battle_plan_1p"],
-                battle_plan_2p=my_opt["battle_plan_2p"],
-                dict_exit={
-                    "other_time_player_a": [],
-                    "other_time_player_b": [],
-                    "last_time_player_a": [],
-                    "last_time_player_b": []
-                },
-                is_cu=True
-            )
-
-        if active_singleton:
-            SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
-            SIGNAL.PRINT_TO_UI.emit(
-                text=f"[自建房战斗] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
-                color_level=1)
-            SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
-
-        """完成FAA的任务列表后，开始执行插件脚本"""
-        name_1p = self.opt["base_settings"]["name_1p"]
-        if name_1p == '':
-            name_1p = self.opt['base_settings']['game_name']
-        else:
-            name_1p = name_1p + ' | ' + self.opt['base_settings']['game_name']
-
-        name_2p = self.opt["base_settings"]["name_2p"]
-        if name_2p == '':
-            name_2p = self.opt['base_settings']['game_name']
-        else:
-            name_2p = name_2p + ' | ' + self.opt['base_settings']['game_name']
-
-        scripts = self.opt["extension"]["scripts"]
-        # 这块本来就是多线程执行的，所以不需要再用线程，不会阻塞FAA的
-        for script in scripts:
-            SIGNAL.PRINT_TO_UI.emit(text=f"开始执行插件脚本 {script['name']}: {script['path']}", color_level=2)
-            player = script['player']
-
-            if player == 1:
-                for _ in range(script['repeat']):
-                    execute(name_1p, script['path'])
-            elif player == 2:
-                for _ in range(script['repeat']):
-                    execute(name_2p, script['path'])
-            elif player == 3:
-                for _ in range(script['repeat']):
-                    execute(name_1p, script['path'])
-                for _ in range(script['repeat']):
-                    execute(name_2p, script['path'])
-
-            SIGNAL.PRINT_TO_UI.emit(text=f"插件脚本 {script['name']}: {script['path']} 执行结束", color_level=2)
-
-        SIGNAL.PRINT_TO_UI.emit(text=f"所有插件脚本均已执行结束", color_level=1)
-
-        """全部完成"""
-
-        if main_task_active or extra_active:
-            if self.opt["login_settings"]["login_close_settings"]:
-                SIGNAL.PRINT_TO_UI.emit(
-                    text="[开关游戏大厅] 任务全部完成, 关闭360游戏大厅对应窗口, 降低系统负载.",
-                    color_level=1
-                )
-                self.close_360()
-            else:
-                if self.opt["advanced_settings"]["end_exit_game"]:
-                    SIGNAL.PRINT_TO_UI.emit(text="任务全部完成, 刷新返回登录界面, 降低系统负载.", color_level=1)
-                    self.batch_click_final_refresh_btn()
-                else:
-                    SIGNAL.PRINT_TO_UI.emit(
-                        text="[推荐] 进阶功能中, 可设置完成所有任务后, 关闭360游戏大厅对应窗口 or 返回登录页, 降低系统负载.",
-                        color_level=1)
-        else:
-            if active_singleton:
-                SIGNAL.PRINT_TO_UI.emit(
-                    text="您启动了完成后操作, 但仅运行了自建房对战, 故不进行任何操作",
-                    color_level=1)
-            else:
-                SIGNAL.PRINT_TO_UI.emit(text="您启动了完成后操作, 但并未运行任务, 故不进行任何操作", color_level=1)
-
-        # 全部完成了发个信号
-        SIGNAL.END.emit()
-
-        return True
+        self.battle_1_n_n(
+            quest_list=self.extra_opt["quest_list"],
+            extra_title=self.extra_opt["extra_title"],
+            need_lock=self.extra_opt["need_lock"])
+        self.extra_opt = None
 
     def start_360(self):
 
@@ -3890,11 +3496,427 @@ class ThreadTodo(QThread):
         SIGNAL.PRINT_TO_UI.emit(text=f"[检测重要参数] 所有小号窗口已开启, 继续进行...", color_level=1)
         return True
 
-    def run_2(self):
-        """多线程作战时的第二线程, 负责2P"""
-
-        self.battle_1_n_n(
-            quest_list=self.extra_opt["quest_list"],
-            extra_title=self.extra_opt["extra_title"],
-            need_lock=self.extra_opt["need_lock"])
-        self.extra_opt = None
+    # def run_old(self):
+    #     """
+    #     (已弃用)执念标记
+    #     """
+    #
+    #     # 尝试启动360游戏大厅和对应的小号
+    #     self.start_360()
+    #
+    #     # 基础参数是否输入正确 输出错误直接当场夹
+    #     if not self.test_args():
+    #         return False
+    #
+    #     """单线程作战"""
+    #
+    #     # current todo plan option
+    #     c_opt = self.opt_todo_plans
+    #
+    #     SIGNAL.PRINT_TO_UI.emit("每一个大类的任务开始前均会重启游戏以防止bug...")
+    #
+    #     self.remove_outdated_log_images()
+    #
+    #     """主要任务"""
+    #
+    #     main_task_1p_active = False
+    #     main_task_1p_active = main_task_1p_active or c_opt["sign_in"]["active"]
+    #     main_task_1p_active = main_task_1p_active or c_opt["fed_and_watered"]["active"]
+    #     main_task_1p_active = main_task_1p_active or c_opt["use_double_card"]["active"]
+    #     main_task_1p_active = main_task_1p_active or c_opt["warrior"]["active"]
+    #     main_task_2p_active = False
+    #     main_task_2p_active = main_task_2p_active or c_opt["customize"]["active"]
+    #     main_task_2p_active = main_task_2p_active or c_opt["normal_battle"]["active"]
+    #     main_task_2p_active = main_task_2p_active or c_opt["offer_reward"]["active"]
+    #     main_task_2p_active = main_task_2p_active or c_opt["cross_server"]["active"]
+    #     main_task_3p_active = False
+    #     main_task_3p_active = main_task_3p_active or c_opt["quest_guild"]["active"]
+    #     main_task_3p_active = main_task_3p_active or c_opt["guild_dungeon"]["active"]
+    #     main_task_3p_active = main_task_3p_active or c_opt["quest_spouse"]["active"]
+    #     main_task_3p_active = main_task_3p_active or c_opt["relic"]["active"]
+    #     main_task_4p_active = False
+    #     main_task_4p_active = main_task_4p_active or c_opt["magic_tower_alone_1"]["active"]
+    #     main_task_4p_active = main_task_4p_active or c_opt["magic_tower_alone_2"]["active"]
+    #     main_task_4p_active = main_task_4p_active or c_opt["magic_tower_prison_1"]["active"]
+    #     main_task_4p_active = main_task_4p_active or c_opt["magic_tower_prison_2"]["active"]
+    #     main_task_4p_active = main_task_4p_active or c_opt["magic_tower_double"]["active"]
+    #     main_task_4p_active = main_task_4p_active or c_opt["pet_temple_1"]["active"]
+    #     main_task_4p_active = main_task_4p_active or c_opt["pet_temple_2"]["active"]
+    #     main_task_active = main_task_1p_active or main_task_2p_active or main_task_3p_active or main_task_4p_active
+    #
+    #     if main_task_active:
+    #         SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom")
+    #         SIGNAL.PRINT_TO_UI.emit(text="[主要任务] 开始!", color_level=1)
+    #         SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top")
+    #         start_time = datetime.datetime.now()
+    #
+    #     if main_task_1p_active:
+    #         self.batch_reload_game()
+    #
+    #         my_opt = c_opt["sign_in"]
+    #         if my_opt["active"]:
+    #             player = [1, 2] if my_opt["is_group"] else [1]
+    #             # 领取温馨礼包
+    #             self.batch_get_warm_gift(player=player)
+    #             # 日氪
+    #             self.batch_top_up_money(player=player)
+    #             # 常规日常签到
+    #             self.batch_sign_in(player=player)
+    #
+    #         my_opt = c_opt["fed_and_watered"]
+    #         if my_opt["active"]:
+    #             self.batch_fed_and_watered(
+    #                 player=[1, 2] if my_opt["is_group"] else [1]
+    #             )
+    #
+    #         my_opt = c_opt["use_double_card"]
+    #         if my_opt["active"]:
+    #             self.batch_use_items_double_card(
+    #                 player=[1, 2] if my_opt["is_group"] else [1],
+    #                 max_times=my_opt["max_times"],
+    #             )
+    #
+    #         my_opt = c_opt["warrior"]
+    #         if my_opt["active"]:
+    #             self.easy_battle(
+    #                 text_="勇士挑战",
+    #                 stage_id=f"WA-0-{my_opt['stage']}",
+    #                 player=[2, 1] if my_opt["is_group"] else [1],
+    #                 max_times=int(my_opt["max_times"]),
+    #                 global_plan_active=my_opt["global_plan_active"],
+    #                 deck=my_opt["deck"],
+    #                 battle_plan_1p=my_opt["battle_plan_1p"],
+    #                 battle_plan_2p=my_opt["battle_plan_2p"],
+    #                 dict_exit={
+    #                     "other_time_player_a": [],
+    #                     "other_time_player_b": [],
+    #                     "last_time_player_a": ["竞技岛"],
+    #                     "last_time_player_b": ["竞技岛"]
+    #                 })
+    #
+    #             # 勇士挑战在全部完成后, [进入竞技岛], 创建房间者[有概率]会保留勇士挑战选择关卡的界面.
+    #             # 对于创建房间者, 在触发后, 需要设定完成后退出方案为[进入竞技岛 → 点X] 才能完成退出.
+    #             # 对于非创建房间者, 由于号1不会出现选择关卡界面, 会因为找不到[X]而卡死.
+    #             # 无论如何都会出现卡死的可能性.
+    #             # 因此此处选择退出方案直接选择[进入竞技岛], 并将勇士挑战选择放在本大类的最后进行, 依靠下一个大类开始后的重启游戏刷新.
+    #
+    #     if main_task_2p_active:
+    #         self.batch_reload_game()
+    #
+    #         my_opt = c_opt["customize"]
+    #         if my_opt["active"]:
+    #             self.task_sequence(
+    #                 text_="自定义任务序列",
+    #                 task_begin_id=my_opt["stage"],
+    #                 task_sequence_uuid=my_opt["battle_plan_1p"])
+    #
+    #         my_opt = c_opt["normal_battle"]
+    #         if my_opt["active"]:
+    #             self.easy_battle(
+    #                 text_="常规刷本",
+    #                 stage_id=my_opt["stage"],
+    #                 player=[2, 1] if my_opt["is_group"] else [1],
+    #                 max_times=int(my_opt["max_times"]),
+    #                 global_plan_active=my_opt["global_plan_active"],
+    #                 deck=my_opt["deck"],
+    #                 battle_plan_1p=my_opt["battle_plan_1p"],
+    #                 battle_plan_2p=my_opt["battle_plan_2p"],
+    #                 dict_exit={
+    #                     "other_time_player_a": [],
+    #                     "other_time_player_b": [],
+    #                     "last_time_player_a": ["竞技岛"],
+    #                     "last_time_player_b": ["竞技岛"]
+    #                 })
+    #
+    #         my_opt = c_opt["offer_reward"]
+    #         if my_opt["active"]:
+    #             self.offer_reward(
+    #                 text_="悬赏任务",
+    #                 global_plan_active=my_opt["global_plan_active"],
+    #                 deck=my_opt["deck"],
+    #                 max_times_1=my_opt["max_times_1"],
+    #                 max_times_2=my_opt["max_times_2"],
+    #                 max_times_3=my_opt["max_times_3"],
+    #                 max_times_4=my_opt["max_times_4"],
+    #                 battle_plan_1p=my_opt["battle_plan_1p"],
+    #                 battle_plan_2p=my_opt["battle_plan_2p"])
+    #
+    #         my_opt = c_opt["cross_server"]
+    #         if my_opt["active"]:
+    #             self.easy_battle(
+    #                 text_="跨服副本",
+    #                 stage_id=my_opt["stage"],
+    #                 player=[1, 2] if my_opt["is_group"] else [1],
+    #                 max_times=int(my_opt["max_times"]),
+    #                 global_plan_active=my_opt["global_plan_active"],
+    #                 deck=my_opt["deck"],
+    #                 battle_plan_1p=my_opt["battle_plan_1p"],
+    #                 battle_plan_2p=my_opt["battle_plan_2p"],
+    #                 dict_exit={
+    #                     "other_time_player_a": [],
+    #                     "other_time_player_b": [],
+    #                     "last_time_player_a": ["竞技岛"],
+    #                     "last_time_player_b": ["竞技岛"]
+    #                 })
+    #
+    #     if main_task_3p_active:
+    #         self.batch_reload_game()
+    #
+    #         if c_opt["quest_guild"]["active"]:
+    #             self.guild_or_spouse_quest(
+    #                 text_="公会任务",
+    #                 quest_mode="公会任务",
+    #                 global_plan_active=c_opt["quest_guild"]["global_plan_active"],
+    #                 deck=c_opt["quest_guild"]["deck"],
+    #                 battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
+    #                 battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"],
+    #                 stage=c_opt["quest_guild"]["stage"])
+    #
+    #         if c_opt["guild_dungeon"]["active"]:
+    #             self.guild_dungeon(
+    #                 text_="公会副本",
+    #                 global_plan_active=c_opt["quest_guild"]["global_plan_active"],
+    #                 deck=c_opt["quest_guild"]["deck"],
+    #                 battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
+    #                 battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"])
+    #
+    #         if c_opt["quest_spouse"]["active"]:
+    #             self.guild_or_spouse_quest(
+    #                 text_="情侣任务",
+    #                 quest_mode="情侣任务",
+    #                 global_plan_active=c_opt["quest_guild"]["global_plan_active"],
+    #                 deck=c_opt["quest_guild"]["deck"],
+    #                 battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
+    #                 battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"])
+    #
+    #         my_opt = c_opt["relic"]
+    #         if my_opt["active"]:
+    #             self.easy_battle(
+    #                 text_="火山遗迹",
+    #                 stage_id=my_opt["stage"],
+    #                 player=[2, 1] if my_opt["is_group"] else [1],
+    #                 max_times=int(my_opt["max_times"]),
+    #                 global_plan_active=my_opt["global_plan_active"],
+    #                 deck=my_opt["deck"],
+    #                 battle_plan_1p=my_opt["battle_plan_1p"],
+    #                 battle_plan_2p=my_opt["battle_plan_2p"],
+    #                 dict_exit={
+    #                     "other_time_player_a": [],
+    #                     "other_time_player_b": [],
+    #                     "last_time_player_a": ["竞技岛"],
+    #                     "last_time_player_b": ["竞技岛"]
+    #                 })
+    #
+    #     if main_task_4p_active:
+    #         self.batch_reload_game()
+    #
+    #         self.alone_magic_tower()
+    #
+    #         self.alone_magic_tower_prison()
+    #
+    #         self.pet_temple()
+    #
+    #         my_opt = c_opt["magic_tower_double"]
+    #         if my_opt["active"]:
+    #             self.easy_battle(
+    #                 text_="魔塔双人",
+    #                 stage_id="MT-2-" + str(my_opt["stage"]),
+    #                 player=[2, 1],
+    #                 max_times=int(my_opt["max_times"]),
+    #                 global_plan_active=my_opt["global_plan_active"],
+    #                 deck=my_opt["deck"],
+    #                 battle_plan_1p=my_opt["battle_plan_1p"],
+    #                 battle_plan_2p=my_opt["battle_plan_2p"],
+    #                 dict_exit={
+    #                     "other_time_player_a": [],
+    #                     "other_time_player_b": ["回到上一级"],
+    #                     "last_time_player_a": ["普通红叉"],
+    #                     "last_time_player_b": ["回到上一级"]
+    #                 }
+    #             )
+    #
+    #     if main_task_active:
+    #         SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
+    #         SIGNAL.PRINT_TO_UI.emit(
+    #             text=f"[主要任务] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
+    #             color_level=1)
+    #         SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
+    #
+    #     """额外任务"""
+    #
+    #     extra_active = False
+    #     extra_active = extra_active or c_opt["receive_awards"]["active"]
+    #     extra_active = extra_active or c_opt["use_items"]["active"]
+    #     extra_active = extra_active or c_opt["checking"]["active"]
+    #     extra_active = extra_active or c_opt["auto_food"]["active"]
+    #     # 循环任务
+    #     extra_active = extra_active or c_opt["tce"]["active"]
+    #     extra_active = extra_active or c_opt["loop_cross_server"]["active"]
+    #     extra_active = extra_active or c_opt["loop_cross_experience"]["active"]
+    #
+    #     if extra_active:
+    #         SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
+    #         SIGNAL.PRINT_TO_UI.emit(text=f"[额外任务] 开始!", color_level=1)
+    #         SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
+    #
+    #     if extra_active:
+    #         self.batch_reload_game()
+    #         start_time = datetime.datetime.now()
+    #
+    #     my_opt = c_opt["receive_awards"]
+    #     if my_opt["active"]:
+    #         # 扫描公会
+    #         self.batch_scan_guild_info()
+    #
+    #         # 删除物品高危功能
+    #         self.batch_level_2_action(player=[1, 2], delete_item=True, dark_crystal=False)
+    #
+    #         # 主要函数
+    #         self.batch_receive_all_quest_rewards(
+    #             player=[1, 2] if my_opt["is_group"] else [1],
+    #             quests=["普通任务", "美食大赛", "大富翁"],
+    #         )
+    #
+    #     my_opt = c_opt["use_items"]
+    #     if my_opt["active"]:
+    #         self.batch_use_items_consumables(
+    #             player=[1, 2] if my_opt["is_group"] else [1],
+    #         )
+    #     my_opt = c_opt["checking"]
+    #     if my_opt["active"]:
+    #         self.checking_undo(player=[1, 2] if my_opt["is_group"] else [1], )
+    #
+    #     my_opt = c_opt["auto_food"]
+    #     if my_opt["active"]:
+    #         self.auto_food()
+    #
+    #     my_opt = c_opt["loop_cross_server"]
+    #     if my_opt["active"]:
+    #         self.batch_loop_cross_server(
+    #             player=[1, 2] if my_opt["is_group"] else [1],
+    #             deck=c_opt["quest_guild"]["deck"],
+    #             name="威望")
+    #
+    #     my_opt = c_opt["loop_cross_experience"]
+    #     if my_opt["active"]:
+    #         self.batch_loop_cross_server(
+    #             player=[1, 2] if my_opt["is_group"] else [1],
+    #             deck=c_opt["quest_guild"]["deck"],
+    #             name="经验")
+    #
+    #     my_opt = c_opt["tce"]
+    #     if my_opt["active"]:
+    #         self.tce(
+    #             player=my_opt["player"]
+    #         )
+    #
+    #     if extra_active:
+    #         SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
+    #         SIGNAL.PRINT_TO_UI.emit(
+    #             text=f"[额外任务] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
+    #             color_level=1)
+    #         SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
+    #
+    #     """自建房战斗"""
+    #
+    #     active_singleton = False
+    #     active_singleton = active_singleton or c_opt["customize_battle"]["active"]
+    #
+    #     if active_singleton:
+    #         SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom")
+    #         SIGNAL.PRINT_TO_UI.emit(text="[自建房战斗] 开始!", color_level=1)
+    #         SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top")
+    #         SIGNAL.PRINT_TO_UI.emit(text="如出现错误, 务必确保该功能是单独启动的!")
+    #         start_time = datetime.datetime.now()
+    #
+    #     my_opt = c_opt["customize_battle"]
+    #     if my_opt["active"]:
+    #         self.easy_battle(
+    #             text_="自建房战斗",
+    #             stage_id=my_opt["stage"],
+    #             player=[[1, 2], [2, 1], [1], [2]][my_opt["is_group"]],
+    #             max_times=int(my_opt["max_times"]),
+    #             global_plan_active=my_opt["global_plan_active"],
+    #             deck=my_opt["deck"],
+    #             battle_plan_1p=my_opt["battle_plan_1p"],
+    #             battle_plan_2p=my_opt["battle_plan_2p"],
+    #             dict_exit={
+    #                 "other_time_player_a": [],
+    #                 "other_time_player_b": [],
+    #                 "last_time_player_a": [],
+    #                 "last_time_player_b": []
+    #             },
+    #             is_cu=True
+    #         )
+    #
+    #     if active_singleton:
+    #         SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
+    #         SIGNAL.PRINT_TO_UI.emit(
+    #             text=f"[自建房战斗] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
+    #             color_level=1)
+    #         SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
+    #
+    #     """完成FAA的任务列表后，开始执行插件脚本"""
+    #     name_1p = self.opt["base_settings"]["name_1p"]
+    #     if name_1p == '':
+    #         name_1p = self.opt['base_settings']['game_name']
+    #     else:
+    #         name_1p = name_1p + ' | ' + self.opt['base_settings']['game_name']
+    #
+    #     name_2p = self.opt["base_settings"]["name_2p"]
+    #     if name_2p == '':
+    #         name_2p = self.opt['base_settings']['game_name']
+    #     else:
+    #         name_2p = name_2p + ' | ' + self.opt['base_settings']['game_name']
+    #
+    #     scripts = self.opt["extension"]["scripts"]
+    #     # 这块本来就是多线程执行的，所以不需要再用线程，不会阻塞FAA的
+    #     for script in scripts:
+    #         SIGNAL.PRINT_TO_UI.emit(text=f"开始执行插件脚本 {script['name']}: {script['path']}", color_level=2)
+    #         player = script['player']
+    #
+    #         if player == 1:
+    #             for _ in range(script['repeat']):
+    #                 execute(name_1p, script['path'])
+    #         elif player == 2:
+    #             for _ in range(script['repeat']):
+    #                 execute(name_2p, script['path'])
+    #         elif player == 3:
+    #             for _ in range(script['repeat']):
+    #                 execute(name_1p, script['path'])
+    #             for _ in range(script['repeat']):
+    #                 execute(name_2p, script['path'])
+    #
+    #         SIGNAL.PRINT_TO_UI.emit(text=f"插件脚本 {script['name']}: {script['path']} 执行结束", color_level=2)
+    #
+    #     SIGNAL.PRINT_TO_UI.emit(text=f"所有插件脚本均已执行结束", color_level=1)
+    #
+    #     """全部完成"""
+    #
+    #     if main_task_active or extra_active:
+    #         if self.opt["login_settings"]["login_close_settings"]:
+    #             SIGNAL.PRINT_TO_UI.emit(
+    #                 text="[开关游戏大厅] 任务全部完成, 关闭360游戏大厅对应窗口, 降低系统负载.",
+    #                 color_level=1
+    #             )
+    #             self.close_360()
+    #         else:
+    #             if self.opt["advanced_settings"]["end_exit_game"]:
+    #                 SIGNAL.PRINT_TO_UI.emit(text="任务全部完成, 刷新返回登录界面, 降低系统负载.", color_level=1)
+    #                 self.batch_click_final_refresh_btn()
+    #             else:
+    #                 SIGNAL.PRINT_TO_UI.emit(
+    #                     text="[推荐] 进阶功能中, 可设置完成所有任务后, 关闭360游戏大厅对应窗口 or 返回登录页, 降低系统负载.",
+    #                     color_level=1)
+    #     else:
+    #         if active_singleton:
+    #             SIGNAL.PRINT_TO_UI.emit(
+    #                 text="您启动了完成后操作, 但仅运行了自建房对战, 故不进行任何操作",
+    #                 color_level=1)
+    #         else:
+    #             SIGNAL.PRINT_TO_UI.emit(text="您启动了完成后操作, 但并未运行任务, 故不进行任何操作", color_level=1)
+    #
+    #     # 全部完成了发个信号
+    #     SIGNAL.END.emit()
+    #
+    #     return True
