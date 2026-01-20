@@ -645,10 +645,17 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 input_widget=GlobalPlanActiveCheckBox)
 
             # 创建齿轮按钮
-            line_layout.addWidget(QLabel('独立方案'))
+            GearLabel = QLabel('独立方案')
+            line_layout.addWidget(GearLabel)
             GearButton = QToolButton()
             GearButton.setObjectName("gear_button")
             GearButton.setText("⚙")
+            if task["task_args"]["global_plan_active"]:
+                GearButton.hide()
+                GearLabel.hide()
+            else:
+                GearButton.show()
+                GearLabel.show()
             GearButton.setFixedSize(20, 20)
             line_layout.addWidget(GearButton)
 
@@ -715,9 +722,11 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 if state == Qt.CheckState.Checked.value:
                     if options_widget.isVisible():
                         options_widget.hide()
-                    GearButton.setText("X")
+                    GearButton.hide()
+                    GearLabel.hide()
                 else:
-                    GearButton.setText("⚙")
+                    GearButton.show()
+                    GearLabel.show()
 
             GearButton.clicked.connect(toggle_options_widget)
             GlobalPlanActiveCheckBox.stateChanged.connect(on_global_plan_changed)
