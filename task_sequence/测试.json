@@ -6,21 +6,35 @@
         }
     },
     {
-        "task_type": "战斗",
+        "task_type": "刷新游戏",
         "task_id": 1,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
-            "stage_id": "NO-2-10",
-            "max_times": 25,
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "战斗",
+        "task_id": 2,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "stage_id": "MT-1-120",
+            "max_times": 2,
             "need_key": true,
             "player": [
-                2,
                 1
             ],
             "global_plan_active": true,
             "deck": 0,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -37,20 +51,21 @@
     },
     {
         "task_type": "战斗",
-        "task_id": 2,
+        "task_id": 3,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
-            "stage_id": "NO-4-10",
-            "max_times": 25,
+            "stage_id": "MT-1-120",
+            "max_times": 2,
             "need_key": true,
             "player": [
-                2,
-                1
+                2
             ],
             "global_plan_active": true,
             "deck": 0,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {

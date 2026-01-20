@@ -55,43 +55,28 @@ def ui_to_list_get_cus_battle_opt(LineWidget, task_args):
 
     Plan1pComboBox = LineWidget.plan_opt_window.findChild(SearchableComboBox, 'w_battle_plan_1p')
     text = Plan1pComboBox.currentText()
+    # 默认值
+    task_args['battle_plan_1p'] = "00000000-0000-0000-0000-000000000000"
     if text in battle_plan_name_list:
-        index = battle_plan_name_list.index(text)
-        uuid = battle_plan_uuid_list[index]
-        task_args['battle_plan_1p'] = uuid
-    else:
-        # 如果找不到对应名称，使用默认值
-        task_args['battle_plan_1p'] = "00000000-0000-0000-0000-000000000000"
+        task_args['battle_plan_1p'] = battle_plan_uuid_list[battle_plan_name_list.index(text)]
 
     Plan2pComboBox = LineWidget.plan_opt_window.findChild(SearchableComboBox, 'w_battle_plan_2p')
     text = Plan2pComboBox.currentText()
+    # 如果找不到对应名称，使用默认值
+    task_args['battle_plan_2p'] = "00000000-0000-0000-0000-000000000001"
     if text in battle_plan_name_list:
-        index = battle_plan_name_list.index(text)
-        uuid = battle_plan_uuid_list[index]
-        task_args['battle_plan_2p'] = uuid
-    else:
-        # 如果找不到对应名称，使用默认值
-        task_args['battle_plan_2p'] = "00000000-0000-0000-0000-000000000001"
+        task_args['battle_plan_2p'] = battle_plan_uuid_list[battle_plan_name_list.index(text)]
 
     # 微调方案
     tweak_plan_name_list = get_list_tweak_plan(with_extension=False)
     tweak_plan_uuid_list = list(EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH.keys())
 
     TweakPlanComboBox = LineWidget.plan_opt_window.findChild(SearchableComboBox, 'w_battle_plan_tweak')
-    if TweakPlanComboBox and TweakPlanComboBox.count() > 0:  # 确保有选项且控件存在
-        text = TweakPlanComboBox.currentText()
-        if text in tweak_plan_name_list and tweak_plan_uuid_list:
-            index = tweak_plan_name_list.index(text)
-            uuid = tweak_plan_uuid_list[index]
-            task_args['battle_plan_tweak'] = uuid
-        else:
-            task_args.pop('battle_plan_tweak', None)  # 无匹配项时清空
-    else:
-        task_args.pop('battle_plan_tweak', None)  # 控件不存在或无选项时清空
-
-    # 移除多余的微调方案UUID
-    if task_args['global_plan_active']:
-        task_args.pop('battle_plan_tweak', None)
+    text = TweakPlanComboBox.currentText()
+    # 如果找不到对应名称，使用默认值
+    task_args['battle_plan_tweak'] = "00000000-0000-0000-0000-000000000000"
+    if text in tweak_plan_name_list:
+        task_args['battle_plan_tweak'] = tweak_plan_uuid_list[tweak_plan_name_list.index(text)]
 
     return task_args
 

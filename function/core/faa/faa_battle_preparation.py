@@ -678,10 +678,10 @@ class BattlePreparation:
             stage_name = "UnKnown"
 
         if special_stage:
-            SIGNAL.PRINT_TO_UI.emit(f"检测到特殊关卡：{stage_name}，已为你启用对应关卡方案", 7)
+            SIGNAL.PRINT_TO_UI.emit(f"检测到特殊关卡：{stage_name}，已为你启用对应关卡信息(铲卡/承载)", 7)
 
     def _get_card_name_list_from_battle_plan(self: "FAA"):
-        #强制禁用状态
+        # 强制禁用状态
         ban_mat = False
         ban_icecream = False
         ban_god = False
