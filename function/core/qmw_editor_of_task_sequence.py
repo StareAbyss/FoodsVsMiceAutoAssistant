@@ -328,13 +328,29 @@ class QMWEditorOfTaskSequence(QMainWindow):
         """
         # 创建任务描述字典
         task_descriptions = {
-            '战斗':
-                '从进入关卡到完成战斗的完整流程\n'
-                '支持几乎所有关卡, 具体请参考右上角的关卡代号一览',
             '刷新游戏':
                 '刷新游戏\n'
                 '绝大部分情况下**请在开头**执行此项\n'
                 '部分依赖此模块复位的功能中包含了该操作',
+            '战斗':
+                '从进入关卡到完成战斗的完整流程\n'
+                '支持几乎所有关卡, 具体请参考右上角的关卡代号一览',
+            '公会任务':
+                '扫描并完成公会任务\n'
+                '完整流程:\n'
+                '* 清背包(需进阶设置-二级密码)\n'
+                '* 领取公会任务奖励\n'
+                '* 扫描任务并战斗\n'
+                '* 清背包(需进阶设置-二级密码)\n'
+                '* 领取公会任务奖励\n'
+                '* 领取普通任务奖励(公会点)',
+            '情侣任务':
+                '扫描并完成情侣任务\n'
+                '完整流程:\n'
+                '* 领取情侣任务奖励\n'
+                '* 扫描任务并战斗\n'
+                '* 领取情侣任务奖励\n'
+                '* 领取普通任务奖励(公会点)',
             '双暴卡':
                 '使用双暴卡',
             '清背包':
@@ -352,10 +368,6 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 '* 输入二级密码\n'
                 '* 兑换暗晶\n'
                 '* 刷新游戏',
-            '领取任务奖励':
-                '领取各种任务的奖励.\n'
-                '被嵌入在部分其他模块中\n'
-                '可自行添加避免漏任务',
             '签到':
                 '执行每日签到\n'
                 '完整流程:\n'
@@ -363,24 +375,12 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 '* 日氪(需进阶设置-日氪)\n'
                 '* VIP签到/每日签到/美食活动/塔罗/法老\n'
                 '* 会长发任务/营地领钥匙/月卡礼包',
+            '领取任务奖励':
+                '领取各种任务的奖励.\n'
+                '被嵌入在部分其他模块中\n'
+                '可自行添加避免漏任务',
             '浇水施肥摘果':
                 '无需解释',
-            '公会任务':
-                '扫描并完成公会任务\n'
-                '完整流程:\n'
-                '* 清背包(需进阶设置-二级密码)\n'
-                '* 领取公会任务奖励\n'
-                '* 扫描任务并战斗\n'
-                '* 清背包(需进阶设置-二级密码)\n'
-                '* 领取公会任务奖励\n'
-                '* 领取普通任务奖励(公会点)',
-            '情侣任务':
-                '扫描并完成情侣任务\n'
-                '完整流程:\n'
-                '* 领取情侣任务奖励\n'
-                '* 扫描任务并战斗\n'
-                '* 领取情侣任务奖励\n'
-                '* 领取普通任务奖励(公会点)',
             '使用消耗品':
                 '使用背包中的消耗品',
             '查漏补缺':
@@ -394,12 +394,12 @@ class QMWEditorOfTaskSequence(QMainWindow):
             '美食大赛':
                 'FAA第三代全自动美食大赛模块\n'
                 '会自动触发美食大赛进度领取',
-            '任务序列':
-                '嵌套执行其他任务序列\n'
-                '自动去重, 防止套娃',
             '扫描任务列表':
                 '扫描当前可执行的任务列表\n'
                 '执念全新功能 - 自动清空普通任务的一部分',
+            '任务序列':
+                '嵌套执行其他任务序列\n'
+                '自动去重, 防止套娃',
             '自建房战斗':
                 '用户自行建房开始战斗\n'
                 '请勿和上述的所有其他功能混合使用\n'
@@ -1189,8 +1189,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 f"问题UUID: {self.could_not_find_battle_plan_uuid_list}"
             )
 
-    def ui_to_list(self):
-        """获取UI上的数据, 生成list"""
+    def ui_to_json_dict(self):
+        """获取UI上的数据, 生成json"""
 
         data = []
 
@@ -1486,7 +1486,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 f"读取<任务序列>失败! \n"
                 f"这是由于您使用文本编辑器魔改后, 格式不符合Json规范导致"
             )
-            error_dialog_and_log(e=e,message=message,parent=self,title="Json格式错误")
+            error_dialog_and_log(e=e, message=message, parent=self, title="Json格式错误")
             return False
 
         try:
@@ -1497,7 +1497,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 f"1. 您使用文本编辑器魔改后, 格式不符合协议.\n"
                 f"2. 该序列的版本过低, 无法兼容解析."
             )
-            error_dialog_and_log(e=e,message=message,parent=self,title="Json不符合战斗序列协议")
+            error_dialog_and_log(e=e, message=message, parent=self, title="Json不符合战斗序列协议")
             return False
 
         # 储存当前方案路径
@@ -1521,13 +1521,16 @@ class QMWEditorOfTaskSequence(QMainWindow):
         """
 
         try:
-            export_list = self.ui_to_list()
+            export_list = self.ui_to_json_dict()
         except Exception as e:
             message = "读请联系开发者!!!"
-            error_dialog_and_log(e=e,message=message,parent=self,title="转化<任务序列>ui内容到list失败")
+            error_dialog_and_log(e=e, message=message, parent=self, title="转化<任务序列>ui内容到list失败")
             return
 
-        CUS_LOGGER.info(f"[任务序列编辑器] 导出结果:{export_list}", )
+        export_str = f"[任务序列编辑器] 导出结果:\n"
+        for data_line in export_list:
+            export_str += f"{data_line}\n"
+        CUS_LOGGER.info(export_str)
 
         is_save_as = self.sender() == self.father.TaskSequenceButtonSaveAsJson
         if is_save_as:
@@ -1584,7 +1587,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
         except Exception as e:
             message = "读请联系开发者!!!"
-            error_dialog_and_log(e=e,message=message,parent=self,title="保存<任务序列>失败")
+            error_dialog_and_log(e=e, message=message, parent=self, title="保存<任务序列>失败")
 
     def edit_alias(self, label, task):
         """
