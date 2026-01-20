@@ -2711,7 +2711,7 @@ class ThreadTodo(QThread):
                         deck=task["task_args"]["deck"],
                         battle_plan_1p=task["task_args"]["battle_plan_1p"],
                         battle_plan_2p=task["task_args"]["battle_plan_2p"],
-                        battle_plan_tweak=task["task_args"]["battle_plan_tweak"],
+                        battle_plan_tweak=task["task_args"].get("battle_plan_tweak", None),
                         stage=task["task_args"]["cross_server"],
                     )
                     main_task_active = True
@@ -2725,7 +2725,7 @@ class ThreadTodo(QThread):
                         deck=task["task_args"]["deck"],
                         battle_plan_1p=task["task_args"]["battle_plan_1p"],
                         battle_plan_2p=task["task_args"]["battle_plan_2p"],
-                        battle_plan_tweak=task["task_args"]["battle_plan_tweak"],
+                        battle_plan_tweak=task["task_args"].get("battle_plan_tweak", None),
                     )
                     main_task_active = True
                     active_singleton = False

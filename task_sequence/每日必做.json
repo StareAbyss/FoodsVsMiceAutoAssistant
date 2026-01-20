@@ -1,7 +1,7 @@
 [
     {
         "meta_data": {
-            "uuid": "8f442ac5-e96b-11f0-bccf-f44efc5bf671",
+            "uuid": "2c4687c9-f459-11f0-a5ac-c0a0fdbe4184",
             "version": "1.0"
         }
     },
@@ -45,8 +45,32 @@
         }
     },
     {
-        "task_type": "公会任务",
+        "task_type": "浇水施肥摘果",
         "task_id": 4,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "任务序列",
+        "task_id": 5,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "sequence_integer": 1,
+            "task_sequence_uuid": "b43c70f2-e74f-11f0-8163-f44efc5bf671"
+        }
+    },
+    {
+        "task_type": "公会任务",
+        "task_id": 6,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -56,6 +80,7 @@
             "deck": 0,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -72,7 +97,7 @@
     },
     {
         "task_type": "清背包",
-        "task_id": 5,
+        "task_id": 7,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -85,7 +110,7 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 6,
+        "task_id": 8,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -95,9 +120,9 @@
                 2
             ],
             "normal": true,
-            "guild": true,
-            "spouse": true,
-            "offer_reward": true,
+            "guild": false,
+            "spouse": false,
+            "offer_reward": false,
             "food_competition": true,
             "monopoly": true,
             "camp": true

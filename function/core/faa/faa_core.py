@@ -1274,7 +1274,7 @@ class FAABase:
             source_handle=self.handle_360,
             source_root_handle=self.handle_360,
             source_range=[0, 0, 400, 75],
-            template=RESOURCE_P["common"]["登录"]["0_回退.png"],
+            template=RESOURCE_P["common"]["360游戏大厅"]["回退.png"],
             match_tolerance=0.9,
             after_sleep=3,
             click=True)
@@ -1284,7 +1284,7 @@ class FAABase:
                 source_handle=self.handle_360,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 400, 75],
-                template=RESOURCE_P["common"]["登录"]["0_回退_被选中.png"],
+                template=RESOURCE_P["common"]["360游戏大厅"]["回退_被选中.png"],
                 match_tolerance=0.98,
                 after_sleep=3,
                 click=True)
@@ -1295,7 +1295,7 @@ class FAABase:
                     source_handle=self.handle_360,
                     source_root_handle=self.handle_360,
                     source_range=[0, 0, 400, 75],
-                    template=RESOURCE_P["common"]["登录"]["0_回退_被点击.png"],
+                    template=RESOURCE_P["common"]["360游戏大厅"]["回退_被点击.png"],
                     match_tolerance=0.98,
                     after_sleep=3,
                     click=True)
