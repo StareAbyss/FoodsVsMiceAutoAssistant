@@ -1337,18 +1337,49 @@ class ThreadTodo(QThread):
         is_mt = "MT" in stage_id
         is_wb = "WB" in stage_id
         is_cs = "CS" in stage_id
-        # 如果是板上钉钉的单人关卡还tm组队, 强制修正为仅1P单人.
-        if len(player) > 1 and ("MT-1" in stage_id or "MT-3" in stage_id or "WB" in stage_id):
-            SIGNAL.PRINT_TO_UI.emit(text=f"{title} 检测到组队, 强制修正为仅1P单人")
-            player = [1]
 
         # 判断是不是组队
         is_group = len(player) > 1
 
-        # 如果是多人跨服 防呆重写 变回 1房主
-        if is_cs and is_group:
-            SIGNAL.PRINT_TO_UI.emit(text=f"{title} 检测到多人跨服, 强制修正为1P房主")
+        """
+        根据特定的关卡信息, 对任务参数进行调整
+        """
+        if is_group and ("MT-1" in stage_id or "MT-3" in stage_id or "WB" in stage_id):
+            SIGNAL.PRINT_TO_UI.emit(text=f"{title}检测到组队进行单人关卡, 强制应用: 仅1P单人")
+            player = [1]
+
+        if "MT-1" in stage_id:
+            SIGNAL.PRINT_TO_UI.emit(text=f"{title}检测到魔塔单人, 强制应用: 特殊关卡退出策略, 不使用钥匙")
+            dict_exit = {"other_time_player_a": [], "other_time_player_b": [],
+                         "last_time_player_a": ["普通红叉"], "last_time_player_b": []}
+            need_key = False
+
+        if "MT-2" in stage_id:
+            SIGNAL.PRINT_TO_UI.emit(text=f"{title}检测到魔塔双人, 强制应用: 特殊关卡退出策略, 战斗≤5次, 不使用钥匙")
+            dict_exit = {"other_time_player_a": [], "other_time_player_b": ["回到上一级"],
+                         "last_time_player_a": ["普通红叉"], "last_time_player_b": ["回到上一级"]}
+            need_key = False
+            if max_times > 5:
+                max_times = 5
+
+        if "MT-3" in stage_id:
+            SIGNAL.PRINT_TO_UI.emit(text=f"{title}检测到魔塔密室, 强制应用: 特殊关卡退出策略, 战斗1次, 不使用钥匙")
+            dict_exit = {"other_time_player_a": [], "other_time_player_b": [],
+                         "last_time_player_a": ["普通红叉"], "last_time_player_b": ["普通红叉"]}
+            need_key = False
+            max_times = 1
+
+        if "NO-3" in stage_id:
+            SIGNAL.PRINT_TO_UI.emit(text=f"{title}检测到火山遗迹, 强制应用: 战斗≤7次")
+            if max_times > 7:
+                max_times = 7
+
+        if is_group and is_cs and (not is_cu):
+            SIGNAL.PRINT_TO_UI.emit(text=f"{title}检测到多人跨服, 强制应用: 1P房主")
             player = [1, 2]
+
+        if is_group and (not is_cs) and (not is_cu):
+            SIGNAL.PRINT_TO_UI.emit(text=f"{title}检测到多人常规关卡, 强制应用: 2P房主")
 
         # 处理多人信息 (这些信息只影响函数内, 所以不判断是否组队)
         pid_a = player[0]  # 房主 创建房间者
