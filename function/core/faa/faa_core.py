@@ -2621,6 +2621,9 @@ class FAABase:
         time.sleep(10)
 
         # 8次查找 7次下拉 查找所有正确图标 不需要升到最顶, 打开背包会自动重置
+        # 记录是否曾经出现过卡牌包
+        ever_had_card_package = False
+        
         for i in range(8):
 
             self.print_debug(text="第{}页物品".format(i + 1))
@@ -2638,12 +2641,16 @@ class FAABase:
                 # 点击滚动条最上方以返回背包开始
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=916, y=115)
                 time.sleep(2)
+                # 重置曾经页出现过卡牌包状态，因为它翻回了首页
+                ever_had_card_package = False
             # 第一次以外, 下滑3次 (一共下滑20次就到底部了)
             else:
                 for j in range(3):
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=920, y=422)
                     time.sleep(0.2)
 
+
+            # 处理原有的物品类型
             for item_name, item_image in g_resources.RESOURCE_CP["背包_装备_需使用的"].items():
 
                 self.print_debug(text="物品:{}本页 开始查找".format(item_name))
@@ -2727,6 +2734,128 @@ class FAABase:
                         break
 
                 self.print_debug(text="物品:{}本页 已全部找到".format(item_name))
+            
+            # 记录当前页面最下方最右方的卡牌包位置
+            last_card_package_position = None
+
+            # 检测卡牌包位置 - 使用正确的资源路径
+            for item_name, item_image in g_resources.RESOURCE_CP["卡牌包"].items():
+                # 添加绑定角标
+                item_image = overlay_images(
+                    img_background=item_image,
+                    img_overlay=RESOURCE_P["item"]["物品-绑定角标-背包.png"])
+
+                # 在限定范围内 找物品
+                _, find = match_p_in_w(
+                    source_handle=self.handle,
+                    source_range=[466, 88, 910, 435],
+                    template=item_image,
+                    template_name=item_name,
+                    mask=RESOURCE_P["item"]["物品-掩模-不绑定.png"],
+                    match_tolerance=0.99,
+                    test_print=True)
+
+                if find:
+                    # 更新到最后方最右方的卡牌包位置
+                    pkg_x, pkg_y = find[0] + 466, find[1] + 88
+                    if last_card_package_position is None:
+                        last_card_package_position = (pkg_x, pkg_y)
+                    else:
+                        # 比较y坐标，如果当前卡牌包更靠下，则更新
+                        # 如果y坐标相同，则比较x坐标，取更靠右的
+                        old_x, old_y = last_card_package_position
+                        if pkg_y > old_y or (pkg_y == old_y and pkg_x > old_x):
+                            last_card_package_position = (pkg_x, pkg_y)
+                    
+                    self.print_debug(text="找到卡牌包位置: ({}, {})".format(pkg_x, pkg_y))
+
+            # 如果当前页找到了卡牌包，更新曾经出现过卡牌包的状态
+            if last_card_package_position:
+                ever_had_card_package = True
+                self.print_debug(text="最下方最右方的卡牌包位置: ({}, {})".format(last_card_package_position[0], last_card_package_position[1]))
+
+            # 寻找十三香礼包并按规则处理 - 使用正确的资源路径，放在其他物品处理之后
+            # 如果当前页有卡牌包位置或曾经出现过卡牌包，则处理十三香礼包
+            if last_card_package_position or ever_had_card_package:
+                for gift_name, gift_image in g_resources.RESOURCE_CP["十三香礼包"].items():
+                    # 添加绑定角标
+                    gift_image_with_overlay = overlay_images(
+                        img_background=gift_image,
+                        img_overlay=RESOURCE_P["item"]["物品-绑定角标-背包.png"])
+                    
+                    # 在当前页面查找所有十三香礼包
+                    current_search_range = [466, 88, 910, 435]  # 初始搜索范围
+                    gift_found = True
+                    while gift_found:
+                        # 在限定范围内查找十三香礼包
+                        _, gift_pos = match_p_in_w(
+                            source_handle=self.handle,
+                            source_range=current_search_range,
+                            template=gift_image_with_overlay,
+                            template_name=gift_name,
+                            mask=RESOURCE_P["item"]["物品-掩模-不绑定.png"],
+                            match_tolerance=0.99,
+                            test_print=True)
+
+                        if gift_pos:
+                            gift_x = gift_pos[0]+current_search_range[0]
+                            gift_y = gift_pos[1]+current_search_range[1]
+                        
+                            # 如果当前页有卡牌包位置，则按原有逻辑判断（礼包在卡牌包右方或下方）
+                            # 如果当前页没有卡牌包但曾经出现过卡牌包，则视为此页所有礼包均为十三香礼包
+                            if last_card_package_position:
+                                # 检查该礼包是否在最后一个卡牌包之后（右侧或下方）
+                                pkg_x, pkg_y = last_card_package_position
+                                # 检查是否在同一行且礼包在卡牌包右边，或者礼包在卡牌包下面
+                                is_after_card_package = (pkg_y+30 < gift_y ) or (pkg_x < gift_x and pkg_y-15<= gift_y)
+                            else:
+                                # 当前页没有卡牌包但曾经出现过卡牌包，视为此页所有礼包均为十三香礼包
+                                is_after_card_package = True
+                        
+                            if is_after_card_package:
+                                self.print_debug(text=f"检测到{gift_name}在卡牌包后方位于({gift_x}, {gift_y})，执行开启操作")
+                                
+                                # 点击十三香礼包
+                                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=gift_x, y=gift_y)
+                                time.sleep(0.5)
+
+                                # 点击"使用"按钮
+                                find_use_button = loop_match_p_in_w(
+                                    source_handle=self.handle,
+                                    source_root_handle=self.handle_360,
+                                    source_range=[466, 86, 950, 500],
+                                    template=RESOURCE_P["item"]["物品-背包-使用.png"],
+                                    match_tolerance=0.98,
+                                    match_interval=0.2,
+                                    match_failed_check=1,
+                                    after_sleep=0.5,
+                                    click=True)
+
+                                # 如果普通使用按钮没找到，尝试点击被选中的使用按钮
+                                if not find_use_button:
+                                    loop_match_p_in_w(
+                                        source_handle=self.handle,
+                                        source_root_handle=self.handle_360,
+                                        source_range=[466, 86, 950, 500],
+                                        template=RESOURCE_P["item"]["物品-背包-使用-被选中.png"],
+                                            match_tolerance=0.98,
+                                            match_interval=0.2,
+                                            match_failed_check=1,
+                                            after_sleep=0.5,
+                                            click=True)
+                            else:
+                                self.print_debug(text=f"找到{gift_name}位于({gift_x}, {gift_y})但不在卡牌包后方，跳过处理")
+                                
+                                # 增加搜索范围的左上角Y坐标50，向下移动搜索区域
+                                current_search_range[1] += 50  # 增加左上y坐标50
+                                
+                                # 如果搜索范围超出限制，则停止查找
+                                if 435-current_search_range[1] <50:  # 超出原始范围上限
+                                    gift_found = False
+                                else:
+                                    gift_found = True  # 继续查找
+                        else:
+                            gift_found = False  # 没找到更多同类礼包，跳出循环
 
         # 无脑点击点掉X 不再识图
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=450, y=190)
