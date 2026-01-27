@@ -2727,7 +2727,7 @@ class ThreadTodo(QThread):
                     main_task_active = True
                     active_singleton = False
 
-                case "施肥浇水摘果":
+                case "浇水施肥摘果":
                     self.batch_fed_and_watered(
                         player=task["task_args"]["player"]
                     )
