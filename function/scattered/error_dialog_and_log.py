@@ -1,11 +1,10 @@
 import traceback
 
-from PyQt6.QtWidgets import QMessageBox
-
+from function.globals import SIGNAL
 from function.globals.log import CUS_LOGGER
 
 
-def error_dialog_and_log(e, message, parent, title="错误"):
+def error_dialog_and_log(e, message, title="错误"):
     """
     显示错误信息并写入日志
     :param e: 错误对象
@@ -26,4 +25,4 @@ def error_dialog_and_log(e, message, parent, title="错误"):
         f"完整错误调用栈:\n"
         f"{traceback_details}"
     )
-    QMessageBox.critical(parent, title, dialog_message)
+    SIGNAL.DIALOG.emit(title, dialog_message)

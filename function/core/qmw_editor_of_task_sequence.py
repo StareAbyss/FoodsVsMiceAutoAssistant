@@ -1480,7 +1480,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 f"读取<任务序列>失败! \n"
                 f"这是由于您使用文本编辑器魔改后, 格式不符合Json规范导致"
             )
-            error_dialog_and_log(e=e, message=message, parent=self, title="Json格式错误")
+            error_dialog_and_log(e=e, message=message, title="Json格式错误")
             return False
 
         try:
@@ -1491,7 +1491,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 f"1. 您使用文本编辑器魔改后, 格式不符合协议.\n"
                 f"2. 该序列的版本过低, 无法兼容解析."
             )
-            error_dialog_and_log(e=e, message=message, parent=self, title="Json不符合战斗序列协议")
+            error_dialog_and_log(e=e, message=message, title="Json不符合战斗序列协议")
             return False
 
         # 储存当前方案路径
@@ -1518,7 +1518,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             export_list = self.ui_to_json_dict()
         except Exception as e:
             message = "读请联系开发者!!!"
-            error_dialog_and_log(e=e, message=message, parent=self, title="转化<任务序列>ui内容到list失败")
+            error_dialog_and_log(e=e, message=message, title="转化<任务序列>ui内容到list失败")
             return
 
         export_str = f"[任务序列编辑器] 导出结果:\n"
@@ -1581,7 +1581,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
         except Exception as e:
             message = "读请联系开发者!!!"
-            error_dialog_and_log(e=e, message=message, parent=self, title="保存<任务序列>失败")
+            error_dialog_and_log(e=e, message=message, title="保存<任务序列>失败")
 
     def edit_alias(self, label, task):
         """

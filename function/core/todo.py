@@ -104,7 +104,6 @@ class ThreadTodo(QThread):
             self.thread_1p = None  # 清除调用
 
         if self.thread_2p is not None:
-            # 改造后的 py thread, 通过终止
             self.thread_2p.stop()
             # self.thread_2p.join()  # <- 执念: 罪魁祸首在此 深渊: 并没有问题!
             self.msleep(10)
@@ -1451,6 +1450,7 @@ class ThreadTodo(QThread):
                 elif vase_num == 2:
                     battle_plan_2p_ = "f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"
                     battle_plan_tweak_ = "00000000-0000-0000-0000-000000000003"
+
             battle_plan_a_ = battle_plan_1p_ if pid_a == 1 else battle_plan_2p_
             battle_plan_b_ = (battle_plan_1p_ if pid_b == 1 else battle_plan_2p_) if is_group else None
 
@@ -2644,7 +2644,7 @@ class ThreadTodo(QThread):
         # 让战斗事项按 多线程单人 和 单线程常规 拆分
         task_sequence = normal_battle_task_to_d_thread(task_sequence=task_sequence)
 
-        CUS_LOGGER.debug(f"自定义任务序列, 已完成全部处理, 结果: {task_sequence}")
+        CUS_LOGGER.debug(f"自定义任务序列, 已完成 文件 -> 执行参数的全部转化, 结果: {task_sequence}")
 
         for task in task_sequence:
             match task["task_type"]:
@@ -2826,7 +2826,7 @@ class ThreadTodo(QThread):
                     active_singleton = True
                 case "任务序列":
                     main_task_active, in_active_singleton = self.task_sequence(
-                        text_="自定义任务序列",
+                        text_="嵌套任务序列",
                         task_begin_id=task["task_args"]["sequence_integer"],
                         task_sequence_uuid=task["task_args"]["task_sequence_uuid"])
                     active_singleton = active_singleton and in_active_singleton
