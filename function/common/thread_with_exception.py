@@ -1,7 +1,9 @@
 import ctypes
 import threading
 
+from function.globals import SIGNAL
 from function.globals.log import CUS_LOGGER
+from function.scattered.error_dialog_and_log import error_dialog_and_log
 
 
 class ThreadWithException(threading.Thread):
@@ -35,11 +37,14 @@ class ThreadWithException(threading.Thread):
     def run(self):
         try:
             if self.is_print:
-                CUS_LOGGER.debug("[{}] Start".format(self.name))
+                CUS_LOGGER.debug(f"[{self.name}] Start")
             self.return_value = self.target(**self.kwargs)
+        except Exception as e:
+            SIGNAL.PRINT_TO_UI.emit(f"任务发生错误, 子线程已中断, 详见日志或信息框体.")
+            error_dialog_and_log(e=e, message=f"任务执行器的子线程中发生错误 - {self.name}")
         finally:
             if self.is_print:
-                CUS_LOGGER.debug("[{}] End".format(self.name))
+                CUS_LOGGER.debug(f"[{self.name}] End")
 
     def get_id(self):
         """获取进程的唯一id"""

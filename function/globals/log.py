@@ -2,8 +2,8 @@ import logging
 import sys
 
 import colorlog
-from PyQt6.QtWidgets import QApplication, QMessageBox
 from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtWidgets import QApplication, QMessageBox
 
 from function.globals.get_paths import PATHS
 
@@ -47,8 +47,6 @@ class CusLogger(logging.Logger):
     def __init__(self, name):
         super().__init__(name)
         self.setLevel(logging.DEBUG)
-
-
 
         # 其他原有处理器配置...
         keywords = ["property", "widget", "push", "layout"]
