@@ -568,25 +568,28 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt = self.opt["accelerate"]
 
             self.AccelerateActive.setChecked(my_opt["active"])
-            self.AccelerateValue.setValue(my_opt["value"])
+            self.AccelerateValue.setValue(my_opt["value"])  # 加速倍率
             self.AccelerateStartUpActive.setChecked(my_opt["start_up_active"])
             self.AccelerateSettlementActive.setChecked(my_opt["settlement_active"])
             self.AccelerateCustomizeActive.setChecked(my_opt["customize_active"])
-            self.AccelerateCustomizeValue.setValue(my_opt["customize_value"])
+            self.AccelerateCustomizeValue.setValue(my_opt["customize_value"])  # 加速时长
 
-            def set_accelerate_value(active, value, customize_active=False, customize_value=0):
-                if active:
-                    return customize_value if customize_active else value
-                return 0
+            def set_accelerate_value(duration, active, value, customize_active=False, customize_value=100):
+                if not active:
+                    return 0
+                speed = customize_value if customize_active else value
+                return duration / (speed / 100)
 
             if my_opt["active"]:
                 EXTRA.ACCELERATE_START_UP_VALUE = set_accelerate_value(
+                    duration=1,
                     active=my_opt["start_up_active"],
                     value=my_opt["value"],
                     customize_active=my_opt["customize_active"],
                     customize_value=my_opt["customize_value"]
                 )
                 EXTRA.ACCELERATE_SETTLEMENT_VALUE = set_accelerate_value(
+                    duration=12,
                     active=my_opt["settlement_active"],
                     value=my_opt["value"]
                 )
@@ -1167,11 +1170,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["customize_active"] = self.AccelerateCustomizeActive.isChecked()
             my_opt["customize_value"] = self.AccelerateCustomizeValue.value()
 
-            def set_accelerate_value(duration, active, value, customize_active=False, customize_value=0):
-                if active:
-                    speed = customize_value if customize_active else value
-                    return duration / (speed / 100)
-                return 0
+            def set_accelerate_value(duration, active, value, customize_active=False, customize_value=100):
+                if not active:
+                    return 0
+                speed = customize_value if customize_active else value
+                return duration / (speed / 100)
 
             if my_opt["active"]:
                 EXTRA.ACCELERATE_START_UP_VALUE = set_accelerate_value(

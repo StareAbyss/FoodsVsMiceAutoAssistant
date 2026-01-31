@@ -1339,46 +1339,64 @@ class FAABase:
                     click=True)
 
                 if not find:
-                    self.print_error(text="未找到360大厅加速游戏按钮, 加速游戏失败了...")
-                    SIGNAL.PRINT_TO_UI.emit(text=f"未找到360大厅加速游戏按钮, 加速游戏失败了... 可能导致流程出错")
+                    SIGNAL.PRINT_TO_UI.emit(text=f"未找到360大厅加速游戏按钮, 点击加速游戏按钮失败了... 可能导致流程出错")
                     return False
             return True
 
         def close():
             for i in range(10):
 
-                # 检测是否在加速中
-                not_accelerating = loop_match_p_in_w(
+                # 检测是否有加速按钮
+                accelerating_btn_find = loop_match_ps_in_w(
+                    template_opts=[
+                        {
+                            "template": RESOURCE_P["common"]["360游戏大厅"]["变速_默认或被点击.png"],
+                            "source_range": [0, 0, 2000, 75],
+                            "match_tolerance": 0.99
+                        },
+                        {
+                            "template": RESOURCE_P["common"]["360游戏大厅"]["变速_被选中.png"],
+                            "source_range": [0, 0, 2000, 75],
+                            "match_tolerance": 0.99
+                        }
+                    ],
+                    return_mode="or",
                     source_handle=self.handle_360,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 2000, 75],
-                    template=RESOURCE_P["common"]["360游戏大厅"]["未激活变速_默认.png"],
-                    match_tolerance=0.99,
-                    match_interval=0.1,
-                    match_failed_check=0.2,
-                    after_sleep=0,
-                    click=False
+                    match_failed_check=0.00002,
+                    match_interval=0.00001
                 )
-
-                if not not_accelerating:
-                    not_accelerating = loop_match_p_in_w(
-                        source_handle=self.handle_360,
-                        source_root_handle=self.handle_360,
-                        source_range=[0, 0, 2000, 75],
-                        template=RESOURCE_P["common"]["360游戏大厅"]["未激活变速_被选中或被点击.png"],
-                        match_tolerance=0.99,
-                        match_interval=0.00001,
-                        match_failed_check=0.00002,
-                        after_sleep=0,
-                        click=False
-                    )
-
-                if not_accelerating:
-                    self.print_info(text="复核 - 停止加速, 已完成")
+                if not accelerating_btn_find:
+                    self.print_warning(text="复核 - 停止加速, 未找到加速按钮, 视为已完成")
                     return True
 
-                click_btn()
-                time.sleep(0.5)
+                # 检测是否在加速中
+                accelerating = not loop_match_ps_in_w(
+                    template_opts=[
+                        {
+                            "template": RESOURCE_P["common"]["360游戏大厅"]["未激活变速_默认.png"],
+                            "source_range": [0, 0, 2000, 75],
+                            "match_tolerance": 0.99
+                        },
+                        {
+                            "template": RESOURCE_P["common"]["360游戏大厅"]["未激活变速_被选中或被点击.png"],
+                            "source_range": [0, 0, 2000, 75],
+                            "match_tolerance": 0.99
+                        }
+                    ],
+                    return_mode="or",
+                    source_handle=self.handle_360,
+                    source_root_handle=self.handle_360,
+                    match_failed_check=0.00002,
+                    match_interval=0.00001
+                )
+                if accelerating:
+                    click_btn()
+                else:
+                    self.print_info(text="复核 - 停止加速, 找到加速按钮, 发现未启用加速, 已完成")
+                    return True
+
+                time.sleep(0.1)
 
             self.print_error(text="关闭加速出现致命失误!!! 请通报开发者!!!")
             return False

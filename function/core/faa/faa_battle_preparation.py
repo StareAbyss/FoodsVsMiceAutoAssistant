@@ -867,7 +867,9 @@ class BattlePreparation:
         # duration is ms
         duration = EXTRA.ACCELERATE_START_UP_VALUE
         if duration > 0:
-            self.click_accelerate_btn(mode="normal")
+            accelerate_result = self.click_accelerate_btn(mode="normal")
+            if not accelerate_result:
+                return 0  # 0-一切顺利
             time.sleep(duration / 1000)
             self.click_accelerate_btn(mode="normal")
             # 检查已经关闭加速
@@ -999,13 +1001,14 @@ class BattlePreparation:
         is_group = self.is_group
         print_info = self.print_info
         print_warning = self.print_warning
+        accelerate_true = False
 
         if EXTRA.ACCELERATE_SETTLEMENT_VALUE:
             print_info(text="[翻宝箱UI] 开始加速...")
-            self.click_accelerate_btn(mode="normal")
+            accelerate_true = self.click_accelerate_btn(mode="normal")
 
-        # 休息一会再识图 如果有加速, 少休息一会
-        time.sleep(7 / (EXTRA.ACCELERATE_SETTLEMENT_VALUE if EXTRA.ACCELERATE_SETTLEMENT_VALUE != 0 else 1))
+        # 休息一会再识图 如果加速成功, 少休息一会
+        time.sleep(7 / EXTRA.ACCELERATE_SETTLEMENT_VALUE if accelerate_true else 7)
 
         find = loop_match_p_in_w(
             source_handle=handle,
@@ -1023,8 +1026,6 @@ class BattlePreparation:
 
         if EXTRA.ACCELERATE_SETTLEMENT_VALUE:
             print_info(text="[翻宝箱UI] 捕获到正确标志, 停止加速...")
-            self.click_accelerate_btn(mode="normal")
-            # 检查已经关闭加速
             self.click_accelerate_btn(mode="stop")
         else:
             print_info(text="[翻宝箱UI] 捕获到正确标志, 继续...")
