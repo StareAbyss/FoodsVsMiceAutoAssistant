@@ -104,6 +104,6 @@ def fresh_and_check_all_task_sequence():
         if msg != "":
             info += f"{sequence_name} -> {msg}\n"
     if info != "":
-        SIGNAL.DIALOG.emit("任务序列检测和修复完成", info)
+        SIGNAL.DIALOG.emit(title="任务序列检测和修复完成", text=info)
 
     return task_sequence_uuid_list

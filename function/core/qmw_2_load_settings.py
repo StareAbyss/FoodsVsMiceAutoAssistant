@@ -5,6 +5,7 @@ import shutil
 import sys
 
 from function.globals.loadings import loading
+from function.scattered.output_error import error_by_single_dialog
 
 loading.update_progress(45, "正在加载配置中...")
 from PyQt6.QtCore import QRegularExpression
@@ -1645,12 +1646,17 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 try:
                     value = int(text)
                     if not 1 <= value <= 23:
-                        SIGNAL.DIALOG.emit("出错！(╬◣д◢)", "勇士本关卡值仅为1-23, 请检查输入")
+                        SIGNAL.DIALOG.emit(
+                            title="出错！(╬◣д◢)",
+                            text="勇士本关卡值仅为1-23, 请检查输入")
                         # 回退到最后一次有效的状态或者清除无效输入
                         self.Warrior_Stage.setText('')
 
-                except ValueError:
-                    SIGNAL.DIALOG.emit("出错！(╬◣д◢)", "此处只可输入数字! 不要输入怪东西!")
+                except ValueError as e:
+                    error_by_single_dialog(
+                        e=e,parent=self,
+                        title="出错！(╬◣д◢)",
+                        extra_message="此处只可输入数字! 不要输入怪东西!")
                     self.Warrior_Stage.setText('')
 
         self.Warrior_Stage.textChanged.connect(warrior_stage_changed)
