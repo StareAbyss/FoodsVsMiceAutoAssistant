@@ -231,9 +231,9 @@ class FAABase:
             if find:
                 current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 SIGNAL.DIALOG.emit(
-                    "查漏补缺报告",
-                    f"{self.player}P因背包爆满,查漏补缺[每日签到]失败!\n"
-                    f"出错时间:{current_time}")
+                    title="查漏补缺报告",
+                    text=f"{self.player}P因背包爆满,查漏补缺[每日签到]失败!\n"
+                         f"出错时间:{current_time}")
         else:
             CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 未检查到漏签,非常好")
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查签到结束")
@@ -251,17 +251,17 @@ class FAABase:
         now = datetime.now(beijing_tz)
         if now.weekday() == 2:
             SIGNAL.DIALOG.emit(
-                "查漏补缺报告",
-                f"今天是星期三，记得检查兑换悬赏卡包，施肥卡包\n")
+                title="查漏补缺报告",
+                text=f"今天是星期三，记得检查兑换悬赏卡包，施肥卡包\n")
         elif now.weekday() == 3:
             SIGNAL.DIALOG.emit(
-                "查漏补缺报告",
-                f"今天是星期四，若是悬赏更新，记得更换方案\n"
-                f"若是三岛更新，记得切换当前刷关配置\n")
+                title="查漏补缺报告",
+                text=f"今天是星期四，若是悬赏更新，记得更换方案\n"
+                     f"若是三岛更新，记得切换当前刷关配置\n")
         if datetime.today().day == 26:
             SIGNAL.DIALOG.emit(
-                "查漏补缺报告",
-                f"今天是炸卡日，记得检查兑换签到卡包\n")
+                title="查漏补缺报告",
+                text=f"今天是炸卡日，记得检查兑换签到卡包\n")
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 结束")
         return quest_list, reputation_status, reputation_now, completed_fertilization
 
@@ -290,9 +290,9 @@ class FAABase:
         if try_count == max_attempts - 1:
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             SIGNAL.DIALOG.emit(
-                "查漏补缺报告",
-                f"{self.player}P因背包爆满, 查漏补缺[领取悬赏任务奖励]失败!\n"
-                f"出错时间:{current_time}, 尝试次数:{max_attempts}")
+                title="查漏补缺报告",
+                text=f"{self.player}P因背包爆满, 查漏补缺[领取悬赏任务奖励]失败!\n"
+                     f"出错时间:{current_time}, 尝试次数:{max_attempts}")
 
         # 退出任务界面
         # 截取整个窗口图像
@@ -322,9 +322,11 @@ class FAABase:
 
     def check_task_of_guild(self: "FAA"):
         self.action_bottom_menu(mode="跳转_公会任务")
+
         # qg_cs = c_opt["quest_guild"]["stage"]
-        qg_cs = True#被拆散了，不能直接从ui读取是否跳过跨服了，直接默认
+        qg_cs = True  # 被拆散了，不能直接从ui读取是否跳过跨服了，直接默认
         quest_not_completed = False
+
         # 最大尝试次数
         max_attempts = 20
 
@@ -372,9 +374,9 @@ class FAABase:
         if try_count == max_attempts - 1:
             current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             SIGNAL.DIALOG.emit(
-                "查漏补缺报告",
-                f"{self.player}P因背包爆满, 查漏补缺[领取公会任务奖励] 失败!\n"
-                f"出错时间:{current_time}, 尝试次数:{max_attempts}")
+                title="查漏补缺报告",
+                text=f"{self.player}P因背包爆满, 查漏补缺[领取公会任务奖励] 失败!\n"
+                     f"出错时间:{current_time}, 尝试次数:{max_attempts}")
         code, locations = match_all_p_in_w(
             template=RESOURCE_P["common"]["任务_进行中.png"],
             source_handle=self.handle,
@@ -1339,7 +1341,8 @@ class FAABase:
                     click=True)
 
                 if not find:
-                    SIGNAL.PRINT_TO_UI.emit(text=f"未找到360大厅加速游戏按钮, 点击加速游戏按钮失败了... 可能导致流程出错")
+                    SIGNAL.PRINT_TO_UI.emit(
+                        text=f"未找到360大厅加速游戏按钮, 点击加速游戏按钮失败了... 可能导致流程出错")
                     return False
             return True
 

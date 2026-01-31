@@ -15,116 +15,129 @@ from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 
 
+class MidSignalPrint:
+    """
+    模仿信号的类, 但其实本身完全不是信号, 是为了可以接受缺省参数而模仿的中间类,
+    该类的emit方法是 一个可以输入 缺省的颜色 或 时间参数 来生成文本的方法
+    并调用信号发送真正的信息
+    """
+
+    def __init__(self, signal_1):
+        super().__init__()
+        self.__signal_1 = signal_1
+        match EXTRA.THEME:
+            case 'light':
+                self.color_scheme = {
+                    1: "C80000",  # 深红色
+                    2: "E67800",  # 深橙色暗调
+                    3: "006400",  # 深绿色
+                    4: "009688",  # 深宝石绿
+                    5: "0056A6",  # 深海蓝
+                    6: "003153",  # 普鲁士蓝
+                    7: "5E2D79",  # 深兰花紫
+                    8: "4B0082",  # 靛蓝
+                    9: "999999",  # 我也不知道啥色
+                }
+            case 'dark':
+                self.color_scheme = {
+                    1: "FF4C4C",  # 鲜红色
+                    2: "FFA500",  # 橙色
+                    3: "00FF00",  # 亮绿色
+                    4: "20B2AA",  # 浅海绿色
+                    5: "1E90FF",  # 道奇蓝
+                    6: "4682B4",  # 钢蓝色
+                    7: "9370DB",  # 中兰花紫
+                    8: "8A2BE2",  # 蓝紫色
+                    9: "CCCCCC",  # 浅灰色
+                }
+
+    def emit(self, text, color_level=9, color=None, time=True, is_line=False, line_type="normal"):
+        """
+        打印文本到 日志 + 用户UI
+        :param text: 正文文本
+        :param color_level: int 1 to 9
+        :param color: 支持直接使用颜色代码
+        :param time: 是否显示打印时间
+        :param is_line: 是否替换本行为横线
+        :param line_type: str normal/top/bottom
+        :return:
+        """
+        if color_level in self.color_scheme:
+            color = self.color_scheme[color_level]
+        elif not color:
+            color = self.color_scheme[9]
+        if is_line:
+            text = "—" * 44
+            time = False
+            if line_type == "top":
+                text = "‾" * 67
+            if line_type == "bottom":
+                text = "_" * 59
+        # 处理缺省参数
+        self.__signal_1.emit(text, color, time)
+
+
+class MidSignalImage:
+    """
+    模仿信号的类, 但其实本身完全不是信号, 是为了可以接受缺省参数而模仿的中间类,
+    该类的emit方法是 一个可以输入 numpy.ndarray 或 图片路径 并判断是否读取的方法
+    并调用信号发送真正的图片
+    """
+
+    def __init__(self, signal_1):
+        super().__init__()
+        self.__signal_1 = signal_1
+
+    def emit(self, image):
+        # 根据 路径 或者 numpy.ndarray 选择是否读取
+        if type(image) is not np.ndarray:
+            # 读取目标图像,中文路径兼容方案
+            image_ndarray = cv2.imdecode(buf=np.fromfile(file=image, dtype=np.uint8), flags=-1)
+        else:
+            image_ndarray = image
+        # 处理缺省参数
+        self.__signal_1.emit(image_ndarray)
+
+
+class MidSignalDialog:
+    """
+    模仿信号的类, 但其实本身完全不是信号, 是为了可以接受缺省参数而模仿的中间类,
+    该类的emit方法是 一个可以输入 标题 正文 来生成弹窗的方法
+    并调用信号发送真正信息
+    """
+
+    def __init__(self, signal_1):
+        super().__init__()
+        self.__signal_1 = signal_1
+
+    def emit(self, title, text):
+        # 处理缺省参数
+        self.__signal_1.emit(title, text)
+
+
 class QMainWindowLog(QMainWindowLoadUI):
     signal_dialog = pyqtSignal(str, str)  # 标题, 正文
-    signal_print_to_ui = pyqtSignal(str, str, bool)
+    signal_print_to_ui_and_info_log = pyqtSignal(str, str, bool)
     signal_image_to_ui = pyqtSignal(numpy.ndarray)
 
     def __init__(self):
         # 继承父类构造方法
         super().__init__()
 
-        # 链接防呆弹窗
-        self.signal_dialog.connect(self.show_dialog)
-
         # 并不是直接输出, 其emit方法是 一个可以输入 缺省的颜色 或 时间参数 来生成文本 调用 signal_print_to_ui_1
-        SIGNAL.PRINT_TO_UI = self.MidSignalPrint(signal_1=self.signal_print_to_ui)
-
-        # 真正的 发送信息激活 print 的函数, 被链接到直接发送信息到ui的函数
-        self.signal_print_to_ui.connect(self.print_to_ui)
+        SIGNAL.PRINT_TO_UI = MidSignalPrint(signal_1=self.signal_print_to_ui_and_info_log)
+        self.signal_print_to_ui_and_info_log.connect(self.print_to_ui_and_info_log)
 
         # 用于支持 输入 路径 或 numpy.ndarray
-        SIGNAL.IMAGE_TO_UI = self.MidSignalImage(signal_1=self.signal_image_to_ui)
-
-        # 真正的 发送图片到ui的函数, 被链接到直接发送图片到ui的函数
+        SIGNAL.IMAGE_TO_UI = MidSignalImage(signal_1=self.signal_image_to_ui)
         self.signal_image_to_ui.connect(self.image_to_ui)
 
-        # 储存在全局
-        SIGNAL.DIALOG = self.signal_dialog
+        # 链接弹窗 仅用于获得代码提示
+        SIGNAL.DIALOG = MidSignalDialog(signal_1=self.signal_dialog)
+        self.signal_dialog.connect(self.show_dialog)
 
         # 打印默认输出提示
         self.start_print()
-
-    class MidSignalPrint:
-        """
-        模仿信号的类, 但其实本身完全不是信号, 是为了可以接受缺省参数而模仿的中间类,
-        该类的emit方法是 一个可以输入 缺省的颜色 或 时间参数 来生成文本的方法
-        并调用信号发送真正的信息
-        """
-
-        def __init__(self, signal_1):
-            super().__init__()
-            self.signal_1 = signal_1
-            match EXTRA.THEME:
-                case 'light':
-                    self.color_scheme = {
-                        1: "C80000",  # 深红色
-                        2: "E67800",  # 深橙色暗调
-                        3: "006400",  # 深绿色
-                        4: "009688",  # 深宝石绿
-                        5: "0056A6",  # 深海蓝
-                        6: "003153",  # 普鲁士蓝
-                        7: "5E2D79",  # 深兰花紫
-                        8: "4B0082",  # 靛蓝
-                        9: "999999",  # 我也不知道啥色
-                    }
-                case 'dark':
-                    self.color_scheme = {
-                        1: "FF4C4C",  # 鲜红色
-                        2: "FFA500",  # 橙色
-                        3: "00FF00",  # 亮绿色
-                        4: "20B2AA",  # 浅海绿色
-                        5: "1E90FF",  # 道奇蓝
-                        6: "4682B4",  # 钢蓝色
-                        7: "9370DB",  # 中兰花紫
-                        8: "8A2BE2",  # 蓝紫色
-                        9: "CCCCCC",  # 浅灰色
-                    }
-
-        def emit(self, text, color_level=9, color=None, time=True, is_line=False, line_type="normal"):
-            """
-            :param text: 正文文本
-            :param color_level: int 1 to 9
-            :param color: 支持直接使用颜色代码
-            :param time: 是否显示打印时间
-            :param is_line: 是否替换本行为横线
-            :param line_type: str normal/top/bottom
-            :return:
-            """
-            if color_level in self.color_scheme:
-                color = self.color_scheme[color_level]
-            elif not color:
-                color = self.color_scheme[9]
-            if is_line:
-                text = "—" * 44
-                time = False
-                if line_type == "top":
-                    text = "‾" * 67
-                if line_type == "bottom":
-                    text = "_" * 59
-            # 处理缺省参数
-            self.signal_1.emit(text, color, time)
-
-    class MidSignalImage:
-        """
-        模仿信号的类, 但其实本身完全不是信号, 是为了可以接受缺省参数而模仿的中间类,
-        该类的emit方法是 一个可以输入 numpy.ndarray 或 图片路径 并判断是否读取的方法
-        并调用信号发送真正的图片
-        """
-
-        def __init__(self, signal_1):
-            super().__init__()
-            self.signal_1 = signal_1
-
-        def emit(self, image):
-            # 根据 路径 或者 numpy.ndarray 选择是否读取
-            if type(image) is not np.ndarray:
-                # 读取目标图像,中文路径兼容方案
-                image_ndarray = cv2.imdecode(buf=np.fromfile(file=image, dtype=np.uint8), flags=-1)
-            else:
-                image_ndarray = image
-            # 处理缺省参数
-            self.signal_1.emit(image_ndarray)
 
     @staticmethod
     def start_print():
@@ -277,6 +290,64 @@ class QMainWindowLog(QMainWindowLoadUI):
             time=False)
 
     # 用于展示弹窗信息的方法
+
+    def cleanup_dialog(self):
+        """清理对话框资源"""
+        if self.log_dialog:
+            self.text_browser.clear()  # 清空内容
+            self.log_dialog.deleteLater()
+            self.log_dialog = None
+
+    @QtCore.pyqtSlot(str, str, bool)
+    def print_to_ui_and_info_log(self, text: str, color: str, time: bool):
+        """
+        打印文本到输出框和日志
+        """
+
+        # 时间文本
+        text_time = "[{}] ".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) if time else ""
+
+        # 颜色文本
+        text_all = f'<span style="color:#{color};">{text_time}{text}</span>'
+
+        # 输出到输出框
+        self.TextBrowser.append(text_all)
+
+        # 自动滚动到最新消息
+        self.TextBrowser.verticalScrollBar().setValue(
+            self.TextBrowser.verticalScrollBar().maximum()
+        )
+
+        # 输出到日志和运行框
+        CUS_LOGGER.info(text)
+
+    @QtCore.pyqtSlot(numpy.ndarray)
+    def image_to_ui(self, image_ndarray: numpy.ndarray):
+        """
+        :param image_ndarray: 必须是 numpy.ndarray 对象
+        :return:
+        """
+
+        # 編碼字節流
+        _, img_encoded = cv2.imencode('.png', image_ndarray)
+
+        # base64
+        img_base64 = base64.b64encode(img_encoded).decode('utf-8')
+
+        image_html = f"<img src='data:image/png;base64,{img_base64}'>"
+
+        # self.TextBrowser.insertHtml(image_html)
+
+        # 输出到输出框
+        self.TextBrowser.append(image_html)
+
+        # 实时输出
+        cursor = self.TextBrowser.textCursor()
+        cursor.setPosition(cursor.position(), QTextCursor.MoveMode.MoveAnchor)
+        cursor.setPosition(cursor.position() + 1, QTextCursor.MoveMode.KeepAnchor)  # 移动到末尾
+        self.TextBrowser.setTextCursor(cursor)
+        QApplication.processEvents()
+
     @QtCore.pyqtSlot(str, str)
     def show_dialog(self, title, message):
         # 创建/获取对话框实例
@@ -311,56 +382,3 @@ class QMainWindowLog(QMainWindowLoadUI):
         # 显示对话框
         if not self.log_dialog.isVisible():
             self.log_dialog.show()
-
-    def cleanup_dialog(self):
-        """清理对话框资源"""
-        if self.log_dialog:
-            self.text_browser.clear()  # 清空内容
-            self.log_dialog.deleteLater()
-            self.log_dialog = None
-
-    def print_to_ui(self, text, color, time):
-        """打印文本到输出框 """
-
-        # 时间文本
-        text_time = "[{}] ".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")) if time else ""
-
-        # 颜色文本
-        text_all = f'<span style="color:#{color};">{text_time}{text}</span>'
-
-        # 输出到输出框
-        self.TextBrowser.append(text_all)
-
-        # 自动滚动到最新消息
-        self.TextBrowser.verticalScrollBar().setValue(
-            self.TextBrowser.verticalScrollBar().maximum()
-        )
-
-        # 输出到日志和运行框
-        CUS_LOGGER.info(text)
-
-    def image_to_ui(self, image_ndarray: numpy.ndarray):
-        """
-        :param image_ndarray: 必须是 numpy.ndarray 对象
-        :return:
-        """
-
-        # 編碼字節流
-        _, img_encoded = cv2.imencode('.png', image_ndarray)
-
-        # base64
-        img_base64 = base64.b64encode(img_encoded).decode('utf-8')
-
-        image_html = f"<img src='data:image/png;base64,{img_base64}'>"
-
-        # self.TextBrowser.insertHtml(image_html)
-
-        # 输出到输出框
-        self.TextBrowser.append(image_html)
-
-        # 实时输出
-        cursor = self.TextBrowser.textCursor()
-        cursor.setPosition(cursor.position(), QTextCursor.MoveMode.MoveAnchor)
-        cursor.setPosition(cursor.position() + 1, QTextCursor.MoveMode.KeepAnchor)  # 移动到末尾
-        self.TextBrowser.setTextCursor(cursor)
-        QApplication.processEvents()

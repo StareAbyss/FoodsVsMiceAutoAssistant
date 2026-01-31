@@ -817,8 +817,9 @@ class QMainWindowService(QMainWindowLoadSettings):
             if handle is None or handle == 0:
                 # 报错弹窗
                 SIGNAL.DIALOG.emit(
-                    "出错！(╬◣д◢)",
-                    f"{player}P存在错误的窗口名或游戏名称, 请参考 [使用前看我!.pdf] 或 [README.md]")
+                    title="出错！(╬◣д◢)",
+                    text=f"{player}P存在错误的窗口名或游戏名称, 请在基础设定处重新拖拽至游戏窗口后保存."
+                )
                 return
 
         if self.game_window_is_hide:
@@ -862,12 +863,19 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def click_btn_batch_resize_window(self):
 
-        # 获取窗口名称
-        batch_resize_window(
-            game_name=self.opt["base_settings"]["game_name"],
-            name_1p=self.opt["base_settings"]["name_1p"],
-            name_2p=self.opt["base_settings"]["name_2p"]
-        )
+        try:
+            # 获取窗口名称
+            batch_resize_window(
+                game_name=self.opt["base_settings"]["game_name"],
+                name_1p=self.opt["base_settings"]["name_1p"],
+                name_2p=self.opt["base_settings"]["name_2p"]
+            )
+        except Exception as e:
+            # 报错弹窗
+            SIGNAL.DIALOG.emit(
+                title="出错！(╬◣д◢)",
+                text=f"存在错误的窗口名或游戏名称, 请在基础设定处重新拖拽至游戏窗口后保存."
+            )
 
     """打开其他窗口"""
 
@@ -902,8 +910,8 @@ class QMainWindowService(QMainWindowLoadSettings):
             window.show()
         else:
             SIGNAL.DIALOG.emit(
-                "出错！(╬◣д◢)",
-                "请打开游戏窗口后再使用小工具！")
+                title="出错！(╬◣д◢)",
+                text="请打开游戏窗口后再使用小工具！")
 
     def click_btn_tip_warm_gift(self):
         window = self.window_tip_warm_gift
@@ -981,15 +989,15 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         result_bool, result_print = test_route_connectivity(url=url)
         SIGNAL.DIALOG.emit(
-            "链接成功!" if result_bool else "连接失败...",
-            result_print
+            title="链接成功!" if result_bool else "连接失败...",
+            text=result_print
         )
 
     def click_btn_misu_logistics_get_stage_info_online(self):
         result_print = get_stage_info_online()
         SIGNAL.DIALOG.emit(
-            "尝试完成",
-            result_print
+            title="尝试完成",
+            text=result_print
         )
 
     def click_btn_misu_logistics_set_default(self):
@@ -1012,8 +1020,9 @@ class QMainWindowService(QMainWindowLoadSettings):
         path, title = get_path_and_sub_titles()
         if not path:
             SIGNAL.DIALOG.emit(
-                "哎呦！(╥﹏╥)",
-                f"未正确获取路径，请确保已打开360大厅及授予FAA管理员权限")
+                title="哎呦！(╥﹏╥)",
+                text=f"未正确获取路径，请确保已打开360大厅及授予FAA管理员权限"
+            )
             return
         self.LoginSettings360PathInput.setText(path)
 

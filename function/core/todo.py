@@ -2830,6 +2830,12 @@ class ThreadTodo(QThread):
                         task_begin_id=task["task_args"]["sequence_integer"],
                         task_sequence_uuid=task["task_args"]["task_sequence_uuid"])
                     active_singleton = active_singleton and in_active_singleton
+                case _:
+                    # 记录错误日志
+                    error_msg = f"[任务序列执行] json中包含了未识别的任务类型: {task['task_type']}, 请注意"
+                    SIGNAL.PRINT_TO_UI.emit(text=error_msg, color_level=3)
+                    # 此操作不直接return 不影响其他执行
+
         # 战斗结束
         self.model_end_print(text=text_)
         return main_task_active, active_singleton
@@ -2893,16 +2899,16 @@ class ThreadTodo(QThread):
                 quest_list_1, _ = self.thread_1p.get_return_value()
                 if len(quest_list_1) > 0:
                     SIGNAL.DIALOG.emit(
-                        "查漏补缺报告",
-                        f"1p仍然存在未完成刷关任务，可能为缺乏指定卡片/方案缺失/刷关失败，请检查\n")
+                        title="查漏补缺报告",
+                        text=f"1p仍然存在未完成刷关任务，可能为缺乏指定卡片/方案缺失/刷关失败，请检查\n")
                 else:
                     CUS_LOGGER.warning(f"1p完成公会任务查漏补缺")
             if 2 in player:
                 quest_list_2, _ = self.thread_2p.get_return_value()
                 if len(quest_list_2) > 0:
                     SIGNAL.DIALOG.emit(
-                        "查漏补缺报告",
-                        f"2p仍然存在未完成刷关任务，可能为缺乏指定卡片/方案缺失/刷关失败，请检查\n")
+                        title="查漏补缺报告",
+                        text=f"2p仍然存在未完成刷关任务，可能为缺乏指定卡片/方案缺失/刷关失败，请检查\n")
                 else:
                     CUS_LOGGER.warning(f"2p完成公会任务查漏补缺")
         if 1 in player and completed_fertilization_1:  # 未完成施肥的则进行施肥
@@ -2969,8 +2975,8 @@ class ThreadTodo(QThread):
                         )
                         if status == 2:  # 声望没有变化
                             SIGNAL.DIALOG.emit(
-                                "查漏补缺报告",
-                                f"1p声望悬赏第{max_stage}关失败，请自行检查\n")
+                                title="查漏补缺报告",
+                                text=f"1p声望悬赏第{max_stage}关失败，请自行检查\n")
                             continue
                         else:
                             break
@@ -2988,8 +2994,8 @@ class ThreadTodo(QThread):
                         )
                         if status == 2:
                             SIGNAL.DIALOG.emit(
-                                "查漏补缺报告",
-                                f"2p声望悬赏第{max_stage}关失败，请自行检查\n")
+                                title="查漏补缺报告",
+                                text=f"2p声望悬赏第{max_stage}关失败，请自行检查\n")
                             continue
                         else:
                             break
@@ -3042,8 +3048,8 @@ class ThreadTodo(QThread):
             if count == MaxBountyTime:
                 # 有个不大不小的奇妙bug，当背包满了的时候，会导致无法领取奖励，进而使悬赏刷关无法跳转
                 SIGNAL.DIALOG.emit(
-                    "查漏补缺报告",
-                    f"声望刷取次数过多，请自行检查\n")
+                    title="查漏补缺报告",
+                    text=f"声望刷取次数过多，请自行检查\n")
             else:
                 CUS_LOGGER.warning(f"声望刷满任务完成")
 
@@ -3253,8 +3259,8 @@ class ThreadTodo(QThread):
         path = self.opt["tce"]["tce_path"]
         if not path:
             SIGNAL.DIALOG.emit(
-                "前面的功能, 以后再来探索吧!",
-                "你还没有天知强卡器哦, 所以说你没有资格呐!\n深渊桑: 没有设置路径! 请在进阶设置完成!")
+                title="前面的功能, 以后再来探索吧!",
+                text="你还没有天知强卡器哦, 所以说你没有资格呐!\n深渊桑: 没有设置路径! 请在进阶设置完成!")
             return
 
         tce_sub_process = subprocess.Popen(path, cwd=os.path.dirname(path))
@@ -3268,8 +3274,8 @@ class ThreadTodo(QThread):
         else:
             # 强卡器连接失败，关掉管道线程
             SIGNAL.DIALOG.emit(
-                "天知强卡器召唤失败T_T",
-                "和天知强卡器的羁绊还不够!\n深渊桑: 30s内未能建立连接! 请使用v0.4.0+版本的天知强卡器!")
+                title="天知强卡器召唤失败T_T",
+                text="和天知强卡器的羁绊还不够!\n深渊桑: 30s内未能建立连接! 请使用v0.4.0+版本的天知强卡器!")
             tce_pipe_thread.stop()
 
         if player:
@@ -3520,8 +3526,8 @@ class ThreadTodo(QThread):
             if handle is None or handle == 0:
                 # 报错弹窗
                 SIGNAL.DIALOG.emit(
-                    "出错！(╬◣д◢)",
-                    f"{player}P存在错误的窗口名或游戏名称, 请在基础设定处重新拖拽至游戏窗口后保存重启.")
+                    title="出错！(╬◣д◢)",
+                    text=f"{player}P存在错误的窗口名或游戏名称, 请在基础设定处重新拖拽至游戏窗口后保存.")
                 # 强制夹断
                 return False
         SIGNAL.PRINT_TO_UI.emit(text=f"[检测重要参数] 所有小号窗口已开启, 继续进行...", color_level=1)

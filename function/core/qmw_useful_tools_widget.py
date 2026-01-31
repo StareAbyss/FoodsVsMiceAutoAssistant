@@ -273,8 +273,8 @@ class GachaGoldThread(QThread):
             if not result:
                 # 出现错误，停止线程并弹窗
                 SIGNAL.DIALOG.emit(
-                    "出错！(╬◣д◢)",
-                    message)
+                    title="出错！(╬◣д◢)",
+                    text=message)
                 self.stop()
                 break
 
