@@ -2541,6 +2541,52 @@ class FAABase:
                 return True, False
 
             return False, False
+        def try_plant_tree():
+            self.print_debug(text=f"尝试种树")
+            find = loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=[400, 350, 550, 450],
+                template=RESOURCE_P["quest_guild"]["plant.png"],
+                after_sleep=0.3,
+                click=True,
+                match_failed_check=2.0)
+            if find:
+                #点种子(默认低级，需要自行替换高级种子图片）
+                loop_match_p_in_w(
+                    source_handle=self.handle,
+                    source_root_handle=self.handle_360,
+                    source_range=[300, 280, 600, 333],
+                    template=RESOURCE_P["quest_guild"]["seed.png"],
+                    after_sleep=0.3,
+                    click=True,
+                    match_failed_check=2.0)
+                #点播种
+                loop_match_p_in_w(
+                    source_handle=self.handle,
+                    source_root_handle=self.handle_360,
+                    source_range=[417, 400, 530, 432],
+                    template=RESOURCE_P["quest_guild"]["ensure_plant.png"],
+                    after_sleep=2,
+                    click=True,
+                    match_failed_check=2.0)
+                find=loop_match_p_in_w(
+                    source_handle=self.handle,
+                    source_root_handle=self.handle_360,
+                    source_range=[625, 212, 662, 248],
+                    template=RESOURCE_P["quest_guild"]["close_plant.png"],
+                    after_sleep=0.3,
+                    click=True,
+                    match_failed_check=2.0)
+                if find:
+                    self.print_debug(text=f"种树失败！！！")
+                    return False
+            else:
+                self.print_debug(text=f"未找到播种按钮，可能已种树/没有权限/没有工会点")
+                return False
+            self.print_debug(text=f"种树成功")
+            return True
+
 
         def fed_and_watered_once(try_times):
             """
@@ -2551,7 +2597,9 @@ class FAABase:
             # 进入施肥界面, 没有正确进入就跳出循环
             if not from_guild_to_guild_garden():
                 return True
-
+            if try_times==0:
+                #首次打开施肥界面尝试种树
+                try_plant_tree()
             # 根据目前尝试次数, 到达不同的公会
             switch_guild_garden_by_try_times(try_times=try_times)
 
