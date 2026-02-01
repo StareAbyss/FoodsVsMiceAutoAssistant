@@ -2483,32 +2483,54 @@ class FAABase:
             success = from_guild_to_quest_guild()
             if not success:
                 return False, True
-
+            source_range=[75, 80, 430, 500]
             # 检测施肥任务完成情况 任务是进行中的话为True
             quest_not_completed = loop_match_ps_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
                 template_opts=[
                     {
-                        "source_range": [75, 80, 430, 500],
+                        "source_range": source_range,
                         "template": RESOURCE_P["quest_guild"]["fed_0.png"],
                         "match_tolerance": 0.98
                     }, {
-                        "source_range": [75, 80, 430, 500],
+                        "source_range": source_range,
                         "template": RESOURCE_P["quest_guild"]["fed_1.png"],
                         "match_tolerance": 0.98
                     }, {
-                        "source_range": [75, 80, 430, 500],
+                        "source_range": source_range,
                         "template": RESOURCE_P["quest_guild"]["fed_2.png"],
                         "match_tolerance": 0.98,
                     }, {
-                        "source_range": [75, 80, 430, 500],
+                        "source_range": source_range,
                         "template": RESOURCE_P["quest_guild"]["fed_3.png"],
                         "match_tolerance": 0.98,
                     }
                 ],
+                quick_mode=False,
                 return_mode="or",
                 match_failed_check=2)
+            if quest_not_completed:
+                quest_not_completed = [x for x in quest_not_completed if x is not None]
+                #点击施肥任务
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle,
+                    x=quest_not_completed[0][0]+source_range[0],
+                    y=quest_not_completed[0][1]+source_range[1]
+                )
+                time.sleep(0.5)
+                _, find = match_p_in_w(
+                    source_handle=self.handle,
+                    source_root_handle=self.handle_360,
+                    source_range=[680, 460, 820, 500],
+                    template=RESOURCE_P["quest_guild"]["no_reward.png"],
+                    match_tolerance=0.995)
+                if find:
+                    # 领取任务奖励
+                    self.print_debug(text=f"施肥没有奖励呢。。。跳过施肥")
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=854, y=55)
+                    time.sleep(0.5)
+                    return True, False
 
             # 退出任务界面
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=854, y=55)

@@ -412,10 +412,11 @@ def loop_match_ps_in_w(
         template_opts: list,
         return_mode: str,
         source_handle,
+        quick_mode=True,
         source_root_handle=None,
         match_failed_check: float = 10,
         match_interval: float = 0.2,
-) -> bool:
+) -> Union[bool,list]:
     """
     :param template_opts: [{"template":str,"source_range": [x1:int,y1:int,x2:int,y2:int],"match_tolerance":float},...]
     :param return_mode: 模式 and 或者 or
@@ -431,10 +432,11 @@ def loop_match_ps_in_w(
         find_target = match_ps_in_w(
             source_handle=source_handle,
             template_opts=template_opts,
+            quick_mode=quick_mode,
             return_mode=return_mode,
             source_root_handle=source_root_handle)
         if find_target:
-            return True
+            return find_target
 
         # 超时, 查找失败
         invite_time += match_interval
