@@ -2646,10 +2646,10 @@ class FAABase:
             beijing_tz = pytz.timezone('Asia/Shanghai')
             now = datetime.now(beijing_tz)
             if now.weekday() == 3 and 0 <= now.hour < 12:
-                SIGNAL.PRINT_TO_UI.emit("[浇水 施肥 摘果 领取] 周四0-12点, 跳过本流程, 以防领取到上一期道具.")
+                SIGNAL.PRINT_TO_UI.emit("[种树 浇水 施肥 摘果 领取] 周四0-12点, 跳过本流程, 以防领取到上一期道具.")
                 return
 
-            SIGNAL.PRINT_TO_UI.emit(f"[浇水 施肥 摘果 领取] [{self.player}p] 开始执行... 最多{max_try_times}次")
+            SIGNAL.PRINT_TO_UI.emit(f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 开始执行... 最多{max_try_times}次")
 
             for reload_time in range(1, 4):
 
@@ -2658,12 +2658,12 @@ class FAABase:
                 if is_bug:
                     if reload_time != 3:
                         SIGNAL.PRINT_TO_UI.emit(
-                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入公会页失败... 刷新再试({reload_time}/3)")
+                            f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入公会页失败... 刷新再试({reload_time}/3)")
                         self.reload_game()
                         continue
                     else:
                         SIGNAL.PRINT_TO_UI.emit(
-                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入公会页失败... 刷新跳过({reload_time}/3)")
+                            f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入公会页失败... 刷新跳过({reload_time}/3)")
                         self.reload_game()
                         break
 
@@ -2673,13 +2673,13 @@ class FAABase:
                 if is_bug:
                     if reload_time < 3:
                         SIGNAL.PRINT_TO_UI.emit(
-                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住 "
+                            f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住 "
                             f"本轮循环施肥尝试:{try_times}次, 刷新, 再试, ({reload_time}/3)")
                         self.reload_game()
                         continue
                     else:
                         SIGNAL.PRINT_TO_UI.emit(
-                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住 "
+                            f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住 "
                             f"本轮循环施肥尝试:{try_times}次, 刷新, 跳过, ({reload_time}/3)")
                         self.reload_game()
                         break
@@ -2687,7 +2687,7 @@ class FAABase:
                 if completed:
                     # 正常完成
                     SIGNAL.PRINT_TO_UI.emit(
-                        f"[浇水 施肥 摘果 领取] [{self.player}p] 正确完成 ~")
+                        f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 正确完成 ~")
                     # 退出公会
                     self.action_exit(mode="普通红叉")
                     self.action_receive_quest_rewards(mode="公会任务")
@@ -2695,7 +2695,7 @@ class FAABase:
 
                 if try_times >= max_try_times:
                     SIGNAL.PRINT_TO_UI.emit(
-                        f"[浇水 施肥 摘果 领取] [{self.player}p] 尝试{max_try_times}次, 肥料不够! 或全是解散公会! 刷新, 跳过 ")
+                        f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 尝试{max_try_times}次, 肥料不够! 或全是解散公会! 刷新, 跳过 ")
                     self.reload_game()
                     break
 
