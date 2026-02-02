@@ -444,7 +444,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         fresh_and_check_all_task_sequence()
         task_sequence_uuid_list = (
             list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
-            if hasattr(EXTRA,'TASK_SEQUENCE_UUID_TO_PATH')
+            if hasattr(EXTRA, 'TASK_SEQUENCE_UUID_TO_PATH')
             else []
         )
 
