@@ -30,7 +30,7 @@ class FAAActionReceiveQuestRewards:
 
         player = self.player
 
-        def scan_one_page():
+        def scan_one_page(first_time):
             """扫描一页"""
 
             # 最大尝试次数
@@ -55,19 +55,21 @@ class FAAActionReceiveQuestRewards:
                     break
 
             # 如果达到了最大尝试次数
-            if try_count == max_attempts - 1:
+            if try_count == max_attempts - 1 and first_time:
+                first_time = False
                 current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 SIGNAL.DIALOG.emit(
                     title="背包满了！(╬◣д◢)",
                     text=f"{player}P因背包爆满, 导致 [领取普通任务奖励] 失败!\n"
                     f"出错时间:{current_time}, 尝试次数:{max_attempts}")
+            return first_time
 
         self.action_bottom_menu(mode="任务")
 
         # 复位滑块
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=413, y=155)
         time.sleep(0.25)
-
+        first_time=True
         for i in range(8):
 
             # 不是第一次滑块向下移动3次
@@ -76,7 +78,7 @@ class FAAActionReceiveQuestRewards:
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=413, y=524)
                     time.sleep(0.05)
 
-            scan_one_page()
+            first_time=scan_one_page(first_time)
 
         self.action_exit(mode="普通红叉")
 
@@ -97,7 +99,7 @@ class FAAActionReceiveQuestRewards:
             else:
                 current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 SIGNAL.DIALOG.emit(
-                    title="背包满了！(╬◣д◢)",
+                    title="未截图成功！！！",
                     text=f"{player}P图片不存在, 导致 [扫描任务列表] 失败!\n"
                     f"出错时间:{current_time}")
 
@@ -481,7 +483,7 @@ class FAAActionReceiveQuestRewards:
                     current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     SIGNAL.DIALOG.emit(
                         title="背包满了！(╬◣д◢)",
-                        text=f"{self.player}P因背包爆满, 导致 [领取悬赏任务奖励]失败!\n"
+                        text=f"{self.player}P因背包爆满, 导致 [领取美食大赛积分]失败!\n"
                              f"出错时间:{current_time}, 尝试次数:{max_attempts}")
 
             # 退出美食大赛界面

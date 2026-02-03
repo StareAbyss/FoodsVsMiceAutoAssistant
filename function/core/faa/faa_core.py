@@ -2483,32 +2483,54 @@ class FAABase:
             success = from_guild_to_quest_guild()
             if not success:
                 return False, True
-
+            source_range=[75, 80, 430, 500]
             # 检测施肥任务完成情况 任务是进行中的话为True
             quest_not_completed = loop_match_ps_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
                 template_opts=[
                     {
-                        "source_range": [75, 80, 430, 500],
+                        "source_range": source_range,
                         "template": RESOURCE_P["quest_guild"]["fed_0.png"],
                         "match_tolerance": 0.98
                     }, {
-                        "source_range": [75, 80, 430, 500],
+                        "source_range": source_range,
                         "template": RESOURCE_P["quest_guild"]["fed_1.png"],
                         "match_tolerance": 0.98
                     }, {
-                        "source_range": [75, 80, 430, 500],
+                        "source_range": source_range,
                         "template": RESOURCE_P["quest_guild"]["fed_2.png"],
                         "match_tolerance": 0.98,
                     }, {
-                        "source_range": [75, 80, 430, 500],
+                        "source_range": source_range,
                         "template": RESOURCE_P["quest_guild"]["fed_3.png"],
                         "match_tolerance": 0.98,
                     }
                 ],
+                quick_mode=False,
                 return_mode="or",
                 match_failed_check=2)
+            if quest_not_completed:
+                quest_not_completed = [x for x in quest_not_completed if x is not None]
+                #点击施肥任务
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle,
+                    x=quest_not_completed[0][0]+source_range[0],
+                    y=quest_not_completed[0][1]+source_range[1]
+                )
+                time.sleep(0.5)
+                _, find = match_p_in_w(
+                    source_handle=self.handle,
+                    source_root_handle=self.handle_360,
+                    source_range=[680, 460, 820, 500],
+                    template=RESOURCE_P["quest_guild"]["no_reward.png"],
+                    match_tolerance=0.995)
+                if find:
+                    # 领取任务奖励
+                    self.print_debug(text=f"施肥没有奖励呢。。。跳过施肥")
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=854, y=55)
+                    time.sleep(0.5)
+                    return True, False
 
             # 退出任务界面
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=854, y=55)
@@ -2519,6 +2541,52 @@ class FAABase:
                 return True, False
 
             return False, False
+        def try_plant_tree():
+            self.print_debug(text=f"尝试种树")
+            find = loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=[400, 350, 550, 450],
+                template=RESOURCE_P["quest_guild"]["plant.png"],
+                after_sleep=0.3,
+                click=True,
+                match_failed_check=2.0)
+            if find:
+                #点种子(默认低级，需要自行替换高级种子图片）
+                loop_match_p_in_w(
+                    source_handle=self.handle,
+                    source_root_handle=self.handle_360,
+                    source_range=[300, 280, 600, 333],
+                    template=RESOURCE_P["quest_guild"]["seed.png"],
+                    after_sleep=0.3,
+                    click=True,
+                    match_failed_check=2.0)
+                #点播种
+                loop_match_p_in_w(
+                    source_handle=self.handle,
+                    source_root_handle=self.handle_360,
+                    source_range=[417, 400, 530, 432],
+                    template=RESOURCE_P["quest_guild"]["ensure_plant.png"],
+                    after_sleep=2,
+                    click=True,
+                    match_failed_check=2.0)
+                find=loop_match_p_in_w(
+                    source_handle=self.handle,
+                    source_root_handle=self.handle_360,
+                    source_range=[625, 212, 662, 248],
+                    template=RESOURCE_P["quest_guild"]["close_plant.png"],
+                    after_sleep=0.3,
+                    click=True,
+                    match_failed_check=2.0)
+                if find:
+                    self.print_debug(text=f"种树失败！！！")
+                    return False
+            else:
+                self.print_debug(text=f"未找到播种按钮，可能已种树/没有权限/没有工会点")
+                return False
+            self.print_debug(text=f"种树成功")
+            return True
+
 
         def fed_and_watered_once(try_times):
             """
@@ -2529,7 +2597,9 @@ class FAABase:
             # 进入施肥界面, 没有正确进入就跳出循环
             if not from_guild_to_guild_garden():
                 return True
-
+            if try_times==0:
+                #首次打开施肥界面尝试种树
+                try_plant_tree()
             # 根据目前尝试次数, 到达不同的公会
             switch_guild_garden_by_try_times(try_times=try_times)
 
@@ -2576,10 +2646,10 @@ class FAABase:
             beijing_tz = pytz.timezone('Asia/Shanghai')
             now = datetime.now(beijing_tz)
             if now.weekday() == 3 and 0 <= now.hour < 12:
-                SIGNAL.PRINT_TO_UI.emit("[浇水 施肥 摘果 领取] 周四0-12点, 跳过本流程, 以防领取到上一期道具.")
+                SIGNAL.PRINT_TO_UI.emit("[种树 浇水 施肥 摘果 领取] 周四0-12点, 跳过本流程, 以防领取到上一期道具.")
                 return
 
-            SIGNAL.PRINT_TO_UI.emit(f"[浇水 施肥 摘果 领取] [{self.player}p] 开始执行... 最多{max_try_times}次")
+            SIGNAL.PRINT_TO_UI.emit(f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 开始执行... 最多{max_try_times}次")
 
             for reload_time in range(1, 4):
 
@@ -2588,12 +2658,12 @@ class FAABase:
                 if is_bug:
                     if reload_time != 3:
                         SIGNAL.PRINT_TO_UI.emit(
-                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入公会页失败... 刷新再试({reload_time}/3)")
+                            f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入公会页失败... 刷新再试({reload_time}/3)")
                         self.reload_game()
                         continue
                     else:
                         SIGNAL.PRINT_TO_UI.emit(
-                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入公会页失败... 刷新跳过({reload_time}/3)")
+                            f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入公会页失败... 刷新跳过({reload_time}/3)")
                         self.reload_game()
                         break
 
@@ -2603,13 +2673,13 @@ class FAABase:
                 if is_bug:
                     if reload_time < 3:
                         SIGNAL.PRINT_TO_UI.emit(
-                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住 "
+                            f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住 "
                             f"本轮循环施肥尝试:{try_times}次, 刷新, 再试, ({reload_time}/3)")
                         self.reload_game()
                         continue
                     else:
                         SIGNAL.PRINT_TO_UI.emit(
-                            f"[浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住 "
+                            f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住 "
                             f"本轮循环施肥尝试:{try_times}次, 刷新, 跳过, ({reload_time}/3)")
                         self.reload_game()
                         break
@@ -2617,7 +2687,7 @@ class FAABase:
                 if completed:
                     # 正常完成
                     SIGNAL.PRINT_TO_UI.emit(
-                        f"[浇水 施肥 摘果 领取] [{self.player}p] 正确完成 ~")
+                        f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 正确完成 ~")
                     # 退出公会
                     self.action_exit(mode="普通红叉")
                     self.action_receive_quest_rewards(mode="公会任务")
@@ -2625,7 +2695,7 @@ class FAABase:
 
                 if try_times >= max_try_times:
                     SIGNAL.PRINT_TO_UI.emit(
-                        f"[浇水 施肥 摘果 领取] [{self.player}p] 尝试{max_try_times}次, 肥料不够! 或全是解散公会! 刷新, 跳过 ")
+                        f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 尝试{max_try_times}次, 肥料不够! 或全是解散公会! 刷新, 跳过 ")
                     self.reload_game()
                     break
 
