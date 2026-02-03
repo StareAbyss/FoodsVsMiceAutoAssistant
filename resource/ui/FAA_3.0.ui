@@ -2262,12 +2262,12 @@ border:none</string>
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>点击保存配置.
-请注意 先点击保存配置后运行, 未保存的配置将不被应用!</string>
+                    <string>点击应用任务序列为当前配置.
+请注意 先应用后运行!</string>
                    </property>
                    <property name="text">
-                    <string>保存配置
-Save Config</string>
+                    <string>应用配置
+Apply Config</string>
                    </property>
                   </widget>
                  </item>
@@ -2325,7 +2325,7 @@ Timer Start</string>
 请注意 先点击保存配置后运行, 未保存的配置将不被应用!</string>
                    </property>
                    <property name="text">
-                    <string>开始任务
+                    <string>开始执行
 Link Start</string>
                    </property>
                   </widget>
@@ -2340,7 +2340,7 @@ Link Start</string>
          </widget>
          <widget class="QWidget" name="Tab2">
           <attribute name="title">
-           <string>任务列表</string>
+           <string>任务序列</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_2">
            <property name="spacing">
@@ -2398,7 +2398,7 @@ Link Start</string>
                   </size>
                  </property>
                  <property name="text">
-                  <string>程序开始执行后, 会锁定正在运行的方案, 不应用实时更改.</string>
+                  <string>应用配置并开始执行后,将加载到内存中,不应用实时更改!</string>
                  </property>
                 </widget>
                </item>
@@ -2766,13 +2766,13 @@ Link Start</string>
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>40</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
                    <width>16777215</width>
-                   <height>60</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="toolTip">
@@ -2794,13 +2794,13 @@ Link Start</string>
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>40</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
                    <width>16777215</width>
-                   <height>60</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="toolTip">
@@ -2822,13 +2822,13 @@ Link Start</string>
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>40</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
                    <width>16777215</width>
-                   <height>60</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="toolTip">
@@ -2850,13 +2850,13 @@ Link Start</string>
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>40</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
                    <width>16777215</width>
-                   <height>60</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="toolTip">
@@ -2878,13 +2878,13 @@ Link Start</string>
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>40</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
                    <width>16777215</width>
-                   <height>60</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="text">

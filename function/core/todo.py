@@ -1325,20 +1325,12 @@ class ThreadTodo(QThread):
         """
 
         """参数预处理"""
-
-        # 组合完整的title
-        if extra_title:
-            title = f"[单本轮战] {extra_title}"
-        else:
-            title = f"[单本轮战] "
-
-        # 判断是不是打魔塔 世界BOSS 或 自建房
-        is_mt = "MT" in stage_id
-        is_wb = "WB" in stage_id
-        is_cs = "CS" in stage_id
+        title = f"[单本轮战] {extra_title}" if extra_title else f"[单本轮战] "
 
         # 判断是不是组队
         is_group = len(player) > 1
+
+        SIGNAL.PRINT_TO_UI.emit(text=f"{title}{stage_id} {max_times}次 开始", color_level=5)
 
         """
         根据特定的关卡信息, 对任务参数进行调整
@@ -1363,8 +1355,11 @@ class ThreadTodo(QThread):
 
         if "MT-3" in stage_id:
             SIGNAL.PRINT_TO_UI.emit(text=f"{title}检测到魔塔密室, 强制应用: 特殊关卡退出策略, 战斗1次, 不使用钥匙")
-            dict_exit = {"other_time_player_a": [], "other_time_player_b": [],
-                         "last_time_player_a": ["普通红叉"], "last_time_player_b": ["普通红叉"]}
+            dict_exit = {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": ["普通红叉"],
+                "last_time_player_b": ["普通红叉"]}
             need_key = False
             max_times = 1
 
@@ -1373,11 +1368,20 @@ class ThreadTodo(QThread):
             if max_times > 7:
                 max_times = 7
 
-        if is_group and is_cs and (not is_cu):
+        if "WA" in stage_id:
+            SIGNAL.PRINT_TO_UI.emit(text=f"{title}检测到勇士关卡, 强制应用: 特殊关卡退出策略")
+            # 需要额外点掉勇士关卡的界面
+            dict_exit = {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": ["竞技岛", "普通红叉"],
+                "last_time_player_b": ["竞技岛"]}
+
+        if is_group and ("CS" in stage_id) and (not is_cu):
             SIGNAL.PRINT_TO_UI.emit(text=f"{title}检测到多人跨服, 强制应用: 1P房主")
             player = [1, 2]
 
-        if is_group and (not is_cs) and (not is_cu):
+        if is_group and ("CS" not in stage_id) and (not is_cu):
             SIGNAL.PRINT_TO_UI.emit(text=f"{title}检测到多人常规关卡, 强制应用: 2P房主")
 
         # 处理多人信息 (这些信息只影响函数内, 所以不判断是否组队)
@@ -1386,7 +1390,7 @@ class ThreadTodo(QThread):
         faa_a = self.faa_dict[pid_a]
         faa_b = self.faa_dict[pid_b] if pid_b else None
 
-        # 默认肯定是不跳过的
+        # 默认不跳过, 必须由全局关卡方案设定此值为 True
         skip = False
 
         def load_g_plan(skip_, deck_, battle_plan_1p_, battle_plan_2p_, battle_plan_tweak_, stage_id_=None):
@@ -1419,7 +1423,7 @@ class ThreadTodo(QThread):
                             "00000000-0000-0000-0000-000000000001"]}
 
                 # 2.2.2- 不包含 tweak_plan 的情况
-                if not g_plan.get("tweak_plan"):
+                if not g_plan.get("tweak_plan", None):
                     g_plan["tweak_plan"] = None
 
                 # 加载 g_plan
@@ -1538,7 +1542,7 @@ class ThreadTodo(QThread):
                 return result_id, need_change_card, need_goto_stage
 
             # 非自建房
-            if is_mt:
+            if "MT" in stage_id:
                 # 魔塔
                 if not is_group:
                     # 单人前往副本
@@ -1548,7 +1552,7 @@ class ThreadTodo(QThread):
                     result_id = self.goto_stage_and_invite(
                         stage_id=stage_id, mt_wb_first_time=need_goto_stage, player_a=pid_a, player_b=pid_b)
                 need_change_card = True  # 魔塔显然需要重新选卡组
-            elif is_wb:
+            elif "WB" in stage_id:
                 faa_a.action_goto_stage(mt_wb_first_time=need_goto_stage)  # 第一次使用 mt_wb_first_time, 之后则不用
                 need_change_card = True  # 巅峰对决显然需要重新选卡组
             else:
@@ -1797,8 +1801,6 @@ class ThreadTodo(QThread):
                 self.output_player_loot(player_id=2, result_list=result_list)
 
         def main():
-
-            SIGNAL.PRINT_TO_UI.emit(text=f"{title}{stage_id} {max_times}次 开始", color_level=5)
 
             # 填入战斗方案和关卡信息, 之后会大量动作和更改类属性, 所以需要判断是否组队
             faa_a.set_config_for_battle(
