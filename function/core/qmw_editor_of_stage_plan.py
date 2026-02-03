@@ -4,7 +4,7 @@ import json
 from function.globals.loadings import loading
 
 loading.update_progress(55, "正在加载FAA全局&关卡方案编辑器...")
-from PyQt6 import uic
+from PyQt6 import uic, QtCore
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow
 
@@ -180,9 +180,11 @@ class QMWEditorOfStagePlan(QMainWindow):
         change_one(widget=self.StageBattlePlanBox2P)
         change_two(widget=self.StageTweakBattlePlanBox)
 
-    def stage_selector_changed(self, stage):
+    @QtCore.pyqtSlot(str, str)
+    def stage_selector_changed(self, text, stage):
         """
         关卡选择改变，更新UI
+        :param text: 预留参数 对应
         :param stage: 关卡id
         """
         self.current_stage = stage
@@ -199,6 +201,7 @@ class QMWEditorOfStagePlan(QMainWindow):
         # 解锁 允许交互
         self.set_stage_input_widget_usable(state=True)
 
+    @QtCore.pyqtSlot()
     def global_state_changed(self):
         """
         全局关卡方案的状态改变处理器，实时更新并保存
@@ -248,6 +251,7 @@ class QMWEditorOfStagePlan(QMainWindow):
         # 实时存储
         self.save_stage_plan()
 
+    @QtCore.pyqtSlot()
     def stage_state_changed(self):
         """
         状态改变处理器，实时更新并保存
