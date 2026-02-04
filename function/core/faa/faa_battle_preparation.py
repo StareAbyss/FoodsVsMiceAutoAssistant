@@ -152,7 +152,7 @@ class BattlePreparation:
         """第二 匹配转职"""
         targets_1 = []
         if "-" in card_name:
-            targets_1.append(card_name)#真：精确匹配
+            targets_1.append(card_name)  # 真：精确匹配
         else:
             for card in targets_0:
                 # 精准匹配
@@ -423,7 +423,7 @@ class BattlePreparation:
 
             # 插入卡片
             all_cards_precise_names.insert(max_card_id, qc_precise_names)
-            if len(qc_precise_names)!=0:
+            if len(qc_precise_names) != 0:
                 card_name_list.insert(max_card_id, qc_precise_names[-1])
             else:
                 card_name_list.insert(max_card_id, "不存在的卡片名称")
@@ -690,11 +690,11 @@ class BattlePreparation:
         if self.battle_plan_tweak:
             ban_state = self.battle_plan_tweak["meta_data"].get("ban_state", None)
             if ban_state:
-                ban_mat=ban_state.get("mat", False)
-                ban_icecream=ban_state.get("icecream", False)
-                ban_god=ban_state.get("god", False)
-                ban_ikun=ban_state.get("ikun", False)
-                ban_coffee=ban_state.get("coffee", False)
+                ban_mat = ban_state.get("mat", False)
+                ban_icecream = ban_state.get("icecream", False)
+                ban_god = ban_state.get("god", False)
+                ban_ikun = ban_state.get("ikun", False)
+                ban_coffee = ban_state.get("coffee", False)
             pass
         my_dict = {}
         mats = copy.deepcopy(self.stage_info["mat_card"])

@@ -266,7 +266,10 @@ def match_ps_in_w(
     :param source_handle: 窗口句柄, 用以获取图像
     :param source_root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层, 默认不取则不检查
     :param source_img: 取代截图, 直接输入图片, 优先级更高. 至少RGB三个通道. 该参数和source_handle至少输入一个.
-    :return: mode匹配成功, 非短路匹配模式返回 [[x:int, y:int], None, ...] 短路匹配模式返回 True, 匹配失败返回None
+    :return: return_mode
+        匹配成功+非短路返回-[[x:int, y:int], None, ...]
+        匹配成功+短路返回-True
+        匹配失败-None
 
     """
 
