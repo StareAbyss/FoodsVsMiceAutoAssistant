@@ -98,7 +98,7 @@ def get_true_stage_id():
 
 
 # 版本号
-VERSION = "v3.0.0"
+VERSION = "v3.0.1"
 
 # 缩放倍率
 ZOOM_RATE = 1.0
