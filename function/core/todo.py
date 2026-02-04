@@ -1444,7 +1444,7 @@ class ThreadTodo(QThread):
                     else:
                         # 可组队关卡, 但设置了仅单人作战
                         battle_plan_1p_ = g_plan["battle_plan"][0]
-                        battle_plan_2p_ = g_plan["battle_plan"][0]
+                        battle_plan_2p_ = g_plan["battle_plan"][1]
 
             # "f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"是大赛专用花瓶方案
             if vase_num:
