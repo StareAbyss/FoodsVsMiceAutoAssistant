@@ -1836,16 +1836,19 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 directory=PATHS["battle_plan"],
                 filter="JSON Files (*.json)"
             )
+            if not new_file_path:
+                # 用户直接退出另存为界面
+                return
         else:
-            # 保存
-            new_file_path = self.file_path
             if not self.file_path:
                 # 保存, 提示用户还未选择任何战斗方案
                 QMessageBox.information(self, "禁止虚空保存！", "请先选择一个战斗方案!")
                 return
+            # 保存
+            new_file_path = self.file_path
 
         if not os.path.exists(new_file_path):
-            # 这里是保存新文件的情况, 需要一个新的uuid
+            # 如果是另存为到新文件，则创建新的UUID
             self.battle_plan.meta_data.uuid = str(uuid.uuid1())
 
         else:
@@ -1878,8 +1881,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
         with EXTRA.FILE_LOCK:
             with open(file=new_file_path, mode='w', encoding='utf-8') as file:
                 json.dump(json_data, file, ensure_ascii=False, indent=4)
+                QMessageBox.information(self, "成功!", "<战斗方案> 已保存成功~")
 
-        # 打开新建 or 覆盖掉的文件
+        # 打开新建 or 覆盖掉的文件 确保内部数据一致性
         self.load_json(file_path=new_file_path)
 
         self.init_battle_plan()
