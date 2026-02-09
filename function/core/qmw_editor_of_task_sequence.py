@@ -1142,9 +1142,9 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 widget.deleteLater()
             del item
 
-    """ .json ↔ list ↔ UI """
+    """ ts.json ↔ list ↔ UI """
 
-    def json_dict_to_ui(self, task_sequence_list):
+    def ts_json_to_view(self, task_sequence_list):
         """获取json中的数据, 转化为list并写入到ui"""
         # 清空
         self.ui_clear_tasks()
@@ -1183,7 +1183,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 f"问题UUID: {self.could_not_find_battle_plan_uuid_list}"
             )
 
-    def ui_to_json_dict(self):
+    def view_to_json_ts(self):
         """获取UI上的数据, 生成json"""
 
         data = []
@@ -1194,8 +1194,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 "meta_data": self.current_task_sequence_meta_data
             })
         elif len(self.WidgetTaskSequenceList) > 0:
-            # 如果没有元数据但需要创建一个新的
             import uuid
+            # 如果没有元数据但需要创建一个新的
             data.append({
                 "meta_data": {
                     "uuid": str(uuid.uuid1()),
@@ -1484,7 +1484,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             return False
 
         try:
-            self.json_dict_to_ui(json_dict)
+            self.ts_json_to_view(json_dict)
         except Exception as e:
             message = (
                 "该<任务序列>不符合协议! 读取失败! 可能原因如下:\n"
@@ -1515,10 +1515,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
         """
 
         try:
-            export_list = self.ui_to_json_dict()
+            export_list = self.view_to_json_ts()
         except Exception as e:
             error_by_single_dialog(
-                e=e,parent=self,
+                e=e, parent=self,
                 title="转化<任务序列>ui内容到list失败",
                 extra_message="读请联系开发者!!!",
             )
@@ -1530,6 +1530,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
         CUS_LOGGER.info(export_str)
 
         is_save_as = self.sender() == self.father.TaskSequenceButtonSaveAsJson
+
         if is_save_as:
             # 保存为
             new_file_path, _ = QFileDialog.getSaveFileName(
@@ -1538,49 +1539,44 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 directory=PATHS["task_sequence"],
                 filter="JSON Files (*.json)"
             )
-        else:
-            # 保存
-            if hasattr(self, 'file_path') and self.file_path:
-                new_file_path = self.file_path
-            else:
-                # 保存, 提示用户还未选择任何任务序列
-                QMessageBox.information(self, "禁止虚空保存！", "请先选择一个任务序列!")
+            if not new_file_path:
+                # 用户直接退出另存为界面
                 return
+        else:
+            if not self.file_path:
+                # 保存, 提示用户还未选择任何战斗方案
+                QMessageBox.information(self, "禁止虚空保存！", "请先选择一个战斗方案!")
+                return
+            # 保存
+            new_file_path = self.file_path
 
         try:
-            # 如果是另存为到新文件，则创建新的UUID
-            if not os.path.exists(new_file_path):
-                # 为新文件创建UUID
-                if export_list and "meta_data" in export_list[0]:
-                    export_list[0]["meta_data"]["uuid"] = str(uuid.uuid1())
-            else:
-                # 如果是覆盖现有文件，则尝试保留原有的UUID
-                with EXTRA.FILE_LOCK:
-                    with open(file=new_file_path, mode='r', encoding='utf-8') as file:
-                        existing_data = json.load(file)
-            # 确保该方案拥有UUID
-            if existing_data and len(existing_data) > 0 and "meta_data" in existing_data[0]:
-                existing_uuid = existing_data[0]["meta_data"].get("uuid", None)
-                if existing_uuid:
-                    # 使用现有的UUID
-                    if export_list and "meta_data" in export_list[0]:
-                        export_list[0]["meta_data"]["uuid"] = existing_uuid
-                    # 更新当前元数据中的UUID
-                    self.current_task_sequence_meta_data["uuid"] = existing_uuid
+            if is_save_as:
+                new_uuid = None
+                if os.path.exists(new_file_path):
+                    # 如果是覆盖现有文件，则尝试保留原有的UUID
+                    with EXTRA.FILE_LOCK:
+                        with open(file=new_file_path, mode='r', encoding='utf-8') as file:
+                            existing_data = json.load(file)
+                    # 确保该方案拥有UUID
+                    if existing_data and len(existing_data) > 0:
+                        existing_uuid = existing_data[0].get("meta_data", []).get("uuid", None)
+                        if existing_uuid:
+                            new_uuid = existing_uuid
+                if not new_uuid:
+                    # 如果是另存为到新文件, 或覆盖现有文件时该文件缺乏UUID, 则创建新的UUID
+                    new_uuid = str(uuid.uuid1())
 
-            with open(new_file_path, 'w', encoding='utf-8') as file:
-                json.dump(export_list, file, ensure_ascii=False, indent=4)
-                QMessageBox.information(self, "成功!", "<任务序列> 已保存成功~")
+                # 更新当前元数据中的UUID
+                export_list[0]["meta_data"]["uuid"] = new_uuid
+                self.current_task_sequence_meta_data["uuid"] = new_uuid
 
-            # 更新当前文件路径和显示信息
-            self.file_path = new_file_path
-            if export_list and "meta_data" in export_list[0]:
-                current_uuid = export_list[0]["meta_data"].get("uuid", "未知")
-                self.father.TaskSequenceLabelCurrentEditUUID.setText(f"{current_uuid}")
-            self.father.TaskSequenceButtonSaveJson.setEnabled(True)
+            # 保存
+            with EXTRA.FILE_LOCK:
+                with open(new_file_path, 'w', encoding='utf-8') as file:
+                    json.dump(export_list, file, ensure_ascii=False, indent=4)
 
-            # 重新加载文件以确保内部数据一致性
-            self.load_json(new_file_path)
+            QMessageBox.information(self.father, "成功!", "<任务序列> 已保存成功~")
 
         except Exception as e:
             error_by_single_dialog(
@@ -1588,6 +1584,18 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 title="保存<任务序列>失败",
                 extra_message="读请联系开发者!!!"
             )
+            return
+
+        # 打开新建 or 覆盖掉的文件 确保内部数据一致性
+        self.load_json(new_file_path)
+
+        # 更新当前文件路径和显示信息
+        self.file_path = new_file_path
+        if export_list and "meta_data" in export_list[0]:
+            current_uuid = export_list[0]["meta_data"].get("uuid", "未知")
+            self.father.TaskSequenceLabelCurrentEditUUID.setText(f"{current_uuid}")
+
+        self.father.TaskSequenceButtonSaveJson.setEnabled(True)
 
     def edit_alias(self, label, task):
         """
