@@ -519,11 +519,11 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=title_text)
 
-    def batch_scan_guild_info(self):
+    def batch_scan_guild_info(self, player: 1 = int):
 
         title_text = "扫描公会"
 
-        if not self.opt["advanced_settings"]["guild_manager_active"]:
+        if not (player == 1 or player == 2):
             return
 
         def action(faa: FAA):
@@ -534,7 +534,7 @@ class ThreadTodo(QThread):
 
         self.model_start_print(text=title_text)
 
-        pid = self.opt["advanced_settings"]["guild_manager_active"]
+        pid = player
         faa: FAA = self.faa_dict[pid]
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
@@ -2770,6 +2770,11 @@ class ThreadTodo(QThread):
                     main_task_active = True
                     active_singleton = False
 
+                case "扫描公会贡献":
+                    self.batch_scan_guild_info(
+                        player=task["task_args"]["player"],  # player = 1 or 2
+                    )
+
                 case "查漏补缺":
                     self.checking_undo(player=task["task_args"]["player"], )
                     main_task_active = True
@@ -3351,7 +3356,7 @@ class ThreadTodo(QThread):
 
             self.remove_outdated_log_images()
             main_task_active, active_singleton = self.task_sequence(
-                text_="自定义任务序列",
+                text_="主序列",
                 task_begin_id=1,
                 task_sequence_uuid=self.task_sequence_uuid)
             """完成FAA的任务列表后，开始执行插件脚本"""
