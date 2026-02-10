@@ -45,7 +45,10 @@ def close_software_by_title(window_title: str):
 
 def start_software_with_args(executable_path, *args):
     try:
-        process = subprocess.Popen([executable_path] + list(args))
+        process = subprocess.Popen(
+            [executable_path] + list(args),
+            creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
+        )
         print(f"已启动 {executable_path} 并传递参数 {args}")
         return process
     except Exception as e:
