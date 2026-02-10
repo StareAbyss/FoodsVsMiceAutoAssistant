@@ -299,10 +299,10 @@ class FAABase:
         full_image = capture_image_png(handle=self.handle, raw_range=[0, 0, 3000, 3000])
 
         # 裁剪出第一个区域
-        reputation_all = png_cropping(image=full_image, raw_range=[612, 470, 640, 482])
+        reputation_all = png_cropping(image=full_image, raw_range=[618, 568, 646, 580])
 
         # 裁剪出第二个区域并转换为模板格式
-        reputation_now = png_cropping(image=full_image, raw_range=[574, 470, 600, 482])
+        reputation_now = png_cropping(image=full_image, raw_range=[589, 572, 612, 576])
         # 使用match_p_in_w进行相似度比对
         reputation_status, result = match_p_in_w(
             template=reputation_now,  # 将区域2作为模板
