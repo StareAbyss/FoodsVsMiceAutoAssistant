@@ -32,35 +32,8 @@
         }
     },
     {
-        "task_type": "公会任务",
-        "task_id": 3,
-        "enabled": true,
-        "alias": "",
-        "tooltip": "",
-        "task_args": {
-            "cross_server": true,
-            "global_plan_active": true,
-            "deck": 0,
-            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
-            "quest_card": "None",
-            "ban_card_list": [],
-            "dict_exit": {
-                "other_time_player_a": [],
-                "other_time_player_b": [],
-                "last_time_player_a": [
-                    "竞技岛"
-                ],
-                "last_time_player_b": [
-                    "竞技岛"
-                ]
-            }
-        }
-    },
-    {
         "task_type": "扫描公会贡献",
-        "task_id": 4,
+        "task_id": 3,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -70,7 +43,7 @@
     },
     {
         "task_type": "清背包",
-        "task_id": 5,
+        "task_id": 4,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -83,7 +56,7 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 6,
+        "task_id": 5,
         "enabled": true,
         "alias": "",
         "tooltip": "",
