@@ -56,7 +56,6 @@
         "cus_auto_carry_card_active": false,
         "cus_auto_carry_card_value": 6,
         "auto_use_card": true,
-        "guild_manager_active": 0,
         "top_up_money_1p": false,
         "top_up_money_2p": false,
         "end_exit_game": false,

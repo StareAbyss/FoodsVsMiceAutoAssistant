@@ -555,9 +555,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
             """其他"""
 
-            # 公会管理
-            self.GuildManager_Active.setCurrentIndex(my_opt["guild_manager_active"])
-
             # link 加载的时候不做校验
             self.MisuLogistics_Link.setText(my_opt["misu_logistics_link"])
 
@@ -1118,9 +1115,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
 
             """其他"""
-
-            # 公会管理器
-            my_opt["guild_manager_active"] = self.GuildManager_Active.currentIndex()
 
             # link 需要额外的检查
             url = self.MisuLogistics_Link.text()

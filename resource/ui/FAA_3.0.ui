@@ -7118,72 +7118,12 @@ FAA放卡核心原理简述:
              <item>
               <widget class="QLabel" name="label_10">
                <property name="text">
-                <string>公会贡献点扫描器</string>
+                <string>公会贡献点管理器</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
               </widget>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="Lay_AdvancedSettings_Bottom_2" stretch="0,1">
-               <property name="leftMargin">
-                <number>5</number>
-               </property>
-               <property name="topMargin">
-                <number>5</number>
-               </property>
-               <property name="rightMargin">
-                <number>5</number>
-               </property>
-               <property name="bottomMargin">
-                <number>5</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="label_12">
-                 <property name="text">
-                  <string>启用</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QComboBox" name="GuildManager_Active">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>2000</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <item>
-                  <property name="text">
-                   <string>不启用</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>1P启用</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>2P启用</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-              </layout>
              </item>
              <item>
               <widget class="QCalendarWidget" name="DateSelector">
@@ -7219,11 +7159,9 @@ FAA放卡核心原理简述:
              <item>
               <widget class="QLabel" name="label_11">
                <property name="text">
-                <string>
-说明
-启用后，在领取奖励时
-所选的那一P
-会扫描公会的所有成员
+                <string>说明
+在任务序列中启用扫描公会贡献
+对应的那1P, 会扫描公会的所有成员
 自动生成表格</string>
                </property>
                <property name="alignment">

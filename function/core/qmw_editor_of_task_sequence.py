@@ -1,3 +1,4 @@
+import copy
 import json
 import os
 import sys
@@ -368,6 +369,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 '无需解释',
             '使用消耗品':
                 '使用背包中的消耗品',
+            '扫描公会贡献':
+                '扫描公会各个成员的点数, 更新在工会管理页面中',
             '查漏补缺':
                 '检查并补充缺少的物品或任务',
             '跨服刷威望':
@@ -458,14 +461,6 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     "scan": False,
                     "battle": False
                 }
-            case '扫描公会贡献':
-                task["task_args"] = {
-                    "player": 1,  # or 2
-                }
-            case '使用绑定消耗品':
-                task["task_args"] = {
-                    "player": [1, 2],  # or [1] [2]
-                }
             case '签到':
                 task["task_args"] = {
                     "player": [1, 2],  # or [1] [2]
@@ -492,6 +487,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
             case '使用消耗品':
                 task["task_args"] = {
                     "player": [1, 2],  # or [1] [2]
+                }
+            case '扫描公会贡献':
+                task["task_args"] = {
+                    "player": 1,  # or 2
                 }
             case '查漏补缺':
                 task["task_args"] = {
@@ -948,6 +947,21 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 PlayerComboBox.setCurrentIndex(index)
             addElement(line_layout=line_layout, label_widget=PlayerLabel, input_widget=PlayerComboBox)
 
+        def scan_guild_contribution(line_layout):
+            # Player
+            PlayerLabel = QLabel('玩家')
+            PlayerComboBox = QComboBox()
+            PlayerComboBox.setFixedWidth(70)
+            PlayerComboBox.setObjectName("w_player")
+            for player in ['1P', '2P']:
+                PlayerComboBox.addItem(player)
+            player_list_to_str_dict = {1: "1P", 2: '2P'}
+            # 查找并设置当前选中的索引
+            index = PlayerComboBox.findText(player_list_to_str_dict[task["task_args"]["player"]])
+            if index >= 0:
+                PlayerComboBox.setCurrentIndex(index)
+            addElement(line_layout=line_layout, label_widget=PlayerLabel, input_widget=PlayerComboBox)
+
         def check_for_gaps(line_layout):
             # Player
             PlayerLabel = QLabel('玩家')
@@ -1073,6 +1087,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 couple_task(line_layout=line_layout)
             case '使用消耗品':
                 use_consumable(line_layout=line_layout)
+            case '扫描公会贡献':
+                scan_guild_contribution(line_layout=line_layout)
             case '查漏补缺':
                 check_for_gaps(line_layout=line_layout)
             case '跨服刷威望':
@@ -1254,7 +1270,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
                     task_args = ui_to_list_get_cus_battle_opt(LineWidget=LineWidget, task_args=task_args)
 
-                    # 固定值 请不要用于 魔塔 / 萌宠神殿 这两类特殊关卡！
+                    # 固定值 魔塔 / 萌宠神殿 / 勇士副本有专门的退出函数的, 会自动修改
                     task_args["quest_card"] = "None"
                     task_args["ban_card_list"] = []
                     task_args["dict_exit"] = {
@@ -1327,6 +1343,11 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
                 case "使用消耗品":
                     task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
+
+                case '扫描公会贡献':
+                    PlayerComboBox = LineWidget.findChild(QComboBox, 'w_player')
+                    text = PlayerComboBox.currentText()
+                    task_args['player'] = {"1P": 1, "2P": 2}[text]
 
                 case "查漏补缺":
                     task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
