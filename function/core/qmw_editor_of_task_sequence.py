@@ -1209,16 +1209,16 @@ class QMWEditorOfTaskSequence(QMainWindow):
             data.append({
                 "meta_data": self.current_task_sequence_meta_data
             })
-        elif len(self.WidgetTaskSequenceList) > 0:
+        else:
             import uuid
             # 如果没有元数据但需要创建一个新的
-            data.append({
+            self.current_task_sequence_meta_data = {
                 "meta_data": {
                     "uuid": str(uuid.uuid1()),
                     "version": "1.0"
                 }
-            })
-
+            }
+            data.append(copy.deepcopy(self.current_task_sequence_meta_data))
         list_line_widgets = self.WidgetTaskSequenceList.findChildren(QWidget, 'line_widget')
 
         for LineWidget in list_line_widgets:
