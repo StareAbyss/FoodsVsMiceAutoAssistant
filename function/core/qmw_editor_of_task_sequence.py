@@ -1377,47 +1377,9 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     return_list = {"1P": [1], "2P": [2], "1P房主": [1, 2], "2P房主": [2, 1]}[text]
                     task_args['player'] = return_list
 
-                    GlobalPlanActiveCheckBox = LineWidget.findChild(QCheckBox, 'w_global_plan_active')
-                    task_args['global_plan_active'] = GlobalPlanActiveCheckBox.isChecked()
+                    task_args = ui_to_list_get_cus_battle_opt(LineWidget=LineWidget, task_args=task_args)
 
-                    DeckComboBox = LineWidget.findChild(QComboBox, 'w_deck')
-                    task_args['deck'] = int(DeckComboBox.currentIndex())
-
-                    # 战斗方案
-                    battle_plan_name_list = get_list_battle_plan(with_extension=False)
-                    battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
-
-                    # 微调方案
-                    tweak_plan_name_list = get_list_tweak_plan(with_extension=False)
-                    tweak_plan_uuid_list = list(EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH.keys())
-
-                    Plan1pComboBox = LineWidget.findChild(SearchableComboBox, 'w_battle_plan_1p')
-                    text = Plan1pComboBox.currentText()
-                    index = battle_plan_name_list.index(text)
-                    uuid = battle_plan_uuid_list[index]
-                    task_args['battle_plan_1p'] = uuid
-
-                    Plan2pComboBox = LineWidget.findChild(SearchableComboBox, 'w_battle_plan_2p')
-                    text = Plan2pComboBox.currentText()
-                    index = battle_plan_name_list.index(text)
-                    uuid = battle_plan_uuid_list[index]
-                    task_args['battle_plan_2p'] = uuid
-
-                    # 微调方案
-                    TweakPlanComboBox = LineWidget.findChild(SearchableComboBox, 'w_battle_plan_tweak')
-                    if TweakPlanComboBox.count() > 0:  # 确保有选项
-                        text = TweakPlanComboBox.currentText()
-                        if text in tweak_plan_name_list:
-                            index = tweak_plan_name_list.index(text)
-                            uuid = tweak_plan_uuid_list[index]
-                            task_args['battle_plan_tweak'] = uuid
-                        else:
-                            task_args.pop('battle_plan_tweak', None)  # 无匹配项时清空
-                    if task_args['global_plan_active']:
-                        # 移除微调方案UUID
-                        task_args.pop('battle_plan_tweak', None)
-
-                    # 固定值 请不要用于 魔塔 / 萌宠神殿 这两类特殊关卡！
+                    # 固定值 魔塔 / 萌宠神殿 / 勇士副本有专门的退出函数的, 会自动修改
                     task_args["quest_card"] = "None"
                     task_args["ban_card_list"] = []
                     task_args["dict_exit"] = {

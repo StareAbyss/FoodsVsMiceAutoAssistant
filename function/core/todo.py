@@ -2871,6 +2871,7 @@ class ThreadTodo(QThread):
                 name="2P Thread - CheckingNotDoing",
                 kwargs={})
             self.thread_2p.start()
+
         quest_list_1 = []
         quest_list_2 = []
         reputation_status_1 = 0
