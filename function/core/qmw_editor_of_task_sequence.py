@@ -337,8 +337,13 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 '* 扫描任务并战斗\n'
                 '* 领取情侣任务奖励\n'
                 '* 领取普通任务奖励(公会点)',
+            '美食大赛':
+                'FAA第三代全自动美食大赛模块\n'
+                '会自动触发美食大赛进度领取',
             '双暴卡':
                 '使用双暴卡',
+            '使用消耗品':
+                '使用背包中的消耗品',
             '清背包':
                 '删除背包中的垃圾\n'
                 '需进阶设置-二级密码处进行设定\n'
@@ -367,27 +372,22 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 '可自行添加避免漏任务',
             '浇水施肥摘果':
                 '无需解释',
-            '使用消耗品':
-                '使用背包中的消耗品',
             '扫描公会贡献':
                 '扫描公会各个成员的点数, 更新在工会管理页面中',
             '查漏补缺':
                 '检查并补充缺少的物品或任务',
+            '任务序列':
+                '嵌套执行其他任务序列\n'
+                '自动去重, 防止套娃',
             '跨服刷威望':
                 '跨服务器刷取威望值\n'
                 '无限执行直到被其他定时任务中止/手动停止',
             '天知强卡器':
                 '联动激活天知强卡器\n'
                 '无限执行直到被其他定时任务中止/手动停止/天知强卡器自爆',
-            '美食大赛':
-                'FAA第三代全自动美食大赛模块\n'
-                '会自动触发美食大赛进度领取',
             '扫描任务列表':
                 '扫描当前可执行的任务列表\n'
                 '执念全新功能 - 自动清空普通任务的一部分',
-            '任务序列':
-                '嵌套执行其他任务序列\n'
-                '自动去重, 防止套娃',
             '自建房战斗':
                 '用户自行建房开始战斗\n'
                 '请勿和上述的所有其他功能混合使用\n'
@@ -579,6 +579,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
         line_widget = QWidget()
         line_widget.setObjectName('line_widget')
         line_layout = QHBoxLayout(line_widget)
+
+        # 减少布局间距
+        line_layout.setContentsMargins(2, 0, 2, 0)  # 左、上、右、下边距
+        line_layout.setSpacing(5)  # 控件之间的间距
 
         # 启用状态复选框
         EnabledCheckBox = QCheckBox()
@@ -1104,16 +1108,20 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 task_sequence(line_layout=line_layout)
 
         # 创建一个水平弹簧
-        spacer = QSpacerItem(0, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
+        spacer = QSpacerItem(20, 15, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
+        line_layout.addItem(spacer)
+        spacer = QSpacerItem(20, 15, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
+        line_layout.addItem(spacer)
+        spacer = QSpacerItem(20, 15, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
         line_layout.addItem(spacer)
 
+        line_layout.addWidget(QCVerticalLine())
+
         # 添加完成后，在布局的最后添加一个删除按钮
-        delete_button = QPushButton('删除')
-        delete_button.setMaximumWidth(50)
+        delete_button = QPushButton('X')
+        delete_button.setMaximumWidth(30)
         delete_button.setObjectName("delete_button")
         line_layout.addWidget(delete_button)
-
-        line_layout.addWidget(QCVerticalLine())
 
         return line_widget
 
