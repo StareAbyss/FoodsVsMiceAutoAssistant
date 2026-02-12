@@ -42,7 +42,7 @@
         }
     },
     {
-        "task_type": "清背包",
+        "task_type": "使用消耗品",
         "task_id": 4,
         "enabled": true,
         "alias": "",
@@ -55,8 +55,21 @@
         }
     },
     {
-        "task_type": "领取任务奖励",
+        "task_type": "清背包",
         "task_id": 5,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "领取任务奖励",
+        "task_id": 6,
         "enabled": true,
         "alias": "",
         "tooltip": "",
