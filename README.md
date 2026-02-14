@@ -33,7 +33,7 @@
 # 下载 | Download ![](https://img.shields.io/github/stars/StareAbyss/FoodsVsMiceAutoAssistant)
 
 ## 关于版本
-* 请注意, FAA分为不稳定的beta版本和稳定版. 
+* FAA分为不稳定的beta版本和稳定版. 
   * 标记为beta的测试版本包含大量潜在bug, 切勿用于日常大量使用.
 * 关于版本号: a.b.c (例如: 2.1.2)
   * a主版本号: 务必使用最高最新的大版本 
