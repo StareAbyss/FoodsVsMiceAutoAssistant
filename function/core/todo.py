@@ -28,7 +28,7 @@ from function.core.analyzer_of_loot_logs import update_dag_graph, find_longest_p
 from function.core.faa.faa_mix import FAA
 from function.core.faa_extra_readimage import read_and_get_return_information, kill_process
 from function.core_battle.card_manager import CardManager
-from function.extension.extension_core import execute
+from function.extension.extension_core import ExecuteThread
 from function.globals import EXTRA, SIGNAL, g_resources
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS

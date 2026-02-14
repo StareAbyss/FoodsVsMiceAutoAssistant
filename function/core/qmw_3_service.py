@@ -172,10 +172,6 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 保存方案按钮 函数绑定
         self.Button_Save.clicked.connect(self.click_btn_save)
 
-        # 方案修改按钮 函数绑定
-        self.Button_DeletePlan.clicked.connect(self.delete_current_plan)
-        self.Button_RenamePlan.clicked.connect(self.rename_current_plan)
-
         # 隐藏(拖动)窗口到屏幕视图外 函数绑定
         self.Button_WindowHide.clicked.connect(self.click_btn_hide_window)
         self.game_window_is_hide = False
@@ -545,8 +541,8 @@ class QMainWindowService(QMainWindowLoadSettings):
                 f"[任务序列] 链接开始 Todo线程开启 - 执行任务序列: {running_task_sequence_name}",
                 color_level=1)
             # 当前正在运行 的 文本 修改
-            self.Label_RunningState.setText(
-                f"任务序列线程状态: 运行中       运行任务序列: {running_task_sequence_name}")
+            self.Label_RunningStateTask.setText(
+                f"任务序列线程状态: 运行中 ({running_task_sequence_name})")
         else:
             SIGNAL.PRINT_TO_UI.emit(f"[任务序列] 未知(索引错误)", color_level=1)
             self.is_start = False
@@ -633,13 +629,13 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 设置flag
         self.thread_todo_running = False
         # 设置按钮文本
-        self.Button_Start.setText("开始任务\nLink Start")
+        self.Button_Start.setText("执行序列\nLink Start")
         # 设置输出文本
         SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom", color_level=2)
         SIGNAL.PRINT_TO_UI.emit("[任务序列] 已关闭全部线程", color_level=1)
         SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top", color_level=2)
         # 当前正在运行 的 文本 修改
-        self.Label_RunningState.setText(f"任务序列线程状态: 未运行")
+        self.Label_RunningStateTask.setText(f"任务序列线程状态: 未运行")
 
         # 调试打印 确定所有内部线程的状态 是否还是运行激活状态
         q_threads = {
@@ -692,6 +688,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 设置输出文本
         SIGNAL.PRINT_TO_UI.emit("", time=False)
         SIGNAL.PRINT_TO_UI.emit("[定时任务] 已启动!", color_level=1)
+        self.Label_RunningStateTimer.setText(
+            f"定时任务线程状态: 运行中")
         # 设置Flag
         self.todo_timer_running = True
         # 新设todo timer manager的opt
@@ -709,6 +707,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 设置输出文本
         SIGNAL.PRINT_TO_UI.emit("", time=False)
         SIGNAL.PRINT_TO_UI.emit("[定时任务] 定时作战已关闭!", color_level=1)
+        self.Label_RunningStateTimer.setText(
+            f"定时任务线程状态: 未运行")
         # 设置Flag
         self.todo_timer_running = False
         # 关闭线程群

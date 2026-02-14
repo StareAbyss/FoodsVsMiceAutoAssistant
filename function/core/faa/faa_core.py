@@ -65,7 +65,16 @@ class FAABase:
         # 读取Card Type文件
         file_name = os.path.join(PATHS["config"], "card_type.json")
         with open(file=file_name, mode='r', encoding='utf-8') as file:
-            self.card_types = json.load(file)
+            try:
+                self.card_types = json.load(file)
+            except Exception as e:
+                error_by_merged_dialog(
+                    e=e,
+                    extra_message=f"请检查文件:{file_name})是否符合标准JSON格式!",
+                    title="JSON文件解析错误"
+                )
+                self.print_error(text=f"FAA类初始化失败, 请检查文件:{file_name})是否符合标准JSON格式!")
+                raise e
 
         """
         每次战斗都不一样的参数 使用内部函数调用更改
@@ -1669,8 +1678,19 @@ class FAABase:
 
                     if self.opt["qq_login_info"]["use_password"]:
                         # 密码登录模式
-                        with open(self.opt["qq_login_info"]["path"] + "/QQ_account.json", "r") as json_file:
-                            QQ_account = json.load(json_file)
+                        file_path = self.opt["qq_login_info"]["path"] + "/QQ_account.json"
+                        with open(file_path, "r") as json_file:
+                            try:
+                                QQ_account = json.load(json_file)
+                            except Exception as e:
+                                error_by_merged_dialog(
+                                    e=e,
+                                    extra_message=f"请检查文件:{file_path} 是否符合标准JSON格式!",
+                                    title="JSON文件解析错误"
+                                )
+                                self.print_error(text=f"[刷新游戏] 登录失败, 请检查文件:{file_path} 是否符合标准JSON格式!")
+                                raise e
+
                         username = QQ_account['{}p'.format(self.player)]['username']
                         password = QQ_account['{}p'.format(self.player)]['password']
                         password = decrypt_data(password)

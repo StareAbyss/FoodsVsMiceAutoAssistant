@@ -37,7 +37,7 @@ def fresh_and_check_all_battle_plan():
                 added[plan_name] += "json格式错误无法解析! 请勿使用文本编辑器瞎改! 请删除对应方案, FAA已保护性自爆!"
                 continue
 
-            battle_plan_version = json_data.get("meta_data",{}).get("version", None)
+            battle_plan_version = json_data.get("meta_data", {}).get("version", None)
             if not battle_plan_version:
                 # 低于v3.0版本的战斗方案, 尝试从v2.0进行迁移
                 try:
@@ -76,6 +76,7 @@ def fresh_and_check_all_battle_plan():
     if info != "":
         SIGNAL.DIALOG.emit("方案检测和修复完成 - 方案版本 v3.0", info)
 
+
 def fresh_and_check_all_tweak_plan():
     """
     刷新和检测现存所有微调方案
@@ -105,7 +106,7 @@ def fresh_and_check_all_tweak_plan():
                 added[plan_name] += "json格式错误无法解析! 请勿使用文本编辑器瞎改! 请删除对应方案, FAA已保护性自爆!"
                 continue
 
-            battle_plan_version = json_data.get("meta_data",{}).get("version", None)
+            battle_plan_version = json_data.get("meta_data", {}).get("version", None)
 
             uuid_v1 = json_data["meta_data"]['uuid']
 
@@ -134,6 +135,7 @@ def fresh_and_check_all_tweak_plan():
             info += f"{plan_name} -> {msg}\n"
     # if info != "":
     #     SIGNAL.DIALOG.emit("微调方案检测和修复完成", info)
+
 
 if __name__ == '__main__':
     fresh_and_check_all_tweak_plan()
