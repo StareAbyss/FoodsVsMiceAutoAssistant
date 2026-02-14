@@ -10,7 +10,7 @@ from function.scattered.output_error import error_by_single_dialog
 loading.update_progress(45, "正在加载配置中...")
 from PyQt6.QtCore import QRegularExpression
 from PyQt6.QtGui import QRegularExpressionValidator, QIntValidator
-from PyQt6.QtWidgets import QApplication, QMessageBox, QInputDialog, QTableWidgetItem, QVBoxLayout, QSizePolicy
+from PyQt6.QtWidgets import QApplication, QMessageBox, QVBoxLayout, QSizePolicy
 
 from function.core.qmw_1_log import QMainWindowLog
 from function.core.qmw_editor_of_task_sequence import QMWEditorOfTaskSequence
@@ -674,7 +674,9 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt = self.opt["qq_login_info"]
             self.checkbox_use_password.setChecked(my_opt["use_password"])
             self.path_edit.setText(my_opt["path"])
+            self.QQExtraSleepActive.setChecked(my_opt["extra_sleep_active"])
             self.QQExtraSleepTimeInput.setText(str(my_opt["extra_sleep_time"]))
+
             if os.path.isfile(my_opt["path"] + "/QQ_account.json"):
                 with open(my_opt["path"] + "/QQ_account.json", "r") as json_file:
                     QQ_account = json.load(json_file)
@@ -682,49 +684,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 username2 = QQ_account['2p']['username']
                 self.username_edit_1.setText(username1)
                 self.username_edit_2.setText(username2)
-        def extension_opt_to_ui() -> None:
-            """""从配置中读取插件信息到ui中"""""
-            if "extension" not in self.opt:
-                self.opt["extension"] = {
-                    "scripts": []
-                }
-
-            my_opt = self.opt["extension"]
-
-            # 清空现有表格
-            self.tableWidget_extension.setRowCount(0)
-
-            # 检查数据有效性
-            if not my_opt or not isinstance(my_opt, dict):
-                #print("错误：无效的输入数据")
-                return
-
-            # 遍历字典填充表格
-            for script in my_opt.get("scripts", []):
-                row = self.tableWidget_extension.rowCount()
-                self.tableWidget_extension.insertRow(row)
-
-                # 第一列：脚本名（默认空）
-                path = script.get("name", "").strip()
-                self.tableWidget_extension.setItem(row, 0, QTableWidgetItem(path))
-
-                # 第二列：脚本路径（必填）
-                path = script.get("path", "").strip()
-                self.tableWidget_extension.setItem(row, 1, QTableWidgetItem(path))
-
-                # 第三列：重复次数（默认1）
-                repeat = str(script.get("repeat", 1))
-                self.tableWidget_extension.setItem(row, 2, QTableWidgetItem(repeat))
-
-                # 第四列：角色代号（默认3，表示1p和2p都要执行）
-                player = str(script.get("player", 3))
-                self.tableWidget_extension.setItem(row, 3, QTableWidgetItem(player))
-
-            # 自动添加一个空行（用于继续输入）
-            last_row = self.tableWidget_extension.rowCount()
-            self.tableWidget_extension.insertRow(last_row)
-            self.tableWidget_extension.setItem(last_row, 2, QTableWidgetItem("1"))  # 默认重复次数
-            self.tableWidget_extension.setItem(last_row, 3, QTableWidgetItem("3"))  # 默认角色代号
 
         base_settings()
         timer_settings()
@@ -737,7 +696,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         skin_set()
         accelerate_settings()
         tce_settings()
-        extension_opt_to_ui()
+        qq_login_info_ui()
 
         self.CurrentPlan.clear()
         task_sequence_list = get_task_sequence_list(with_extension=False)
@@ -1213,27 +1172,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt = self.opt["qq_login_info"]
             my_opt["use_password"] = self.checkbox_use_password.isChecked()
             my_opt["path"] = self.path_edit.text()
-
-        def extension_ui_to_opt() -> None:
-            """将脚本表格从ui写入到opt"""
-            my_opt = self.opt["extension"]
-            my_opt["scripts"] = []  # 先清空列表
-            for row in range(self.tableWidget_extension.rowCount()):
-                # 获取单元格数据
-                name_item = self.tableWidget_extension.item(row, 0)  # 脚本路径
-
-                path_item = self.tableWidget_extension.item(row, 1)  # 脚本路径
-                repeat_item = self.tableWidget_extension.item(row, 2)  # 重复次数
-                player_item = self.tableWidget_extension.item(row, 3)  # 重复次数
-
-                # 跳过空行（第一列为空时忽略）
-                if path_item and path_item.text().strip():
-                    my_opt["scripts"].append({
-                        "name": name_item.text().strip() if (name_item and name_item.text()) else "",
-                        "path": path_item.text().strip(),
-                        "repeat": int(repeat_item.text()) if (repeat_item and repeat_item.text()) else 1,
-                        "player": int(player_item.text()) if (player_item and player_item.text()) else 3
-                    })
             my_opt["extra_sleep_active"] = self.QQExtraSleepActive.isChecked()
             my_opt["extra_sleep_time"] = int(self.QQExtraSleepTimeInput.text())
 
@@ -1425,101 +1363,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
             text=f"任务序列:[{self.CurrentPlan.currentText()}] 已设为活跃序列! 点击开始将运行它 ~",
             color_level=3)
 
-    def delete_current_plan(self) -> None:
-        """用来删掉当前被选中的 任务序列 但不能删掉默认任务序列"""
-        task_sequence_uuid_list = fresh_and_check_all_task_sequence()
-
-        current_plan_uuid = self.opt["current_plan"]
-        try:
-            if current_plan_uuid in task_sequence_uuid_list:
-                current_plan_index = task_sequence_uuid_list.index(current_plan_uuid)
-            else:
-                QMessageBox.critical(self, "错误!",
-                                     f"无法通过uuid{current_plan_uuid}找到对应的任务序列文件\n保存配置后才可以删除任务序列")
-                self.opt_to_ui_init()
-                return
-        except Exception:
-            QMessageBox.critical(self, "错误!", f"保存配置后才可以删除任务序列")
-            self.opt_to_ui_init()
-            return
-
-        if current_plan_uuid == "9c912f76-de80-11f0-8869-f4c88a4ed544":
-            QMessageBox.information(self, "警告", "默认任务序列不能删除呢...")
-            return
-        task_sequence_files = get_task_sequence_list(with_extension=True)
-        plan_name = task_sequence_files[current_plan_index]
-        plan_name = plan_name[:-5]
-        # 删除实际的JSON文件
-        task_sequence_path = os.path.join(PATHS["task_sequence"], f"{plan_name}.json")
-        if os.path.exists(task_sequence_path):
-            try:
-                os.remove(task_sequence_path)
-            except Exception as e:
-                QMessageBox.critical(self, "错误!", f"删除任务序列文件失败: {str(e)}")
-        else:
-            QMessageBox.warning(self, "警告", f"未找到任务序列文件: {plan_name}.json")
-
-        # 删除内存中的配置
-        self.opt["current_plan"] = ""
-        # 重载ui
-        self.opt_to_ui_init()
-
-    def rename_current_plan(self) -> None:
-        """用来重命名当前被选中的 任务序列 但不能重命名默认任务序列"""
-
-        task_sequence_uuid_list = fresh_and_check_all_task_sequence()
-
-        current_plan_uuid = self.opt["current_plan"]
-        try:
-            if current_plan_uuid in task_sequence_uuid_list:
-                current_plan_index = task_sequence_uuid_list.index(current_plan_uuid)
-            else:
-                QMessageBox.critical(self, "错误!",
-                                     f"无法通过uuid{current_plan_uuid}找到对应的任务序列文件\n保存配置后才可以重命名任务序列")
-                self.opt_to_ui_init()
-                return
-        except Exception:
-            QMessageBox.critical(self, "错误!", f"保存配置后才可以重命名任务序列")
-            self.opt_to_ui_init()
-            return
-
-        # 获取原名称（从实际文件列表中获取当前索引对应的文件名）
-        task_sequence_files = get_task_sequence_list(with_extension=True)
-        if current_plan_index >= len(task_sequence_files):
-            QMessageBox.critical(self, "错误!", "无法找到对应的任务序列文件")
-            return
-
-        old_filename = task_sequence_files[current_plan_index]
-        old_name = old_filename[:-5]  # 去掉.json后缀
-        if old_name == "默认方案任务序列":
-            QMessageBox.information(self, "警告", "默认任务序列不能重命名呢...")
-            return
-        # 弹出对话框获取新名称
-        new_name, ok = QInputDialog.getText(self, "重命名任务序列", "请输入新的任务序列名称:")
-
-        if ok and new_name:
-            # 重命名实际的JSON文件
-            old_file_path = os.path.join(PATHS["task_sequence"], f"{old_name}.json")
-            new_file_path = os.path.join(PATHS["task_sequence"], f"{new_name}.json")
-
-            # 直接重命名文件
-            if os.path.exists(old_file_path):
-                try:
-                    os.rename(old_file_path, new_file_path)
-                except Exception as e:
-                    QMessageBox.critical(self, "错误!", f"重命名任务序列文件失败: {str(e)}")
-                    return
-            else:
-                QMessageBox.warning(self, "警告", f"未找到原任务序列文件: {old_name}.json")
-
-            current_index = current_plan_index
-            # 重载ui
-            self.opt_to_ui_init()
-            # 默认选中重命名后任务序列
-            self.CurrentPlan.setCurrentIndex(current_index)
-        else:
-            QMessageBox.information(self, "提示", "任务序列名称未改变。")
-
     """其他"""
 
     def getstylefile(self, num):
@@ -1606,7 +1449,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
                 except ValueError as e:
                     error_by_single_dialog(
-                        e=e,parent=self,
+                        e=e, parent=self,
                         title="出错！(╬◣д◢)",
                         extra_message="此处只可输入数字! 不要输入怪东西!")
                     self.Warrior_Stage.setText('')

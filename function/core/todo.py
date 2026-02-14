@@ -2787,6 +2787,15 @@ class ThreadTodo(QThread):
                     main_task_active = True
                     active_singleton = False
 
+                case '拓展脚本':
+                    self.extension_addon(
+                        script_path=task["task_args"]["script_path"],
+                        loop_times=task["task_args"]["loop_times"],
+                        player=task["task_args"]["player"]
+                    )
+                    main_task_active = True
+                    active_singleton = False
+
                 case "美食大赛":
                     self.auto_food()
                     main_task_active = True
@@ -3338,6 +3347,30 @@ class ThreadTodo(QThread):
         parent.wait(timeout=5)  # 等待进程终止，超时时间为5秒
 
     """
+    自定义脚本 - FAA自动化拓展插件
+    """
+    def extension_addon(self, script_path, loop_times, player):
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text=rf"插件脚本: {script_path}, 角色: {player}, 次数: {loop_times}, 开始执行!", color_level=2)
+
+        for p in player:
+            g_name = self.opt['base_settings']['game_name']
+            p_name = self.opt["base_settings"][f"name_{p}p"]
+            window_name = f"{p_name} | {g_name}" if p_name else g_name
+            if p == 1:
+                self.thread_1p = ExecuteThread(window_name=window_name,configs_path=script_path, loop_times=loop_times)
+                self.thread_1p.start()
+                self.thread_1p.join()
+            elif p == 2:
+                self.thread_2p = ExecuteThread(window_name=window_name,configs_path=script_path, loop_times=loop_times)
+                self.thread_2p.start()
+                self.thread_2p.join()
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text=f"插件脚本: {script_path}, 角色: {player}, 次数: {loop_times}, 完成执行!", color_level=2)
+
+    """
     主要线程
     """
 
@@ -3361,41 +3394,6 @@ class ThreadTodo(QThread):
                 task_begin_id=1,
                 task_sequence_uuid=self.task_sequence_uuid)
 
-            """完成FAA的任务列表后，开始执行插件脚本"""
-
-            name_1p = self.opt["base_settings"]["name_1p"]
-            if name_1p == '':
-                name_1p = self.opt['base_settings']['game_name']
-            else:
-                name_1p = name_1p + ' | ' + self.opt['base_settings']['game_name']
-
-            name_2p = self.opt["base_settings"]["name_2p"]
-            if name_2p == '':
-                name_2p = self.opt['base_settings']['game_name']
-            else:
-                name_2p = name_2p + ' | ' + self.opt['base_settings']['game_name']
-
-            scripts = self.opt["extension"]["scripts"]
-            # 这块本来就是多线程执行的，所以不需要再用线程，不会阻塞FAA的
-            for script in scripts:
-                SIGNAL.PRINT_TO_UI.emit(text=f"开始执行插件脚本 {script['name']}: {script['path']}", color_level=2)
-                player = script['player']
-
-                if player == 1:
-                    for _ in range(script['repeat']):
-                        execute(name_1p, script['path'])
-                elif player == 2:
-                    for _ in range(script['repeat']):
-                        execute(name_2p, script['path'])
-                elif player == 3:
-                    for _ in range(script['repeat']):
-                        execute(name_1p, script['path'])
-                    for _ in range(script['repeat']):
-                        execute(name_2p, script['path'])
-
-                SIGNAL.PRINT_TO_UI.emit(text=f"插件脚本 {script['name']}: {script['path']} 执行结束", color_level=2)
-
-            SIGNAL.PRINT_TO_UI.emit(text=f"所有插件脚本均已执行结束", color_level=1)
             if main_task_active:
                 if self.opt["login_settings"]["login_close_settings"]:
                     SIGNAL.PRINT_TO_UI.emit(

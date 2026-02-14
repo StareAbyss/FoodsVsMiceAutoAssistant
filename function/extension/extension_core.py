@@ -578,7 +578,7 @@ def extension_loop_match_p_in_w(
     return True
 
 
-def execute(window_name, configs_path, need_test=False, event_stop=None):
+def extension_execute(window_name, configs_path, need_test=False, event_stop=None):
     """执行自动化脚本流程"""
     source_root_handle, handle = extension_get_window_handle(window_name)
     if not handle:
@@ -590,9 +590,11 @@ def execute(window_name, configs_path, need_test=False, event_stop=None):
 
     for step_config in configs:
         # 获取当前步骤配置参数
+
         # 执行匹配点击操作
         if event_stop and event_stop.is_set():
             return
+
         after_click_template = None
 
         # 点击后校验，暂时弃用
@@ -631,23 +633,23 @@ def execute(window_name, configs_path, need_test=False, event_stop=None):
         # 点击后输入内容
         _input_str(handle, step_config["click_input"])
 
-        def click(x, y, test=False):
-            """给用户插入代码时用的点击函数"""
-            if test:
-                point = (x, y)
-                source_img = extension_capture_image_png_once(handle)
-                cv2.circle(source_img, point, 5, (0, 0, 255), -1)
-                cv2.imshow("result", source_img)
-                cv2.waitKey(0)
-            extension_do_left_mouse_click(handle, x, y)
-
-        def input_str(string: str):
-            """给用户插入代码时用的输入函数"""
-            _input_str(handle, string)
-
         # 最后运行代码
         if step_config["check_run_code"]:
             exec(step_config["code"])
+
+        # def click(x, y, test=False):
+        #     """给用户插入代码时用的点击函数"""
+        #     if test:
+        #         point = (x, y)
+        #         source_img = extension_capture_image_png_once(handle)
+        #         cv2.circle(source_img, point, 5, (0, 0, 255), -1)
+        #         cv2.imshow("result", source_img)
+        #         cv2.waitKey(0)
+        #     extension_do_left_mouse_click(handle, x, y)
+        #
+        # def input_str(string: str):
+        #     """给用户插入代码时用的输入函数"""
+        #     _input_str(handle, string)
 
 
 class ExecuteThread(threading.Thread, QObject):
@@ -684,7 +686,7 @@ class ExecuteThread(threading.Thread, QObject):
                 self.message_signal.emit("失败", "脚本执行已被中断")
                 return
             print(f"第{i + 1}次执行中")
-            execute(self.window_name, self.configs_path, self.need_test, self._event_stop)
+            extension_execute(self.window_name, self.configs_path, self.need_test, self._event_stop)
         self.message_signal.emit("成功", "脚本执行已完成")
         end_time = time.time()
         print(f"执行完毕，共花费 {end_time - start_time} 秒")
@@ -711,5 +713,5 @@ if __name__ == "__main__":
             click=True)
         print(result)
 
-    code_str = """execute("美食大战老鼠",'点击qq头像.json',need_test=True)"""
+    code_str = """extension_execute("美食大战老鼠",'点击qq头像.json',need_test=True)"""
     exec(code_str)

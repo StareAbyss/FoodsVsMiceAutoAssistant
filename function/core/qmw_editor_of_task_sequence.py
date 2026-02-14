@@ -324,7 +324,6 @@ class QMWEditorOfTaskSequence(QMainWindow):
             '公会任务':
                 '扫描并完成公会任务\n'
                 '完整流程:\n'
-                '* 清背包(需进阶设置-二级密码)\n'
                 '* 领取公会任务奖励\n'
                 '* 扫描任务并战斗\n'
                 '* 清背包(需进阶设置-二级密码)\n'
@@ -347,7 +346,9 @@ class QMWEditorOfTaskSequence(QMainWindow):
             '清背包':
                 '删除背包中的垃圾\n'
                 '需进阶设置-二级密码处进行设定\n'
-                '被嵌入在部分其他模块中\n'
+                '可单独调用的同时被嵌入在以下模块:\n'
+                '* 签到开始前\n'
+                '* 公会任务结束, 领取奖励前\n'
                 '完整流程:\n'
                 '* 输入二级密码\n'
                 '* 清理背包\n'
@@ -385,6 +386,9 @@ class QMWEditorOfTaskSequence(QMainWindow):
             '天知强卡器':
                 '联动激活天知强卡器\n'
                 '无限执行直到被其他定时任务中止/手动停止/天知强卡器自爆',
+            '拓展脚本':
+                '使用FAA-拓展脚本编辑器编写\n'
+                '再在此处调用, 可以实现刷技能/抽奖池等简单的功能~',
             '扫描任务列表':
                 '扫描当前可执行的任务列表\n'
                 '执念全新功能 - 自动清空普通任务的一部分',
@@ -503,6 +507,12 @@ class QMWEditorOfTaskSequence(QMainWindow):
             case '天知强卡器':
                 task["task_args"] = {
                     "player": [1, 2],  # or [1] [2]
+                }
+            case '拓展脚本':
+                task["task_args"] = {
+                    "script_path": "",
+                    "loop_times": 1,
+                    "player": [1, 2],
                 }
             case '美食大赛':
                 task["task_args"] = {
@@ -635,6 +645,26 @@ class QMWEditorOfTaskSequence(QMainWindow):
             if end_line:
                 # line_layout.addWidget(QCVerticalLine())
                 line_layout.addWidget(QLabel(" "))
+
+        def addElement_player_normal(line_layout):
+            """
+            添加标准控件 - Player, 一个Label加下拉菜单, 包括1P 2P 1+2P三个选项, 对应 [1] [2] [1,2]
+            :param line_layout:
+            :return:
+            """
+            # Player
+            PlayerLabel = QLabel('玩家')
+            PlayerComboBox = QComboBox()
+            PlayerComboBox.setFixedWidth(70)
+            PlayerComboBox.setObjectName("w_player")
+            for player in ['1P', '2P', '1+2P']:
+                PlayerComboBox.addItem(player)
+            player_list_to_str_dict = {(1,): "1P", (2,): '2P', (1, 2): '1+2P', (2, 1): '1+2P'}
+            # 查找并设置当前选中的索引
+            index = PlayerComboBox.findText(player_list_to_str_dict[tuple(task["task_args"]["player"])])
+            if index in [0, 1, 2]:
+                PlayerComboBox.setCurrentIndex(index)
+            addElement(line_layout=line_layout, label_widget=PlayerLabel, input_widget=PlayerComboBox)
 
         def add_custom_plan_widget(line_layout):
 
@@ -804,66 +834,22 @@ class QMWEditorOfTaskSequence(QMainWindow):
         def fresh_game(line_layout):
 
             # Player
-            PlayerLabel = QLabel('玩家')
-            PlayerComboBox = QComboBox()
-            PlayerComboBox.setFixedWidth(70)
-            PlayerComboBox.setObjectName("w_player")
-            for player in ['1P', '2P', '1+2P']:
-                PlayerComboBox.addItem(player)
-            player_list_to_str_dict = {(1,): "1P", (2,): '2P', (1, 2): '1+2P', (2, 1): '1+2P'}
-            # 查找并设置当前选中的索引
-            index = PlayerComboBox.findText(player_list_to_str_dict[tuple(task["task_args"]["player"])])
-            if index >= 0:
-                PlayerComboBox.setCurrentIndex(index)
-            addElement(line_layout=line_layout, label_widget=PlayerLabel, input_widget=PlayerComboBox)
+            addElement_player_normal(line_layout=line_layout)
 
         def clean_items(line_layout):
 
-            # 战斗Player
-            PlayerLabel = QLabel('玩家')
-            PlayerComboBox = QComboBox()
-            PlayerComboBox.setFixedWidth(70)
-            PlayerComboBox.setObjectName("w_player")
-            for player in ['1P', '2P', '1+2P']:
-                PlayerComboBox.addItem(player)
-            player_list_to_str_dict = {(1,): "1P", (2,): '2P', (1, 2): '1+2P', (2, 1): '1+2P'}
-            # 查找并设置当前选中的索引
-            index = PlayerComboBox.findText(player_list_to_str_dict[tuple(task["task_args"]["player"])])
-            if index >= 0:
-                PlayerComboBox.setCurrentIndex(index)
-            addElement(line_layout=line_layout, label_widget=PlayerLabel, input_widget=PlayerComboBox)
+            # Player
+            addElement_player_normal(line_layout=line_layout)
 
         def exchange_dark_crystal(line_layout):
 
-            # 战斗Player
-            PlayerLabel = QLabel('玩家')
-            PlayerComboBox = QComboBox()
-            PlayerComboBox.setFixedWidth(70)
-            PlayerComboBox.setObjectName("w_player")
-            for player in ['1P', '2P', '1+2P']:
-                PlayerComboBox.addItem(player)
-            player_list_to_str_dict = {(1,): "1P", (2,): '2P', (1, 2): '1+2P', (2, 1): '1+2P'}
-            # 查找并设置当前选中的索引
-            index = PlayerComboBox.findText(player_list_to_str_dict[tuple(task["task_args"]["player"])])
-            if index >= 0:
-                PlayerComboBox.setCurrentIndex(index)
-            addElement(line_layout=line_layout, label_widget=PlayerLabel, input_widget=PlayerComboBox)
+            # Player
+            addElement_player_normal(line_layout=line_layout)
 
         def receive_quest_rewards(line_layout):
 
-            # 战斗Player
-            PlayerLabel = QLabel('玩家')
-            PlayerComboBox = QComboBox()
-            PlayerComboBox.setFixedWidth(70)
-            PlayerComboBox.setObjectName("w_player")
-            for player in ['1P', '2P', '1+2P']:
-                PlayerComboBox.addItem(player)
-            player_list_to_str_dict = {(1,): "1P", (2,): '2P', (1, 2): '1+2P', (2, 1): '1+2P'}
-            # 查找并设置当前选中的索引
-            index = PlayerComboBox.findText(player_list_to_str_dict[tuple(task["task_args"]["player"])])
-            if index >= 0:
-                PlayerComboBox.setCurrentIndex(index)
-            addElement(line_layout=line_layout, label_widget=PlayerLabel, input_widget=PlayerComboBox)
+            # Player
+            addElement_player_normal(line_layout=line_layout)
 
             def add_quest(c, e):
                 QuestLabel = QLabel(c)
@@ -882,19 +868,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
         def scan_task_menu(line_layout):
 
-            # 战斗Player
-            PlayerLabel = QLabel('玩家')
-            PlayerComboBox = QComboBox()
-            PlayerComboBox.setFixedWidth(70)
-            PlayerComboBox.setObjectName("w_player")
-            for player in ['1P', '2P', '1+2P']:
-                PlayerComboBox.addItem(player)
-            player_list_to_str_dict = {(1,): "1P", (2,): '2P', (1, 2): '1+2P', (2, 1): '1+2P'}
-            # 查找并设置当前选中的索引
-            index = PlayerComboBox.findText(player_list_to_str_dict[tuple(task["task_args"]["player"])])
-            if index >= 0:
-                PlayerComboBox.setCurrentIndex(index)
-            addElement(line_layout=line_layout, label_widget=PlayerLabel, input_widget=PlayerComboBox)
+            # Player
+            addElement_player_normal(line_layout=line_layout)
 
             def add_quest(c, e):
                 ScanLabel = QLabel(c)
@@ -908,48 +883,15 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
         def sign_in(line_layout):
             # Player
-            PlayerLabel = QLabel('玩家')
-            PlayerComboBox = QComboBox()
-            PlayerComboBox.setFixedWidth(70)
-            PlayerComboBox.setObjectName("w_player")
-            for player in ['1P', '2P', '1+2P']:
-                PlayerComboBox.addItem(player)
-            player_list_to_str_dict = {(1,): "1P", (2,): '2P', (1, 2): '1+2P', (2, 1): '1+2P'}
-            # 查找并设置当前选中的索引
-            index = PlayerComboBox.findText(player_list_to_str_dict[tuple(task["task_args"]["player"])])
-            if index >= 0:
-                PlayerComboBox.setCurrentIndex(index)
-            addElement(line_layout=line_layout, label_widget=PlayerLabel, input_widget=PlayerComboBox)
+            addElement_player_normal(line_layout=line_layout)
 
         def watering_fertilizing_harvesting(line_layout):
             # Player
-            PlayerLabel = QLabel('玩家')
-            PlayerComboBox = QComboBox()
-            PlayerComboBox.setFixedWidth(70)
-            PlayerComboBox.setObjectName("w_player")
-            for player in ['1P', '2P', '1+2P']:
-                PlayerComboBox.addItem(player)
-            player_list_to_str_dict = {(1,): "1P", (2,): '2P', (1, 2): '1+2P', (2, 1): '1+2P'}
-            # 查找并设置当前选中的索引
-            index = PlayerComboBox.findText(player_list_to_str_dict[tuple(task["task_args"]["player"])])
-            if index >= 0:
-                PlayerComboBox.setCurrentIndex(index)
-            addElement(line_layout=line_layout, label_widget=PlayerLabel, input_widget=PlayerComboBox)
+            addElement_player_normal(line_layout=line_layout)
 
         def use_consumable(line_layout):
             # Player
-            PlayerLabel = QLabel('玩家')
-            PlayerComboBox = QComboBox()
-            PlayerComboBox.setFixedWidth(70)
-            PlayerComboBox.setObjectName("w_player")
-            for player in ['1P', '2P', '1+2P']:
-                PlayerComboBox.addItem(player)
-            player_list_to_str_dict = {(1,): "1P", (2,): '2P', (1, 2): '1+2P', (2, 1): '1+2P'}
-            # 查找并设置当前选中的索引
-            index = PlayerComboBox.findText(player_list_to_str_dict[tuple(task["task_args"]["player"])])
-            if index >= 0:
-                PlayerComboBox.setCurrentIndex(index)
-            addElement(line_layout=line_layout, label_widget=PlayerLabel, input_widget=PlayerComboBox)
+            addElement_player_normal(line_layout=line_layout)
 
         def scan_guild_contribution(line_layout):
             # Player
@@ -968,48 +910,36 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
         def check_for_gaps(line_layout):
             # Player
-            PlayerLabel = QLabel('玩家')
-            PlayerComboBox = QComboBox()
-            PlayerComboBox.setFixedWidth(70)
-            PlayerComboBox.setObjectName("w_player")
-            for player in ['1P', '2P', '1+2P']:
-                PlayerComboBox.addItem(player)
-            player_list_to_str_dict = {(1,): "1P", (2,): '2P', (1, 2): '1+2P', (2, 1): '1+2P'}
-            # 查找并设置当前选中的索引
-            index = PlayerComboBox.findText(player_list_to_str_dict[tuple(task["task_args"]["player"])])
-            if index >= 0:
-                PlayerComboBox.setCurrentIndex(index)
-            addElement(line_layout=line_layout, label_widget=PlayerLabel, input_widget=PlayerComboBox)
+            addElement_player_normal(line_layout=line_layout)
 
         def cross_server_prestige(line_layout):
             # Player
-            PlayerLabel = QLabel('玩家')
-            PlayerComboBox = QComboBox()
-            PlayerComboBox.setFixedWidth(70)
-            PlayerComboBox.setObjectName("w_player")
-            for player in ['1P', '2P', '1+2P']:
-                PlayerComboBox.addItem(player)
-            player_list_to_str_dict = {(1,): "1P", (2,): '2P', (1, 2): '1+2P', (2, 1): '1+2P'}
-            # 查找并设置当前选中的索引
-            index = PlayerComboBox.findText(player_list_to_str_dict[tuple(task["task_args"]["player"])])
-            if index >= 0:
-                PlayerComboBox.setCurrentIndex(index)
-            addElement(line_layout=line_layout, label_widget=PlayerLabel, input_widget=PlayerComboBox)
+            addElement_player_normal(line_layout=line_layout)
 
         def card_enhancer(line_layout):
             # Player
-            PlayerLabel = QLabel('玩家')
-            PlayerComboBox = QComboBox()
-            PlayerComboBox.setFixedWidth(70)
-            PlayerComboBox.setObjectName("w_player")
-            for player in ['1P', '2P', '1+2P']:
-                PlayerComboBox.addItem(player)
-            player_list_to_str_dict = {(1,): "1P", (2,): '2P', (1, 2): '1+2P', (2, 1): '1+2P'}
-            # 查找并设置当前选中的索引
-            index = PlayerComboBox.findText(player_list_to_str_dict[tuple(task["task_args"]["player"])])
-            if index >= 0:
-                PlayerComboBox.setCurrentIndex(index)
-            addElement(line_layout=line_layout, label_widget=PlayerLabel, input_widget=PlayerComboBox)
+            addElement_player_normal(line_layout=line_layout)
+
+        def custom_extension_addon_script(line_layout):
+
+            # Player
+            addElement_player_normal(line_layout=line_layout)
+
+            # 循环次数
+            LoopTimesLabel = QLabel('循环次数')
+            LoopTimesSpinBox = QSpinBox()
+            LoopTimesSpinBox.setFixedWidth(70)
+            LoopTimesSpinBox.setObjectName("w_loop_times")
+            LoopTimesSpinBox.setValue(task["task_args"]["loop_times"])
+            addElement(line_layout=line_layout, label_widget=LoopTimesLabel, input_widget=LoopTimesSpinBox)
+
+            # 脚本路径
+            ScriptPathLabel = QLabel('脚本路径')
+            ScriptPathLineEdit = QLineEdit()
+            ScriptPathLineEdit.setFixedWidth(350)
+            ScriptPathLineEdit.setObjectName("w_script_path")
+            ScriptPathLineEdit.setText(task["task_args"]["script_path"])
+            addElement(line_layout=line_layout, label_widget=ScriptPathLabel, input_widget=ScriptPathLineEdit)
 
         def guild_task(line_layout):
             add_custom_plan_widget(line_layout=line_layout)
@@ -1099,6 +1029,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 cross_server_prestige(line_layout=line_layout)
             case '天知强卡器':
                 card_enhancer(line_layout=line_layout)
+            case '拓展脚本':
+                custom_extension_addon_script(line_layout=line_layout)
             case '美食大赛':
                 # 美食大赛任务没有参数，所以不需要添加任何控件
                 pass
@@ -1108,11 +1040,11 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 task_sequence(line_layout=line_layout)
 
         # 创建一个水平弹簧
-        spacer = QSpacerItem(20, 15, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
+        spacer = QSpacerItem(5, 15, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
         line_layout.addItem(spacer)
-        spacer = QSpacerItem(20, 15, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
+        spacer = QSpacerItem(5, 15, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
         line_layout.addItem(spacer)
-        spacer = QSpacerItem(20, 15, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
+        spacer = QSpacerItem(5, 15, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
         line_layout.addItem(spacer)
 
         line_layout.addWidget(QCVerticalLine())
@@ -1364,6 +1296,15 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
 
                 case "天知强卡器":
+                    task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
+
+                case '拓展脚本':
+                    ScriptPathLineEdit = LineWidget.findChild(QLineEdit, 'w_script_path')
+                    task_args['script_path'] = ScriptPathLineEdit.text()
+
+                    LoopTimesSpinBox = LineWidget.findChild(QSpinBox, 'w_loop_times')
+                    task_args['loop_times'] = LoopTimesSpinBox.value()
+
                     task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
 
                 case "美食大赛":
