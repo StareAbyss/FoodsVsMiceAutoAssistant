@@ -8,6 +8,7 @@ from requests import RequestException
 
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
+from function.scattered.output_error import error_by_merged_dialog
 
 if TYPE_CHECKING:
     from function.core.faa.faa_mix import FAA
@@ -40,9 +41,14 @@ def loots_and_chests_statistics_to_json(faa: "FAA", loots_dict, chests_dict) -> 
             try:
                 with open(file=file_path, mode="r", encoding="utf-8") as json_file:
                     json_data = json.load(json_file)
-            except (json.JSONDecodeError, Exception):
+            except (json.JSONDecodeError, Exception) as e:
                 # 如果JSON文件损坏，初始化一个新的空字典
                 json_data = {}
+                error_by_merged_dialog(
+                    e=e,
+                    extra_message=f"战利品记录文件:{file_path})不符合JSON标准格式! 已强制清空并继续运行!",
+                    title="JSON文件解析错误"
+                )
     else:
         # 如果文件不存在，初始化
         json_data = {}
@@ -95,9 +101,14 @@ def loots_and_chests_detail_to_json(faa: "FAA", loots_dict, chests_dict) -> dict
             try:
                 with open(file=file_path, mode="r", encoding="utf-8") as json_file:
                     json_data = json.load(json_file)
-            except (json.JSONDecodeError, Exception):
+            except (json.JSONDecodeError, Exception) as e:
                 # 如果JSON文件损坏，初始化一个新的空字典
                 json_data = {}
+                error_by_merged_dialog(
+                    e=e,
+                    extra_message=f"战利品记录文件:{file_path})不符合JSON标准格式! 已强制清空并继续运行!",
+                    title="JSON文件解析错误"
+                )
     else:
         # 如果文件不存在，初始化
         json_data = {}
