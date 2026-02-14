@@ -50,16 +50,6 @@ def ensure_file_exists(file_path, template_suffix="_template") -> None:
         CUS_LOGGER.info(f"[资源检查] '{file_path}' 已存在. 直接读取.")
 
 
-QQ_login_info = {}
-
-
-# 这里用函数来返回，是因为这两个变量会在运行时改变，直接import无法获取这种改变
-# 感觉这样写很丑陋，但我也不知道怎么写比较好，总之能跑就行
-def get_QQ_login_info():
-    """获取qq登录账号和密码"""
-    return QQ_login_info
-
-
 class QMainWindowLoadSettings(QMainWindowLog):
     """将读取配置的方法封装在此处"""
 
@@ -104,15 +94,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         # 保留默认主题的名字
         self.default_style_name = QApplication.style().name()
-
-        global QQ_login_info
-        if "QQ_login_info" in self.opt:
-            QQ_login_info = self.opt["QQ_login_info"]
-        else:
-            QQ_login_info = {
-                "path": "",
-                "use_password": False
-            }
 
     def replace_taskeditor_layout_with_task_editor(self):
         """
@@ -687,16 +668,13 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.TCEDecomposeGem_Active.setChecked(my_opt["decompose_gem_active"])
             self.TCE_path_input.setText(my_opt["tce_path"])
 
-        def QQ_login_info_ui() -> None:
+        def qq_login_info_ui() -> None:
             """从配置中读取登录信息到ui中"""
-            if "QQ_login_info" not in self.opt:
-                self.opt["QQ_login_info"] = {
-                    "use_password": False,
-                    "path": ""
-                }
-            my_opt = self.opt["QQ_login_info"]
+
+            my_opt = self.opt["qq_login_info"]
             self.checkbox_use_password.setChecked(my_opt["use_password"])
             self.path_edit.setText(my_opt["path"])
+            self.QQExtraSleepTimeInput.setText(str(my_opt["extra_sleep_time"]))
             if os.path.isfile(my_opt["path"] + "/QQ_account.json"):
                 with open(my_opt["path"] + "/QQ_account.json", "r") as json_file:
                     QQ_account = json.load(json_file)
@@ -704,18 +682,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 username2 = QQ_account['2p']['username']
                 self.username_edit_1.setText(username1)
                 self.username_edit_2.setText(username2)
-
-        def sleep_opt_to_ui() -> None:
-            """""从配置中读取额外睡眠时间到ui中"""""
-            if "extra_sleep" not in self.opt:
-                self.opt["extra_sleep"] = {
-                    "need_sleep": False,
-                    "sleep_time": 5
-                }
-            my_opt = self.opt["extra_sleep"]
-            self.checkbox_need_sleep.setChecked(my_opt["need_sleep"])
-            self.sleep_time_edit.setText(str(my_opt["sleep_time"]))
-
         def extension_opt_to_ui() -> None:
             """""从配置中读取插件信息到ui中"""""
             if "extension" not in self.opt:
@@ -771,8 +737,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
         skin_set()
         accelerate_settings()
         tce_settings()
-        QQ_login_info_ui()
-        sleep_opt_to_ui()
         extension_opt_to_ui()
 
         self.CurrentPlan.clear()
@@ -1046,7 +1010,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 # 获取当前选中的任务序列UUID而不是索引
                 combo_box = getattr(self, f"Timer{i}_Plan")
                 current_index = combo_box.currentIndex()
-                if current_index >= 0 and current_index < combo_box.count():
+                if 0 <= current_index < combo_box.count():
                     # 从itemData获取UUID，如果不存在则使用索引作为后备
                     item_data = combo_box.itemData(current_index)
                     if item_data and "uuid" in item_data:
@@ -1059,7 +1023,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         # 保存当前选中项的UUID而不是索引
         current_index = self.CurrentPlan.currentIndex()
-        if current_index >= 0 and current_index < self.CurrentPlan.count():
+        if 0 <= current_index < self.CurrentPlan.count():
             item_data = self.CurrentPlan.itemData(current_index)
             if item_data and "uuid" in item_data:
                 self.opt["current_plan"] = item_data["uuid"]
@@ -1244,17 +1208,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["decompose_gem_active"] = self.TCEDecomposeGem_Active.isChecked()
             my_opt["tce_path"] = self.TCE_path_input.text()
 
-        def QQ_login_info_opt() -> None:
+        def qq_login_info_opt() -> None:
             """将登录信息从ui中写入到opt"""
-            my_opt = self.opt["QQ_login_info"]
+            my_opt = self.opt["qq_login_info"]
             my_opt["use_password"] = self.checkbox_use_password.isChecked()
             my_opt["path"] = self.path_edit.text()
-
-        def sleep_ui_to_opt() -> None:
-            """将QQ登录时的额外休眠时间从ui写入到opt"""
-            my_opt = self.opt["extra_sleep"]
-            my_opt["need_sleep"] = self.checkbox_need_sleep.isChecked()
-            my_opt["sleep_time"] = int(self.sleep_time_edit.text())
 
         def extension_ui_to_opt() -> None:
             """将脚本表格从ui写入到opt"""
@@ -1276,6 +1234,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
                         "repeat": int(repeat_item.text()) if (repeat_item and repeat_item.text()) else 1,
                         "player": int(player_item.text()) if (player_item and player_item.text()) else 3
                     })
+            my_opt["extra_sleep_active"] = self.QQExtraSleepActive.isChecked()
+            my_opt["extra_sleep_time"] = int(self.QQExtraSleepTimeInput.text())
 
         base_settings()
         accelerate_settings()
@@ -1289,13 +1249,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
         skin_settings()
         level_2()
         tce_settings()
-        QQ_login_info_opt()
-        sleep_ui_to_opt()
-        extension_ui_to_opt()
+        qq_login_info_opt()
 
         # 保存当前选中项的UUID
         current_index = self.CurrentPlan.currentIndex()
-        if current_index >= 0 and current_index < self.CurrentPlan.count():
+        if 0 <= current_index < self.CurrentPlan.count():
             item_data = self.CurrentPlan.itemData(current_index)
             if item_data and isinstance(item_data, dict) and "uuid" in item_data:
                 self.opt["current_plan"] = item_data["uuid"]
@@ -1480,7 +1438,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
                                      f"无法通过uuid{current_plan_uuid}找到对应的任务序列文件\n保存配置后才可以删除任务序列")
                 self.opt_to_ui_init()
                 return
-        except:
+        except Exception:
             QMessageBox.critical(self, "错误!", f"保存配置后才可以删除任务序列")
             self.opt_to_ui_init()
             return
@@ -1520,7 +1478,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
                                      f"无法通过uuid{current_plan_uuid}找到对应的任务序列文件\n保存配置后才可以重命名任务序列")
                 self.opt_to_ui_init()
                 return
-        except:
+        except Exception:
             QMessageBox.critical(self, "错误!", f"保存配置后才可以重命名任务序列")
             self.opt_to_ui_init()
             return

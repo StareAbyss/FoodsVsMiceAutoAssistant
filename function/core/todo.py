@@ -3360,7 +3360,9 @@ class ThreadTodo(QThread):
                 text_="主序列",
                 task_begin_id=1,
                 task_sequence_uuid=self.task_sequence_uuid)
+
             """完成FAA的任务列表后，开始执行插件脚本"""
+
             name_1p = self.opt["base_settings"]["name_1p"]
             if name_1p == '':
                 name_1p = self.opt['base_settings']['game_name']

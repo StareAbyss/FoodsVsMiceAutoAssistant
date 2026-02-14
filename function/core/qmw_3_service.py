@@ -597,22 +597,12 @@ class QMainWindowService(QMainWindowLoadSettings):
             1: FAA(
                 channel=channel_1p,
                 player=1,
-                character_level=self.opt["base_settings"]["level_1p"],
-                is_auto_battle=self.opt["advanced_settings"]["auto_use_card"],
-                is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_1p"],
-                QQ_login_info=self.opt["QQ_login_info"],
-                extra_sleep=self.opt["extra_sleep"],
                 opt=self.opt,
                 the_360_lock=the_360_lock,
                 random_seed=random_seed),
             2: FAA(
                 channel=channel_2p,
                 player=2,
-                character_level=self.opt["base_settings"]["level_2p"],
-                is_auto_battle=self.opt["advanced_settings"]["auto_use_card"],
-                is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_2p"],
-                QQ_login_info=self.opt["QQ_login_info"],
-                extra_sleep=self.opt["extra_sleep"],
                 opt=self.opt,
                 the_360_lock=the_360_lock,
                 random_seed=random_seed)

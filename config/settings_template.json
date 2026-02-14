@@ -112,5 +112,11 @@
         "decompose_gem_active": false,
         "tce_path": ""
     },
-    "skin_type": 1
+    "skin_type": 1,
+    "qq_login_info": {
+        "use_password": false,
+        "path": "",
+        "extra_sleep_active": false,
+        "extra_sleep_time": 5
+    }
 }
