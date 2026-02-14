@@ -551,11 +551,30 @@ class QMWEditorOfTaskSequence(QMainWindow):
         :return:
         """
 
+        def disable_wheel_event_for_widgets_in_line(line_widget):
+            """
+            禁用某一行控件中所有输入控件的滚轮事件
+            """
+            input_widgets = [
+                QSpinBox,
+                QComboBox,
+                QLineEdit
+            ]
+
+            for widget_type in input_widgets:
+                widgets = line_widget.findChildren(widget_type)
+                for widget in widgets:
+                    widget.wheelEvent = lambda event: event.ignore()
+
         # 重新生成id
         task["task_id"] = self.WidgetTaskSequenceList.count() + 1
 
         # 生成控件行
         line_widget = self.create_task_line_widget(task)
+
+        # 禁用该行中所有输入控件的滚轮事件
+        disable_wheel_event_for_widgets_in_line(line_widget)
+
         # 在控件中存储原始任务数据，以便后续访问
         line_widget.setProperty('task_data', task)
 

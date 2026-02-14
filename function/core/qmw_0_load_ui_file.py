@@ -1,6 +1,5 @@
 import os
 import sys
-import types
 
 from PyQt6 import uic, QtGui, QtCore, QtWidgets
 from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve
@@ -492,9 +491,6 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
     def replace_widgets_no_wheel(self):
 
-        def new_wheel_event(self, event):
-            event.ignore()
-
         w_names = [
             "login_first",
             "login_second",
@@ -512,7 +508,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         ]
         for w_name in w_names:
             widget = getattr(self, w_name)
-            widget.wheelEvent = types.MethodType(new_wheel_event, widget)
+            widget.wheelEvent = lambda event: event.ignore()
 
 
 if __name__ == "__main__":
