@@ -10,7 +10,7 @@ import webbrowser
 import win32con
 import win32gui
 from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtWidgets import QMessageBox, QFileDialog, QTableWidgetItem, QVBoxLayout, QPushButton, QWidget
+from PyQt6.QtWidgets import QMessageBox, QFileDialog, QVBoxLayout, QPushButton, QWidget
 
 from function.common.process_manager import get_path_and_sub_titles
 from function.common.startup_manager import *
@@ -218,36 +218,6 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         self.SavePasswordButton.clicked.connect(self.save_password_button_on_clicked)
         self.ChoosePathButton.clicked.connect(self.choose_path_button_on_clicked)
-
-        """插件脚本执行模块"""
-        # 关键：监听单元格变化，实现自动追加行
-        self.tableWidget_extension.cellChanged.connect(self.on_cell_changed)
-
-    def on_cell_changed(self, row, column):
-        # 防重复触发标志
-        if hasattr(self, "_is_adding_row") and self._is_adding_row:
-            return
-
-        # 仅当编辑的是最后一行且第一列(脚本路径)有内容时触发
-        if row == self.tableWidget_extension.rowCount() - 1 and column == 1:
-            item = self.tableWidget_extension.item(row, 1)
-            if item and item.text().strip():  # 检查第一列是否非空
-                self._is_adding_row = True
-
-                # 追加新行
-                new_row = self.tableWidget_extension.rowCount()
-                self.tableWidget_extension.insertRow(new_row)
-
-                # 设置新行第三列(重复次数)默认为1
-                self.tableWidget_extension.setItem(new_row, 2, QTableWidgetItem("1"))
-
-                # 设置新行第四列(角色代号)默认为3
-                self.tableWidget_extension.setItem(new_row, 3, QTableWidgetItem("3"))
-
-                # 自动聚焦到新行的第一列(脚本名)
-                self.tableWidget_extension.setCurrentCell(new_row, 0)
-
-                self._is_adding_row = False
 
     def choose_path_button_on_clicked(self):
         """"用于连接ChoosePathButton的函数，选择存储路径"""
@@ -597,22 +567,12 @@ class QMainWindowService(QMainWindowLoadSettings):
             1: FAA(
                 channel=channel_1p,
                 player=1,
-                character_level=self.opt["base_settings"]["level_1p"],
-                is_auto_battle=self.opt["advanced_settings"]["auto_use_card"],
-                is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_1p"],
-                QQ_login_info=self.opt["QQ_login_info"],
-                extra_sleep=self.opt["extra_sleep"],
                 opt=self.opt,
                 the_360_lock=the_360_lock,
                 random_seed=random_seed),
             2: FAA(
                 channel=channel_2p,
                 player=2,
-                character_level=self.opt["base_settings"]["level_2p"],
-                is_auto_battle=self.opt["advanced_settings"]["auto_use_card"],
-                is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_2p"],
-                QQ_login_info=self.opt["QQ_login_info"],
-                extra_sleep=self.opt["extra_sleep"],
                 opt=self.opt,
                 the_360_lock=the_360_lock,
                 random_seed=random_seed)

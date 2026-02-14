@@ -11,32 +11,32 @@
         "1": {
             "active": true,
             "h": 0,
-            "m": 30,
-            "plan": ""
+            "m": 10,
+            "plan": "9c8cc28d-de80-11f0-a1ab-f4c88a4ed544"
         },
         "2": {
             "active": true,
             "h": 12,
             "m": 0,
-            "plan": ""
+            "plan": "c290aea2-e730-11f0-a11c-f44efc5bf671"
         },
         "3": {
             "active": true,
             "h": 14,
             "m": 0,
-            "plan": ""
+            "plan": "c2912636-e730-11f0-8e4e-f44efc5bf671"
         },
         "4": {
             "active": true,
             "h": 19,
             "m": 0,
-            "plan": ""
+            "plan": "562d093f-eba6-11f0-965e-f44efc5bf671"
         },
         "5": {
             "active": true,
             "h": 23,
-            "m": 55,
-            "plan": ""
+            "m": 0,
+            "plan": "c2924061-e730-11f0-89f2-f44efc5bf671"
         }
     },
     "current_plan": "9c912f76-de80-11f0-8869-f4c88a4ed544",
@@ -112,5 +112,11 @@
         "decompose_gem_active": false,
         "tce_path": ""
     },
-    "skin_type": 1
+    "skin_type": 1,
+    "qq_login_info": {
+        "use_password": false,
+        "path": "",
+        "extra_sleep_active": false,
+        "extra_sleep_time": 5
+    }
 }

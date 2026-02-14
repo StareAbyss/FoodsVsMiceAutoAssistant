@@ -38,30 +38,31 @@ class FAABase:
     其中部分较麻烦的模块的实现被分散在了其他的类里, 此处只留下了接口以供调用
     """
 
-    def __init__(self: "FAA", channel: str = "锑食", player: int = 1, character_level: int = 80,
-                 is_auto_battle: bool = True, is_auto_pickup: bool = False,
-                 QQ_login_info=None, extra_sleep=None, opt=None, the_360_lock=None, random_seed: int = 0):
+    def __init__(self: "FAA", channel: str = "锑食", player: int = 1,
+                 opt=None, the_360_lock=None, random_seed: int = 0):
 
         # 获取窗口句柄
         self.channel = channel  # 在刷新窗口后会需要再重新获取flash的句柄, 故保留
         self.handle = faa_get_handle(channel=self.channel, mode="flash")
         self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
         self.handle_360 = faa_get_handle(channel=self.channel, mode="360")
-        self.QQ_login_info = QQ_login_info
-        self.extra_sleep = extra_sleep  # dict 包含部分参数的包
-        self.opt = opt
         self.the_360_lock = the_360_lock
-        """
-        每次战斗中都保持一致的参数
-        """
-
         self.player: int = player  # 角色的index 1 or 2
-        self.character_level: int = character_level  # 角色的等级 1 to 60
-        self.is_auto_battle: bool = is_auto_battle  # 是否自动战斗
-        self.is_auto_pickup: bool = is_auto_pickup  # 是否鼠标模拟收集战利品
-        self.random_seed: int = random_seed  # 随机种子
+        self.random_seed: int = random_seed  # 随机种子 需要保持同时战斗的12p有相同的seed
         self.bp_cell = COORDINATE_CARD_CELL_IN_BATTLE  # 调用战斗中 格子位置 字典 bp -> battle location
 
+        """从opt读取"""
+
+        self.opt = copy.deepcopy(opt)  # 所有的配置文件 方便直接使用
+
+        # 是否自动战斗
+        self.is_auto_battle: bool = self.opt["advanced_settings"]["auto_use_card"]
+        # 是否鼠标模拟收集战利品
+        self.is_auto_pickup: bool = self.opt["advanced_settings"][f"auto_pickup_{self.player}p"]
+        # 等级
+        self.character_level: int = self.opt["base_settings"][f"level_{self.player}p"]
+
+        # 读取Card Type文件
         file_name = os.path.join(PATHS["config"], "card_type.json")
         with open(file=file_name, mode='r', encoding='utf-8') as file:
             self.card_types = json.load(file)
@@ -205,6 +206,10 @@ class FAABase:
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查签到开始")
         self.action_top_menu(mode="每日签到")
 
+        """
+        签到检查
+        """
+
         find = loop_match_p_in_w(
             source_handle=self.handle,
             source_root_handle=self.handle_360,
@@ -214,11 +219,10 @@ class FAABase:
             match_failed_check=5,
             after_sleep=1,
             click=True)
-
         if find:
-            # 点击下面四个奖励
-            CUS_LOGGER.warning(f"[{self.player}] [查漏补缺] 检查到漏签！！现已补签")
+            SIGNAL.PRINT_TO_UI.emit(text=f"[查漏补缺] [{self.player}P] 检查到漏签！！现已补签")
             time.sleep(1)
+            # 点击下面四个奖励
             find = loop_match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
@@ -235,14 +239,18 @@ class FAABase:
                     text=f"{self.player}P因背包爆满,查漏补缺[每日签到]失败!\n"
                          f"出错时间:{current_time}")
         else:
-            CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 未检查到漏签,非常好")
+            SIGNAL.PRINT_TO_UI.emit(text=f"[查漏补缺] [{self.player}P] 未检查到漏签,非常好")
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查签到结束")
+
         self.action_exit(mode="普通红叉")
         time.sleep(1)
+
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查悬赏开始")
         reputation_status, reputation_now = self.check_task_of_bounty()
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查悬赏结束")
+
         time.sleep(1)
+
         # 跳转到任务界面
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查公会任务开始")
         quest_list, completed_fertilization = self.check_task_of_guild()
@@ -262,7 +270,9 @@ class FAABase:
             SIGNAL.DIALOG.emit(
                 title="查漏补缺报告",
                 text=f"今天是炸卡日，记得检查兑换签到卡包\n")
+
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 结束")
+
         return quest_list, reputation_status, reputation_now, completed_fertilization
 
     def check_task_of_bounty(self: "FAA"):
@@ -1623,8 +1633,8 @@ class FAABase:
                 self.click_refresh_btn()
 
                 # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
-                if self.extra_sleep["need_sleep"]:
-                    time.sleep(self.extra_sleep["sleep_time"])
+                if self.opt["qq_login_info"]["extra_sleep_active"]:
+                    time.sleep(self.opt["qq_login_info"]["extra_sleep_time"])
 
                 # 进行断线重连的判断
                 self.print_debug(text="[刷新游戏] 进入断线重连判断...")
@@ -1645,8 +1655,8 @@ class FAABase:
                 elif try_enter_server_qq_space():
                     self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 成功进入 - QQ空间平台")
                     # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
-                    if self.extra_sleep["need_sleep"]:
-                        time.sleep(self.extra_sleep["sleep_time"])
+                    if self.opt["qq_login_info"]["extra_sleep_active"]:
+                        time.sleep(self.opt["qq_login_info"]["extra_sleep_time"])
 
                 elif try_enter_server_qq_game_hall():
                     self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 成功进入 - QQ游戏大厅平台")
@@ -1657,9 +1667,9 @@ class FAABase:
                         text=f"[刷新游戏] [第{fresh_count}轮] 未找到进入服务器按钮, 可能原因: "
                              f"1.QQ空间需重新登录 2.360X4399微端直接进入了游戏 3.需断线重连 4.意外情况 (丢失自动登录)")
 
-                    if self.QQ_login_info and self.QQ_login_info["use_password"]:
+                    if self.opt["qq_login_info"]["use_password"]:
                         # 密码登录模式
-                        with open(self.QQ_login_info["path"] + "/QQ_account.json", "r") as json_file:
+                        with open(self.opt["qq_login_info"]["path"] + "/QQ_account.json", "r") as json_file:
                             QQ_account = json.load(json_file)
                         username = QQ_account['{}p'.format(self.player)]['username']
                         password = QQ_account['{}p'.format(self.player)]['password']
@@ -2483,7 +2493,7 @@ class FAABase:
             success = from_guild_to_quest_guild()
             if not success:
                 return False, True
-            source_range=[75, 80, 430, 500]
+            source_range = [75, 80, 430, 500]
             # 检测施肥任务完成情况 任务是进行中的话为True
             quest_not_completed = loop_match_ps_in_w(
                 source_handle=self.handle,
@@ -2512,11 +2522,11 @@ class FAABase:
                 match_failed_check=2)
             if quest_not_completed:
                 quest_not_completed = [x for x in quest_not_completed if x is not None]
-                #点击施肥任务
+                # 点击施肥任务
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle,
-                    x=quest_not_completed[0][0]+source_range[0],
-                    y=quest_not_completed[0][1]+source_range[1]
+                    x=quest_not_completed[0][0] + source_range[0],
+                    y=quest_not_completed[0][1] + source_range[1]
                 )
                 time.sleep(0.5)
                 _, find = match_p_in_w(
@@ -2541,6 +2551,7 @@ class FAABase:
                 return True, False
 
             return False, False
+
         def try_plant_tree():
             self.print_debug(text=f"尝试种树")
             find = loop_match_p_in_w(
@@ -2552,7 +2563,7 @@ class FAABase:
                 click=True,
                 match_failed_check=2.0)
             if find:
-                #点种子(默认低级，需要自行替换高级种子图片）
+                # 点种子(默认低级，需要自行替换高级种子图片）
                 loop_match_p_in_w(
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
@@ -2561,7 +2572,7 @@ class FAABase:
                     after_sleep=0.3,
                     click=True,
                     match_failed_check=2.0)
-                #点播种
+                # 点播种
                 loop_match_p_in_w(
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
@@ -2570,7 +2581,7 @@ class FAABase:
                     after_sleep=2,
                     click=True,
                     match_failed_check=2.0)
-                find=loop_match_p_in_w(
+                find = loop_match_p_in_w(
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
                     source_range=[625, 212, 662, 248],
@@ -2587,7 +2598,6 @@ class FAABase:
             self.print_debug(text=f"种树成功")
             return True
 
-
         def fed_and_watered_once(try_times):
             """
             :param try_times:
@@ -2597,8 +2607,8 @@ class FAABase:
             # 进入施肥界面, 没有正确进入就跳出循环
             if not from_guild_to_guild_garden():
                 return True
-            if try_times==0:
-                #首次打开施肥界面尝试种树
+            if try_times == 0:
+                # 首次打开施肥界面尝试种树
                 try_plant_tree()
             # 根据目前尝试次数, 到达不同的公会
             switch_guild_garden_by_try_times(try_times=try_times)
