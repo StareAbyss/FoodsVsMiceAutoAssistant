@@ -86,7 +86,7 @@ def get_true_stage_id():
     # 假期
     stage_ids += ["HH-0-0"]
     # 世界boss
-    stage_ids += generate_stage_ids("WB", [0, 0], [0, 100])
+    stage_ids += generate_stage_ids("WB", [0, 100], [1, 3])
     # 多元奇遇
     stage_ids += generate_stage_ids("MU", [1, 1], [1, 2])
     stage_ids += generate_stage_ids("MU", [2, 2], [1, 3])
