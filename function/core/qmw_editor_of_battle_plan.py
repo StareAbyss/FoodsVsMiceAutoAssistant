@@ -3274,5 +3274,7 @@ class BanCardActionEditor(QDialog):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = QMWEditorOfBattlePlan(func_open_tip=lambda x: None)
+    # 设定字体
+    ex.set_my_font(EXTRA.Q_FONT)
     ex.show()
     sys.exit(app.exec())
