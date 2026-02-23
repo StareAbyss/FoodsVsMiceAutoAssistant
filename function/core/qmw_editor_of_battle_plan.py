@@ -7,7 +7,7 @@ import uuid
 from function.globals.loadings import loading
 
 loading.update_progress(50, "正在加载FAA关卡编辑器...")
-from typing import List
+from typing import List, Union
 
 from PyQt6.QtCore import pyqtSignal, Qt, QPoint
 from PyQt6.QtGui import QKeySequence, QIcon, QShortcut
@@ -141,40 +141,61 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 主布局 - 竖直布局
         self.LayMain = QVBoxLayout()
 
-        self.LayTimelineActionList = None
-        self.ListSpecialActions = None
-        self.LayNormalActionList = None
-
-        self.ButtonModeChange = None
-        self.LabelEditorMode = None
-        self.ButtonLoadJson = None
-        self.ButtonSave = None
-        self.ButtonSaveAs = None
-
-        self.ButtonCopyWave = None
-        self.ButtonPasteWave = None
-        self.ButtonApplyToAll = None
-
-        self.ButtonPlayer = None
-        self.ButtonAddNormalAction = None
-        self.ButtonDeleteNormalAction = None
-        self.ListNormalActions = None
-
-        self.ButtonAddTimelineAction = None
-        self.ButtonDeleteTimelineAction = None
-        self.ListTimelineActions = None
-
-        self.EditorAction = None
-
+        # 提示信息编辑框
         self.TextEditTips = None
 
+        # 选择关卡和打开教学
         self.WidgetStageSelector = None
 
-        self.chessboard_buttons = None
-        self.chessboard_frames = None
+        # 编辑模式
+        self.ButtonCardsEdit: Union[QPushButton, None] = None
+        self.ButtonLoopActionEdit: Union[QPushButton, None] = None
+        self.ButtonTimerActionEdit: Union[QPushButton, None] = None
+        self.LabelEditorMode: Union[QPushButton, None] = None
 
+        # 波次编辑
+        self.LabelWaveCopyTip: Union[QLabel, None] = None
+        self.BtnWaveCopy: Union[QPushButton, None] = None
+        self.BtnWavePaste: Union[QPushButton, None] = None
+        self.BtnWaveApplyToAfter: Union[QPushButton, None] = None
+        self.BtnWaveApplyToAll: Union[QPushButton, None] = None
+
+        # 方案加载保存另存为
         self.LabelCurrentBattlePlanFileName = None
         self.LabelCurrentBattlePlanUUID = None
+        self.BtnLoadJson: Union[QPushButton, None] = None
+        self.BtnSave: Union[QPushButton, None] = None
+        self.BtnSaveAs: Union[QPushButton, None] = None
+
+        # 编辑模式列表 0
+        self.LayCardEditor = None
+        self.BtnAddCard: Union[QPushButton, None] = None
+        self.BtnDeleteCard: Union[QPushButton, None] = None
+        self.ListCards: Union[QListWidgetDraggable, None] = None
+
+        # 编辑模式列表 1
+        self.LayLoopActionEditor = None
+        self.BtnPlayer: Union[QPushButton, None] = None
+        self.BtnAddLoopAction: Union[QPushButton, None] = None
+        self.BtnDeleteLoopAction: Union[QPushButton, None] = None
+        self.ListLoopAction: Union[QListWidgetDraggable, None] = None
+
+        # 编辑模式列表 2
+        self.LayTimerActionEditor = None
+        self.BtnAddTimerAction: Union[QPushButton, None] = None
+        self.BtnDeleteTimerAction: Union[QPushButton, None] = None
+        self.ListTimerActions: Union[QListWidgetDraggable, None] = None
+
+        # 编辑模式列表 3
+        self.LaySpecialActionEditor = None
+        self.ListSpecialActions: Union[QListWidgetDraggable, None] = None
+
+        # 点击列表元素弹出的 元素信息编辑框
+        self.EditorOfActionInfo = None
+
+        # 棋盘
+        self.chessboard_buttons = None
+        self.chessboard_frames = None
 
         def init_ui_lay_tip():
             """提示编辑器"""
@@ -206,18 +227,24 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
                     # 教学按钮
                     WidgetCourseButton = QPushButton('点击打开教学')
-                    WidgetCourseButton.clicked.connect(func_open_tip)
+                    WidgetCourseButton.clicked.connect(func_open_tip)  # type: ignore
                     self.LayLeft.addWidget(WidgetCourseButton)
 
                     # 分割线
                     self.LayLeft.addWidget(create_vertical_line())
 
                     # 点击切换放卡编辑模式
-                    self.ButtonModeChange = QPushButton('点击切换编辑模式')
-                    self.LayLeft.addWidget(self.ButtonModeChange)
+                    self.ButtonCardsEdit = QPushButton('卡组编辑')
+                    self.LayLeft.addWidget(self.ButtonCardsEdit)
+
+                    self.ButtonLoopActionEdit = QPushButton('循环放卡编辑')
+                    self.LayLeft.addWidget(self.ButtonLoopActionEdit)
+
+                    self.ButtonTimerActionEdit = QPushButton('定时放卡编辑')
+                    self.LayLeft.addWidget(self.ButtonTimerActionEdit)
 
                     # 当前模式
-                    self.LabelEditorMode = QLabel('当前模式 - 常规循环放卡编辑')
+                    self.LabelEditorMode = QLabel('当前模式 - 循环放卡编辑')
                     self.LabelEditorMode.setAlignment(Qt.AlignmentFlag.AlignCenter)  # 设置文本居中对齐
                     self.LayLeft.addWidget(self.LabelEditorMode)
 
@@ -227,7 +254,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     self.LayWaveEditor = QVBoxLayout()
                     self.LayLeft.addLayout(self.LayWaveEditor)
 
-                    title_label = QLabel('切换波次')
+                    title_label = QLabel('波次编辑器')
                     title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # 设置文本居中对齐
                     self.LayWaveEditor.addWidget(title_label)
 
@@ -238,7 +265,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
                             if i != 14:
                                 button = QPushButton(f"{i}")
                                 button.setObjectName(f"changeWaveButton_{i}")
-                                button.clicked.connect(
+                                button.clicked.connect(  # type: ignore
                                     lambda checked, wave=i: (
                                         self.click_wave_button(be_clicked_button_id=wave)
                                     )
@@ -250,27 +277,42 @@ class QMWEditorOfBattlePlan(QMainWindow):
                             lay_line.addWidget(button)
                         self.LayWaveEditor.addLayout(lay_line)
 
+                    # 添加剪切板文本提示
+                    self.LabelWaveCopyTip = QLabel('尚未复制任何波次信息')
+                    self.LabelWaveCopyTip.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
                     # 添加复制按钮
-                    self.ButtonCopyWave = QPushButton('复制')
-                    self.ButtonCopyWave.clicked.connect(self.copy_wave_plan)
-                    self.ButtonCopyWave.setToolTip(f"复制当前选中波次方案, 保存到剪切板")
+                    self.BtnWaveCopy = QPushButton('复制')
+                    self.BtnWaveCopy.clicked.connect(self.wave_plan_copy)  # type: ignore
+                    self.BtnWaveCopy.setToolTip(f"复制当前选中波次方案, 保存到剪切板")
 
                     # 添加粘贴按钮 锁定 不可使用
-                    self.ButtonPasteWave = QPushButton('粘贴')
-                    self.ButtonPasteWave.clicked.connect(self.paste_wave_plan)
-                    self.ButtonPasteWave.setEnabled(False)
-                    self.ButtonCopyWave.setToolTip(f"将剪切板中的方案, 粘贴到当前选中波次")
+                    self.BtnWavePaste = QPushButton('粘贴')
+                    self.BtnWavePaste.clicked.connect(self.wave_plan_paste)  # type: ignore
+                    self.BtnWavePaste.setEnabled(False)
+                    self.BtnWavePaste.setToolTip(f"将剪切板中的方案, 粘贴到当前选中波次")
+
+                    # 向后应用
+                    self.BtnWaveApplyToAfter = QPushButton('向后应用')
+                    self.BtnWaveApplyToAfter.clicked.connect(self.wave_plan_apply_to_after)  # type: ignore
+                    self.BtnWaveApplyToAfter.setToolTip(f"复制当前选中波次方案, 粘贴到当前选中波次之后的所有波次")
 
                     # 应用到全部
-                    self.ButtonApplyToAll = QPushButton('应用到全部')
-                    self.ButtonApplyToAll.clicked.connect(self.apply_to_all_wave_plan)
-                    self.ButtonApplyToAll.setToolTip("复制当前选中波次方案, 粘贴到全部波次")
+                    self.BtnWaveApplyToAll = QPushButton('应用到全部')
+                    self.BtnWaveApplyToAll.clicked.connect(self.wave_plan_apply_to_all)  # type: ignore
+                    self.BtnWaveApplyToAll.setToolTip("复制当前选中波次方案, 粘贴到全部波次")
 
                     # 创建水平布局，来容纳按钮
+                    self.LayLeft.addWidget(self.LabelWaveCopyTip)
+
                     LayWaveAction = QHBoxLayout()
-                    LayWaveAction.addWidget(self.ButtonCopyWave)
-                    LayWaveAction.addWidget(self.ButtonPasteWave)
-                    LayWaveAction.addWidget(self.ButtonApplyToAll)
+                    LayWaveAction.addWidget(self.BtnWaveCopy)
+                    LayWaveAction.addWidget(self.BtnWavePaste)
+                    self.LayLeft.addLayout(LayWaveAction)
+
+                    LayWaveAction = QHBoxLayout()
+                    LayWaveAction.addWidget(self.BtnWaveApplyToAfter)
+                    LayWaveAction.addWidget(self.BtnWaveApplyToAll)
                     self.LayLeft.addLayout(LayWaveAction)
 
                 def init_ui_lay_save_and_load():
@@ -279,21 +321,23 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     title_label = QLabel('方案加载与保存')
                     title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # 设置文本居中对齐
 
-                    self.LabelCurrentBattlePlanFileName = QLabel("当前方案名:无")
-                    self.LabelCurrentBattlePlanUUID = QLabel("当前方案UUID:无")
+                    self.LabelCurrentBattlePlanFileName = QLabel("当前方案: 无")
+                    self.LabelCurrentBattlePlanFileName.setMaximumWidth(250)
 
-                    self.ButtonLoadJson = QPushButton('加载')
+                    self.LabelCurrentBattlePlanUUID = QLabel("当前方案UUID: 无")
 
-                    self.ButtonSave = QPushButton('保存')
-                    self.ButtonSave.setEnabled(False)
+                    self.BtnLoadJson = QPushButton('加载')
 
-                    self.ButtonSaveAs = QPushButton('另存为')
+                    self.BtnSave = QPushButton('保存')
+                    self.BtnSave.setEnabled(False)
+
+                    self.BtnSaveAs = QPushButton('另存为')
 
                     # 创建水平布局，来容纳保存和另存为按钮
                     LaySaveBottom = QHBoxLayout()
-                    LaySaveBottom.addWidget(self.ButtonLoadJson)
-                    LaySaveBottom.addWidget(self.ButtonSave)
-                    LaySaveBottom.addWidget(self.ButtonSaveAs)
+                    LaySaveBottom.addWidget(self.BtnLoadJson)
+                    LaySaveBottom.addWidget(self.BtnSave)
+                    LaySaveBottom.addWidget(self.BtnSaveAs)
 
                     # 创建垂直布局 放本栏title后水平布局按钮
                     LaySave = QVBoxLayout()
@@ -323,12 +367,38 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
                 init_ui_lay_save_and_load()
 
+            def init_ui_lay_deck_editor():
+                """卡组编辑器"""
+                self.LayCardEditor = QVBoxLayout()
+                self.LayoutMainBottom.addLayout(self.LayCardEditor)
+
+                title_label = QLabel('卡组编辑 - 拖拽修改ID，右键编辑名称')
+                title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.LayCardEditor.addWidget(title_label)
+
+                # 添加卡片按钮
+                self.BtnAddCard = QPushButton('添加新卡片')
+                self.LayCardEditor.addWidget(self.BtnAddCard)
+
+                # 删除卡片按钮
+                self.BtnDeleteCard = QPushButton('删除选中卡片')
+                self.LayCardEditor.addWidget(self.BtnDeleteCard)
+
+                # 卡组列表控件
+                self.ListCards = QListWidgetDraggable()
+                self.ListCards.setMaximumWidth(260)
+                self.ListCards.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+                self.LayCardEditor.addWidget(self.ListCards)
+
+                # ID变更记录
+                self.card_id_changes_memory = {}  # 记录ID变更 {old_id: new_id}
+
             def init_ui_lay_normal_actions():
                 """常规操作列表"""
 
                 # 竖向布局
-                self.LayNormalActionList = QVBoxLayout()
-                self.LayoutMainBottom.addLayout(self.LayNormalActionList)
+                self.LayLoopActionEditor = QVBoxLayout()
+                self.LayoutMainBottom.addLayout(self.LayLoopActionEditor)
 
                 # title_label = QLabel('普通放卡编辑')
                 # title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # 设置文本居中对齐
@@ -336,28 +406,28 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
                 title_label = QLabel('左键-选中放卡   右键-编辑参数')
                 title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # 设置文本居中对齐
-                self.LayNormalActionList.addWidget(title_label)
+                self.LayLoopActionEditor.addWidget(title_label)
 
-                self.ButtonPlayer = QPushButton('玩家位置')
-                self.LayNormalActionList.addWidget(self.ButtonPlayer)
+                self.BtnPlayer = QPushButton('玩家位置')
+                self.LayLoopActionEditor.addWidget(self.BtnPlayer)
 
-                self.ButtonAddNormalAction = QPushButton('新增一组放卡操作')
-                self.LayNormalActionList.addWidget(self.ButtonAddNormalAction)
+                self.BtnAddLoopAction = QPushButton('新增一组放卡操作')
+                self.LayLoopActionEditor.addWidget(self.BtnAddLoopAction)
 
-                self.ButtonDeleteNormalAction = QPushButton('删除选中放卡操作')
-                self.LayNormalActionList.addWidget(self.ButtonDeleteNormalAction)
+                self.BtnDeleteLoopAction = QPushButton('删除选中放卡操作')
+                self.LayLoopActionEditor.addWidget(self.BtnDeleteLoopAction)
 
                 # 列表控件
-                self.ListNormalActions = QListWidgetDraggable()
-                self.ListNormalActions.setMaximumWidth(260)  # 经过验证的完美数字
-                self.LayNormalActionList.addWidget(self.ListNormalActions)
+                self.ListLoopAction = QListWidgetDraggable()
+                self.ListLoopAction.setMaximumWidth(260)  # 经过验证的完美数字
+                self.LayLoopActionEditor.addWidget(self.ListLoopAction)
 
             def init_ui_lay_timeline_actions():
                 """定时操作列表"""
 
                 # 竖向布局
-                self.LayTimelineActionList = QVBoxLayout()
-                self.LayoutMainBottom.addLayout(self.LayTimelineActionList)
+                self.LayTimerActionEditor = QVBoxLayout()
+                self.LayoutMainBottom.addLayout(self.LayTimerActionEditor)
 
                 # title_label = QLabel('定时操作')
                 # title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # 设置文本居中对齐
@@ -365,37 +435,37 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
                 title_label = QLabel('左键-选中放卡   右键-编辑参数')
                 title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)  # 设置文本居中对齐
-                self.LayTimelineActionList.addWidget(title_label)
+                self.LayTimerActionEditor.addWidget(title_label)
 
-                self.ButtonAddTimelineAction = QPushButton('新增定时放卡操作')
-                self.LayTimelineActionList.addWidget(self.ButtonAddTimelineAction)
+                self.BtnAddTimerAction = QPushButton('新增定时放卡操作')
+                self.LayTimerActionEditor.addWidget(self.BtnAddTimerAction)
 
-                self.ButtonDeleteTimelineAction = QPushButton('删除定时放卡操作')
-                self.LayTimelineActionList.addWidget(self.ButtonDeleteTimelineAction)
+                self.BtnDeleteTimerAction = QPushButton('删除定时放卡操作')
+                self.LayTimerActionEditor.addWidget(self.BtnDeleteTimerAction)
 
                 # 列表控件
-                self.ListTimelineActions = QListWidgetDraggable()
-                self.ListTimelineActions.setMaximumWidth(260)  # 经过验证的完美数字
-                self.LayTimelineActionList.addWidget(self.ListTimelineActions)
+                self.ListTimerActions = QListWidgetDraggable()
+                self.ListTimerActions.setMaximumWidth(260)  # 经过验证的完美数字
+                self.LayTimerActionEditor.addWidget(self.ListTimerActions)
 
             def init_ui_lay_special_actions():
                 """特殊操作列表"""
-                self.LaySpecialActionList = QVBoxLayout()
-                self.LayoutMainBottom.addLayout(self.LaySpecialActionList)
+                self.LaySpecialActionEditor = QVBoxLayout()
+                self.LayoutMainBottom.addLayout(self.LaySpecialActionEditor)
 
                 title_label = QLabel('左键-选中操作   右键-编辑参数')
                 title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-                self.LaySpecialActionList.addWidget(title_label)
+                self.LaySpecialActionEditor.addWidget(title_label)
 
                 self.ButtonAddSpecialAction = QPushButton('新增特殊操作')
-                self.LaySpecialActionList.addWidget(self.ButtonAddSpecialAction)
+                self.LaySpecialActionEditor.addWidget(self.ButtonAddSpecialAction)
 
                 self.ButtonDeleteSpecialAction = QPushButton('删除选中特殊操作')
-                self.LaySpecialActionList.addWidget(self.ButtonDeleteSpecialAction)
+                self.LaySpecialActionEditor.addWidget(self.ButtonDeleteSpecialAction)
 
                 self.ListSpecialActions = QListWidgetDraggable()
                 self.ListSpecialActions.setMaximumWidth(260)
-                self.LaySpecialActionList.addWidget(self.ListSpecialActions)
+                self.LaySpecialActionEditor.addWidget(self.ListSpecialActions)
 
             def init_ui_lay_chessboard():
                 """棋盘布局"""
@@ -430,8 +500,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
                         # 创建按钮部分
                         btn = ChessButton('')
 
-                        btn.clicked.connect(lambda checked, x=i, y=j: self.left_click_card_pos(y, x))
-                        btn.rightClicked.connect(lambda x=i, y=j: self.right_click_card_pos(y, x))
+                        btn.clicked.connect(lambda checked, x=i, y=j: self.left_click_card_pos(y, x))  # type: ignore
+                        btn.rightClicked.connect(lambda x=i, y=j: self.right_click_card_pos(y, x))  # type: ignore
                         self.chessboard_layout.addWidget(btn, i, j, alignment=Qt.AlignmentFlag.AlignCenter)
                         btn.setToolTip(f"当前位置: {j + 1}-{i + 1}")
                         row_buttons.append(btn)
@@ -442,14 +512,16 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     self.chessboard_frames.append(row_frames)
 
             init_ui_lay_left()
+            init_ui_lay_deck_editor()
             init_ui_lay_normal_actions()
             init_ui_lay_timeline_actions()
             init_ui_lay_special_actions()
             init_ui_lay_chessboard()
 
             # 隐藏定时操作列表
-            hide_layout(self.LayTimelineActionList)
-            hide_layout(self.LaySpecialActionList)
+            hide_layout(self.LayCardEditor)
+            hide_layout(self.LayTimerActionEditor)
+            hide_layout(self.LaySpecialActionEditor)
 
         init_ui_lay_tip()
         init_ui_layout_bottom()
@@ -463,42 +535,50 @@ class QMWEditorOfBattlePlan(QMainWindow):
             """信号和槽函数链接"""
 
             # 读取json
-            self.ButtonLoadJson.clicked.connect(self.open_battle_plan)
+            self.BtnLoadJson.clicked.connect(self.open_battle_plan)  # type: ignore
 
             # 保存json
-            self.ButtonSaveAs.clicked.connect(self.save_json)
-            self.ButtonSave.clicked.connect(self.save_json)
+            self.BtnSaveAs.clicked.connect(self.save_json)  # type: ignore
+            self.BtnSave.clicked.connect(self.save_json)  # type: ignore
 
             # 关卡选择
             self.WidgetStageSelector.on_selected.connect(self.stage_changed)
 
-            # 添加卡片
-            self.ButtonAddNormalAction.clicked.connect(self.add_loop_use_cards_one_card)
-            # 添加定时放卡操作进入备选槽
-            self.ButtonAddTimelineAction.clicked.connect(self.add_insert_use_card)
+            # 卡组编辑相关连接
+            self.ListCards.moveRequested.connect(self.event_list_be_moved_mode_0)  # type: ignore
+            self.ListCards.itemClicked.connect(self.be_edited_action_change_mode_0)  # type: ignore
+            self.ListCards.editRequested.connect(self.show_edit_window)  # type: ignore
+            self.BtnAddCard.clicked.connect(self.add_new_card)  # type: ignore
+            self.BtnDeleteCard.clicked.connect(self.delete_selected_card)  # type: ignore
 
-            # 删除卡片
-            self.ButtonDeleteNormalAction.clicked.connect(self.delete_loop_use_cards_one_card)
-            self.ButtonDeleteTimelineAction.clicked.connect(self.delete_insert_use_card)
-
+            # 循环放卡编辑 相关连接
+            # 拖拽 -> 移动顺序
             # 左键 -> 删除目标 / 位置编辑 / 高亮
             # 右键 -> 信息编辑
-            self.ListNormalActions.itemClicked.connect(self.be_edited_loop_use_cards_one_card_change)
-            self.ListNormalActions.moveRequested.connect(self.event_list_be_moved)
-            self.ListNormalActions.editRequested.connect(self.show_edit_window)
+            self.ListLoopAction.moveRequested.connect(self.event_list_be_moved_mode_1)  # type: ignore
+            self.ListLoopAction.itemClicked.connect(self.be_edited_action_change_mode_1)  # type: ignore
+            self.ListLoopAction.editRequested.connect(self.show_edit_window)  # type: ignore
+            self.BtnAddLoopAction.clicked.connect(self.add_loop_use_cards_one_card)  # type: ignore
+            self.BtnDeleteLoopAction.clicked.connect(self.delete_loop_use_cards_one_card)  # type: ignore
 
-            self.ListTimelineActions.itemClicked.connect(self.be_edited_insert_use_card_change)
-            self.ListTimelineActions.moveRequested.connect(self.event_list_be_moved)
-            self.ListTimelineActions.editRequested.connect(self.show_edit_window)
+            # 定时放卡编辑 相关连接
+            self.ListTimerActions.moveRequested.connect(self.event_list_be_moved_mode_2)  # type: ignore
+            self.ListTimerActions.itemClicked.connect(self.be_edited_action_change_mode_2)  # type: ignore
+            self.ListTimerActions.editRequested.connect(self.show_edit_window)  # type: ignore
+            self.BtnAddTimerAction.clicked.connect(self.add_insert_use_card)  # type: ignore
+            self.BtnDeleteTimerAction.clicked.connect(self.delete_insert_use_card)  # type: ignore
+            self.BtnPlayer.clicked.connect(self.click_player_button)  # type: ignore
 
-            self.ButtonPlayer.clicked.connect(self.click_player_button)
+            # 特殊操作编辑 相关连接
+            self.ListSpecialActions.itemClicked.connect(self.be_edited_special_change)  # type: ignore
+            self.ListSpecialActions.editRequested.connect(self.show_edit_window)  # type: ignore
+            self.ButtonAddSpecialAction.clicked.connect(self.add_use_special_action)  # type: ignore
+            self.ButtonDeleteSpecialAction.clicked.connect(self.delete_use_special_action)  # type: ignore
 
-            self.ButtonModeChange.clicked.connect(self.change_edit_mode)
-
-            self.ButtonAddSpecialAction.clicked.connect(self.add_use_special_action)
-            self.ButtonDeleteSpecialAction.clicked.connect(self.delete_use_special_action)
-            self.ListSpecialActions.itemClicked.connect(self.be_edited_special_change)
-            self.ListSpecialActions.editRequested.connect(self.show_edit_window)
+            # 切换编辑模式按钮绑定
+            self.ButtonCardsEdit.clicked.connect(lambda: self.change_edit_mode(0))  # type: ignore
+            self.ButtonLoopActionEdit.clicked.connect(lambda: self.change_edit_mode(1))  # type: ignore
+            self.ButtonTimerActionEdit.clicked.connect(lambda: self.change_edit_mode(2))  # type: ignore
 
         connect_signal_and_slot()
 
@@ -527,14 +607,20 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         """UI状态"""
 
-        # 模式1 - 是常规遍历队列式放卡, 模式2 - 为定时放卡
+        # 模式
+        # 0 - 卡组编辑
+        # 1 - 常规遍历队列式放卡
+        # 2 - 定时放卡
+        # 3 - 特殊操作
+
         self.editing_mode = 1
 
         # 当前编辑内容
         self.be_edited_player = False
         self.be_edited_wave_id = 0
-        self.be_edited_loop_use_cards_one_card_index = None
-        self.be_edited_insert_use_card_index = None
+        self.be_edited_index_mod_0 = None
+        self.be_edited_index_mod_1 = None
+        self.be_edited_index_mod_2 = None
         # 剪切板
         self.be_copied_loop_use_cards_event_wave_id = None
 
@@ -562,8 +648,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.redo_stack = []
         self.undo_shortcut = QShortcut(QKeySequence('Ctrl+Z'), self)
         self.redo_shortcut = QShortcut(QKeySequence('Ctrl+Y'), self)
-        self.undo_shortcut.activated.connect(self.undo)
-        self.redo_shortcut.activated.connect(self.redo)
+        self.undo_shortcut.activated.connect(self.undo)  # type: ignore
+        self.redo_shortcut.activated.connect(self.redo)  # type: ignore
 
         # 加载Json文件
         self.file_path = None
@@ -628,43 +714,46 @@ class QMWEditorOfBattlePlan(QMainWindow):
             button.setStyleSheet(f"background-color: {color_with_alpha}")
             last_action = cursor_action
 
-    def change_edit_mode(self, mode=None):
+    def change_edit_mode(self, mode):
         """
         切换编辑模式
-        :param mode: 目标模式编号(1-3)，为None时进入循环切换模式
+        :param mode: 目标模式编号(1-4)
         """
-        if mode is not None and 1 <= mode <= 3:
-            self.editing_mode = mode
-        else:
-            # 原有循环切换逻辑
-            self.editing_mode = (self.editing_mode % 3) + 1
+
+        self.editing_mode = mode
 
         # 管理布局可见性
-        hide_layout(self.LayNormalActionList)
-        hide_layout(self.LayTimelineActionList)
-        hide_layout(self.LaySpecialActionList)
+        hide_layout(self.LayCardEditor)
+        hide_layout(self.LayLoopActionEditor)
+        hide_layout(self.LayTimerActionEditor)
+        hide_layout(self.LaySpecialActionEditor)
 
-        # 根据当前模式显示对应布局
-        if self.editing_mode == 1:
-            self.LabelEditorMode.setText("当前模式 - 常规循环放卡编辑")
-            show_layout(self.LayNormalActionList)
-            self.ButtonCopyWave.setEnabled(True)
-            self.ButtonPasteWave.setEnabled(True)
-            self.ButtonApplyToAll.setEnabled(True)
+        def set_all_wave_editor_btn_enabled(tar_type: bool):
+            self.BtnWaveCopy.setEnabled(tar_type)
+            self.BtnWavePaste.setEnabled(False)  # 默认是不可用的！ 需要复制
+            self.BtnWaveApplyToAfter.setEnabled(tar_type)
+            self.BtnWaveApplyToAll.setEnabled(tar_type)
+
+        # 根据当前模式显示对应布局和更新按钮状态
+        if self.editing_mode == 0:
+            self.LabelEditorMode.setText("当前模式 - 卡组编辑")
+            show_layout(self.LayCardEditor)
+            set_all_wave_editor_btn_enabled(tar_type=False)
+
+        elif self.editing_mode == 1:
+            self.LabelEditorMode.setText("当前模式 - 循环放卡编辑")
+            show_layout(self.LayLoopActionEditor)
+            set_all_wave_editor_btn_enabled(tar_type=True)
 
         elif self.editing_mode == 2:
             self.LabelEditorMode.setText("当前模式 - 定时放卡编辑")
-            show_layout(self.LayTimelineActionList)
-            self.ButtonCopyWave.setEnabled(False)
-            self.ButtonPasteWave.setEnabled(False)
-            self.ButtonApplyToAll.setEnabled(False)
+            show_layout(self.LayTimerActionEditor)
+            set_all_wave_editor_btn_enabled(tar_type=False)
 
         elif self.editing_mode == 3:
-            self.LabelEditorMode.setText("当前模式 - 特殊操作放卡编辑")
-            show_layout(self.LaySpecialActionList)
-            self.ButtonCopyWave.setEnabled(False)
-            self.ButtonPasteWave.setEnabled(False)
-            self.ButtonApplyToAll.setEnabled(False)
+            self.LabelEditorMode.setText("当前模式 - 特殊操作编辑")
+            show_layout(self.LaySpecialActionEditor)
+            set_all_wave_editor_btn_enabled(tar_type=False)
 
         # 刷新所有UI状态
         self.fresh_all_ui()
@@ -675,9 +764,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         # 去除选中
         self.be_edited_player = False
-        self.ButtonPlayer.setText("玩家位置")
-        self.be_edited_insert_use_card_index = None
-        self.be_edited_loop_use_cards_one_card_index = None
+        self.BtnPlayer.setText("玩家位置")
+        self.be_edited_index_mod_1 = None
+        self.be_edited_index_mod_2 = None
 
         # 关闭放卡动作编辑框
         self.close_edit_window()
@@ -685,25 +774,32 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 重载UI
         self.fresh_all_ui()
 
-    def copy_wave_plan(self):
+    def wave_plan_copy(self):
         """复制"""
 
         # 仅在模式1中允许复制
         if self.editing_mode != 1:
+            # 警告
+            QMessageBox.warning(self, "警告", "该操作仅在 循环放卡编辑模式 可用")
             return
 
         self.be_copied_loop_use_cards_event_wave_id = copy.deepcopy(self.be_edited_wave_id)
 
         # 复制后 允许其粘贴
-        self.ButtonPasteWave.setEnabled(True)
+        self.BtnWavePaste.setEnabled(True)
+
+        # 更新剪切板
+        self.LabelWaveCopyTip.setText(f"已复制{self.be_edited_wave_id}波方案")
 
         CUS_LOGGER.debug(
             f"[战斗方案编辑器] 已复制循环放卡事件, 波次编号: {self.be_copied_loop_use_cards_event_wave_id}")
 
-    def paste_wave_plan(self):
+    def wave_plan_paste(self):
 
-        # 仅在模式1中允许粘贴
+        # 仅在模式1中允许复制
         if self.editing_mode != 1:
+            # 警告
+            QMessageBox.warning(self, "警告", "该操作仅在 循环放卡编辑模式 可用")
             return
 
         from_event = next(
@@ -723,11 +819,33 @@ class QMWEditorOfBattlePlan(QMainWindow):
         CUS_LOGGER.debug(
             f"[战斗方案编辑器] 已粘贴波次, 编号: {self.be_copied_loop_use_cards_event_wave_id} -> {self.be_edited_wave_id}")
 
-    def apply_to_all_wave_plan(self):
+    def wave_plan_apply_to_after(self):
+        """应用到后续"""
+
+        # 仅在模式1中允许复制
+        if self.editing_mode != 1:
+            # 警告
+            QMessageBox.warning(self, "警告", "该操作仅在 循环放卡编辑模式 可用")
+            return
+
+        to_action = next(e.action for e in self.loop_use_cards_events if e.trigger.wave_id == self.be_edited_wave_id)
+        for e in self.loop_use_cards_events:
+            if e.trigger.wave_id <= self.be_edited_wave_id:
+                continue
+            e.action = copy.deepcopy(to_action)
+
+        # 仅需变色波次按钮颜色
+        self.refresh_wave_button_color()
+
+        CUS_LOGGER.debug(f"[战斗方案编辑器] 波次:{self.be_edited_wave_id}方案已应用到后续波次")
+
+    def wave_plan_apply_to_all(self):
         """应用到全部"""
 
-        # 仅在模式1中允许复制到全部
+        # 仅在模式1中允许复制
         if self.editing_mode != 1:
+            # 警告
+            QMessageBox.warning(self, "警告", "该操作仅在 循环放卡编辑模式 可用")
             return
 
         to_action = next(e.action for e in self.loop_use_cards_events if e.trigger.wave_id == self.be_edited_wave_id)
@@ -758,6 +876,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         """
 
         # 重绘 UI的放卡动作列表
+        self.load_data_to_ui_list_mode_0()
         self.load_data_to_ui_list_mode_1()
         self.load_data_to_ui_list_mode_2()
         self.load_data_to_ui_list_mode_3()
@@ -771,47 +890,114 @@ class QMWEditorOfBattlePlan(QMainWindow):
         # 刷新棋盘高亮
         self.highlight_chessboard()
 
-    """放卡动作列表操作"""
+    """卡组 编辑操作"""
+
+    def load_data_to_ui_list_mode_0(self):
+        """从内部数据表载入卡组数据到UI列表"""
+
+        if self.editing_mode != 0:
+            return
+
+        self.ListCards.clear()
+
+        # 根据中文和西文分别记录最高宽度
+        name_max_width_c = 0
+        name_max_width_e = 0
+        for card in self.battle_plan.cards:
+            width_c, width_e = calculate_text_width(card.name)
+            name_max_width_c = max(name_max_width_c, width_c)
+            name_max_width_e = max(name_max_width_e, width_e)
+
+        if not self.battle_plan.cards:
+            return
+
+        # 找到最长的id长度
+        max_id_length = max(len(str(card.card_id)) for card in self.battle_plan.cards)
+
+        for card in self.battle_plan.cards:
+            # 根据中文和西文 分别根据距离相应的最大宽度的差值填充中西文空格
+            width_c, width_e = calculate_text_width(card.name)
+            padded_name = str(card.name)
+            padded_name += "\u2002" * (name_max_width_e - width_e)  # 半宽空格
+            padded_name += '\u3000' * (name_max_width_c - width_c)  # 表意空格(方块字空格)
+
+            padded_id = str(card.card_id).ljust(max_id_length)
+
+            text = "ID:{}  名称:{}".format(padded_id, padded_name)
+
+            item = QListWidgetItem(text)
+            item.setData(Qt.ItemDataRole.UserRole, card.card_id)  # 存储card_id
+            self.ListCards.addItem(item)
+
+    def be_edited_action_change_mode_0(self, item):
+        """被任意键单击后, 被选中的卡片改变了"""
+
+        # list的index 是 QModelIndex 此处还需要获取到行号
+        self.be_edited_index_mod_0 = self.ListCards.indexFromItem(item).row()
+
+    def event_list_be_moved_mode_0(self, index_from, index_to):
+
+        if self.editing_mode != 0:
+            return
+
+        # 将当前状态压入栈中
+        self.append_undo_stack()
+
+        tar_card = self.battle_plan.cards.pop(index_from)
+        self.battle_plan.cards.insert(index_to, tar_card)
+
+        # 更新所有卡片的ID使其连续排列
+        for i, card in enumerate(self.battle_plan.cards):
+            old_card_id = card.card_id
+            card.card_id = i + 1
+            if old_card_id != card.card_id:
+                self.card_id_changes_memory[old_card_id] = card.card_id
+
+        CUS_LOGGER.debug(f"进行操作: 卡片列表元素移动 ID:{index_from + 1} -> ID:{index_to + 1}")
+        CUS_LOGGER.debug(f"卡片 数据已更新: {self.battle_plan.cards}")
+
+        # 更新循环和定时放卡中的引用
+        self.update_card_references()
+
+        self.load_data_to_ui_list_mode_0()
+
+    def update_card_references(self):
+
+        CUS_LOGGER.debug(f"卡片数据已更新, 即将更新操作中的卡片ID引用, 操作表: {self.card_id_changes_memory}")
+
+        if not self.card_id_changes_memory:
+            return
+
+        # 更新循环放卡中的引用
+        for event in self.loop_use_cards_events:
+            for card_config in event.action.cards:
+                if card_config.card_id in self.card_id_changes_memory:
+                    old_id = card_config.card_id
+                    new_id = self.card_id_changes_memory[old_id]
+                    card_config.card_id = new_id
+                    # CUS_LOGGER.debug(f"循环放卡操作 更新引用: {old_id} -> {new_id}")
+
+        # 更新定时放卡中的引用
+        for event in self.insert_use_card_events:
+            if hasattr(event.action, 'card_id') and event.action.card_id in self.card_id_changes_memory:
+                old_id = event.action.card_id
+                new_id = self.card_id_changes_memory[old_id]
+                event.action.card_id = new_id
+                # CUS_LOGGER.debug(f"定时放卡操作 更新引用: {old_id} -> {new_id}")
+
+        # 清空变更记录
+        self.card_id_changes_memory.clear()
+
+    """循环放卡 编辑操作"""
 
     def click_player_button(self):
 
         # 用 -1 代表正在编辑玩家位置
         self.be_edited_player = True
-        self.ButtonPlayer.setText(">> 玩家位置 <<")
-        self.be_edited_loop_use_cards_one_card_index = None
+        self.BtnPlayer.setText(">> 玩家位置 <<")
+        self.be_edited_index_mod_1 = None
 
         self.highlight_chessboard()
-
-    def be_edited_loop_use_cards_one_card_change(self, item):
-        """被单击后, 被选中的卡片改变了"""
-
-        # 不再编辑玩家位置
-        self.be_edited_player = False
-        self.ButtonPlayer.setText("玩家位置")
-
-        # list的index 是 QModelIndex 此处还需要获取到行号
-        self.be_edited_loop_use_cards_one_card_index = self.ListNormalActions.indexFromItem(item).row()
-
-        # 高亮棋盘
-        self.highlight_chessboard()
-
-        # print(f"编辑 - 位置 - 普通动作编辑 目标改变: {self.be_edited_loop_use_cards_one_card_index}")
-
-    def be_edited_insert_use_card_change(self, item):
-        """被单击后, 被选中的卡片改变了"""
-
-        # list的index 是 QModelIndex 此处还需要获取到行号
-        self.be_edited_insert_use_card_index = self.ListTimelineActions.indexFromItem(item).row()
-
-        # 高亮棋盘
-        self.highlight_chessboard()
-
-        # print(f"编辑 - 位置 - 定时动作编辑 目标改变: {self.be_edited_insert_use_card_index}")
-
-    def be_edited_special_change(self, item):
-        """被单击后, 被选中的宝石操作改变了"""
-        self.be_edited_special_action_index = self.ListSpecialActions.indexFromItem(item).row()
-        # print(f"编辑 - 宝石操作 目标改变: {self.be_edited_special_action_index}")
 
     def load_data_to_ui_list_mode_1(self):
         """从 [内部数据表] 载入数据到 [ui的放卡动作列表]"""
@@ -819,7 +1005,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         if self.editing_mode != 1:
             return
 
-        self.ListNormalActions.clear()
+        self.ListLoopAction.clear()
 
         current_event = next(e for e in self.loop_use_cards_events if e.trigger.wave_id == self.be_edited_wave_id)
 
@@ -861,14 +1047,54 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 text += "  坤:{}".format(a_card.kun)
 
             item = QListWidgetItem(text)
-            self.ListNormalActions.addItem(item)
+            self.ListLoopAction.addItem(item)
+
+    def be_edited_action_change_mode_1(self, item):
+        """被任意键单击后, 被选中的卡片改变了"""
+
+        # 不再编辑玩家位置
+        self.be_edited_player = False
+        self.BtnPlayer.setText("玩家位置")
+
+        # list的index 是 QModelIndex 此处还需要获取到行号
+        self.be_edited_index_mod_1 = self.ListLoopAction.indexFromItem(item).row()
+
+        # 高亮棋盘
+        self.highlight_chessboard()
+
+        # print(f"编辑 - 位置 - 普通动作编辑 目标改变: {self.be_edited_loop_use_cards_one_card_index}")
+
+    def event_list_be_moved_mode_1(self, index_from, index_to):
+        """在list的drop事件中调用, 用于更新内部数据表"""
+
+        if self.editing_mode != 1:
+            return
+
+        # 将当前状态压入栈中
+        self.append_undo_stack()
+
+        current_event = next(e for e in self.loop_use_cards_events if e.trigger.wave_id == self.be_edited_wave_id)
+        cards = current_event.action.cards
+
+        tar_card = cards.pop(index_from)
+        cards.insert(index_to, tar_card)
+
+        CUS_LOGGER.debug(f"进行操作: 循环放卡操作列表元素移动 ID:{index_from} -> ID:{index_to}")
+        CUS_LOGGER.debug("当前波次 循环放卡 数据已更新: {}".format(cards))
+
+        self.load_data_to_ui_list_mode_1()
+
+        # 刷新波次上色
+        self.refresh_wave_button_color()
+
+    """定时放卡 编辑操作"""
 
     def load_data_to_ui_list_mode_2(self):
         """从 [内部数据表] 载入数据到 [ui的放卡动作列表]"""
         if self.editing_mode != 2:
             return
 
-        self.ListTimelineActions.clear()
+        self.ListTimerActions.clear()
 
         events = [e for e in self.insert_use_card_events if e.trigger.wave_id == self.be_edited_wave_id]
 
@@ -917,7 +1143,48 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 continue
 
             item = QListWidgetItem(text)
-            self.ListTimelineActions.addItem(item)
+            self.ListTimerActions.addItem(item)
+
+    def be_edited_action_change_mode_2(self, item):
+        """被单击后, 被选中的卡片改变了"""
+
+        # list的index 是 QModelIndex 此处还需要获取到行号
+        self.be_edited_index_mod_2 = self.ListTimerActions.indexFromItem(item).row()
+
+        # 高亮棋盘
+        self.highlight_chessboard()
+
+        # print(f"编辑 - 位置 - 定时动作编辑 目标改变: {self.be_edited_insert_use_card_index}")
+
+    def event_list_be_moved_mode_2(self, index_from, index_to):
+        """在list的drop事件中调用, 用于更新内部数据表"""
+
+        if self.editing_mode != 2:
+            return
+
+        # 将当前状态压入栈中
+        self.append_undo_stack()
+
+        indices = [i for i, e in enumerate(self.insert_use_card_events)
+                   if e.trigger.wave_id == self.be_edited_wave_id]
+
+        if 0 <= index_from < len(indices) and 0 <= index_to < len(indices):
+            global_from = indices[index_from]
+            global_to = indices[index_to]
+
+            # 在原始列表中移动事件
+            event = self.insert_use_card_events.pop(global_from)
+            self.insert_use_card_events.insert(global_to, event)
+
+        # CUS_LOGGER.debug(tar_event)
+        CUS_LOGGER.debug("当前波次 插入放卡 数据已更新: {}".format(self.insert_use_card_events))
+
+        self.load_data_to_ui_list_mode_2()
+
+        # 刷新波次上色
+        self.refresh_wave_button_color()
+
+    """特殊放卡 编辑操作"""
 
     def load_data_to_ui_list_mode_3(self):
         """宝石操作列表数据加载"""
@@ -940,45 +1207,12 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 item_text = f"波次{event.trigger.wave_id} {event.trigger.time}s 多卡随机[{indices_str}]"
             self.ListSpecialActions.addItem(QListWidgetItem(item_text))
 
-    def event_list_be_moved(self, index_from, index_to):
-        """在list的drop事件中调用, 用于更新内部数据表"""
+    def be_edited_special_change(self, item):
+        """被单击后, 被选中的宝石操作改变了"""
+        self.be_edited_index_mod_3 = self.ListSpecialActions.indexFromItem(item).row()
+        # print(f"编辑 - 宝石操作 目标改变: {self.be_edited_special_action_index}")
 
-        # 将当前状态压入栈中
-        self.append_undo_stack()
-
-        if self.editing_mode == 1:
-            current_event = next(e for e in self.loop_use_cards_events if e.trigger.wave_id == self.be_edited_wave_id)
-            cards = current_event.action.cards
-
-            tar_card = cards.pop(index_from)
-            cards.insert(index_to, tar_card)
-
-            CUS_LOGGER.debug(tar_card)
-            CUS_LOGGER.debug("当前波次 循环放卡 数据已更新: {}".format(cards))
-
-            self.load_data_to_ui_list_mode_1()
-
-        if self.editing_mode == 2:
-            indices = [i for i, e in enumerate(self.insert_use_card_events)
-                       if e.trigger.wave_id == self.be_edited_wave_id]
-
-            if 0 <= index_from < len(indices) and 0 <= index_to < len(indices):
-                global_from = indices[index_from]
-                global_to = indices[index_to]
-
-                # 在原始列表中移动事件
-                event = self.insert_use_card_events.pop(global_from)
-                self.insert_use_card_events.insert(global_to, event)
-
-            # CUS_LOGGER.debug(tar_event)
-            CUS_LOGGER.debug("当前波次 插入放卡 数据已更新: {}".format(self.insert_use_card_events))
-
-            self.load_data_to_ui_list_mode_2()
-
-        # 刷新波次上色
-        self.refresh_wave_button_color()
-
-    """放卡动作属性编辑"""
+    """右键list中元素弹出额外窗口, 属性编辑, 统一编辑"""
 
     def close_edit_window(self):
         if hasattr(self, "edit_window"):
@@ -990,23 +1224,33 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         # 创建新窗口 个路径模式不同
 
-        if self.editing_mode == 1:
+        if self.editing_mode == 0:
+
+            card = self.battle_plan.cards[self.be_edited_index_mod_0]
+            data = {
+                "name": card.name
+            }
+            self.EditorOfActionInfo = InfoEditorOfCards(
+                data=data,
+                func_update=self.update_info_mode_0
+            )
+
+        elif self.editing_mode == 1:
 
             # print("即将显示 常规动作编辑窗口 索引 - ", self.be_edited_loop_use_cards_one_card_index)
 
             event = next(e for e in self.loop_use_cards_events if e.trigger.wave_id == self.be_edited_wave_id)
-            a_card = event.action.cards[self.be_edited_loop_use_cards_one_card_index]
-            o_card = next(o_card for o_card in self.battle_plan.cards if o_card.card_id == a_card.card_id)
+            a_card = event.action.cards[self.be_edited_index_mod_1]
             data = {
+                "cards": self.battle_plan.cards,
                 "id": a_card.card_id,
-                "name": o_card.name,
                 "ergodic": a_card.ergodic,
                 "queue": a_card.queue,
                 "kun": a_card.kun
             }
-            self.EditorAction = LoopUseCardsOneCardInfoEditor(
+            self.EditorOfActionInfo = InfoEditorOfLoopUseCardsOneCard(
                 data=data,
-                func_update=self.update_loop_use_cards_one_card_info
+                func_update=self.update_info_mode_1
             )
 
         elif self.editing_mode == 2:
@@ -1015,7 +1259,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             events = [e for e in self.insert_use_card_events
 
                       if e.trigger.wave_id == self.be_edited_wave_id]
-            event = events[self.be_edited_insert_use_card_index]
+            event = events[self.be_edited_index_mod_2]
 
             # 根据操作类型创建不同的编辑器实例
             if event.action.type == "shovel":
@@ -1024,11 +1268,11 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     "type": "shovel",
                     "location": event.action.location
                 }
-                self.EditorAction = ShovelActionEditor(
+                self.EditorOfActionInfo = ShovelActionEditor(
                     data=data,
                     func_update=self.update_shovel_action_info,
                     editor_parent=self,
-                    event_index=self.be_edited_insert_use_card_index
+                    event_index=self.be_edited_index_mod_2
                 )
 
             else:
@@ -1036,40 +1280,40 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     "time": event.trigger.time,
                     "type": event.action.type,
                     "location": event.action.location,
+                    "cards": self.battle_plan.cards,
                     "card_id": event.action.card_id,
-                    "name": next(c.name for c in self.battle_plan.cards if c.card_id == event.action.card_id),
                     "before_shovel": event.action.before_shovel,
                     "after_shovel": event.action.after_shovel,
                     "after_shovel_time": event.action.after_shovel_time
                 }
-                self.EditorAction = InsertUseCardInfoEditor(
+                self.EditorOfActionInfo = InfoEditorOfInsertUseCard(
                     data=data,
-                    func_update=self.update_insert_use_card_info,
+                    func_update=self.update_info_mode_2,
                     editor_parent=self,
-                    event_index=self.be_edited_insert_use_card_index
+                    event_index=self.be_edited_index_mod_2
                 )
 
         elif self.editing_mode == 3:
 
             events = [e for e in self.insert_use_special_events if e.trigger.wave_id == self.be_edited_wave_id]
-            event = events[self.be_edited_special_action_index]
+            event = events[self.be_edited_index_mod_3]
 
             if isinstance(event.action, ActionEscape):
                 data = {"time": event.trigger.time}
-                self.EditorAction = EscapeActionEditor(data=data, func_update=self.update_escape_action_info)
+                self.EditorOfActionInfo = EscapeActionEditor(data=data, func_update=self.update_escape_action_info)
             elif isinstance(event.action, ActionBanCard):
                 data = {
                     "start_time": event.action.start_time,
                     "end_time": event.action.end_time,
                     "card_id": event.action.card_id
                 }
-                self.EditorAction = BanCardActionEditor(data=data, func_update=self.update_ban_card_info)
+                self.EditorOfActionInfo = BanCardActionEditor(data=data, func_update=self.update_ban_card_info)
             elif isinstance(event.action, ActionRandomSingleCard):
                 data = {
                     "time": event.trigger.time,
                     "card_index": event.action.card_index
                 }
-                self.EditorAction = RandomSingleCardActionEditor(
+                self.EditorOfActionInfo = RandomSingleCardActionEditor(
                     data=data,
                     func_update=self.update_random_single_card_info)
             elif isinstance(event.action, ActionRandomMultiCard):
@@ -1077,24 +1321,24 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     "time": event.trigger.time,
                     "card_indices": event.action.card_indices
                 }
-                self.EditorAction = RandomMultiCardActionEditor(
+                self.EditorOfActionInfo = RandomMultiCardActionEditor(
                     data=data,
                     func_update=self.update_random_multi_card_info)
             else:
                 data = {"gem_id": event.action.gem_id, "time": event.trigger.time}
-                self.EditorAction = GemInfoEditor(data=data, func_update=self.update_special_action_info)
+                self.EditorOfActionInfo = GemInfoEditor(data=data, func_update=self.update_info_mode_3)
 
         # 计算显示位置
-        global_pos = self.ListNormalActions.viewport().mapToGlobal(
-            self.ListNormalActions.visualItemRect(list_item).topRight()
+        global_pos = self.ListLoopAction.viewport().mapToGlobal(
+            self.ListLoopAction.visualItemRect(list_item).topRight()
         )
-        self.EditorAction.move(global_pos + QPoint(20, 0))
+        self.EditorOfActionInfo.move(global_pos + QPoint(20, 0))
 
         # 完成显示
         # self.card_action_editor.show()
 
         # 事件循环!~
-        self.EditorAction.exec()
+        self.EditorOfActionInfo.exec()
         self.fresh_all_ui()
 
     def update_random_single_card_info(self):
@@ -1104,17 +1348,17 @@ class QMWEditorOfBattlePlan(QMainWindow):
         try:
             events = [e for e in self.insert_use_special_events
                       if e.trigger.wave_id == self.be_edited_wave_id]
-            event = events[self.be_edited_special_action_index]
+            event = events[self.be_edited_index_mod_3]
 
             if isinstance(event.action, ActionRandomSingleCard):
-                new_data = self.EditorAction.get_data()
+                new_data = self.EditorOfActionInfo.get_data()
                 if event.action.card_index != new_data["card_index"]:
                     event.action.card_index = new_data["card_index"]
                     self.fresh_all_ui()
 
         except Exception as e:
             QMessageBox.warning(self, "输入错误", f"请输入有效的参数: {str(e)}")
-            self.EditorAction.card_index.setFocus()
+            self.EditorOfActionInfo.card_index.setFocus()
 
     def update_random_multi_card_info(self):
         """
@@ -1123,27 +1367,27 @@ class QMWEditorOfBattlePlan(QMainWindow):
         try:
             events = [e for e in self.insert_use_special_events
                       if e.trigger.wave_id == self.be_edited_wave_id]
-            event = events[self.be_edited_special_action_index]
+            event = events[self.be_edited_index_mod_3]
 
             if isinstance(event.action, ActionRandomMultiCard):
-                new_data = self.EditorAction.get_data()
+                new_data = self.EditorOfActionInfo.get_data()
                 if event.action.card_indices != new_data["card_indices"]:
                     event.action.card_indices = new_data["card_indices"]
                     self.fresh_all_ui()
 
         except Exception as e:
             QMessageBox.warning(self, "输入错误", f"请输入有效的参数: {str(e)}")
-            self.EditorAction.card_indices_edit.setFocus()
+            self.EditorOfActionInfo.card_indices_edit.setFocus()
 
     def update_shovel_action_info(self):
         """更新铲子操作事件的UI与数据"""
         try:
             events = [e for e in self.insert_use_card_events
                       if e.trigger.wave_id == self.be_edited_wave_id]
-            event = events[self.be_edited_insert_use_card_index]
+            event = events[self.be_edited_index_mod_2]
 
             # 获取当前UI数据
-            new_data = self.EditorAction.get_data()
+            new_data = self.EditorOfActionInfo.get_data()
 
             # 替换整个action对象保证数据同步
             event.action = ActionShovel(
@@ -1159,13 +1403,13 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         except Exception as e:
             QMessageBox.warning(self, "输入错误", f"请输入有效的参数: {str(e)}")
-            self.EditorAction.WidgetTimeInput.setFocus()
+            self.EditorOfActionInfo.WidgetTimeInput.setFocus()
 
     def update_escape_action_info(self):
         try:
             events = [e for e in self.insert_use_special_events if e.trigger.wave_id == self.be_edited_wave_id]
-            event = events[self.be_edited_special_action_index]
-            new_data = self.EditorAction.get_data()
+            event = events[self.be_edited_index_mod_3]
+            new_data = self.EditorOfActionInfo.get_data()
 
             event.action = ActionEscape(time=new_data["time"])
             event.trigger.time = new_data["time"]
@@ -1176,8 +1420,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
     def update_ban_card_info(self):
         try:
             events = [e for e in self.insert_use_special_events if e.trigger.wave_id == self.be_edited_wave_id]
-            event = events[self.be_edited_special_action_index]
-            new_data = self.EditorAction.get_data()
+            event = events[self.be_edited_index_mod_3]
+            new_data = self.EditorOfActionInfo.get_data()
 
             event.action = ActionBanCard(
                 start_time=new_data["start_time"],
@@ -1188,18 +1432,70 @@ class QMWEditorOfBattlePlan(QMainWindow):
         except Exception as ve:
             QMessageBox.warning(self, "输入错误", f"请输入有效的参数: {str(ve)}")
 
+    """添加卡片或操作 - 根据操作修改内部数据表 再刷新UI"""
+
+    def add_new_card(self):
+        """添加新卡片"""
+        # 将当前状态压入栈中
+        self.append_undo_stack()
+
+        # 找到下一个可用的ID
+        used_ids = [card.card_id for card in self.battle_plan.cards]
+        new_id = 1
+        while new_id in used_ids and new_id <= 21:
+            new_id += 1
+
+        if new_id > 21:
+            QMessageBox.warning(self, "警告", "卡组已达到最大容量(21张)")
+            return
+
+        # 创建新卡片
+        new_card = Card(card_id=new_id, name="新的卡片")
+        self.battle_plan.cards.append(new_card)
+
+        # 更新所有卡片的ID使其连续排列
+        for i, card in enumerate(self.battle_plan.cards):
+            old_card_id = card.card_id
+            card.card_id = i + 1
+            if old_card_id != card.card_id:
+                self.card_id_changes_memory[old_card_id] = card.card_id
+
+        # 更新循环和定时放卡中的引用
+        self.update_card_references()
+
+        self.load_data_to_ui_list_mode_0()
+        self.fresh_all_ui()
+
     def add_loop_use_cards_one_card(self):
 
+        # 目前已经使用过的 卡片
         event = next(event for event in self.loop_use_cards_events if event.trigger.wave_id == self.be_edited_wave_id)
         cards = event.action.cards
-        ids_list = [card.card_id for card in cards]
-        for i in range(1, 22):
-            if i not in ids_list:
+        used_card_ids = [card.card_id for card in cards]
+
+        # 所有可用的卡片
+        can_use_card_ids = [card.card_id for card in self.battle_plan.cards]
+
+        if not can_use_card_ids:
+            QMessageBox.warning(self, "错误", "请先添加卡片, 再为其添加动作")
+            return
+
+        for i in can_use_card_ids:
+            if i not in used_card_ids:
                 id_ = i
                 break
         else:
             id_ = 1
-            QMessageBox.information(self, "注意！", "若您完全理解为什么是'动作列表' 而非 '卡片列表', 请继续操作")
+
+            response = QMessageBox.question(
+                self,
+                "注意！",
+                "若您完全理解'动作列表'和卡'卡片列表'的区别, 理解同一张卡片可以有多个动作, 请继续操作",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+            if response == QMessageBox.StandardButton.No:
+                return
 
         cards.append(
             CardLoopConfig(
@@ -1214,6 +1510,13 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.fresh_all_ui()
 
     def add_insert_use_card(self):
+
+        # 所有可用的卡片
+        can_use_card_ids = [card.card_id for card in self.battle_plan.cards]
+
+        if not can_use_card_ids:
+            QMessageBox.warning(self, "错误", "请先添加卡片, 再为其添加动作")
+            return
 
         self.insert_use_card_events.append(
             Event(
@@ -1270,11 +1573,109 @@ class QMWEditorOfBattlePlan(QMainWindow):
             # 刷新UI
             self.fresh_all_ui()
 
+    """删除卡片或操作 - 根据操作修改内部数据表 再刷新UI"""
+
+    def delete_selected_card(self):
+        """删除选中的卡片"""
+
+        if self.be_edited_index_mod_0 is None:
+            QMessageBox.information(self, "操作错误！", "请先选择一个对象(卡片)!")
+            return False
+
+        tar_card = copy.deepcopy(self.battle_plan.cards[self.be_edited_index_mod_0])
+
+        reply = QMessageBox.question(
+            self, '确认删除',
+            f'确定要删除卡片 {tar_card.name}(ID: {tar_card.card_id}) 吗？\n 使用该卡片的所有动作将全部被删除！',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+
+        if not reply == QMessageBox.StandardButton.Yes:
+            return
+
+        # 将当前状态压入栈中
+        self.append_undo_stack()
+
+        del self.battle_plan.cards[self.be_edited_index_mod_0]
+        CUS_LOGGER.debug(f"[战斗方案编辑器] [删除卡片] 删除了卡片: {tar_card.name} (ID: {tar_card.card_id})")
+
+        # 更新所有卡片的ID使其连续排列
+        for i, card in enumerate(self.battle_plan.cards):
+            old_card_id = card.card_id
+            card.card_id = i + 1
+            if old_card_id != card.card_id:
+                self.card_id_changes_memory[old_card_id] = card.card_id
+
+        # 去除使用了该卡片的所有动作
+        removed_count = 0
+        for e in self.loop_use_cards_events:
+            original_count = len(e.action.cards)
+            e.action.cards = [c for c in e.action.cards if c.card_id != tar_card.card_id]
+            removed_count += original_count - len(e.action.cards)
+        CUS_LOGGER.debug(f"[战斗方案编辑器] [删除卡片] 从循环放卡中删除了{removed_count}个使用该卡片的动作")
+
+        # 删除定时放卡中使用该卡片的动作
+        original_count = len(self.insert_use_card_events)
+        self.insert_use_card_events = [e for e in self.insert_use_card_events if e.action.card_id != tar_card.card_id]
+        removed_count = original_count - len(self.insert_use_card_events)
+        CUS_LOGGER.debug(f"[战斗方案编辑器] [删除卡片] 从定时放卡中删除了{removed_count}个使用该卡片的动作")
+
+        # 更新循环和定时放卡中的引用
+        self.update_card_references()
+
+        self.load_data_to_ui_list_mode_0()
+        self.fresh_all_ui()
+
+    def delete_loop_use_cards_one_card(self):
+        """
+        选中一组放卡操作后, 点击按钮, 删除它
+        :return: None
+        """
+
+        if self.be_edited_index_mod_1 is None:
+            QMessageBox.information(self, "操作错误！", "请先选择一个对象(卡片)!")
+            return False
+
+        # 将当前状态压入栈中
+        self.append_undo_stack()
+
+        event = next(e for e in self.loop_use_cards_events if e.trigger.wave_id == self.be_edited_wave_id)
+        cards = event.action.cards
+        del cards[self.be_edited_index_mod_1]
+
+        # 清空选中的卡片
+        self.be_edited_index_mod_1 = None
+
+        self.fresh_all_ui()
+
+    def delete_insert_use_card(self):
+        """
+        选中一组定时放卡操作后, 点击按钮, 删除它
+        :return: None
+        """
+
+        if self.be_edited_index_mod_2 is None:
+            QMessageBox.information(self, "操作错误！", "请先选择一个对象(定时放卡)!")
+            return False
+
+        # 将当前状态压入栈中
+        self.append_undo_stack()
+
+        events = [e for e in self.insert_use_card_events if e.trigger.wave_id == self.be_edited_wave_id]
+        event = events[self.be_edited_index_mod_2]
+        self.insert_use_card_events.remove(event)
+
+        # 清空选中的卡片
+        self.be_edited_index_mod_2 = None
+
+        self.fresh_all_ui()
+
     def delete_use_special_action(self):
         """
         删除选中的宝石操作
         """
-        if self.be_edited_special_action_index is None:
+        if self.be_edited_index_mod_3 is None:
             QMessageBox.information(self, "错误！", "请先选择宝石操作")
             return
 
@@ -1285,67 +1686,45 @@ class QMWEditorOfBattlePlan(QMainWindow):
             return
 
         # 确保索引有效
-        if self.be_edited_special_action_index >= len(current_events):
-            CUS_LOGGER.warning(f"[战斗方案编辑器] 宝石操作索引越界: {self.be_edited_special_action_index}")
+        if self.be_edited_index_mod_3 >= len(current_events):
+            CUS_LOGGER.warning(f"[战斗方案编辑器] 宝石操作索引越界: {self.be_edited_index_mod_3}")
             return
 
         # 获取要删除的事件
-        event_to_delete = current_events[self.be_edited_special_action_index]
+        event_to_delete = current_events[self.be_edited_index_mod_3]
 
         # 从原始列表中删除
         self.insert_use_special_events.remove(event_to_delete)
 
         # 清空选中状态
-        self.be_edited_special_action_index = None
+        self.be_edited_index_mod_3 = None
 
         # 刷新UI
         self.fresh_all_ui()
 
-    def delete_loop_use_cards_one_card(self):
+    """更新卡片或操作 - 根据操作修改内部数据表 再刷新UI"""
+
+    def update_info_mode_0(self):
         """
-        选中一组放卡操作后, 点击按钮, 删除它
+        在UI上编辑更新一组放卡操作的状态后
+        将该操作同步到内部数据表
+        并刷新到左侧列表和棋盘等位置
         :return: None
         """
-
-        if self.be_edited_loop_use_cards_one_card_index is None:
-            QMessageBox.information(self, "操作错误！", "请先选择一个对象(卡片)!")
-            return False
+        print("即将更新 卡片列表 - 被选中卡片 的数据, 索引: ", self.be_edited_index_mod_0)
 
         # 将当前状态压入栈中
         self.append_undo_stack()
 
-        event = next(e for e in self.loop_use_cards_events if e.trigger.wave_id == self.be_edited_wave_id)
-        cards = event.action.cards
-        del cards[self.be_edited_loop_use_cards_one_card_index]
+        o_card = self.battle_plan.cards[self.be_edited_index_mod_0]
 
-        # 清空选中的卡片
-        self.be_edited_loop_use_cards_one_card_index = None
+        ui_value = self.EditorOfActionInfo.WidgetNameInput.text()
+        if o_card.name != ui_value:
+            o_card.name = ui_value
+            self.fresh_all_ui()
+            return
 
-        self.fresh_all_ui()
-
-    def delete_insert_use_card(self):
-        """
-        选中一组定时放卡操作后, 点击按钮, 删除它
-        :return: None
-        """
-
-        if self.be_edited_insert_use_card_index is None:
-            QMessageBox.information(self, "操作错误！", "请先选择一个对象(定时放卡)!")
-            return False
-
-        # 将当前状态压入栈中
-        self.append_undo_stack()
-
-        events = [e for e in self.insert_use_card_events if e.trigger.wave_id == self.be_edited_wave_id]
-        event = events[self.be_edited_insert_use_card_index]
-        self.insert_use_card_events.remove(event)
-
-        # 清空选中的卡片
-        self.be_edited_insert_use_card_index = None
-
-        self.fresh_all_ui()
-
-    def update_loop_use_cards_one_card_info(self):
+    def update_info_mode_1(self):
         """
         在UI上编辑更新一组放卡操作的状态后
         将该操作同步到内部数据表
@@ -1353,64 +1732,55 @@ class QMWEditorOfBattlePlan(QMainWindow):
         :return: None
         """
 
-        print("即将更新 当前波次的 循环用卡中 被选中卡片的数据, 索引: ", self.be_edited_loop_use_cards_one_card_index)
+        print("即将更新 当前波次 - 循环放卡 - 被选中卡片 的数据, 索引: ", self.be_edited_index_mod_1)
 
         # 将当前状态压入栈中
         self.append_undo_stack()
 
         cards = next(e.action.cards for e in self.loop_use_cards_events if e.trigger.wave_id == self.be_edited_wave_id)
-        a_card = cards[self.be_edited_loop_use_cards_one_card_index]
-        o_card = next(o_card for o_card in self.battle_plan.cards if o_card.card_id == a_card.card_id)
+        a_card = cards[self.be_edited_index_mod_1]
 
-        ui_value = int(self.EditorAction.WidgetIdInput.value())
+        ui_value = int(self.EditorOfActionInfo.WidgetIdInput.currentData())
         if a_card.card_id != ui_value:
             a_card.card_id = ui_value
-            card_name = next(o_card.name for o_card in self.battle_plan.cards if o_card.card_id == a_card.card_id)
-            self.EditorAction.WidgetNameInput.setText(card_name)
             self.fresh_all_ui()
             return
 
-        ui_value = self.EditorAction.WidgetNameInput.text()
-        if o_card.name != ui_value:
-            o_card.name = ui_value
-            self.fresh_all_ui()
-            return
-
-        ui_value = bool(self.EditorAction.WidgetErgodicInput.currentText() == 'true')
+        ui_value = bool(self.EditorOfActionInfo.WidgetErgodicInput.currentText() == 'true')
         if a_card.ergodic != ui_value:
             a_card.ergodic = ui_value
             self.fresh_all_ui()
             return
 
-        ui_value = bool(self.EditorAction.WidgetQueueInput.currentText() == 'true')
+        ui_value = bool(self.EditorOfActionInfo.WidgetQueueInput.currentText() == 'true')
         if a_card.queue != ui_value:
             a_card.queue = ui_value
             self.fresh_all_ui()
             return
 
-        ui_value = self.EditorAction.WidgetKunInput.value()
+        ui_value = self.EditorOfActionInfo.WidgetKunInput.value()
         if a_card.kun != ui_value:
             a_card.kun = ui_value
             self.fresh_all_ui()
             return
 
-    def update_insert_use_card_info(self):
+    def update_info_mode_2(self):
         """
         在UI上编辑更新一组定时放卡操作的状态后
         将该操作同步到内部数据表
         并刷新到左侧列表和棋盘等位置
         :return: None
         """
-        print("即将更新 当前波次的 定时用卡中 被选中卡片的数据, 索引: ", self.be_edited_insert_use_card_index)
+        print("即将更新 当前波次的 定时用卡中 被选中卡片的数据, 索引: ", self.be_edited_index_mod_2)
 
         # 将当前状态压入栈中
         self.append_undo_stack()
 
         events = [e for e in self.insert_use_card_events if e.trigger.wave_id == self.be_edited_wave_id]
-        event = events[self.be_edited_insert_use_card_index]
+        event = events[self.be_edited_index_mod_2]
 
         # 获取当前UI数据
-        ui_data = self.EditorAction.get_data()
+        ui_data = self.EditorOfActionInfo.get_data()
         print("UI数据: ", ui_data)
         # 创建新的操作对象
         if ui_data["type"] == "shovel":
@@ -1437,24 +1807,24 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         self.fresh_all_ui()
 
-    def update_special_action_info(self):
+    def update_info_mode_3(self):
         """更新宝石操作事件的UI与数据"""
         try:
             events = [e for e in self.insert_use_special_events if e.trigger.wave_id == self.be_edited_wave_id]
-            event = events[self.be_edited_special_action_index]
+            event = events[self.be_edited_index_mod_3]
 
             # 获取当前UI数据
-            ui_gem_id = self.EditorAction.WidgetGemIdInput.currentText()
+            ui_gem_id = self.EditorOfActionInfo.WidgetGemIdInput.currentText()
             if not ui_gem_id.strip():
                 raise ValueError("宝石ID不能为空")
 
             # 创建新的操作对象
             if isinstance(event.action, ActionEscape):
-                new_data = self.EditorAction.get_data()
+                new_data = self.EditorOfActionInfo.get_data()
                 new_action = ActionEscape(time=new_data["time"])
                 event.trigger.time = new_data["time"]
             elif isinstance(event.action, ActionBanCard):
-                new_data = self.EditorAction.get_data()
+                new_data = self.EditorOfActionInfo.get_data()
                 new_action = ActionBanCard(
                     start_time=new_data["start_time"],
                     end_time=new_data["end_time"],
@@ -1464,7 +1834,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 # 显式定义new_data
                 new_data = {
                     "gem_id": int(ui_gem_id),
-                    "time": self.EditorAction.WidgetTimeInput.value()
+                    "time": self.EditorOfActionInfo.WidgetTimeInput.value()
                 }
                 new_action = ActionUseGem(gem_id=new_data["gem_id"])
                 event.trigger.time = new_data["time"]
@@ -1476,9 +1846,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         except ValueError as ve:
             QMessageBox.warning(self, "输入错误", f"请输入有效的宝石ID: {str(ve)}")
-            self.EditorAction.WidgetGemIdInput.setFocus()
+            self.EditorOfActionInfo.WidgetGemIdInput.setFocus()
 
-    """棋盘操作"""
+    """棋盘操作 - 根据操作修改内部数据表 再刷新UI"""
 
     def left_click_card_pos(self, x, y):
         """
@@ -1507,14 +1877,14 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 else:
                     target.append(location_key)
 
-            elif self.be_edited_loop_use_cards_one_card_index is not None:
+            elif self.be_edited_index_mod_1 is not None:
 
                 # 将当前状态压入栈中
                 self.append_undo_stack()
 
                 # 当前index为卡片
                 event = next(e for e in self.loop_use_cards_events if e.trigger.wave_id == self.be_edited_wave_id)
-                target = event.action.cards[self.be_edited_loop_use_cards_one_card_index]
+                target = event.action.cards[self.be_edited_index_mod_1]
                 # 如果这个位置已经有了这张卡片，那么移除它；否则添加它
                 if location_key in target.location:
                     target.location.remove(location_key)
@@ -1522,12 +1892,12 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     target.location.append(location_key)
 
         # 定时放卡模式
-        if self.editing_mode == 2 and self.be_edited_insert_use_card_index is not None:
+        if self.editing_mode == 2 and self.be_edited_index_mod_2 is not None:
             # 将当前状态压入栈中
             self.append_undo_stack()
 
             events = [e for e in self.insert_use_card_events if e.trigger.wave_id == self.be_edited_wave_id]
-            event = events[self.be_edited_insert_use_card_index]
+            event = events[self.be_edited_index_mod_2]
             # 根据操作类型处理位置选择
             if isinstance(event.action, ActionInsertUseCard):
                 event.action.location = "" if event.action.location == location_key else location_key
@@ -1690,9 +2060,9 @@ class QMWEditorOfBattlePlan(QMainWindow):
             if self.be_edited_player:
                 current_card_locations = self.battle_plan.meta_data.player_position
             else:
-                if self.be_edited_loop_use_cards_one_card_index is not None:
+                if self.be_edited_index_mod_1 is not None:
                     event = next(e for e in self.loop_use_cards_events if e.trigger.wave_id == self.be_edited_wave_id)
-                    a_card = event.action.cards[self.be_edited_loop_use_cards_one_card_index]
+                    a_card = event.action.cards[self.be_edited_index_mod_1]
                     current_card_locations = a_card.location
 
             for location in current_card_locations:
@@ -1702,12 +2072,12 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 self.chessboard_frames[y - 1][x - 1].setStyleSheet("background-color: rgba(30, 144, 255, 150);")
 
         if self.editing_mode == 2:
-            if self.be_edited_insert_use_card_index is not None:
+            if self.be_edited_index_mod_2 is not None:
                 events = [e for e in self.insert_use_card_events
                           if e.trigger.wave_id == self.be_edited_wave_id]
 
-                if 0 <= self.be_edited_insert_use_card_index < len(events):
-                    event = events[self.be_edited_insert_use_card_index]
+                if 0 <= self.be_edited_index_mod_2 < len(events):
+                    event = events[self.be_edited_index_mod_2]
 
                     # 统一处理所有操作类型
                     if isinstance(event.action, ActionInsertUseCard) or isinstance(event.action, ActionShovel):
@@ -1804,7 +2174,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         view_to_obj_battle_plan()
 
-        is_save_as = self.sender() == self.ButtonSaveAs
+        is_save_as = self.sender() == self.BtnSaveAs
 
         def warning_save_enable(uuid):
 
@@ -1888,7 +2258,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
         self.init_battle_plan()
 
-        self.ButtonSave.setEnabled(True)
+        self.BtnSave.setEnabled(True)
 
     """打开战斗方案"""
 
@@ -1900,7 +2270,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             result = self.load_json(file_path=file_name)
             if result:
                 self.init_battle_plan()
-                self.ButtonSave.setEnabled(True)
+                self.BtnSave.setEnabled(True)
             else:
                 QMessageBox.critical(
                     self, "JSON文件格式错误",
@@ -1957,7 +2327,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         current_plan_name = os.path.basename(file_path).replace(".json", "")
         CUS_LOGGER.debug(f"[战斗方案编辑器] [加载方案] 开始读取:{current_plan_name}")
 
-        self.LabelCurrentBattlePlanFileName.setText(f"当前方案名:{current_plan_name}")
+        self.LabelCurrentBattlePlanFileName.setText(f"当前方案: {current_plan_name}")
         self.LabelCurrentBattlePlanUUID.setText(f"{self.battle_plan.meta_data.uuid}")
 
         return True
@@ -2003,11 +2373,15 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.editing_mode = 1
         self.change_edit_mode(1)
         self.be_edited_wave_id = 0
-        self.be_edited_loop_use_cards_one_card_index = None
-        self.be_edited_insert_use_card_index = None
+        self.be_edited_index_mod_1 = None
+        self.be_edited_index_mod_2 = None
         self.be_copied_loop_use_cards_event_wave_id = None
         self.be_edited_player = False
-        self.ButtonPlayer.setText("玩家位置")
+        self.BtnPlayer.setText("玩家位置")
+        self.LabelWaveCopyTip.setText('尚未复制任何波次信息')
+
+        # 初始化卡组编辑相关属性
+        self.card_id_changes_memory = {}  # ID变更记录
 
         # 回到波次0方案 并载入方案波次
         self.click_wave_button(be_clicked_button_id=0)
@@ -2061,13 +2435,12 @@ class QMWEditorOfBattlePlan(QMainWindow):
 
     def fill_blank_card(self):
         """
-        填充战斗方案中缺失的卡片
+        为空的战斗方案补充一个卡
         :return:
         """
-        used_card_id_list = [card.card_id for card in self.battle_plan.cards]
-        for cid in range(1, 22):
-            if cid not in used_card_id_list:
-                self.battle_plan.cards.append(Card(card_id=cid, name="新的卡片"))
+        # 如果卡组为空，则添加一张默认卡片
+        if not self.battle_plan.cards:
+            self.battle_plan.cards.append(Card(card_id=1, name="新的卡片"))
 
     """撤回/重做"""
 
@@ -2169,8 +2542,7 @@ class QListWidgetDraggable(QListWidget):
         items = source_Widget.selectedItems()  # 获取所有的拖入item
         item = items[0]  # 不允许多选 所以只有一个
 
-        CUS_LOGGER.debug(
-            "text:{} from {} to {} memory:{}".format(item.text(), index_from, index_to, self.currentRow()))
+        CUS_LOGGER.debug(f"拖拽事件信息 text:{item.text()} from {index_from} to {index_to} memory:{self.currentRow()}")
 
         # 执行更改函数
         self.moveRequested.emit(index_from, index_to)
@@ -2201,16 +2573,72 @@ class ChessButton(QPushButton):
     rightClicked = pyqtSignal()
 
 
-class LoopUseCardsOneCardInfoEditor(QDialog):
+class InfoEditorOfCards(QDialog):
+
     def __init__(self, data, func_update):
         super().__init__()
         self.data = data
         self.func_update = func_update
 
         # 窗口标题栏
-        self.setWindowTitle("编辑常规放卡动作参数")
+        self.setWindowTitle("编辑卡片属性")
 
-        # 关键组合：彻底移除系统菜单图标
+        # 彻底移除系统菜单图标
+        self.setWindowFlags(
+            Qt.WindowType.CustomizeWindowHint |  # 允许自定义窗口装饰
+            Qt.WindowType.WindowCloseButtonHint |  # 仅保留关闭按钮
+            Qt.WindowType.WindowStaysOnTopHint  # 窗口置顶
+        )
+
+        # UI
+        self.WidgetNameInput = None
+        self.init_ui()
+
+        # 初始化数据
+        self.load_data()
+
+        # 绑定变化信号
+        self.connect_functions()
+
+    def init_ui(self):
+        LayMain = QVBoxLayout()
+        self.setLayout(LayMain)
+
+        # 名称
+        layout = QHBoxLayout()
+        LayMain.addLayout(layout)
+
+        label = QLabel('名称')
+        layout.addWidget(label)
+
+        self.WidgetNameInput = QLineEdit()
+        self.WidgetNameInput.setFixedWidth(140)
+        self.WidgetNameInput.setToolTip(
+            "名称标识是什么卡片\n"
+            "手动带卡: 能让用户看懂该带啥就行.\n"
+            "自动带卡: 需要遵从命名规范, 请查看右上角教学或相关文档."
+        )
+        layout.addWidget(self.WidgetNameInput)
+
+    def load_data(self):
+        self.WidgetNameInput.setText(str(self.data["name"]))
+
+    def connect_functions(self):
+        """绑定信号"""
+
+        self.WidgetNameInput.textChanged.connect(self.func_update)
+
+
+class InfoEditorOfLoopUseCardsOneCard(QDialog):
+    def __init__(self, data, func_update):
+        super().__init__()
+        self.data = data
+        self.func_update = func_update
+
+        # 窗口标题栏
+        self.setWindowTitle("编辑循环放卡动作参数")
+
+        # 彻底移除系统菜单图标
         self.setWindowFlags(
             Qt.WindowType.CustomizeWindowHint |  # 允许自定义窗口装饰
             Qt.WindowType.WindowCloseButtonHint |  # 仅保留关闭按钮
@@ -2219,7 +2647,6 @@ class LoopUseCardsOneCardInfoEditor(QDialog):
 
         # UI
         self.WidgetIdInput = None
-        self.WidgetNameInput = None
         self.WidgetErgodicInput = None
         self.WidgetQueueInput = None
         self.WidgetKunInput = None
@@ -2239,30 +2666,15 @@ class LoopUseCardsOneCardInfoEditor(QDialog):
         layout = QHBoxLayout()
         LayMain.addLayout(layout)
 
-        label = QLabel('卡片顺位(ID)')
+        tooltips = "选择要使用的卡片"
+        label = QLabel('使用卡片')
+        label.setToolTip(tooltips)
         layout.addWidget(label)
 
-        self.WidgetIdInput = QSpinBox()
+        self.WidgetIdInput = QComboBox()
         self.WidgetIdInput.setFixedWidth(140)
-        self.WidgetIdInput.setToolTip("卡在卡组中的第几张")
-        self.WidgetIdInput.setRange(1, 21)
+        self.WidgetIdInput.setToolTip(tooltips)
         layout.addWidget(self.WidgetIdInput)
-
-        # 名称
-        layout = QHBoxLayout()
-        LayMain.addLayout(layout)
-
-        label = QLabel('名称')
-        layout.addWidget(label)
-
-        self.WidgetNameInput = QLineEdit()
-        self.WidgetNameInput.setFixedWidth(140)
-        self.WidgetNameInput.setToolTip(
-            "名称标识是什么卡片\n"
-            "手动带卡: 能让用户看懂该带啥就行.\n"
-            "自动带卡: 需要遵从命名规范, 请查看右上角教学或相关文档."
-        )
-        layout.addWidget(self.WidgetNameInput)
 
         # 分割线
         LayMain.addWidget(create_vertical_line())
@@ -2313,8 +2725,15 @@ class LoopUseCardsOneCardInfoEditor(QDialog):
         layout.addWidget(self.WidgetKunInput)
 
     def load_data(self):
-        self.WidgetIdInput.setValue(self.data["id"])
-        self.WidgetNameInput.setText(self.data["name"])
+
+        # 填充列表并选择对应数据
+        self.WidgetIdInput.clear()
+        for card in self.data["cards"]:
+            self.WidgetIdInput.addItem(f"ID:{card.card_id} - {card.name}", card.card_id)
+        index = self.WidgetIdInput.findData(self.data["id"])
+        if index >= 0:
+            self.WidgetIdInput.setCurrentIndex(index)
+
         self.WidgetErgodicInput.setCurrentText(str(self.data['ergodic']).lower())
         self.WidgetQueueInput.setCurrentText(str(self.data['queue']).lower())
         self.WidgetKunInput.setValue(self.data.get('kun', 0))
@@ -2323,16 +2742,16 @@ class LoopUseCardsOneCardInfoEditor(QDialog):
         """绑定信号"""
 
         # id，名称,遍历，队列控件的更改都连接上更新卡片
-        self.WidgetIdInput.valueChanged.connect(self.func_update)
-        self.WidgetNameInput.textChanged.connect(self.func_update)
+        self.WidgetIdInput.currentIndexChanged.connect(self.func_update)
         self.WidgetErgodicInput.currentIndexChanged.connect(self.func_update)
         self.WidgetQueueInput.currentIndexChanged.connect(self.func_update)
         self.WidgetKunInput.valueChanged.connect(self.func_update)
 
 
-class InsertUseCardInfoEditor(QDialog):
+class InfoEditorOfInsertUseCard(QDialog):
     def __init__(self, data, func_update, editor_parent, event_index):
         super().__init__()
+
         self.data = data.copy() if data else {}  # 数据隔离
         self.func_update = func_update
         self.editor_parent = editor_parent
@@ -2340,6 +2759,15 @@ class InsertUseCardInfoEditor(QDialog):
 
         # 初始化必要字段
         self._ensure_required_fields()
+
+        # UI
+        self.WidgetIdInput2 = None
+        self.WidgetBeforeShovelInput = None
+        self.WidgetTimeInput = None
+        self.WidgetTypeSelect = None
+        self.WidgetAfterTimeInput = None
+        self.WidgetAfterShovelInput = None
+        self.normal_params = None
 
         # UI组件初始化
         self.init_ui()
@@ -2393,26 +2821,20 @@ class InsertUseCardInfoEditor(QDialog):
         normal_layout = QVBoxLayout()
         self.normal_params.setLayout(normal_layout)
 
-        # ID参数
-        id_layout = QHBoxLayout()
-        id_label = QLabel('ID')
-        self.WidgetIdInput2 = QSpinBox()
-        self.WidgetIdInput2.setFixedWidth(140)
-        self.WidgetIdInput2.setToolTip("id代表卡在卡组中的顺序")
-        self.WidgetIdInput2.setRange(1, 21)
-        id_layout.addWidget(id_label)
-        id_layout.addWidget(self.WidgetIdInput2)
-        normal_layout.addLayout(id_layout)
+        # ID
+        layout = QHBoxLayout()
+        LayMain.addLayout(layout)
 
-        # 名称参数
-        name_layout = QHBoxLayout()
-        name_label = QLabel('名称')
-        self.WidgetNameInput2 = QLineEdit()
-        self.WidgetNameInput2.setFixedWidth(140)
-        self.WidgetNameInput2.setToolTip("名称标识是什么卡片\n能让用户看懂该带啥就行.\n")
-        name_layout.addWidget(name_label)
-        name_layout.addWidget(self.WidgetNameInput2)
-        normal_layout.addLayout(name_layout)
+        tooltips = "选择要使用的卡片"
+        label = QLabel('使用卡片')
+        label.setToolTip(tooltips)
+        layout.addWidget(label)
+
+        self.WidgetIdInput2 = QComboBox()
+        self.WidgetIdInput2.setFixedWidth(140)
+        self.WidgetIdInput2.setToolTip(tooltips)
+        layout.addWidget(self.WidgetIdInput2)
+        normal_layout.addLayout(layout)
 
         # 分割线
         normal_layout.addWidget(create_vertical_line())
@@ -2459,24 +2881,13 @@ class InsertUseCardInfoEditor(QDialog):
 
     def connect_functions(self):
         """绑定信号"""
-        # 类型切换时更新UI和数据模型
-        self.WidgetTypeSelect.currentIndexChanged.connect(self.on_type_changed)
 
-        # 时间参数绑定
-        self.WidgetTimeInput.valueChanged.connect(self.func_update)
-
-        # 普通放卡参数绑定
-        for widget in [
-            self.WidgetIdInput2,
-            self.WidgetNameInput2,
-            self.WidgetBeforeShovelInput,
-            self.WidgetAfterShovelInput,
-            self.WidgetAfterTimeInput
-        ]:
-            if hasattr(widget, 'valueChanged'):
-                widget.valueChanged.connect(self.func_update)
-            elif hasattr(widget, 'currentIndexChanged'):
-                widget.currentIndexChanged.connect(self.func_update)
+        self.WidgetTypeSelect.currentIndexChanged.connect(self.func_update)  # type: ignore
+        self.WidgetTimeInput.valueChanged.connect(self.func_update)  # type: ignore
+        self.WidgetIdInput2.currentIndexChanged.connect(self.func_update)  # type: ignore
+        self.WidgetBeforeShovelInput.currentIndexChanged.connect(self.func_update)  # type: ignore
+        self.WidgetAfterShovelInput.currentIndexChanged.connect(self.func_update)  # type: ignore
+        self.WidgetAfterTimeInput.valueChanged.connect(self.func_update)  # type: ignore
 
     def on_type_changed(self):
         """处理操作类型切换"""
@@ -2519,12 +2930,21 @@ class InsertUseCardInfoEditor(QDialog):
 
         # 普通放卡字段
         if self.data.get('type') != 'shovel':
-            self.WidgetIdInput2.setValue(self.data.get('card_id', 1))
-            self.WidgetNameInput2.setText(self.data.get('name', ''))
+
+            # 填充列表并选择对应数据
+            self.WidgetIdInput2.clear()
+            for card in self.data["cards"]:
+                self.WidgetIdInput2.addItem(f"ID:{card.card_id} - {card.name}", card.card_id)
+            index = self.WidgetIdInput2.findData(self.data["id"])
+            if index >= 0:
+                self.WidgetIdInput2.setCurrentIndex(index)
+
             self.WidgetBeforeShovelInput.setCurrentText(
                 str(self.data.get('before_shovel', False)).lower())
+
             self.WidgetAfterShovelInput.setCurrentText(
                 str(self.data.get('after_shovel', False)).lower())
+
             self.WidgetAfterTimeInput.setValue(
                 self.data.get('after_shovel_time', 0))
 
@@ -2542,8 +2962,7 @@ class InsertUseCardInfoEditor(QDialog):
         # 普通放卡特有字段
         if data["type"] != "shovel":
             data.update({
-                "card_id": self.WidgetIdInput2.value(),
-                "name": self.WidgetNameInput2.text(),
+                "card_id": self.WidgetIdInput2.currentData(),
                 "before_shovel": self.WidgetBeforeShovelInput.currentText() == "true",
                 "after_shovel": self.WidgetAfterShovelInput.currentText() == "true",
                 "after_shovel_time": self.WidgetAfterTimeInput.value()
@@ -2555,6 +2974,7 @@ class InsertUseCardInfoEditor(QDialog):
 class ShovelActionEditor(QDialog):
     def __init__(self, data, func_update, editor_parent, event_index):
         super().__init__()
+
         self.data = data.copy() if data else {}
         self.func_update = func_update
         self.editor_parent = editor_parent
@@ -2566,10 +2986,11 @@ class ShovelActionEditor(QDialog):
         if 'location' not in self.data:
             self.data['location'] = ''
 
-        # UI初始化
+        # UI
+        self.WidgetTimeInput = None
         self.init_ui()
         self.load_data()
-        self.WidgetTimeInput.valueChanged.connect(self.func_update)
+        self.WidgetTimeInput.valueChanged.connect(self.func_update)  # type: ignore
 
         # 窗口设置
         self.setWindowTitle("编辑定时铲子参数")
@@ -2672,8 +3093,8 @@ class GemInfoEditor(QDialog):
             self.WidgetGemIdInput.setCurrentIndex(0)  # 默认选第一个
 
     def connect_functions(self):
-        self.WidgetTimeInput.valueChanged.connect(self.func_update)
-        self.WidgetGemIdInput.currentIndexChanged.connect(self.func_update)
+        self.WidgetTimeInput.valueChanged.connect(self.func_update)  # type: ignore
+        self.WidgetGemIdInput.currentIndexChanged.connect(self.func_update)  # type: ignore
 
 
 class SpecialActionTypeDialog(QDialog):
@@ -2690,8 +3111,8 @@ class SpecialActionTypeDialog(QDialog):
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
         )
-        buttons.accepted.connect(self.accept)
-        buttons.rejected.connect(self.reject)
+        buttons.accepted.connect(self.accept)  # type: ignore
+        buttons.rejected.connect(self.reject)  # type: ignore
         layout.addWidget(buttons)
 
     def get_selected_type(self):
@@ -2712,7 +3133,7 @@ class RandomSingleCardActionEditor(QDialog):
 
         self.card_index = QSpinBox()
         self.card_index.setValue(self.data.get("card_index", 1))
-        self.card_index.valueChanged.connect(self.on_value_changed)
+        self.card_index.valueChanged.connect(self.on_value_changed)  # type: ignore
 
         layout = QVBoxLayout(self)
         layout.addWidget(QLabel("输入单卡索引"))
@@ -2744,7 +3165,7 @@ class RandomMultiCardActionEditor(QDialog):
         self.card_indices_edit = QLineEdit()
         self.card_indices_edit.setText(",".join(map(str, self.data.get("card_indices", [1, 2]))))
         self.card_indices_edit.setPlaceholderText("输入多个索引，用逗号分隔")
-        self.card_indices_edit.textEdited.connect(self.on_text_edited)
+        self.card_indices_edit.textEdited.connect(self.on_text_edited)  # type: ignore
 
         layout = QVBoxLayout(self)
         layout.addWidget(QLabel("选择多卡索引(用逗号分隔)"))
@@ -2757,7 +3178,7 @@ class RandomMultiCardActionEditor(QDialog):
     def on_text_edited(self):
         card_indices_text = self.card_indices_edit.text()
         try:
-            card_indices = [int(id.strip()) for id in card_indices_text.split(",")] if card_indices_text else []
+            card_indices = [int(id.strip()) for _ in card_indices_text.split(",")] if card_indices_text else []
             self.data["card_indices"] = card_indices
             if self.func_update:
                 self.func_update()
@@ -2766,7 +3187,7 @@ class RandomMultiCardActionEditor(QDialog):
 
     def get_data(self):
         card_indices_text = self.card_indices_edit.text()
-        card_indices = [int(id.strip()) for id in card_indices_text.split(",")] if card_indices_text else []
+        card_indices = [int(id.strip()) for _ in card_indices_text.split(",")] if card_indices_text else []
         return {
             "card_indices": card_indices,
             "type": "random_multi_card",
@@ -2795,7 +3216,7 @@ class EscapeActionEditor(QDialog):
         self.setWindowFlags(Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowCloseButtonHint)
 
         self.load_data()
-        self.WidgetTimeInput.valueChanged.connect(self.func_update)
+        self.WidgetTimeInput.valueChanged.connect(self.func_update)  # type: ignore
 
     def load_data(self):
         self.WidgetTimeInput.setValue(self.data.get("time", 0))
@@ -2832,9 +3253,9 @@ class BanCardActionEditor(QDialog):
         self.setWindowFlags(Qt.WindowType.CustomizeWindowHint | Qt.WindowType.WindowCloseButtonHint)
 
         self.load_data()
-        self.start_time.valueChanged.connect(self.func_update)
-        self.end_time.valueChanged.connect(self.func_update)
-        self.card_id.valueChanged.connect(self.func_update)
+        self.start_time.valueChanged.connect(self.func_update)  # type: ignore
+        self.end_time.valueChanged.connect(self.func_update)  # type: ignore
+        self.card_id.valueChanged.connect(self.func_update)  # type: ignore
 
     def load_data(self):
         self.start_time.setValue(self.data.get("start_time", 0))
@@ -2852,6 +3273,6 @@ class BanCardActionEditor(QDialog):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = QMWEditorOfBattlePlan()
+    ex = QMWEditorOfBattlePlan(func_open_tip=lambda x: None)
     ex.show()
     sys.exit(app.exec())
