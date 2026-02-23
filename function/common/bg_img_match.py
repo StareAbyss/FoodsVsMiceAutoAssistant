@@ -10,15 +10,23 @@ from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 
 
-def mask_transform_color_to_black(mask, quick_method=True) -> np.ndarray:
-    """
-    将掩模板处理 把非白色都变黑色 三通道->单通道
-    如果使用quick_method 将直接取 第一个颜色通道, 这要求使用的手动掩模为 的前三通道是黑白的(每个像素的BGR值都相等)
+def mask_transform_color_to_black(mask: np.ndarray, quick_method: bool = True) -> np.ndarray:
+    """处理模板，把非白色(灰色)都变黑色，三通道->单通道。
+
+    如果使用quick_method将直接取第一个颜色通道，这要求使用的手动掩模的前三通道是黑白的(每个像素的BGR值都相等)。
+
+    Args:
+        mask: 输入的掩模图像
+        quick_method: 是否使用快速方法，默认为True
+
+    Returns:
+        np.ndarray: 处理后的单通道掩模图像
     """
 
     if not quick_method:
         # 创建一个布尔掩码,标记出所有非白色像素
-        non_white_mask = (mask[:, :, :3] != [255, 255, 255]).any(axis=2)
+        comparison_result = mask[:, :, :3] != [255, 255, 255]
+        non_white_mask = np.any(comparison_result, axis=2)
         # 将非白色像素的RGB值设置为黑色
         mask[non_white_mask] = [0, 0, 0]
 
@@ -26,29 +34,31 @@ def mask_transform_color_to_black(mask, quick_method=True) -> np.ndarray:
     return mask[:, :, 0]
 
 
-def match_template_with_optional_mask(source, template, mask=None, quick_method=True, test_show=False):
-    """
-    使用可选掩模进行模板匹配-从源图搜索模板, 步骤如下.
-    1. 生成 mask_from_template 将根据template图像是否存在Alpha通道, 取颜色为纯白的部分作为掩模纯白, 其他色均为黑.
-    2. 处理 mask 根据输入的参数mask, 如果mask不为None的处理, 则将mask作为原始掩模, 否则将mask_from_template作为原始掩模.
-    3. 如果 mask 不为None, 取颜色为纯白的部分作为掩模纯白, 其他色均为黑, 但保留其Alpha通道.
-    4. 如果 mask 不为None, 将 mask和mask_from_template 合并, 若mask Alpha通道为255 该像素取mask, 否则取mask_from_template.
-    5. 调用 cv2.matchTemplate 进行匹配, 并返回匹配结果.
+def match_template_with_optional_mask(
+    source: np.ndarray, 
+    template: np.ndarray, 
+    mask: Union[np.ndarray, None] = None, 
+    quick_method: bool = True, 
+    test_show: bool = False
+) -> tuple[int, Union[np.ndarray, None]]:
+    """使用可选掩模进行模板匹配，从源图搜索模板。
+
+    处理步骤如下：
+    1. 生成mask_from_template，根据template图像是否存在Alpha通道，取颜色为纯白的部分作为掩模纯白，其他色均为黑。
+    2. 处理mask，根据输入的参数mask，如果mask不为None，则将mask作为原始掩模，否则将mask_from_template作为原始掩模。
+    3. 如果mask不为None，取颜色为纯白的部分作为掩模纯白，其他色均为黑，但保留其Alpha通道。
+    4. 如果mask不为None，将mask和mask_from_template合并，若mask Alpha通道为255该像素取mask，否则取mask_from_template。
+    5. 调用cv2.matchTemplate进行匹配，并返回匹配结果。
 
     Args:
-        :param source: 源图像. 3 or 4通道 会处理至3通道再匹配.
-        :type source: numpy.ndarray
-        :param template: 模板图像，可能包含Alpha通道作为掩模.
-        :type template: numpy.ndarray
-        :param mask: 原始掩模. 四通道图像, 透明区域将不生效, 掩模需要与template的大小完全一致.
-        :type mask: numpy.ndarray or None
-        :param quick_method: 快速匹配方法, 取mask的第一个颜色通道作快速处理, 要求mask的前三通道是黑白的(每个像素的BGR值都相等)
-        :type quick_method: bool
-        :param test_show: 测试显示
-        :type test_show: bool
+        source: 源图像，3或4通道，会处理至3通道再匹配
+        template: 模板图像，可能包含Alpha通道作为掩模
+        mask: 原始掩模，四通道图像，透明区域将不生效，掩模需要与template的大小完全一致
+        quick_method: 快速匹配方法，取mask的第一个颜色通道作快速处理，要求mask的前三通道是黑白的(每个像素的BGR值都相等)
+        test_show: 是否测试显示，默认为False
+
     Returns:
-        :return: 状态码 0-失败匹配 1-正确匹配 + 匹配结果
-        :rtype: int + numpy.ndarray or None
+        tuple[int, Union[np.ndarray, None]]: 状态码(0-失败匹配, 1-正确匹配) + 匹配结果
     """
 
     """
@@ -151,36 +161,39 @@ def match_template_with_optional_mask(source, template, mask=None, quick_method=
 
 
 def match_p_in_w(
-        template,
-        source_img=None,
-        source_handle=None,
-        source_root_handle=None,
-        source_range=None,
-        mask=None,
-        match_tolerance: float = 0.95,
-        return_center=True,
-        test_print=False,
-        test_show=False,
-        template_name="Unknown",
-) -> [int, Union[None, list]]:
-    """
-    find target in template
-    catch an image by a handle, find a smaller image(target) in this bigger one, return center relative position
+    template: Union[str, np.ndarray],
+    source_img: Union[np.ndarray, None] = None,
+    source_handle: Union[int, None] = None,
+    source_root_handle: Union[int, None] = None,
+    source_range: Union[list, None] = None,
+    mask: Union[np.ndarray, None] = None,
+    match_tolerance: float = 0.95,
+    return_center: bool = True,
+    test_print: bool = False,
+    test_show: bool = False,
+    template_name: str = "Unknown",
+) -> tuple[int, Union[None, list]]:
+    """在模板中查找目标图像。
+
+    通过窗口句柄捕获图像，在大图像中查找小图像(目标)，返回相对中心位置。
+
     Args:
-        :param template: 目标图片的文件路径或numpy.ndarray
-        :param source_img: 取代截图, 直接输入图片, 优先级更高. 至少RGB三个通道. 该参数和source_handle至少输入一个.
-        :param source_handle: 窗口句柄, 用以获取图像
-        :param source_root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层, 默认不取则不检查
-        :param source_range: 原始图像生效的范围,为 [左上X, 左上Y,右下X, 右下Y], 右下位置超出范围取最大(不会报错), 在输入图像模式下, 默认None不裁剪, 从全图匹配, 截图模式下必须手动输入.
-        :param mask: 目标图片掩模, 若为None, 则不使用掩模
-        :param match_tolerance: 捕捉准确度阈值 0-1
-        :param return_center: 是否返回中心坐标, 否则返回左上坐标
-        :param test_print: 仅单例测试使用, 显示匹配到的最右图像位置框
-        :param test_show: 是否展示识别结果, 仅单例测试使用, 显示匹配到的最右图像位置框
-        :param template_name: 目标图像名称, 用于test_print
+        template: 目标图片的文件路径 或 numpy.ndarray
+        source_img: 取代截图，直接输入图片，优先级更高。至少RGB三个通道。该参数和source_handle至少输入一个
+        source_handle: 窗口句柄，用以获取图像
+        source_root_handle: 根窗口句柄，用于检查窗口是否最小化，如果最小化则尝试恢复至激活窗口的底层，默认不取则不检查
+        source_range: 原始图像生效的范围，为[左上X, 左上Y, 右下X, 右下Y]，右下位置超出范围取最大(不会报错)。在输入图像模式下，默认None不裁剪，从全图匹配，截图模式下必须手动输入
+        mask: 目标图片掩模，若为None，则不使用掩模
+        match_tolerance: 捕捉准确度阈值 0-1，默认0.95
+        return_center: 是否返回中心坐标，否则返回左上坐标，默认True
+        test_print: 仅单例测试使用，显示匹配到的最右图像位置框，默认False
+        test_show: 是否展示识别结果，仅单例测试使用，显示匹配到的最右图像位置框，默认False
+        template_name: 目标图像名称，用于test_print，默认"Unknown"
+
     Returns:
-        状态: 0 - 出现错误; 1 - 查找失败; 2 - 查找成功
-        输出: list[x:int, y:int] 目标的坐标; None 代表没找到, 或者查找过程出错(句柄问题)
+        tuple[int, Union[None, list]]:
+        第一部分：状态(0-出现错误, 1-查找失败, 2-查找成功)
+        第二部分：输出(list[x:int, y:int]目标的坐标，None代表没找到或者查找过程出错(句柄问题))
     """
 
     # 如果未指定源图像资源或句柄
@@ -251,26 +264,28 @@ def match_p_in_w(
 
 
 def match_ps_in_w(
-        template_opts: list,
-        return_mode: str,
-        quick_mode: bool = True,
-        source_handle=None,
-        source_root_handle=None,
-        source_img=None,
+    template_opts: list,
+    return_mode: str,
+    quick_mode: bool = True,
+    source_handle: Union[int, None] = None,
+    source_root_handle: Union[int, None] = None,
+    source_img: Union[np.ndarray, None] = None,
 ) -> Union[None, bool, list]:
-    """
-    一次截图中找复数的图片, 性能更高的写法. 最大3000x3000的图像
-    :param template_opts: [{"template":str,"source_range": [x1:int,y1:int,x2:int,y2:int],"match_tolerance":float},...]
-    :param return_mode: 模式 and 或者 or
-    :param quick_mode: 使用短路匹配.
-    :param source_handle: 窗口句柄, 用以获取图像
-    :param source_root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层, 默认不取则不检查
-    :param source_img: 取代截图, 直接输入图片, 优先级更高. 至少RGB三个通道. 该参数和source_handle至少输入一个.
-    :return: return_mode
-        匹配成功+非短路返回-[[x:int, y:int], None, ...]
-        匹配成功+短路返回-True
-        匹配失败-None
+    """一次截图中查找多个图片，性能更高的写法，支持最大3000x3000的图像。
 
+    Args:
+        template_opts: 模板选项列表，格式为[{"template":str,"source_range": [x1:int,y1:int,x2:int,y2:int],"match_tolerance":float},...]
+        return_mode: 返回模式，"and"或者"or"
+        quick_mode: 是否使用短路匹配，默认True
+        source_handle: 窗口句柄，用以获取图像
+        source_root_handle: 根窗口句柄，用于检查窗口是否最小化，如果最小化则尝试恢复至激活窗口的底层，默认不取则不检查
+        source_img: 取代截图，直接输入图片，优先级更高。至少RGB三个通道。该参数和source_handle至少输入一个
+
+    Returns:
+        Union[None, bool, list]: 根据return_mode返回不同结果
+            - 匹配成功+非短路返回：[[x:int, y:int], None, ...]
+            - 匹配成功+短路返回：True
+            - 匹配失败：None
     """
 
     if source_img is None and source_handle is None:
@@ -310,43 +325,47 @@ def match_ps_in_w(
 
 
 def loop_match_p_in_w(
-        source_handle,
-        source_range: list,
-        template,
-        template_mask=None,
-        match_tolerance: float = 0.95,
-        match_interval: float = 0.2,
-        match_failed_check: float = 10,
-        after_sleep: float = 0.05,
-        click: bool = True,
-        click_handle=None,
-        after_click_template=None,
-        after_click_template_mask=None,
-        source_root_handle=None,
-        deviation=None
+    source_handle: int,
+    source_range: list,
+    template: Union[str, np.ndarray],
+    template_mask: Union[np.ndarray, None] = None,
+    match_tolerance: float = 0.95,
+    match_interval: float = 0.2,
+    match_failed_check: float = 10,
+    after_sleep: float = 0.05,
+    click: bool = True,
+    click_handle: Union[int, None] = None,
+    after_click_template: Union[str, np.ndarray, None] = None,
+    after_click_template_mask: Union[np.ndarray, None] = None,
+    source_root_handle: Union[int, None] = None,
+    deviation: Union[list, None] = None
 ) -> bool:
-    """
-    根据句柄截图, 并在截图中寻找一个较小的图片资源.
-    可选: 根据句柄 点击 较小图片所在位置.
-    可选: 点击后是否复核为另一图片(切换界面成功). 如果未找到仍会返回False.
-    Args:
-        :param source_handle: 截图句柄
-        :param source_range: [左上x,左上y,右下x,右下y] 截图后截取范围 
-        :param template: 目标图片. 路径或数组.
-        :param template_mask: 可选: 目标图片掩模, 为None则不启用.
-        :param match_tolerance: 可选: 自定捕捉准确度阈值 0-1, 默认0.95
-        :param match_interval: 可选: 自定捕捉图片的间隔, 默认0.2, 单位秒. 不采用系统时钟, 而是直接加算. 填0会导致无限查找不终止直到找到.
-        :param match_failed_check: 可选: 自定捕捉图片时间限制, 超时输出False. 默认10, 单位秒. 流程上会先识图, 识图失败加算时间判定超时, 故此处为0仍会识图1次.
-        :param after_sleep: 找到图 / 失败后 / 点击后(如果点击) / 复核(如果复核) 后的休眠时间
-        :param click: 是否点一下
-        :param click_handle: 是否启用不一样的点击句柄
-        :param after_click_template: 点击后进行检查, 若能找到该图片, 视为无效, 不输出True, 继承前者的 tolerance interval
-        :param after_click_template_mask: 检查 - 掩模
-        :param source_root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层 可空置
-        :param deviation: [x,y] 实际窗口点击改变后，点击的偏移值
+    """根据句柄截图，并在截图中寻找一个较小的图片资源。
 
-    return:
-        是否在限定时间内找到图片
+    可选功能：
+    - 根据句柄点击较小图片所在位置
+    - 点击后是否复核为另一图片(切换界面成功)
+    
+    如果未找到仍会返回False。
+
+    Args:
+        source_handle: 截图句柄
+        source_range: [左上x,左上y,右下x,右下y] 截图后截取范围
+        template: 目标图片，路径或数组
+        template_mask: 可选参数，目标图片掩模，为None则不启用
+        match_tolerance: 可选参数，自定捕捉准确度阈值 0-1，默认0.95
+        match_interval: 可选参数，自定捕捉图片的间隔，默认0.2，单位秒。不采用系统时钟，而是直接加算。填0会导致无限查找不终止直到找到
+        match_failed_check: 可选参数，自定捕捉图片时间限制，超时输出False。默认10，单位秒。流程上会先识图，识图失败加算时间判定超时，故此处为0仍会识图1次
+        after_sleep: 找到图/失败后/点击后(如果点击)/复核(如果复核)后的休眠时间
+        click: 是否点一下，默认True
+        click_handle: 是否启用不一样的点击句柄
+        after_click_template: 点击后进行检查，若能找到该图片，视为无效，不输出True，继承前者的tolerance interval
+        after_click_template_mask: 检查用的掩模
+        source_root_handle: 根窗口句柄，用于检查窗口是否最小化，如果最小化则尝试恢复至激活窗口的底层，可空置
+        deviation: [x,y] 实际窗口点击改变后，点击的偏移值
+
+    Returns:
+        bool: 是否在限定时间内找到图片
     """
     spend_time = 0.0
     while True:
@@ -412,22 +431,27 @@ def loop_match_p_in_w(
 
 
 def loop_match_ps_in_w(
-        template_opts: list,
-        return_mode: str,
-        source_handle,
-        quick_mode=True,
-        source_root_handle=None,
-        match_failed_check: float = 10,
-        match_interval: float = 0.2,
-) -> Union[bool,list]:
-    """
-    :param template_opts: [{"template":str,"source_range": [x1:int,y1:int,x2:int,y2:int],"match_tolerance":float},...]
-    :param return_mode: 模式 and 或者 or
-    :param source_handle: 截图句柄
-    :param source_root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层 可空置
-    :param match_interval: 捕捉图片的间隔
-    :param match_failed_check: # 捕捉图片时间限制, 超时输出False
-    :return: 通过了mode, 则返回[{"x":int,"y":int},None,...] , 否则返回None
+    template_opts: list,
+    return_mode: str,
+    source_handle: int,
+    quick_mode: bool = True,
+    source_root_handle: Union[int, None] = None,
+    match_failed_check: float = 10,
+    match_interval: float = 0.2,
+) -> Union[bool, list]:
+    """循环匹配多个模板图像。
+
+    Args:
+        template_opts: 模板选项列表，格式为 [{"template":str,"source_range": [x1:int,y1:int,x2:int,y2:int],"match_tolerance":float},...]
+        return_mode: 返回模式，"and"或者"or"
+        source_handle: 截图句柄
+        quick_mode: 是否使用快速模式，默认True
+        source_root_handle: 根窗口句柄，用于检查窗口是否最小化，如果最小化则尝试恢复至激活窗口的底层，可空置
+        match_failed_check: 捕捉图片时间限制，超时输出False，默认10秒
+        match_interval: 捕捉图片的间隔，默认0.2秒
+
+    Returns:
+        Union[bool, list]: 通过了mode，则返回[{"x":int,"y":int},None,...]，否则返回None
     """
     # 截屏
     invite_time = 0.0
@@ -449,18 +473,17 @@ def loop_match_ps_in_w(
 
 
 def match_all_p_in_w(
-        template,
-        source_img=None,
-        source_handle=None,
-        source_root_handle=None,
-        source_range=None,
-        mask=None,
-        threshold: float = 0.8,
-        min_distance: int = 15,
-        test_show=False
-) -> [int, Union[None, list]]:
-    """
-    在图像中查找所有匹配的模板目标
+    template: Union[str, np.ndarray],
+    source_img: Union[np.ndarray, None] = None,
+    source_handle: Union[int, None] = None,
+    source_root_handle: Union[int, None] = None,
+    source_range: Union[list, None] = None,
+    mask: Union[np.ndarray, None] = None,
+    threshold: float = 0.8,
+    min_distance: int = 15,
+    test_show: bool = False
+) -> tuple[int, Union[None, list]]:
+    """在图像中查找所有匹配的模板目标。
 
     Args:
         template: 模板图像路径或numpy数组
@@ -469,12 +492,12 @@ def match_all_p_in_w(
         source_root_handle: 根窗口句柄
         source_range: 截图范围
         mask: 掩模图像
-        threshold: 多目标匹配阈值
-        min_distance: 最小匹配距离（防止重复匹配）
-        test_show: 是否显示结果
+        threshold: 多目标匹配阈值，默认0.8
+        min_distance: 最小匹配距离（防止重复匹配），默认15
+        test_show: 是否显示结果，默认False
 
     Returns:
-        状态码和匹配结果列表
+        tuple[int, Union[None, list]]: 状态码和匹配结果列表
     """
     # 获取源图像
     if source_img is None and source_handle is not None:

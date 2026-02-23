@@ -1,8 +1,9 @@
-import numpy as np
 import time
 from ctypes import windll, byref, c_ubyte
-from ctypes.wintypes import RECT, HWND
+from ctypes.wintypes import RECT
 
+import numpy
+import numpy as np
 import win32con
 import win32gui
 from numpy import uint8, frombuffer
@@ -14,10 +15,14 @@ from numpy import uint8, frombuffer
 # 排除缩放干扰 但有的时候会出错 可以在这里多测试测试
 # windll.user32.SetProcessDPIAware()
 
-def restore_window_if_minimized(handle) -> bool:
-    """
-    :param handle: 句柄
-    :return: 如果是最小化, 并恢复至激活窗口的底层, 则返回True, 否则返回False.
+def restore_window_if_minimized(handle: int) -> bool:
+    """检查并恢复最小化的窗口。
+
+    Args:
+        handle: 窗口句柄
+
+    Returns:
+        bool: 如果窗口是最小化状态并成功恢复则返回True，否则返回False
     """
 
     # 检查窗口是否最小化
@@ -35,16 +40,17 @@ def restore_window_if_minimized(handle) -> bool:
         return True
     return False
 
-def capture_image_png(handle: HWND, raw_range: list, root_handle: HWND = None):
-    """
-    窗口客户区截图
+
+def capture_image_png(handle: int, raw_range: list, root_handle: int = None) -> numpy.ndarray:
+    """窗口客户区截图并裁剪指定区域。
+
     Args:
-        handle (HWND): 要截图的窗口句柄
-        raw_range: 裁剪, 为 [左上X, 左上Y,右下X, 右下Y], 右下位置超出范围取最大(不会报错)
-        root_handle: 根窗口句柄, 用于检查窗口是否最小化, 如果最小化则尝试恢复至激活窗口的底层 可空置
+        handle: 要截图的窗口句柄
+        raw_range: 裁剪区域 [左上X, 左上Y, 右下X, 右下Y]，右下位置超出范围时取最大值(不会报错)
+        root_handle: 根窗口句柄，用于检查窗口是否最小化，如果最小化则尝试恢复至激活窗口的底层，可为空
 
     Returns:
-        numpy.array: 截图数据 3D array (高度,宽度,[B G R A四通道])
+        numpy.ndarray: 截图数据，3D数组 (高度, 宽度, [B G R A四通道])
     """
 
     # 尝试截图一次
@@ -70,9 +76,15 @@ def capture_image_png(handle: HWND, raw_range: list, root_handle: HWND = None):
     return image
 
 
-def capture_image_png_all(handle: HWND, root_handle: HWND = None):
-    """
-    跟上边那个函数一毛一样，只是用来截取全屏
+def capture_image_png_all(handle: int, root_handle: int = None) -> numpy.ndarray:
+    """窗口客户区全屏截图。
+
+    Args:
+        handle: 要截图的窗口句柄
+        root_handle: 根窗口句柄，用于检查窗口是否最小化，如果最小化则尝试恢复至激活窗口的底层，可为空
+
+    Returns:
+        numpy.ndarray: 全屏截图数据，3D数组 (高度, 宽度, [B G R A四通道])
     """
     # 尝试截图一次
     image = capture_image_png_once(handle=handle)
@@ -93,12 +105,15 @@ def capture_image_png_all(handle: HWND, root_handle: HWND = None):
     return image
 
 
-def is_mostly_black(image, sample_points=9):
-    """
-    检查图像是否主要是黑色, 通过抽样像素来判断, 能减少占用.
-    :param image: NumPy数组表示的图像.
-    :param sample_points: 要检查的像素点数, 默认为9.
-    :return: 如果抽样的像素都是黑色,则返回True; 否则返回False.
+def is_mostly_black(image: numpy.ndarray, sample_points: int = 9) -> bool:
+    """检查图像是否主要是黑色，通过抽样像素来判断以减少计算占用。
+
+    Args:
+        image: NumPy数组表示的图像
+        sample_points: 要检查的像素点数，默认为9
+
+    Returns:
+        bool: 如果抽样的像素都是黑色则返回True，否则返回False
     """
     if image.size == 0:
         return True
@@ -127,7 +142,15 @@ def is_mostly_black(image, sample_points=9):
     return True
 
 
-def capture_image_png_once(handle: HWND):
+def capture_image_png_once(handle: int) -> numpy.ndarray:
+    """单次窗口客户区截图。
+
+    Args:
+        handle: 窗口句柄
+
+    Returns:
+        numpy.ndarray: 截图数据，3D数组 (高度, 宽度, [B G R A四通道])
+    """
     # 获取窗口客户区的大小
     r = RECT()
     windll.user32.GetClientRect(handle, byref(r))  # 获取指定窗口句柄的客户区大小
@@ -161,12 +184,15 @@ def capture_image_png_once(handle: HWND):
     return image
 
 
-def png_cropping(image, raw_range: list = None):
-    """
-    裁剪图像
-    :param image:
-    :param raw_range: [左上X, 左上Y,右下X, 右下Y]
-    :return:
+def png_cropping(image: numpy.ndarray, raw_range: list = None) -> numpy.ndarray:
+    """裁剪图像到指定区域。
+
+    Args:
+        image: 输入图像
+        raw_range: 裁剪区域 [左上X, 左上Y, 右下X, 右下Y]，可为空
+
+    Returns:
+        numpy.ndarray: 裁剪后的图像
     """
     if raw_range is None:
         return image
