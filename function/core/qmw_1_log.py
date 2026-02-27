@@ -211,7 +211,7 @@ class QMainWindowLog(QMainWindowLoadUI):
             text="【B站充电】  B站大会员每月白嫖5B币券, 用于给UP充电",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="* 点我领劵  account.bilibili.com/account/big/myPackage)",
+            text="* 点我领券  account.bilibili.com/account/big/myPackage",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
             text="* 点我充电  space.bilibili.com/34158086",

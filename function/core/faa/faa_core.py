@@ -103,7 +103,7 @@ class FAABase:
         self.mat_cards_info: list[dict] | None = None  # 承载卡位置
         self.smoothie_info = None  # 冰沙位置
         self.kun_cards_info: list[dict] | None = None  # 坤位置 也用于标记本场战斗是否需要激活坤函数
-        self.battle_plan_card = []  # 经过处理后的战斗方案卡片部分, 由战斗类相关动作函数直接调用, 其中的各种操作都包含坐标
+        self.battle_plan_card = []  # 经过处理后的战斗方案卡片部分, 由战斗类相关动作函数直接调用
         self.battle_lock = threading.Lock()  # 战斗放卡锁，保证同一时间一个号里边的特殊放卡及正常放卡只有一种放卡在操作
 
         # ---------- 战斗专用私有属性 - 动态 ----------
@@ -542,7 +542,9 @@ class FAABase:
 
         return find
 
-    """调用输入关卡配置和战斗配置, 在战斗前必须进行该操作"""
+    """
+    调用输入关卡配置和战斗配置, 在战斗前【必须进行】该操作
+    """
 
     def set_config_for_battle(
             self: "FAA",
@@ -625,49 +627,51 @@ class FAABase:
 
         self.print_info("战斗中识图查找承载卡/冰沙/坤位置, 开始")
 
-        # 筛选出所有 有图片资源的卡片 包含变种
+        target_mat_list = copy.deepcopy(self.stage_info["mat_card"])
+        target_smoothie_list = ["冰激凌"]
+        target_kun_list = ["幻幻鸡", "创造神"]
 
-        mat_resource_list = []
-        for card in copy.deepcopy(self.stage_info["mat_card"]):
-            if "-" in card:
-                mat_resource_list.append(f"{card}.png")
-            else:
-                for i in range(6):
-                    if f"{card}-{i}.png" in RESOURCE_P["card"]["战斗"]:
-                        mat_resource_list.append(f"{card}-{i}.png")
-
-        smoothie_resource_list = []
-        for card in ["冰激凌"]:
-            for i in range(6):
-                if f"{card}-{i}.png" in RESOURCE_P["card"]["战斗"]:
-                    smoothie_resource_list.append(f"{card}-{i}.png")
-
-        kun_resource_list = []
-        for card in ["幻幻鸡", "创造神"]:
-            for i in range(6):
-                if f"{card}-{i}.png" in RESOURCE_P["card"]["战斗"]:
-                    kun_resource_list.append(f"{card}-{i}.png")
-
-        def scan(resource_list):
-            return_dict = {}
-            for mat_card in resource_list:
-
-                # 需要使用0.99相似度参数 相似度阈值过低可能导致一张图片被识别为两张卡
-                _, find = match_p_in_w(
-                    source_img=image,
-                    source_range=[190, 10, 950, 80],
-                    template=RESOURCE_P["card"]["战斗"][mat_card],
-                    match_tolerance=0.99)
-                if find:
-                    return_dict[mat_card.split("-")[0]] = [int(190 + find[0]), int(10 + find[1])]
+        def scan(target_names_list, image):
+            return_dict = {}  # {"card_name": [x：int, y:int],...}
+            target_name_with_jc_code_list = []
+            for target_name in target_names_list:
+                if "-" in target_name:
+                    target_name_with_jc_code_list.append(f"{target_name}")
                 else:
+                    for i in range(3):
+                        target_name_with_jc_code_list.append(f"{target_name}-{i}")
+            for target_name_with_jc_code in target_name_with_jc_code_list:
+                # 同名卡片已经查找成功, 跳过该卡片
+                if target_name_with_jc_code.split("-")[0] in return_dict.keys():
+                    continue
+
+                for usable_code in [0,1]:
+
+                    # 0 1 分别代表费用不足和充足情况下的图片资源
+                    mat_card_full_name = f"{target_name_with_jc_code}-{usable_code}.png"
+
+                    # 不存在对应的图像资源 跳过
+                    if mat_card_full_name not in RESOURCE_P["card"]["战斗"].keys():
+                        continue
+
+                    # 需要使用0.99相似度参数 相似度阈值过低可能导致一张图片被识别为两张卡
+                    _, find = match_p_in_w(
+                        source_img=image,
+                        source_range=[190, 10, 950, 80],
+                        template=RESOURCE_P["card"]["战斗"][mat_card_full_name],
+                        match_tolerance=0.99)
+                    if find:
+                        return_dict[target_name_with_jc_code.split("-")[0]] = [int(190 + find[0]), int(10 + find[1])]
+                        break
+
                     _, find = match_p_in_w(
                         source_img=image,
                         source_range=[880, 80, 950, 600],
-                        template=RESOURCE_P["card"]["战斗"][mat_card],
+                        template=RESOURCE_P["card"]["战斗"][mat_card_full_name],
                         match_tolerance=0.99)
                     if find:
-                        return_dict[mat_card.split("-")[0]] = [int(880 + find[0]), int(80 + find[1])]
+                        return_dict[target_name_with_jc_code.split("-")[0]] = [int(880 + find[0]), int(80 + find[1])]
+                        break
 
             return return_dict
 
@@ -679,30 +683,28 @@ class FAABase:
                 root_handle=self.handle_360,
                 raw_range=[0, 0, 950, 600],
             )
-            mat_card_dict = scan(resource_list=mat_resource_list)
-            smoothie_card_dict = scan(resource_list=smoothie_resource_list)
-            kun_card_dict = scan(resource_list=kun_resource_list)
-
-            for resource_list, card_dict in [
-                (mat_resource_list, mat_card_dict),
-                (smoothie_resource_list, smoothie_card_dict),
-                (kun_resource_list, kun_card_dict)
-            ]:
-                resource_list[:] = [item for item in resource_list if item not in card_dict]
+            mat_card_dict = scan(target_names_list=target_mat_list, image=image)
+            smoothie_card_dict = scan(target_names_list=target_smoothie_list, image=image)
+            kun_card_dict = scan(target_names_list=target_kun_list, image=image)
 
             # 防止卡片正好被某些特效遮挡, 所以等待一下
             time.sleep(0.1)
+
+        def check_coordinate(card_xy_list):
+            x1 = card_xy_list[0]
+            y1 = card_xy_list[1]
+            x2 = card_xy_list[0] + 53
+            y2 = card_xy_list[1] + 70
+            if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
+                return True
+            return False
 
         # 根据坐标位置，判断对应的卡id
         mat_cards_info = []
         for name, coordinate in mat_card_dict.items():
             for card_id, card_xy_list in self.bp_card.items():
-                x1 = card_xy_list[0]
-                y1 = card_xy_list[1]
-                x2 = card_xy_list[0] + 53
-                y2 = card_xy_list[1] + 70
-                if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
-                    mat_cards_info.append({'name': name, 'card_id': card_id, 'coordinate_from': card_xy_list})
+                if check_coordinate(card_xy_list=card_xy_list):
+                    mat_cards_info.append({'name': name, 'card_id': card_id})
         self.mat_cards_info = mat_cards_info
         self.print_info("战斗中识图查找承载卡位置, 结果: {}".format(mat_cards_info))
 
@@ -710,11 +712,7 @@ class FAABase:
         smoothie_info = None
         for name, coordinate in smoothie_card_dict.items():
             for card_id, card_xy_list in self.bp_card.items():
-                x1 = card_xy_list[0]
-                y1 = card_xy_list[1]
-                x2 = card_xy_list[0] + 53
-                y2 = card_xy_list[1] + 70
-                if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
+                if check_coordinate(card_xy_list=card_xy_list):
                     smoothie_info = {'name': '极寒冰沙', "card_id": card_id}
                     break
         self.smoothie_info = smoothie_info
@@ -724,11 +722,7 @@ class FAABase:
         kun_cards_info = []
         for card_name, coordinate in kun_card_dict.items():
             for card_id, card_xy_list in self.bp_card.items():
-                x1 = card_xy_list[0]
-                y1 = card_xy_list[1]
-                x2 = card_xy_list[0] + 53
-                y2 = card_xy_list[1] + 70
-                if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
+                if check_coordinate(card_xy_list=card_xy_list):
                     kun_cards_info.append({'name': card_name, "card_id": card_id})
         self.kun_cards_info = kun_cards_info
         self.print_info(text="战斗中识图查找幻幻鸡位置, 结果：{}".format(self.kun_cards_info))
@@ -865,8 +859,11 @@ class FAABase:
             # 根据不同垫子数量 再分
             num_mat_card = len(mat_card_info)
 
-            # 本关需求盘子类承载卡
-            need_plate = any(card['name'] == "木盘子" for card in mat_card_info)
+            # 本关需求盘子类承载卡 需要遍历
+            need_ergodic = (
+                    stage_info.get("mat_card_type", None) == "水面" or
+                    any(card['name'] == "木盘子" for card in mat_card_info)
+            )
 
             for i in range(num_mat_card):
 
@@ -874,7 +871,7 @@ class FAABase:
                     "card_id": mat_card_info[i]['card_id'],
                     "name": mat_card_info[i]['name'],
                     "location": location[i::num_mat_card],
-                    "ergodic": need_plate,
+                    "ergodic": need_ergodic,
                     "queue": True
                 }
 
@@ -1689,7 +1686,8 @@ class FAABase:
                                     extra_message=f"请检查文件:{file_path} 是否符合标准JSON格式!",
                                     title="JSON文件解析错误"
                                 )
-                                self.print_error(text=f"[刷新游戏] 登录失败, 请检查文件:{file_path} 是否符合标准JSON格式!")
+                                self.print_error(
+                                    text=f"[刷新游戏] 登录失败, 请检查文件:{file_path} 是否符合标准JSON格式!")
                                 raise e
 
                         username = QQ_account['{}p'.format(self.player)]['username']

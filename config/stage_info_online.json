@@ -2,10 +2,7 @@
     "HH": {
         "0": {
             "0": {
-                "mat_card": [
-                    "木盘子",
-                    "魔法软糖"
-                ],
+                "mat_card_type": "水面",
                 "mat_cell": [
                     "1-1",
                     "1-2",
@@ -86,8 +83,7 @@
         "1": {
             "15": {
                 "level": 15,
-                "mat_card": [
-                ],
+                "mat_card_type": "",
                 "mat_cell": [
                 ],
                 "name": "美味漫游",
@@ -100,8 +96,7 @@
         "2": {
             "16": {
                 "level": 30,
-                "mat_card": [
-                ],
+                "mat_card_type": "",
                 "mat_cell": [
                 ],
                 "name": "火山漫游",
@@ -114,8 +109,7 @@
         "4": {
             "16": {
                 "level": 45,
-                "mat_card": [
-                ],
+                "mat_card_type": "",
                 "mat_cell": [
                 ],
                 "name": "浮空漫游",
@@ -132,8 +126,7 @@
         "0": {
             "1": {
                 "level": 8,
-                "mat_card": [
-                ],
+                "mat_card_type": "",
                 "mat_cell": [
                 ],
                 "name": "悬赏关卡-1",
@@ -160,8 +153,7 @@
             },
             "2": {
                 "level": 23,
-                "mat_card": [
-                ],
+                "mat_card_type": "",
                 "mat_cell": [
                 ],
                 "name": "悬赏关卡-2",
@@ -182,8 +174,7 @@
             },
             "3": {
                 "level": 42,
-                "mat_card": [
-                ],
+                "mat_card_type": "",
                 "mat_cell": [
                 ],
                 "name": "悬赏关卡-3",
@@ -198,8 +189,7 @@
             },
             "4": {
                 "level": 61,
-                "mat_card": [
-                ],
+                "mat_card_type": "",
                 "mat_cell": [
                 ],
                 "name": "悬赏关卡-4",

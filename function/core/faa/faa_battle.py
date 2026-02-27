@@ -1,6 +1,6 @@
 import copy
-import time
 import json
+import time
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -22,9 +22,6 @@ class FAABattle:
 
     def __init__(self):
         self.recorder = None
-
-
-
 
     def faa_battle_re_init(self: "FAA"):
         """战斗前调用, 重新初始化部分每场战斗都要重新刷新的该内私有属性"""
@@ -267,7 +264,6 @@ class FAABattle:
 
         CUS_LOGGER.info(f"[{self.player}P] 当前波次:{new_wave}, 已检测到转变, 即将启动变阵方案")
 
-
         # 备份旧方案
         plans = {
             "old": copy.deepcopy(self.battle_plan_card),
@@ -384,7 +380,6 @@ class FAABattle:
 
             # 点一下空白
             if click_space:
-
                 T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=295, y=485)
                 time.sleep(self.click_sleep)
 
@@ -435,10 +430,14 @@ class FAABattle:
         #     # self.print_debug("战斗火苗能量>1000:", self.fire_elemental_1000)
         #     CUS_LOGGER.debug(f"有没有1000火{self.fire_elemental_1000}")
 
-    def start_battle_recording(self,timestamp):
+    def start_battle_recording(self, timestamp):
         """战斗开始时启动录制"""
         if hasattr(self, 'handle'):
-            self.recorder = WindowRecorder(output_file=PATHS["logs"]+"//recording//",window_title=self.channel,handle=self.handle,see_time= timestamp)
+            self.recorder = WindowRecorder(
+                output_file=PATHS["logs"] + "//recording//",
+                window_title=self.channel,
+                handle=self.handle,
+                see_time=timestamp)
             self.recorder.start_recording()
             CUS_LOGGER.info("战斗录制已启动")
 
@@ -448,4 +447,4 @@ class FAABattle:
             if self.recorder is not None:
                 self.recorder.stop_recording()
                 CUS_LOGGER.info(f"战斗录制已保存")
-                self.recorder= None
+                self.recorder = None

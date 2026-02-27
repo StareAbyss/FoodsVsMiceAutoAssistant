@@ -2935,7 +2935,7 @@ class InfoEditorOfInsertUseCard(QDialog):
             self.WidgetIdInput2.clear()
             for card in self.data["cards"]:
                 self.WidgetIdInput2.addItem(f"ID:{card.card_id} - {card.name}", card.card_id)
-            index = self.WidgetIdInput2.findData(self.data["id"])
+            index = self.WidgetIdInput2.findData(self.data["card_id"])
             if index >= 0:
                 self.WidgetIdInput2.setCurrentIndex(index)
 

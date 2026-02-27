@@ -107,37 +107,25 @@ ZOOM_RATE = 1.0
 THEME = "dark"
 THEME_HIGHLIGHT_COLOR = "#FF0000"
 
-# 翻牌次数
-FLOP_TIMES = 2
-
-# 每秒点击次数
-CLICK_PER_SECOND = 120
-
-# FAA可以处理的游戏画面最低帧数
-LOWEST_FPS = 10
-
-# FAA卡片放满后的禁用时长 秒
-FULL_BAN_TIME = 5
+# 战斗参数
+FLOP_TIMES = 2  # 翻牌次数
+CLICK_PER_SECOND = 120  # 每秒点击次数
+LOWEST_FPS = 10  # FAA可以处理的游戏画面最低帧数
+FULL_BAN_TIME = 5  # FAA卡片放满后的禁用时长 秒
+MAX_BATTLE_TIME = 0  # FAA战斗最长时间 Min
+SMOOTHIE_LOCK_TIME = 0  # 在双人作战时, 极寒冰沙 全局锁
+# GEM_SKILL_LOCK_TIME = 0
 
 # FAA开局和结算加速时长 0则不加速
 ACCELERATE_START_UP_VALUE = 0
 ACCELERATE_SETTLEMENT_VALUE = 0
 
-# FAA战斗最长时间 Min
-MAX_BATTLE_TIME = 0
-
-# 在双人作战时, 极寒冰沙 全局锁
-SMOOTHIE_LOCK_TIME = 0
-# GEM_SKILL_LOCK_TIME = 0
-
 # 在多线程双人时, 文件读写 全局锁, 一般是用于json读写, 也被用于logs中loots unmatched 的读写
 FILE_LOCK = threading.Lock()
 
-# 额外日志 - 战斗中 会详细显示每秒的卡片状态和当前放了哪张卡
-EXTRA_LOG_BATTLE = False  # 默认 False
-
-# 额外日志 - 战斗中 会详细显示match图片的细节
-EXTRA_LOG_MATCH = True  # 默认 True
+# 额外日志
+EXTRA_LOG_BATTLE = False  # 默认 False 战斗中 会详细显示每秒的卡片状态和当前放了哪张卡
+EXTRA_LOG_MATCH = True  # 默认 True  战斗中 会详细显示match图片的细节
 
 # 储存战斗方案/微调方案/任务序列 的 uuid -> 具体路径 key是保持了插入顺序因此是有序的
 BATTLE_PLAN_UUID_TO_PATH = {}
