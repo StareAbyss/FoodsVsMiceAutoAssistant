@@ -1,3 +1,4 @@
+import copy
 import os
 import random
 import time
@@ -141,6 +142,16 @@ class Card:
         # 默认禁用为false
         self.banning = False
 
+        self.mat_card_first_coordinate_to = None
+        self.mat_card_loop_to_first_coordinate_to_count = 0
+        # 如果是岩浆/毒气/海底类承载卡, 记录循环的起点!
+        if self.faa.stage_info["mat_card_type"] in ["岩浆", "毒气", "海底"]:
+            if len(self.coordinate_to) >= 1:
+                for mat_card in self.faa.stage_info["mat_card"]:
+                    if self.name in mat_card:
+                        self.mat_card_first_coordinate_to = copy.deepcopy(self.coordinate_to[0])
+                        break
+
     def choice_card(self):
         """
         取卡操作
@@ -179,6 +190,14 @@ class Card:
                 self.location.remove(self.location[0])
                 self.coordinate_to.append(self.coordinate_to[0])
                 self.coordinate_to.remove(self.coordinate_to[0])
+                # 承载卡特殊策略 - 对于无法被破坏的持续性承载 每放满2圈后自锁600s
+                if self.coordinate_to[0] == self.mat_card_first_coordinate_to:
+                    self.mat_card_loop_to_first_coordinate_to_count += 1
+                    if self.mat_card_loop_to_first_coordinate_to_count >= 2:
+                        self.mat_card_loop_to_first_coordinate_to_count = 0
+                        self.status_ban = 600
+                        if EXTRA.EXTRA_LOG_BATTLE:
+                            CUS_LOGGER.debug(f"[{self.faa.player}P] {self.name}触发了10分钟自锁")
 
         # 放完卡后强制自ban 1s 这游戏似乎没有cd更短的卡片了!
         self.status_ban = 1
