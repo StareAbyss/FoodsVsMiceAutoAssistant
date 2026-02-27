@@ -180,9 +180,10 @@ class ThreadTodo(QThread):
         self.my_lock = my_bool
 
     def remove_outdated_log_images(self):
-        SIGNAL.PRINT_TO_UI.emit(f"正在清理过期的的log图片...")
 
         now = datetime.datetime.now()
+
+        CUS_LOGGER.info(f"正在清理过期的的log图片...")
         time1 = int(self.opt["log_settings"]["log_other_settings"])
         if time1 >= 0:
             expiration_period = datetime.timedelta(days=time1)
@@ -206,12 +207,12 @@ class ThreadTodo(QThread):
                     os.remove(file_path)
                     deleted_files_count += 1
 
-            SIGNAL.PRINT_TO_UI.emit(f"清理完成... {deleted_files_count}张图片已清理.")
+            SIGNAL.PRINT_TO_UI.emit(f"[日志清理] 清理过期战斗日志 - 图片{deleted_files_count}张.")
         else:
-            SIGNAL.PRINT_TO_UI.emit("未开启过期日志清理功能")
-        SIGNAL.PRINT_TO_UI.emit("正在清理过期的高级战斗log...")
+            SIGNAL.PRINT_TO_UI.emit(f"[日志清理] 战斗日志清理未激活, 请注意文件堆积.")
 
-        now = datetime.datetime.now()
+        CUS_LOGGER.info("正在清理过期的高级战斗log...")
+
         time2 = int(self.opt["log_settings"]["log_senior_settings"])
         if time2 >= 0:
             expiration_period = datetime.timedelta(days=time2)
@@ -235,9 +236,9 @@ class ThreadTodo(QThread):
                     os.remove(file_path)
                     deleted_files_count += 1
 
-            SIGNAL.PRINT_TO_UI.emit(f"清理完成... {deleted_files_count}个文件已清理.")
+            SIGNAL.PRINT_TO_UI.emit(f"[日志清理] 清理过期高级战斗log - 文件{deleted_files_count}份.")
         else:
-            SIGNAL.PRINT_TO_UI.emit(f"高级战斗日志清理已取消.")
+            SIGNAL.PRINT_TO_UI.emit(f"[日志清理] 高级战斗日志清理未激活, 请注意文件堆积.")
 
     """
     业务代码 - 战斗以外
@@ -3349,6 +3350,7 @@ class ThreadTodo(QThread):
     """
     自定义脚本 - FAA自动化拓展插件
     """
+
     def extension_addon(self, script_path, loop_times, player):
 
         SIGNAL.PRINT_TO_UI.emit(
@@ -3359,11 +3361,11 @@ class ThreadTodo(QThread):
             p_name = self.opt["base_settings"][f"name_{p}p"]
             window_name = f"{p_name} | {g_name}" if p_name else g_name
             if p == 1:
-                self.thread_1p = ExecuteThread(window_name=window_name,configs_path=script_path, loop_times=loop_times)
+                self.thread_1p = ExecuteThread(window_name=window_name, configs_path=script_path, loop_times=loop_times)
                 self.thread_1p.start()
                 self.thread_1p.join()
             elif p == 2:
-                self.thread_2p = ExecuteThread(window_name=window_name,configs_path=script_path, loop_times=loop_times)
+                self.thread_2p = ExecuteThread(window_name=window_name, configs_path=script_path, loop_times=loop_times)
                 self.thread_2p.start()
                 self.thread_2p.join()
 

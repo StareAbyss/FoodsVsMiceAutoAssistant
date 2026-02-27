@@ -131,10 +131,10 @@ class Card:
         self.is_kun_target = False
 
         # 判定自身是不是极寒冰沙
-        self.is_smoothie = "冰沙" in self.name
+        self.is_smoothie = "冰沙" in self.name or self.name == "冰激凌-2"
 
         # 不进入放满自ban的 白名单
-        self.ban_white_list = ["极寒冰沙", "冰沙"]
+        self.ban_white_list = ["极寒冰沙", "冰沙", "冰激凌-2"]
 
         # 是否可以放卡（主要是瓜皮类）
         self.can_use = True
