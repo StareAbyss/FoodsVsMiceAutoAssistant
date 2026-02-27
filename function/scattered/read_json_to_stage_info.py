@@ -5,6 +5,38 @@ from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 
 
+def init_mat_card_type_to_card_list(stage_info) -> dict:
+    # 优先手动
+    if stage_info.get("mat_card", False):
+        return stage_info
+
+        # 否则应用类
+    if stage_info.get("mat_card_type", False):
+        match stage_info["mat_card_type"]:
+            case "":
+                mat_card = []
+            case "水面":
+                mat_card = ["木盘子-2", "木盘子-1", "魔法软糖-2", "木盘子-0", "魔法软糖-1", "魔法软糖-0"]
+            case "云洞":
+                mat_card = ["棉花糖-2", "棉花糖-1", "魔法软糖-2", "棉花糖-0", "魔法软糖-1", "魔法软糖-0"]
+            case "岩浆":
+                mat_card = ["棉花糖-2", "棉花糖-1", "魔法软糖-2", "棉花糖-0", "魔法软糖-1", "魔法软糖-0"]
+            case "海底":
+                mat_card = ["麦芽糖-1", "魔法软糖-2", "气泡-1", "魔法软糖-1", "魔法软糖-0", "气泡-0"]
+            case "海底-无气泡":
+                mat_card = ["麦芽糖-1", "魔法软糖-2", "魔法软糖-1", "魔法软糖-0"]
+            case "毒气":
+                mat_card = ["棉花糖-2", "麦芽糖-1", "麦芽糖-0"]
+            case _:
+                mat_card = []
+        stage_info["mat_card"] = mat_card
+        return stage_info
+
+    # 默认无
+    stage_info["mat_card"] = []
+    return stage_info
+
+
 def read_json_to_stage_info(stage_id, stage_id_for_battle=None):
     """
     读取文件中是否存在预设
@@ -41,14 +73,21 @@ def read_json_to_stage_info(stage_id, stage_id_for_battle=None):
     stage_0, stage_1, stage_2 = stage_id_for_battle.split("-")  # type map stage
 
     # 如果找到预设
+    used_config_name = None
     for config_name, information in configs:
         try_stage_info = information.get(stage_0, {}).get(stage_1, {}).get(stage_2, None)
         if try_stage_info:
             stage_info = {**stage_info, **try_stage_info}
-            CUS_LOGGER.info("从 {} 读取关卡信息: {}".format(config_name, stage_info))
+            used_config_name = config_name
             break
+
+    # 转化
+    stage_info = init_mat_card_type_to_card_list(stage_info)
+
+    if used_config_name:
+        CUS_LOGGER.info(f"从 {used_config_name} 读取关卡信息: {stage_info}")
     else:
-        CUS_LOGGER.info("未找到预设，使用默认关卡信息: {}".format(stage_info))
+        CUS_LOGGER.info(f"未找到预设，使用默认关卡信息: {stage_info}")
 
     return stage_info
 

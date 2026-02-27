@@ -1121,16 +1121,14 @@ def faa_start_main(app=None, loading=None):
 
     """字体"""
 
-    font = EXTRA.Q_FONT
-
     # 设定 全局字体
-    app.setFont(font)
+    app.setFont(EXTRA.Q_FONT)
 
     # 实例化 主窗口
     window = QMainWindowService()
 
     # 设置 窗口字体
-    window.font = font
+    window.font = EXTRA.Q_FONT
     # 先停止播放gif再更新进度到100避免线程安全问题
     loading.anim.stop()
     loading.update_progress(100, "载入完成！！！")
