@@ -1,0 +1,30 @@
+[project]
+name = "fvm"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "colorlog>=6.10.1",
+    "dacite>=1.9.2",
+    "networkx>=3.6.1",
+    "onnxruntime-directml==1.20.1",
+    "opencv-python==4.10.0.84",
+    "psutil==6.0.0",
+    "pulp>=3.3.0",
+    "pycryptodome>=3.23.0",
+    "pyqt6==6.7.1",
+    "pytz>=2026.1.post1",
+    "pywin32==306",
+    "requests>=2.32.5",
+    "wmi>=1.5.1",
+]
+
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
+
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.19.0",
+]
