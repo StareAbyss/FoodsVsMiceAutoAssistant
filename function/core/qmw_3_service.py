@@ -8,6 +8,7 @@ import subprocess
 import threading
 import webbrowser
 
+import psutil
 import win32con
 import win32gui
 from PyQt6 import QtCore, QtGui, QtWidgets
@@ -1142,21 +1143,42 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 找到主入口文件 - 使用绝对路径
         main_script = os.path.join(PATHS["root"], "function", "faa_main.py")
         main_script_abs = os.path.abspath(main_script)
+        try:
+            parent_process = psutil.Process().parent()
+            parent_cmdline = parent_process.cmdline() if parent_process else []
+            mode = any('-m' in arg for arg in parent_cmdline)
+        except:
+            mode = False
         
-        #启动新进程 - 添加 cwd 参数确保工作目录正确
+        # 启动新进程 - 根据启动方式选择正确的命令
         try:
             CUS_LOGGER.debug(f"[重启] Python 解释器：{python_executable}")
-            CUS_LOGGER.debug(f"[重启] 主脚本路径：{main_script_abs}")
+            CUS_LOGGER.debug(f"[重启] 启动模式：{'模块模式' if mode else '脚本模式'}")
             CUS_LOGGER.debug(f"[重启] 工作目录：{PATHS['root']}")
-            CUS_LOGGER.debug(f"[重启] 启动新进程：{python_executable} {main_script_abs}")
+            
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-            process = subprocess.Popen(
-                [python_executable, main_script_abs],
-                cwd=PATHS["root"],
-                creationflags=subprocess.CREATE_NEW_CONSOLE,
-                startupinfo=startupinfo
-            )
+            
+            if mode:
+                cmd_args = [python_executable, '-m', 'function.faa_main']
+                CUS_LOGGER.debug(f"[重启] 启动命令：{' '.join(cmd_args)}")
+                process = subprocess.Popen(
+                    cmd_args,
+                    cwd=PATHS["root"],
+                    creationflags=subprocess.CREATE_NEW_CONSOLE,
+                    startupinfo=startupinfo
+                )
+            else:
+                CUS_LOGGER.debug(f"[重启] 主脚本路径：{main_script_abs}")
+                cmd_args = [python_executable, main_script_abs]
+                CUS_LOGGER.debug(f"[重启] 启动命令：{' '.join(cmd_args)}")
+                process = subprocess.Popen(
+                    [python_executable, main_script_abs],
+                    cwd=PATHS["root"],
+                    creationflags=subprocess.CREATE_NEW_CONSOLE,
+                    startupinfo=startupinfo
+                )
+            
             CUS_LOGGER.info(f"[重启] 新进程 PID: {process.pid}")
         except Exception as e:
             CUS_LOGGER.error(f"[重启] 启动新进程失败：{e}")
