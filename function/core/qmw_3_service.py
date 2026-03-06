@@ -4,6 +4,7 @@ import os
 import random
 import shutil
 import sqlite3
+import subprocess
 import threading
 import webbrowser
 
@@ -187,6 +188,9 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 选择天知强卡器路径
         self.TCE_path_select_btn.clicked.connect(self.click_btn_select_tce_path)
+
+        # 重启应用程序按钮
+        self.Button_Refreshed.clicked.connect(self.restart_application)
 
         # 线程状态
         self.is_ending = False  # 线程是否正在结束
@@ -1105,6 +1109,66 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 显示窗口
         self.tools_window.show()
+
+    def restart_application(self):
+        """
+        重启整个应用程序
+        干净地关闭所有线程和进程，然后重新启动一个新的 Python 进程
+        """
+        
+        # 弹窗确认
+        reply = QMessageBox.question(
+            self,
+            '重启 FAA',
+            '确定要重启 FAA 吗？\n'
+            '这将关闭所有正在运行的任务和线程，然后重新启动程序。',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No)
+        
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+        
+        CUS_LOGGER.info("[重启] 用户请求重启应用程序，开始清理流程...")
+        if self.thread_todo_running:
+            CUS_LOGGER.info("[重启] 正在停止 todo 主线程...")
+            self.todo_end()
+        if self.todo_timer_running:
+            CUS_LOGGER.info("[重启] 正在停止定时任务管理器...")
+            self.todo_timer_stop()
+        CUS_LOGGER.info("[重启] 所有线程已停止，准备重启...")
+        
+        # 获取当前脚本路径和参数
+        python_executable = sys.executable
+        # 找到主入口文件 - 使用绝对路径
+        main_script = os.path.join(PATHS["root"], "function", "faa_main.py")
+        main_script_abs = os.path.abspath(main_script)
+        
+        #启动新进程 - 添加 cwd 参数确保工作目录正确
+        try:
+            CUS_LOGGER.debug(f"[重启] Python 解释器：{python_executable}")
+            CUS_LOGGER.debug(f"[重启] 主脚本路径：{main_script_abs}")
+            CUS_LOGGER.debug(f"[重启] 工作目录：{PATHS['root']}")
+            CUS_LOGGER.debug(f"[重启] 启动新进程：{python_executable} {main_script_abs}")
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            process = subprocess.Popen(
+                [python_executable, main_script_abs],
+                cwd=PATHS["root"],
+                creationflags=subprocess.CREATE_NEW_CONSOLE,
+                startupinfo=startupinfo
+            )
+            CUS_LOGGER.info(f"[重启] 新进程 PID: {process.pid}")
+        except Exception as e:
+            CUS_LOGGER.error(f"[重启] 启动新进程失败：{e}")
+            QMessageBox.critical(
+                self,
+                '重启失败',
+                f'无法启动新进程：{str(e)}',
+                QMessageBox.StandardButton.Ok)
+            return
+        CUS_LOGGER.info("[重启] 关闭当前应用...")
+        self.close()
+        os._exit(0)
 
     def open_task_editor(self, db_conn):
         """打开任务计划编辑器"""

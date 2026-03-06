@@ -232,6 +232,32 @@
            </spacer>
           </item>
           <item>
+           <widget class="QPushButton" name="Button_Refreshed">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="cursor">
+             <cursorShape>PointingHandCursor</cursorShape>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: transparent;
+border:none</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="Button_MostMinimized">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
@@ -7419,6 +7445,16 @@ FAA放卡核心原理简述:
               </spacer>
              </item>
             </layout>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="tab">
+          <attribute name="title">
+           <string>检查更新</string>
+          </attribute>
+          <layout class="QHBoxLayout" name="horizontalLayout_22">
+           <item>
+            <layout class="QVBoxLayout" name="verticalLayout_23"/>
            </item>
           </layout>
          </widget>

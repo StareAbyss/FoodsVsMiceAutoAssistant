@@ -141,6 +141,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         self.Button_Exit.setIcon(create_qt_icon(q_color=q_color, mode="x"))
         self.Button_Minimized.setIcon(create_qt_icon(q_color=q_color, mode="-"))
         self.Button_MostMinimized.setIcon(create_qt_icon(q_color=q_color, mode="v"))
+        self.Button_Refreshed.setIcon(create_qt_icon(q_color=q_color, mode="refresh"))
 
     def set_customize_widget_style(self):
         # 查找所有 SearchableComboBox 实例
