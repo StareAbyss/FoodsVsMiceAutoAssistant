@@ -25,29 +25,111 @@ from function.scattered.test_route_connectivity import test_route_connectivity
 from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
 
 
-def ensure_file_exists(file_path, template_suffix="_template") -> None:
+def ensure_file_exists(file_path, template_path) -> None:
     """
     测某文件是否存在 如果不存在且存在_template的模板, 应用模板
     :param file_path: 文件路径
-    :param template_suffix: 模板附加名称
+    :param template_path: 模板路径
     :return:
     """
 
     # 检查文件是否存在
-    if not os.path.exists(file_path):
-        # 构建模板文件的路径
-        base_name, ext = os.path.splitext(file_path)
-        template_file_path = f"{base_name}{template_suffix}{ext}"
+    if os.path.exists(file_path):
+        CUS_LOGGER.info(f"[资源存在检查] '{file_path}' 已存在. 检查通过.")
+        return
 
-        # 检查模板文件是否存在
-        if os.path.exists(template_file_path):
-            # 如果模板文件存在，则复制模板文件到原始文件路径
-            shutil.copy(template_file_path, file_path)
-            CUS_LOGGER.warning(f"[资源检查] '{file_path}' 不存在，已从模板 '{template_file_path}' 创建。")
-        else:
-            CUS_LOGGER.error(f"[资源检查] 无 '{file_path}', 无 '{template_file_path}'. ")
-    else:
-        CUS_LOGGER.info(f"[资源检查] '{file_path}' 已存在. 直接读取.")
+    # 检查模板文件是否存在
+    if not os.path.exists(template_path):
+        CUS_LOGGER.error(f"[资源存在检查] 无 '{file_path}', 无 '{template_path}'. ")
+        return
+
+        # 如果模板文件存在，则复制模板文件到原始文件路径
+    shutil.copy(template_path, file_path)
+    CUS_LOGGER.warning(f"[资源存在检查] '{file_path}' 不存在，已从模板 '{template_path}' 创建。")
+
+
+def ensure_file_same_as_template(file_path, template_path) -> None:
+    """
+    检测某文件是否和模板一致
+    :param file_path: 文件路径
+    :param template_path: 模板路径
+    :return:
+    """
+
+    # 检查模板文件是否存在
+    if not os.path.exists(template_path):
+        CUS_LOGGER.error(f"[资源一致性检查] 无 '{template_path}'，跳过关键配置一致性检查。")
+        return
+
+    # 检查文件是否存在
+    if not os.path.exists(file_path):
+        shutil.copy(template_path, file_path)
+        CUS_LOGGER.warning(f"[资源一致性检查] '{file_path}' 不存在，已从模板 '{template_path}' 创建。")
+        return
+
+    # 检查两个文件是否内容上完全一致
+    if os.path.getsize(file_path) != os.path.getsize(template_path):
+        CUS_LOGGER.error(f"[资源一致性检查] '{file_path}' 和 '{template_path}' 不一致，已使用模板覆盖。")
+        shutil.copy(template_path, file_path)
+
+    CUS_LOGGER.warning(f"[资源存在检查] '{file_path}' 存在且与模板一致通过检查。")
+
+
+def check_settings_file(file_path, template_path) -> None:
+    """
+    检查settings.json 是否和 template.json
+    各级的字段名和数据类型是否一致, 如果不一致, 应用模板
+    """
+
+    # 如果值为list 使用template中第一个值作为模板对照进行merge
+    def merge_settings_with_template(settings, template):
+        def merge(dict1, dict2):
+            for key, value in dict2.items():
+                if key not in dict1:
+                    dict1[key] = copy.deepcopy(value)
+                else:
+                    if isinstance(value, dict):
+                        if isinstance(dict1[key], dict):
+                            merge(dict1[key], value)
+                        else:
+                            dict1[key] = copy.deepcopy(value)
+                    elif isinstance(value, list):
+                        if isinstance(dict1[key], list):
+                            if len(dict1[key]) > 0 and isinstance(dict1[key][0], dict):
+                                sample_dict = value[0]
+                                for i, item in enumerate(dict1[key]):
+                                    if isinstance(item, dict):
+                                        merge(item, sample_dict)
+                                    else:
+                                        dict1[key] = copy.deepcopy(value)
+                                        break
+                        else:
+                            dict1[key] = copy.deepcopy(value)
+                    else:
+                        if not isinstance(dict1[key], type(value)):
+                            dict1[key] = copy.deepcopy(value)
+
+        settings_copy = copy.deepcopy(settings)
+        merge(settings_copy, template)
+        return settings_copy
+
+    CUS_LOGGER.info(f"[订正FAA基础配置文件] 订正开始.")
+
+    with EXTRA.FILE_LOCK:
+        with open(file=file_path, mode="r", encoding="UTF-8") as file:
+            data_settings = json.load(file)
+        with open(file=template_path, mode="r", encoding="UTF-8") as file:
+            data_template = json.load(file)
+
+    data_settings = merge_settings_with_template(settings=data_settings, template=data_template)
+
+    with EXTRA.FILE_LOCK:
+        with open(file=file_path, mode="w", encoding="UTF-8") as file:
+            json.dump(obj=data_settings, fp=file, ensure_ascii=False, indent=4)
+
+    CUS_LOGGER.info(f"[订正FAA基础配置文件] 订正完成.")
+
+    return None
 
 
 class QMainWindowLoadSettings(QMainWindowLog):
@@ -64,16 +146,34 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.opt_path = PATHS["root"] + "\\config\\settings.json"
 
         # 检测某文件是否存在 如果不存在且存在_template的模板, 应用模板
-        ensure_file_exists_tar_list = [
-            PATHS["root"] + "\\config\\cus_images\\用户自截\\空间服登录界面_1P.png",
-            PATHS["root"] + "\\config\\cus_images\\用户自截\\空间服登录界面_2P.png",
-            PATHS["root"] + "\\config\\cus_images\\用户自截\\跨服远征_1p.png",
-            self.opt_path]
-        for file_path in ensure_file_exists_tar_list:
-            ensure_file_exists(file_path=file_path)
+        ensure_file_exists(
+            file_path=PATHS["root"] + "\\config\\cus_images\\用户自截\\空间服登录界面_1P.png",
+            template_path=PATHS["root"] + "\\resource\\template\\空间服登录界面_1P.png")
+        ensure_file_exists(
+            file_path=PATHS["root"] + "\\config\\cus_images\\用户自截\\空间服登录界面_2P.png",
+            template_path=PATHS["root"] + "\\resource\\template\\空间服登录界面_2P.png")
+        ensure_file_exists(
+            file_path=PATHS["root"] + "\\config\\cus_images\\用户自截\\跨服远征_1p.png",
+            template_path=PATHS["root"] + "\\resource\\template\\跨服远征_1p.png")
+        ensure_file_exists(
+            file_path=self.opt_path,
+            template_path=PATHS["root"] + "\\resource\\template\\settings_template.json")
+
+        # 检测&修复 关键方案是否完全一致
+        ensure_file_same_as_template(
+            file_path=PATHS["root"] + "\\tweak_plan\\!默认.json",
+            template_path=PATHS["root"] + "\\resource\\template\\!默认.json")
+        ensure_file_same_as_template(
+            file_path=PATHS["root"] + "\\battle_plan\\!通用-海星-1P.json",
+            template_path=PATHS["root"] + "\\resource\\template\\!通用-海星-1P.json")
+        ensure_file_same_as_template(
+            file_path=PATHS["root"] + "\\battle_plan\\!通用-海星-2P.json",
+            template_path=PATHS["root"] + "\\resource\\template\\!通用-海星-2P.json")
 
         # 检测&修复 settings文件和模板的格式是否对应.
-        self.correct_settings_file()
+        check_settings_file(
+            file_path=self.opt_path,
+            template_path=PATHS["root"] + "\\resource\\template\\settings_template.json")
 
         # 检测uuid是否存在于battle plan 没有则添加 并将其读入到内存资源中
         fresh_and_check_all_battle_plan()
@@ -116,68 +216,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
         layout.addWidget(self.task_editor)
 
         self.task_editor.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-
-    def correct_settings_file(self, template_suffix="_template") -> None:
-        """
-        检查settings.json 是否和 template.json
-        各级的字段名和数据类型是否一致, 如果不一致, 应用模板
-        :param template_suffix: 模板附加名称
-        :return: None
-        """
-
-        # 构建模板文件的路径
-        file_path = self.opt_path
-        base_name, ext = os.path.splitext(file_path)
-        template_file_path = f"{base_name}{template_suffix}{ext}"
-
-        # 如果值为list 使用template中第一个值作为模板对照进行merge
-        def merge_settings_with_template(settings, template):
-            def merge(dict1, dict2):
-                for key, value in dict2.items():
-                    if key not in dict1:
-                        dict1[key] = copy.deepcopy(value)
-                    else:
-                        if isinstance(value, dict):
-                            if isinstance(dict1[key], dict):
-                                merge(dict1[key], value)
-                            else:
-                                dict1[key] = copy.deepcopy(value)
-                        elif isinstance(value, list):
-                            if isinstance(dict1[key], list):
-                                if len(dict1[key]) > 0 and isinstance(dict1[key][0], dict):
-                                    sample_dict = value[0]
-                                    for i, item in enumerate(dict1[key]):
-                                        if isinstance(item, dict):
-                                            merge(item, sample_dict)
-                                        else:
-                                            dict1[key] = copy.deepcopy(value)
-                                            break
-                            else:
-                                dict1[key] = copy.deepcopy(value)
-                        else:
-                            if not isinstance(dict1[key], type(value)):
-                                dict1[key] = copy.deepcopy(value)
-
-            settings_copy = copy.deepcopy(settings)
-            merge(settings_copy, template)
-            return settings_copy
-
-        CUS_LOGGER.info(f"[订正FAA基础配置文件] 订正开始.")
-
-        with EXTRA.FILE_LOCK:
-
-            with open(file=file_path, mode="r", encoding="UTF-8") as file:
-                data_settings = json.load(file)
-            with open(file=template_file_path, mode="r", encoding="UTF-8") as file:
-                data_template = json.load(file)
-
-            data_settings = merge_settings_with_template(settings=data_settings, template=data_template)
-            with open(file=self.opt_path, mode="w", encoding="UTF-8") as file:
-                json.dump(obj=data_settings, fp=file, ensure_ascii=False, indent=4)
-
-        CUS_LOGGER.info(f"[订正FAA基础配置文件] 订正完成.")
-
-        return None
 
     """opt和json的交互"""
 
