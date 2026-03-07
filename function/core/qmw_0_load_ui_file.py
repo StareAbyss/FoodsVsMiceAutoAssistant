@@ -333,29 +333,40 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         # 获取主屏幕几何信息
         screen_geometry = self.screen().availableGeometry()
 
-        # 获取当前窗口几何信息
-        window_geometry = self.geometry()
-
-        # 检查窗口是否超出屏幕边界
-        x = window_geometry.x()
-        y = window_geometry.y()
-        width = window_geometry.width()
-        height = window_geometry.height()
-
-        # 限制窗口位置
-        if x < screen_geometry.left():
-            x = screen_geometry.left()
-        elif x + width > screen_geometry.right():
-            x = screen_geometry.right() - width
-
-        if y < screen_geometry.top():
-            y = screen_geometry.top()
-        elif y + height > screen_geometry.bottom():
-            y = screen_geometry.bottom() - height
-
-        # 如果位置需要调整，则重新设置位置
-        if x != window_geometry.x() or y != window_geometry.y():
-            self.move(x, y)
+        # 获取 FrameTitle 的几何信息（相对于屏幕）
+        frame_title = self.findChild(QtWidgets.QFrame, "FrameTitle")
+        if frame_title:
+            # 获取 FrameTitle 相对于窗口的位置
+            frame_pos_in_window = frame_title.pos()
+            # 计算 FrameTitle 在屏幕坐标系中的位置
+            frame_title_global_pos = self.mapToGlobal(frame_pos_in_window)
+            
+            # 获取窗口当前位置
+            window_geometry = self.geometry()
+            x = window_geometry.x()
+            y = window_geometry.y()
+            
+            new_x = x
+            new_y = y
+            
+            # 检查 FrameTitle 是否超出屏幕边界（基于 FrameTitle 自身的位置）
+            # 左边界：FrameTitle 的左边缘不能超出屏幕左边缘
+            if frame_title_global_pos.x() < screen_geometry.left():
+                new_x = x + (screen_geometry.left() - frame_title_global_pos.x())
+            # 右边界：FrameTitle 的右边缘不能超出屏幕右边缘
+            elif frame_title_global_pos.x() + frame_title.width() > screen_geometry.right():
+                new_x = x - (frame_title_global_pos.x() + frame_title.width() - screen_geometry.right())
+            
+            # 上边界：FrameTitle 的上边缘不能超出屏幕上边缘
+            if frame_title_global_pos.y() < screen_geometry.top():
+                new_y = y + (screen_geometry.top() - frame_title_global_pos.y())
+            # 下边界：FrameTitle 的下边缘不能超出屏幕下边缘
+            elif frame_title_global_pos.y() + frame_title.height() > screen_geometry.bottom():
+                new_y = y - (frame_title_global_pos.y() + frame_title.height() - screen_geometry.bottom())
+            
+            # 如果位置需要调整，则重新设置位置
+            if new_x != x or new_y != y:
+                self.move(new_x, new_y)
 
         super().moveEvent(event)
 
