@@ -446,7 +446,7 @@ class GitSDK:
                     self.logger.info('Stash pop failed, no local modifications')
             else:
                 self.logger.warning('Stash failed, maybe first init')
-                self.run_cmd(f'"{self.git}" reset --hard {source}/{branch}', auto_input_n=True)
+                self.run_cmd(f'"{self.git}" reset --mixed {source}/{branch}', auto_input_n=True,allow_failure=True)
                 self.run_cmd(pull_cmd, auto_input_n=True)
         else:
             self.run_cmd(f'"{self.git}" reset --hard {source}/{branch}', auto_input_n=True)
