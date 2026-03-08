@@ -258,7 +258,7 @@ class GitUpdateManager(QThread):
             # 映射操作类型
             op_map = {
                 'check': ('check_update', "检测到新版本！", "已是最新版本", None),  # keep_changes=None（不使用）
-                'normal': ('update', "更新成功！", "更新可能失败，部分文件未同步，请查看日志", True),  # keep_changes=True
+                'normal': ('update', "更新成功！", "更新可能失败，请查看日志，如果在进行pull ff-only失败，这并非网络问题，说明当前版本距离最新版落后提交过多，请加深浅克隆深度以便git找到历史哈希版本，您也可以强制更新", True),  # keep_changes=True
                 'force': ('update', "强制更新成功！", "强制更新可能失败，部分文件未同步，请查看日志", False),  # keep_changes=False
             }
             
