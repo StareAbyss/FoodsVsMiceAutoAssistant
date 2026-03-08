@@ -4,13 +4,15 @@ import os
 import random
 import shutil
 import sqlite3
+import subprocess
 import threading
 import webbrowser
 
+import psutil
 import win32con
 import win32gui
 from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtWidgets import QMessageBox, QFileDialog, QVBoxLayout, QPushButton, QWidget
+from PyQt6.QtWidgets import QMessageBox, QFileDialog, QVBoxLayout, QPushButton, QWidget, QDialog
 
 from function.common.process_manager import get_path_and_sub_titles
 from function.common.startup_manager import *
@@ -47,6 +49,8 @@ from function.scattered.get_stage_info_online import get_stage_info_online
 from function.scattered.resize_360_windows import batch_resize_window
 from function.scattered.test_route_connectivity import test_route_connectivity
 from function.scattered.todo_timer_manager import TodoTimerManager
+
+from function.core.git_update_manager import git_operation, GitUpdateManager
 
 
 class QMainWindowService(QMainWindowLoadSettings):
@@ -187,6 +191,15 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 选择天知强卡器路径
         self.TCE_path_select_btn.clicked.connect(self.click_btn_select_tce_path)
+
+        # 重启应用程序按钮
+        self.Button_Refreshed.clicked.connect(self.restart_application)
+
+        # Git 更新相关按钮
+        self.ChangeGitButton.clicked.connect(self.click_btn_change_git_config)
+        self.CheckUpdateButton.clicked.connect(self.click_btn_check_update)
+        self.ForceUpdateButton.clicked.connect(self.click_btn_force_update)
+        self.NormalUpdateButton.clicked.connect(self.click_btn_normal_update)
 
         # 线程状态
         self.is_ending = False  # 线程是否正在结束
@@ -1105,6 +1118,247 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 显示窗口
         self.tools_window.show()
+
+    def click_btn_change_git_config(self):
+        """打开 Git 配置修改对话框"""
+        from function.core.git_update_manager import GitConfigDialog
+
+        dialog = GitConfigDialog(self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            CUS_LOGGER.info("Git 配置已修改")
+
+    @staticmethod
+    def _git_log_callback(level, msg):
+        """Git 日志回调 - 根据等级映射颜色"""
+        color_map = {"INFO": 3, "WARNING": 2, "ERROR": 1}
+        SIGNAL.PRINT_TO_UI.emit(f"[Git] {msg}", color_level=color_map.get(level, 3))
+
+    def click_btn_check_update(self):
+        """检查更新（异步）"""
+        from function.core.git_update_manager import git_operation
+        from plugins.git_plus.GitSDK import git_by_ini
+
+        SIGNAL.PRINT_TO_UI.emit("[Git] 正在检查更新...", color_level=1)
+        # 禁用所有 Git 操作按钮
+        self.CheckUpdateButton.setEnabled(False)
+        self.ForceUpdateButton.setEnabled(False)
+        self.NormalUpdateButton.setEnabled(False)
+
+        # 定义回调函数 - 使用 SIGNAL 发送日志和弹窗
+        def on_check_result(success, message):
+            if success:
+                SIGNAL.PRINT_TO_UI.emit(f"[Git] {message}", color_level=2)
+            else:
+                SIGNAL.PRINT_TO_UI.emit(f"[Git] {message}", color_level=0)
+            SIGNAL.DIALOG.emit("成功" if success else "失败", message)
+            # 恢复所有按钮状态
+            self.CheckUpdateButton.setEnabled(True)
+            self.ForceUpdateButton.setEnabled(True)
+            self.NormalUpdateButton.setEnabled(True)
+
+        # 获取 Git 历史日志并显示到 GitHistoryView
+        try:
+            # use_dev=None 表示根据配置文件中的 use_dev_config 选项自动决定
+            log_list = git_by_ini(async_mode=False, operation='get_git_log')
+            if log_list:
+                # 设置表格列数：提交哈希、作者、日期、消息
+                self.GitHistoryView.setColumnCount(4)
+                self.GitHistoryView.setHorizontalHeaderLabels(['提交哈希', '作者', '日期', '消息'])
+
+                # 清空现有数据
+                self.GitHistoryView.setRowCount(0)
+
+                # 填充日志数据
+                for log_info in log_list:
+                    row_position = self.GitHistoryView.rowCount()
+                    self.GitHistoryView.insertRow(row_position)
+
+                    # 提交哈希（只显示前 8 位）
+                    commit_hash_item = QtWidgets.QTableWidgetItem(log_info.commit_hash[:8] if log_info.commit_hash else '')
+                    commit_hash_item.setFlags(commit_hash_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+                    self.GitHistoryView.setItem(row_position, 0, commit_hash_item)
+
+                    # 作者
+                    author_item = QtWidgets.QTableWidgetItem(log_info.author)
+                    author_item.setFlags(author_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+                    self.GitHistoryView.setItem(row_position, 1, author_item)
+
+                    # 日期
+                    date_item = QtWidgets.QTableWidgetItem(log_info.date)
+                    date_item.setFlags(date_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+                    self.GitHistoryView.setItem(row_position, 2, date_item)
+
+                    # 消息 - 启用自动换行
+                    message_item = QtWidgets.QTableWidgetItem(log_info.message)
+                    message_item.setFlags(message_item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+                    message_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignTop)
+                    self.GitHistoryView.setItem(row_position, 3, message_item)
+
+                # 调整列宽
+                header = self.GitHistoryView.horizontalHeader()
+                header.resizeSection(0, 120)  # 提交哈希
+                header.resizeSection(1, 100)  # 作者
+                header.resizeSection(2, 160)  # 日期
+                # 第 4 列已在 UI 文件中设置为拉伸
+
+                # 调整行高以适应内容
+                self.GitHistoryView.resizeRowsToContents()
+
+                SIGNAL.PRINT_TO_UI.emit(f"[Git] 已加载 {len(log_list)} 条提交记录", color_level=1)
+        except Exception as e:
+            CUS_LOGGER.error(f"获取 Git 日志失败：{e}")
+            SIGNAL.PRINT_TO_UI.emit(f"[Git] 获取日志失败：{str(e)}", color_level=0)
+
+        # 启动异步检查 - 日志回调根据等级映射颜色
+        self.git_worker = git_operation('check', log_callback=QMainWindowService._git_log_callback)
+        # 连接结果信号
+        if self.git_worker:
+            self.git_worker.result.connect(on_check_result)
+
+    def click_btn_force_update(self):
+        """强制更新（异步）"""
+        reply = QMessageBox.question(
+            self,
+            '强制更新',
+            '确定要强制更新吗？\n'
+            '这将丢弃所有本地修改，请谨慎操作！',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No)
+
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+
+        SIGNAL.PRINT_TO_UI.emit("[Git] 开始强制更新...", color_level=1)
+        self.CheckUpdateButton.setEnabled(False)
+        self.ForceUpdateButton.setEnabled(False)
+        self.NormalUpdateButton.setEnabled(False)
+
+        # 定义回调函数 - 使用 SIGNAL 发送日志和弹窗
+        def on_force_update_result(success, message):
+            if success:
+                SIGNAL.PRINT_TO_UI.emit(f"[Git] {message}", color_level=2)
+            else:
+                SIGNAL.PRINT_TO_UI.emit(f"[Git] {message}", color_level=0)
+            SIGNAL.DIALOG.emit("成功" if success else "失败", message)
+            # 恢复所有按钮状态
+            self.CheckUpdateButton.setEnabled(True)
+            self.ForceUpdateButton.setEnabled(True)
+            self.NormalUpdateButton.setEnabled(True)
+
+        # 启动异步强制更新 - 日志回调根据等级映射颜色
+        self.git_worker = git_operation('force', log_callback=QMainWindowService._git_log_callback)
+        # 连接结果信号
+        if self.git_worker:
+            self.git_worker.result.connect(on_force_update_result)
+
+    def click_btn_normal_update(self):
+        """普通更新（异步）"""
+        from function.core.git_update_manager import git_operation
+
+        SIGNAL.PRINT_TO_UI.emit("[Git] 开始普通更新...", color_level=1)
+        # 禁用所有 Git 操作按钮
+        self.CheckUpdateButton.setEnabled(False)
+        self.ForceUpdateButton.setEnabled(False)
+        self.NormalUpdateButton.setEnabled(False)
+
+        # 定义回调函数 - 使用 SIGNAL 发送日志和弹窗
+        def on_normal_update_result(success, message):
+            if success:
+                SIGNAL.PRINT_TO_UI.emit(f"[Git] {message}", color_level=2)
+            else:
+                SIGNAL.PRINT_TO_UI.emit(f"[Git] {message}", color_level=0)
+            SIGNAL.DIALOG.emit("成功" if success else "失败", message)
+            # 恢复所有按钮状态
+            self.CheckUpdateButton.setEnabled(True)
+            self.ForceUpdateButton.setEnabled(True)
+            self.NormalUpdateButton.setEnabled(True)
+
+        # 启动异步普通更新 - 日志回调根据等级映射颜色
+        self.git_worker = git_operation('normal', log_callback=QMainWindowService._git_log_callback)
+        # 连接结果信号
+        if self.git_worker:
+            self.git_worker.result.connect(on_normal_update_result)
+
+    def restart_application(self):
+        """
+        重启整个应用程序
+        干净地关闭所有线程和进程，然后重新启动一个新的 Python 进程
+        """
+        
+        # 弹窗确认
+        reply = QMessageBox.question(
+            self,
+            '重启 FAA',
+            '确定要重启 FAA 吗？\n'
+            '这将关闭所有正在运行的任务和线程，然后重新启动程序。',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No)
+        
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+        
+        CUS_LOGGER.info("[重启] 用户请求重启应用程序，开始清理流程...")
+        if self.thread_todo_running:
+            CUS_LOGGER.info("[重启] 正在停止 todo 主线程...")
+            self.todo_end()
+        if self.todo_timer_running:
+            CUS_LOGGER.info("[重启] 正在停止定时任务管理器...")
+            self.todo_timer_stop()
+        CUS_LOGGER.info("[重启] 所有线程已停止，准备重启...")
+        
+        # 获取当前脚本路径和参数
+        python_executable = sys.executable
+        # 找到主入口文件 - 使用绝对路径
+        main_script = os.path.join(PATHS["root"], "function", "faa_main.py")
+        main_script_abs = os.path.abspath(main_script)
+        try:
+            parent_process = psutil.Process().parent()
+            parent_cmdline = parent_process.cmdline() if parent_process else []
+            mode = any('-m' in arg for arg in parent_cmdline)
+        except:
+            mode = False
+        
+        # 启动新进程 - 根据启动方式选择正确的命令
+        try:
+            CUS_LOGGER.debug(f"[重启] Python 解释器：{python_executable}")
+            CUS_LOGGER.debug(f"[重启] 启动模式：{'模块模式' if mode else '脚本模式'}")
+            CUS_LOGGER.debug(f"[重启] 工作目录：{PATHS['root']}")
+            
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            
+            if mode:
+                cmd_args = [python_executable, '-m', 'function.faa_main']
+                CUS_LOGGER.debug(f"[重启] 启动命令：{' '.join(cmd_args)}")
+                process = subprocess.Popen(
+                    cmd_args,
+                    cwd=PATHS["root"],
+                    creationflags=subprocess.CREATE_NEW_CONSOLE,
+                    startupinfo=startupinfo
+                )
+            else:
+                CUS_LOGGER.debug(f"[重启] 主脚本路径：{main_script_abs}")
+                cmd_args = [python_executable, main_script_abs]
+                CUS_LOGGER.debug(f"[重启] 启动命令：{' '.join(cmd_args)}")
+                process = subprocess.Popen(
+                    [python_executable, main_script_abs],
+                    cwd=PATHS["root"],
+                    creationflags=subprocess.CREATE_NEW_CONSOLE,
+                    startupinfo=startupinfo
+                )
+            
+            CUS_LOGGER.info(f"[重启] 新进程 PID: {process.pid}")
+        except Exception as e:
+            CUS_LOGGER.error(f"[重启] 启动新进程失败：{e}")
+            QMessageBox.critical(
+                self,
+                '重启失败',
+                f'无法启动新进程：{str(e)}',
+                QMessageBox.StandardButton.Ok)
+            return
+        CUS_LOGGER.info("[重启] 关闭当前应用...")
+        self.close()
+        os._exit(0)
 
     def open_task_editor(self, db_conn):
         """打开任务计划编辑器"""
