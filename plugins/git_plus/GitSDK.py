@@ -395,10 +395,10 @@ class GitSDK:
         # 设置代理
         if proxy:
             self.logger.info('Set Git Proxy')
-            if not self.config_eq('http', 'proxy', value=proxy):
-                self.run_cmd(f'"{self.git}" config --local http.proxy {proxy}')
-            if not self.config_eq('https', 'proxy', value=proxy):
-                self.run_cmd(f'"{self.git}" config --local https.proxy {proxy}')
+            if not self.config_eq('http', 'proxy', value=f"http://127.0.0.1:{proxy}"):
+                self.run_cmd(f'"{self.git}" config --local http.proxy http://127.0.0.1:{proxy}')
+            if not self.config_eq('https', 'proxy', value=f"http://127.0.0.1:{proxy}"):
+                self.run_cmd(f'"{self.git}" config --local https.proxy http://127.0.0.1:{proxy}')
         else:
             self.logger.info('No Proxy')
             if not self.config_eq('http', 'proxy', value=None):
