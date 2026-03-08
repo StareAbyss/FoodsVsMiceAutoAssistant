@@ -7465,7 +7465,7 @@ FAA放卡核心原理简述:
              <item>
               <widget class="QPushButton" name="NormalUpdateButton">
                <property name="text">
-                <string>一般更新（保留本地更改,但首次进行会初始化会进行强制更新）</string>
+                <string>一般更新（保留本地更改,但首次进行会初始化进行强制更新）</string>
                </property>
               </widget>
              </item>
