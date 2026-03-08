@@ -447,7 +447,8 @@ class GitSDK:
             else:
                 self.logger.warning('Stash failed, maybe first init')
                 self.run_cmd(f'"{self.git}" reset --mixed {source}/{branch}', auto_input_n=True,allow_failure=True)
-                self.run_cmd(pull_cmd, auto_input_n=True)
+                if not self.run_cmd(f'"{self.git}" checkout {branch}', allow_failure=True):
+                    self.run_cmd(pull_cmd, auto_input_n=True)
         else:
             self.run_cmd(f'"{self.git}" reset --hard {source}/{branch}', auto_input_n=True)
             # Since `git fetch` is already called, checkout is faster
