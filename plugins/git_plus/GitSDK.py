@@ -293,14 +293,19 @@ class GitSDK:
             process = subprocess.Popen(
                 command,
                 stdin=subprocess.PIPE,
-                stdout=subprocess.DEVNULL,  # 完全丢弃 stdout
-                stderr=subprocess.DEVNULL,  # 完全丢弃 stderr
+                stdout=subprocess.PIPE,  # 捕获输出用于调试
+                stderr=subprocess.PIPE,  # 捕获错误用于调试
                 text=True,
                 encoding="utf8",
                 shell=True,
                 env={**os.environ, 'GIT_TERMINAL_PROMPT': '0'}
             )
-            error_code = process.wait()  # 不需要读取输出
+            stdout, stderr = process.communicate()  # 获取输出
+            error_code = process.returncode
+            
+            # 输出错误信息用于调试
+            if error_code and stderr:
+                self.logger.error(f'Command stderr: {stderr}')
             
             if error_code:
                 if allow_failure:
@@ -644,7 +649,7 @@ def git_by_ini(use_dev = None, async_mode: bool = False, operation: str = 'check
         if async_mode:
             future = updater.run_async(operation, callback=None)
             result = future.result()
-            return result if result is not None else False
+            return result if result is not None else True  # update() 默认返回 True
         else:
             if operation == 'get_git_log':
                 return updater.get_git_log()
