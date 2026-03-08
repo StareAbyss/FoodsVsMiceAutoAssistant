@@ -1158,7 +1158,8 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 获取 Git 历史日志并显示到 GitHistoryView
         try:
-            log_list = git_by_ini(use_dev=True, async_mode=False, operation='get_git_log')
+            # use_dev=None 表示根据配置文件中的 use_dev_config 选项自动决定
+            log_list = git_by_ini(async_mode=False, operation='get_git_log')
             if log_list:
                 # 设置表格列数：提交哈希、作者、日期、消息
                 self.GitHistoryView.setColumnCount(4)

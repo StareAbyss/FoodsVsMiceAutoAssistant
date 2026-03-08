@@ -268,7 +268,8 @@ class GitUpdateManager(QThread):
             git_op, success_msg, fail_msg, keep_changes = op_map[self.operation]
             
             # 使用 git_by_ini 执行操作（传递外部传入的日志回调到前端 UI）
-            result = git_by_ini(use_dev=True, async_mode=False, operation=git_op, log_callback=self.log_callback, keep_changes_override=keep_changes)
+            # use_dev=None 表示根据配置文件中的 use_dev_config 选项自动决定
+            result = git_by_ini(async_mode=False, operation=git_op, log_callback=self.log_callback, keep_changes_override=keep_changes)
             
             if result:
                 self.result.emit(True, success_msg)

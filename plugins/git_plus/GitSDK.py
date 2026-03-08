@@ -556,12 +556,12 @@ class GitSDK:
         return True
 
 
-def git_by_ini(use_dev = False, async_mode: bool = False, operation: str = 'check_update', log_callback = None, keep_changes_override: bool = None):
+def git_by_ini(use_dev = None, async_mode: bool = False, operation: str = 'check_update', log_callback = None, keep_changes_override: bool = None):
     """
     从 INI 配置文件读取参数并执行 Git 操作
     
     Args:
-        use_dev: 是否使用 dev_config.ini
+        use_dev: 是否使用 dev_config.ini，None 表示根据 settings.ini 中的 use_dev_config 决定
         async_mode: 是否使用异步模式（非阻塞）
         operation: 操作类型，可选：'update', 'check_update', 'get_git_log', 'deepen'
         log_callback: 日志回调函数
@@ -570,7 +570,15 @@ def git_by_ini(use_dev = False, async_mode: bool = False, operation: str = 'chec
     Returns:
         bool|GitLogInfo: 操作结果，get_git_log 返回 GitLogInfo，其他返回 bool
     """
-    # 读取 INI 配置文件，优先读取 dev_config.ini
+    # 如果 use_dev 未指定，从 settings.ini 中读取
+    if use_dev is None:
+        settings_file = os.path.join(os.path.dirname(__file__), 'settings.ini')
+        if os.path.exists(settings_file):
+            parser = configparser.ConfigParser()
+            parser.read(settings_file, encoding='utf-8')
+            use_dev = parser.getboolean('settings', 'use_dev_config', fallback=False)
+    
+    # 根据 use_dev 参数决定使用哪个配置文件
     config_file = os.path.join(os.path.dirname(__file__), 'dev_config.ini')
     if (not os.path.exists(config_file)) or (not use_dev):
         config_file = os.path.join(os.path.dirname(__file__), 'config.ini')
