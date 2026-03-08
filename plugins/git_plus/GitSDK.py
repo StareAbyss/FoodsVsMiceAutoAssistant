@@ -450,7 +450,10 @@ class GitSDK:
                 init=stash_success
             if stash_success:
                 if not self.run_cmd(pull_cmd, auto_input_n=True, allow_failure=True):
-                    self.run_cmd(f'{self.git} merge --no-ff')
+                    # --ff-only 失败，说明有分叉，尝试普通 merge
+                    self.logger.info('Fast-forward failed, trying normal merge')
+                    merge_cmd = f'{self.git} merge {source}/{branch}'
+                    self.run_cmd(merge_cmd, auto_input_n=True)
                 else:
                     self.run_cmd(pull_cmd, auto_input_n=True)
                 if not self.run_cmd(f'"{self.git}" stash pop', allow_failure=True):
