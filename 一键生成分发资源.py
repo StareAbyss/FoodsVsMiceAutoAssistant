@@ -77,7 +77,7 @@ def main():
     # 初始化 FileMover 实例
     mover = FileMover(
         src_dir=".",
-        dest_dir=".\\dist\\FAA"
+        dest_dir="..\\dist\\FAA"
     )
 
     # 添加文件夹及其排除列表
@@ -105,6 +105,15 @@ def main():
 
     mover.add_folder(
         target="function"
+    )
+    mover.add_folder(
+        target="plugins\\git_plus",
+        exclude_files=[
+            "dev_config.ini"
+        ]
+    )
+    mover.add_folder(
+        target="plugins\\pak"
     )
     mover.add_folder(
         target="battle_plan"
