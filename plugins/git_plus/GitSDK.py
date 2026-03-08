@@ -449,8 +449,7 @@ class GitSDK:
                 stash_success = self.run_cmd(f'"{self.git}" stash', allow_failure=True)
                 init=stash_success
             if stash_success:
-                if init:
-                    self.run_cmd(pull_cmd, auto_input_n=True, allow_failure=True)
+                if self.run_cmd(pull_cmd, auto_input_n=True, allow_failure=True):
                     self.run_cmd(f'{self.git} merge --no-ff')
                 else:
                     self.run_cmd(pull_cmd, auto_input_n=True)
