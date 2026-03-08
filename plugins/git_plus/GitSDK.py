@@ -436,14 +436,18 @@ class GitSDK:
             pull_cmd += f' --depth={depth}'
         
         if keep_changes:
-            if self.run_cmd(f'"{self.git}" stash', allow_failure=True):
+            stash_success = self.run_cmd(f'"{self.git}" stash', allow_failure=True)
+            if not stash_success:
+                self.logger.warning('Stash failed, maybe first init')
+                self.run_cmd(f'"{self.git}" commit --allow-empty -m "initial commit"')
+                stash_success = self.run_cmd(f'"{self.git}" stash', allow_failure=True)
+            if stash_success:
                 self.run_cmd(pull_cmd, auto_input_n=True)
-                if self.run_cmd(f'"{self.git}" stash pop', allow_failure=True):
-                    pass
-                else:
+                if not self.run_cmd(f'"{self.git}" stash pop', allow_failure=True):
                     self.logger.info('Stash pop failed, no local modifications')
             else:
-                self.logger.info('Stash failed, discarding modifications')
+                # 重试后仍然失败，强制硬更新
+                self.logger.info('Stash failed, force reset')
                 self.run_cmd(f'"{self.git}" reset --hard {source}/{branch}', auto_input_n=True)
                 self.run_cmd(pull_cmd, auto_input_n=True)
         else:
