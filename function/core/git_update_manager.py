@@ -206,9 +206,16 @@ class GitConfigDialog(QDialog):
                 'ssl': str(self.ssl_check.isChecked())
             }
             
-            # 路径配置（保持不变）
+            # 路径配置 - 保留原有的 project_folder 值
+            existing_config = configparser.ConfigParser()
+            if os.path.exists(self.config_file):
+                existing_config.read(self.config_file, encoding='utf-8')
+                project_folder = existing_config.get('paths', 'project_folder', fallback='.')
+            else:
+                project_folder = '.'
+            
             config['paths'] = {
-                'project_folder': '.'
+                'project_folder': project_folder
             }
             
             # 写入文件
