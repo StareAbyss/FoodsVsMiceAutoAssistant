@@ -441,28 +441,23 @@ class GitSDK:
             pull_cmd += f' --depth={depth}'
         
         if keep_changes:
-            init=False
             stash_success = self.run_cmd(f'"{self.git}" stash', allow_failure=True)
             if not stash_success:
                 self.logger.warning('Stash failed, maybe first init')
                 self.run_cmd(f'{self.git} commit --allow-empty -m initial-commit')
                 stash_success = self.run_cmd(f'"{self.git}" stash', allow_failure=True)
-                init=stash_success
             if stash_success:
                 if not self.run_cmd(pull_cmd, auto_input_n=True, allow_failure=True):
-                    # --ff-only 失败，说明有分叉，尝试普通 merge
-                    self.logger.info('Fast-forward failed, trying normal merge')
-                    merge_cmd = f'{self.git} merge {source}/{branch}'
-                    self.run_cmd(merge_cmd, auto_input_n=True)
-                else:
-                    self.run_cmd(pull_cmd, auto_input_n=True)
+                    self.run_cmd(f'"{self.git}" reset --hard {source}/{branch}', auto_input_n=True)
+                    if not self.run_cmd(f'"{self.git}" checkout {branch}', allow_failure=True):
+                        self.run_cmd(pull_cmd, auto_input_n=True)
                 if not self.run_cmd(f'"{self.git}" stash pop', allow_failure=True):
                     self.logger.info('Stash pop failed, no local modifications')
             else:
-                # 重试后仍然失败，强制硬更新
-                self.logger.info('Stash failed, force reset')
-                self.run_cmd(f'"{self.git}" reset --hard {source}/{branch}', auto_input_n=True)
-                self.run_cmd(pull_cmd, auto_input_n=True)
+                # 重试后仍然失败，放弃更新
+                self.logger.info('Stash failed, return')
+                raise Exception('Stash failed')
+
         else:
             self.run_cmd(f'"{self.git}" reset --hard {source}/{branch}', auto_input_n=True)
             # Since `git fetch` is already called, checkout is faster
