@@ -439,7 +439,7 @@ class GitSDK:
             stash_success = self.run_cmd(f'"{self.git}" stash', allow_failure=True)
             if not stash_success:
                 self.logger.warning('Stash failed, maybe first init')
-                self.run_cmd(f'"{self.git}" commit --allow-empty -m "initial-commit"')
+                self.run_cmd(f'{self.git} commit --allow-empty -m initial-commit')
                 stash_success = self.run_cmd(f'"{self.git}" stash', allow_failure=True)
             if stash_success:
                 self.run_cmd(pull_cmd, auto_input_n=True)
