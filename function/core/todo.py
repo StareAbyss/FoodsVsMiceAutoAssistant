@@ -244,62 +244,105 @@ class ThreadTodo(QThread):
     业务代码 - 战斗以外
     """
 
-    def batch_level_2_action(self, player: list = None, delete_item: bool = False, dark_crystal: bool = False):
+    def batch_delete_items(self, player: list = None):
         """
-        批量启动 输入二级 -> 兑换暗晶(可选) -> 删除物品
+        批量删除物品
         :param player: [1] [2] [1,2]
-        :param delete_item: bool 是否删除物品
-        :param dark_crystal: bool 是否兑换暗晶
         :return:
         """
-        title_text = "二级功能"
+        title_text = "删除物品"
         self.model_start_print(text=title_text)
-        if not (delete_item or dark_crystal):
-            SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 没有启用任意功能呢... 跳过!", color_level=2)
-            self.model_end_print(text=title_text)
-            return
 
-        # 默认值
+        # 默认值 单人判定 错误值
         player = player or [1, 2]
-
-        # 如果只有一个角色
         player = [1] if self.faa_dict[1].channel == self.faa_dict[2].channel else player
-
-        # 输入错误的值!
         if player not in [[1, 2], [1], [2]]:
-            raise ValueError(f"batch_level_2_action -  player not in [[1,2],[1],[2]], your value {player}.")
+            raise ValueError(f"batch_delete_items -  player not in [[1,2],[1],[2]], your value {player}.")
 
-        # 根据配置是否激活, 取交集, 判空
-        if not self.opt["level_2"]["1p"]["active"]:
-            if 1 in player:
-                player.remove(1)
-        if not self.opt["level_2"]["2p"]["active"]:
-            if 2 in player:
-                player.remove(2)
+        # 根据配置是否激活，取交集，判空
+        for cur_player in [1, 2]:
+            if not self.opt["level_2"][f"{cur_player}p"]["active"]:
+                if cur_player in player:
+                    player.remove(cur_player)
         if not player:
-            SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 压根没有设定二级功能呢... 跳过!", color_level=2)
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 压根没有设定二级功能参数呢... 跳过!", color_level=2)
             self.model_end_print(text=title_text)
             return
 
-        # 在该动作前已经完成了游戏刷新 可以尽可能保证欢乐互娱不作妖
-        SIGNAL.PRINT_TO_UI.emit(
-            text=f"[{title_text}] 已启用. " +
-                 (f"兑换暗晶 + " if dark_crystal else f"") +
-                 f"清理无用道具, 目标:{player}P",
-            color_level=2)
+        SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 已启用，目标:{player}P", color_level=2)
 
-        # 高危动作 慢慢执行 不双线程
-        for cur_player in player:
+        def run_delete(cur_player):
+            password = self.opt["level_2"][f"{cur_player}p"]["password"]
             faa = self.faa_dict[cur_player]
-            faa.input_level_2_password(password=self.opt["level_2"][f"{cur_player}p"]["password"])
-            if delete_item:
-                faa.delete_items()
-            if dark_crystal:
-                faa.get_dark_crystal()
+            faa.input_level_2_password(password=password)
+            faa.delete_items()
 
-        # 执行完毕后立刻刷新游戏 以清除二级输入状态
-        SIGNAL.PRINT_TO_UI.emit(
-            text=f"[{title_text}] 即将刷新游戏以清除二级输入的状态...", color_level=2)
+        self.thread_1p = ThreadWithException(
+            target=run_delete,
+            name="1P Thread - DeleteItems",
+            kwargs={"cur_player": 1})
+        self.thread_2p = ThreadWithException(
+            target=run_delete,
+            name="2P Thread - DeleteItems",
+            kwargs={"cur_player": 2})
+        self.thread_1p.start()
+        self.thread_2p.start()
+        self.thread_1p.join()
+        self.thread_2p.join()
+
+        SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 即将刷新游戏以清除二级输入的状态...", color_level=2)
+        self.batch_reload_game(player=player)
+
+        self.model_end_print(text=title_text)
+        return
+
+    def batch_dark_crystal(self, player: list = None):
+        """
+        批量兑换暗晶
+        :param player: [1] [2] [1,2]
+        :return:
+        """
+        title_text = "兑换暗晶"
+        self.model_start_print(text=title_text)
+
+        # 默认值 单人判定 错误值
+        player = player or [1, 2]
+        player = [1] if self.faa_dict[1].channel == self.faa_dict[2].channel else player
+        if player not in [[1, 2], [1], [2]]:
+            raise ValueError(f"batch_dark_crystal -  player not in [[1,2],[1],[2]], your value {player}.")
+
+        # 根据配置是否激活，取交集，判空
+        for cur_player in [1, 2]:
+            if not self.opt["level_2"][f"{cur_player}p"]["active"]:
+                if cur_player in player:
+                    player.remove(cur_player)
+        if not player:
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 压根没有设定二级功能参数呢... 跳过!", color_level=2)
+            self.model_end_print(text=title_text)
+            return
+
+        SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 已启用，目标:{player}P", color_level=2)
+
+        def run_get_dark_crystal(cur_player):
+            password = self.opt["level_2"][f"{cur_player}p"]["password"]
+            faa = self.faa_dict[cur_player]
+            faa.input_level_2_password(password=password)
+            faa.get_dark_crystal()
+
+        self.thread_1p = ThreadWithException(
+            target=run_get_dark_crystal,
+            name="1P Thread - GetDarkCrystal",
+            kwargs={"cur_player": 1})
+        self.thread_2p = ThreadWithException(
+            target=run_get_dark_crystal,
+            name="2P Thread - GetDarkCrystal",
+            kwargs={"cur_player": 2})
+        self.thread_1p.start()
+        self.thread_2p.start()
+        self.thread_1p.join()
+        self.thread_2p.join()
+
+        SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 即将刷新游戏以清除二级输入的状态...", color_level=2)
         self.batch_reload_game(player=player)
 
         self.model_end_print(text=title_text)
@@ -2147,7 +2190,7 @@ class ThreadTodo(QThread):
 
         # 激活删除物品高危功能(可选)
         if quest_mode == "公会任务":
-            self.batch_level_2_action(player=[1, 2], delete_item=True, dark_crystal=False)
+            self.batch_delete_items(player=[1, 2])
 
         # 领取奖励一次 + 公会任务模式下领取普通任务奖励(公会点)一次
         SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 检查领取奖励中...")
@@ -2684,20 +2727,12 @@ class ThreadTodo(QThread):
                     )
 
                 case "清背包":
-                    self.batch_level_2_action(
-                        player=task["task_args"]["player"],
-                        delete_item=True,
-                        dark_crystal=False
-                    )
+                    self.batch_delete_items(player=task["task_args"]["player"])
                     main_task_active = True
                     active_singleton = False
 
                 case "兑换暗晶":
-                    self.batch_level_2_action(
-                        player=task["task_args"]["player"],
-                        delete_item=False,
-                        dark_crystal=True
-                    )
+                    self.batch_dark_crystal(player=task["task_args"]["player"])
                     main_task_active = True
                     active_singleton = False
 
@@ -2720,7 +2755,7 @@ class ThreadTodo(QThread):
 
                 case "签到":
                     # 二级密码 - 删除物品(可选)
-                    self.batch_level_2_action(player=[1, 2], delete_item=True, dark_crystal=False)
+                    self.batch_delete_items(player=[1, 2])
                     # 领取温馨礼包(可选)
                     self.batch_get_warm_gift(player=task["task_args"]["player"])
                     # 日氪(可选)
@@ -3542,428 +3577,3 @@ class ThreadTodo(QThread):
                 return False
         SIGNAL.PRINT_TO_UI.emit(text=f"[检测重要参数] 所有小号窗口已开启, 继续进行...", color_level=1)
         return True
-
-    # def run_old(self):
-    #     """
-    #     (已弃用)执念标记
-    #     """
-    #
-    #     # 尝试启动360游戏大厅和对应的小号
-    #     self.start_360()
-    #
-    #     # 基础参数是否输入正确 输出错误直接当场夹
-    #     if not self.test_args():
-    #         return False
-    #
-    #     """单线程作战"""
-    #
-    #     # current todo plan option
-    #     c_opt = self.opt_todo_plans
-    #
-    #     SIGNAL.PRINT_TO_UI.emit("每一个大类的任务开始前均会重启游戏以防止bug...")
-    #
-    #     self.remove_outdated_log_images()
-    #
-    #     """主要任务"""
-    #
-    #     main_task_1p_active = False
-    #     main_task_1p_active = main_task_1p_active or c_opt["sign_in"]["active"]
-    #     main_task_1p_active = main_task_1p_active or c_opt["fed_and_watered"]["active"]
-    #     main_task_1p_active = main_task_1p_active or c_opt["use_double_card"]["active"]
-    #     main_task_1p_active = main_task_1p_active or c_opt["warrior"]["active"]
-    #     main_task_2p_active = False
-    #     main_task_2p_active = main_task_2p_active or c_opt["customize"]["active"]
-    #     main_task_2p_active = main_task_2p_active or c_opt["normal_battle"]["active"]
-    #     main_task_2p_active = main_task_2p_active or c_opt["offer_reward"]["active"]
-    #     main_task_2p_active = main_task_2p_active or c_opt["cross_server"]["active"]
-    #     main_task_3p_active = False
-    #     main_task_3p_active = main_task_3p_active or c_opt["quest_guild"]["active"]
-    #     main_task_3p_active = main_task_3p_active or c_opt["guild_dungeon"]["active"]
-    #     main_task_3p_active = main_task_3p_active or c_opt["quest_spouse"]["active"]
-    #     main_task_3p_active = main_task_3p_active or c_opt["relic"]["active"]
-    #     main_task_4p_active = False
-    #     main_task_4p_active = main_task_4p_active or c_opt["magic_tower_alone_1"]["active"]
-    #     main_task_4p_active = main_task_4p_active or c_opt["magic_tower_alone_2"]["active"]
-    #     main_task_4p_active = main_task_4p_active or c_opt["magic_tower_prison_1"]["active"]
-    #     main_task_4p_active = main_task_4p_active or c_opt["magic_tower_prison_2"]["active"]
-    #     main_task_4p_active = main_task_4p_active or c_opt["magic_tower_double"]["active"]
-    #     main_task_4p_active = main_task_4p_active or c_opt["pet_temple_1"]["active"]
-    #     main_task_4p_active = main_task_4p_active or c_opt["pet_temple_2"]["active"]
-    #     main_task_active = main_task_1p_active or main_task_2p_active or main_task_3p_active or main_task_4p_active
-    #
-    #     if main_task_active:
-    #         SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom")
-    #         SIGNAL.PRINT_TO_UI.emit(text="[主要任务] 开始!", color_level=1)
-    #         SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top")
-    #         start_time = datetime.datetime.now()
-    #
-    #     if main_task_1p_active:
-    #         self.batch_reload_game()
-    #
-    #         my_opt = c_opt["sign_in"]
-    #         if my_opt["active"]:
-    #             player = [1, 2] if my_opt["is_group"] else [1]
-    #             # 领取温馨礼包
-    #             self.batch_get_warm_gift(player=player)
-    #             # 日氪
-    #             self.batch_top_up_money(player=player)
-    #             # 常规日常签到
-    #             self.batch_sign_in(player=player)
-    #
-    #         my_opt = c_opt["fed_and_watered"]
-    #         if my_opt["active"]:
-    #             self.batch_fed_and_watered(
-    #                 player=[1, 2] if my_opt["is_group"] else [1]
-    #             )
-    #
-    #         my_opt = c_opt["use_double_card"]
-    #         if my_opt["active"]:
-    #             self.batch_use_items_double_card(
-    #                 player=[1, 2] if my_opt["is_group"] else [1],
-    #                 max_times=my_opt["max_times"],
-    #             )
-    #
-    #         my_opt = c_opt["warrior"]
-    #         if my_opt["active"]:
-    #             self.easy_battle(
-    #                 text_="勇士挑战",
-    #                 stage_id=f"WA-0-{my_opt['stage']}",
-    #                 player=[2, 1] if my_opt["is_group"] else [1],
-    #                 max_times=int(my_opt["max_times"]),
-    #                 global_plan_active=my_opt["global_plan_active"],
-    #                 deck=my_opt["deck"],
-    #                 battle_plan_1p=my_opt["battle_plan_1p"],
-    #                 battle_plan_2p=my_opt["battle_plan_2p"],
-    #                 dict_exit={
-    #                     "other_time_player_a": [],
-    #                     "other_time_player_b": [],
-    #                     "last_time_player_a": ["竞技岛"],
-    #                     "last_time_player_b": ["竞技岛"]
-    #                 })
-    #
-    #             # 勇士挑战在全部完成后, [进入竞技岛], 创建房间者[有概率]会保留勇士挑战选择关卡的界面.
-    #             # 对于创建房间者, 在触发后, 需要设定完成后退出方案为[进入竞技岛 → 点X] 才能完成退出.
-    #             # 对于非创建房间者, 由于号1不会出现选择关卡界面, 会因为找不到[X]而卡死.
-    #             # 无论如何都会出现卡死的可能性.
-    #             # 因此此处选择退出方案直接选择[进入竞技岛], 并将勇士挑战选择放在本大类的最后进行, 依靠下一个大类开始后的重启游戏刷新.
-    #
-    #     if main_task_2p_active:
-    #         self.batch_reload_game()
-    #
-    #         my_opt = c_opt["customize"]
-    #         if my_opt["active"]:
-    #             self.task_sequence(
-    #                 text_="自定义任务序列",
-    #                 task_begin_id=my_opt["stage"],
-    #                 task_sequence_uuid=my_opt["battle_plan_1p"])
-    #
-    #         my_opt = c_opt["normal_battle"]
-    #         if my_opt["active"]:
-    #             self.easy_battle(
-    #                 text_="常规刷本",
-    #                 stage_id=my_opt["stage"],
-    #                 player=[2, 1] if my_opt["is_group"] else [1],
-    #                 max_times=int(my_opt["max_times"]),
-    #                 global_plan_active=my_opt["global_plan_active"],
-    #                 deck=my_opt["deck"],
-    #                 battle_plan_1p=my_opt["battle_plan_1p"],
-    #                 battle_plan_2p=my_opt["battle_plan_2p"],
-    #                 dict_exit={
-    #                     "other_time_player_a": [],
-    #                     "other_time_player_b": [],
-    #                     "last_time_player_a": ["竞技岛"],
-    #                     "last_time_player_b": ["竞技岛"]
-    #                 })
-    #
-    #         my_opt = c_opt["offer_reward"]
-    #         if my_opt["active"]:
-    #             self.offer_reward(
-    #                 text_="悬赏任务",
-    #                 global_plan_active=my_opt["global_plan_active"],
-    #                 deck=my_opt["deck"],
-    #                 max_times_1=my_opt["max_times_1"],
-    #                 max_times_2=my_opt["max_times_2"],
-    #                 max_times_3=my_opt["max_times_3"],
-    #                 max_times_4=my_opt["max_times_4"],
-    #                 battle_plan_1p=my_opt["battle_plan_1p"],
-    #                 battle_plan_2p=my_opt["battle_plan_2p"])
-    #
-    #         my_opt = c_opt["cross_server"]
-    #         if my_opt["active"]:
-    #             self.easy_battle(
-    #                 text_="跨服副本",
-    #                 stage_id=my_opt["stage"],
-    #                 player=[1, 2] if my_opt["is_group"] else [1],
-    #                 max_times=int(my_opt["max_times"]),
-    #                 global_plan_active=my_opt["global_plan_active"],
-    #                 deck=my_opt["deck"],
-    #                 battle_plan_1p=my_opt["battle_plan_1p"],
-    #                 battle_plan_2p=my_opt["battle_plan_2p"],
-    #                 dict_exit={
-    #                     "other_time_player_a": [],
-    #                     "other_time_player_b": [],
-    #                     "last_time_player_a": ["竞技岛"],
-    #                     "last_time_player_b": ["竞技岛"]
-    #                 })
-    #
-    #     if main_task_3p_active:
-    #         self.batch_reload_game()
-    #
-    #         if c_opt["quest_guild"]["active"]:
-    #             self.guild_or_spouse_quest(
-    #                 text_="公会任务",
-    #                 quest_mode="公会任务",
-    #                 global_plan_active=c_opt["quest_guild"]["global_plan_active"],
-    #                 deck=c_opt["quest_guild"]["deck"],
-    #                 battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
-    #                 battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"],
-    #                 stage=c_opt["quest_guild"]["stage"])
-    #
-    #         if c_opt["guild_dungeon"]["active"]:
-    #             self.guild_dungeon(
-    #                 text_="公会副本",
-    #                 global_plan_active=c_opt["quest_guild"]["global_plan_active"],
-    #                 deck=c_opt["quest_guild"]["deck"],
-    #                 battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
-    #                 battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"])
-    #
-    #         if c_opt["quest_spouse"]["active"]:
-    #             self.guild_or_spouse_quest(
-    #                 text_="情侣任务",
-    #                 quest_mode="情侣任务",
-    #                 global_plan_active=c_opt["quest_guild"]["global_plan_active"],
-    #                 deck=c_opt["quest_guild"]["deck"],
-    #                 battle_plan_1p=c_opt["quest_guild"]["battle_plan_1p"],
-    #                 battle_plan_2p=c_opt["quest_guild"]["battle_plan_2p"])
-    #
-    #         my_opt = c_opt["relic"]
-    #         if my_opt["active"]:
-    #             self.easy_battle(
-    #                 text_="火山遗迹",
-    #                 stage_id=my_opt["stage"],
-    #                 player=[2, 1] if my_opt["is_group"] else [1],
-    #                 max_times=int(my_opt["max_times"]),
-    #                 global_plan_active=my_opt["global_plan_active"],
-    #                 deck=my_opt["deck"],
-    #                 battle_plan_1p=my_opt["battle_plan_1p"],
-    #                 battle_plan_2p=my_opt["battle_plan_2p"],
-    #                 dict_exit={
-    #                     "other_time_player_a": [],
-    #                     "other_time_player_b": [],
-    #                     "last_time_player_a": ["竞技岛"],
-    #                     "last_time_player_b": ["竞技岛"]
-    #                 })
-    #
-    #     if main_task_4p_active:
-    #         self.batch_reload_game()
-    #
-    #         self.alone_magic_tower()
-    #
-    #         self.alone_magic_tower_prison()
-    #
-    #         self.pet_temple()
-    #
-    #         my_opt = c_opt["magic_tower_double"]
-    #         if my_opt["active"]:
-    #             self.easy_battle(
-    #                 text_="魔塔双人",
-    #                 stage_id="MT-2-" + str(my_opt["stage"]),
-    #                 player=[2, 1],
-    #                 max_times=int(my_opt["max_times"]),
-    #                 global_plan_active=my_opt["global_plan_active"],
-    #                 deck=my_opt["deck"],
-    #                 battle_plan_1p=my_opt["battle_plan_1p"],
-    #                 battle_plan_2p=my_opt["battle_plan_2p"],
-    #                 dict_exit={
-    #                     "other_time_player_a": [],
-    #                     "other_time_player_b": ["回到上一级"],
-    #                     "last_time_player_a": ["普通红叉"],
-    #                     "last_time_player_b": ["回到上一级"]
-    #                 }
-    #             )
-    #
-    #     if main_task_active:
-    #         SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
-    #         SIGNAL.PRINT_TO_UI.emit(
-    #             text=f"[主要任务] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
-    #             color_level=1)
-    #         SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
-    #
-    #     """额外任务"""
-    #
-    #     extra_active = False
-    #     extra_active = extra_active or c_opt["receive_awards"]["active"]
-    #     extra_active = extra_active or c_opt["use_items"]["active"]
-    #     extra_active = extra_active or c_opt["checking"]["active"]
-    #     extra_active = extra_active or c_opt["auto_food"]["active"]
-    #     # 循环任务
-    #     extra_active = extra_active or c_opt["tce"]["active"]
-    #     extra_active = extra_active or c_opt["loop_cross_server"]["active"]
-    #     extra_active = extra_active or c_opt["loop_cross_experience"]["active"]
-    #
-    #     if extra_active:
-    #         SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
-    #         SIGNAL.PRINT_TO_UI.emit(text=f"[额外任务] 开始!", color_level=1)
-    #         SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
-    #
-    #     if extra_active:
-    #         self.batch_reload_game()
-    #         start_time = datetime.datetime.now()
-    #
-    #     my_opt = c_opt["receive_awards"]
-    #     if my_opt["active"]:
-    #         # 扫描公会
-    #         self.batch_scan_guild_info()
-    #
-    #         # 删除物品高危功能
-    #         self.batch_level_2_action(player=[1, 2], delete_item=True, dark_crystal=False)
-    #
-    #         # 主要函数
-    #         self.batch_receive_all_quest_rewards(
-    #             player=[1, 2] if my_opt["is_group"] else [1],
-    #             quests=["普通任务", "美食大赛", "大富翁"],
-    #         )
-    #
-    #     my_opt = c_opt["use_items"]
-    #     if my_opt["active"]:
-    #         self.batch_use_items_consumables(
-    #             player=[1, 2] if my_opt["is_group"] else [1],
-    #         )
-    #     my_opt = c_opt["checking"]
-    #     if my_opt["active"]:
-    #         self.checking_undo(player=[1, 2] if my_opt["is_group"] else [1], )
-    #
-    #     my_opt = c_opt["auto_food"]
-    #     if my_opt["active"]:
-    #         self.auto_food()
-    #
-    #     my_opt = c_opt["loop_cross_server"]
-    #     if my_opt["active"]:
-    #         self.batch_loop_cross_server(
-    #             player=[1, 2] if my_opt["is_group"] else [1],
-    #             deck=c_opt["quest_guild"]["deck"],
-    #             name="威望")
-    #
-    #     my_opt = c_opt["loop_cross_experience"]
-    #     if my_opt["active"]:
-    #         self.batch_loop_cross_server(
-    #             player=[1, 2] if my_opt["is_group"] else [1],
-    #             deck=c_opt["quest_guild"]["deck"],
-    #             name="经验")
-    #
-    #     my_opt = c_opt["tce"]
-    #     if my_opt["active"]:
-    #         self.tce(
-    #             player=my_opt["player"]
-    #         )
-    #
-    #     if extra_active:
-    #         SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
-    #         SIGNAL.PRINT_TO_UI.emit(
-    #             text=f"[额外任务] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
-    #             color_level=1)
-    #         SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
-    #
-    #     """自建房战斗"""
-    #
-    #     active_singleton = False
-    #     active_singleton = active_singleton or c_opt["customize_battle"]["active"]
-    #
-    #     if active_singleton:
-    #         SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom")
-    #         SIGNAL.PRINT_TO_UI.emit(text="[自建房战斗] 开始!", color_level=1)
-    #         SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top")
-    #         SIGNAL.PRINT_TO_UI.emit(text="如出现错误, 务必确保该功能是单独启动的!")
-    #         start_time = datetime.datetime.now()
-    #
-    #     my_opt = c_opt["customize_battle"]
-    #     if my_opt["active"]:
-    #         self.easy_battle(
-    #             text_="自建房战斗",
-    #             stage_id=my_opt["stage"],
-    #             player=[[1, 2], [2, 1], [1], [2]][my_opt["is_group"]],
-    #             max_times=int(my_opt["max_times"]),
-    #             global_plan_active=my_opt["global_plan_active"],
-    #             deck=my_opt["deck"],
-    #             battle_plan_1p=my_opt["battle_plan_1p"],
-    #             battle_plan_2p=my_opt["battle_plan_2p"],
-    #             dict_exit={
-    #                 "other_time_player_a": [],
-    #                 "other_time_player_b": [],
-    #                 "last_time_player_a": [],
-    #                 "last_time_player_b": []
-    #             },
-    #             is_cu=True
-    #         )
-    #
-    #     if active_singleton:
-    #         SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="bottom")
-    #         SIGNAL.PRINT_TO_UI.emit(
-    #             text=f"[自建房战斗] 全部完成! 耗时:{str(datetime.datetime.now() - start_time).split('.')[0]}",
-    #             color_level=1)
-    #         SIGNAL.PRINT_TO_UI.emit(text="", is_line=True, line_type="top")
-    #
-    #     """完成FAA的任务列表后，开始执行插件脚本"""
-    #     name_1p = self.opt["base_settings"]["name_1p"]
-    #     if name_1p == '':
-    #         name_1p = self.opt['base_settings']['game_name']
-    #     else:
-    #         name_1p = name_1p + ' | ' + self.opt['base_settings']['game_name']
-    #
-    #     name_2p = self.opt["base_settings"]["name_2p"]
-    #     if name_2p == '':
-    #         name_2p = self.opt['base_settings']['game_name']
-    #     else:
-    #         name_2p = name_2p + ' | ' + self.opt['base_settings']['game_name']
-    #
-    #     scripts = self.opt["extension"]["scripts"]
-    #     # 这块本来就是多线程执行的，所以不需要再用线程，不会阻塞FAA的
-    #     for script in scripts:
-    #         SIGNAL.PRINT_TO_UI.emit(text=f"开始执行插件脚本 {script['name']}: {script['path']}", color_level=2)
-    #         player = script['player']
-    #
-    #         if player == 1:
-    #             for _ in range(script['repeat']):
-    #                 execute(name_1p, script['path'])
-    #         elif player == 2:
-    #             for _ in range(script['repeat']):
-    #                 execute(name_2p, script['path'])
-    #         elif player == 3:
-    #             for _ in range(script['repeat']):
-    #                 execute(name_1p, script['path'])
-    #             for _ in range(script['repeat']):
-    #                 execute(name_2p, script['path'])
-    #
-    #         SIGNAL.PRINT_TO_UI.emit(text=f"插件脚本 {script['name']}: {script['path']} 执行结束", color_level=2)
-    #
-    #     SIGNAL.PRINT_TO_UI.emit(text=f"所有插件脚本均已执行结束", color_level=1)
-    #
-    #     """全部完成"""
-    #
-    #     if main_task_active or extra_active:
-    #         if self.opt["login_settings"]["login_close_settings"]:
-    #             SIGNAL.PRINT_TO_UI.emit(
-    #                 text="[开关游戏大厅] 任务全部完成, 关闭360游戏大厅对应窗口, 降低系统负载.",
-    #                 color_level=1
-    #             )
-    #             self.close_360()
-    #         else:
-    #             if self.opt["advanced_settings"]["end_exit_game"]:
-    #                 SIGNAL.PRINT_TO_UI.emit(text="任务全部完成, 刷新返回登录界面, 降低系统负载.", color_level=1)
-    #                 self.batch_click_final_refresh_btn()
-    #             else:
-    #                 SIGNAL.PRINT_TO_UI.emit(
-    #                     text="[推荐] 进阶功能中, 可设置完成所有任务后, 关闭360游戏大厅对应窗口 or 返回登录页, 降低系统负载.",
-    #                     color_level=1)
-    #     else:
-    #         if active_singleton:
-    #             SIGNAL.PRINT_TO_UI.emit(
-    #                 text="您启动了完成后操作, 但仅运行了自建房对战, 故不进行任何操作",
-    #                 color_level=1)
-    #         else:
-    #             SIGNAL.PRINT_TO_UI.emit(text="您启动了完成后操作, 但并未运行任务, 故不进行任何操作", color_level=1)
-    #
-    #     # 全部完成了发个信号
-    #     SIGNAL.END.emit()
-    #
-    #     return True
