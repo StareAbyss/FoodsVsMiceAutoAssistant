@@ -412,11 +412,15 @@ class FAAActionInterfaceJump:
                 source_root_handle=handle_360,
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
-                after_sleep=1,
+                after_sleep=1.5,
                 click=True)
 
-            # 识别出当前关卡名称
-            return screen_get_stage_name(self.handle, self.handle_360)
+            if stage_2 == "0":
+                stage_name = screen_get_stage_name(self.handle, self.handle_360)
+                stage_id_extra = self._get_stage_info_from_battle_name(stage_name=stage_name)
+                return stage_id_extra
+
+            return None
 
         def main_cs():
 
@@ -897,7 +901,7 @@ class FAAActionInterfaceJump:
             if stage_0 == "NO":
                 main_no()
             elif stage_0 == "MT":
-                main_mt()
+                stage_id_extra = main_mt()
             elif stage_0 == "CS":
                 main_cs()
             elif stage_0 == "OR":
@@ -923,15 +927,9 @@ class FAAActionInterfaceJump:
                 SIGNAL.DIALOG.emit("ERROR", "跳转关卡失败! 请检查关卡代号是否正确")
                 SIGNAL.END.emit()
 
-            # 识别出当前关卡名称
-            stage_name = screen_get_stage_name(self.handle, self.handle_360)
-            self.print_debug(text=f"关卡名称识别结果: 当前关卡 - {stage_name}")
-
             if stage_id_extra:
+                # 检测可能的关卡名变种，如果符合特定关卡，则修改当前战斗的关卡信息
                 # 根据新的关卡id 作为战斗id覆盖 模式id不变
-                self._check_stage_name(text=stage_id_extra, t_type="id")
-            else:
-                # 检测关卡名变种，如果符合特定关卡，则修改当前战斗的关卡信息
-                self._check_stage_name(text=stage_name, t_type="name")
+                self._change_stage_bid(new_stage_id=stage_id_extra)
 
         return main()

@@ -173,7 +173,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         # 检测&修复 settings文件和模板的格式是否对应.
         check_settings_file(
             file_path=self.opt_path,
-            template_path=PATHS["root"] + "\\resource\\template\\settings_template.json")
+            template_path=PATHS["root"] + "\\resource\\template\\settings.json")
 
         # 检测uuid是否存在于battle plan 没有则添加 并将其读入到内存资源中
         fresh_and_check_all_battle_plan()
