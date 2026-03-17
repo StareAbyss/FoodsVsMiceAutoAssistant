@@ -1250,7 +1250,7 @@ class FAABase:
             source_range=[0, 0, 400, 75],
             template=RESOURCE_P["common"]["360游戏大厅"]["刷新.png"],
             match_tolerance=0.9,
-            after_sleep=3,
+            after_sleep=0,
             click=True)
 
         if not find:
@@ -1260,7 +1260,7 @@ class FAABase:
                 source_range=[0, 0, 400, 75],
                 template=RESOURCE_P["common"]["360游戏大厅"]["刷新_被选中.png"],
                 match_tolerance=0.98,
-                after_sleep=3,
+                after_sleep=0,
                 click=True)
 
             if not find:
@@ -1271,7 +1271,7 @@ class FAABase:
                     source_range=[0, 0, 400, 75],
                     template=RESOURCE_P["common"]["360游戏大厅"]["刷新_被点击.png"],
                     match_tolerance=0.98,
-                    after_sleep=3,
+                    after_sleep=0,
                     click=True)
 
                 if not find:
@@ -1431,7 +1431,7 @@ class FAABase:
         def try_close_sub_account_list() -> bool:
 
             # 等待一下 确保操作完成
-            time.sleep(0.5)
+            time.sleep(0.15)
 
             # 是否有小号列表
             _, my_result = match_p_in_w(
@@ -1581,25 +1581,23 @@ class FAABase:
                 match_tolerance=0.97,
                 match_interval=0.2,
                 match_failed_check=5,
-                after_sleep=1,
+                after_sleep=0.1,
                 click=True)
 
             # 周年庆打卡界面实测要近5s才会弹出，预留2s加载时间
-            self.print_debug(text="[刷新游戏] 等待周年庆打卡页面弹出")
-            time.sleep(7)
-            self.print_debug(text="[刷新游戏] 尝试关闭周年庆打卡界面")
+            # self.print_debug(text="[刷新游戏] 尝试关闭周年庆打卡界面")
             # [每天第一次登陆]周年庆打卡界面关闭
-            loop_match_p_in_w(
-                source_handle=self.handle,
-                source_root_handle=self.handle_360,
-                source_range=[0, 0, 950, 600],
-                template=RESOURCE_P["common"]["登录"]["4_退出周年庆打卡.png"],
-                match_tolerance=0.99,
-                match_interval=0.2,
-                match_failed_check=3,
-                after_sleep=1,
-                click=True,
-            )
+            # loop_match_p_in_w(
+            #     source_handle=self.handle,
+            #     source_root_handle=self.handle_360,
+            #     source_range=[0, 0, 950, 600],
+            #     template=RESOURCE_P["common"]["登录"]["4_退出周年庆打卡.png"],
+            #     match_tolerance=0.99,
+            #     match_interval=0.2,
+            #     match_failed_check=7,
+            #     after_sleep=1,
+            #     click=True,
+            # )
 
             self.print_debug(text="[刷新游戏] 尝试关闭假期特惠界面")
             # [每天第一次登陆] 假期特惠界面关闭
@@ -1611,7 +1609,7 @@ class FAABase:
                 match_tolerance=0.99,
                 match_interval=0.2,
                 match_failed_check=3,
-                after_sleep=1,
+                after_sleep=0.1,
                 click=True,
             )
 
@@ -1640,6 +1638,7 @@ class FAABase:
                 self.click_refresh_btn()
 
                 # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
+                time.sleep(3)
                 if self.opt["qq_login_info"]["extra_sleep_active"]:
                     time.sleep(self.opt["qq_login_info"]["extra_sleep_time"])
 
@@ -1651,6 +1650,7 @@ class FAABase:
                     self.print_debug(text="[刷新游戏] 无需断线重连")
 
                 # 依次判断是否在选择服务器界面
+                # 前面需要加足延迟 避免相关服务器网页没有加载完成 这里的操作都是只尝试一次的
                 self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 判定平台...")
 
                 if try_enter_server_4399():
@@ -1829,13 +1829,12 @@ class FAABase:
                         }
                     ],
                     return_mode="and",
-                    match_interval=1,
+                    match_interval=0.5,
                     match_failed_check=60)
 
                 if not goto_game_home_page_success:
                     CUS_LOGGER.warning(
                         f"[刷新游戏] [第{fresh_count}轮] 查找大地图失败, 选择服务器后未能成功进入游戏, 退后重来")
-                    # 进行断线重连的判断
                     self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 向上返回两次 进入下一次刷新尝试...")
                     self.click_return_btn()
                     time.sleep(1)
@@ -1845,9 +1844,7 @@ class FAABase:
 
                 action_after_success()
                 self.print_info(text=f"[刷新游戏] [第{fresh_count}轮] 顺利完成")
-                time.sleep(0.5)
                 return True
-
             return False
 
         # 第一次
@@ -1867,11 +1864,10 @@ class FAABase:
             self.start_360()
         CUS_LOGGER.warning("[刷新游戏] 重启360已结束")
 
-        # 重启360后 第二次
+        # 重启360后 第二次 没有更多次了
         fresh_success = main()
         if fresh_success:
             return True
-
         return False
 
     def start_360(self):
