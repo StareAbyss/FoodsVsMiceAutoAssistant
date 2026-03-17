@@ -609,73 +609,67 @@ class BattlePreparation:
             banned_card_index = sorted(banned_card_index)
             self.banned_card_index = banned_card_index
 
-    def _check_stage_name(self: "FAA", text, t_type="id"):
+    def _change_stage_bid(self: "FAA", new_stage_id):
         """
-        :param text str 对应的值
-        :param t_type str "id" or "name"
         根据检测出的关卡ID或关卡名，改变faa当前的stage_info
         """
 
         # 原有的关卡id
         old_stage_id = copy.deepcopy(self.stage_info["id"])
 
+        self.stage_info = read_json_to_stage_info(
+            stage_id=old_stage_id,
+            stage_id_for_battle=new_stage_id
+        )
+
+        stage_name = self.stage_info["name"]
+        SIGNAL.PRINT_TO_UI.emit(f"检测到特殊关卡：{stage_name}，已为你启用对应关卡信息(铲卡/承载)", 7)
+
+    def _get_stage_info_from_battle_name(self: "FAA", stage_name):
+
+        # 原有的关卡id
+        old_stage_id = copy.deepcopy(self.stage_info["id"])
+        special_stage = True
+
         # 特殊关卡列表占位符
         happy_holiday_list = []
         reward_list = []
         roaming_list = []
 
-        special_stage = False
+        match stage_name:
+            case _ if "魔塔蛋糕" in stage_name:
+                level = stage_name.replace("魔塔蛋糕第", "").replace("层", "")
+                self.stage_info = read_json_to_stage_info(
+                    stage_id=old_stage_id,
+                    stage_id_for_battle=f"MT-1-{level}"
+                )
 
-        if t_type == "id":
+            case _ if "双人魔塔" in stage_name:
+                level = stage_name.replace("双人魔塔第", "").replace("层", "")
+                self.stage_info = read_json_to_stage_info(
+                    stage_id=old_stage_id,
+                    stage_id_for_battle=f"MT-2-{level}")
 
-            self.stage_info = read_json_to_stage_info(
-                stage_id=old_stage_id,
-                stage_id_for_battle=text
-            )
-            special_stage = True
-            stage_name = self.stage_info["name"]
+            case _ if "萌宠神殿" in stage_name:
+                level = stage_name.replace("萌宠神殿第", "").replace("层", "")
+                self.stage_info = read_json_to_stage_info(
+                    stage_id=old_stage_id,
+                    stage_id_for_battle=f"PT-0-{level}"
+                )
 
-        elif t_type == "name":
+            case _ if stage_name in happy_holiday_list:
+                pass
 
-            stage_name = text
-            special_stage = True
+            case _ if stage_name in reward_list:
+                pass
 
-            match stage_name:
-                case _ if "魔塔蛋糕" in stage_name:
-                    level = stage_name.replace("魔塔蛋糕第", "").replace("层", "")
-                    self.stage_info = read_json_to_stage_info(
-                        stage_id=old_stage_id,
-                        stage_id_for_battle=f"MT-1-{level}"
-                    )
+            case _ if stage_name in roaming_list:
+                pass
 
-                case _ if "双人魔塔" in stage_name:
-                    level = stage_name.replace("双人魔塔第", "").replace("层", "")
-                    self.stage_info = read_json_to_stage_info(
-                        stage_id=old_stage_id,
-                        stage_id_for_battle=f"MT-2-{level}")
-
-                case _ if "萌宠神殿" in stage_name:
-                    level = stage_name.replace("萌宠神殿第", "").replace("层", "")
-                    self.stage_info = read_json_to_stage_info(
-                        stage_id=old_stage_id,
-                        stage_id_for_battle=f"PT-0-{level}"
-                    )
-
-                case _ if stage_name in happy_holiday_list:
-                    pass
-
-                case _ if stage_name in reward_list:
-                    pass
-
-                case _ if stage_name in roaming_list:
-                    pass
-
-                case _:
-                    # 查找失败
-                    special_stage = False
-
-        else:
-            stage_name = "UnKnown"
+            case _:
+                # 查找失败
+                special_stage = False
+                stage_name = "UnKnown"
 
         if special_stage:
             SIGNAL.PRINT_TO_UI.emit(f"检测到特殊关卡：{stage_name}，已为你启用对应关卡信息(铲卡/承载)", 7)
