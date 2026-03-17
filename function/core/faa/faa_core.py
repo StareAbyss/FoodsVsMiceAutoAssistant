@@ -2147,46 +2147,46 @@ class FAABase:
                 find_i = loop_match_p_in_w(
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
-                    source_range=[450, 145, 505, 205],
+                    source_range=[258, 264, 306, 313],
                     template=RESOURCE_P["top_up_money"]["每日必充_判定点.png"],
                     match_tolerance=0.99,
-                    match_interval=0.1,
-                    match_failed_check=4,
-                    after_sleep=3,
+                    match_interval=0.2,
+                    match_failed_check=3,
+                    after_sleep=0.5,
                     click=False)
                 if not find_i:
                     break
                 else:
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=790, y=110)
-                    time.sleep(2)
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=745, y=135)
+                    time.sleep(0.5)
 
         # 进入充值界面
         self.action_top_menu(mode="每日充值")
         find = loop_match_p_in_w(
             source_handle=self.handle,
             source_root_handle=self.handle_360,
-            source_range=[450, 145, 505, 205],
+            source_range=[258, 264, 306, 313],
             template=RESOURCE_P["top_up_money"]["每日必充_判定点.png"],
             match_tolerance=0.99,
-            match_interval=0.1,
-            match_failed_check=4,
-            after_sleep=3,
+            match_interval=0.2,
+            match_failed_check=3,
+            after_sleep=0.5,
             click=False)
         if not find:
             return "本期日氪没有假期票Skip... 或进入每日必冲失败, 请联系开发者!"
 
         # 尝试领取 / 尝试进入充值界面 一元档
         CUS_LOGGER.debug("尝试领取 / 尝试进入充值界面...")
-        source_range_1 = [660, 145, 770, 200]  # 充值/领取按钮位置
+        source_range_1 = [198, 429, 312, 469]  # 充值/领取按钮位置
         find = loop_match_p_in_w(
             source_handle=self.handle,
             source_root_handle=self.handle_360,
             source_range=source_range_1,
             template=RESOURCE_P["top_up_money"]["每日必充_领取.png"],
             match_tolerance=0.99,
-            match_interval=0.03,
+            match_interval=0.2,
             match_failed_check=4,
-            after_sleep=3,
+            after_sleep=0.5,
             click=True)
         if find:
             # 退出充值界面
@@ -2199,19 +2199,20 @@ class FAABase:
             source_range=source_range_1,
             template=RESOURCE_P["top_up_money"]["每日必充_充值.png"],
             match_tolerance=0.99,
-            match_interval=0.03,
+            match_interval=0.2,
             match_failed_check=4,
-            after_sleep=3,
+            after_sleep=0.5,
             click=True)
         if not find:
             # 退出充值界面
             exit_ui()
             return "今天氪过了~"
+
         or_rect = get_window_position(self.handle)
         browser_rect = get_window_position(self.handle_browser)
         zoom_rate = get_system_dpi() / 96
-        print(or_rect, browser_rect)
         deviation = [(or_rect[0] - browser_rect[0]) // zoom_rate, (or_rect[1] - browser_rect[1]) // zoom_rate]
+
         # 没有完成, 进入充值界面
         CUS_LOGGER.debug("充值界面 点击切换为游币")
         source_range_2 = [150, 110, 800, 490]  # 游币兑换按钮 查找范围
@@ -2222,9 +2223,9 @@ class FAABase:
             template=RESOURCE_P["top_up_money"]["充值界面_游币兑换.png"],
             after_click_template=RESOURCE_P["top_up_money"]["充值界面_游币兑换_已选中.png"],
             match_tolerance=0.995,
-            match_interval=0.03,
-            match_failed_check=10,
-            after_sleep=3,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=0.5,
             click=True,
             click_handle=self.handle_browser,
             deviation=deviation
@@ -2242,9 +2243,9 @@ class FAABase:
             source_range=source_range_2,
             template=RESOURCE_P["top_up_money"]["充值界面_请输入.png"],
             match_tolerance=0.995,
-            match_interval=0.03,
-            match_failed_check=10,
-            after_sleep=3,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=0.5,
             click=True,
             click_handle=self.handle_browser,
             deviation=deviation
@@ -2264,9 +2265,9 @@ class FAABase:
             template=RESOURCE_P["top_up_money"]["充值界面_游币兑换_已选中.png"],
             after_click_template=RESOURCE_P["top_up_money"]["充值界面_请输入_已输入.png"],
             match_tolerance=0.995,
-            match_interval=0.03,
-            match_failed_check=10,
-            after_sleep=3,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=0.5,
             click=True,
             click_handle=self.handle_browser,
             deviation=deviation)
@@ -2281,9 +2282,9 @@ class FAABase:
             source_range=[150, 110, 800, 490],
             template=RESOURCE_P["top_up_money"]["充值界面_立即充值.png"],
             match_tolerance=0.99,
-            match_interval=0.03,
-            match_failed_check=10,
-            after_sleep=3,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=1.5,
             click=True,
             click_handle=self.handle_browser,
             deviation=deviation)
@@ -2298,9 +2299,9 @@ class FAABase:
             source_range=[750, 90, 815, 160],
             template=RESOURCE_P["top_up_money"]["充值界面_退出.png"],
             match_tolerance=0.99,
-            match_interval=0.03,
-            match_failed_check=10,
-            after_sleep=3,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=1.5,
             click=True,
             click_handle=self.handle_browser,
             deviation=deviation)
@@ -2320,9 +2321,9 @@ class FAABase:
             source_range=source_range_1,
             template=RESOURCE_P["top_up_money"]["每日必充_领取.png"],
             match_tolerance=0.99,
-            match_interval=0.03,
-            match_failed_check=4,
-            after_sleep=3,
+            match_interval=0.2,
+            match_failed_check=3,
+            after_sleep=0.5,
             click=True)
 
         # 退出充值界面
