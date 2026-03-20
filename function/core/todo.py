@@ -841,9 +841,9 @@ class ThreadTodo(QThread):
             template=RESOURCE_P["common"]["战斗"]["战斗前_开始按钮.png"],
             after_sleep=0.3,
             click=False,
-            match_failed_check=2.0)
+            match_failed_check=3.0)
         if not find:
-            CUS_LOGGER.warning("2s找不到开始游戏! 土豆服务器问题, 创建房间可能失败!")
+            CUS_LOGGER.warning("邀请阶段, 进入房间后, 3s找不到开始游戏! 土豆服务器问题, 创建房间可能失败!")
             return False
 
         if not faa_a.stage_info["id"].split("-")[0] == "GD":
@@ -881,13 +881,13 @@ class ThreadTodo(QThread):
 
         return True
 
-    def goto_stage_and_invite(self, stage_id, mt_wb_first_time, player_a, player_b):
+    def goto_stage_and_invite(self, stage_id, mt_wb_first_time, player_a, player_b) -> bool:
         """
         :param stage_id:
         :param mt_wb_first_time: 世界boss或魔塔关卡, 第一次进入房间.
         :param player_a: 房主pid
         :param player_b: 队友pid
-        :return:
+        :return: 是否最终成功邀请
         """
 
         is_cs = "CS" in stage_id
@@ -896,13 +896,9 @@ class ThreadTodo(QThread):
         faa_a = self.faa_dict[player_a]
         faa_b = self.faa_dict[player_b]
 
-        failed_round = 0  # 计数失败轮次
+        for try_round in [1, 2, 3]:
+            for try_count in [1, 2, 3]:
 
-        while True:
-
-            failed_time = 0  # 计数失败次数
-
-            while True:
                 if not is_mt:
                     # 非魔塔进入
                     faa_a.action_goto_stage()
@@ -913,35 +909,28 @@ class ThreadTodo(QThread):
                     if mt_wb_first_time:
                         faa_b.action_goto_stage(mt_wb_first_time=mt_wb_first_time)
 
-                sleep(3)
-
                 if is_cs:
-                    # 跨服副本 直接退出
-                    return 0
+                    # 跨服副本，自带特殊邀请规则，直接退出
+                    return True
 
                 invite_success = self.invite(player_a=player_a, player_b=player_b)
                 if invite_success:
                     SIGNAL.PRINT_TO_UI.emit(text="[单本轮战] 邀请成功")
                     # 邀请成功 返回退出
-                    return 0
+                    return True
 
-                failed_time += 1
                 mt_wb_first_time = True
 
-                SIGNAL.PRINT_TO_UI.emit(text=f"[单本轮战] 邀请失败... 建房失败 or 服务器抽风, 尝试({failed_time}/3)")
-
-                if failed_time == 3:
-                    failed_round += 1
-                    SIGNAL.PRINT_TO_UI.emit(text=f"[单本轮战] 多次邀请失败, 刷新({failed_round}/3)")
-                    if failed_round < 3:
-                        self.batch_reload_game()
-                        break
-                    else:
-                        SIGNAL.PRINT_TO_UI.emit(text=f"[单本轮战] 刷新({failed_round}/3)次数过多")
-                        return 2
+                SIGNAL.PRINT_TO_UI.emit(
+                    text=f"[单本轮战] 邀请失败... 建房失败 or 服务器抽风, 回到竞技岛重试, 尝试({try_count}/3)")
 
                 faa_a.action_exit(mode="竞技岛")
                 faa_b.action_exit(mode="竞技岛")
+
+            SIGNAL.PRINT_TO_UI.emit(text=f"[单本轮战] 多次邀请失败, 刷新后继续重试, 刷新({try_round}/3)")
+            self.batch_reload_game()
+
+        return False
 
     def battle(self, player_a, player_b, change_card=True):
         """
@@ -1017,9 +1006,9 @@ class ThreadTodo(QThread):
                     self.thread_2p.join()
 
                 # 获取返回值
-                result_id = max(result_id, self.thread_1p.get_return_value())
-                if is_group:
-                    result_id = max(result_id, self.thread_2p.get_return_value())
+                if (not self.thread_1p.get_return_value()) or (not self.thread_2p.get_return_value()):
+                    result_id = 3
+                    SIGNAL.PRINT_TO_UI.emit(text="选卡失败! 请检查你的卡片是否满足战斗方案条件?")
 
         CUS_LOGGER.info("[战斗主流程] 修改卡组 已完成")
 
@@ -1359,7 +1348,7 @@ class ThreadTodo(QThread):
             self, stage_id, player, need_key, max_times, dict_exit,
             global_plan_active, deck, battle_plan_1p, battle_plan_2p,
             quest_card, ban_card_list, max_card_num,
-            extra_title, vase_num=None, battle_plan_tweak_from_quest_set=None, is_cu=False
+            extra_title, vase_num=None, battle_plan_tweak=None, is_cu=False
     ):
         """
         核心詹欧函数
@@ -1504,7 +1493,9 @@ class ThreadTodo(QThread):
 
             return skip_, deck_, battle_plan_a_, battle_plan_b_, battle_plan_tweak_
 
-        battle_plan_tweak = "00000000-0000-0000-0000-000000000000"
+        # 如果没有传入 battle_plan_tweak, 则设置为默认方案
+        if not battle_plan_tweak:
+            battle_plan_tweak = "00000000-0000-0000-0000-000000000000"
         # 加载全局关卡方案
         skip, deck, battle_plan_a, battle_plan_b, battle_plan_tweak = load_g_plan(
             skip_=skip,
@@ -1578,41 +1569,40 @@ class ThreadTodo(QThread):
             :param need_change_card:
             :return: result_id, need_change_card, need_goto_stage
             """
-            # 初始
-            result_id = 0
-
             # 自建房 直接返回
             if is_cu:
-                return result_id, need_change_card, need_goto_stage
+                return True, need_change_card, need_goto_stage
 
             # 非自建房
-            if "MT" in stage_id:
-                # 魔塔
-                if not is_group:
-                    # 单人前往副本
-                    faa_a.action_goto_stage(mt_wb_first_time=need_goto_stage)  # 第一次使用 mt_wb_first_time, 之后则不用
-                else:
-                    # 多人前往副本
-                    result_id = self.goto_stage_and_invite(
-                        stage_id=stage_id, mt_wb_first_time=need_goto_stage, player_a=pid_a, player_b=pid_b)
-                need_change_card = True  # 魔塔显然需要重新选卡组
-            elif "WB" in stage_id:
+            if ("MT" in stage_id) and (not is_group):
+                # 魔塔 单人前往副本
                 faa_a.action_goto_stage(mt_wb_first_time=need_goto_stage)  # 第一次使用 mt_wb_first_time, 之后则不用
-                need_change_card = True  # 巅峰对决显然需要重新选卡组
-            else:
-                # 非魔塔
-                if need_goto_stage:
-                    if not is_group:
-                        # 单人前往副本
-                        faa_a.action_goto_stage()
-                    else:
-                        # 多人前往副本
-                        result_id = self.goto_stage_and_invite(
-                            stage_id=stage_id, mt_wb_first_time=False, player_a=pid_a, player_b=pid_b)
+                return True, True, False
 
-            need_goto_stage = False  # 进入后Flag变化
+            if ("MT" in stage_id) and is_group:
+                # 多人前往副本
+                invite_success = self.goto_stage_and_invite(
+                    stage_id=stage_id, mt_wb_first_time=need_goto_stage, player_a=pid_a, player_b=pid_b)
+                return invite_success, True, False
 
-            return result_id, need_change_card, need_goto_stage
+            if "WB" in stage_id:
+                faa_a.action_goto_stage(mt_wb_first_time=need_goto_stage)  # 第一次使用 mt_wb_first_time, 之后则不用
+                return True, True, False
+
+            # 非魔塔
+            if need_goto_stage and (not is_group):
+                # 常规 单人前往副本
+                faa_a.action_goto_stage()
+                return True, need_change_card, False
+
+            if need_goto_stage and is_group:
+                # 常规 多人前往副本
+                invite_success = self.goto_stage_and_invite(
+                    stage_id=stage_id, mt_wb_first_time=False, player_a=pid_a, player_b=pid_b)
+                return invite_success, need_change_card, False
+
+            if not need_goto_stage:
+                return True, need_change_card, need_goto_stage
 
         def multi_round_battle():
 
@@ -1623,17 +1613,27 @@ class ThreadTodo(QThread):
             need_goto_stage = True
             need_change_card = True
 
-            battle_count = 0  # 记录成功的次数
             result_list = []  # 记录成功场次的战斗结果记录
+            last_one_battle_config_str = ""
 
             # 轮次作战
-            while battle_count < max_times:
+            for battle_count in range(1, max_times + 1):
 
-                # 前往关卡 + 尝试根据某些特征查找子集关卡; 并修正 faa 内部的 stage info 的 b_id 参数;
-                result_id, need_change_card, need_goto_stage = goto_stage(
+                # 战斗开始前提示信息
+                SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count}次, 开始")
+
+                # 前往关卡, 尝试根据某些特征查找 战斗时的子关卡
+                # 修正 faa类 内部的 stage info 的 b_id 参数;
+                goto_stage_and_invite_success, need_change_card, need_goto_stage = goto_stage(
                     need_goto_stage=need_goto_stage, need_change_card=need_change_card)
 
-                # 再次加载全局关卡方案.
+                if not goto_stage_and_invite_success:
+                    SIGNAL.PRINT_TO_UI.emit(
+                        text=f"{title}第{battle_count}次, 邀请过程中多次失败,刷新次数达到上限, 跳过本次单本连战")
+                    self.batch_reload_game(player=player)
+                    break
+
+                # 再次加载全局关卡方案 修正了b_id后会使用不同的配置
                 skip, deck, battle_plan_a, battle_plan_b, battle_plan_tweak = load_g_plan(
                     skip_=skip,
                     deck_=deck,
@@ -1643,21 +1643,20 @@ class ThreadTodo(QThread):
                     stage_id_=None,
                 )
 
-                # 微调方案 手动设定传入 > 全局 > 无而使用默认
-                if battle_plan_tweak_from_quest_set:
-                    battle_plan_tweak = battle_plan_tweak_from_quest_set
-                    CUS_LOGGER.debug("来自任务事项的微调方案已启用, 覆盖全局微调方案")
+                if faa_a.stage_info["b_id"] != stage_id:
+                    SIGNAL.PRINT_TO_UI.emit(
+                        text=f"{title}第{battle_count}次, 进入关卡时检测到子关卡, 使用{faa_a.stage_info["b_id"]}作为关卡ID")
 
                 # 根据卡组编号(0-6), 转化为游戏内操作时选择的卡组编号(1-6)和是否激活启动带卡策略
                 auto_carry_card = deck == 0
-
-                if deck == 0:
+                if auto_carry_card:
                     if self.opt["advanced_settings"]["cus_auto_carry_card_active"]:
                         new_deck = self.opt["advanced_settings"]["cus_auto_carry_card_value"]
                     else:
                         new_deck = 6
                 else:
                     new_deck = deck
+
                 # 将战斗方案加载至FAA
                 faa_a.set_battle_plan(
                     deck=new_deck,
@@ -1671,25 +1670,36 @@ class ThreadTodo(QThread):
                         battle_plan_uuid=battle_plan_b,
                         battle_plan_tweak_uuid=battle_plan_tweak)
 
-                # SIGNAL.PRINT_TO_UI.emit(
-                #     text=f"{title} [{faa_a.player}P] 房主, "
-                #          f"方案: {EXTRA.BATTLE_PLAN_UUID_TO_PATH[battle_plan_a].split("\\")[-1].split(".")[0]}")
-                # if is_group:
-                #     SIGNAL.PRINT_TO_UI.emit(
-                #         text=f"{title} [{faa_b.player}P] 队友, "
-                #              f"方案: {EXTRA.BATTLE_PLAN_UUID_TO_PATH[battle_plan_b].split("\\")[-1].split(".")[0]}")
+                # 每次战斗方案发生变化后, 打印一次当前使用配置
+                if last_one_battle_config_str != f"{[skip, deck, battle_plan_a, battle_plan_b, battle_plan_tweak]}":
+                    last_one_battle_config_str = f"{[skip, deck, battle_plan_a, battle_plan_b, battle_plan_tweak]}"
 
-                if result_id == 2:
-                    # 跳过本次 计数+1
-                    battle_count += 1
-                    # 进入异常, 跳过
-                    need_goto_stage = True
-                    # 结束提示文本
-                    SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count}次, 创建房间多次异常, 重启跳过")
-                    # 根据角色数刷新
-                    self.batch_reload_game(player=player)
+                    # 方案变化的时候刷新一次
+                    text_for_print = (
+                        f"{title}第{battle_count}次, 将使用以下配置."
+                        f"【卡组: {"自动带卡" if auto_carry_card else new_deck}】"
+                    )
 
-                SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count + 1}次, 开始")
+                    player_for_print = {(1,): "1P单人", (2,): '2P单人', (1, 2): '1P房主', (2, 1): '2P房主'}[
+                        tuple(player)]
+                    text_for_print += f"【玩家-{player_for_print}】"
+
+                    if player == [1] or player == [2]:
+                        player_a_plan_name = EXTRA.BATTLE_PLAN_UUID_TO_PATH[battle_plan_a].split("\\")[-1].split(".")[0]
+                        text_for_print += f"【{player[0]}P方案-{player_a_plan_name}】"
+                    else:
+                        player_a_plan_name = EXTRA.BATTLE_PLAN_UUID_TO_PATH[battle_plan_a].split("\\")[-1].split(".")[0]
+                        player_b_plan_name = EXTRA.BATTLE_PLAN_UUID_TO_PATH[battle_plan_b].split("\\")[-1].split(".")[0]
+                        if player == [1, 2]:
+                            text_for_print += f"【1P方案-{player_a_plan_name}】【2P方案-{player_b_plan_name}】"
+                        else:
+                            text_for_print += f"【1P方案-{player_b_plan_name}】【2P方案-{player_a_plan_name}】"
+
+                    tweak_plan_name = \
+                        EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH[battle_plan_tweak].split("\\")[-1].split(".")[0]
+                    text_for_print += f"【微调方案: {tweak_plan_name}】"
+
+                    SIGNAL.PRINT_TO_UI.emit(text=text_for_print)
 
                 # 开始战斗循环
                 result_id, result_drop, result_spend_time = self.battle(
@@ -1698,10 +1708,10 @@ class ThreadTodo(QThread):
                     change_card=need_change_card)
 
                 if result_id == 0:
+                    is_used_key = faa_a.is_used_key  # 获取是否使用了钥匙 仅查看房主(任意一个号用了钥匙都会更改为两个号都用了)
+                    need_change_card = False  # 成功的战斗 之后不需要选择卡组
 
-                    # 战斗成功 计数+1
-                    battle_count += 1
-
+                    # WARNING 此处没有使用多线程！！！
                     if battle_count < max_times:
                         # 常规退出方式
                         for j in dict_exit["other_time_player_a"]:
@@ -1716,9 +1726,6 @@ class ThreadTodo(QThread):
                         if is_group:
                             for j in dict_exit["last_time_player_b"]:
                                 faa_b.action_exit(mode=j)
-
-                    # 获取是否使用了钥匙 仅查看房主(任意一个号用了钥匙都会更改为两个号都用了)
-                    is_used_key = faa_a.is_used_key
 
                     # 加入结果统计列表
                     result_list.append({
@@ -1744,61 +1751,32 @@ class ThreadTodo(QThread):
                     else:
                         CUS_LOGGER.debug(
                             f"{title}钥匙使用要求和实际情况不同! 要求: {need_key}, 实际: {is_used_key}")
+                    continue
 
-                    # 成功的战斗 之后不需要选择卡组
-                    need_change_card = False
+                if is_cu and (result_id == 1 or result_id == 2):
+                    # 进入异常 但是自定义
+                    self.n_battle_customize_battle_error_print(success_battle_time=battle_count)
+                    break
 
                 if result_id == 1:
-
-                    # 重试本次
-
-                    if is_cu:
-                        # 进入异常 但是自定义
-                        self.n_battle_customize_battle_error_print(success_battle_time=battle_count)
-                        break
-
-                    # 进入异常, 重启再来
+                    # 进入异常 重试本次(可能导致无限循环 请注意result=1 不要随便用)
+                    SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count}次, 流程出现错误, 重试本次, 重启再来")
                     need_goto_stage = True
-
-                    # 结束提示文本
-                    SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count + 1}次, 流程出现错误, 重启再来")
-
-                    self.batch_reload_game(player=player)
-
-                    # 重新进入 因此需要重新选卡组
                     need_change_card = True
+                    self.batch_reload_game(player=player)
 
                 if result_id == 2:
-
-                    # 进入异常, 跳过
-
-                    if is_cu:
-                        # 进入异常 但是自定义
-                        self.n_battle_customize_battle_error_print(success_battle_time=battle_count)
-                        break
-
-                    # 跳过本次 计数+1
-                    battle_count += 1
-
-                    # 刷新了 需要重新进入关卡初始位置
+                    # 进入异常 跳过本次
+                    SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count}次, 流程出现错误, 跳过本次, 重启跳过")
                     need_goto_stage = True
-
-                    # 结束提示文本
-                    SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count}次, 流程出现错误, 重启跳过")
-
-                    self.batch_reload_game(player=player)
-
-                    # 重新进入 因此需要重新选卡组
                     need_change_card = True
+                    self.batch_reload_game(player=player)
+                    continue
 
                 if result_id == 3:
-                    # 放弃所有次数
-                    # 自动选卡 但没有对应的卡片! 最严重的报错!
-                    SIGNAL.PRINT_TO_UI.emit(
-                        text=f"{title} 自动选卡失败! 放弃本关全部作战! 您是否拥有对应绑定卡?")
-
+                    # 放弃所有次数 自动选卡 但没有对应的卡片! 最严重的报错!
+                    SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count}次, 流程严重错误, 放弃本关全部作战!")
                     self.batch_reload_game(player=player)
-
                     break
 
             return result_list
@@ -2025,7 +2003,7 @@ class ThreadTodo(QThread):
                 deck=quest["deck"],
                 battle_plan_1p=quest["battle_plan_1p"],
                 battle_plan_2p=quest["battle_plan_2p"],
-                battle_plan_tweak_from_quest_set=battle_plan_tweak,  # 可缺省
+                battle_plan_tweak=battle_plan_tweak,  # 可缺省
                 quest_card=quest_card,  # 可缺省
                 ban_card_list=ban_card_list,  # 可缺省
                 max_card_num=max_card_num,  # 可缺省
