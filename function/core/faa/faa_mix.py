@@ -14,10 +14,19 @@ from function.globals.loadings import loading
 loading.update_progress(30,"正在加载备战模块...")
 from function.core.faa.faa_battle_preparation import BattlePreparation
 
+# from function.core.faa.faa_synthesis import FAASynthesis
+
 from function.core.faa.faa_core import FAABase
 
 
-class FAA(FAABase, FAAActionInterfaceJump, FAAActionReceiveQuestRewards, BattlePreparation, FAABattle):
+class FAA(
+    FAABase,
+    FAAActionInterfaceJump,
+    FAAActionReceiveQuestRewards,
+    BattlePreparation,
+    FAABattle,
+    # FAASynthesis
+):
     """
     FAA聚合类!
     """

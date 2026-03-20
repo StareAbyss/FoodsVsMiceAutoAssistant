@@ -765,10 +765,10 @@ class BattlePreparation:
             return 2
         return 0
 
-    def battle_preparation_change_deck(self: "FAA") -> int:
+    def battle_preparation_change_deck(self: "FAA") -> bool:
         """
         战前准备 修改卡组
-        :return: 0-正常结束 1-重启本次 2-跳过本次 3-跳过所有次数
+        :return: 是否成功找卡
         """
 
         # 选择卡组
@@ -788,7 +788,7 @@ class BattlePreparation:
             success = self._add_cards(card_name_list=card_name_list, can_failed_list=can_failed_list)
             # 失败就会直接跳过本关卡全部场次！
             if not success:
-                return 3
+                return False
 
         else:
             # 任务需求的带卡
@@ -797,7 +797,7 @@ class BattlePreparation:
 
         self._remove_ban_card()
 
-        return 0
+        return True
 
     def start_and_ensure_entry(self: "FAA"):
         """开始并确保进入成功"""
