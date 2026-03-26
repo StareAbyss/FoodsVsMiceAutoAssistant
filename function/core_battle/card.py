@@ -200,7 +200,8 @@ class Card:
                             CUS_LOGGER.debug(f"[{self.faa.player}P] {self.name}触发了10分钟自锁")
 
         # 放完卡后强制自ban 1s 这游戏似乎没有cd更短的卡片了!
-        self.status_ban = 1
+        if self.status_ban <= 1:
+            self.status_ban = 1
 
     def get_card_current_img(self, game_image=None):
         """
