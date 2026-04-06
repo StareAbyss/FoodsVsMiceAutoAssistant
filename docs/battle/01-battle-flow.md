@@ -6,7 +6,7 @@
 
 - FAA 战前准备层：选卡、换卡组、进房、结算、收尾。
 - FAA 战斗过程层：波次检测、结束检测、玩家/卡片/宝石/铲子动作。
-- `core_battle` 执行层：`CardManager` 与多个子线程，持续把方案转换成动作队列。
+- `core_battle` 执行层：`CardManager` 与按场景启停的子线程，持续把方案转换成动作队列。
 
 ## 关键文件/类
 
@@ -89,10 +89,10 @@ flowchart TD
 - 从 FAA 已解析的方案中初始化卡片列表与卡队列
 - 为每个玩家建立独立 `CardQueue`
 - 创建多个子线程：
-  - `ThreadCheckTimer`
-  - `ThreadUseCardTimer`
-  - `ThreadInsertUseCardTimer`
-  - `ThreadUseSpecialCardTimer`
+  - 每个玩家各自拥有 `ThreadCheckTimer`
+  - 每个玩家各自拥有 `ThreadUseCardTimer`
+  - 每个玩家各自拥有 `ThreadInsertUseCardTimer`
+  - 只有开启高级战斗时，才额外创建 `ThreadUseSpecialCardTimer`
 - 在波次切换时切换当前方案
 - 在战斗结束时统一停掉子线程
 
@@ -105,7 +105,7 @@ flowchart TD
 - `ThreadInsertUseCardTimer`
   专门处理定时插卡、铲子、宝石等“插入型动作”。
 - `ThreadUseSpecialCardTimer`
-  高级战斗能力，处理特殊老鼠、障碍、冰块、神风等对策逻辑。
+  高级战斗开启后负责特殊老鼠、障碍、冰块、神风等对策逻辑。
 
 ## 队列与动作
 
