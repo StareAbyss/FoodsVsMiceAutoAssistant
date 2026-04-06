@@ -52,8 +52,10 @@
 
 - 检查用户自截图模板是否存在，必要时从 `resource/template/` 拷贝。
 - 检查 `config/settings.json` 是否存在。
+  - 代码当前用 `resource/template/settings_template.json` 作为“缺文件时的引导模板”。
 - 检查默认微调方案和默认战斗方案是否与模板一致。
 - 用模板结构修正 `settings.json`，补全缺失字段并纠正错误类型。
+  - 这一步使用的是 `resource/template/settings.json`。
 - 刷新战斗方案、微调方案 UUID 映射。
 - 刷新内存资源缓存。
 - 读取配置到 `self.opt`，再回填到 UI。
@@ -119,7 +121,7 @@
   - 可借助 OCR 从图像识别任务信息
   - 提供刷关类与强卡类参数编辑
 - 特征：
-  - 使用 SQLite 连接 `tasks.db`
+  - 通过 `PATHS["db"]/tasks.db` 使用 SQLite
   - 更像独立工具，而不是主执行链的核心部分
 
 ## 扩展点
@@ -135,5 +137,8 @@
 ## 常见坑
 
 - 配置结构是手写映射，漏改任一方向都会导致 UI 与保存内容不一致。
-- 代码中 `ensure_file_exists()` 会尝试从 `resource/template/settings_template.json` 创建配置，但当前仓库快照中可见的模板文件是 `resource/template/settings.json`；这属于需要留意的模板路径约定问题。
+- `settings` 的“缺文件引导模板”和“结构校正模板”在代码里是两个不同路径：
+  - 缺文件引导用 `resource/template/settings_template.json`
+  - 结构校正用 `resource/template/settings.json`
+- 当前仓库快照里可见的是 `resource/template/settings.json`，因此首次自举配置文件时要特别留意模板路径是否齐全。
 - `QMainWindowService` 里混合了大量窗口绑定和服务逻辑，新增功能时要注意不要把配置层和执行层搅在一起。

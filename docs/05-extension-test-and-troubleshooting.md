@@ -14,6 +14,7 @@
 - `function/extension/extension_ui.py`
 - `function/extension/extension_core.py`
 - `plugins/pak/chinese_ocr.py`
+- `function/scattered/match_ocr_text/`
 - `test/`
 
 ## 扩展系统
@@ -57,17 +58,22 @@
 ### 文件
 
 - `plugins/pak/chinese_ocr.py`
+- `function/scattered/match_ocr_text/`
 
 ### 作用
 
-- 封装 `OcrHandle`
-- 提供 `try_ocr()` 和 `try_ocr_sort()`
-- 用于文本识别相关功能，例如任务计划编辑器或比赛任务识别
+- `plugins/pak/chinese_ocr.py`
+  - 封装 `OcrHandle`
+  - 提供 `try_ocr()` 和 `try_ocr_sort()`
+  - 主要作为任务计划编辑器 OCR 安装流程中的种子脚本，被复制到独立 OCR 环境后使用
+- `function/scattered/match_ocr_text/`
+  - 是主程序内部的字形匹配式 OCR
+  - 直接服务于关卡名称识别和美食大赛任务解析
 
 ### 边界
 
-- 它是插件式组件，不直接参与所有主流程。
-- 主业务侧通常把 OCR 当成辅助输入，而不是唯一判定来源。
+- 外部 OCR 插件并不直接承担 FAA 主战斗链路里的文字识别。
+- FAA 主流程中与比赛任务、关卡名称相关的 OCR 更依赖 `match_ocr_text/` 这套内置实现。
 
 ## `test/` 目录用途
 
@@ -166,13 +172,14 @@
 
 - `plugins/pak/chinese_ocr.py`
 - `qmw_task_plan_editor.py`
+- `function/scattered/match_ocr_text/`
 
 ## 扩展点
 
 - 新增扩展脚本能力：
   - 优先在 `extension_core.py` 加原语
 - 新增 OCR 使用场景：
-  - 直接在调用侧封装，不要把业务逻辑塞进插件本身
+  - 先分清是主流程内置 OCR，还是工具链外部 OCR，再决定落点
 - 新增测试脚本：
   - 建议按“截图/匹配/线程/UI/算法”主题归类，避免继续堆平铺脚本
 
