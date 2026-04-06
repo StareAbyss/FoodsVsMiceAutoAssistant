@@ -1,3 +1,5 @@
+import math
+
 from PyQt6 import QtGui, QtCore
 
 
@@ -45,6 +47,26 @@ def create_qt_icon(q_color, mode):
             painter.drawLine(3, 1, 13, 1)  # 顶部横线
             painter.drawLine(3, 4, 8, 12)  # 左边线
             painter.drawLine(13, 4, 8, 12)  # 右边线
+        case "refresh":
+            painter.setPen(QtGui.QPen(q_color, 2))
+            import math
+            cx, cy = 8.0, 8.0
+            Vx, Vy = 12.0, 4.0
+            dx, dy = Vx - cx, Vy - cy
+            R = math.hypot(dx, dy)
+            rect = QtCore.QRectF(cx - R, cy - R, 2 * R, 2 * R)
+            start_angle = 15 * 16
+            span_angle = -270 * 16
+            painter.drawArc(rect, start_angle, span_angle)
+            V = QtCore.QPointF(Vx, Vy)
+            L = 4.0
+            theta1 = math.radians(115)
+            theta2 = math.radians(45)
+            A = QtCore.QPointF(V.x() + L * math.cos(theta1), V.y() + L * math.sin(theta1))
+            B = QtCore.QPointF(V.x() + L * math.cos(theta2), V.y() + L * math.sin(theta2))
+            painter.drawLine(V, A)
+            painter.drawLine(V, B)
+            painter.drawLine(A, B)
         case _:
             pass
 

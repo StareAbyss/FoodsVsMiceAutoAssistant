@@ -316,13 +316,20 @@ class TaskEditor(QMainWindow):
             msg.exec()
 
     def perform_ocr(self):
-        """执行OCR识别并自动填充任务名称与关卡"""
+        """执行 OCR 识别并自动填充任务名称与关卡"""
         if not hasattr(self, 'current_main_image_path'):
             QMessageBox.warning(self, "警告", "请先选择一张图片！")
             return
-
+    
         try:
-            from plugins.chineseocr_lite_onnx.chinese_ocr import try_ocr_sort, try_ocr
+            # PyInstaller 打包后动态添加插件路径
+            import sys
+            plugin_path = PATHS["plugins"] + "//chineseocr_lite_onnx"
+            if os.path.exists(plugin_path) and plugin_path not in sys.path:
+                sys.path.insert(0, plugin_path)
+                
+            # 延迟导入 OCR 模块
+            from chinese_ocr import try_ocr_sort, try_ocr
             # 主图像处理
             main_result = try_ocr_sort(self.current_main_image_path)
             self.ocr_result.setPlainText("\n".join(main_result))
@@ -366,7 +373,7 @@ class TaskEditor(QMainWindow):
             msg.setIcon(QMessageBox.Icon.Critical)
             msg.setWindowTitle("错误")
             msg.setText(
-                f"OCR识别失败：该功能仅限github源码版使用，请先点下方按钮安装环境，安装之后如果提示缺库请自行通过pip安装Shapely,pyclipper,Pillow等库{str(e)}")
+                f"OCR识别失败：请先点下方按钮安装环境，安装后可能需要重启应用程序使环境生效，建议在调试模式下安装在cmd中观看安装进度{str(e)}")
             msg.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
             msg.exec()
 
