@@ -19,8 +19,21 @@
         }
     },
     {
-        "task_type": "战斗",
+        "task_type": "清背包",
         "task_id": 2,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "战斗",
+        "task_id": 3,
         "enabled": true,
         "alias": "战斗-生肖",
         "tooltip": "",
@@ -36,38 +49,7 @@
             "deck": 0,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-            "quest_card": "None",
-            "ban_card_list": [],
-            "dict_exit": {
-                "other_time_player_a": [],
-                "other_time_player_b": [],
-                "last_time_player_a": [
-                    "竞技岛"
-                ],
-                "last_time_player_b": [
-                    "竞技岛"
-                ]
-            }
-        }
-    },
-    {
-        "task_type": "战斗",
-        "task_id": 3,
-        "enabled": true,
-        "alias": "战斗-遗迹",
-        "tooltip": "",
-        "task_args": {
-            "stage_id": "NO-3-6",
-            "max_times": 5,
-            "need_key": true,
-            "player": [
-                2,
-                1
-            ],
-            "global_plan_active": true,
-            "deck": 0,
-            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -99,6 +81,7 @@
             "deck": 0,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -120,16 +103,17 @@
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "stage_id": "MT-1-120",
-            "max_times": 5,
+            "stage_id": "MT-3-1",
+            "max_times": 1,
             "need_key": true,
             "player": [
-                2
+                1
             ],
             "global_plan_active": true,
             "deck": 0,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-            "battle_plan_2p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -151,7 +135,7 @@
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "stage_id": "MT-3-1",
+            "stage_id": "MT-3-2",
             "max_times": 1,
             "need_key": true,
             "player": [
@@ -161,6 +145,7 @@
             "deck": 0,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -182,7 +167,7 @@
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "stage_id": "MT-3-2",
+            "stage_id": "MT-3-3",
             "max_times": 1,
             "need_key": true,
             "player": [
@@ -192,6 +177,7 @@
             "deck": 0,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -213,7 +199,7 @@
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "stage_id": "MT-3-3",
+            "stage_id": "MT-3-4",
             "max_times": 1,
             "need_key": true,
             "player": [
@@ -223,6 +209,7 @@
             "deck": 0,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -244,7 +231,7 @@
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "stage_id": "MT-3-4",
+            "stage_id": "PT-0-25",
             "max_times": 1,
             "need_key": true,
             "player": [
@@ -254,6 +241,7 @@
             "deck": 0,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -275,8 +263,8 @@
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "stage_id": "MT-3-1",
-            "max_times": 1,
+            "stage_id": "MT-1-120",
+            "max_times": 5,
             "need_key": true,
             "player": [
                 2
@@ -284,7 +272,8 @@
             "global_plan_active": true,
             "deck": 0,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -306,7 +295,7 @@
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "stage_id": "MT-3-2",
+            "stage_id": "MT-3-1",
             "max_times": 1,
             "need_key": true,
             "player": [
@@ -316,6 +305,7 @@
             "deck": 0,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -337,7 +327,7 @@
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "stage_id": "MT-3-3",
+            "stage_id": "MT-3-2",
             "max_times": 1,
             "need_key": true,
             "player": [
@@ -347,6 +337,7 @@
             "deck": 0,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -368,7 +359,7 @@
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "stage_id": "MT-3-4",
+            "stage_id": "MT-3-3",
             "max_times": 1,
             "need_key": true,
             "player": [
@@ -378,6 +369,7 @@
             "deck": 0,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -399,16 +391,17 @@
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "stage_id": "PT-0-25",
+            "stage_id": "MT-3-4",
             "max_times": 1,
             "need_key": true,
             "player": [
-                1
+                2
             ],
             "global_plan_active": true,
             "deck": 0,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -440,6 +433,7 @@
             "deck": 0,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -472,6 +466,7 @@
             "deck": 0,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {

@@ -1404,25 +1404,26 @@ class QMWEditorOfTaskSequence(QMainWindow):
         data = data_without_id + data_with_id
         return data
 
-    def open_task_sequence(self):
+    def open_task_sequence(self, file_path):
 
-        file_name = self.open_json()
+        if not file_path:
+            file_path = self.open_json()
 
-        if file_name:
-            result = self.load_json(file_path=file_name)
+        if file_path:
+            result = self.load_json(file_path=file_path)
             if result:
                 self.father.TaskSequenceButtonSaveJson.setEnabled(True)
 
     def open_json(self):
         """打开窗口 打开json文件"""
 
-        file_name, _ = QFileDialog.getOpenFileName(
+        file_path, _ = QFileDialog.getOpenFileName(
             parent=self,
             caption="打开 JSON 文件",
             directory=PATHS["task_sequence"],
             filter="JSON Files (*.json)")
 
-        return file_name
+        return file_path
 
     def load_json(self, file_path):
         """

@@ -19,7 +19,7 @@
         }
     },
     {
-        "task_type": "查漏补缺",
+        "task_type": "清背包",
         "task_id": 2,
         "enabled": true,
         "alias": "",
@@ -32,18 +32,8 @@
         }
     },
     {
-        "task_type": "扫描公会贡献",
+        "task_type": "查漏补缺",
         "task_id": 3,
-        "enabled": true,
-        "alias": "",
-        "tooltip": "",
-        "task_args": {
-            "player": 1
-        }
-    },
-    {
-        "task_type": "使用消耗品",
-        "task_id": 4,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -55,7 +45,17 @@
         }
     },
     {
-        "task_type": "清背包",
+        "task_type": "扫描公会贡献",
+        "task_id": 4,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": 1
+        }
+    },
+    {
+        "task_type": "使用消耗品",
         "task_id": 5,
         "enabled": true,
         "alias": "",
@@ -79,8 +79,8 @@
                 2
             ],
             "normal": true,
-            "guild": false,
-            "spouse": false,
+            "guild": true,
+            "spouse": true,
             "offer_reward": true,
             "food_competition": true,
             "monopoly": true,
