@@ -23,6 +23,8 @@
   FAA 主体能力
 - `function/core/faa/faa_action_interface_jump.py`
   地图/界面跳转
+- `function/core/faa/faa_action_receive_quest_rewards.py`
+  奖励领取相关动作
 - `function/core/faa/faa_battle_preparation.py`
   战前准备和战后收尾
 - `function/core/faa/faa_battle.py`
@@ -95,9 +97,10 @@ flowchart TD
 - 日常事项
   - 签到
   - 浇水/施肥/摘果
+  - 删除物品
   - 使用消耗品
   - 暗晶兑换
-  - 送花
+  - 温馨礼包
 - 奖励与任务
   - 领取任务奖励
   - 扫描公会/情侣/悬赏/大赛任务
@@ -114,11 +117,11 @@ flowchart TD
 
 ### 运行模式
 
-- 单线程单号
-- 单线程双号组队
-- 双线程双号并行
+- 常规模式：`thread_todo_1` 负责完整任务序列与大多数事项编排。
+- 组队战斗：主线程内部可以驱动 1P/2P 协作完成组队事项。
+- 双线程单人作战：`thread_todo_2` 只在特定战斗场景下被主线程信号拉起，负责 2P 的 `battle_1_n_n()` 支线执行。
 
-其中双线程多用于把 2P 作为单独线程执行连续战斗，避免串行耗时过长。
+代码里的副线程不是“任意双号全并行编排器”，而是为若干多线程单人战斗场景准备的辅助线程。
 
 ## `FAA` 核心对象
 
@@ -130,12 +133,14 @@ flowchart TD
   核心状态、关卡配置、方案解析、日常功能主体。
 - `FAAActionInterfaceJump`
   地图与界面跳转。
+- `FAAActionReceiveQuestRewards`
+  奖励领取相关动作。
 - `BattlePreparation`
   选卡、换卡组、进房、结算、翻牌、掉落识别。
 - `FAABattle`
   战斗中动作，如放卡、用铲、拾取、波次检测、结束检测。
-- 其他 mixin
-  任务领奖、合成、额外识图等。
+
+当前代码中 `FAASynthesis` 仍处于注释状态，没有真正加入 `FAA` 聚合类。
 
 ### FAA 的状态边界
 

@@ -17,7 +17,7 @@
 - `function/yolo/onnxdetect.py`
 - `function/core_battle/card_manager.py`
 - `function/common/window_recorder.py`
-- `function/scattered/match_ocr_text/*`
+- `function/scattered/match_ocr_text/`
 
 ## 截图与窗口恢复
 
@@ -94,7 +94,7 @@
 
 ## 高级战斗
 
-高级战斗主要体现在 `ThreadUseSpecialCardTimer` 及其相关辅助逻辑。
+高级战斗在开启后，主要体现在 `ThreadUseSpecialCardTimer` 及其相关辅助逻辑。
 
 ### 解决的问题
 
@@ -113,15 +113,22 @@
 
 ## OCR 辅助
 
-`function/scattered/match_ocr_text/` 和 `plugins/pak/chinese_ocr.py` 负责文本识别相关能力。
+项目里实际有两套不同的文本识别路径：
+
+- `function/scattered/match_ocr_text/`
+  内置的“字形块匹配式 OCR”，直接依赖 `g_resources.RESOURCE_P["ocr"]` 等模板资源，主要用于游戏内文字识别。
+- `plugins/pak/chinese_ocr.py`
+  外部 OCR 适配脚本，主要被任务计划编辑器的 OCR 安装/识别流程使用。
 
 常见用途：
 
-- 识别美食大赛任务描述
-- 识别关卡名称
-- 从图像辅助生成任务计划
+- 内置 OCR：
+  - 识别美食大赛任务描述
+  - 识别关卡名称
+- 外部 OCR 插件：
+  - 从任务计划截图中辅助生成任务计划内容
 
-这部分不是战斗主循环的硬依赖，但对任务自动化很重要。
+其中前者和 FAA 主流程直接相关，后者更偏工具链能力。
 
 ## 扩展点
 

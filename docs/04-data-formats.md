@@ -44,8 +44,10 @@
 ### 代码约定
 
 - UI 实际读写的是 `config/settings.json`
-- 模板结构来源于 `resource/template/settings.json`
-- `qmw_2_load_settings.py` 会在启动时做字段补全和类型纠正
+- `qmw_2_load_settings.py` 里有两条模板相关路径：
+  - 缺文件引导使用 `resource/template/settings_template.json`
+  - 结构补全与类型纠正使用 `resource/template/settings.json`
+- 当前仓库快照里能直接看到的是后者，因此首次生成配置文件时要特别留意前者是否存在
 
 ## 战斗方案
 
