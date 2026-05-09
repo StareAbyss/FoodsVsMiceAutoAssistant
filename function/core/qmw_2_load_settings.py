@@ -43,7 +43,10 @@ def ensure_file_exists(file_path, template_path) -> None:
         CUS_LOGGER.error(f"[资源存在检查] 无 '{file_path}', 无 '{template_path}'. ")
         return
 
-        # 如果模板文件存在，则复制模板文件到原始文件路径
+    # 创建目标文件夹（如果不存在）
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+    # 如果模板文件存在，则复制模板文件到原始文件路径
     shutil.copy(template_path, file_path)
     CUS_LOGGER.warning(f"[资源存在检查] '{file_path}' 不存在，已从模板 '{template_path}' 创建。")
 
@@ -157,7 +160,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             template_path=PATHS["root"] + "\\resource\\template\\跨服远征_1p.png")
         ensure_file_exists(
             file_path=self.opt_path,
-            template_path=PATHS["root"] + "\\resource\\template\\settings_template.json")
+            template_path=PATHS["root"] + "\\resource\\template\\settings.json")
 
         # 检测&修复 关键方案是否完全一致
         ensure_file_same_as_template(
