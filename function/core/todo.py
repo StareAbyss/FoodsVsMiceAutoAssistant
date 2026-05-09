@@ -1008,9 +1008,13 @@ class ThreadTodo(QThread):
                     self.thread_2p.join()
 
                 # 获取返回值
-                if (not self.thread_1p.get_return_value()) or (not self.thread_2p.get_return_value()):
+                if not self.thread_1p.get_return_value():
                     result_id = 3
-                    SIGNAL.PRINT_TO_UI.emit(text="选卡失败! 请检查你的卡片是否满足战斗方案条件?")
+                    SIGNAL.PRINT_TO_UI.emit(text=f"{player_a}P选卡失败! 请检查你的卡片是否满足战斗方案条件?")
+                if is_group:
+                    if not self.thread_2p.get_return_value():
+                        result_id = 3
+                        SIGNAL.PRINT_TO_UI.emit(text=f"{player_b}P选卡失败! 请检查你的卡片是否满足战斗方案条件?")
 
         CUS_LOGGER.info("[战斗主流程] 修改卡组 已完成")
 
