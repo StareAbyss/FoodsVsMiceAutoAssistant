@@ -1,7 +1,7 @@
 [
     {
         "meta_data": {
-            "uuid": "9c8ee1a9-de80-11f0-b97c-f4c88a4ed544",
+            "uuid": "9b4a6579-057d-11f1-9f0a-e494f06b9fff",
             "version": "1.0"
         }
     },
@@ -21,20 +21,21 @@
     {
         "task_type": "战斗",
         "task_id": 2,
-        "enabled": true,
+        "enabled": false,
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "stage_id": "MT-1-120",
-            "max_times": 2,
+            "stage_id": "WB-0-0",
+            "max_times": 1,
             "need_key": true,
             "player": [
                 1
             ],
             "global_plan_active": true,
             "deck": 0,
-            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_1p": "fdfd70ae-0ea4-11f1-b2d6-b3d671c65c7e",
+            "battle_plan_2p": "8bad66e3-0ea6-11f1-bc17-b3d671c65c7e",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -50,34 +51,29 @@
         }
     },
     {
-        "task_type": "战斗",
+        "task_type": "清背包",
         "task_id": 3,
+        "enabled": false,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "浇水施肥摘果",
+        "task_id": 4,
         "enabled": true,
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "stage_id": "MT-1-120",
-            "max_times": 2,
-            "need_key": true,
             "player": [
+                1,
                 2
-            ],
-            "global_plan_active": true,
-            "deck": 0,
-            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-            "battle_plan_2p": "00000000-0000-0000-0000-000000000000",
-            "quest_card": "None",
-            "ban_card_list": [],
-            "dict_exit": {
-                "other_time_player_a": [],
-                "other_time_player_b": [],
-                "last_time_player_a": [
-                    "竞技岛"
-                ],
-                "last_time_player_b": [
-                    "竞技岛"
-                ]
-            }
+            ]
         }
     }
 ]

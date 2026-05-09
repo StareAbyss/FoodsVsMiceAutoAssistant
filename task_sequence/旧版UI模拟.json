@@ -1,3 +1,4 @@
+
 [
     {
         "meta_data": {
@@ -47,7 +48,7 @@
     {
         "task_type": "双暴卡",
         "task_id": 4,
-        "enabled": true,
+        "enabled": false,
         "alias": "",
         "tooltip": "",
         "task_args": {
@@ -61,7 +62,7 @@
     {
         "task_type": "战斗",
         "task_id": 5,
-        "enabled": true,
+        "enabled": false,
         "alias": "勇士副本",
         "tooltip": "45把掉落衰减: 不占用\n双倍掉落：非常需求",
         "task_args": {
@@ -112,13 +113,13 @@
         "tooltip": "允许您自由编辑[关卡/事项]进行作战.\n推荐您在对FAA有一定了解后再使用.",
         "task_args": {
             "sequence_integer": 1,
-            "task_sequence_uuid": "9c8cc28d-de80-11f0-a1ab-f4c88a4ed544"
+            "task_sequence_uuid": "9c8dbb74-de80-11f0-8b4e-f4c88a4ed544"
         }
     },
     {
         "task_type": "战斗",
         "task_id": 8,
-        "enabled": true,
+        "enabled": false,
         "alias": "常规单本连战",
         "tooltip": "45把掉落衰减: 占用\n双倍掉落：需求",
         "task_args": {

@@ -98,12 +98,13 @@ def main():
     # 添加文件或文件夹
     tar_files = [
         "新手入门 看我!!! 看我!!! 看我!!!.txt",
+        "FAA支持性检测, 仅限Win10+.bat",
         "LICENSE",
         "README.md",
         "README - 高级放卡.md",
         "致谢名单.md",
         "致谢名单.png",
-        "点我获取更多图像资源 2025-08-28.xlsx",
+        "点我获取更多图像资源 2026-02-15.xlsx",
         "logs/item_ranking_dag_graph.json",
     ]
     for tar_file in tar_files:
@@ -132,61 +133,6 @@ def main():
 * run 函数 实际移动 输出样例 
     Copied: 
     '.\LICENSE -> ..\_ExeWorkSpace\dist\FAA\LICENSE'
-下面是调用样例
-
-def main():
-
-    # 初始化 FileMover 实例
-    mover = FileMover(
-        src_dir=".",
-        dest_dir="..\\_ExeWorkSpace\\dist\\FAA"
-    )
-
-    # 添加文件夹及其排除列表
-    mover.add_folder(
-        target="config",
-        exclude_files=[
-            "settings.json",
-            "空间服登录界面_1P.png",
-            "空间服登录界面_2P.png",
-            "跨服远征_1p.png"
-        ],
-        exclude_paths=[
-            "config/cus_images/背包_装备_需使用的/任意通用包裹.png"
-        ]
-    )
-    mover.add_folder(
-        target="battle_plan"
-    )
-    mover.add_folder(
-        target="battle_plan_not_active"
-    )
-    mover.add_folder(
-        target="md_img"
-    )
-    mover.add_folder(
-        target="task_sequence"
-    )
-    mover.add_folder(
-        target="resource",
-        exclude_types=[".pyc"]
-    )
-
-    # 添加文件或文件夹
-    mover.add_file("[入门]FAA从入门到神殿.docx")
-    mover.add_file("[入门]FAA从入门到神殿.pdf")
-    mover.add_file("LICENSE")
-    mover.add_file("README.md")
-    mover.add_file("高级放卡.md")
-    mover.add_file("致谢名单.md")
-    mover.add_file("致谢名单.png")
-    mover.add_file("logs/item_ranking_dag_graph.json")
-
-    # 预览移动
-    mover.preview()
-
-    # 实际移动
-    # mover.run()  
 """
 
 if __name__ == "__main__":

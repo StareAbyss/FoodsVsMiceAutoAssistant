@@ -127,5 +127,28 @@
             "monopoly": true,
             "camp": true
         }
+    },
+    {
+        "task_type": "兑换暗晶",
+        "task_id": 9,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "扫描公会贡献",
+        "task_id": 10,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": 1
+        }
     }
 ]

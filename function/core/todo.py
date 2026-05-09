@@ -464,7 +464,9 @@ class ThreadTodo(QThread):
             self.thread_1p = ThreadWithException(
                 target=send_request,
                 name=f"{pid}P Thread - GetWarmGift",
-                kwargs={"pid": pid, "url": url})
+                kwargs={"pid": pid, "url": url}
+            )
+
             self.thread_1p.start()
             self.thread_1p.join()
 

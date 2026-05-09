@@ -74,7 +74,7 @@
     {
         "task_type": "战斗",
         "task_id": 6,
-        "enabled": true,
+        "enabled": false,
         "alias": "战斗-勇士本",
         "tooltip": "",
         "task_args": {
@@ -127,8 +127,28 @@
         }
     },
     {
-        "task_type": "公会任务",
+        "task_type": "领取任务奖励",
         "task_id": 9,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ],
+            "normal": false,
+            "guild": false,
+            "spouse": false,
+            "offer_reward": true,
+            "food_competition": false,
+            "monopoly": false,
+            "camp": false
+        }
+    },
+    {
+        "task_type": "公会任务",
+        "task_id": 10,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -155,7 +175,7 @@
     },
     {
         "task_type": "情侣任务",
-        "task_id": 10,
+        "task_id": 11,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -181,7 +201,7 @@
     },
     {
         "task_type": "清背包",
-        "task_id": 11,
+        "task_id": 12,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -194,7 +214,7 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 12,
+        "task_id": 13,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -211,5 +231,13 @@
             "monopoly": true,
             "camp": true
         }
+    },
+    {
+        "task_type": "美食大赛",
+        "task_id": 14,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {}
     }
 ]

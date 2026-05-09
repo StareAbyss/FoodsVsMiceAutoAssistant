@@ -75,6 +75,7 @@ def ensure_directory_exists(path):
 def check_paths():
     """检测所有路径是否存在"""
     paths = [
+        "\\battle_plan",
         "\\battle_plan_not_active",
         "\\tweak_plan",
         "\\logs",

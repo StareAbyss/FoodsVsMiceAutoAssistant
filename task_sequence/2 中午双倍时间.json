@@ -55,11 +55,11 @@
         "task_type": "战斗",
         "task_id": 3,
         "enabled": true,
-        "alias": "战斗-公会副本",
-        "tooltip": "",
+        "alias": "",
+        "tooltip": "战斗-遗迹",
         "task_args": {
-            "stage_id": "GD-0-1",
-            "max_times": 3,
+            "stage_id": "NO-3-6",
+            "max_times": 5,
             "need_key": true,
             "player": [
                 2,
@@ -91,7 +91,7 @@
         "alias": "战斗-公会副本",
         "tooltip": "",
         "task_args": {
-            "stage_id": "GD-0-2",
+            "stage_id": "GD-0-1",
             "max_times": 3,
             "need_key": true,
             "player": [
@@ -124,6 +124,39 @@
         "alias": "战斗-公会副本",
         "tooltip": "",
         "task_args": {
+            "stage_id": "GD-0-2",
+            "max_times": 3,
+            "need_key": true,
+            "player": [
+                2,
+                1
+            ],
+            "global_plan_active": true,
+            "deck": 0,
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
+            "quest_card": "None",
+            "ban_card_list": [],
+            "dict_exit": {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": [
+                    "竞技岛"
+                ],
+                "last_time_player_b": [
+                    "竞技岛"
+                ]
+            }
+        }
+    },
+    {
+        "task_type": "战斗",
+        "task_id": 6,
+        "enabled": true,
+        "alias": "战斗-公会副本",
+        "tooltip": "",
+        "task_args": {
             "stage_id": "GD-0-3",
             "max_times": 3,
             "need_key": true,
@@ -148,6 +181,32 @@
                     "竞技岛"
                 ]
             }
+        }
+    },
+    {
+        "task_type": "兑换暗晶",
+        "task_id": 7,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "清背包",
+        "task_id": 8,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
         }
     }
 ]

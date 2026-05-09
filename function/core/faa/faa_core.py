@@ -632,22 +632,29 @@ class FAABase:
         target_kun_list = ["幻幻鸡", "创造神"]
 
         def scan(target_names_list, image):
+            """
+            根据名称列表进行扫描, 支持自动拓展转职名称
+            :param target_names_list:
+            :param image:
+            :return:
+            """
             return_dict = {}  # {"card_name": [x：int, y:int],...}
+
             target_name_with_jc_code_list = []
             for target_name in target_names_list:
                 if "-" in target_name:
                     target_name_with_jc_code_list.append(f"{target_name}")
                 else:
-                    for i in range(3):
+                    for i in [0,1,2,3]:
                         target_name_with_jc_code_list.append(f"{target_name}-{i}")
+
             for target_name_with_jc_code in target_name_with_jc_code_list:
                 # 同名卡片已经查找成功, 跳过该卡片
                 if target_name_with_jc_code.split("-")[0] in return_dict.keys():
                     continue
 
+                # 0 1 分别代表费用不足和充足情况下的图片资源
                 for usable_code in [0,1]:
-
-                    # 0 1 分别代表费用不足和充足情况下的图片资源
                     mat_card_full_name = f"{target_name_with_jc_code}-{usable_code}.png"
 
                     # 不存在对应的图像资源 跳过
@@ -655,22 +662,26 @@ class FAABase:
                         continue
 
                     # 需要使用0.99相似度参数 相似度阈值过低可能导致一张图片被识别为两张卡
+                    x1 = 190
+                    y1 = 10
                     _, find = match_p_in_w(
                         source_img=image,
-                        source_range=[190, 10, 950, 80],
+                        source_range=[x1, y1, 950, 80],
                         template=RESOURCE_P["card"]["战斗"][mat_card_full_name],
                         match_tolerance=0.99)
                     if find:
-                        return_dict[target_name_with_jc_code.split("-")[0]] = [int(190 + find[0]), int(10 + find[1])]
+                        return_dict[target_name_with_jc_code.split("-")[0]] = [int(x1 + find[0]), int(y1 + find[1])]
                         break
 
+                    x1 = 880
+                    y1 = 80
                     _, find = match_p_in_w(
                         source_img=image,
-                        source_range=[880, 80, 950, 600],
+                        source_range=[x1, y1, 950, 600],
                         template=RESOURCE_P["card"]["战斗"][mat_card_full_name],
                         match_tolerance=0.99)
                     if find:
-                        return_dict[target_name_with_jc_code.split("-")[0]] = [int(880 + find[0]), int(80 + find[1])]
+                        return_dict[target_name_with_jc_code.split("-")[0]] = [int(x1 + find[0]), int(y1 + find[1])]
                         break
 
             return return_dict
