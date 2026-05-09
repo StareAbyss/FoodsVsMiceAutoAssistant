@@ -78,6 +78,11 @@ def check_paths():
         "\\battle_plan",
         "\\battle_plan_not_active",
         "\\tweak_plan",
+        "\\config",
+        "\\config\\cus_images",
+        "\\config\\cus_images\\用户自截",
+        "\\config\\cus_images\\背包_装备_需使用的",
+        "\\config\\cus_images\\背包_道具_需删除的",
         "\\logs",
         "\\logs\\chests_image",
         "\\logs\\loots_image",
@@ -96,8 +101,11 @@ def check_paths():
         "\\logs\\recording",
         "\\resource\\image\\task"
     ]
+
+    print("启动前路径检测 开始")
     for path in paths:
         ensure_directory_exists(PATHS["root"] + path)
+    print("启动前路径检测 完成")
 
 
 # 创建所有缺失的目录
