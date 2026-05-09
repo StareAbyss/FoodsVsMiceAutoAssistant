@@ -288,6 +288,12 @@ class QMWEditorOfTaskSequence(QMainWindow):
         # 外观
         self.UICss()
 
+        fresh_and_check_all_task_sequence()
+        # 默认加载旧版UI
+        for _, file_path in EXTRA.TASK_SEQUENCE_UUID_TO_PATH.items():
+            if "旧版UI模拟.json" in file_path:
+                self.open_task_sequence(file_path=file_path)
+
     def UICss(self):
         """
         设置界面样式
