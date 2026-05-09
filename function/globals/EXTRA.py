@@ -86,6 +86,7 @@ def get_true_stage_id():
     # 假期
     stage_ids += ["HH-0-0"]
     # 世界boss
+    stage_ids += ["WB-0-0"]   # 0为自动模式
     stage_ids += generate_stage_ids("WB", [0, 100], [1, 3])
     # 多元奇遇
     stage_ids += generate_stage_ids("MU", [1, 1], [1, 2])
@@ -98,7 +99,7 @@ def get_true_stage_id():
 
 
 # 版本号
-VERSION = "v3.0.2"
+VERSION = "v3.1.0"
 
 # 缩放倍率
 ZOOM_RATE = 1.0
