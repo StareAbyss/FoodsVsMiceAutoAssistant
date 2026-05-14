@@ -1059,7 +1059,7 @@ class ThreadTodo(QThread):
                 if is_group:
                     self.thread_2p.join()
 
-                # 获取返回值
+                # 获取返回值 不允许失败
                 if not self.thread_1p.get_return_value():
                     result_id = 3
                     SIGNAL.PRINT_TO_UI.emit(text=f"{player_a}P选卡失败! 请检查你的卡片是否满足战斗方案条件?")
