@@ -366,6 +366,13 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 '* 输入二级密码\n'
                 '* 兑换暗晶\n'
                 '* 刷新游戏',
+            '分解宝石':
+                '进行宝石分解\n'
+                '需进阶设置完成二级密码设定\n'
+                '完整流程:\n'
+                '* 输入二级密码\n'
+                '* 分解宝石\n'
+                '* 刷新游戏',
             '签到':
                 '执行每日签到\n'
                 '完整流程:\n'
@@ -451,6 +458,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     "player": [1, 2],  # or [1] [2]
                 }
             case '兑换暗晶':
+                task["task_args"] = {
+                    "player": [1, 2],  # or [1] [2]
+                }
+            case '分解宝石':
                 task["task_args"] = {
                     "player": [1, 2],  # or [1] [2]
                 }
@@ -871,6 +882,11 @@ class QMWEditorOfTaskSequence(QMainWindow):
             # Player
             addElement_player_normal(line_layout=line_layout)
 
+        def disenchant_gem(line_layout):
+
+            # Player
+            addElement_player_normal(line_layout=line_layout)
+
         def receive_quest_rewards(line_layout):
 
             # Player
@@ -1032,6 +1048,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 clean_items(line_layout=line_layout)
             case '兑换暗晶':
                 exchange_dark_crystal(line_layout=line_layout)
+            case '分解宝石':
+                disenchant_gem(line_layout=line_layout)
             case '领取任务奖励':
                 receive_quest_rewards(line_layout=line_layout)
             case '扫描任务列表':
@@ -1256,6 +1274,9 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
 
                 case '兑换暗晶':
+                    task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
+
+                case '分解宝石':
                     task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
 
                 case "刷新游戏":
