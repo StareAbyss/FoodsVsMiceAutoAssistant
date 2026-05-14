@@ -160,7 +160,10 @@ class FAAActionInterfaceJump:
         return find
 
     def action_bottom_menu(self: "FAA", mode: str) -> bool:
-        """点击下方菜单栏, 包含:任务/后退/背包/跳转_公会任务/跳转_公会副本/跳转_情侣任务/跳转_竞技场/跳转_缘分树"""
+        """
+        点击下方菜单栏, 包含:任务/后退/背包/跳转_公会任务/跳转_公会副本/跳转_情侣任务/跳转_竞技场/跳转_缘分树
+        动作完成后休息 1s
+        """
 
         handle = self.handle
         handle_360 = self.handle_360
@@ -172,7 +175,8 @@ class FAAActionInterfaceJump:
                 mode == "任务" or
                 mode == "后退" or
                 mode == "背包" or
-                mode == "公会"
+                mode == "公会" or
+                mode == '合成屋'
         ):
             find = loop_match_p_in_w(
                 source_handle=handle,

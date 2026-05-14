@@ -348,6 +348,58 @@ class ThreadTodo(QThread):
         self.model_end_print(text=title_text)
         return
 
+    def batch_disenchant_gem(self, player: list = None):
+        """
+        批量分解宝石
+        :param player: [1] [2] [1,2]
+        :return:
+        """
+        title_text = "分解宝石"
+        self.model_start_print(text=title_text)
+
+        # 默认值 单人判定 错误值
+        player = player or [1, 2]
+        player = [1] if self.faa_dict[1].channel == self.faa_dict[2].channel else player
+        if player not in [[1, 2], [1], [2]]:
+            raise ValueError(f"batch_disenchant_gem -  player not in [[1,2],[1],[2]], your value {player}.")
+
+        # 根据配置是否激活，取交集，判空
+        for cur_player in [1, 2]:
+            if not self.opt["level_2"][f"{cur_player}p"]["active"]:
+                if cur_player in player:
+                    player.remove(cur_player)
+        if not player:
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 压根没有设定二级功能参数呢... 跳过!", color_level=2)
+            self.model_end_print(text=title_text)
+            return
+
+        SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 已启用，目标:{player}P", color_level=2)
+
+        def run_gdisenchant_geml(cur_player):
+            password = self.opt["level_2"][f"{cur_player}p"]["password"]
+            faa = self.faa_dict[cur_player]
+            faa.input_level_2_password(password=password)
+            faa.disenchant_gem()
+
+        self.thread_1p = ThreadWithException(
+            target=run_gdisenchant_geml,
+            name="1P Thread - DisenchantGem",
+            kwargs={"cur_player": 1})
+        self.thread_2p = ThreadWithException(
+            target=run_gdisenchant_geml,
+            name="2P Thread - DisenchantGem",
+            kwargs={"cur_player": 2})
+        self.thread_1p.start()
+        self.thread_2p.start()
+        self.thread_1p.join()
+        self.thread_2p.join()
+
+        SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 即将刷新游戏以清除二级输入的状态...", color_level=2)
+        self.batch_reload_game(player=player)
+
+        self.model_end_print(text=title_text)
+        return
+
     def batch_reload_game(self, player: list = None):
         """
         批量启动 reload 游戏
@@ -2717,6 +2769,11 @@ class ThreadTodo(QThread):
 
                 case "兑换暗晶":
                     self.batch_dark_crystal(player=task["task_args"]["player"])
+                    main_task_active = True
+                    active_singleton = False
+
+                case '分解宝石':
+                    self.batch_disenchant_gem(player=task["task_args"]["player"])
                     main_task_active = True
                     active_singleton = False
 

@@ -284,7 +284,7 @@ def match_ps_in_w(
     Returns:
         Union[None, bool, list]: 根据return_mode返回不同结果
             - 匹配成功+非短路返回：[[x:int, y:int], None, ...]
-            - 匹配成功+短路返回：True
+            - 匹配成功+短路返回：[x:int, y:int]
             - 匹配失败：None
     """
 
@@ -312,7 +312,7 @@ def match_ps_in_w(
         if quick_mode:
             if return_mode == "or":
                 if result is not None:
-                    return True
+                    return result
             if return_mode == "and":
                 if result is None:
                     return None
