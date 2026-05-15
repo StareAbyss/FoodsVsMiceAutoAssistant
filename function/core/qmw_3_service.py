@@ -215,6 +215,43 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.SavePasswordButton.clicked.connect(self.save_password_button_on_clicked)
         self.ChoosePathButton.clicked.connect(self.choose_path_button_on_clicked)
 
+    @staticmethod
+    def _format_file_size(size_bytes):
+        units = ["B", "KB", "MB", "GB", "TB"]
+        size = float(size_bytes)
+        for unit in units:
+            if size < 1024 or unit == units[-1]:
+                return f"{size:.2f} {unit}" if unit != "B" else f"{int(size)} {unit}"
+            size /= 1024
+
+    def warn_recording_size_if_needed(self):
+        recording_path = os.path.join(PATHS["logs"], "recording")
+        if not os.path.isdir(recording_path):
+            return
+
+        video_count = 0
+        total_size = 0
+        for root, _, files in os.walk(recording_path):
+            for file_name in files:
+                file_path = os.path.join(root, file_name)
+                try:
+                    total_size += os.path.getsize(file_path)
+                    video_count += 1
+                except OSError:
+                    continue
+
+        if total_size <= 1024 ** 3:
+            return
+
+        size_text = self._format_file_size(total_size)
+        recording_url = QtCore.QUrl.fromLocalFile(recording_path).toString()
+        warning_text = (
+            f"FAA已为您录制了{video_count}条视频，大小总计{size_text}，"
+            f"<a href='{recording_url}'>点击跳转</a>查看，请注意清理！"
+        )
+        SIGNAL.PRINT_TO_UI.emit("", time=False)
+        SIGNAL.PRINT_TO_UI.emit(warning_text, color_level=1, time=False)
+
     def choose_path_button_on_clicked(self):
         """"用于连接ChoosePathButton的函数，选择存储路径"""
         # 弹出一个文件夹选择对话框
@@ -1136,6 +1173,7 @@ def faa_start_main(app=None, loading=None):
     window.show()
     # 主窗口淡入动画
     window.fade_in_animation.start()
+    QtCore.QTimer.singleShot(0, window.warn_recording_size_if_needed)
 
     # 性能分析监控启动
     run_analysis_in_thread(window)
