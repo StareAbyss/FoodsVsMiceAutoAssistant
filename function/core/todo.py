@@ -1059,7 +1059,7 @@ class ThreadTodo(QThread):
                 if is_group:
                     self.thread_2p.join()
 
-                # 获取返回值
+                # 获取返回值 不允许失败
                 if not self.thread_1p.get_return_value():
                     result_id = 3
                     SIGNAL.PRINT_TO_UI.emit(text=f"{player_a}P选卡失败! 请检查你的卡片是否满足战斗方案条件?")
@@ -1976,7 +1976,7 @@ class ThreadTodo(QThread):
 
             return sorted_dict
 
-        json_path = PATHS["logs"] + "\\item_ranking_dag_graph.json"
+        json_path = PATHS["config"] + "\\item_ranking_dag_graph.json"
         ranking_list = ranking_read_data(json_path=json_path)["ranking"]
         for drop_type in ["loots", "chests"]:
             count_dict[drop_type] = ranking_reorder_dict(

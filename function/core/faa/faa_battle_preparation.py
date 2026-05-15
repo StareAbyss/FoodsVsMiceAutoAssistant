@@ -167,10 +167,10 @@ class BattlePreparation:
 
         return targets_1
 
-    def _scan_card(self: "FAA", all_cards_precise_names):
+    def _scan_card(self: "FAA", required_cards_list):
         """
         战备选卡阶段 - 扫描所有卡片 找到符合标准的卡片中等级最高者
-        :param all_cards_precise_names: 二维
+        :param required_cards_list: 二维
         第0维代表卡组 其中每个值都代表标识名确立的一张卡片
         第1维代表标识名确立的一张卡片  其中每个值都代表精准名确立的一张卡片 不含.png后缀
         :return:
@@ -189,11 +189,12 @@ class BattlePreparation:
 
         match_img_result_dict = {}
 
-        # 以所有卡牌名称(不重复)为键, 识别结果为值的字典
-        for card_precise_names in all_cards_precise_names:
-            for card_precise_name in card_precise_names:
-                if card_precise_name not in match_img_result_dict.keys():
-                    match_img_result_dict[card_precise_name] = {"found": False, "position": 0}
+        # 初始化 以所有卡牌名称为键(去重)
+        # 识别结果为值的字典
+        for card in required_cards_list:
+            for card_name in card['names']:
+                if card_name not in match_img_result_dict.keys():
+                    match_img_result_dict[card_name] = {"found": False, "position": 0}
 
         # 先处理叠加图片
         resource_p = {}
@@ -254,27 +255,25 @@ class BattlePreparation:
                 time.sleep(0.03)
 
         # 根据结果重新生成一个list 包含了每一个 标识名称 对应的 精准名称 找到的 最高等级的卡, 如果没找到 则为None
-        scan_card_result_list = []
-        scan_card_position_list = []
-        for card_precise_names in all_cards_precise_names:
-            for card_precise_name in card_precise_names:
+        for cards in required_cards_list:
+            for card_name in cards['names']:
                 # 成功查找
-                if match_img_result_dict[card_precise_name]["found"]:
-                    scan_card_result_list.append(card_precise_name)
-                    scan_card_position_list.append(match_img_result_dict[card_precise_name]["position"])
-                    card_name_without_id = card_precise_name.split("-")[0]
-                    # 将所有名称相同(不含转职的 -X)的卡片都设置为 未找到
+                if match_img_result_dict[card_name]["found"]:
+                    # 添加结果
+                    cards['result_name'] = card_name
+                    cards['result_position'] = match_img_result_dict[card_name]["position"]
+                    # 将所有名称相同(不含转职的 -X)的卡片都设置为 未找到 防止重复
+                    card_name_without_id = card_name.split("-")[0]
                     for i in [0, 1, 2, 3]:
-                        card_be_used = match_img_result_dict.get(f"{card_name_without_id}-{i}")
-                        if card_be_used:
-                            card_be_used["found"] = False
+                        if match_img_result_dict.get(f"{card_name_without_id}-{i}"):
+                            match_img_result_dict[f"{card_name_without_id}-{i}"]["found"] = False
                     break
             else:
                 # 没有找到
-                scan_card_result_list.append(None)
-                scan_card_position_list.append(None)
+                cards['result_name'] = None
+                cards['result_position'] = None
 
-        return scan_card_result_list, scan_card_position_list
+        return required_cards_list
 
     def _add_card(self: "FAA", card_name, tar_page_num=None) -> bool:
         """
@@ -366,106 +365,121 @@ class BattlePreparation:
 
         return False
 
-    def _add_cards(self: "FAA", card_name_list: list, can_failed_list: list):
+    def _auto_carry_card_add_cards(self: "FAA"):
         """
         战备选卡阶段 - 按顺序选中若干张卡添加到卡组
-        :param card_name_list: list [str, ...] 包含若干卡片 标识名称(Identifier Name)
-        可以为 合法类名(Valid Class Name) 模糊名称(Fuzzy Name, 卡片不转职名称) 精准名称(Precise Name, 模糊名-转职数字)
-        最终都可以拓展为若干个 精准名称
-        :param can_failed_list: 和card_name_list 一一对应 每一张卡是否允许失败
-        :return: 是否成功选卡每一张
+        :return: 选卡是不是全部成功
         """
-        self.print_debug(text="[选取卡片] 开始, 总计: {}张".format(len(card_name_list)))
 
-        # 先展开 战斗方案中 带卡的 标识名称 为 精确名称 包含.png后缀
+        # required_cards_list = dict{"card_name": str, "can_failed": bool}
+        # card_name str 为卡片的标识名称(Identifier Name) 可以为:
+        # 合法类名(Valid Class Name)
+        # 模糊名称(Fuzzy Name, 卡片不转职名称)
+        # 精准名称(Precise Name, 模糊名-转职数字)
+        # 最终都可以拓展为 list [str:精准名称,...]
+        required_cards_list = self._auto_carry_card_get_card_name_list_from_battle_plan()
+        self.print_debug(text="[选取卡片] 开始, 总计: {}张".format(len(required_cards_list)))
+
+        # 先展开 战斗方案中 带卡的 str标识名称 为 list精确名称
         # 一个标识名称 应对多个精准名
-        all_cards_precise_names = []
-        for card_name in card_name_list:
-            precise_names = self._card_name_to_tar_list(card_name=card_name)
-            all_cards_precise_names.append(precise_names)
-
-        def add_quest_card():
-            """
-            再展开 任务卡 查看任务卡是否已经存在于卡组中
-            如果在 则将faa的任务卡变回None 并修改可用的精准名称 确保携带正确的变种卡片
-            如果不在 则添加这张卡 并要求带卡必须成功
-            这里的逻辑还有一些极端状态下的小问题 但应该不影响使用
-            """
-
-            # 使用的上级变量包括
-            # all_cards_precise_names
-            # can_failed_list
-
-            if self.quest_card is None or self.quest_card == "None":
-                return
-
-            qc_precise_names = self._card_name_to_tar_list(card_name=copy.deepcopy(self.quest_card))
-            qc_precise_in_plan_names = []
-            for precise_names in all_cards_precise_names:
-                for precise_name in precise_names:
-                    if precise_name in qc_precise_names:
-                        self.quest_card = None
-                        qc_precise_in_plan_names.append(precise_name)
-
-            for i, precise_names in enumerate(all_cards_precise_names):
-                # 如果一张卡有精准名称属于任务卡的要求 那么 这张卡仅保留符合任务要求的精准名称
-                if any(item in precise_names for item in qc_precise_in_plan_names):
-                    all_cards_precise_names[i] = [pn for pn in precise_names if pn in qc_precise_in_plan_names]
-
-            # 任务卡在战斗方案带卡中找到了~ 结束
-            if qc_precise_in_plan_names:
-                return
-
-            # 根据战斗方案 插入到方案末位
-            battle_plan = copy.deepcopy(self.battle_plan)
-            card_ids = [card["card_id"] for card in battle_plan["cards"]]
-            max_card_id = max(card_ids)
-
-            # 插入卡片
-            all_cards_precise_names.insert(max_card_id, qc_precise_names)
-            if len(qc_precise_names) != 0:
-                card_name_list.insert(max_card_id, qc_precise_names[-1])
-            else:
-                card_name_list.insert(max_card_id, "不存在的卡片名称")
-            # 不允许失败
-            can_failed_list.insert(max_card_id, False)
+        for card in required_cards_list:
+            card["names"] = self._card_name_to_tar_list(card_name=card["name"])
 
         # 自动带卡版本的 任务卡添加
-        add_quest_card()
+        self._auto_carry_card_add_quest_card(required_cards_list=required_cards_list)
 
         # 一轮识别 识别同一张卡的所有精准名称中 哪一个是实际存在且优先级最高的
-        self.print_debug(text="[选取卡片] 将尝试查找以下卡片(组): {}, 是否允许失败: {}".format(
-            all_cards_precise_names, can_failed_list))
+        self.print_debug(text="[选取卡片] 将尝试查找以下卡片(组)")
+        for required_card in required_cards_list:
+            self.print_debug(text=f"[选取卡片] {required_card}")
 
-        scan_card_name_list, scan_card_position_list = self._scan_card(
-            all_cards_precise_names=all_cards_precise_names)
+        required_cards_list = self._scan_card(required_cards_list=required_cards_list)
 
-        self.print_debug(text="[选取卡片] 经识别将查找以下有效卡片: {}, 位置: {}".format(
-            scan_card_name_list, scan_card_position_list))
+        self.print_debug(text="[选取卡片] 经识别，有效卡片如下")
+        for required_card in required_cards_list:
+            self.print_debug(text=f"[选取卡片] {required_card}")
 
         # 如果不允许失败 提前检查
         failed_card_list = []
-        for index in range(len(can_failed_list)):
-            if (scan_card_name_list[index] is None) and (not can_failed_list[index]):
-                failed_card_list.append(card_name_list[index])
-                self.print_debug(text="[缺失卡片] 卡片列表: {}, 缺失索引: {}".format(card_name_list, index))
-
+        for required_card in required_cards_list:
+            if (not required_card['can_failed']) and (required_card['result_name'] is None):
+                failed_card_list.append(required_card['name'])
+                self.print_debug(
+                    text=f"[缺失卡片] 卡片名称: {required_card['name']}; 展开卡片列表: {required_card['names']}")
         if failed_card_list:
             self.print_debug(text="[选取卡片] 结束, 结果: 因查找失败中断")
             SIGNAL.PRINT_TO_UI.emit(text=f"[{self.player}P] 缺失必要绑定卡片: {', '.join(failed_card_list)}")
             return False
 
-        for index in range(len(scan_card_name_list)):
-            card_name = scan_card_name_list[index]
-            tar_position = scan_card_position_list[index]
-            if card_name is None:
-                continue
-            # 理论上 经过了筛查 选卡失败基本上仅是因为 和其他卡片有冲突 这只会出现在非必要承载卡 可以忽视
-            result = self._add_card(card_name=card_name, tar_page_num=tar_position)
+        for card in required_cards_list:
 
-            self.print_debug(text="[选取卡片] [{}] 完成, 结果: {}".format(card_name, "成功" if result else "失败"))
+            # 压根就找不到这张卡 跳过跳过
+            if card['result_name'] is None:
+                continue
+
+            # 理论上 经过了筛查 选卡失败基本上仅是因为 和其他卡片有冲突 这只会出现在非必要承载卡 可以忽视
+            result = self._add_card(
+                card_name=card['result_name'],
+                tar_page_num=card['result_position'])
+
+            self.print_debug(text="[选取卡片] 完成, 卡片初始名称:{}, 卡片最终名称:{}, 结果: {}".format(
+                card['name'], card['result_name'], "成功" if result else "失败"))
 
         return True
+
+    def _auto_carry_card_add_quest_card(self: "FAA", required_cards_list: list):
+        """
+        再展开 任务卡 查看任务卡是否已经存在于卡组中
+        如果在 则将faa的任务卡变回None 并修改可用的精准名称 确保携带正确的变种卡片
+        如果不在 则添加这张卡 并要求带卡必须成功
+        这里的逻辑还有一些极端状态下的小问题 但应该不影响使用
+        """
+
+        if self.quest_card is None or self.quest_card == "None":
+            return
+
+        quest_card_precise_names = self._card_name_to_tar_list(card_name=copy.deepcopy(self.quest_card))
+
+        # 确定任务卡是否已经存在于已有的卡组中 留存可用的任务卡
+        qc_precise_in_plan_names = []
+        for card in required_cards_list:
+            for precise_name in card['names']:
+                if precise_name in quest_card_precise_names:
+                    self.quest_card = None
+                    qc_precise_in_plan_names.append(precise_name)
+
+        for card in required_cards_list:
+            # 如果一张卡有精准名称属于任务卡的要求
+            # 这张卡仅保留符合任务要求的名称 移除其他名称
+            if any(item in card['names'] for item in qc_precise_in_plan_names):
+                for precise_name in card['names']:
+                    if precise_name not in quest_card_precise_names:
+                        card['names'].remove(precise_name)
+
+        # 任务卡在战斗方案带卡中找到了~ 结束
+        if qc_precise_in_plan_names:
+            return
+
+        # 需要手动加入战斗方案 并添加任务卡的情况
+
+        # 根据战斗方案 插入到方案末位
+        battle_plan = copy.deepcopy(self.battle_plan)
+        max_card_id = max([card["card_id"] for card in battle_plan["cards"]])
+
+        # 插入卡片
+        required_cards_list.insert(
+            max_card_id,
+            {
+                "name": copy.deepcopy(self.quest_card),
+                "names": quest_card_precise_names,
+                "can_failed": False
+            }
+        )
+        #
+        # if len(qc_precise_names) != 0:
+        #     required_cards_list.insert(max_card_id, qc_precise_names[-1])
+        # else:
+        #     required_cards_list.insert(max_card_id, "不存在的卡片名称")
 
     def _add_quest_card(self: "FAA"):
 
@@ -674,7 +688,7 @@ class BattlePreparation:
         if special_stage:
             SIGNAL.PRINT_TO_UI.emit(f"检测到特殊关卡：{stage_name}，已为你启用对应关卡信息(铲卡/承载)", 7)
 
-    def _get_card_name_list_from_battle_plan(self: "FAA"):
+    def _auto_carry_card_get_card_name_list_from_battle_plan(self: "FAA"):
         # 强制禁用状态
         ban_mat = False
         ban_icecream = False
@@ -699,48 +713,45 @@ class BattlePreparation:
 
         # 根据id 排序 并取其中的value为list
         sorted_list = list(dict(sorted(my_dict.items())).values())
-        # 和 card_list 一一对应 顺序一致 代表这张卡是否允许被跳过
-        can_failed_list = [False for _ in sorted_list]
+        # 全部标记为 不可跳过
+        required_cards_list = []
+        for card in sorted_list:
+            required_cards_list.append({"name": card, "can_failed": False})
 
         # 如果需要任意承载卡 第一张卡设定为 有效承载 置于末位
         if len(mats) >= 1 and not ban_mat:
-            sorted_list += ["有效承载"]
-            can_failed_list += [False]
+            required_cards_list.append({"name": "有效承载", "can_failed": False})
 
         # 添加冰沙 复制类 置于末位 允许找不到
         if not ban_icecream:
-            sorted_list += ["冰激凌-2"]
-            can_failed_list += [True]
+            required_cards_list.append({"name": "冰激凌-2", "can_failed": True})
         if not ban_god:
-            sorted_list += ["创造神"]
-            can_failed_list += [True]
+            required_cards_list.append({"name": "创造神", "can_failed": True})
         if not ban_ikun:
-            sorted_list += ["幻幻鸡"]
-            can_failed_list += [True]
+            required_cards_list.append({"name": "幻幻鸡", "can_failed": True})
 
         # 如果有效承载数量 >= 2 置于末位 允许找不到
         if len(mats) >= 2 and not ban_mat:
             for _ in range(len(mats) - 1):
-                sorted_list += ["有效承载"]
-                can_failed_list += [True]
+                required_cards_list.append({"name": "有效承载", "can_failed": True})
 
         # 根据最大卡片数量限制 移除卡片
         if self.max_card_num is not None:
             self.print_debug(text=f"[自动带卡] 最大卡片数量限制为{self.max_card_num}张, 激活自动剔除, 并Ban掉咖啡粉")
-            sorted_list = sorted_list[:self.max_card_num]
-            can_failed_list = can_failed_list[:self.max_card_num]
+            required_cards_list = required_cards_list[:self.max_card_num]
 
             # 只要有禁用 就把咖啡粉顺手ban了.
             if not self.ban_card_list:
                 self.ban_card_list = ["咖啡粉"]
             else:
                 self.ban_card_list += ["咖啡粉"]
+
         if ban_coffee:
             if not self.ban_card_list:
                 self.ban_card_list = ["咖啡粉"]
             elif "咖啡粉" not in self.ban_card_list:
                 self.ban_card_list += ["咖啡粉"]
-        return sorted_list, can_failed_list
+        return required_cards_list
 
     def check_create_room_success(self: "FAA"):
         """
@@ -780,23 +791,18 @@ class BattlePreparation:
             y=121)
         time.sleep(1.0)
 
-        """寻找并卡片, 包括自动带卡 / 任务要求的带卡和禁卡"""
+        """寻找卡片, 包括自动带卡 / 任务要求的带卡和禁卡"""
 
         if self.auto_carry_card:
-
-            card_name_list, can_failed_list = self._get_card_name_list_from_battle_plan()
-            success = self._add_cards(card_name_list=card_name_list, can_failed_list=can_failed_list)
             # 失败就会直接跳过本关卡全部场次！
-            if not success:
+            if not self._auto_carry_card_add_cards():
                 return False
-
         else:
             # 任务需求的带卡
             # 在自动带卡中会自动处理该流程, 此处是手动带卡时对任务要求的处理
             self._add_quest_card()
 
         self._remove_ban_card()
-
         return True
 
     def start_and_ensure_entry(self: "FAA"):

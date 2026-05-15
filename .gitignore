@@ -13,9 +13,7 @@ __pycache__/
 config/settings.json
 
 # 忽略用户自截图文件
-config/cus_images/用户自截/空间服登录界面_1P.png
-config/cus_images/用户自截/空间服登录界面_2P.png
-config/cus_images/用户自截/跨服远征_1p.png
+config/cus_images/用户自截/
 
 # 忽略用户 开/删物品 额外文件
 config/cus_images/背包_装备_需使用的/任意通用包裹.png
@@ -25,23 +23,7 @@ config/cus_images/背包_装备_需使用的/浮空酬劳.png
 config/cus_images/背包_装备_需使用的/星际酬劳.png
 
 # 忽略运行产生的文件 主要是日志
-logs/chests_image/*.png
-logs/loots_image/*.png
-
-logs/match_failed/texts_美食大赛/blocks/*.png
-logs/match_failed/texts_美食大赛/blocks_half/*.png
-
-logs/match_failed/texts_关卡名称/blocks/*.png
-logs/match_failed/texts_关卡名称/blocks_half/*.png
-
-logs/guild_manager/guild_member_images/*.png
-logs/guild_manager/guild_members_data.json
-
-logs/match_failed/loots/*.png
-
-logs/result_json/*.json
-logs/*.log
-logs/*.json
+logs/
 
 # 忽略 main.spec
 main.spec

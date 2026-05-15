@@ -236,7 +236,7 @@ class FAABattle:
             source_img=img
         )
 
-        return result
+        return True if result else False
 
     def check_wave(self: "FAA", img=None) -> bool:
         """识图检测目前的波次"""
