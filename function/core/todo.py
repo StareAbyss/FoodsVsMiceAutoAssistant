@@ -1976,7 +1976,7 @@ class ThreadTodo(QThread):
 
             return sorted_dict
 
-        json_path = PATHS["logs"] + "\\item_ranking_dag_graph.json"
+        json_path = PATHS["config"] + "\\item_ranking_dag_graph.json"
         ranking_list = ranking_read_data(json_path=json_path)["ranking"]
         for drop_type in ["loots", "chests"]:
             count_dict[drop_type] = ranking_reorder_dict(

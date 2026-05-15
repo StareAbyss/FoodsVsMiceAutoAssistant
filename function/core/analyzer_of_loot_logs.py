@@ -56,7 +56,7 @@ def match_items_from_image_and_save(img_save_path, image, mode='loots', test_pri
     if mode == 'loots':
 
         # 读取现 JSON Ranking 文件
-        json_path = PATHS["logs"] + "\\item_ranking_dag_graph.json"
+        json_path = PATHS["config"] + "\\item_ranking_dag_graph.json"
         ranking_list = ranking_read_data(json_path=json_path)["ranking"]
 
         # 获取列表的迭代器 从上一个检测的目标开始, 迭代已记录的json顺序中后面的部分
@@ -295,7 +295,7 @@ def update_dag_graph(item_list_new) -> bool:
     item_list_new = change_item_list_by_group(group_list=group_2, item_list=item_list_new)
 
     # 读取现 JSON Ranking 文件
-    json_path = PATHS["logs"] + "\\item_ranking_dag_graph.json"
+    json_path = PATHS["config"] + "\\item_ranking_dag_graph.json"
     data = ranking_read_data(json_path=json_path)
 
     """根据输入列表, 构造有向无环图"""
@@ -331,7 +331,7 @@ def find_longest_path_from_dag():
     CUS_LOGGER.debug("[有向无环图] [寻找最长链] 正在进行...")
 
     # 读取现 JSON Ranking 文件
-    json_path = PATHS["logs"] + "\\item_ranking_dag_graph.json"
+    json_path = PATHS["config"] + "\\item_ranking_dag_graph.json"
     data = ranking_read_data(json_path=json_path)
 
     G = nx.DiGraph()
@@ -367,6 +367,8 @@ def ranking_read_data(json_path):
             return data
         else:
             return {'ranking': [], 'graph': {}}
+
+    return {'ranking': [], 'graph': {}}
 
 
 def ranking_save_data(json_path, data):
