@@ -108,8 +108,6 @@ def check_paths():
     print("启动前路径检测 完成")
 
 
-# 创建所有缺失的目录
-check_paths()
-
 if __name__ == '__main__':
+    check_paths()
     print(PATHS)
