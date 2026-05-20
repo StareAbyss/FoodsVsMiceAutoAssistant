@@ -6,6 +6,7 @@ import time
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+import numpy
 import pytz
 
 from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w, match_all_p_in_w
@@ -209,15 +210,29 @@ class FAABase:
 
         return True
 
-    def check_not_doing(self: "FAA"):
-        """查漏补缺"""
+    def check_not_doing(self: "FAA") -> tuple[list[dict], bool, numpy.ndarray, bool]:
+        """
+        执行单个玩家的查漏补缺初检。
+
+        本函数只负责单号视角的初始检查和奖励领取:
+        1. 补签每日签到。
+        2. 领取悬赏奖励, 并记录当前声望是否已满。
+        3. 领取公会任务奖励, 并识别仍未完成的公会刷关任务。
+
+        Returns:
+            tuple: 包含以下四项:
+                - quest_list: 仍未完成、需要后续补刷的公会任务列表。
+                - reputation_max: bool, 当前声望是否已经刷满。
+                - reputation_now: 当前声望数值截图, 用于后续刷悬赏后对比声望是否变化。
+                - completed_fertilization: bool, True 表示检测到公会浇水施肥任务仍在进行, 需要后续补做。
+        """
 
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 开始")
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查签到开始")
         self.action_top_menu(mode="每日签到")
 
         """
-        签到检查
+        Part. 签到检查
         """
 
         find = loop_match_p_in_w(
@@ -255,11 +270,19 @@ class FAABase:
         self.action_exit(mode="普通红叉")
         time.sleep(1)
 
+        """
+        Part. 悬赏检查
+        """
+
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查悬赏开始")
-        reputation_status, reputation_now = self.check_task_of_bounty()
+        reputation_max, reputation_now = self.check_task_of_bounty()
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查悬赏结束")
 
         time.sleep(1)
+
+        """
+        Part. 公会任务检查
+        """
 
         # 跳转到任务界面
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查公会任务开始")
@@ -283,13 +306,26 @@ class FAABase:
 
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 结束")
 
-        return quest_list, reputation_status, reputation_now, completed_fertilization
+        return quest_list, reputation_max, reputation_now, completed_fertilization
 
-    def check_task_of_bounty(self: "FAA"):
+    def check_task_of_bounty(self: "FAA") -> tuple[bool, numpy.ndarray]:
+        """
+        领取悬赏奖励并检查当前声望是否已满。
+
+        声望是否已满通过图像对比判断: 将当前声望数字小图作为模板,
+        在声望上限数字区域中查找。匹配成功代表当前声望和上限一致。
+
+        Returns:
+            tuple[bool, numpy.ndarray]:
+                - reputation_max: True 表示当前声望已达到上限。
+                - reputation_now_img: 当前声望数字截图, 用于后续刷悬赏后判断声望是否变化。
+        """
         # 进入X年活动界面
         self.action_top_menu(mode="X年活动")
+
         # 最大尝试次数
         max_attempts = 10
+
         # 循环遍历点击完成
         for try_count in range(max_attempts):
             result = loop_match_p_in_w(
@@ -314,31 +350,32 @@ class FAABase:
                 text=f"{self.player}P因背包爆满, 查漏补缺[领取悬赏任务奖励]失败!\n"
                      f"出错时间:{current_time}, 尝试次数:{max_attempts}")
 
-        # 退出任务界面
-        # 截取整个窗口图像
-        full_image = capture_image_png(handle=self.handle, raw_range=[0, 0, 3000, 3000])
+        # 截取整个窗口图像。声望数字区域固定在 950x600 游戏窗口内, 不需要截取更大的范围。
+        full_image = capture_image_png(handle=self.handle, raw_range=[0, 0, 950, 600])
 
-        # 裁剪出第一个区域
+        # 声望上限数字区域。
         reputation_all = png_cropping(image=full_image, raw_range=[618, 568, 646, 580])
 
-        # 裁剪出第二个区域并转换为模板格式
-        reputation_now = png_cropping(image=full_image, raw_range=[589, 572, 612, 576])
+        # 当前声望数字区域。
+        reputation_now_img = png_cropping(image=full_image, raw_range=[589, 572, 612, 576])
+
         # 使用match_p_in_w进行相似度比对
         reputation_status, result = match_p_in_w(
-            template=reputation_now,  # 将区域2作为模板
+            template=reputation_now_img,  # 将区域2作为模板
             source_img=reputation_all,  # 在区域1中查找
             match_tolerance=0.95,
             test_show=False  # 不显示测试窗口
         )
+        # 匹配成功,说明声望满了
+        reputation_max = reputation_status == 2
 
-        if reputation_status == 2:  # 匹配成功,说明声望满了
-            CUS_LOGGER.debug(f"[{self.player}] 成功匹配")
+        if reputation_max:
+            CUS_LOGGER.debug(f"[{self.player}] 成功匹配 声望已刷满")
         else:
-            # 声望没有满
-            CUS_LOGGER.debug(f"[{self.player}] 失败匹配")
+            CUS_LOGGER.debug(f"[{self.player}] 失败匹配 声望未刷满")
 
         self.action_exit(mode="关闭悬赏窗口")
-        return reputation_status, reputation_now
+        return reputation_max, reputation_now_img
 
     def check_task_of_guild(self: "FAA"):
         self.action_bottom_menu(mode="跳转_公会任务")

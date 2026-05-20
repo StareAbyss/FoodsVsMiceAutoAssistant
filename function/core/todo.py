@@ -2933,7 +2933,7 @@ class ThreadTodo(QThread):
         self.model_end_print(text=text_)
         return main_task_active, active_singleton
 
-    def checking_undo(self, player: list = None):
+    def checking_undo(self, player: list[int] | None = None) -> None:
 
         title_text = "查漏补缺"
 
@@ -2948,7 +2948,7 @@ class ThreadTodo(QThread):
                 kwargs={})
             self.thread_1p.start()
 
-        if 1 in player and 2 in player:
+        if (1 in player) and (2 in player):
             sleep(0.333)
 
         if 2 in player:
@@ -2960,15 +2960,19 @@ class ThreadTodo(QThread):
 
         quest_list_1 = []
         quest_list_2 = []
-        reputation_status_1 = 0
-        reputation_status_2 = 0
+        reputation_max_1 = False
+        reputation_max_2 = False
         completed_fertilization_1 = False
         completed_fertilization_2 = False
+
         if 1 in player:
-            quest_list_1, reputation_status_1, reputation_now_1, completed_fertilization_1 = self.thread_1p.get_return_value()
+            quest_list_1, reputation_max_1, reputation_now_img_1, completed_fertilization_1 = self.thread_1p.get_return_value()
         if 2 in player:
-            quest_list_2, reputation_status_2, reputation_now_2, completed_fertilization_2 = self.thread_2p.get_return_value()
+            quest_list_2, reputation_max_2, reputation_now_img_2, completed_fertilization_2 = self.thread_2p.get_return_value()
+
+        # 合并两个玩家查出的公会补刷任务, 去掉重复任务。
         quest_list = quest_list_1 + [i for i in quest_list_2 if i not in quest_list_1]
+
         # 再执行公会任务
         if quest_list:
             self.battle_1_n_n(quest_list=quest_list)
@@ -2976,7 +2980,7 @@ class ThreadTodo(QThread):
             if 1 in player:
                 self.thread_1p = ThreadWithException(
                     target=self.faa_dict[1].check_task_of_guild,
-                    name="1P Thread - CheckingGuild",
+                    name="1P Thread - CheckingUndo",
                     kwargs={})
                 self.thread_1p.start()
 
@@ -2986,7 +2990,7 @@ class ThreadTodo(QThread):
             if 2 in player:
                 self.thread_2p = ThreadWithException(
                     target=self.faa_dict[2].check_task_of_guild,
-                    name="2P Thread - CheckingGuild",
+                    name="2P Thread - CheckingUndo",
                     kwargs={})
                 self.thread_2p.start()
             if 1 in player:
@@ -3005,7 +3009,10 @@ class ThreadTodo(QThread):
                         text=f"2p仍然存在未完成刷关任务，可能为缺乏指定卡片/方案缺失/刷关失败，请检查\n")
                 else:
                     CUS_LOGGER.warning(f"2p完成公会任务查漏补缺")
-        if 1 in player and completed_fertilization_1:  # 未完成施肥的则进行施肥
+
+        # 未完成施肥的则进行施肥
+
+        if 1 in player and completed_fertilization_1:
             self.thread_1p = ThreadWithException(
                 target=self.faa_dict[1].fed_and_watered,
                 name=f"1P Thread - FedAndWatered",
@@ -3019,10 +3026,33 @@ class ThreadTodo(QThread):
                 kwargs={})
             self.thread_2p.start()
             self.thread_2p.join()
-        if (1 in player and reputation_status_1 != 2) or (2 in player and reputation_status_2 != 2):
-            now_player = [2, 1] if 2 in player else [1]
-            for max_stage in [4, 3, 2, 1]:  # 从高到低测出最高声望可能关卡
-                quest_list = [{
+
+        if ((1 in player) and (not reputation_max_1)) or ((2 in player) and (not reputation_max_2)):
+            def is_reputation_completed() -> bool:
+                """
+                检查本次需要查漏补缺的玩家是否已经刷满声望.
+
+                注意:
+                    这里的 player 表示本次任务指定检查的玩家.
+                    实际战斗仍允许带上另一个账号协助作战, 例如 player=[2] 时 now_player=[2, 1].
+                    因此声望完成判定不能把未指定检查的玩家也算进去, 否则单 1P 查漏时会被 2P 的默认状态拖住.
+
+                Returns:
+                    bool: 本次指定检查的玩家是否都已经刷满声望。
+                """
+                return ((1 not in player) or reputation_max_1) and ((2 not in player) or reputation_max_2)
+
+            def build_bounty_quest(max_stage: int) -> list[dict]:
+                """
+                构建一次声望悬赏补刷任务.
+
+                Args:
+                    max_stage: 声望悬赏关卡, 对应 OR-0-1 ~ OR-0-4。
+
+                Returns:
+                    list[dict]: 可直接传给 battle_1_n_n 的单场补刷任务。
+                """
+                return [{
                     "player": now_player,
                     "need_key": True,
                     "global_plan_active": True,
@@ -3038,32 +3068,53 @@ class ThreadTodo(QThread):
                         "last_time_player_b": ["竞技岛"]}
                 }]
 
-                self.battle_1_n_n(quest_list=quest_list)
-                if 1 in player and reputation_status_1 != 2:
+            def start_bounty_check_threads() -> None:
+                """
+                对仍未刷满声望的指定玩家启动悬赏状态复查线程.
+
+                已刷满或未被本次查漏指定的玩家不会重复检查。
+                """
+                if 1 in player and (not reputation_max_1):
                     self.thread_1p = ThreadWithException(
                         target=self.faa_dict[1].check_task_of_bounty,
                         name="1P Thread - CheckingBounty",
                         kwargs={})
                     self.thread_1p.start()
 
-                if 1 in player and 2 in player and reputation_status_1 != 2 and reputation_status_2 != 2:
+                if 1 in player and 2 in player and (not reputation_max_1) and (not reputation_max_2):
                     sleep(0.333)
 
-                if 2 in player and reputation_status_2 != 2:
+                if 2 in player and (not reputation_max_2):
                     self.thread_2p = ThreadWithException(
                         target=self.faa_dict[2].check_task_of_bounty,
                         name="2P Thread - CheckingBounty",
                         kwargs={})
                     self.thread_2p.start()
-                if 1 in player and reputation_status_1 != 2:
-                    new_reputation_status, new_reputation_now = self.thread_1p.get_return_value()
-                    if new_reputation_status == 2:  # 检查声望是否打满
-                        reputation_status_1 = new_reputation_status
-                    else:
+
+            def update_bounty_status(max_stage: int | None = None, compare_with_before: bool = False) -> bool:
+                """
+                回收悬赏状态复查线程结果, 并更新声望是否刷满.
+
+                Args:
+                    max_stage: 当前测试的声望悬赏关卡, 仅用于生成失败提示。
+                    compare_with_before: 是否和本轮刷关前的声望截图对比。
+
+                Returns:
+                    bool: True 表示本轮刷关后声望没有变化, 需要尝试更低一级的声望悬赏关卡。
+                """
+                nonlocal reputation_max_1, reputation_max_2, reputation_now_img_1, reputation_now_img_2
+
+                should_try_lower_stage = False
+
+                if 1 in player and (not reputation_max_1):
+                    new_reputation_max, new_reputation_now = self.thread_1p.get_return_value()
+                    if new_reputation_max:  # 检查声望是否打满
+                        reputation_max_1 = new_reputation_max
+                    elif compare_with_before:
                         # 查找声望对比原来是否改变
                         status, _ = match_p_in_w(
                             template=new_reputation_now,
-                            source_img=reputation_now_1,
+                            source_img=reputation_now_img_1,
                             match_tolerance=0.95,
                             test_show=False
                         )
@@ -3071,18 +3122,20 @@ class ThreadTodo(QThread):
                             SIGNAL.DIALOG.emit(
                                 title="查漏补缺报告",
                                 text=f"1p声望悬赏第{max_stage}关失败，请自行检查\n")
-                            continue
+                            should_try_lower_stage = True
                         else:
-                            break
-
-                if 2 in player and reputation_status_2 != 2:
-                    new_reputation_status, new_reputation_now = self.thread_2p.get_return_value()
-                    if new_reputation_status == 2:
-                        reputation_status_2 = new_reputation_status
+                            reputation_now_img_1 = new_reputation_now
                     else:
+                        reputation_now_img_1 = new_reputation_now
+
+                if 2 in player and (not reputation_max_2):
+                    new_reputation_max, new_reputation_now = self.thread_2p.get_return_value()
+                    if new_reputation_max:
+                        reputation_max_2 = new_reputation_max
+                    elif compare_with_before:
                         status, _ = match_p_in_w(
                             template=new_reputation_now,
-                            source_img=reputation_now_2,
+                            source_img=reputation_now_img_2,
                             match_tolerance=0.95,
                             test_show=False
                         )
@@ -3090,56 +3143,35 @@ class ThreadTodo(QThread):
                             SIGNAL.DIALOG.emit(
                                 title="查漏补缺报告",
                                 text=f"2p声望悬赏第{max_stage}关失败，请自行检查\n")
-                            continue
+                            should_try_lower_stage = True
                         else:
-                            break
+                            reputation_now_img_2 = new_reputation_now
+                    else:
+                        reputation_now_img_2 = new_reputation_now
+
+                return should_try_lower_stage
+
+            now_player = [2, 1] if 2 in player else [1]
+
+            # 步骤1 从高到低测出最高声望可能关卡
+            for max_stage in [4, 3, 2, 1]:
+                self.battle_1_n_n(quest_list=build_bounty_quest(max_stage=max_stage))
+                start_bounty_check_threads()
+                if update_bounty_status(max_stage=max_stage, compare_with_before=True):
+                    continue
+                break
+
+            # 步骤2 多次刷关 直到打满
             count = 0
             MaxBountyTime = 11
-            while (reputation_status_1 != 2 or reputation_status_2 != 2) and count < MaxBountyTime:
-                quest_list = [{
-                    "player": now_player,
-                    "need_key": True,
-                    "global_plan_active": True,
-                    "deck": 0,
-                    "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-                    "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-                    "stage_id": "OR-0-" + str(max_stage),
-                    "max_times": 1,
-                    "dict_exit": {
-                        "other_time_player_a": [],
-                        "other_time_player_b": [],
-                        "last_time_player_a": ["竞技岛"],
-                        "last_time_player_b": ["竞技岛"]}
-                }]
-                self.battle_1_n_n(quest_list=quest_list)
+            while (not is_reputation_completed()) and count < MaxBountyTime:
+                self.battle_1_n_n(quest_list=build_bounty_quest(max_stage=max_stage))
                 count += 1
                 # 打完一把检查是否声望满了
-                if 1 in player and reputation_status_1 != 2:
-                    self.thread_1p = ThreadWithException(
-                        target=self.faa_dict[1].check_task_of_bounty,
-                        name="1P Thread - CheckingBounty",
-                        kwargs={})
-                    self.thread_1p.start()
+                start_bounty_check_threads()
+                update_bounty_status()
 
-                if 1 in player and 2 in player and reputation_status_1 != 2 and reputation_status_2 != 2:
-                    sleep(0.333)
-
-                if 2 in player and reputation_status_2 != 2:
-                    self.thread_2p = ThreadWithException(
-                        target=self.faa_dict[2].check_task_of_bounty,
-                        name="2P Thread - CheckingBounty",
-                        kwargs={})
-                    self.thread_2p.start()
-                if 1 in player and reputation_status_1 != 2:
-                    new_reputation_status, new_reputation_now = self.thread_1p.get_return_value()
-                    if new_reputation_status == 2:  # 检查声望是否打满
-                        reputation_status_1 = new_reputation_status
-
-                if 2 in player and reputation_status_2 != 2:
-                    new_reputation_status, new_reputation_now = self.thread_2p.get_return_value()
-                    if new_reputation_status == 2:
-                        reputation_status_2 = new_reputation_status
-            if count == MaxBountyTime:
+            if not is_reputation_completed():
                 # 有个不大不小的奇妙bug，当背包满了的时候，会导致无法领取奖励，进而使悬赏刷关无法跳转
                 SIGNAL.DIALOG.emit(
                     title="查漏补缺报告",
