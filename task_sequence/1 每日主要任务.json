@@ -120,7 +120,7 @@
     {
         "task_type": "任务序列",
         "task_id": 8,
-        "enabled": true,
+        "enabled": false,
         "alias": "",
         "tooltip": "",
         "task_args": {
