@@ -138,7 +138,7 @@ class GuildManager:
 
         self.members_data = []
 
-        self.data_file = PATHS["logs"] + "\\guild_manager\\guild_manager_data.json"
+        self.data_file = os.path.join(PATHS["logs"], 'guild_manager', 'guild_manager_data.json')
 
         self.load_json()
 
@@ -223,7 +223,7 @@ class GuildManager:
             name_image_hash = _hash_image(img_name_grey)
             save_image(
                 image=img_name_grey,
-                path=f"{PATHS['logs']}\\guild_manager\\guild_member_images\\{name_image_hash}.png"
+                path=os.path.join(PATHS["logs"], "guild_manager", "guild_member_images", f"{name_image_hash}.png")
             )
 
             # 调试

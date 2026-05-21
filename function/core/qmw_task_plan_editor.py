@@ -262,8 +262,8 @@ class TaskEditor(QMainWindow):
     def install_ocr_environment(self):
         """安装OCR环境：克隆仓库并复制补丁文件"""
         try:
-            plugin_path = PATHS["plugins"] + "//chineseocr_lite_onnx"
-            resource_path = PATHS["plugins"] + "//pak//chinese_ocr.py"
+            plugin_path = os.path.join(PATHS["plugins"], 'chineseocr_lite_onnx')
+            resource_path = os.path.join(PATHS["plugins"], 'pak', 'chinese_ocr.py')
 
             # 1. 创建/清理插件目录
             if os.path.exists(plugin_path):
@@ -378,7 +378,7 @@ class TaskEditor(QMainWindow):
     def load_stage_info(self):
         """加载关卡配置文件"""
         try:
-            with open(PATHS["config"] + "//stage_info.json", "r", encoding="UTF-8") as f:
+            with open(os.path.join(PATHS["config"], 'stage_info.json'), "r", encoding="UTF-8") as f:
                 return json.load(f)
         except Exception as e:
             QMessageBox.warning(self, "警告", f"加载关卡配置失败：{str(e)}")
@@ -723,7 +723,7 @@ class TaskEditor(QMainWindow):
         self.task_type.setCurrentText(task[2])
 
         if task[3]:
-            with open(PATHS["config"] + "//stage_info.json", "r", encoding="UTF-8") as f:
+            with open(os.path.join(PATHS["config"], 'stage_info.json'), "r", encoding="UTF-8") as f:
                 self.stage_info = json.load(f)
 
             self.image_data = task[3]
@@ -1082,7 +1082,7 @@ class TaskEditor(QMainWindow):
 
 
 if __name__ == "__main__":
-    path = PATHS["db"] + "/tasks.db"
+    path = os.path.join(PATHS["db"], 'tasks.db')
     db_conn = init_db(path)
     app = QApplication(sys.argv)
     window = TaskEditor(db_conn)

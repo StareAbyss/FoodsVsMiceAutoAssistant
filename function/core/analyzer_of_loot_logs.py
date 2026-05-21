@@ -1,8 +1,9 @@
 import copy
 import json
-import networkx as nx
 import os
 import time
+
+import networkx as nx
 from cv2 import imencode
 
 from function.common.image_processing.same_size_match import one_item_match, match_block_equal_in_images
@@ -67,7 +68,7 @@ def match_items_from_image_and_save(img_save_path, image, mode='loots', test_pri
     if mode == 'loots':
 
         # 读取现 JSON Ranking 文件
-        json_path = PATHS["config"] + "\\item_ranking_dag_graph.json"
+        json_path = os.path.join(PATHS["config"], 'item_ranking_dag_graph.json')
         ranking_list = ranking_read_data(json_path=json_path)["ranking"]
 
         # 获取列表的迭代器 从上一个检测的目标开始, 迭代已记录的json顺序中后面的部分
@@ -242,7 +243,7 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
             # 注意 需要重载一下内存中的图片
             g_resources.fresh_resource_log_img()
 
-            unmatched_path = PATHS["logs"] + "\\match_failed\\loots"
+            unmatched_path = os.path.join(PATHS["logs"], 'match_failed', 'loots')
 
             if not match_block_equal_in_images(
                 block_array=img_block,
@@ -268,8 +269,8 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
                     is_it, _ = one_item_match(img_block, tar_image, mode="equal")
                     if is_it:
                         _, i_id, count = old_name.split('.')[0].split("_")
-                        old_path = f'{unmatched_path}\\{old_name}'
-                        new_path = f"{unmatched_path}\\unknown_{i_id}_{int(count) + 1}.png"
+                        old_path = os.path.join(unmatched_path, old_name)
+                        new_path = os.path.join(unmatched_path, f"unknown_{i_id}_{int(count) + 1}.png")
                         os.rename(old_path, new_path)
                         break
 
@@ -345,7 +346,7 @@ def update_dag_graph(item_list_new) -> bool:
     item_list_new = change_item_list_by_group(group_list=group_2, item_list=item_list_new)
 
     # 读取现 JSON Ranking 文件
-    json_path = PATHS["config"] + "\\item_ranking_dag_graph.json"
+    json_path = os.path.join(PATHS["config"], 'item_ranking_dag_graph.json')
     data = ranking_read_data(json_path=json_path)
 
     """根据输入列表, 构造有向无环图"""
@@ -390,7 +391,7 @@ def find_longest_path_from_dag():
     CUS_LOGGER.debug("[有向无环图] [寻找最长链] 正在进行...")
 
     # 读取现 JSON Ranking 文件
-    json_path = PATHS["config"] + "\\item_ranking_dag_graph.json"
+    json_path = os.path.join(PATHS["config"], 'item_ranking_dag_graph.json')
     data = ranking_read_data(json_path=json_path)
 
     G = nx.DiGraph()

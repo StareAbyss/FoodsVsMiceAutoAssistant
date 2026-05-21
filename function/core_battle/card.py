@@ -437,7 +437,7 @@ class Card:
                                 return
 
                 new_state_group_id = len(RESOURCE_P["card"]["状态判定"])
-                path_images_group = PATHS["image"]["card"] + "\\状态判定\\" + str(new_state_group_id)
+                path_images_group = os.path.join(PATHS["image"]["card"], '状态判定', str(new_state_group_id))
                 if not os.path.exists(path_images_group):
                     # 创建文件夹
                     os.makedirs(path_images_group)
@@ -447,7 +447,7 @@ class Card:
                     RESOURCE_P["card"]["状态判定"][new_state_group_id][f"{state_name}.png"] = self.state_images[
                         state_name]
                     # 保存到本地
-                    path = f"{path_images_group}\\{state_name}.png"
+                    path = os.path.join(path_images_group, f"{state_name}.png")
                     cv2.imencode(ext=".png", img=self.state_images[state_name])[1].tofile(path)
                 CUS_LOGGER.debug(f"[战斗执行器] [{self.player}P] 成功获取到行的卡片状态图片! 保存成功!")
 

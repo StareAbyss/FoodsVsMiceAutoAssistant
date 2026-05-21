@@ -1,4 +1,5 @@
 import copy
+import os
 import re
 import time
 from typing import TYPE_CHECKING
@@ -966,11 +967,13 @@ class BattlePreparation:
             time.sleep(0.05)
 
             # 定义保存路径和文件名格式
-            img_path = "{}\\{}_{}P_{}.png".format(
-                PATHS["logs"] + "\\loots_image",
-                stage_info["id"],  # 注意 此处一定要使用内部一定正确的id! b_id可能是用户随笔输入的
-                player,
-                time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+            img_path = os.path.join(
+                PATHS["logs"],
+                "loots_image",
+                "{}_{}P_{}.png".format(
+                    stage_info["id"],  # 注意 此处一定要使用内部一定正确的id! b_id可能是用户随笔输入的
+                    player,
+                    time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime()))
             )
 
             # 捕获战利品截图 动作+拼接
@@ -1088,11 +1091,13 @@ class BattlePreparation:
         chest_items_image = cv2.hconcat(chest_images)
 
         # 定义保存路径和文件名格式
-        img_path = "{}\\{}_{}P_{}.png".format(
-            PATHS["logs"] + "\\chests_image",
-            stage_info["id"],
-            player,
-            time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+        img_path = os.path.join(
+            PATHS["logs"],
+            "chests_image",
+            "{}_{}P_{}.png".format(
+                stage_info["id"],
+                player,
+                time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime()))
         )
 
         # 分析图片，获取战利品字典

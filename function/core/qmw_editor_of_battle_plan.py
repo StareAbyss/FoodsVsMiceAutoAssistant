@@ -589,7 +589,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.setWindowTitle('FAA - 战斗方案编辑器 - 鼠标悬停在按钮&输入框可以查看许多提示信息')
 
             # 设置窗口图标
-            self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
+            self.setWindowIcon(QIcon(os.path.join(PATHS["logo"], '圆角-FetDeathWing-450x.png')))
 
             # 设定窗口初始大小 否则将无法自动对齐到上级窗口中心
             self.setFixedSize(1280, 720)
@@ -600,7 +600,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         setup_main_window()
 
         # 获取全部关卡信息
-        with open(file=PATHS["config"] + "//stage_info.json", mode="r", encoding="UTF-8") as file:
+        with open(file=os.path.join(PATHS["config"], 'stage_info.json'), mode="r", encoding="UTF-8") as file:
             self.stage_info_all = json.load(file)
         # 当前选择的关卡的信息
         self.stage_info = {}

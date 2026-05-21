@@ -1,6 +1,5 @@
 import datetime
 import json
-import os
 import random
 import shutil
 import sqlite3
@@ -319,7 +318,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def guild_manager_table_load_data(self):
         # guild manager 相关
-        guild_manager_file = f"{PATHS['logs']}\\guild_manager\\guild_manager_data.json"
+        guild_manager_file = os.path.join(PATHS["logs"], "guild_manager", "guild_manager_data.json")
         # 额外窗口，公会管理器
         if os.path.exists(guild_manager_file):
             with EXTRA.FILE_LOCK:
@@ -392,7 +391,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
             # 添加成员图片
             member_hash = member['name_image_hash']
-            name_image_path = f"{PATHS['logs']}\\guild_manager\\guild_member_images\\{member_hash}.png"
+            name_image_path = os.path.join(PATHS["logs"], "guild_manager", "guild_member_images", f"{member_hash}.png")
             pixmap = QtGui.QPixmap(name_image_path)
             qtw_item = QtWidgets.QTableWidgetItem()
 
@@ -1134,7 +1133,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         layout.addWidget(self.open_task_btn)
 
         # 数据库连接
-        db_path = PATHS["db"] + "/tasks.db"
+        db_path = os.path.join(PATHS["db"], 'tasks.db')
         db_conn = sqlite3.connect(db_path)
 
         # 按钮点击连接

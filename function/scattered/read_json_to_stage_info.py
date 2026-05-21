@@ -1,4 +1,5 @@
 import json
+import os
 
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
@@ -14,13 +15,13 @@ def load_mat_card_type_config():
     返回一个字典，key为类型名称，value为卡片列表
     """
     global MAT_CARD_TYPE_CONFIG
-    
+
     # 如果已经加载过，直接返回缓存
     if MAT_CARD_TYPE_CONFIG is not None:
         return MAT_CARD_TYPE_CONFIG
-    
+
     try:
-        config_path = PATHS["config"] + "//card_type_mat.json"
+        config_path = os.path.join(PATHS["config"], 'card_type_mat.json')
         with open(file=config_path, mode="r", encoding="UTF-8") as file:
             MAT_CARD_TYPE_CONFIG = json.load(file)
         CUS_LOGGER.info(f"成功加载卡片材质类型配置: {config_path}")
@@ -30,14 +31,14 @@ def load_mat_card_type_config():
     except json.JSONDecodeError as e:
         CUS_LOGGER.error(f"卡片材质类型配置文件格式错误: {e}，使用空配置. 无法自动使用承载!")
         MAT_CARD_TYPE_CONFIG = {}
-    
+
     return MAT_CARD_TYPE_CONFIG
 
 
 def init_mat_card_type_to_card_list(stage_info) -> dict:
     """
     根据关卡信息中的 mat_card_type 字段，初始化 mat_card 卡片列表
-    
+
     优先级：
     1. 如果 stage_info 中已有 mat_card，直接使用
     2. 如果 stage_info 中有 mat_card_type，从配置文件查找对应的卡片列表
@@ -50,13 +51,13 @@ def init_mat_card_type_to_card_list(stage_info) -> dict:
     # 否则根据类型从配置文件查找
     if stage_info.get("mat_card_type", False):
         mat_card_type = stage_info["mat_card_type"]
-        
+
         # 加载配置文件
         config = load_mat_card_type_config()
-        
+
         # 从配置中获取对应的卡片列表，如果找不到则使用空列表
         mat_card = config.get(mat_card_type, [])
-        
+
         stage_info["mat_card"] = mat_card
         return stage_info
 
@@ -78,15 +79,15 @@ def read_json_to_stage_info(stage_id, stage_id_for_battle=None):
     configs = []
     with EXTRA.FILE_LOCK:
 
-        with open(file=PATHS["config"] + "//stage_info_extra.json", mode="r", encoding="UTF-8") as file:
+        with open(file=os.path.join(PATHS["config"], 'stage_info_extra.json'), mode="r", encoding="UTF-8") as file:
             stages_info_extra = json.load(file)
             configs.append(("stage_info_extra.json", stages_info_extra))
 
-        with open(file=PATHS["config"] + "//stage_info_online.json", mode="r", encoding="UTF-8") as file:
+        with open(file=os.path.join(PATHS["config"], 'stage_info_online.json'), mode="r", encoding="UTF-8") as file:
             stages_info_online = json.load(file)
             configs.append(("stage_info_online.json", stages_info_online))
 
-        with open(file=PATHS["config"] + "//stage_info.json", mode="r", encoding="UTF-8") as file:
+        with open(file=os.path.join(PATHS["config"], 'stage_info.json'), mode="r", encoding="UTF-8") as file:
             stages_info = json.load(file)
             configs.append(("stage_info.json", stages_info))
 

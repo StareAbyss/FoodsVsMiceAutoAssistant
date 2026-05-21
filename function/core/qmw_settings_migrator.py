@@ -1,7 +1,10 @@
 import json
+import os
 import os.path
 import shutil
+
 from function.globals.loadings import loading
+
 loading.update_progress(65,"正在加载FAA迁移工具...")
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QMessageBox, \
@@ -14,7 +17,7 @@ class QMWSettingsMigrator(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("配置迁移工具 - 请注意查看鼠标提示信息!")
-        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
+        self.setWindowIcon(QIcon(os.path.join(PATHS["logo"], '圆角-FetDeathWing-450x.png')))
 
         # 设定窗口初始大小 否则将无法自动对齐到上级窗口中心
         self.resize(1025, 435)

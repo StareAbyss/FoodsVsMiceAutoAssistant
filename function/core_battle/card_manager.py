@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 
 def is_special_card(card_name):
     """判断是否为特殊卡，并返回匹配文件所在子目录的名称"""
-    base_path = PATHS["image"]["card"] + "\\特殊对策卡"
+    base_path = os.path.join(PATHS["image"]["card"], '特殊对策卡')
     card_name = os.path.splitext(card_name)[0]  # 移除传入名字的扩展名
 
     # 遍历目录及其子目录
@@ -71,7 +71,7 @@ def is_special_card(card_name):
 
 def is_obstacle_card(card_name):
     """判断是否为清障类卡，并返回匹配文件所在子目录的名称"""
-    base_path = PATHS["image"]["card"] + "\\障碍对策"
+    base_path = os.path.join(PATHS["image"]["card"], '障碍对策')
     card_name = os.path.splitext(card_name)[0]  # 移除传入名字的扩展名
 
     # 遍历目录及其子目录
@@ -597,7 +597,7 @@ class CardManager(QThread):
 
             def try_get_picture_now(handle):
                 windll.user32.SetProcessDPIAware()
-                output_base_path = PATHS["logs"] + "\\yolo_output"
+                output_base_path = os.path.join(PATHS["logs"], 'yolo_output')
                 now = datetime.datetime.now()
                 timestamp = now.strftime("%Y%m%d%H%M%S")
                 output_img_path = f"{output_base_path}/images/{timestamp}.png"

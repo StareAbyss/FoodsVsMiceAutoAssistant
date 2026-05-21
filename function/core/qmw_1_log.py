@@ -1,5 +1,6 @@
 import base64
 import datetime
+import os
 
 import cv2
 import numpy
@@ -225,7 +226,7 @@ class QMainWindowLog(QMainWindowLoadUI):
             text="* 点我充电  space.bilibili.com/34158086",
             time=False)
         SIGNAL.IMAGE_TO_UI.emit(
-            image=PATHS["logo"] + "\\赞赏码.png")
+            image=os.path.join(PATHS["logo"], '赞赏码.png'))
 
         SIGNAL.PRINT_TO_UI.emit(
             text="",

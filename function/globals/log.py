@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 
 import colorlog
@@ -55,7 +56,7 @@ class CusLogger(logging.Logger):
         # --------- 常规日志文件处理器 ---------
 
         file_handler = logging.FileHandler(
-            filename=PATHS["logs"] + '\\normal_log.log',
+            filename=os.path.join(PATHS["logs"], 'normal_log.log'),
             mode='w',
             encoding='utf-8'
         )
@@ -68,7 +69,7 @@ class CusLogger(logging.Logger):
         # --------- 错误日志文件处理器 ---------
 
         error_file_handler = logging.FileHandler(
-            filename=PATHS["logs"] + '\\error_log.log',
+            filename=os.path.join(PATHS["logs"], 'error_log.log'),
             mode='w',
             encoding='utf-8'
         )
@@ -82,7 +83,7 @@ class CusLogger(logging.Logger):
         # --------- 高危日志文件处理器 ---------
 
         critical_file_handler = logging.FileHandler(
-            filename=PATHS["logs"] + '\\critical_log.log',
+            filename=os.path.join(PATHS["logs"], 'critical_log.log'),
             mode='w',
             encoding='utf-8'
         )
