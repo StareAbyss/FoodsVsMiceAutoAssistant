@@ -1,0 +1,15 @@
+{
+    "meta_data": {
+        "uuid": "00000000-0000-0000-0000-000000000000",
+        "version": "0.2",
+        "tips": "默认值. 以下参数在一份微调方案中均可缺省, 缺省后会使用此处的值. xxx-tip仅作提示. 编辑器还没做可以参考这个模板改了自用",
+        "recording-tip" : "bool, 是否开启录制",
+        "recording": false,
+        "timestamp-tip" : "bool, 录制中是否使用时间戳图片挡住人物头像",
+        "timestamp": false,
+        "cd_after_use_random_range-tip" : "list[float,float] 战斗中放一张卡后的间隔值的随机范围, null则不启用. 用于在巅峰对决中让faa变笨笨",
+        "cd_after_use_random_range": null,
+        "senior_setting-tip" : "bool, 是否开启高级战斗",
+        "senior_setting": false
+    }
+}

@@ -29,7 +29,7 @@ def update_ranking(item_list_new):
     }
     """
     # 读取现 JSON 文件
-    json_path = PATHS["logs"] + "\\item_ranking_.json"
+    json_path = os.path.join(PATHS["logs"], 'item_ranking_.json')
     data = ranking_read_data(json_path=json_path)
     # 更新 ranking 有向图
     result = find_total_order(

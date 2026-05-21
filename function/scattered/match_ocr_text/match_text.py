@@ -76,7 +76,7 @@ def split_into_characters(line, mode="美食大赛"):
                     block_array=latin_block,
                     images=g_resources.RESOURCE_LOG_IMG[f"texts_{mode}"]["blocks_half"])
                 if not result:
-                    cus_path = PATHS["logs"] + f"\\match_failed\\texts_{mode}\\blocks_half"
+                    cus_path = os.path.join(PATHS["logs"], "match_failed", f"texts_{mode}", "blocks_half")
 
                     # 获得最小的未使用的id
                     used_ids = set()
@@ -87,7 +87,7 @@ def split_into_characters(line, mode="美食大赛"):
                     while name_id in used_ids:
                         name_id += 1
 
-                    save_path = f"{cus_path}\\unknown_{name_id}.png"
+                    save_path = os.path.join(cus_path, f"unknown_{name_id}.png")
                     cv2.imencode('.png', latin_block)[1].tofile(save_path)
 
                 # 保存全分割
@@ -95,7 +95,7 @@ def split_into_characters(line, mode="美食大赛"):
                     block_array=chinese_block,
                     images=g_resources.RESOURCE_LOG_IMG[f"texts_{mode}"]["blocks"])
                 if not result:
-                    cus_path = PATHS["logs"] + f"\\match_failed\\texts_{mode}\\blocks"
+                    cus_path = os.path.join(PATHS["logs"], "match_failed", f"texts_{mode}", "blocks")
 
                     # 获得最小的未使用的id
                     used_ids = set()
@@ -106,7 +106,7 @@ def split_into_characters(line, mode="美食大赛"):
                     while name_id in used_ids:
                         name_id += 1
 
-                    save_path = f"{cus_path}\\unknown_{name_id}.png"
+                    save_path = os.path.join(cus_path, f"unknown_{name_id}.png")
                     cv2.imencode('.png', chinese_block)[1].tofile(save_path)
 
         characters.append(chinese_block)
@@ -201,7 +201,7 @@ def match(source, mode="美食大赛"):
 if __name__ == '__main__':
     def main():
         # 从source文件夹里面读取所有图片
-        source_path = PATHS["image"]["current"] + "/ocr/source"
+        source_path = os.path.join(PATHS["image"]["current"], 'ocr', 'source')
 
         # 请补充 兼容中文路径
         sources = []

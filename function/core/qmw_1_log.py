@@ -1,12 +1,13 @@
 import base64
 import datetime
+import os
 
 import cv2
 import numpy
 import numpy as np
 from PyQt6 import QtWidgets, QtCore
 from PyQt6.QtCore import pyqtSignal
-from PyQt6.QtGui import QTextCursor
+from PyQt6.QtGui import QDesktopServices, QTextCursor
 from PyQt6.QtWidgets import QApplication
 
 from function.core.qmw_0_load_ui_file import QMainWindowLoadUI
@@ -136,8 +137,16 @@ class QMainWindowLog(QMainWindowLoadUI):
         SIGNAL.DIALOG = MidSignalDialog(signal_1=self.signal_dialog)
         self.signal_dialog.connect(self.show_dialog)
 
+        # Open links externally so QTextBrowser does not replace the log output.
+        self.TextBrowser.setOpenLinks(False)
+        self.TextBrowser.anchorClicked.connect(self.open_text_browser_link)
+
         # 打印默认输出提示
         self.start_print()
+
+    @staticmethod
+    def open_text_browser_link(url):
+        QDesktopServices.openUrl(url)
 
     @staticmethod
     def start_print():
@@ -217,7 +226,7 @@ class QMainWindowLog(QMainWindowLoadUI):
             text="* 点我充电  space.bilibili.com/34158086",
             time=False)
         SIGNAL.IMAGE_TO_UI.emit(
-            image=PATHS["logo"] + "\\赞赏码.png")
+            image=os.path.join(PATHS["logo"], '赞赏码.png'))
 
         SIGNAL.PRINT_TO_UI.emit(
             text="",

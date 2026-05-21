@@ -6,6 +6,7 @@ import time
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+import numpy
 import pytz
 
 from function.common.bg_img_match import match_p_in_w, loop_match_p_in_w, loop_match_ps_in_w, match_all_p_in_w
@@ -209,15 +210,29 @@ class FAABase:
 
         return True
 
-    def check_not_doing(self: "FAA"):
-        """查漏补缺"""
+    def check_not_doing(self: "FAA") -> tuple[list[dict], bool, numpy.ndarray, bool]:
+        """
+        执行单个玩家的查漏补缺初检。
+
+        本函数只负责单号视角的初始检查和奖励领取:
+        1. 补签每日签到。
+        2. 领取悬赏奖励, 并记录当前声望是否已满。
+        3. 领取公会任务奖励, 并识别仍未完成的公会刷关任务。
+
+        Returns:
+            tuple: 包含以下四项:
+                - quest_list: 仍未完成、需要后续补刷的公会任务列表。
+                - reputation_max: bool, 当前声望是否已经刷满。
+                - reputation_now: 当前声望数值截图, 用于后续刷悬赏后对比声望是否变化。
+                - completed_fertilization: bool, True 表示检测到公会浇水施肥任务仍在进行, 需要后续补做。
+        """
 
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 开始")
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查签到开始")
         self.action_top_menu(mode="每日签到")
 
         """
-        签到检查
+        Part. 签到检查
         """
 
         find = loop_match_p_in_w(
@@ -255,11 +270,19 @@ class FAABase:
         self.action_exit(mode="普通红叉")
         time.sleep(1)
 
+        """
+        Part. 悬赏检查
+        """
+
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查悬赏开始")
-        reputation_status, reputation_now = self.check_task_of_bounty()
+        reputation_max, reputation_now = self.check_task_of_bounty()
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查悬赏结束")
 
         time.sleep(1)
+
+        """
+        Part. 公会任务检查
+        """
 
         # 跳转到任务界面
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 检查公会任务开始")
@@ -283,13 +306,26 @@ class FAABase:
 
         CUS_LOGGER.debug(f"[{self.player}] [查漏补缺] 结束")
 
-        return quest_list, reputation_status, reputation_now, completed_fertilization
+        return quest_list, reputation_max, reputation_now, completed_fertilization
 
-    def check_task_of_bounty(self: "FAA"):
+    def check_task_of_bounty(self: "FAA") -> tuple[bool, numpy.ndarray]:
+        """
+        领取悬赏奖励并检查当前声望是否已满。
+
+        声望是否已满通过图像对比判断: 将当前声望数字小图作为模板,
+        在声望上限数字区域中查找。匹配成功代表当前声望和上限一致。
+
+        Returns:
+            tuple[bool, numpy.ndarray]:
+                - reputation_max: True 表示当前声望已达到上限。
+                - reputation_now_img: 当前声望数字截图, 用于后续刷悬赏后判断声望是否变化。
+        """
         # 进入X年活动界面
         self.action_top_menu(mode="X年活动")
+
         # 最大尝试次数
         max_attempts = 10
+
         # 循环遍历点击完成
         for try_count in range(max_attempts):
             result = loop_match_p_in_w(
@@ -314,31 +350,32 @@ class FAABase:
                 text=f"{self.player}P因背包爆满, 查漏补缺[领取悬赏任务奖励]失败!\n"
                      f"出错时间:{current_time}, 尝试次数:{max_attempts}")
 
-        # 退出任务界面
-        # 截取整个窗口图像
-        full_image = capture_image_png(handle=self.handle, raw_range=[0, 0, 3000, 3000])
+        # 截取整个窗口图像。声望数字区域固定在 950x600 游戏窗口内, 不需要截取更大的范围。
+        full_image = capture_image_png(handle=self.handle, raw_range=[0, 0, 950, 600])
 
-        # 裁剪出第一个区域
+        # 声望上限数字区域。
         reputation_all = png_cropping(image=full_image, raw_range=[618, 568, 646, 580])
 
-        # 裁剪出第二个区域并转换为模板格式
-        reputation_now = png_cropping(image=full_image, raw_range=[589, 572, 612, 576])
+        # 当前声望数字区域。
+        reputation_now_img = png_cropping(image=full_image, raw_range=[589, 572, 612, 576])
+
         # 使用match_p_in_w进行相似度比对
         reputation_status, result = match_p_in_w(
-            template=reputation_now,  # 将区域2作为模板
+            template=reputation_now_img,  # 将区域2作为模板
             source_img=reputation_all,  # 在区域1中查找
             match_tolerance=0.95,
             test_show=False  # 不显示测试窗口
         )
+        # 匹配成功,说明声望满了
+        reputation_max = reputation_status == 2
 
-        if reputation_status == 2:  # 匹配成功,说明声望满了
-            CUS_LOGGER.debug(f"[{self.player}] 成功匹配")
+        if reputation_max:
+            CUS_LOGGER.debug(f"[{self.player}] 成功匹配 声望已刷满")
         else:
-            # 声望没有满
-            CUS_LOGGER.debug(f"[{self.player}] 失败匹配")
+            CUS_LOGGER.debug(f"[{self.player}] 失败匹配 声望未刷满")
 
         self.action_exit(mode="关闭悬赏窗口")
-        return reputation_status, reputation_now
+        return reputation_max, reputation_now_img
 
     def check_task_of_guild(self: "FAA"):
         self.action_bottom_menu(mode="跳转_公会任务")
@@ -632,22 +669,29 @@ class FAABase:
         target_kun_list = ["幻幻鸡", "创造神"]
 
         def scan(target_names_list, image):
+            """
+            根据名称列表进行扫描, 支持自动拓展转职名称
+            :param target_names_list:
+            :param image:
+            :return:
+            """
             return_dict = {}  # {"card_name": [x：int, y:int],...}
+
             target_name_with_jc_code_list = []
             for target_name in target_names_list:
                 if "-" in target_name:
                     target_name_with_jc_code_list.append(f"{target_name}")
                 else:
-                    for i in range(3):
+                    for i in [0,1,2,3]:
                         target_name_with_jc_code_list.append(f"{target_name}-{i}")
+
             for target_name_with_jc_code in target_name_with_jc_code_list:
                 # 同名卡片已经查找成功, 跳过该卡片
                 if target_name_with_jc_code.split("-")[0] in return_dict.keys():
                     continue
 
+                # 0 1 分别代表费用不足和充足情况下的图片资源
                 for usable_code in [0,1]:
-
-                    # 0 1 分别代表费用不足和充足情况下的图片资源
                     mat_card_full_name = f"{target_name_with_jc_code}-{usable_code}.png"
 
                     # 不存在对应的图像资源 跳过
@@ -655,22 +699,26 @@ class FAABase:
                         continue
 
                     # 需要使用0.99相似度参数 相似度阈值过低可能导致一张图片被识别为两张卡
+                    x1 = 190
+                    y1 = 10
                     _, find = match_p_in_w(
                         source_img=image,
-                        source_range=[190, 10, 950, 80],
+                        source_range=[x1, y1, 950, 80],
                         template=RESOURCE_P["card"]["战斗"][mat_card_full_name],
                         match_tolerance=0.99)
                     if find:
-                        return_dict[target_name_with_jc_code.split("-")[0]] = [int(190 + find[0]), int(10 + find[1])]
+                        return_dict[target_name_with_jc_code.split("-")[0]] = [int(x1 + find[0]), int(y1 + find[1])]
                         break
 
+                    x1 = 880
+                    y1 = 80
                     _, find = match_p_in_w(
                         source_img=image,
-                        source_range=[880, 80, 950, 600],
+                        source_range=[x1, y1, 950, 600],
                         template=RESOURCE_P["card"]["战斗"][mat_card_full_name],
                         match_tolerance=0.99)
                     if find:
-                        return_dict[target_name_with_jc_code.split("-")[0]] = [int(880 + find[0]), int(80 + find[1])]
+                        return_dict[target_name_with_jc_code.split("-")[0]] = [int(x1 + find[0]), int(y1 + find[1])]
                         break
 
             return return_dict
@@ -1250,7 +1298,7 @@ class FAABase:
             source_range=[0, 0, 400, 75],
             template=RESOURCE_P["common"]["360游戏大厅"]["刷新.png"],
             match_tolerance=0.9,
-            after_sleep=3,
+            after_sleep=0,
             click=True)
 
         if not find:
@@ -1260,7 +1308,7 @@ class FAABase:
                 source_range=[0, 0, 400, 75],
                 template=RESOURCE_P["common"]["360游戏大厅"]["刷新_被选中.png"],
                 match_tolerance=0.98,
-                after_sleep=3,
+                after_sleep=0,
                 click=True)
 
             if not find:
@@ -1271,7 +1319,7 @@ class FAABase:
                     source_range=[0, 0, 400, 75],
                     template=RESOURCE_P["common"]["360游戏大厅"]["刷新_被点击.png"],
                     match_tolerance=0.98,
-                    after_sleep=3,
+                    after_sleep=0,
                     click=True)
 
                 if not find:
@@ -1431,7 +1479,7 @@ class FAABase:
         def try_close_sub_account_list() -> bool:
 
             # 等待一下 确保操作完成
-            time.sleep(0.5)
+            time.sleep(0.15)
 
             # 是否有小号列表
             _, my_result = match_p_in_w(
@@ -1581,25 +1629,23 @@ class FAABase:
                 match_tolerance=0.97,
                 match_interval=0.2,
                 match_failed_check=5,
-                after_sleep=1,
+                after_sleep=0.1,
                 click=True)
 
             # 周年庆打卡界面实测要近5s才会弹出，预留2s加载时间
-            self.print_debug(text="[刷新游戏] 等待周年庆打卡页面弹出")
-            time.sleep(7)
-            self.print_debug(text="[刷新游戏] 尝试关闭周年庆打卡界面")
+            # self.print_debug(text="[刷新游戏] 尝试关闭周年庆打卡界面")
             # [每天第一次登陆]周年庆打卡界面关闭
-            loop_match_p_in_w(
-                source_handle=self.handle,
-                source_root_handle=self.handle_360,
-                source_range=[0, 0, 950, 600],
-                template=RESOURCE_P["common"]["登录"]["4_退出周年庆打卡.png"],
-                match_tolerance=0.99,
-                match_interval=0.2,
-                match_failed_check=3,
-                after_sleep=1,
-                click=True,
-            )
+            # loop_match_p_in_w(
+            #     source_handle=self.handle,
+            #     source_root_handle=self.handle_360,
+            #     source_range=[0, 0, 950, 600],
+            #     template=RESOURCE_P["common"]["登录"]["4_退出周年庆打卡.png"],
+            #     match_tolerance=0.99,
+            #     match_interval=0.2,
+            #     match_failed_check=7,
+            #     after_sleep=1,
+            #     click=True,
+            # )
 
             self.print_debug(text="[刷新游戏] 尝试关闭假期特惠界面")
             # [每天第一次登陆] 假期特惠界面关闭
@@ -1611,7 +1657,7 @@ class FAABase:
                 match_tolerance=0.99,
                 match_interval=0.2,
                 match_failed_check=3,
-                after_sleep=1,
+                after_sleep=0.1,
                 click=True,
             )
 
@@ -1640,6 +1686,7 @@ class FAABase:
                 self.click_refresh_btn()
 
                 # 根据配置判断是否要多sleep一会儿，因为QQ空间服在网络差的时候加载比较慢，会黑屏一段时间
+                time.sleep(3)
                 if self.opt["qq_login_info"]["extra_sleep_active"]:
                     time.sleep(self.opt["qq_login_info"]["extra_sleep_time"])
 
@@ -1651,6 +1698,7 @@ class FAABase:
                     self.print_debug(text="[刷新游戏] 无需断线重连")
 
                 # 依次判断是否在选择服务器界面
+                # 前面需要加足延迟 避免相关服务器网页没有加载完成 这里的操作都是只尝试一次的
                 self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 判定平台...")
 
                 if try_enter_server_4399():
@@ -1829,13 +1877,12 @@ class FAABase:
                         }
                     ],
                     return_mode="and",
-                    match_interval=1,
+                    match_interval=0.5,
                     match_failed_check=60)
 
                 if not goto_game_home_page_success:
                     CUS_LOGGER.warning(
                         f"[刷新游戏] [第{fresh_count}轮] 查找大地图失败, 选择服务器后未能成功进入游戏, 退后重来")
-                    # 进行断线重连的判断
                     self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] 向上返回两次 进入下一次刷新尝试...")
                     self.click_return_btn()
                     time.sleep(1)
@@ -1845,9 +1892,7 @@ class FAABase:
 
                 action_after_success()
                 self.print_info(text=f"[刷新游戏] [第{fresh_count}轮] 顺利完成")
-                time.sleep(0.5)
                 return True
-
             return False
 
         # 第一次
@@ -1867,11 +1912,10 @@ class FAABase:
             self.start_360()
         CUS_LOGGER.warning("[刷新游戏] 重启360已结束")
 
-        # 重启360后 第二次
+        # 重启360后 第二次 没有更多次了
         fresh_success = main()
         if fresh_success:
             return True
-
         return False
 
     def start_360(self):
@@ -2151,46 +2195,46 @@ class FAABase:
                 find_i = loop_match_p_in_w(
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
-                    source_range=[450, 145, 505, 205],
+                    source_range=[258, 264, 306, 313],
                     template=RESOURCE_P["top_up_money"]["每日必充_判定点.png"],
                     match_tolerance=0.99,
-                    match_interval=0.1,
-                    match_failed_check=4,
-                    after_sleep=3,
+                    match_interval=0.2,
+                    match_failed_check=3,
+                    after_sleep=0.5,
                     click=False)
                 if not find_i:
                     break
                 else:
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=790, y=110)
-                    time.sleep(2)
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=745, y=135)
+                    time.sleep(0.5)
 
         # 进入充值界面
         self.action_top_menu(mode="每日充值")
         find = loop_match_p_in_w(
             source_handle=self.handle,
             source_root_handle=self.handle_360,
-            source_range=[450, 145, 505, 205],
+            source_range=[258, 264, 306, 313],
             template=RESOURCE_P["top_up_money"]["每日必充_判定点.png"],
             match_tolerance=0.99,
-            match_interval=0.1,
-            match_failed_check=4,
-            after_sleep=3,
+            match_interval=0.2,
+            match_failed_check=3,
+            after_sleep=0.5,
             click=False)
         if not find:
             return "本期日氪没有假期票Skip... 或进入每日必冲失败, 请联系开发者!"
 
         # 尝试领取 / 尝试进入充值界面 一元档
         CUS_LOGGER.debug("尝试领取 / 尝试进入充值界面...")
-        source_range_1 = [660, 145, 770, 200]  # 充值/领取按钮位置
+        source_range_1 = [198, 429, 312, 469]  # 充值/领取按钮位置
         find = loop_match_p_in_w(
             source_handle=self.handle,
             source_root_handle=self.handle_360,
             source_range=source_range_1,
             template=RESOURCE_P["top_up_money"]["每日必充_领取.png"],
             match_tolerance=0.99,
-            match_interval=0.03,
+            match_interval=0.2,
             match_failed_check=4,
-            after_sleep=3,
+            after_sleep=0.5,
             click=True)
         if find:
             # 退出充值界面
@@ -2203,19 +2247,20 @@ class FAABase:
             source_range=source_range_1,
             template=RESOURCE_P["top_up_money"]["每日必充_充值.png"],
             match_tolerance=0.99,
-            match_interval=0.03,
+            match_interval=0.2,
             match_failed_check=4,
-            after_sleep=3,
+            after_sleep=0.5,
             click=True)
         if not find:
             # 退出充值界面
             exit_ui()
             return "今天氪过了~"
+
         or_rect = get_window_position(self.handle)
         browser_rect = get_window_position(self.handle_browser)
         zoom_rate = get_system_dpi() / 96
-        print(or_rect, browser_rect)
         deviation = [(or_rect[0] - browser_rect[0]) // zoom_rate, (or_rect[1] - browser_rect[1]) // zoom_rate]
+
         # 没有完成, 进入充值界面
         CUS_LOGGER.debug("充值界面 点击切换为游币")
         source_range_2 = [150, 110, 800, 490]  # 游币兑换按钮 查找范围
@@ -2226,9 +2271,9 @@ class FAABase:
             template=RESOURCE_P["top_up_money"]["充值界面_游币兑换.png"],
             after_click_template=RESOURCE_P["top_up_money"]["充值界面_游币兑换_已选中.png"],
             match_tolerance=0.995,
-            match_interval=0.03,
-            match_failed_check=10,
-            after_sleep=3,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=0.5,
             click=True,
             click_handle=self.handle_browser,
             deviation=deviation
@@ -2246,9 +2291,9 @@ class FAABase:
             source_range=source_range_2,
             template=RESOURCE_P["top_up_money"]["充值界面_请输入.png"],
             match_tolerance=0.995,
-            match_interval=0.03,
-            match_failed_check=10,
-            after_sleep=3,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=0.5,
             click=True,
             click_handle=self.handle_browser,
             deviation=deviation
@@ -2268,9 +2313,9 @@ class FAABase:
             template=RESOURCE_P["top_up_money"]["充值界面_游币兑换_已选中.png"],
             after_click_template=RESOURCE_P["top_up_money"]["充值界面_请输入_已输入.png"],
             match_tolerance=0.995,
-            match_interval=0.03,
-            match_failed_check=10,
-            after_sleep=3,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=0.5,
             click=True,
             click_handle=self.handle_browser,
             deviation=deviation)
@@ -2285,9 +2330,9 @@ class FAABase:
             source_range=[150, 110, 800, 490],
             template=RESOURCE_P["top_up_money"]["充值界面_立即充值.png"],
             match_tolerance=0.99,
-            match_interval=0.03,
-            match_failed_check=10,
-            after_sleep=3,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=1.5,
             click=True,
             click_handle=self.handle_browser,
             deviation=deviation)
@@ -2302,9 +2347,9 @@ class FAABase:
             source_range=[750, 90, 815, 160],
             template=RESOURCE_P["top_up_money"]["充值界面_退出.png"],
             match_tolerance=0.99,
-            match_interval=0.03,
-            match_failed_check=10,
-            after_sleep=3,
+            match_interval=0.2,
+            match_failed_check=5,
+            after_sleep=1.5,
             click=True,
             click_handle=self.handle_browser,
             deviation=deviation)
@@ -2324,9 +2369,9 @@ class FAABase:
             source_range=source_range_1,
             template=RESOURCE_P["top_up_money"]["每日必充_领取.png"],
             match_tolerance=0.99,
-            match_interval=0.03,
-            match_failed_check=4,
-            after_sleep=3,
+            match_interval=0.2,
+            match_failed_check=3,
+            after_sleep=0.5,
             click=True)
 
         # 退出充值界面

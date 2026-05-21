@@ -1,4 +1,5 @@
 import itertools
+import os
 import threading
 
 from function.globals.loadings import loading
@@ -19,8 +20,8 @@ from function.scattered.ethical_core import ethical_core
 
 def get_q_font():
     # 读取字体文件
-    font_id = QtGui.QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
-    QtGui.QFontDatabase.addApplicationFont(PATHS["font"] + "\\手书体.ttf")
+    font_id = QtGui.QFontDatabase.addApplicationFont(os.path.join(PATHS["font"], 'SmileySans-Oblique.ttf'))
+    QtGui.QFontDatabase.addApplicationFont(os.path.join(PATHS["font"], '手书体.ttf'))
 
     # 获取字体家族名称
     font_families = QtGui.QFontDatabase.applicationFontFamilies(font_id)
@@ -86,6 +87,7 @@ def get_true_stage_id():
     # 假期
     stage_ids += ["HH-0-0"]
     # 世界boss
+    stage_ids += ["WB-0-0"]   # 0为自动模式
     stage_ids += generate_stage_ids("WB", [0, 100], [1, 3])
     # 多元奇遇
     stage_ids += generate_stage_ids("MU", [1, 1], [1, 2])
@@ -98,7 +100,7 @@ def get_true_stage_id():
 
 
 # 版本号
-VERSION = "v3.0.2"
+VERSION = "v3.1.0"
 
 # 缩放倍率
 ZOOM_RATE = 1.0

@@ -48,7 +48,7 @@ def fresh_resource_img():
     RESOURCE_P = {}
 
     # 遍历文件夹结构，读取所有名称后缀为.png的文件，加入到字典中
-    root_dir = PATHS["root"] + "\\resource\\image"
+    root_dir = os.path.join(PATHS["root"], 'resource', 'image')
 
     for root, dirs, files in os.walk(root_dir):
         # 对于每个子文件夹，创建对应的字典层级
@@ -91,7 +91,7 @@ def fresh_resource_cus_img():
     RESOURCE_CP = {}
 
     # 遍历文件夹结构，读取所有名称后缀为.png的文件，加入到字典中
-    root_dir = PATHS["config"] + "\\cus_images"
+    root_dir = os.path.join(PATHS["config"], 'cus_images')
 
     for root, dirs, files in os.walk(root_dir):
         # 对于每个子文件夹，创建对应的字典层级
@@ -134,7 +134,7 @@ def fresh_resource_log_img():
     RESOURCE_LOG_IMG = {}
 
     # 遍历文件夹结构
-    root_dir = PATHS["logs"] + "\\match_failed"
+    root_dir = os.path.join(PATHS["logs"], 'match_failed')
 
     for root, dirs, files in os.walk(root_dir):
         # 对于每个子文件夹，创建对应的字典层级

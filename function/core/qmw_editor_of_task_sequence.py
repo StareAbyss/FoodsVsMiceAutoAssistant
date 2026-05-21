@@ -288,6 +288,12 @@ class QMWEditorOfTaskSequence(QMainWindow):
         # 外观
         self.UICss()
 
+        fresh_and_check_all_task_sequence()
+        # 默认加载旧版UI
+        for _, file_path in EXTRA.TASK_SEQUENCE_UUID_TO_PATH.items():
+            if "旧版UI模拟.json" in file_path:
+                self.open_task_sequence(file_path=file_path)
+
     def UICss(self):
         """
         设置界面样式
@@ -296,7 +302,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
         self.setWindowTitle('任务序列编辑器')
 
         # 设置窗口图标
-        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
+        self.setWindowIcon(QIcon(os.path.join(PATHS["logo"], '圆角-FetDeathWing-450x.png')))
 
         # 大小
         # 移除固定大小限制，让布局管理器可以控制大小
@@ -359,6 +365,13 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 '完整流程:\n'
                 '* 输入二级密码\n'
                 '* 兑换暗晶\n'
+                '* 刷新游戏',
+            '分解宝石':
+                '进行宝石分解\n'
+                '需进阶设置完成二级密码设定\n'
+                '完整流程:\n'
+                '* 输入二级密码\n'
+                '* 分解宝石\n'
                 '* 刷新游戏',
             '签到':
                 '执行每日签到\n'
@@ -445,6 +458,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     "player": [1, 2],  # or [1] [2]
                 }
             case '兑换暗晶':
+                task["task_args"] = {
+                    "player": [1, 2],  # or [1] [2]
+                }
+            case '分解宝石':
                 task["task_args"] = {
                     "player": [1, 2],  # or [1] [2]
                 }
@@ -865,6 +882,11 @@ class QMWEditorOfTaskSequence(QMainWindow):
             # Player
             addElement_player_normal(line_layout=line_layout)
 
+        def disenchant_gem(line_layout):
+
+            # Player
+            addElement_player_normal(line_layout=line_layout)
+
         def receive_quest_rewards(line_layout):
 
             # Player
@@ -1026,6 +1048,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 clean_items(line_layout=line_layout)
             case '兑换暗晶':
                 exchange_dark_crystal(line_layout=line_layout)
+            case '分解宝石':
+                disenchant_gem(line_layout=line_layout)
             case '领取任务奖励':
                 receive_quest_rewards(line_layout=line_layout)
             case '扫描任务列表':
@@ -1252,6 +1276,9 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 case '兑换暗晶':
                     task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
 
+                case '分解宝石':
+                    task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
+
                 case "刷新游戏":
                     task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
 
@@ -1398,25 +1425,26 @@ class QMWEditorOfTaskSequence(QMainWindow):
         data = data_without_id + data_with_id
         return data
 
-    def open_task_sequence(self):
+    def open_task_sequence(self, file_path):
 
-        file_name = self.open_json()
+        if not file_path:
+            file_path = self.open_json()
 
-        if file_name:
-            result = self.load_json(file_path=file_name)
+        if file_path:
+            result = self.load_json(file_path=file_path)
             if result:
                 self.father.TaskSequenceButtonSaveJson.setEnabled(True)
 
     def open_json(self):
         """打开窗口 打开json文件"""
 
-        file_name, _ = QFileDialog.getOpenFileName(
+        file_path, _ = QFileDialog.getOpenFileName(
             parent=self,
             caption="打开 JSON 文件",
             directory=PATHS["task_sequence"],
             filter="JSON Files (*.json)")
 
-        return file_name
+        return file_path
 
     def load_json(self, file_path):
         """

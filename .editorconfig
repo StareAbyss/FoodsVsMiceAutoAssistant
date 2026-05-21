@@ -1,0 +1,27 @@
+# EditorConfig 帮助不同编辑器保持一致的编码、换行和缩进规则
+# 详见：https://editorconfig.org/
+root = true
+
+[*]
+# 统一使用 UTF-8，避免中文 README / docs 在编辑器之间反复变成乱码
+charset = utf-8
+# Windows 项目默认使用 CRLF，减少批处理脚本和历史文件的换行差异
+end_of_line = crlf
+# 文件末尾保留一个换行，便于 Git diff 和文本工具处理
+insert_final_newline = true
+# 默认清理行尾空格
+trim_trailing_whitespace = true
+
+[*.py]
+# Python 代码统一使用 4 空格缩进
+indent_style = space
+indent_size = 4
+
+[*.{md,txt,json,yml,yaml}]
+# 文档和配置文件统一使用 2 空格缩进
+indent_style = space
+indent_size = 2
+
+[*.md]
+# Markdown 中行尾两个空格可表示强制换行，因此不清理行尾空格
+trim_trailing_whitespace = false

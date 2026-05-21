@@ -1,4 +1,5 @@
 import json
+import os
 from dataclasses import dataclass, asdict
 from typing import List, Union, Dict
 
@@ -232,14 +233,14 @@ def convert_v2_to_v3(v2_data: Dict) -> Dict:
 if __name__ == '__main__':
     def test_load_v2_json_to_dict():
         # 读取 JSON 文件
-        file_path = PATHS["battle_plan"] + "\\NO-6-10-1P 多拿滋.json"
+        file_path = os.path.join(PATHS["battle_plan"], 'NO-6-10-1P 多拿滋.json')
         with open(file=file_path, mode='r', encoding='utf-8') as file:
             return json.load(file)
 
 
     def test_load_v3_json_to_dict():
         # 读取 JSON 文件
-        file_path = PATHS["battle_plan"] + "\\新版方案示例-触发器和动作内联于事件.json"
+        file_path = os.path.join(PATHS["battle_plan"], '新版方案示例-触发器和动作内联于事件.json')
         with open(file=file_path, mode='r', encoding='utf-8') as file:
             return json.load(file)
 

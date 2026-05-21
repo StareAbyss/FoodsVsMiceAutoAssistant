@@ -211,7 +211,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>本软件免费且开源  鼠标悬停在控件上可查看提示信息</string>
+             <string>免费 开源 鼠标悬停在控件上查看提示信息</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -2165,8 +2165,8 @@ border:none</string>
 请注意 先应用后运行!</string>
                    </property>
                    <property name="text">
-                    <string>应用配置
-Apply Config</string>
+                    <string>应用并保存
+Apply Save</string>
                    </property>
                   </widget>
                  </item>
@@ -2297,7 +2297,7 @@ Link Start</string>
                   </size>
                  </property>
                  <property name="text">
-                  <string>应用配置并开始执行后,将加载到内存中,不应用实时更改!  可以右键已有任务事项名称修改别名以供识别</string>
+                  <string>应用配置并开始执行后，将加载到内存中，不应用实时更改  左键长按拖动排序，左键双击修改别名，右键单击修改鼠标提示信息</string>
                  </property>
                 </widget>
                </item>

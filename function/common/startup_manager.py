@@ -1,3 +1,4 @@
+import os
 import sys
 import winreg
 
@@ -16,7 +17,7 @@ def get_exe_path(extra_args=None):
         exe_path = sys.executable
     else:
         # 如果是 .py 脚本，返回 python 解释器路径加上脚本路径
-        py_path = PATHS["root"] + "\\function\\faa_main.py"
+        py_path = os.path.join(PATHS["root"], 'function', 'faa_main.py')
         exe_path = f'"{sys.executable}" "{py_path}"'
 
     if extra_args:

@@ -1,7 +1,7 @@
 [
     {
         "meta_data": {
-            "uuid": "9c8ee1a9-de80-11f0-b97c-f4c88a4ed544",
+            "uuid": "9b4a6579-057d-11f1-9f0a-e494f06b9fff",
             "version": "1.0"
         }
     },
@@ -19,65 +19,16 @@
         }
     },
     {
-        "task_type": "战斗",
+        "task_type": "查漏补缺",
         "task_id": 2,
         "enabled": true,
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "stage_id": "MT-1-120",
-            "max_times": 2,
-            "need_key": true,
             "player": [
-                1
-            ],
-            "global_plan_active": true,
-            "deck": 0,
-            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-            "quest_card": "None",
-            "ban_card_list": [],
-            "dict_exit": {
-                "other_time_player_a": [],
-                "other_time_player_b": [],
-                "last_time_player_a": [
-                    "竞技岛"
-                ],
-                "last_time_player_b": [
-                    "竞技岛"
-                ]
-            }
-        }
-    },
-    {
-        "task_type": "战斗",
-        "task_id": 3,
-        "enabled": true,
-        "alias": "",
-        "tooltip": "",
-        "task_args": {
-            "stage_id": "MT-1-120",
-            "max_times": 2,
-            "need_key": true,
-            "player": [
+                1,
                 2
-            ],
-            "global_plan_active": true,
-            "deck": 0,
-            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-            "battle_plan_2p": "00000000-0000-0000-0000-000000000000",
-            "quest_card": "None",
-            "ban_card_list": [],
-            "dict_exit": {
-                "other_time_player_a": [],
-                "other_time_player_b": [],
-                "last_time_player_a": [
-                    "竞技岛"
-                ],
-                "last_time_player_b": [
-                    "竞技岛"
-                ]
-            }
+            ]
         }
     }
 ]

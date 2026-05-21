@@ -589,7 +589,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.setWindowTitle('FAA - 战斗方案编辑器 - 鼠标悬停在按钮&输入框可以查看许多提示信息')
 
             # 设置窗口图标
-            self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
+            self.setWindowIcon(QIcon(os.path.join(PATHS["logo"], '圆角-FetDeathWing-450x.png')))
 
             # 设定窗口初始大小 否则将无法自动对齐到上级窗口中心
             self.setFixedSize(1280, 720)
@@ -600,7 +600,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         setup_main_window()
 
         # 获取全部关卡信息
-        with open(file=PATHS["config"] + "//stage_info.json", mode="r", encoding="UTF-8") as file:
+        with open(file=os.path.join(PATHS["config"], 'stage_info.json'), mode="r", encoding="UTF-8") as file:
             self.stage_info_all = json.load(file)
         # 当前选择的关卡的信息
         self.stage_info = {}
@@ -2182,19 +2182,11 @@ class QMWEditorOfBattlePlan(QMainWindow):
             if uuid not in warning_uuids:
                 return True
 
-            text = ("FAA部分功能(美食大赛/公会任务)依赖这两份默认方案(1卡组-通用-1P & 1卡组-通用-2P)运行.\n"
-                    "你确定要保存并修改他们吗! 这可能导致相关功能出现错误!")
-            response = QMessageBox.question(
-                self,
-                "高危操作！",
-                text,
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
-            )
-            if response == QMessageBox.StandardButton.No:
-                return False
-            else:
-                return True
+            text = ("FAA依赖这两份默认方案(1通用-海星-1P & 1通用-海星-2P)运行.\n"
+                    "你无法修改他们, 请另存为新的方案! 即使你手动修改他们也会被还原! 强行重命名会导致未知错误!")
+            # 弹窗 没有选项 只能点击确定
+            QMessageBox.warning(self, "警告", text)
+            return False
 
         self.battle_plan.meta_data.tips = self.TextEditTips.toPlainText()
 
@@ -2222,7 +2214,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.battle_plan.meta_data.uuid = str(uuid.uuid1())
 
         else:
-            # 覆盖现有文件的情况
+            # 保存或覆盖到现有文件
             with EXTRA.FILE_LOCK:
                 with open(file=new_file_path, mode='r', encoding='utf-8') as file:
                     tar_uuid = json.load(file).get('meta_data', {}).get('uuid', None)
@@ -2232,7 +2224,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 self.battle_plan.meta_data.uuid = str(uuid.uuid1())
 
             else:
-                # 高危uuid需要确定
+                # 高危uuid需要确定是否跳过
                 if not warning_save_enable(uuid=tar_uuid):
                     return
                 # 被覆盖的目标有uuid 使用存在的uuid

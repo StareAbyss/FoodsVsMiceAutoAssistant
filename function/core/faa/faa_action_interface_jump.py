@@ -123,7 +123,7 @@ class FAAActionInterfaceJump:
                 source_range=[250, 0, 880, 110],
                 template=RESOURCE_P["common"]["顶部菜单"]["{}.png".format(mode)],
                 match_failed_check=3,
-                after_sleep=1.5,
+                after_sleep=0.2,
                 click=True)
             if find:
                 print_debug(text="[顶部菜单] [{}] 3s内跳转成功".format(mode))
@@ -145,6 +145,7 @@ class FAAActionInterfaceJump:
                 source_range=[0, 0, 950, 200],
                 template=RESOURCE_P["common"]["跨服副本_ui.png"],
                 match_failed_check=10,
+                after_sleep=0.2,
                 click=False,
             )
 
@@ -159,7 +160,10 @@ class FAAActionInterfaceJump:
         return find
 
     def action_bottom_menu(self: "FAA", mode: str) -> bool:
-        """点击下方菜单栏, 包含:任务/后退/背包/跳转_公会任务/跳转_公会副本/跳转_情侣任务/跳转_竞技场/跳转_缘分树"""
+        """
+        点击下方菜单栏, 包含:任务/后退/背包/跳转_公会任务/跳转_公会副本/跳转_情侣任务/跳转_竞技场/跳转_缘分树
+        动作完成后休息 1s
+        """
 
         handle = self.handle
         handle_360 = self.handle_360
@@ -171,7 +175,8 @@ class FAAActionInterfaceJump:
                 mode == "任务" or
                 mode == "后退" or
                 mode == "背包" or
-                mode == "公会"
+                mode == "公会" or
+                mode == '合成屋'
         ):
             find = loop_match_p_in_w(
                 source_handle=handle,
@@ -196,7 +201,7 @@ class FAAActionInterfaceJump:
                 source_range=[520, 530, 950, 600],
                 template=RESOURCE_P["common"]["底部菜单"]["跳转.png"],
                 match_failed_check=3,
-                after_sleep=0.5,
+                after_sleep=0.2,
                 click=True)
             find = loop_match_p_in_w(
                 source_handle=handle,
@@ -204,7 +209,7 @@ class FAAActionInterfaceJump:
                 source_range=[520, 170, 950, 600],
                 template=RESOURCE_P["common"]["底部菜单"]["{}.png".format(mode)],
                 match_failed_check=3,
-                after_sleep=0.5,
+                after_sleep=0.2,
                 click=True)
 
         if not find:
@@ -252,7 +257,7 @@ class FAAActionInterfaceJump:
             template=RESOURCE_P["map"]["{}.png".format(map_id)],
             match_tolerance=0.99,
             match_failed_check=5,
-            after_sleep=2,
+            after_sleep=0.2,
             click=True
         )
         return find
@@ -317,7 +322,7 @@ class FAAActionInterfaceJump:
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
                     match_tolerance=0.995,
-                    after_sleep=1,
+                    after_sleep=0.2,
                     click=True)
 
                 # 设置密码
@@ -329,7 +334,7 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                    after_sleep=1,
+                    after_sleep=0.2,
                     click=True)
 
         def main_mt():
@@ -349,7 +354,7 @@ class FAAActionInterfaceJump:
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["stage"]["MT.png"],
                     match_failed_check=5,
-                    after_sleep=2,
+                    after_sleep=0.2,
                     click=True
                 )
 
@@ -360,7 +365,7 @@ class FAAActionInterfaceJump:
 
             # 不是房主, 不进行关卡选择和创建房间
             if not self.is_main:
-                return
+                return None
 
             # 选择了密室 直接识图找关卡
             if stage_1 == "3":
@@ -369,7 +374,7 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
-                    after_sleep=0.3,
+                    after_sleep=0.2,
                     click=True)
 
             # 单双人爬塔 等于0则为爬塔模式 即选择最高层 从下到上遍历所有层数
@@ -412,11 +417,15 @@ class FAAActionInterfaceJump:
                 source_root_handle=handle_360,
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
-                after_sleep=1,
+                after_sleep=1.5,
                 click=True)
 
-            # 识别出当前关卡名称
-            return screen_get_stage_name(self.handle, self.handle_360)
+            if stage_2 == "0":
+                stage_name = screen_get_stage_name(self.handle, self.handle_360)
+                stage_id_extra = self._get_stage_info_from_battle_name(stage_name=stage_name)
+                return stage_id_extra
+
+            return None
 
         def main_cs():
 
@@ -511,7 +520,7 @@ class FAAActionInterfaceJump:
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
                 match_tolerance=0.95,
-                after_sleep=3,
+                after_sleep=0.2,
                 click=True)
 
             # 切区
@@ -542,7 +551,7 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["stage"]["EX-Ship.png"],
-                    after_sleep=1.5,
+                    after_sleep=0.2,
                     click=True)
 
                 # 找地图图标，需要防止因点过一次后图片放大造成的无法点击
@@ -551,14 +560,14 @@ class FAAActionInterfaceJump:
                         source_root_handle=handle_360,
                         source_range=[0, 0, 950, 600],
                         template=RESOURCE_P["stage"]["EX-{}.png".format(stage_1)],
-                        after_sleep=1.5,
+                        after_sleep=0.2,
                         click=True)):
                     loop_match_p_in_w(
                         source_handle=handle,
                         source_root_handle=handle_360,
                         source_range=[0, 0, 950, 600],
                         template=RESOURCE_P["stage"]["EX-{}_1.png".format(stage_1)],
-                        after_sleep=1.5,
+                        after_sleep=0.2,
                         click=True)
             # 切区
             change_to_region(region_list=[1, 2])
@@ -571,7 +580,7 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
-                    after_sleep=0.5,
+                    after_sleep=0.2,
                     click=True)
 
                 # 设置密码
@@ -583,7 +592,7 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                    after_sleep=0.5,
+                    after_sleep=0.05,
                     click=True)
 
         def main_pt():
@@ -620,7 +629,7 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
-                    after_sleep=1,
+                    after_sleep=0.2,
                     click=True)
 
         def main_gd():
@@ -722,7 +731,8 @@ class FAAActionInterfaceJump:
                     boss_name = boss_img_name.split('.')[0]
                     break
 
-            buff_img_names_list = [img_name for img_name in RESOURCE_P["world_boss"].keys() if img_name.startswith(boss_name + "-")]
+            buff_img_names_list = [
+                img_name for img_name in RESOURCE_P["world_boss"].keys() if img_name.startswith(boss_name + "-")]
             for buff_img_name in buff_img_names_list:
                 result = loop_match_p_in_w(
                     source_handle=handle,
@@ -762,7 +772,7 @@ class FAAActionInterfaceJump:
                     source_range=[155, 385, 225, 450],
                     template=RESOURCE_P["stage"]["WA-0-0.png"],
                     match_tolerance=0.995,
-                    after_sleep=1,
+                    after_sleep=0.2,
                     click=True)
 
                 # 遍历所有关卡图像 查看目前属于哪个
@@ -802,7 +812,7 @@ class FAAActionInterfaceJump:
                     source_range=[370, 505, 530, 550],
                     template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
                     match_tolerance=0.99,
-                    after_sleep=1,
+                    after_sleep=0.2,
                     click=True)
 
         def main_cz():
@@ -842,7 +852,7 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                    after_sleep=1,
+                    after_sleep=0.2,
                     click=True)
 
         def main_mu():
@@ -868,7 +878,7 @@ class FAAActionInterfaceJump:
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["stage"]["{}.png".format(exchange_dict[self.stage_info["id"]])],
                     match_tolerance=0.995,
-                    after_sleep=1,
+                    after_sleep=0.2,
                     click=True)
                 # 选择关卡
                 loop_match_p_in_w(
@@ -877,7 +887,7 @@ class FAAActionInterfaceJump:
                     source_range=[90, 200, 130, 300],
                     template=RESOURCE_P["stage"]["MU-1.png"],
                     match_tolerance=0.95,
-                    after_sleep=1,
+                    after_sleep=0.2,
                     click=True)
                 # 设置密码
                 time.sleep(0.5)
@@ -889,7 +899,7 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                    after_sleep=1,
+                    after_sleep=0.2,
                     click=True)
 
         def main():
@@ -897,7 +907,7 @@ class FAAActionInterfaceJump:
             if stage_0 == "NO":
                 main_no()
             elif stage_0 == "MT":
-                main_mt()
+                stage_id_extra = main_mt()
             elif stage_0 == "CS":
                 main_cs()
             elif stage_0 == "OR":
@@ -923,15 +933,9 @@ class FAAActionInterfaceJump:
                 SIGNAL.DIALOG.emit("ERROR", "跳转关卡失败! 请检查关卡代号是否正确")
                 SIGNAL.END.emit()
 
-            # 识别出当前关卡名称
-            stage_name = screen_get_stage_name(self.handle, self.handle_360)
-            self.print_debug(text=f"关卡名称识别结果: 当前关卡 - {stage_name}")
-
             if stage_id_extra:
+                # 检测可能的关卡名变种，如果符合特定关卡，则修改当前战斗的关卡信息
                 # 根据新的关卡id 作为战斗id覆盖 模式id不变
-                self._check_stage_name(text=stage_id_extra, t_type="id")
-            else:
-                # 检测关卡名变种，如果符合特定关卡，则修改当前战斗的关卡信息
-                self._check_stage_name(text=stage_name, t_type="name")
+                self._change_stage_bid(new_stage_id=stage_id_extra)
 
         return main()

@@ -1,5 +1,6 @@
 import copy
 import json
+import os
 import time
 from typing import TYPE_CHECKING
 
@@ -42,7 +43,7 @@ class FAABattle:
         # 读取禁用卡片名单
         self.banned_card_names = []
         try:
-            with open(PATHS["config"] + "//banned_cards.json", "r", encoding="utf-8") as file:
+            with open(os.path.join(PATHS["config"], 'banned_cards.json'), "r", encoding="utf-8") as file:
                 self.banned_card_names = json.load(file)
         except FileNotFoundError:
             # 如果文件不存在，使用默认名单
@@ -236,7 +237,7 @@ class FAABattle:
             source_img=img
         )
 
-        return result
+        return True if result else False
 
     def check_wave(self: "FAA", img=None) -> bool:
         """识图检测目前的波次"""
@@ -434,7 +435,7 @@ class FAABattle:
         """战斗开始时启动录制"""
         if hasattr(self, 'handle'):
             self.recorder = WindowRecorder(
-                output_file=PATHS["logs"] + "//recording//",
+                output_file=os.path.join(PATHS["logs"], 'recording'),
                 window_title=self.channel,
                 handle=self.handle,
                 see_time=timestamp)

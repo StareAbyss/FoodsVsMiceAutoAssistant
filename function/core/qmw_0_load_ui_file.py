@@ -28,13 +28,13 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         super().__init__()
 
         # 加载 ui文件
-        uic.loadUi(PATHS["root"] + '\\resource\\ui\\FAA_3.0.ui', self)
+        uic.loadUi(os.path.join(PATHS["root"], 'resource', 'ui', 'FAA_3.0.ui'), self)
 
         # 设置窗口名称
         self.setWindowTitle("FAA - 本软件免费且开源")
 
         # 设置系统图标
-        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-256x-AllSize.ico"))
+        self.setWindowIcon(QIcon(os.path.join(PATHS["logo"], '圆角-FetDeathWing-256x-AllSize.ico')))
 
         # 设置显示版本号
         self.Title_Version.setText(EXTRA.VERSION)
@@ -154,7 +154,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
     def set_image_resource(self):
 
         # title - logo
-        cus_path = PATHS["root"] + "\\resource\\logo\\圆角-FetDeathWing-450x.png"
+        cus_path = os.path.join(PATHS["root"], 'resource', 'logo', '圆角-FetDeathWing-450x.png')
         cus_path = cus_path.replace("\\", "/")  # pyqt 使用正斜杠
 
         pixmap = QtGui.QPixmap(cus_path).scaled(
@@ -168,15 +168,15 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         self.Title_Logo.setScaledContents(True)  # 确保图片自适应控件大小
 
         # 背景图
-        cus_path = PATHS["root"] + "\\resource\\ui\\firefly.png"
+        cus_path = os.path.join(PATHS["root"], 'resource', 'ui', 'firefly.png')
         cus_path = cus_path.replace("\\", "/")  # pyqt 使用正斜杠
         style_sheet = f"""
             #SkinWidget{{
             background-image: url({cus_path});
             background-repeat: no-repeat;
             background-position: center;
-            background-size: contain;  
-            border: none;  
+            background-size: contain;
+            border: none;
             }}
         """
 
@@ -265,7 +265,8 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
     def init_tray_icon(self):
         # 创建系统托盘图标
         self.tray_icon = QSystemTrayIcon(self)
-        self.tray_icon.setIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-256x-AllSize.ico"))
+        tray_icon_path = os.path.join(PATHS["logo"], '圆角-FetDeathWing-256x-AllSize.ico')
+        self.tray_icon.setIcon(QIcon(tray_icon_path))
         name=self.Name1P_Input.text()
         self.tray_icon.setToolTip(f"FAA -{name} 正在后台运行")
 

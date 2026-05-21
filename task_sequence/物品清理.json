@@ -1,0 +1,73 @@
+[
+    {
+        "meta_data": {
+            "uuid": "35996245-1c43-11f1-b6c3-8e77d7499645",
+            "version": "1.0"
+        }
+    },
+    {
+        "task_type": "刷新游戏",
+        "task_id": 1,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "清背包",
+        "task_id": 2,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "使用消耗品",
+        "task_id": 3,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "清背包",
+        "task_id": 4,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "兑换暗晶",
+        "task_id": 5,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    }
+]
