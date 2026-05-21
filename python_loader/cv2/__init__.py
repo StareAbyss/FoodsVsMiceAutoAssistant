@@ -1,20 +1,12 @@
 '''
 OpenCV Python binary extension loader
 '''
-import os
 import importlib
+import os
 import sys
 
 __all__ = []
 
-try:
-    import numpy
-    import numpy.core.multiarray
-except ImportError:
-    print('OpenCV bindings requires "numpy" package.')
-    print('Install it via command:')
-    print('    pip install numpy')
-    raise
 
 # TODO
 # is_x64 = sys.maxsize > 2**32

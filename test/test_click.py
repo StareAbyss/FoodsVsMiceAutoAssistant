@@ -4,21 +4,18 @@ from function.scattered.gat_handle import faa_get_handle
 
 def f_test():
     zoom = 1.0
-    click_interval = 0
-    click_sleep = 0
 
-    channel = "锑食-微端"
+    channel = "锑食"
     handle = faa_get_handle(channel=channel, mode="flash")
     handle_browser = faa_get_handle(channel=channel, mode="browser")
     handle_360 = faa_get_handle(channel=channel, mode="360")
 
     for i in range(1):
         mouse_left_click(
-            handle=handle_browser,
-            x=int(470 * zoom),
-            y=int(185 * zoom),
-            # interval_time=click_interval,
-            sleep_time=click_sleep
+            handle=handle,
+            x=int(925 * zoom),
+            y=int(240 * zoom),
+            sleep_time=0
         )
 
 

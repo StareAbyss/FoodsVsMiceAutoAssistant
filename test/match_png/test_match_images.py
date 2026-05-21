@@ -1,38 +1,34 @@
-import cProfile
-
 from function.common.bg_img_match import match_ps_in_w
-from function.globals.get_paths import PATHS
+from function.globals.g_resources import RESOURCE_P
 from function.scattered.gat_handle import faa_get_handle
 
 
 def f_test():
-    handle = faa_get_handle(channel="深渊之下 | 锑食", mode="flash")
+    handle = faa_get_handle(channel="锑食", mode="flash")
 
-    for i in range(100):
-        match_ps_in_w(
-            source_handle=handle,
-            template_opts=[
-                {
-                    "source_range": [792, 200, 942, 534],
-                    "template": PATHS["image"]["common"] + "\\底部菜单\\跳转_竞技场.png",
-                    "match_tolerance": 0.95,
-                },
-                {
-                    "source_range": [792, 200, 942, 534],
-                    "template": PATHS["image"]["common"] + "\\底部菜单\\跳转_情侣任务.png",
-                    "match_tolerance": 0.95,
-                },
-                {
-                    "source_range": [792, 200, 942, 534],
-                    "template": PATHS["image"]["common"] + "\\底部菜单\\跳转_公会副本.png",
-                    "match_tolerance": 0.95,
-                }
-            ],
-            return_mode="or"
-        )
+    source_range = [558, 89, 903, 532]
+    gem_ps = RESOURCE_P["synthesis"]["可分解宝石"]
+    result = match_ps_in_w(
+        source_handle=handle,
+        template_opts=[
+            {"template": gem_ps["攻击宝石.png"], "source_range": source_range, "match_tolerance": 0.95},
+            {"template": gem_ps["绿宝石.png"], "source_range": source_range, "match_tolerance": 0.95},
+            {"template": gem_ps["对战雾宝石.png"], "source_range": source_range, "match_tolerance": 0.95},
+            {"template": gem_ps["对战轰炸宝石.png"], "source_range": source_range, "match_tolerance": 0.95},
+            {"template": gem_ps["神圣宝石.png"], "source_range": source_range, "match_tolerance": 0.95},
+            {"template": gem_ps["轰炸宝石.png"], "source_range": source_range, "match_tolerance": 0.95},
+            {"template": gem_ps["冰冻宝石.png"], "source_range": source_range, "match_tolerance": 0.95},
+            {"template": gem_ps["激光宝石.png"], "source_range": source_range, "match_tolerance": 0.95},
+            {"template": gem_ps["猫眼宝石.png"], "source_range": source_range, "match_tolerance": 0.95},
+        ],
+        return_mode='or',
+        quick_mode=True
+    )
 
 
-cProfile.run("f_test()")
+f_test()
+
+# cProfile.run("f_test()")
 
 """
 从原始图像[950- x 600-] x 找目标图像[113 x 45] x 3图 x 1000次

@@ -1,5 +1,8 @@
+import glob
 import os
 import shutil
+import subprocess
+from datetime import datetime
 
 
 class FileMover:
@@ -49,8 +52,71 @@ class FileMover:
             print(f'Copied: {src} -> {dest}')
 
 
+def get_latest_excel_file():
+    """
+    获取最新的图像资源Excel文件
+    先执行数据库查询脚本生成最新文件，然后返回文件路径
+    """
+    excel_script = "card_image_url_get.py"
+
+    print("\n" + "="*60)
+    print("正在获取最新的图像资源文件...")
+    print("="*60)
+
+    try:
+        # 执行数据库查询脚本
+        print(f"执行脚本: {excel_script}")
+        result = subprocess.run(
+            ["python", excel_script],
+            capture_output=True,
+            text=True,
+            encoding='utf-8'
+        )
+
+        # 输出脚本执行结果
+        if result.stdout:
+            print(result.stdout)
+        if result.stderr:
+            print("警告:", result.stderr)
+
+        if result.returncode != 0:
+            print(f"✗ 脚本执行失败，返回码: {result.returncode}")
+            return None
+
+        # 查找最新生成的Excel文件（在当前目录）
+        today = datetime.now().strftime('%Y-%m-%d')
+        pattern = f"点我获取更多图像资源 {today}.xlsx"
+
+        latest_file = None
+        file_path = os.path.join(".", pattern)
+        if os.path.exists(file_path):
+            latest_file = file_path
+            print(f"✓ 找到最新文件: {latest_file}")
+            return latest_file
+        else:
+            print(f"✗ 未找到今天生成的文件: {pattern}")
+            # 尝试查找最近的Excel文件
+            all_excel_files = glob.glob(os.path.join(".", "点我获取更多图像资源 *.xlsx"))
+
+            if all_excel_files:
+                # 按修改时间排序，返回最新的
+                latest_file = max(all_excel_files, key=os.path.getmtime)
+                print(f"✓ 使用最近的文件: {latest_file}")
+                return latest_file
+            else:
+                print("✗ 未找到任何图像资源文件")
+                return None
+
+    except Exception as e:
+        print(f"✗ 获取图像资源文件时出错: {e}")
+        return None
+
+
 def main():
     """因为被 py installer 的蜜汁机制折磨疯了, 我还是直接复制粘贴就好了"""
+
+    # 第一步：获取最新的图像资源Excel文件
+    latest_excel = get_latest_excel_file()
 
     # 初始化 FileMover 实例
     mover = FileMover(
@@ -104,9 +170,16 @@ def main():
         "README - 高级放卡.md",
         "致谢名单.md",
         "致谢名单.png",
-        "点我获取更多图像资源 2026-02-15.xlsx",
         "logs/item_ranking_dag_graph.json",
     ]
+
+    # 添加最新的图像资源Excel文件
+    if latest_excel:
+        tar_files.append(latest_excel)
+        print(f"\n✓ 已添加图像资源文件到打包列表: {latest_excel}")
+    else:
+        print("\n⚠ 警告: 未找到图像资源文件，将跳过此文件")
+
     for tar_file in tar_files:
         mover.add_file(tar_file)
 
@@ -127,11 +200,11 @@ def main():
         * exclude_paths 根据相对路径排除文件 比如我在"config"路径中 可通过 "config/cus_images/背包_装备_需使用的/任意通用包裹.png"准确排除这个文件
         * exclude_files 根据文件名称 + 文件后缀名排除 比如 "致谢名单.png"
         * exclude_types 根据文件后缀名排除 比如 ".pyc"
-* preview 函数 预览移动 输出样例 
-    Would copy: 
+* preview 函数 预览移动 输出样例
+    Would copy:
     '.\config\cus_images\一些常用的图标\浮空岛酬劳.png' -> '..\_ExeWorkSpace\dist\FAA\config\cus_images\一些常用的图标\浮空岛酬劳.png'
-* run 函数 实际移动 输出样例 
-    Copied: 
+* run 函数 实际移动 输出样例
+    Copied:
     '.\LICENSE -> ..\_ExeWorkSpace\dist\FAA\LICENSE'
 """
 
