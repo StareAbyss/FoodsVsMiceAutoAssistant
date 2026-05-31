@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
@@ -230,6 +230,32 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="Button_Refreshed">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="cursor">
+             <cursorShape>PointingHandCursor</cursorShape>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: transparent;
+border:none</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QPushButton" name="Button_MostMinimized">
@@ -2609,7 +2635,7 @@ Link Start</string>
               <number>5</number>
              </property>
              <item>
-              <layout class="QVBoxLayout" name="Tab3LeftLayout1" stretch="6,1,1,1,1,0">
+              <layout class="QVBoxLayout" name="Tab3LeftLayout1" stretch="6,1,1,1,1,1,0">
                <property name="spacing">
                 <number>5</number>
                </property>
@@ -2765,6 +2791,31 @@ Link Start</string>
                  </property>
                 </widget>
                </item>
+               <item>
+                <widget class="QPushButton" name="OpenPerformanceAnalysis_Button">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>50</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>50</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>性能分析</string>
+                 </property>
+                </widget>
+               </item>
               </layout>
              </item>
              <item>
@@ -2788,7 +2839,7 @@ Link Start</string>
                 <property name="geometry">
                  <rect>
                   <x>2</x>
-                  <y>-1710</y>
+                  <y>0</y>
                   <width>560</width>
                   <height>2350</height>
                  </rect>
@@ -7168,260 +7219,133 @@ FAA放卡核心原理简述:
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="Tab6">
+         <widget class="QWidget" name="tab">
           <attribute name="title">
-           <string>性能分析</string>
+           <string>检查更新</string>
           </attribute>
-          <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <layout class="QHBoxLayout" name="horizontalLayout_22">
            <item>
-            <layout class="QVBoxLayout" name="IoLayout">
+            <layout class="QVBoxLayout" name="UpdateLayout">
              <item>
-              <widget class="QLabel" name="label_8">
+              <widget class="QLabel" name="UpdateStateLabel">
                <property name="text">
-                <string>磁盘io读写</string>
+                <string>当前版本状态：读取中...</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
                </property>
               </widget>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_8">
-               <item>
-                <widget class="QLabel" name="label_14">
+              <widget class="QLabel" name="UpdateProgressLabel">
+               <property name="text">
+                <string>更新进度：空闲</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QGridLayout" name="UpdateButtonLayout">
+               <property name="spacing">
+                <number>8</number>
+               </property>
+               <item row="0" column="0">
+                <widget class="QPushButton" name="CheckUpdateButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>34</height>
+                  </size>
+                 </property>
                  <property name="text">
-                  <string>总读取字节数</string>
+                  <string>加载正式版更新列表</string>
                  </property>
                 </widget>
                </item>
-               <item>
-                <widget class="QLabel" name="read_bytes_label">
+               <item row="0" column="1">
+                <widget class="QPushButton" name="NormalUpdateButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>34</height>
+                  </size>
+                 </property>
                  <property name="text">
-                  <string>Null</string>
+                  <string>更新至选中的版本</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QPushButton" name="ForceUpdateButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>34</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>加载开发版更新列表</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QPushButton" name="DevMoreUpdateButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>34</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>加载更多开发者更新内容</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QPushButton" name="BackupManagerButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>34</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>管理更新备份</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QPushButton" name="UpdateHelpButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>34</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>查看相关说明</string>
                  </property>
                 </widget>
                </item>
               </layout>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_9">
-               <item>
-                <widget class="QLabel" name="label_20">
-                 <property name="text">
-                  <string>总写入字节数</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="write_bytes_label">
-                 <property name="text">
-                  <string>Null</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <spacer name="verticalSpacer_13">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
+              <widget class="QTableWidget" name="GitHistoryView">
+               <property name="wordWrap">
+                <bool>true</bool>
                </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QLabel" name="Io_panel">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>假装出现了一个仪表盘
-未完待续</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
+               <attribute name="horizontalHeaderStretchLastSection">
+                <bool>true</bool>
+               </attribute>
               </widget>
-             </item>
-             <item>
-              <spacer name="verticalSpacer_14">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="MemoryLayout">
-             <item>
-              <widget class="QLabel" name="label_9">
-               <property name="text">
-                <string>内存占用</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_10">
-               <item>
-                <widget class="QLabel" name="label_15">
-                 <property name="text">
-                  <string>总内存使用量</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="total_memory_rss_label">
-                 <property name="text">
-                  <string>Null</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_11">
-               <item>
-                <widget class="QLabel" name="label_21">
-                 <property name="text">
-                  <string>总内存使用率</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="total_memory_percent_label">
-                 <property name="text">
-                  <string>Null</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <spacer name="verticalSpacer_9">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QLabel" name="Memory_panel">
-               <property name="text">
-                <string>假装出现了一个仪表盘
-未完待续</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="verticalSpacer_15">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="CpuLayout">
-             <item>
-              <widget class="QLabel" name="label_13">
-               <property name="text">
-                <string>cpu占用</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_12">
-               <item>
-                <widget class="QLabel" name="label_16">
-                 <property name="text">
-                  <string>总CPU使用率</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="total_cpu_percent_label">
-                 <property name="text">
-                  <string>Null</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_2">
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="verticalSpacer_8">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QLabel" name="cpu_panel">
-               <property name="text">
-                <string>假装出现了一个仪表盘
-未完待续</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="verticalSpacer_16">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
              </item>
             </layout>
            </item>
           </layout>
          </widget>
+
         </widget>
        </item>
       </layout>
