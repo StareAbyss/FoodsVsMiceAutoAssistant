@@ -6,35 +6,23 @@
         }
     },
     {
-        "task_type": "刷新游戏",
+        "task_type": "战斗",
         "task_id": 1,
         "enabled": true,
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "player": [
-                1,
-                2
-            ]
-        }
-    },
-    {
-        "task_type": "战斗",
-        "task_id": 2,
-        "enabled": false,
-        "alias": "",
-        "tooltip": "",
-        "task_args": {
-            "stage_id": "WB-0-0",
-            "max_times": 1,
+            "stage_id": "HH-0-0",
+            "max_times": 17,
             "need_key": true,
             "player": [
+                2,
                 1
             ],
             "global_plan_active": true,
             "deck": 0,
-            "battle_plan_1p": "fdfd70ae-0ea4-11f1-b2d6-b3d671c65c7e",
-            "battle_plan_2p": "8bad66e3-0ea6-11f1-bc17-b3d671c65c7e",
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
             "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
@@ -51,7 +39,20 @@
         }
     },
     {
-        "task_type": "清背包",
+        "task_type": "刷新游戏",
+        "task_id": 2,
+        "enabled": false,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "查漏补缺",
         "task_id": 3,
         "enabled": false,
         "alias": "",
@@ -64,16 +65,11 @@
         }
     },
     {
-        "task_type": "浇水施肥摘果",
+        "task_type": "美食大赛",
         "task_id": 4,
-        "enabled": true,
+        "enabled": false,
         "alias": "",
         "tooltip": "",
-        "task_args": {
-            "player": [
-                1,
-                2
-            ]
-        }
+        "task_args": {}
     }
 ]

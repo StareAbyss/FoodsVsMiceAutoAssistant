@@ -55,7 +55,7 @@
         "task_type": "战斗",
         "task_id": 3,
         "enabled": true,
-        "alias": "",
+        "alias": "战斗-遗迹",
         "tooltip": "战斗-遗迹",
         "task_args": {
             "stage_id": "NO-3-6",
@@ -199,6 +199,19 @@
     {
         "task_type": "清背包",
         "task_id": 8,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "查漏补缺",
+        "task_id": 9,
         "enabled": true,
         "alias": "",
         "tooltip": "",
