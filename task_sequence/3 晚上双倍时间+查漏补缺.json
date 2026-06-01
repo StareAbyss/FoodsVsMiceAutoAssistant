@@ -68,7 +68,7 @@
         "task_type": "战斗",
         "task_id": 4,
         "enabled": true,
-        "alias": "",
+        "alias": "魔塔单人",
         "tooltip": "",
         "task_args": {
             "stage_id": "MT-1-120",
@@ -99,7 +99,7 @@
     {
         "task_type": "战斗",
         "task_id": 5,
-        "enabled": true,
+        "enabled": false,
         "alias": "",
         "tooltip": "",
         "task_args": {
@@ -228,7 +228,7 @@
         "task_type": "战斗",
         "task_id": 9,
         "enabled": true,
-        "alias": "",
+        "alias": "萌宠",
         "tooltip": "",
         "task_args": {
             "stage_id": "PT-0-25",
@@ -260,7 +260,7 @@
         "task_type": "战斗",
         "task_id": 10,
         "enabled": true,
-        "alias": "",
+        "alias": "魔塔单人",
         "tooltip": "",
         "task_args": {
             "stage_id": "MT-1-120",
@@ -291,7 +291,7 @@
     {
         "task_type": "战斗",
         "task_id": 11,
-        "enabled": true,
+        "enabled": false,
         "alias": "",
         "tooltip": "",
         "task_args": {
@@ -420,7 +420,7 @@
         "task_type": "战斗",
         "task_id": 15,
         "enabled": true,
-        "alias": "",
+        "alias": "萌宠",
         "tooltip": "",
         "task_args": {
             "stage_id": "PT-0-20",
@@ -452,7 +452,7 @@
         "task_type": "战斗",
         "task_id": 16,
         "enabled": true,
-        "alias": "",
+        "alias": "魔塔双人",
         "tooltip": "",
         "task_args": {
             "stage_id": "MT-2-100",
