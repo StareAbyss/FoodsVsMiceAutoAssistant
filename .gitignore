@@ -37,3 +37,6 @@ logs/
 
 # 忽略 main.spec
 main.spec
+
+# 忽略其他开发资源
+resource_other/
