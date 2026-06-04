@@ -1,11 +1,14 @@
-import datetime
+﻿import datetime
 import json
 import random
 import shutil
 import sqlite3
+import subprocess
 import threading
 import webbrowser
+from pathlib import Path
 
+import psutil
 import win32con
 import win32gui
 from PyQt6 import QtCore, QtGui, QtWidgets
@@ -13,9 +16,11 @@ from PyQt6.QtWidgets import QMessageBox, QFileDialog, QVBoxLayout, QPushButton, 
 
 from function.common.process_manager import get_path_and_sub_titles
 from function.common.startup_manager import *
+from function.common.update_backup import backup_summary
+from function.common.update_state import detect_local_state
 from function.core.faa.faa_mix import FAA
 from function.core.my_crypto import encrypt_data
-from function.core.performance_analysis import run_analysis_in_thread
+from function.core.performance_analysis import QMWPerformanceAnalysis, run_analysis_in_thread
 from function.core.qmw_2_load_settings import CommonHelper, QMainWindowLoadSettings
 from function.core.qmw_editor_of_battle_plan import QMWEditorOfBattlePlan
 from function.core.qmw_editor_of_stage_plan import QMWEditorOfStagePlan
@@ -31,7 +36,9 @@ from function.core.qmw_tip_misu_logistics import QMWTipMisuLogistics
 from function.core.qmw_tip_qqlogin import QMWTipQQlogin
 from function.core.qmw_tip_sleep import QMWTipSleep
 from function.core.qmw_tip_stage_id import QMWTipStageID
+from function.core.qmw_tip_update import QMWTipUpdate
 from function.core.qmw_tip_warm_gift import QMWTipWarmGift
+from function.core.qmw_update_backup_manager import QMWUpdateBackupManager
 from function.core.qmw_useful_tools_widget import UsefulToolsWidget
 from function.core.todo import ThreadTodo
 from function.globals import EXTRA, SIGNAL
@@ -46,6 +53,9 @@ from function.scattered.get_stage_info_online import get_stage_info_online
 from function.scattered.resize_360_windows import batch_resize_window
 from function.scattered.test_route_connectivity import test_route_connectivity
 from function.scattered.todo_timer_manager import TodoTimerManager
+
+from function.core.git_update_manager import prepare_release_update, refresh_dev_manifest, refresh_release_manifest
+from function.core.update_apply import launch_update_from_staging
 
 
 class QMainWindowService(QMainWindowLoadSettings):
@@ -101,6 +111,10 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.OpenUsefulTools_Button.clicked.connect(self.click_btn_open_useful_tools)
         # # 额外窗口 - 其它工具
         self.OpenOtherTools_Button.clicked.connect(self.click_btn_open_other_tools)
+
+        # 额外窗口 - 性能分析
+        self.window_performance_analysis = QMWPerformanceAnalysis(parent=self)
+        self.OpenPerformanceAnalysis_Button.clicked.connect(self.click_btn_open_performance_analysis)
 
         # 额外窗口 - 日氪链接
         self.TopUpMoneyTipButton.clicked.connect(
@@ -187,6 +201,35 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 选择天知强卡器路径
         self.TCE_path_select_btn.clicked.connect(self.click_btn_select_tce_path)
 
+        # 重启应用程序按钮
+        self.Button_Refreshed.clicked.connect(self.restart_application)
+
+        # 版本更新相关按钮
+        self.CheckUpdateButton.clicked.connect(self.click_btn_check_update)
+        self.ForceUpdateButton.clicked.connect(self.click_btn_force_update)
+        self.NormalUpdateButton.clicked.connect(self.click_btn_normal_update)
+        self.BackupManagerButton.clicked.connect(self.click_btn_manage_update_backups)
+        self.UpdateHelpButton.clicked.connect(self.click_btn_tip_update)
+        self.CheckUpdateButton.setText("加载正式版更新列表")
+        self.NormalUpdateButton.setText("更新至选中的版本")
+        self.NormalUpdateButton.setEnabled(False)
+        self.ForceUpdateButton.setText("加载开发版更新列表")
+        self.DevMoreUpdateButton.setText("加载更多开发者更新内容")
+        self.DevMoreUpdateButton.clicked.connect(self.click_btn_load_more_dev_updates)
+        self.DevMoreUpdateButton.setEnabled(False)
+        self.update_candidates = []
+        self.update_target_mode = "release"
+        self.dev_manifest_pages = 1
+        self.window_update_backup_manager = None
+        self.window_tip_update = QMWTipUpdate()
+        self.refresh_update_state_label()
+        self.update_progress_started_at = None
+        self.update_progress_step = "空闲"
+        self.update_progress_timer = QtCore.QTimer(self)
+        self.update_progress_timer.setInterval(1000)
+        self.update_progress_timer.timeout.connect(self.refresh_update_progress_label)
+        self.refresh_update_progress_label()
+
         # 线程状态
         self.is_ending = False  # 线程是否正在结束
         self.is_start = False  # 线程是否正在启动
@@ -250,6 +293,89 @@ class QMainWindowService(QMainWindowLoadSettings):
         )
         SIGNAL.PRINT_TO_UI.emit("", time=False)
         SIGNAL.PRINT_TO_UI.emit(warning_text, color_level=1, time=False)
+
+    def warn_update_backups_if_needed(self):
+        summary = backup_summary(Path(PATHS["root"]))
+        if summary["count"] <= 0:
+            return
+
+        if summary["total_size"] <= 512 * 1024 * 1024:
+            return
+
+        backups_path = os.path.join(PATHS["root"], "backups")
+        backups_url = QtCore.QUrl.fromLocalFile(backups_path).toString()
+        warning_text = (
+            f"FAA 已保留 {summary['count']} 个更新备份，大小总计 {summary['total_size_text']}，"
+            f"<a href='{backups_url}'>点击跳转</a>查看，也可以在更新页使用“管理更新备份”清理。"
+        )
+        SIGNAL.PRINT_TO_UI.emit("", time=False)
+        SIGNAL.PRINT_TO_UI.emit(warning_text, color_level=1, time=False)
+
+    def warn_update_state_if_needed(self):
+        local_state = detect_local_state(Path(PATHS["root"]))
+        warnings = local_state.get("warnings", [])
+        if not warnings:
+            return
+
+        SIGNAL.PRINT_TO_UI.emit("", time=False)
+        for warning in warnings:
+            SIGNAL.PRINT_TO_UI.emit(f"[更新状态] {warning}", color_level=1, time=False)
+
+    def refresh_update_state_label(self):
+        """刷新更新页顶部的本地版本状态摘要。"""
+        local_state = detect_local_state(Path(PATHS["root"]))
+        source_map = {
+            "git": "Git 工作区",
+            "update_state": "本地更新状态文件",
+            "extra_version": "EXTRA.VERSION",
+        }
+        version = local_state.get("version") or "未知"
+        tag = local_state.get("tag") or "未记录"
+        pr = local_state.get("pr")
+        pr_text = f"#{pr}" if pr else "未记录"
+        commit = local_state.get("commit") or ""
+        commit_text = commit[:12] if commit else "未记录"
+        branch = local_state.get("branch") or "未记录"
+        source = source_map.get(local_state.get("source"), local_state.get("source") or "未知")
+        dirty_text = "有本地改动" if local_state.get("dirty") else "干净"
+
+        self.UpdateStateLabel.setText(
+            f"当前版本：{version}    Tag：{tag}    PR：{pr_text}    "
+            f"Commit：{commit_text}    分支：{branch}    来源：{source}    状态：{dirty_text}"
+        )
+
+    def refresh_update_progress_label(self):
+        """刷新更新页的当前操作阶段和等待时间。"""
+        if self.update_progress_started_at is None:
+            self.UpdateProgressLabel.setText(f"更新进度：{self.update_progress_step}")
+            return
+
+        elapsed = int((datetime.datetime.now() - self.update_progress_started_at).total_seconds())
+        self.UpdateProgressLabel.setText(f"更新进度：{self.update_progress_step}，已等待 {elapsed} 秒")
+
+    def start_update_progress(self, step: str):
+        """
+        开始展示一个耗时更新阶段。
+
+        Args:
+            step: 展示给用户的当前阶段说明，例如正在请求 GitHub 或正在准备 staging。
+        """
+        self.update_progress_step = step
+        self.update_progress_started_at = datetime.datetime.now()
+        self.refresh_update_progress_label()
+        self.update_progress_timer.start()
+
+    def finish_update_progress(self, step: str):
+        """
+        结束当前耗时阶段，并保留最后的结果说明。
+
+        Args:
+            step: 操作完成后的摘要，通常包含成功、失败或取消原因。
+        """
+        self.update_progress_timer.stop()
+        self.update_progress_started_at = None
+        self.update_progress_step = step
+        self.refresh_update_progress_label()
 
     def choose_path_button_on_clicked(self):
         """"用于连接ChoosePathButton的函数，选择存储路径"""
@@ -895,6 +1021,15 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.set_stylesheet(window)
         window.show()
 
+    def click_btn_open_performance_analysis(self):
+        """打开性能分析独立窗口，并把窗口提升到前台。"""
+        window = self.window_performance_analysis
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
+        window.raise_()
+        window.activateWindow()
+
     def click_btn_open_useful_tools(self):
         pass
         window = self.window_useful_tools
@@ -971,6 +1106,13 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def click_btn_tip_sleep(self):
         window = self.window_tip_sleep
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
+
+    def click_btn_tip_update(self):
+        """打开更新与备份说明窗口。"""
+        window = self.window_tip_update
         window.setFont(self.font)
         self.set_stylesheet(window)
         window.show()
@@ -1142,6 +1284,332 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 显示窗口
         self.tools_window.show()
 
+    def click_btn_manage_update_backups(self):
+        """打开更新备份管理窗口，用于查看、删除和恢复备份。"""
+        self.window_update_backup_manager = QMWUpdateBackupManager(self)
+        self.window_update_backup_manager.show()
+
+    @staticmethod
+    def _git_log_callback(level, msg):
+        """Git 日志回调 - 根据等级映射颜色"""
+        color_map = {"INFO": 3, "WARNING": 2, "ERROR": 1}
+        SIGNAL.PRINT_TO_UI.emit(f"[Git] {msg}", color_level=color_map.get(level, 3))
+
+    def click_btn_check_update(self):
+        """加载带版本 tag 的正式版更新列表。"""
+        SIGNAL.PRINT_TO_UI.emit("[更新] 正在刷新正式版本列表...", color_level=1)
+        self.start_update_progress("正在请求 GitHub 正式版 tag 列表")
+        self.CheckUpdateButton.setEnabled(False)
+        self.ForceUpdateButton.setEnabled(False)
+        self.DevMoreUpdateButton.setEnabled(False)
+        self.NormalUpdateButton.setEnabled(False)
+
+        def on_check_result(success, message, payload):
+            """接收正式版 manifest worker 结果并更新表格和按钮状态。"""
+            if success:
+                SIGNAL.PRINT_TO_UI.emit(f"[更新] {message}", color_level=2)
+            else:
+                SIGNAL.PRINT_TO_UI.emit(f"[更新] {message}", color_level=0)
+
+            if payload and payload.get("state_warning"):
+                SIGNAL.PRINT_TO_UI.emit(f"[更新状态] {payload['state_warning']}", color_level=1)
+
+            versions = payload.get("versions", []) if payload else []
+            self._fill_update_table(versions, mode="release")
+            self.update_candidates = versions
+            self.update_target_mode = "release"
+            self.finish_update_progress(
+                f"正式版列表加载完成，共 {len(versions)} 个候选版本" if success
+                else f"正式版列表加载失败：{message}"
+            )
+            self.NormalUpdateButton.setText("更新至选中的版本")
+
+            self.CheckUpdateButton.setEnabled(True)
+            self.ForceUpdateButton.setEnabled(True)
+            self.DevMoreUpdateButton.setEnabled(False)
+            self.NormalUpdateButton.setEnabled(bool(versions))
+
+        self.git_worker = refresh_release_manifest()
+        self.git_worker.result.connect(on_check_result)
+
+    def _selected_update_target(self):
+        """
+        获取更新表格中当前选中的目标版本。
+
+        Returns:
+            目标版本 dict；没有候选项时返回 None。若用户没有手动选中行，
+            默认使用候选列表第一项，避免刷新后必须额外点击一次。
+        """
+        candidates = getattr(self, "update_candidates", [])
+        if not candidates:
+            return None
+
+        row = self.GitHistoryView.currentRow()
+        if 0 <= row < len(candidates):
+            return candidates[row]
+        return candidates[0]
+
+    def _fill_update_table(self, entries, mode: str):
+        """
+        将正式版 tag 或开发版 PR 合并提交渲染到更新表格。
+
+        Args:
+            entries: 来自 manifest worker 的版本候选列表。
+            mode: release 表示正式版列表，developer 表示开发版 PR 合并提交列表。
+        """
+        self.GitHistoryView.setColumnCount(5)
+        self.GitHistoryView.setHorizontalHeaderLabels(['版本/类型', 'PR', '提交哈希', '时间', '标题'])
+        self.GitHistoryView.setRowCount(0)
+
+        for entry in entries:
+            row_position = self.GitHistoryView.rowCount()
+            self.GitHistoryView.insertRow(row_position)
+            values = [
+                entry.get("tag", "") if mode == "release" else "开发",
+                f"#{entry.get('pr')}" if entry.get("pr") else "",
+                entry.get("commit", "")[:12],
+                entry.get("merged_at", ""),
+                entry.get("title") or entry.get("summary", ""),
+            ]
+            for column, value in enumerate(values):
+                item = QtWidgets.QTableWidgetItem(str(value))
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+                if column == 4:
+                    item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignTop)
+                self.GitHistoryView.setItem(row_position, column, item)
+
+        header = self.GitHistoryView.horizontalHeader()
+        header.resizeSection(0, 90)
+        header.resizeSection(1, 70)
+        header.resizeSection(2, 120)
+        header.resizeSection(3, 160)
+        self.GitHistoryView.resizeRowsToContents()
+
+    def click_btn_force_update(self):
+        """进入开发版更新模式，加载最近的 PR merge commit 列表。"""
+        reply = QMessageBox.warning(
+            self,
+            '开发者更新模式',
+            '即将显示 main 分支最近的 PR 合并提交。\n'
+            '这些提交未必是正式版本，不保证可以正常运行。\n'
+            '请确认你知道自己在做什么。',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+
+        self.dev_manifest_pages = 1
+        self._refresh_dev_updates(max_pages=self.dev_manifest_pages, stop_at_cached=True)
+
+    def click_btn_load_more_dev_updates(self):
+        """继续向更早的 main 分支 PR 合并提交翻页。"""
+        self.dev_manifest_pages = max(getattr(self, "dev_manifest_pages", 1) + 1, 2)
+        self._refresh_dev_updates(max_pages=self.dev_manifest_pages, stop_at_cached=False)
+
+    def _refresh_dev_updates(self, max_pages: int, stop_at_cached: bool):
+        """
+        刷新开发版候选列表。
+
+        Args:
+            max_pages: 本次最多读取的 GitHub API 分页数量。
+            stop_at_cached: 读取到本地缓存已知提交时是否提前停止，用于降低访问量。
+        """
+        SIGNAL.PRINT_TO_UI.emit(f"[更新] 正在刷新开发者 PR 合并提交列表，页数={max_pages}...", color_level=1)
+        self.start_update_progress(f"正在请求 GitHub 开发版 PR 合并提交列表，第 {max_pages} 页范围")
+        self.CheckUpdateButton.setEnabled(False)
+        self.ForceUpdateButton.setEnabled(False)
+        self.DevMoreUpdateButton.setEnabled(False)
+        self.NormalUpdateButton.setEnabled(False)
+
+        def on_dev_result(success, message, payload):
+            """接收开发版 manifest worker 结果并刷新 PR 合并提交列表。"""
+            if success:
+                SIGNAL.PRINT_TO_UI.emit(f"[更新] {message}", color_level=2)
+            else:
+                SIGNAL.PRINT_TO_UI.emit(f"[更新] {message}", color_level=0)
+
+            dev_commits = payload.get("dev_commits", []) if payload else []
+            self._fill_update_table(dev_commits, mode="developer")
+            self.update_candidates = dev_commits
+            self.update_target_mode = "developer"
+            self.finish_update_progress(
+                f"开发版列表加载完成，共 {len(dev_commits)} 个 PR 合并提交" if success
+                else f"开发版列表加载失败：{message}"
+            )
+            self.NormalUpdateButton.setText("更新至选中的版本")
+
+            self.CheckUpdateButton.setEnabled(True)
+            self.ForceUpdateButton.setEnabled(True)
+            self.DevMoreUpdateButton.setEnabled(bool(dev_commits))
+            self.NormalUpdateButton.setEnabled(bool(dev_commits))
+
+        self.git_worker = refresh_dev_manifest(max_pages=max_pages, stop_at_cached=stop_at_cached)
+        self.git_worker.result.connect(on_dev_result)
+
+    def click_btn_normal_update(self):
+        """准备并确认应用用户在表格中选中的更新目标。"""
+        target = self._selected_update_target()
+        if not target:
+            QMessageBox.information(self, "暂无可用更新", "请先点击“检查更新”刷新正式版本列表。")
+            return
+        mode = getattr(self, "update_target_mode", "release")
+        target_name = target.get("tag") or f"PR #{target.get('pr')} / {target.get('commit', '')[:12]}"
+
+        reply = QMessageBox.question(
+            self,
+            '准备更新',
+            f"即将准备更新至 {target_name}。\n"
+            "准备阶段会下载目标源码包并迁移当前配置到 staging，不会立刻替换当前目录。\n"
+            "准备完成后会再次确认是否执行替换。",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No)
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+
+        SIGNAL.PRINT_TO_UI.emit(f"[更新] 正在准备 {target_name}...", color_level=1)
+        self.start_update_progress(f"正在下载并准备更新到 {target_name}")
+        self.CheckUpdateButton.setEnabled(False)
+        self.ForceUpdateButton.setEnabled(False)
+        self.DevMoreUpdateButton.setEnabled(False)
+        self.NormalUpdateButton.setEnabled(False)
+
+        def on_prepare_result(success, message, payload):
+            """接收 staging 准备结果，空间足够且用户确认后启动外部 updater。"""
+            self.CheckUpdateButton.setEnabled(True)
+            self.ForceUpdateButton.setEnabled(True)
+            self.DevMoreUpdateButton.setEnabled(self.update_target_mode == "developer" and bool(self.update_candidates))
+            self.NormalUpdateButton.setEnabled(True)
+            if not success:
+                self.finish_update_progress(f"更新准备失败：{message}")
+
+            if not success:
+                SIGNAL.PRINT_TO_UI.emit(f"[更新] {message}", color_level=0)
+                SIGNAL.DIALOG.emit("更新准备失败", message)
+                return
+
+            space = payload.get("space", {})
+            validation = payload.get("target_validation", {})
+            if validation.get("status") == "compare_failed":
+                SIGNAL.PRINT_TO_UI.emit(f"[更新状态] {validation.get('message')}", color_level=1)
+
+            SIGNAL.PRINT_TO_UI.emit(
+                f"[更新] 准备完成。需要空间 {space.get('required_text')}，可用 {space.get('available_text')}",
+                color_level=2 if space.get("enough") else 0,
+            )
+
+            self.finish_update_progress("更新准备完成，正在等待确认是否执行替换")
+
+            if not space.get("enough", False):
+                self.finish_update_progress("更新准备完成，但磁盘空间不足，已停止替换")
+                SIGNAL.DIALOG.emit(
+                    "磁盘空间不足",
+                    f"更新已准备但不会执行替换。\n需要：{space.get('required_text')}\n可用：{space.get('available_text')}"
+                )
+                return
+
+            staging_path = payload.get("staging", {}).get("path", "")
+            reply_apply = QMessageBox.question(
+                self,
+                '执行更新替换',
+                f"更新准备完成，staging 位于：\n{staging_path}\n\n"
+                "接下来会启动外部 updater，当前程序退出后替换版本区，并保留更新前备份。\n"
+                "是否现在执行？",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No)
+            if reply_apply != QMessageBox.StandardButton.Yes:
+                self.finish_update_progress("更新准备完成，用户取消了本次替换")
+                return
+
+            launch_info = launch_update_from_staging(PATHS["root"], staging_path)
+            self.finish_update_progress(f"外部 updater 已启动，PID={launch_info['pid']}，主程序即将退出")
+            SIGNAL.PRINT_TO_UI.emit(f"[更新] 已启动外部 updater，PID={launch_info['pid']}。主程序即将退出。", color_level=1)
+            QtCore.QTimer.singleShot(500, QtWidgets.QApplication.quit)
+
+        self.git_worker = prepare_release_update(target)
+        self.git_worker.result.connect(on_prepare_result)
+
+    def restart_application(self):
+        """
+        重启整个应用程序
+        干净地关闭所有线程和进程，然后重新启动一个新的 Python 进程
+        """
+
+        # 弹窗确认
+        reply = QMessageBox.question(
+            self,
+            '重启 FAA',
+            '确定要重启 FAA 吗？\n'
+            '这将关闭所有正在运行的任务和线程，然后重新启动程序。',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No)
+
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+
+        CUS_LOGGER.info("[重启] 用户请求重启应用程序，开始清理流程...")
+        if self.thread_todo_running:
+            CUS_LOGGER.info("[重启] 正在停止 todo 主线程...")
+            self.todo_end()
+        if self.todo_timer_running:
+            CUS_LOGGER.info("[重启] 正在停止定时任务管理器...")
+            self.todo_timer_stop()
+        CUS_LOGGER.info("[重启] 所有线程已停止，准备重启...")
+
+        # 启动新进程 - 根据启动方式选择正确的命令
+        try:
+            CUS_LOGGER.debug(f"[重启] 工作目录：{PATHS['root']}")
+
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
+            root_entry = os.path.join(PATHS["root"], "AppInstallRun.bat")
+            if os.path.isfile(root_entry):
+                CUS_LOGGER.debug(f"[重启] 使用根目录固定入口：{root_entry}")
+                process = subprocess.Popen(
+                    [root_entry],
+                    cwd=PATHS["root"],
+                    shell=True,
+                    creationflags=subprocess.CREATE_NEW_CONSOLE,
+                    startupinfo=startupinfo
+                )
+            else:
+                python_executable = sys.executable
+                main_script = os.path.join(PATHS["root"], "function", "faa_main.py")
+                main_script_abs = os.path.abspath(main_script)
+                try:
+                    parent_process = psutil.Process().parent()
+                    parent_cmdline = parent_process.cmdline() if parent_process else []
+                    mode = any('-m' in arg for arg in parent_cmdline)
+                except Exception:
+                    mode = False
+
+                if mode:
+                    cmd_args = [python_executable, '-m', 'function.faa_main']
+                else:
+                    cmd_args = [python_executable, main_script_abs]
+                CUS_LOGGER.debug(f"[重启] 启动命令：{' '.join(cmd_args)}")
+                CUS_LOGGER.debug(f"[重启] 主脚本路径：{main_script_abs}")
+                process = subprocess.Popen(
+                    cmd_args,
+                    cwd=PATHS["root"],
+                    creationflags=subprocess.CREATE_NEW_CONSOLE,
+                    startupinfo=startupinfo
+                )
+
+            CUS_LOGGER.info(f"[重启] 新进程 PID: {process.pid}")
+        except Exception as e:
+            CUS_LOGGER.error(f"[重启] 启动新进程失败：{e}")
+            QMessageBox.critical(
+                self,
+                '重启失败',
+                f'无法启动新进程：{str(e)}',
+                QMessageBox.StandardButton.Ok)
+            return
+        CUS_LOGGER.info("[重启] 关闭当前应用...")
+        self.close()
+        os._exit(0)
+
     def open_task_editor(self, db_conn):
         """打开任务计划编辑器"""
         self.task_editor = TaskEditor(db_conn)
@@ -1173,6 +1641,8 @@ def faa_start_main(app=None, loading=None):
     # 主窗口淡入动画
     window.fade_in_animation.start()
     QtCore.QTimer.singleShot(0, window.warn_recording_size_if_needed)
+    QtCore.QTimer.singleShot(0, window.warn_update_backups_if_needed)
+    QtCore.QTimer.singleShot(0, window.warn_update_state_if_needed)
 
     # 性能分析监控启动
     run_analysis_in_thread(window)

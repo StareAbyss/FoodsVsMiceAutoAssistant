@@ -9,6 +9,16 @@ __pycache__/
 # 忽略所有 .pyc 文件 即python缓存
 *.pyc
 
+# 忽略虚拟环境
+.venv/
+
+# 忽略本地分发产物
+dist/
+
+# 忽略本地更新与备份运行数据
+backups/
+update_cache/
+
 # 忽略settings.json 用户配置文件
 config/settings.json
 
@@ -27,3 +37,6 @@ logs/
 
 # 忽略 main.spec
 main.spec
+
+# 忽略其他开发资源
+resource_other/

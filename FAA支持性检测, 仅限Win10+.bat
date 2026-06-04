@@ -7,8 +7,7 @@ echo   FAA 运行环境检查工具
 echo ========================================================
 echo.
 
-:: 检查DirectX 12支持
-echo 检查DirectX 12支持...
+echo 检查 DirectX 12 支持...
 set DX12_OK=0
 reg query "HKLM\SOFTWARE\Microsoft\DirectX" /v Version 2>nul | findstr /C:"4.09" >nul
 if !errorlevel! equ 0 (
@@ -19,8 +18,7 @@ if !errorlevel! equ 0 (
 )
 echo.
 
-:: 检查dxcore.dll
-echo 检查dxcore.dll...
+echo 检查 dxcore.dll...
 set DXCORE_OK=0
 if exist "%SystemRoot%\System32\dxcore.dll" (
     echo   dxcore.dll: 已找到
@@ -31,30 +29,30 @@ if exist "%SystemRoot%\System32\dxcore.dll" (
 echo.
 
 echo ========================================================
-echo   检查结果与建议:
+echo   检查结果与建议
 echo ========================================================
 echo.
 
-:: 根据系统版本和dxcore.dll状态提供建议
 if !DXCORE_OK! equ 0 (
-    echo ❌ 系统中缺少 dxcore.dll
+    echo [异常] 系统中缺少 dxcore.dll
     echo.
-        echo 建议解决方案:
-        echo 1. Win10系统请使用最新的系统补丁, 理论上将包含该运行库, 并自动修复该问题
-        echo 2. 请在网络上搜索关键词 缺少dxcore.dll并定点修复
+    echo 建议解决方案:
+    echo 1. Win10 系统请安装最新系统补丁，通常会包含该运行库。
+    echo 2. 也可以搜索关键词「缺少 dxcore.dll」并按系统版本定向修复。
 ) else (
-    echo ✅ dxcore.dll 已找到，系统环境正常
+    echo [正常] dxcore.dll 已找到，系统环境正常。
 )
 
 if !DX12_OK! equ 0 (
     echo.
-    echo ❌ DirectX 12 未安装或版本过低
-    echo 建议安装最新版本的 DirectX 运行库
+    echo [异常] DirectX 12 未安装或版本过低
+    echo 建议安装最新版本的 DirectX 运行库。
 ) else (
-    echo ✅ DirectX 12 已找到，系统环境正常
+    echo [正常] DirectX 12 已找到，系统环境正常。
 )
-echo 若仍在FAA启动时显示DLL load failed, 请在FAA大群内私聊群主以解决问题.
 
+echo.
+echo 如果 FAA 启动时仍显示 DLL load failed，请在 FAA 大群内私聊群主协助排查。
 echo.
 echo 按任意键退出...
 pause
