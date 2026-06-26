@@ -1,3 +1,5 @@
+import os
+
 import cv2
 import numpy as np
 
@@ -10,7 +12,7 @@ row = 2  # 1-5
 column = 1  # 1-10
 
 # 49*49 是战斗中截图的大小
-target_path = PATHS["logs"] + "\\img.png"
+target_path = os.path.join(PATHS["logs"], 'img.png')
 image = cv2.imdecode(np.fromfile(target_path, dtype=np.uint8), -1)
 image = image[49 * (row - 1):49 * row, 49 * (column - 1):49 * column]
 cv2.imshow(winname="Capture Test.png", mat=image)
