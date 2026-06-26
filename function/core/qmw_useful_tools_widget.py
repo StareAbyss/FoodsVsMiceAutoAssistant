@@ -1,3 +1,4 @@
+import os
 import sys
 
 from function.globals.loadings import loading
@@ -14,7 +15,7 @@ from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
-from function.tools.useful_tools import *
+from function.core.useful_tools import *
 
 
 class Magnifier(QLabel):
@@ -91,7 +92,7 @@ class DraggablePointer(QLabel):
         super().__init__(parent)
         self.setCursor(Qt.CursorShape.OpenHandCursor)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setPixmap(QPixmap(f"{PATHS['logo']}\\圆角-FetDeathWing-450x.png").scaled(32, 32))
+        self.setPixmap(QPixmap(os.path.join(PATHS["logo"], "圆角-FetDeathWing-450x.png")).scaled(32, 32))
         self.setFixedSize(32, 32)
         self.drag_offset = QPoint()
 
@@ -120,7 +121,7 @@ class UsefulToolsWidget(QWidget):
         self.faa = faa
 
         self.setWindowTitle("实用小工具")
-        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
+        self.setWindowIcon(QIcon(os.path.join(PATHS["logo"], '圆角-FetDeathWing-450x.png')))
         self.setFixedSize(300, 250)
 
         self.gacha_thread: GachaGoldThread | None = None
