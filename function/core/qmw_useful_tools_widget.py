@@ -15,7 +15,7 @@ from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
-from function.tools.useful_tools import *
+from function.core.useful_tools import *
 
 
 class Magnifier(QLabel):
