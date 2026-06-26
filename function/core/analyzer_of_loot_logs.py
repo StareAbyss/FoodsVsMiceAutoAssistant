@@ -1,10 +1,14 @@
 import copy
 import json
-import networkx as nx
 import os
 import time
+
+import cv2
+import networkx as nx
+import numpy as np
 from cv2 import imencode
 
+from function.common.bg_img_match import mask_transform_color_to_black
 from function.common.image_processing.same_size_match import one_item_match, match_block_equal_in_images
 from function.globals import EXTRA
 from function.globals import g_resources
@@ -12,6 +16,11 @@ from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 
 RANKING_BACKUP_JSON_PATH = os.path.join(PATHS["root"], "resource", "template", "item_ranking_dag_graph.json")
+LOOT_EMPTY_ITEM_NAMES = {"None-0", "None-1"}
+CHEST_EMPTY_ITEM_NAMES = {f"None-{i}" for i in range(2, 7)}
+EMPTY_ITEM_NAMES = LOOT_EMPTY_ITEM_NAMES | CHEST_EMPTY_ITEM_NAMES
+_LOOT_MATCH_CACHE = None
+_LOOT_MATCH_CACHE_RESOURCE_ID = None
 
 """
 FAA战斗结果分析模块 - 战利品识别与自主学习的异元素融合:有向无环图驱动的高效算法.
@@ -65,9 +74,10 @@ def match_items_from_image_and_save(img_save_path, image, mode='loots', test_pri
     last_name = None
 
     if mode == 'loots':
+        empty_item_names = LOOT_EMPTY_ITEM_NAMES
 
         # 读取现 JSON Ranking 文件
-        json_path = PATHS["config"] + "\\item_ranking_dag_graph.json"
+        json_path = os.path.join(PATHS["config"], 'item_ranking_dag_graph.json')
         ranking_list = ranking_read_data(json_path=json_path)["ranking"]
 
         # 获取列表的迭代器 从上一个检测的目标开始, 迭代已记录的json顺序中后面的部分
@@ -78,9 +88,10 @@ def match_items_from_image_and_save(img_save_path, image, mode='loots', test_pri
 
             # loots
             best_match_item, list_iter, _ = match_what_item_is(
-                block=block, list_iter=list_iter, last_name=last_name, may_locked=False)
+                block=block, list_iter=list_iter, last_name=last_name, may_locked=False,
+                empty_item_names=empty_item_names)
 
-            if best_match_item in ['None-0', 'None-1', 'None-2']:
+            if best_match_item in empty_item_names:
                 # 识别为无 后面的就不用识别了 该block自身也不用统计
                 break
 
@@ -94,6 +105,7 @@ def match_items_from_image_and_save(img_save_path, image, mode='loots', test_pri
                 list_iter = iter(copy.deepcopy(ranking_list))  # 重新获取迭代器
 
     if mode == 'chests':
+        empty_item_names = CHEST_EMPTY_ITEM_NAMES
 
         # 获取列表迭代器为空, 之后都会以空传递 (即不激活 但需要该参数不断传递)
         list_iter = None
@@ -102,9 +114,10 @@ def match_items_from_image_and_save(img_save_path, image, mode='loots', test_pri
         for block in block_list:
             # chests
             best_match_item, list_iter, is_locked = match_what_item_is(
-                block=block, list_iter=list_iter, last_name=last_name, may_locked=True)
+                block=block, list_iter=list_iter, last_name=last_name, may_locked=True,
+                empty_item_names=empty_item_names)
 
-            if best_match_item in ['None-0', 'None-1', 'None-2']:
+            if best_match_item in empty_item_names:
                 # 识别为无 后面的就不用识别了 该block自身也不用统计
                 break
 
@@ -162,7 +175,213 @@ def split_image_to_blocks(image, mode):
     return block_list
 
 
-def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
+def _split_item_name(filename):
+    """
+    去掉战利品图片文件名后缀。
+
+    Args:
+        filename: 图片文件名。
+
+    Returns:
+        str: 不带 .png 后缀的物品名。
+    """
+    return filename[:-4] if filename.endswith(".png") else filename
+
+
+def _build_template_match_mask(template_crop, raw_mask_crop):
+    """
+    构建与旧模板匹配逻辑一致的裁剪模板和最终掩模。
+
+    旧逻辑每次候选匹配都会重复处理模板 alpha 和外部 mask。这里在资源加载后
+    预先计算一次，后续只保留 OpenCV `matchTemplate` 需要的 BGR 模板和单通道 mask。
+
+    Args:
+        template_crop: 已按旧逻辑裁剪和下采样后的候选模板。
+        raw_mask_crop: 已按旧逻辑裁剪和下采样后的原始掩模。
+
+    Returns:
+        tuple[numpy.ndarray, numpy.ndarray]: BGR 模板和单通道最终掩模。
+    """
+    if template_crop.shape[2] == 4:
+        mask_from_template = template_crop[:, :, 3]
+        _, mask_from_template = cv2.threshold(mask_from_template, 254, 255, cv2.THRESH_BINARY)
+        template_bgr = template_crop[:, :, :3]
+    else:
+        mask_from_template = np.ones(template_crop.shape[:2], dtype=np.uint8) * 255
+        template_bgr = template_crop[:, :, :3]
+
+    if raw_mask_crop.shape[2] == 4:
+        mask_alpha = raw_mask_crop[:, :, 3]
+        _, mask_alpha = cv2.threshold(mask_alpha, 254, 255, cv2.THRESH_BINARY)
+        final_mask = mask_transform_color_to_black(mask=raw_mask_crop[:, :, :3].copy(), quick_method=True)
+        final_mask[mask_alpha != 255] = mask_from_template[mask_alpha != 255]
+    else:
+        final_mask = mask_transform_color_to_black(mask=raw_mask_crop.copy(), quick_method=True)
+
+    return template_bgr, final_mask
+
+
+def _build_loot_match_cache():
+    """
+    构建战利品识别的预处理缓存。
+
+    缓存同时服务两种匹配路径：
+    1. 精确数组短路：使用候选资源自身 alpha=255 的像素作为物品特征区，并排除
+       当前模式掩模 alpha 不透明的位置，避开绑定角标和掉落数量数字区域。识别时
+       对源图和模板分别乘 0/1 特征掩模后比较 bytes，命中时速度远快于模板匹配。
+    2. 模板匹配兜底：保留旧的裁剪、下采样、alpha 合并和 OpenCV `matchTemplate`
+       语义。精确数组因遮挡、边缘扰动或少量像素差异未命中时仍可识别。
+
+    Returns:
+        dict: 包含模板缓存、资源顺序和绑定角标精确识别数据的结构。
+    """
+    loot_images = g_resources.get_item_loot_images()
+    full_unlocked_mask = g_resources.RESOURCE_P["item"]["物品-掩模-不绑定.png"]
+    full_locked_mask = g_resources.RESOURCE_P["item"]["物品-掩模-绑定.png"]
+    raw_unlocked_mask = full_unlocked_mask[2:-10:2, 2:-10:2, :]
+    raw_locked_mask = full_locked_mask[2:-10:2, 2:-10:2, :]
+    locked_icon = g_resources.RESOURCE_P["item"]["物品-绑定角标-战利品.png"]
+
+    bind_region = (slice(30, 44), slice(0, 15))
+    locked_mask_region = full_locked_mask[bind_region]
+    bind_required = ((locked_mask_region[:, :, :3] == 255).all(axis=2)) & (locked_mask_region[:, :, 3] == 255)
+    bind_template_region = locked_icon[bind_region][:, :, :3]
+
+    templates = {}
+    ordered_names = []
+
+    for filename, image in loot_images.items():
+        item_name = _split_item_name(filename)
+        ordered_names.append(item_name)
+
+        unlocked_crop = image[2:-10:2, 2:-10:2, :]
+        unlocked_bgr, unlocked_mask = _build_template_match_mask(
+            template_crop=unlocked_crop,
+            raw_mask_crop=raw_unlocked_mask,
+        )
+
+        locked_image = image.copy()
+        overlay_alpha = locked_icon[:, :, 3] == 255
+        locked_image[overlay_alpha] = locked_icon[overlay_alpha]
+        locked_crop = locked_image[2:-10:2, 2:-10:2, :]
+        locked_bgr, locked_mask = _build_template_match_mask(
+            template_crop=locked_crop,
+            raw_mask_crop=raw_locked_mask,
+        )
+
+        image_bgr = image[:, :, :3]
+        image_opaque = image[:, :, 3] == 255
+        unlocked_feature = image_opaque & (full_unlocked_mask[:, :, 3] == 0)
+        locked_feature = image_opaque & (full_locked_mask[:, :, 3] == 0)
+        unlocked_mask_3 = np.repeat(unlocked_feature[:, :, None], 3, axis=2).astype(np.uint8)
+        locked_mask_3 = np.repeat(locked_feature[:, :, None], 3, axis=2).astype(np.uint8)
+
+        templates[item_name] = {
+            "unlocked_bgr": unlocked_bgr,
+            "unlocked_match_mask": unlocked_mask,
+            "unlocked_exact_mask": unlocked_mask_3,
+            "unlocked_exact_bytes": (image_bgr * unlocked_mask_3).tobytes(),
+            "locked_bgr": locked_bgr,
+            "locked_match_mask": locked_mask,
+            "locked_exact_mask": locked_mask_3,
+            "locked_exact_bytes": (image_bgr * locked_mask_3).tobytes(),
+        }
+
+    return {
+        "templates": templates,
+        "ordered_names": ordered_names,
+        "bind_required": bind_required,
+        "bind_template_region": bind_template_region,
+    }
+
+
+def _get_loot_match_cache():
+    """
+    获取战利品模板预处理缓存。
+
+    `fresh_resource_img()` 会整体替换 `RESOURCE_P`，因此用战利品资源节点的对象 id
+    判断缓存是否仍然有效。资源被刷新后，下次识别会自动重建缓存。
+
+    Returns:
+        dict: `_build_loot_match_cache` 返回的缓存结构。
+    """
+    global _LOOT_MATCH_CACHE
+    global _LOOT_MATCH_CACHE_RESOURCE_ID
+
+    resource_node = g_resources.RESOURCE_P.get("item", {}).get("战利品", {})
+    resource_id = id(resource_node)
+    if _LOOT_MATCH_CACHE is None or _LOOT_MATCH_CACHE_RESOURCE_ID != resource_id:
+        _LOOT_MATCH_CACHE = _build_loot_match_cache()
+        _LOOT_MATCH_CACHE_RESOURCE_ID = resource_id
+    return _LOOT_MATCH_CACHE
+
+
+def _match_bind_icon(block, cache):
+    """
+    判断物品块是否带有战利品绑定角标。
+
+    先使用绑定掩模中白色且不透明的强特征像素做数组相等；如果未命中，再回退
+    旧模板匹配逻辑，避免绑定角标出现轻微像素扰动时漏判。
+
+    Args:
+        block: 44x44 的物品图标块。
+        cache: 战利品模板预处理缓存。
+
+    Returns:
+        bool: True 表示识别到绑定角标。
+    """
+    required = cache["bind_required"]
+    if np.any(required):
+        source = block[30:44, 0:15, :3]
+        if np.array_equal(source[required], cache["bind_template_region"][required]):
+            return True
+
+    item_is_bind, _ = one_item_match(img_block=block, img_tar=None, mode="match_is_bind")
+    return item_is_bind
+
+
+def _match_loot_candidate(block, candidate, locked=False, allow_template_fallback=True):
+    """
+    匹配单个战利品候选模板。
+
+    先尝试精确数组短路；失败后使用预处理过的旧模板匹配语义兜底。
+
+    Args:
+        block: 44x44 的物品图标块。
+        candidate: `_build_loot_match_cache` 中的单个候选模板缓存。
+        locked: 是否按绑定物品模式匹配。
+        allow_template_fallback: 精确数组未命中时是否继续使用模板匹配兜底。
+
+    Returns:
+        bool: True 表示候选模板与物品块匹配。
+    """
+    prefix = "locked" if locked else "unlocked"
+    source = block[:, :, :3]
+    exact_mask = candidate[f"{prefix}_exact_mask"]
+    if (source * exact_mask).tobytes() == candidate[f"{prefix}_exact_bytes"]:
+        return True
+
+    if not allow_template_fallback:
+        return False
+
+    source_crop = block[2:-10:2, 2:-10:2, :3]
+    result = cv2.matchTemplate(
+        source_crop,
+        candidate[f"{prefix}_bgr"],
+        cv2.TM_SQDIFF_NORMED,
+        mask=candidate[f"{prefix}_match_mask"],
+    )
+    min_val, _, _, _ = cv2.minMaxLoc(result)
+    return 1 - min_val > 0.98
+
+
+def _candidate_allowed_in_mode(item_name, empty_item_names):
+    if empty_item_names is None:
+        return True
+    return item_name not in EMPTY_ITEM_NAMES or item_name in empty_item_names
+
+
+def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True, empty_item_names=None):
     """
     识别单个物品图标块对应的战利品名称。
 
@@ -180,48 +399,77 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
         识别出的物品名称或 "识别失败", 继续向后传递的 ranking 迭代器, 以及是否为绑定物品。
     """
 
+    cache = _get_loot_match_cache()
+    templates = cache["templates"]
     item_is_bind = False
     if may_locked:
-        item_is_bind, _ = one_item_match(img_block=block, img_tar=None, mode="match_is_bind")
+        item_is_bind = _match_bind_icon(block=block, cache=cache)
 
     if item_is_bind:
         # 全部遍历, 绑定物品只有开箱子会有 一般不会出现两个重复的识别结果 顺序表也不是为绑定物品准备
 
-        for item_name, item_img in g_resources.RESOURCE_P["item"]["战利品"].items():
-            item_name = item_name.replace(".png", "")
+        for item_name in cache["ordered_names"]:
+            if not _candidate_allowed_in_mode(item_name=item_name, empty_item_names=empty_item_names):
+                continue
             # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
-            is_it, _ = one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_locked")
-            if is_it:
+            if _match_loot_candidate(
+                block=block,
+                candidate=templates[item_name],
+                locked=True,
+                allow_template_fallback=False,
+            ):
+                return item_name, list_iter, True
+
+        for item_name in cache["ordered_names"]:
+            if not _candidate_allowed_in_mode(item_name=item_name, empty_item_names=empty_item_names):
+                continue
+            if _match_loot_candidate(block=block, candidate=templates[item_name], locked=True):
                 return item_name, list_iter, True
 
     """未识别到绑定角标"""
 
     # 如果上次识图成功, 则再试一次, 看看是不是同一张图
     if last_name is not None:
-        item_img = g_resources.RESOURCE_P["item"]["战利品"][last_name + ".png"]
+        item_candidate = templates.get(last_name)
 
         # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
-        is_it, _ = one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable")
-        if is_it:
+        if (
+                item_candidate is not None
+                and _candidate_allowed_in_mode(item_name=last_name, empty_item_names=empty_item_names)
+                and _match_loot_candidate(block=block, candidate=item_candidate, locked=False)):
             return last_name, list_iter, False
 
     # 先按照顺序表遍历, 极大减少耗时(如果有顺序表)
     if list_iter:
         for item_name in list_iter:
-            item_img = g_resources.RESOURCE_P["item"]["战利品"][item_name + ".png"]
+            if not _candidate_allowed_in_mode(item_name=item_name, empty_item_names=empty_item_names):
+                continue
+            item_candidate = templates.get(item_name)
+            if item_candidate is None:
+                continue
 
             # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
-            is_it, _ = one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable")
-            if is_it:
+            if _match_loot_candidate(block=block, candidate=item_candidate, locked=False):
                 return item_name, list_iter, False
 
     # 如果在json中按顺序查找没有找到, 全部遍历
-    for item_name, item_img in g_resources.RESOURCE_P["item"]["战利品"].items():
-        item_name = item_name.replace(".png", "")
+    for item_name in cache["ordered_names"]:
+        if not _candidate_allowed_in_mode(item_name=item_name, empty_item_names=empty_item_names):
+            continue
 
         # 对比 block 和 target_image 识图成功 返回识别的道具名称(不含扩展名)
-        is_it, _ = one_item_match(img_block=block, img_tar=item_img, mode="match_template_with_mask_tradable")
-        if is_it:
+        if _match_loot_candidate(
+            block=block,
+            candidate=templates[item_name],
+            locked=False,
+            allow_template_fallback=False,
+        ):
+            return item_name, list_iter, False
+
+    for item_name in cache["ordered_names"]:
+        if not _candidate_allowed_in_mode(item_name=item_name, empty_item_names=empty_item_names):
+            continue
+        if _match_loot_candidate(block=block, candidate=templates[item_name], locked=False):
             return item_name, list_iter, False
 
     """识别失败"""
@@ -242,7 +490,7 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
             # 注意 需要重载一下内存中的图片
             g_resources.fresh_resource_log_img()
 
-            unmatched_path = PATHS["logs"] + "\\match_failed\\loots"
+            unmatched_path = os.path.join(PATHS["logs"], 'match_failed', 'loots')
 
             if not match_block_equal_in_images(
                 block_array=img_block,
@@ -268,8 +516,8 @@ def match_what_item_is(block, list_iter=None, last_name=None, may_locked=True):
                     is_it, _ = one_item_match(img_block, tar_image, mode="equal")
                     if is_it:
                         _, i_id, count = old_name.split('.')[0].split("_")
-                        old_path = f'{unmatched_path}\\{old_name}'
-                        new_path = f"{unmatched_path}\\unknown_{i_id}_{int(count) + 1}.png"
+                        old_path = os.path.join(unmatched_path, old_name)
+                        new_path = os.path.join(unmatched_path, f"unknown_{i_id}_{int(count) + 1}.png")
                         os.rename(old_path, new_path)
                         break
 
@@ -345,7 +593,7 @@ def update_dag_graph(item_list_new) -> bool:
     item_list_new = change_item_list_by_group(group_list=group_2, item_list=item_list_new)
 
     # 读取现 JSON Ranking 文件
-    json_path = PATHS["config"] + "\\item_ranking_dag_graph.json"
+    json_path = os.path.join(PATHS["config"], 'item_ranking_dag_graph.json')
     data = ranking_read_data(json_path=json_path)
 
     """根据输入列表, 构造有向无环图"""
@@ -390,7 +638,7 @@ def find_longest_path_from_dag():
     CUS_LOGGER.debug("[有向无环图] [寻找最长链] 正在进行...")
 
     # 读取现 JSON Ranking 文件
-    json_path = PATHS["config"] + "\\item_ranking_dag_graph.json"
+    json_path = os.path.join(PATHS["config"], 'item_ranking_dag_graph.json')
     data = ranking_read_data(json_path=json_path)
 
     G = nx.DiGraph()
