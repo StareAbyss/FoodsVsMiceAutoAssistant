@@ -272,7 +272,7 @@ def refresh_tag_versions(
         known_tags.add(tag)
         if tag in cached_tags:
             continue
-        if current_version and semver_key(tag) <= semver_key(current_version):
+        if current_version and semver_key(tag) < semver_key(current_version):
             continue
 
         commit_sha = resolve_ref_commit_sha(client, ref)
