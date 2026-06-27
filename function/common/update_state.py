@@ -96,6 +96,7 @@ def build_update_state(project_root: Path, timestamp_key: str = "packaged_at") -
         "branch": git_state["branch"],
         "pr": git_state["pr"],
         "summary": git_state["summary"],
+        "merged_at": "",
         "dirty": git_state["dirty"],
         timestamp_key: datetime.now(timezone.utc).isoformat(),
     }
@@ -162,6 +163,7 @@ def detect_local_state(project_root: Path) -> dict[str, Any]:
         detected["branch"] = git_state["branch"]
         detected["tag"] = git_state["tag"]
         detected["pr"] = git_state["pr"] or saved_state.get("pr")
+        detected["merged_at"] = saved_state.get("merged_at", "")
         detected["dirty"] = git_state["dirty"]
         return detected
 
@@ -171,6 +173,7 @@ def detect_local_state(project_root: Path) -> dict[str, Any]:
         detected["branch"] = saved_state.get("branch", "")
         detected["tag"] = saved_state.get("tag", version)
         detected["pr"] = saved_state.get("pr")
+        detected["merged_at"] = saved_state.get("merged_at", "")
         detected["dirty"] = saved_state.get("dirty", False)
         return detected
 
@@ -178,6 +181,7 @@ def detect_local_state(project_root: Path) -> dict[str, Any]:
     detected["branch"] = ""
     detected["tag"] = ""
     detected["pr"] = None
+    detected["merged_at"] = ""
     detected["dirty"] = False
     return detected
 

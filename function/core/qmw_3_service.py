@@ -322,9 +322,16 @@ class QMainWindowService(QMainWindowLoadSettings):
         for warning in warnings:
             SIGNAL.PRINT_TO_UI.emit(f"[更新状态] {warning}", color_level=1, time=False)
 
-    def refresh_update_state_label(self):
-        """刷新更新页顶部的本地版本状态摘要。"""
-        local_state = detect_local_state(Path(PATHS["root"]))
+    def refresh_update_state_label(self, local_state: dict | None = None, release_entry: dict | None = None):
+        """
+        刷新更新页顶部的本地版本状态摘要。
+
+        Args:
+            local_state: 已读取的本地版本状态；为空时现场读取。
+            release_entry: 当前版本对应的正式版 manifest 条目，用于补充 PR 合并时间。
+        """
+        local_state = local_state or detect_local_state(Path(PATHS["root"]))
+        release_entry = release_entry or {}
         source_map = {
             "git": "Git 工作区",
             "update_state": "本地更新状态文件",
@@ -338,11 +345,13 @@ class QMainWindowService(QMainWindowLoadSettings):
         commit_text = commit[:12] if commit else "未记录"
         branch = local_state.get("branch") or "未记录"
         source = source_map.get(local_state.get("source"), local_state.get("source") or "未知")
+        merged_at = release_entry.get("merged_at") or local_state.get("merged_at") or "未记录"
         dirty_text = "有本地改动" if local_state.get("dirty") else "干净"
 
         self.UpdateStateLabel.setText(
             f"当前版本：{version}    Tag：{tag}    PR：{pr_text}    "
-            f"Commit：{commit_text}    分支：{branch}    来源：{source}    状态：{dirty_text}"
+            f"Commit：{commit_text}    分支：{branch}    来源：{source}    "
+            f"时间：{merged_at}    状态：{dirty_text}"
         )
 
     def refresh_update_progress_label(self):
@@ -1316,13 +1325,20 @@ class QMainWindowService(QMainWindowLoadSettings):
                 SIGNAL.PRINT_TO_UI.emit(f"[更新状态] {payload['state_warning']}", color_level=1)
 
             versions = payload.get("versions", []) if payload else []
+            local_state = payload.get("local_state", {}) if payload else {}
+            current_release = payload.get("current_release", {}) if payload else {}
+            if success:
+                self.refresh_update_state_label(local_state=local_state, release_entry=current_release)
             self._fill_update_table(versions, mode="release")
             self.update_candidates = versions
             self.update_target_mode = "release"
-            self.finish_update_progress(
-                f"正式版列表加载完成，共 {len(versions)} 个候选版本" if success
-                else f"正式版列表加载失败：{message}"
-            )
+            if success and not versions:
+                self.finish_update_progress("您已经是最新版本！")
+            else:
+                self.finish_update_progress(
+                    f"正式版列表加载完成，共 {len(versions)} 个候选版本" if success
+                    else f"正式版列表加载失败：{message}"
+                )
             self.NormalUpdateButton.setText("更新至选中的版本")
 
             self.CheckUpdateButton.setEnabled(True)
