@@ -50,7 +50,7 @@ Invoke-RestMethod -Method Post -Uri $uri -Headers $headers -Body $bodyBytes -Con
 
 ## PR Assignee
 
-PR 必须设置 assignee：
+PR 必须设置 assignee (此处为示例)：
 
 ```text
 StareAbyss
@@ -86,7 +86,7 @@ PR 至少选择两个 label：
 * 只提交当前任务相关文件，不混入工作区中已有的无关改动。
 * 用户的Github为 `stareAbyss` 时：
   * 把 `stareAbyss` 当前所有领先提交放到云端，然后再从 `stareAbyss` 发起 PR 合并到 `main`。
-  * 默认 `直接通过PR` 无需其他开发者审核
+  * 默认 `直接以管理员权限通过PR` 无需其他开发者审核
 
 ## 检查命令
 
@@ -103,3 +103,83 @@ py -3.12 -m py_compile path\to\file.py
 ```
 
 提交前应根据改动范围选择最小但有效的检查命令。
+
+## 操作示例：只提交脏工作区中的一个文件
+
+参考 PR `#942`：`build: 更新 2026 6.18-7.2 stage_info_online.json`。
+
+场景：
+
+* 当前工作区有大量无关修改和未跟踪文件。
+* 本次只需要提交 `config/stage_info_online.json`。
+* 当前个人分支相对 `origin/main` 有历史领先提交，不能直接从个人分支发 PR，否则会夹带旧提交。
+
+处理方式：
+
+1. 先做最小检查。
+
+```powershell
+py -3.12 -m json.tool config/stage_info_online.json > $null
+py -3.12 -m py_compile function/core/faa/faa_action_receive_quest_rewards.py
+git diff --check origin/main -- config/stage_info_online.json
+```
+
+2. 从 `origin/main` 构造只包含目标文件的干净提交。
+
+```powershell
+git fetch origin main
+
+$tempIndex = Join-Path $env:TEMP ('faa-pr-index-' + [guid]::NewGuid().ToString('N'))
+try {
+    $env:GIT_INDEX_FILE = $tempIndex
+    git read-tree origin/main
+    $blob = git hash-object -w -- 'config/stage_info_online.json'
+    git update-index --add --cacheinfo "100644,$blob,config/stage_info_online.json"
+    $tree = git write-tree
+    $commit = git commit-tree $tree -p origin/main -m 'build: 更新 2026 6.18-7.2 stage_info_online.json'
+}
+finally {
+    Remove-Item Env:GIT_INDEX_FILE -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $tempIndex -Force -ErrorAction SilentlyContinue
+}
+
+git branch -f codex/stage-info-20260618-0702 $commit
+git show --stat --oneline --name-only $commit
+```
+
+3. 推送干净分支并创建 PR。
+
+```powershell
+git push -u origin codex/stage-info-20260618-0702
+
+gh pr create `
+  --base main `
+  --head codex/stage-info-20260618-0702 `
+  --title "build: 更新 2026 6.18-7.2 stage_info_online.json" `
+  --body "## 内容
+* 更新 config/stage_info_online.json，本期范围为 2026 6.18-7.2。
+* 更新时间写入 2026-06-18 12:00:00。
+* 补充本期悬赏关卡水面地形配置。
+
+## 校验
+* 已通过 JSON 解析校验。
+* 已通过 faa_action_receive_quest_rewards.py 语法编译校验。
+* 已通过 git diff --check。" `
+  --assignee StareAbyss `
+  --label Git-Build `
+  --label "🔄Module-Farmflow"
+```
+
+4. 管理员通过并使用 merge commit 合并。
+
+```powershell
+gh pr merge 942 --merge --admin --delete-branch
+git fetch origin main
+gh pr view 942 --json number,title,state,url,mergeCommit,labels,assignees
+```
+
+注意：
+
+* 这种做法不会清理或切换当前脏工作区。
+* PR 的 diff 只来自临时 index 构造出的提交。
+* 合并热更新、版本发布相关 PR 时优先使用 merge commit，不要 squash/rebase。
