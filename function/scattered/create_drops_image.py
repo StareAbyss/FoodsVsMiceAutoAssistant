@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 from function.common.image_processing.overlay_images import overlay_images
-from function.globals.g_resources import RESOURCE_P
+from function.globals.g_resources import RESOURCE_P, get_item_loot_images
 
 # 图片尺寸
 IMAGE_SIZE = (44, 44, 4)
@@ -18,21 +18,22 @@ def load_image(item_name):
 
     is_band = "-绑定" in item_name
     item_name_png = item_name.split("-绑定")[0] + ".png"
+    loot_images = get_item_loot_images()
 
     # 尝试加载特定物品图片
-    if item_name_png in RESOURCE_P["item"]["战利品"].keys():
+    if item_name_png in loot_images.keys():
         if not is_band:
             # 叠加黑背景和带透明度的图片
             return_img = overlay_images(
                 img_background=img_black,
-                img_overlay=RESOURCE_P["item"]["战利品"][item_name_png]
+                img_overlay=loot_images[item_name_png]
             )
             return return_img
         else:
             # 叠加黑背景和带透明度的图片
             return_img = overlay_images(
                 img_background=img_black,
-                img_overlay=RESOURCE_P["item"]["战利品"][item_name_png]
+                img_overlay=loot_images[item_name_png]
             )
             # 叠加绑定角标
             return_img = overlay_images(
