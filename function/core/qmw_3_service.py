@@ -332,10 +332,12 @@ class QMainWindowService(QMainWindowLoadSettings):
         """
         local_state = local_state or detect_local_state(Path(PATHS["root"]))
         release_entry = release_entry or {}
+        # 普通用户热更新不依赖本地 Git；Git 工作区状态只用于开发者环境的额外诊断。
+        source_key = local_state.get("source")
         source_map = {
-            "git": "Git 工作区",
-            "update_state": "本地更新状态文件",
-            "extra_version": "EXTRA.VERSION",
+            "git": "Git 工作区（开发者）",
+            "update_state": "本地更新状态文件（普通用户无 Git 属正常）",
+            "extra_version": "EXTRA.VERSION（普通用户无 Git 属正常）",
         }
         version = local_state.get("version") or "未知"
         tag = local_state.get("tag") or "未记录"
@@ -344,9 +346,11 @@ class QMainWindowService(QMainWindowLoadSettings):
         commit = local_state.get("commit") or ""
         commit_text = commit[:12] if commit else "未记录"
         branch = local_state.get("branch") or "未记录"
-        source = source_map.get(local_state.get("source"), local_state.get("source") or "未知")
+        source = source_map.get(source_key, source_key or "未知")
         merged_at = release_entry.get("merged_at") or local_state.get("merged_at") or "未记录"
-        dirty_text = "有本地改动" if local_state.get("dirty") else "干净"
+        dirty_text = (
+            "有本地改动" if local_state.get("dirty") else "干净"
+        ) if source_key == "git" else "未检测（仅开发者 Git 工作区）"
 
         self.UpdateStateLabel.setText(
             f"当前版本：{version}    Tag：{tag}    PR：{pr_text}    "
