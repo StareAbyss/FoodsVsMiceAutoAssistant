@@ -23,14 +23,24 @@ def read_extra_version(project_root: Path) -> str:
 
 
 def run_git(project_root: Path, args: list[str]) -> str:
-    result = subprocess.run(
-        ["git", *args],
-        cwd=project_root,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-    )
+    """
+    Run a Git command when a developer Git environment is available.
+
+    普通用户的热更新不依赖本地 Git。这里的 Git 调用只用于开发者工作区状态展示；
+    如果用户没有安装 Git、Git 不在 PATH 中，或当前环境无法启动 Git，则返回空字符串，
+    让上层自动回退到 update_state.json / EXTRA.VERSION。
+    """
+    try:
+        result = subprocess.run(
+            ["git", *args],
+            cwd=project_root,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+    except (FileNotFoundError, OSError):
+        return ""
     if result.returncode != 0:
         return ""
     return result.stdout.strip()
