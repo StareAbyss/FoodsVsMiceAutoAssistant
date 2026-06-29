@@ -1,4 +1,5 @@
 import glob
+import locale
 import os
 import shutil
 import subprocess
@@ -7,6 +8,9 @@ from datetime import datetime
 from pathlib import Path
 
 from function.common.update_state import write_packaged_update_state
+
+
+SUBPROCESS_TEXT_ENCODING = locale.getpreferredencoding(False) or "utf-8"
 
 
 def find_project_root(start: Path) -> Path:
@@ -132,7 +136,8 @@ def get_latest_excel_file(project_root: Path):
             cwd=project_root,
             capture_output=True,
             text=True,
-            encoding="utf-8",
+            encoding=SUBPROCESS_TEXT_ENCODING,
+            errors="replace",
             timeout=60,
         )
 
@@ -174,11 +179,62 @@ def get_latest_existing_excel_file(project_root: Path):
     return None
 
 
+def run_card_prepare_room_resource_tool(project_root: Path, latest_excel) -> None:
+    """
+    Run the prepare-room card image resource generator before packaging.
+
+    The generator writes mismatch CSVs and downloads missing images. It is a
+    packaging helper, so network or CDN failures are reported as warnings and
+    the package build continues with the existing local resources.
+    """
+    tool_script = project_root / "tool" / "card_resource" / "card_prepare_room_resource_tool.py"
+    if not tool_script.is_file():
+        print(f"Warning: Card resource tool not found: {tool_script}")
+        return
+
+    command = [
+        sys.executable,
+        str(tool_script),
+        "--output",
+        str(project_root / "resource" / "image" / "card" / "准备房间"),
+        "--report-dir",
+        str(project_root / "resource_other" / "图像资源_卡片准备房间_最新资源"),
+    ]
+    if latest_excel:
+        command.extend(["--excel", str(project_root / latest_excel)])
+
+    print("\n" + "=" * 60)
+    print("正在更新准备房间卡片图像资源...")
+    print("=" * 60)
+
+    try:
+        result = subprocess.run(
+            command,
+            cwd=project_root,
+            capture_output=True,
+            text=True,
+            encoding=SUBPROCESS_TEXT_ENCODING,
+            errors="replace",
+            timeout=300,
+        )
+        if result.stdout:
+            print(result.stdout)
+        if result.stderr:
+            print("警告:", result.stderr)
+        if result.returncode != 0:
+            print(f"Warning: 准备房间卡片资源工具执行失败，返回码: {result.returncode}")
+    except subprocess.TimeoutExpired:
+        print("Warning: 准备房间卡片资源工具执行超时，将使用已有资源继续打包")
+    except Exception as exc:
+        print(f"Warning: 更新准备房间卡片图像资源时出错: {exc}")
+
+
 def main():
     project_root = find_project_root(Path(__file__).parent)
     dest_dir = project_root / "dist" / "FAA"
 
     latest_excel = get_latest_excel_file(project_root)
+    run_card_prepare_room_resource_tool(project_root, latest_excel)
     clean_dist_dir(project_root, dest_dir)
 
     # 初始化 FileMover 实例
