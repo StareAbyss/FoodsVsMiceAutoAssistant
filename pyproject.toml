@@ -30,5 +30,8 @@ default = true
 
 [dependency-groups]
 dev = [
+    "mysql-connector-python>=9.0.0",
+    "openpyxl>=3.1.0",
+    "pandas>=2.2.0",
     "pyinstaller>=6.19.0",
 ]

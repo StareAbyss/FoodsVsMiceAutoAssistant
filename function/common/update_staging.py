@@ -296,6 +296,7 @@ def build_staging_state(target: dict[str, Any]) -> dict[str, Any]:
         "summary": target.get("summary") or target.get("title", ""),
         "title": target.get("title", ""),
         "url": target.get("url", ""),
+        "merged_at": target.get("merged_at", ""),
         "dirty": False,
         "downloaded_at": datetime.now(timezone.utc).isoformat(),
     }

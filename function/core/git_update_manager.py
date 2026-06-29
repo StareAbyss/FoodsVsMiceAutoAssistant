@@ -86,11 +86,13 @@ class ReleaseManifestWorker(QThread):
                 include_dev=False,
             )
             versions = get_cached_versions(root, current_version)
+            current_release = self._find_current_release(cache, current_version, current_commit)
 
             payload = {
                 "local_state": local_state,
                 "cache": cache,
                 "versions": versions,
+                "current_release": current_release,
             }
             known_tags = set(cache.get("known_tags", []))
             if current_version and known_tags and current_version not in known_tags:
@@ -112,6 +114,26 @@ class ReleaseManifestWorker(QThread):
         except Exception as exc:
             CUS_LOGGER.error(f"刷新正式版本列表失败：{exc}")
             self.result.emit(False, explain_update_error("刷新正式版本列表", exc), {"error": str(exc)})
+
+    @staticmethod
+    def _find_current_release(cache: dict, current_version: str | None, current_commit: str | None) -> dict:
+        """
+        从正式版缓存中找到当前本地版本对应的发布条目。
+
+        Args:
+            cache: refresh_update_manifest 返回的 manifest 缓存。
+            current_version: 本地 EXTRA.VERSION 或 update_state 版本。
+            current_commit: 本地记录的 commit。
+
+        Returns:
+            当前正式版条目；无法确认时返回空 dict。
+        """
+        for entry in cache.get("versions", []):
+            if current_version and entry.get("tag") == current_version:
+                return entry
+            if current_commit and entry.get("commit") == current_commit:
+                return entry
+        return {}
 
 
 class ReleasePrepareWorker(QThread):

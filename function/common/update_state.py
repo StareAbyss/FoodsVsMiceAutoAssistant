@@ -23,14 +23,24 @@ def read_extra_version(project_root: Path) -> str:
 
 
 def run_git(project_root: Path, args: list[str]) -> str:
-    result = subprocess.run(
-        ["git", *args],
-        cwd=project_root,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-    )
+    """
+    Run a Git command when a developer Git environment is available.
+
+    普通用户的热更新不依赖本地 Git。这里的 Git 调用只用于开发者工作区状态展示；
+    如果用户没有安装 Git、Git 不在 PATH 中，或当前环境无法启动 Git，则返回空字符串，
+    让上层自动回退到 update_state.json / EXTRA.VERSION。
+    """
+    try:
+        result = subprocess.run(
+            ["git", *args],
+            cwd=project_root,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+    except (FileNotFoundError, OSError):
+        return ""
     if result.returncode != 0:
         return ""
     return result.stdout.strip()
@@ -96,6 +106,7 @@ def build_update_state(project_root: Path, timestamp_key: str = "packaged_at") -
         "branch": git_state["branch"],
         "pr": git_state["pr"],
         "summary": git_state["summary"],
+        "merged_at": "",
         "dirty": git_state["dirty"],
         timestamp_key: datetime.now(timezone.utc).isoformat(),
     }
@@ -162,6 +173,7 @@ def detect_local_state(project_root: Path) -> dict[str, Any]:
         detected["branch"] = git_state["branch"]
         detected["tag"] = git_state["tag"]
         detected["pr"] = git_state["pr"] or saved_state.get("pr")
+        detected["merged_at"] = saved_state.get("merged_at", "")
         detected["dirty"] = git_state["dirty"]
         return detected
 
@@ -171,6 +183,7 @@ def detect_local_state(project_root: Path) -> dict[str, Any]:
         detected["branch"] = saved_state.get("branch", "")
         detected["tag"] = saved_state.get("tag", version)
         detected["pr"] = saved_state.get("pr")
+        detected["merged_at"] = saved_state.get("merged_at", "")
         detected["dirty"] = saved_state.get("dirty", False)
         return detected
 
@@ -178,6 +191,7 @@ def detect_local_state(project_root: Path) -> dict[str, Any]:
     detected["branch"] = ""
     detected["tag"] = ""
     detected["pr"] = None
+    detected["merged_at"] = ""
     detected["dirty"] = False
     return detected
 
