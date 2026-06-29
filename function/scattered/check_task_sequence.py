@@ -1,4 +1,5 @@
 import json
+import os
 import time
 import uuid
 
@@ -20,7 +21,7 @@ def fresh_and_check_all_task_sequence():
     added = {}  # 记录添加或更改了uuid的序列
 
     for sequence_name in task_sequences:
-        file_path = PATHS["task_sequence"] + "\\" + sequence_name + ".json"
+        file_path = os.path.join(PATHS["task_sequence"], sequence_name + ".json")
 
         # 自旋锁, 防多线程读写问题
         with EXTRA.FILE_LOCK:

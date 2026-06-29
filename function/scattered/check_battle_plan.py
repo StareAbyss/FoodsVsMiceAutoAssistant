@@ -1,4 +1,5 @@
 import json
+import os
 import time
 import uuid
 
@@ -22,7 +23,7 @@ def fresh_and_check_all_battle_plan():
     added = {}  # 记录添加或更改了uuid的plan
 
     for plan_name in battle_plans:
-        file_name = PATHS["battle_plan"] + "\\" + plan_name + ".json"
+        file_name = os.path.join(PATHS["battle_plan"], plan_name + ".json")
 
         # 自旋锁, 防多线程读写问题
         with EXTRA.FILE_LOCK:
@@ -91,7 +92,7 @@ def fresh_and_check_all_tweak_plan():
     added = {}  # 记录添加或更改了uuid的plan
 
     for plan_name in battle_plans:
-        file_name = PATHS["tweak_battle_plan"] + "\\" + plan_name + ".json"
+        file_name = os.path.join(PATHS["tweak_battle_plan"], plan_name + ".json")
 
         # 自旋锁, 防多线程读写问题
         with EXTRA.FILE_LOCK:

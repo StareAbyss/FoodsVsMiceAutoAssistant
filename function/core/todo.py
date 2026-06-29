@@ -189,7 +189,7 @@ class ThreadTodo(QThread):
             expiration_period = datetime.timedelta(days=time1)
             deleted_files_count = 0
 
-            directory_path = PATHS["logs"] + "\\loots_image"
+            directory_path = os.path.join(PATHS["logs"], 'loots_image')
             for filename in os.listdir(directory_path):
                 file_path = os.path.join(directory_path, filename)
                 file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
@@ -198,7 +198,7 @@ class ThreadTodo(QThread):
                     os.remove(file_path)
                     deleted_files_count += 1
 
-            directory_path = PATHS["logs"] + "\\chests_image"
+            directory_path = os.path.join(PATHS["logs"], 'chests_image')
             for filename in os.listdir(directory_path):
                 file_path = os.path.join(directory_path, filename)
                 file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
@@ -218,7 +218,7 @@ class ThreadTodo(QThread):
             expiration_period = datetime.timedelta(days=time2)
             deleted_files_count = 0
 
-            directory_path = PATHS["logs"] + "\\yolo_output\\images"
+            directory_path = os.path.join(PATHS["logs"], 'yolo_output', 'images')
             for filename in os.listdir(directory_path):
                 file_path = os.path.join(directory_path, filename)
                 file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
@@ -227,7 +227,7 @@ class ThreadTodo(QThread):
                     os.remove(file_path)
                     deleted_files_count += 1
 
-            directory_path = PATHS["logs"] + "\\yolo_output\\labels"
+            directory_path = os.path.join(PATHS["logs"], 'yolo_output', 'labels')
             for filename in os.listdir(directory_path):
                 file_path = os.path.join(directory_path, filename)
                 file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
@@ -710,7 +710,7 @@ class ThreadTodo(QThread):
 
         player = self.check_player(title=title_text, player=player)
         # 获取数据库连接
-        db_conn = init_db(PATHS["db"] + "/tasks.db")
+        db_conn = init_db(os.path.join(PATHS["db"], 'tasks.db'))
         # 创建拼图
         load_tasks_from_db_and_create_puzzle(db_conn)
         # 关闭连接
@@ -1493,7 +1493,7 @@ class ThreadTodo(QThread):
                 # 获取 g_plan
                 try:
                     with EXTRA.FILE_LOCK:
-                        with open(file=PATHS["config"] + "//stage_plan.json", mode="r", encoding="UTF-8") as file:
+                        with open(file=os.path.join(PATHS["config"], 'stage_plan.json'), mode="r", encoding="UTF-8") as file:
                             stage_plan = json.load(file)
                 except FileNotFoundError:
                     stage_plan = {}
@@ -1976,7 +1976,7 @@ class ThreadTodo(QThread):
 
             return sorted_dict
 
-        json_path = PATHS["config"] + "\\item_ranking_dag_graph.json"
+        json_path = os.path.join(PATHS["config"], 'item_ranking_dag_graph.json')
         ranking_list = ranking_read_data(json_path=json_path)["ranking"]
         for drop_type in ["loots", "chests"]:
             count_dict[drop_type] = ranking_reorder_dict(

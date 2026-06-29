@@ -1,4 +1,5 @@
 import itertools
+import os
 import threading
 
 from function.globals.loadings import loading
@@ -19,8 +20,8 @@ from function.scattered.ethical_core import ethical_core
 
 def get_q_font():
     # 读取字体文件
-    font_id = QtGui.QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
-    QtGui.QFontDatabase.addApplicationFont(PATHS["font"] + "\\手书体.ttf")
+    font_id = QtGui.QFontDatabase.addApplicationFont(os.path.join(PATHS["font"], 'SmileySans-Oblique.ttf'))
+    QtGui.QFontDatabase.addApplicationFont(os.path.join(PATHS["font"], '手书体.ttf'))
 
     # 获取字体家族名称
     font_families = QtGui.QFontDatabase.applicationFontFamilies(font_id)

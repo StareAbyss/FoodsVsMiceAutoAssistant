@@ -9,7 +9,7 @@ def is_frozen():
 
 
 def core_exist():
-    c_path = PATHS["model"] + "\\faa_ethical_core.onnx"
+    c_path = os.path.join(PATHS["model"], 'faa_ethical_core.onnx')
     return os.path.exists(c_path)
 
 

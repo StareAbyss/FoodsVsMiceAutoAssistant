@@ -28,7 +28,7 @@ print(f"耗时: {time.time() - start_time}")
 if img is not None and img.size > 0:
     if not os.path.exists("img"):
         os.makedirs("img")
-    cv2.imencode(ext=".png", img=img)[1].tofile("img\\test.png")
+    cv2.imencode(ext=".png", img=img)[1].tofile(os.path.join("img", "test.png"))
     print("图像保存成功")
 else:
     print("捕获的图像是空的或无效的")

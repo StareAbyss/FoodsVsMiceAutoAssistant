@@ -146,37 +146,37 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.replace_taskeditor_layout_with_task_editor()
 
         # opt路径
-        self.opt_path = PATHS["root"] + "\\config\\settings.json"
+        self.opt_path = os.path.join(PATHS["root"], 'config', 'settings.json')
 
         # 检测某文件是否存在 如果不存在且存在_template的模板, 应用模板
         ensure_file_exists(
-            file_path=PATHS["root"] + "\\config\\cus_images\\用户自截\\空间服登录界面_1P.png",
-            template_path=PATHS["root"] + "\\resource\\template\\空间服登录界面_1P.png")
+            file_path=os.path.join(PATHS["root"], 'config', 'cus_images', '用户自截', '空间服登录界面_1P.png'),
+            template_path=os.path.join(PATHS["root"], 'resource', 'template', '空间服登录界面_1P.png'))
         ensure_file_exists(
-            file_path=PATHS["root"] + "\\config\\cus_images\\用户自截\\空间服登录界面_2P.png",
-            template_path=PATHS["root"] + "\\resource\\template\\空间服登录界面_2P.png")
+            file_path=os.path.join(PATHS["root"], 'config', 'cus_images', '用户自截', '空间服登录界面_2P.png'),
+            template_path=os.path.join(PATHS["root"], 'resource', 'template', '空间服登录界面_2P.png'))
         ensure_file_exists(
-            file_path=PATHS["root"] + "\\config\\cus_images\\用户自截\\跨服远征_1p.png",
-            template_path=PATHS["root"] + "\\resource\\template\\跨服远征_1p.png")
+            file_path=os.path.join(PATHS["root"], 'config', 'cus_images', '用户自截', '跨服远征_1p.png'),
+            template_path=os.path.join(PATHS["root"], 'resource', 'template', '跨服远征_1p.png'))
         ensure_file_exists(
             file_path=self.opt_path,
-            template_path=PATHS["root"] + "\\resource\\template\\settings.json")
+            template_path=os.path.join(PATHS["root"], 'resource', 'template', 'settings.json'))
 
         # 检测&修复 关键方案是否完全一致
         ensure_file_same_as_template(
-            file_path=PATHS["root"] + "\\tweak_plan\\!默认.json",
-            template_path=PATHS["root"] + "\\resource\\template\\!默认.json")
+            file_path=os.path.join(PATHS["root"], 'tweak_plan', '!默认.json'),
+            template_path=os.path.join(PATHS["root"], 'resource', 'template', '!默认.json'))
         ensure_file_same_as_template(
-            file_path=PATHS["root"] + "\\battle_plan\\!通用-海星-1P.json",
-            template_path=PATHS["root"] + "\\resource\\template\\!通用-海星-1P.json")
+            file_path=os.path.join(PATHS["root"], 'battle_plan', '!通用-海星-1P.json'),
+            template_path=os.path.join(PATHS["root"], 'resource', 'template', '!通用-海星-1P.json'))
         ensure_file_same_as_template(
-            file_path=PATHS["root"] + "\\battle_plan\\!通用-海星-2P.json",
-            template_path=PATHS["root"] + "\\resource\\template\\!通用-海星-2P.json")
+            file_path=os.path.join(PATHS["root"], 'battle_plan', '!通用-海星-2P.json'),
+            template_path=os.path.join(PATHS["root"], 'resource', 'template', '!通用-海星-2P.json'))
 
         # 检测&修复 settings文件和模板的格式是否对应.
         check_settings_file(
             file_path=self.opt_path,
-            template_path=PATHS["root"] + "\\resource\\template\\settings.json")
+            template_path=os.path.join(PATHS["root"], 'resource', 'template', 'settings.json'))
 
         # 检测uuid是否存在于battle plan 没有则添加 并将其读入到内存资源中
         fresh_and_check_all_battle_plan()
@@ -1409,16 +1409,16 @@ class QMainWindowLoadSettings(QMainWindowLog):
     def getstylefile(self, num):
         skin_path_dict = {
             1: None,
-            2: PATHS["theme"] + "\\feiyang\\blacksoft.css",
-            3: PATHS["theme"] + "\\feiyang\\flatgray.css",
-            4: PATHS["theme"] + "\\feiyang\\lightblue.css",
-            5: PATHS["theme"] + "\\GTRONICK\\ElegantDark.qss",
-            6: PATHS["theme"] + "\\GTRONICK\\MaterialDark.qss",
-            7: PATHS["theme"] + "\\GTRONICK\\NeonButtons.qss",
-            8: PATHS["theme"] + "\\GTRONICK\\Aqua.qss",
-            9: PATHS["theme"] + "\\GTRONICK\\ManjaroMix.qss",
-            10: PATHS["theme"] + "\\GTRONICK\\MacOS.qss",
-            11: PATHS["theme"] + "\\GTRONICK\\Ubuntu.qss"
+            2: os.path.join(PATHS["theme"], 'feiyang', 'blacksoft.css'),
+            3: os.path.join(PATHS["theme"], 'feiyang', 'flatgray.css'),
+            4: os.path.join(PATHS["theme"], 'feiyang', 'lightblue.css'),
+            5: os.path.join(PATHS["theme"], 'GTRONICK', 'ElegantDark.qss'),
+            6: os.path.join(PATHS["theme"], 'GTRONICK', 'MaterialDark.qss'),
+            7: os.path.join(PATHS["theme"], 'GTRONICK', 'NeonButtons.qss'),
+            8: os.path.join(PATHS["theme"], 'GTRONICK', 'Aqua.qss'),
+            9: os.path.join(PATHS["theme"], 'GTRONICK', 'ManjaroMix.qss'),
+            10: os.path.join(PATHS["theme"], 'GTRONICK', 'MacOS.qss'),
+            11: os.path.join(PATHS["theme"], 'GTRONICK', 'Ubuntu.qss')
         }
 
         # 使用 get 方法设置皮肤

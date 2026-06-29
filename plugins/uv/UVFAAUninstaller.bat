@@ -26,7 +26,7 @@ echo It will NOT remove user global uv, uv cache, uv-managed Python installs,
 echo or files outside this script directory.
 echo.
 
-set /p confirm=Continue uninstall? (Type Y or y to confirm): 
+set /p "confirm=Continue uninstall? (Type Y or y to confirm): "
 if /i not "%confirm%"=="Y" (
     echo.
     echo Uninstall cancelled.

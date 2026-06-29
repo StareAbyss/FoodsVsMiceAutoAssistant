@@ -1,4 +1,5 @@
 import json
+import os
 
 from PyQt6 import uic
 from PyQt6.QtWidgets import QWidget
@@ -13,9 +14,9 @@ class AdvancedSettingsWindow(QWidget):
     def __init__(self):
         super().__init__()
         # 加载UI文件
-        uic.loadUi(PATHS["root"] + '\\resource\\ui\\AdvancedSettings.ui', self)
+        uic.loadUi(os.path.join(PATHS["root"], 'resource', 'ui', 'AdvancedSettings.ui'), self)
         # 加载原有设置
-        self.advanced_settings_path = PATHS["root"] + "\\config\\advanced_settings.json"
+        self.advanced_settings_path = os.path.join(PATHS["root"], 'config', 'advanced_settings.json')
         self.advanced_settings = {}
         self.load_settings()
         # 初始化GUI数据

@@ -8,7 +8,7 @@ def get_task_sequence_list(with_extension):
     :param with_extension: Include extension name
     :return: a list of battle plan
     """
-    my_list = os.listdir(PATHS["task_sequence"] + "\\")
+    my_list = os.listdir(PATHS["task_sequence"])
 
     # 只保留json
     new_list = []

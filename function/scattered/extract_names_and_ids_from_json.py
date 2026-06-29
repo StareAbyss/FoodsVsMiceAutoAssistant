@@ -1,4 +1,5 @@
 import json
+import os
 
 from function.globals.get_paths import PATHS
 
@@ -9,7 +10,7 @@ def extract_names_and_ids_from_json():
     """
 
     # 读取JSON文件
-    with open(file=PATHS["config"] + "//stage_info.json", mode="r", encoding="UTF-8") as file:
+    with open(file=os.path.join(PATHS["config"], 'stage_info.json'), mode="r", encoding="UTF-8") as file:
         stages_info = json.load(file)
 
     result_dict = {}

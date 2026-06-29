@@ -1,5 +1,6 @@
 import copy
 import json
+import os
 
 from function.globals.loadings import loading
 
@@ -27,10 +28,10 @@ class QMWEditorOfStagePlan(QMainWindow):
         super().__init__(parent)
 
         # 读取ui
-        uic.loadUi(PATHS["root"] + '\\resource\\ui\\StagePlanEditor.ui', self)
+        uic.loadUi(os.path.join(PATHS["root"], 'resource', 'ui', 'StagePlanEditor.ui'), self)
 
         self.setWindowTitle('全局方案 & 关卡方案 编辑器')
-        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
+        self.setWindowIcon(QIcon(os.path.join(PATHS["logo"], '圆角-FetDeathWing-450x.png')))
 
         # 初始化战斗方案变量
         self.battle_plan_uuid_list = None
@@ -42,11 +43,11 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.init_battle_plan_selector()
 
         # 获取stage_info
-        with open(file=PATHS["config"] + "//stage_info.json", mode="r", encoding="UTF-8") as file:
+        with open(file=os.path.join(PATHS["config"], 'stage_info.json'), mode="r", encoding="UTF-8") as file:
             self.stage_info = json.load(file)
 
         # 获取stage_plan文件中的信息
-        self.stage_plan_path = PATHS["config"] + "//stage_plan.json"
+        self.stage_plan_path = os.path.join(PATHS["config"], 'stage_plan.json')
         try:
             with open(file=self.stage_plan_path, mode="r", encoding="UTF-8") as file:
                 self.stage_plan = json.load(file)
