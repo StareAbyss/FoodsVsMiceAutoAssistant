@@ -56,6 +56,10 @@
         {
             "card_id": 10,
             "name": "美味计时器"
+        },
+        {
+            "card_id": 11,
+            "name": "全能对策"
         }
     ],
     "events": [
@@ -83,7 +87,6 @@
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "4-4",
                             "5-4",
                             "3-3",
                             "3-5",
@@ -92,8 +95,6 @@
                             "4-5",
                             "3-2",
                             "3-6",
-                            "4-2",
-                            "4-6",
                             "5-2"
                         ],
                         "kun": 1
@@ -222,6 +223,17 @@
                         "queue": false,
                         "location": [
                             "6-1"
+                        ],
+                        "kun": 0
+                    },
+                    {
+                        "card_id": 11,
+                        "ergodic": true,
+                        "queue": true,
+                        "location": [
+                            "4-4",
+                            "4-2",
+                            "4-6"
                         ],
                         "kun": 0
                     }

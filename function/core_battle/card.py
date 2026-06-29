@@ -18,7 +18,7 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 """
 重要提醒：
 FAA 的 放卡位置 的变量有两种
-location 为格子 str 格式 例如 "1-1","3-7" 
+location 为格子 str 格式 例如 "1-1","3-7"
 coordinate 为坐标 list[x:int,y:int] 格式 例如 [500,600], [300,200]
 """
 

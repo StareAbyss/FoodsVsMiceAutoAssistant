@@ -40,14 +40,14 @@ FAA 战斗方案协议 v3.0
 2. 根据触发器和动作的类型分类, 读取到不同的self属性中.
     * 普通 - 循环放卡
         * Trigger.type == "wave_timer", Trigger.time = 0;
-        * Action.type == "loop_use_cards" 
+        * Action.type == "loop_use_cards"
         * 注: 虽然理论可行, 但不需要在编辑器加入, 非波次刚开始时, 变化循环放卡的策略的编辑项.
     * 时间线 - 插队放卡
         * Trigger.type == "wave_timer"
         * Action.type == "insert_use_card"
     * 时间线 - 宝石放置
         * Trigger.type == "wave_timer"
-        * Action.type == "use_gem" 
+        * Action.type == "use_gem"
 3. 保存时 反内联保存
 """
 

@@ -88,7 +88,7 @@
         "task_type": "战斗",
         "task_id": 7,
         "enabled": false,
-        "alias": "战斗-勇士本",
+        "alias": "勇士本",
         "tooltip": "",
         "task_args": {
             "stage_id": "WA-0-23",
@@ -120,19 +120,19 @@
     {
         "task_type": "任务序列",
         "task_id": 8,
-        "enabled": false,
-        "alias": "",
+        "enabled": true,
+        "alias": "45场满掉落",
         "tooltip": "",
         "task_args": {
             "sequence_integer": 1,
-            "task_sequence_uuid": "c292b87e-e730-11f0-a908-f44efc5bf671"
+            "task_sequence_uuid": "9c8dbb74-de80-11f0-8b4e-f4c88a4ed544"
         }
     },
     {
         "task_type": "任务序列",
         "task_id": 9,
         "enabled": true,
-        "alias": "",
+        "alias": "悬赏任务",
         "tooltip": "",
         "task_args": {
             "sequence_integer": 1,
@@ -140,8 +140,72 @@
         }
     },
     {
-        "task_type": "领取任务奖励",
+        "task_type": "战斗",
         "task_id": 10,
+        "enabled": true,
+        "alias": "世界BOSS 1P",
+        "tooltip": "",
+        "task_args": {
+            "stage_id": "WB-0-0",
+            "max_times": 1,
+            "need_key": true,
+            "player": [
+                1
+            ],
+            "global_plan_active": true,
+            "deck": 0,
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
+            "quest_card": "None",
+            "ban_card_list": [],
+            "dict_exit": {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": [
+                    "竞技岛"
+                ],
+                "last_time_player_b": [
+                    "竞技岛"
+                ]
+            }
+        }
+    },
+    {
+        "task_type": "战斗",
+        "task_id": 11,
+        "enabled": true,
+        "alias": "世界BOSS 2P",
+        "tooltip": "",
+        "task_args": {
+            "stage_id": "WB-0-0",
+            "max_times": 1,
+            "need_key": true,
+            "player": [
+                2
+            ],
+            "global_plan_active": true,
+            "deck": 0,
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
+            "quest_card": "None",
+            "ban_card_list": [],
+            "dict_exit": {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": [
+                    "竞技岛"
+                ],
+                "last_time_player_b": [
+                    "竞技岛"
+                ]
+            }
+        }
+    },
+    {
+        "task_type": "领取任务奖励",
+        "task_id": 12,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -161,7 +225,7 @@
     },
     {
         "task_type": "公会任务",
-        "task_id": 11,
+        "task_id": 13,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -188,7 +252,7 @@
     },
     {
         "task_type": "情侣任务",
-        "task_id": 12,
+        "task_id": 14,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -214,7 +278,7 @@
     },
     {
         "task_type": "清背包",
-        "task_id": 13,
+        "task_id": 15,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -227,7 +291,7 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 14,
+        "task_id": 16,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -247,7 +311,7 @@
     },
     {
         "task_type": "美食大赛",
-        "task_id": 15,
+        "task_id": 17,
         "enabled": true,
         "alias": "",
         "tooltip": "",

@@ -45,4 +45,3 @@ img = card.get_card_current_img()
 if not os.path.exists("img"):
     os.makedirs("img")
 cv2.imencode(ext=".png", img=img)[1].tofile(os.path.join("core", "test.png"))
-

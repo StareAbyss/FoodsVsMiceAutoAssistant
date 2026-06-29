@@ -31,9 +31,9 @@ def init_db(db_path="tasks.db"):
             task_name TEXT NOT NULL,
             task_type TEXT NOT NULL,
             image_data BLOB,
-            description_image_data BLOB,  
+            description_image_data BLOB,
             parameters TEXT,
-            stage_param TEXT,  
+            stage_param TEXT,
             remarks TEXT
         )
     """)
@@ -850,7 +850,7 @@ class TaskEditor(QMainWindow):
 
                 for new_index, task_data in enumerate(sorted_tasks):
                     original_id, task_name, task_type, image_data, description_image_data, parameters, stage_param, remarks = task_data
-                    cursor.execute("""INSERT INTO tasks 
+                    cursor.execute("""INSERT INTO tasks
                                    (id, task_name, task_type, image_data, description_image_data, parameters, stage_param, remarks)
                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
                                    (new_index + 1, task_name, task_type, image_data, description_image_data, parameters,
@@ -1024,15 +1024,15 @@ class TaskEditor(QMainWindow):
         param_json = json.dumps(params, ensure_ascii=False)
 
         if self.current_task_id:
-            cursor.execute("""UPDATE tasks SET 
-                        task_name=?, task_type=?, image_data=?, 
+            cursor.execute("""UPDATE tasks SET
+                        task_name=?, task_type=?, image_data=?,
                         description_image_data=?, parameters=?, stage_param=?, remarks=?
                         WHERE id=?""",
                            (name, task_type, self.image_data,
                             desc_image_bytes, param_json, stage_param, remarks, self.current_task_id))
         else:
             cursor.execute("""INSERT INTO tasks (
-                        task_name, task_type, image_data, 
+                        task_name, task_type, image_data,
                         description_image_data, parameters, stage_param, remarks
                         ) VALUES (?, ?, ?, ?, ?, ?, ?)""",
                            (name, task_type, self.image_data,
