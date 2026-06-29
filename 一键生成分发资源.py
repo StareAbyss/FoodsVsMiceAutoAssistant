@@ -119,7 +119,7 @@ def get_latest_excel_file(project_root: Path):
     This file is optional for packaging. Failures are reported as warnings and
     the package generation continues.
     """
-    excel_script = project_root / "card_image_url_get.py"
+    excel_script = project_root / "tool" / "image_resource" / "card_image_url_get.py"
 
     print("\n" + "=" * 60)
     print("正在获取最新的图像资源文件...")
