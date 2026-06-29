@@ -18,7 +18,7 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 """
 重要提醒：
 FAA 的 放卡位置 的变量有两种
-location 为格子 str 格式 例如 "1-1","3-7" 
+location 为格子 str 格式 例如 "1-1","3-7"
 coordinate 为坐标 list[x:int,y:int] 格式 例如 [500,600], [300,200]
 """
 
@@ -437,7 +437,7 @@ class Card:
                                 return
 
                 new_state_group_id = len(RESOURCE_P["card"]["状态判定"])
-                path_images_group = PATHS["image"]["card"] + "\\状态判定\\" + str(new_state_group_id)
+                path_images_group = os.path.join(PATHS["image"]["card"], '状态判定', str(new_state_group_id))
                 if not os.path.exists(path_images_group):
                     # 创建文件夹
                     os.makedirs(path_images_group)
@@ -447,7 +447,7 @@ class Card:
                     RESOURCE_P["card"]["状态判定"][new_state_group_id][f"{state_name}.png"] = self.state_images[
                         state_name]
                     # 保存到本地
-                    path = f"{path_images_group}\\{state_name}.png"
+                    path = os.path.join(path_images_group, f"{state_name}.png")
                     cv2.imencode(ext=".png", img=self.state_images[state_name])[1].tofile(path)
                 CUS_LOGGER.debug(f"[战斗执行器] [{self.player}P] 成功获取到行的卡片状态图片! 保存成功!")
 

@@ -40,14 +40,14 @@ FAA 战斗方案协议 v3.0
 2. 根据触发器和动作的类型分类, 读取到不同的self属性中.
     * 普通 - 循环放卡
         * Trigger.type == "wave_timer", Trigger.time = 0;
-        * Action.type == "loop_use_cards" 
+        * Action.type == "loop_use_cards"
         * 注: 虽然理论可行, 但不需要在编辑器加入, 非波次刚开始时, 变化循环放卡的策略的编辑项.
     * 时间线 - 插队放卡
         * Trigger.type == "wave_timer"
         * Action.type == "insert_use_card"
     * 时间线 - 宝石放置
         * Trigger.type == "wave_timer"
-        * Action.type == "use_gem" 
+        * Action.type == "use_gem"
 3. 保存时 反内联保存
 """
 
@@ -589,7 +589,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
             self.setWindowTitle('FAA - 战斗方案编辑器 - 鼠标悬停在按钮&输入框可以查看许多提示信息')
 
             # 设置窗口图标
-            self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
+            self.setWindowIcon(QIcon(os.path.join(PATHS["logo"], '圆角-FetDeathWing-450x.png')))
 
             # 设定窗口初始大小 否则将无法自动对齐到上级窗口中心
             self.setFixedSize(1280, 720)
@@ -600,7 +600,7 @@ class QMWEditorOfBattlePlan(QMainWindow):
         setup_main_window()
 
         # 获取全部关卡信息
-        with open(file=PATHS["config"] + "//stage_info.json", mode="r", encoding="UTF-8") as file:
+        with open(file=os.path.join(PATHS["config"], 'stage_info.json'), mode="r", encoding="UTF-8") as file:
             self.stage_info_all = json.load(file)
         # 当前选择的关卡的信息
         self.stage_info = {}

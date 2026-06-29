@@ -104,7 +104,7 @@ def check_paths():
 
     print("启动前路径检测 开始")
     for path in paths:
-        ensure_directory_exists(PATHS["root"] + path)
+        ensure_directory_exists(os.path.join(PATHS["root"], path.lstrip("\\/")))
     print("启动前路径检测 完成")
 
 

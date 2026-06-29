@@ -1,3 +1,5 @@
+import os
+
 from cv2 import imread, IMREAD_UNCHANGED, matchTemplate, TM_SQDIFF_NORMED, minMaxLoc
 
 from function.common.bg_img_screenshot import capture_image_png
@@ -16,7 +18,7 @@ def get_house_id(handle):
               image_0[28:36, 173:173 + 6]]
     for image in images:
         for i in range(10):
-            target_img = imread(filename=PATHS["image"]["number"] + "\\" + str(i) + ".png",
+            target_img = imread(filename=os.path.join(PATHS["image"]["number"], str(i) + ".png"),
                                 flags=IMREAD_UNCHANGED)
 
             # 执行模板匹配，采用的匹配方式cv2.TM_SQDIFF_NORMED
@@ -35,7 +37,7 @@ def get_house_id(handle):
                   image_0[28:36, 173 + 3:173 + 3 + 6]]
         for image in images:
             for i in range(10):
-                target_img = imread(filename=PATHS["image"]["number"] + "\\" + str(i) + ".png",
+                target_img = imread(filename=os.path.join(PATHS["image"]["number"], str(i) + ".png"),
                                     flags=IMREAD_UNCHANGED)
 
                 # 执行模板匹配，采用的匹配方式cv2.TM_SQDIFF_NORMED
@@ -70,7 +72,7 @@ if __name__ == "__main__":
         #     cv2.waitKey(0)
         #
         #     # # 保存
-        #     # path = PATHS["image"]["item"] + "\\原始资源\\transformer\\" + "t{}".format(i)
+        #     # path = os.path.join(PATHS["image"]["item"], "原始资源", "transformer", "t{}".format(i))
         #     # cv2.imencode('.png', image)[1].tofile(path)
 
         print(get_house_id(handle=handle))

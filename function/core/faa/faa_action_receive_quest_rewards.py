@@ -110,7 +110,7 @@ class FAAActionReceiveQuestRewards:
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
                     source_range=[100, 128, 350, 532],
-                    template=PATHS["image"]["task"]["chaos"] + f"//{try_count}.png",
+                    template=os.path.join(PATHS["image"]["task"]["chaos"], f"{try_count}.png"),
                     match_tolerance=0.99,
                     match_failed_check=1,
                     after_sleep=0.5,
@@ -180,7 +180,7 @@ class FAAActionReceiveQuestRewards:
             return cursor.fetchall()
 
         # 1. 从数据库读取拼图
-        db_conn = init_db(PATHS["db"] + "/tasks.db")
+        db_conn = init_db(os.path.join(PATHS["db"], 'tasks.db'))
         task_battle_quest = []
         try:
             # 2. 加载任务数据并创建拼图
@@ -541,7 +541,7 @@ class FAAActionReceiveQuestRewards:
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
                     source_range=[709, 72, 764, 122],
-                    template=PATHS["image"]["stage"] + "//inforation_island.png",
+                    template=os.path.join(PATHS["image"]["stage"], 'inforation_island.png'),
                     match_tolerance=0.95,
                     match_failed_check=1,
                     after_sleep=0.5,

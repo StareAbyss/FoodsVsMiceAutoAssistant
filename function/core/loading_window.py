@@ -1,3 +1,4 @@
+import os
 import random
 
 from PyQt6.QtCore import Qt, QPointF, QPropertyAnimation, QEasingCurve, QPoint, QSize, QThread
@@ -62,7 +63,7 @@ class LoadingWindow(QWidget):
         self.gif_label.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.gif_label.setFixedSize(77, 96)
         self.gif_label.setScaledContents(True)
-        self.gif_movie = QMovie(PATHS["ui"] + "\\progress.gif")
+        self.gif_movie = QMovie(os.path.join(PATHS["ui"], 'progress.gif'))
         self.gif_movie.setScaledSize(QSize(77, 96))
         self.gif_label.setMovie(self.gif_movie)
 

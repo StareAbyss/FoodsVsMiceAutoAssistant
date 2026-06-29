@@ -1,5 +1,6 @@
 # 从FAA Web的接口获取数据
 import json
+import os
 from datetime import datetime
 
 import requests
@@ -27,7 +28,7 @@ def get_stage_info_online() -> str:
         return f"获取云端关卡信息 - 获取云端上次更新时间 超时!\n信息：{e}"
 
     # 校验本地json的更新时间
-    with open(file=PATHS["config"] + "//stage_info_online.json", mode="r", encoding="UTF-8") as file:
+    with open(file=os.path.join(PATHS["config"], 'stage_info_online.json'), mode="r", encoding="UTF-8") as file:
         stages_info_online = json.load(file)
     local_update_time = stages_info_online["update_time"]
 
@@ -53,7 +54,7 @@ def get_stage_info_online() -> str:
         return f"获取云端关卡信息 超时!\n信息：{e}"
 
     # 覆盖本地
-    with open(file=PATHS["config"] + "//stage_info_online.json", mode="w", encoding="UTF-8") as file:
+    with open(file=os.path.join(PATHS["config"], 'stage_info_online.json'), mode="w", encoding="UTF-8") as file:
         json.dump(new_stage_info, file, ensure_ascii=False, indent=4)
 
     return f"获取云端关卡信息 大成功!\n数据已更新到本地, 最新数据时间:{origin_update_time}"

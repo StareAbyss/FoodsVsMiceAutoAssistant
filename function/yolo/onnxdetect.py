@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import os
 import random
 import time
 from math import floor
@@ -12,7 +13,7 @@ from function.globals.get_paths import PATHS
 
 
 def initialize_session(is_gpu):
-    onnx_model = PATHS["model"] + "/mouseV2.onnx"
+    onnx_model = os.path.join(PATHS["model"], 'mouseV2.onnx')
     providers = [
         'DmlExecutionProvider',
         'CPUExecutionProvider'
@@ -133,7 +134,7 @@ def cv_write(original_image, result_boxes, class_ids, boxes, scale):
     """
     此函数用于保存标签label及对应数据图片
     """
-    output_base_path = PATHS["logs"] + "\\yolo_output"
+    output_base_path = os.path.join(PATHS["logs"], 'yolo_output')
     now = datetime.datetime.now()
     timestamp = now.strftime("%Y%m%d%H%M%S")
     rand_num = str(floor(random.random() * 1000000))
