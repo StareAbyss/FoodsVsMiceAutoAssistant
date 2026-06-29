@@ -23,7 +23,7 @@ DEFAULT_OUTPUT_DIR = Path("resource") / "image" / "card" / "准备房间"
 DEFAULT_REPORT_DIR = Path("resource_other") / "图像资源_卡片准备房间_最新资源"
 DEFAULT_BLACKLIST_PATH = Path(__file__).with_name("card_prepare_room_card_blacklist.csv")
 EXCEL_FILE_PATTERN = "点我获取更多图像资源 *.xlsx"
-EXCEL_GENERATOR_SCRIPT = "card_image_url_get.py"
+EXCEL_GENERATOR_SCRIPT = Path("tool") / "image_resource" / "card_image_url_get.py"
 URL_COLUMNS = ("D", "E", "F", "G", "H")
 INVALID_URL_VALUES = {"", "-1", "None", "none", "NULL", "null"}
 USER_AGENT = "FoodsVsMousesAutoAssistant-card-resource-tool/1.0"
@@ -705,7 +705,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--blacklist", type=Path, default=DEFAULT_BLACKLIST_PATH, help="未实装卡片黑名单 CSV")
     parser.add_argument("--timeout", type=int, default=20, help="单个网络请求超时秒数")
     parser.add_argument("--excel-update-timeout", type=int, default=300, help="获取最新 Excel 的超时秒数")
-    parser.add_argument("--skip-excel-update", action="store_true", help="不调用 card_image_url_get.py，只使用本地最近 Excel")
+    parser.add_argument("--skip-excel-update", action="store_true", help="不调用图像资源 Excel 导出工具，只使用本地最近 Excel")
     parser.add_argument("--sleep", type=float, default=0.03, help="每张图片下载后的暂停秒数")
     parser.add_argument("--force", action="store_true", help="覆盖已存在图片")
     parser.add_argument("--dry-run", action="store_true", help="只生成 CSV，不下载图片")
