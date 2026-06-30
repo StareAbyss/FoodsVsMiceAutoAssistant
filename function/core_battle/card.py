@@ -66,6 +66,7 @@ def check_pixel_similarity(img_source, img_template, start, end, threshold=16):
 
 
 class Card:
+    FULL_BAN_TIME_FACTORS = (1.0, 1.5, 2.0, 3.0)
 
     def __init__(self, set_priority: int, faa: FAA):
         # 直接塞进来一个faa的实例地址, 直接从该实例中拉取方法和属性作为参数~
@@ -126,7 +127,8 @@ class Card:
         # 状态
         self.status_cd = False  # 冷却完成 默认已完成
         self.status_usable = False  # 可用
-        self.status_ban = 0  # 被ban时间 放卡，但已摆满, 导致放卡后立刻检测到可用，则进入该ban状态8s
+        self.status_ban = 0  # 被ban时间 放卡，但已摆满, 导致放卡后立刻检测到可用，则进入该ban状态
+        self.full_ban_count = 0  # 连续触发放满自ban的次数
 
         # 是否是当前角色的坤目标
         self.is_kun_target = False
@@ -319,6 +321,22 @@ class Card:
         """预留接口, 让高级放卡可以仅覆写这一小部分"""
         self.put_card()
 
+    def record_full_ban(self):
+        """记录一次放满失败, 并按连续失败次数递增本次自ban时长。"""
+        self.full_ban_count += 1
+        factor_index = min(self.full_ban_count - 1, len(self.FULL_BAN_TIME_FACTORS) - 1)
+        factor = self.FULL_BAN_TIME_FACTORS[factor_index]
+        self.status_ban = EXTRA.FULL_BAN_TIME * factor
+
+        if EXTRA.EXTRA_LOG_BATTLE:
+            CUS_LOGGER.debug(
+                f"[战斗执行器] [{self.player}P] [{self.name}] "
+                f"第{self.full_ban_count}次连续放满, 自ban {self.status_ban:.2f}s")
+
+    def reset_full_ban_count(self):
+        """放置成功后清空连续放满失败计数。"""
+        self.full_ban_count = 0
+
     def use_card(self) -> bool:
         """
         使用这张卡本身
@@ -366,13 +384,15 @@ class Card:
 
             if self.status_usable and (self.name not in self.ban_white_list):
                 # 放满了 如果不在白名单 就自ban
-                self.status_ban = EXTRA.FULL_BAN_TIME
+                self.record_full_ban()
 
                 # if self.player == 1:
                 #     CUS_LOGGER.debug(f"[1P] {self.name} 因使用后仍可用进行了自ban")
                 #     T_ACTION_QUEUE_TIMER.print_queue_statue()
 
                 return False
+
+            self.reset_full_ban_count()
 
             # 放置成功 应用放卡间隔
             if self.cd_after_use_random_active:
