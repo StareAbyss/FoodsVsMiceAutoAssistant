@@ -119,7 +119,7 @@ def get_latest_excel_file(project_root: Path):
     This file is optional for packaging. Failures are reported as warnings and
     the package generation continues.
     """
-    excel_script = project_root / "tool" / "image_resource" / "card_image_url_get.py"
+    excel_script = project_root / "tool" / "get_game_images_from_xiaye_db.py"
 
     print("\n" + "=" * 60)
     print("正在获取最新的图像资源文件...")
@@ -187,7 +187,7 @@ def run_card_prepare_room_resource_tool(project_root: Path, latest_excel) -> Non
     packaging helper, so network or CDN failures are reported as warnings and
     the package build continues with the existing local resources.
     """
-    tool_script = project_root / "tool" / "card_resource" / "card_prepare_room_resource_tool.py"
+    tool_script = project_root / "tool" / "card_resource" / "get_card_resource_tool.py"
     if not tool_script.is_file():
         print(f"Warning: Card resource tool not found: {tool_script}")
         return
