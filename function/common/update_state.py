@@ -196,5 +196,84 @@ def detect_local_state(project_root: Path) -> dict[str, Any]:
     return detected
 
 
+def apply_update_entry_metadata(state: dict[str, Any], entry: dict[str, Any]) -> dict[str, Any]:
+    if not entry:
+        return state
+
+    for key in ("pr", "summary", "title", "url", "merged_at"):
+        if not state.get(key) and entry.get(key):
+            state[key] = entry[key]
+    return state
+
+
+def find_cached_update_entry(project_root: Path, state: dict[str, Any]) -> dict[str, Any]:
+    try:
+        from function.common.update_manifest import load_manifest_cache
+    except ImportError:
+        return {}
+
+    try:
+        cache = load_manifest_cache(project_root)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return {}
+
+    tag = state.get("tag")
+    commit = state.get("commit")
+    for bucket in ("versions", "dev_commits"):
+        for entry in cache.get(bucket, []):
+            if tag and entry.get("tag") == tag:
+                return entry
+            if commit and entry.get("commit") == commit:
+                return entry
+    return {}
+
+
+def fetch_remote_update_entry(state: dict[str, Any]) -> dict[str, Any]:
+    commit = state.get("commit")
+    if not commit:
+        return {}
+
+    try:
+        from function.common.update_manifest import GitHubClient, build_dev_entry, build_version_entry
+
+        client = GitHubClient()
+        commit_payload = client.get_commit(commit)
+        pulls = client.get_pulls_for_commit(commit)
+    except Exception:
+        return {}
+
+    tag = state.get("tag")
+    if tag:
+        return build_version_entry(tag, commit_payload, pulls)
+    return build_dev_entry(commit_payload, pulls)
+
+
+def fill_packaged_merge_metadata(project_root: Path, state: dict[str, Any]) -> dict[str, Any]:
+    """
+    补齐打包产物的 PR 合并时间。
+
+    打包状态最初来自本地 Git，只能得到 commit/tag/PR 号，不能直接得到 GitHub PR
+    的 merged_at。这里先用本地 manifest 缓存，再请求 GitHub；如果网络不可用，则回退
+    到本地 merge commit 的提交时间，避免正式包的“时间”长期显示为未记录。
+    """
+    if state.get("merged_at"):
+        return state
+
+    state = apply_update_entry_metadata(state, find_cached_update_entry(project_root, state))
+    if state.get("merged_at"):
+        return state
+
+    state = apply_update_entry_metadata(state, fetch_remote_update_entry(state))
+    if state.get("merged_at"):
+        return state
+
+    commit_time = run_git(project_root, ["log", "-1", "--format=%cI"])
+    if commit_time:
+        state["merged_at"] = commit_time
+    return state
+
+
 def write_packaged_update_state(project_root: Path, dest_root: Path) -> Path:
-    return write_update_state(dest_root, build_update_state(project_root, "packaged_at"))
+    state = build_update_state(project_root, "packaged_at")
+    state = fill_packaged_merge_metadata(project_root, state)
+    return write_update_state(dest_root, state)

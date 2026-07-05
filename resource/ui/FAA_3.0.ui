@@ -7227,14 +7227,66 @@ FAA放卡核心原理简述:
            <item>
             <layout class="QVBoxLayout" name="UpdateLayout">
              <item>
-              <widget class="QLabel" name="UpdateStateLabel">
-               <property name="text">
-                <string>当前版本状态：读取中...</string>
+              <layout class="QGridLayout" name="UpdateStateGridLayout">
+               <property name="horizontalSpacing">
+                <number>24</number>
                </property>
-               <property name="wordWrap">
-                <bool>true</bool>
+               <property name="verticalSpacing">
+                <number>6</number>
                </property>
-              </widget>
+               <item row="0" column="0">
+                <widget class="QLabel" name="UpdateVersionInfoLabel">
+                 <property name="text">
+                  <string>当前版本：读取中...</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                 </property>
+                 <property name="wordWrap">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLabel" name="UpdateNodeInfoLabel">
+                 <property name="text">
+                  <string>更新节点：读取中...</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                 </property>
+                 <property name="wordWrap">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="UpdateBranchInfoLabel">
+                 <property name="text">
+                  <string>分支：读取中...</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                 </property>
+                 <property name="wordWrap">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLabel" name="UpdateSourceInfoLabel">
+                 <property name="text">
+                  <string>版本信息和当前状态来源：读取中...</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                 </property>
+                 <property name="wordWrap">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
              <item>
               <widget class="QLabel" name="UpdateProgressLabel">
