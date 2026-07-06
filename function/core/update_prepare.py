@@ -17,23 +17,26 @@ from function.core.settings_migration import migrate_user_data
 MIGRATION_REPORT_RELATIVE_PATH = Path("update_cache") / "migration_report.json"
 
 
+def to_json_serializable(value: Any) -> Any:
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, dict):
+        return {key: to_json_serializable(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [to_json_serializable(item) for item in value]
+    if isinstance(value, tuple):
+        return [to_json_serializable(item) for item in value]
+    return value
+
+
 def write_migration_report(staging_root: Path, results: list[dict[str, Any]]) -> Path:
     report_path = staging_root / MIGRATION_REPORT_RELATIVE_PATH
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
-    serializable_results = []
-    for item in results:
-        copied = dict(item)
-        for key in ("path_from", "path_to"):
-            if copied.get(key) is not None:
-                copied[key] = str(copied[key])
-        copied["locations"] = [str(location) for location in copied.get("locations", [])]
-        serializable_results.append(copied)
-
     report = {
         "schema_version": 1,
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "results": serializable_results,
+        "results": to_json_serializable(results),
         "summary": summarize_migration_results(results),
     }
     report_path.write_text(json.dumps(report, ensure_ascii=False, indent=4) + "\n", encoding="utf-8")
