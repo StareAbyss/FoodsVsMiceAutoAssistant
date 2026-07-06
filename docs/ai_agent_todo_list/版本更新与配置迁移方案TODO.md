@@ -61,7 +61,8 @@
 - [x] 新增 `function/core/settings_migration.py`
   - 抽出无 UI 的迁移核心。
   - 支持 `migrate_user_data(source_root, target_root, selected_names)`。
-  - 支持文件迁移、文件夹迁移、JSON-only 迁移、战斗方案 UUID 合并。
+  - 支持整文件覆盖、整目录替换、普通文件夹合并和 UUID JSON 合并。
+  - 战斗方案、微调方案、任务序列均按 UUID 合并，避免旧配置覆盖新版内置方案。
 
 - [x] 改造 `function/core/qmw_settings_migrator.py`
   - UI 迁移器复用无 UI 迁移核心。
@@ -179,37 +180,104 @@ PR merge commit = main 上形如 “Merge pull request #927 ...” 的双 parent
 
 ## 迁移规则现状
 
-当前已经覆盖：
+迁移系统采用白名单规则。只有本节列出的用户数据会进入新版 staging；其余版本区文件会随旧版本进入 `backups/`，不会自动进入新版。
+
+### 整文件覆盖
+
+这些文件以来源 FAA 为准，直接覆盖目标 FAA 的同路径文件：
 
 - [x] `config/settings.json`
-- [x] `config/opt_main.json`
+  - 兼容旧路径：`config/opt_main.json`
+  - 该文件仍是整文件覆盖；启动时再由模板补全缺失字段和修正类型。
 - [x] `config/stage_plan.json`
-- [x] `config/cus_images/用户自截/*`
-- [x] `resource/image/common/用户自截/*` 的旧路径兼容
-- [x] `battle_plan/**`
-- [x] `battle_plan_not_active/**`
+- [x] `config/stage_info_extra.json`
+
+### UI 分组
+
+配置迁移工具 UI 使用 `QGroupBox` 分为四组：
+
+- `配置文件`
+  - `配置文件 - 核心`
+  - `配置文件 - 关卡全局方案`
+  - `配置文件 - 自定义关卡信息`
+- `用户自定义图像`
+  - `用户自截`
+  - `背包道具 - 需删除`
+  - `背包装备 - 需使用`
+- `方案与任务`
+  - `战斗方案`
+  - `微调方案`
+  - `自定义任务序列`
+- `其他用户数据`
+  - `公会管理器数据`
+  - `战斗方案 - 未激活`
+
+### 整目录替换
+
+这些目录以来源 FAA 为准。每个目录独立显示为一个迁移选项；迁移前先清空目标目录，再完整复制来源目录：
+
+- [x] `config/cus_images/用户自截/`
+  - 兼容旧路径：`resource/image/common/用户自截/`
+- [x] `config/cus_images/背包_道具_需删除的/`
+- [x] `config/cus_images/背包_装备_需使用的/`
+
+整目录替换只在来源目录存在时执行；来源目录不存在时不会清空目标目录。
+
+### UUID JSON 合并
+
+常用迁移项按以下顺序展示，并按 UUID 合并，不再按文件名覆盖：
+
+- [x] `battle_plan/`
+- [x] `tweak_plan/`
+- [x] `task_sequence/`
+
+其他迁移项放入 `其他用户数据` 分组：
+
+- [x] `battle_plan_not_active/`
+
+通用规则：
+
+- 同 UUID：不迁移来源文件，保留目标 FAA 原文件。
+- 默认 UUID：不迁移，保留目标 FAA 内置方案。
+- UUID 不同但文件名相同：迁移来源文件，并在文件名后追加 ` (1)`、` (2)` 等数字，保留两者。
+- 来源文件缺少 UUID：按对应类型的现有 UUID 生成逻辑生成新 UUID，再迁移。
+- 来源目录内部 UUID 撞车：第一个合法文件保留原 UUID；后续同 UUID 文件生成新 UUID 后迁移。
+- 来源 JSON 损坏或结构无法识别：不迁移，并在迁移报告中记录。
+- 目标 JSON 损坏：不作为有效 UUID 参与去重，不主动删除。
+
+UUID 读取位置：
+
+- 战斗方案：`meta_data.uuid`，兼容旧版顶层 `uuid`。
+- 微调方案：`meta_data.uuid`。
+- 任务序列：第一项的 `meta_data.uuid`。
+
+### 普通文件夹合并
+
 - [x] `logs/guild_manager/**`
-- [x] `task_sequence/**` 的 JSON-only 复制
+  - 用于保留公会管理器数据。
+  - 当前仍是普通合并复制，不清空目标目录。
+
+### 暂不迁移
+
+以下内容暂不进入迁移白名单：
+
+- [x] `resource/db/tasks.db`
+- [x] `cus_extension_addon_script/**`
+- [x] 扩展插件产生的用户数据
+- [x] `logs/` 下除 `logs/guild_manager/**` 外的日志、截图、录屏、识别失败样本和统计产物
+- [x] `.git/`、`.venv/`、`backups/`、`update_cache/` 等更新保留区或开发目录
 
 仍需细化：
 
-- [ ] `tweak_plan/**` 是否属于用户数据。
-- [ ] 自定义识图脚本 / 扩展插件产生的用户数据应迁移哪些路径。
-- [ ] 其他用户手动创建的本地配置或数据目录是否需要白名单。
-- [ ] `task_sequence` 应改为 UUID 合并，不能只按文件名覆盖。
-- [ ] 明确哪些默认 UUID 永远不迁移。
-- [ ] 明确哪些文件只在目标不存在时复制。
-- [ ] 明确哪些文件允许覆盖。
-- [ ] 明确哪些文件只备份不迁移。
-- [ ] 明确哪些文件永远不迁移，例如 `.git`、`.venv`、大体积临时日志。
-- [ ] 迁移前生成更详细的迁移计划，列出复制、覆盖、跳过、合并。
+- [ ] `settings.json` 后续是否升级为字段级迁移，避免旧整文件覆盖新版默认配置。
+- [ ] 迁移后生成更详细的引用校验报告，检查 `stage_plan`、`task_sequence` 引用的战斗方案 / 微调方案 UUID 是否存在。
 - [ ] 更新流程是否允许用户在更新前勾选迁移内容，待定。
 
 ## 已知风险
 
 - [ ] 迁移清单不完整导致用户数据没有进入新版 staging。
-- [ ] 旧用户配置覆盖新版内置配置，导致新版功能异常。
-- [ ] `task_sequence` 按文件名覆盖，可能覆盖新版内置任务。
+- [ ] `settings.json` 整文件覆盖可能覆盖新版默认配置。
+- [x] `task_sequence` 按文件名覆盖，可能覆盖新版内置任务。
 - [ ] 仓库合并策略变化后，PR merge commit 不再稳定存在。
 - [ ] GitHub 网络质量不稳定，刷新列表或下载 archive 可能失败。
 - [ ] 当前更新流程还缺少完整端到端人工演练。
