@@ -6,7 +6,7 @@ from function.globals.loadings import loading
 loading.update_progress(65,"正在加载FAA迁移工具...")
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QMessageBox, \
-    QFileDialog, QHBoxLayout, QCheckBox
+    QFileDialog, QHBoxLayout, QCheckBox, QGroupBox
 
 from function.globals.get_paths import PATHS
 from function.core.settings_migration import build_migration_plan, get_migration_configs, migrate_user_data
@@ -19,7 +19,7 @@ class QMWSettingsMigrator(QMainWindow):
         self.setWindowIcon(QIcon(os.path.join(PATHS["logo"], '圆角-FetDeathWing-450x.png')))
 
         # 设定窗口初始大小 否则将无法自动对齐到上级窗口中心
-        self.resize(1025, 435)
+        self.resize(1025, 560)
 
         self.configs = get_migration_configs()
         self.init_ui()
@@ -32,12 +32,12 @@ class QMWSettingsMigrator(QMainWindow):
         self.setCentralWidget(central_widget)
 
         # 按钮1：选择目标配置
-        self.btn_select_target = QPushButton("选择目标配置")
+        self.btn_select_target = QPushButton("选择目标FAA (会将此处FAA的配置文件迁移到本FAA中)")
         self.btn_select_target.clicked.connect(self.select_target_folder)
         layout_central.addWidget(self.btn_select_target)
 
         # 按钮2：开始迁移配置
-        self.btn_start_migration = QPushButton("开始迁移配置")
+        self.btn_start_migration = QPushButton("开始迁移")
         self.btn_start_migration.setEnabled(False)
         self.btn_start_migration.clicked.connect(self.start_migration)
         layout_central.addWidget(self.btn_start_migration)
@@ -46,9 +46,18 @@ class QMWSettingsMigrator(QMainWindow):
         self.widgets_checkbox = {}
         self.widgets_label = {}
 
+        group_layouts = {}
         for config in self.configs:
+            group_name = config.get("group", "其他")
+            if group_name not in group_layouts:
+                group_box = QGroupBox(group_name)
+                group_layout = QVBoxLayout()
+                group_box.setLayout(group_layout)
+                layout_central.addWidget(group_box)
+                group_layouts[group_name] = group_layout
+
             layout_liner = QHBoxLayout()
-            layout_central.addLayout(layout_liner)
+            group_layouts[group_name].addLayout(layout_liner)
 
             checkbox = QCheckBox(config["name"])
             checkbox.setFixedWidth(200)
@@ -59,22 +68,23 @@ class QMWSettingsMigrator(QMainWindow):
             if config["type"] == "folder":
                 checkbox.setToolTip(
                     "文件夹迁移\n"
-                    "将会**覆盖**当前配置中的同名文件夹!"
+                    "将来源文件夹内容合并到当前 FAA 的同名文件夹。"
                 )
 
-            if config["type"] == "folder_json_only":
+            if config["type"] == "folder_replace":
                 checkbox.setToolTip(
-                    "文件夹迁移\n"
-                    "仅迁移.json文件\n"
-                    "将**覆盖**当前配置中的同名文件夹!\n"
-                    "如需保留FAA更新的内置方案不被旧方案取代, 请手动复制粘贴迁移,并重启FAA"
+                    "整目录替换\n"
+                    "迁移前会先清空当前 FAA 的目标文件夹，再完整复制来源文件夹。\n"
+                    "适用于用户自截、背包删除/使用图片等以用户数据为准的目录。"
                 )
 
-            if config["type"] == "folder_battle_plan":
+            if config["type"] == "folder_uuid_json":
                 # 鼠标提示
                 checkbox.setToolTip(
-                    "战斗方案迁移 会直接覆盖同uuid的所有方案!\n"
-                    "如果方案没有uuid, 则不会被复制!"
+                    "UUID 合并迁移\n"
+                    "同 UUID 文件不迁移，保留当前 FAA 原文件。\n"
+                    "UUID 不同但文件名相同会自动追加括号数字。\n"
+                    "缺少 UUID 的文件会生成新 UUID；损坏 JSON 不迁移。"
                 )
 
             label = QLabel("")
@@ -106,12 +116,7 @@ class QMWSettingsMigrator(QMainWindow):
             checkbox.setEnabled(False)
             checkbox.setChecked(False)
 
-            self.widgets_label[config["name"]].setText(
-                "从: {}\n到: {}".format(
-                    config.get("path_from", "未找到"),
-                    config.get("path_to", "未找到")
-                )
-            )
+            self.widgets_label[config["name"]].setText(self.format_config_paths(config))
 
             # from 找到了 解锁对应ui
             if config.get("available"):
@@ -156,3 +161,10 @@ class QMWSettingsMigrator(QMainWindow):
             self,
             "完成迁移全部!",
             "迁移已完成, 请不要保存配置, 直接重启FAA即可正确应用~")
+
+    @staticmethod
+    def format_config_paths(config: dict) -> str:
+        return "从: {}\n到: {}".format(
+            config.get("path_from", "未找到"),
+            config.get("path_to", "未找到")
+        )
