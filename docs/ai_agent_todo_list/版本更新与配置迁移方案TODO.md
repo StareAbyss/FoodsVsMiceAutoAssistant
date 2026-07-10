@@ -11,10 +11,12 @@
 - 不在当前运行目录原地 `git pull`、`reset --hard`、`clean` 或切换分支。
 - 更新流程采用“下载到 staging -> 迁移用户数据 -> 外部 updater 替换版本区”。
 - 回退通过更新前备份恢复，不通过选择旧 commit 实现。
-- `.venv/`、`backups/`、`update_cache/`、`恢复到备份.bat` 是保留区，不随版本覆盖。
+- `.venv/`、`backups/`、`update_cache/`、`FAA-恢复到备份.bat` 是保留区，不随版本覆盖。
 - 除保留区外，根目录其他内容视为版本区。未被迁移器迁移的旧版本内容可以随旧版本进入备份。
 - `logs/` 不整体保留，只有迁移规则明确列出的内容才迁移。
-- `AppInstallRun.bat` 是根目录固定启动入口，属于版本区，每次更新后由新版覆盖为正确内容。
+- `FAA.exe` 是普通用户正式入口，内部只负责调用 `plugins/launcher_scripts/AppInstallRun.bat`。
+- `plugins/launcher_scripts/AppInstallRun.bat` 是内部启动壳，不在根目录暴露；每次更新后由新版覆盖为正确内容。
+- `plugins/launcher_scripts/AppInstallRun.ps1` 是固定安装和运行脚本，负责中文提示、环境准备和独立启动主程序。
 
 ## 已落地
 
@@ -24,7 +26,7 @@
 
 - [x] 改造 `一键生成分发资源.py`
   - 打包时自动写入 `dist/FAA/update_cache/update_state.json`。
-  - 将 `plugins/updater` 和 `恢复到备份.bat` 纳入分发资源。
+  - 将 `plugins/updater` 和 `FAA-恢复到备份.bat` 纳入分发资源。
 
 - [x] 新增 `function/common/update_manifest.py`
   - 通过 GitHub API 读取版本 tag。
@@ -41,13 +43,13 @@
 - [x] 新增 `function/common/update_staging.py`
   - 从 GitHub zip archive 构建 `update_cache/staging/FAA.update.new/`。
   - 不把 `.git` 带入 staging。
-  - 将源码布局转换为分发布局，例如把 `plugins/uv` 内容铺到根目录。
+  - 将源码布局转换为分发布局，例如把 `plugins/root_entries` 铺到根目录，并保留 `plugins/launcher_scripts` 中的 PowerShell 脚本本体。
   - 复用分发规则，排除不应进入分发包的配置和缓存。
   - 开始新 staging 前把旧 staging 移动到 `update_cache/failed_staging/`。
   - `failed_staging/` 最多保留 2 份。
   - 目标版本缺少 `plugins/updater` 时，从当前安装目录补入 updater。
   - staging 中自动写入目标版本的 `update_cache/update_state.json`。
-  - 校验 `LICENSE`、`pyproject.toml`、`uv.lock`、`AppInstallRun.bat`、`function/`、`resource/` 等关键内容。
+  - 校验 `LICENSE`、`pyproject.toml`、`uv.lock`、`FAA.exe`、`FAA-调试模式启动.bat`、`FAA-卸除运行环境.bat`、`FAA-恢复到备份.bat`、`plugins/launcher_scripts/AppInstallRun.bat`、`plugins/launcher_scripts/AppInstallRun.ps1`、`function/`、`resource/` 等关键内容。
 
 - [x] 新增 `function/common/update_space.py`
   - 估算当前版本区大小、staging 大小、磁盘可用空间和安全余量。
@@ -84,13 +86,13 @@
   - 支持 `update` 和 `restore` 两种模式。
   - update：当前版本区移动到 `backups/FAA.backup.<timestamp>/`，staging 版本区移动到根目录。
   - restore：当前版本区先移动到 `FAA.before-restore.*`，再从指定备份恢复。
-  - 保留 `.venv/`、`backups/`、`update_cache/`、`恢复到备份.bat`。
+  - 保留 `.venv/`、`backups/`、`update_cache/`、`FAA-恢复到备份.bat`。
   - 支持 `--wait-pid`、`--wait-timeout`。
   - 每个关键阶段写入 `update_cache/updater_state.json`。
   - 日志写入 `update_cache/updater_logs/`。
   - 更新或恢复失败时尽量回滚，并保留失败现场。
 
-- [x] 新增 `恢复到备份.bat`
+- [x] 新增 `FAA-恢复到备份.bat`
   - GUI 无法启动时可列出 `backups/` 备份。
   - 用户选择备份并二次确认后调用 updater restore。
 
@@ -166,8 +168,8 @@ PR merge commit = main 上形如 “Merge pull request #927 ...” 的双 parent
 15. updater 等待主程序退出。
 16. updater 备份当前版本区。
 17. updater 把 staging 版本区移动到根目录。
-18. updater 启动 AppInstallRun.bat。
-19. 新版启动流程通过 uv sync --locked 修正 .venv。
+18. updater 启动 FAA.exe。
+19. 新版启动流程通过 uv sync --locked --no-dev 修正普通用户运行环境。
 ```
 
 禁止流程：
@@ -176,7 +178,7 @@ PR merge commit = main 上形如 “Merge pull request #927 ...” 的双 parent
 删除当前根目录 -> 移动新版进来
 ```
 
-原因：容易误删 `.venv/`、`backups/`、`update_cache/`、`恢复到备份.bat`。
+原因：容易误删 `.venv/`、`backups/`、`update_cache/`、`FAA-恢复到备份.bat`。
 
 ## 迁移规则现状
 
@@ -292,7 +294,7 @@ UUID 读取位置：
 - [x] GitHub API rate limit 导致无法刷新远端列表。
 - [x] 清理根目录时误删保留区。
 - [x] updater 从 FAA 根目录运行导致 cwd 占用。
-- [x] `.venv` 保留但未执行新版 `uv sync --locked`。
+- [x] `.venv` 保留但未执行新版 `uv sync --locked --no-dev`。
 - [x] 上次 staging 半成品被误当作本次更新结果。
 
 ## 与旧热更新 commit 的关系
@@ -330,7 +332,7 @@ UUID 读取位置：
 
 - [ ] 用本地 archive 调用 `prepare_update_from_archive()`，确认 staging 构建成功。
 - [ ] 检查 staging 不包含 `.git`。
-- [ ] 检查 staging 包含 `AppInstallRun.bat`、`pyproject.toml`、`uv.lock`、`function/`、`resource/`。
+- [ ] 检查 staging 包含 `FAA.exe`、`FAA-调试模式启动.bat`、`FAA-卸除运行环境.bat`、`FAA-恢复到备份.bat`、`plugins/launcher_scripts/AppInstallRun.bat`、`plugins/launcher_scripts/AppInstallRun.ps1`、`pyproject.toml`、`uv.lock`、`function/`、`resource/`。
 - [ ] 检查 staging 内 `update_cache/update_state.json` 正确写入目标版本。
 - [ ] 检查 staging 内 `update_cache/migration_report.json` 正确记录迁移结果。
 
