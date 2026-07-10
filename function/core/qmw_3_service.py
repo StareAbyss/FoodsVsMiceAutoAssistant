@@ -1,10 +1,12 @@
 ﻿import datetime
+import ctypes
 import json
 import os
 import random
 import shutil
 import sqlite3
 import subprocess
+import sys
 import threading
 import webbrowser
 from pathlib import Path
@@ -57,6 +59,110 @@ from function.scattered.todo_timer_manager import TodoTimerManager
 
 from function.core.git_update_manager import prepare_release_update, refresh_dev_manifest, refresh_release_manifest
 from function.core.update_apply import launch_update_from_staging
+
+
+def apply_windows_taskbar_icon(window):
+    """将 FAA 图标写入 Windows 原生窗口句柄，修正任务栏仍显示 pythonw 图标的问题。"""
+    if sys.platform != "win32":
+        return
+
+    icon_path = os.path.join(PATHS["logo"], "\u5706\u89d2-FetDeathWing-256x-AllSize.ico")
+    if not os.path.exists(icon_path):
+        return
+
+    try:
+        hwnd = int(window.winId())
+        if not hwnd:
+            return
+
+        window.setWindowIcon(QtGui.QIcon(icon_path))
+
+        user32 = ctypes.windll.user32
+        user32.LoadImageW.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_wchar_p,
+            ctypes.c_uint,
+            ctypes.c_int,
+            ctypes.c_int,
+            ctypes.c_uint,
+        ]
+        user32.LoadImageW.restype = ctypes.c_void_p
+        user32.SendMessageW.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_size_t, ctypes.c_void_p]
+        user32.SendMessageW.restype = ctypes.c_void_p
+
+        image_icon = 1
+        lr_load_from_file = 0x00000010
+        wm_set_icon = 0x0080
+        icon_small = 0
+        icon_big = 1
+        gclp_hicon = -14
+        gclp_hiconsm = -34
+
+        big_size = user32.GetSystemMetrics(11) or 32
+        small_size = user32.GetSystemMetrics(49) or 16
+        big_icon = user32.LoadImageW(None, icon_path, image_icon, big_size, big_size, lr_load_from_file)
+        small_icon = user32.LoadImageW(None, icon_path, image_icon, small_size, small_size, lr_load_from_file)
+
+        hwnd_ptr = ctypes.c_void_p(hwnd)
+        if big_icon:
+            user32.SendMessageW(hwnd_ptr, wm_set_icon, icon_big, ctypes.c_void_p(big_icon))
+        if small_icon:
+            user32.SendMessageW(hwnd_ptr, wm_set_icon, icon_small, ctypes.c_void_p(small_icon))
+
+        set_class_long = getattr(user32, "SetClassLongPtrW", None)
+        if set_class_long is not None:
+            set_class_long.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p]
+            set_class_long.restype = ctypes.c_void_p
+            to_class_icon_arg = ctypes.c_void_p
+        else:
+            set_class_long = user32.SetClassLongW
+            set_class_long.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_long]
+            set_class_long.restype = ctypes.c_long
+            to_class_icon_arg = ctypes.c_long
+        if big_icon:
+            set_class_long(hwnd_ptr, gclp_hicon, to_class_icon_arg(big_icon))
+        if small_icon:
+            set_class_long(hwnd_ptr, gclp_hiconsm, to_class_icon_arg(small_icon))
+
+        # Windows 任务栏最终读取 HWND 图标；Qt 图标和原生大小图标都设置一次更稳。
+        # 原生图标句柄需要和窗口同生命周期保留，避免被回收后任务栏图标丢失。
+        window._faa_native_taskbar_icons = (big_icon, small_icon)
+    except Exception as e:
+        CUS_LOGGER.debug(f"设置主窗口任务栏图标失败: {e}")
+
+
+def bring_main_window_to_front_once(window):
+    """启动完成时短暂置前主窗口，但不保持永久置顶。"""
+    window.showNormal()
+    window.raise_()
+    window.activateWindow()
+
+    if sys.platform != "win32":
+        return
+
+    try:
+        hwnd = int(window.winId())
+        if not hwnd:
+            return
+
+        flags = win32con.SWP_NOMOVE | win32con.SWP_NOSIZE | win32con.SWP_SHOWWINDOW
+        win32gui.ShowWindow(hwnd, win32con.SW_SHOWNORMAL)
+
+        # 只在启动时短暂置顶一次，避免 FAA 被其他窗口压住；随后立即解除置顶状态。
+        win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0, flags)
+
+        def release_topmost():
+            try:
+                win32gui.SetWindowPos(hwnd, win32con.HWND_NOTOPMOST, 0, 0, 0, 0, flags)
+                window.raise_()
+                window.activateWindow()
+            except Exception as e:
+                CUS_LOGGER.debug(f"解除主窗口临时置顶失败: {e}")
+
+        QtCore.QTimer.singleShot(500, release_topmost)
+        win32gui.SetForegroundWindow(hwnd)
+    except Exception as e:
+        CUS_LOGGER.debug(f"启动时置前主窗口失败: {e}")
 
 
 class QMainWindowService(QMainWindowLoadSettings):
@@ -1714,6 +1820,8 @@ def faa_start_main(app=None, loading=None):
     loading.update_progress(100, "载入完成！！！")
     # 主窗口 实现
     window.show()
+    QtCore.QTimer.singleShot(100, lambda: apply_windows_taskbar_icon(window))
+    QtCore.QTimer.singleShot(250, lambda: bring_main_window_to_front_once(window))
     # 主窗口淡入动画
     window.fade_in_animation.start()
     QtCore.QTimer.singleShot(0, window.warn_recording_size_if_needed)
