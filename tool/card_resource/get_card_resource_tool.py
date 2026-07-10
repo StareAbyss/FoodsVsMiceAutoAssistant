@@ -17,8 +17,8 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 
-DEFAULT_COMPOSE_URL = "https://q.ms.huanlecdn.com/4399/cdn.123u.com/config/compose.xml"
-DEFAULT_CARD_FUSION_URL = "https://q.ms.huanlecdn.com/4399/cdn.123u.com/config/CardFusion.xml"
+DEFAULT_COMPOSE_URL = "https://q.ms.huanlecdn.com/7k7k/cdn.123u.com/config/compose.xml"
+DEFAULT_CARD_FUSION_URL = "https://q.ms.huanlecdn.com/7k7k/cdn.123u.com/config/CardFusion.xml"
 DEFAULT_OUTPUT_DIR = Path("resource") / "image" / "card" / "准备房间"
 DEFAULT_REPORT_DIR = Path("resource_other") / "图像资源_卡片准备房间_最新资源"
 DEFAULT_BLACKLIST_PATH = Path(__file__).with_name("card_prepare_room_card_blacklist.csv")
