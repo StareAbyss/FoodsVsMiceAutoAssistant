@@ -36,7 +36,9 @@ CONFIG_EXCLUDE_PATHS = {
 
 PACKAGE_FOLDERS = (
     ("config", Path("config"), CONFIG_EXCLUDE_FILES, CONFIG_EXCLUDE_PATHS, set()),
-    ("plugins/uv", Path("."), set(), set(), set()),
+    # Root entries are copied to the published root; PowerShell bodies stay under plugins.
+    ("plugins/root_entries", Path("."), set(), set(), set()),
+    ("plugins/launcher_scripts", Path("plugins/launcher_scripts"), set(), set(), set()),
     ("function", Path("function"), set(), set(), {".pyc"}),
     ("plugins/pak", Path("plugins/pak"), set(), set(), set()),
     ("plugins/updater", Path("plugins/updater"), set(), set(), set()),
@@ -50,13 +52,13 @@ PACKAGE_FOLDERS = (
 
 PACKAGE_FILES = (
     "新手入门 看我!!! 看我!!! 看我!!!.txt",
-    "FAA支持性检测, 仅限Win10+.bat",
+    "FAA-支持性检测, 仅限Win10+.bat",
     "LICENSE",
     "README.md",
     "README - 高级放卡.md",
     "致谢名单.md",
     "致谢名单.png",
-    "恢复到备份.bat",
+    "FAA-恢复到备份.bat",
     "config/item_ranking_dag_graph.json",
     ".python-version",
     "pyproject.toml",
@@ -69,7 +71,14 @@ REQUIRED_STAGING_PATHS = (
     "LICENSE",
     "pyproject.toml",
     "uv.lock",
-    "AppInstallRun.bat",
+    "FAA.exe",
+    "FAA-恢复到备份.bat",
+    "FAA-卸除运行环境.bat",
+    "FAA-调试模式启动.bat",
+    "plugins/launcher_scripts/AppInstallRun.bat",
+    "plugins/launcher_scripts/AppInstallRun.ps1",
+    "plugins/launcher_scripts/UVFAAUninstaller.ps1",
+    "plugins/launcher_scripts/uv",
     "function",
     "resource",
 )
@@ -262,7 +271,7 @@ def build_distribution_from_source(source_root: Path, dest_root: Path) -> Path:
         )
 
     for file_path in PACKAGE_FILES:
-        copy_file(source_root, dest_root, file_path, required=file_path not in {"恢复到备份.bat"})
+        copy_file(source_root, dest_root, file_path, required=file_path not in {"FAA-恢复到备份.bat"})
     copy_latest_image_resource_excel(source_root, dest_root)
 
     return dest_root
@@ -274,7 +283,7 @@ def copy_update_tools_from_current_root(current_root: Path, staging_root: Path) 
     if current_updater.is_dir() and not (staging_updater / "updater.py").is_file():
         shutil.copytree(current_updater, staging_updater, dirs_exist_ok=True)
 
-    restore_script = Path("恢复到备份.bat")
+    restore_script = Path("FAA-恢复到备份.bat")
     current_restore_script = current_root / restore_script
     staging_restore_script = staging_root / restore_script
     if current_restore_script.is_file() and not staging_restore_script.is_file():
@@ -379,5 +388,10 @@ def describe_staging(staging_root: Path) -> dict[str, Any]:
         "path": str(staging_root),
         "state": state,
         "has_git": (staging_root / ".git").exists(),
-        "has_launcher": (staging_root / "AppInstallRun.bat").is_file(),
+        "has_launcher": (staging_root / "plugins" / "launcher_scripts" / "AppInstallRun.bat").is_file(),
+        "has_launcher_script": (staging_root / "plugins" / "launcher_scripts" / "AppInstallRun.ps1").is_file(),
+        "has_console_launcher": (staging_root / "FAA-调试模式启动.bat").is_file(),
+        "has_uninstaller": (staging_root / "FAA-卸除运行环境.bat").is_file(),
+        "has_uninstaller_script": (staging_root / "plugins" / "launcher_scripts" / "UVFAAUninstaller.ps1").is_file(),
+        "has_exe_launcher": (staging_root / "FAA.exe").is_file(),
     }

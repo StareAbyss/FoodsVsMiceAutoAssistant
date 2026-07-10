@@ -1,6 +1,8 @@
 import glob
+import json
 import locale
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -11,6 +13,8 @@ from function.common.update_state import write_packaged_update_state
 
 
 SUBPROCESS_TEXT_ENCODING = locale.getpreferredencoding(False) or "utf-8"
+IMAGE_RESOURCE_DB_ENV_PREFIX = "FAA_IMAGE_RESOURCE_DB_"
+IMAGE_RESOURCE_DB_LOCAL_CONFIG = "image_resource_db.local.json"
 
 
 def find_project_root(start: Path) -> Path:
@@ -34,6 +38,34 @@ def clean_dist_dir(project_root: Path, dest_dir: Path) -> None:
         shutil.rmtree(resolved_dest)
 
     resolved_dest.mkdir(parents=True, exist_ok=True)
+
+
+def read_project_version(project_root: Path) -> str:
+    """Read VERSION from EXTRA.py without importing Qt-dependent globals."""
+    extra_path = project_root / "function" / "globals" / "EXTRA.py"
+    version_pattern = re.compile(r'^\s*VERSION\s*=\s*["\']([^"\']+)["\']')
+    for line in extra_path.read_text(encoding="utf-8-sig").splitlines():
+        match = version_pattern.match(line)
+        if match:
+            return match.group(1)
+    return "unknown"
+
+
+def archive_dist_dir(project_root: Path, dest_dir: Path) -> Path:
+    """Archive the generated distribution into the sibling _dist directory."""
+    dist_root = project_root.parent / "_dist"
+    dist_root.mkdir(parents=True, exist_ok=True)
+
+    version = read_project_version(project_root)
+    timestamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+    archive_dir = dist_root / f"FAA-{version} {timestamp}"
+    counter = 1
+    while archive_dir.exists():
+        counter += 1
+        archive_dir = dist_root / f"FAA-{version} {timestamp} ({counter})"
+
+    shutil.copytree(dest_dir, archive_dir)
+    return archive_dir
 
 
 class FileMover:
@@ -102,14 +134,66 @@ class FileMover:
                 self.to_move.append((source_file, self.dest_dir / dest_root / file_name))
 
     def preview(self):
-        for src, dest in self.to_move:
-            print(f"Would copy: {src} -> {dest}")
+        print(f"准备复制文件: {len(self.to_move)} 个")
+        print(f"来源目录: {self.src_dir}")
+        print(f"目标目录: {self.dest_dir}")
+
+    @staticmethod
+    def _print_progress(current: int, total: int, prefix: str) -> None:
+        if total <= 0:
+            print(f"{prefix}: 0/0")
+            return
+
+        width = 32
+        ratio = current / total
+        filled = int(width * ratio)
+        bar = "#" * filled + "-" * (width - filled)
+        sys.stdout.write(f"\r{prefix}: [{bar}] {current}/{total} {ratio:6.2%}")
+        sys.stdout.flush()
+        if current >= total:
+            sys.stdout.write("\n")
 
     def run(self):
-        for src, dest in self.to_move:
+        total = len(self.to_move)
+        if total == 0:
+            print("没有需要复制的文件。")
+            return
+
+        print("开始复制文件...")
+        update_interval = max(1, total // 100)
+        for index, (src, dest) in enumerate(self.to_move, start=1):
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src, dest)
-            print(f"Copied: {src} -> {dest}")
+            if index == 1 or index == total or index % update_interval == 0:
+                self._print_progress(index, total, "复制进度")
+        print("文件复制完成。")
+
+
+def has_image_resource_db_config(project_root: Path) -> bool:
+    required_keys = ("HOST", "USER", "PASSWORD", "DATABASE")
+    if all(os.getenv(f"{IMAGE_RESOURCE_DB_ENV_PREFIX}{key}") for key in required_keys):
+        return True
+
+    config_path = project_root / IMAGE_RESOURCE_DB_LOCAL_CONFIG
+    if not config_path.is_file():
+        return False
+
+    try:
+        config = json.loads(config_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return False
+
+    return all(
+        config.get(key.lower()) or config.get(f"{IMAGE_RESOURCE_DB_ENV_PREFIX}{key}")
+        for key in required_keys
+    )
+
+
+def require_existing_excel(project_root: Path, message: str) -> Path:
+    latest_excel = get_latest_existing_excel_file(project_root)
+    if latest_excel:
+        return latest_excel
+    raise FileNotFoundError(message)
 
 
 def get_latest_excel_file(project_root: Path):
@@ -128,7 +212,21 @@ def get_latest_excel_file(project_root: Path):
     try:
         if not excel_script.is_file():
             print(f"Warning: Excel generator not found: {excel_script}")
-            return None
+            return require_existing_excel(
+                project_root,
+                "没有数据库密码和 Excel 图像资源，打包已中断。请先提交或放置 `点我获取更多图像资源 *.xlsx`，"
+                "或尝试和夏夜申请获得数据库密码。",
+            )
+
+        if not has_image_resource_db_config(project_root):
+            latest_excel = require_existing_excel(
+                project_root,
+                "没有数据库密码和 Excel 图像资源，打包已中断。请先提交或放置 `点我获取更多图像资源 *.xlsx`，"
+                "或尝试和夏夜申请获得数据库密码。",
+            )
+            print("未找到图像资源数据库密码。可以尝试和夏夜申请获得数据库密码。")
+            print("现已使用内置 Excel 做图像资源校对。")
+            return latest_excel
 
         print(f"执行脚本: {excel_script}")
         result = subprocess.run(
@@ -148,31 +246,41 @@ def get_latest_excel_file(project_root: Path):
 
         if result.returncode != 0:
             print(f"Warning: 图像资源脚本执行失败，返回码: {result.returncode}")
-            return None
+            latest_excel = require_existing_excel(
+                project_root,
+                "获取最新 Excel 失败，且未找到内置 Excel 图像资源，打包已中断。",
+            )
+            print("获取最新 Excel 失败，现已使用内置 Excel 做图像资源校对。")
+            return latest_excel
 
         today = datetime.now().strftime("%Y-%m-%d")
         expected_file = project_root / f"点我获取更多图像资源 {today}.xlsx"
 
         if expected_file.exists():
-            print(f"✓ 找到最新文件: {expected_file}")
+            print(f"[OK] 找到最新文件: {expected_file}")
             return expected_file.relative_to(project_root)
 
         print(f"Warning: 未找到今天生成的文件: {expected_file.name}")
-        return get_latest_existing_excel_file(project_root)
+        return require_existing_excel(
+            project_root,
+            "未找到今天生成的 Excel，也未找到内置 Excel 图像资源，打包已中断。",
+        )
 
     except subprocess.TimeoutExpired:
         print("Warning: 图像资源脚本执行超时，将使用已有的最近文件")
-        return get_latest_existing_excel_file(project_root)
+        return require_existing_excel(project_root, "获取最新 Excel 超时，且未找到内置 Excel 图像资源，打包已中断。")
+    except FileNotFoundError:
+        raise
     except Exception as exc:
         print(f"Warning: 获取图像资源文件时出错: {exc}")
-        return get_latest_existing_excel_file(project_root)
+        return require_existing_excel(project_root, "获取最新 Excel 出错，且未找到内置 Excel 图像资源，打包已中断。")
 
 
 def get_latest_existing_excel_file(project_root: Path):
     all_excel_files = glob.glob(str(project_root / "点我获取更多图像资源 *.xlsx"))
     if all_excel_files:
         latest_file = Path(max(all_excel_files, key=os.path.getmtime))
-        print(f"✓ 使用最近的文件: {latest_file}")
+        print(f"[OK] 使用最近的文件: {latest_file}")
         return latest_file.relative_to(project_root)
 
     print("Warning: 未找到任何图像资源文件")
@@ -233,7 +341,12 @@ def main():
     project_root = find_project_root(Path(__file__).parent)
     dest_dir = project_root / "dist" / "FAA"
 
-    latest_excel = get_latest_excel_file(project_root)
+    try:
+        latest_excel = get_latest_excel_file(project_root)
+    except (FileNotFoundError, RuntimeError) as exc:
+        print(f"\n{exc}")
+        raise SystemExit(1) from None
+
     run_card_prepare_room_resource_tool(project_root, latest_excel)
     clean_dist_dir(project_root, dest_dir)
 
@@ -261,7 +374,8 @@ def main():
         ],
     )
 
-    mover.add_folder(target="plugins/uv",dest_subdir=".",)
+    mover.add_folder(target="plugins/root_entries", dest_subdir=".")
+    mover.add_folder(target="plugins/launcher_scripts")
 
     mover.add_folder(target="function")
 
@@ -277,13 +391,13 @@ def main():
     # 添加文件或文件夹
     tar_files = [
         "新手入门 看我!!! 看我!!! 看我!!!.txt",
-        "FAA支持性检测, 仅限Win10+.bat",
+        "FAA-支持性检测, 仅限Win10+.bat",
         "LICENSE",
         "README.md",
         "README - 高级放卡.md",
         "致谢名单.md",
         "致谢名单.png",
-        "恢复到备份.bat",
+        "FAA-恢复到备份.bat",
         "config/item_ranking_dag_graph.json",
         ".python-version",
         "pyproject.toml",
@@ -293,9 +407,9 @@ def main():
     # 添加最新的图像资源Excel文件
     if latest_excel:
         tar_files.append(latest_excel)
-        print(f"\n[✓] 已添加图像资源文件到打包列表: {latest_excel}")
+        print(f"\n[OK] 已添加图像资源文件到打包列表: {latest_excel}")
     else:
-        print("\n[⚠] 未找到图像资源文件，将跳过此文件")
+        print("\nWarning: 未找到图像资源文件，将跳过此文件")
 
     for tar_file in tar_files:
         mover.add_file(tar_file)
@@ -308,6 +422,15 @@ def main():
 
     state_path = write_packaged_update_state(project_root, dest_dir)
     print(f"Generated update state: {state_path}")
+
+    # 开发者打包脚本只应存在于源码工作区，不能进入普通用户发布包。
+    packaging_script_in_dist = os.path.join(dest_dir, "一键生成分发资源.py")
+    if os.path.exists(packaging_script_in_dist):
+        os.remove(packaging_script_in_dist)
+        print("Removed developer-only packaging script from distribution.")
+
+    archive_dir = archive_dist_dir(project_root, dest_dir)
+    print(f"Archived distribution: {archive_dir}")
 
 
 r"""

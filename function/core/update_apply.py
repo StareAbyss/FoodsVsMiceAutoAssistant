@@ -40,7 +40,7 @@ def build_update_command(
     staging: Path,
     updater_script: Path,
     wait_pid: int | None = None,
-    launch: str = "AppInstallRun.bat",
+    launch: str = "FAA.exe",
 ) -> list[str]:
     command = [
         str(select_python_executable(root)),
@@ -63,7 +63,7 @@ def build_restore_command(
     backup: Path,
     updater_script: Path,
     wait_pid: int | None = None,
-    launch: str = "AppInstallRun.bat",
+    launch: str = "FAA.exe",
 ) -> list[str]:
     command = [
         str(select_python_executable(root)),
@@ -85,7 +85,7 @@ def launch_update_from_staging(
     root: Path,
     staging: Path,
     wait_pid: int | None = None,
-    launch: str = "AppInstallRun.bat",
+    launch: str = "FAA.exe",
 ) -> dict[str, Any]:
     root = Path(root).resolve()
     staging = Path(staging).resolve()
@@ -103,7 +103,7 @@ def launch_restore_from_backup(
     root: Path,
     backup: Path,
     wait_pid: int | None = None,
-    launch: str = "AppInstallRun.bat",
+    launch: str = "FAA.exe",
 ) -> dict[str, Any]:
     root = Path(root).resolve()
     backup = Path(backup).resolve()

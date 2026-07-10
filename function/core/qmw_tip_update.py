@@ -36,7 +36,7 @@ text = """\
 三. 备份和恢复
 
     * 每次替换前会把当前版本区放入 backups。
-    * backups、update_cache、.venv、恢复到备份.bat 不随版本覆盖。
+    * backups、update_cache、.venv、FAA-恢复到备份.bat 不随版本覆盖。
     * 管理更新备份可以查看、删除、恢复指定备份。
 
 四. 注意事项

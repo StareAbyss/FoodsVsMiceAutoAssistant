@@ -12,6 +12,9 @@ __pycache__/
 # 忽略虚拟环境
 .venv/
 
+# 忽略本地数据库连接配置
+image_resource_db.local.json
+
 # 忽略本地分发产物
 dist/
 
