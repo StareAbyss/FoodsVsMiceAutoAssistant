@@ -9,7 +9,7 @@ from pathlib import Path
 from traceback import format_exc
 
 
-PRESERVED_NAMES = {".venv", "backups", "update_cache", "恢复到备份.bat"}
+PRESERVED_NAMES = {".venv", "backups", "update_cache", "FAA-恢复到备份.bat"}
 STATE_RELATIVE_PATH = Path("update_cache") / "update_state.json"
 UPDATER_STATE_RELATIVE_PATH = Path("update_cache") / "updater_state.json"
 
@@ -254,14 +254,14 @@ def main() -> None:
     update_parser = subparsers.add_parser("update")
     update_parser.add_argument("--root", required=True)
     update_parser.add_argument("--staging", required=True)
-    update_parser.add_argument("--launch", default="AppInstallRun.bat")
+    update_parser.add_argument("--launch", default="FAA.exe")
     update_parser.add_argument("--wait-pid", type=int)
     update_parser.add_argument("--wait-timeout", type=int, default=120)
 
     restore_parser = subparsers.add_parser("restore")
     restore_parser.add_argument("--root", required=True)
     restore_parser.add_argument("--backup", required=True)
-    restore_parser.add_argument("--launch", default="AppInstallRun.bat")
+    restore_parser.add_argument("--launch", default="FAA.exe")
     restore_parser.add_argument("--wait-pid", type=int)
     restore_parser.add_argument("--wait-timeout", type=int, default=120)
 

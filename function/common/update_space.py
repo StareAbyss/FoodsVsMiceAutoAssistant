@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any
 
 
-PRESERVED_NAMES = {".venv", "backups", "update_cache", "恢复到备份.bat"}
+PRESERVED_NAMES = {".venv", "backups", "update_cache", "FAA-恢复到备份.bat"}
 
 
 def path_size(path: Path) -> int:

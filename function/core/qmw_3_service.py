@@ -1639,7 +1639,7 @@ class QMainWindowService(QMainWindowLoadSettings):
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
-            root_entry = os.path.join(PATHS["root"], "AppInstallRun.bat")
+            root_entry = os.path.join(PATHS["root"], "FAA.exe")
             if os.path.isfile(root_entry):
                 CUS_LOGGER.debug(f"[重启] 使用根目录固定入口：{root_entry}")
                 process = subprocess.Popen(

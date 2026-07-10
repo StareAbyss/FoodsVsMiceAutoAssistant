@@ -55,7 +55,7 @@ if /I not "%CONFIRM%"=="YES" (
     exit /b 1
 )
 
-"%PYTHON%" "%UPDATER%" restore --root "%ROOT%" --backup "%TARGET%" --launch "AppInstallRun.bat"
+"%PYTHON%" "%UPDATER%" restore --root "%ROOT%" --backup "%TARGET%" --launch "FAA.exe"
 if errorlevel 1 (
     echo 恢复失败，请查看 update_cache\updater_logs。
     pause
