@@ -2209,6 +2209,7 @@ class FAABase:
                     time.sleep(0.5)
 
         # 进入充值界面
+        CUS_LOGGER.debug("尝试进入日氪界面...")
         self.action_top_menu(mode="每日充值")
         find = loop_match_p_in_w(
             source_handle=self.handle,
@@ -2357,12 +2358,15 @@ class FAABase:
             return "步骤: 充值界面-点击-退出充值界面按钮. 出现致命失误! 请联系开发者!"
 
         # 退出充值界面 刷新界面状态 才有领取按钮
+        CUS_LOGGER.debug("尝试退出日氪界面...")
         exit_ui()
 
         # 进入充值界面
+        CUS_LOGGER.debug("尝试进入日氪界面...")
         self.action_top_menu(mode="每日充值")
 
         # 充值成功领取
+        CUS_LOGGER.debug("尝试领取日氪奖励...")
         find = loop_match_p_in_w(
             source_handle=self.handle,
             source_root_handle=self.handle_360,
@@ -2375,6 +2379,7 @@ class FAABase:
             click=True)
 
         # 退出充值界面
+        CUS_LOGGER.debug("尝试退出日氪界面...")
         exit_ui()
 
         if find:
