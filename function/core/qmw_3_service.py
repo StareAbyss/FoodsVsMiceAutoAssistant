@@ -434,7 +434,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.update_state_labels = {
             "version": self.UpdateVersionInfoLabel,
             "node": self.UpdateNodeInfoLabel,
-            "branch": self.UpdateBranchInfoLabel,
+            "version_type": self.UpdateBranchInfoLabel,
             "source": self.UpdateSourceInfoLabel,
         }
         if hasattr(self, "UpdateStateGridLayout"):
@@ -467,28 +467,19 @@ class QMainWindowService(QMainWindowLoadSettings):
         pr_text = f"#{pr}" if pr else "未记录"
         commit = local_state.get("commit") or ""
         commit_text = commit[:12] if commit else "未记录"
-        branch = local_state.get("branch") or "未记录"
         merged_at = release_entry.get("merged_at") or local_state.get("merged_at") or "未记录"
         return {
-            "version": f"当前版本：{version} {self._format_version_note(version, tag)}",
+            "version": f"当前版本：{version}",
             "node": f"更新节点：PR {pr_text} / {commit_text} / {merged_at}",
-            "branch": f"分支：{self._format_update_branch(branch)}",
+            "version_type": f"版本类型：{self._format_version_type(version, tag)}",
             "source": f"版本信息和当前状态来源：{self._format_update_state_source(local_state)}",
         }
 
     @staticmethod
-    def _format_version_note(version: str, tag: str) -> str:
+    def _format_version_type(version: str, tag: str) -> str:
         if version != "未知" and version == tag:
-            return "（内部版本号与Git Tag一致，为标准发行版）"
-        return "（无GitTag，为中间版本，有可能不稳定的特性）"
-
-    @staticmethod
-    def _format_update_branch(branch: str) -> str:
-        if branch.lower() == "main":
-            return "Main（发行主分支）"
-        if not branch or branch == "未记录":
-            return "未记录（无法确认当前是否为主分支）"
-        return f"{branch}（开发者个人分支 注：本模块请务必在主分支使用）"
+            return "内部版本号与Git Tag一致，为标准发行版"
+        return "无GitTag，为中间版本，有可能不稳定的特性"
 
     @staticmethod
     def _format_update_state_source(local_state: dict) -> str:
@@ -499,21 +490,19 @@ class QMainWindowService(QMainWindowLoadSettings):
             return "用户本地 - 版本状态文件正常运作"
         return "用户本地 - 版本状态文件异常运作，使用项目全局VERSION变量"
 
-    def _ensure_update_allowed_on_main_branch(self) -> bool:
+    def _ensure_update_allowed_outside_git_worktree(self) -> bool:
         local_state = detect_local_state(Path(PATHS["root"]))
-        branch = local_state.get("branch") or ""
-        if branch.lower() == "main":
+        if local_state.get("source") != "git":
             return True
 
-        branch_text = branch or "未记录"
         self.refresh_update_state_label(local_state=local_state)
         message = (
-            f"当前检测到的分支：{branch_text}\n\n"
-            "为避免在开发者个人分支误触热更新并覆盖工作区，本功能只允许在 main 主分支使用。\n"
-            "请切换到 main 分支，或使用标准打包版后再执行更新。"
+            "当前运行目录是真实 Git 开发工作区。\n\n"
+            "为避免热更新覆盖开发者源码工作区，本功能已被阻止。\n"
+            "请先打包为标准发行包，再在打包后的目录中测试热更新。"
         )
-        SIGNAL.PRINT_TO_UI.emit(f"[更新状态] 已阻止非 main 分支执行更新。当前分支：{branch_text}", color_level=1)
-        QMessageBox.warning(self, "当前分支不允许执行更新", message)
+        SIGNAL.PRINT_TO_UI.emit("[更新状态] 已阻止在 Git 开发工作区执行热更新。", color_level=1)
+        QMessageBox.warning(self, "开发者工作区不允许执行更新", message)
         return False
 
     def refresh_update_progress_label(self):
@@ -1628,7 +1617,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def click_btn_normal_update(self):
         """准备并确认应用用户在表格中选中的更新目标。"""
-        if not self._ensure_update_allowed_on_main_branch():
+        if not self._ensure_update_allowed_outside_git_worktree():
             return
 
         target = self._selected_update_target()

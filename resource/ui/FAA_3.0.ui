@@ -7263,7 +7263,7 @@ FAA放卡核心原理简述:
                <item row="1" column="0">
                 <widget class="QLabel" name="UpdateBranchInfoLabel">
                  <property name="text">
-                  <string>分支：读取中...</string>
+                  <string>版本类型：读取中...</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
