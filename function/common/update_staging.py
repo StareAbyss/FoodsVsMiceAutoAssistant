@@ -300,7 +300,6 @@ def build_staging_state(target: dict[str, Any]) -> dict[str, Any]:
         "version": version,
         "tag": tag,
         "commit": commit,
-        "branch": target.get("branch", "main"),
         "pr": target.get("pr"),
         "summary": target.get("summary") or target.get("title", ""),
         "title": target.get("title", ""),
