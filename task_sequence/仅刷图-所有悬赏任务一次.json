@@ -13,7 +13,7 @@
         "tooltip": "",
         "task_args": {
             "stage_id": "OR-0-4",
-            "max_times": 2,
+            "max_times": 1,
             "need_key": true,
             "player": [
                 2,
@@ -46,7 +46,7 @@
         "tooltip": "",
         "task_args": {
             "stage_id": "OR-0-3",
-            "max_times": 2,
+            "max_times": 1,
             "need_key": true,
             "player": [
                 2,
@@ -79,7 +79,7 @@
         "tooltip": "",
         "task_args": {
             "stage_id": "OR-0-2",
-            "max_times": 2,
+            "max_times": 1,
             "need_key": true,
             "player": [
                 2,
@@ -112,7 +112,7 @@
         "tooltip": "",
         "task_args": {
             "stage_id": "OR-0-1",
-            "max_times": 2,
+            "max_times": 1,
             "need_key": true,
             "player": [
                 2,

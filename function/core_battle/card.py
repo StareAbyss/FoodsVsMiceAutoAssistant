@@ -146,7 +146,7 @@ class Card:
 
         self.mat_card_first_coordinate_to = None
         self.mat_card_loop_to_first_coordinate_to_count = 0
-        # 如果是岩浆/毒气/海底类承载卡, 记录循环的起点!
+        # 如果是岩浆/毒气/海底类承载卡，记录循环的起点，否则为None
         if self.faa.stage_info["mat_card_type"] in ["岩浆", "毒气", "海底"]:
             if len(self.coordinate_to) >= 1:
                 for mat_card in self.faa.stage_info["mat_card"]:
@@ -193,13 +193,18 @@ class Card:
                 self.coordinate_to.append(self.coordinate_to[0])
                 self.coordinate_to.remove(self.coordinate_to[0])
                 # 承载卡特殊策略 - 对于无法被破坏的持续性承载 每放满2圈后自锁600s
-                if self.coordinate_to[0] == self.mat_card_first_coordinate_to:
-                    self.mat_card_loop_to_first_coordinate_to_count += 1
-                    if self.mat_card_loop_to_first_coordinate_to_count >= 2:
-                        self.mat_card_loop_to_first_coordinate_to_count = 0
-                        self.status_ban = 600
-                        if EXTRA.EXTRA_LOG_BATTLE:
-                            CUS_LOGGER.debug(f"[{self.faa.player}P] {self.name}触发了10分钟自锁")
+                # 不是对应的承载类型 该参数是None 直接判定跳过
+                if self.mat_card_first_coordinate_to:
+                    # 放满了一圈
+                    if self.coordinate_to[0] == self.mat_card_first_coordinate_to:
+                        # 计数+1
+                        self.mat_card_loop_to_first_coordinate_to_count += 1
+                        # 放满了2整圈
+                        if self.mat_card_loop_to_first_coordinate_to_count >= 2:
+                            self.mat_card_loop_to_first_coordinate_to_count = 0
+                            self.status_ban = 600
+                            if EXTRA.EXTRA_LOG_BATTLE:
+                                CUS_LOGGER.debug(f"[{self.faa.player}P] {self.name}触发了10分钟自锁")
 
         # 放完卡后强制自ban 1s 这游戏似乎没有cd更短的卡片了!
         if self.status_ban <= 1:
@@ -373,11 +378,13 @@ class Card:
             if not self.status_usable:
                 # CUS_LOGGER.debug(f"不可用状态")
                 return False
+
             # 点击 选中卡片
             self.choice_card()
             time.sleep(self.click_sleep)
             # 放卡
             self.put_card()
+
             # 等待游戏画面刷新后更新状态
             time.sleep(self.max_game_frame_interval)
             self.fresh_status()  # 如果放卡后还可用,自ban 若干s
@@ -385,10 +392,6 @@ class Card:
             if self.status_usable and (self.name not in self.ban_white_list):
                 # 放满了 如果不在白名单 就自ban
                 self.record_full_ban()
-
-                # if self.player == 1:
-                #     CUS_LOGGER.debug(f"[1P] {self.name} 因使用后仍可用进行了自ban")
-                #     T_ACTION_QUEUE_TIMER.print_queue_statue()
 
                 return False
 

@@ -8,7 +8,7 @@
     {
         "task_type": "战斗",
         "task_id": 1,
-        "enabled": true,
+        "enabled": false,
         "alias": "",
         "tooltip": "",
         "task_args": {
@@ -40,7 +40,7 @@
     {
         "task_type": "战斗",
         "task_id": 2,
-        "enabled": true,
+        "enabled": false,
         "alias": "",
         "tooltip": "",
         "task_args": {
@@ -67,6 +67,105 @@
                     "竞技岛"
                 ]
             }
+        }
+    },
+    {
+        "task_type": "公会任务",
+        "task_id": 3,
+        "enabled": false,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "cross_server": true,
+            "global_plan_active": true,
+            "deck": 0,
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
+            "quest_card": "None",
+            "ban_card_list": [],
+            "dict_exit": {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": [
+                    "竞技岛"
+                ],
+                "last_time_player_b": [
+                    "竞技岛"
+                ]
+            }
+        }
+    },
+    {
+        "task_type": "情侣任务",
+        "task_id": 4,
+        "enabled": false,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "global_plan_active": true,
+            "deck": 0,
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
+            "quest_card": "None",
+            "ban_card_list": [],
+            "dict_exit": {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": [
+                    "竞技岛"
+                ],
+                "last_time_player_b": [
+                    "竞技岛"
+                ]
+            }
+        }
+    },
+    {
+        "task_type": "战斗",
+        "task_id": 5,
+        "enabled": false,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "stage_id": "HH-0-0",
+            "max_times": 22,
+            "need_key": true,
+            "player": [
+                2,
+                1
+            ],
+            "global_plan_active": true,
+            "deck": 0,
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
+            "quest_card": "None",
+            "ban_card_list": [],
+            "dict_exit": {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": [
+                    "竞技岛"
+                ],
+                "last_time_player_b": [
+                    "竞技岛"
+                ]
+            }
+        }
+    },
+    {
+        "task_type": "签到",
+        "task_id": 6,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
         }
     }
 ]

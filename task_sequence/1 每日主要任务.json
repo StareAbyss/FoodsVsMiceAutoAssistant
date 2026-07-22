@@ -32,7 +32,7 @@
         }
     },
     {
-        "task_type": "分解宝石",
+        "task_type": "使用消耗品",
         "task_id": 3,
         "enabled": true,
         "alias": "",
@@ -45,7 +45,7 @@
         }
     },
     {
-        "task_type": "签到",
+        "task_type": "分解宝石",
         "task_id": 4,
         "enabled": true,
         "alias": "",
@@ -58,7 +58,7 @@
         }
     },
     {
-        "task_type": "浇水施肥摘果",
+        "task_type": "签到",
         "task_id": 5,
         "enabled": true,
         "alias": "",
@@ -71,8 +71,21 @@
         }
     },
     {
-        "task_type": "双暴卡",
+        "task_type": "浇水施肥摘果",
         "task_id": 6,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "双暴卡",
+        "task_id": 7,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -86,7 +99,7 @@
     },
     {
         "task_type": "战斗",
-        "task_id": 7,
+        "task_id": 8,
         "enabled": false,
         "alias": "勇士本",
         "tooltip": "",
@@ -119,7 +132,7 @@
     },
     {
         "task_type": "任务序列",
-        "task_id": 8,
+        "task_id": 9,
         "enabled": true,
         "alias": "45场满掉落",
         "tooltip": "",
@@ -130,7 +143,7 @@
     },
     {
         "task_type": "任务序列",
-        "task_id": 9,
+        "task_id": 10,
         "enabled": true,
         "alias": "悬赏任务",
         "tooltip": "",
@@ -141,7 +154,7 @@
     },
     {
         "task_type": "战斗",
-        "task_id": 10,
+        "task_id": 11,
         "enabled": true,
         "alias": "世界BOSS 1P",
         "tooltip": "",
@@ -173,7 +186,7 @@
     },
     {
         "task_type": "战斗",
-        "task_id": 11,
+        "task_id": 12,
         "enabled": true,
         "alias": "世界BOSS 2P",
         "tooltip": "",
@@ -205,7 +218,7 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 12,
+        "task_id": 13,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -225,7 +238,7 @@
     },
     {
         "task_type": "公会任务",
-        "task_id": 13,
+        "task_id": 14,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -252,7 +265,7 @@
     },
     {
         "task_type": "情侣任务",
-        "task_id": 14,
+        "task_id": 15,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -278,7 +291,7 @@
     },
     {
         "task_type": "清背包",
-        "task_id": 15,
+        "task_id": 16,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -291,7 +304,7 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 16,
+        "task_id": 17,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -311,7 +324,7 @@
     },
     {
         "task_type": "美食大赛",
-        "task_id": 17,
+        "task_id": 18,
         "enabled": true,
         "alias": "",
         "tooltip": "",

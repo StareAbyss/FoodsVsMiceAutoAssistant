@@ -19,7 +19,7 @@
         }
     },
     {
-        "task_type": "清背包",
+        "task_type": "使用消耗品",
         "task_id": 2,
         "enabled": true,
         "alias": "",
@@ -32,7 +32,7 @@
         }
     },
     {
-        "task_type": "签到",
+        "task_type": "清背包",
         "task_id": 3,
         "enabled": true,
         "alias": "",
@@ -45,7 +45,7 @@
         }
     },
     {
-        "task_type": "浇水施肥摘果",
+        "task_type": "分解宝石",
         "task_id": 4,
         "enabled": true,
         "alias": "",
@@ -58,8 +58,34 @@
         }
     },
     {
-        "task_type": "任务序列",
+        "task_type": "签到",
         "task_id": 5,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "浇水施肥摘果",
+        "task_id": 6,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "任务序列",
+        "task_id": 7,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -70,7 +96,7 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 6,
+        "task_id": 8,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -90,7 +116,7 @@
     },
     {
         "task_type": "公会任务",
-        "task_id": 7,
+        "task_id": 9,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -116,21 +142,8 @@
         }
     },
     {
-        "task_type": "清背包",
-        "task_id": 8,
-        "enabled": true,
-        "alias": "",
-        "tooltip": "",
-        "task_args": {
-            "player": [
-                1,
-                2
-            ]
-        }
-    },
-    {
         "task_type": "领取任务奖励",
-        "task_id": 9,
+        "task_id": 10,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -150,19 +163,6 @@
     },
     {
         "task_type": "查漏补缺",
-        "task_id": 10,
-        "enabled": true,
-        "alias": "",
-        "tooltip": "",
-        "task_args": {
-            "player": [
-                1,
-                2
-            ]
-        }
-    },
-    {
-        "task_type": "兑换暗晶",
         "task_id": 11,
         "enabled": true,
         "alias": "",
@@ -175,8 +175,21 @@
         }
     },
     {
-        "task_type": "扫描公会贡献",
+        "task_type": "兑换暗晶",
         "task_id": 12,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "扫描公会贡献",
+        "task_id": 13,
         "enabled": true,
         "alias": "",
         "tooltip": "",
