@@ -2740,7 +2740,7 @@ class ThreadTodo(QThread):
                 case "战斗-多线程":
                     self.signal_start_todo_2_battle.emit({
                         "quest_list": task["task_args"]["solo_quests_2"],
-                        "extra_title": f"[多线程单人",
+                        "extra_title": f"多线程单人",
                         "need_lock": True
                     })
                     self.battle_1_n_n(
