@@ -584,15 +584,15 @@ class FAABase:
     """
 
     def set_config_for_battle(
-            self: "FAA",
-            stage_id: str = "NO-1-1",
-            is_group: bool = False,
-            is_main: bool = True,
-            need_key: bool = True,
-            quest_card=None,
-            ban_card_list=None,
-            max_card_num=None,
-            is_cu: bool = False,
+        self: "FAA",
+        stage_id: str = "NO-1-1",
+        is_group: bool = False,
+        is_main: bool = True,
+        need_key: bool = True,
+        quest_card=None,
+        ban_card_list=None,
+        max_card_num=None,
+        is_cu: bool = False,
     ) -> None:
         """
         战斗相关参数的re_init
@@ -625,11 +625,11 @@ class FAABase:
             self.stage_info = read_json_to_stage_info(stage_id="CU-0-0", stage_id_for_battle=stage_id)
 
     def set_battle_plan(
-            self,
-            deck: int,
-            auto_carry_card: bool,
-            battle_plan_uuid: str = "00000000-0000-0000-0000-000000000000",
-            battle_plan_tweak_uuid: str = "00000000-0000-0000-0000-000000000000"
+        self,
+        deck: int,
+        auto_carry_card: bool,
+        battle_plan_uuid: str = "00000000-0000-0000-0000-000000000000",
+        battle_plan_tweak_uuid: str = "00000000-0000-0000-0000-000000000000"
 
     ):
         """
@@ -682,7 +682,7 @@ class FAABase:
                 if "-" in target_name:
                     target_name_with_jc_code_list.append(f"{target_name}")
                 else:
-                    for i in [0,1,2,3]:
+                    for i in [0, 1, 2, 3]:
                         target_name_with_jc_code_list.append(f"{target_name}-{i}")
 
             for target_name_with_jc_code in target_name_with_jc_code_list:
@@ -691,7 +691,7 @@ class FAABase:
                     continue
 
                 # 0 1 分别代表费用不足和充足情况下的图片资源
-                for usable_code in [0,1]:
+                for usable_code in [0, 1]:
                     mat_card_full_name = f"{target_name_with_jc_code}-{usable_code}.png"
 
                     # 不存在对应的图像资源 跳过
@@ -725,7 +725,6 @@ class FAABase:
 
         # 查找对应卡片坐标 重复3次
         for i in range(3):
-
             image = capture_image_png(
                 handle=self.handle,
                 root_handle=self.handle_360,
@@ -811,9 +810,9 @@ class FAABase:
         battle_plan = next(
             (
                 event["action"]["cards"] for event in battle_plan["events"] if (
-                    event["trigger"]["type"] == "wave_timer" and
-                    event["trigger"]["wave_id"] == int(wave) and
-                    event["action"]["type"] == "loop_use_cards"
+                event["trigger"]["type"] == "wave_timer" and
+                event["trigger"]["wave_id"] == int(wave) and
+                event["action"]["type"] == "loop_use_cards"
             )
             ), [])
 
@@ -909,8 +908,8 @@ class FAABase:
 
             # 本关需求盘子类承载卡 需要遍历
             need_ergodic = (
-                    stage_info.get("mat_card_type", None) == "水面" or
-                    any(card['name'] == "木盘子" for card in mat_card_info)
+                stage_info.get("mat_card_type", None) == "水面" or
+                any(card['name'] == "木盘子" for card in mat_card_info)
             )
 
             for i in range(num_mat_card):
@@ -1750,15 +1749,15 @@ class FAABase:
 
                         # 开始进入密码登录页面
                         if not loop_match_p_in_w(
-                                source_handle=self.handle_browser,
-                                source_root_handle=self.handle_360,
-                                source_range=[0, 0, 2000, 2000],
-                                template=RESOURCE_P["common"]["登录"]["密码登录.png"],
-                                match_tolerance=0.90,
-                                match_interval=0.5,
-                                match_failed_check=5,
-                                after_sleep=2,
-                                click=True):
+                            source_handle=self.handle_browser,
+                            source_root_handle=self.handle_360,
+                            source_range=[0, 0, 2000, 2000],
+                            template=RESOURCE_P["common"]["登录"]["密码登录.png"],
+                            match_tolerance=0.90,
+                            match_interval=0.5,
+                            match_failed_check=5,
+                            after_sleep=2,
+                            click=True):
                             self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] [QQ登录] 进入QQ密码登录页面失败")
                             continue
 
@@ -1777,15 +1776,15 @@ class FAABase:
                         # 点叉号清除账号成功，开始获取账号输入框的焦点
                         # 如果没成功说明不需要点击，因此也可以开始获取账号输入框的焦点
                         if not loop_match_p_in_w(
-                                source_handle=self.handle_browser,
-                                source_root_handle=self.handle_360,
-                                source_range=[0, 0, 2000, 2000],
-                                template=RESOURCE_P["common"]["登录"]["账号输入框.png"],
-                                match_tolerance=0.90,
-                                match_interval=0.5,
-                                match_failed_check=5,
-                                after_sleep=0.5,
-                                click=True):
+                            source_handle=self.handle_browser,
+                            source_root_handle=self.handle_360,
+                            source_range=[0, 0, 2000, 2000],
+                            template=RESOURCE_P["common"]["登录"]["账号输入框.png"],
+                            match_tolerance=0.90,
+                            match_interval=0.5,
+                            match_failed_check=5,
+                            after_sleep=0.5,
+                            click=True):
                             self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] [QQ登录] 账号输入框获取焦点失败")
                             continue
 
@@ -1799,15 +1798,15 @@ class FAABase:
                         # (实测发现可能是由于faa获取截图的方式比较特殊，即使记住了QQ账号他也能获取到账号输入框，总之代码能跑)
                         # 输入账号完成，开始获取密码输入框的焦点
                         if not loop_match_p_in_w(
-                                source_handle=self.handle_browser,
-                                source_root_handle=self.handle_360,
-                                source_range=[0, 0, 2000, 2000],
-                                template=RESOURCE_P["common"]["登录"]["密码输入框.png"],
-                                match_tolerance=0.90,
-                                match_interval=0.5,
-                                match_failed_check=5,
-                                after_sleep=0.5,
-                                click=True):
+                            source_handle=self.handle_browser,
+                            source_root_handle=self.handle_360,
+                            source_range=[0, 0, 2000, 2000],
+                            template=RESOURCE_P["common"]["登录"]["密码输入框.png"],
+                            match_tolerance=0.90,
+                            match_interval=0.5,
+                            match_failed_check=5,
+                            after_sleep=0.5,
+                            click=True):
                             self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] [QQ登录] 密码输入框获取焦点失败")
                             continue
 
