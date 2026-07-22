@@ -333,6 +333,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.refresh_update_state_label()
         self.update_progress_started_at = None
         self.update_progress_step = "空闲"
+        self.update_download_progress = None
         self.update_progress_timer = QtCore.QTimer(self)
         self.update_progress_timer.setInterval(1000)
         self.update_progress_timer.timeout.connect(self.refresh_update_progress_label)
@@ -512,7 +513,50 @@ class QMainWindowService(QMainWindowLoadSettings):
             return
 
         elapsed = int((datetime.datetime.now() - self.update_progress_started_at).total_seconds())
-        self.UpdateProgressLabel.setText(f"更新进度：{self.update_progress_step}，已等待 {elapsed} 秒")
+        progress_detail = self._format_update_download_progress()
+        suffix = f"，{progress_detail}" if progress_detail else ""
+        end = "。" if progress_detail else ""
+        self.UpdateProgressLabel.setText(f"更新进度：{self.update_progress_step}，已等待 {elapsed} 秒{suffix}{end}")
+
+    @staticmethod
+    def _format_update_progress_mb(size_bytes: int | float | None) -> str:
+        if size_bytes is None:
+            return "未知"
+        return f"{float(size_bytes) / 1024 / 1024:.2f}"
+
+    def _format_update_download_progress(self) -> str:
+        """生成下载阶段的体积、百分比、速度和预计剩余时间文本。"""
+        progress = self.update_download_progress
+        if not progress:
+            return ""
+        if progress.get("phase") != "download":
+            return progress.get("message", "")
+
+        downloaded = progress.get("downloaded_bytes") or 0
+        total = progress.get("total_bytes")
+        speed = progress.get("speed_bytes_per_second") or 0
+        speed_text = f"{speed / 1024 / 1024:.2f}MB/s"
+
+        if total:
+            percent = progress.get("percent")
+            percent_text = f"{percent:.1f}%" if percent is not None else "--%"
+            remaining = progress.get("remaining_seconds")
+            remaining_text = f"{int(remaining + 0.5)}秒" if remaining is not None else "未知"
+            return (
+                f"{self._format_update_progress_mb(downloaded)}/"
+                f"{self._format_update_progress_mb(total)} MB，"
+                f"{percent_text}，{speed_text}，预计还需{remaining_text}"
+            )
+
+        return (
+            f"已下载 {self._format_update_progress_mb(downloaded)} MB，{speed_text}，"
+            "Github正在生成下载文件中大小未知"
+        )
+
+    def update_download_progress_detail(self, progress: dict):
+        """接收下载 worker 上报的字节级进度，并刷新更新页进度文本。"""
+        self.update_download_progress = progress
+        self.refresh_update_progress_label()
 
     def start_update_progress(self, step: str):
         """
@@ -523,6 +567,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         """
         self.update_progress_step = step
         self.update_progress_started_at = datetime.datetime.now()
+        self.update_download_progress = None
         self.refresh_update_progress_label()
         self.update_progress_timer.start()
 
@@ -536,6 +581,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.update_progress_timer.stop()
         self.update_progress_started_at = None
         self.update_progress_step = step
+        self.update_download_progress = None
         self.refresh_update_progress_label()
 
     def choose_path_button_on_clicked(self):
@@ -1697,8 +1743,10 @@ class QMainWindowService(QMainWindowLoadSettings):
             SIGNAL.PRINT_TO_UI.emit(f"[更新] 已启动外部 updater，PID={launch_info['pid']}。主程序即将退出。", color_level=1)
             QtCore.QTimer.singleShot(500, QtWidgets.QApplication.quit)
 
-        self.git_worker = prepare_release_update(target)
+        self.git_worker = prepare_release_update(target, auto_start=False)
+        self.git_worker.progress.connect(self.update_download_progress_detail)
         self.git_worker.result.connect(on_prepare_result)
+        self.git_worker.start()
 
     def restart_application(self):
         """

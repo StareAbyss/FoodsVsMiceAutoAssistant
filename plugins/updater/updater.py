@@ -3,6 +3,7 @@ import os
 import json
 import shutil
 import subprocess
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -16,6 +17,25 @@ UPDATER_STATE_RELATIVE_PATH = Path("update_cache") / "updater_state.json"
 
 def timestamp() -> str:
     return datetime.now().strftime("%Y%m%d-%H%M%S")
+
+
+def console(message: str = "") -> None:
+    print(message, flush=True)
+
+
+def print_header(title: str, root: Path, log_path: Path) -> None:
+    console("=" * 60)
+    console(title)
+    console("=" * 60)
+    console(f"FAA 目录：{root}")
+    console(f"日志文件：{log_path}")
+    console()
+
+
+def countdown_and_exit(seconds: int = 3) -> None:
+    for remaining in range(seconds, 0, -1):
+        console(f"窗口将在 {remaining} 秒后自动关闭...")
+        time.sleep(1)
 
 
 def create_log_file(root: Path) -> Path:
@@ -171,23 +191,30 @@ def update(root: Path, staging_root: Path, launch: str | None, log_path: Path | 
     staging_root = ensure_directory(staging_root, "staging")
     ensure_child(root / "update_cache", staging_root, "staging")
     write_updater_state(root, "update_started", {"staging": str(staging_root)})
+    console("正在执行版本更新。")
+    console(f"新版本临时目录：{staging_root}")
 
     if log_path:
         log(log_path, f"update root={root} staging={staging_root}")
 
     backups_root = root / "backups"
+    console("正在备份当前版本...")
     write_updater_state(root, "backup_current_version")
     backup_dir = create_backup(root, backups_root, "FAA.backup")
     write_updater_state(root, "backup_created", {"backup": str(backup_dir)})
+    console(f"当前版本已备份到：{backup_dir}")
     if log_path:
         log(log_path, f"backup created: {backup_dir}")
 
     try:
+        console("正在替换为新版本文件...")
         write_updater_state(root, "installing_staging", {"backup": str(backup_dir)})
         move_items([item for item in staging_root.iterdir() if item.name not in PRESERVED_NAMES], root)
+        console("正在写入版本记录并清理更新临时文件...")
         install_packaged_state(root, staging_root)
         prune_failed_staging(root)
     except Exception:
+        console("更新失败，正在回滚到更新前版本...")
         write_updater_state(root, "rollback_started", {"backup": str(backup_dir)})
         failed_dir = backups_root / f"FAA.failed-update.{timestamp()}"
         move_items(version_items(root), failed_dir)
@@ -201,7 +228,9 @@ def update(root: Path, staging_root: Path, launch: str | None, log_path: Path | 
     if log_path:
         log(log_path, "update completed")
     write_updater_state(root, "update_completed", {"backup": str(backup_dir)})
+    console("版本更新完成，正在重新启动 FAA...")
     launch_entry(root, launch)
+    console("FAA 已启动。")
 
 
 def restore(root: Path, backup_dir: Path, launch: str | None, log_path: Path | None = None) -> None:
@@ -209,16 +238,21 @@ def restore(root: Path, backup_dir: Path, launch: str | None, log_path: Path | N
     backup_dir = ensure_directory(backup_dir, "backup")
     ensure_child(root / "backups", backup_dir, "backup")
     write_updater_state(root, "restore_started", {"backup": str(backup_dir)})
+    console("正在执行版本恢复。")
+    console(f"备份目录：{backup_dir}")
 
     if log_path:
         log(log_path, f"restore root={root} backup={backup_dir}")
 
+    console("正在备份当前版本，便于恢复失败时回滚...")
     new_backup = create_backup(root, root / "backups", "FAA.before-restore")
     write_updater_state(root, "restore_current_backup_created", {"backup": str(new_backup)})
+    console(f"当前版本已备份到：{new_backup}")
     if log_path:
         log(log_path, f"current version backed up: {new_backup}")
 
     try:
+        console("正在把选中的备份复制回 FAA 目录...")
         write_updater_state(root, "restoring_backup", {"backup": str(backup_dir)})
         copy_items([item for item in backup_dir.iterdir() if item.name != ".update_state.json"], root)
 
@@ -227,6 +261,7 @@ def restore(root: Path, backup_dir: Path, launch: str | None, log_path: Path | N
             backup_state["restored_at"] = datetime.now(timezone.utc).isoformat()
             write_json(state_path(root), backup_state)
     except Exception:
+        console("恢复失败，正在回滚到恢复前版本...")
         failed_dir = root / "backups" / f"FAA.failed-restore.{timestamp()}"
         write_updater_state(root, "restore_rollback_started", {"current_backup": str(new_backup)})
         move_items(version_items(root), failed_dir)
@@ -244,7 +279,9 @@ def restore(root: Path, backup_dir: Path, launch: str | None, log_path: Path | N
     if log_path:
         log(log_path, "restore completed")
     write_updater_state(root, "restore_completed", {"backup": str(backup_dir), "previous_current": str(new_backup)})
+    console("版本恢复完成，正在重新启动 FAA...")
     launch_entry(root, launch)
+    console("FAA 已启动。")
 
 
 def main() -> None:
@@ -268,18 +305,31 @@ def main() -> None:
     args = parser.parse_args()
     root = Path(args.root).resolve()
     log_path = create_log_file(root)
+    title = "FAA 自动更新工具" if args.command == "update" else "FAA 版本恢复工具"
+    print_header(title, root, log_path)
     try:
+        console("正在等待 FAA 主程序退出，避免文件被占用...")
         write_updater_state(root, "waiting_for_process", {"pid": args.wait_pid})
         wait_for_process_exit(args.wait_pid, log_path, args.wait_timeout)
+        console("FAA 主程序已退出，可以安全替换文件。")
         if args.command == "update":
             update(root, Path(args.staging), args.launch, log_path)
         elif args.command == "restore":
             restore(root, Path(args.backup), args.launch, log_path)
+        console()
+        console("操作已完成。")
+        countdown_and_exit(3)
     except Exception:
+        error = format_exc()
         log(log_path, "operation failed")
-        log(log_path, format_exc())
-        write_updater_state(root, "failed", {"error": format_exc()})
-        raise
+        log(log_path, error)
+        write_updater_state(root, "failed", {"error": error})
+        console()
+        console("[错误] 操作失败。")
+        console(f"详细日志已写入：{log_path}")
+        console(error)
+        countdown_and_exit(10)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
