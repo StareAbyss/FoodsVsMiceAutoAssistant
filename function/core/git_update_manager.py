@@ -140,6 +140,7 @@ class ReleasePrepareWorker(QThread):
     """Prepare staging for a selected release target."""
 
     result = pyqtSignal(bool, str, dict)
+    progress = pyqtSignal(dict)
 
     def __init__(self, target: dict, parent=None):
         super().__init__(parent)
@@ -148,7 +149,11 @@ class ReleasePrepareWorker(QThread):
     def run(self):
         try:
             root = Path(PATHS["root"])
-            payload = prepare_update_from_github(root, self.target)
+            self.progress.emit({
+                "phase": "prepare",
+                "message": "正在校验目标版本，尚未开始下载",
+            })
+            payload = prepare_update_from_github(root, self.target, progress_callback=self.progress.emit)
             self.result.emit(True, "更新准备完成", payload)
         except Exception as exc:
             CUS_LOGGER.error(f"准备更新失败：{exc}")
@@ -209,9 +214,10 @@ def refresh_release_manifest():
     return worker
 
 
-def prepare_release_update(target: dict):
+def prepare_release_update(target: dict, auto_start: bool = True):
     worker = ReleasePrepareWorker(target=target)
-    worker.start()
+    if auto_start:
+        worker.start()
     return worker
 
 

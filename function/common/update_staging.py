@@ -7,7 +7,7 @@ import urllib.request
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from function.common.update_manifest import DEFAULT_OWNER, DEFAULT_REPO
 from function.common.update_state import write_update_state
@@ -154,21 +154,72 @@ def download_github_archive(
     owner: str = DEFAULT_OWNER,
     repo: str = DEFAULT_REPO,
     retries: int = 2,
+    progress_callback: Callable[[dict[str, Any]], None] | None = None,
 ) -> Path:
     url = f"https://github.com/{owner}/{repo}/archive/{ref}.zip"
     dest_zip.parent.mkdir(parents=True, exist_ok=True)
     headers = {"User-Agent": "FAA-Updater"}
 
+    def emit_progress(downloaded_bytes: int, total_bytes: int | None, started_at: float) -> None:
+        if progress_callback is None:
+            return
+
+        elapsed_seconds = max(time.monotonic() - started_at, 0.001)
+        speed_bytes_per_second = downloaded_bytes / elapsed_seconds
+        remaining_seconds = None
+        percent = None
+        if total_bytes and total_bytes > 0:
+            percent = min(downloaded_bytes / total_bytes * 100, 100.0)
+            if speed_bytes_per_second > 0:
+                remaining_seconds = max((total_bytes - downloaded_bytes) / speed_bytes_per_second, 0.0)
+
+        progress_callback({
+            "phase": "download",
+            "downloaded_bytes": downloaded_bytes,
+            "total_bytes": total_bytes,
+            "percent": percent,
+            "speed_bytes_per_second": speed_bytes_per_second,
+            "remaining_seconds": remaining_seconds,
+        })
+
     for attempt in range(retries + 1):
         request = urllib.request.Request(url, headers=headers)
+        started_at = time.monotonic()
+        if progress_callback is not None:
+            progress_callback({
+                "phase": "download_connecting",
+                "message": "正在连接 GitHub 源码包下载地址，尚未收到文件大小",
+            })
         try:
             with urllib.request.urlopen(request, timeout=60) as response:
+                total_header = response.headers.get("Content-Length")
+                total_bytes = int(total_header) if total_header and total_header.isdigit() else None
+                downloaded_bytes = 0
+                last_emit_at = 0.0
+                emit_progress(downloaded_bytes, total_bytes, started_at)
                 with dest_zip.open("wb") as file:
-                    shutil.copyfileobj(response, file)
+                    while True:
+                        chunk = response.read(64 * 1024)
+                        if not chunk:
+                            break
+                        file.write(chunk)
+                        downloaded_bytes += len(chunk)
+                        now = time.monotonic()
+                        if now - last_emit_at >= 0.5:
+                            emit_progress(downloaded_bytes, total_bytes, started_at)
+                            last_emit_at = now
+                emit_progress(downloaded_bytes, total_bytes, started_at)
             return dest_zip
         except (http.client.IncompleteRead, urllib.error.URLError, TimeoutError):
+            if dest_zip.exists():
+                dest_zip.unlink()
             if attempt >= retries:
                 raise
+            if progress_callback is not None:
+                progress_callback({
+                    "phase": "download_connecting",
+                    "message": f"GitHub 源码包下载连接失败，正在第 {attempt + 1} 次重试",
+                })
             time.sleep(1.0 * (attempt + 1))
 
     raise StagingError(f"Failed to download GitHub archive: {url}")
@@ -357,6 +408,7 @@ def prepare_staging_from_github(
     target: dict[str, Any],
     owner: str = DEFAULT_OWNER,
     repo: str = DEFAULT_REPO,
+    progress_callback: Callable[[dict[str, Any]], None] | None = None,
 ) -> Path:
     ref = target.get("tag") or target.get("commit")
     if not ref:
@@ -371,7 +423,7 @@ def prepare_staging_from_github(
     archive_root.mkdir(parents=True, exist_ok=True)
 
     try:
-        download_github_archive(ref, archive_path, owner=owner, repo=repo)
+        download_github_archive(ref, archive_path, owner=owner, repo=repo, progress_callback=progress_callback)
         return prepare_staging_from_archive(root, archive_path, target)
     finally:
         if archive_root.exists():
