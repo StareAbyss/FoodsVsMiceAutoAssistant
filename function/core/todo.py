@@ -2740,7 +2740,7 @@ class ThreadTodo(QThread):
                 case "战斗-多线程":
                     self.signal_start_todo_2_battle.emit({
                         "quest_list": task["task_args"]["solo_quests_2"],
-                        "extra_title": f"[多线程单人",
+                        "extra_title": f"多线程单人",
                         "need_lock": True
                     })
                     self.battle_1_n_n(
@@ -2795,8 +2795,6 @@ class ThreadTodo(QThread):
                     active_singleton = False
 
                 case "签到":
-                    # 二级密码 - 删除物品(可选)
-                    self.batch_delete_items(player=[1, 2])
                     # 领取温馨礼包(可选)
                     self.batch_get_warm_gift(player=task["task_args"]["player"])
                     # 日氪(可选)

@@ -35,10 +35,10 @@ def mask_transform_color_to_black(mask: np.ndarray, quick_method: bool = True) -
 
 
 def match_template_with_optional_mask(
-    source: np.ndarray, 
-    template: np.ndarray, 
-    mask: Union[np.ndarray, None] = None, 
-    quick_method: bool = True, 
+    source: np.ndarray,
+    template: np.ndarray,
+    mask: Union[np.ndarray, None] = None,
+    quick_method: bool = True,
     test_show: bool = False
 ) -> tuple[int, Union[np.ndarray, None]]:
     """使用可选掩模进行模板匹配，从源图搜索模板。
@@ -78,18 +78,20 @@ def match_template_with_optional_mask(
         SIGNAL.DIALOG.emit(
             title="图像识别模块出错\n",
             text=f"问题: 图像识别模块 - 源图像大小: {source.shape}  < 目标图像大小: {template.shape}\n"
-                 "可能原因1: 【最小化】游戏窗口\n"
-                 "解决思路1: 确保游戏非最小化运行, 被其他窗口遮住是没问题的\n"
-                 "可能原因2: 【游戏窗口显示不全】部分在屏幕外\n"
-                 "解决思路2: 游戏窗口必须完全拖回屏幕内\n"
-                 "可能原因3: 【息屏】运行, 导致游戏图像不刷新\n"
-                 "解决思路3: 保持亮屏, 或使用显卡欺骗器/虚拟显示屏\n"
-                 "可能原因4: 【游戏加载过慢】, 刷新后等待足够时间后仍无法找到对应子窗口, 常见于空间服\n"
-                 "解决思路4: 进阶设置 - 额外设置 - QQ空间额外设置, 应用刷新后额外休眠\n"
-                 "可能原因5: 【游戏闪退】导致图像无法捕获\n"
-                 "解决思路5: 无法解决, 请通过定时启动重启复位, 来解决问题\n"
-                 "可能原因6: 【误报】中止任务线程时, 正好运行在这造成\n"
-                 "解决思路6: 不管不会造成影响, 没卡住FAA都可以不管报错\n"
+                 "可能原因1: 【未找到】游戏窗口\n"
+                 "解决思路1: 正确的360游戏大厅版本 + 快速模式，拖动到窗口后先保存再运行\n"
+                 "可能原因2: 【最小化】游戏窗口\n"
+                 "解决思路2: 确保游戏非最小化运行, 被其他窗口遮住是没问题的\n"
+                 "可能原因3: 【游戏窗口显示不全】部分在屏幕外\n"
+                 "解决思路3: 游戏窗口必须完全拖回屏幕内\n"
+                 "可能原因4: 【息屏】运行, 导致游戏图像不刷新\n"
+                 "解决思路4: 保持亮屏, 或使用显卡欺骗器/虚拟显示屏\n"
+                 "可能原因5: 【游戏加载过慢】, 刷新后等待足够时间后仍无法找到对应子窗口, 常见于空间服\n"
+                 "解决思路5: 进阶设置 - 额外设置 - QQ空间额外设置, 应用刷新后额外休眠\n"
+                 "可能原因6: 【游戏闪退】导致图像无法捕获\n"
+                 "解决思路6: 无法解决, 请通过定时启动重启复位, 来解决问题\n"
+                 "可能原因7: 【误报】中止任务线程时, 正好运行在这造成\n"
+                 "解决思路7: 没卡住FAA可以不管这个报错\n"
         )
         return 0, None
 
@@ -246,7 +248,8 @@ def match_p_in_w(
     top_left_point = [start_x, start_y]
 
     if test_print:
-        CUS_LOGGER.debug(f"识别目标:{template_name}, 匹配度:{matching_degree:.5f}, 目标阈值:{match_tolerance:.5f}, 结果:成功")
+        CUS_LOGGER.debug(
+            f"识别目标:{template_name}, 匹配度:{matching_degree:.5f}, 目标阈值:{match_tolerance:.5f}, 结果:成功")
 
     # 测试时绘制边框
     if test_show:
@@ -345,7 +348,7 @@ def loop_match_p_in_w(
     可选功能：
     - 根据句柄点击较小图片所在位置
     - 点击后是否复核为另一图片(切换界面成功)
-    
+
     如果未找到仍会返回False。
 
     Args:
