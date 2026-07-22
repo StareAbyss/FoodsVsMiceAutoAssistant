@@ -2795,8 +2795,6 @@ class ThreadTodo(QThread):
                     active_singleton = False
 
                 case "签到":
-                    # 二级密码 - 删除物品(可选)
-                    self.batch_delete_items(player=[1, 2])
                     # 领取温馨礼包(可选)
                     self.batch_get_warm_gift(player=task["task_args"]["player"])
                     # 日氪(可选)
