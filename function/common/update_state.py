@@ -70,7 +70,6 @@ def get_git_state(project_root: Path) -> dict[str, Any]:
     if not is_git_worktree_root(project_root):
         return {
             "commit": "",
-            "branch": "",
             "tag": "",
             "pr": None,
             "summary": "",
@@ -78,14 +77,12 @@ def get_git_state(project_root: Path) -> dict[str, Any]:
         }
 
     commit = run_git(project_root, ["rev-parse", "HEAD"])
-    branch = run_git(project_root, ["rev-parse", "--abbrev-ref", "HEAD"])
     tag = run_git(project_root, ["describe", "--tags", "--exact-match", "HEAD"])
     message = run_git(project_root, ["log", "-1", "--pretty=%B"])
     dirty = bool(run_git(project_root, ["status", "--porcelain"]))
 
     return {
         "commit": commit,
-        "branch": branch,
         "tag": tag,
         "pr": parse_pr_number(message),
         "summary": next((line for line in message.splitlines() if line.strip()), ""),
@@ -103,7 +100,6 @@ def build_update_state(project_root: Path, timestamp_key: str = "packaged_at") -
         "version": version,
         "tag": git_state["tag"],
         "commit": git_state["commit"],
-        "branch": git_state["branch"],
         "pr": git_state["pr"],
         "summary": git_state["summary"],
         "merged_at": "",
@@ -170,7 +166,6 @@ def detect_local_state(project_root: Path) -> dict[str, Any]:
     if git_state.get("commit"):
         detected["source"] = "git"
         detected["commit"] = git_state["commit"]
-        detected["branch"] = git_state["branch"]
         detected["tag"] = git_state["tag"]
         detected["pr"] = git_state["pr"] or saved_state.get("pr")
         detected["merged_at"] = saved_state.get("merged_at", "")
@@ -180,7 +175,6 @@ def detect_local_state(project_root: Path) -> dict[str, Any]:
     if saved_state:
         detected["source"] = "update_state"
         detected["commit"] = saved_state.get("commit", "")
-        detected["branch"] = saved_state.get("branch", "")
         detected["tag"] = saved_state.get("tag", version)
         detected["pr"] = saved_state.get("pr")
         detected["merged_at"] = saved_state.get("merged_at", "")
@@ -188,7 +182,6 @@ def detect_local_state(project_root: Path) -> dict[str, Any]:
         return detected
 
     detected["commit"] = ""
-    detected["branch"] = ""
     detected["tag"] = ""
     detected["pr"] = None
     detected["merged_at"] = ""

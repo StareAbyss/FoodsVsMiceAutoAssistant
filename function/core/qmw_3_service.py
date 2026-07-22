@@ -333,6 +333,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.refresh_update_state_label()
         self.update_progress_started_at = None
         self.update_progress_step = "空闲"
+        self.update_download_progress = None
         self.update_progress_timer = QtCore.QTimer(self)
         self.update_progress_timer.setInterval(1000)
         self.update_progress_timer.timeout.connect(self.refresh_update_progress_label)
@@ -434,7 +435,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.update_state_labels = {
             "version": self.UpdateVersionInfoLabel,
             "node": self.UpdateNodeInfoLabel,
-            "branch": self.UpdateBranchInfoLabel,
+            "version_type": self.UpdateBranchInfoLabel,
             "source": self.UpdateSourceInfoLabel,
         }
         if hasattr(self, "UpdateStateGridLayout"):
@@ -467,28 +468,19 @@ class QMainWindowService(QMainWindowLoadSettings):
         pr_text = f"#{pr}" if pr else "未记录"
         commit = local_state.get("commit") or ""
         commit_text = commit[:12] if commit else "未记录"
-        branch = local_state.get("branch") or "未记录"
         merged_at = release_entry.get("merged_at") or local_state.get("merged_at") or "未记录"
         return {
-            "version": f"当前版本：{version} {self._format_version_note(version, tag)}",
+            "version": f"当前版本：{version}",
             "node": f"更新节点：PR {pr_text} / {commit_text} / {merged_at}",
-            "branch": f"分支：{self._format_update_branch(branch)}",
+            "version_type": f"版本类型：{self._format_version_type(version, tag)}",
             "source": f"版本信息和当前状态来源：{self._format_update_state_source(local_state)}",
         }
 
     @staticmethod
-    def _format_version_note(version: str, tag: str) -> str:
+    def _format_version_type(version: str, tag: str) -> str:
         if version != "未知" and version == tag:
-            return "（内部版本号与Git Tag一致，为标准发行版）"
-        return "（无GitTag，为中间版本，有可能不稳定的特性）"
-
-    @staticmethod
-    def _format_update_branch(branch: str) -> str:
-        if branch.lower() == "main":
-            return "Main（发行主分支）"
-        if not branch or branch == "未记录":
-            return "未记录（无法确认当前是否为主分支）"
-        return f"{branch}（开发者个人分支 注：本模块请务必在主分支使用）"
+            return "内部版本号与Git Tag一致，为标准发行版"
+        return "无GitTag，为中间版本，有可能不稳定的特性"
 
     @staticmethod
     def _format_update_state_source(local_state: dict) -> str:
@@ -499,21 +491,19 @@ class QMainWindowService(QMainWindowLoadSettings):
             return "用户本地 - 版本状态文件正常运作"
         return "用户本地 - 版本状态文件异常运作，使用项目全局VERSION变量"
 
-    def _ensure_update_allowed_on_main_branch(self) -> bool:
+    def _ensure_update_allowed_outside_git_worktree(self) -> bool:
         local_state = detect_local_state(Path(PATHS["root"]))
-        branch = local_state.get("branch") or ""
-        if branch.lower() == "main":
+        if local_state.get("source") != "git":
             return True
 
-        branch_text = branch or "未记录"
         self.refresh_update_state_label(local_state=local_state)
         message = (
-            f"当前检测到的分支：{branch_text}\n\n"
-            "为避免在开发者个人分支误触热更新并覆盖工作区，本功能只允许在 main 主分支使用。\n"
-            "请切换到 main 分支，或使用标准打包版后再执行更新。"
+            "当前运行目录是真实 Git 开发工作区。\n\n"
+            "为避免热更新覆盖开发者源码工作区，本功能已被阻止。\n"
+            "请先打包为标准发行包，再在打包后的目录中测试热更新。"
         )
-        SIGNAL.PRINT_TO_UI.emit(f"[更新状态] 已阻止非 main 分支执行更新。当前分支：{branch_text}", color_level=1)
-        QMessageBox.warning(self, "当前分支不允许执行更新", message)
+        SIGNAL.PRINT_TO_UI.emit("[更新状态] 已阻止在 Git 开发工作区执行热更新。", color_level=1)
+        QMessageBox.warning(self, "开发者工作区不允许执行更新", message)
         return False
 
     def refresh_update_progress_label(self):
@@ -523,7 +513,50 @@ class QMainWindowService(QMainWindowLoadSettings):
             return
 
         elapsed = int((datetime.datetime.now() - self.update_progress_started_at).total_seconds())
-        self.UpdateProgressLabel.setText(f"更新进度：{self.update_progress_step}，已等待 {elapsed} 秒")
+        progress_detail = self._format_update_download_progress()
+        suffix = f"，{progress_detail}" if progress_detail else ""
+        end = "。" if progress_detail else ""
+        self.UpdateProgressLabel.setText(f"更新进度：{self.update_progress_step}，已等待 {elapsed} 秒{suffix}{end}")
+
+    @staticmethod
+    def _format_update_progress_mb(size_bytes: int | float | None) -> str:
+        if size_bytes is None:
+            return "未知"
+        return f"{float(size_bytes) / 1024 / 1024:.2f}"
+
+    def _format_update_download_progress(self) -> str:
+        """生成下载阶段的体积、百分比、速度和预计剩余时间文本。"""
+        progress = self.update_download_progress
+        if not progress:
+            return ""
+        if progress.get("phase") != "download":
+            return progress.get("message", "")
+
+        downloaded = progress.get("downloaded_bytes") or 0
+        total = progress.get("total_bytes")
+        speed = progress.get("speed_bytes_per_second") or 0
+        speed_text = f"{speed / 1024 / 1024:.2f}MB/s"
+
+        if total:
+            percent = progress.get("percent")
+            percent_text = f"{percent:.1f}%" if percent is not None else "--%"
+            remaining = progress.get("remaining_seconds")
+            remaining_text = f"{int(remaining + 0.5)}秒" if remaining is not None else "未知"
+            return (
+                f"{self._format_update_progress_mb(downloaded)}/"
+                f"{self._format_update_progress_mb(total)} MB，"
+                f"{percent_text}，{speed_text}，预计还需{remaining_text}"
+            )
+
+        return (
+            f"已下载 {self._format_update_progress_mb(downloaded)} MB，{speed_text}，"
+            "Github正在生成下载文件中大小未知"
+        )
+
+    def update_download_progress_detail(self, progress: dict):
+        """接收下载 worker 上报的字节级进度，并刷新更新页进度文本。"""
+        self.update_download_progress = progress
+        self.refresh_update_progress_label()
 
     def start_update_progress(self, step: str):
         """
@@ -534,6 +567,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         """
         self.update_progress_step = step
         self.update_progress_started_at = datetime.datetime.now()
+        self.update_download_progress = None
         self.refresh_update_progress_label()
         self.update_progress_timer.start()
 
@@ -547,6 +581,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.update_progress_timer.stop()
         self.update_progress_started_at = None
         self.update_progress_step = step
+        self.update_download_progress = None
         self.refresh_update_progress_label()
 
     def choose_path_button_on_clicked(self):
@@ -1628,7 +1663,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def click_btn_normal_update(self):
         """准备并确认应用用户在表格中选中的更新目标。"""
-        if not self._ensure_update_allowed_on_main_branch():
+        if not self._ensure_update_allowed_outside_git_worktree():
             return
 
         target = self._selected_update_target()
@@ -1708,8 +1743,10 @@ class QMainWindowService(QMainWindowLoadSettings):
             SIGNAL.PRINT_TO_UI.emit(f"[更新] 已启动外部 updater，PID={launch_info['pid']}。主程序即将退出。", color_level=1)
             QtCore.QTimer.singleShot(500, QtWidgets.QApplication.quit)
 
-        self.git_worker = prepare_release_update(target)
+        self.git_worker = prepare_release_update(target, auto_start=False)
+        self.git_worker.progress.connect(self.update_download_progress_detail)
         self.git_worker.result.connect(on_prepare_result)
+        self.git_worker.start()
 
     def restart_application(self):
         """

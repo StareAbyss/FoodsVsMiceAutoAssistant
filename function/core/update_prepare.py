@@ -1,7 +1,7 @@
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from function.common.update_manifest import GitHubClient, compare_update_target
 from function.common.update_state import detect_local_state
@@ -100,13 +100,24 @@ def prepare_update_from_github(
     root: Path,
     target: dict[str, Any],
     selected_migration_names: set[str] | None = None,
+    progress_callback: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     root = Path(root).resolve()
+    if progress_callback is not None:
+        progress_callback({
+            "phase": "prepare",
+            "message": "正在校验目标版本，尚未开始下载",
+        })
     validation = validate_update_target(root, target)
     if not validation["allowed"] and validation["status"] != "compare_failed":
         raise ValueError(validation["message"])
 
-    staging = prepare_staging_from_github(root, target)
+    if progress_callback is not None:
+        progress_callback({
+            "phase": "prepare",
+            "message": "目标版本校验完成，正在请求源码包",
+        })
+    staging = prepare_staging_from_github(root, target, progress_callback=progress_callback)
     migration_results = migrate_user_data(
         source_root=root,
         target_root=staging,
