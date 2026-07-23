@@ -4,9 +4,6 @@ import os
 import sys
 import uuid
 
-from function.globals.loadings import loading
-
-loading.update_progress(50, "正在加载FAA关卡编辑器...")
 from typing import List, Union
 
 from PyQt6.QtCore import pyqtSignal, Qt, QPoint

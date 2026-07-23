@@ -129,10 +129,19 @@ def read_update_state(root: Path) -> dict[str, Any]:
     return json.loads(state_path.read_text(encoding="utf-8"))
 
 
-def find_state_warnings(project_root: Path) -> list[str]:
-    saved_state = read_update_state(project_root)
-    version = read_extra_version(project_root)
-    git_state = get_git_state(project_root)
+def find_state_warnings(
+        project_root: Path,
+        saved_state: dict[str, Any] | None = None,
+        version: str | None = None,
+        git_state: dict[str, Any] | None = None,
+) -> list[str]:
+    """检查版本状态矛盾，并复用上层已读取的 Git 和本地状态。"""
+    if saved_state is None:
+        saved_state = read_update_state(project_root)
+    if version is None:
+        version = read_extra_version(project_root)
+    if git_state is None:
+        git_state = get_git_state(project_root)
     warnings = []
 
     if saved_state and version and saved_state.get("version") and saved_state["version"] != version:
@@ -160,7 +169,12 @@ def detect_local_state(project_root: Path) -> dict[str, Any]:
         "saved": saved_state,
         "git": git_state,
         "source": "extra_version",
-        "warnings": find_state_warnings(project_root),
+        "warnings": find_state_warnings(
+            project_root,
+            saved_state=saved_state,
+            version=version,
+            git_state=git_state,
+        ),
     }
 
     if git_state.get("commit"):

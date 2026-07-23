@@ -1,33 +1,26 @@
 import os
 import random
 
-from PyQt6.QtCore import Qt, QPointF, QPropertyAnimation, QEasingCurve, QPoint, QSize, QThread
+from PyQt6.QtCore import (
+    Qt,
+    QPointF,
+    QPropertyAnimation,
+    QEasingCurve,
+    QPoint,
+    QSize,
+    QTimer,
+    pyqtSignal,
+    pyqtSlot,
+)
 from PyQt6.QtGui import QColor, QMovie
 from PyQt6.QtWidgets import QWidget, QProgressBar, QLabel, QVBoxLayout, QGraphicsDropShadowEffect
 
 from function.globals.get_paths import PATHS
 
 
-class AnimationThread(QThread):
-
-    def __init__(self, loading):
-        super().__init__()
-        self._is_running = True  # 线程运行状态标志
-        self.loading = loading
-
-    def run(self):
-        while self._is_running:
-            QThread.msleep(50)  # 控制帧率 (单位：毫秒)
-            self.loading.gif_movie.jumpToNextFrame(),
-            self.loading.repaint()
-
-    def stop(self):
-        """安全停止线程的方法"""
-        self._is_running = False
-        self.wait()  # 等待线程自然退出
-
-
 class LoadingWindow(QWidget):
+    progress_requested = pyqtSignal(int, object)
+
     def __init__(self):
         super().__init__()
         self.animation = None
@@ -37,7 +30,13 @@ class LoadingWindow(QWidget):
         self.progress_bar = None
         self.label = None
         self.init_ui()
-        self.anim = AnimationThread(self)
+        self.progress_requested.connect(self._apply_progress)
+
+        # Qt 控件只能由主线程操作。用主线程定时器驱动动画，
+        # 避免启动期间跨线程 repaint 造成黑块或窗口假死。
+        self.animation_timer = QTimer(self)
+        self.animation_timer.setInterval(50)
+        self.animation_timer.timeout.connect(self.gif_movie.jumpToNextFrame)
 
     def init_ui(self):
         self.setWindowFlags(Qt.WindowType.SplashScreen |
@@ -129,7 +128,25 @@ class LoadingWindow(QWidget):
                     }
                 """)
 
+    def start_animation(self):
+        """在 Qt 主线程启动加载动画。"""
+        # 同步启动任务可能在首个定时器事件到来前阻塞事件循环，
+        # 因此先装载首帧，确保浮动图片从加载窗口出现时就可绘制。
+        if self.gif_movie.currentFrameNumber() < 0:
+            self.gif_movie.jumpToFrame(0)
+        if not self.animation_timer.isActive():
+            self.animation_timer.start()
+
+    def stop_animation(self):
+        """停止加载动画。"""
+        self.animation_timer.stop()
+
     def update_progress(self, value, text=None):
+        """线程安全地请求更新加载界面。"""
+        self.progress_requested.emit(int(value), text)
+
+    @pyqtSlot(int, object)
+    def _apply_progress(self, value, text=None):
         self.progress_bar.setValue(value)
         if value > 0:
             self.update_gif_position(value)
