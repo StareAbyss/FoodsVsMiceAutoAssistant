@@ -4,10 +4,8 @@ import os
 import shutil
 import sys
 
-from function.globals.loadings import loading
 from function.scattered.output_error import error_by_single_dialog
 
-loading.update_progress(45, "正在加载配置中...")
 from PyQt6.QtCore import QRegularExpression
 from PyQt6.QtGui import QRegularExpressionValidator, QIntValidator
 from PyQt6.QtWidgets import QApplication, QMessageBox, QVBoxLayout, QSizePolicy
@@ -138,7 +136,7 @@ def check_settings_file(file_path, template_path) -> None:
 class QMainWindowLoadSettings(QMainWindowLog):
     """将读取配置的方法封装在此处"""
 
-    def __init__(self):
+    def __init__(self, startup_progress=None):
         # 继承父类构造方法
         super().__init__()
 
@@ -190,6 +188,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
         # 从json文件中读取opt 并刷新ui
         self.opt = None
         self.json_to_opt()
+
+        # 配置与方案已经读入内存，填充界面及创建剩余窗口时继续使用趣味文案。
+        if startup_progress is not None:
+            startup_progress(92)
+
         self.opt_to_ui_init()
 
         # 记录读取时 是否有战斗方案找不到了
