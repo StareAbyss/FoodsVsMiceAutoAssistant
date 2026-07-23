@@ -69,6 +69,7 @@ def get_true_stage_id():
     stage_ids += generate_stage_ids("EX", [3, 3], [1, 5])
     stage_ids += generate_stage_ids("EX", [4, 4], [1, 6])
     stage_ids += generate_stage_ids("EX", [5, 5], [1, 8])
+    stage_ids += generate_stage_ids("EX", [6, 6], [1, 3])
     # 跨服
     stage_ids += generate_stage_ids("CS", [1, 7], [1, 8])
     # 魔塔

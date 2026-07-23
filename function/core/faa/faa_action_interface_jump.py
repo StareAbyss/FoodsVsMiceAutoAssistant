@@ -101,7 +101,7 @@ class FAAActionInterfaceJump:
     def action_top_menu(self: "FAA", mode: str) -> bool:
         """
         点击上方菜单栏, 包含:
-        VIP签到|X年活动|塔罗寻宝|大地图|大富翁|欢乐假期|每日签到|美食大赛|美食活动|萌宠神殿|跨服远征|月卡福利
+        VIP签到|X年活动|塔罗寻宝|大地图|大富翁|欢乐假期|每日签到|美食大赛|美食活动|萌宠神殿|跨服远征|月卡福利|龙渊除厄
         其中跨服会跳转到二区
         :return bool 是否进入成功
         """
@@ -536,39 +536,40 @@ class FAAActionInterfaceJump:
                 time.sleep(0.5)
 
         def main_ex():
+            if stage_1 == "6":
+                # 龙渊除厄从顶部活动菜单直接进入，不经过旧番外地图和船只。
+                self.action_top_menu(mode="龙渊除厄")
+            else:
+                # 旧番外关卡仍从探险营地地图进入。
+                self.action_change_activity_list(2)
+                self.action_goto_map(map_id=10)
 
-            # 防止被活动列表遮住
-            self.action_change_activity_list(2)
-
-            # 进入对应地图
-            self.action_goto_map(map_id=10)
-
-            # 不是营地
-            if stage_1 != "1":
-                # 找船
-                loop_match_p_in_w(
-                    source_handle=handle,
-                    source_root_handle=handle_360,
-                    source_range=[0, 0, 950, 600],
-                    template=RESOURCE_P["stage"]["EX-Ship.png"],
-                    after_sleep=0.2,
-                    click=True)
-
-                # 找地图图标，需要防止因点过一次后图片放大造成的无法点击
-                if not (loop_match_p_in_w(
-                        source_handle=handle,
-                        source_root_handle=handle_360,
-                        source_range=[0, 0, 950, 600],
-                        template=RESOURCE_P["stage"]["EX-{}.png".format(stage_1)],
-                        after_sleep=0.2,
-                        click=True)):
+                # 探险营地以外的旧番外地图需要先乘船。
+                if stage_1 != "1":
                     loop_match_p_in_w(
                         source_handle=handle,
                         source_root_handle=handle_360,
                         source_range=[0, 0, 950, 600],
-                        template=RESOURCE_P["stage"]["EX-{}_1.png".format(stage_1)],
+                        template=RESOURCE_P["stage"]["EX-Ship.png"],
                         after_sleep=0.2,
                         click=True)
+
+                    # 地图图标点击后会放大，因此准备两种模板依次识别。
+                    if not loop_match_p_in_w(
+                            source_handle=handle,
+                            source_root_handle=handle_360,
+                            source_range=[0, 0, 950, 600],
+                            template=RESOURCE_P["stage"]["EX-{}.png".format(stage_1)],
+                            after_sleep=0.2,
+                            click=True):
+                        loop_match_p_in_w(
+                            source_handle=handle,
+                            source_root_handle=handle_360,
+                            source_range=[0, 0, 950, 600],
+                            template=RESOURCE_P["stage"]["EX-{}_1.png".format(stage_1)],
+                            after_sleep=0.2,
+                            click=True)
+
             # 切区
             change_to_region(region_list=[1, 2])
 
