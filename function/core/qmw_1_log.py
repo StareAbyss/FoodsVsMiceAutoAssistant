@@ -186,7 +186,7 @@ class QMainWindowLog(QMainWindowLoadUI):
             color_level=2,
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
-            text="新手入门 / 除错 / 深入使用 / 开发者, 都可以在线文档找到相关内容",
+            text="新手入门 / 除错 / 深入使用 / 开发者, 都可以在线文档找到相关内容，网站若证书过期请坚持访问",
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
             text="任务或定时器开始运行后, 将锁定点击按钮时的配置文件, 不应用实时更改",
@@ -271,21 +271,6 @@ class QMainWindowLog(QMainWindowLoadUI):
             time=False)
         SIGNAL.PRINT_TO_UI.emit(
             text="交流游戏和自动化, 获取帮助, 资源分享, 参与开发",
-            time=False)
-
-        SIGNAL.PRINT_TO_UI.emit(
-            text="",
-            time=False)
-
-        SIGNAL.PRINT_TO_UI.emit(
-            text="♦ 腾讯频道 ♦",
-            color_level=1,
-            time=False)
-        SIGNAL.PRINT_TO_UI.emit(
-            text="https://pd.qq.com/s/a0h4rujt0 ",
-            time=False)
-        SIGNAL.PRINT_TO_UI.emit(
-            text="人少维护较差, 但用来获取更新资源很方便, 不易被打扰",
             time=False)
 
         SIGNAL.PRINT_TO_UI.emit(
