@@ -5,8 +5,6 @@ import threading
 import psutil
 from PyQt6 import QtCore
 from PyQt6.QtWidgets import QDialog, QHBoxLayout, QLabel, QVBoxLayout
-from function.globals.loadings import loading
-loading.update_progress(42,"正在全力性能分析中...")
 from function.widget.GaugePanel import GaugePanel
 
 

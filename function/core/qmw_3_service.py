@@ -170,9 +170,9 @@ class QMainWindowService(QMainWindowLoadSettings):
     signal_todo_start = QtCore.pyqtSignal(object)  # 可通过该信号以某个 方案uuid 开启一趟流程
     signal_guild_manager_fresh = QtCore.pyqtSignal()  # 刷新公会管理器数据, 于扫描后
 
-    def __init__(self):
+    def __init__(self, initial_local_state=None, startup_progress=None):
         # 继承父类构造方法
-        super().__init__()
+        super().__init__(startup_progress=startup_progress)
 
         # 添加一些信号到列表中方便调用
         SIGNAL.GUILD_MANAGER_FRESH = self.signal_guild_manager_fresh
@@ -330,7 +330,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.window_update_backup_manager = None
         self.window_tip_update = QMWTipUpdate()
         self.setup_update_state_labels()
-        self.refresh_update_state_label()
+        self.refresh_update_state_label(local_state=initial_local_state)
         self.update_progress_started_at = None
         self.update_progress_step = "空闲"
         self.update_download_progress = None
@@ -455,7 +455,8 @@ class QMainWindowService(QMainWindowLoadSettings):
             local_state: 已读取的本地版本状态；为空时现场读取。
             release_entry: 当前版本对应的正式版 manifest 条目，用于补充 PR 合并时间。
         """
-        local_state = local_state or detect_local_state(Path(PATHS["root"]))
+        if local_state is None:
+            local_state = detect_local_state(Path(PATHS["root"]))
         release_entry = release_entry or {}
         for key, text in self._build_update_state_texts(local_state, release_entry).items():
             self.update_state_labels[key].setText(text)
@@ -1835,8 +1836,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.task_editor.show()
 
 
-def faa_start_main(app=None, loading=None):
-    loading.update_progress(95)
+def faa_start_main(app=None, loading=None, local_state=None):
     # app.setStyle("Windows")
     # app.setStyle("WindowsVista")
     # app.setStyle("Fusion")
@@ -1848,12 +1848,18 @@ def faa_start_main(app=None, loading=None):
     app.setFont(EXTRA.Q_FONT)
 
     # 实例化 主窗口
-    window = QMainWindowService()
+    window = QMainWindowService(
+        initial_local_state=local_state,
+        startup_progress=loading.update_progress,
+    )
+    # Qt 事件循环此时已在运行，由 QApplication 持有强引用，
+    # 避免本函数返回后顶层窗口被 Python 回收。
+    app.faa_main_window = window
 
     # 设置 窗口字体
     window.font = EXTRA.Q_FONT
-    # 先停止播放gif再更新进度到100避免线程安全问题
-    loading.anim.stop()
+    # 先停止加载动画，再更新进度到 100。
+    loading.stop_animation()
     loading.update_progress(100, "载入完成！！！")
     # 主窗口 实现
     window.show()

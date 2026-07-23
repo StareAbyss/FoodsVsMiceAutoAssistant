@@ -4,12 +4,10 @@ import os
 import sys
 import uuid
 
-from PyQt6.QtCore import Qt, QPoint
+from PyQt6.QtCore import Qt, QPoint, QEventLoop
 
-from function.globals.loadings import loading
 from function.scattered.output_error import error_by_single_dialog
 
-loading.update_progress(60, "正在加载FAA任务序列编辑器...")
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSpinBox, QCheckBox, QWidget, QListWidgetItem, QFileDialog, QMessageBox, QApplication, QListWidget, QSpacerItem, \
@@ -1171,6 +1169,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 task["task_id"] = i
             # 添加一个任务到ui上
             self.add_task(task)
+            # 创建复杂任务行时会产生大量 Qt 控件。分批处理绘制和
+            # Windows 系统消息，但排除用户输入，避免加载中重入编辑操作。
+            if (i - start_index + 1) % 3 == 0:
+                QApplication.processEvents(QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents)
 
         # 出现了uuid找不到对应战斗方案的情况 弹窗
         if self.could_not_find_battle_plan_uuid_list:

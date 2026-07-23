@@ -6,11 +6,9 @@ import subprocess
 import time
 
 from function.core.qmw_task_plan_editor import init_db
-from function.globals.loadings import loading
 from function.scattered.resize_360_windows import batch_resize_window
 from function.scattered.split_task import load_tasks_from_db_and_create_puzzle
 
-loading.update_progress(80, "正在加载任务执行协议...")
 from collections import defaultdict
 from time import sleep
 
