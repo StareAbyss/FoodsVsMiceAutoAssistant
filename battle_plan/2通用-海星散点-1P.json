@@ -1,7 +1,7 @@
 {
     "meta_data": {
-        "uuid": "1d53e81e-ad86-11ef-b864-c2f2346a1393",
-        "tips": "花火龙+海星+散点追踪的平民0氪中配套餐！\n据不完全统计是FAA用户中最常用的卡组！\n2P 不产火 不放拐",
+        "uuid": "1587e54f-8ef1-11ef-a8a9-f44efc5bf671",
+        "tips": "平民0氪中配套餐！据不完全统计是FAA用户中最常用的卡组！\n2P 不产火 不放拐",
         "player_position": [
             "4-3",
             "4-5",
@@ -19,23 +19,35 @@
     "cards": [
         {
             "card_id": 1,
-            "name": "海星"
+            "name": "产火"
         },
         {
             "card_id": 2,
-            "name": "布丁"
+            "name": "海星"
         },
         {
             "card_id": 3,
-            "name": "散点追踪"
+            "name": "布丁"
         },
         {
             "card_id": 4,
-            "name": "护罩"
+            "name": "散点追踪"
         },
         {
             "card_id": 5,
+            "name": "散点增幅"
+        },
+        {
+            "card_id": 6,
+            "name": "护罩"
+        },
+        {
+            "card_id": 7,
             "name": "照明"
+        },
+        {
+            "card_id": 8,
+            "name": "全能对策"
         }
     ],
     "events": [
@@ -48,7 +60,18 @@
             "action": {
                 "cards": [
                     {
-                        "card_id": 3,
+                        "card_id": 1,
+                        "ergodic": true,
+                        "queue": false,
+                        "location": [
+                            "2-4",
+                            "7-1",
+                            "7-7"
+                        ],
+                        "kun": 0
+                    },
+                    {
+                        "card_id": 4,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -78,7 +101,7 @@
                         "kun": 2
                     },
                     {
-                        "card_id": 1,
+                        "card_id": 2,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -110,7 +133,17 @@
                         "kun": 1
                     },
                     {
-                        "card_id": 2,
+                        "card_id": 5,
+                        "ergodic": true,
+                        "queue": false,
+                        "location": [
+                            "3-2",
+                            "3-6"
+                        ],
+                        "kun": 0
+                    },
+                    {
+                        "card_id": 3,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -123,7 +156,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 4,
+                        "card_id": 6,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -145,11 +178,22 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 5,
+                        "card_id": 7,
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "6-7"
+                            "6-1"
+                        ],
+                        "kun": 0
+                    },
+                    {
+                        "card_id": 8,
+                        "ergodic": true,
+                        "queue": true,
+                        "location": [
+                            "5-4",
+                            "5-2",
+                            "5-6"
                         ],
                         "kun": 0
                     }
