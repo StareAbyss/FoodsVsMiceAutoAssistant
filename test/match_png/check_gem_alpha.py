@@ -4,6 +4,7 @@
 import cv2
 import numpy as np
 from function.globals.g_resources import RESOURCE_P
+from test.output_paths import get_test_output_dir
 
 
 def check_alpha_channel():
@@ -74,13 +75,16 @@ def check_alpha_channel():
                 print(f"  位置({x}, {y}): B={b[y,x]}, G={g[y,x]}, R={r[y,x]}, Alpha={alpha[y,x]}")
 
         # 保存alpha通道图像以便可视化
-        cv2.imwrite("alpha_channel_debug.png", alpha)
-        print(f"\n✓ 已保存Alpha通道图像到: alpha_channel_debug.png")
+        output_dir = get_test_output_dir("match_png")
+        alpha_path = output_dir / "alpha_channel_debug.png"
+        cv2.imwrite(str(alpha_path), alpha)
+        print(f"\n✓ 已保存Alpha通道图像到: {alpha_path}")
 
         # 创建掩模（将非完全透明的区域设为255，完全透明设为0）
         mask = np.where(alpha > 10, 255, 0).astype(np.uint8)
-        cv2.imwrite("mask_debug.png", mask)
-        print(f"✓ 已保存二值化掩模到: mask_debug.png")
+        mask_path = output_dir / "mask_debug.png"
+        cv2.imwrite(str(mask_path), mask)
+        print(f"✓ 已保存二值化掩模到: {mask_path}")
 
         print("\n" + "=" * 60)
         print("结论:")

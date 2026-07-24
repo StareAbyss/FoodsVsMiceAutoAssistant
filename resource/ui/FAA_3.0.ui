@@ -7199,7 +7199,7 @@ FAA放卡核心原理简述:
                  <item>
                   <widget class="QLabel" name="SkinWidget_Label">
                    <property name="styleSheet">
-                    <string notr="true">font: 30pt &quot;ShouShuti&quot;;</string>
+                    <string notr="true">font-size: 30pt;</string>
                    </property>
                    <property name="text">
                     <string>更多超绝皮肤锐意制作中...

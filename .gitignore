@@ -43,3 +43,14 @@ main.spec
 
 # 忽略其他开发资源
 resource_other/
+
+# 忽略各测试 output 目录中的本地生成物，不影响脚本、文档和测试夹具
+test/**/output/**/*.png
+test/**/output/**/*.jpg
+test/**/output/**/*.jpeg
+test/**/output/**/*.bmp
+test/**/output/**/*.gif
+test/**/output/**/*.webp
+test/**/output/**/*.csv
+test/**/output/**/*.log
+test/**/output/**/*.npy

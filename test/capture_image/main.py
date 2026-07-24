@@ -1,10 +1,10 @@
-import os
 import time
 
 import cv2
 from win32gui import FindWindow, FindWindowEx
 
 from function.common.bg_img_screenshot import capture_image_png
+from test.output_paths import get_test_output_dir
 
 channel = "锑食"
 handle_360 = FindWindow("DUIWindow", channel)  # 360窗口 该层级有刷新框
@@ -26,9 +26,8 @@ print(f"耗时: {time.time() - start_time}")
 
 # 检查图像是否有效
 if img is not None and img.size > 0:
-    if not os.path.exists("img"):
-        os.makedirs("img")
-    cv2.imencode(ext=".png", img=img)[1].tofile(os.path.join("img", "test.png"))
+    output_path = get_test_output_dir("capture_image") / "test.png"
+    cv2.imencode(ext=".png", img=img)[1].tofile(str(output_path))
     print("图像保存成功")
 else:
     print("捕获的图像是空的或无效的")

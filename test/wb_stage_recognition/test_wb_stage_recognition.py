@@ -17,10 +17,11 @@ from function.common.bg_img_screenshot import capture_image_png, capture_image_p
 from function.globals.get_paths import PATHS
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
+from test.output_paths import get_test_output_dir
 
 
 ROOT = Path(PATHS["root"])
-OUTPUT_DIR = ROOT / "test" / "wb_stage_recognition" / "output"
+OUTPUT_DIR = get_test_output_dir("wb_stage_recognition")
 WORLD_BOSS_DIR = ROOT / "resource" / "image" / "world_boss"
 
 BOSS_RANGE = [680, 20, 850, 65]

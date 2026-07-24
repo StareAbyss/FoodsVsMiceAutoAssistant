@@ -21,6 +21,7 @@ from win32gui import FindWindow, FindWindowEx, IsIconic, ShowWindow, SetWindowPo
 import win32con
 
 from function.common.bg_img_screenshot import capture_image_png
+from test.output_paths import get_test_output_dir
 
 
 def capture_with_printwindow(handle: int, raw_range: list = None) -> np.ndarray:
@@ -85,6 +86,8 @@ def capture_with_printwindow(handle: int, raw_range: list = None) -> np.ndarray:
 
 
 def test_minimized_window_capture():
+    output_dir = get_test_output_dir("capture_image", "minimized")
+
     """测试对最小化窗口截图 - 对比老函数和新函数"""
 
     # === 配置部分 ===
@@ -135,8 +138,8 @@ def test_minimized_window_capture():
             status = "❌ 黑屏" if is_black else "✅ 成功"
             print(f"  耗时: {elapsed:.3f}s | 尺寸: {img.shape} | 结果: {status}")
 
-            filename = f"test_output/old_method_{i}.png"
-            cv2.imencode('.png', img)[1].tofile(filename)
+            filename = output_dir / f"old_method_{i}.png"
+            cv2.imencode('.png', img)[1].tofile(str(filename))
             print(f"  已保存: {filename}")
 
             # 每张间隔0.5秒
@@ -167,8 +170,8 @@ def test_minimized_window_capture():
             status = "❌ 黑屏" if is_black else "✅ 成功"
             print(f"  耗时: {elapsed:.3f}s | 尺寸: {img.shape} | 结果: {status}")
 
-            filename = f"test_output/new_method_{i}.png"
-            cv2.imencode('.png', img)[1].tofile(filename)
+            filename = output_dir / f"new_method_{i}.png"
+            cv2.imencode('.png', img)[1].tofile(str(filename))
             print(f"  已保存: {filename}")
 
             # 每张间隔0.5秒
