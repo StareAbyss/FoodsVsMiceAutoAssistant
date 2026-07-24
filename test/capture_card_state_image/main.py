@@ -1,11 +1,10 @@
-import os
-
 import cv2
 import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png
 from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
 from function.scattered.gat_handle import faa_get_handle
+from test.output_paths import get_test_output_dir
 
 
 class Card:
@@ -42,6 +41,5 @@ class Card:
 
 card = Card()
 img = card.get_card_current_img()
-if not os.path.exists("img"):
-    os.makedirs("img")
-cv2.imencode(ext=".png", img=img)[1].tofile(os.path.join("core", "test.png"))
+output_path = get_test_output_dir("capture_card_state_image") / "test.png"
+cv2.imencode(ext=".png", img=img)[1].tofile(str(output_path))
