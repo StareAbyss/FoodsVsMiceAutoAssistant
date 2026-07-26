@@ -1,28 +1,34 @@
 import os
 
+from function.common.file_name_sort import sort_file_names_like_windows
 from function.globals.get_paths import PATHS
 
 
-def get_task_sequence_list(with_extension):
+def get_task_sequence_list(with_extension:bool):
     """
-    :param with_extension: Include extension name
-    :return: a list of battle plan
+    获取按 Windows 资源管理器规则排序的任务序列文件名。
+
+    Args:
+        with_extension: 是否在返回结果中保留 `.json` 扩展名。
+
+    Returns:
+        排序后的任务序列文件名列表；根据 `with_extension` 保留或移除扩展名。
     """
+
+    # 获取任务序列目录下的所有文件
     my_list = os.listdir(PATHS["task_sequence"])
 
-    # 只保留json
-    new_list = []
-    for i in range(len(my_list)):
-        if my_list[i].split(".")[-1] == "json":
-            new_list.append(my_list[i])
-    my_list = new_list
+    # 过滤出 .json 文件
+    my_list = [file for file in my_list if file.endswith('.json')]
 
-    # 根据参数 是否保留后缀
+    # 按 Windows 资源管理器的自然排序规则排列文件名
+    my_list = sort_file_names_like_windows(my_list)
+
     if with_extension:
         return my_list
     else:
         for i in range(len(my_list)):
-            my_list[i] = my_list[i].split(".")[0]
+            my_list[i] = my_list[i].rsplit('.', 1)[0]
         return my_list
 
 
