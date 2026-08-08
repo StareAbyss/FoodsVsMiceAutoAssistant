@@ -24,6 +24,9 @@ dependencies = [
     "wmi>=1.5.1",
 ]
 
+[tool.uv]
+python-install-mirror = "https://registry.npmmirror.com/-/binary/python-build-standalone"
+
 [[tool.uv.index]]
 url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 default = true
