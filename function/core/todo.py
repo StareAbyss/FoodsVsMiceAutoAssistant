@@ -272,8 +272,8 @@ class ThreadTodo(QThread):
         def run_delete(cur_player):
             password = self.opt["level_2"][f"{cur_player}p"]["password"]
             faa = self.faa_dict[cur_player]
-            faa.input_level_2_password(password=password)
-            faa.delete_items()
+            if faa.input_level_2_password(password=password):
+                faa.delete_items()
 
         self.thread_1p = ThreadWithException(
             target=run_delete,
@@ -324,8 +324,8 @@ class ThreadTodo(QThread):
         def run_get_dark_crystal(cur_player):
             password = self.opt["level_2"][f"{cur_player}p"]["password"]
             faa = self.faa_dict[cur_player]
-            faa.input_level_2_password(password=password)
-            faa.get_dark_crystal()
+            if faa.input_level_2_password(password=password):
+                faa.get_dark_crystal()
 
         self.thread_1p = ThreadWithException(
             target=run_get_dark_crystal,
@@ -376,8 +376,8 @@ class ThreadTodo(QThread):
         def run_gdisenchant_geml(cur_player):
             password = self.opt["level_2"][f"{cur_player}p"]["password"]
             faa = self.faa_dict[cur_player]
-            faa.input_level_2_password(password=password)
-            faa.disenchant_gem()
+            if faa.input_level_2_password(password=password):
+                faa.disenchant_gem()
 
         self.thread_1p = ThreadWithException(
             target=run_gdisenchant_geml,

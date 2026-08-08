@@ -3033,17 +3033,39 @@ class FAABase:
 
     def input_level_2_password(self: "FAA", password: str):
         """
-        输入二级密码. 通过背包内尝试拆主武器
+        输入二级密码.
         """
 
-        SIGNAL.PRINT_TO_UI.emit(text=f"[输入二级密码] [{self.player}P] 开始.")
+        SIGNAL.PRINT_TO_UI.emit(text=f"[输入二级密码] [{self.player}P] 开始. 默认通过暗晶商店, 请确保加入公会.")
 
-        # 打开背包
-        self.action_bottom_menu(mode="背包")
-        time.sleep(5)
+        # 打开公会副本界面
+        self.print_debug(text="跳转到公会副本界面")
+        self.action_bottom_menu(mode="跳转_公会副本")
 
-        # 卸下主武器
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=210, y=445)
+        # 打开暗晶商店
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=800, y=485)
+
+        # 确保加载正确完成
+        r = loop_match_p_in_w(
+            source_handle=self.handle,
+            source_range=[255, 15, 655, 60],
+            template=RESOURCE_P["common"]["暗晶商店_ui.png"],
+            match_tolerance=0.95,
+            match_interval=0.2,
+            match_failed_check=10,
+            after_sleep=0.2,
+            click=False
+        )
+        if not r:
+            SIGNAL.PRINT_TO_UI.emit(text=f"[输入二级密码] [{self.player}P] 失败? 请确认加入了公会.")
+            return False
+
+        # 进入暗晶兑换
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=180, y=70)
+        time.sleep(1)
+
+        # 兑换 弹出框体
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=405, y=190)
         time.sleep(1)
 
         # 点击输入框选中
@@ -3060,10 +3082,12 @@ class FAABase:
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=435, y=388)
         time.sleep(1)
 
-        # 关闭背包
-        self.action_exit(mode="普通红叉")
+        # 退出商店界面
+        for i in range(2):
+            self.action_exit(mode="普通红叉")
 
         SIGNAL.PRINT_TO_UI.emit(text=f"[输入二级密码] [{self.player}P] 结束.")
+        return True
 
     def gift_flower(self: "FAA"):
         """送免费花"""
