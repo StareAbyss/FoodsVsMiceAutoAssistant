@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 import locale
 import shutil
 import subprocess
@@ -21,6 +22,7 @@ DEFAULT_COMPOSE_URL = "https://q.ms.huanlecdn.com/7k7k/cdn.123u.com/config/compo
 DEFAULT_CARD_FUSION_URL = "https://q.ms.huanlecdn.com/7k7k/cdn.123u.com/config/CardFusion.xml"
 DEFAULT_OUTPUT_DIR = Path("resource") / "image" / "card" / "准备房间"
 DEFAULT_REPORT_DIR = Path("resource_other") / "图像资源_卡片准备房间_最新资源"
+DEFAULT_METADATA_OUTPUT = Path("config") / "card_evolution.json"
 DEFAULT_BLACKLIST_PATH = Path(__file__).with_name("card_prepare_room_card_blacklist.csv")
 EXCEL_FILE_PATTERN = "点我获取更多图像资源 *.xlsx"
 EXCEL_GENERATOR_SCRIPT = Path("tool") / "get_game_images_from_xiaye_db.py"
@@ -660,6 +662,78 @@ def write_csv(path: Path, rows: list[dict[str, object]], fieldnames: list[str]) 
         writer.writerows(rows)
 
 
+def build_card_evolution_metadata(
+        matched_rows: list[dict[str, object]],
+        image_dir: Path,
+) -> dict[str, dict[str, object]]:
+    """
+    根据本次进化链路解析结果和实际图片，构建卡片选择器元数据。
+
+    仅收录准备房间中确实存在图片的阶段，避免下载失败的资源出现在
+    可视化选择器中。每次均从完整解析结果重建，因此已经移除的链路
+    不会残留在配置文件中。
+    """
+    rows_by_card: dict[str, list[dict[str, object]]] = defaultdict(list)
+    for row in matched_rows:
+        base_name = str(row.get("基础卡片名称", "")).strip()
+        target_filename = str(row.get("目标文件名", "")).strip()
+        if base_name and target_filename and (image_dir / target_filename).is_file():
+            rows_by_card[base_name].append(row)
+
+    metadata: dict[str, dict[str, object]] = {}
+    for base_name, rows in sorted(rows_by_card.items()):
+        stages: dict[str, str] = {}
+        for row in sorted(rows, key=lambda item: int(item.get("序号", 0) or 0)):
+            try:
+                stage = int(row.get("序号", 0) or 0)
+            except (TypeError, ValueError):
+                continue
+            evolution_name = str(row.get("进化树名称", "")).strip()
+            if evolution_name:
+                stages[str(stage)] = evolution_name
+
+        if not stages:
+            continue
+
+        chain_types = {str(row.get("链路类型", "")).strip() for row in rows}
+        evolution_names = [stages[index] for index in sorted(stages, key=int)]
+        if "融合卡" in chain_types:
+            chain_kind = "fusion"
+        elif len(evolution_names) >= 3 and (
+                evolution_names[0].endswith("神使")
+                or any(name.endswith("圣神") for name in evolution_names[1:3])
+                or any(name.startswith("至尊") for name in evolution_names[2:])
+        ):
+            chain_kind = "gold"
+        elif chain_types == {"单独卡"}:
+            chain_kind = "single"
+        else:
+            chain_kind = "normal"
+
+        metadata[base_name] = {
+            "kind": chain_kind,
+            "stages": stages,
+        }
+
+    return metadata
+
+
+def write_card_evolution_metadata(
+        metadata_output: Path,
+        matched_rows: list[dict[str, object]],
+        image_dir: Path,
+) -> None:
+    """以标准 JSON 格式原子更新卡片进化链路配置。"""
+    metadata = build_card_evolution_metadata(matched_rows, image_dir)
+    metadata_output.parent.mkdir(parents=True, exist_ok=True)
+    temporary_output = metadata_output.with_suffix(metadata_output.suffix + ".tmp")
+    temporary_output.write_text(
+        json.dumps(metadata, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    temporary_output.replace(metadata_output)
+
+
 def remove_obsolete_reports(report_dir: Path) -> None:
     for filename in OBSOLETE_REPORTS:
         path = report_dir / filename
@@ -738,6 +812,12 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--card-fusion", default=DEFAULT_CARD_FUSION_URL, help="CardFusion.xml URL 或本地路径")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT_DIR, help="准备房间卡片图片输出目录")
     parser.add_argument("--report-dir", type=Path, default=DEFAULT_REPORT_DIR, help="CSV 报告输出目录")
+    parser.add_argument(
+        "--metadata-output",
+        type=Path,
+        default=DEFAULT_METADATA_OUTPUT,
+        help="卡片选择器使用的标准 JSON 进化链路配置",
+    )
     parser.add_argument("--blacklist", type=Path, default=DEFAULT_BLACKLIST_PATH, help="未实装卡片黑名单 CSV")
     parser.add_argument("--timeout", type=int, default=20, help="单个网络请求超时秒数")
     parser.add_argument("--excel-update-timeout", type=int, default=300, help="获取最新 Excel 的超时秒数")
@@ -799,6 +879,8 @@ def main() -> int:
         )
 
     write_reports(args.report_dir, matched_rows, fusion_rows, single_rows, blocked_rows, blacklist_copy_rows, download_rows)
+    if not args.dry_run:
+        write_card_evolution_metadata(args.metadata_output, matched_rows, args.output)
 
     print(f"Excel: {excel_path}")
     print(f"Compose: {args.compose}")
@@ -812,6 +894,8 @@ def main() -> int:
     print(f"单独卡图片: {len(single_rows)}")
     print(f"输出目录: {args.output}")
     print(f"报告目录: {args.report_dir}")
+    if not args.dry_run:
+        print(f"进化链路配置: {args.metadata_output}")
     print("下载状态统计:", status_count)
 
     return 1 if any(row["状态"] == "失败" for row in download_rows) else 0

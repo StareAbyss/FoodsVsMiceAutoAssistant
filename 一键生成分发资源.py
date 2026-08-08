@@ -307,6 +307,8 @@ def run_card_prepare_room_resource_tool(project_root: Path, latest_excel) -> Non
         str(project_root / "resource" / "image" / "card" / "准备房间"),
         "--report-dir",
         str(project_root / "resource_other" / "图像资源_卡片准备房间_最新资源"),
+        "--metadata-output",
+        str(project_root / "config" / "card_evolution.json"),
     ]
     if latest_excel:
         command.extend(["--excel", str(project_root / latest_excel)])
