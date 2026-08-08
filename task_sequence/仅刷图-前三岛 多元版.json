@@ -1,7 +1,7 @@
 [
     {
         "meta_data": {
-            "uuid": "9c8dbb74-de80-11f0-8b4e-f4c88a4ed544",
+            "uuid": "7e3be558-9267-11f1-9abb-9ebad9391dd9",
             "version": "1.0"
         }
     },
@@ -12,14 +12,14 @@
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "stage_id": "NO-1-7",
+            "stage_id": "MU-1-1",
             "max_times": 12,
             "need_key": true,
             "player": [
                 2,
                 1
             ],
-            "global_plan_active": false,
+            "global_plan_active": true,
             "deck": 0,
             "battle_plan_1p": "654e418d-ad07-11ef-9999-c2f2346a1393",
             "battle_plan_2p": "7512848d-ad07-11ef-828e-c2f2346a1393",
@@ -45,14 +45,14 @@
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "stage_id": "NO-1-14",
-            "max_times": 28,
+            "stage_id": "MU-1-2",
+            "max_times": 23,
             "need_key": true,
             "player": [
                 2,
                 1
             ],
-            "global_plan_active": false,
+            "global_plan_active": true,
             "deck": 0,
             "battle_plan_1p": "654e418d-ad07-11ef-9999-c2f2346a1393",
             "battle_plan_2p": "7512848d-ad07-11ef-828e-c2f2346a1393",
@@ -78,14 +78,14 @@
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "stage_id": "NO-2-5",
+            "stage_id": "MU-2-1",
             "max_times": 5,
             "need_key": true,
             "player": [
                 2,
                 1
             ],
-            "global_plan_active": false,
+            "global_plan_active": true,
             "deck": 0,
             "battle_plan_1p": "654e418d-ad07-11ef-9999-c2f2346a1393",
             "battle_plan_2p": "7512848d-ad07-11ef-828e-c2f2346a1393",
