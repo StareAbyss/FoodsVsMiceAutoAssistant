@@ -313,13 +313,13 @@ class BattlePreparation:
 
             # 复位滑块
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=209)
-            time.sleep(0.25)
+            time.sleep(0.5)
 
             for i in range(21):
                 if tar_page_num is None or i >= tar_page_num:
 
-                    # 等一下实际的游戏控件刷新, 因为画面刷新 ≠ 控件刷新
-                    time.sleep(0.3)
+                    # 等一下实际的游戏控件刷新，并在选卡点击前额外留出响应时间
+                    time.sleep(0.4)
 
                     # 需要刷新游戏帧数
                     find = loop_match_p_in_w(
@@ -331,7 +331,7 @@ class BattlePreparation:
                         match_tolerance=0.998,
                         match_failed_check=0.2,
                         match_interval=0.1,
-                        after_sleep=0.25,
+                        after_sleep=0.35,
                         click=True)
                     if find:
                         found_card = True
