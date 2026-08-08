@@ -10,6 +10,14 @@
         "cd_after_use_random_range-tip" : "list[float,float] 战斗中放一张卡后的间隔值的随机范围, null则不启用. 用于在巅峰对决中让faa变笨笨",
         "cd_after_use_random_range": null,
         "senior_setting-tip" : "bool, 是否开启高级战斗",
-        "senior_setting": false
+        "senior_setting": false,
+        "ban_state-tip": "mat、icecream、god、ikun 为 true 时，同时关闭对应辅助卡片的自动携带和智能使用；coffee 为 true 时直接禁用咖啡粉携带",
+        "ban_state": {
+            "mat": false,
+            "icecream": false,
+            "god": false,
+            "ikun": false,
+            "coffee": false
+        }
     }
 }
