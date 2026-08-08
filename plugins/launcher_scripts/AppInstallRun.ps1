@@ -44,6 +44,41 @@ function Write-Hint {
     Write-Host $Text -ForegroundColor Yellow
 }
 
+function Get-TomlStringValue {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+        [Parameter(Mandatory = $true)]
+        [string]$Section,
+        [Parameter(Mandatory = $true)]
+        [string]$Key
+    )
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return $null
+    }
+
+    # 此时 Python 可能尚未安装，且 Windows PowerShell 5.1 没有内置 TOML 解析器。
+    # 启动器只读取本项目中双引号包裹的简单字符串配置，不承担通用 TOML 解析。
+    $currentSection = ""
+    $keyPattern = '^\s*' + [regex]::Escape($Key) + '\s*=\s*"([^"]*)"\s*(?:#.*)?$'
+    foreach ($line in Get-Content -LiteralPath $Path -Encoding UTF8) {
+        if ($line -match '^\s*\[\[([^\[\]]+)\]\]\s*(?:#.*)?$') {
+            $currentSection = $Matches[1].Trim()
+            continue
+        }
+        if ($line -match '^\s*\[([^\[\]]+)\]\s*(?:#.*)?$') {
+            $currentSection = $Matches[1].Trim()
+            continue
+        }
+        if ($currentSection -eq $Section -and $line -match $keyPattern) {
+            return $Matches[1]
+        }
+    }
+
+    return $null
+}
+
 function Write-Fail {
     param([string]$Text)
     Write-Host $Text -ForegroundColor Red
@@ -144,12 +179,22 @@ function Prepare-Uv {
 
 function Install-Python {
     Set-Location -LiteralPath $appDir
+    $pyprojectPath = Join-Path $appDir "pyproject.toml"
+    $pythonMirror = Get-TomlStringValue `
+        -Path $pyprojectPath `
+        -Section "tool.uv" `
+        -Key "python-install-mirror"
+
     Write-Plain
     Write-Step "[2/4] 正在准备 Python 3.12 运行环境..."
     Write-Hint "首次启动可能需要下载 Python，请保持网络连接。"
-    Write-Info "Python 下载源：uv 默认 Python 安装源。"
-    Write-Info "如需修改 Python 下载镜像，开发者可在 AppInstallRun.ps1 的 uv python install 命令中添加 --mirror 参数。"
-    Write-Info "也可以设置环境变量 UV_PYTHON_INSTALL_MIRROR。"
+    if ($pythonMirror) {
+        Write-Info "Python 下载源：$pythonMirror"
+        Write-Info "配置位置：pyproject.toml 的 [tool.uv].python-install-mirror。"
+    }
+    else {
+        Write-Hint "未读取到 Python 镜像配置，将使用 uv 默认源（GitHub 源）。"
+    }
 
     & $uvExe python install 3.12
     if ($LASTEXITCODE -ne 0) {
@@ -161,12 +206,22 @@ function Install-Python {
 
 function Sync-Locked {
     Set-Location -LiteralPath $appDir
+    $pyprojectPath = Join-Path $appDir "pyproject.toml"
+    $packageIndex = Get-TomlStringValue `
+        -Path $pyprojectPath `
+        -Section "tool.uv.index" `
+        -Key "url"
+
     Write-Plain
     Write-Step "[3/4] 正在安装或校验 FAA 运行依赖..."
     Write-Hint "首次启动会比较慢，后续启动会复用本地环境。"
-    Write-Info "Python 依赖下载源：pyproject.toml 中的 [[tool.uv.index]]。"
-    Write-Info "当前默认镜像源：https://pypi.tuna.tsinghua.edu.cn/simple"
-    Write-Info "如需修改依赖镜像，开发者可编辑 pyproject.toml 的 [[tool.uv.index]].url。"
+    if ($packageIndex) {
+        Write-Info "Python 依赖下载源：$packageIndex"
+        Write-Info "配置位置：pyproject.toml 的 [[tool.uv.index]].url。"
+    }
+    else {
+        Write-Hint "未读取到依赖镜像配置，将使用 uv 默认 Python 包索引。"
+    }
 
     & $uvExe sync --locked --no-dev
     if ($LASTEXITCODE -ne 0) {
