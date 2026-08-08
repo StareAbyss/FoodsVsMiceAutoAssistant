@@ -21,6 +21,7 @@ from function.scattered.class_battle_plan_v3d0 import json_to_obj, TriggerWaveTi
     obj_to_json, Card, MetaData, \
     CardLoopConfig, ActionRandomSingleCard, ActionRandomMultiCard
 from function.widget.MultiLevelMenu import MultiLevelMenu
+from function.widget.CardNameSelector import CardNameSelectorWidget
 
 double_click_card_list = pyqtSignal(object)
 
@@ -1325,11 +1326,32 @@ class QMWEditorOfBattlePlan(QMainWindow):
                 data = {"gem_id": event.action.gem_id, "time": event.trigger.time}
                 self.EditorOfActionInfo = GemInfoEditor(data=data, func_update=self.update_info_mode_3)
 
-        # 计算显示位置
-        global_pos = self.ListLoopAction.viewport().mapToGlobal(
-            self.ListLoopAction.visualItemRect(list_item).topRight()
-        )
-        self.EditorOfActionInfo.move(global_pos + QPoint(20, 0))
+        # 卡片名称选择器尺寸较大，居中显示并限制在当前屏幕可用区域内。
+        if self.editing_mode == 0:
+            dialog_size = self.EditorOfActionInfo.size()
+            editor_center = self.frameGeometry().center()
+            screen = QApplication.screenAt(editor_center) or QApplication.primaryScreen()
+            available_geometry = screen.availableGeometry()
+            dialog_x = max(
+                available_geometry.left(),
+                min(
+                    editor_center.x() - dialog_size.width() // 2,
+                    available_geometry.right() - dialog_size.width() + 1,
+                ),
+            )
+            dialog_y = max(
+                available_geometry.top(),
+                min(
+                    editor_center.y() - dialog_size.height() // 2,
+                    available_geometry.bottom() - dialog_size.height() + 1,
+                ),
+            )
+            self.EditorOfActionInfo.move(dialog_x, dialog_y)
+        else:
+            global_pos = self.ListLoopAction.viewport().mapToGlobal(
+                self.ListLoopAction.visualItemRect(list_item).topRight()
+            )
+            self.EditorOfActionInfo.move(global_pos + QPoint(20, 0))
 
         # 完成显示
         # self.card_action_editor.show()
@@ -2570,7 +2592,7 @@ class InfoEditorOfCards(QDialog):
         self.func_update = func_update
 
         # 窗口标题栏
-        self.setWindowTitle("编辑卡片属性")
+        self.setWindowTitle("编辑卡片名称")
 
         # 彻底移除系统菜单图标
         self.setWindowFlags(
@@ -2590,24 +2612,17 @@ class InfoEditorOfCards(QDialog):
         self.connect_functions()
 
     def init_ui(self):
-        LayMain = QVBoxLayout()
-        self.setLayout(LayMain)
+        """嵌入卡片解析与可视化选择组件。"""
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
 
-        # 名称
-        layout = QHBoxLayout()
-        LayMain.addLayout(layout)
-
-        label = QLabel('名称')
-        layout.addWidget(label)
-
-        self.WidgetNameInput = QLineEdit()
-        self.WidgetNameInput.setFixedWidth(140)
-        self.WidgetNameInput.setToolTip(
-            "名称标识是什么卡片\n"
-            "手动带卡: 能让用户看懂该带啥就行.\n"
-            "自动带卡: 需要遵从命名规范, 请查看右上角教学或相关文档."
+        self.CardNameSelector = CardNameSelectorWidget(
+            initial_name=str(self.data["name"]),
+            parent=self,
         )
-        layout.addWidget(self.WidgetNameInput)
+        self.WidgetNameInput = self.CardNameSelector.name_input
+        main_layout.addWidget(self.CardNameSelector)
+        self.resize(self.CardNameSelector.size())
 
     def load_data(self):
         self.WidgetNameInput.setText(str(self.data["name"]))
