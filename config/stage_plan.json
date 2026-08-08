@@ -27,8 +27,8 @@
         "skip": false,
         "deck": 0,
         "battle_plan": [
-            "dac459e6-ac2b-11ef-bd1a-c2f2346a1393",
-            "a1ea3611-ac31-11ef-bb7f-c2f2346a1393"
+            "38345762-d0fc-11ef-a46d-f44efc5bf671",
+            "4a0a4e22-d0fc-11ef-b63c-f44efc5bf671"
         ]
     },
     "EX-2-6": {
@@ -99,8 +99,8 @@
         "skip": false,
         "deck": 0,
         "battle_plan": [
-            "6ffca359-9872-11ef-889b-f44efc5bf671",
-            "f7c41b8c-9872-11ef-be95-f44efc5bf671"
+            "db8623fe-92ca-11f1-af82-9ebad9391dd9",
+            "c9b62733-92cb-11f1-885f-9ebad9391dd9"
         ]
     },
     "MT-1-155": {
@@ -291,8 +291,8 @@
         "skip": false,
         "deck": 0,
         "battle_plan": [
-            "fdfd70ae-0ea4-11f1-b2d6-b3d671c65c7e",
-            "8bad66e3-0ea6-11f1-bc17-b3d671c65c7e"
+            "7f8f3717-8a4d-11f1-8622-9ebad9391dd9",
+            "67d985ee-8a4e-11f1-b34a-9ebad9391dd9"
         ]
     },
     "CZ-0-4": {
@@ -343,15 +343,6 @@
             "bab86a98-8c1b-11ef-a021-f44efc5bf671"
         ]
     },
-    "WB-0-0": {
-        "skip": false,
-        "deck": 0,
-        "battle_plan": [
-            "ed265a8a-4e24-11f0-a5ed-f44efc5bf671",
-            "16b7fce4-29ae-11f0-9789-f44efc5bf671"
-        ],
-        "tweak_plan": "00000000-0000-0000-0000-000000000002"
-    },
     "WB-0-2": {
         "skip": false,
         "deck": 0,
@@ -365,7 +356,7 @@
         "skip": false,
         "deck": 0,
         "battle_plan": [
-            "ed265a8a-4e24-11f0-a5ed-f44efc5bf671",
+            "16b7fce4-29ae-11f0-9789-f44efc5bf671",
             "16b7fce4-29ae-11f0-9789-f44efc5bf671"
         ],
         "tweak_plan": "00000000-0000-0000-0000-000000000002"
@@ -474,7 +465,7 @@
         "skip": false,
         "deck": 0,
         "battle_plan": [
-            "ed265a8a-4e24-11f0-a5ed-f44efc5bf671",
+            "16b7fce4-29ae-11f0-9789-f44efc5bf671",
             "16b7fce4-29ae-11f0-9789-f44efc5bf671"
         ],
         "tweak_plan": "00000000-0000-0000-0000-000000000002"
@@ -492,7 +483,7 @@
         "skip": false,
         "deck": 0,
         "battle_plan": [
-            "ed265a8a-4e24-11f0-a5ed-f44efc5bf671",
+            "16b7fce4-29ae-11f0-9789-f44efc5bf671",
             "16b7fce4-29ae-11f0-9789-f44efc5bf671"
         ],
         "tweak_plan": "00000000-0000-0000-0000-000000000002"
@@ -573,6 +564,81 @@
         "battle_plan": [
             "654e418d-ad07-11ef-9999-c2f2346a1393",
             "7512848d-ad07-11ef-828e-c2f2346a1393"
+        ]
+    },
+    "WB-5-1": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "8a42c73a-9098-11f1-8c1b-9ebad9391dd9",
+            "5c3975c7-9097-11f1-af3a-9ebad9391dd9"
+        ],
+        "tweak_plan": "00000000-0000-0000-0000-000000000002"
+    },
+    "WB-5-2": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "8a42c73a-9098-11f1-8c1b-9ebad9391dd9",
+            "5c3975c7-9097-11f1-af3a-9ebad9391dd9"
+        ],
+        "tweak_plan": "00000000-0000-0000-0000-000000000002"
+    },
+    "WB-5-3": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "8a42c73a-9098-11f1-8c1b-9ebad9391dd9",
+            "5c3975c7-9097-11f1-af3a-9ebad9391dd9"
+        ],
+        "tweak_plan": "00000000-0000-0000-0000-000000000002"
+    },
+    "EX-6-3": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "c558cc30-8a6c-11f1-8d2a-9ebad9391dd9",
+            "c558cc30-8a6c-11f1-8d2a-9ebad9391dd9"
+        ]
+    },
+    "MU-1-1": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "7712fa55-9263-11f1-90a1-9ebad9391dd9",
+            "821ccfde-9264-11f1-ab22-9ebad9391dd9"
+        ]
+    },
+    "MU-1-2": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "51dca513-92c2-11f1-b5bf-9ebad9391dd9",
+            "b6c6555d-92c2-11f1-a54c-9ebad9391dd9"
+        ]
+    },
+    "MU-2-1": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "56b4e100-92c3-11f1-8baf-9ebad9391dd9",
+            "39fb43e0-92c4-11f1-8df8-9ebad9391dd9"
+        ]
+    },
+    "EX-6-1": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "1179e49b-7cc1-11f1-a169-d3b9d567db29",
+            "1179e49b-7cc1-11f1-a169-d3b9d567db29"
+        ]
+    },
+    "EX-6-2": {
+        "skip": false,
+        "deck": 0,
+        "battle_plan": [
+            "1179e49b-7cc1-11f1-a169-d3b9d567db29",
+            "1179e49b-7cc1-11f1-a169-d3b9d567db29"
         ]
     }
 }
