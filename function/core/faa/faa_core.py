@@ -15,6 +15,7 @@ from function.common.get_system_dpi import get_window_position, get_system_dpi
 from function.common.image_processing.overlay_images import overlay_images
 from function.common.process_manager import close_software_by_title, get_path_and_sub_titles, \
     close_all_software_by_name, start_software_with_args
+from function.core.faa.tweak_plan import get_auto_card_target_names
 from function.core.my_crypto import decrypt_data
 from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
 from function.globals import g_resources, SIGNAL, EXTRA
@@ -658,15 +659,18 @@ class FAABase:
 
     def init_mat_smoothie_kun_card_info(self: "FAA") -> None:
         """
-        根据关卡名称和可用承载卡，以及游戏内识图到的承载卡取交集，返回承载卡的x-y坐标
-        :return: [[x1, y1], [x2, y2],...]
+        识别本场战斗允许自动使用的承载卡、冰沙和连携卡。
+
+        微调方案禁用某类辅助卡片后，不再识别该类卡片，也不会为其自动生成
+        承载铺设、冰沙放置或创造神/幻幻鸡连携逻辑。
         """
 
-        self.print_info("战斗中识图查找承载卡/冰沙/坤位置, 开始")
+        self.print_info("战斗中识图查找启用的承载卡/冰沙/连携卡位置, 开始")
 
-        target_mat_list = copy.deepcopy(self.stage_info["mat_card"])
-        target_smoothie_list = ["冰激凌"]
-        target_kun_list = ["幻幻鸡", "创造神"]
+        target_mat_list, target_smoothie_list, target_kun_list = get_auto_card_target_names(
+            stage_mat_card_names=self.stage_info["mat_card"],
+            battle_plan_tweak=self.battle_plan_tweak,
+        )
 
         def scan(target_names_list, image):
             """
@@ -772,7 +776,7 @@ class FAABase:
                 if check_coordinate(card_xy_list=card_xy_list):
                     kun_cards_info.append({'name': card_name, "card_id": card_id})
         self.kun_cards_info = kun_cards_info
-        self.print_info(text="战斗中识图查找幻幻鸡位置, 结果：{}".format(self.kun_cards_info))
+        self.print_info(text="战斗中识图查找连携卡位置, 结果：{}".format(self.kun_cards_info))
 
     def init_battle_plan_card(self: "FAA", wave: int) -> None:
         """

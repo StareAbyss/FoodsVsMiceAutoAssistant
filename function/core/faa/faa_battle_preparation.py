@@ -11,6 +11,7 @@ from function.common.bg_img_match import loop_match_ps_in_w, loop_match_p_in_w, 
 from function.common.bg_img_screenshot import capture_image_png
 from function.common.image_processing.overlay_images import overlay_images
 from function.core.analyzer_of_loot_logs import match_items_from_image_and_save
+from function.core.faa.tweak_plan import get_tweak_plan_ban_state
 from function.globals import SIGNAL, EXTRA
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
@@ -690,21 +691,16 @@ class BattlePreparation:
             SIGNAL.PRINT_TO_UI.emit(f"检测到特殊关卡：{stage_name}，已为你启用对应关卡信息(铲卡/承载)", 7)
 
     def _auto_carry_card_get_card_name_list_from_battle_plan(self: "FAA"):
-        # 强制禁用状态
-        ban_mat = False
-        ban_icecream = False
-        ban_god = False
-        ban_ikun = False
-        ban_coffee = False
-        if self.battle_plan_tweak:
-            ban_state = self.battle_plan_tweak["meta_data"].get("ban_state", None)
-            if ban_state:
-                ban_mat = ban_state.get("mat", False)
-                ban_icecream = ban_state.get("icecream", False)
-                ban_god = ban_state.get("god", False)
-                ban_ikun = ban_state.get("ikun", False)
-                ban_coffee = ban_state.get("coffee", False)
-            pass
+        """
+        根据战斗方案和微调方案生成自动带卡清单。
+
+        微调方案中的 ban_state 用于关闭对应辅助卡片的自动携带功能；
+        同一状态还会在战斗初始化阶段关闭对应的智能使用功能。
+
+        Returns:
+            按卡片优先级排列的自动带卡要求列表。
+        """
+        ban_state = get_tweak_plan_ban_state(self.battle_plan_tweak)
         my_dict = {}
         mats = copy.deepcopy(self.stage_info["mat_card"])
 
@@ -720,19 +716,19 @@ class BattlePreparation:
             required_cards_list.append({"name": card, "can_failed": False})
 
         # 如果需要任意承载卡 第一张卡设定为 有效承载 置于末位
-        if len(mats) >= 1 and not ban_mat:
+        if len(mats) >= 1 and not ban_state["mat"]:
             required_cards_list.append({"name": "有效承载", "can_failed": False})
 
         # 添加冰沙 复制类 置于末位 允许找不到
-        if not ban_icecream:
+        if not ban_state["icecream"]:
             required_cards_list.append({"name": "冰激凌-2", "can_failed": True})
-        if not ban_god:
+        if not ban_state["god"]:
             required_cards_list.append({"name": "创造神", "can_failed": True})
-        if not ban_ikun:
+        if not ban_state["ikun"]:
             required_cards_list.append({"name": "幻幻鸡", "can_failed": True})
 
         # 如果有效承载数量 >= 2 置于末位 允许找不到
-        if len(mats) >= 2 and not ban_mat:
+        if len(mats) >= 2 and not ban_state["mat"]:
             for _ in range(len(mats) - 1):
                 required_cards_list.append({"name": "有效承载", "can_failed": True})
 
@@ -747,7 +743,7 @@ class BattlePreparation:
             else:
                 self.ban_card_list += ["咖啡粉"]
 
-        if ban_coffee:
+        if ban_state["coffee"]:
             if not self.ban_card_list:
                 self.ban_card_list = ["咖啡粉"]
             elif "咖啡粉" not in self.ban_card_list:
