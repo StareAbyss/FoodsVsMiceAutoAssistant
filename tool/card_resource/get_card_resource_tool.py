@@ -24,8 +24,11 @@ DEFAULT_REPORT_DIR = Path("resource_other") / "图像资源_卡片准备房间_�
 DEFAULT_BLACKLIST_PATH = Path(__file__).with_name("card_prepare_room_card_blacklist.csv")
 EXCEL_FILE_PATTERN = "点我获取更多图像资源 *.xlsx"
 EXCEL_GENERATOR_SCRIPT = Path("tool") / "get_game_images_from_xiaye_db.py"
-URL_COLUMNS = ("D", "E", "F", "G", "H")
-INVALID_URL_VALUES = {"", "-1", "None", "none", "NULL", "null"}
+IMAGE_RESOURCE_COLUMNS = ("D", "E", "F", "G", "H")
+EMPTY_RESOURCE_VALUES = {"", "-1", "None", "none", "NULL", "null"}
+CARD_PREPARE_ROOM_URL_TEMPLATE = (
+    "https://q.ms.huanlecdn.com/4399/cdn.123u.com/images/1/1/{item_id}.png"
+)
 USER_AGENT = "FoodsVsMousesAutoAssistant-card-resource-tool/1.0"
 SUBPROCESS_TEXT_ENCODING = locale.getpreferredencoding(False) or "utf-8"
 OBSOLETE_REPORTS = (
@@ -82,6 +85,22 @@ class PlannedCardImage:
 
 def safe_filename(name: str) -> str:
     return "".join("_" if ch in '<>:"/\\|?*' or ord(ch) < 32 else ch for ch in name).strip().rstrip(".")
+
+
+def build_card_prepare_room_url(item_id: str) -> str:
+    """
+    根据卡片 ID 生成准备房间待选图片的固定 CDN 地址。
+
+    图像资源 Excel 的 D-H 列可能漏填或混入卡片立绘地址；卡片待选图实际
+    统一存放在 `/images/1/1/`，因此只使用 Excel 的 ID 与名称映射。
+
+    Args:
+        item_id: Excel A 列中的卡片 ID，例如 `0x1112059e`。
+
+    Returns:
+        对应卡片的 40×50 准备房间待选图片 URL。
+    """
+    return CARD_PREPARE_ROOM_URL_TEMPLATE.format(item_id=item_id)
 
 
 def is_remote_url(source: str) -> bool:
@@ -199,6 +218,18 @@ def read_xlsx_rows(excel_path: Path) -> list[dict[str, str]]:
 
 
 def parse_excel_cards(excel_path: Path) -> dict[str, ExcelCard]:
+    """
+    从图像资源 Excel 读取卡片 ID 与名称映射。
+
+    D-H 列只用于确认该条目确实提供了图像资源，不采用其中可能类型错误的 URL。
+    卡片待选图 URL 始终由 ID 按固定规则生成。
+
+    Args:
+        excel_path: 图像资源 Excel 文件路径。
+
+    Returns:
+        以卡片 ID 为键的 Excel 卡片信息。
+    """
     rows = read_xlsx_rows(excel_path)
     cards: dict[str, ExcelCard] = {}
     for row_number, row in enumerate(rows[1:], start=2):
@@ -207,14 +238,19 @@ def parse_excel_cards(excel_path: Path) -> dict[str, ExcelCard]:
         if not item_id.startswith("0x11") or not name:
             continue
 
-        urls = tuple(
-            value
-            for value in ((row.get(column) or "").strip() for column in URL_COLUMNS)
-            if value not in INVALID_URL_VALUES
+        has_image_resource = any(
+            (row.get(column) or "").strip() not in EMPTY_RESOURCE_VALUES
+            for column in IMAGE_RESOURCE_COLUMNS
         )
-        if not urls:
+        if not has_image_resource:
             continue
-        cards[item_id] = ExcelCard(item_id=item_id, name=name, urls=urls, source_row=row_number)
+
+        cards[item_id] = ExcelCard(
+            item_id=item_id,
+            name=name,
+            urls=(build_card_prepare_room_url(item_id),),
+            source_row=row_number,
+        )
     return cards
 
 
