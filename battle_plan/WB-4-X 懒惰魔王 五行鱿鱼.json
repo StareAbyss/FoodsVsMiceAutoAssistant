@@ -50,18 +50,14 @@
         },
         {
             "card_id": 11,
-            "name": "美味计时器"
-        },
-        {
-            "card_id": 12,
             "name": "香辣年糕蟹"
         },
         {
-            "card_id": 13,
+            "card_id": 12,
             "name": "金牛烟花"
         },
         {
-            "card_id": 14,
+            "card_id": 13,
             "name": "10周年烟花"
         }
     ],
@@ -223,15 +219,6 @@
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "2-4"
-                        ],
-                        "kun": 0
-                    },
-                    {
-                        "card_id": 12,
-                        "ergodic": true,
-                        "queue": false,
-                        "location": [
                             "6-4",
                             "6-2",
                             "6-6",
@@ -241,7 +228,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 13,
+                        "card_id": 12,
                         "ergodic": false,
                         "queue": true,
                         "location": [
@@ -251,7 +238,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 14,
+                        "card_id": 13,
                         "ergodic": true,
                         "queue": true,
                         "location": [
@@ -361,15 +348,6 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 11,
-                        "ergodic": true,
-                        "queue": false,
-                        "location": [
-                            "2-4"
-                        ],
-                        "kun": 0
-                    },
-                    {
                         "card_id": 9,
                         "ergodic": true,
                         "queue": false,
@@ -427,7 +405,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 12,
+                        "card_id": 11,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -439,7 +417,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 13,
+                        "card_id": 12,
                         "ergodic": false,
                         "queue": true,
                         "location": [
@@ -449,7 +427,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 14,
+                        "card_id": 13,
                         "ergodic": true,
                         "queue": true,
                         "location": [
@@ -571,15 +549,6 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 11,
-                        "ergodic": true,
-                        "queue": false,
-                        "location": [
-                            "2-4"
-                        ],
-                        "kun": 0
-                    },
-                    {
                         "card_id": 9,
                         "ergodic": true,
                         "queue": false,
@@ -635,7 +604,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 12,
+                        "card_id": 11,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -650,7 +619,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 13,
+                        "card_id": 12,
                         "ergodic": false,
                         "queue": true,
                         "location": [
@@ -660,7 +629,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 14,
+                        "card_id": 13,
                         "ergodic": true,
                         "queue": true,
                         "location": [
@@ -830,15 +799,6 @@
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "2-4"
-                        ],
-                        "kun": 0
-                    },
-                    {
-                        "card_id": 12,
-                        "ergodic": true,
-                        "queue": false,
-                        "location": [
                             "6-4",
                             "6-2",
                             "6-6",
@@ -848,7 +808,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 13,
+                        "card_id": 12,
                         "ergodic": false,
                         "queue": true,
                         "location": [
@@ -858,7 +818,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 14,
+                        "card_id": 13,
                         "ergodic": true,
                         "queue": true,
                         "location": [

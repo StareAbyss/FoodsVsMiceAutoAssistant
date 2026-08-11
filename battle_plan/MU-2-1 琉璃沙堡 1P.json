@@ -32,10 +32,6 @@
         {
             "card_id": 6,
             "name": "护罩"
-        },
-        {
-            "card_id": 7,
-            "name": "美味计时器"
         }
     ],
     "events": [
@@ -176,15 +172,6 @@
                             "9-5",
                             "9-6",
                             "9-7"
-                        ],
-                        "kun": 0
-                    },
-                    {
-                        "card_id": 7,
-                        "ergodic": false,
-                        "queue": false,
-                        "location": [
-                            "4-4"
                         ],
                         "kun": 0
                     }

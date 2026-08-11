@@ -15,7 +15,11 @@ from function.common.get_system_dpi import get_window_position, get_system_dpi
 from function.common.image_processing.overlay_images import overlay_images
 from function.common.process_manager import close_software_by_title, get_path_and_sub_titles, \
     close_all_software_by_name, start_software_with_args
-from function.core.faa.tweak_plan import get_auto_card_target_names
+from function.core.faa.tweak_plan import (
+    build_auto_timer_card,
+    get_auto_card_target_names,
+    get_auto_timer_target_names,
+)
 from function.core.my_crypto import decrypt_data
 from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
 from function.globals import g_resources, SIGNAL, EXTRA
@@ -105,6 +109,7 @@ class FAABase:
         self.mat_cards_info: list[dict] | None = None  # 承载卡位置
         self.smoothie_info = None  # 冰沙位置
         self.kun_cards_info: list[dict] | None = None  # 坤位置 也用于标记本场战斗是否需要激活坤函数
+        self.timer_info = None  # 美味计时器位置及转职信息
         self.battle_plan_card = []  # 经过处理后的战斗方案卡片部分, 由战斗类相关动作函数直接调用
         self.battle_lock = threading.Lock()  # 战斗放卡锁，保证同一时间一个号里边的特殊放卡及正常放卡只有一种放卡在操作
 
@@ -671,8 +676,17 @@ class FAABase:
             stage_mat_card_names=self.stage_info["mat_card"],
             battle_plan_tweak=self.battle_plan_tweak,
         )
+        target_timer_list = get_auto_timer_target_names(
+            battle_plan_tweak=self.battle_plan_tweak,
+            battle_plan=self.battle_plan,
+        )
 
-        def scan(target_names_list, image):
+        def scan(
+                target_names_list,
+                image,
+                job_codes=(0, 1, 2, 3),
+                keep_variant=False,
+        ):
             """
             根据名称列表进行扫描, 支持自动拓展转职名称
             :param target_names_list:
@@ -686,12 +700,17 @@ class FAABase:
                 if "-" in target_name:
                     target_name_with_jc_code_list.append(f"{target_name}")
                 else:
-                    for i in [0, 1, 2, 3]:
+                    for i in job_codes:
                         target_name_with_jc_code_list.append(f"{target_name}-{i}")
 
             for target_name_with_jc_code in target_name_with_jc_code_list:
+                result_key = (
+                    target_name_with_jc_code
+                    if keep_variant
+                    else target_name_with_jc_code.split("-")[0]
+                )
                 # 同名卡片已经查找成功, 跳过该卡片
-                if target_name_with_jc_code.split("-")[0] in return_dict.keys():
+                if result_key in return_dict:
                     continue
 
                 # 0 1 分别代表费用不足和充足情况下的图片资源
@@ -711,7 +730,7 @@ class FAABase:
                         template=RESOURCE_P["card"]["战斗"][mat_card_full_name],
                         match_tolerance=0.99)
                     if find:
-                        return_dict[target_name_with_jc_code.split("-")[0]] = [int(x1 + find[0]), int(y1 + find[1])]
+                        return_dict[result_key] = [int(x1 + find[0]), int(y1 + find[1])]
                         break
 
                     x1 = 880
@@ -722,7 +741,7 @@ class FAABase:
                         template=RESOURCE_P["card"]["战斗"][mat_card_full_name],
                         match_tolerance=0.99)
                     if find:
-                        return_dict[target_name_with_jc_code.split("-")[0]] = [int(x1 + find[0]), int(y1 + find[1])]
+                        return_dict[result_key] = [int(x1 + find[0]), int(y1 + find[1])]
                         break
 
             return return_dict
@@ -737,16 +756,25 @@ class FAABase:
             mat_card_dict = scan(target_names_list=target_mat_list, image=image)
             smoothie_card_dict = scan(target_names_list=target_smoothie_list, image=image)
             kun_card_dict = scan(target_names_list=target_kun_list, image=image)
+            timer_card_dict = scan(
+                target_names_list=target_timer_list,
+                image=image,
+                job_codes=(0, 1, 2),
+                keep_variant=True,
+            )
 
             # 防止卡片正好被某些特效遮挡, 所以等待一下
             time.sleep(0.1)
 
-        def check_coordinate(card_xy_list):
+        def check_coordinate(card_xy_list, target_coordinate):
             x1 = card_xy_list[0]
             y1 = card_xy_list[1]
             x2 = card_xy_list[0] + 53
             y2 = card_xy_list[1] + 70
-            if x1 <= coordinate[0] <= x2 and y1 <= coordinate[1] <= y2:
+            if (
+                    x1 <= target_coordinate[0] <= x2
+                    and y1 <= target_coordinate[1] <= y2
+            ):
                 return True
             return False
 
@@ -754,7 +782,7 @@ class FAABase:
         mat_cards_info = []
         for name, coordinate in mat_card_dict.items():
             for card_id, card_xy_list in self.bp_card.items():
-                if check_coordinate(card_xy_list=card_xy_list):
+                if check_coordinate(card_xy_list, coordinate):
                     mat_cards_info.append({'name': name, 'card_id': card_id})
         self.mat_cards_info = mat_cards_info
         self.print_info("战斗中识图查找承载卡位置, 结果: {}".format(mat_cards_info))
@@ -763,7 +791,7 @@ class FAABase:
         smoothie_info = None
         for name, coordinate in smoothie_card_dict.items():
             for card_id, card_xy_list in self.bp_card.items():
-                if check_coordinate(card_xy_list=card_xy_list):
+                if check_coordinate(card_xy_list, coordinate):
                     smoothie_info = {'name': '极寒冰沙', "card_id": card_id}
                     break
         self.smoothie_info = smoothie_info
@@ -773,10 +801,23 @@ class FAABase:
         kun_cards_info = []
         for card_name, coordinate in kun_card_dict.items():
             for card_id, card_xy_list in self.bp_card.items():
-                if check_coordinate(card_xy_list=card_xy_list):
+                if check_coordinate(card_xy_list, coordinate):
                     kun_cards_info.append({'name': card_name, "card_id": card_id})
         self.kun_cards_info = kun_cards_info
         self.print_info(text="战斗中识图查找连携卡位置, 结果：{}".format(self.kun_cards_info))
+
+        timer_info = None
+        for timer_variant, coordinate in timer_card_dict.items():
+            for card_id, card_xy_list in self.bp_card.items():
+                if check_coordinate(card_xy_list, coordinate):
+                    timer_info = {
+                        "name": "美味计时器",
+                        "card_id": card_id,
+                        "second_job": timer_variant.endswith("-2"),
+                    }
+                    break
+        self.timer_info = timer_info
+        self.print_info(text="战斗中识图查找美味计时器位置, 结果：{}".format(self.timer_info))
 
     def init_battle_plan_card(self: "FAA", wave: int) -> None:
         """
@@ -809,6 +850,7 @@ class FAABase:
         battle_plan = copy.deepcopy(self.battle_plan)
         mat_card_info = copy.deepcopy(self.mat_cards_info)
         smoothie_info = copy.deepcopy(self.smoothie_info)
+        timer_info = copy.deepcopy(self.timer_info)
 
         # 新版战斗方案兼容
         battle_plan = next(
@@ -937,6 +979,10 @@ class FAABase:
             return list_cell_all
 
         def calculation_card_extra(list_cell_all):
+
+            timer_card = build_auto_timer_card(timer_info, list_cell_all)
+            if timer_card:
+                list_cell_all.append(timer_card)
 
             if smoothie_info:
                 # # 生成从 "1-1" 到 "1-7" 再到 "9-1" 到 "9-7" 的列表

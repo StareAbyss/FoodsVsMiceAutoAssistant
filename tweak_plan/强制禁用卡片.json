@@ -9,6 +9,9 @@
             "god": true,
             "ikun": true,
             "coffee": false
+        },
+        "enable_auto_card": {
+            "timer": false
         }
     }
 }

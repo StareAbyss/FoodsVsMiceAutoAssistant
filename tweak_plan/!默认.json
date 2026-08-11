@@ -18,6 +18,10 @@
             "god": false,
             "ikun": false,
             "coffee": false
+        },
+        "enable_auto_card-tip": "timer 为 true 时，在存在正数 kun 目标的战斗方案中自动携带并使用美味计时器",
+        "enable_auto_card": {
+            "timer": false
         }
     }
 }

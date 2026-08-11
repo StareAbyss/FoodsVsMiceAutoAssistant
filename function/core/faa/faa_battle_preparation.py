@@ -11,7 +11,10 @@ from function.common.bg_img_match import loop_match_ps_in_w, loop_match_p_in_w, 
 from function.common.bg_img_screenshot import capture_image_png
 from function.common.image_processing.overlay_images import overlay_images
 from function.core.analyzer_of_loot_logs import match_items_from_image_and_save
-from function.core.faa.tweak_plan import get_tweak_plan_ban_state
+from function.core.faa.tweak_plan import (
+    get_auto_timer_target_names,
+    get_tweak_plan_ban_state,
+)
 from function.globals import SIGNAL, EXTRA
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
@@ -719,14 +722,18 @@ class BattlePreparation:
         if len(mats) >= 1 and not ban_state["mat"]:
             required_cards_list.append({"name": "有效承载", "can_failed": False})
 
-        # 添加冰沙 复制类 置于末位 允许找不到
+        # 添加计时器、冰沙和复制类卡片，置于末位且允许找不到。
+        if get_auto_timer_target_names(
+                battle_plan_tweak=self.battle_plan_tweak,
+                battle_plan=self.battle_plan,
+        ):
+            required_cards_list.append({"name": "美味计时器", "can_failed": True})
         if not ban_state["icecream"]:
             required_cards_list.append({"name": "冰激凌-2", "can_failed": True})
         if not ban_state["god"]:
             required_cards_list.append({"name": "创造神", "can_failed": True})
         if not ban_state["ikun"]:
             required_cards_list.append({"name": "幻幻鸡", "can_failed": True})
-
         # 如果有效承载数量 >= 2 置于末位 允许找不到
         if len(mats) >= 2 and not ban_state["mat"]:
             for _ in range(len(mats) - 1):

@@ -36,10 +36,6 @@
         {
             "card_id": 7,
             "name": "桥头米线"
-        },
-        {
-            "card_id": 8,
-            "name": "美味计时器"
         }
     ],
     "events": [
@@ -167,15 +163,6 @@
                             "8-6",
                             "8-1",
                             "8-7"
-                        ],
-                        "kun": 0
-                    },
-                    {
-                        "card_id": 8,
-                        "ergodic": true,
-                        "queue": true,
-                        "location": [
-                            "4-4"
                         ],
                         "kun": 0
                     }
