@@ -34,9 +34,9 @@ from function.globals.get_paths import PATHS
 
 CARD_TYPE_PATH = os.path.join(PATHS["config"], "card_type.json")
 CARD_IMAGE_DIR = os.path.join(PATHS["image"]["card"], "准备房间")
-CARD_METADATA_PATH = os.path.join(PATHS["config"], "card_evolution.json")
+CARD_CATEGORY_PATH = os.path.join(PATHS["config"], "card_stage_categories.json")
 
-CARD_FILE_PATTERN = re.compile(r"^(?P<base>.+)-(?P<stage>[0-3])\.png$")
+CARD_FILE_PATTERN = re.compile(r"^(?P<base>.+)-(?P<stage>\d+)\.png$")
 CHINESE_NAME_PATTERN = re.compile(r"^(.*[\u4e00-\u9fff])")
 COMPACT_CARD_GRID_WIDTH = 72
 PRIMARY_TEXT_ROLE = int(Qt.ItemDataRole.UserRole) + 20
@@ -65,12 +65,11 @@ class CardEntry:
 
     base_name: str
     stage_paths: dict[int, str] = field(default_factory=dict)
-    evolution_names: dict[int, str] = field(default_factory=dict)
     chain_kind: str = "normal"
 
     def search_text(self) -> str:
-        """返回用于具体卡片检索的完整文本。"""
-        return " ".join([self.base_name, *self.evolution_names.values()]).casefold()
+        """返回用于具体卡片检索的基础名称。"""
+        return self.base_name.casefold()
 
     def stage_label(self, stage: int) -> str:
         """根据普通卡、金卡或融合卡返回用户可读的阶段名称。"""
@@ -78,7 +77,13 @@ class CardEntry:
             return {0: "初融", 1: "深融", 2: "灵融"}.get(stage, f"阶段 {stage}")
         if self.chain_kind == "gold":
             return {0: "不转", 1: "三转", 2: "四转", 3: "终转"}.get(stage, f"阶段 {stage}")
-        return {0: "不转", 1: "一转", 2: "二转", 3: "三转"}.get(stage, f"阶段 {stage}")
+        return {
+            0: "不转",
+            1: "一转",
+            2: "二转",
+            3: "三转",
+            4: "终转",
+        }.get(stage, f"阶段 {stage}")
 
 
 @dataclass(frozen=True)
@@ -192,13 +197,13 @@ class CardCatalog:
             self,
             card_type_path: str = CARD_TYPE_PATH,
             image_dir: str = CARD_IMAGE_DIR,
-            metadata_path: str = CARD_METADATA_PATH,
+            category_path: str = CARD_CATEGORY_PATH,
     ):
         self.card_type_path = card_type_path
         self.image_dir = image_dir
-        self.metadata_path = metadata_path
+        self.category_path = category_path
         self.cards = self._load_cards()
-        self._load_metadata()
+        self._load_categories()
         self.card_types = self._load_card_types()
 
     def _load_cards(self) -> dict[str, CardEntry]:
@@ -217,29 +222,20 @@ class CardCatalog:
             entry.stage_paths[stage] = os.path.join(self.image_dir, file_name)
         return cards
 
-    def _load_metadata(self) -> None:
-        """读取随程序发布的卡片进化配置，补充真实进化名及链路类型。"""
-        if not os.path.isfile(self.metadata_path):
+    def _load_categories(self) -> None:
+        """读取只包含金卡和融合卡例外项的最小类别表。"""
+        if not os.path.isfile(self.category_path):
             return
 
-        with open(self.metadata_path, encoding="utf-8") as file:
-            metadata = json.load(file)
+        with open(self.category_path, encoding="utf-8") as file:
+            categories = json.load(file)
 
-        for base_name, card_metadata in metadata.items():
-            entry = self.cards.get(base_name)
-            if entry is None:
-                continue
-            for stage_text, evolution_name in card_metadata.get("stages", {}).items():
-                try:
-                    stage = int(stage_text)
-                except (TypeError, ValueError):
-                    continue
-                if stage in entry.stage_paths and evolution_name:
-                    entry.evolution_names[stage] = str(evolution_name)
-
-            chain_kind = card_metadata.get("kind", "normal")
-            if chain_kind in {"normal", "gold", "fusion", "single"}:
-                entry.chain_kind = chain_kind
+        for base_name in categories.get("gold", []):
+            if base_name in self.cards:
+                self.cards[base_name].chain_kind = "gold"
+        for base_name in categories.get("fusion", []):
+            if base_name in self.cards:
+                self.cards[base_name].chain_kind = "fusion"
 
     def _load_card_types(self) -> list[CardTypeEntry]:
         """读取 FAA 当前使用的卡片类型配置。"""
@@ -287,7 +283,12 @@ class CardCatalog:
                 if "-" in target:
                     second_targets.append(target)
                 else:
-                    second_targets.extend(f"{target}-{stage}" for stage in range(3, -1, -1))
+                    entry = self.cards.get(target)
+                    if entry is not None:
+                        second_targets.extend(
+                            f"{target}-{stage}"
+                            for stage in sorted(entry.stage_paths, reverse=True)
+                        )
 
         existing_targets = tuple(target for target in second_targets if self.card_path(target) is not None)
         return chinese_name, existing_targets, matched_type
@@ -351,7 +352,7 @@ class CardCatalog:
         ]
 
     def filter_cards(self, query: str) -> list[CardEntry]:
-        """按基础名称或真实进化名称筛选具体卡片。"""
+        """按准备房间图片文件中的基础名称筛选具体卡片。"""
         query = query.strip().casefold()
         cards = [self.cards[name] for name in sorted(self.cards)]
         if not query:
@@ -639,7 +640,8 @@ class CardNameSelectorWidget(QWidget):
                 item.setData(PRIMARY_TEXT_ROLE, card.base_name)
                 item.setData(SECONDARY_TEXT_ROLE, f"{len(card.stage_paths)} 个阶段")
                 item.setData(SHRINK_LINE_ROLE, 1)
-                item.setToolTip("进化名称：" + "、".join(card.evolution_names.values()))
+                precise_names = [f"{card.base_name}-{stage}" for stage in sorted(card.stage_paths)]
+                item.setToolTip("可用阶段：" + "、".join(precise_names))
                 self.catalog_list.addItem(item)
         self.catalog_count_label.setText(f"显示 {self.catalog_list.count()} 项")
 
@@ -657,7 +659,7 @@ class CardNameSelectorWidget(QWidget):
     def _show_card_stages(self, card: CardEntry) -> None:
         """显示智能选择项和该卡所有可用的固定阶段。"""
         self.stage_title.setText(card.base_name)
-        kind_names = {"normal": "普通转职卡", "gold": "金卡", "fusion": "融合卡", "single": "单独卡"}
+        kind_names = {"normal": "普通转职卡", "gold": "金卡", "fusion": "融合卡"}
         self.stage_subtitle.setText(
             f"{kind_names.get(card.chain_kind, '卡片')} · 点击“智能选最高”写入基础名称，"
             "点击具体阶段写入“名称-数字”。"
@@ -678,16 +680,15 @@ class CardNameSelectorWidget(QWidget):
 
         for stage in sorted(card.stage_paths):
             precise_name = f"{card.base_name}-{stage}"
-            evolution_name = card.evolution_names.get(stage, precise_name)
             item = QListWidgetItem(
                 self._card_icon(card.stage_paths[stage]),
-                f"{card.stage_label(stage)}\n{evolution_name}",
+                f"{card.stage_label(stage)}\n{precise_name}",
             )
             item.setData(Qt.ItemDataRole.UserRole, precise_name)
             item.setData(PRIMARY_TEXT_ROLE, card.stage_label(stage))
-            item.setData(SECONDARY_TEXT_ROLE, evolution_name)
+            item.setData(SECONDARY_TEXT_ROLE, precise_name)
             item.setData(SHRINK_LINE_ROLE, 2)
-            item.setToolTip(f"写入 {precise_name}\n游戏内名称：{evolution_name}")
+            item.setToolTip(f"写入 {precise_name}")
             self.stage_list.addItem(item)
 
     def _choose_stage(self, item: QListWidgetItem) -> None:

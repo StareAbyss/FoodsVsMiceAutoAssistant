@@ -1,6 +1,8 @@
 """卡片名称选择 Demo 的解析规则回归测试。"""
 
+import tempfile
 import unittest
+from pathlib import Path
 
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QColor, QFontMetrics, QPalette
@@ -46,15 +48,38 @@ class CardCatalogTest(unittest.TestCase):
         results = self.catalog.filter_card_types("花火龙")
         self.assertTrue(any(card_type.canonical_name == "产火" for card_type in results))
 
-    def test_search_base_card_by_evolution_name(self):
-        results = self.catalog.filter_cards("奶油海星刺身")
+    def test_search_concrete_card_uses_resource_base_name(self):
+        results = self.catalog.filter_cards("仙人球海星")
         self.assertTrue(any(card.base_name == "仙人球海星刺身" for card in results))
 
-    def test_metadata_distinguishes_gold_and_fusion_labels(self):
+    def test_minimal_category_table_distinguishes_gold_and_fusion_labels(self):
         self.assertEqual(self.catalog.cards["雷神"].chain_kind, "gold")
         self.assertEqual(self.catalog.cards["雷神"].stage_label(3), "终转")
         self.assertEqual(self.catalog.cards["仙人球海星刺身"].chain_kind, "fusion")
         self.assertEqual(self.catalog.cards["仙人球海星刺身"].stage_label(1), "深融")
+
+    def test_manual_card_images_are_discovered_without_metadata_entry(self):
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            root = Path(temporary_dir)
+            image_dir = root / "准备房间"
+            image_dir.mkdir()
+            (image_dir / "用户自制卡-0.png").touch()
+            (image_dir / "用户自制卡-2.png").touch()
+            (image_dir / "用户自制卡-4.png").touch()
+            card_type_path = root / "card_type.json"
+            card_type_path.write_text("[]", encoding="utf-8")
+
+            catalog = CardCatalog(
+                card_type_path=str(card_type_path),
+                image_dir=str(image_dir),
+                category_path=str(root / "missing_categories.json"),
+            )
+
+            result = catalog.parse("用户自制卡")
+            self.assertEqual(result.kind, "fuzzy")
+            self.assertEqual(result.targets, ("用户自制卡-4", "用户自制卡-2", "用户自制卡-0"))
+            self.assertEqual(catalog.cards["用户自制卡"].stage_label(0), "不转")
+            self.assertEqual(catalog.cards["用户自制卡"].stage_label(4), "终转")
 
 
 class CardNameSelectorInteractionTest(unittest.TestCase):
@@ -131,14 +156,14 @@ class CardNameSelectorInteractionTest(unittest.TestCase):
             self.window.catalog_list.gridSize().width(),
         )
 
-    def test_stage_label_keeps_default_font_when_evolution_name_shrinks(self):
+    def test_stage_label_keeps_default_font_when_precise_name_shrinks(self):
         self.window.mode_combo.setCurrentIndex(1)
         self.window.search_input.setText("仙人球海星刺身")
         self.window._choose_catalog_item(self.window.catalog_list.item(0))
         fusion_item = self.window.stage_list.item(1)
         self.assertEqual(fusion_item.data(PRIMARY_TEXT_ROLE), "初融")
         self.assertEqual(fusion_item.data(SHRINK_LINE_ROLE), 2)
-        self.assertTrue(fusion_item.data(SECONDARY_TEXT_ROLE))
+        self.assertEqual(fusion_item.data(SECONDARY_TEXT_ROLE), "仙人球海星刺身-0")
 
     def test_delegate_item_rect_uses_configured_grid_size(self):
         self.window.show()
