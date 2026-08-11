@@ -21,7 +21,7 @@ from function.scattered.class_battle_plan_v3d0 import json_to_obj, TriggerWaveTi
     obj_to_json, Card, MetaData, \
     CardLoopConfig, ActionRandomSingleCard, ActionRandomMultiCard
 from function.widget.MultiLevelMenu import MultiLevelMenu
-from function.widget.CardNameSelector import CardNameSelectorWidget
+from function.widget.CardNameSelector import CardCatalog, CardNameSelectorWidget
 
 double_click_card_list = pyqtSignal(object)
 
@@ -2280,8 +2280,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
         if file_name:
             result = self.load_json(file_path=file_name)
             if result:
+                unresolved_cards = self.find_unresolved_plan_cards()
                 self.init_battle_plan()
                 self.BtnSave.setEnabled(True)
+                self.show_unresolved_card_warning(unresolved_cards)
             else:
                 QMessageBox.critical(
                     self, "JSON文件格式错误",
@@ -2300,6 +2302,32 @@ class QMWEditorOfBattlePlan(QMainWindow):
                     "\n"
                     "可能原因2 - 使用记事本等工具手动进行错误修改, 请删除对应战斗方案重新编写.\n"
                 )
+
+    def find_unresolved_plan_cards(self) -> list[tuple[object, str]]:
+        """返回当前方案中无法由类型配置或准备房间图片解析的原始卡片。"""
+        catalog = CardCatalog()
+        return [
+            (card.card_id, str(card.name))
+            for card in self.battle_plan.cards
+            if catalog.parse(str(card.name)).kind == "unresolved"
+        ]
+
+    def show_unresolved_card_warning(self, unresolved_cards: list[tuple[object, str]]) -> None:
+        """汇总提醒无法解析的卡片，不修改方案内容。"""
+        if not unresolved_cards:
+            return
+
+        card_lines = "\n".join(
+            f"ID {card_id}：{card_name or '（空名称）'}"
+            for card_id, card_name in unresolved_cards
+        )
+        QMessageBox.warning(
+            self,
+            "卡片名称无法解析",
+            "以下卡片名称无法根据卡片类型配置或准备房间图片资源正确解析：\n\n"
+            f"{card_lines}\n\n"
+            "方案仍会正常打开，以上名称不会被自动修改；但自动带卡时可能无法识别这些卡片。",
+        )
 
     def open_json(self):
         """打开窗口 打开json文件"""

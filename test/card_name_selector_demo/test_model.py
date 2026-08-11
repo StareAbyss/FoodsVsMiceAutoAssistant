@@ -3,6 +3,8 @@
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtGui import QColor, QFontMetrics, QPalette
@@ -219,6 +221,28 @@ class CardNameSelectorInteractionTest(unittest.TestCase):
         finally:
             if dialog is not None:
                 dialog.close()
+
+    def test_open_plan_warning_reports_unresolved_cards_without_modifying_names(self):
+        from function.core.qmw_editor_of_battle_plan import QMWEditorOfBattlePlan
+
+        cards = [
+            SimpleNamespace(card_id=1, name="海星"),
+            SimpleNamespace(card_id=2, name="炭烧海星-1"),
+            SimpleNamespace(card_id=3, name="无法识别的测试卡"),
+        ]
+        editor = SimpleNamespace(battle_plan=SimpleNamespace(cards=cards))
+
+        unresolved_cards = QMWEditorOfBattlePlan.find_unresolved_plan_cards(editor)
+        self.assertEqual(unresolved_cards, [(3, "无法识别的测试卡")])
+
+        with patch(
+                "function.core.qmw_editor_of_battle_plan.QMessageBox.warning"
+        ) as warning:
+            QMWEditorOfBattlePlan.show_unresolved_card_warning(editor, unresolved_cards)
+
+        warning.assert_called_once()
+        self.assertIn("ID 3：无法识别的测试卡", warning.call_args.args[2])
+        self.assertEqual([card.name for card in cards], ["海星", "炭烧海星-1", "无法识别的测试卡"])
 
     def test_follows_application_palette_change(self):
         original_palette = QPalette(self.app.palette())
