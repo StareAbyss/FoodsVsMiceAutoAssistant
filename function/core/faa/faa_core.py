@@ -20,6 +20,8 @@ from function.core.faa.tweak_plan import (
     build_auto_timer_card,
     get_auto_card_target_names,
     get_auto_timer_target_names,
+    get_tweak_plan_mat_card_first,
+    insert_mat_cards_by_priority,
 )
 from function.core.my_crypto import decrypt_data
 from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
@@ -944,7 +946,7 @@ class FAABase:
             return list_new
 
         def calculation_card_mat(list_cell_all):
-            """步骤三 承载卡"""
+            """步骤三：按微调方案优先级加入自动承载卡。"""
 
             location = stage_info["mat_cell"]  # 深拷贝 防止对配置文件数据更改
 
@@ -963,25 +965,21 @@ class FAABase:
                 any(card['name'] == "木盘子" for card in mat_card_info)
             )
 
+            mat_cards = []
             for i in range(num_mat_card):
-
-                dict_mat = {
+                mat_cards.append({
                     "card_id": mat_card_info[i]['card_id'],
                     "name": mat_card_info[i]['name'],
                     "location": location[i::num_mat_card],
                     "ergodic": need_ergodic,
                     "queue": True
-                }
+                })
 
-                # 可能是空列表 即花瓶
-                if len(list_cell_all) == 0:
-                    # 首位插入
-                    list_cell_all.insert(0, dict_mat)
-                else:
-                    # 第二位插入
-                    list_cell_all.insert(1, dict_mat)
-
-            return list_cell_all
+            return insert_mat_cards_by_priority(
+                cards=list_cell_all,
+                mat_cards=mat_cards,
+                mat_card_first=get_tweak_plan_mat_card_first(self.battle_plan_tweak),
+            )
 
         def calculation_card_extra(list_cell_all):
 

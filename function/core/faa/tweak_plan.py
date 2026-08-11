@@ -4,6 +4,7 @@ from function.core_battle.card_copy_rules import get_creator_god_safe_locations
 
 
 AUTO_TIMER_DEFAULT = False
+MAT_CARD_FIRST_DEFAULT = True
 
 
 def get_tweak_plan_ban_state(battle_plan_tweak) -> dict[str, bool]:
@@ -76,6 +77,41 @@ def get_tweak_plan_auto_timer_enabled(battle_plan_tweak) -> bool:
         return AUTO_TIMER_DEFAULT
     value = enable_auto_card.get("timer")
     return value if isinstance(value, bool) else AUTO_TIMER_DEFAULT
+
+
+def get_tweak_plan_mat_card_first(battle_plan_tweak) -> bool:
+    """
+    读取是否让自动承载卡先于战斗方案首卡使用。
+
+    ``True`` 适用于零费承载；``False`` 适用于需要火苗的低练度承载，
+    可先执行战斗方案首卡以启动产火循环。
+    """
+    if not isinstance(battle_plan_tweak, dict):
+        return MAT_CARD_FIRST_DEFAULT
+    meta_data = battle_plan_tweak.get("meta_data", {})
+    if not isinstance(meta_data, dict):
+        return MAT_CARD_FIRST_DEFAULT
+
+    settings = meta_data.get("auto_mat_card", {})
+    if isinstance(settings, dict) and isinstance(settings.get("use_first"), bool):
+        return settings["use_first"]
+
+    # 兼容已经使用过的旧平铺字段。
+    legacy_value = meta_data.get("mat_card_first")
+    if isinstance(legacy_value, bool):
+        return legacy_value
+    return MAT_CARD_FIRST_DEFAULT
+
+
+def insert_mat_cards_by_priority(
+        cards: list[dict],
+        mat_cards: list[dict],
+        mat_card_first: bool,
+) -> list[dict]:
+    """按玩家选择把整组自动承载卡插入执行优先级。"""
+    insert_index = 0 if mat_card_first else min(1, len(cards))
+    cards[insert_index:insert_index] = mat_cards
+    return cards
 
 
 def get_highest_kun_target_from_cards(cards: list[dict]) -> dict | None:
