@@ -12,10 +12,8 @@ from function.common.bg_img_screenshot import capture_image_png
 from function.common.image_processing.overlay_images import overlay_images
 from function.core.analyzer_of_loot_logs import match_items_from_image_and_save
 from function.core.faa.tweak_plan import (
-    battle_plan_has_creator_god_target,
+    get_auto_card_target_names,
     get_auto_timer_target_names,
-    get_tweak_plan_auto_card_enabled,
-    get_tweak_plan_auto_mat_card,
 )
 from function.globals import SIGNAL, EXTRA
 from function.globals.g_resources import RESOURCE_P
@@ -167,7 +165,19 @@ class BattlePreparation:
                     targets_1.append(card)
                 # 模糊匹配 允许任意变种
                 else:
-                    targets_1 += [f"{card}-{i}" for i in range(3, -1, -1)]
+                    resource_prefix = f"{card}-"
+                    available_targets = []
+                    for resource_name in RESOURCE_P["card"]["准备房间"]:
+                        if not resource_name.startswith(resource_prefix) or not resource_name.endswith(".png"):
+                            continue
+                        precise_name = resource_name[:-4]
+                        stage_text = precise_name.rsplit("-", 1)[-1]
+                        if stage_text.isdigit():
+                            available_targets.append((int(stage_text), precise_name))
+                    targets_1 += [
+                        precise_name
+                        for _, precise_name in sorted(available_targets, reverse=True)
+                    ]
 
         # 只携带被记录图片的卡
         targets_1 = [card for card in targets_1 if (card + ".png") in RESOURCE_P["card"]["准备房间"]]
@@ -705,12 +715,13 @@ class BattlePreparation:
         Returns:
             按卡片优先级排列的自动带卡要求列表。
         """
-        auto_card_enabled = get_tweak_plan_auto_card_enabled(self.battle_plan_tweak)
-        auto_mat_enabled = get_tweak_plan_auto_mat_card(
-            self.battle_plan_tweak
-        )["enabled"]
         my_dict = {}
-        mats = copy.deepcopy(self.stage_info["mat_card"])
+        target_mat_list, target_smoothie_list, target_kun_list = get_auto_card_target_names(
+            stage_mat_card_names=self.stage_info["mat_card"],
+            battle_plan_tweak=self.battle_plan_tweak,
+            battle_plan=self.battle_plan,
+            card_types=self.card_types,
+        )
 
         # 直接从cards 中获取 顺带保险排序一下
         for card in self.battle_plan["cards"]:
@@ -724,27 +735,25 @@ class BattlePreparation:
             required_cards_list.append({"name": card, "can_failed": False})
 
         # 如果需要任意承载卡 第一张卡设定为 有效承载 置于末位
-        if len(mats) >= 1 and auto_mat_enabled:
+        if target_mat_list:
             required_cards_list.append({"name": "有效承载", "can_failed": False})
 
         # 添加计时器、冰沙和复制类卡片，置于末位且允许找不到。
         if get_auto_timer_target_names(
                 battle_plan_tweak=self.battle_plan_tweak,
                 battle_plan=self.battle_plan,
+                card_types=self.card_types,
         ):
             required_cards_list.append({"name": "美味计时器", "can_failed": True})
-        if auto_card_enabled["icecream"]:
+        if target_smoothie_list:
             required_cards_list.append({"name": "冰激凌-2", "can_failed": True})
-        if (
-                auto_card_enabled["god"]
-                and battle_plan_has_creator_god_target(self.battle_plan)
-        ):
+        if "创造神" in target_kun_list:
             required_cards_list.append({"name": "创造神", "can_failed": True})
-        if auto_card_enabled["ikun"]:
+        if "幻幻鸡" in target_kun_list:
             required_cards_list.append({"name": "幻幻鸡", "can_failed": True})
         # 如果有效承载数量 >= 2 置于末位 允许找不到
-        if len(mats) >= 2 and auto_mat_enabled:
-            for _ in range(len(mats) - 1):
+        if len(target_mat_list) >= 2:
+            for _ in range(len(target_mat_list) - 1):
                 required_cards_list.append({"name": "有效承载", "can_failed": True})
 
         # 根据最大卡片数量限制 移除卡片
