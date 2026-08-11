@@ -513,5 +513,15 @@
             "monopoly": true,
             "camp": false
         }
+    },
+    {
+        "task_type": "扫描公会贡献",
+        "task_id": 19,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": 1
+        }
     }
 ]
