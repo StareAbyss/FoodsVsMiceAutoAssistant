@@ -12,6 +12,7 @@ from function.common.bg_img_screenshot import capture_image_png
 from function.common.image_processing.overlay_images import overlay_images
 from function.core.analyzer_of_loot_logs import match_items_from_image_and_save
 from function.core.faa.tweak_plan import (
+    battle_plan_has_creator_god_target,
     get_auto_timer_target_names,
     get_tweak_plan_ban_state,
 )
@@ -730,7 +731,10 @@ class BattlePreparation:
             required_cards_list.append({"name": "美味计时器", "can_failed": True})
         if not ban_state["icecream"]:
             required_cards_list.append({"name": "冰激凌-2", "can_failed": True})
-        if not ban_state["god"]:
+        if (
+                not ban_state["god"]
+                and battle_plan_has_creator_god_target(self.battle_plan)
+        ):
             required_cards_list.append({"name": "创造神", "can_failed": True})
         if not ban_state["ikun"]:
             required_cards_list.append({"name": "幻幻鸡", "can_failed": True})
