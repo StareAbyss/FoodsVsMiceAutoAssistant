@@ -1,0 +1,17 @@
+{
+    "meta_data": {
+        "uuid": "00000000-0000-0000-0000-000000000003",
+        "version": "0.3",
+        "faa_version": "v3.1.1",
+        "tips": "关闭承载卡、冰沙、创造神和幻幻鸡的自动携带与智能使用功能",
+        "auto_mat_card": {
+            "enabled": false
+        },
+        "enable_auto_card": {
+            "icecream": false,
+            "god": false,
+            "ikun": false,
+            "timer": false
+        }
+    }
+}

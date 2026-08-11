@@ -99,6 +99,9 @@ def get_true_stage_id():
 # 版本号
 VERSION = "v3.1.1"
 
+# 当前 FAA 微调方案编辑器写入的格式版本
+TWEAK_PLAN_VERSION = "0.3"
+
 # 缩放倍率
 ZOOM_RATE = 1.0
 

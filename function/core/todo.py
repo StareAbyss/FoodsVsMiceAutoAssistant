@@ -24,6 +24,7 @@ from function.common.process_manager import close_software_by_title, get_path_an
 from function.common.thread_with_exception import ThreadWithException
 from function.core.analyzer_of_loot_logs import update_dag_graph, find_longest_path_from_dag, ranking_read_data
 from function.core.faa.faa_mix import FAA
+from function.core.faa.tweak_plan import get_tweak_plan_recording
 from function.core.faa_extra_readimage import read_and_get_return_information, kill_process
 from function.core_battle.card_manager import CardManager
 from function.extension.extension_core import ExecuteThread
@@ -1001,10 +1002,14 @@ class ThreadTodo(QThread):
         result_drop_by_list = {}  # {pid:{"loots":["item",...],"chest":["item",...]},...}
         result_drop_by_dict = {}  # {pid:{"loots":{"item":count,...},"chest":{"item":count,...}},...}
         result_spend_time = 0
-        senior_setting = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("senior_setting", False)
-        recording = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("recording", False)
-        seetime = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("timestamp", False)
-        recording_player = self.faa_dict[player_a].battle_plan_tweak["meta_data"].get("recording_player", 1)
+        tweak_meta = self.faa_dict[player_a].battle_plan_tweak["meta_data"]
+        senior_setting = tweak_meta.get("senior_setting", False)
+
+        # 录屏开关、时间显示和录制窗口属于同一项战斗能力；战斗流程只消费
+        # 微调方案 0.3 聚合结构的规范化结果。
+        recording, seetime, recording_player = get_tweak_plan_recording(
+            self.faa_dict[player_a].battle_plan_tweak
+        )
 
         """检测是否成功进入房间"""
         if result_id == 0:
