@@ -84,25 +84,54 @@ PR 至少选择两个 label：
 ## 分支策略
 
 * 只提交当前任务相关文件，不混入工作区中已有的无关改动。
-* 用户的Github为 `stareAbyss` 时：
-  * 把 `stareAbyss` 当前所有领先提交放到云端，然后再从 `stareAbyss` 发起 PR 合并到 `main`。
-  * 默认 `直接以管理员权限通过PR` 无需其他开发者审核
+* 发起 PR 前先获取最新 `origin/main`，功能分支必须以它为父提交。
+* 不直接把脏的 `stareAbyss` 整体推送为 PR；应使用临时 index 或临时 worktree 构造只包含当前功能的提交。
+* 同一个文件包含多项任务时，只提交当前功能对应的 hunk，不能整文件加入。
+* 一个完整功能需要代码、配置、资源、生成器和测试共同闭环时，可以在同一 PR 中提交这些文件。
+* 用户指定标题或标题后半部分时，优先原样采用，不自行缩写。
+* 用户的 GitHub 为 `StareAbyss` 时，默认直接以管理员权限审核并使用 merge commit 合并，无需再次询问用户是否通过。
+
+## 脏工作区与旧索引
+
+本仓库可能同时存在多组未提交改动，Git 暂存索引也可能保留旧快照。普通 `git status` 出现 `MM`、`D` 时，不应立即清理或判定文件丢失。
+
+真实改动审计优先使用临时 index：
+
+```powershell
+$tempIndex = Join-Path $env:TEMP ('faa-audit-' + [guid]::NewGuid().ToString('N') + '.index')
+try {
+    $env:GIT_INDEX_FILE = $tempIndex
+    git read-tree HEAD
+    git -c core.quotepath=false status --short --untracked-files=all
+}
+finally {
+    Remove-Item Env:GIT_INDEX_FILE -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $tempIndex -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath ($tempIndex + '.lock') -Force -ErrorAction SilentlyContinue
+}
+```
+
+注意：
+
+* 未经用户明确允许，不执行 `git reset`、批量 `git restore --staged` 或其他暂存索引清理。
+* PR 审核比较使用 `origin/main..功能分支`，不要使用可能受旧索引影响的无参数 `git diff`。
+* 若要确认工作区文件与某提交是否一致，比较 `git rev-parse HEAD:<path>` 和 `git hash-object --path=<path> -- <path>`。
 
 ## 检查命令
 
-项目检查优先使用项目 Python 3.12，而不是裸 `python`：
+项目检查优先使用 uv 管理的项目 Python，而不是裸 `python` 或假定系统存在 `py -3.12`：
 
 ```powershell
-py -3.12 ...
+uv run python ...
 ```
 
 Python 文件语法检查示例：
 
 ```powershell
-py -3.12 -m py_compile path\to\file.py
+uv run python -m py_compile path\to\file.py
 ```
 
-提交前应根据改动范围选择最小但有效的检查命令。
+项目默认使用标准库 `unittest`，当前没有把 `pytest` 作为开发依赖。提交前应根据改动范围选择最小但有效的检查命令，并核对完整调用链。
 
 ## 操作示例：只提交脏工作区中的一个文件
 
@@ -119,8 +148,8 @@ py -3.12 -m py_compile path\to\file.py
 1. 先做最小检查。
 
 ```powershell
-py -3.12 -m json.tool config/stage_info_online.json > $null
-py -3.12 -m py_compile function/core/faa/faa_action_receive_quest_rewards.py
+uv run python -m json.tool config/stage_info_online.json > $null
+uv run python -m py_compile function/core/faa/faa_action_receive_quest_rewards.py
 git diff --check origin/main -- config/stage_info_online.json
 ```
 
@@ -133,10 +162,9 @@ $tempIndex = Join-Path $env:TEMP ('faa-pr-index-' + [guid]::NewGuid().ToString('
 try {
     $env:GIT_INDEX_FILE = $tempIndex
     git read-tree origin/main
-    $blob = git hash-object -w -- 'config/stage_info_online.json'
-    git update-index --add --cacheinfo "100644,$blob,config/stage_info_online.json"
+    git add -- 'config/stage_info_online.json'
     $tree = git write-tree
-    $commit = git commit-tree $tree -p origin/main -m 'build: 更新 2026 6.18-7.2 stage_info_online.json'
+    $commit = git commit-tree $tree -p origin/main -m 'build(悬赏关卡): 更新 2026 6.18-7.2 stage_info_online.json'
 }
 finally {
     Remove-Item Env:GIT_INDEX_FILE -ErrorAction SilentlyContinue
@@ -155,16 +183,10 @@ git push -u origin codex/stage-info-20260618-0702
 gh pr create `
   --base main `
   --head codex/stage-info-20260618-0702 `
-  --title "build: 更新 2026 6.18-7.2 stage_info_online.json" `
-  --body "## 内容
-* 更新 config/stage_info_online.json，本期范围为 2026 6.18-7.2。
+  --title "build(悬赏关卡): 更新 2026 6.18-7.2 stage_info_online.json" `
+  --body "* 更新 config/stage_info_online.json，本期范围为 2026 6.18-7.2。
 * 更新时间写入 2026-06-18 12:00:00。
-* 补充本期悬赏关卡水面地形配置。
-
-## 校验
-* 已通过 JSON 解析校验。
-* 已通过 faa_action_receive_quest_rewards.py 语法编译校验。
-* 已通过 git diff --check。" `
+* 补充本期悬赏关卡水面地形配置。" `
   --assignee StareAbyss `
   --label Git-Build `
   --label "🔄Module-Farmflow"
@@ -182,4 +204,46 @@ gh pr view 942 --json number,title,state,url,mergeCommit,labels,assignees
 
 * 这种做法不会清理或切换当前脏工作区。
 * PR 的 diff 只来自临时 index 构造出的提交。
-* 合并热更新、版本发布相关 PR 时优先使用 merge commit，不要 squash/rebase。
+* 需要进入热更新节点列表的 PR 使用 merge commit，不要 squash/rebase。
+
+## 多文件和同文件分块提交
+
+如果多个目标文件全部属于当前功能，可以在临时 index 中一次加入：
+
+```powershell
+git read-tree origin/main
+git add -- path/to/code.py path/to/config.json path/to/test.py
+git diff --cached --check
+```
+
+如果目标文件还包含其他任务的修改，不能执行整文件 `git add`。应从 `origin/main` 生成干净文件后应用目标 patch，或只把经过审核的 hunk 应用到临时 index。提交后必须检查：
+
+```powershell
+git diff --check origin/main..codex/功能分支
+git diff --name-status origin/main..codex/功能分支
+git diff origin/main..codex/功能分支 -- path/to/mixed_file.py
+```
+
+## GitHub 审核与本地同步
+
+创建 PR 后应在 GitHub 侧再次核对文件、标签和可合并状态：
+
+```powershell
+gh pr view <pr_number> --json number,title,state,url,files,labels,assignees,mergeable,statusCheckRollup
+gh pr diff <pr_number> --name-only
+```
+
+网络超时后先按 head 分支查询是否已经创建 PR，再重试，避免重复创建：
+
+```powershell
+gh pr list --state all --head codex/功能分支 --json number,title,state,url
+```
+
+合并完成后：
+
+```powershell
+git fetch origin main
+gh pr view <pr_number> --json number,title,state,url,mergeCommit,mergedAt
+```
+
+工作区干净时使用 `git merge --ff-only origin/main` 同步个人分支。工作区较脏或索引保留旧快照时，不得为了同步而 reset/clean；只有确认 `origin/main` 是当前分支的快进、合并内容已在工作区且文件哈希正确后，才可以只更新分支引用并保留索引。

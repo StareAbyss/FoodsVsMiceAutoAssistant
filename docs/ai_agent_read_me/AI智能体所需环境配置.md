@@ -1,6 +1,6 @@
 # AI 运行环境配置
 
-本文只处理 JetBrains / PyCharm / Codex / ACP 这类 AI 智能体环境问题。项目如何运行见 `运行环境和调试环境.md`；发布包流程见 `打包 & 部署.md`。
+本文只处理 JetBrains / PyCharm / Codex / ACP 这类 AI 智能体环境问题。项目如何运行见 `项目运行环境和调试环境.md`；发布包流程见 `打包 & 部署.md`。
 
 ## 快速判断
 
