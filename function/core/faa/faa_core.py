@@ -2194,9 +2194,10 @@ class FAABase:
 
             if find:
                 # 领取钥匙
+                time.sleep(0.5)
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=400, y=445)
                 time.sleep(0.5)
-                # 如果还有任务
+                # 如果还有任务奖励也顺手领了
                 for _ in range(10):
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=175, y=325)
                     time.sleep(0.2)
@@ -3277,7 +3278,7 @@ class FAABase:
                     loop_match_p_in_w(
                         source_handle=self.handle,
                         source_root_handle=self.handle_360,
-                        source_range=[425, 339, 450, 367],
+                        source_range=[420, 339, 450, 365],
                         template=RESOURCE_P["common"]["通用_确定.png"],
                         match_tolerance=0.95,
                         match_interval=0.2,
@@ -3290,7 +3291,7 @@ class FAABase:
                         loop_match_p_in_w(
                             source_handle=self.handle,
                             source_root_handle=self.handle_360,
-                            source_range=[466, 86, 950, 500],
+                            source_range=[420, 339, 450, 365],
                             template=RESOURCE_P["item"]["通用_确定_被选中.png"],
                             match_tolerance=0.95,
                             match_interval=0.2,
