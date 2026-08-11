@@ -38,6 +38,10 @@ config/cus_images/背包_装备_需使用的/星际酬劳.png
 # 忽略运行产生的文件 主要是日志
 logs/
 
+# 忽略运行时生成的卡片状态判定图像，仅保留内置的 0、1、2 组
+/resource/image/card/状态判定/[3-9]/
+/resource/image/card/状态判定/[1-9][0-9]*/
+
 # 忽略 main.spec
 main.spec
 
