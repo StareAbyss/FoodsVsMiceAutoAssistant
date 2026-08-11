@@ -1,5 +1,7 @@
 import copy
 
+from function.core_battle.card_copy_rules import get_creator_god_safe_locations
+
 
 AUTO_TIMER_DEFAULT = False
 
@@ -171,3 +173,27 @@ def build_auto_timer_card(timer_info: dict | None, cards: list[dict]) -> dict | 
         "queue": False,
         "kun": 0,
     }
+
+
+def battle_plan_has_creator_god_target(battle_plan: dict) -> bool:
+    """判断任一正数 ``kun`` 目标是否拥有完整 3×3 安全中心。"""
+    if not isinstance(battle_plan, dict):
+        return False
+    for event in battle_plan.get("events", []):
+        if not isinstance(event, dict):
+            continue
+        action = event.get("action", {})
+        if action.get("type") != "loop_use_cards":
+            continue
+        for card in action.get("cards", []):
+            if not isinstance(card, dict):
+                continue
+            kun = card.get("kun", 0)
+            if (
+                    isinstance(kun, (int, float))
+                    and not isinstance(kun, bool)
+                    and kun > 0
+                    and get_creator_god_safe_locations(card.get("location", []))
+            ):
+                return True
+    return False

@@ -16,6 +16,7 @@ from function.common.image_processing.overlay_images import overlay_images
 from function.common.process_manager import close_software_by_title, get_path_and_sub_titles, \
     close_all_software_by_name, start_software_with_args
 from function.core.faa.tweak_plan import (
+    battle_plan_has_creator_god_target,
     build_auto_timer_card,
     get_auto_card_target_names,
     get_auto_timer_target_names,
@@ -676,6 +677,10 @@ class FAABase:
             stage_mat_card_names=self.stage_info["mat_card"],
             battle_plan_tweak=self.battle_plan_tweak,
         )
+        if not battle_plan_has_creator_god_target(self.battle_plan):
+            target_kun_list = [
+                name for name in target_kun_list if name != "创造神"
+            ]
         target_timer_list = get_auto_timer_target_names(
             battle_plan_tweak=self.battle_plan_tweak,
             battle_plan=self.battle_plan,

@@ -8,6 +8,7 @@ import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png
 from function.core.faa.faa_mix import FAA
+from function.core_battle.card_copy_rules import get_creator_god_safe_locations
 from function.globals import EXTRA
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
@@ -210,6 +211,32 @@ class Card:
         if self.status_ban <= 1:
             self.status_ban = 1
 
+    def put_card_for_creator_god(self) -> bool:
+        """在安全 3×3 中心格越过当前队列放置，且不改变队列顺序。"""
+        safe_locations = get_creator_god_safe_locations(self.location)
+        if not safe_locations:
+            return False
+
+        if self.ergodic:
+            put_locations = safe_locations
+        else:
+            put_locations = [safe_locations[0], safe_locations[0]]
+
+        for location in put_locations:
+            coordinate = COORDINATE_CARD_CELL_IN_BATTLE[location]
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                handle=self.handle,
+                x=coordinate[0],
+                y=coordinate[1],
+            )
+            time.sleep(self.click_sleep)
+
+        T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=295, y=485)
+        time.sleep(self.click_sleep)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=295, y=485)
+        time.sleep(self.click_sleep)
+        return True
+
     def get_card_current_img(self, game_image=None):
         """
         获取用于 判定 卡片状态 的图像
@@ -411,6 +438,13 @@ class Card:
                 kun_count = 0
                 for kun_card in self.kun_cards:
 
+                    # 创造神只复制完整 3×3 的中心格；没有安全中心则跳过。
+                    if (
+                            kun_card.name == "创造神"
+                            and not get_creator_god_safe_locations(self.location)
+                    ):
+                        continue
+
                     # 坤-如果不可用状态 放弃本次用卡
                     if not kun_card.status_usable:
                         continue
@@ -425,7 +459,10 @@ class Card:
                     time.sleep(self.click_sleep)
 
                     # 坤-放卡
-                    self.put_card()
+                    if kun_card.name == "创造神":
+                        self.put_card_for_creator_god()
+                    else:
+                        self.put_card()
 
                     # 等待游戏画面刷新后更新状态
                     time.sleep(self.max_game_frame_interval)
