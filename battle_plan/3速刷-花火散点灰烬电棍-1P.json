@@ -18,31 +18,31 @@
         },
         {
             "card_id": 2,
-            "name": "灰烬投手"
-        },
-        {
-            "card_id": 3,
-            "name": "投手增幅"
-        },
-        {
-            "card_id": 4,
             "name": "散点追踪"
         },
         {
-            "card_id": 5,
+            "card_id": 3,
             "name": "散点增幅"
         },
         {
+            "card_id": 4,
+            "name": "灰烬投手"
+        },
+        {
+            "card_id": 5,
+            "name": "投手增幅"
+        },
+        {
             "card_id": 6,
-            "name": "护罩"
+            "name": "雷电长棍面包"
         },
         {
             "card_id": 7,
-            "name": "照明"
+            "name": "护罩"
         },
         {
             "card_id": 8,
-            "name": "雷电长棍面包"
+            "name": "照明"
         },
         {
             "card_id": 9,
@@ -71,7 +71,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 4,
+                        "card_id": 2,
                         "ergodic": true,
                         "queue": true,
                         "location": [
@@ -89,7 +89,7 @@
                         "kun": 2
                     },
                     {
-                        "card_id": 5,
+                        "card_id": 3,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -99,7 +99,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 2,
+                        "card_id": 4,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -138,7 +138,7 @@
                         "kun": 1
                     },
                     {
-                        "card_id": 3,
+                        "card_id": 5,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -153,7 +153,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 8,
+                        "card_id": 6,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -165,7 +165,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 6,
+                        "card_id": 7,
                         "ergodic": true,
                         "queue": false,
                         "location": [
@@ -180,7 +180,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 7,
+                        "card_id": 8,
                         "ergodic": true,
                         "queue": false,
                         "location": [
