@@ -73,7 +73,7 @@ def ensure_file_same_as_template(file_path, template_path) -> None:
         CUS_LOGGER.error(f"[资源一致性检查] '{file_path}' 和 '{template_path}' 不一致，已使用模板覆盖。")
         shutil.copy(template_path, file_path)
 
-    CUS_LOGGER.warning(f"[资源存在检查] '{file_path}' 存在且与模板一致通过检查。")
+    CUS_LOGGER.info(f"[资源一致性检查] '{file_path}' 存在且与模板一致，通过检查。")
 
 
 def check_settings_file(file_path, template_path) -> None:

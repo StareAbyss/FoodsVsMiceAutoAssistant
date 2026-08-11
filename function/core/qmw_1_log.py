@@ -26,31 +26,9 @@ class MidSignalPrint:
     def __init__(self, signal_1):
         super().__init__()
         self.__signal_1 = signal_1
-        match EXTRA.THEME:
-            case 'light':
-                self.color_scheme = {
-                    1: "C80000",  # 深红色
-                    2: "E67800",  # 深橙色暗调
-                    3: "006400",  # 深绿色
-                    4: "009688",  # 深宝石绿
-                    5: "0056A6",  # 深海蓝
-                    6: "003153",  # 普鲁士蓝
-                    7: "5E2D79",  # 深兰花紫
-                    8: "4B0082",  # 靛蓝
-                    9: "999999",  # 我也不知道啥色
-                }
-            case 'dark':
-                self.color_scheme = {
-                    1: "FF4C4C",  # 鲜红色
-                    2: "FFA500",  # 橙色
-                    3: "00FF00",  # 亮绿色
-                    4: "20B2AA",  # 浅海绿色
-                    5: "1E90FF",  # 道奇蓝
-                    6: "4682B4",  # 钢蓝色
-                    7: "9370DB",  # 中兰花紫
-                    8: "8A2BE2",  # 蓝紫色
-                    9: "CCCCCC",  # 浅灰色
-                }
+        # 色表放在 EXTRA 中供日志和其他用户界面共同使用，避免同一主题下
+        # “普通说明”出现多套灰色。复制一份防止调用方意外修改全局配置。
+        self.color_scheme = EXTRA.USER_TEXT_COLOR_SCHEMES.get(EXTRA.THEME).copy()
 
     def emit(self, text, color_level=9, color=None, time=True, is_line=False, line_type="normal"):
         """
@@ -63,6 +41,9 @@ class MidSignalPrint:
         :param line_type: str normal/top/bottom
         :return:
         """
+        # 用户可在运行中切换亮暗主题，因此每次输出前同步一次色表；否则日志
+        # 会一直沿用 FAA 启动瞬间的颜色，和刚切换的界面主题形成冲突。
+        self.color_scheme = EXTRA.USER_TEXT_COLOR_SCHEMES.get(EXTRA.THEME).copy()
         if color_level in self.color_scheme:
             color = self.color_scheme[color_level]
         elif not color:
