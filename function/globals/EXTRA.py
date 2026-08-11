@@ -109,6 +109,30 @@ ZOOM_RATE = 1.0
 THEME = "dark"
 THEME_HIGHLIGHT_COLOR = "#FF0000"
 
+# 用户文字色表：日志与其他面向用户的说明文字共用，随亮色/暗色主题切换。
+# 数字等级保持 MidSignalPrint 的既有含义；9 为普通说明使用的灰色。
+USER_TEXT_COLOR_SCHEMES = {
+    "light": {
+        1: "C80000", 2: "E67800", 3: "006400", 4: "009688",
+        5: "0056A6", 6: "003153", 7: "5E2D79", 8: "4B0082",
+        9: "999999",
+    },
+    "dark": {
+        1: "FF4C4C", 2: "FFA500", 3: "00FF00", 4: "20B2AA",
+        5: "1E90FF", 6: "4682B4", 7: "9370DB", 8: "8A2BE2",
+        9: "CCCCCC",
+    },
+}
+
+
+def get_user_text_color(color_level: int = 9, theme: str | None = None) -> str:
+    """从 FAA 使用者文字色表取得不含 ``#`` 的 RGB 色值。"""
+    color_scheme = USER_TEXT_COLOR_SCHEMES.get(
+        theme or THEME,
+        USER_TEXT_COLOR_SCHEMES["dark"],
+    )
+    return color_scheme.get(color_level, color_scheme[9])
+
 # 战斗参数
 FLOP_TIMES = 2  # 翻牌次数
 CLICK_PER_SECOND = 120  # 每秒点击次数
