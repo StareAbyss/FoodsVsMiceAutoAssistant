@@ -1,4 +1,5 @@
 import copy
+import re
 
 from function.core_battle.card_copy_rules import get_creator_god_safe_locations
 
@@ -103,9 +104,41 @@ def get_tweak_plan_auto_card_enabled(battle_plan_tweak) -> dict[str, bool]:
     return enabled
 
 
+def _base_card_name(card_name: str) -> str:
+    """按 FAA 卡片类型解析规则截取卡名中的中文主体。"""
+    match = re.match(r"^(.*[\u4e00-\u9fff])", str(card_name))
+    return match.group(1) if match else str(card_name)
+
+
+def _card_name_candidates(card_name: str, card_types: list[dict] | None) -> set[str]:
+    """展开一个战斗方案卡名可能解析到的实际卡名。"""
+    base_name = _base_card_name(card_name)
+    for card_type in card_types or []:
+        keys = card_type.get("key", [])
+        if base_name in keys:
+            return {_base_card_name(name) for name in card_type.get("value", [])}
+    return {base_name}
+
+
+def get_battle_plan_card_candidates(
+        battle_plan: dict,
+        card_types: list[dict] | None,
+) -> set[str]:
+    """获取战斗方案直接写入或经 card type 展开后可能存在的卡名。"""
+    candidates = set()
+    if not isinstance(battle_plan, dict):
+        return candidates
+    for card in battle_plan.get("cards", []):
+        if isinstance(card, dict) and isinstance(card.get("name"), str):
+            candidates.update(_card_name_candidates(card["name"], card_types))
+    return candidates
+
+
 def get_auto_card_target_names(
         stage_mat_card_names: list[str],
         battle_plan_tweak,
+        battle_plan: dict | None = None,
+        card_types: list[dict] | None = None,
 ) -> tuple[list[str], list[str], list[str]]:
     """
     获取本场战斗允许智能识别和使用的辅助卡片名称。
@@ -113,6 +146,8 @@ def get_auto_card_target_names(
     Args:
         stage_mat_card_names: 当前关卡允许使用的承载卡名称。
         battle_plan_tweak: 已加载的微调方案字典。
+        battle_plan: 当前战斗方案。
+        card_types: 卡片类型配置。
 
     Returns:
         三个列表依次为承载卡、冰沙和连携卡的识别目标名称。微调方案关闭
@@ -120,12 +155,29 @@ def get_auto_card_target_names(
     """
     enabled = get_tweak_plan_auto_card_enabled(battle_plan_tweak)
     auto_mat = get_tweak_plan_auto_mat_card(battle_plan_tweak)
-    target_mat_list = copy.deepcopy(stage_mat_card_names) if auto_mat["enabled"] else []
-    target_smoothie_list = ["冰激凌"] if enabled["icecream"] else []
+    existing = get_battle_plan_card_candidates(battle_plan, card_types)
+
+    target_mat_list = []
+    if auto_mat["enabled"]:
+        target_mat_list = [
+            name
+            for name in copy.deepcopy(stage_mat_card_names)
+            if _base_card_name(name) not in existing
+        ]
+
+    smoothie_names = {"冰激凌", "极寒冰沙"}
+    target_smoothie_list = []
+    if enabled["icecream"] and not smoothie_names.intersection(existing):
+        target_smoothie_list = ["冰激凌"]
+
     target_kun_list = []
-    if enabled["ikun"]:
+    if enabled["ikun"] and "幻幻鸡" not in existing:
         target_kun_list.append("幻幻鸡")
-    if enabled["god"]:
+    if (
+            enabled["god"]
+            and "创造神" not in existing
+            and battle_plan_has_creator_god_target(battle_plan)
+    ):
         target_kun_list.append("创造神")
     return target_mat_list, target_smoothie_list, target_kun_list
 
@@ -204,6 +256,7 @@ def get_highest_kun_target(
 def get_auto_timer_target_names(
         battle_plan_tweak: dict,
         battle_plan: dict,
+        card_types: list[dict] | None = None,
 ) -> list[str]:
     """获取本场战斗允许自动携带和使用的美味计时器识别目标。"""
     if not get_tweak_plan_auto_timer_enabled(battle_plan_tweak):
@@ -211,12 +264,8 @@ def get_auto_timer_target_names(
     if get_highest_kun_target(battle_plan) is None:
         return []
 
-    card_names = {
-        card.get("name")
-        for card in battle_plan.get("cards", [])
-        if isinstance(card, dict)
-    }
-    if card_names.intersection({"美味计时器", "冷却辅助", "冷却拐"}):
+    existing = get_battle_plan_card_candidates(battle_plan, card_types)
+    if existing.intersection({"美味计时器", "冷却辅助", "冷却拐"}):
         return []
     return ["美味计时器"]
 
