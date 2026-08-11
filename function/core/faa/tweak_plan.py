@@ -156,6 +156,7 @@ def get_auto_card_target_names(
     enabled = get_tweak_plan_auto_card_enabled(battle_plan_tweak)
     auto_mat = get_tweak_plan_auto_mat_card(battle_plan_tweak)
     existing = get_battle_plan_card_candidates(battle_plan, card_types)
+    has_kun_target = get_highest_kun_target(battle_plan) is not None
 
     target_mat_list = []
     if auto_mat["enabled"]:
@@ -171,14 +172,15 @@ def get_auto_card_target_names(
         target_smoothie_list = ["冰激凌"]
 
     target_kun_list = []
-    if enabled["ikun"] and "幻幻鸡" not in existing:
-        target_kun_list.append("幻幻鸡")
-    if (
-            enabled["god"]
-            and "创造神" not in existing
-            and battle_plan_has_creator_god_target(battle_plan)
-    ):
-        target_kun_list.append("创造神")
+    if has_kun_target:
+        if enabled["ikun"] and "幻幻鸡" not in existing:
+            target_kun_list.append("幻幻鸡")
+        if (
+                enabled["god"]
+                and "创造神" not in existing
+                and battle_plan_has_creator_god_target(battle_plan)
+        ):
+            target_kun_list.append("创造神")
     return target_mat_list, target_smoothie_list, target_kun_list
 
 
@@ -227,6 +229,16 @@ def get_highest_kun_target_from_cards(cards: list[dict]) -> dict | None:
             best_card = card
             best_kun = kun
     return best_card
+
+
+def get_kun_cards_for_wave(
+        detected_kun_cards: list[dict] | None,
+        cards: list[dict],
+) -> list[dict]:
+    """仅在当前波次存在正数 ``kun`` 目标时返回已识别的复制卡。"""
+    if get_highest_kun_target_from_cards(cards) is None:
+        return []
+    return copy.deepcopy(detected_kun_cards or [])
 
 
 def get_highest_kun_target(
