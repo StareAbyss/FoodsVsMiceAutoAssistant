@@ -34,7 +34,6 @@ class StartupController(QtCore.QObject):
             self._begin_stage(72, "正在读取用户配置和方案...")
             faa_start_main(self.app, self.loading, local_state=local_state)
         except Exception:
-            self.loading.stop_animation()
             self.loading.update_progress(0, "FAA 启动失败，请查看错误信息。")
             QMessageBox.critical(None, "FAA 启动失败", traceback.format_exc())
             self.app.quit()
@@ -55,8 +54,6 @@ def main():
 
     # 展示加载窗口
     loading.show()
-    loading.start_animation()
-
     # 持有控制器强引用，避免启动期间被 Python 回收。
     app.startup_controller = StartupController(app, loading)
     QtCore.QTimer.singleShot(0, app.startup_controller.start)

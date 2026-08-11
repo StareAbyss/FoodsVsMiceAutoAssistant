@@ -191,7 +191,7 @@ class QMWEditorOfStagePlan(QMainWindow):
         if stage in self.stage_plan.keys():
             self.label_10.setText("编辑关卡方案")
         else:
-            self.label_10.setText("编辑关卡方案 (同步中, 修改全局方案将单向映射至关卡方案)")
+            self.label_10.setText("编辑关卡方案 (本关方案同步中, 修改全局方案将单向映射至此)")
             self.stage_plan[stage] = copy.deepcopy(self.stage_plan["global"])
 
         self.init_stage_state_ui()
@@ -208,7 +208,7 @@ class QMWEditorOfStagePlan(QMainWindow):
 
         if self.current_stage:
             if self.stage_plan["global"] == self.stage_plan[self.current_stage]:
-                self.label_10.setText("编辑关卡方案 (同步中, 修改全局方案将单向映射至关卡方案)")
+                self.label_10.setText("编辑关卡方案 (本关方案同步中, 修改全局方案将单向映射至此)")
                 synchronization = True
             else:
                 self.label_10.setText("编辑关卡方案")
@@ -274,7 +274,7 @@ class QMWEditorOfStagePlan(QMainWindow):
 
         if self.stage_plan.get(self.current_stage, None):
             if self.stage_plan["global"] == self.stage_plan[self.current_stage]:
-                self.label_10.setText("编辑关卡方案 (同步中, 修改全局方案将单向映射至关卡方案)")
+                self.label_10.setText("编辑关卡方案 (本关方案同步中, 修改全局方案将单向映射至此)")
             else:
                 self.label_10.setText("编辑关卡方案")
 
