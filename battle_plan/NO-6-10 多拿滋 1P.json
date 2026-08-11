@@ -44,10 +44,6 @@
         {
             "card_id": 9,
             "name": "花火龙"
-        },
-        {
-            "card_id": 10,
-            "name": "冷却辅助"
         }
     ],
     "events": [
@@ -200,15 +196,6 @@
                             "1-6"
                         ],
                         "kun": 0
-                    },
-                    {
-                        "card_id": 10,
-                        "ergodic": true,
-                        "queue": true,
-                        "location": [
-                            "5-4"
-                        ],
-                        "kun": 0
                     }
                 ],
                 "type": "loop_use_cards"
@@ -324,15 +311,6 @@
                             "1-4",
                             "1-2",
                             "1-6"
-                        ],
-                        "kun": 0
-                    },
-                    {
-                        "card_id": 10,
-                        "ergodic": true,
-                        "queue": true,
-                        "location": [
-                            "4-1"
                         ],
                         "kun": 0
                     }
@@ -461,15 +439,6 @@
                             "1-6"
                         ],
                         "kun": 0
-                    },
-                    {
-                        "card_id": 10,
-                        "ergodic": true,
-                        "queue": true,
-                        "location": [
-                            "4-1"
-                        ],
-                        "kun": 0
                     }
                 ],
                 "type": "loop_use_cards"
@@ -583,15 +552,6 @@
                             "1-4",
                             "1-2",
                             "1-6"
-                        ],
-                        "kun": 0
-                    },
-                    {
-                        "card_id": 10,
-                        "ergodic": true,
-                        "queue": true,
-                        "location": [
-                            "4-1"
                         ],
                         "kun": 0
                     }
@@ -709,15 +669,6 @@
                             "1-4",
                             "1-2",
                             "1-6"
-                        ],
-                        "kun": 0
-                    },
-                    {
-                        "card_id": 10,
-                        "ergodic": true,
-                        "queue": true,
-                        "location": [
-                            "4-1"
                         ],
                         "kun": 0
                     }

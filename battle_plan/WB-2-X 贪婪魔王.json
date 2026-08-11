@@ -46,22 +46,18 @@
         },
         {
             "card_id": 10,
-            "name": "美味计时器"
-        },
-        {
-            "card_id": 11,
             "name": "雷电长棍面包"
         },
         {
-            "card_id": 12,
+            "card_id": 11,
             "name": "鱼刺"
         },
         {
-            "card_id": 13,
+            "card_id": 12,
             "name": "全能对策"
         },
         {
-            "card_id": 14,
+            "card_id": 13,
             "name": "不占格输出"
         }
     ],
@@ -216,22 +212,13 @@
                         "ergodic": true,
                         "queue": true,
                         "location": [
-                            "3-4"
-                        ],
-                        "kun": 0
-                    },
-                    {
-                        "card_id": 11,
-                        "ergodic": true,
-                        "queue": true,
-                        "location": [
                             "8-1",
                             "8-7"
                         ],
                         "kun": 0
                     },
                     {
-                        "card_id": 12,
+                        "card_id": 11,
                         "ergodic": true,
                         "queue": true,
                         "location": [
@@ -248,7 +235,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 13,
+                        "card_id": 12,
                         "ergodic": true,
                         "queue": true,
                         "location": [
@@ -259,7 +246,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 14,
+                        "card_id": 13,
                         "ergodic": true,
                         "queue": true,
                         "location": [
@@ -427,20 +414,11 @@
                         "card_id": 10,
                         "ergodic": true,
                         "queue": true,
-                        "location": [
-                            "2-3"
-                        ],
-                        "kun": 0
-                    },
-                    {
-                        "card_id": 11,
-                        "ergodic": true,
-                        "queue": true,
                         "location": [],
                         "kun": 0
                     },
                     {
-                        "card_id": 12,
+                        "card_id": 11,
                         "ergodic": true,
                         "queue": true,
                         "location": [
@@ -457,7 +435,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 13,
+                        "card_id": 12,
                         "ergodic": true,
                         "queue": true,
                         "location": [
@@ -469,7 +447,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 14,
+                        "card_id": 13,
                         "ergodic": true,
                         "queue": true,
                         "location": [

@@ -1,6 +1,9 @@
 import copy
 
 
+AUTO_TIMER_DEFAULT = False
+
+
 def get_tweak_plan_ban_state(battle_plan_tweak) -> dict[str, bool]:
     """
     获取微调方案中各类自动辅助卡片功能的禁用状态。
@@ -57,3 +60,114 @@ def get_auto_card_target_names(
     if not ban_state["god"]:
         target_kun_list.append("创造神")
     return target_mat_list, target_smoothie_list, target_kun_list
+
+
+def get_tweak_plan_auto_timer_enabled(battle_plan_tweak) -> bool:
+    """读取微调方案中的美味计时器自动使用开关。"""
+    if not isinstance(battle_plan_tweak, dict):
+        return AUTO_TIMER_DEFAULT
+    enable_auto_card = battle_plan_tweak.get("meta_data", {}).get(
+        "enable_auto_card",
+        {},
+    )
+    if not isinstance(enable_auto_card, dict):
+        return AUTO_TIMER_DEFAULT
+    value = enable_auto_card.get("timer")
+    return value if isinstance(value, bool) else AUTO_TIMER_DEFAULT
+
+
+def get_highest_kun_target_from_cards(cards: list[dict]) -> dict | None:
+    """从已按优先级排列的动作中选择首个最高正数 ``kun`` 目标。"""
+    best_card = None
+    best_kun = 0
+    for card in cards:
+        if not isinstance(card, dict):
+            continue
+        kun = card.get("kun", 0)
+        locations = card.get("location", [])
+        if (
+                isinstance(kun, (int, float))
+                and not isinstance(kun, bool)
+                and kun > best_kun
+                and isinstance(locations, list)
+                and locations
+        ):
+            best_card = card
+            best_kun = kun
+    return best_card
+
+
+def get_highest_kun_target(
+        battle_plan: dict,
+        wave: int | None = None,
+) -> dict | None:
+    """返回指定波次中首个最高正数 ``kun`` 目标。"""
+    if not isinstance(battle_plan, dict):
+        return None
+
+    eligible_cards = []
+    for event in battle_plan.get("events", []):
+        if not isinstance(event, dict):
+            continue
+        trigger = event.get("trigger", {})
+        action = event.get("action", {})
+        if (
+                trigger.get("type") != "wave_timer"
+                or action.get("type") != "loop_use_cards"
+                or (wave is not None and trigger.get("wave_id") != int(wave))
+        ):
+            continue
+        eligible_cards.extend(action.get("cards", []))
+    return get_highest_kun_target_from_cards(eligible_cards)
+
+
+def get_auto_timer_target_names(
+        battle_plan_tweak: dict,
+        battle_plan: dict,
+) -> list[str]:
+    """获取本场战斗允许自动携带和使用的美味计时器识别目标。"""
+    if not get_tweak_plan_auto_timer_enabled(battle_plan_tweak):
+        return []
+    if get_highest_kun_target(battle_plan) is None:
+        return []
+
+    card_names = {
+        card.get("name")
+        for card in battle_plan.get("cards", [])
+        if isinstance(card, dict)
+    }
+    if card_names.intersection({"美味计时器", "冷却辅助", "冷却拐"}):
+        return []
+    return ["美味计时器"]
+
+
+def offset_timer_location(location: str) -> str:
+    """把二转计时器的 3×1 生效范围限制在 9×7 棋盘内。"""
+    try:
+        column_text, row_text = location.split("-", maxsplit=1)
+        column = int(column_text)
+        row = int(row_text)
+    except (AttributeError, TypeError, ValueError):
+        return location
+    if not 1 <= row <= 7:
+        return location
+    column = min(8, max(2, column))
+    return f"{column}-{row}"
+
+
+def build_auto_timer_card(timer_info: dict | None, cards: list[dict]) -> dict | None:
+    """按最高正数 ``kun`` 目标的首格生成美味计时器动作。"""
+    target = get_highest_kun_target_from_cards(cards)
+    if not timer_info or target is None:
+        return None
+    target_location = target["location"][0]
+    if timer_info.get("second_job", False):
+        target_location = offset_timer_location(target_location)
+    return {
+        "name": timer_info["name"],
+        "card_id": timer_info["card_id"],
+        "location": [target_location],
+        "ergodic": False,
+        "queue": False,
+        "kun": 0,
+    }

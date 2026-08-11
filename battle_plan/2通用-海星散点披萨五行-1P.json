@@ -55,10 +55,6 @@
         },
         {
             "card_id": 10,
-            "name": "美味计时器"
-        },
-        {
-            "card_id": 11,
             "name": "全能对策"
         }
     ],
@@ -173,15 +169,6 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 10,
-                        "ergodic": false,
-                        "queue": false,
-                        "location": [
-                            "6-4"
-                        ],
-                        "kun": 0
-                    },
-                    {
                         "card_id": 5,
                         "ergodic": true,
                         "queue": false,
@@ -227,7 +214,7 @@
                         "kun": 0
                     },
                     {
-                        "card_id": 11,
+                        "card_id": 10,
                         "ergodic": true,
                         "queue": true,
                         "location": [
