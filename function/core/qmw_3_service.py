@@ -27,6 +27,7 @@ from function.core.performance_analysis import QMWPerformanceAnalysis, run_analy
 from function.core.qmw_2_load_settings import CommonHelper, QMainWindowLoadSettings
 from function.core.qmw_editor_of_battle_plan import QMWEditorOfBattlePlan
 from function.core.qmw_editor_of_stage_plan import QMWEditorOfStagePlan
+from function.core.qmw_editor_of_tweak_plan import QMWEditorOfTweakPlan
 from function.core.qmw_settings_migrator import QMWSettingsMigrator
 from function.core.qmw_task_plan_editor import TaskEditor
 from function.core.qmw_tip_accelerate_settings import QMWTipAccelerateSettings
@@ -50,6 +51,7 @@ from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
+from function.scattered.check_battle_plan import fresh_and_check_all_tweak_plan
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
 from function.scattered.get_stage_info_online import get_stage_info_online
@@ -205,6 +207,14 @@ class QMainWindowService(QMainWindowLoadSettings):
             func_open_tip=self.click_btn_tip_editor_of_battle_plan)
         self.OpenEditorOfBattlePlan_Button.clicked.connect(self.click_btn_open_editor_of_battle_plan)
 
+        # 额外窗口 - 微调方案编辑器。入口紧邻战斗方案编辑器，便于用户按
+        # “基础放卡方案 -> 单场行为微调”的顺序完成配置。
+        self.window_editor_of_tweak_plan = QMWEditorOfTweakPlan(
+            parent=self,
+            on_plan_library_changed=self.refresh_tweak_plan_resources,
+        )
+        self.OpenEditorOfTweakPlan_Button.clicked.connect(self.click_btn_open_editor_of_tweak_plan)
+
         # 额外窗口 - 关卡方案编辑器
         self.window_editor_of_stage_plan = QMWEditorOfStagePlan()
         self.OpenEditorOfStagePlan_Button.clicked.connect(self.click_btn_open_editor_of_stage_plan)
@@ -221,7 +231,6 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 额外窗口 - 性能分析
         self.window_performance_analysis = QMWPerformanceAnalysis(parent=self)
-        self.OpenPerformanceAnalysis_Button.clicked.connect(self.click_btn_open_performance_analysis)
 
         # 额外窗口 - 日氪链接
         self.TopUpMoneyTipButton.clicked.connect(
@@ -1215,6 +1224,23 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.set_stylesheet(window)
         window.show()
 
+    def click_btn_open_editor_of_tweak_plan(self):
+        """打开正式微调方案编辑器，并同步磁盘上的方案变化。"""
+        window = self.window_editor_of_tweak_plan
+        window.setFont(self.font)
+        # 微调编辑器刻意保留原生 PyQt 控件外观，只继承应用级字体和 Palette；
+        # 不叠加旧皮肤的整窗 QSS，避免下拉框和数字框出现另一套美术样式。
+        window.refresh_plan_library()
+        window.show()
+        window.raise_()
+        window.activateWindow()
+
+    @staticmethod
+    def refresh_tweak_plan_resources():
+        """让新建、重命名、删除后的方案立即进入 FAA 内存资源。"""
+        fresh_and_check_all_tweak_plan()
+        g_resources.fresh_resource_t()
+
     def click_btn_open_editor_of_stage_plan(self):
         window = self.window_editor_of_stage_plan
         window.setFont(self.font)
@@ -1472,7 +1498,7 @@ class QMainWindowService(QMainWindowLoadSettings):
     def click_btn_open_other_tools(self):
         # 创建新窗口
         self.tools_window = QWidget()
-        self.tools_window.setWindowTitle("其它工具")
+        self.tools_window.setWindowTitle("更多工具")
         self.tools_window.resize(300, 200)
 
         # 创建垂直布局
@@ -1480,7 +1506,14 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 创建按钮
         self.open_task_btn = QPushButton("任务计划编辑器")
+        self.open_task_btn.setToolTip("打开任务计划数据库编辑器")
         layout.addWidget(self.open_task_btn)
+
+        # 性能分析属于诊断类能力，收到“更多工具”中，避免占用高级设置
+        # 左侧的一级入口；分析窗口本身仍在主窗口初始化时创建，以持续接收采样。
+        self.open_performance_btn = QPushButton("性能分析")
+        self.open_performance_btn.setToolTip("查看 FAA 运行时性能采样与分析结果")
+        layout.addWidget(self.open_performance_btn)
 
         # 数据库连接
         db_path = os.path.join(PATHS["db"], 'tasks.db')
@@ -1488,6 +1521,10 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 按钮点击连接
         self.open_task_btn.clicked.connect(lambda: self.open_task_editor(db_conn))
+        self.open_performance_btn.clicked.connect(self.click_btn_open_performance_analysis)
+
+        self.tools_window.setFont(self.font)
+        self.set_stylesheet(self.tools_window)
 
         # 显示窗口
         self.tools_window.show()
