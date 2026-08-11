@@ -5,10 +5,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 from tool.card_resource.get_card_resource_tool import (
-    build_card_evolution_metadata,
     build_card_prepare_room_url,
+    build_card_stage_categories,
     parse_excel_cards,
-    write_card_evolution_metadata,
+    write_card_stage_categories,
 )
 
 
@@ -57,7 +57,7 @@ class CardResourceToolTest(unittest.TestCase):
         self.assertEqual(cards["0x11122860"].source_row, 2)
         self.assertEqual(cards["0x1112059e"].source_row, 3)
 
-    def test_card_evolution_metadata_is_standard_json_and_uses_existing_images(self):
+    def test_card_stage_categories_only_store_gold_and_fusion_exceptions(self):
         with tempfile.TemporaryDirectory() as temporary_dir:
             root = Path(temporary_dir)
             image_dir = root / "准备房间"
@@ -88,15 +88,13 @@ class CardResourceToolTest(unittest.TestCase):
                 {"基础卡片名称": "雷神", "序号": 3, "进化树名称": "至尊雷神", "链路类型": "普通进化", "目标文件名": "雷神-3.png"},
             ]
 
-            metadata = build_card_evolution_metadata(rows, image_dir)
-            self.assertEqual(metadata["普通卡"]["stages"], {"0": "普通卡", "1": "强化普通卡"})
-            self.assertEqual(metadata["融合卡"]["kind"], "fusion")
-            self.assertEqual(metadata["雷神"]["kind"], "gold")
+            categories = build_card_stage_categories(rows, image_dir)
+            self.assertEqual(categories, {"gold": ["雷神"], "fusion": ["融合卡"]})
 
-            output_path = root / "card_evolution.json"
-            write_card_evolution_metadata(output_path, rows, image_dir)
-            loaded_metadata = json.loads(output_path.read_text(encoding="utf-8"))
-            self.assertEqual(loaded_metadata, metadata)
+            output_path = root / "card_stage_categories.json"
+            write_card_stage_categories(output_path, rows, image_dir)
+            loaded_categories = json.loads(output_path.read_text(encoding="utf-8"))
+            self.assertEqual(loaded_categories, categories)
             self.assertTrue(output_path.read_text(encoding="utf-8").startswith("{\n"))
 
 
