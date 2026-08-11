@@ -2,10 +2,14 @@
     "meta_data": {
         "uuid": "00000000-0000-0000-0000-000000000002",
         "tips": "战斗执行器中放卡操作将被添加一个随机值的间隔",
-        "version": "0.2",
-        "cd_after_use_random_range": [
-            0.2,
-            0.7
-        ]
+        "version": "0.3",
+        "faa_version": "v3.1.1",
+        "cd_after_use_random": {
+            "active": true,
+            "range": [
+                0.05,
+                0.25
+            ]
+        }
     }
 }

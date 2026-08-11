@@ -14,7 +14,8 @@ from function.core.analyzer_of_loot_logs import match_items_from_image_and_save
 from function.core.faa.tweak_plan import (
     battle_plan_has_creator_god_target,
     get_auto_timer_target_names,
-    get_tweak_plan_ban_state,
+    get_tweak_plan_auto_card_enabled,
+    get_tweak_plan_auto_mat_card,
 )
 from function.globals import SIGNAL, EXTRA
 from function.globals.g_resources import RESOURCE_P
@@ -698,13 +699,16 @@ class BattlePreparation:
         """
         根据战斗方案和微调方案生成自动带卡清单。
 
-        微调方案中的 ban_state 用于关闭对应辅助卡片的自动携带功能；
-        同一状态还会在战斗初始化阶段关闭对应的智能使用功能。
+        微调方案 0.3 使用正向开关控制自动辅助卡片与承载卡功能；同一状态
+        还会在战斗初始化阶段关闭对应的智能使用功能。
 
         Returns:
             按卡片优先级排列的自动带卡要求列表。
         """
-        ban_state = get_tweak_plan_ban_state(self.battle_plan_tweak)
+        auto_card_enabled = get_tweak_plan_auto_card_enabled(self.battle_plan_tweak)
+        auto_mat_enabled = get_tweak_plan_auto_mat_card(
+            self.battle_plan_tweak
+        )["enabled"]
         my_dict = {}
         mats = copy.deepcopy(self.stage_info["mat_card"])
 
@@ -720,7 +724,7 @@ class BattlePreparation:
             required_cards_list.append({"name": card, "can_failed": False})
 
         # 如果需要任意承载卡 第一张卡设定为 有效承载 置于末位
-        if len(mats) >= 1 and not ban_state["mat"]:
+        if len(mats) >= 1 and auto_mat_enabled:
             required_cards_list.append({"name": "有效承载", "can_failed": False})
 
         # 添加计时器、冰沙和复制类卡片，置于末位且允许找不到。
@@ -729,17 +733,17 @@ class BattlePreparation:
                 battle_plan=self.battle_plan,
         ):
             required_cards_list.append({"name": "美味计时器", "can_failed": True})
-        if not ban_state["icecream"]:
+        if auto_card_enabled["icecream"]:
             required_cards_list.append({"name": "冰激凌-2", "can_failed": True})
         if (
-                not ban_state["god"]
+                auto_card_enabled["god"]
                 and battle_plan_has_creator_god_target(self.battle_plan)
         ):
             required_cards_list.append({"name": "创造神", "can_failed": True})
-        if not ban_state["ikun"]:
+        if auto_card_enabled["ikun"]:
             required_cards_list.append({"name": "幻幻鸡", "can_failed": True})
         # 如果有效承载数量 >= 2 置于末位 允许找不到
-        if len(mats) >= 2 and not ban_state["mat"]:
+        if len(mats) >= 2 and auto_mat_enabled:
             for _ in range(len(mats) - 1):
                 required_cards_list.append({"name": "有效承载", "can_failed": True})
 
@@ -754,11 +758,6 @@ class BattlePreparation:
             else:
                 self.ban_card_list += ["咖啡粉"]
 
-        if ban_state["coffee"]:
-            if not self.ban_card_list:
-                self.ban_card_list = ["咖啡粉"]
-            elif "咖啡粉" not in self.ban_card_list:
-                self.ban_card_list += ["咖啡粉"]
         return required_cards_list
 
     def check_create_room_success(self: "FAA"):

@@ -14,6 +14,7 @@ import numpy as np
 from PyQt6.QtCore import QThread, pyqtSignal
 
 from function.common.bg_img_screenshot import capture_image_png, capture_image_png_all
+from function.core.faa.tweak_plan import get_tweak_plan_random_interval
 from function.core_battle.card import Card, CardKun, SpecialCard
 from function.core_battle.card_queue import CardQueue
 from function.core_battle.special_card_strategy import solve_special_card_problem, solve_maximize_score_problem
@@ -784,11 +785,14 @@ class ThreadCheckTimer(QThread):
         self.check_interval_count = None
         if faa.battle_plan_tweak:
             self.faa.print_info(f"[战斗执行器] ThreadCheckTimer - check - 应用微调方案: {self.faa.battle_plan_tweak}")
-            meta_data = self.faa.battle_plan_tweak.get('meta_data', {})
-            cd_after_use_random_range = meta_data.get('cd_after_use_random_range')
-            if cd_after_use_random_range:
+            random_active, random_interval = get_tweak_plan_random_interval(
+                self.faa.battle_plan_tweak
+            )
+            if random_active and random_interval is not None:
                 # 放卡间隔与重置单轮放卡间隔原初比例大约为0.036：1
-                self.check_interval_count = (cd_after_use_random_range[0] + cd_after_use_random_range[1]) * 5 // 1
+                self.check_interval_count = (
+                    random_interval[0] + random_interval[1]
+                ) * 5 // 1
         else:
             self.faa.print_info(f"[战斗执行器] ThreadCheckTimer - check - 不应用微调方案")
 

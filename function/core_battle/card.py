@@ -8,6 +8,7 @@ import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png
 from function.core.faa.faa_mix import FAA
+from function.core.faa.tweak_plan import get_tweak_plan_random_interval
 from function.core_battle.card_copy_rules import get_creator_god_safe_locations
 from function.globals import EXTRA
 from function.globals.g_resources import RESOURCE_P
@@ -81,12 +82,10 @@ class Card:
         self.need_key = self.faa.need_key
         self.is_auto_battle = self.faa.is_auto_battle
         self.player = self.faa.player
-        self.cd_after_use_random_range = (
-            self.faa.battle_plan_tweak.get('meta_data', {}).get('cd_after_use_random_range', None))
-        if self.cd_after_use_random_range:
-            self.cd_after_use_random_active = True
-        else:
-            self.cd_after_use_random_active = False
+        (
+            self.cd_after_use_random_active,
+            self.cd_after_use_random_range,
+        ) = get_tweak_plan_random_interval(self.faa.battle_plan_tweak)
 
         """从 FAA类 的 battle_plan_card 中读取的属性"""
         plan = self.faa.battle_plan_card
@@ -522,12 +521,10 @@ class CardKun(Card):
         self.name = name
         self.c_id = c_id
         self.coordinate_from = coordinate_from
-        self.cd_after_use_random_range = (
-            self.faa.battle_plan_tweak.get('meta_data', {}).get('cd_after_use_random_range', None))
-        if self.cd_after_use_random_range:
-            self.cd_after_use_random_active = True
-        else:
-            self.cd_after_use_random_active = False
+        (
+            self.cd_after_use_random_active,
+            self.cd_after_use_random_range,
+        ) = get_tweak_plan_random_interval(self.faa.battle_plan_tweak)
 
     def use_card(self):
         """

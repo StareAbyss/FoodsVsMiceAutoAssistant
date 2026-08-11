@@ -3,40 +3,104 @@ import copy
 from function.core_battle.card_copy_rules import get_creator_god_safe_locations
 
 
-AUTO_TIMER_DEFAULT = False
+AUTO_CARD_DEFAULTS = {
+    "icecream": True,
+    "god": True,
+    "ikun": True,
+    "timer": False,
+}
 MAT_CARD_FIRST_DEFAULT = True
+AUTO_MAT_CARD_DEFAULTS = {
+    "enabled": True,
+    "use_first": MAT_CARD_FIRST_DEFAULT,
+}
 
 
-def get_tweak_plan_ban_state(battle_plan_tweak) -> dict[str, bool]:
-    """
-    获取微调方案中各类自动辅助卡片功能的禁用状态。
-
-    `mat`、`icecream`、`god` 和 `ikun` 为 True 时，同时停止该类卡片的
-    自动携带与智能使用。`coffee` 暂时保留原有的直接禁用携带行为。
-
-    Args:
-        battle_plan_tweak: 已加载的微调方案字典；缺失或格式异常时使用默认值。
-
-    Returns:
-        包含 mat、icecream、god、ikun、coffee 五个布尔字段的完整字典。
-    """
-    default_state = {
-        "mat": False,
-        "icecream": False,
-        "god": False,
-        "ikun": False,
-        "coffee": False,
-    }
+def get_tweak_plan_recording(
+        battle_plan_tweak: dict,
+) -> tuple[bool, bool, int]:
+    """读取微调方案 0.3 的聚合录制配置。"""
     if not isinstance(battle_plan_tweak, dict):
-        return default_state
+        return False, False, 1
+    meta_data = battle_plan_tweak.get("meta_data", {})
+    if not isinstance(meta_data, dict):
+        return False, False, 1
 
-    ban_state = battle_plan_tweak.get("meta_data", {}).get("ban_state", {})
-    if not isinstance(ban_state, dict):
-        return default_state
+    settings = meta_data.get("recording", {})
+    if not isinstance(settings, dict):
+        return False, False, 1
+    active = settings.get("active") is True
+    timestamp = settings.get("timestamp") is True
+    player = settings.get("player", 1)
+    if player not in (1, 2):
+        player = 1
+    return active, timestamp, player
 
-    for name in default_state:
-        default_state[name] = ban_state.get(name, False) is True
-    return default_state
+
+def get_tweak_plan_random_interval(
+        battle_plan_tweak: dict,
+) -> tuple[bool, list[float] | None]:
+    """读取微调方案 0.3 的放卡后随机间隔配置。"""
+    if not isinstance(battle_plan_tweak, dict):
+        return False, None
+    meta_data = battle_plan_tweak.get("meta_data", {})
+    if not isinstance(meta_data, dict):
+        return False, None
+
+    settings = meta_data.get("cd_after_use_random")
+    if not isinstance(settings, dict):
+        return False, None
+    active = settings.get("active") is True
+    interval = settings.get("range")
+    if (
+            not isinstance(interval, list)
+            or len(interval) != 2
+            or not all(
+                isinstance(value, (int, float)) and not isinstance(value, bool)
+                for value in interval
+            )
+    ):
+        return False, None
+    return active, [float(interval[0]), float(interval[1])]
+
+
+def get_tweak_plan_auto_mat_card(battle_plan_tweak) -> dict[str, bool]:
+    """读取微调方案 0.3 的自动承载开关与使用优先级。"""
+    settings = AUTO_MAT_CARD_DEFAULTS.copy()
+    if not isinstance(battle_plan_tweak, dict):
+        return settings
+
+    raw_settings = battle_plan_tweak.get("meta_data", {}).get(
+        "auto_mat_card",
+        {},
+    )
+    if not isinstance(raw_settings, dict):
+        return settings
+    for name in settings:
+        value = raw_settings.get(name)
+        if isinstance(value, bool):
+            settings[name] = value
+    return settings
+
+
+def get_tweak_plan_auto_card_enabled(battle_plan_tweak) -> dict[str, bool]:
+    """读取微调方案 0.3 的自动辅助卡片启用状态。"""
+    enabled = AUTO_CARD_DEFAULTS.copy()
+    if not isinstance(battle_plan_tweak, dict):
+        return enabled
+
+    raw_enabled = battle_plan_tweak.get("meta_data", {}).get(
+        "enable_auto_card",
+        {},
+    )
+    if not isinstance(raw_enabled, dict):
+        return enabled
+
+    for name in enabled:
+        value = raw_enabled.get(name)
+        if isinstance(value, bool):
+            enabled[name] = value
+    return enabled
 
 
 def get_auto_card_target_names(
@@ -51,32 +115,24 @@ def get_auto_card_target_names(
         battle_plan_tweak: 已加载的微调方案字典。
 
     Returns:
-        三个列表依次为承载卡、冰沙和连携卡的识别目标名称。微调方案
-        禁用某一功能时，对应列表为空。
+        三个列表依次为承载卡、冰沙和连携卡的识别目标名称。微调方案关闭
+        某一功能时，对应列表为空。
     """
-    ban_state = get_tweak_plan_ban_state(battle_plan_tweak)
-    target_mat_list = [] if ban_state["mat"] else copy.deepcopy(stage_mat_card_names)
-    target_smoothie_list = [] if ban_state["icecream"] else ["冰激凌"]
+    enabled = get_tweak_plan_auto_card_enabled(battle_plan_tweak)
+    auto_mat = get_tweak_plan_auto_mat_card(battle_plan_tweak)
+    target_mat_list = copy.deepcopy(stage_mat_card_names) if auto_mat["enabled"] else []
+    target_smoothie_list = ["冰激凌"] if enabled["icecream"] else []
     target_kun_list = []
-    if not ban_state["ikun"]:
+    if enabled["ikun"]:
         target_kun_list.append("幻幻鸡")
-    if not ban_state["god"]:
+    if enabled["god"]:
         target_kun_list.append("创造神")
     return target_mat_list, target_smoothie_list, target_kun_list
 
 
 def get_tweak_plan_auto_timer_enabled(battle_plan_tweak) -> bool:
     """读取微调方案中的美味计时器自动使用开关。"""
-    if not isinstance(battle_plan_tweak, dict):
-        return AUTO_TIMER_DEFAULT
-    enable_auto_card = battle_plan_tweak.get("meta_data", {}).get(
-        "enable_auto_card",
-        {},
-    )
-    if not isinstance(enable_auto_card, dict):
-        return AUTO_TIMER_DEFAULT
-    value = enable_auto_card.get("timer")
-    return value if isinstance(value, bool) else AUTO_TIMER_DEFAULT
+    return get_tweak_plan_auto_card_enabled(battle_plan_tweak)["timer"]
 
 
 def get_tweak_plan_mat_card_first(battle_plan_tweak) -> bool:
@@ -86,21 +142,7 @@ def get_tweak_plan_mat_card_first(battle_plan_tweak) -> bool:
     ``True`` 适用于零费承载；``False`` 适用于需要火苗的低练度承载，
     可先执行战斗方案首卡以启动产火循环。
     """
-    if not isinstance(battle_plan_tweak, dict):
-        return MAT_CARD_FIRST_DEFAULT
-    meta_data = battle_plan_tweak.get("meta_data", {})
-    if not isinstance(meta_data, dict):
-        return MAT_CARD_FIRST_DEFAULT
-
-    settings = meta_data.get("auto_mat_card", {})
-    if isinstance(settings, dict) and isinstance(settings.get("use_first"), bool):
-        return settings["use_first"]
-
-    # 兼容已经使用过的旧平铺字段。
-    legacy_value = meta_data.get("mat_card_first")
-    if isinstance(legacy_value, bool):
-        return legacy_value
-    return MAT_CARD_FIRST_DEFAULT
+    return get_tweak_plan_auto_mat_card(battle_plan_tweak)["use_first"]
 
 
 def insert_mat_cards_by_priority(
