@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 EXCEL_NAME_PATTERN = "*.xlsx"
 DEFAULT_OUTPUT_ROOT = Path("resource_other") / "图像资源_战利品_最新资源"
 DEFAULT_LOOT_ROOT = Path("resource") / "image" / "item" / "战利品"
+DEFAULT_LOOT_BLACKLIST_CSV = Path("resource") / "image" / "item" / "无法掉落道具名单.csv"
 DEFAULT_COMPARE_SAME_CSV = DEFAULT_OUTPUT_ROOT / "现有与最新图像资源相同部分一览.csv"
 DEFAULT_COMPARE_MISSING_CSV = DEFAULT_OUTPUT_ROOT / "现有与最新图像资源缺失图片一览.csv"
 DEFAULT_COMPARE_EXTRA_CSV = DEFAULT_OUTPUT_ROOT / "现有与最新图像资源多出图片一览.csv"
@@ -164,6 +165,30 @@ def collect_pngs(root: Path) -> dict[str, Path]:
     for path in sorted(root.rglob("*.png")):
         files[path.stem] = path
     return files
+
+
+def read_loot_blacklist(path: Path = DEFAULT_LOOT_BLACKLIST_CSV) -> set[tuple[str, str]]:
+    """
+    读取不会在战利品中掉落的物品名单。
+
+    Args:
+        path: 包含“类型,名称”两列的战利品黑名单 CSV。
+
+    Returns:
+        由 `(类型, 名称)` 组成的集合。文件不存在或字段缺失时返回空集合。
+    """
+    if not path.is_file():
+        return set()
+
+    blacklist = set()
+    with path.open(newline="", encoding="utf-8-sig") as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            item_type = (row.get("类型") or "").strip()
+            name = (row.get("名称") or "").strip()
+            if item_type and name:
+                blacklist.add((item_type, name))
+    return blacklist
 
 
 def category_for_path(root: Path, path: Path) -> str:
