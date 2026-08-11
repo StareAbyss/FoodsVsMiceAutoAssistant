@@ -19,6 +19,7 @@ from function.core.faa.tweak_plan import (
     build_auto_timer_card,
     get_auto_card_target_names,
     get_auto_timer_target_names,
+    get_kun_cards_for_wave,
     get_tweak_plan_mat_card_first,
     insert_mat_cards_by_priority,
 )
@@ -809,6 +810,7 @@ class FAABase:
                 if check_coordinate(card_xy_list, coordinate):
                     kun_cards_info.append({'name': card_name, "card_id": card_id})
         self.kun_cards_info = kun_cards_info
+        self.detected_kun_cards_info = copy.deepcopy(kun_cards_info)
         self.print_info(text="战斗中识图查找连携卡位置, 结果：{}".format(self.kun_cards_info))
 
         timer_info = None
@@ -981,6 +983,15 @@ class FAABase:
 
         def calculation_card_extra(list_cell_all):
 
+            self.kun_cards_info = get_kun_cards_for_wave(
+                detected_kun_cards=getattr(
+                    self,
+                    "detected_kun_cards_info",
+                    self.kun_cards_info,
+                ),
+                cards=list_cell_all,
+            )
+
             timer_card = build_auto_timer_card(timer_info, list_cell_all)
             if timer_card:
                 list_cell_all.append(timer_card)
@@ -1002,18 +1013,6 @@ class FAABase:
                     'queue': False
                 }
                 list_cell_all.append(card_dict)
-
-            if self.kun_cards_info:
-                # 确认卡片在卡组 且 有至少一个kun参数设定
-                kun_already_set = False
-                for card in list_cell_all:
-                    # 遍历已有卡片
-                    if "kun" in card.keys():
-                        kun_already_set = True
-                        break
-                if not kun_already_set:
-                    # 没有设置 那么也视坤位置标记不存在
-                    self.kun_cards_info = []
 
             # 为没有kun参数的方案 默认添加0
             for card in list_cell_all:
