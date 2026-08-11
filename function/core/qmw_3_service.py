@@ -1895,8 +1895,6 @@ def faa_start_main(app=None, loading=None, local_state=None):
 
     # 设置 窗口字体
     window.font = EXTRA.Q_FONT
-    # 先停止加载动画，再更新进度到 100。
-    loading.stop_animation()
     loading.update_progress(100, "载入完成！！！")
     # 主窗口 实现
     window.show()
