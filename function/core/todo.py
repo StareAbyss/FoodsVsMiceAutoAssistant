@@ -23,6 +23,7 @@ from function.common.process_manager import close_software_by_title, get_path_an
     close_all_software_by_name, start_software_with_args
 from function.common.thread_with_exception import ThreadWithException
 from function.core.analyzer_of_loot_logs import update_dag_graph, find_longest_path_from_dag, ranking_read_data
+from function.core.faa.card_limit import normalize_max_card_num
 from function.core.faa.faa_mix import FAA
 from function.core.faa.tweak_plan import get_tweak_plan_recording
 from function.core.faa_extra_readimage import read_and_get_return_information, kill_process
@@ -2029,7 +2030,14 @@ class ThreadTodo(QThread):
             # 处理允许缺失的值
             quest_card = quest.get("quest_card", None)
             ban_card_list = quest.get("ban_card_list", None)
-            max_card_num = quest.get("max_card_num", None)
+            raw_max_card_num = quest.get("max_card_num", None)
+            max_card_num = normalize_max_card_num(raw_max_card_num)
+            if max_card_num != raw_max_card_num:
+                quest["max_card_num"] = max_card_num
+                CUS_LOGGER.warning(
+                    f"限卡任务至少需要保留3张卡："
+                    f"已将限制数量从 {raw_max_card_num} 修订为 {max_card_num}"
+                )
             vase_num = quest.get("vase_player", None)
             is_cu = quest.get("is_cu", False)
             battle_plan_tweak = quest.get("battle_plan_tweak", None)

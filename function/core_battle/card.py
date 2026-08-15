@@ -96,8 +96,10 @@ class Card:
         self.ergodic = plan_by_priority.get("ergodic", True)
         self.queue = plan_by_priority.get("queue", True)
 
-        # 卡片拿去的位置 - 代号 int 和 坐标 list[x,y]
-        self.c_id = plan_by_priority.get("card_id", 1)
+        # card_id 保留战斗方案身份，slot_id 才是本场战斗中取卡的真实槽位。
+        # fallback 兼容尚未产生新字段的旧战斗信息。
+        self.plan_id = plan_by_priority.get("card_id")
+        self.c_id = plan_by_priority.get("slot_id",plan_by_priority.get("card_id", 1))
         self.coordinate_from = plan_by_priority.get("coordinate_from", [10, 10])
 
         # 卡片放置的位置 - 代号 list["1-1",...] 和 坐标 list[[x,y],....]
@@ -437,7 +439,8 @@ class Card:
                 kun_count = 0
                 for kun_card in self.kun_cards:
 
-                    # 创造神只复制完整 3×3 的中心格；没有安全中心则跳过。
+                    # 创造神只能复制完整 3×3 范围的中心格。先检查目标再判断
+                    # 可用状态和多复制卡等待，避免无合法落点时产生无意义延迟。
                     if (
                             kun_card.name == "创造神"
                             and not get_creator_god_safe_locations(self.location)

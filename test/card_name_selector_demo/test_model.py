@@ -244,6 +244,28 @@ class CardNameSelectorInteractionTest(unittest.TestCase):
         self.assertIn("ID 3：无法识别的测试卡", warning.call_args.args[2])
         self.assertEqual([card.name for card in cards], ["海星", "炭烧海星-1", "无法识别的测试卡"])
 
+    def test_faa_runtime_discovers_manual_stages_from_resource_filenames(self):
+        from function.core.faa import faa_battle_preparation
+
+        preparation = faa_battle_preparation.BattlePreparation.__new__(
+            faa_battle_preparation.BattlePreparation
+        )
+        preparation.card_types = []
+        resources = {
+            "card": {
+                "准备房间": {
+                    "用户自制卡-0.png": None,
+                    "用户自制卡-2.png": None,
+                    "用户自制卡-4.png": None,
+                }
+            }
+        }
+
+        with patch.object(faa_battle_preparation, "RESOURCE_P", resources):
+            targets = preparation._card_name_to_tar_list("用户自制卡")
+
+        self.assertEqual(targets, ["用户自制卡-4", "用户自制卡-2", "用户自制卡-0"])
+
     def test_follows_application_palette_change(self):
         original_palette = QPalette(self.app.palette())
         try:

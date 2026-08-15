@@ -10,6 +10,11 @@ AUTO_CARD_DEFAULTS = {
     "ikun": True,
     "timer": False,
 }
+
+# 高练度承载卡可以做到 0 费用，优先铺承载能让后续卡片直接落在有效地形上；
+# 但萌新使用的承载卡通常需要 25 火苗。若它始终排在产火首卡之前，承载会等火，
+# 产火卡又因为排在后面无法先放，最终形成持续缺火的恶性循环。
+# 因此该机制必须允许微调方案选择“承载优先”或“战斗方案首卡优先”，并为老玩家保留原默认值。
 MAT_CARD_FIRST_DEFAULT = True
 AUTO_MAT_CARD_DEFAULTS = {
     "enabled": True,
@@ -66,7 +71,12 @@ def get_tweak_plan_random_interval(
 
 
 def get_tweak_plan_auto_mat_card(battle_plan_tweak) -> dict[str, bool]:
-    """读取微调方案 0.3 的自动承载开关与使用优先级。"""
+    """
+    读取微调方案 0.3 的独立自动承载配置。
+
+    承载开关与承载优先级共同放在 ``auto_mat_card`` 中，因为承载依赖关卡地形，
+    和冰沙、复制卡等一般辅助卡的职责不同；``enable_auto_card`` 仅负责一般辅助卡。
+    """
     settings = AUTO_MAT_CARD_DEFAULTS.copy()
     if not isinstance(battle_plan_tweak, dict):
         return settings
@@ -139,6 +149,7 @@ def get_auto_card_target_names(
         battle_plan_tweak,
         battle_plan: dict | None = None,
         card_types: list[dict] | None = None,
+        exclude_plan_cards: bool = True,
 ) -> tuple[list[str], list[str], list[str]]:
     """
     获取本场战斗允许智能识别和使用的辅助卡片名称。
@@ -148,14 +159,19 @@ def get_auto_card_target_names(
         battle_plan_tweak: 已加载的微调方案字典。
         battle_plan: 当前战斗方案。
         card_types: 卡片类型配置。
+        exclude_plan_cards: 是否根据方案名称排除重复辅助卡。
+            手动卡组的方案名称与实际卡片无关，因此战斗开场扫描时必须传入 ``False``。
 
     Returns:
-        三个列表依次为承载卡、冰沙和连携卡的识别目标名称。微调方案关闭
-        某一功能时，对应列表为空。
+        三个列表依次为承载卡、冰沙和连携卡的识别目标名称。微调方案关闭某一功能时，对应列表为空。
     """
     enabled = get_tweak_plan_auto_card_enabled(battle_plan_tweak)
     auto_mat = get_tweak_plan_auto_mat_card(battle_plan_tweak)
-    existing = get_battle_plan_card_candidates(battle_plan, card_types)
+    existing = (
+        get_battle_plan_card_candidates(battle_plan, card_types)
+        if exclude_plan_cards
+        else set()
+    )
     has_kun_target = get_highest_kun_target(battle_plan) is not None
 
     target_mat_list = []
@@ -193,8 +209,9 @@ def get_tweak_plan_mat_card_first(battle_plan_tweak) -> bool:
     """
     读取是否让自动承载卡先于战斗方案首卡使用。
 
-    ``True`` 适用于零费承载；``False`` 适用于需要火苗的低练度承载，
-    可先执行战斗方案首卡以启动产火循环。
+    ``True`` 适用于 0 费承载：先铺承载不会阻塞后续卡片。
+    ``False`` 适用于需要 25 火苗的低练度承载：先让战斗方案首卡（通常是产火卡）启动能量循环，
+    避免承载等火的同时把产火卡永久压在队列后方。
     """
     return get_tweak_plan_auto_mat_card(battle_plan_tweak)["use_first"]
 
@@ -204,7 +221,13 @@ def insert_mat_cards_by_priority(
         mat_cards: list[dict],
         mat_card_first: bool,
 ) -> list[dict]:
-    """按玩家选择把整组自动承载卡插入执行优先级。"""
+    """
+    按玩家选择把自动承载卡插入执行优先级。
+
+    承载优先时整组承载放在队首，适配 0 费承载；关闭时保留战斗方案的首卡在最前，
+    整组承载紧随其后，供 25 火承载先通过产火首卡获得启动能量。
+    这里整组切片插入还会保留多个承载卡原有顺序，避免逐张 ``insert`` 倒序。
+    """
     insert_index = 0 if mat_card_first else min(1, len(cards))
     cards[insert_index:insert_index] = mat_cards
     return cards
@@ -235,7 +258,12 @@ def get_kun_cards_for_wave(
         detected_kun_cards: list[dict] | None,
         cards: list[dict],
 ) -> list[dict]:
-    """仅在当前波次存在正数 ``kun`` 目标时返回已识别的复制卡。"""
+    """
+    仅在当前波次存在正数 ``kun`` 目标时返回已识别的复制卡。
+
+    每波都从战前识别结果重新生成列表，不能沿用上一波被清空的运行时列表；
+    否则第一波没有复制目标时，会让后续拥有目标的波次也永久失去复制卡。
+    """
     if get_highest_kun_target_from_cards(cards) is None:
         return []
     return copy.deepcopy(detected_kun_cards or [])
@@ -269,14 +297,36 @@ def get_auto_timer_target_names(
         battle_plan_tweak: dict,
         battle_plan: dict,
         card_types: list[dict] | None = None,
+        exclude_plan_cards: bool = True,
 ) -> list[str]:
-    """获取本场战斗允许自动携带和使用的美味计时器识别目标。"""
+    """
+    获取本场战斗允许自动携带和使用的美味计时器识别目标。
+
+    计时器必须有正数 ``kun`` 目标才能确定唯一落点；
+    战斗方案直接写入计时器或通过“冷却辅助/冷却拐”类型可能解析到计时器时，不再重复加入。
+
+    Args:
+        battle_plan_tweak: 当前微调方案。
+        battle_plan: 当前战斗方案，用于检查正数 ``kun`` 目标。
+        card_types: 卡片类型配置。
+        exclude_plan_cards: 是否根据方案名称排除计时器。
+            手动卡组名称与方案无关，因此战斗开场扫描时必须传入 ``False``。
+
+    Returns:
+        需要识别时返回 ``["美味计时器"]``，否则返回空列表。
+    """
     if not get_tweak_plan_auto_timer_enabled(battle_plan_tweak):
         return []
     if get_highest_kun_target(battle_plan) is None:
         return []
 
-    existing = get_battle_plan_card_candidates(battle_plan, card_types)
+    existing = (
+        get_battle_plan_card_candidates(battle_plan, card_types)
+        if exclude_plan_cards
+        else set()
+    )
+    # 传入 card_types 时，冷却辅助类会展开为实际计时器；
+    # 未传入时仍需直接识别历史方案使用的两个类型名，保持独立调用这个函数也安全。
     if existing.intersection({"美味计时器", "冷却辅助", "冷却拐"}):
         return []
     return ["美味计时器"]

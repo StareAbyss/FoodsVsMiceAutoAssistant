@@ -14,6 +14,7 @@ import numpy as np
 from PyQt6.QtCore import QThread, pyqtSignal
 
 from function.common.bg_img_screenshot import capture_image_png, capture_image_png_all
+from function.core.faa.battle_card_roles import resolve_insert_use_card_events
 from function.core.faa.tweak_plan import get_tweak_plan_random_interval
 from function.core_battle.card import Card, CardKun, SpecialCard
 from function.core_battle.card_queue import CardQueue
@@ -368,10 +369,11 @@ class CardManager(QThread):
                 kun_cards_info = self.faa_dict[pid].kun_cards_info
                 if kun_cards_info:
                     for kun_card_info in kun_cards_info:
+                        c_id = kun_card_info.get("slot_id",kun_card_info.get("card_id"))
                         kun_card = CardKun(
                             faa=self.faa_dict[pid],
                             name=kun_card_info["name"],
-                            c_id=kun_card_info["card_id"],
+                            c_id=c_id,
                             coordinate_from=kun_card_info["coordinate_from"],
                         )
                         kun_cards.append(kun_card)
@@ -582,12 +584,13 @@ class CardManager(QThread):
                     card.banning = state
             CUS_LOGGER.debug(f"成功改变所有卡状态{state}")
 
-    def _insert_use_card(self, pid, card_id, location):
+    def _insert_use_card(self, pid, slot_id, location):
+        """使用定时事件已经解析出的真实卡槽执行一次放卡。"""
 
         faa = self.faa_dict[pid]
         # 做两次动作 保证百分百放下来!
         for _ in range(2):
-            faa.use_card_once(card_id=card_id, location=location, click_space=True)
+            faa.use_card_once(card_id=slot_id, location=location, click_space=True)
 
         CUS_LOGGER.debug("成功定时放卡")
 
@@ -606,7 +609,7 @@ class CardManager(QThread):
                 cv2.imwrite(output_img_path, original_image)
 
             try_get_picture_now(handle=faa.handle)
-            CUS_LOGGER.debug(f"成功定时放卡{card_id}于{location}")
+            CUS_LOGGER.debug(f"成功定时放卡，卡槽{slot_id}，位置{location}")
 
     def _insert_use_gem(self, pid, gid):
 
@@ -1045,10 +1048,18 @@ class ThreadInsertUseCardTimer(QThread):
         self.first_wave_this_init = True
 
         # 筛选出对应的战斗方案们
-        self.insert_use_card_plan = [event for event in self.faa.battle_plan["events"] if (
-                event["trigger"]["type"] == "wave_timer" and
-                event["action"]["type"] == "insert_use_card"
-        )]
+        # 原始定时事件使用方案 card_id。限卡或禁卡会让方案卡缺失、剩余卡槽前移，
+        # 因此必须先删除无实体卡的事件，再把保留事件映射到真实 slot_id。
+        # 整个事件在这里被过滤，可以保证无效事件附带的前铲和后铲也不会执行。
+        self.insert_use_card_plan = resolve_insert_use_card_events(
+            events=self.faa.battle_plan["events"],
+            cards=getattr(self.faa, "battle_card_plan", []),
+            resolved_plan_ready=getattr(
+                self.faa,
+                "battle_card_plan_ready",
+                False,
+            ),
+        )
         self.insert_use_shovel = [event for event in self.faa.battle_plan["events"] if (
                 event["trigger"]["type"] == "wave_timer" and
                 event["action"]["type"] == "shovel"
@@ -1073,10 +1084,6 @@ class ThreadInsertUseCardTimer(QThread):
                 event["trigger"]["type"] == "wave_timer" and
                 event["action"]["type"] == "random_multi_card"
         )]
-
-        # 内联 card_name 字段
-        for event in self.insert_use_card_plan:
-            event["action"]["name"] = next((card["name"] for card in self.faa.battle_plan["cards"]), "")
 
         self.running = False
         self.timer = None
@@ -1181,7 +1188,7 @@ class ThreadInsertUseCardTimer(QThread):
                 func_name="insert_use_card",
                 func_kwargs={
                     "pid": self.pid,
-                    "card_id": battle_event["action"]["card_id"],
+                    "slot_id": battle_event["action"]["slot_id"],
                     "location": battle_event["action"]["location"]}
             )
 
@@ -1339,12 +1346,14 @@ class ThreadUseSpecialCardTimer(QThread):
         调整建议：
         增大该值：系统变得更保守，只有非常确定的障碍才会被处理
         减小该值：系统变得更敏感，可能会处理一些偶发的障碍
+
         2. 策略效果参数
         strategy_effect_duration (默认值: 3.3)
         用途：策略被认为有效的持续时间（秒）
         调整建议：
         增大该值：系统会给策略更长的生效时间窗口
         减小该值：系统会更快地重新评估策略效果
+
         3. 评分调整参数
         score_reduction_during_strategy (默认值: 3)
         用途：当位置受策略影响时的评分降低值
@@ -1361,6 +1370,7 @@ class ThreadUseSpecialCardTimer(QThread):
         调整建议：
         增大该值：系统更快地忘记已不存在的障碍
         减小该值：系统更缓慢地降低不存在障碍的评分
+
         4. 记忆长度参数
         max_memory_length (默认值: 5)
         用途：保存的障碍检测历史记录的最大数量

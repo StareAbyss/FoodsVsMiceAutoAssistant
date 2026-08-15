@@ -15,6 +15,22 @@ from function.common.get_system_dpi import get_window_position, get_system_dpi
 from function.common.image_processing.overlay_images import overlay_images
 from function.common.process_manager import close_software_by_title, get_path_and_sub_titles, \
     close_all_software_by_name, start_software_with_args
+from function.core.faa.card_limit import get_retained_plan_card_count
+from function.core.faa.battle_card_roles import (
+    ROLE_CREATOR_GOD,
+    ROLE_IKUN,
+    ROLE_PLAN,
+    ROLE_PRIMARY_MAT,
+    ROLE_QUEST,
+    ROLE_SECONDARY_MAT,
+    ROLE_SMOOTHIE,
+    ROLE_TIMER,
+    find_role_card,
+    get_plan_slot_map,
+    get_slot_id,
+    has_role,
+    merge_detected_card,
+)
 from function.core.faa.tweak_plan import (
     build_auto_timer_card,
     get_auto_card_target_names,
@@ -113,6 +129,11 @@ class FAABase:
         self.smoothie_info = None  # 冰沙位置
         self.kun_cards_info: list[dict] | None = None  # 坤位置 也用于标记本场战斗是否需要激活坤函数
         self.timer_info = None  # 美味计时器位置及转职信息
+        # 战备阶段解析出的实体卡信息。
+        # plan_id 是方案身份，slot_id 是真实卡槽；roles 允许同一张卡同时承担任务、承载或辅助功能。
+        self.battle_card_plan: list[dict] = []
+        self.battle_card_plan_ready = False
+        self.manual_quest_card_assumed = False
         self.battle_plan_card = []  # 经过处理后的战斗方案卡片部分, 由战斗类相关动作函数直接调用
         self.battle_lock = threading.Lock()  # 战斗放卡锁，保证同一时间一个号里边的特殊放卡及正常放卡只有一种放卡在操作
 
@@ -612,7 +633,7 @@ class FAABase:
 
         :param quest_card: str 自动携带任务卡的名称
         :param ban_card_list: list[str,...] ban卡列表
-        :param max_card_num: 最大卡片数 - 仅自动带卡时启用 会去除id更低的卡片, 保证完成任务要求.
+        :param max_card_num: 最大卡片数。自动带卡会直接少带，手动带卡会按固定槽位倒序移除。
         :param stage_id: 关卡的id
         :return:
         """
@@ -627,6 +648,9 @@ class FAABase:
         self.quest_card = quest_card
         self.ban_card_list = ban_card_list
         self.max_card_num = max_card_num
+        self.battle_card_plan = []
+        self.battle_card_plan_ready = False
+        self.manual_quest_card_assumed = False
 
         if not is_cu:
             self.stage_info = read_json_to_stage_info(stage_id)
@@ -658,40 +682,49 @@ class FAABase:
         self.battle_plan = g_resources.RESOURCE_B.get(battle_plan_uuid, None)
         self.battle_plan_tweak = g_resources.RESOURCE_T.get(battle_plan_tweak_uuid, None)
 
-        # 格式校验[float, float]
-        if self.battle_plan_tweak.get("meta_data", {}).get("cd_after_use_random_range", {}):
-            self.battle_plan_tweak["meta_data"]["cd_after_use_random_range"] = [
-                float(x) for x in self.battle_plan_tweak["meta_data"]["cd_after_use_random_range"]]
-
     """战斗完整的过程中的任务函数"""
 
     def init_mat_smoothie_kun_card_info(self: "FAA") -> None:
         """
         识别本场战斗允许自动使用的承载卡、冰沙和连携卡。
 
-        微调方案禁用某类辅助卡片后，不再识别该类卡片，也不会为其自动生成
-        承载铺设、冰沙放置或创造神/幻幻鸡连携逻辑。
+        微调方案启用某类辅助卡片且战斗方案未包含该卡时，才会识别并生成自动动作。
+        复制卡与美味计时器还要求方案中存在正数 kun 复制目标。
         """
 
         self.print_info("战斗中识图查找启用的承载卡/冰沙/连携卡位置, 开始")
+        if not hasattr(self, "battle_card_plan"):
+            self.battle_card_plan = []
 
         target_mat_list, target_smoothie_list, target_kun_list = get_auto_card_target_names(
             stage_mat_card_names=self.stage_info["mat_card"],
             battle_plan_tweak=self.battle_plan_tweak,
             battle_plan=self.battle_plan,
             card_types=self.card_types,
+            exclude_plan_cards=getattr(self, "auto_carry_card", True),
         )
         target_timer_list = get_auto_timer_target_names(
             battle_plan_tweak=self.battle_plan_tweak,
             battle_plan=self.battle_plan,
             card_types=self.card_types,
+            exclude_plan_cards=getattr(self, "auto_carry_card", True),
         )
+        target_quest_list = []
+        if (
+            getattr(self, "manual_quest_card_assumed", False)
+            and self.quest_card not in (None, "None")
+        ):
+            # 手动卡组添加任务卡失败时，卡片可能只是因为已经在当前卡组中而呈灰色。
+            # 复用战斗图片在开场确认其真实槽位。
+            target_quest_list = self._card_name_to_tar_list(
+                card_name=self.quest_card,
+            )
 
         def scan(
-                target_names_list,
-                image,
-                job_codes=(0, 1, 2, 3),
-                keep_variant=False,
+            target_names_list,
+            image,
+            job_codes=(0, 1, 2, 3),
+            keep_variant=False,
         ):
             """
             根据名称列表进行扫描, 支持自动拓展转职名称
@@ -768,6 +801,11 @@ class FAABase:
                 job_codes=(0, 1, 2),
                 keep_variant=True,
             )
+            quest_card_dict = scan(
+                target_names_list=target_quest_list,
+                image=image,
+                keep_variant=True,
+            )
 
             # 防止卡片正好被某些特效遮挡, 所以等待一下
             time.sleep(0.1)
@@ -778,53 +816,140 @@ class FAABase:
             x2 = card_xy_list[0] + 53
             y2 = card_xy_list[1] + 70
             if (
-                    x1 <= target_coordinate[0] <= x2
-                    and y1 <= target_coordinate[1] <= y2
+                x1 <= target_coordinate[0] <= x2
+                and y1 <= target_coordinate[1] <= y2
             ):
                 return True
             return False
 
-        # 根据坐标位置，判断对应的卡id
+        def find_slot_id(target_coordinate) -> int | None:
+            """把识图坐标归属到本场战斗的真实卡槽。"""
+            return next(
+                (
+                    slot_id
+                    for slot_id, card_xy_list in self.bp_card.items()
+                    if check_coordinate(card_xy_list, target_coordinate)
+                ),
+                None,
+            )
+
+        def to_runtime_info(card: dict, name: str) -> dict:
+            """生成同时保留方案身份和物理槽位的识别结果。"""
+            return {
+                "name": name,
+                "card_id": card.get("plan_id"),
+                "plan_id": card.get("plan_id"),
+                "slot_id": card.get("slot_id"),
+                "roles": copy.deepcopy(card.get("roles", [])),
+            }
+
+            # 承载识图顺序代表承载候选优先级。
+            # 自动带卡已有角色时沿用战备结果；手动带卡则把首张识别结果标记为第一承载，其余为次要承载。
+
         mat_cards_info = []
         for name, coordinate in mat_card_dict.items():
-            for card_id, card_xy_list in self.bp_card.items():
-                if check_coordinate(card_xy_list, coordinate):
-                    mat_cards_info.append({'name': name, 'card_id': card_id})
+            slot_id = find_slot_id(coordinate)
+            if slot_id is None:
+                continue
+            existing_card = next(
+                (
+                    card for card in self.battle_card_plan
+                    if card.get("slot_id") == slot_id
+                ),
+                None,
+            )
+            if existing_card and has_role(existing_card, ROLE_PRIMARY_MAT):
+                mat_role = ROLE_PRIMARY_MAT
+            elif existing_card and has_role(existing_card, ROLE_SECONDARY_MAT):
+                mat_role = ROLE_SECONDARY_MAT
+            else:
+                mat_role = ROLE_PRIMARY_MAT if not mat_cards_info else ROLE_SECONDARY_MAT
+            card = merge_detected_card(
+                self.battle_card_plan,
+                slot_id=slot_id,
+                name=name,
+                role=mat_role,
+            )
+            mat_cards_info.append(to_runtime_info(card, name))
         self.mat_cards_info = mat_cards_info
         self.print_info("战斗中识图查找承载卡位置, 结果: {}".format(mat_cards_info))
 
-        # 根据坐标位置，判断对应的卡id
         smoothie_info = None
         for name, coordinate in smoothie_card_dict.items():
-            for card_id, card_xy_list in self.bp_card.items():
-                if check_coordinate(card_xy_list, coordinate):
-                    smoothie_info = {'name': '极寒冰沙', "card_id": card_id}
-                    break
+            slot_id = find_slot_id(coordinate)
+            if slot_id is None:
+                continue
+            card = merge_detected_card(
+                self.battle_card_plan,
+                slot_id=slot_id,
+                name="极寒冰沙",
+                role=ROLE_SMOOTHIE,
+            )
+            smoothie_info = to_runtime_info(card, "极寒冰沙")
+            break
         self.smoothie_info = smoothie_info
         self.print_info(text="战斗中识图查找冰沙位置, 结果：{}".format(self.smoothie_info))
 
-        # 根据坐标位置，判断对应的卡id
         kun_cards_info = []
         for card_name, coordinate in kun_card_dict.items():
-            for card_id, card_xy_list in self.bp_card.items():
-                if check_coordinate(card_xy_list, coordinate):
-                    kun_cards_info.append({'name': card_name, "card_id": card_id})
+            slot_id = find_slot_id(coordinate)
+            if slot_id is None:
+                continue
+            role = ROLE_CREATOR_GOD if card_name == "创造神" else ROLE_IKUN
+            card = merge_detected_card(
+                self.battle_card_plan,
+                slot_id=slot_id,
+                name=card_name,
+                role=role,
+            )
+            kun_cards_info.append(to_runtime_info(card, card_name))
         self.kun_cards_info = kun_cards_info
         self.detected_kun_cards_info = copy.deepcopy(kun_cards_info)
         self.print_info(text="战斗中识图查找连携卡位置, 结果：{}".format(self.kun_cards_info))
 
         timer_info = None
         for timer_variant, coordinate in timer_card_dict.items():
-            for card_id, card_xy_list in self.bp_card.items():
-                if check_coordinate(card_xy_list, coordinate):
-                    timer_info = {
-                        "name": "美味计时器",
-                        "card_id": card_id,
-                        "second_job": timer_variant.endswith("-2"),
-                    }
-                    break
+            slot_id = find_slot_id(coordinate)
+            if slot_id is None:
+                continue
+            card = merge_detected_card(
+                self.battle_card_plan,
+                slot_id=slot_id,
+                name="美味计时器",
+                role=ROLE_TIMER,
+            )
+            timer_info = to_runtime_info(card, "美味计时器")
+            timer_info["second_job"] = timer_variant.endswith("-2")
+            break
         self.timer_info = timer_info
         self.print_info(text="战斗中识图查找美味计时器位置, 结果：{}".format(self.timer_info))
+
+        # 只有手动添加任务卡失败时才需要额外扫描。
+        # 若任务卡同时就是承载或辅助卡，按 slot_id 合并角色并删除未知槽位占位；最终不会生成两张卡。
+        for quest_variant, coordinate in quest_card_dict.items():
+            slot_id = find_slot_id(coordinate)
+            if slot_id is None:
+                continue
+            unresolved_quest = next(
+                (
+                    card for card in self.battle_card_plan
+                    if has_role(card, ROLE_QUEST) and card.get("slot_id") is None
+                ),
+                None,
+            )
+            card = merge_detected_card(
+                self.battle_card_plan,
+                slot_id=slot_id,
+                name=quest_variant.rsplit("-", 1)[0],
+                role=ROLE_QUEST,
+            )
+            if unresolved_quest is not None and unresolved_quest is not card:
+                self.battle_card_plan.remove(unresolved_quest)
+            self.manual_quest_card_assumed = False
+            self.print_info(
+                text=f"战斗中识图确认手动任务卡位置, 结果：{to_runtime_info(card, self.quest_card)}"
+            )
+            break
 
     def init_battle_plan_card(self: "FAA", wave: int) -> None:
         """
@@ -833,7 +958,9 @@ class FAABase:
             example = [
                 {
                     来自配置文件
-                    "card_id": int, 卡片从哪取 代号 (卡片在战斗中, 在卡组的的从左到右序号 )
+                    "card_id": int | None, 原始战斗方案卡片 ID；额外卡为 None
+                    "slot_id": int, 本场战斗中从左到右的真实卡槽
+                    "roles": list[str], 方案、任务、承载或辅助角色
                     "name": str,  名称 用于ban卡
                     "location": ["x-y","x-y"...] ,  卡片放到哪 代号
                     "ergodic": True,  放卡模式 遍历
@@ -855,11 +982,29 @@ class FAABase:
         quest_card = copy.deepcopy(self.quest_card)
         stage_info = copy.deepcopy(self.stage_info)
         battle_plan = copy.deepcopy(self.battle_plan)
-        mat_card_info = copy.deepcopy(self.mat_cards_info)
+        mat_card_info = copy.deepcopy(self.mat_cards_info) or []
         smoothie_info = copy.deepcopy(self.smoothie_info)
         timer_info = copy.deepcopy(self.timer_info)
+        resolved_card_plan = copy.deepcopy(
+            getattr(self, "battle_card_plan", [])
+        )
+        resolved_plan_ready = getattr(
+            self,
+            "battle_card_plan_ready",
+            False,
+        )
+        plan_slot_map = get_plan_slot_map(resolved_card_plan)
 
-        # 新版战斗方案兼容
+        # 限卡后的方案卡实际占据卡槽 1..N；必要承载与任务卡会占用限卡名额，
+        # 但它们都不改变保留下来的方案卡仍从 ID=1 开始这一约定。
+        retained_plan_card_count = get_retained_plan_card_count(
+            plan_card_count=len(self.battle_plan.get("cards", [])),
+            max_card_num=self.max_card_num,
+            stage_info=stage_info,
+            has_quest_card=quest_card not in (None, "None"),
+        )
+
+        # 新版战斗方案兼容，并移除已经因限卡而没有实际卡片的高 ID 动作。
         battle_plan = next(
             (
                 event["action"]["cards"] for event in battle_plan["events"] if (
@@ -868,19 +1013,89 @@ class FAABase:
                 event["action"]["type"] == "loop_use_cards"
             )
             ), [])
+        if resolved_plan_ready:
+            resolved_by_plan_id = {
+                card["plan_id"]: card
+                for card in resolved_card_plan
+                if isinstance(card.get("plan_id"), int)
+            }
+            mapped_battle_plan = []
+            for card in battle_plan:
+                plan_id = card.get("card_id")
+                resolved_card = resolved_by_plan_id.get(plan_id)
+                if resolved_card is None or plan_id not in plan_slot_map:
+                    continue
+                card["plan_id"] = plan_id
+                card["slot_id"] = plan_slot_map[plan_id]
+                card["roles"] = copy.deepcopy(resolved_card.get("roles", [ROLE_PLAN]))
+                mapped_battle_plan.append(card)
+            battle_plan = mapped_battle_plan
+        else:
+            # 兼容尚未经过战备解析的独立调用和旧测试。
+            # 这里仍把方案 ID 当作物理槽位，但输出中显式补齐 slot_id，避免后续继续猜测。
+            battle_plan = [
+                card
+                for card in battle_plan
+                if card.get("card_id", 0) <= retained_plan_card_count
+            ]
+            for card in battle_plan:
+                card["plan_id"] = card["card_id"]
+                card["slot_id"] = card["card_id"]
+                card["roles"] = [ROLE_PLAN]
 
         # 内联卡片名称
         for a_card in battle_plan:
             a_card["name"] = next(
-                o_card["name"] for o_card in self.battle_plan["cards"] if o_card["card_id"] == a_card["card_id"])
+                o_card["name"]
+                for o_card in self.battle_plan["cards"]
+                if o_card["card_id"] == a_card["plan_id"]
+            )
 
         """当前波次选择"""
 
         def calculation_card_quest(list_cell_all):
             """计算步骤一 加入任务卡的摆放坐标"""
 
-            if quest_card == "None" or quest_card is None:
-                return list_cell_all
+            if resolved_plan_ready:
+                quest_owner = find_role_card(resolved_card_plan, ROLE_QUEST)
+                if quest_owner is None or get_slot_id(quest_owner) is None:
+                    return list_cell_all
+                quest_slot_id = get_slot_id(quest_owner)
+
+                # 任务角色只表达“必须携带并至少使用一次”。
+                # 只有当前波次确实会通过方案、承载或辅助机制使用该槽位时，才省略通用任务动作；
+                # 战斗图片偶发识别失败时仍有任务动作兜底。
+                automatic_infos = [
+                    *mat_card_info,
+                    *([smoothie_info] if smoothie_info else []),
+                ]
+                if build_auto_timer_card(timer_info, list_cell_all):
+                    automatic_infos.append(timer_info)
+                automatic_infos.extend(get_kun_cards_for_wave(
+                    detected_kun_cards=getattr(
+                        self,
+                        "detected_kun_cards_info",
+                        self.kun_cards_info,
+                    ),
+                    cards=list_cell_all,
+                ))
+                has_plan_action = any(
+                    get_slot_id(card) == quest_slot_id and card.get("location")
+                    for card in list_cell_all
+                )
+                has_automatic_action = any(
+                    get_slot_id(card) == quest_slot_id
+                    for card in automatic_infos
+                )
+                has_existing_action = has_plan_action or has_automatic_action
+                if has_existing_action:
+                    return list_cell_all
+                quest_plan_id = quest_owner.get("plan_id")
+            else:
+                if quest_card == "None" or quest_card is None:
+                    return list_cell_all
+                quest_slot_id = retained_plan_card_count + 1
+                quest_plan_id = None
 
             quest_card_locations = [
                 "6-1", "6-2", "6-3", "6-4", "6-5", "6-6", "6-7",
@@ -892,12 +1107,6 @@ class FAABase:
                 {**card, "location": list(filter(lambda x: x not in quest_card_locations, card["location"]))}
                 for card in list_cell_all
             ]
-
-            # 计算任务卡的id 最大的卡片id + 1 注意判空!!!
-            if list_cell_all:
-                quest_card_id = max(card["card_id"] for card in list_cell_all) + 1
-            else:
-                quest_card_id = 1
 
             # 任务卡 位置 组队情况下分摊
             if not is_group:
@@ -913,7 +1122,10 @@ class FAABase:
 
             # 设定任务卡dict
             dict_quest = {
-                "card_id": quest_card_id,
+                "card_id": quest_plan_id,
+                "plan_id": quest_plan_id,
+                "slot_id": quest_slot_id,
+                "roles": [ROLE_QUEST],
                 "name": quest_card,
                 "location": quest_card_locations,
                 "ergodic": True,
@@ -936,19 +1148,36 @@ class FAABase:
 
             if not self.banned_card_index:
                 return list_cell_all
+            if resolved_plan_ready:
+                # battle_card_plan 已在战备禁卡完成后按照真实删除槽位重排；
+                # 此处若再次处理会造成 slot_id 二次左移。
+                return list_cell_all
 
-            list_new = [card for card in list_cell_all if card["card_id"] not in self.banned_card_index]
+            list_new = [
+                card for card in list_cell_all
+                if get_slot_id(card) not in self.banned_card_index
+            ]
 
             # 遍历更改删卡后的位置
             for card in list_new:
-                card["card_id"] -= sum(1 for index in self.banned_card_index if card["card_id"] > index)
+                slot_id = get_slot_id(card)
+                card["slot_id"] = slot_id - sum(
+                    1 for index in self.banned_card_index if slot_id > index
+                )
 
             return list_new
 
         def calculation_card_mat(list_cell_all):
-            """步骤三：按微调方案优先级加入自动承载卡。"""
+            """
+            步骤三：加入自动承载卡，并根据微调方案决定启动优先级。
 
-            location = stage_info["mat_cell"]  # 深拷贝 防止对配置文件数据更改
+            高练度承载通常为 0 费，放在队首可以先建立有效地形；萌新的承载可能需要 25 火苗，
+            若仍抢在通常负责产火的战斗方案首卡之前，就会出现承载等火、产火卡又无法先出的恶性循环。
+
+            ``mat_card_first`` 关闭时因此只保留战斗方案首卡在前，承载紧随其后。
+            """
+
+            location = copy.deepcopy(stage_info["mat_cell"])  # 深拷贝 防止对配置文件数据更改
 
             # p1p2分别摆一半
             if is_group:
@@ -968,7 +1197,10 @@ class FAABase:
             mat_cards = []
             for i in range(num_mat_card):
                 mat_cards.append({
-                    "card_id": mat_card_info[i]['card_id'],
+                    "card_id": mat_card_info[i].get("plan_id"),
+                    "plan_id": mat_card_info[i].get("plan_id"),
+                    "slot_id": get_slot_id(mat_card_info[i]),
+                    "roles": copy.deepcopy(mat_card_info[i].get("roles", [])),
                     "name": mat_card_info[i]['name'],
                     "location": location[i::num_mat_card],
                     "ergodic": need_ergodic,
@@ -994,6 +1226,12 @@ class FAABase:
 
             timer_card = build_auto_timer_card(timer_info, list_cell_all)
             if timer_card:
+                timer_card["plan_id"] = timer_info.get("plan_id")
+                timer_card["card_id"] = timer_info.get("plan_id")
+                timer_card["slot_id"] = get_slot_id(timer_info)
+                timer_card["roles"] = copy.deepcopy(
+                    timer_info.get("roles", [ROLE_TIMER])
+                )
                 list_cell_all.append(timer_card)
 
             if smoothie_info:
@@ -1007,7 +1245,12 @@ class FAABase:
                 # 仅该卡确定存在后执行添加
                 card_dict = {
                     'name': smoothie_info['name'],
-                    'card_id': smoothie_info['card_id'],
+                    'card_id': smoothie_info.get('plan_id'),
+                    'plan_id': smoothie_info.get('plan_id'),
+                    'slot_id': get_slot_id(smoothie_info),
+                    'roles': copy.deepcopy(
+                        smoothie_info.get('roles', [ROLE_SMOOTHIE])
+                    ),
                     'location': ["1-1", "2-1", "3-1", "4-1", "5-1", "6-1", "7-1", "8-1", "9-1"],
                     'ergodic': True,
                     'queue': False
@@ -1058,16 +1301,21 @@ class FAABase:
             list_cell_all = calculation_obstacle(list_cell_all=list_cell_all)
 
             # 统一以坐标直接表示位置, 防止重复计算 (添加coordinate_from, coordinate_to)
-            # 将 id:int 变为 coordinate_from:[x:int,y:int]
+            # 将 slot_id:int 变为 coordinate_from:[x:int,y:int]
             # 将 location:str 变为 coordinate_to:[[x:int,y:int],...]
             for card in list_cell_all:
                 # 根据字段值, 判断是否完成写入, 并进行转换
-                card["coordinate_from"] = copy.deepcopy(bp_card[card["card_id"]])
+                slot_id = get_slot_id(card)
+                card["coordinate_from"] = copy.deepcopy(bp_card[slot_id])
                 card["coordinate_to"] = [copy.deepcopy(bp_cell[location]) for location in card["location"]]
+                # plan_id 只在本模块内用于区分语义；
+                # 对外仍沿用战斗方案的 card_id，并额外提供真实物理槽位 slot_id。
+                card.pop("plan_id", None)
 
             # 为幻鸡单独转化
             for kun_card_info in self.kun_cards_info:
-                kun_card_info["coordinate_from"] = copy.deepcopy(bp_card[kun_card_info["card_id"]])
+                slot_id = get_slot_id(kun_card_info)
+                kun_card_info["coordinate_from"] = copy.deepcopy(bp_card[slot_id])
 
             # 不常用调试print
             self.print_debug(text="你的战斗放卡opt如下:")
