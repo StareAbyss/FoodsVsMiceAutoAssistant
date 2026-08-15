@@ -15,9 +15,9 @@ class AutoMatPriorityTest(unittest.TestCase):
         tweak = {"meta_data": {"auto_mat_card": {"use_first": False}}}
         self.assertFalse(get_tweak_plan_mat_card_first(tweak))
 
-    def test_legacy_flat_setting_remains_compatible(self):
+    def test_legacy_flat_setting_is_ignored(self):
         tweak = {"meta_data": {"mat_card_first": False}}
-        self.assertFalse(get_tweak_plan_mat_card_first(tweak))
+        self.assertTrue(get_tweak_plan_mat_card_first(tweak))
 
     def test_mat_cards_can_run_before_all_plan_cards(self):
         cards = [{"name": "产火卡"}, {"name": "输出卡"}]

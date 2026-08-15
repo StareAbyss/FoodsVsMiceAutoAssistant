@@ -304,7 +304,9 @@ class FAABattle:
                                         break
 
                                 if not is_banned:
-                                    location_cid[p_type][location].append(card["card_id"])
+                                    location_cid[p_type][location].append(
+                                        card.get("slot_id", card.get("card_id"))
+                                    )
 
                 if location_cid["old"][location] == location_cid["new"][location]:
                     continue
