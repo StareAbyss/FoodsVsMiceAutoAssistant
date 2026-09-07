@@ -348,20 +348,23 @@ class FAAActionInterfaceJump:
 
             if self.is_main and mt_wb_first_time:
                 # 进入魔塔
+                # 2026-08-18 根据反馈 少数用户表示此处会卡住, 现已添加时延 0.2 -> 1
                 loop_match_p_in_w(
                     source_handle=handle,
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["stage"]["MT.png"],
                     match_failed_check=5,
-                    after_sleep=0.2,
+                    after_sleep=1,
                     click=True
                 )
 
                 # stage_1 根据模式进行选择
                 my_dict = {"1": 46, "2": 115, "3": 188}
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=my_dict[stage_1], y=66)
-                time.sleep(0.5)
+
+                # 2026-08-18 根据反馈 少数用户表示此处会卡住, 现已添加时延 0.5 -> 1
+                time.sleep(1)
 
             # 不是房主, 不进行关卡选择和创建房间
             if not self.is_main:
@@ -374,23 +377,27 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
-                    after_sleep=0.2,
+                    after_sleep=0.5,
                     click=True)
 
-            # 单双人爬塔 等于0则为爬塔模式 即选择最高层 从下到上遍历所有层数
+            # 单双人爬塔 等于0则为自动爬塔模式 即选择最高层 从下到上遍历所有层数
+            # 2026-08-18 根据反馈 少数用户表示此处会卡住, 每次翻页时延 0.1 -> 0.2
+
             if stage_1 != "3" and stage_2 == "0":
                 # 到魔塔最低一层
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=47, y=579)
                 time.sleep(0.3)
 
-                for i in range(11):
-                    # 下一页
+                # 此处翻页11就够了, 预留12给未来
+                for i in range(12):
+                    # 翻页
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=152, y=577)
-                    time.sleep(0.1)
+                    time.sleep(0.3)
 
                     for j in range(15):
+                        # 遍历本页所有层数
                         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=110, y=542 - 30.8 * j)
-                        time.sleep(0.1)
+                        time.sleep(0.2)
 
             # 单双人爬塔 指定层数
             if stage_1 != "3" and stage_2 != "0":
@@ -398,7 +405,7 @@ class FAAActionInterfaceJump:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=47, y=579)
                 time.sleep(0.3)
 
-                # 向右到对应位置
+                # 向右翻页到对应位置
                 my_left = int((int(stage_2) - 1) / 15)
                 for i in range(my_left):
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=152, y=577)
@@ -417,7 +424,7 @@ class FAAActionInterfaceJump:
                 source_root_handle=handle_360,
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
-                after_sleep=1.5,
+                after_sleep=0.2,
                 click=True)
 
             if stage_2 == "0":
@@ -593,7 +600,7 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                    after_sleep=0.05,
+                    after_sleep=0.2,
                     click=True)
 
         def main_pt():
