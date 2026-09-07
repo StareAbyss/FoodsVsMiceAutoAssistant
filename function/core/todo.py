@@ -1407,10 +1407,10 @@ class ThreadTodo(QThread):
         sleep(60 * 60 * 24)
 
     def battle_1_1_n(
-            self, stage_id, player, need_key, max_times, dict_exit,
-            global_plan_active, deck, battle_plan_1p, battle_plan_2p,
-            quest_card, ban_card_list, max_card_num,
-            extra_title, vase_num=None, battle_plan_tweak=None, is_cu=False
+        self, stage_id, player, need_key, max_times, dict_exit,
+        global_plan_active, deck, battle_plan_1p, battle_plan_2p,
+        quest_card, ban_card_list, max_card_num,
+        extra_title, vase_num=None, battle_plan_tweak=None, is_cu=False
     ):
         """
         核心詹欧函数
@@ -1497,7 +1497,8 @@ class ThreadTodo(QThread):
                 # 获取 g_plan
                 try:
                     with EXTRA.FILE_LOCK:
-                        with open(file=os.path.join(PATHS["config"], 'stage_plan.json'), mode="r", encoding="UTF-8") as file:
+                        with open(file=os.path.join(PATHS["config"], 'stage_plan.json'), mode="r",
+                                  encoding="UTF-8") as file:
                             stage_plan = json.load(file)
                 except FileNotFoundError:
                     stage_plan = {}
@@ -2109,8 +2110,8 @@ class ThreadTodo(QThread):
     """
 
     def easy_battle(
-            self, text_, stage_id, player, max_times,
-            global_plan_active, deck, battle_plan_1p, battle_plan_2p, dict_exit, is_cu=False
+        self, text_, stage_id, player, max_times,
+        global_plan_active, deck, battle_plan_1p, battle_plan_2p, dict_exit, is_cu=False
     ):
         """仅调用 n_battle的简易作战"""
         self.model_start_print(text=text_)
@@ -2178,8 +2179,8 @@ class ThreadTodo(QThread):
         self.model_end_print(text=text_)
 
     def guild_or_spouse_quest(
-            self, text_, quest_mode,
-            global_plan_active, deck, battle_plan_1p, battle_plan_2p, battle_plan_tweak, stage=False):
+        self, text_, quest_mode,
+        global_plan_active, deck, battle_plan_1p, battle_plan_2p, battle_plan_tweak, stage=False):
         """
         完成公会or情侣任务
         :param text_:
@@ -3577,8 +3578,8 @@ class ThreadTodo(QThread):
             return
 
         only_one_role = (
-                self.opt["login_settings"]["first_num"] == self.opt["login_settings"]["second_num"] or
-                self.opt["base_settings"]["name_1p"] == self.opt["base_settings"]["name_2p"]
+            self.opt["login_settings"]["first_num"] == self.opt["login_settings"]["second_num"] or
+            self.opt["base_settings"]["name_1p"] == self.opt["base_settings"]["name_2p"]
         )
 
         # 所有需要开启的窗口都已经开启
