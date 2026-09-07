@@ -28,12 +28,15 @@ def make_battle_plan(card_names=None, action_cards=None):
 
 
 class AutoTimerTest(unittest.TestCase):
-    def test_timer_is_opt_in_and_requires_positive_kun_target(self):
+    def test_timer_defaults_on_and_requires_positive_kun_target(self):
         battle_plan = make_battle_plan(
             action_cards=[{"kun": 2, "location": ["5-4"]}],
         )
-        self.assertFalse(get_tweak_plan_auto_timer_enabled({"meta_data": {}}))
-        self.assertEqual(get_auto_timer_target_names({"meta_data": {}}, battle_plan), [])
+        self.assertTrue(get_tweak_plan_auto_timer_enabled({"meta_data": {}}))
+        self.assertEqual(
+            get_auto_timer_target_names({"meta_data": {}}, battle_plan),
+            ["美味计时器"],
+        )
 
         tweak = {"meta_data": {"enable_auto_card": {"timer": True}}}
         self.assertEqual(get_auto_timer_target_names(tweak, battle_plan), ["美味计时器"])

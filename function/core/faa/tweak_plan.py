@@ -8,7 +8,7 @@ AUTO_CARD_DEFAULTS = {
     "icecream": True,
     "god": True,
     "ikun": True,
-    "timer": False,
+    "timer": True,
 }
 
 # 高练度承载卡可以做到 0 费用，优先铺承载能让后续卡片直接落在有效地形上；
