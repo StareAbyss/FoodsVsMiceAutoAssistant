@@ -168,7 +168,7 @@ class TweakPlanAppearanceTest(unittest.TestCase):
         for key, selector in self.window.auto_card_selectors.items():
             self.assertEqual(
                 selector.combo.itemText(0),
-                "缺省 (默认:否)" if key == "timer" else "缺省 (默认:是)",
+                "缺省 (默认:是)",
             )
         self.assertNotIn("coffee", self.window.auto_card_selectors)
         self.assertIn("timer", self.window.auto_card_selectors)

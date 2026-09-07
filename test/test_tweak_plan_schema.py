@@ -99,7 +99,7 @@ class TweakPlanSchemaTest(unittest.TestCase):
             get_tweak_plan_auto_card_enabled(
                 {"meta_data": {"ban_state": {"god": True}}}
             ),
-            {"icecream": True, "god": True, "ikun": True, "timer": False},
+            {"icecream": True, "god": True, "ikun": True, "timer": True},
         )
 
     def test_disabled_auto_cards_produce_no_recognition_targets(self):

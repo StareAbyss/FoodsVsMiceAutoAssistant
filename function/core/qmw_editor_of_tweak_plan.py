@@ -69,7 +69,7 @@ DEFAULT_META_DATA_FALLBACK = {
         "icecream": True,
         "god": True,
         "ikun": True,
-        "timer": False,
+        "timer": True,
     },
 }
 
