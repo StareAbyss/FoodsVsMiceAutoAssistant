@@ -1,5 +1,6 @@
 import http.client
 import json
+import re
 import shutil
 import time
 import urllib.error
@@ -66,6 +67,7 @@ PACKAGE_FILES = (
 )
 
 IMAGE_RESOURCE_EXCEL_PATTERN = "点我获取更多图像资源 *.xlsx"
+IMAGE_RESOURCE_EXCEL_DATE_RE = re.compile(r"点我获取更多图像资源 (?P<date>\d{4}-\d{2}-\d{2})\.xlsx$")
 
 REQUIRED_STAGING_PATHS = (
     "LICENSE",
@@ -257,12 +259,32 @@ def copy_file(source_root: Path, dest_root: Path, relative_path: str | Path, req
     shutil.copy2(source, dest)
 
 
+def image_resource_excel_sort_key(path: Path) -> tuple[int, float, str]:
+    """
+    生成图像资源 Excel 的新旧排序键，无合法日期时回退到修改时间。
+
+    Args:
+        path: 待排序的 Excel 文件路径。
+
+    Returns:
+        由资源日期序号、修改时间和文件名组成的排序键。
+    """
+    match = IMAGE_RESOURCE_EXCEL_DATE_RE.fullmatch(path.name)
+    if match:
+        try:
+            file_date = datetime.strptime(match.group("date"), "%Y-%m-%d").date()
+            return file_date.toordinal(), path.stat().st_mtime, path.name
+        except ValueError:
+            pass
+    return -1, path.stat().st_mtime, path.name
+
+
 def copy_latest_image_resource_excel(source_root: Path, dest_root: Path) -> Path | None:
     excel_files = [path for path in source_root.glob(IMAGE_RESOURCE_EXCEL_PATTERN) if path.is_file()]
     if not excel_files:
         return None
 
-    latest_file = max(excel_files, key=lambda path: path.stat().st_mtime)
+    latest_file = max(excel_files, key=image_resource_excel_sort_key)
     destination = dest_root / latest_file.name
     shutil.copy2(latest_file, destination)
     return destination

@@ -15,6 +15,27 @@ from function.common.update_state import write_packaged_update_state
 SUBPROCESS_TEXT_ENCODING = locale.getpreferredencoding(False) or "utf-8"
 IMAGE_RESOURCE_DB_ENV_PREFIX = "FAA_IMAGE_RESOURCE_DB_"
 IMAGE_RESOURCE_DB_LOCAL_CONFIG = "image_resource_db.local.json"
+IMAGE_RESOURCE_EXCEL_DATE_RE = re.compile(r"点我获取更多图像资源 (?P<date>\d{4}-\d{2}-\d{2})\.xlsx$")
+
+
+def image_resource_excel_sort_key(path: Path) -> tuple[int, float, str]:
+    """
+    生成图像资源 Excel 的新旧排序键，无合法日期时回退到修改时间。
+
+    Args:
+        path: 待排序的 Excel 文件路径。
+
+    Returns:
+        由资源日期序号、修改时间和文件名组成的排序键。
+    """
+    match = IMAGE_RESOURCE_EXCEL_DATE_RE.fullmatch(path.name)
+    if match:
+        try:
+            file_date = datetime.strptime(match.group("date"), "%Y-%m-%d").date()
+            return file_date.toordinal(), path.stat().st_mtime, path.name
+        except ValueError:
+            pass
+    return -1, path.stat().st_mtime, path.name
 
 
 def find_project_root(start: Path) -> Path:
@@ -277,9 +298,9 @@ def get_latest_excel_file(project_root: Path):
 
 
 def get_latest_existing_excel_file(project_root: Path):
-    all_excel_files = glob.glob(str(project_root / "点我获取更多图像资源 *.xlsx"))
+    all_excel_files = [Path(path) for path in glob.glob(str(project_root / "点我获取更多图像资源 *.xlsx"))]
     if all_excel_files:
-        latest_file = Path(max(all_excel_files, key=os.path.getmtime))
+        latest_file = max(all_excel_files, key=image_resource_excel_sort_key)
         print(f"[OK] 使用最近的文件: {latest_file}")
         return latest_file.relative_to(project_root)
 

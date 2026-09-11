@@ -4,6 +4,7 @@ import argparse
 import csv
 import json
 import locale
+import re
 import shutil
 import subprocess
 import sys
@@ -25,6 +26,7 @@ DEFAULT_REPORT_DIR = Path("resource_other") / "图像资源_卡片准备房间_�
 DEFAULT_CATEGORY_OUTPUT = Path("config") / "card_stage_categories.json"
 DEFAULT_BLACKLIST_PATH = Path(__file__).with_name("card_prepare_room_card_blacklist.csv")
 EXCEL_FILE_PATTERN = "点我获取更多图像资源 *.xlsx"
+IMAGE_RESOURCE_EXCEL_DATE_RE = re.compile(r"点我获取更多图像资源 (?P<date>\d{4}-\d{2}-\d{2})\.xlsx$")
 EXCEL_GENERATOR_SCRIPT = Path("tool") / "get_game_images_from_xiaye_db.py"
 IMAGE_RESOURCE_COLUMNS = ("D", "E", "F", "G", "H")
 EMPTY_RESOURCE_VALUES = {"", "-1", "None", "none", "NULL", "null"}
@@ -116,13 +118,29 @@ def find_project_root(start: Path) -> Path:
     return start.resolve()
 
 
+def image_resource_excel_sort_key(path: Path) -> tuple[int, float, str]:
+    """
+    生成图像资源 Excel 的新旧排序键，无合法日期时回退到修改时间。
+
+    Args:
+        path: 待排序的 Excel 文件路径。
+
+    Returns:
+        由资源日期序号、修改时间和文件名组成的排序键。
+    """
+    match = IMAGE_RESOURCE_EXCEL_DATE_RE.fullmatch(path.name)
+    if match:
+        try:
+            file_date = datetime.strptime(match.group("date"), "%Y-%m-%d").date()
+            return file_date.toordinal(), path.stat().st_mtime, path.name
+        except ValueError:
+            pass
+    return -1, path.stat().st_mtime, path.name
+
+
 def find_latest_existing_excel(root: Path) -> Path | None:
-    candidates = sorted(
-        (path for path in root.glob(EXCEL_FILE_PATTERN) if not path.name.startswith("~$")),
-        key=lambda path: path.stat().st_mtime,
-        reverse=True,
-    )
-    return candidates[0] if candidates else None
+    candidates = [path for path in root.glob(EXCEL_FILE_PATTERN) if not path.name.startswith("~$")]
+    return max(candidates, key=image_resource_excel_sort_key) if candidates else None
 
 
 def find_default_excel(root: Path) -> Path:
@@ -130,15 +148,11 @@ def find_default_excel(root: Path) -> Path:
     if latest_resource_excel:
         return latest_resource_excel
 
-    candidates = sorted(
-        (path for path in root.glob("*.xlsx") if not path.name.startswith("~$")),
-        key=lambda path: path.stat().st_mtime,
-        reverse=True,
-    )
+    candidates = [path for path in root.glob("*.xlsx") if not path.name.startswith("~$")]
     if not candidates:
         raise FileNotFoundError("未找到图像资源 Excel 文件")
     exact = [path for path in candidates if "图像资源" in path.name]
-    return exact[0] if exact else candidates[0]
+    return max(exact or candidates, key=image_resource_excel_sort_key)
 
 
 def get_latest_excel_file(project_root: Path, timeout: int) -> Path:
