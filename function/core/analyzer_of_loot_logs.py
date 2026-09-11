@@ -619,8 +619,7 @@ def update_dag_graph(item_list_new) -> bool:
     if nx.is_directed_acyclic_graph(nx.DiGraph(graph)):
         data['graph'] = graph
         # 保存更新后的 JSON 文件
-        ranking_save_data(json_path=json_path, data=data)
-        return True
+        return ranking_save_data(json_path=json_path, data=data)
     else:
         return False
 
@@ -654,7 +653,8 @@ def find_longest_path_from_dag():
         data["ranking"] = nx.dag_longest_path(G)
         CUS_LOGGER.debug("[有向无环图] [寻找最长链] 成功")
         # 保存更新后的 JSON 文件
-        ranking_save_data(json_path=json_path, data=data)
+        if not ranking_save_data(json_path=json_path, data=data):
+            return None
         return data["ranking"]
 
     except nx.NetworkXError:
@@ -763,8 +763,8 @@ def ranking_save_data(json_path, data):
         json_path: config 中的可写排序文件路径。
         data: 需要保存的 DAG graph 排序数据。
 
-    Raises:
-        Exception: 临时文件写入、落盘或替换失败时抛出, 并尝试清理临时文件。
+    Returns:
+        bool: 保存成功时返回 True; 失败时记录错误、清理临时文件并返回 False。
     """
     # 自旋锁读写, 防止多线程读写问题
     with EXTRA.FILE_LOCK:
@@ -782,4 +782,6 @@ def ranking_save_data(json_path, data):
                     os.remove(temp_path)
                 except OSError:
                     pass
-            raise
+            return False
+
+        return True
