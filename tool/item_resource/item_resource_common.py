@@ -34,6 +34,12 @@ TYPE_RULES = [
     ("0x122", "技能书-待分类"),
 ]
 
+# 0x126 是包含大量非战利品的通用物品段，不能按整个前缀放行。
+# 这里只收录已由维护者确认会从战利品界面掉落的精确例外。
+MANUAL_ITEM_TYPES = {
+    "龙渊之焰": "其他类型",
+}
+
 URL_COLUMNS = ("D", "E", "F", "G", "H")
 RECIPE_SUFFIX = "配方"
 SKILL_BOOK_RE = re.compile(r"-(初级|中级|高级|终极|究极)技能书$")
@@ -150,7 +156,7 @@ def parse_target_items(excel_path: Path, include_manual_skill_books: bool = Fals
     for row_number, row in enumerate(rows[1:], start=2):
         item_id = (row.get("A") or "").strip()
         name = (row.get("B") or "").strip()
-        item_type = item_type_for_id(item_id)
+        item_type = MANUAL_ITEM_TYPES.get(name) or item_type_for_id(item_id)
         if not item_type or not name:
             continue
 
