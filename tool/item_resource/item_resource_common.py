@@ -6,11 +6,13 @@ import shutil
 import zipfile
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
 
 EXCEL_NAME_PATTERN = "*.xlsx"
+IMAGE_RESOURCE_EXCEL_DATE_RE = re.compile(r"点我获取更多图像资源 (?P<date>\d{4}-\d{2}-\d{2})\.xlsx$")
 DEFAULT_OUTPUT_ROOT = Path("resource_other") / "图像资源_战利品_最新资源"
 DEFAULT_LOOT_ROOT = Path("resource") / "image" / "item" / "战利品"
 DEFAULT_LOOT_BLACKLIST_CSV = Path("resource") / "image" / "item" / "无法掉落道具名单.csv"
@@ -51,15 +53,41 @@ class ItemResource:
         return f"{safe_filename(self.name)}.png"
 
 
+def image_resource_excel_sort_key(path: Path) -> tuple[int, float, str]:
+    """
+    生成图像资源 Excel 的新旧排序键。
+
+    合法文件名优先按其中的 ISO 日期排序，避免旧表因复制或修改时间较新而被误选。
+    无法解析日期的兼容文件回退到修改时间。
+
+    Args:
+        path: 待排序的 Excel 文件路径。
+
+    Returns:
+        由资源日期序号、修改时间和文件名组成的排序键。
+    """
+    match = IMAGE_RESOURCE_EXCEL_DATE_RE.fullmatch(path.name)
+    if match:
+        try:
+            file_date = datetime.strptime(match.group("date"), "%Y-%m-%d").date()
+            return file_date.toordinal(), path.stat().st_mtime, path.name
+        except ValueError:
+            pass
+    return -1, path.stat().st_mtime, path.name
+
+
 def find_default_excel(root: Path = Path(".")) -> Path:
-    """Find the resource xlsx while ignoring Excel lock files."""
+    """查找日期最新的图像资源 Excel，并忽略 Excel 锁文件。"""
     candidates = sorted(p for p in root.glob(EXCEL_NAME_PATTERN) if not p.name.startswith("~$"))
     if not candidates:
         raise FileNotFoundError("未找到 xlsx 文件")
     if len(candidates) == 1:
         return candidates[0]
+    resource_candidates = [p for p in candidates if IMAGE_RESOURCE_EXCEL_DATE_RE.fullmatch(p.name)]
+    if resource_candidates:
+        return max(resource_candidates, key=image_resource_excel_sort_key)
     exact = [p for p in candidates if "图像资源" in p.name]
-    return exact[0] if exact else candidates[0]
+    return max(exact or candidates, key=lambda path: path.stat().st_mtime)
 
 
 def safe_filename(name: str) -> str:
