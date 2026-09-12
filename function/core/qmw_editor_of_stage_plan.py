@@ -173,7 +173,7 @@ class QMWEditorOfStagePlan(QMainWindow):
             widget.blockSignals(False)
 
         change_one(widget=self.GlobalBattlePlanBox1P)
-        change_one(widget=self.GlobalBattlePlanBox1P)
+        change_one(widget=self.GlobalBattlePlanBox2P)
         change_one(widget=self.StageBattlePlanBox1P)
         change_one(widget=self.StageBattlePlanBox2P)
         change_two(widget=self.StageTweakBattlePlanBox)
