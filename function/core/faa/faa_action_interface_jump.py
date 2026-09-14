@@ -201,7 +201,7 @@ class FAAActionInterfaceJump:
                 source_range=[520, 530, 950, 600],
                 template=RESOURCE_P["common"]["底部菜单"]["跳转.png"],
                 match_failed_check=3,
-                after_sleep=0.2,
+                after_sleep=0.5,
                 click=True)
             find = loop_match_p_in_w(
                 source_handle=handle,
@@ -209,7 +209,7 @@ class FAAActionInterfaceJump:
                 source_range=[520, 170, 950, 600],
                 template=RESOURCE_P["common"]["底部菜单"]["{}.png".format(mode)],
                 match_failed_check=3,
-                after_sleep=0.2,
+                after_sleep=1,
                 click=True)
 
         if not find:
