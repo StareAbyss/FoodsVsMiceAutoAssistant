@@ -3647,3 +3647,172 @@ class FAABase:
 
             # 游戏内退出
             self.action_exit(mode="游戏内退出")
+
+    def buy_magic_tower_times(self: "FAA", buy_times: int) -> int:
+        """使用礼卷购买单人魔塔次数，最多购买到指定价格档位。
+
+        ``buy_times`` 表示允许购买到第几档，而不是本次固定点击多少次。
+        函数会识别当前购买弹窗所处档位，因此能够跳过此前已经购买的档位。
+        调用方需要在执行前输入二级密码，并在执行后刷新游戏清除二级密码状态。
+
+        Returns:
+            本次成功点击确定购买的档位数量。
+        """
+
+        title = "魔塔买次数"
+
+        try:
+            buy_times = int(buy_times)
+        except (TypeError, ValueError):
+            self.print_warning(text=f"[{title}] 购买档位参数无效，已强制修正为1")
+            SIGNAL.PRINT_TO_UI.emit(
+                text=f"[{title}] [{self.player}P] 购买档位参数无效，已强制修正为1",
+                color_level=2,
+            )
+            buy_times = 1
+
+        if buy_times > 5:
+            self.print_warning(text=f"[{title}] 购买档位{buy_times}超过上限，已强制修正为5")
+            SIGNAL.PRINT_TO_UI.emit(
+                text=f"[{title}] [{self.player}P] 购买档位{buy_times}超过上限，已强制修正为5",
+                color_level=2,
+            )
+            buy_times = 5
+        elif buy_times < 1:
+            self.print_warning(text=f"[{title}] 购买档位{buy_times}低于下限，已强制修正为1")
+            SIGNAL.PRINT_TO_UI.emit(
+                text=f"[{title}] [{self.player}P] 购买档位{buy_times}低于下限，已强制修正为1",
+                color_level=2,
+            )
+            buy_times = 1
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text=f"[{title}] [{self.player}P] 开始，最高允许购买到第{buy_times}档价格",
+        )
+
+        if not self.action_goto_single_magic_tower():
+            SIGNAL.PRINT_TO_UI.emit(
+                text=f"[{title}] [{self.player}P] 进入单人魔塔失败，跳过",
+                color_level=2,
+            )
+            return 0
+
+        images = RESOURCE_P["common"]["魔塔购买次数"]
+        purchase_range = [611, 497, 675, 538]
+        voucher_range = [525, 312, 582, 356]
+        price_range = [420, 311, 584, 356]
+        confirm_range = [377, 351, 475, 402]
+        cancel_range = [475, 352, 573, 403]
+
+        def click_one_of(image_names: list[str], source_range: list[int], wait_seconds: float = 1) -> bool:
+            """兼容按钮默认、选中两种外观，识别成功后点击。"""
+
+            for image_name in image_names:
+                if loop_match_p_in_w(
+                    source_handle=self.handle,
+                    source_root_handle=self.handle_360,
+                    source_range=source_range,
+                    template=images[image_name],
+                    match_tolerance=0.95,
+                    match_interval=0.2,
+                    match_failed_check=wait_seconds,
+                    after_sleep=1,
+                    click=True,
+                ):
+                    return True
+            return False
+
+        def cancel_purchase() -> bool:
+            cancelled = click_one_of(
+                image_names=["购买界面-取消-默认.png", "购买界面-取消-被选中.png"],
+                source_range=cancel_range,
+            )
+            if not cancelled:
+                self.print_warning(text=f"[{title}] 未识别到购买弹窗的取消按钮")
+            return cancelled
+
+        purchased_count = 0
+
+        # 最多确认五个安全档位。若用户之前已买过部分档位，
+        # 首次识别到的 current_tier 会直接把起点推进到当前档。
+        for _ in range(5):
+            if not click_one_of(
+                image_names=["购买按钮-默认.png", "购买按钮-被选中.png"],
+                source_range=purchase_range,
+            ):
+                self.print_warning(text=f"[{title}] 未找到购买按钮，停止购买")
+                break
+
+            # 必须先切换为礼卷，再判断价格；切换失败时绝不点击确定。
+            if not loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=voucher_range,
+                template=images["购买界面-礼卷.png"],
+                match_tolerance=0.95,
+                match_interval=0.2,
+                match_failed_check=2,
+                after_sleep=1,
+                click=True,
+            ):
+                self.print_warning(text=f"[{title}] 未找到礼卷选项，取消并停止购买")
+                cancel_purchase()
+                break
+
+            # 五张安全图公共部分很相似，使用高阈值并要求恰好命中一档。
+            source_image = capture_image_png(
+                handle=self.handle,
+                root_handle=self.handle_360,
+                raw_range=[0, 0, 950, 600],
+            )
+            matched_tiers = []
+            for tier in range(1, 6):
+                _, find = match_p_in_w(
+                    source_img=source_image,
+                    source_range=price_range,
+                    template=images[f"安全鉴定{tier}.png"],
+                    match_tolerance=0.999,
+                )
+                if find:
+                    matched_tiers.append(tier)
+
+            if len(matched_tiers) != 1:
+                self.print_warning(
+                    text=f"[{title}] 安全价格识别结果异常: {matched_tiers}，取消并停止购买"
+                )
+                SIGNAL.PRINT_TO_UI.emit(
+                    text=f"[{title}] [{self.player}P] 未能唯一确认安全价格，已取消购买",
+                    color_level=2,
+                )
+                cancel_purchase()
+                break
+
+            current_tier = matched_tiers[0]
+            self.print_info(text=f"[{title}] 当前为第{current_tier}档价格，允许购买至第{buy_times}档")
+
+            if current_tier > buy_times:
+                SIGNAL.PRINT_TO_UI.emit(
+                    text=f"[{title}] [{self.player}P] 当前已到第{current_tier}档，超过目标第{buy_times}档，取消并结束",
+                )
+                cancel_purchase()
+                break
+
+            if not click_one_of(
+                image_names=["购买界面-确定-默认.png", "购买界面-确定-被选中.png"],
+                source_range=confirm_range,
+            ):
+                self.print_warning(text=f"[{title}] 未找到确定按钮，取消并停止购买")
+                cancel_purchase()
+                break
+
+            purchased_count += 1
+            SIGNAL.PRINT_TO_UI.emit(
+                text=f"[{title}] [{self.player}P] 已购买第{current_tier}档次数",
+            )
+            if current_tier == buy_times:
+                break
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text=f"[{title}] [{self.player}P] 结束，本次完成{purchased_count}次购买",
+        )
+        return purchased_count

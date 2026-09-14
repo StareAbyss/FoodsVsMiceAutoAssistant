@@ -348,6 +348,95 @@ class ThreadTodo(QThread):
         self.model_end_print(text=title_text)
         return
 
+    def batch_buy_magic_tower_times(self, player: list = None, buy_times: int = 1):
+        """批量输入二级密码、购买单人魔塔次数，并刷新游戏。"""
+
+        title_text = "魔塔买次数"
+        self.model_start_print(text=title_text)
+
+        player = list(self.check_player(title=title_text, player=player))
+        if player not in [[1, 2], [1], [2]]:
+            raise ValueError(
+                f"batch_buy_magic_tower_times - player not in [[1,2],[1],[2]], your value {player}."
+            )
+
+        # 仅保留已配置二级密码功能的玩家。
+        player = [
+            cur_player
+            for cur_player in player
+            if self.opt["level_2"][f"{cur_player}p"]["active"]
+        ]
+        if not player:
+            SIGNAL.PRINT_TO_UI.emit(
+                text=f"[{title_text}] 压根没有设定二级功能参数呢... 跳过!",
+                color_level=2,
+            )
+            self.model_end_print(text=title_text)
+            return
+
+        SIGNAL.PRINT_TO_UI.emit(
+            text=f"[{title_text}] 已启用，目标:{player}P，购买至第{buy_times}档",
+            color_level=2,
+        )
+
+        password_results = {}
+
+        def run_input_password(cur_player):
+            password = self.opt["level_2"][f"{cur_player}p"]["password"]
+            password_results[cur_player] = self.faa_dict[cur_player].input_level_2_password(password=password)
+
+        # 第一阶段：为所有目标玩家并行输入二级密码。
+        password_threads = {}
+        for cur_player in player:
+            thread = ThreadWithException(
+                target=run_input_password,
+                name=f"{cur_player}P Thread - InputLevel2PasswordForMagicTower",
+                kwargs={"cur_player": cur_player},
+            )
+            password_threads[cur_player] = thread
+            if cur_player == 1:
+                self.thread_1p = thread
+            else:
+                self.thread_2p = thread
+            thread.start()
+        for thread in password_threads.values():
+            thread.join()
+
+        ready_players = [cur_player for cur_player in player if password_results.get(cur_player)]
+        failed_players = [cur_player for cur_player in player if cur_player not in ready_players]
+        if failed_players:
+            SIGNAL.PRINT_TO_UI.emit(
+                text=f"[{title_text}] {failed_players}P输入二级密码失败，跳过对应角色",
+                color_level=2,
+            )
+
+        # 第二阶段：仅让二级密码输入成功的玩家并行执行购买。
+        purchase_threads = {}
+        for cur_player in ready_players:
+            thread = ThreadWithException(
+                target=self.faa_dict[cur_player].buy_magic_tower_times,
+                name=f"{cur_player}P Thread - BuyMagicTowerTimes",
+                kwargs={"buy_times": buy_times},
+            )
+            purchase_threads[cur_player] = thread
+            if cur_player == 1:
+                self.thread_1p = thread
+            else:
+                self.thread_2p = thread
+            thread.start()
+        for thread in purchase_threads.values():
+            thread.join()
+
+        # 不论购买是否成功，都刷新所有尝试过二级密码的角色以清除状态。
+        SIGNAL.PRINT_TO_UI.emit(
+            text=f"[{title_text}] 即将刷新游戏以清除二级输入的状态...",
+            color_level=2,
+        )
+        self.batch_reload_game(player=player)
+
+        self.model_end_print(text=title_text)
+        return
+
     def batch_disenchant_gem(self, player: list = None):
         """
         批量分解宝石
@@ -2781,6 +2870,14 @@ class ThreadTodo(QThread):
 
                 case "兑换暗晶":
                     self.batch_dark_crystal(player=task["task_args"]["player"])
+                    main_task_active = True
+                    active_singleton = False
+
+                case "魔塔买次数":
+                    self.batch_buy_magic_tower_times(
+                        player=task["task_args"]["player"],
+                        buy_times=task["task_args"].get("buy_times", 1),
+                    )
                     main_task_active = True
                     active_singleton = False
 
