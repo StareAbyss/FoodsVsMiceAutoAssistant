@@ -159,6 +159,7 @@ dependencies = [
     { name = "numpy" },
     { name = "onnxruntime-directml" },
     { name = "opencv-python" },
+    { name = "openpyxl" },
     { name = "pillow" },
     { name = "psutil" },
     { name = "pulp" },
@@ -175,7 +176,6 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "mysql-connector-python" },
-    { name = "openpyxl" },
     { name = "pandas", version = "2.3.3", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "python_full_version >= '3.14'" },
     { name = "pandas", version = "3.0.3", source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }, marker = "python_full_version < '3.14'" },
     { name = "pyinstaller" },
@@ -189,6 +189,7 @@ requires-dist = [
     { name = "numpy", specifier = "==2.1.0" },
     { name = "onnxruntime-directml", specifier = "==1.20.1" },
     { name = "opencv-python", specifier = "==4.10.0.84" },
+    { name = "openpyxl", specifier = ">=3.1.0" },
     { name = "pillow", specifier = ">=12.1.1" },
     { name = "psutil", specifier = "==6.0.0" },
     { name = "pulp", specifier = ">=3.3.0" },
@@ -205,7 +206,6 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "mysql-connector-python", specifier = ">=9.0.0" },
-    { name = "openpyxl", specifier = ">=3.1.0" },
     { name = "pandas", specifier = ">=2.2.0" },
     { name = "pyinstaller", specifier = ">=6.19.0" },
 ]

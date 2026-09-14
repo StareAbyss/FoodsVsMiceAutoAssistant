@@ -7041,6 +7041,28 @@ FAA放卡核心原理简述:
               </widget>
              </item>
              <item>
+              <widget class="QPushButton" name="ExportGuildContributionButton">
+               <property name="minimumSize">
+                <size>
+                 <width>120</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>240</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>只导出当前日历所选日期的公会贡献数据</string>
+               </property>
+               <property name="text">
+                <string>导出 Excel</string>
+               </property>
+              </widget>
+             </item>
+             <item>
               <spacer name="verticalSpacer_10">
                <property name="orientation">
                 <enum>Qt::Vertical</enum>
