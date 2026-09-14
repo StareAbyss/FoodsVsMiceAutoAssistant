@@ -11,6 +11,7 @@ dependencies = [
     "numpy==2.1.0",
     "onnxruntime-directml==1.20.1",
     "opencv-python==4.10.0.84",
+    "openpyxl>=3.1.0",
     "pillow>=12.1.1",
     "psutil==6.0.0",
     "pulp>=3.3.0",
@@ -34,7 +35,6 @@ default = true
 [dependency-groups]
 dev = [
     "mysql-connector-python>=9.0.0",
-    "openpyxl>=3.1.0",
     "pandas>=2.2.0",
     "pyinstaller>=6.19.0",
 ]

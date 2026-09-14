@@ -55,6 +55,7 @@ from function.scattered.check_battle_plan import fresh_and_check_all_tweak_plan
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
 from function.scattered.get_stage_info_online import get_stage_info_online
+from function.scattered.guild_contribution_exporter import export_selected_date_excel
 from function.scattered.resize_360_windows import batch_resize_window
 from function.scattered.test_route_connectivity import test_route_connectivity
 from function.scattered.todo_timer_manager import TodoTimerManager
@@ -366,6 +367,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 根据日历日期，调整表格视图
         self.DateSelector.selectionChanged.connect(self.guild_manager_table_update)
+        self.ExportGuildContributionButton.clicked.connect(self.export_guild_contribution_excel)
 
         # 连接自定义信号到槽函数，从而修改编辑框内容
         self.Label_drag.windowNameChanged1.connect(self.updateEditBox1)
@@ -634,6 +636,49 @@ class QMainWindowService(QMainWindowLoadSettings):
         QMessageBox.information(self, "提示", f"您的登录信息已经保存到{save_path}", QMessageBox.StandardButton.Ok)
 
     """公会管理器页面"""
+
+    def export_guild_contribution_excel(self):
+        """只导出日历当前所选日期的公会贡献数据。"""
+        target_date = self.DateSelector.selectedDate().toString('yyyy-MM-dd')
+        guild_manager_dir = Path(PATHS["logs"]) / "guild_manager"
+        output_path = guild_manager_dir / f"公会贡献数据导出_{target_date}.xlsx"
+        try:
+            with EXTRA.FILE_LOCK:
+                output_path = export_selected_date_excel(
+                    members_data=self.guild_manager_data,
+                    target_date=target_date,
+                    guild_manager_dir=guild_manager_dir,
+                )
+        except PermissionError:
+            message = (
+                f"无法写入导出文件：\n{output_path}\n\n"
+                "同名表格可能正在被 Excel 或 WPS 占用，"
+                "请关闭该文件后重新导出。"
+            )
+            CUS_LOGGER.warning(
+                f"[公会管理器] [导出Excel] 文件无法写入，请关闭已打开的同名表格后重试: {output_path}")
+            QMessageBox.warning(self, "导出失败", message)
+            return
+        except ValueError as error:
+            CUS_LOGGER.warning(f"[公会管理器] [导出Excel] 导出失败: {error}")
+            QMessageBox.warning(self, "导出失败", str(error))
+            return
+        except OSError:
+            message = f"导出文件读写失败，请检查目录是否可用：\n{guild_manager_dir}"
+            CUS_LOGGER.warning(
+                f"[公会管理器] [导出Excel] 导出目录无法正常读写: {guild_manager_dir}")
+            QMessageBox.warning(self, "导出失败", message)
+            return
+
+        CUS_LOGGER.info(
+            f"[公会管理器] [导出Excel] 已生成 {target_date} 数据表 {output_path}")
+        QMessageBox.information(
+            self,
+            "导出完成",
+            f"文件已保存到：\n{guild_manager_dir}\n\n"
+            f"{target_date} 数据表：{output_path.name}",
+            QMessageBox.StandardButton.Ok,
+        )
 
     def guild_manager_table_init(self):
         """
