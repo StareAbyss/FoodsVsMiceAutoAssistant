@@ -262,6 +262,48 @@ class FAAActionInterfaceJump:
         )
         return find
 
+    def action_goto_single_magic_tower(self: "FAA") -> bool:
+        """进入单人魔塔选层界面，但不选择层数或创建房间。"""
+
+        handle = self.handle
+
+        # 魔塔入口位于海底地图。
+        if not self.action_goto_map(map_id=5):
+            self.print_warning(text="[魔塔买次数] 前往海底地图失败")
+            return False
+
+        # 与常规魔塔跳转保持一致，随机选择一个海底分区。
+        random.seed(self.random_seed)
+        region_id = random.randint(1, 2)
+        time.sleep(5)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=803, y=84)
+        time.sleep(1)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(
+            handle=handle,
+            x=779,
+            y={1: 85, 2: 110}[region_id],
+        )
+        time.sleep(5)
+
+        # 进入魔塔总界面。
+        find = loop_match_p_in_w(
+            source_handle=handle,
+            source_root_handle=self.handle_360,
+            source_range=[0, 0, 950, 600],
+            template=RESOURCE_P["stage"]["MT.png"],
+            match_failed_check=5,
+            after_sleep=1,
+            click=True,
+        )
+        if not find:
+            self.print_warning(text="[魔塔买次数] 未找到魔塔入口")
+            return False
+
+        # 魔塔顶部第一个标签为单人模式。
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=46, y=66)
+        time.sleep(1)
+        return True
+
     def action_goto_stage(self: "FAA", mt_wb_first_time: bool = False) -> None:
         """
         只要右上能看到地球 就可以到目标关卡
