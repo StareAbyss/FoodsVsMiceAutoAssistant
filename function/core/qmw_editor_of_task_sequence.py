@@ -364,6 +364,14 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 '* 输入二级密码\n'
                 '* 兑换暗晶\n'
                 '* 刷新游戏',
+            '魔塔买次数':
+                '使用礼卷购买单人魔塔次数\n'
+                '需进阶设置完成二级密码设定\n'
+                '购买至第N档表示只购买尚未购买的1至N档价格\n'
+                '完整流程:\n'
+                '* 输入二级密码\n'
+                '* 检查价格并购买单人魔塔次数\n'
+                '* 刷新游戏',
             '分解宝石':
                 '进行宝石分解\n'
                 '需进阶设置完成二级密码设定\n'
@@ -458,6 +466,11 @@ class QMWEditorOfTaskSequence(QMainWindow):
             case '兑换暗晶':
                 task["task_args"] = {
                     "player": [1, 2],  # or [1] [2]
+                }
+            case '魔塔买次数':
+                task["task_args"] = {
+                    "player": [1, 2],  # or [1] [2]
+                    "buy_times": 1,
                 }
             case '分解宝石':
                 task["task_args"] = {
@@ -880,6 +893,24 @@ class QMWEditorOfTaskSequence(QMainWindow):
             # Player
             addElement_player_normal(line_layout=line_layout)
 
+        def buy_magic_tower_times(line_layout):
+
+            # Player
+            addElement_player_normal(line_layout=line_layout)
+
+            # 允许购买到的最高价格档位
+            BuyTimesSpinBox = QSpinBox()
+            BuyTimesSpinBox.setObjectName("w_buy_times")
+            BuyTimesSpinBox.setFixedWidth(70)
+            BuyTimesSpinBox.setMinimum(1)
+            BuyTimesSpinBox.setMaximum(5)
+            BuyTimesSpinBox.setValue(task["task_args"].get("buy_times", 1))
+            addElement(
+                line_layout=line_layout,
+                label_widget=QLabel('购买至第几次'),
+                input_widget=BuyTimesSpinBox,
+            )
+
         def disenchant_gem(line_layout):
 
             # Player
@@ -1046,6 +1077,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 clean_items(line_layout=line_layout)
             case '兑换暗晶':
                 exchange_dark_crystal(line_layout=line_layout)
+            case '魔塔买次数':
+                buy_magic_tower_times(line_layout=line_layout)
             case '分解宝石':
                 disenchant_gem(line_layout=line_layout)
             case '领取任务奖励':
@@ -1277,6 +1310,11 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
                 case '兑换暗晶':
                     task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
+
+                case '魔塔买次数':
+                    task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
+                    BuyTimesSpinBox = LineWidget.findChild(QSpinBox, 'w_buy_times')
+                    task_args['buy_times'] = BuyTimesSpinBox.value()
 
                 case '分解宝石':
                     task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
