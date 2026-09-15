@@ -235,15 +235,44 @@ def validate_zip_members(zip_file: zipfile.ZipFile) -> None:
 
 
 def extract_single_root(zip_path: Path, extract_parent: Path) -> Path:
+    """
+    解压 GitHub 源码包，同时剥离仓库名和 commit 组成的公共顶层目录。
+
+    GitHub archive 的顶层目录通常包含 40 位 commit。若直接交给 extractall，深层安装目录会叠加这段无业务价值的路径，容易触发 Windows MAX_PATH。
+
+    Args:
+        zip_path: 已下载的源码 ZIP 路径。
+        extract_parent: 去除公共顶层目录后的源码输出目录。
+
+    Returns:
+        可直接用于构建 staging 的源码根目录。
+
+    Raises:
+        StagingError: ZIP 不安全或没有且仅有一个公共顶层目录。
+    """
     extract_parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(zip_path) as zip_file:
         validate_zip_members(zip_file)
-        zip_file.extractall(extract_parent)
+        members = [member for member in zip_file.infolist() if Path(member.filename).parts]
+        root_names = {Path(member.filename).parts[0] for member in members}
+        if len(root_names) != 1:
+            raise StagingError(f"Expected one archive root directory, got {len(root_names)}")
 
-    roots = [entry for entry in extract_parent.iterdir() if entry.is_dir()]
-    if len(roots) != 1:
-        raise StagingError(f"Expected one archive root directory, got {len(roots)}")
-    return roots[0]
+        for member in members:
+            relative_parts = Path(member.filename).parts[1:]
+            if not relative_parts:
+                continue
+
+            destination = ensure_child(extract_parent, extract_parent.joinpath(*relative_parts))
+            if member.is_dir():
+                destination.mkdir(parents=True, exist_ok=True)
+                continue
+
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            with zip_file.open(member) as source, destination.open("wb") as target:
+                shutil.copyfileobj(source, target)
+
+    return extract_parent
 
 
 def copy_file(source_root: Path, dest_root: Path, relative_path: str | Path, required: bool = True) -> None:
@@ -395,7 +424,7 @@ def prepare_staging_from_archive(root: Path, archive_path: Path, target: dict[st
     root = root.resolve()
     staging = staging_path(root)
     work_root = staging_work_path(root)
-    extract_parent = work_root / f"extract.{utc_stamp()}"
+    extract_parent = work_root / "source"
 
     ensure_child(root, staging)
     ensure_child(root, work_root)
