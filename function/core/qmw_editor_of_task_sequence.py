@@ -17,7 +17,8 @@ from function.widget.SearchableComboBox import SearchableComboBox
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
-from function.scattered.check_battle_plan import fresh_and_check_all_battle_plan, fresh_and_check_all_tweak_plan
+from function.scattered.check_battle_plan import refresh_all_battle_plan
+from function.scattered.check_tweak_plan import refresh_all_tweak_plan
 from function.scattered.get_list_battle_plan import get_list_battle_plan, get_list_tweak_plan
 from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
 from function.scattered.get_task_sequence_list import get_task_sequence_list
@@ -744,14 +745,14 @@ class QMWEditorOfTaskSequence(QMainWindow):
             line_widget.plan_opt_window = options_widget
 
             # 设置战斗方案数据
-            fresh_and_check_all_battle_plan()
+            refresh_all_battle_plan()
             battle_plan_name_list = get_list_battle_plan(with_extension=False)
             battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
             options_widget.set_1p_plan_items(battle_plan_name_list)
             options_widget.set_2p_plan_items(battle_plan_name_list)
 
             # 设置微调方案数据
-            fresh_and_check_all_tweak_plan()
+            refresh_all_tweak_plan()
             tweak_plan_name_list = get_list_tweak_plan(with_extension=False)
             tweak_plan_uuid_list = list(EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH.keys())
             options_widget.set_tweak_plan_items(tweak_plan_name_list)

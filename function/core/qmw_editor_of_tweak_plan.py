@@ -13,6 +13,8 @@ from PyQt6.QtGui import QColor, QFont, QPalette
 from PyQt6.QtWidgets import (
     QApplication,
     QComboBox,
+    QDialog,
+    QDialogButtonBox,
     QFileDialog,
     QFormLayout,
     QFrame,
@@ -28,6 +30,7 @@ from PyQt6.QtWidgets import (
     QScrollArea,
     QSpinBox,
     QSplitter,
+    QTextBrowser,
     QVBoxLayout,
     QWidget,
 )
@@ -39,6 +42,7 @@ from function.core.tweak_plan_editor_model import (
     TweakPlanDraft,
     generate_plan_uuid,
 )
+from function.scattered.check_tweak_plan import TweakPlanScanResult, scan_and_migrate_tweak_plans
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -72,6 +76,38 @@ DEFAULT_META_DATA_FALLBACK = {
         "timer": True,
     },
 }
+
+
+def show_plan_check_dialog(
+        parent: QWidget,
+        title: str,
+        text: str,
+) -> None:
+    """使用一个可滚动的独立弹窗展示方案检查汇总。"""
+    dialog = QDialog(parent)
+    dialog.setWindowTitle(title)
+    dialog.resize(760, 420)
+    layout = QVBoxLayout(dialog)
+    text_browser = QTextBrowser(dialog)
+    text_browser.setPlainText(text)
+    layout.addWidget(text_browser)
+    buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok, parent=dialog)
+    buttons.accepted.connect(dialog.accept)
+    layout.addWidget(buttons)
+    dialog.exec()
+
+
+def show_tweak_plan_scan_dialog(
+        parent: QWidget,
+        scan_result: TweakPlanScanResult,
+) -> None:
+    """展示一轮微调方案版本扫描中的全部问题。"""
+    if scan_result.has_issues:
+        show_plan_check_dialog(
+            parent,
+            "微调方案版本检查",
+            scan_result.dialog_text(),
+        )
 
 
 def load_default_meta_data(tweak_plan_dir: Path) -> dict:
@@ -213,12 +249,13 @@ class QMWEditorOfTweakPlan(QMainWindow):
         self.on_plan_library_changed = on_plan_library_changed
         # 保留参数以兼容既有 Demo 启动与测试调用；加载默认方案已不再弹窗。
         _ = show_default_notice
-        # EXTRA 初始化时会通过 QFontDatabase 加载 FAA 字体，必须等 QApplication
-        # 已创建后再导入；放到模块顶层会让独立 Demo 卡在启动阶段。
+        # EXTRA 初始化时会通过 QFontDatabase 加载 FAA 字体
+        # 必须等 QApplication 已创建后再导入；放到模块顶层会让独立 Demo 卡在启动阶段。
         from function.globals import EXTRA
 
         self.current_tweak_plan_version = EXTRA.TWEAK_PLAN_VERSION
         self.current_faa_version = EXTRA.VERSION
+        self.file_lock = EXTRA.FILE_LOCK
         self.get_user_text_color = EXTRA.get_user_text_color
         self.default_meta_data = load_default_meta_data(tweak_plan_dir)
         self.system_palette = create_neutralized_palette(QApplication.palette())
@@ -229,14 +266,8 @@ class QMWEditorOfTweakPlan(QMainWindow):
         self._loading = False
         self._build_ui()
         self._connect_signals()
-        startup_conflicts = self._repair_uuid_conflicts()
         self._load_plan_list()
         self._load_initial_plan()
-        if startup_conflicts:
-            QTimer.singleShot(
-                0,
-                lambda: self._show_uuid_conflict_messages(startup_conflicts),
-            )
 
     def _build_ui(self) -> None:
         """构建编辑表单与实时 JSON 方案浏览区。"""
@@ -263,6 +294,14 @@ class QMWEditorOfTweakPlan(QMainWindow):
         title_column.addWidget(subtitle)
         header.addLayout(title_column)
         header.addStretch()
+        self.version_check_label = QLabel("尚未检查微调方案版本")
+        self.version_check_label.setObjectName("versionCheckStatus")
+        self.version_check_label.setWordWrap(True)
+        self.version_check_label.setMaximumWidth(360)
+        self.version_check_label.setAlignment(
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop
+        )
+        header.addWidget(self.version_check_label)
         self.demo_badge = QLabel("TEST DEMO")
         self.demo_badge.setObjectName("demoBadge")
         self.demo_badge.setVisible(self.demo_mode)
@@ -633,21 +672,53 @@ class QMWEditorOfTweakPlan(QMainWindow):
         else:
             self._new_plan()
 
-    def refresh_plan_library(self) -> None:
+    def refresh_plan_library(self, check_versions: bool = False) -> None:
         """重新扫描方案目录，并尽量保持当前方案。
 
-        主界面每次打开编辑器前调用一次，确保用户在窗口关闭期间通过文件管理器
-        增删的方案能够立即出现，同时再次执行 UUID 唯一性校验。
+        普通调用只刷新目录；主界面在用户点击打开编辑器时显式传入
+        ``check_versions=True``，才会执行协议迁移和 UUID 唯一性检查。
         """
         preferred_path = self.current_path
-        conflicts = self._repair_uuid_conflicts()
+        scan_result = None
+        conflicts = []
+        if check_versions:
+            with self.file_lock:
+                scan_result = scan_and_migrate_tweak_plans(
+                    tweak_plan_dir=self.tweak_plan_dir,
+                    current_version=self.current_tweak_plan_version,
+                    current_faa_version=self.current_faa_version,
+                )
+                conflicts = self._repair_uuid_conflicts()
+        if scan_result is not None:
+            if conflicts and not scan_result.has_issues:
+                checked_time = scan_result.checked_at.strftime("%Y-%m-%d %H:%M:%S")
+                self.version_check_label.setText(
+                    f"方案版本均为最新，已修复 {len(conflicts)} 个 UUID。"
+                    f"上次检查：{checked_time}"
+                )
+            else:
+                self.version_check_label.setText(scan_result.editor_status_text())
+            if scan_result.changed_count or conflicts:
+                self._notify_plan_library_changed()
+            dialog_sections = []
+            if scan_result.has_issues:
+                dialog_sections.append(scan_result.dialog_text())
+            if conflicts:
+                dialog_sections.append("UUID 检查与修复\n" + "\n".join(conflicts))
+            if dialog_sections:
+                QTimer.singleShot(
+                    0,
+                    lambda sections=dialog_sections: show_plan_check_dialog(
+                        self,
+                        "微调方案检查",
+                        "\n\n".join(sections),
+                    ),
+                )
         self._load_plan_list()
         if preferred_path is not None and preferred_path.is_file():
             self._load_path(preferred_path)
         else:
             self._load_initial_plan()
-        if conflicts:
-            self._show_uuid_conflict_messages(conflicts)
 
     def _load_selected_plan(self, _index: int | bool = 0) -> None:
         """加载下拉框当前选中的方案。"""
@@ -743,9 +814,9 @@ class QMWEditorOfTweakPlan(QMainWindow):
         """
         扫描方案文件夹并修复重复或无效 UUID。
 
-        初始化时扫描全部文件；保存当前方案时暂时排除当前文件，先修复其他
-        方案之间的冲突，再单独拿尚未保存的当前 UUID 与它们比较，避免覆盖
-        用户正在界面中编辑的内容。固定内置方案始终恢复为约定 UUID。
+        用户点击打开编辑器时扫描全部文件；保存当前方案时暂时排除当前文件，
+        先修复其他方案之间的冲突，再单独拿尚未保存的当前 UUID 与它们比较，
+        避免覆盖用户正在界面中编辑的内容。固定内置方案始终恢复为约定 UUID。
         """
         excluded = {
             path.resolve()
@@ -809,7 +880,7 @@ class QMWEditorOfTweakPlan(QMainWindow):
             QMessageBox.warning(
                 self,
                 "UUID 冲突已修复",
-                "\n\n".join(messages),
+                "\n".join(messages),
             )
 
     def _unique_plan_path(self, preferred_name: str) -> Path:
@@ -1286,6 +1357,7 @@ class QMWEditorOfTweakPlan(QMainWindow):
             QLabel#pageTitle {{ font-size: 26px; color: {name(text)}; }}
             QLabel#subtitle {{ color: {name(muted)}; }}
             QLabel#helperText {{ color: {name(helper)}; font-size: {helper_point_size}pt; }}
+            QLabel#versionCheckStatus {{ color: {name(muted)}; font-size: {helper_point_size}pt; }}
             QLabel#demoBadge {{
                 color: {name(muted)}; background: {name(badge_background)}; border: 1px solid {name(border)};
                 border-radius: 10px; padding: 5px 10px;

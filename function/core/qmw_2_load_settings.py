@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 import sys
+from pathlib import Path
 
 from function.scattered.output_error import error_by_single_dialog
 
@@ -16,7 +17,12 @@ from function.globals import EXTRA, SIGNAL
 from function.globals import g_resources
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
-from function.scattered.check_battle_plan import fresh_and_check_all_battle_plan, fresh_and_check_all_tweak_plan
+from function.scattered.check_battle_plan import check_all_battle_plan, refresh_all_battle_plan
+from function.scattered.check_tweak_plan import (
+    check_all_tweak_plan_uuids,
+    refresh_all_tweak_plan,
+    scan_and_migrate_tweak_plans,
+)
 from function.scattered.get_list_battle_plan import get_list_battle_plan
 from function.scattered.get_task_sequence_list import get_task_sequence_list
 from function.scattered.test_route_connectivity import test_route_connectivity
@@ -47,6 +53,31 @@ def ensure_file_exists(file_path, template_path) -> None:
     # 如果模板文件存在，则复制模板文件到原始文件路径
     shutil.copy(template_path, file_path)
     CUS_LOGGER.warning(f"[资源存在检查] '{file_path}' 不存在，已从模板 '{template_path}' 创建。")
+
+
+def format_startup_plan_check_text(
+        battle_result,
+        tweak_result,
+        tweak_uuid_result,
+) -> str:
+    """把战斗方案和微调方案检查结果合并为加载窗口的一条状态。"""
+    if battle_result.high_version_count or tweak_result.high_version_count:
+        return "您的FAA版本过低，请先升级FAA再使用，否则会产生方案报错。"
+
+    battle_changed = battle_result.migrated_count + battle_result.repaired_count
+    tweak_changed = tweak_result.changed_count + tweak_uuid_result.repaired_count
+    if battle_changed or tweak_changed:
+        return (
+            "方案检查完成："
+            f"战斗方案迁移或修复{battle_changed}条，"
+            f"微调方案迁移或修复{tweak_changed}条。"
+        )
+    if battle_result.has_issues or tweak_result.has_issues or tweak_uuid_result.has_issues:
+        return "部分战斗方案或微调方案检查失败，请查看启动后的汇总提示。"
+    return (
+        "已检查 [战斗方案] 与 [微调方案] 版本，均为最新版本"
+        f"(v{battle_result.current_version} / v{tweak_result.current_version} 协议)"
+    )
 
 
 def ensure_file_same_as_template(file_path, template_path) -> None:
@@ -171,14 +202,23 @@ class QMainWindowLoadSettings(QMainWindowLog):
             file_path=os.path.join(PATHS["root"], 'battle_plan', '!通用-海星-2P.json'),
             template_path=os.path.join(PATHS["root"], 'resource', 'template', '!通用-海星-2P.json'))
 
+        # 两类方案的完整检查只在 FAA 启动和用户手动打开对应编辑器时执行。
+        # 其他界面需要更新下拉框时只重建 UUID 索引，不能顺带改写方案文件。
+        self.battle_plan_scan_result = check_all_battle_plan()
+        with EXTRA.FILE_LOCK:
+            self.tweak_plan_scan_result = scan_and_migrate_tweak_plans(
+                tweak_plan_dir=Path(PATHS["tweak_battle_plan"]),
+                current_version=EXTRA.TWEAK_PLAN_VERSION,
+                current_faa_version=EXTRA.VERSION,
+            )
+        self.tweak_plan_uuid_check_result = check_all_tweak_plan_uuids()
+        refresh_all_battle_plan()
+        refresh_all_tweak_plan()
+
         # 检测&修复 settings文件和模板的格式是否对应.
         check_settings_file(
             file_path=self.opt_path,
             template_path=os.path.join(PATHS["root"], 'resource', 'template', 'settings.json'))
-
-        # 检测uuid是否存在于battle plan 没有则添加 并将其读入到内存资源中
-        fresh_and_check_all_battle_plan()
-        fresh_and_check_all_tweak_plan()
 
         # 更新完毕后重新刷新对应资源
         g_resources.fresh_resource_cus_img()
@@ -191,7 +231,14 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         # 配置与方案已经读入内存，填充界面及创建剩余窗口时继续使用趣味文案。
         if startup_progress is not None:
-            startup_progress(92)
+            startup_progress(
+                92,
+                format_startup_plan_check_text(
+                    self.battle_plan_scan_result,
+                    self.tweak_plan_scan_result,
+                    self.tweak_plan_uuid_check_result,
+                ),
+            )
 
         self.opt_to_ui_init()
 
@@ -461,8 +508,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
         # comboBox.clear时 会把所有选项设定为默认选项
         battle_plan_name_list = get_list_battle_plan(with_extension=False)
         task_sequence_name_list = get_task_sequence_list(with_extension=False)
-        fresh_and_check_all_battle_plan()
-        fresh_and_check_all_tweak_plan()
+        refresh_all_battle_plan()
+        refresh_all_tweak_plan()
         g_resources.fresh_resource_b()
         g_resources.fresh_resource_t()
 
@@ -781,8 +828,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
         task_sequence_list = get_task_sequence_list(with_extension=False)
 
         # 检测uuid是否存在于 可能新加入的 battle plan 没有则添加 并将其读入到内存资源中
-        fresh_and_check_all_battle_plan()
-        fresh_and_check_all_tweak_plan()
+        refresh_all_battle_plan()
+        refresh_all_tweak_plan()
         g_resources.fresh_resource_b()
         g_resources.fresh_resource_t()
 

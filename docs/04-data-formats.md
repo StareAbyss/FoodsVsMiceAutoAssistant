@@ -17,6 +17,7 @@
 - `function/core/qmw_2_load_settings.py`
 - `function/scattered/class_battle_plan_v3d0.py`
 - `function/scattered/check_battle_plan.py`
+- `function/scattered/check_tweak_plan.py`
 - `function/scattered/check_task_sequence.py`
 - `function/scattered/read_json_to_stage_info.py`
 - `config/stage_plan.json`
@@ -87,13 +88,17 @@
 
 ### 校验与迁移
 
-启动时会执行 `fresh_and_check_all_battle_plan()`：
+FAA 启动和用户点击打开战斗方案编辑器时，会执行
+`check_all_battle_plan()`，随后另行刷新索引：
 
 - 检查 JSON 是否能解析
 - 读取 `meta_data.version`
 - 如果还是 v2，尝试自动迁移到 v3
 - 修复 UUID 冲突
 - 更新 `EXTRA.BATTLE_PLAN_UUID_TO_PATH`
+
+主界面保存配置、关卡方案编辑器和任务序列编辑器只调用
+`refresh_all_battle_plan()` 重建 UUID 路径索引，不检查、不迁移也不写回方案。
 
 ## 微调方案
 
@@ -107,11 +112,17 @@
 
 ### 校验
 
-启动时 `fresh_and_check_all_tweak_plan()` 会：
+FAA 启动和用户点击打开微调方案编辑器时，会扫描协议版本并调用
+`check_all_tweak_plan_uuids()` 检查 UUID：
 
 - 检查 JSON
+- 将可兼容的低版本字段迁移到当前协议
+- 当前协议字段异常时尽量修复，高版本方案只提示升级
 - 修复 UUID 冲突
 - 更新 `EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH`
+
+其他刷新入口只调用 `refresh_all_tweak_plan()` 重建 UUID 路径索引，不迁移、
+不修复也不写回方案。
 
 ## 任务序列
 

@@ -27,7 +27,7 @@ from function.core.performance_analysis import QMWPerformanceAnalysis, run_analy
 from function.core.qmw_2_load_settings import CommonHelper, QMainWindowLoadSettings
 from function.core.qmw_editor_of_battle_plan import QMWEditorOfBattlePlan
 from function.core.qmw_editor_of_stage_plan import QMWEditorOfStagePlan
-from function.core.qmw_editor_of_tweak_plan import QMWEditorOfTweakPlan
+from function.core.qmw_editor_of_tweak_plan import QMWEditorOfTweakPlan, show_plan_check_dialog
 from function.core.qmw_settings_migrator import QMWSettingsMigrator
 from function.core.qmw_task_plan_editor import TaskEditor
 from function.core.qmw_tip_accelerate_settings import QMWTipAccelerateSettings
@@ -51,7 +51,8 @@ from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
-from function.scattered.check_battle_plan import fresh_and_check_all_tweak_plan
+from function.scattered.check_battle_plan import check_all_battle_plan, refresh_all_battle_plan
+from function.scattered.check_tweak_plan import refresh_all_tweak_plan
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
 from function.scattered.get_stage_info_online import get_stage_info_online
@@ -1264,10 +1265,22 @@ class QMainWindowService(QMainWindowLoadSettings):
     """打开其他窗口"""
 
     def click_btn_open_editor_of_battle_plan(self):
+        check_result = check_all_battle_plan()
+        refresh_all_battle_plan()
+        g_resources.fresh_resource_b()
         window = self.window_editor_of_battle_plan
         window.set_my_font(self.font)
         self.set_stylesheet(window)
         window.show()
+        if check_result.has_issues:
+            QtCore.QTimer.singleShot(
+                0,
+                lambda: show_plan_check_dialog(
+                    window,
+                    "战斗方案检查",
+                    check_result.dialog_text(),
+                ),
+            )
 
     def click_btn_open_editor_of_tweak_plan(self):
         """打开正式微调方案编辑器，并同步磁盘上的方案变化。"""
@@ -1275,7 +1288,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         window.setFont(self.font)
         # 微调编辑器刻意保留原生 PyQt 控件外观，只继承应用级字体和 Palette；
         # 不叠加旧皮肤的整窗 QSS，避免下拉框和数字框出现另一套美术样式。
-        window.refresh_plan_library()
+        window.refresh_plan_library(check_versions=True)
+        self.refresh_tweak_plan_resources()
         window.show()
         window.raise_()
         window.activateWindow()
@@ -1283,7 +1297,7 @@ class QMainWindowService(QMainWindowLoadSettings):
     @staticmethod
     def refresh_tweak_plan_resources():
         """让新建、重命名、删除后的方案立即进入 FAA 内存资源。"""
-        fresh_and_check_all_tweak_plan()
+        refresh_all_tweak_plan()
         g_resources.fresh_resource_t()
 
     def click_btn_open_editor_of_stage_plan(self):
@@ -1943,6 +1957,25 @@ def faa_start_main(app=None, loading=None, local_state=None):
     loading.update_progress(100, "载入完成！！！")
     # 主窗口 实现
     window.show()
+    plan_check_sections = []
+    if window.battle_plan_scan_result.has_issues:
+        plan_check_sections.append(window.battle_plan_scan_result.dialog_text())
+    if window.tweak_plan_scan_result.has_issues:
+        plan_check_sections.append(window.tweak_plan_scan_result.dialog_text())
+    if window.tweak_plan_uuid_check_result.has_issues:
+        plan_check_sections.append(
+            "微调方案 UUID 检查与修复\n"
+            + "\n".join(window.tweak_plan_uuid_check_result.messages)
+        )
+    if plan_check_sections:
+        QtCore.QTimer.singleShot(
+            0,
+            lambda: show_plan_check_dialog(
+                window,
+                "战斗方案与微调方案检查",
+                "\n\n".join(plan_check_sections),
+            ),
+        )
     QtCore.QTimer.singleShot(100, lambda: apply_windows_taskbar_icon(window))
     QtCore.QTimer.singleShot(250, lambda: bring_main_window_to_front_once(window))
     # 主窗口淡入动画
