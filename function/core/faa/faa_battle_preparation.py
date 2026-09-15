@@ -349,6 +349,9 @@ class BattlePreparation:
             # 复位滑块
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=209)
             time.sleep(0.5)
+            #再点一下箭头确保一定复位到顶端，否则第一行卡片只有半截无法识别
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=187)
+            time.sleep(0.5)
 
             for i in range(21):
                 if tar_page_num is None or i >= tar_page_num:
