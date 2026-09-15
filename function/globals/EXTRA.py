@@ -121,7 +121,7 @@ def get_true_stage_id():
 
 
 # 版本号
-VERSION = "v3.1.1"
+VERSION = "v3.2.0"
 
 # 当前 FAA 战斗方案 的 格式版本
 BATTLE_PLAN_VERSION = "3.0"
