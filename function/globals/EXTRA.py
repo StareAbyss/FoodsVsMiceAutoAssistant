@@ -15,7 +15,23 @@ from function.scattered.ethical_core import ethical_core
 """
 
 
+_Q_FONT = None
+
+
 def get_q_font():
+    """在 Qt 应用创建后加载并缓存 FAA 字体。
+
+    QFontDatabase 依赖 QGuiApplication。如果在普通单元测试导入本模块时
+    就调用 addApplicationFont，Windows 上的 Qt6Gui.dll 会在 Python 退出时发生 0xc0000005 访问冲突。
+    """
+    global _Q_FONT
+
+    if QtGui.QGuiApplication.instance() is None:
+        raise RuntimeError("Q_FONT must be initialized after QApplication is created")
+
+    if _Q_FONT is not None:
+        return _Q_FONT
+
     # 读取字体文件
     font_id = QtGui.QFontDatabase.addApplicationFont(os.path.join(PATHS["font"], 'SmileySans-Oblique.ttf'))
 
@@ -27,7 +43,15 @@ def get_q_font():
     font_family = font_families[0]
 
     # 创建 QFont 对象并设置大小
-    return QtGui.QFont(font_family, 11)
+    _Q_FONT = QtGui.QFont(font_family, 11)
+    return _Q_FONT
+
+
+def __getattr__(name):
+    """保留 ``EXTRA.Q_FONT`` 的旧接口，但把初始化延迟到首次使用。"""
+    if name == "Q_FONT":
+        return get_q_font()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def get_true_stage_id():
@@ -99,7 +123,10 @@ def get_true_stage_id():
 # 版本号
 VERSION = "v3.1.1"
 
-# 当前 FAA 微调方案编辑器写入的格式版本
+# 当前 FAA 战斗方案 的 格式版本
+BATTLE_PLAN_VERSION = "3.0"
+
+# 当前 FAA 微调方案 的 格式版本
 TWEAK_PLAN_VERSION = "0.3"
 
 # 缩放倍率
@@ -167,5 +194,3 @@ print("伦理模块开启:", ETHICAL_MODE)
 
 # 正确的关卡id们
 TRUE_STAGE_ID = get_true_stage_id()
-
-Q_FONT = get_q_font()

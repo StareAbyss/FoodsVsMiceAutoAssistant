@@ -8,7 +8,8 @@ from PyQt6.QtWidgets import QMainWindow
 
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
-from function.scattered.check_battle_plan import fresh_and_check_all_battle_plan, fresh_and_check_all_tweak_plan
+from function.scattered.check_battle_plan import refresh_all_battle_plan
+from function.scattered.check_tweak_plan import refresh_all_tweak_plan
 from function.scattered.get_list_battle_plan import get_list_battle_plan, get_list_tweak_plan
 
 """
@@ -119,8 +120,8 @@ class QMWEditorOfStagePlan(QMainWindow):
         """
         初始化战斗方案选择框
         """
-        fresh_and_check_all_battle_plan()
-        fresh_and_check_all_tweak_plan()
+        refresh_all_battle_plan()
+        refresh_all_tweak_plan()
         self.battle_plan_name_list = get_list_battle_plan(with_extension=False)
         self.tweak_plan_name_list = get_list_tweak_plan(with_extension=False)
         self.battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
@@ -137,8 +138,8 @@ class QMWEditorOfStagePlan(QMainWindow):
         """
         刷新战斗方案选择框，保持指向的战斗方案不变, 并读取最新的战斗方案们.
         """
-        fresh_and_check_all_battle_plan()
-        fresh_and_check_all_tweak_plan()
+        refresh_all_battle_plan()
+        refresh_all_tweak_plan()
         self.battle_plan_name_list = get_list_battle_plan(with_extension=False)
         self.tweak_plan_name_list = get_list_tweak_plan(with_extension=False)
         self.battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
