@@ -1,10 +1,7 @@
 import glob
-import json
-import locale
 import os
 import re
 import shutil
-import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -12,9 +9,6 @@ from pathlib import Path
 from function.common.update_state import write_packaged_update_state
 
 
-SUBPROCESS_TEXT_ENCODING = locale.getpreferredencoding(False) or "utf-8"
-IMAGE_RESOURCE_DB_ENV_PREFIX = "FAA_IMAGE_RESOURCE_DB_"
-IMAGE_RESOURCE_DB_LOCAL_CONFIG = "image_resource_db.local.json"
 IMAGE_RESOURCE_EXCEL_DATE_RE = re.compile(r"点我获取更多图像资源 (?P<date>\d{4}-\d{2}-\d{2})\.xlsx$")
 
 
@@ -190,111 +184,11 @@ class FileMover:
         print("文件复制完成。")
 
 
-def has_image_resource_db_config(project_root: Path) -> bool:
-    required_keys = ("HOST", "USER", "PASSWORD", "DATABASE")
-    if all(os.getenv(f"{IMAGE_RESOURCE_DB_ENV_PREFIX}{key}") for key in required_keys):
-        return True
-
-    config_path = project_root / IMAGE_RESOURCE_DB_LOCAL_CONFIG
-    if not config_path.is_file():
-        return False
-
-    try:
-        config = json.loads(config_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-        return False
-
-    return all(
-        config.get(key.lower()) or config.get(f"{IMAGE_RESOURCE_DB_ENV_PREFIX}{key}")
-        for key in required_keys
-    )
-
-
 def require_existing_excel(project_root: Path, message: str) -> Path:
     latest_excel = get_latest_existing_excel_file(project_root)
     if latest_excel:
         return latest_excel
     raise FileNotFoundError(message)
-
-
-def get_latest_excel_file(project_root: Path):
-    """
-    Generate and locate the latest image-resource Excel file.
-
-    This file is optional for packaging. Failures are reported as warnings and
-    the package generation continues.
-    """
-    excel_script = project_root / "tool" / "get_game_images_from_xiaye_db.py"
-
-    print("\n" + "=" * 60)
-    print("正在获取最新的图像资源文件...")
-    print("=" * 60)
-
-    try:
-        if not excel_script.is_file():
-            print(f"Warning: Excel generator not found: {excel_script}")
-            return require_existing_excel(
-                project_root,
-                "没有数据库密码和 Excel 图像资源，打包已中断。请先提交或放置 `点我获取更多图像资源 *.xlsx`，"
-                "或尝试和夏夜申请获得数据库密码。",
-            )
-
-        if not has_image_resource_db_config(project_root):
-            latest_excel = require_existing_excel(
-                project_root,
-                "没有数据库密码和 Excel 图像资源，打包已中断。请先提交或放置 `点我获取更多图像资源 *.xlsx`，"
-                "或尝试和夏夜申请获得数据库密码。",
-            )
-            print("未找到图像资源数据库密码。可以尝试和夏夜申请获得数据库密码。")
-            print("现已使用内置 Excel 做图像资源校对。")
-            return latest_excel
-
-        print(f"执行脚本: {excel_script}")
-        result = subprocess.run(
-            [sys.executable, str(excel_script)],
-            cwd=project_root,
-            capture_output=True,
-            text=True,
-            encoding=SUBPROCESS_TEXT_ENCODING,
-            errors="replace",
-            timeout=60,
-        )
-
-        if result.stdout:
-            print(result.stdout)
-        if result.stderr:
-            print("警告:", result.stderr)
-
-        if result.returncode != 0:
-            print(f"Warning: 图像资源脚本执行失败，返回码: {result.returncode}")
-            latest_excel = require_existing_excel(
-                project_root,
-                "获取最新 Excel 失败，且未找到内置 Excel 图像资源，打包已中断。",
-            )
-            print("获取最新 Excel 失败，现已使用内置 Excel 做图像资源校对。")
-            return latest_excel
-
-        today = datetime.now().strftime("%Y-%m-%d")
-        expected_file = project_root / f"点我获取更多图像资源 {today}.xlsx"
-
-        if expected_file.exists():
-            print(f"[OK] 找到最新文件: {expected_file}")
-            return expected_file.relative_to(project_root)
-
-        print(f"Warning: 未找到今天生成的文件: {expected_file.name}")
-        return require_existing_excel(
-            project_root,
-            "未找到今天生成的 Excel，也未找到内置 Excel 图像资源，打包已中断。",
-        )
-
-    except subprocess.TimeoutExpired:
-        print("Warning: 图像资源脚本执行超时，将使用已有的最近文件")
-        return require_existing_excel(project_root, "获取最新 Excel 超时，且未找到内置 Excel 图像资源，打包已中断。")
-    except FileNotFoundError:
-        raise
-    except Exception as exc:
-        print(f"Warning: 获取图像资源文件时出错: {exc}")
-        return require_existing_excel(project_root, "获取最新 Excel 出错，且未找到内置 Excel 图像资源，打包已中断。")
 
 
 def get_latest_existing_excel_file(project_root: Path):
@@ -308,69 +202,20 @@ def get_latest_existing_excel_file(project_root: Path):
     return None
 
 
-def run_card_prepare_room_resource_tool(project_root: Path, latest_excel) -> None:
-    """
-    Run the prepare-room card image resource generator before packaging.
-
-    The generator writes mismatch CSVs and downloads missing images. It is a
-    packaging helper, so network or CDN failures are reported as warnings and
-    the package build continues with the existing local resources.
-    """
-    tool_script = project_root / "tool" / "card_resource" / "get_card_resource_tool.py"
-    if not tool_script.is_file():
-        print(f"Warning: Card resource tool not found: {tool_script}")
-        return
-
-    command = [
-        sys.executable,
-        str(tool_script),
-        "--output",
-        str(project_root / "resource" / "image" / "card" / "准备房间"),
-        "--report-dir",
-        str(project_root / "resource_other" / "图像资源_卡片准备房间_最新资源"),
-        "--category-output",
-        str(project_root / "config" / "card_stage_categories.json"),
-    ]
-    if latest_excel:
-        command.extend(["--excel", str(project_root / latest_excel)])
-
-    print("\n" + "=" * 60)
-    print("正在更新准备房间卡片图像资源...")
-    print("=" * 60)
-
-    try:
-        result = subprocess.run(
-            command,
-            cwd=project_root,
-            capture_output=True,
-            text=True,
-            encoding=SUBPROCESS_TEXT_ENCODING,
-            errors="replace",
-            timeout=300,
-        )
-        if result.stdout:
-            print(result.stdout)
-        if result.stderr:
-            print("警告:", result.stderr)
-        if result.returncode != 0:
-            print(f"Warning: 准备房间卡片资源工具执行失败，返回码: {result.returncode}")
-    except subprocess.TimeoutExpired:
-        print("Warning: 准备房间卡片资源工具执行超时，将使用已有资源继续打包")
-    except Exception as exc:
-        print(f"Warning: 更新准备房间卡片图像资源时出错: {exc}")
-
-
 def main():
     project_root = find_project_root(Path(__file__).parent)
     dest_dir = project_root / "dist" / "FAA"
 
     try:
-        latest_excel = get_latest_excel_file(project_root)
+        latest_excel = require_existing_excel(
+            project_root,
+            "未找到已有的图像资源 Excel，打包已中断。发布前应独立运行图像资源校验流程，"
+            "完成人工审核和资源 PR 后，再从干净的发行 tag 工作树打包。",
+        )
     except (FileNotFoundError, RuntimeError) as exc:
         print(f"\n{exc}")
         raise SystemExit(1) from None
 
-    run_card_prepare_room_resource_tool(project_root, latest_excel)
     clean_dist_dir(project_root, dest_dir)
 
     # 初始化 FileMover 实例
