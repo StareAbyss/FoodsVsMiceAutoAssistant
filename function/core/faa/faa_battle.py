@@ -139,11 +139,12 @@ class FAABattle:
             match_tolerance=0.95,
             template=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
 
-        # 立刻清空列表 就算堵. 也不会对点继续作战造成影响了!
-        T_ACTION_QUEUE_TIMER.action_queue.queue.clear()
-
         if not find:
             return False
+
+        # 只有进入继续作战界面时才丢弃战斗中的待执行操作，
+        # 避免定时检测在正常战斗期间反复清空放卡队列。
+        T_ACTION_QUEUE_TIMER.action_queue.queue.clear()
 
         self.print_info(text="找到了 [继续作战] 图标")
 
