@@ -58,3 +58,11 @@ test/**/output/**/*.webp
 test/**/output/**/*.csv
 test/**/output/**/*.log
 test/**/output/**/*.npy
+
+# 忽略仅供本地调试和计算的个人文件
+/battle_plan/测试.json
+/task_sequence/测试.json
+/tool/optimization/calculation_grind_chest.py
+
+# 忽略从图像资源数据库导出的本地 Excel
+/点我获取更多图像资源 *.xlsx
