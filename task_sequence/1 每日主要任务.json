@@ -138,7 +138,7 @@
         "tooltip": "",
         "task_args": {
             "sequence_integer": 1,
-            "task_sequence_uuid": "7e3be558-9267-11f1-9abb-9ebad9391dd9"
+            "task_sequence_uuid": "85d1d03f-8b06-11f1-be51-9ebad9391dd9"
         }
     },
     {
@@ -153,8 +153,81 @@
         }
     },
     {
-        "task_type": "战斗",
+        "task_type": "领取任务奖励",
         "task_id": 11,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ],
+            "normal": false,
+            "guild": false,
+            "spouse": false,
+            "offer_reward": true,
+            "food_competition": false,
+            "monopoly": false,
+            "camp": false
+        }
+    },
+    {
+        "task_type": "公会任务",
+        "task_id": 12,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "cross_server": true,
+            "global_plan_active": true,
+            "deck": 0,
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
+            "quest_card": "None",
+            "ban_card_list": [],
+            "dict_exit": {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": [
+                    "竞技岛"
+                ],
+                "last_time_player_b": [
+                    "竞技岛"
+                ]
+            }
+        }
+    },
+    {
+        "task_type": "情侣任务",
+        "task_id": 13,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "global_plan_active": true,
+            "deck": 0,
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
+            "quest_card": "None",
+            "ban_card_list": [],
+            "dict_exit": {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": [
+                    "竞技岛"
+                ],
+                "last_time_player_b": [
+                    "竞技岛"
+                ]
+            }
+        }
+    },
+    {
+        "task_type": "战斗",
+        "task_id": 14,
         "enabled": true,
         "alias": "世界BOSS 1P",
         "tooltip": "",
@@ -186,7 +259,7 @@
     },
     {
         "task_type": "战斗",
-        "task_id": 12,
+        "task_id": 15,
         "enabled": true,
         "alias": "世界BOSS 2P",
         "tooltip": "",
@@ -197,79 +270,6 @@
             "player": [
                 2
             ],
-            "global_plan_active": true,
-            "deck": 0,
-            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
-            "quest_card": "None",
-            "ban_card_list": [],
-            "dict_exit": {
-                "other_time_player_a": [],
-                "other_time_player_b": [],
-                "last_time_player_a": [
-                    "竞技岛"
-                ],
-                "last_time_player_b": [
-                    "竞技岛"
-                ]
-            }
-        }
-    },
-    {
-        "task_type": "领取任务奖励",
-        "task_id": 13,
-        "enabled": true,
-        "alias": "",
-        "tooltip": "",
-        "task_args": {
-            "player": [
-                1,
-                2
-            ],
-            "normal": false,
-            "guild": false,
-            "spouse": false,
-            "offer_reward": true,
-            "food_competition": false,
-            "monopoly": false,
-            "camp": false
-        }
-    },
-    {
-        "task_type": "公会任务",
-        "task_id": 14,
-        "enabled": true,
-        "alias": "",
-        "tooltip": "",
-        "task_args": {
-            "cross_server": true,
-            "global_plan_active": true,
-            "deck": 0,
-            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
-            "quest_card": "None",
-            "ban_card_list": [],
-            "dict_exit": {
-                "other_time_player_a": [],
-                "other_time_player_b": [],
-                "last_time_player_a": [
-                    "竞技岛"
-                ],
-                "last_time_player_b": [
-                    "竞技岛"
-                ]
-            }
-        }
-    },
-    {
-        "task_type": "情侣任务",
-        "task_id": 15,
-        "enabled": true,
-        "alias": "",
-        "tooltip": "",
-        "task_args": {
             "global_plan_active": true,
             "deck": 0,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
