@@ -1027,15 +1027,6 @@ border:none</string>
                 </layout>
                </item>
                <item>
-                <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,1,0">
-                 <property name="spacing">
-                  <number>5</number>
-                 </property>
-                 <property name="leftMargin">
-                  <number>5</number>
-                 </property>
-                 <property name="topMargin">
-               <item>
                 <layout class="QHBoxLayout" name="LoginPlatformHomeLayout" stretch="0,0">
                  <property name="spacing">
                   <number>5</number>
@@ -1134,6 +1125,15 @@ border:none</string>
                  </item>
                 </layout>
                </item>
+               <item>
+                <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,1,0">
+                 <property name="spacing">
+                  <number>5</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="topMargin">
                   <number>5</number>
                  </property>
                  <property name="rightMargin">
