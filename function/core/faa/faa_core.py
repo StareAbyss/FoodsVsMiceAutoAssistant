@@ -1682,7 +1682,7 @@ class FAABase:
             find = loop_match_p_in_w(
                 source_handle=self.handle_360,
                 source_root_handle=self.handle_360,
-                source_range=[0, 0, 2000, 75],
+                source_range=[0, 0, 2596, 75],
                 template=RESOURCE_P["common"]["360游戏大厅"]["变速_默认或被点击.png"],
                 match_tolerance=0.99,
                 match_interval=0.00001,
@@ -1694,7 +1694,7 @@ class FAABase:
                 find = loop_match_p_in_w(
                     source_handle=self.handle_360,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 2000, 75],
+                    source_range=[0, 0, 2596, 75],
                     template=RESOURCE_P["common"]["360游戏大厅"]["变速_被选中.png"],
                     match_tolerance=0.99,
                     match_interval=0.00001,
@@ -1716,12 +1716,12 @@ class FAABase:
                     template_opts=[
                         {
                             "template": RESOURCE_P["common"]["360游戏大厅"]["变速_默认或被点击.png"],
-                            "source_range": [0, 0, 2000, 75],
+                            "source_range": [0, 0, 2596, 75],
                             "match_tolerance": 0.99
                         },
                         {
                             "template": RESOURCE_P["common"]["360游戏大厅"]["变速_被选中.png"],
-                            "source_range": [0, 0, 2000, 75],
+                            "source_range": [0, 0, 2596, 75],
                             "match_tolerance": 0.99
                         }
                     ],
@@ -1740,12 +1740,12 @@ class FAABase:
                     template_opts=[
                         {
                             "template": RESOURCE_P["common"]["360游戏大厅"]["未激活变速_默认.png"],
-                            "source_range": [0, 0, 2000, 75],
+                            "source_range": [0, 0, 2596, 75],
                             "match_tolerance": 0.99
                         },
                         {
                             "template": RESOURCE_P["common"]["360游戏大厅"]["未激活变速_被选中或被点击.png"],
-                            "source_range": [0, 0, 2000, 75],
+                            "source_range": [0, 0, 2596, 75],
                             "match_tolerance": 0.99
                         }
                     ],
@@ -1803,7 +1803,7 @@ class FAABase:
 
         def login_4399() -> bool:
             """根据已校验的文字标签位置完成4399账号密码登录。"""
-            full_range = [0, 0, 2560, 1440]
+            full_range = [0, 0, 2596, 1440]
 
             def find(image_name: str, tolerance: float = 0.95):
                 """在4399登录页面查找指定标签并返回中心坐标。"""
@@ -1905,7 +1905,7 @@ class FAABase:
                 if not loop_match_p_in_w(
                     source_handle=self.handle_browser,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 2560, 1440],
+                    source_range=[0, 0, 2596, 1440],
                     template=RESOURCE_P["common"]["登录"]["QQ空间"]["密码登录.png"],
                     match_tolerance=0.90,
                     match_interval=0.5,
@@ -1930,7 +1930,7 @@ class FAABase:
                 loop_match_p_in_w(
                     source_handle=self.handle_browser,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 2560, 1440],
+                    source_range=[0, 0, 2596, 1440],
                     template=RESOURCE_P["common"]["登录"]["QQ空间"]["叉号.png"],
                     match_tolerance=0.90,
                     match_interval=0.5,
@@ -1942,7 +1942,7 @@ class FAABase:
                 if not loop_match_p_in_w(
                     source_handle=self.handle_browser,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 2560, 1440],
+                    source_range=[0, 0, 2596, 1440],
                     template=RESOURCE_P["common"]["登录"]["QQ空间"]["账号输入框.png"],
                     match_tolerance=0.90,
                     match_interval=0.5,
@@ -1962,7 +1962,7 @@ class FAABase:
                 if not loop_match_p_in_w(
                     source_handle=self.handle_browser,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 2560, 1440],
+                    source_range=[0, 0, 2596, 1440],
                     template=RESOURCE_P["common"]["登录"]["QQ空间"]["密码输入框.png"],
                     match_tolerance=0.90,
                     match_interval=0.5,
@@ -1980,7 +1980,7 @@ class FAABase:
                 qq_login_result = loop_match_p_in_w(
                     source_handle=self.handle_browser,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 2560, 1440],
+                    source_range=[0, 0, 2596, 1440],
                     template=RESOURCE_P["common"]["登录"]["QQ空间"]["QQ登录_登录按钮.png"],
                     match_tolerance=0.90,
                     match_interval=0.5,
@@ -1994,7 +1994,7 @@ class FAABase:
                 qq_login_result = loop_match_p_in_w(
                     source_handle=self.handle_browser,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 2560, 1440],
+                    source_range=[0, 0, 2596, 1440],
                     template=g_resources.RESOURCE_CP["用户自截"][f"空间服登录界面_{self.player}P.png"],
                     match_tolerance=0.95,
                     match_interval=0.5,
@@ -2042,7 +2042,7 @@ class FAABase:
             _, my_result = match_p_in_w(
                 source_handle=self.handle_browser,
                 source_root_handle=self.handle_360,
-                source_range=[0, 0, 2560, 1440],
+                source_range=[0, 0, 2596, 1440],
                 template=RESOURCE_P["common"]["登录"]["4399"]["1_我最近玩过的服务器_4399.png"],
                 match_tolerance=0.95
             )
@@ -2060,7 +2060,7 @@ class FAABase:
             _, my_result = match_p_in_w(
                 source_handle=self.handle_browser,
                 source_root_handle=self.handle_360,
-                source_range=[0, 0, 2560, 1440],
+                source_range=[0, 0, 2596, 1440],
                 template=RESOURCE_P["common"]["登录"]["4399"]["1_我最近玩过的服务器_4399微端.png"],
                 match_tolerance=0.98
             )
@@ -2075,7 +2075,7 @@ class FAABase:
                 _, my_result = match_p_in_w(
                     source_handle=self.handle_browser,
                     source_root_handle=self.handle_360,
-                    source_range=[0, 0, 2560, 1440],
+                    source_range=[0, 0, 2596, 1440],
                     template=RESOURCE_P["common"]["登录"]["4399"]["2_我最近玩过的服务器_4399微端.png"],
                     match_tolerance=0.97
                 )
@@ -2093,7 +2093,7 @@ class FAABase:
             _, my_result = match_p_in_w(
                 source_handle=self.handle_browser,
                 source_root_handle=self.handle_360,
-                source_range=[0, 0, 2560, 1440],
+                source_range=[0, 0, 2596, 1440],
                 template=RESOURCE_P["common"]["登录"]["QQ空间"]["1_我最近玩过的服务器_QQ空间.png"],
                 match_tolerance=0.98
             )
@@ -2122,7 +2122,7 @@ class FAABase:
             _, my_result = match_p_in_w(
                 source_handle=self.handle_browser,
                 source_root_handle=self.handle_360,
-                source_range=[0, 0, 2560, 1440],
+                source_range=[0, 0, 2596, 1440],
                 template=RESOURCE_P["common"]["登录"]["QQ大厅"]["1_我最近玩过的服务器_QQ大厅.png"],
                 match_tolerance=0.98
             )
@@ -2173,7 +2173,7 @@ class FAABase:
             my_result = loop_match_p_in_w(
                 source_handle=self.handle_browser,
                 source_root_handle=self.handle_360,
-                source_range=[0, 0, 2560, 1440],
+                source_range=[0, 0, 2596, 1440],
                 template=RESOURCE_P["error"]["retry_btn.png"],
                 match_tolerance=0.90,
                 click=True,
@@ -2192,15 +2192,15 @@ class FAABase:
                 source_root_handle=self.handle_360,
                 template_opts=[
                     {
-                        "source_range": [850, 570, 2560, 1440],
+                        "source_range": [850, 570, 2596, 1440],
                         "template": RESOURCE_P["common"]["底部菜单"]["跳转.png"],
                         "match_tolerance": 0.99,
                     }, {
-                        "source_range": [615, 570, 2560, 1440],
+                        "source_range": [615, 570, 2596, 1440],
                         "template": RESOURCE_P["common"]["底部菜单"]["任务.png"],
                         "match_tolerance": 0.99,
                     }, {
-                        "source_range": [890, 570, 2560, 1440],
+                        "source_range": [890, 570, 2596, 1440],
                         "template": RESOURCE_P["common"]["底部菜单"]["后退.png"],
                         "match_tolerance": 0.99,
                     }
@@ -2220,7 +2220,7 @@ class FAABase:
                     status, position = match_p_in_w(
                         source_handle=game_handle,
                         source_root_handle=self.handle_360,
-                        source_range=[0, 0, 2560, 1440],
+                        source_range=[0, 0, 2596, 1440],
                         template=RESOURCE_P["common"]["登录"]["通用"]["3_健康游戏公告_确定.png"],
                         match_tolerance=0.97,
                     )
@@ -2240,7 +2240,7 @@ class FAABase:
 
         def confirm_home_and_close_popups() -> bool:
             """关闭两类活动弹窗，并连续三次确认游戏主页菜单。"""
-            check_range = [0, 0, 2560, 1440]
+            check_range = [0, 0, 2596, 1440]
             close_range = [650, 0, 2560, 400]
             stamp_closed = False
             holiday_closed = False
@@ -2307,15 +2307,15 @@ class FAABase:
                     source_img=source_image,
                     template_opts=[
                         {
-                            "source_range": [850, 570, 2560, 1440],
+                            "source_range": [850, 570, 2596, 1440],
                             "template": RESOURCE_P["common"]["底部菜单"]["跳转.png"],
                             "match_tolerance": 0.99,
                         }, {
-                            "source_range": [615, 570, 2560, 1440],
+                            "source_range": [615, 570, 2596, 1440],
                             "template": RESOURCE_P["common"]["底部菜单"]["任务.png"],
                             "match_tolerance": 0.99,
                         }, {
-                            "source_range": [890, 570, 2560, 1440],
+                            "source_range": [890, 570, 2596, 1440],
                             "template": RESOURCE_P["common"]["底部菜单"]["后退.png"],
                             "match_tolerance": 0.99,
                         },
@@ -2415,7 +2415,7 @@ class FAABase:
                             status, _ = match_p_in_w(
                                 source_handle=self.handle_browser,
                                 source_root_handle=self.handle_360,
-                                source_range=[0, 0, 2560, 1440],
+                                source_range=[0, 0, 2596, 1440],
                                 template=g_resources.RESOURCE_CP["用户自截"][f"空间服登录界面_{self.player}P.png"],
                                 match_tolerance=0.95,
                             )

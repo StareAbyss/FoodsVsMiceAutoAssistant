@@ -703,7 +703,7 @@ if __name__ == "__main__":
         source_root_handle, handle = extension_get_window_handle("美食大战老鼠")
         result = extension_loop_match_p_in_w(
             source_handle=handle,
-            source_range=[0, 0, 2000, 2000],
+            source_range=[0, 0, 2596, 1440],
             template='2.png',  # 目标图片，即需要点击的区域
 
             match_tolerance=0.95,

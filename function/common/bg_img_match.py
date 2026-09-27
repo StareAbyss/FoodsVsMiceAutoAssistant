@@ -556,7 +556,7 @@ if __name__ == '__main__':
         root_handle = faa_get_handle(channel="锑食", mode="360")
         _, result = match_p_in_w(
             source_handle=handle,
-            source_range=[0, 0, 2000, 2000],
+            source_range=[0, 0, 2596, 1440],
             template=g_resources.RESOURCE_P["common"]["顶部菜单"]["大地图.png"],
             match_tolerance=0.87,
             source_root_handle=root_handle)
