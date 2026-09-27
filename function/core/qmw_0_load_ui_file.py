@@ -617,7 +617,6 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         self.AdvancedSettingsNavigationList.itemClicked.connect(self.on_nav_item_clicked)
         self.AdvancedSettingsArea.verticalScrollBar().valueChanged.connect(self.on_settings_scroll)
 
-    def on_nav_item_clicked(self, item):
         def open_auto_login_settings() -> None:
             """从首页跳转到进阶功能中的登录设置。"""
             self.tabWidget.setCurrentWidget(self.Tab3)
@@ -631,6 +630,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         self.LoginAutoSettingsButton.clicked.connect(open_auto_login_settings)
 
 
+    def on_nav_item_clicked(self, item):
         if self.adv_opt_synchronizing:
             return
 
