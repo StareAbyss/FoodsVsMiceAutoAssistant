@@ -463,7 +463,7 @@ border:none</string>
               </layout>
              </item>
              <item>
-              <layout class="QVBoxLayout" name="Lay_Tab1_Right" stretch="1,1,1,1,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,2">
+              <layout class="QVBoxLayout" name="Lay_Tab1_Right" stretch="1,1,1,1,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,2">
                <property name="leftMargin">
                 <number>0</number>
                </property>
@@ -502,6 +502,9 @@ border:none</string>
                  </property>
                  <item>
                   <layout class="QHBoxLayout" name="LayBaseConfig1_2" stretch="2,3">
+                   <property name="spacing">
+                    <number>5</number>
+                   </property>
                    <property name="sizeConstraint">
                     <enum>QLayout::SetDefaultConstraint</enum>
                    </property>
@@ -686,6 +689,9 @@ border:none</string>
                  </property>
                  <item>
                   <layout class="QHBoxLayout" name="LayBaseConfig1_Left" stretch="2,3">
+                   <property name="spacing">
+                    <number>5</number>
+                   </property>
                    <property name="sizeConstraint">
                     <enum>QLayout::SetDefaultConstraint</enum>
                    </property>
@@ -867,6 +873,9 @@ border:none</string>
                  </property>
                  <item>
                   <layout class="QHBoxLayout" name="horizontalLayout_15" stretch="2,3">
+                   <property name="spacing">
+                    <number>5</number>
+                   </property>
                    <property name="sizeConstraint">
                     <enum>QLayout::SetDefaultConstraint</enum>
                    </property>
@@ -2779,8 +2788,8 @@ Link Start</string>
                  <property name="text">
                   <string>战斗方案编辑器</string>
                  </property>
-               </widget>
-              </item>
+                </widget>
+               </item>
                <item>
                 <widget class="QPushButton" name="OpenEditorOfTweakPlan_Button">
                  <property name="sizePolicy">
@@ -2940,7 +2949,7 @@ Link Start</string>
                <widget class="QWidget" name="AdvancedSettingsAreaWidget">
                 <property name="geometry">
                  <rect>
-                  <x>2</x>
+                  <x>0</x>
                   <y>0</y>
                   <width>560</width>
                   <height>2350</height>
@@ -7439,7 +7448,6 @@ FAA放卡核心原理简述:
            </item>
           </layout>
          </widget>
-
         </widget>
        </item>
       </layout>

@@ -4043,7 +4043,6 @@ class FAABase:
             )
             return 0
 
-        images = RESOURCE_P["common"]["魔塔购买次数"]
         purchase_range = [611, 497, 675, 538]
         voucher_range = [525, 312, 582, 356]
         price_range = [420, 311, 584, 356]
@@ -4058,7 +4057,7 @@ class FAABase:
                     source_handle=self.handle,
                     source_root_handle=self.handle_360,
                     source_range=source_range,
-                    template=images[image_name],
+                    template=RESOURCE_P["common"]["魔塔购买次数"][image_name],
                     match_tolerance=0.95,
                     match_interval=0.2,
                     match_failed_check=wait_seconds,
@@ -4094,7 +4093,7 @@ class FAABase:
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
                 source_range=voucher_range,
-                template=images["购买界面-礼卷.png"],
+                template=RESOURCE_P["common"]["魔塔购买次数"]["购买界面-礼卷.png"],
                 match_tolerance=0.95,
                 match_interval=0.2,
                 match_failed_check=2,
@@ -4116,7 +4115,7 @@ class FAABase:
                 _, find = match_p_in_w(
                     source_img=source_image,
                     source_range=price_range,
-                    template=images[f"安全鉴定{tier}.png"],
+                    template=RESOURCE_P["common"]["魔塔购买次数"][f"安全鉴定{tier}.png"],
                     match_tolerance=0.999,
                 )
                 if find:
