@@ -663,7 +663,7 @@ class ThreadTodo(QThread):
         self.model_end_print(text=title_text)
 
     def batch_sign_in(self, player: list = None):
-        """批量完成日常功能"""
+        """批量完成常规签到，再为已配置二级密码的角色盖章。"""
 
         title_text = "每日签到"
 
@@ -695,6 +695,61 @@ class ThreadTodo(QThread):
         if 2 in player:
             self.thread_2p.join()
 
+        stamp_players = [
+            cur_player for cur_player in player
+            if self.opt["level_2"][f"{cur_player}p"]["active"]
+            and self.opt["login_credentials"]["level_2"][f"{cur_player}p"]["password"]
+        ]
+        if not stamp_players:
+            SIGNAL.PRINT_TO_UI.emit(
+                text="[签到] [盖章] 未设置二级密码，跳过盖章",
+                color_level=2,
+            )
+            self.model_end_print(text=title_text)
+            return
+
+        def run_batch(target_players, action, stage_name):
+            """让目标角色并行完成盖章流程的当前阶段。"""
+            threads = {}
+            for cur_player in target_players:
+                thread = ThreadWithException(
+                    target=action,
+                    name=f"{cur_player}P Thread - {stage_name}",
+                    kwargs={"cur_player": cur_player},
+                )
+                threads[cur_player] = thread
+                if cur_player == 1:
+                    self.thread_1p = thread
+                else:
+                    self.thread_2p = thread
+                thread.start()
+            for thread in threads.values():
+                thread.join()
+            return {cur_player: thread.return_value for cur_player, thread in threads.items()}
+
+        def input_password(cur_player):
+            """从当前任务配置读取该角色二级密码并输入。"""
+            password = self.opt["login_credentials"]["level_2"][f"{cur_player}p"]["password"]
+            return self.faa_dict[cur_player].input_level_2_password(password=password)
+
+        def stamp(cur_player):
+            """在已输入二级密码的角色窗口执行盖章。"""
+            return self.faa_dict[cur_player].stamp_check_in()
+
+        # 先全部输入二级密码，避免一名角色提前开始打卡并抢占另一名角色的焦点。
+        password_results = run_batch(stamp_players, input_password, "InputLevel2PasswordForStamp")
+        ready_players = [cur_player for cur_player in stamp_players if password_results[cur_player] is True]
+        if ready_players:
+            run_batch(ready_players, stamp, "StampCheckIn")
+        for cur_player in stamp_players:
+            if cur_player not in ready_players:
+                SIGNAL.PRINT_TO_UI.emit(
+                    text=f"[签到] [盖章] {cur_player}P输入二级密码失败，跳过盖章",
+                    color_level=2,
+                )
+
+        # 只刷新尝试过输入二级密码的角色，清除本次输入留下的登录状态。
+        self.batch_reload_game(player=stamp_players)
         self.model_end_print(text=title_text)
 
     def batch_fed_and_watered(self, player: list = None):

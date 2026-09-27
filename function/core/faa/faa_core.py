@@ -2738,6 +2738,96 @@ class FAABase:
 
         return main()
 
+    def stamp_check_in(self: "FAA") -> bool:
+        """进入福利打卡活动，完成今日盖章并关闭界面。"""
+        # 1P 已打卡、2P 可打卡的实测命中矩形取并集，四周留约 10px 余量。
+        stamp_range = [807, 137, 880, 196]
+        close_range = [899, 89, 945, 137]
+
+        self.print_debug(text=f"[签到] [盖章] {self.player}P开始")
+        if not self.action_top_menu(mode="福利打卡"):
+            self.print_warning(text=f"[签到] [盖章] {self.player}P未能进入福利打卡活动")
+            return False
+
+        completed = False
+        try:
+            # 同一张截图同时判断两种状态，避免界面切换时误点已打卡按钮。
+            status = loop_match_ps_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                template_opts=[
+                    {
+                        "source_range": stamp_range,
+                        "template": RESOURCE_P["common"]["盖章打卡活动"]["盖章打卡-已打卡.png"],
+                        "match_tolerance": 0.97,
+                    }, {
+                        "source_range": stamp_range,
+                        "template": RESOURCE_P["common"]["盖章打卡活动"]["盖章打卡-可打卡.png"],
+                        "match_tolerance": 0.97,
+                    },
+                ],
+                return_mode="or",
+                quick_mode=False,
+                match_interval=0.2,
+                match_failed_check=5,
+            )
+            if not status:
+                self.print_warning(text=f"[签到] [盖章] {self.player}P未识别到打卡状态")
+            elif status[0]:
+                self.print_debug(text=f"[签到] [盖章] {self.player}P今日已打卡")
+                completed = True
+            else:
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle,
+                    x=status[1][0] + stamp_range[0],
+                    y=status[1][1] + stamp_range[1],
+                )
+                time.sleep(1)
+                completed = loop_match_p_in_w(
+                    source_handle=self.handle,
+                    source_root_handle=self.handle_360,
+                    source_range=stamp_range,
+                    template=RESOURCE_P["common"]["盖章打卡活动"]["盖章打卡-已打卡.png"],
+                    match_tolerance=0.97,
+                    match_interval=0.2,
+                    match_failed_check=5,
+                    click=False,
+                )
+                if completed:
+                    self.print_debug(text=f"[签到] [盖章] {self.player}P今日打卡成功")
+                else:
+                    self.print_warning(text=f"[签到] [盖章] {self.player}P点击后未确认打卡成功")
+        finally:
+            close_result = loop_match_ps_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                template_opts=[
+                    {
+                        "source_range": close_range,
+                        "template": RESOURCE_P["common"]["盖章打卡活动"]["退出按钮-未选中.png"],
+                        "match_tolerance": 0.99,
+                    }, {
+                        "source_range": close_range,
+                        "template": RESOURCE_P["common"]["盖章打卡活动"]["退出按钮-已选中png.png"],
+                        "match_tolerance": 0.99,
+                    },
+                ],
+                return_mode="or",
+                match_interval=0.2,
+                match_failed_check=3,
+            )
+            if close_result:
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle,
+                    x=close_result[0] + close_range[0],
+                    y=close_result[1] + close_range[1],
+                )
+                time.sleep(0.5)
+            else:
+                self.print_warning(text=f"[签到] [盖章] {self.player}P未找到活动关闭按钮")
+
+        return completed
+
     def sign_top_up_money(self: "FAA"):
         """日氪一元! 仅限4399 游币哦!
         为什么这么慢! 因为... 锑食太卡了!
