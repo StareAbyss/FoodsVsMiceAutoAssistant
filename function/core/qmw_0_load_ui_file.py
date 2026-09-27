@@ -4,7 +4,11 @@ import sys
 from PyQt6 import uic, QtGui, QtCore, QtWidgets
 from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QListWidgetItem, QListWidget, QSystemTrayIcon, QMenu
+from PyQt6.QtWidgets import (
+    QListWidgetItem, QListWidget, QSystemTrayIcon, QMenu, QWidget, QLabel,
+    QComboBox, QGroupBox, QGridLayout, QVBoxLayout, QHBoxLayout, QLineEdit,
+    QPushButton, QCheckBox,
+)
 
 from function.common.get_system_dpi import get_system_dpi
 from function.globals import EXTRA
@@ -30,6 +34,182 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         # 加载 ui文件
         uic.loadUi(os.path.join(PATHS["root"], 'resource', 'ui', 'FAA_3.0.ui'), self)
 
+        def init_secret_inputs() -> None:
+            """统一配置密码、二级密码和礼包链接等密文输入框。"""
+            icon_color = self.palette().color(QtGui.QPalette.ColorRole.Text)
+
+            secret_inputs = (
+                self.LoginQQSpacePassword1PInput,
+                self.LoginQQSpacePassword2PInput,
+                self.Login4399Password1PInput,
+                self.Login4399Password2PInput,
+                self.GetWarmGift_1P_Link,
+                self.GetWarmGift_2P_Link,
+                self.Level2_1P_Password,
+                self.Level2_2P_Password,
+            )
+            for secret_input in secret_inputs:
+                secret_input.setEchoMode(QLineEdit.EchoMode.Password)
+                secret_input.setClearButtonEnabled(True)
+
+                visibility_action = secret_input.addAction(
+                    create_qt_icon(q_color=icon_color, mode="eye"),
+                    QLineEdit.ActionPosition.TrailingPosition,
+                )
+                visibility_action.setCheckable(True)
+                visibility_action.setToolTip("临时显示内容")
+
+                def toggle_visibility(
+                        visible: bool,
+                        line_edit=secret_input,
+                        action=visibility_action,
+                ) -> None:
+                    """切换当前密文输入框的明文显示状态。"""
+                    line_edit.setEchoMode(
+                        QLineEdit.EchoMode.Normal if visible else QLineEdit.EchoMode.Password
+                    )
+                    action.setIcon(create_qt_icon(
+                        q_color=icon_color,
+                        mode="eye_off" if visible else "eye",
+                    ))
+                    action.setToolTip("隐藏内容" if visible else "临时显示内容")
+
+                visibility_action.toggled.connect(toggle_visibility)
+                secret_input.editingFinished.connect(
+                    lambda action=visibility_action: action.setChecked(False)
+                )
+
+        def init_login_settings_ui() -> None:
+            """创建登录设置区域，并根据一级区服切换其专用设置。"""
+
+            content_layout = self.AdvancedSettingsArea.widget().layout()
+
+            def resize_content_height() -> None:
+                """只按内容调整高度，避免平台切换时内容区宽度跳动。"""
+                current_width = self.AdvancedSettingsAreaWidget.width()
+                content_layout.activate()
+                self.AdvancedSettingsAreaWidget.resize(
+                    current_width,
+                    content_layout.sizeHint().height(),
+                )
+
+            def refresh_login_platform_ui(platform: str) -> None:
+                """只显示当前一级区服需要用户填写的设置。"""
+                is_4399 = platform == "4399"
+                is_qq_space = platform == "QQ空间"
+                self.Login4399Group.setVisible(is_4399)
+                self.LoginQQSpaceServerGroup.setVisible(is_qq_space)
+                self.LoginQQSpaceGroup.setVisible(is_qq_space)
+                help_text = {
+                    "4399": "[4399] 总是选择最近登录服务器。需要自动登录时，请填写并保存下方的 4399 账号和密码。",
+                    "QQ空间": "[QQ空间] 请选择具体区服，并按需设置 QQ 登录方式。",
+                    "QQ大厅": "[QQ大厅] 将直接点击开始游戏进入服务器。不支持自动登录。",
+                }
+                self.LoginPlatformHelpLabel.setText(help_text.get(platform, ""))
+                resize_content_height()
+
+            self.LoginSettingsGroup = QWidget(self.AdvancedSettingsAreaWidget)
+            self.LoginSettingsGroup.setObjectName("LoginSettingsGroup")
+            login_layout = QVBoxLayout(self.LoginSettingsGroup)
+            login_layout.setContentsMargins(5, 5, 5, 5)
+            login_layout.setSpacing(5)
+
+            title_layout = QHBoxLayout()
+            title_layout.addStretch(2)
+            title = QLabel("登录设置")
+            title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            title.setStyleSheet("font-weight: bold;")
+            title_layout.addWidget(title, 1)
+            title_layout.addStretch(6)
+            login_layout.addLayout(title_layout)
+
+            self.LoginPlatformHelpLabel = QLabel()
+            self.LoginPlatformHelpLabel.setWordWrap(True)
+            login_layout.addWidget(self.LoginPlatformHelpLabel)
+
+            # 等待选服按钮适用于所有平台，始终展示在区服专用设置之前。
+            self.OtherSettingsLayout.removeWidget(self.LoginServerWaitGroup)
+            login_layout.addWidget(self.LoginServerWaitGroup)
+            self.LoginServerWaitTimeInput.setValidator(
+                QtGui.QIntValidator(0, 3600, self.LoginServerWaitTimeInput)
+            )
+
+            self.LoginQQSpaceServerGroup = QGroupBox("QQ空间 - 具体区服")
+            self.LoginQQSpaceServerGroup.setObjectName("LoginQQSpaceServerGroup")
+            qq_space_server_layout = QGridLayout(self.LoginQQSpaceServerGroup)
+            qq_space_server_layout.addWidget(QLabel("选择区服"), 0, 0)
+            self.LoginQQSpaceServerCombo = QComboBox()
+            self.LoginQQSpaceServerCombo.setObjectName("LoginQQSpaceServerCombo")
+            self.LoginQQSpaceServerCombo.addItems([
+                "QQ空间服最近登录",
+                "3366 1服",
+                "3366 2服",
+                "3366 3服",
+                "3366 4服",
+                "3366 5服",
+                "3366 6服",
+            ])
+            self.LoginQQSpaceServerCombo.setSizePolicy(
+                QtWidgets.QSizePolicy.Policy.Expanding,
+                QtWidgets.QSizePolicy.Policy.Fixed,
+            )
+            qq_space_server_layout.addWidget(self.LoginQQSpaceServerCombo, 0, 1)
+            qq_space_server_layout.setColumnStretch(1, 1)
+            login_layout.addWidget(self.LoginQQSpaceServerGroup)
+
+            self.Login4399Group = QGroupBox("4399 - 账号密码登录")
+            self.Login4399Group.setObjectName("Login4399Group")
+            login_4399_layout = QGridLayout(self.Login4399Group)
+            self.Login4399UsePasswordCheckBox = QCheckBox("找不到选服按钮时，使用账号密码登录")
+            self.Login4399UsePasswordCheckBox.setObjectName("Login4399UsePasswordCheckBox")
+            login_4399_layout.addWidget(self.Login4399UsePasswordCheckBox, 0, 0, 1, 2)
+
+            for row, player in ((1, 1), (2, 2)):
+                login_4399_layout.addWidget(QLabel(f"{player}P 账号"), row, 0)
+                account_layout = QHBoxLayout()
+                username = QLineEdit()
+                username.setObjectName(f"Login4399Username{player}PInput")
+                username.setPlaceholderText("4399账号")
+                password = QLineEdit()
+                password.setObjectName(f"Login4399Password{player}PInput")
+                password.setPlaceholderText("密码")
+                password.setEchoMode(QLineEdit.EchoMode.Password)
+                setattr(self, f"Login4399Username{player}PInput", username)
+                setattr(self, f"Login4399Password{player}PInput", password)
+                account_layout.addWidget(username)
+                account_layout.addWidget(password)
+                login_4399_layout.addLayout(account_layout, row, 1)
+
+            self.Login4399SaveButton = QPushButton("保存 4399 登录信息")
+            self.Login4399SaveButton.setObjectName("Login4399SaveButton")
+            login_4399_layout.addWidget(self.Login4399SaveButton, 3, 0, 1, 2)
+            login_layout.addWidget(self.Login4399Group)
+
+            # QQ空间的登录方式属于登录模块，移入当前区域。
+            self.OtherSettingsLayout.removeWidget(self.LoginQQSpaceGroup)
+            login_layout.addWidget(self.LoginQQSpaceGroup)
+
+            # 旧 UI 使用高度为1000的占位项填充固定高度页面。内容区改为自适应高度后，
+            # 这些占位项会直接形成巨大空隙，因此只保留布局本身的统一间距。
+            sections = (
+                self.DailyTasksSettingsGroup,
+                self.ControlSettingsGroup,
+                self.LoginSettingsGroup,
+                self.BattleSettingsGroup,
+                self.OtherSettingsGroup,
+            )
+            for section in sections:
+                content_layout.removeWidget(section)
+            for index in range(content_layout.count() - 1, -1, -1):
+                if content_layout.itemAt(index).spacerItem() is not None:
+                    content_layout.takeAt(index)
+            for row, section in enumerate(sections):
+                content_layout.addWidget(section, row, 0)
+            resize_content_height()
+
+            self.LoginPlatformCombo.currentTextChanged.connect(refresh_login_platform_ui)
+            refresh_login_platform_ui(self.LoginPlatformCombo.currentText())
+
         # 设置窗口名称
         self.setWindowTitle("FAA - 本软件免费且开源")
 
@@ -52,6 +232,8 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         # 配置 进阶设置 导航栏交互
         self.adv_opt_synchronizing = None
         self.adv_opt_sections: list = []
+        init_login_settings_ui()
+        init_secret_inputs()
         self.replace_widgets_no_wheel()
         self.init_advanced_settings_connection()
 
@@ -395,11 +577,18 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(20)
 
+        current_width = self.AdvancedSettingsAreaWidget.width()
+        content_layout.activate()
+        self.AdvancedSettingsAreaWidget.resize(
+            current_width,
+            content_layout.sizeHint().height(),
+        )
         # 列表内容 -> 对应的元素
         self.adv_opt_sections = {
             "日常任务": self.DailyTasksSettingsGroup,
             "外部控制": self.ControlSettingsGroup,
             "战斗设置": self.BattleSettingsGroup,
+            "登录设置": self.LoginSettingsGroup,
             "其它设置": self.OtherSettingsGroup
         }
 
@@ -429,6 +618,18 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         self.AdvancedSettingsArea.verticalScrollBar().valueChanged.connect(self.on_settings_scroll)
 
     def on_nav_item_clicked(self, item):
+        def open_auto_login_settings() -> None:
+            """从首页跳转到进阶功能中的登录设置。"""
+            self.tabWidget.setCurrentWidget(self.Tab3)
+            for index in range(self.AdvancedSettingsNavigationList.count()):
+                item = self.AdvancedSettingsNavigationList.item(index)
+                if item.data(Qt.ItemDataRole.UserRole) is self.LoginSettingsGroup:
+                    self.AdvancedSettingsNavigationList.setCurrentItem(item)
+                    self.on_nav_item_clicked(item)
+                    break
+
+        self.LoginAutoSettingsButton.clicked.connect(open_auto_login_settings)
+
 
         if self.adv_opt_synchronizing:
             return

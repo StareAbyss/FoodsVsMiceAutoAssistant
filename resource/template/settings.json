@@ -81,12 +81,10 @@
     },
     "level_2": {
         "1p": {
-            "active": false,
-            "password": ""
+            "active": false
         },
         "2p": {
-            "active": false,
-            "password": ""
+            "active": false
         }
     },
     "senior_settings": {
@@ -100,6 +98,10 @@
         "log_other_settings": 1
     },
     "login_settings": {
+        "platform": "4399",
+        "qq_space_server": 0,
+        "server_wait_enabled": false,
+        "server_wait_seconds": 5,
         "login_open_settings": false,
         "fresh_resize_360_windows": false,
         "login_close_settings": false,
@@ -114,9 +116,9 @@
     },
     "skin_type": 1,
     "qq_login_info": {
-        "use_password": false,
-        "path": "",
-        "extra_sleep_active": false,
-        "extra_sleep_time": 5
+        "use_password": false
+    },
+    "4399_login_info": {
+        "use_password": false
     }
 }

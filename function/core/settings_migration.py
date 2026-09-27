@@ -23,6 +23,9 @@ MIGRATION_CONFIGS = [
             Path("config") / "settings.json",
             Path("config") / "opt_main.json",
         ],
+        "companion_locations": [
+            Path("config") / "login_credentials.json",
+        ],
     },
     {
         "name": "配置文件 - 关卡全局方案",
@@ -162,6 +165,14 @@ def build_migration_plan(
         config["target_locations"] = target_locations
         config["path_from"] = path_from
         config["path_to"] = path_to
+        config["companion_paths"] = [
+            {
+                "path_from": source_root / Path(location),
+                "path_to": target_root / Path(location),
+            }
+            for location in config.get("companion_locations", [])
+            if (source_root / Path(location)).is_file()
+        ]
         config["available"] = path_from is not None and path_to is not None
         plan.append(config)
 
@@ -380,7 +391,19 @@ def migrate_one(config: dict) -> bool:
     if migration_type == "file":
         path_to.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(path_from, path_to)
-        config["detail"] = {"operation": "copy_file", "from": str(path_from), "to": str(path_to)}
+        companion_files = []
+        for companion in config.get("companion_paths", []):
+            companion_from = Path(companion["path_from"])
+            companion_to = Path(companion["path_to"])
+            companion_to.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(companion_from, companion_to)
+            companion_files.append({"from": str(companion_from), "to": str(companion_to)})
+        config["detail"] = {
+            "operation": "copy_file",
+            "from": str(path_from),
+            "to": str(path_to),
+            "companion_files": companion_files,
+        }
         return True
 
     if migration_type == "folder":

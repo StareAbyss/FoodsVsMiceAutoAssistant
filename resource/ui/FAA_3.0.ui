@@ -1035,6 +1035,105 @@ border:none</string>
                   <number>5</number>
                  </property>
                  <property name="topMargin">
+               <item>
+                <layout class="QHBoxLayout" name="LoginPlatformHomeLayout" stretch="0,0">
+                 <property name="spacing">
+                  <number>5</number>
+                 </property>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="2,3">
+                   <property name="spacing">
+                    <number>5</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>5</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>5</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>5</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>5</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="LoginPlatformLabel">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="text">
+                      <string>区服</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QComboBox" name="LoginPlatformCombo">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="toolTip">
+                      <string>选择游戏区服</string>
+                     </property>
+                     <item>
+                      <property name="text">
+                       <string>4399</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>QQ空间</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>QQ大厅</string>
+                      </property>
+                     </item>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_8">
+                   <property name="spacing">
+                    <number>5</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>5</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>5</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>5</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>5</number>
+                   </property>
+                   <item>
+                    <widget class="QPushButton" name="LoginAutoSettingsButton">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="text">
+                      <string>自动登录设定</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
                   <number>5</number>
                  </property>
                  <property name="rightMargin">
@@ -3985,13 +4084,13 @@ Link Start</string>
                      </spacer>
                     </item>
                     <item>
-                     <widget class="QGroupBox" name="groupBox_12">
+                     <widget class="QGroupBox" name="LoginQQSpaceGroup">
                       <property name="title">
                        <string>QQ空间 - 密码登录</string>
                       </property>
-                      <layout class="QGridLayout" name="gridLayout">
+                      <layout class="QGridLayout" name="LoginQQSpaceLayout">
                        <item row="2" column="0">
-                        <layout class="QHBoxLayout" name="Lay_Level2_1P_2" stretch="1,8">
+                        <layout class="QHBoxLayout" name="LoginQQSpaceUsername2PLayout" stretch="1,8">
                          <property name="spacing">
                           <number>5</number>
                          </property>
@@ -4008,7 +4107,7 @@ Link Start</string>
                           <number>0</number>
                          </property>
                          <item>
-                          <widget class="QLabel" name="Level2_1P_Text_2">
+                          <widget class="QLabel" name="LoginQQSpaceUsername2PLabel">
                            <property name="minimumSize">
                             <size>
                              <width>70</width>
@@ -4030,7 +4129,7 @@ Link Start</string>
                           </widget>
                          </item>
                          <item>
-                          <widget class="QLineEdit" name="username_edit_2">
+                          <widget class="QLineEdit" name="LoginQQSpaceUsername2PInput">
                            <property name="sizePolicy">
                             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                              <horstretch>0</horstretch>
@@ -4069,7 +4168,7 @@ Link Start</string>
                         </layout>
                        </item>
                        <item row="4" column="0" colspan="2">
-                        <widget class="QPushButton" name="SavePasswordButton">
+                        <widget class="QPushButton" name="LoginQQSpaceSaveButton">
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                            <horstretch>0</horstretch>
@@ -4092,19 +4191,19 @@ Link Start</string>
                           <string>只用点一下就够了!</string>
                          </property>
                          <property name="text">
-                          <string>保存登录信息</string>
+                          <string>保存 QQ 空间登录信息</string>
                          </property>
                         </widget>
                        </item>
                        <item row="5" column="0" colspan="2">
-                        <widget class="QPushButton" name="QQloginTipButton">
+                        <widget class="QPushButton" name="LoginQQSpaceHelpButton">
                          <property name="text">
                           <string>查看相关教学/说明</string>
                          </property>
                         </widget>
                        </item>
                        <item row="1" column="0">
-                        <layout class="QHBoxLayout" name="Lay_Level2_1P_3" stretch="1,8">
+                        <layout class="QHBoxLayout" name="LoginQQSpaceUsername1PLayout" stretch="1,8">
                          <property name="spacing">
                           <number>5</number>
                          </property>
@@ -4121,7 +4220,7 @@ Link Start</string>
                           <number>0</number>
                          </property>
                          <item>
-                          <widget class="QLabel" name="Level2_1P_Text_3">
+                          <widget class="QLabel" name="LoginQQSpaceUsername1PLabel">
                            <property name="minimumSize">
                             <size>
                              <width>70</width>
@@ -4143,7 +4242,7 @@ Link Start</string>
                           </widget>
                          </item>
                          <item>
-                          <widget class="QLineEdit" name="username_edit_1">
+                          <widget class="QLineEdit" name="LoginQQSpaceUsername1PInput">
                            <property name="sizePolicy">
                             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                              <horstretch>0</horstretch>
@@ -4182,7 +4281,7 @@ Link Start</string>
                         </layout>
                        </item>
                        <item row="1" column="1">
-                        <layout class="QHBoxLayout" name="Lay_Level2_1P_7" stretch="1,8">
+                        <layout class="QHBoxLayout" name="LoginQQSpacePassword1PLayout" stretch="1,8">
                          <property name="spacing">
                           <number>5</number>
                          </property>
@@ -4199,7 +4298,7 @@ Link Start</string>
                           <number>0</number>
                          </property>
                          <item>
-                          <widget class="QLabel" name="Level2_1P_Text_8">
+                          <widget class="QLabel" name="LoginQQSpacePassword1PLabel">
                            <property name="minimumSize">
                             <size>
                              <width>0</width>
@@ -4221,7 +4320,7 @@ Link Start</string>
                           </widget>
                          </item>
                          <item>
-                          <widget class="QLineEdit" name="password_edit_1">
+                          <widget class="QLineEdit" name="LoginQQSpacePassword1PInput">
                            <property name="sizePolicy">
                             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                              <horstretch>0</horstretch>
@@ -4250,7 +4349,7 @@ Link Start</string>
                             <string/>
                            </property>
                            <property name="echoMode">
-                            <enum>QLineEdit::PasswordEchoOnEdit</enum>
+                            <enum>QLineEdit::Password</enum>
                            </property>
                            <property name="clearButtonEnabled">
                             <bool>true</bool>
@@ -4260,14 +4359,14 @@ Link Start</string>
                         </layout>
                        </item>
                        <item row="0" column="0" colspan="2">
-                        <widget class="QCheckBox" name="checkbox_use_password">
+                        <widget class="QCheckBox" name="LoginQQSpaceUsePasswordCheckBox">
                          <property name="text">
                           <string>使用密码进行登录</string>
                          </property>
                         </widget>
                        </item>
                        <item row="2" column="1">
-                        <layout class="QHBoxLayout" name="Lay_Level2_1P_6" stretch="1,8">
+                        <layout class="QHBoxLayout" name="LoginQQSpacePassword2PLayout" stretch="1,8">
                          <property name="spacing">
                           <number>5</number>
                          </property>
@@ -4284,7 +4383,7 @@ Link Start</string>
                           <number>0</number>
                          </property>
                          <item>
-                          <widget class="QLabel" name="Level2_1P_Text_7">
+                          <widget class="QLabel" name="LoginQQSpacePassword2PLabel">
                            <property name="minimumSize">
                             <size>
                              <width>0</width>
@@ -4306,7 +4405,7 @@ Link Start</string>
                           </widget>
                          </item>
                          <item>
-                          <widget class="QLineEdit" name="password_edit_2">
+                          <widget class="QLineEdit" name="LoginQQSpacePassword2PInput">
                            <property name="sizePolicy">
                             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                              <horstretch>0</horstretch>
@@ -4335,92 +4434,10 @@ Link Start</string>
                             <string/>
                            </property>
                            <property name="echoMode">
-                            <enum>QLineEdit::PasswordEchoOnEdit</enum>
+                            <enum>QLineEdit::Password</enum>
                            </property>
                            <property name="clearButtonEnabled">
                             <bool>true</bool>
-                           </property>
-                          </widget>
-                         </item>
-                        </layout>
-                       </item>
-                       <item row="3" column="0" colspan="2">
-                        <layout class="QHBoxLayout" name="Lay_MisuLogistics_2" stretch="0,6,0">
-                         <property name="spacing">
-                          <number>5</number>
-                         </property>
-                         <property name="leftMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="topMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="rightMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="bottomMargin">
-                          <number>0</number>
-                         </property>
-                         <item>
-                          <widget class="QLabel" name="label_5">
-                           <property name="minimumSize">
-                            <size>
-                             <width>70</width>
-                             <height>0</height>
-                            </size>
-                           </property>
-                           <property name="maximumSize">
-                            <size>
-                             <width>70</width>
-                             <height>16777215</height>
-                            </size>
-                           </property>
-                           <property name="text">
-                            <string>保存路径</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QLineEdit" name="path_edit">
-                           <property name="sizePolicy">
-                            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                             <horstretch>0</horstretch>
-                             <verstretch>0</verstretch>
-                            </sizepolicy>
-                           </property>
-                           <property name="minimumSize">
-                            <size>
-                             <width>0</width>
-                             <height>0</height>
-                            </size>
-                           </property>
-                           <property name="maximumSize">
-                            <size>
-                             <width>1000</width>
-                             <height>100</height>
-                            </size>
-                           </property>
-                           <property name="tabletTracking">
-                            <bool>false</bool>
-                           </property>
-                           <property name="autoFillBackground">
-                            <bool>false</bool>
-                           </property>
-                           <property name="text">
-                            <string/>
-                           </property>
-                           <property name="echoMode">
-                            <enum>QLineEdit::Normal</enum>
-                           </property>
-                           <property name="clearButtonEnabled">
-                            <bool>true</bool>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QPushButton" name="ChoosePathButton">
-                           <property name="text">
-                            <string>选择文件夹</string>
                            </property>
                           </widget>
                          </item>
@@ -4430,20 +4447,20 @@ Link Start</string>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QGroupBox" name="groupBox_13">
+                     <widget class="QGroupBox" name="LoginServerWaitGroup">
                       <property name="title">
-                       <string>QQ空间 - 额外设置</string>
+                       <string>刷新后等待选服</string>
                       </property>
-                      <layout class="QGridLayout" name="gridLayout_3">
+                      <layout class="QGridLayout" name="LoginServerWaitLayout">
                        <item row="4" column="0">
-                        <widget class="QPushButton" name="SleepTipButton">
+                        <widget class="QPushButton" name="LoginServerWaitHelpButton">
                          <property name="text">
                           <string>查看相关教学/说明</string>
                          </property>
                         </widget>
                        </item>
                        <item row="0" column="0">
-                        <layout class="QHBoxLayout" name="horizontalLayout_22" stretch="1,1">
+                        <layout class="QHBoxLayout" name="LoginServerWaitOptionsLayout" stretch="1,1">
                          <property name="spacing">
                           <number>5</number>
                          </property>
@@ -4460,14 +4477,14 @@ Link Start</string>
                           <number>5</number>
                          </property>
                          <item>
-                          <widget class="QCheckBox" name="QQExtraSleepActive">
+                          <widget class="QCheckBox" name="LoginServerWaitCheckBox">
                            <property name="text">
-                            <string>刷新后额外休眠 - 对非QQ空间用户也生效</string>
+                            <string>额外等待选服按钮出现</string>
                            </property>
                           </widget>
                          </item>
                          <item>
-                          <layout class="QHBoxLayout" name="Lay_MisuLogistics_3" stretch="0,0">
+                          <layout class="QHBoxLayout" name="LoginServerWaitTimeLayout" stretch="0,0">
                            <property name="spacing">
                             <number>5</number>
                            </property>
@@ -4484,28 +4501,28 @@ Link Start</string>
                             <number>0</number>
                            </property>
                            <item>
-                            <widget class="QLabel" name="QQExtraSleepTimeLabel">
+                            <widget class="QLabel" name="LoginServerWaitTimeLabel">
                              <property name="minimumSize">
                               <size>
-                               <width>70</width>
+                               <width>95</width>
                                <height>0</height>
                               </size>
                              </property>
                              <property name="maximumSize">
                               <size>
-                               <width>70</width>
+                               <width>95</width>
                                <height>16777215</height>
                               </size>
                              </property>
                              <property name="text">
-                              <string>休眠时间</string>
+                              <string>最长等待（秒）</string>
                              </property>
                             </widget>
                            </item>
                            <item>
-                            <widget class="QLineEdit" name="QQExtraSleepTimeInput">
+                            <widget class="QLineEdit" name="LoginServerWaitTimeInput">
                              <property name="sizePolicy">
-                              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                                <horstretch>0</horstretch>
                                <verstretch>0</verstretch>
                               </sizepolicy>
@@ -4519,7 +4536,7 @@ Link Start</string>
                              <property name="maximumSize">
                               <size>
                                <width>1000</width>
-                               <height>100</height>
+                               <height>28</height>
                               </size>
                              </property>
                              <property name="tabletTracking">
@@ -4840,7 +4857,7 @@ Link Start</string>
                             <string/>
                            </property>
                            <property name="echoMode">
-                            <enum>QLineEdit::PasswordEchoOnEdit</enum>
+                            <enum>QLineEdit::Password</enum>
                            </property>
                            <property name="clearButtonEnabled">
                             <bool>true</bool>
@@ -4946,7 +4963,7 @@ Link Start</string>
                             <string/>
                            </property>
                            <property name="echoMode">
-                            <enum>QLineEdit::PasswordEchoOnEdit</enum>
+                            <enum>QLineEdit::Password</enum>
                            </property>
                            <property name="clearButtonEnabled">
                             <bool>true</bool>
@@ -5089,7 +5106,7 @@ Link Start</string>
                             <string/>
                            </property>
                            <property name="echoMode">
-                            <enum>QLineEdit::PasswordEchoOnEdit</enum>
+                            <enum>QLineEdit::Password</enum>
                            </property>
                            <property name="clearButtonEnabled">
                             <bool>true</bool>
@@ -5195,7 +5212,7 @@ Link Start</string>
                             <string/>
                            </property>
                            <property name="echoMode">
-                            <enum>QLineEdit::PasswordEchoOnEdit</enum>
+                            <enum>QLineEdit::Password</enum>
                            </property>
                            <property name="clearButtonEnabled">
                             <bool>true</bool>

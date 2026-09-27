@@ -5,7 +5,7 @@ def create_qt_icon(q_color, mode):
     """
     绘制图表
     :param q_color: Q color
-    :param mode: "-" "x" "<-" "->" "magnifier"
+    :param mode: "-" "x" "<-" "->" "magnifier" "eye" "eye_off"
     :return:
     """
     pixmap = QtGui.QPixmap(16, 16)
@@ -45,6 +45,14 @@ def create_qt_icon(q_color, mode):
             painter.drawLine(3, 1, 13, 1)  # 顶部横线
             painter.drawLine(3, 4, 8, 12)  # 左边线
             painter.drawLine(13, 4, 8, 12)  # 右边线
+        case "eye" | "eye_off":
+            painter.setPen(QtGui.QPen(q_color, 1.5))
+            painter.drawEllipse(2, 4, 12, 8)
+            painter.setBrush(q_color)
+            painter.drawEllipse(6, 6, 4, 4)
+            if mode == "eye_off":
+                painter.setPen(QtGui.QPen(q_color, 2))
+                painter.drawLine(2, 2, 14, 14)
         case _:
             pass
 
