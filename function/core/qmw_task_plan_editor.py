@@ -397,7 +397,7 @@ class TaskEditor(QMainWindow):
         # 自然排序辅助函数
         def natural_sort_key(s):
             return [int(text) if text.isdigit() else text.lower()
-                    for text in re.split('(\d+)', s)]
+                    for text in re.split(r'(\d+)', s)]
 
         self.image_list.clear()
 

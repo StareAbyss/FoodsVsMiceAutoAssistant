@@ -42,6 +42,7 @@
 
 - [x] 新增 `function/common/update_staging.py`
   - 从 GitHub zip archive 构建 `update_cache/staging/FAA.update.new/`。
+  - 解压时剥离 GitHub archive 中由仓库名和完整 commit 组成的公共顶层目录，避免深安装路径触发 Windows 路径长度限制。
   - 不把 `.git` 带入 staging。
   - 将源码布局转换为分发布局，例如把 `plugins/root_entries` 铺到根目录，并保留 `plugins/launcher_scripts` 中的 PowerShell 脚本本体。
   - 复用分发规则，排除不应进入分发包的配置和缓存。
@@ -65,6 +66,18 @@
   - 支持 `migrate_user_data(source_root, target_root, selected_names)`。
   - 支持整文件覆盖、整目录替换、普通文件夹合并和 UUID JSON 合并。
   - 战斗方案、微调方案、任务序列均按 UUID 合并，避免旧配置覆盖新版内置方案。
+
+- [x] 新增微调方案协议扫描与兼容迁移
+  - FAA 启动和手动打开微调方案编辑器时扫描全部 `meta_data.version`。
+  - 低版本及当前版本结构异常的方案尽量转换到当前协议，并保留有效 UUID。
+  - 高版本方案只提示升级，不由旧 FAA 写回。
+  - 全部异常集中在单个可滚动弹窗中展示；扫描正常时不弹窗。
+
+- [x] 分离战斗方案与微调方案的“刷新”和“检查”
+  - 完整检查只在 FAA 启动和用户点击打开对应方案编辑器时执行。
+  - FAA 启动时合并展示战斗方案、微调方案的检查进度和异常汇总。
+  - 保存主界面配置以及编辑关卡方案、任务序列时，只重建 UUID 路径索引，
+    不迁移、不修复、不写回方案文件。
 
 - [x] 改造 `function/core/qmw_settings_migrator.py`
   - UI 迁移器复用无 UI 迁移核心。
@@ -191,6 +204,7 @@ PR merge commit = main 上形如 “Merge pull request #927 ...” 的双 parent
 - [x] `config/settings.json`
   - 兼容旧路径：`config/opt_main.json`
   - 该文件仍是整文件覆盖；启动时再由模板补全缺失字段和修正类型。
+  - 迁移此项时，若存在 `config/login_credentials.json`，会作为伴随文件一并迁移。
 - [x] `config/stage_plan.json`
 - [x] `config/stage_info_extra.json`
 
@@ -286,6 +300,7 @@ UUID 读取位置：
 
 已处理的高风险点：
 
+- [x] GitHub archive 的完整 commit 顶层目录叠加超长说明文件名，导致 Windows 解压路径超过 `MAX_PATH`。
 - [x] 主程序运行中替换自身导致 Windows 文件占用。
 - [x] 下载成功但迁移失败留下半成品目录。
 - [x] 替换成功但新版无法启动，没有回滚入口。

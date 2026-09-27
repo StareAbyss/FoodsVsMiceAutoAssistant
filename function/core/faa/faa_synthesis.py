@@ -40,20 +40,19 @@ class FAASynthesis:
         while True:
 
             source_range = [558, 89, 903, 532]
-            gem_ps = RESOURCE_P["synthesis"]["可分解宝石"]
             result = match_ps_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
                 template_opts=[
-                    {"template": gem_ps["攻击宝石.png"], "source_range": source_range, "match_tolerance": 0.98},
-                    {"template": gem_ps["猫眼宝石.png"], "source_range": source_range, "match_tolerance": 0.98},
-                    {"template": gem_ps["绿宝石.png"], "source_range": source_range, "match_tolerance": 0.98},
-                    {"template": gem_ps["对战雾宝石.png"], "source_range": source_range, "match_tolerance": 0.98},
-                    {"template": gem_ps["神圣宝石.png"], "source_range": source_range, "match_tolerance": 0.98},
-                    {"template": gem_ps["对战轰炸宝石.png"], "source_range": source_range, "match_tolerance": 0.98},
-                    {"template": gem_ps["轰炸宝石.png"], "source_range": source_range, "match_tolerance": 0.98},
-                    {"template": gem_ps["冰冻宝石.png"], "source_range": source_range, "match_tolerance": 0.98},
-                    {"template": gem_ps["激光宝石.png"], "source_range": source_range, "match_tolerance": 0.98},
+                    {"template": RESOURCE_P["synthesis"]["可分解宝石"]["攻击宝石.png"], "source_range": source_range, "match_tolerance": 0.98},
+                    {"template": RESOURCE_P["synthesis"]["可分解宝石"]["猫眼宝石.png"], "source_range": source_range, "match_tolerance": 0.98},
+                    {"template": RESOURCE_P["synthesis"]["可分解宝石"]["绿宝石.png"], "source_range": source_range, "match_tolerance": 0.98},
+                    {"template": RESOURCE_P["synthesis"]["可分解宝石"]["对战雾宝石.png"], "source_range": source_range, "match_tolerance": 0.98},
+                    {"template": RESOURCE_P["synthesis"]["可分解宝石"]["神圣宝石.png"], "source_range": source_range, "match_tolerance": 0.98},
+                    {"template": RESOURCE_P["synthesis"]["可分解宝石"]["对战轰炸宝石.png"], "source_range": source_range, "match_tolerance": 0.98},
+                    {"template": RESOURCE_P["synthesis"]["可分解宝石"]["轰炸宝石.png"], "source_range": source_range, "match_tolerance": 0.98},
+                    {"template": RESOURCE_P["synthesis"]["可分解宝石"]["冰冻宝石.png"], "source_range": source_range, "match_tolerance": 0.98},
+                    {"template": RESOURCE_P["synthesis"]["可分解宝石"]["激光宝石.png"], "source_range": source_range, "match_tolerance": 0.98},
                 ],
                 return_mode='or',
                 quick_mode=True

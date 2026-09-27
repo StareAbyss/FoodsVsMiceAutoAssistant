@@ -19,7 +19,7 @@
         }
     },
     {
-        "task_type": "使用消耗品",
+        "task_type": "清背包",
         "task_id": 2,
         "enabled": true,
         "alias": "",
@@ -32,7 +32,7 @@
         }
     },
     {
-        "task_type": "清背包",
+        "task_type": "使用消耗品",
         "task_id": 3,
         "enabled": true,
         "alias": "",

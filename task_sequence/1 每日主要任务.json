@@ -32,7 +32,7 @@
         }
     },
     {
-        "task_type": "使用消耗品",
+        "task_type": "分解宝石",
         "task_id": 3,
         "enabled": true,
         "alias": "",
@@ -45,7 +45,7 @@
         }
     },
     {
-        "task_type": "分解宝石",
+        "task_type": "使用消耗品",
         "task_id": 4,
         "enabled": true,
         "alias": "",

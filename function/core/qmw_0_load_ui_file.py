@@ -315,11 +315,12 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
     def set_exit_and_minimized_btn_icon(self):
         """
-        设置退出按钮和最小化按钮样式，需已获取主题
+        设置重启、退出和最小化按钮图标，需已获取主题
         :return:
         """
         # 根据系统样式,设定开关图标
         q_color = QtGui.QColor(240, 240, 240) if EXTRA.THEME == "dark" else QtGui.QColor(15, 15, 15)
+        self.Button_Refreshed.setIcon(create_qt_icon(q_color=q_color, mode="restart"))
         self.Button_Exit.setIcon(create_qt_icon(q_color=q_color, mode="x"))
         self.Button_Minimized.setIcon(create_qt_icon(q_color=q_color, mode="-"))
         self.Button_MostMinimized.setIcon(create_qt_icon(q_color=q_color, mode="v"))
@@ -576,19 +577,19 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         content_layout = self.AdvancedSettingsArea.widget().layout()
         content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(20)
-
         current_width = self.AdvancedSettingsAreaWidget.width()
         content_layout.activate()
         self.AdvancedSettingsAreaWidget.resize(
             current_width,
             content_layout.sizeHint().height(),
         )
+
         # 列表内容 -> 对应的元素
         self.adv_opt_sections = {
             "日常任务": self.DailyTasksSettingsGroup,
             "外部控制": self.ControlSettingsGroup,
-            "战斗设置": self.BattleSettingsGroup,
             "登录设置": self.LoginSettingsGroup,
+            "战斗设置": self.BattleSettingsGroup,
             "其它设置": self.OtherSettingsGroup
         }
 
@@ -629,8 +630,8 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
         self.LoginAutoSettingsButton.clicked.connect(open_auto_login_settings)
 
-
     def on_nav_item_clicked(self, item):
+
         if self.adv_opt_synchronizing:
             return
 
