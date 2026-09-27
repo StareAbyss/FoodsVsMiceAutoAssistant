@@ -3,7 +3,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from function.core.settings_migration import DEFAULT_UUIDS, get_migration_configs, migrate_one
+from function.core.settings_migration import (
+    DEFAULT_UUIDS,
+    build_migration_plan,
+    get_migration_configs,
+    migrate_one,
+)
 from function.core.update_prepare import write_migration_report
 
 
@@ -36,7 +41,6 @@ class SettingsMigrationTest(unittest.TestCase):
                 "战斗方案 - 未激活",
             ],
         )
-
         self.assertEqual(
             [config["group"] for config in get_migration_configs()],
             [
@@ -53,6 +57,25 @@ class SettingsMigrationTest(unittest.TestCase):
                 "其他用户数据",
             ],
         )
+
+    def test_core_settings_migrates_login_credentials_together(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "source"
+            target = root / "target"
+            write_json(source / "config" / "settings.json", {"source": True})
+            write_json(source / "config" / "login_credentials.json", {"encrypted": True})
+            write_json(target / "config" / "settings.json", {"source": False})
+
+            config = build_migration_plan(source, target)[0]
+
+            self.assertTrue(migrate_one(config))
+            self.assertEqual(read_json(target / "config" / "settings.json"), {"source": True})
+            self.assertEqual(
+                read_json(target / "config" / "login_credentials.json"),
+                {"encrypted": True},
+            )
+            self.assertEqual(len(config["detail"]["companion_files"]), 1)
 
     def test_uuid_json_folder_keeps_target_same_uuid_and_renames_same_name(self):
         with tempfile.TemporaryDirectory() as temp_dir:

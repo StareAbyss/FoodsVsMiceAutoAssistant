@@ -5,6 +5,7 @@
 这一部分说明项目运行时依赖的几类核心数据：
 
 - 主配置 `settings.json`
+- 登录凭据 `login_credentials.json`
 - 战斗方案 `battle_plan/*.json`
 - 微调方案 `tweak_plan/*.json`
 - 任务序列 `task_sequence/*.json`
@@ -14,6 +15,7 @@
 ## 关键文件/类
 
 - `resource/template/settings.json`
+- `resource/template/login_credentials.json`
 - `function/core/qmw_2_load_settings.py`
 - `function/scattered/class_battle_plan_v3d0.py`
 - `function/scattered/check_battle_plan.py`
@@ -34,13 +36,27 @@
 - 高级设置
 - 加速
 - 温馨礼包
-- 二级密码
+- 二级密码开关
 - 高级战斗设置
 - 日志设置
 - 登录设置
 - 强卡器联动
 - 皮肤
 - QQ 登录信息
+- 4399 登录信息
+
+登录相关字段：
+
+- `login_settings.platform`：固定为 `4399`、`QQ空间`、`QQ大厅` 之一；刷新时只识别所选平台。
+- `login_settings.qq_space_server`：QQ空间的具体区服，`0` 为最近登录，`1`～`6` 为对应的 3366 服务器。
+- `login_settings.server_wait_enabled` / `server_wait_seconds`：刷新后等待选服的开关与秒数，适用于所选平台。
+- `qq_login_info`：QQ空间密码登录开关。
+- 刷新登录对临时识图或连接失败最多重试 10 轮；区服无效或缺少必需凭据时立即失败。
+- `4399_login_info`：4399 密码登录开关。
+- `config/login_credentials.json`：统一保存 QQ空间、4399 的账号密码与二级密码；密码使用本机机器码加密。
+
+凭据文件中的平台账号都按 `1p`、`2p` 保存用户名和机器码加密后的密码。登录识图按
+`resource/image/common/登录/<平台或通用>/` 分类；3366 与 QQ空间共用登录和选服识图。
 
 ### 代码约定
 

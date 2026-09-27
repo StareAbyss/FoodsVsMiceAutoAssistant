@@ -22,8 +22,9 @@ dist/
 backups/
 update_cache/
 
-# 忽略settings.json 用户配置文件
+# 忽略本机用户配置与加密登录凭据
 config/settings.json
+config/login_credentials.json
 
 # 忽略用户自截图文件
 config/cus_images/用户自截/

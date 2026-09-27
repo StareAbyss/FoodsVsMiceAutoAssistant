@@ -272,7 +272,7 @@ class ThreadTodo(QThread):
         SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 已启用，目标:{player}P", color_level=2)
 
         def run_delete(cur_player):
-            password = self.opt["level_2"][f"{cur_player}p"]["password"]
+            password = self.opt["login_credentials"]["level_2"][f"{cur_player}p"]["password"]
             faa = self.faa_dict[cur_player]
             if faa.input_level_2_password(password=password):
                 faa.delete_items()
@@ -324,7 +324,7 @@ class ThreadTodo(QThread):
         SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 已启用，目标:{player}P", color_level=2)
 
         def run_get_dark_crystal(cur_player):
-            password = self.opt["level_2"][f"{cur_player}p"]["password"]
+            password = self.opt["login_credentials"]["level_2"][f"{cur_player}p"]["password"]
             faa = self.faa_dict[cur_player]
             if faa.input_level_2_password(password=password):
                 faa.get_dark_crystal()
@@ -382,7 +382,7 @@ class ThreadTodo(QThread):
         password_results = {}
 
         def run_input_password(cur_player):
-            password = self.opt["level_2"][f"{cur_player}p"]["password"]
+            password = self.opt["login_credentials"]["level_2"][f"{cur_player}p"]["password"]
             password_results[cur_player] = self.faa_dict[cur_player].input_level_2_password(password=password)
 
         # 第一阶段：为所有目标玩家并行输入二级密码。
@@ -465,7 +465,7 @@ class ThreadTodo(QThread):
         SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 已启用，目标:{player}P", color_level=2)
 
         def run_gdisenchant_geml(cur_player):
-            password = self.opt["level_2"][f"{cur_player}p"]["password"]
+            password = self.opt["login_credentials"]["level_2"][f"{cur_player}p"]["password"]
             faa = self.faa_dict[cur_player]
             if faa.input_level_2_password(password=password):
                 faa.disenchant_gem()
@@ -530,6 +530,16 @@ class ThreadTodo(QThread):
             self.thread_1p.join()
         if 2 in player:
             self.thread_2p.join()
+
+        failed_players = []
+        if 1 in player and self.thread_1p.return_value is not True:
+            failed_players.append("1P")
+        if 2 in player and self.thread_2p.return_value is not True:
+            failed_players.append("2P")
+        if failed_players:
+            raise RuntimeError(
+                f"登录失败，已中断任务：{', '.join(failed_players)}。请检查首页区服与自动登录设定。"
+            )
 
         SIGNAL.PRINT_TO_UI.emit("刷新游戏, 完成", color_level=2)
 

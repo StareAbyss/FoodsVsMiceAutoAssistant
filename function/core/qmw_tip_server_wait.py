@@ -2,19 +2,20 @@ from PyQt6.QtWidgets import QMainWindow, QTextEdit, QVBoxLayout, QWidget
 
 text = """
 说明：
-由于空间服在刷新后会有短暂的黑屏时间，如果网络条件较差，这个黑屏时间就会比较长，这样会导致faa在自动登录或选服时失败，
-因此新增了这个功能，用来在刷新后进行一段时间的休眠。
+刷新后，各平台的选服页面可能需要一段时间才能出现。
+启用“额外等待选服按钮出现”后，FAA 会在原有加载等待之外，
+按设定的最长时间反复查找所选平台的选服按钮；找到就立即点击，不会等满设定时间。
 
-如果勾选了“刷新后额外休眠”，faa将在点击刷新按钮、登录成功后分别休眠一段时间，以确保成功登录并选服。
-
-具体的休眠时间请根据自己的情况自行设置，默认的5秒不一定对所有人都适用，建议使用时自己测试一下效果。
+账号密码登录或头像一键登录之后，也会用同样的等待时长查找选服按钮。
+该设置适用于全部平台。若平台刷新后直接进入游戏，可能会额外等待至设定时间结束。
+默认关闭，启用时请按实际加载速度设置。
 """
 
 
-class QMWTipSleep(QMainWindow):
+class QMWTipServerWait(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('QQ空间密码登录教学')
+        self.setWindowTitle('刷新后等待选服说明')
         self.text_edit = None
         # 设置窗口大小
         self.setFixedSize(850, 400)

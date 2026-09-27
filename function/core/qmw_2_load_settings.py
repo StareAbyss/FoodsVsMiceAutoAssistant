@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import QApplication, QMessageBox, QVBoxLayout, QSizePolicy
 
 from function.core.qmw_1_log import QMainWindowLog
 from function.core.qmw_editor_of_task_sequence import QMWEditorOfTaskSequence
+from function.core.login_credentials import load_login_credentials, save_login_credentials
 from function.globals import EXTRA, SIGNAL
 from function.globals import g_resources
 from function.globals.get_paths import PATHS
@@ -176,6 +177,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         # opt路径
         self.opt_path = os.path.join(PATHS["root"], 'config', 'settings.json')
+        self.login_credentials_path = os.path.join(PATHS["config"], 'login_credentials.json')
 
         # 检测某文件是否存在 如果不存在且存在_template的模板, 应用模板
         ensure_file_exists(
@@ -273,21 +275,58 @@ class QMainWindowLoadSettings(QMainWindowLog):
     """opt和json的交互"""
 
     def json_to_opt(self) -> None:
+        def key_exists(data: dict, keys: tuple[str, ...]) -> bool:
+            """判断旧配置的多级字段是否存在。"""
+            current = data
+            for key in keys:
+                if not isinstance(current, dict) or key not in current:
+                    return False
+                current = current[key]
+            return True
+
         # 自旋锁读写, 防止多线程读写问题
         with EXTRA.FILE_LOCK:
             with open(file=self.opt_path, mode="r", encoding="UTF-8") as file:
                 data = json.load(file)
 
+        legacy_fields_exist = any(
+            key_exists(data, keys)
+            for keys in (
+                ("level_2", "1p", "password"),
+                ("level_2", "2p", "password"),
+                ("qq_login_info", "path"),
+                ("4399_login_info", "path"),
+            )
+        )
         self.opt = data
+        self.opt["login_credentials"] = load_login_credentials(
+            file_path=Path(self.login_credentials_path),
+            legacy_settings=self.opt,
+        )
+
+        # 登录密码已迁入专用文件，settings 仅保留普通开关和行为参数。
+        for player in ("1p", "2p"):
+            self.opt["level_2"][player].pop("password", None)
+        self.opt["qq_login_info"].pop("path", None)
+        self.opt["4399_login_info"].pop("path", None)
+        if legacy_fields_exist:
+            self.opt_to_json()
         return None
 
     def opt_to_json(self) -> None:
+        settings = copy.deepcopy(self.opt)
+        credentials = settings.pop("login_credentials")
+
         # dict → str 转换True和true
-        json_str = json.dumps(self.opt, indent=4)
+        json_str = json.dumps(settings, ensure_ascii=False, indent=4)
 
         with EXTRA.FILE_LOCK:
             with open(file=self.opt_path, mode="w", encoding="UTF-8") as file:
                 file.write(json_str)
+            save_login_credentials(
+                file_path=Path(self.login_credentials_path),
+                credentials=credentials,
+            )
 
         return None
 
@@ -687,6 +726,13 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         def login_settings() -> None:
             my_opt = self.opt["login_settings"]
+            platform = my_opt["platform"]
+            platform_index = self.LoginPlatformCombo.findText(platform)
+            self.LoginPlatformCombo.setCurrentIndex(max(platform_index, 0))
+            server_index = min(max(my_opt["qq_space_server"], 0), 6)
+            self.LoginQQSpaceServerCombo.setCurrentIndex(server_index)
+            self.LoginServerWaitCheckBox.setChecked(my_opt["server_wait_enabled"])
+            self.LoginServerWaitTimeInput.setText(str(my_opt["server_wait_seconds"]))
             self.login_first.setValue(my_opt["first_num"])
             self.login_second.setValue(my_opt["second_num"])
             self.open360.setChecked(my_opt["login_open_settings"])
@@ -703,10 +749,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         def level_2() -> None:
             my_opt = self.opt["level_2"]
+            credentials = self.opt["login_credentials"]["level_2"]
             self.Level2_1P_Active.setChecked(my_opt["1p"]["active"])
-            self.Level2_1P_Password.setText(my_opt["1p"]["password"])
+            self.Level2_1P_Password.setText(credentials["1p"]["password"])
             self.Level2_2P_Active.setChecked(my_opt["2p"]["active"])
-            self.Level2_2P_Password.setText(my_opt["2p"]["password"])
+            self.Level2_2P_Password.setText(credentials["2p"]["password"])
 
         def skin_set() -> None:
             my_opt = self.opt["skin_type"]
@@ -759,22 +806,26 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.TCEDecomposeGem_Active.setChecked(my_opt["decompose_gem_active"])
             self.TCE_path_input.setText(my_opt["tce_path"])
 
-        def qq_login_info_ui() -> None:
-            """从配置中读取登录信息到ui中"""
+        def login_qq_space_info_ui() -> None:
+            """读取 QQ 空间登录设置与内存中的账号密码。"""
 
             my_opt = self.opt["qq_login_info"]
-            self.checkbox_use_password.setChecked(my_opt["use_password"])
-            self.path_edit.setText(my_opt["path"])
-            self.QQExtraSleepActive.setChecked(my_opt["extra_sleep_active"])
-            self.QQExtraSleepTimeInput.setText(str(my_opt["extra_sleep_time"]))
+            credentials = self.opt["login_credentials"]["qq"]
+            self.LoginQQSpaceUsePasswordCheckBox.setChecked(my_opt["use_password"])
+            self.LoginQQSpaceUsername1PInput.setText(credentials["1p"]["username"])
+            self.LoginQQSpacePassword1PInput.setText(credentials["1p"]["password"])
+            self.LoginQQSpaceUsername2PInput.setText(credentials["2p"]["username"])
+            self.LoginQQSpacePassword2PInput.setText(credentials["2p"]["password"])
 
-            if os.path.isfile(my_opt["path"] + "/QQ_account.json"):
-                with open(my_opt["path"] + "/QQ_account.json", "r") as json_file:
-                    QQ_account = json.load(json_file)
-                username1 = QQ_account['1p']['username']
-                username2 = QQ_account['2p']['username']
-                self.username_edit_1.setText(username1)
-                self.username_edit_2.setText(username2)
+        def login_4399_info_ui() -> None:
+            """读取4399登录开关与内存中的账号密码。"""
+            my_opt = self.opt["4399_login_info"]
+            credentials = self.opt["login_credentials"]["4399"]
+            self.Login4399UsePasswordCheckBox.setChecked(my_opt["use_password"])
+            self.Login4399Username1PInput.setText(credentials["1p"]["username"])
+            self.Login4399Password1PInput.setText(credentials["1p"]["password"])
+            self.Login4399Username2PInput.setText(credentials["2p"]["username"])
+            self.Login4399Password2PInput.setText(credentials["2p"]["password"])
 
         base_settings()
         timer_settings()
@@ -787,7 +838,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
         skin_set()
         accelerate_settings()
         tce_settings()
-        qq_login_info_ui()
+        login_qq_space_info_ui()
+        login_4399_info_ui()
 
         self.CurrentPlan.clear()
         task_sequence_list = get_task_sequence_list(with_extension=False)
@@ -1231,6 +1283,10 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         def login_settings() -> None:
             my_opt = self.opt["login_settings"]
+            my_opt["platform"] = self.LoginPlatformCombo.currentText()
+            my_opt["qq_space_server"] = self.LoginQQSpaceServerCombo.currentIndex()
+            my_opt["server_wait_enabled"] = self.LoginServerWaitCheckBox.isChecked()
+            my_opt["server_wait_seconds"] = max(0, int(self.LoginServerWaitTimeInput.text() or 0))
             my_opt["login_open_settings"] = self.open360.isChecked()
             my_opt["fresh_resize_360_windows"] = self.resize360.isChecked()
             my_opt["login_close_settings"] = self.close360.isChecked()
@@ -1247,10 +1303,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         def level_2() -> None:
             my_opt = self.opt["level_2"]
+            credentials = self.opt["login_credentials"]["level_2"]
             my_opt["1p"]["active"] = self.Level2_1P_Active.isChecked()
-            my_opt["1p"]["password"] = self.Level2_1P_Password.text()
+            credentials["1p"]["password"] = self.Level2_1P_Password.text()
             my_opt["2p"]["active"] = self.Level2_2P_Active.isChecked()
-            my_opt["2p"]["password"] = self.Level2_2P_Password.text()
+            credentials["2p"]["password"] = self.Level2_2P_Password.text()
 
         def tce_settings() -> None:
             my_opt = self.opt["tce"]
@@ -1258,13 +1315,26 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["decompose_gem_active"] = self.TCEDecomposeGem_Active.isChecked()
             my_opt["tce_path"] = self.TCE_path_input.text()
 
-        def qq_login_info_opt() -> None:
-            """将登录信息从ui中写入到opt"""
+        def login_qq_space_info_opt() -> None:
+            """将 QQ 空间登录设置和账号密码写入内存配置。"""
             my_opt = self.opt["qq_login_info"]
-            my_opt["use_password"] = self.checkbox_use_password.isChecked()
-            my_opt["path"] = self.path_edit.text()
-            my_opt["extra_sleep_active"] = self.QQExtraSleepActive.isChecked()
-            my_opt["extra_sleep_time"] = int(self.QQExtraSleepTimeInput.text())
+            my_opt["use_password"] = self.LoginQQSpaceUsePasswordCheckBox.isChecked()
+
+            credentials = self.opt["login_credentials"]["qq"]
+            credentials["1p"]["username"] = self.LoginQQSpaceUsername1PInput.text().strip()
+            credentials["1p"]["password"] = self.LoginQQSpacePassword1PInput.text()
+            credentials["2p"]["username"] = self.LoginQQSpaceUsername2PInput.text().strip()
+            credentials["2p"]["password"] = self.LoginQQSpacePassword2PInput.text()
+
+        def login_4399_info_opt() -> None:
+            my_opt = self.opt["4399_login_info"]
+            my_opt["use_password"] = self.Login4399UsePasswordCheckBox.isChecked()
+
+            credentials = self.opt["login_credentials"]["4399"]
+            credentials["1p"]["username"] = self.Login4399Username1PInput.text().strip()
+            credentials["1p"]["password"] = self.Login4399Password1PInput.text()
+            credentials["2p"]["username"] = self.Login4399Username2PInput.text().strip()
+            credentials["2p"]["password"] = self.Login4399Password2PInput.text()
 
         base_settings()
         accelerate_settings()
@@ -1278,7 +1348,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
         skin_settings()
         level_2()
         tce_settings()
-        qq_login_info_opt()
+        login_qq_space_info_opt()
+        login_4399_info_opt()
 
         # 保存当前选中项的UUID
         current_index = self.CurrentPlan.currentIndex()
