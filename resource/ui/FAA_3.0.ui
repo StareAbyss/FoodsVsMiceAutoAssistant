@@ -4140,7 +4140,7 @@ Link Start</string>
                          <item>
                           <widget class="QLineEdit" name="LoginQQSpaceUsername2PInput">
                            <property name="sizePolicy">
-                            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                              <horstretch>0</horstretch>
                              <verstretch>0</verstretch>
                             </sizepolicy>
@@ -4154,7 +4154,7 @@ Link Start</string>
                            <property name="maximumSize">
                             <size>
                              <width>1000</width>
-                             <height>100</height>
+                             <height>30</height>
                             </size>
                            </property>
                            <property name="tabletTracking">
@@ -4253,7 +4253,7 @@ Link Start</string>
                          <item>
                           <widget class="QLineEdit" name="LoginQQSpaceUsername1PInput">
                            <property name="sizePolicy">
-                            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                              <horstretch>0</horstretch>
                              <verstretch>0</verstretch>
                             </sizepolicy>
@@ -4267,7 +4267,7 @@ Link Start</string>
                            <property name="maximumSize">
                             <size>
                              <width>1000</width>
-                             <height>100</height>
+                             <height>30</height>
                             </size>
                            </property>
                            <property name="tabletTracking">
@@ -4331,7 +4331,7 @@ Link Start</string>
                          <item>
                           <widget class="QLineEdit" name="LoginQQSpacePassword1PInput">
                            <property name="sizePolicy">
-                            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                              <horstretch>0</horstretch>
                              <verstretch>0</verstretch>
                             </sizepolicy>
@@ -4345,7 +4345,7 @@ Link Start</string>
                            <property name="maximumSize">
                             <size>
                              <width>1000</width>
-                             <height>100</height>
+                             <height>30</height>
                             </size>
                            </property>
                            <property name="tabletTracking">
@@ -4416,7 +4416,7 @@ Link Start</string>
                          <item>
                           <widget class="QLineEdit" name="LoginQQSpacePassword2PInput">
                            <property name="sizePolicy">
-                            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                              <horstretch>0</horstretch>
                              <verstretch>0</verstretch>
                             </sizepolicy>
@@ -4430,7 +4430,7 @@ Link Start</string>
                            <property name="maximumSize">
                             <size>
                              <width>1000</width>
-                             <height>100</height>
+                             <height>30</height>
                             </size>
                            </property>
                            <property name="tabletTracking">
