@@ -80,7 +80,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
                 )
 
         def init_login_settings_ui() -> None:
-            """创建登录设置区域，并根据一级区服切换其专用设置。"""
+            """创建独立登录设置窗口，并根据一级区服切换其专用设置。"""
 
             content_layout = self.AdvancedSettingsArea.widget().layout()
 
@@ -106,9 +106,15 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
                     "QQ大厅": "[QQ大厅] 将直接点击开始游戏进入服务器。不支持自动登录。",
                 }
                 self.LoginPlatformHelpLabel.setText(help_text.get(platform, ""))
-                resize_content_height()
+                self.LoginSettingsDialog.adjustSize()
 
-            self.LoginSettingsGroup = QWidget(self.AdvancedSettingsAreaWidget)
+            self.LoginSettingsDialog = QtWidgets.QDialog(self)
+            self.LoginSettingsDialog.setObjectName("LoginSettingsDialog")
+            self.LoginSettingsDialog.setWindowTitle("自动登录设定")
+            self.LoginSettingsDialog.setMinimumWidth(540)
+            dialog_layout = QVBoxLayout(self.LoginSettingsDialog)
+
+            self.LoginSettingsGroup = QWidget(self.LoginSettingsDialog)
             self.LoginSettingsGroup.setObjectName("LoginSettingsGroup")
             login_layout = QVBoxLayout(self.LoginSettingsGroup)
             login_layout.setContentsMargins(5, 5, 5, 5)
@@ -189,12 +195,13 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
             self.OtherSettingsLayout.removeWidget(self.LoginQQSpaceGroup)
             login_layout.addWidget(self.LoginQQSpaceGroup)
 
+            dialog_layout.addWidget(self.LoginSettingsGroup)
+
             # 旧 UI 使用高度为1000的占位项填充固定高度页面。内容区改为自适应高度后，
             # 这些占位项会直接形成巨大空隙，因此只保留布局本身的统一间距。
             sections = (
                 self.DailyTasksSettingsGroup,
                 self.ControlSettingsGroup,
-                self.LoginSettingsGroup,
                 self.BattleSettingsGroup,
                 self.OtherSettingsGroup,
             )
@@ -588,7 +595,6 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         self.adv_opt_sections = {
             "日常任务": self.DailyTasksSettingsGroup,
             "外部控制": self.ControlSettingsGroup,
-            "登录设置": self.LoginSettingsGroup,
             "战斗设置": self.BattleSettingsGroup,
             "其它设置": self.OtherSettingsGroup
         }
@@ -619,14 +625,10 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         self.AdvancedSettingsArea.verticalScrollBar().valueChanged.connect(self.on_settings_scroll)
 
         def open_auto_login_settings() -> None:
-            """从首页跳转到进阶功能中的登录设置。"""
-            self.tabWidget.setCurrentWidget(self.Tab3)
-            for index in range(self.AdvancedSettingsNavigationList.count()):
-                item = self.AdvancedSettingsNavigationList.item(index)
-                if item.data(Qt.ItemDataRole.UserRole) is self.LoginSettingsGroup:
-                    self.AdvancedSettingsNavigationList.setCurrentItem(item)
-                    self.on_nav_item_clicked(item)
-                    break
+            """从首页打开独立登录设置窗口，重复点击时置于前台。"""
+            self.LoginSettingsDialog.show()
+            self.LoginSettingsDialog.raise_()
+            self.LoginSettingsDialog.activateWindow()
 
         self.LoginAutoSettingsButton.clicked.connect(open_auto_login_settings)
 
