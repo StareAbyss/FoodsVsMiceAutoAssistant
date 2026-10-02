@@ -505,7 +505,8 @@ class ThreadTodo(QThread):
             batch_resize_window(
                 game_name=self.opt["base_settings"]["game_name"],
                 name_1p=self.opt["base_settings"]["name_1p"],
-                name_2p=self.opt["base_settings"]["name_2p"]
+                name_2p=self.opt["base_settings"]["name_2p"],
+                platform=self.opt["login_settings"]["platform"],
             )
 
         # 创建进程 -> 开始进程 -> 阻塞主进程
