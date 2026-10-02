@@ -8,10 +8,18 @@ from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
 
 
-def batch_resize_window(game_name, name_1p: str, name_2p: str):
+def batch_resize_window(game_name, name_1p: str, name_2p: str, platform: str):
     """
-    调整窗口大小并设置窗口位置
-    :return:
+    按所选区服调整360窗口尺寸与位置。
+
+    QQ空间选服页比其他平台更大，窗口按逻辑像素额外增加宽20、高75，
+    再统一应用屏幕缩放；双窗口并排时宽度仍受半屏空间限制。
+
+    Args:
+        game_name: 游戏名称，用于取得两个窗口的频道名。
+        name_1p: 1P窗口名。
+        name_2p: 2P窗口名。
+        platform: 首页选择的区服。
     """
 
     # 获取窗口名称
@@ -20,8 +28,9 @@ def batch_resize_window(game_name, name_1p: str, name_2p: str):
     handles = {
         1: faa_get_handle(channel=channel_1p, mode="360"),
         2: faa_get_handle(channel=channel_2p, mode="360")}
-    width = int(955 * EXTRA.ZOOM_RATE)
-    height = int(668 * EXTRA.ZOOM_RATE)
+    extra_width, extra_height = (20, 75) if platform == "QQ空间" else (0, 0)
+    width = int((955 + extra_width) * EXTRA.ZOOM_RATE)
+    height = int((668 + extra_height) * EXTRA.ZOOM_RATE)
 
     # 获取屏幕工作区域大小
     user32 = ctypes.windll.user32
