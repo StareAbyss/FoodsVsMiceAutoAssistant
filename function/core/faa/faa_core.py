@@ -1836,6 +1836,7 @@ class FAABase:
                         handle=self.handle_browser,
                         char=char,
                     )
+                    time.sleep(0.1)
 
             # 先区分标签的选中状态，避免在已选中时再次点击导致页面切换。
             selected = find("4399_账号密码登录_已选中.png", tolerance=0.999)
@@ -1859,6 +1860,12 @@ class FAABase:
                 return False
 
             username, password = load_login_credentials(platform="4399")
+
+            # 沿用QQ空间的双号错开方式，减少同时填写账号密码时的焦点竞争。
+            if self.player == 2:
+                self.print_debug(text="[刷新游戏] [4399登录] 2P等待10秒后填写账号密码")
+                time.sleep(10)
+                self.print_debug(text="[刷新游戏] [4399登录] 2P等待完成")
 
             # 输入框本身缺少稳定特征，因此以左右文字标签为锚点计算输入位置。
             replace_input_text(x=username_label[0] + 135, y=username_label[1], text=username)
