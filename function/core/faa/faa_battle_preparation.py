@@ -220,8 +220,10 @@ class BattlePreparation:
         # 老板本 一共20点击到底部, 向下点 10轮 x 2次 = 20 次滑块, 识别11次
         # 但仍然会出现识别不到的问题(我的背包太大啦), 故直接改成了最细的粒度, 希望能解决该问题.
 
-        # 复位滑块
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=209)
+        # 房间会继承上次选卡的滚动位置；点击滑块本身可能无法回顶，需再点向上箭头。
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=930, y=200)
+        time.sleep(0.5)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=187)
         time.sleep(0.5)
 
         match_img_result_dict = {}
@@ -346,10 +348,9 @@ class BattlePreparation:
         # 大大降低了操作速度 防止卡顿造成选卡失败~
         for target in targets:
 
-            # 复位滑块
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=209)
+            # 与预扫描保持相同回顶步骤，避免第一行只露半截或预扫描定位偏移。
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=930, y=200)
             time.sleep(0.5)
-            #再点一下箭头确保一定复位到顶端，否则第一行卡片只有半截无法识别
             T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=187)
             time.sleep(0.5)
 
