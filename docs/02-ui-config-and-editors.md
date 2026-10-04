@@ -18,6 +18,8 @@
   `QMainWindowLoadSettings`，配置校正、加载、保存与控件映射。
 - `function/core/qmw_3_service.py`
   `QMainWindowService`，实际主窗口服务类。
+- `function/core/qmw_tips/`
+  集中管理 `qmw_tip_*.py` 提示窗口；主窗口服务层通过该子包导入，提示内容不在服务层维护。
 - `function/core/qmw_editor_of_battle_plan.py`
   战斗方案编辑器。
 - `function/core/qmw_editor_of_task_sequence.py`
