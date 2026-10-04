@@ -3683,63 +3683,170 @@ class FAABase:
 
         main()
 
-    def input_level_2_password(self: "FAA", password: str):
+    def _wait_level_2_password_dialog(self: "FAA") -> bool:
         """
-        输入二级密码.
+        等待真实二级密码弹窗，避免在背包满提示等其他界面输入密码。
+
+        Returns:
+            是否在等待期限内识别到二级密码标题。
         """
-
-        SIGNAL.PRINT_TO_UI.emit(text=f"[输入二级密码] [{self.player}P] 开始. 默认通过暗晶商店, 请确保加入公会.")
-
-        # 打开公会副本界面
-        self.print_debug(text="跳转到公会副本界面")
-        self.action_bottom_menu(mode="跳转_公会副本")
-
-        # 打开暗晶商店
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=800, y=485)
-
-        # 确保加载正确完成
-        r = loop_match_p_in_w(
+        return loop_match_p_in_w(
             source_handle=self.handle,
-            source_range=[255, 15, 655, 60],
-            template=RESOURCE_P["common"]["暗晶商店_ui.png"],
-            match_tolerance=0.95,
+            source_root_handle=self.handle_360,
+            # 实测标题命中矩形 [377, 186, 416, 205]，四周各留 10px。
+            source_range=[367, 176, 426, 215],
+            template=g_resources.RESOURCE_P["common"]["二级密码.png"],
+            match_tolerance=0.99,
             match_interval=0.2,
-            match_failed_check=10,
+            match_failed_check=3,
             after_sleep=0.2,
-            click=False
-        )
-        if not r:
-            SIGNAL.PRINT_TO_UI.emit(text=f"[输入二级密码] [{self.player}P] 失败? 请确认加入了公会.")
-            return False
+            click=False)
 
-        # 进入暗晶兑换
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=180, y=70)
-        time.sleep(1)
+    def _submit_level_2_password(self: "FAA", password: str) -> bool:
+        """
+        向已识别的密码框输入密码，只有确认框消失才视为解锁成功。
 
-        # 兑换 弹出框体
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=405, y=190)
-        time.sleep(1)
+        Args:
+            password: FAA 配置中当前玩家的二级密码明文，不写入日志。
 
-        # 点击输入框选中
+        Returns:
+            是否在确认期限内识别到密码框消失；识图错误或仍停留在密码框时返回 False。
+        """
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=440, y=300)
-        time.sleep(1)
-
-        # 输入二级密码
-        for key in password:
-            T_ACTION_QUEUE_TIMER.char_input(handle=self.handle, char=key)
+        time.sleep(0.3)
+        for char in password:
+            T_ACTION_QUEUE_TIMER.char_input(handle=self.handle, char=char)
             time.sleep(0.1)
-        time.sleep(1)
-
-        # 确定二级密码
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=435, y=388)
+        time.sleep(0.5)
+
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline:
+            status, _ = match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=[367, 176, 426, 215],
+                template=g_resources.RESOURCE_P["common"]["二级密码.png"],
+                match_tolerance=0.99)
+            if status == 1:
+                return True
+            if status == 0:
+                return False
+            time.sleep(0.2)
+        return False
+
+    def _input_level_2_password_via_card_bag(self: "FAA", password: str) -> bool:
+        """
+        通过卡片背包整理触发二级密码，解锁后直接关闭背包。
+
+        只点击一次整理。未设置密码或已经解锁时可能直接改变卡片排列；
+        未识别到密码框时返回失败，不重复整理或继续输入。
+
+        Args:
+            password: FAA 配置中当前玩家的二级密码明文。
+
+        Returns:
+            是否识别到密码框并完成验证；导航失败、未弹框或密码确认失败时返回 False。
+        """
+        if not self.action_bottom_menu(mode="背包"):
+            return False
+        # 背包红叉位于右上角；先确认面板打开，再切换到防御卡栏。
+        if not loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=[900, 40, 940, 85],
+                template=g_resources.RESOURCE_P["common"]["退出.png"],
+                match_failed_check=3,
+                click=False):
+            return False
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=650, y=65)
         time.sleep(1)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=905, y=475)
+        if not self._wait_level_2_password_dialog():
+            self.action_exit(mode="普通红叉", raw_range=[900, 40, 940, 85])
+            return False
+        success = self._submit_level_2_password(password)
+        if not success:
+            self.action_exit(mode="普通红叉", raw_range=[545, 175, 590, 215])
+        self.action_exit(mode="普通红叉", raw_range=[900, 40, 940, 85])
+        return success
 
-        # 退出商店界面
-        for i in range(2):
-            self.action_exit(mode="普通红叉")
+    def _stop_for_level_2_password_failure(self: "FAA", reason: str) -> bool:
+        """
+        密码未验证时通知用户并停止整个任务序列，阻止继续执行删除等操作。
 
-        SIGNAL.PRINT_TO_UI.emit(text=f"[输入二级密码] [{self.player}P] 结束.")
-        return True
+        Args:
+            reason: 本次导航、识图或密码验证失败的业务原因。
+
+        Returns:
+            固定返回 False，供调用方中止当前任务。
+        """
+        SIGNAL.PRINT_TO_UI.emit(
+            text=f"[输入二级密码] [{self.player}P] {reason}，已停止任务。", color_level=1)
+        SIGNAL.DIALOG.emit(
+            title="二级密码验证失败",
+            text=f"{self.player}P：{reason}。\n"
+                 "FAA 使用必须在游戏中设置二级密码，并在 FAA 中填写正确密码。\n"
+                 "请设置后刷新游戏再运行。未设置二级密码时，后备触发可能直接整理卡片背包；"
+                 "卡片背包被整理等后果需由用户自行承担。")
+        # 先发出弹窗信号，防止停止线程时提前中断通知。
+        if SIGNAL.END is not None:
+            SIGNAL.END.emit()
+        return False
+
+    def input_level_2_password(self: "FAA", password: str) -> bool:
+        """
+        优先通过暗晶商店解锁，未弹密码框时改用卡片背包整理触发。
+
+        商店已经弹框但密码确认失败时直接停止，避免再次触发整理。
+        两条触发路线均未完成验证时停止任务序列，并提醒用户检查二级密码设置。
+
+        Args:
+            password: 当前玩家的二级密码明文；为空时不操作游戏，直接通知并停止。
+
+        Returns:
+            是否完成二级密码验证；失败时返回 False，调用方不得继续删除或兑换。
+        """
+        if not password:
+            return self._stop_for_level_2_password_failure("FAA 中未填写二级密码")
+        SIGNAL.PRINT_TO_UI.emit(text=f"[输入二级密码] [{self.player}P] 开始，通过暗晶商店触发。")
+
+        entered_guild = self.action_bottom_menu(mode="跳转_公会副本")
+        if entered_guild:
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=800, y=485)
+            shop_open = loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=[255, 15, 655, 60],
+                template=g_resources.RESOURCE_P["common"]["暗晶商店_ui.png"],
+                match_tolerance=0.95,
+                match_interval=0.2,
+                match_failed_check=10,
+                after_sleep=0.2,
+                click=False)
+            if shop_open:
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=180, y=70)
+                time.sleep(1)
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=405, y=190)
+                dialog_found = self._wait_level_2_password_dialog()
+                success = dialog_found and self._submit_level_2_password(password)
+                if dialog_found and not success:
+                    self.action_exit(mode="普通红叉", raw_range=[545, 175, 590, 215])
+                self.action_exit(mode="普通红叉")
+                self.action_exit(mode="普通红叉")
+                if success:
+                    SIGNAL.PRINT_TO_UI.emit(text=f"[输入二级密码] [{self.player}P] 暗晶商店解锁成功。")
+                    return True
+                if dialog_found:
+                    return self._stop_for_level_2_password_failure("密码确认框未消失，请检查密码是否正确")
+            else:
+                self.action_exit(mode="普通红叉")
+
+        SIGNAL.PRINT_TO_UI.emit(text=f"[输入二级密码] [{self.player}P] 暗晶商店未弹密码框，尝试卡片背包后备路线。")
+        if self._input_level_2_password_via_card_bag(password):
+            SIGNAL.PRINT_TO_UI.emit(text=f"[输入二级密码] [{self.player}P] 卡片背包后备解锁成功。")
+            return True
+        return self._stop_for_level_2_password_failure("暗晶商店和卡片背包后备路线均未完成二级密码验证")
 
     def gift_flower(self: "FAA"):
         """送免费花"""
@@ -3822,7 +3929,7 @@ class FAABase:
             SIGNAL.PRINT_TO_UI.emit(text=f"[兑换暗晶] [{self.player}P] 失败放弃. 游戏太卡")
 
     def delete_items(self: "FAA"):
-        """用于删除多余的技能书类消耗品, 使用前需要输入二级或无二级密码"""
+        """用于删除多余的技能书类消耗品，使用前必须成功验证二级密码。"""
 
         self.print_debug(text="开启删除物品高危功能")
 

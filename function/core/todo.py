@@ -272,10 +272,13 @@ class ThreadTodo(QThread):
         SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 已启用，目标:{player}P", color_level=2)
 
         def run_delete(cur_player):
+            """只在当前玩家的二级密码验证成功后删除物品。"""
             password = self.opt["login_credentials"]["level_2"][f"{cur_player}p"]["password"]
             faa = self.faa_dict[cur_player]
             if faa.input_level_2_password(password=password):
                 faa.delete_items()
+                return True
+            return False
 
         self.thread_1p = ThreadWithException(
             target=run_delete,
@@ -285,10 +288,14 @@ class ThreadTodo(QThread):
             target=run_delete,
             name="2P Thread - DeleteItems",
             kwargs={"cur_player": 2})
-        self.thread_1p.start()
-        self.thread_2p.start()
-        self.thread_1p.join()
-        self.thread_2p.join()
+        # 只操作启用二级功能的玩家，避免未启用的账号触发背包整理。
+        threads = {1: self.thread_1p, 2: self.thread_2p}
+        for cur_player in player:
+            threads[cur_player].start()
+        for cur_player in player:
+            threads[cur_player].join()
+        if any(threads[cur_player].return_value is not True for cur_player in player):
+            return
 
         SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 即将刷新游戏以清除二级输入的状态...", color_level=2)
         self.batch_reload_game(player=player)
@@ -324,10 +331,13 @@ class ThreadTodo(QThread):
         SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 已启用，目标:{player}P", color_level=2)
 
         def run_get_dark_crystal(cur_player):
+            """只在当前玩家的二级密码验证成功后兑换暗晶。"""
             password = self.opt["login_credentials"]["level_2"][f"{cur_player}p"]["password"]
             faa = self.faa_dict[cur_player]
             if faa.input_level_2_password(password=password):
                 faa.get_dark_crystal()
+                return True
+            return False
 
         self.thread_1p = ThreadWithException(
             target=run_get_dark_crystal,
@@ -337,10 +347,14 @@ class ThreadTodo(QThread):
             target=run_get_dark_crystal,
             name="2P Thread - GetDarkCrystal",
             kwargs={"cur_player": 2})
-        self.thread_1p.start()
-        self.thread_2p.start()
-        self.thread_1p.join()
-        self.thread_2p.join()
+        # 只操作启用二级功能的玩家，避免未启用的账号触发背包整理。
+        threads = {1: self.thread_1p, 2: self.thread_2p}
+        for cur_player in player:
+            threads[cur_player].start()
+        for cur_player in player:
+            threads[cur_player].join()
+        if any(threads[cur_player].return_value is not True for cur_player in player):
+            return
 
         SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 即将刷新游戏以清除二级输入的状态...", color_level=2)
         self.batch_reload_game(player=player)
@@ -465,10 +479,13 @@ class ThreadTodo(QThread):
         SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 已启用，目标:{player}P", color_level=2)
 
         def run_gdisenchant_geml(cur_player):
+            """只在当前玩家的二级密码验证成功后分解宝石。"""
             password = self.opt["login_credentials"]["level_2"][f"{cur_player}p"]["password"]
             faa = self.faa_dict[cur_player]
             if faa.input_level_2_password(password=password):
                 faa.disenchant_gem()
+                return True
+            return False
 
         self.thread_1p = ThreadWithException(
             target=run_gdisenchant_geml,
@@ -478,10 +495,14 @@ class ThreadTodo(QThread):
             target=run_gdisenchant_geml,
             name="2P Thread - DisenchantGem",
             kwargs={"cur_player": 2})
-        self.thread_1p.start()
-        self.thread_2p.start()
-        self.thread_1p.join()
-        self.thread_2p.join()
+        # 只操作启用二级功能的玩家，避免未启用的账号触发背包整理。
+        threads = {1: self.thread_1p, 2: self.thread_2p}
+        for cur_player in player:
+            threads[cur_player].start()
+        for cur_player in player:
+            threads[cur_player].join()
+        if any(threads[cur_player].return_value is not True for cur_player in player):
+            return
 
         SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 即将刷新游戏以清除二级输入的状态...", color_level=2)
         self.batch_reload_game(player=player)
