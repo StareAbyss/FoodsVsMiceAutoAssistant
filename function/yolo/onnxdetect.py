@@ -10,6 +10,7 @@ import numpy as np
 import onnxruntime
 
 from function.globals.get_paths import PATHS
+from function.common.faa_view_events import FAA_VIEW_EVENTS
 
 
 def initialize_session(is_gpu):
@@ -63,10 +64,18 @@ def draw_bounding_box(img, class_id, confidence, x, y, x_plus_w, y_plus_h):
     cv2.putText(img, label, (x - 10, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
 
-def get_mouse_position(input_image, is_log, session):
+def get_mouse_position(input_image, is_log, session, diagnostics=None):
     """
-    :param input_image:
-    :return:
+    识别特殊目标并返回原有高级战斗输入，可附带 FAA视角诊断数据。
+
+    Args:
+        input_image: 游戏窗口 BGR/BGRA 截图。
+        is_log: 是否保存推理图像和标签。
+        session: 已初始化的 ONNX 推理会话。
+        diagnostics: 可选输出列表，追加 (类别名称, 全窗口目标框, 置信度)。
+
+    Returns:
+        (目标框列表, 类别编号列表)，供高级战斗生成对策点位。
     """
     cv2.ocl.setUseOpenCL(True)
     cv2.setNumThreads(4)  # 根据CPU核心数调整
@@ -113,6 +122,17 @@ def get_mouse_position(input_image, is_log, session):
     # 从NMS结果中提取过滤后的boxes和class_ids
     filtered_boxes = [list(np.array(boxes[i]) * scale) for i in result_boxes]
     filtered_class_ids = [class_ids[i] for i in result_boxes]  # 非极大值抑制过后产生的框和类别
+    if diagnostics is not None:
+        # 跨进程只携带已有推理的少量框与置信度，不传截图，也不重复推理。
+        diagnostics.extend(
+            (f"YOLO {CLASSES[class_ids[index]]}", (float(x), float(y), float(x + w), float(y + h)),
+             float(scores[index]))
+            for index, (x, y, w, h) in list(zip(result_boxes, filtered_boxes))[:40])
+    view_origin = FAA_VIEW_EVENTS.image_origin(input_image)
+    if view_origin is not None:
+        for index, (x, y, w, h) in zip(result_boxes, filtered_boxes):
+            FAA_VIEW_EVENTS.match(view_origin, input_image, f"YOLO {CLASSES[class_ids[index]]}",
+                                  (x, y, x + w, y + h), scores[index], 0.25, True)
     test_mode = False  #打开就能看见小框框看效果
     if test_mode:
         annotated_image = original_image.copy()

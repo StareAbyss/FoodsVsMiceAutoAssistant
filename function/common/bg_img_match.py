@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png, png_cropping
+from function.common.faa_view_events import FAA_VIEW_EVENTS
 from function.globals import g_resources, SIGNAL
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
@@ -210,6 +211,10 @@ def match_p_in_w(
     else:
         source_img = png_cropping(image=source_img, raw_range=source_range)
 
+    # 旁路观测保留裁剪后的窗口原点，数组输入不会丢失 1P/2P 归属。
+    view_origin = FAA_VIEW_EVENTS.image_origin(source_img)
+    view_name = str(template) if isinstance(template, str) and template_name == "Unknown" else template_name
+
     # 若为BGRA -> BGR
     source_img = source_img[:, :, :3]
 
@@ -232,6 +237,15 @@ def match_p_in_w(
 
     # 如果匹配度<阈值，就认为没有找到
     matching_degree = 1 - minVal
+    if view_origin is not None:
+        FAA_VIEW_EVENTS.match(
+            origin=view_origin,
+            template=template,
+            name=view_name,
+            rect=(minLoc[0], minLoc[1], minLoc[0] + template.shape[1], minLoc[1] + template.shape[0]),
+            score=matching_degree,
+            threshold=match_tolerance,
+            found=matching_degree > match_tolerance)
     if matching_degree <= match_tolerance:
         if test_print:
             CUS_LOGGER.debug(
@@ -310,7 +324,8 @@ def match_ps_in_w(
             template=p["template"],
             source_img=source_img,
             source_range=p["source_range"],
-            match_tolerance=p["match_tolerance"]
+            match_tolerance=p["match_tolerance"],
+            template_name=p.get("template_name", "Unknown")
         )
         result_list.append(result)
 
@@ -510,6 +525,9 @@ def match_all_p_in_w(
     elif source_img is not None and source_range is not None:
         source_img = png_cropping(image=source_img, raw_range=source_range)
 
+    view_origin = FAA_VIEW_EVENTS.image_origin(source_img)
+    view_name = template if isinstance(template, str) else "Unknown"
+
     # 转换为BGR格式
     source_img = source_img[:, :, :3]
 
@@ -532,6 +550,17 @@ def match_all_p_in_w(
         if all(np.linalg.norm(np.array(loc) - np.array(f_loc)) > min_distance for f_loc in filtered_locations):
             filtered_locations.append(loc)
     # 返回结果
+    if view_origin is not None:
+        h, w = template.shape[:2]
+        for x, y in filtered_locations[:40]:
+            FAA_VIEW_EVENTS.match(
+                origin=view_origin,
+                template=template,
+                name=view_name,
+                rect=(x, y, x + w, y + h),
+                score=float(1 - match_result[y, x]),
+                threshold=threshold,
+                found=True)
     if not filtered_locations:
         return 1, None
 
