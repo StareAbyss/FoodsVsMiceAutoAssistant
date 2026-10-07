@@ -2903,6 +2903,34 @@ Link Start</string>
                 </widget>
                </item>
                <item>
+                <widget class="QPushButton" name="OpenFAAView_Button">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>50</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>50</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>实时查看 1P/2P 游戏画面、FAA 点击与识图效果，并可录制带特效的视频</string>
+                 </property>
+                 <property name="text">
+                  <string>FAA视角</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
                 <widget class="QPushButton" name="OpenOtherTools_Button">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">

@@ -8,6 +8,8 @@ import win32con
 import win32gui
 from numpy import uint8, frombuffer
 
+from function.common.faa_view_events import FAA_VIEW_EVENTS
+
 
 # 如果没有依赖
 # pip install opencv-contrib-python
@@ -180,6 +182,8 @@ def capture_image_png_once(handle: int) -> numpy.ndarray:
 
     # 将缓冲区数据转换为numpy数组，并重塑为图像的形状 (高度,宽度,[B G R A四通道])
     image = frombuffer(buffer, dtype=uint8).reshape(height, width, 4)
+
+    FAA_VIEW_EVENTS.remember_image(image, handle)
 
     return image
 

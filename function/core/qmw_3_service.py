@@ -44,6 +44,7 @@ from function.core.qmw_tips.qmw_tip_update import QMWTipUpdate
 from function.core.qmw_tips.qmw_tip_warm_gift import QMWTipWarmGift
 from function.core.qmw_update_backup_manager import QMWUpdateBackupManager
 from function.core.qmw_useful_tools_widget import UsefulToolsWidget
+from function.core.qmw_faa_view import QMWFAAView
 from function.core.todo import ThreadTodo
 from function.globals import EXTRA, SIGNAL
 from function.globals import g_resources
@@ -227,7 +228,9 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 额外窗口 - 实用小工具
         self.window_useful_tools = UsefulToolsWidget(self)
+        self.window_faa_view = None
         self.OpenUsefulTools_Button.clicked.connect(self.click_btn_open_useful_tools)
+        self.OpenFAAView_Button.clicked.connect(self.click_btn_open_faa_view)
         # # 额外窗口 - 其它工具
         self.OpenOtherTools_Button.clicked.connect(self.click_btn_open_other_tools)
 
@@ -1564,6 +1567,23 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 显示窗口
         self.tools_window.show()
+
+    def click_btn_open_faa_view(self):
+        """复用 FAA视角窗口；首次点击入口时才创建并启动实时预览。"""
+        if self.window_faa_view is None:
+            self.window_faa_view = QMWFAAView(self)
+            self.window_faa_view.setFont(self.font)
+            self.set_stylesheet(self.window_faa_view)
+            QtWidgets.QApplication.instance().aboutToQuit.connect(self.window_faa_view.shutdown)
+        self.window_faa_view.showNormal()
+        self.window_faa_view.raise_()
+        self.window_faa_view.activateWindow()
+
+    def closeEvent(self, event):
+        """FAA 使用强制进程退出，必须先完成视角工具的 MP4 文件写入。"""
+        if self.window_faa_view is not None:
+            self.window_faa_view.shutdown()
+        super().closeEvent(event)
 
     def click_btn_manage_update_backups(self):
         """打开更新备份管理窗口，用于查看、删除和恢复备份。"""

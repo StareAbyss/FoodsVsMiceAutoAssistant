@@ -36,6 +36,21 @@
 
 ## 模板匹配
 
+### FAA视角的旁路观测
+
+- `function/common/faa_view_events.py` 只在视角窗口打开时收集所选句柄的短期点击与识图事件。
+- 截图通过弱引用记录来源；NumPy 切片识图按内存偏移还原窗口原点，保持 `match_p_in_w()` 原有返回值及相对坐标约定。
+  独立加载、复制或缩放后失去截图来源的数组不推测玩家归属。
+- `match_p_in_w()`、`match_ps_in_w()` 和 `match_all_p_in_w()` 发布已有匹配结果；不改变阈值或识图算法。
+  多模板的可选 `template_name` 会传到单模板接口，默认按资源数组索引或文件名显示目标名。
+- 点击在 `ThreadActionQueueTimer.do_left_mouse_click()` 成功投递按下及松开消息后发布，使用 FAA 原始坐标，不重复乘 DPI 缩放。
+- 高级战斗的识图进程沿已有队列附带最多 40 个目标框、类别和置信度；队列消息包含 `information`、`view_handle`、
+  `view_matches` 和 `observed_at`。主进程消费诊断信息后把原有五项 `information` 交给对策流程，也兼容旧版五项元组。
+  不传截图、不重复模型推理，关闭工具、玩家句柄不符或消息过期时不保存诊断结果。
+- 预览和 MP4 共用合成逻辑。后台线程负责截图与编码，Qt 主线程只读取最新场景，并按控件尺寸和屏幕 DPI
+  直接合成预览，避免文字随低分辨率视频帧二次缩放及逐帧信号积压。
+- 验证入口：`uv run python -m unittest test.faa_view.test_faa_view -v`，使用模拟客户区，不操作真实游戏。
+
 `bg_img_match.py` 是图像识别基础设施。
 
 ### 能力边界

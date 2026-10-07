@@ -14,6 +14,7 @@ import numpy as np
 from PyQt6.QtCore import QThread, pyqtSignal
 
 from function.common.bg_img_screenshot import capture_image_png, capture_image_png_all
+from function.common.faa_view_events import FAA_VIEW_EVENTS
 from function.core.faa.battle_card_roles import resolve_insert_use_card_events
 from function.core.faa.tweak_plan import get_tweak_plan_random_interval
 from function.core_battle.card import Card, CardKun, SpecialCard
@@ -1441,6 +1442,8 @@ class ThreadUseSpecialCardTimer(QThread):
     def check_special_card(self):
 
         result = self.read_queue.get()  # 不管能不能用对策卡先提取信息再说，免得队列堆积
+        # 高级识图在独立进程运行；诊断只旁路读取已有结果，不改变后续对策判定。
+        result = FAA_VIEW_EVENTS.consume_senior_result(result)
         CUS_LOGGER.debug(f"从管道获取到状态信息：{result} ")
         if result is None:
             return
