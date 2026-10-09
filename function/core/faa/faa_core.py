@@ -10,7 +10,7 @@ import numpy
 import pytz
 
 from function.common.bg_img_match import match_p_in_w, match_ps_in_w, loop_match_p_in_w, loop_match_ps_in_w, \
-    match_all_p_in_w
+    match_all_p_in_w, match_template_with_optional_mask
 from function.common.bg_img_screenshot import capture_image_png, png_cropping
 from function.common.get_system_dpi import get_window_position, get_system_dpi
 from function.common.image_processing.overlay_images import overlay_images
@@ -1802,19 +1802,113 @@ class FAABase:
                 raise RuntimeError(f"{platform} 登录信息不可用") from error
 
         def login_4399() -> bool:
-            """根据已校验的文字标签位置完成4399账号密码登录。"""
-            full_range = [0, 0, 2596, 1440]
+            """未找到选服入口时，在4399登录页面完成账号密码登录。
 
-            def find(image_name: str, tolerance: float = 0.95):
-                """在4399登录页面查找指定标签并返回中心坐标。"""
+            两处状态判断都不再依赖单一绝对阈值：
+            - “账号密码登录”标签改用账号密码表单是否可见来判断。两张标签模板在选中与未选中
+              两种状态下的得分差不足 0.006，任何阈值都无法可靠分辨，而表单锚点实测分离度约 0.13。
+            - “自动登录”勾选框改用同一帧截图上两张模板的相对得分比较。实测四种状态组合下
+              相对比较方向均正确，绝对阈值的取值区间则互相重叠。
+
+            刷新后登录页可能尚未渲染完成，因此表单与标签都限时轮询，而不是只识别一次。
+            每次识别都会把实测匹配度写进日志，失败时可以直接看出是哪一个模板、差多少分。
+
+            Returns:
+                是否成功点击登录按钮。
+            """
+            full_range = [0, 0, 2596, 1440]
+            # 表单锚点阈值：实测未选中态的误命中上限为 0.9599，选中态的最低命中分为 0.9904。
+            # 为两张锚点模板补上 alpha 掩模后误命中上限可降到 0.88，届时该阈值可再放宽。
+            tolerance_form = 0.97
+            # 标签只用于把页面切到账号密码登录，点击后还会用表单复核，所以阈值可以放宽。
+            # 实测两张标签模板在不同机器上的命中分在 0.947~1.000 之间波动，0.95 偏紧。
+            tolerance_tab = 0.93
+            # 表单与标签的限时轮询次数与间隔，两者合计最多等待 2 秒和 2.5 秒。
+            form_attempts = 4
+            tab_attempts = 5
+            poll_interval = 0.5
+            # 勾选框相对得分的置信余量：分差不足该值说明两张模板无法区分，此时不改变勾选状态。
+            checkbox_margin = 0.005
+            # 勾选框最低匹配度：低于该值通常意味着登录页尚未渲染完成，不做状态判断。
+            checkbox_floor = 0.90
+
+            def capture_frame() -> numpy.ndarray:
+                """截取浏览器内容层，供同一轮判定共用一帧。"""
+                return capture_image_png(
+                    handle=self.handle_browser,
+                    root_handle=self.handle_360,
+                    raw_range=full_range,
+                )
+
+            def find_in(image_name: str, source_image: numpy.ndarray, tolerance: float):
+                """在给定帧上查找标签并返回中心坐标，同时把实测匹配度写进日志。"""
                 status, position = match_p_in_w(
-                    source_handle=self.handle_browser,
-                    source_root_handle=self.handle_360,
+                    source_img=source_image,
                     source_range=full_range,
                     template=RESOURCE_P["common"]["登录"]["4399"][image_name],
                     match_tolerance=tolerance,
+                    test_print=True,
+                    template_name=image_name,
                 )
                 return position if status == 2 else None
+
+            def locate_in_frame(image_name: str, source_image: numpy.ndarray) -> tuple:
+                """在给定帧上定位模板，返回 (匹配度, 中心坐标)；识图出错时返回 (None, None)。
+
+                勾选框需要比较两张模板的相对得分，而单次识图接口只返回是否达到阈值，
+                因此这里复用图像识别模块的匹配函数，直接取得匹配度。
+                """
+                template = RESOURCE_P["common"]["登录"]["4399"][image_name]
+                status, match_result = match_template_with_optional_mask(
+                    source=source_image,
+                    template=template,
+                )
+                if status == 0:
+                    return None, None
+                top, left = numpy.unravel_index(numpy.argmin(match_result), match_result.shape)
+                height, width = template.shape[:2]
+                return 1 - float(match_result[top, left]), [int(left + width // 2), int(top + height // 2)]
+
+            def wait_login_form():
+                """限时轮询账号密码表单的两个锚点，全部命中且上下相邻才算表单可见。
+
+                Returns:
+                    表单可见时返回 [用户名标签中心, 密码标签中心]，否则返回 None。
+                """
+                for _ in range(form_attempts):
+                    frame = capture_frame()
+                    username_label = find_in("4399_用户名.png", frame, tolerance_form)
+                    password_label = find_in("4399_密码.png", frame, tolerance_form)
+                    if username_label and password_label:
+                        # 两个锚点必须上下相邻，避免把页面上其它相似文字当成账号密码表单。
+                        if 10 <= password_label[1] - username_label[1] <= 70:
+                            return [username_label, password_label]
+                    time.sleep(poll_interval)
+                return None
+
+            def wait_and_click_tab() -> bool:
+                """限时轮询账号密码登录标签并点击它。
+
+                两张标签模板命中的是同一个标签位置，因此不需要先分辨选中态；
+                点击是否生效由随后的表单复核确认。
+
+                Returns:
+                    是否在限时内找到并点击了标签。
+                """
+                for _ in range(tab_attempts):
+                    frame = capture_frame()
+                    tab = find_in("4399_账号密码登录_未选中.png", frame, tolerance_tab) \
+                        or find_in("4399_账号密码登录_已选中.png", frame, tolerance_tab)
+                    if tab is not None:
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                            handle=self.handle_browser,
+                            x=tab[0],
+                            y=tab[1],
+                        )
+                        time.sleep(1)
+                        return True
+                    time.sleep(poll_interval)
+                return False
 
             def replace_input_text(x: int, y: int, text: str) -> None:
                 """双击选中原内容，清空后向目标窗口直接输入文本。"""
@@ -1838,25 +1932,24 @@ class FAABase:
                     )
                     time.sleep(0.1)
 
-            # 先区分标签的选中状态，避免在已选中时再次点击导致页面切换。
-            selected = find("4399_账号密码登录_已选中.png", tolerance=0.999)
-            if selected is None:
-                unselected = find("4399_账号密码登录_未选中.png", tolerance=0.999)
-                if unselected is None:
+            # 表单是否可见直接反映标签选中态，因此先判断表单，再决定要不要点标签。
+            form = wait_login_form()
+            if form is None:
+                if not wait_and_click_tab():
+                    self.print_debug(
+                        text="[刷新游戏] [4399登录] 找不到账号密码表单与登录标签"
+                             f"(表单阈值 {tolerance_form} / 标签阈值 {tolerance_tab})，本轮放弃"
+                    )
                     return False
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                    handle=self.handle_browser,
-                    x=unselected[0],
-                    y=unselected[1],
-                )
-                time.sleep(1)
-                if find("4399_账号密码登录_已选中.png", tolerance=0.999) is None:
+                form = wait_login_form()
+                if form is None:
+                    self.print_debug(text="[刷新游戏] [4399登录] 已点击账号密码登录标签，仍未出现表单，本轮放弃")
                     return False
 
-            username_label = find("4399_用户名.png")
-            password_label = find("4399_密码.png")
-            login_button = find("4399_登录按钮.png")
-            if username_label is None or password_label is None or login_button is None:
+            username_label, password_label = form
+            login_button = find_in("4399_登录按钮.png", capture_frame(), 0.95)
+            if login_button is None:
+                self.print_debug(text="[刷新游戏] [4399登录] 找到账号密码表单但找不到登录按钮，本轮放弃")
                 return False
 
             username, password = load_login_credentials(platform="4399")
@@ -1875,18 +1968,40 @@ class FAABase:
             self.print_debug(text="[刷新游戏] [4399登录] 已清空密码框并输入配置密码")
 
             # 自动登录必须连同右侧文字一起识别，再根据标签中心回算勾选框位置。
-            if find("4399_自动登录_已勾选.png", tolerance=0.995) is None:
-                unchecked = find("4399_自动登录_未勾选.png", tolerance=0.995)
-                if unchecked is None:
-                    return False
+            # 两张模板的得分区间互相重叠，因此只比较同一帧上的相对得分：未勾选得分更高才点击，
+            # 因为点击已勾选的勾选框反而会把它取消。
+            checkbox_frame = capture_frame()
+            checked_score, _ = locate_in_frame(
+                image_name="4399_自动登录_已勾选.png",
+                source_image=checkbox_frame,
+            )
+            unchecked_score, unchecked_center = locate_in_frame(
+                image_name="4399_自动登录_未勾选.png",
+                source_image=checkbox_frame,
+            )
+            if checked_score is None or unchecked_score is None:
+                self.print_debug(text="[刷新游戏] [4399登录] 自动登录勾选框识图出错，跳过勾选并继续登录")
+            elif max(checked_score, unchecked_score) < checkbox_floor:
+                self.print_debug(
+                    text="[刷新游戏] [4399登录] 自动登录勾选框匹配度过低"
+                         f"(已勾选 {checked_score:.4f} / 未勾选 {unchecked_score:.4f})，跳过勾选并继续登录"
+                )
+            elif unchecked_score > checked_score + checkbox_margin:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle_browser,
-                    x=unchecked[0] - 30,
-                    y=unchecked[1],
+                    x=unchecked_center[0] - 30,
+                    y=unchecked_center[1],
                 )
                 time.sleep(0.5)
-                if find("4399_自动登录_已勾选.png", tolerance=0.995) is None:
-                    return False
+                self.print_debug(
+                    text="[刷新游戏] [4399登录] 已勾选自动登录"
+                         f"(已勾选 {checked_score:.4f} / 未勾选 {unchecked_score:.4f})"
+                )
+            else:
+                self.print_debug(
+                    text="[刷新游戏] [4399登录] 自动登录已处于勾选状态"
+                         f"(已勾选 {checked_score:.4f} / 未勾选 {unchecked_score:.4f})"
+                )
 
             T_ACTION_QUEUE_TIMER.add_click_to_queue(
                 handle=self.handle_browser,
