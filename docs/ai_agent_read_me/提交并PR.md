@@ -1,6 +1,7 @@
 # PR 工作流
 
-本文记录本仓库提交、发起 PR、设置元数据和合并时的固定规则。
+本文说明提交、创建 PR、设置标签和负责人，以及合并的操作方法。
+操作范围以根目录 [AGENTS.md](../../AGENTS.md) 和用户指令为准，文中的流程不代表操作授权。
 
 ## 标题格式
 
@@ -32,7 +33,7 @@ docs(开发文档): 补充模块说明
 
 ## PR 正文
 
-* PR 正文使用`中文`，可以没有正文。
+* PR 可以没有正文。
 * 正文仅需分点简要说明PR内容，不需要对检查描述。
 * 项目更喜欢用 `*` 符号分点而非 `-` 符号
 
@@ -89,7 +90,6 @@ PR 至少选择两个 label：
 * 同一个文件包含多项任务时，只提交当前功能对应的 hunk，不能整文件加入。
 * 一个完整功能需要代码、配置、资源、生成器和测试共同闭环时，可以在同一 PR 中提交这些文件。
 * 用户指定标题或标题后半部分时，优先原样采用，不自行缩写。
-* 用户的 GitHub 为 `StareAbyss` 时，默认直接以管理员权限审核并使用 merge commit 合并，无需再次询问用户是否通过。
 
 ## PR 拆分与杂项归类
 
@@ -100,7 +100,6 @@ PR 拆分优先考虑玩家可感知的功能边界和后续版本说明质量�
 - 文档与规划
   - 与代码功能同步编写的说明文档，必须跟随对应代码放入同一个 PR，不能为了 `docs` 类型单独拆分。
   - 不涉及代码变化的规范性补充，可以独立创建 `docs` 类型 PR。
-  - 未来规划、个人开发路线和尚未实施的架构设想保留在本地，不提交仓库；只有已经形成团队长期约束或与现有实现直接对应的内容才进入文档。
 - 测试
   - 随功能代码新增或修改的回归测试应跟随对应功能提交，但一般不需要在 PR 标题中单独体现；没有独立使用价值的零散测试整理归入 `build: 杂项`。
   - 只有具备独立入口、配置和执行能力的测试工具，才适合创建独立的 `test` 类型 PR。
@@ -157,8 +156,6 @@ uv run python -m py_compile path\to\file.py
 
 ## 操作示例：只提交脏工作区中的一个文件
 
-参考 PR `#942`：`build: 更新 2026 6.18-7.2 stage_info_online.json`。
-
 场景：
 
 * 当前工作区有大量无关修改和未跟踪文件。
@@ -186,40 +183,38 @@ try {
     git read-tree origin/main
     git add -- 'config/stage_info_online.json'
     $tree = git write-tree
-    $commit = git commit-tree $tree -p origin/main -m 'build(悬赏关卡): 更新 2026 6.18-7.2 stage_info_online.json'
+    $commit = git commit-tree $tree -p origin/main -m 'build(悬赏关卡): 更新悬赏关卡数据'
 }
 finally {
     Remove-Item Env:GIT_INDEX_FILE -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath $tempIndex -Force -ErrorAction SilentlyContinue
 }
 
-git branch -f codex/stage-info-20260618-0702 $commit
+git branch -f codex/stage-info-update $commit
 git show --stat --oneline --name-only $commit
 ```
 
 3. 推送干净分支并创建 PR。
 
 ```powershell
-git push -u origin codex/stage-info-20260618-0702
+git push -u origin codex/stage-info-update
 
 gh pr create `
   --base main `
-  --head codex/stage-info-20260618-0702 `
-  --title "build(悬赏关卡): 更新 2026 6.18-7.2 stage_info_online.json" `
-  --body "* 更新 config/stage_info_online.json，本期范围为 2026 6.18-7.2。
-* 更新时间写入 2026-06-18 12:00:00。
-* 补充本期悬赏关卡水面地形配置。" `
+  --head codex/stage-info-update `
+  --title "build(悬赏关卡): 更新悬赏关卡数据" `
+  --body "* 悬赏关卡数据与本期活动一致。" `
   --assignee StareAbyss `
   --label Git-Build `
   --label "🔄Module-Farmflow"
 ```
 
-4. 管理员通过并使用 merge commit 合并。
+4. 用户授权合并时，使用合并提交保留 PR 节点。
 
 ```powershell
-gh pr merge 942 --merge --admin --delete-branch
+gh pr merge <pr_number> --merge --admin --delete-branch
 git fetch origin main
-gh pr view 942 --json number,title,state,url,mergeCommit,labels,assignees
+gh pr view <pr_number> --json number,title,state,url,mergeCommit,labels,assignees
 ```
 
 注意：
