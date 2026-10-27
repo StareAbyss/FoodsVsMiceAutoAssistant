@@ -21,6 +21,7 @@ from function.common.process_manager import get_path_and_sub_titles
 from function.common.startup_manager import *
 from function.common.update_backup import backup_summary
 from function.common.update_state import detect_local_state
+from function.common.distribution_layout import LAUNCHER_EXE
 from function.core.faa.faa_mix import FAA
 from function.core.login_credentials import save_login_credentials
 from function.core.performance_analysis import QMWPerformanceAnalysis, run_analysis_in_thread
@@ -42,7 +43,6 @@ from function.core.qmw_tips.qmw_tip_server_wait import QMWTipServerWait
 from function.core.qmw_tips.qmw_tip_stage_id import QMWTipStageID
 from function.core.qmw_tips.qmw_tip_update import QMWTipUpdate
 from function.core.qmw_tips.qmw_tip_warm_gift import QMWTipWarmGift
-from function.core.qmw_update_backup_manager import QMWUpdateBackupManager
 from function.core.qmw_useful_tools_widget import UsefulToolsWidget
 from function.core.qmw_faa_view import QMWFAAView
 from function.core.todo import ThreadTodo
@@ -329,7 +329,6 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.CheckUpdateButton.clicked.connect(self.click_btn_check_update)
         self.ForceUpdateButton.clicked.connect(self.click_btn_force_update)
         self.NormalUpdateButton.clicked.connect(self.click_btn_normal_update)
-        self.BackupManagerButton.clicked.connect(self.click_btn_manage_update_backups)
         self.UpdateHelpButton.clicked.connect(self.click_btn_tip_update)
         self.CheckUpdateButton.setText("加载正式版更新列表")
         self.NormalUpdateButton.setText("更新至选中的版本")
@@ -341,7 +340,6 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.update_candidates = []
         self.update_target_mode = "release"
         self.dev_manifest_pages = 1
-        self.window_update_backup_manager = None
         self.window_tip_update = QMWTipUpdate()
         self.setup_update_state_labels()
         self.refresh_update_state_label(local_state=initial_local_state)
@@ -430,7 +428,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         backups_url = QtCore.QUrl.fromLocalFile(backups_path).toString()
         warning_text = (
             f"FAA 已保留 {summary['count']} 个更新备份，大小总计 {summary['total_size_text']}，"
-            f"<a href='{backups_url}'>点击跳转</a>查看，也可以在更新页使用“管理更新备份”清理。"
+            f"<a href='{backups_url}'>点击跳转</a>查看，也可以使用 FAA 安装器的“恢复到备份”页面查看和清理。"
         )
         SIGNAL.PRINT_TO_UI.emit("", time=False)
         SIGNAL.PRINT_TO_UI.emit(warning_text, color_level=1, time=False)
@@ -1585,11 +1583,6 @@ class QMainWindowService(QMainWindowLoadSettings):
             self.window_faa_view.shutdown()
         super().closeEvent(event)
 
-    def click_btn_manage_update_backups(self):
-        """打开更新备份管理窗口，用于查看、删除和恢复备份。"""
-        self.window_update_backup_manager = QMWUpdateBackupManager(self)
-        self.window_update_backup_manager.show()
-
     @staticmethod
     def _git_log_callback(level, msg):
         """Git 日志回调 - 根据等级映射颜色"""
@@ -1845,7 +1838,7 @@ class QMainWindowService(QMainWindowLoadSettings):
     def restart_application(self):
         """
         重启整个应用程序
-        干净地关闭所有线程和进程，然后重新启动一个新的 Python 进程
+        停止当前任务后优先使用根目录快速启动入口，源码环境缺少入口时直接启动 Python。
         """
 
         # 弹窗确认
@@ -1876,14 +1869,14 @@ class QMainWindowService(QMainWindowLoadSettings):
             startupinfo = subprocess.STARTUPINFO()
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
-            root_entry = os.path.join(PATHS["root"], "FAA.exe")
+            root_entry = os.path.join(PATHS["root"], LAUNCHER_EXE)
             if os.path.isfile(root_entry):
                 CUS_LOGGER.debug(f"[重启] 使用根目录固定入口：{root_entry}")
                 process = subprocess.Popen(
                     [root_entry],
                     cwd=PATHS["root"],
-                    shell=True,
-                    creationflags=subprocess.CREATE_NEW_CONSOLE,
+                    shell=False,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
                     startupinfo=startupinfo
                 )
             else:

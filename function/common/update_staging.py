@@ -12,6 +12,11 @@ from typing import Any, Callable
 
 from function.common.update_manifest import DEFAULT_OWNER, DEFAULT_REPO
 from function.common.update_state import write_update_state
+from function.common.distribution_layout import (
+    PACKAGE_FOLDERS, PACKAGE_FILES, ROOT_ENTRY_DIRECTORY, ROOT_ENTRY_FILES,
+    UV_ARCHIVE, ENVIRONMENT_INSTALLER_EXE, LAUNCHER_EXE,
+    validate_source_entries, validate_distribution,
+)
 
 
 STAGING_RELATIVE_PATH = Path("update_cache") / "staging" / "FAA.update.new"
@@ -21,69 +26,9 @@ ARCHIVE_WORK_RELATIVE_PATH = Path("update_cache") / "staging_archives"
 
 PRESERVE_FAILED_STAGING_COUNT = 2
 
-CONFIG_EXCLUDE_FILES = {
-    "settings.json",
-    "空间服登录界面_1P.png",
-    "空间服登录界面_2P.png",
-    "跨服远征_1p.png",
-}
-CONFIG_EXCLUDE_PATHS = {
-    Path("config/cus_images/背包_装备_需使用的/任意通用包裹.png"),
-    Path("config/cus_images/背包_装备_需使用的/星际酬劳.png"),
-    Path("config/cus_images/背包_装备_需使用的/浮空酬劳.png"),
-    Path("config/cus_images/背包_装备_需使用的/火山酬劳.png"),
-    Path("config/cus_images/背包_装备_需使用的/美味酬劳.png"),
-}
-
-PACKAGE_FOLDERS = (
-    ("config", Path("config"), CONFIG_EXCLUDE_FILES, CONFIG_EXCLUDE_PATHS, set()),
-    # Root entries are copied to the published root; PowerShell bodies stay under plugins.
-    ("plugins/root_entries", Path("."), set(), set(), set()),
-    ("plugins/launcher_scripts", Path("plugins/launcher_scripts"), set(), set(), set()),
-    ("function", Path("function"), set(), set(), {".pyc"}),
-    ("plugins/pak", Path("plugins/pak"), set(), set(), set()),
-    ("plugins/updater", Path("plugins/updater"), set(), set(), set()),
-    ("battle_plan", Path("battle_plan"), set(), set(), set()),
-    ("battle_plan_not_active", Path("battle_plan_not_active"), set(), set(), set()),
-    ("md_img", Path("md_img"), set(), set(), set()),
-    ("task_sequence", Path("task_sequence"), set(), set(), set()),
-    ("tweak_plan", Path("tweak_plan"), set(), set(), set()),
-    ("resource", Path("resource"), set(), set(), {".pyc"}),
-)
-
-PACKAGE_FILES = (
-    "新手入门 看我!!! 看我!!! 看我!!!.txt",
-    "FAA-支持性检测, 仅限Win10+.bat",
-    "LICENSE",
-    "README.md",
-    "README - 高级放卡.md",
-    "致谢名单.md",
-    "致谢名单.png",
-    "FAA-恢复到备份.bat",
-    "config/item_ranking_dag_graph.json",
-    ".python-version",
-    "pyproject.toml",
-    "uv.lock",
-)
-
 IMAGE_RESOURCE_EXCEL_PATTERN = "点我获取更多图像资源 *.xlsx"
 IMAGE_RESOURCE_EXCEL_DATE_RE = re.compile(r"点我获取更多图像资源 (?P<date>\d{4}-\d{2}-\d{2})\.xlsx$")
 
-REQUIRED_STAGING_PATHS = (
-    "LICENSE",
-    "pyproject.toml",
-    "uv.lock",
-    "FAA.exe",
-    "FAA-恢复到备份.bat",
-    "FAA-卸除运行环境.bat",
-    "FAA-调试模式启动.bat",
-    "plugins/launcher_scripts/AppInstallRun.bat",
-    "plugins/launcher_scripts/AppInstallRun.ps1",
-    "plugins/launcher_scripts/UVFAAUninstaller.ps1",
-    "plugins/launcher_scripts/uv",
-    "function",
-    "resource",
-)
 
 
 class StagingError(RuntimeError):
@@ -275,10 +220,10 @@ def extract_single_root(zip_path: Path, extract_parent: Path) -> Path:
     return extract_parent
 
 
-def copy_file(source_root: Path, dest_root: Path, relative_path: str | Path, required: bool = True) -> None:
+def copy_file(source_root: Path, dest_root: Path, relative_path: str | Path, required: bool = True, destination: str | Path | None = None) -> None:
     relative_path = Path(relative_path)
     source = source_root / relative_path
-    dest = dest_root / relative_path
+    dest = dest_root / (Path(destination) if destination is not None else relative_path)
     if not source.is_file():
         if required:
             raise StagingError(f"Missing required file: {relative_path}")
@@ -358,7 +303,14 @@ def build_distribution_from_source(source_root: Path, dest_root: Path) -> Path:
     if dest_root.exists():
         raise StagingError(f"Staging destination already exists: {dest_root}")
 
+    try:
+        validate_source_entries(source_root)
+    except FileNotFoundError as exc:
+        raise StagingError("所选版本的发行文件不完整，已停止准备更新；请改选完整版本或联系维护者。" + str(exc)) from exc
     dest_root.mkdir(parents=True, exist_ok=False)
+
+    for name in ROOT_ENTRY_FILES:
+        copy_file(source_root, dest_root, ROOT_ENTRY_DIRECTORY / name, destination=name)
 
     for folder, dest_subdir, exclude_files, exclude_paths, exclude_suffixes in PACKAGE_FOLDERS:
         copy_folder(
@@ -369,27 +321,14 @@ def build_distribution_from_source(source_root: Path, dest_root: Path) -> Path:
             exclude_files=set(exclude_files),
             exclude_paths=set(exclude_paths),
             exclude_suffixes=set(exclude_suffixes),
-            required=folder not in {"plugins/updater"},
+            required=True,
         )
 
     for file_path in PACKAGE_FILES:
-        copy_file(source_root, dest_root, file_path, required=file_path not in {"FAA-恢复到备份.bat"})
+        copy_file(source_root, dest_root, file_path)
     copy_latest_image_resource_excel(source_root, dest_root)
 
     return dest_root
-
-
-def copy_update_tools_from_current_root(current_root: Path, staging_root: Path) -> None:
-    current_updater = current_root / "plugins" / "updater"
-    staging_updater = staging_root / "plugins" / "updater"
-    if current_updater.is_dir() and not (staging_updater / "updater.py").is_file():
-        shutil.copytree(current_updater, staging_updater, dirs_exist_ok=True)
-
-    restore_script = Path("FAA-恢复到备份.bat")
-    current_restore_script = current_root / restore_script
-    staging_restore_script = staging_root / restore_script
-    if current_restore_script.is_file() and not staging_restore_script.is_file():
-        shutil.copy2(current_restore_script, staging_restore_script)
 
 
 def build_staging_state(target: dict[str, Any]) -> dict[str, Any]:
@@ -413,9 +352,10 @@ def build_staging_state(target: dict[str, Any]) -> dict[str, Any]:
 
 
 def validate_staging(staging_root: Path) -> None:
-    missing = [relative for relative in REQUIRED_STAGING_PATHS if not (staging_root / relative).exists()]
-    if missing:
-        raise StagingError(f"Prepared staging is incomplete; missing: {', '.join(missing)}")
+    try:
+        validate_distribution(staging_root)
+    except ValueError as exc:
+        raise StagingError(str(exc)) from exc
     if (staging_root / ".git").exists():
         raise StagingError("Prepared staging must not contain .git")
 
@@ -437,7 +377,6 @@ def prepare_staging_from_archive(root: Path, archive_path: Path, target: dict[st
     try:
         source_root = extract_single_root(archive_path, extract_parent)
         build_distribution_from_source(source_root, staging)
-        copy_update_tools_from_current_root(root, staging)
         write_update_state(staging, build_staging_state(target))
         validate_staging(staging)
     except Exception:
@@ -490,10 +429,8 @@ def describe_staging(staging_root: Path) -> dict[str, Any]:
         "path": str(staging_root),
         "state": state,
         "has_git": (staging_root / ".git").exists(),
-        "has_launcher": (staging_root / "plugins" / "launcher_scripts" / "AppInstallRun.bat").is_file(),
-        "has_launcher_script": (staging_root / "plugins" / "launcher_scripts" / "AppInstallRun.ps1").is_file(),
-        "has_console_launcher": (staging_root / "FAA-调试模式启动.bat").is_file(),
-        "has_uninstaller": (staging_root / "FAA-卸除运行环境.bat").is_file(),
-        "has_uninstaller_script": (staging_root / "plugins" / "launcher_scripts" / "UVFAAUninstaller.ps1").is_file(),
-        "has_exe_launcher": (staging_root / "FAA.exe").is_file(),
+        "has_exe_launcher": (staging_root / LAUNCHER_EXE).is_file(),
+        "has_environment_installer": (staging_root / ENVIRONMENT_INSTALLER_EXE).is_file(),
+        "has_uv_archive": (staging_root / UV_ARCHIVE).is_file(),
+        "has_updater": (staging_root / "plugins/updater/updater.py").is_file(),
     }
