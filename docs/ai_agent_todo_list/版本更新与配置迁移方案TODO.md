@@ -11,12 +11,12 @@
 - 不在当前运行目录原地 `git pull`、`reset --hard`、`clean` 或切换分支。
 - 更新流程采用“下载到 staging -> 迁移用户数据 -> 外部 updater 替换版本区”。
 - 回退通过更新前备份恢复，不通过选择旧 commit 实现。
-- `.venv/`、`backups/`、`update_cache/`、`FAA-恢复到备份.bat` 是保留区，不随版本覆盖。
+- `.venv/`、`backups/`、`update_cache/` 和 `FAA - 环境安装器.exe` 是保留区，不随版本覆盖；旧名称 `FAA-安装器.exe` 也按维护工具保留。
 - 除保留区外，根目录其他内容视为版本区。未被迁移器迁移的旧版本内容可以随旧版本进入备份。
 - `logs/` 不整体保留，只有迁移规则明确列出的内容才迁移。
-- `FAA.exe` 是普通用户正式入口，内部只负责调用 `plugins/launcher_scripts/AppInstallRun.bat`。
-- `plugins/launcher_scripts/AppInstallRun.bat` 是内部启动壳，不在根目录暴露；每次更新后由新版覆盖为正确内容。
-- `plugins/launcher_scripts/AppInstallRun.ps1` 是固定安装和运行脚本，负责中文提示、环境准备和独立启动主程序。
+- `FAA - 快速启动.exe` 是普通用户原生启动入口，仅使用已有环境尝试启动 FAA 并识别本次主窗口；启动失败时自动打开 `FAA - 环境安装器.exe` 并传入错误报告。
+- 正式入口固定为根目录的 `FAA - 快速启动.exe` 与 `FAA - 环境安装器.exe`，源码成品统一位于 `plugins/root_entries/`。
+- 发行和 staging 共用 `function/common/distribution_layout.py` 白名单，不分发运行时 BAT、PS1、未列入清单的程序或本机 bin 缓存。
 
 ## 已落地
 
@@ -26,7 +26,7 @@
 
 - [x] 改造 `一键生成分发资源.py`
   - 打包时自动写入 `dist/FAA/update_cache/update_state.json`。
-  - 将 `plugins/updater` 和 `FAA-恢复到备份.bat` 纳入分发资源。
+  - 将两个正式 EXE、固定 uv ZIP 和 `plugins/updater/updater.py` 纳入分发资源。
 
 - [x] 新增 `function/common/update_manifest.py`
   - 通过 GitHub API 读取版本 tag。
@@ -50,7 +50,7 @@
   - `failed_staging/` 最多保留 2 份。
   - 目标版本缺少 `plugins/updater` 时，从当前安装目录补入 updater。
   - staging 中自动写入目标版本的 `update_cache/update_state.json`。
-  - 校验 `LICENSE`、`pyproject.toml`、`uv.lock`、`FAA.exe`、`FAA-调试模式启动.bat`、`FAA-卸除运行环境.bat`、`FAA-恢复到备份.bat`、`plugins/launcher_scripts/AppInstallRun.bat`、`plugins/launcher_scripts/AppInstallRun.ps1`、`function/`、`resource/` 等关键内容。
+  - 按共用发行布局校验两个正式 EXE、固定 uv ZIP、更新执行核心、项目入口及资源，不要求运行时脚本。
 
 - [x] 新增 `function/common/update_space.py`
   - 估算当前版本区大小、staging 大小、磁盘可用空间和安全余量。
@@ -99,27 +99,23 @@
   - 支持 `update` 和 `restore` 两种模式。
   - update：当前版本区移动到 `backups/FAA.backup.<timestamp>/`，staging 版本区移动到根目录。
   - restore：当前版本区先移动到 `FAA.before-restore.*`，再从指定备份恢复。
-  - 保留 `.venv/`、`backups/`、`update_cache/`、`FAA-恢复到备份.bat`。
+  - 保留 `.venv/`、`backups/`、`update_cache/`。
   - 支持 `--wait-pid`、`--wait-timeout`。
   - 每个关键阶段写入 `update_cache/updater_state.json`。
   - 日志写入 `update_cache/updater_logs/`。
   - 更新或恢复失败时尽量回滚，并保留失败现场。
 
-- [x] 新增 `FAA-恢复到备份.bat`
-  - GUI 无法启动时可列出 `backups/` 备份。
-  - 用户选择备份并二次确认后调用 updater restore。
-
-- [x] 新增 `function/core/qmw_update_backup_manager.py`
-  - 可视化管理更新备份。
-  - 支持刷新、查看版本信息、删除、恢复。
-  - 恢复时启动临时 updater，当前程序退出后执行。
+- [x] 原生安装器的“恢复到备份”页面统一管理备份。
+  - 支持刷新、查看版本及完整元数据、删除和恢复。
+  - 恢复时调用内嵌 updater，保留安装器与当前日志；恢复前保存当前版本，失败时尝试回滚。
+  - 删除限制在当前 backups 下的受管目录，不跟随目录链接；不完整备份可删除但不可恢复。
 
 - [x] 改造更新页 UI 和逻辑
   - [x] `resource/ui/FAA_3.0.ui` 已直接包含更新状态 label、进度 label 和 3 行按钮布局。
   - [x] 第 1 行：加载正式版更新列表 / 更新至选中的版本。
   - [x] 第 2 行：加载开发版更新列表 / 加载更多开发者更新内容。
-  - [x] 第 3 行：管理更新备份 / 查看相关说明。
-  - [x] `function/core/qmw_3_service.py` 接入正式版列表、开发者列表、更新准备、备份管理和说明窗口。
+  - [x] 第 3 行：查看相关说明，横跨整行。
+  - [x] `function/core/qmw_3_service.py` 接入正式版列表、开发者列表、更新准备和说明窗口。
   - [x] 更新页显示当前版本、tag、PR、commit、分支、来源、状态。
   - [x] 更新页显示当前操作阶段和已等待秒数。
   - [x] 网络错误会转换成用户可理解的提示，例如连接断开、读取不完整、超时、DNS、证书、rate limit。
@@ -181,8 +177,8 @@ PR merge commit = main 上形如 “Merge pull request #927 ...” 的双 parent
 15. updater 等待主程序退出。
 16. updater 备份当前版本区。
 17. updater 把 staging 版本区移动到根目录。
-18. updater 启动 FAA.exe。
-19. 新版启动流程通过 uv sync --locked --no-dev 修正普通用户运行环境。
+18. updater 启动 FAA - 快速启动.exe。
+19. 快速启动仅使用已有环境；启动失败时打开环境安装器，由用户确认后按锁文件安装或修复依赖。
 ```
 
 禁止流程：
@@ -191,7 +187,7 @@ PR merge commit = main 上形如 “Merge pull request #927 ...” 的双 parent
 删除当前根目录 -> 移动新版进来
 ```
 
-原因：容易误删 `.venv/`、`backups/`、`update_cache/`、`FAA-恢复到备份.bat`。
+原因：容易误删 `.venv/`、`backups/`、`update_cache/`。
 
 ## 迁移规则现状
 
@@ -309,7 +305,7 @@ UUID 读取位置：
 - [x] GitHub API rate limit 导致无法刷新远端列表。
 - [x] 清理根目录时误删保留区。
 - [x] updater 从 FAA 根目录运行导致 cwd 占用。
-- [x] `.venv` 保留但未执行新版 `uv sync --locked --no-dev`。
+- [x] 已有环境不完整或依赖不符导致新版启动失败时，快速启动器会交给环境安装器，由用户按新版锁文件修复。
 - [x] 上次 staging 半成品被误当作本次更新结果。
 
 ## 与旧热更新 commit 的关系
@@ -338,16 +334,16 @@ UUID 读取位置：
 
 基础检查：
 
-- [ ] `uv run python -m py_compile function/common/update_manifest.py function/common/update_staging.py function/common/update_state.py function/common/update_backup.py function/common/update_space.py function/core/git_update_manager.py function/core/settings_migration.py function/core/update_prepare.py function/core/update_apply.py function/core/qmw_update_backup_manager.py plugins/updater/updater.py function/core/qmw_3_service.py`
+- [ ] `uv run python -m py_compile function/common/update_manifest.py function/common/update_staging.py function/common/update_state.py function/common/update_backup.py function/common/update_space.py function/core/git_update_manager.py function/core/settings_migration.py function/core/update_prepare.py function/core/update_apply.py plugins/updater/updater.py function/core/qmw_3_service.py`
 - [ ] 启动主程序，确认更新页控件显示正常。
 - [ ] 点击“查看相关说明”，确认说明窗口可打开。
-- [ ] 点击“管理更新备份”，确认备份管理窗口可打开。
+- [ ] 在原生安装器的“恢复到备份”页检查详情、删除和恢复；确认 FAA 更新页的说明按钮横跨整行。
 
 离线/低风险测试：
 
 - [ ] 用本地 archive 调用 `prepare_update_from_archive()`，确认 staging 构建成功。
 - [ ] 检查 staging 不包含 `.git`。
-- [ ] 检查 staging 包含 `FAA.exe`、`FAA-调试模式启动.bat`、`FAA-卸除运行环境.bat`、`FAA-恢复到备份.bat`、`plugins/launcher_scripts/AppInstallRun.bat`、`plugins/launcher_scripts/AppInstallRun.ps1`、`pyproject.toml`、`uv.lock`、`function/`、`resource/`。
+- [ ] 检查 staging 根目录包含两个正式 EXE，并包含固定 uv ZIP、updater.py、pyproject.toml、uv.lock、function 与 resource；不包含运行时脚本、未列入清单的程序或 bin 缓存。
 - [ ] 检查 staging 内 `update_cache/update_state.json` 正确写入目标版本。
 - [ ] 检查 staging 内 `update_cache/migration_report.json` 正确记录迁移结果。
 

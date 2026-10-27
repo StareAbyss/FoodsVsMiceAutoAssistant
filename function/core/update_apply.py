@@ -7,6 +7,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from function.common.distribution_layout import LAUNCHER_EXE
+
 
 def timestamp() -> str:
     return datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -40,7 +42,7 @@ def build_update_command(
     staging: Path,
     updater_script: Path,
     wait_pid: int | None = None,
-    launch: str = "FAA.exe",
+    launch: str = LAUNCHER_EXE,
 ) -> list[str]:
     command = [
         str(select_python_executable(root)),
@@ -63,7 +65,7 @@ def build_restore_command(
     backup: Path,
     updater_script: Path,
     wait_pid: int | None = None,
-    launch: str = "FAA.exe",
+    launch: str = LAUNCHER_EXE,
 ) -> list[str]:
     command = [
         str(select_python_executable(root)),
@@ -85,7 +87,7 @@ def launch_update_from_staging(
     root: Path,
     staging: Path,
     wait_pid: int | None = None,
-    launch: str = "FAA.exe",
+    launch: str = LAUNCHER_EXE,
 ) -> dict[str, Any]:
     root = Path(root).resolve()
     staging = Path(staging).resolve()
@@ -103,7 +105,7 @@ def launch_restore_from_backup(
     root: Path,
     backup: Path,
     wait_pid: int | None = None,
-    launch: str = "FAA.exe",
+    launch: str = LAUNCHER_EXE,
 ) -> dict[str, Any]:
     root = Path(root).resolve()
     backup = Path(backup).resolve()

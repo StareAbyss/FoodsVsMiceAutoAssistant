@@ -7434,20 +7434,7 @@ FAA放卡核心原理简述:
                  </property>
                 </widget>
                </item>
-               <item row="2" column="0">
-                <widget class="QPushButton" name="BackupManagerButton">
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>34</height>
-                  </size>
-                 </property>
-                 <property name="text">
-                  <string>管理更新备份</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="2" column="1">
+               <item row="2" column="0" colspan="2">
                 <widget class="QPushButton" name="UpdateHelpButton">
                  <property name="minimumSize">
                   <size>

@@ -7,6 +7,10 @@ from datetime import datetime
 from pathlib import Path
 
 from function.common.update_state import write_packaged_update_state
+from function.common.distribution_layout import (
+    PACKAGE_FOLDERS, PACKAGE_FILES, ROOT_ENTRY_DIRECTORY, ROOT_ENTRY_FILES,
+    validate_source_entries, validate_distribution,
+)
 
 
 IMAGE_RESOURCE_EXCEL_DATE_RE = re.compile(r"点我获取更多图像资源 (?P<date>\d{4}-\d{2}-\d{2})\.xlsx$")
@@ -41,18 +45,32 @@ def find_project_root(start: Path) -> Path:
     raise FileNotFoundError(f"Cannot locate project root from {start}; LICENSE was not found.")
 
 
-def clean_dist_dir(project_root: Path, dest_dir: Path) -> None:
-    resolved_dest = dest_dir.resolve()
-    expected_parent = (project_root / "dist").resolve()
+def remove_dist_dir(project_root: Path, dest_dir: Path) -> None:
+    """只清理当前源码根目录内的发行暂存目录，拒绝指向外部的目录链接。
 
-    if resolved_dest != expected_parent / "FAA":
+    Args:
+        project_root: 本次打包的源码根目录。
+        dest_dir: 待清理的 dist/FAA 暂存路径。
+
+    Raises:
+        ValueError: 路径不是源码根目录内的 dist/FAA。
+        OSError: 目录被占用或无法删除。
+    """
+    resolved_dest = dest_dir.resolve()
+    expected_dest = project_root.resolve() / "dist" / "FAA"
+
+    if resolved_dest != expected_dest:
         raise ValueError(f"Refuse to clean unexpected dist path: {resolved_dest}")
 
     if resolved_dest.exists():
         print(f"Cleaning old dist directory: {resolved_dest}")
         shutil.rmtree(resolved_dest)
 
-    resolved_dest.mkdir(parents=True, exist_ok=True)
+
+def clean_dist_dir(project_root: Path, dest_dir: Path) -> None:
+    """通过受限路径检查后重新创建发行暂存目录。"""
+    remove_dist_dir(project_root, dest_dir)
+    dest_dir.mkdir(parents=True, exist_ok=True)
 
 
 def read_project_version(project_root: Path) -> str:
@@ -93,12 +111,12 @@ class FileMover:
     def _normalize_relative(relative_path) -> Path:
         return Path(relative_path)
 
-    def add_file(self, relative_path, required=True):
+    def add_file(self, relative_path, required=True, dest_relative=None):
         """Add one file to the copy list."""
         rel_path = self._normalize_relative(relative_path)
         full_path = self.src_dir / rel_path
         if full_path.is_file():
-            self.to_move.append((full_path, self.dest_dir / rel_path))
+            self.to_move.append((full_path, self.dest_dir / (Path(dest_relative) if dest_relative is not None else rel_path)))
             return
 
         message = f"Missing required file: {rel_path}"
@@ -202,6 +220,34 @@ def get_latest_existing_excel_file(project_root: Path):
     return None
 
 
+def create_distribution_plan(project_root: Path, dest_dir: Path, latest_excel: Path | None = None) -> FileMover:
+    """共用发行清单生成复制计划，缺少正式 EXE 时不清理已有输出。
+
+    Args:
+        project_root: 包含预编译正式入口及资源的源码根目录。
+        dest_dir: 复制目的目录，生成计划时不创建或清理此目录。
+        latest_excel: 需要额外加入计划的源码相对 Excel 路径，可省略。
+
+    Returns:
+        尚未执行复制的 FileMover 计划。
+
+    Raises:
+        FileNotFoundError: 必需源码、资源或预编译入口缺失。
+    """
+    validate_source_entries(project_root)
+    mover = FileMover(project_root, dest_dir)
+    for name in ROOT_ENTRY_FILES:
+        mover.add_file(ROOT_ENTRY_DIRECTORY / name, dest_relative=name)
+    for folder, destination, exclude_files, exclude_paths, exclude_suffixes in PACKAGE_FOLDERS:
+        mover.add_folder(folder, dest_subdir=destination, exclude_files=exclude_files,
+                         exclude_paths=exclude_paths, exclude_types=exclude_suffixes)
+    for path in PACKAGE_FILES:
+        mover.add_file(path)
+    if latest_excel is not None:
+        mover.add_file(latest_excel)
+    return mover
+
+
 def main():
     project_root = find_project_root(Path(__file__).parent)
     dest_dir = project_root / "dist" / "FAA"
@@ -216,77 +262,15 @@ def main():
         print(f"\n{exc}")
         raise SystemExit(1) from None
 
+    mover = create_distribution_plan(project_root, dest_dir, latest_excel)
     clean_dist_dir(project_root, dest_dir)
-
-    # 初始化 FileMover 实例
-    mover = FileMover(
-        src_dir=project_root,
-        dest_dir=dest_dir,
-    )
-
-    # 添加文件夹及其排除列表
-    mover.add_folder(
-        target="config",
-        exclude_files=[
-            "settings.json",
-            "空间服登录界面_1P.png",
-            "空间服登录界面_2P.png",
-            "跨服远征_1p.png",
-        ],
-        exclude_paths=[
-            "config/cus_images/背包_装备_需使用的/任意通用包裹.png",
-            "config/cus_images/背包_装备_需使用的/星际酬劳.png",
-            "config/cus_images/背包_装备_需使用的/浮空酬劳.png",
-            "config/cus_images/背包_装备_需使用的/火山酬劳.png",
-            "config/cus_images/背包_装备_需使用的/美味酬劳.png",
-        ],
-    )
-
-    mover.add_folder(target="plugins/root_entries", dest_subdir=".")
-    mover.add_folder(target="plugins/launcher_scripts")
-
-    mover.add_folder(target="function")
-
-    mover.add_folder(target="plugins/pak")
-    mover.add_folder(target="plugins/updater")
-    mover.add_folder(target="battle_plan")
-    mover.add_folder(target="battle_plan_not_active")
-    mover.add_folder(target="md_img")
-    mover.add_folder(target="task_sequence")
-    mover.add_folder(target="tweak_plan")
-    mover.add_folder(target="resource",exclude_types=[".pyc"],)
-
-    # 添加文件或文件夹
-    tar_files = [
-        "新手入门 看我!!! 看我!!! 看我!!!.txt",
-        "FAA-支持性检测, 仅限Win10+.bat",
-        "LICENSE",
-        "README.md",
-        "README - 高级放卡.md",
-        "致谢名单.md",
-        "致谢名单.png",
-        "FAA-恢复到备份.bat",
-        "config/item_ranking_dag_graph.json",
-        ".python-version",
-        "pyproject.toml",
-        "uv.lock",
-    ]
-
-    # 添加最新的图像资源Excel文件
-    if latest_excel:
-        tar_files.append(latest_excel)
-        print(f"\n[OK] 已添加图像资源文件到打包列表: {latest_excel}")
-    else:
-        print("\nWarning: 未找到图像资源文件，将跳过此文件")
-
-    for tar_file in tar_files:
-        mover.add_file(tar_file)
 
     # 预览移动
     mover.preview()
 
     # 实际移动
     mover.run()
+    validate_distribution(dest_dir)
 
     state_path = write_packaged_update_state(project_root, dest_dir)
     print(f"Generated update state: {state_path}")
@@ -298,7 +282,11 @@ def main():
         print("Removed developer-only packaging script from distribution.")
 
     archive_dir = archive_dist_dir(project_root, dest_dir)
+    validate_distribution(archive_dir)
     print(f"Archived distribution: {archive_dir}")
+    # 归档复制和校验均成功后再清理，失败时保留现场供排查或重试。
+    remove_dist_dir(project_root, dest_dir)
+    print("已清理发行暂存目录。")
 
 
 r"""
