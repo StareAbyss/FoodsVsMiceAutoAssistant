@@ -1609,6 +1609,7 @@ class ThreadTodo(QThread):
         if is_group and ("MT-1" in stage_id or "MT-3" in stage_id or "WB" in stage_id):
             SIGNAL.PRINT_TO_UI.emit(text=f"{title}检测到组队进行单人关卡, 强制应用: 仅1P单人")
             player = [1]
+            is_group = False
 
         if "MT-1" in stage_id:
             SIGNAL.PRINT_TO_UI.emit(text=f"{title}检测到魔塔单人, 强制应用: 特殊关卡退出策略, 不使用钥匙")
@@ -1654,6 +1655,8 @@ class ThreadTodo(QThread):
 
         if is_group and ("CS" not in stage_id) and (not is_cu):
             SIGNAL.PRINT_TO_UI.emit(text=f"{title}检测到多人常规关卡, 强制应用: 2P房主")
+            # 邀请固定点击好友首项，需由仅添加1P好友的2P创建房间。
+            player = [2, 1]
 
         # 处理多人信息 (这些信息只影响函数内, 所以不判断是否组队)
         pid_a = player[0]  # 房主 创建房间者
