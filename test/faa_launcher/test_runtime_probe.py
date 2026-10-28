@@ -11,13 +11,11 @@ import unittest
 from unittest.mock import patch
 import venv
 
-
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "tool/faa_launcher/runtime_probe.py"
 SPEC = importlib.util.spec_from_file_location("faa_runtime_probe", SOURCE)
 PROBE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(PROBE)
-
 
 class RuntimeProbeTests(unittest.TestCase):
     """使用子进程结果夹具验证崩溃、超时与提示对启动资格的影响。"""
@@ -117,8 +115,7 @@ class EmbeddedRuntimeProbeTests(unittest.TestCase):
             self.assertIn("review=0\nfailed=1\nchecks=12\n", report)
             self.assertIn("[fail] 启动资源与目录写入", report)
             self.assertIn("selected=files\n", report)
-            self.assertFalse(list((root / "update_cache/launcher_demo").glob("runtime-*.py")))
-
+            self.assertFalse(list((root / "update_cache/launcher").glob("runtime-*.py")))
 
 if __name__ == "__main__":
     unittest.main()

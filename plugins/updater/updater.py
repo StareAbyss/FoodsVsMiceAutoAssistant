@@ -14,11 +14,8 @@ from collections.abc import Callable
 
 ENVIRONMENT_INSTALLER_EXE = "FAA - 环境安装器.exe"
 PRESERVED_NAMES = {".venv", "backups", "update_cache", ENVIRONMENT_INSTALLER_EXE}
-# 备份可能含旧命名的维护工具，恢复时不把这些入口重新覆盖到当前版本。
-PRESERVED_NAMES |= {"FAA-安装器.exe"}
-# 更新器从系统临时目录运行，替换文件期间不能导入 FAA 模块；此名称由交接测试与发行清单核对。
+# 更新执行期间会移动 FAA 源码，独立脚本不能导入正在替换的模块。
 DEFAULT_LAUNCHER_EXE = "FAA - 快速启动.exe"
-LEGACY_LAUNCHER_EXE = "FAA.exe"
 STATE_RELATIVE_PATH = Path("update_cache") / "update_state.json"
 UPDATER_STATE_RELATIVE_PATH = Path("update_cache") / "updater_state.json"
 
@@ -156,7 +153,7 @@ def install_packaged_state(root: Path, staging_root: Path) -> None:
 
 
 def install_missing_environment_installer(root: Path, staging_root: Path) -> None:
-    """旧安装缺少环境安装器时从新版补入，已有工具保持原样，不覆盖正在运行的 EXE。"""
+    """本地缺少环境安装器时从暂存包补入，避免覆盖正在运行的 EXE。"""
     source, target = staging_root / ENVIRONMENT_INSTALLER_EXE, root / ENVIRONMENT_INSTALLER_EXE
     if target.exists() or not source.is_file():
         return
@@ -185,26 +182,19 @@ def prune_failed_staging(root: Path, keep: int = 2) -> None:
 
 
 def launch_entry(root: Path, entry: str | None) -> None:
-    """直接启动指定入口；产品默认入口兼容旧参数和只包含旧入口的历史备份。
+    """直接启动指定入口。
 
     Args:
         root: 更新或恢复后的 FAA 根目录。
         entry: 产品入口名称或自定义文件名；为空时不启动。
 
     Raises:
-        FileNotFoundError: 指定入口以及适用的兼容入口均不存在。
+        FileNotFoundError: 指定入口不存在。
     """
     if not entry:
         return
 
     entry_path = root / entry
-    if entry in {DEFAULT_LAUNCHER_EXE, LEGACY_LAUNCHER_EXE}:
-        # 新旧名称请求都优先使用当前入口；历史备份只有旧入口时仍能完成恢复后的启动。
-        for name in (DEFAULT_LAUNCHER_EXE, LEGACY_LAUNCHER_EXE):
-            candidate = root / name
-            if candidate.is_file():
-                entry_path = candidate
-                break
     if not entry_path.is_file():
         raise FileNotFoundError(f"Launch entry not found: {entry_path}")
 

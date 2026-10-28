@@ -162,7 +162,7 @@ class EntryFallbackTests(unittest.TestCase):
 
     def test_early_exit_opens_installer_with_startup_log(self):
         self.run_entry(mode="splash", expected=1)
-        report = next((self.root / "logs/launcher_demo").glob("startup-failure-*.txt"))
+        report = next((self.root / "logs/launcher").glob("startup-failure-*.txt"))
         self.assertIn("FAA 尚未成功打开", report.read_text(encoding="utf-8"))
 
     def test_invalid_root_still_opens_installer(self):

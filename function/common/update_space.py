@@ -5,7 +5,7 @@ from typing import Any
 from function.common.distribution_layout import ENVIRONMENT_INSTALLER_EXE
 
 
-PRESERVED_NAMES = {".venv", "backups", "update_cache", ENVIRONMENT_INSTALLER_EXE, "FAA-安装器.exe"}
+PRESERVED_NAMES = {".venv", "backups", "update_cache", ENVIRONMENT_INSTALLER_EXE}
 
 
 def path_size(path: Path) -> int:
