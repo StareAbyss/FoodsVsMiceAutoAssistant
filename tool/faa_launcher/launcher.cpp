@@ -138,7 +138,7 @@ bool SyncDependencies(const Options& options, const std::wstring& uv,int stage=3
         return RunInstallCommand(options, stage, uv, arguments);
     }
     // uv.lock 固定了下载地址。换源时先验证并导出锁定版本和 hash，避免重新解析或改写发行包的锁文件。
-    const std::wstring requirements = Join(options.root,L"update_cache\\launcher_demo\\requirements-" + Timestamp() + L".txt");
+    const std::wstring requirements = Join(options.root,L"update_cache\\launcher\\requirements-" + Timestamp() + L".txt");
     if (!MakeDirectories(Parent(requirements))) {
         Failure(options,stage,L"无法准备依赖清单",SystemError(GetLastError()),Problem::Permission); return false;
     }
@@ -166,7 +166,7 @@ bool PrepareUv(const Options& options, const std::wstring& launcherDirectory, co
         Failure(options, stage, L"安装工具校验失败", L"内置 uv 压缩包缺失或内容与发行包不一致，请重新解压完整安装包。", Problem::Files);
         return false;
     }
-    const std::wstring scratch = Join(options.root, L"update_cache\\launcher_demo\\uv-" + Timestamp());
+    const std::wstring scratch = Join(options.root, L"update_cache\\launcher\\uv-" + Timestamp());
     if (!MakeDirectories(scratch) || !MakeDirectories(Parent(uv))) {
         Failure(options, stage, L"无法写入安装工具", SystemError(GetLastError()), Problem::Permission); return false;
     }
@@ -209,7 +209,7 @@ std::string EmbeddedResource(int id) {
     return bytes?std::string(bytes,SizeofResource(module,resource)):"";
 }
 bool RunRuntimeChecks(const Options& options) {
-    const std::wstring helper=Join(options.root,L"update_cache\\launcher_demo\\runtime-"+Timestamp()+L".py");
+    const std::wstring helper=Join(options.root,L"update_cache\\launcher\\runtime-"+Timestamp()+L".py");
     const std::string source=EmbeddedResource(3);
     if(source.empty()){Failure(options,4,L"安装器中的检测资源缺失",L"请重新下载完整安装器后重试。",Problem::Files);return false;}
     if(!MakeDirectories(Parent(helper))||!WriteFileBytes(helper,source)) {Failure(options,4,L"无法准备运行环境检测",SystemError(GetLastError()),Problem::Permission);return false;}
@@ -250,7 +250,7 @@ bool LaunchFaa(const Options& options) {
         Failure(options, 5, L"没有找到 Python 启动程序", L"运行环境不完整，请使用“修复依赖”后重新启动。", Problem::Dependency);
         return false;
     }
-    const std::wstring startupLog = Join(options.root, L"logs\\launcher_demo\\python-" + Timestamp() + L".log");
+    const std::wstring startupLog = Join(options.root, L"logs\\launcher\\python-" + Timestamp() + L".log");
     MakeDirectories(Parent(startupLog));
     SECURITY_ATTRIBUTES security = {sizeof(security), NULL, TRUE};
     HANDLE log = CreateFileW(startupLog.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, &security, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -350,10 +350,10 @@ void RunInstall(const Options& options) {
             for (const wchar_t* path : required) if (!Exists(Join(options.root, path))) {
                 Failure(options, 0, L"没有找到完整的 FAA 文件", L"缺少文件：" + Join(options.root, path), Problem::Files); return;
             }
-            if (!MakeDirectories(Join(options.root, L"logs\\launcher_demo"))) {
+            if (!MakeDirectories(Join(options.root, L"logs\\launcher"))) {
                 Failure(options, 0, L"FAA 文件夹不可写", SystemError(GetLastError()), Problem::Permission); return;
             }
-            const std::wstring probe = Join(options.root, L"logs\\launcher_demo\\write-check-" + Timestamp());
+            const std::wstring probe = Join(options.root, L"logs\\launcher\\write-check-" + Timestamp());
             if (!WriteFileBytes(probe, "FAA write check")) { Failure(options, 0, L"无法写入 FAA 文件夹", SystemError(GetLastError()), Problem::Permission); return; }
             DeleteFileW(probe.c_str());
             WorkerLog(options, L"[启动器] 文件检查通过：" + options.root);
@@ -425,8 +425,8 @@ void RunRestore(const Options& options) {
             if(python.find(L"WindowsApps")!=std::wstring::npos) python.clear();
         }
         if(python.empty()) { Failure(options,1,L"没有可用的 Python",L"请先使用“安装并启动”准备运行环境，然后再恢复备份。",Problem::Dependency); return; }
-        const std::wstring helper=Join(options.root,L"update_cache\\launcher_demo\\restore-"+Timestamp()+L".py");
-        // 恢复旧版本会同时替换 plugins；使用 EXE 内嵌脚本，保证界面协议不会跟着备份退回旧版。
+        const std::wstring helper=Join(options.root,L"update_cache\\launcher\\restore-"+Timestamp()+L".py");
+        // 恢复会替换 plugins 目录，内嵌执行脚本可避免它在执行过程中被覆盖。
         const std::string source=EmbeddedUpdater();
         if(source.empty()){Failure(options,1,L"安装器中的恢复资源缺失",L"请重新下载完整的安装器后重试。",Problem::Files);return;}
         if(!MakeDirectories(Parent(helper))||!WriteFileBytes(helper,source)) { Failure(options,1,L"无法准备恢复工具",SystemError(GetLastError()),Problem::Permission); return; }
@@ -628,8 +628,7 @@ bool OpenEnvironmentInstaller(const Event& failure) {
     const std::wstring installer=Join(app.root,L"FAA - 环境安装器.exe");
     std::wstring report;
     if(app.rootValid) {
-        // 普通更新会保留已分发的环境安装器，失败报告的目录名必须与这些安装器兼容。
-        report=Join(app.root,L"logs\\launcher_demo\\startup-failure-"+Timestamp()+L".txt");
+        report=Join(app.root,L"logs\\launcher\\startup-failure-"+Timestamp()+L".txt");
         auto single=[](std::wstring value){for(auto& character:value)if(character==L'\r'||character==L'\n')character=L' ';return value;};
         std::string body="FAA_STARTUP_FAILURE_V1\n"+std::to_string(failure.stage)+"\n"+std::to_string(static_cast<int>(failure.problem))+"\n"+
             Utf8(single(failure.title))+"\n"+Utf8(single(failure.detail))+"\n"+app.logBytes;
@@ -647,7 +646,7 @@ bool OpenEnvironmentInstaller(const Event& failure) {
 }
 bool ImportStartupFailure(const std::wstring& path) {
     WIN32_FILE_ATTRIBUTE_DATA attributes={};
-    if(_wcsicmp(Parent(path).c_str(),Join(app.root,L"logs\\launcher_demo").c_str())||BaseName(path).find(L"startup-failure-")!=0||
+    if(_wcsicmp(Parent(path).c_str(),Join(app.root,L"logs\\launcher").c_str())||BaseName(path).find(L"startup-failure-")!=0||
         !GetFileAttributesExW(path.c_str(),GetFileExInfoStandard,&attributes)||attributes.nFileSizeHigh||attributes.nFileSizeLow>2*1024*1024)return false;
     std::istringstream input(ReadFileBytes(path));std::string magic,stageText,problemText,title,detail;
     if(!std::getline(input,magic)||magic!="FAA_STARTUP_FAILURE_V1"||!std::getline(input,stageText)||!std::getline(input,problemText)||!std::getline(input,title)||!std::getline(input,detail))return false;
@@ -768,7 +767,7 @@ void Begin(bool repair=false,bool force=false,bool removeBackup=false) {
     for(int index=options->start;index<StepCount(app.operation);++index)app.steps[index]=Step::Pending;
     if(app.operation==Operation::Restore)app.steps[0]=Step::Complete;
     ResetEvent(app.cancelEvent);if(app.worker){CloseHandle(app.worker);app.worker=NULL;}
-    const std::wstring directory=Join(app.root,L"logs\\launcher_demo");if(MakeDirectories(directory))app.logFile=Join(directory,L"launcher-"+Timestamp()+L".log");
+    const std::wstring directory=Join(app.root,L"logs\\launcher");if(MakeDirectories(directory))app.logFile=Join(directory,L"launcher-"+Timestamp()+L".log");
     app.state=State::Running;app.startupFailure=false;app.faaExited=false;app.closeAfterCancel=false;
     AppendLog(L"[启动器] 开始操作："+std::wstring(app.operation==Operation::Install?L"安装与启动":app.operation==Operation::Uninstall?L"卸除运行环境":L"恢复备份"));
     UpdateControls();app.worker=CreateThread(NULL,0,Worker,options.get(),0,NULL);
@@ -1320,7 +1319,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int show) {
     }
     if(app.quickEntry) {
         app.state=State::Running;ResetEvent(app.cancelEvent);
-        const std::wstring directory=Join(app.root,L"logs\\launcher_demo");
+        const std::wstring directory=Join(app.root,L"logs\\launcher");
         if(app.rootValid&&MakeDirectories(directory))app.logFile=Join(directory,L"entry-"+Timestamp()+L".log");
         Options* options=new Options;options->root=app.root;options->window=window;options->cancel=app.cancelEvent;options->quickEntry=true;
         app.worker=CreateThread(NULL,0,Worker,options,0,NULL);

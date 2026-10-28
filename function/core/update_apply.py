@@ -60,29 +60,6 @@ def build_update_command(
     return command
 
 
-def build_restore_command(
-    root: Path,
-    backup: Path,
-    updater_script: Path,
-    wait_pid: int | None = None,
-    launch: str = LAUNCHER_EXE,
-) -> list[str]:
-    command = [
-        str(select_python_executable(root)),
-        str(updater_script),
-        "restore",
-        "--root",
-        str(root),
-        "--backup",
-        str(backup),
-        "--launch",
-        launch,
-    ]
-    if wait_pid:
-        command.extend(["--wait-pid", str(wait_pid)])
-    return command
-
-
 def launch_update_from_staging(
     root: Path,
     staging: Path,
@@ -93,24 +70,6 @@ def launch_update_from_staging(
     staging = Path(staging).resolve()
     updater_script = copy_updater_to_temp(root)
     command = build_update_command(root, staging, updater_script, wait_pid=wait_pid or os.getpid(), launch=launch)
-    process = subprocess.Popen(command, cwd=updater_script.parent)
-    return {
-        "pid": process.pid,
-        "command": command,
-        "updater_script": str(updater_script),
-    }
-
-
-def launch_restore_from_backup(
-    root: Path,
-    backup: Path,
-    wait_pid: int | None = None,
-    launch: str = LAUNCHER_EXE,
-) -> dict[str, Any]:
-    root = Path(root).resolve()
-    backup = Path(backup).resolve()
-    updater_script = copy_updater_to_temp(root)
-    command = build_restore_command(root, backup, updater_script, wait_pid=wait_pid or os.getpid(), launch=launch)
     process = subprocess.Popen(command, cwd=updater_script.parent)
     return {
         "pid": process.pid,

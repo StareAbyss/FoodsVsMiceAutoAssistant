@@ -21,7 +21,7 @@ SPEC.loader.exec_module(updater)
 
 
 class GuiRestoreTests(unittest.TestCase):
-    def test_update_preserves_backup_tool_without_migrating_update_workflow(self):
+    def test_update_preserves_environment_and_installer(self):
         """FAA 内执行更新时保留独立备份工具及运行环境。"""
         with tempfile.TemporaryDirectory(prefix="FAA 更新保留备份工具 ") as directory:
             root = Path(directory) / "FAA"
@@ -45,8 +45,8 @@ class GuiRestoreTests(unittest.TestCase):
             self.assertFalse((root / "extra-entry.exe").exists())
             self.assertFalse((backup / "FAA - 环境安装器.exe").exists())
 
-    def test_update_installs_backup_tool_for_existing_users(self):
-        """旧安装没有独立工具时，新版暂存包中的工具不能被保留规则直接跳过。"""
+    def test_update_adds_missing_environment_installer(self):
+        """目标目录缺少环境安装器时，必须从暂存包补入。"""
         with tempfile.TemporaryDirectory(prefix="FAA 更新补入备份工具 ") as directory:
             root = Path(directory) / "FAA"
             staging = root / "update_cache/staging/FAA.update.new"

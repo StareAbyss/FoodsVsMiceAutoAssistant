@@ -5,7 +5,7 @@
 - `FAA - 环境安装器.exe`：环境安装、调试启动、卸除本地运行环境、恢复备份。
 - `FAA - 快速启动.exe`：快速启动入口，只使用现有环境启动并等待主窗口；启动失败时打开环境安装器。
 
-`FAA - 快速启动.exe` 仅调用当前根目录 `.venv/Scripts/pythonw.exe -m function.faa_main` 并识别本次任务的主窗口，不运行 uv、不安装 Python、不同步依赖、不自动修复环境。缺少 Python、进程提前退出、出现“FAA 启动失败”窗口或 90 秒内未找到主窗口时，写入 `logs/launcher_demo/startup-failure-*.txt`，并通过 `--startup-error` 打开同目录的 `FAA - 环境安装器.exe`。安装器显示错误和日志，所有安装步骤保持未开始，等待用户自行选择操作。安装器缺失或无法启动时显示明确提示和日志路径。主窗口就绪后快速入口退出，之后的运行退出不触发修复。
+`FAA - 快速启动.exe` 仅调用当前根目录 `.venv/Scripts/pythonw.exe -m function.faa_main` 并识别本次任务的主窗口，不运行 uv、不安装 Python、不同步依赖、不自动修复环境。缺少 Python、进程提前退出、出现“FAA 启动失败”窗口或 90 秒内未找到主窗口时，写入 `logs/launcher/startup-failure-*.txt`，并通过 `--startup-error` 打开同目录的 `FAA - 环境安装器.exe`。安装器显示错误和日志，所有安装步骤保持未开始，等待用户自行选择操作。安装器缺失或无法启动时显示明确提示和日志路径。主窗口就绪后快速入口退出，之后的运行退出不触发修复。
 
 两个 EXE 都应放在 FAA 根目录，与 `LICENSE`、`uv.lock`、`pyproject.toml` 和 `function` 文件夹并列。程序只把自身所在目录当作 FAA 根目录，不提供目录选择。标识缺失时，界面显示红叉和缺失项，并禁用所有操作。
 
@@ -25,7 +25,7 @@
 
 备份页提供“删除备份”，单独确认后只删除选中的受管目录，不要求勾选恢复确认框。不完整备份也可以清理，但不能执行恢复。删除期间在主页面显示状态，结束后刷新列表；最后一份备份删除后禁用详情、删除和恢复操作。程序拒绝把 `backups` 或备份根目录的目录链接作为操作目标；统计大小和删除时不沿内部链接遍历外部数据。
 
-三个操作都在主界面内显示阶段、日志和错误，不使用 BAT 或 PS1 运行入口，也不弹出额外控制台。恢复逻辑来自 `plugins/updater/updater.py`，在构建时嵌入 EXE，运行时释放到 `update_cache/launcher_demo/` 并由 Python 隐藏执行。这样恢复较旧版本后，安装器仍使用匹配的恢复协议。文件移动和回滚期间不能关闭安装器或强制取消任务。
+三个操作都在主界面内显示阶段、日志和错误，不使用 BAT 或 PS1 运行入口，也不弹出额外控制台。恢复逻辑来自 `plugins/updater/updater.py`，在构建时嵌入 EXE，运行时释放到 `update_cache/launcher/` 并由 Python 隐藏执行。执行阶段和日志回传主界面。文件移动和回滚期间不能关闭安装器或强制取消任务。
 
 “额外设置”包含“调试启动：保留日志窗口”。开启后，使用无控制台的 Python 进程启动 FAA，并把标准输出、异常和退出码持续显示在安装器中。FAA 就绪后保留并展开日志；关闭安装器只停止日志显示，FAA 继续运行。“运行详情”的“放大”按钮让日志占据右侧主要区域，“收起”恢复步骤卡片。
 
@@ -33,11 +33,11 @@
 
 安装会同步当前 FAA 根目录的 `.venv`，建议在独立发行包副本中使用，避免移除源码开发环境的开发依赖。在源码目录开始安装时会再次提示。
 
-安装器的 Python 默认下载源及依赖包下载源从 `pyproject.toml` 读取。选择包内默认依赖源时执行 `uv sync --locked --no-dev --python 3.12`；选择其他源时，先使用 `uv export --locked --offline --no-dev --no-emit-project` 导出锁定版本和 hash，再执行 `uv --no-config pip sync --require-hashes --strict --default-index <所选源>`。替换下载源不会重新解析依赖，也不会改写 `pyproject.toml` 或 `uv.lock`。临时清单位于 `update_cache/launcher_demo/`，任务结束后清理。
+安装器的 Python 默认下载源及依赖包下载源从 `pyproject.toml` 读取。选择包内默认依赖源时执行 `uv sync --locked --no-dev --python 3.12`；选择其他源时，先使用 `uv export --locked --offline --no-dev --no-emit-project` 导出锁定版本和 hash，再执行 `uv --no-config pip sync --require-hashes --strict --default-index <所选源>`。替换下载源不会重新解析依赖，也不会改写 `pyproject.toml` 或 `uv.lock`。临时清单位于 `update_cache/launcher/`，任务结束后清理。
 
 ## 统一运行环境检测
 
-安装和恢复备份共用 `runtime_probe.py`，统一在依赖就绪、启动 FAA 主窗口之前检测。安装文件的早期检查仅服务于安装准备，不执行另一套兼容性检测。检测脚本内嵌于 EXE，释放到当前根目录的 `update_cache/launcher_demo/`，通过所属 `.venv` 的隐藏 Python 进程执行，结束后删除。
+安装和恢复备份共用 `runtime_probe.py`，统一在依赖就绪、启动 FAA 主窗口之前检测。安装文件的早期检查仅服务于安装准备，不执行另一套兼容性检测。检测脚本内嵌于 EXE，释放到当前根目录的 `update_cache/launcher/`，通过所属 `.venv` 的隐藏 Python 进程执行，结束后删除。
 
 | 检测项 | 实际验证内容 | 失败影响 |
 | --- | --- | --- |
@@ -85,7 +85,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tool/faa_launcher/build.ps1 
 回归测试使用两个正式 EXE，在隔离目录中执行。
 
 ```powershell
-.venv\Scripts\python.exe -m unittest test.test_launcher_handoff test.faa_launcher.test_launcher test.faa_launcher.test_maintenance test.faa_launcher.test_startup test.faa_launcher.test_runtime_probe test.faa_launcher.test_entry -v
+.venv\Scripts\python.exe -m unittest test.faa_launcher.test_launcher test.faa_launcher.test_maintenance test.faa_launcher.test_startup test.faa_launcher.test_runtime_probe test.faa_launcher.test_entry -v
 .venv\Scripts\python.exe tool/faa_launcher/verify_pe.py "FAA - 环境安装器.exe"
 .venv\Scripts\python.exe tool/faa_launcher/verify_pe.py "FAA - 快速启动.exe"
 ```
@@ -93,8 +93,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tool/faa_launcher/build.ps1 
 自动检查覆盖 Windows DLL 导入和 CLR 头、中文参数、隐藏子进程和取消，以及本机 HTTP 源中的锁定版本和 hash 验证。原生卸除会实际处理隔离环境的占用进程和目录；恢复测试实际运行内嵌工具，并覆盖安装器保留、复制失败回滚与备份中断归还文件。所有文件操作与测试包安装均在临时目录中执行，不访问外网，也不改动维护者现有 `.venv`。
 
 普通入口回归通过仅记录调用的 uv 和安装器夹具，验证真实进程交接、失败报告、只打开一次修复工具和主窗口就绪后的退出处理；夹具用本机 C# 编译器构建，不构成产品运行依赖。启动回归测试使用隔离 Python 环境和屏幕外的原生窗口，验证普通启动自动退出、调试日志保留、错误与加载窗口识别，以及安装器退出后主进程继续运行，不启动真实 FAA 或游戏任务。
-
-`test.test_launcher_handoff` 使用仅记录文件名和工作目录的 EXE 夹具，验证更新替换后的默认启动、历史备份恢复后的兼容启动，以及路径中的空格、中文和 `&`。
 
 环境检测测试覆盖必需项失败、可选项继续、原生组件崩溃、超时、协议异常和锁定版本不符，并在隔离目录实际执行 EXE 内嵌检测。该测试通过隔离环境的 `.pth` 复用当前开发环境依赖，不安装或修改开发依赖。
 
