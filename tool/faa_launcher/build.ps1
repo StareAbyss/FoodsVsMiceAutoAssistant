@@ -79,6 +79,10 @@ try {
         $artifacts.Add($artifact)
         $packagedEntry = Join-Path (Join-Path $projectRoot 'plugins\root_entries') $name
         Copy-Item -LiteralPath $output -Destination $packagedEntry -Force
+        if ($isLauncher) {
+            # 仅供已发布旧更新器识别；正式发行白名单不会复制这个旧名别名。
+            Copy-Item -LiteralPath $output -Destination (Join-Path $projectRoot 'plugins\root_entries\FAA.exe') -Force
+        }
     }
 } catch {
     Write-Warning "构建未完成，中间文件保留在：$buildWorkspace"

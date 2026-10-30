@@ -2,6 +2,8 @@ import http.client
 import json
 import re
 import shutil
+import subprocess
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -11,7 +13,6 @@ from pathlib import Path
 from typing import Any, Callable
 
 from function.common.update_manifest import DEFAULT_OWNER, DEFAULT_REPO
-from function.common.update_state import write_update_state
 from function.common.distribution_layout import (
     PACKAGE_FOLDERS, PACKAGE_FILES, ROOT_ENTRY_DIRECTORY, ROOT_ENTRY_FILES,
     UV_ARCHIVE, ENVIRONMENT_INSTALLER_EXE, LAUNCHER_EXE,
@@ -337,6 +338,7 @@ def build_staging_state(target: dict[str, Any]) -> dict[str, Any]:
     version = tag or target.get("version") or (f"dev-{commit[:12]}" if commit else "")
     return {
         "schema_version": 1,
+        "update_protocol": 1,
         "channel": "release" if tag else "developer",
         "version": version,
         "tag": tag,
@@ -360,7 +362,56 @@ def validate_staging(staging_root: Path) -> None:
         raise StagingError("Prepared staging must not contain .git")
 
 
-def prepare_staging_from_archive(root: Path, archive_path: Path, target: dict[str, Any]) -> Path:
+def run_target_preparation(
+    root: Path, source: Path, staging: Path, target: dict[str, Any],
+    selected_migration_names: set[str] | None = None,
+    migration_source: Path | None = None,
+) -> dict[str, Any]:
+    """在隔离进程中执行下载目标版本的规则，当前 FAA 不解释其发行清单。
+
+    Args:
+        root: 当前安装目录。
+        source: 已解压且保留在更新缓存中的目标源码。
+        staging: 本次候选发行目录。
+        target: 已选定的版本元数据。
+        selected_migration_names: 迁移项目名单，None 表示全部适用项。
+        migration_source: 旧版过渡时指定本轮原始备份，普通更新使用当前根目录。
+
+    Returns:
+        由目标版本生成的准备结果。
+    """
+    script = source / "plugins/updater/prepare.py"
+    if not script.is_file():
+        raise StagingError("所选版本缺少独立更新准备入口，无法按目标版本的发行规则准备更新。")
+    request_path, result_path = source.parent / "prepare_request.json", source.parent / "prepare_result.json"
+    request_path.write_text(json.dumps({
+        "target": target,
+        "selected_migration_names": sorted(selected_migration_names) if selected_migration_names is not None else None,
+        "migration_source": str(migration_source) if migration_source is not None else None,
+    }, ensure_ascii=False), encoding="utf-8")
+    result_path.unlink(missing_ok=True)
+    process = subprocess.run(
+        [sys.executable, "-I", "-X", "utf8", str(script), "--root", str(root),
+         "--source", str(source), "--staging", str(staging), "--request", str(request_path),
+         "--result", str(result_path)],
+        cwd=source.parent, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        text=True, encoding="utf-8", errors="replace", timeout=600,
+        creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
+    )
+    if process.returncode:
+        raise StagingError("目标版本准备或迁移失败，当前 FAA 文件未替换：\n" + process.stdout[-12000:])
+    if not result_path.is_file():
+        raise StagingError("目标版本未返回更新准备结果，当前 FAA 文件未替换。")
+    result = json.loads(result_path.read_text(encoding="utf-8"))
+    if Path(result.get("staging", {}).get("path", "")).resolve() != staging.resolve():
+        raise StagingError("目标版本返回的暂存目录与本次更新不符。")
+    return result
+
+
+def prepare_staging_from_archive(
+    root: Path, archive_path: Path, target: dict[str, Any],
+    selected_migration_names: set[str] | None = None,
+) -> Path:
     root = root.resolve()
     staging = staging_path(root)
     work_root = staging_work_path(root)
@@ -376,19 +427,18 @@ def prepare_staging_from_archive(root: Path, archive_path: Path, target: dict[st
 
     try:
         source_root = extract_single_root(archive_path, extract_parent)
-        build_distribution_from_source(source_root, staging)
-        write_update_state(staging, build_staging_state(target))
-        validate_staging(staging)
+        run_target_preparation(root, source_root, staging, target, selected_migration_names)
     except Exception:
         if staging.exists():
             failed = failed_staging_path(root) / f"FAA.failed-staging.{utc_stamp()}"
             failed.parent.mkdir(parents=True, exist_ok=True)
             shutil.move(str(ensure_child(root, staging)), str(ensure_child(root, failed)))
             prune_failed_staging(root)
-        raise
-    finally:
         if work_root.exists():
             shutil.rmtree(ensure_child(root, work_root))
+        raise
+
+    # 纯净源码保留至确认替换；FAA 退出后会再次迁移，纳入退出时保存的最新配置。
 
     return staging
 
@@ -399,6 +449,7 @@ def prepare_staging_from_github(
     owner: str = DEFAULT_OWNER,
     repo: str = DEFAULT_REPO,
     progress_callback: Callable[[dict[str, Any]], None] | None = None,
+    selected_migration_names: set[str] | None = None,
 ) -> Path:
     ref = target.get("tag") or target.get("commit")
     if not ref:
@@ -414,7 +465,9 @@ def prepare_staging_from_github(
 
     try:
         download_github_archive(ref, archive_path, owner=owner, repo=repo, progress_callback=progress_callback)
-        return prepare_staging_from_archive(root, archive_path, target)
+        if progress_callback is not None:
+            progress_callback({"phase": "prepare", "message": "正在使用目标版本规则生成发行目录并预览数据迁移"})
+        return prepare_staging_from_archive(root, archive_path, target, selected_migration_names)
     finally:
         if archive_root.exists():
             shutil.rmtree(ensure_child(root, archive_root))

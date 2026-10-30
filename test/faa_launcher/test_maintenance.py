@@ -21,8 +21,8 @@ SPEC.loader.exec_module(updater)
 
 
 class GuiRestoreTests(unittest.TestCase):
-    def test_update_preserves_environment_and_installer(self):
-        """FAA 内执行更新时保留独立备份工具及运行环境。"""
+    def test_update_preserves_environment_and_replaces_installer(self):
+        """普通更新部署目标安装器，运行环境保留，旧安装器可从备份恢复。"""
         with tempfile.TemporaryDirectory(prefix="FAA 更新保留备份工具 ") as directory:
             root = Path(directory) / "FAA"
             staging = root / "update_cache/staging/FAA.update.new"
@@ -33,17 +33,17 @@ class GuiRestoreTests(unittest.TestCase):
             (root / "FAA - 环境安装器.exe").write_bytes(b"backup tool")
             (staging / "FAA - 环境安装器.exe").write_bytes(b"staging copy")
             (root / ".venv").mkdir()
-            self.assertEqual(version_area_size(root), len(b"current") + len(b"unlisted executable"))
+            self.assertEqual(version_area_size(root), len(b"current") + len(b"unlisted executable") + len(b"backup tool"))
             with contextlib.redirect_stdout(io.StringIO()):
                 updater.update(root, staging, None)
             self.assertEqual((root / "app.txt").read_text(encoding="utf-8"), "new")
-            self.assertEqual((root / "FAA - 环境安装器.exe").read_bytes(), b"backup tool")
+            self.assertEqual((root / "FAA - 环境安装器.exe").read_bytes(), b"staging copy")
             self.assertTrue((root / ".venv").is_dir())
             backup = next((root / "backups").glob("FAA.backup.*"))
             self.assertEqual((backup / "app.txt").read_text(encoding="utf-8"), "current")
             self.assertEqual((backup / "extra-entry.exe").read_bytes(), b"unlisted executable")
             self.assertFalse((root / "extra-entry.exe").exists())
-            self.assertFalse((backup / "FAA - 环境安装器.exe").exists())
+            self.assertEqual((backup / "FAA - 环境安装器.exe").read_bytes(), b"backup tool")
 
     def test_update_adds_missing_environment_installer(self):
         """目标目录缺少环境安装器时，必须从暂存包补入。"""

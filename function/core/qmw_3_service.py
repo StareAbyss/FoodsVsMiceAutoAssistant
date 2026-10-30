@@ -1764,7 +1764,7 @@ class QMainWindowService(QMainWindowLoadSettings):
             self,
             '准备更新',
             f"即将准备更新至 {target_name}。\n"
-            "准备阶段会下载目标源码包并迁移当前配置到 staging，不会立刻替换当前目录。\n"
+            "准备阶段会下载目标源码包，按目标版本的规则生成发行目录并预览数据迁移，不会立刻替换当前目录。\n"
             "准备完成后会再次确认是否执行替换。",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No)
@@ -1817,7 +1817,8 @@ class QMainWindowService(QMainWindowLoadSettings):
                 self,
                 '执行更新替换',
                 f"更新准备完成，staging 位于：\n{staging_path}\n\n"
-                "接下来会启动外部 updater，当前程序退出后替换版本区，并保留更新前备份。\n"
+                "接下来会启动目标版本的更新工具。当前程序退出后，会重新迁移最终配置，再备份并替换版本文件。\n"
+                "更新完成后请自行运行 FAA - 环境安装器.exe，准备新版运行环境后启动 FAA。\n"
                 "是否现在执行？",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No)

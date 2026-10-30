@@ -11,12 +11,14 @@
 - 不在当前运行目录原地 `git pull`、`reset --hard`、`clean` 或切换分支。
 - 更新流程采用“下载到 staging -> 迁移用户数据 -> 外部 updater 替换版本区”。
 - 回退通过更新前备份恢复，不通过选择旧 commit 实现。
-- `.venv/`、`backups/`、`update_cache/` 和 `FAA - 环境安装器.exe` 是保留区，不随版本覆盖。
+- 普通更新保留 `.venv/`、`backups/`、`update_cache/`，环境安装器随目标版本部署；备份恢复额外保留正在运行的安装器和明确指定的日志。
 - 除保留区外，根目录其他内容视为版本区。未被迁移器迁移的旧版本内容可以随旧版本进入备份。
 - `logs/` 不整体保留，只有迁移规则明确列出的内容才迁移。
 - `FAA - 快速启动.exe` 是普通用户原生启动入口，仅使用已有环境尝试启动 FAA 并识别本次主窗口；启动失败时自动打开 `FAA - 环境安装器.exe` 并传入错误报告。
 - 正式入口固定为根目录的 `FAA - 快速启动.exe` 与 `FAA - 环境安装器.exe`，源码成品统一位于 `plugins/root_entries/`。
-- 发行和 staging 共用 `function/common/distribution_layout.py` 白名单，不分发运行时 BAT、PS1、未列入清单的程序或本机 bin 缓存。
+- 发行和 staging 共用目标源码内的 `function/common/distribution_layout.py` 白名单，不分发运行时 BAT、PS1、未列入清单的程序或本机 bin 缓存。热更新不得用当前运行版本的布局清单整理或校验目标版本。
+- 目标版本的标准库准备入口在隔离子进程中执行发行整理、校验和用户数据迁移；外部更新进程也取自目标候选目录。
+- 热更新完成后提示用户自行打开环境安装器，不自动启动或安装依赖。
 
 ## 已落地
 
@@ -44,17 +46,27 @@
   - 从 GitHub zip archive 构建 `update_cache/staging/FAA.update.new/`。
   - 解压时剥离 GitHub archive 中由仓库名和完整 commit 组成的公共顶层目录，避免深安装路径触发 Windows 路径长度限制。
   - 不把 `.git` 带入 staging。
-  - 将源码布局转换为分发布局，例如把 `plugins/root_entries` 铺到根目录，并保留 `plugins/launcher_scripts` 中的 PowerShell 脚本本体。
-  - 复用分发规则，排除不应进入分发包的配置和缓存。
+  - 当前进程只负责解压并调用目标 `plugins/updater/prepare.py`，不执行旧版的发行清单或迁移函数。
+  - 目标进程按自身规则将源码布局转换为分发布局，排除不应进入分发包的配置和缓存。
   - 开始新 staging 前把旧 staging 移动到 `update_cache/failed_staging/`。
   - `failed_staging/` 最多保留 2 份。
-  - 目标版本缺少 `plugins/updater` 时，从当前安装目录补入 updater。
+  - 目标版本必须提供独立准备入口和更新执行核心，不从当前安装目录补入旧更新脚本。
   - staging 中自动写入目标版本的 `update_cache/update_state.json`。
   - 按共用发行布局校验两个正式 EXE、固定 uv ZIP、更新执行核心、项目入口及资源，不要求运行时脚本。
 
 - [x] 新增 `function/common/update_space.py`
   - 估算当前版本区大小、staging 大小、磁盘可用空间和安全余量。
   - `.venv/`、`backups/`、`update_cache/` 不计入版本区备份大小。
+
+- [x] `plugins/updater/prepare.py` 提供目标版本的标准库准备接口。
+  - 源码转发行、完整性校验和用户数据迁移都在目标源码的隔离进程中完成。
+  - 预览和 FAA 退出后的最终准备共用该接口，失败后保留计划以便从纯净源码重试。
+  - 目标版本状态写入 `update_protocol=1`，区分旧更新器交接与已完成的新协议更新。
+
+- [x] 已发布旧更新器的自动过渡。
+  - 源码归档提供旧复制器要求的最小路径，正常发行白名单不复制旧入口或 BAT、PS1。
+  - 原生快速入口在缓存内运行自身副本，按精确提交重新获取源码，从首次原始备份执行目标规则。
+  - 成功后清理根目录过渡文件并提示手动运行环境安装器；失败保留原始备份和固定过渡记录供重试。
 
 - [x] 新增 `function/common/update_backup.py`
   - 列出 `backups/` 下由 updater 管理的备份。
@@ -85,19 +97,21 @@
   - 重新选择来源目录时重置复选框状态。
 
 - [x] 新增 `function/core/update_prepare.py`
-  - 串联 staging 准备和配置迁移。
+  - 先粗估空间，再串联目标版本的 staging 准备和迁移预览。
   - 不启动 updater，不替换当前目录。
   - 支持 `prepare_update_from_github()` 和 `prepare_update_from_archive()`。
   - 迁移报告写入 staging 内 `update_cache/migration_report.json`。
 
 - [x] 新增 `function/core/update_apply.py`
-  - 将 `plugins/updater/updater.py` 复制到 `%TEMP%/FAA-updater/`。
+  - 将目标候选目录中的 `plugins/updater/updater.py` 复制到 `%TEMP%/FAA-updater/`。
   - 优先使用当前 `.venv/Scripts/python.exe` 启动 updater。
   - 传入主进程 PID，让 updater 等待主进程退出后再替换。
+  - 默认不传入自动启动入口，更新完成后由用户运行环境安装器。
 
 - [x] 新增并改造 `plugins/updater/updater.py`
   - 支持 `update` 和 `restore` 两种模式。
   - update：当前版本区移动到 `backups/FAA.backup.<timestamp>/`，staging 版本区移动到根目录。
+  - update 在主程序退出后先重新调用目标准备入口，重建干净候选并迁移最终用户数据，再复核空间；此阶段失败不移动当前版本。
   - restore：当前版本区先移动到 `FAA.before-restore.*`，再从指定备份恢复。
   - 保留 `.venv/`、`backups/`、`update_cache/`。
   - 支持 `--wait-pid`、`--wait-timeout`。
@@ -166,19 +180,19 @@ PR merge commit = main 上形如 “Merge pull request #927 ...” 的双 parent
 4. 开发者模式分页读取 main commits 并过滤 PR merge commit。
 5. 用户选择目标版本。
 6. 校验目标 commit 是否高于当前 commit。
-7. 下载目标 tag/commit zip 到 update_cache/staging_work/。
-8. 构建 update_cache/staging/FAA.update.new/。
-9. 校验 staging 完整性。
-10. 执行配置迁移：当前根目录 -> staging 新版本目录。
-11. 写入迁移报告和空间评估。
+7. 下载前粗估空间，下载目标源码 ZIP，并解压到 update_cache/staging_work/source/。
+8. 使用现有 Python 的隔离子进程执行目标源码的 plugins/updater/prepare.py。
+9. 目标进程按自己的发行规则构建 update_cache/staging/FAA.update.new/。
+10. 目标进程按自己的规则迁移用户数据、校验候选版本。
+11. 写入迁移报告、更新计划和空间评估；保留纯净目标源码。
 12. 用户二次确认。
-13. 复制 updater 到 %TEMP%/FAA-updater/。
+13. 将目标候选目录中的 updater 复制到 %TEMP%/FAA-updater/。
 14. 主程序启动 updater 并退出。
 15. updater 等待主程序退出。
-16. updater 备份当前版本区。
-17. updater 把 staging 版本区移动到根目录。
-18. updater 启动 FAA - 快速启动.exe。
-19. 快速启动仅使用已有环境；启动失败时打开环境安装器，由用户确认后按锁文件安装或修复依赖。
+16. updater 用保留的纯净源码重建候选，迁移 FAA 退出时保存的最终数据，并再次复核空间。
+17. 最终准备成功后，updater 备份当前版本区并把新版本文件移入根目录；失败时尝试回滚。
+18. 更新完成后提示用户自行打开 FAA - 环境安装器.exe，按新版锁文件准备或修复依赖。
+19. 新 FAA 启动时处理配置补全、战斗方案和微调方案的格式兼容。
 ```
 
 禁止流程：

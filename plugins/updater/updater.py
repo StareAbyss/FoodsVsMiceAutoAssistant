@@ -1,11 +1,11 @@
 import argparse
+from contextlib import contextmanager, nullcontext
 import os
 import json
 import shutil
 import subprocess
 import sys
 import time
-import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from traceback import format_exc
@@ -13,7 +13,7 @@ from collections.abc import Callable
 
 
 ENVIRONMENT_INSTALLER_EXE = "FAA - 环境安装器.exe"
-PRESERVED_NAMES = {".venv", "backups", "update_cache", ENVIRONMENT_INSTALLER_EXE}
+PRESERVED_NAMES = {".venv", "backups", "update_cache"}
 # 更新执行期间会移动 FAA 源码，独立脚本不能导入正在替换的模块。
 DEFAULT_LAUNCHER_EXE = "FAA - 快速启动.exe"
 STATE_RELATIVE_PATH = Path("update_cache") / "update_state.json"
@@ -46,7 +46,7 @@ def countdown_and_exit(seconds: int = 3) -> None:
 def create_log_file(root: Path) -> Path:
     log_dir = root / "update_cache" / "updater_logs"
     log_dir.mkdir(parents=True, exist_ok=True)
-    return log_dir / f"updater.{timestamp()}.log"
+    return log_dir / f"updater.{timestamp()}.{os.getpid()}.log"
 
 
 def log(log_path: Path, message: str) -> None:
@@ -152,19 +152,44 @@ def install_packaged_state(root: Path, staging_root: Path) -> None:
     write_json(state_path(root), packaged_state)
 
 
-def install_missing_environment_installer(root: Path, staging_root: Path) -> None:
-    """本地缺少环境安装器时从暂存包补入，避免覆盖正在运行的 EXE。"""
-    source, target = staging_root / ENVIRONMENT_INSTALLER_EXE, root / ENVIRONMENT_INSTALLER_EXE
-    if target.exists() or not source.is_file():
+def finalize_preparation(root: Path, staging_root: Path) -> None:
+    """FAA 已退出后，按目标源码重新迁移退出时保存的最终配置。
+
+    准备或迁移失败时尚未移动当前版本，保留旧安装和缓存供重试，不能继续备份替换。
+    无计划文件的目录仍可供独立文件替换接口使用，但不参与此下载准备协议。
+    """
+    plan = read_json(staging_root / "update_cache/update_plan.json")
+    if not plan:
         return
-    # 先完整复制到缓存再改名，复制中断不会把半个 EXE 留在用户入口。
-    with tempfile.NamedTemporaryFile(dir=root / "update_cache", suffix=".exe", delete=False) as temporary:
-        pending = Path(temporary.name)
+    if plan.get("schema_version") != 1:
+        raise ValueError("无法识别目标版本的更新准备协议，请更新 FAA 更新工具。")
+    source = ensure_child(root / "update_cache/staging_work", root / plan["source"], "target source")
+    script = source / "plugins/updater/prepare.py"
+    if not script.is_file():
+        raise FileNotFoundError(f"纯净目标源码已缺失，请重新准备更新：{script}")
+    request_path, result_path = source.parent / "final_request.json", source.parent / "final_result.json"
+    write_json(request_path, plan["request"])
+    result_path.unlink(missing_ok=True)
+    console("正在按目标版本规则重新迁移最终用户数据...")
     try:
-        shutil.copy2(source, pending)
-        pending.replace(target)
-    finally:
-        pending.unlink(missing_ok=True)
+        process = subprocess.run(
+            [sys.executable, "-I", "-X", "utf8", str(script), "--root", str(root),
+             "--source", str(source), "--staging", str(staging_root), "--request", str(request_path),
+             "--result", str(result_path)],
+            cwd=source.parent, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            text=True, encoding="utf-8", errors="replace", timeout=600,
+            creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
+        )
+        if process.returncode:
+            raise RuntimeError("最终准备失败，当前版本尚未替换：\n" + process.stdout[-12000:])
+        result = read_json(result_path)
+        if not result.get("space", {}).get("enough"):
+            raise OSError("最终迁移后磁盘空间不足，当前版本尚未替换。")
+    except Exception:
+        # 重建会先清空预览目录，失败时必须回写计划。重试仍从纯净源码开始，
+        # 不能因计划丢失把这份半成品误当成无需准备的完整候选版本。
+        write_json(staging_root / "update_cache/update_plan.json", plan)
+        raise
 
 
 def prune_failed_staging(root: Path, keep: int = 2) -> None:
@@ -221,10 +246,50 @@ def wait_for_process_exit(pid: int | None, log_path: Path | None = None, timeout
     raise TimeoutError(f"Process did not exit within {timeout_seconds} seconds: pid={pid}")
 
 
+@contextmanager
+def update_mutex(root: Path):
+    """普通更新 CLI 与原生入口互斥，避免最终迁移期间 FAA 再次启动写配置。
+
+    名称算法与原生 Worker 一致：Windows UTF-16 路径按 C locale 转小写后做 FNV。
+    旧版过渡和图形恢复由其原生父进程持锁，直接调用 update/restore 时不再次加锁。
+    """
+    if sys.platform != "win32":
+        yield
+        return
+    import ctypes
+    key = 1469598103934665603
+    path = str(root.resolve()).encode("utf-16-le")
+    for index in range(0, len(path), 2):
+        character = int.from_bytes(path[index:index + 2], "little")
+        if 65 <= character <= 90:
+            character += 32
+        key = ((key ^ character) * 1099511628211) & 0xFFFFFFFFFFFFFFFF
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.CreateMutexW.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_wchar_p]
+    kernel.CreateMutexW.restype = ctypes.c_void_p
+    kernel.WaitForSingleObject.argtypes = [ctypes.c_void_p, ctypes.c_uint32]
+    kernel.WaitForSingleObject.restype = ctypes.c_uint32
+    kernel.ReleaseMutex.argtypes = [ctypes.c_void_p]
+    kernel.CloseHandle.argtypes = [ctypes.c_void_p]
+    handle = kernel.CreateMutexW(None, False, f"Local\\FAA.NativeLauncher.{key}")
+    if not handle:
+        raise ctypes.WinError(ctypes.get_last_error())
+    acquired = kernel.WaitForSingleObject(handle, 0)
+    if acquired not in (0, 0x80):
+        kernel.CloseHandle(handle)
+        raise RuntimeError("另一个 FAA 启动、安装或更新操作正在运行，当前版本未替换。请关闭其他操作后重试。")
+    try:
+        yield
+    finally:
+        kernel.ReleaseMutex(handle)
+        kernel.CloseHandle(handle)
+
+
 def update(root: Path, staging_root: Path, launch: str | None, log_path: Path | None = None) -> None:
     root = ensure_directory(root, "root")
     staging_root = ensure_directory(staging_root, "staging")
     ensure_child(root / "update_cache", staging_root, "staging")
+    finalize_preparation(root, staging_root)
     write_updater_state(root, "update_started", {"staging": str(staging_root)})
     console("正在执行版本更新。")
     console(f"新版本临时目录：{staging_root}")
@@ -245,7 +310,6 @@ def update(root: Path, staging_root: Path, launch: str | None, log_path: Path | 
         console("正在替换为新版本文件...")
         write_updater_state(root, "installing_staging", {"backup": str(backup_dir)})
         move_items([item for item in staging_root.iterdir() if item.name not in PRESERVED_NAMES], root)
-        install_missing_environment_installer(root, staging_root)
         console("正在写入版本记录并清理更新临时文件...")
         install_packaged_state(root, staging_root)
         prune_failed_staging(root)
@@ -264,9 +328,17 @@ def update(root: Path, staging_root: Path, launch: str | None, log_path: Path | 
     if log_path:
         log(log_path, "update completed")
     write_updater_state(root, "update_completed", {"backup": str(backup_dir)})
-    console("版本更新完成，正在重新启动 FAA...")
-    launch_entry(root, launch)
-    console("FAA 已启动。")
+    work_root = root / "update_cache/staging_work"
+    if work_root.exists():
+        try:
+            shutil.rmtree(ensure_child(root / "update_cache", work_root, "update work directory"))
+        except OSError as exc:
+            console(f"版本替换已完成，更新缓存暂未清理：{exc}")
+    if launch:
+        console("版本更新完成，正在重新启动 FAA...")
+        launch_entry(root, launch)
+    else:
+        console(f"版本更新完成。请自行运行根目录的 {ENVIRONMENT_INSTALLER_EXE}，准备新版运行环境后启动 FAA。")
 
 
 def restore(
@@ -282,7 +354,8 @@ def restore(
     保留项只允许根目录内的单个名称。恢复失败时，回滚仍遵守同一保留范围，
     以免移动正在运行的安装器或覆盖当前日志。
     """
-    preserved = {name.casefold() for name in PRESERVED_NAMES | (preserve_entries or set())}
+    preserve_entries = (preserve_entries or set()) | {ENVIRONMENT_INSTALLER_EXE}
+    preserved = {name.casefold() for name in PRESERVED_NAMES | preserve_entries}
     for name in preserve_entries or set():
         if not name or name in {".", ".."} or "/" in name or "\\" in name or ":" in name:
             raise ValueError(f"preserve entry must be a root-level name: {name}")
@@ -358,7 +431,7 @@ def main() -> None:
     update_parser = subparsers.add_parser("update")
     update_parser.add_argument("--root", required=True)
     update_parser.add_argument("--staging", required=True)
-    update_parser.add_argument("--launch", default=DEFAULT_LAUNCHER_EXE)
+    update_parser.add_argument("--launch", default="")
     update_parser.add_argument("--wait-pid", type=int)
     update_parser.add_argument("--wait-timeout", type=int, default=120)
 
@@ -377,15 +450,22 @@ def main() -> None:
     title = "FAA 自动更新工具" if args.command == "update" else "FAA 版本恢复工具"
     print_header(title, root, log_path)
     try:
-        console("正在等待 FAA 主程序退出，避免文件被占用...")
-        write_updater_state(root, "waiting_for_process", {"pid": args.wait_pid})
-        wait_for_process_exit(args.wait_pid, log_path, args.wait_timeout)
-        console("FAA 主程序已退出，可以安全替换文件。")
-        if args.command == "update":
-            update(root, Path(args.staging), args.launch, log_path)
-        elif args.command == "restore":
-            report_phase = (lambda phase: console(f"FAA_LAUNCHER_PHASE:{phase}")) if args.gui else None
-            restore(root, Path(args.backup), args.launch or None, log_path, set(args.preserve_entry), report_phase)
+        # 取得本轮所有权后才写共享状态。锁被其他轮持有时，只记录自己的日志，
+        # 不能覆盖对方的等待、备份或旧版过渡交接信息。
+        with update_mutex(root) if args.command == "update" else nullcontext():
+            try:
+                console("正在等待 FAA 主程序退出，避免文件被占用...")
+                write_updater_state(root, "waiting_for_process", {"pid": args.wait_pid})
+                wait_for_process_exit(args.wait_pid, log_path, args.wait_timeout)
+                console("FAA 主程序已退出，可以安全替换文件。")
+                if args.command == "update":
+                    update(root, Path(args.staging), args.launch, log_path)
+                elif args.command == "restore":
+                    report_phase = (lambda phase: console(f"FAA_LAUNCHER_PHASE:{phase}")) if args.gui else None
+                    restore(root, Path(args.backup), args.launch or None, log_path, set(args.preserve_entry), report_phase)
+            except Exception:
+                write_updater_state(root, "failed", {"error": format_exc()})
+                raise
         console()
         console("操作已完成。")
         if not getattr(args, "gui", False):
@@ -394,7 +474,6 @@ def main() -> None:
         error = format_exc()
         log(log_path, "operation failed")
         log(log_path, error)
-        write_updater_state(root, "failed", {"error": error})
         console()
         console("[错误] 操作失败。")
         console(f"详细日志已写入：{log_path}")

@@ -6,12 +6,11 @@ from typing import Any, Callable
 from function.common.update_manifest import GitHubClient, compare_update_target
 from function.common.update_state import detect_local_state
 from function.common.update_staging import (
-    describe_staging,
     prepare_staging_from_archive,
     prepare_staging_from_github,
+    staging_work_path,
 )
-from function.common.update_space import estimate_update_space
-from function.core.settings_migration import migrate_user_data
+from function.common.update_space import estimate_update_space, format_bytes
 
 
 MIGRATION_REPORT_RELATIVE_PATH = Path("update_cache") / "migration_report.json"
@@ -78,22 +77,10 @@ def prepare_update_from_archive(
     if not validation["allowed"] and validation["status"] != "compare_failed":
         raise ValueError(validation["message"])
 
-    staging = prepare_staging_from_archive(root, archive_path, target)
-    migration_results = migrate_user_data(
-        source_root=root,
-        target_root=staging,
-        selected_names=selected_migration_names,
-        allow_missing_target=True,
-    )
-    report_path = write_migration_report(staging, migration_results)
-
-    return {
-        "staging": describe_staging(staging),
-        "migration_summary": summarize_migration_results(migration_results),
-        "migration_report": str(report_path),
-        "space": estimate_update_space(root, staging),
-        "target_validation": validation,
-    }
+    precheck = check_initial_space(root)
+    prepare_staging_from_archive(root, archive_path, target, selected_migration_names)
+    result = json.loads((staging_work_path(root) / "prepare_result.json").read_text(encoding="utf-8"))
+    return {**result, "target_validation": validation, "initial_space": precheck}
 
 
 def prepare_update_from_github(
@@ -108,6 +95,7 @@ def prepare_update_from_github(
             "phase": "prepare",
             "message": "正在校验目标版本，尚未开始下载",
         })
+    precheck = check_initial_space(root)
     validation = validate_update_target(root, target)
     if not validation["allowed"] and validation["status"] != "compare_failed":
         raise ValueError(validation["message"])
@@ -117,19 +105,19 @@ def prepare_update_from_github(
             "phase": "prepare",
             "message": "目标版本校验完成，正在请求源码包",
         })
-    staging = prepare_staging_from_github(root, target, progress_callback=progress_callback)
-    migration_results = migrate_user_data(
-        source_root=root,
-        target_root=staging,
-        selected_names=selected_migration_names,
-        allow_missing_target=True,
+    prepare_staging_from_github(
+        root, target, progress_callback=progress_callback, selected_migration_names=selected_migration_names,
     )
-    report_path = write_migration_report(staging, migration_results)
+    result = json.loads((staging_work_path(root) / "prepare_result.json").read_text(encoding="utf-8"))
+    return {**result, "target_validation": validation, "initial_space": precheck}
 
-    return {
-        "staging": describe_staging(staging),
-        "migration_summary": summarize_migration_results(migration_results),
-        "migration_report": str(report_path),
-        "space": estimate_update_space(root, staging),
-        "target_validation": validation,
-    }
+
+def check_initial_space(root: Path) -> dict[str, Any]:
+    """下载前按当前版本体积粗估两份临时内容，精确结果仍以目标版本准备后为准。"""
+    result = estimate_update_space(root)
+    result["required"] = result["backup_size"] * 2 + result["safety_margin"]
+    result["required_text"] = format_bytes(result["required"])
+    result["enough"] = result["available"] >= result["required"]
+    if not result["enough"]:
+        raise OSError("下载前空间预估不足，已停止更新；请先释放磁盘空间。")
+    return result
