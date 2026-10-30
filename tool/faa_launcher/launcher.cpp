@@ -28,14 +28,16 @@ const int ID_START = 101, ID_CANCEL = 102, ID_NETWORK = 103, ID_EXPORT = 105,
 const wchar_t* StageNames[] = { L"检查安装文件", L"准备安装工具", L"安装 Python", L"同步运行依赖", L"检测运行环境", L"启动 FAA" };
 const wchar_t* StageDescriptions[] = { L"确认文件与安装位置", L"校验工具的完整性", L"准备 Python 3.12", L"按发行包恢复依赖", L"统一核对实际运行能力", L"等待主窗口就绪" };
 const wchar_t* ActiveTitles[] = { L"确认 FAA 已准备完整", L"准备可靠的安装工具", L"正在准备 Python", L"正在同步运行依赖", L"正在检测 FAA 运行环境", L"正在打开 FAA" };
-enum class Operation { Install, Uninstall, Restore };
+enum class Operation { Install, Uninstall, Restore, LegacyUpdate };
 const wchar_t* UninstallNames[]={L"确认卸除范围",L"检查运行进程",L"卸除本地环境",L"完成卸除"};
 const wchar_t* UninstallDescriptions[]={L"保留配置与用户数据",L"处理环境占用",L"移除本地 uv 和 .venv",L"核对卸除结果"};
 const wchar_t* RestoreNames[]={L"选择备份版本",L"检查恢复条件",L"备份当前版本",L"恢复版本文件",L"准备并检测环境",L"启动 FAA"};
 const wchar_t* RestoreDescriptions[]={L"查看备份与版本信息",L"检查备份和运行进程",L"保存恢复前的版本",L"失败时自动回滚",L"同步依赖后统一检测",L"等待主窗口就绪"};
+const wchar_t* LegacyNames[]={L"核对旧版交接",L"获取纯净源码",L"读取新版规则",L"迁移原始用户数据",L"备份并替换",L"更新完成"};
+const wchar_t* LegacyDescriptions[]={L"固定原始备份与版本",L"兼容旧版需要再次下载",L"由目标版本生成发行目录",L"使用首次备份而非中间结果",L"失败时保留原始备份",L"请手动运行环境安装器"};
 int StepCount(Operation operation) { return operation==Operation::Uninstall?4:6; }
-const wchar_t* StepName(Operation operation,int index) { return operation==Operation::Install?StageNames[index]:operation==Operation::Uninstall?UninstallNames[index]:RestoreNames[index]; }
-const wchar_t* StepDescription(Operation operation,int index) { return operation==Operation::Install?StageDescriptions[index]:operation==Operation::Uninstall?UninstallDescriptions[index]:RestoreDescriptions[index]; }
+const wchar_t* StepName(Operation operation,int index) { return operation==Operation::Install?StageNames[index]:operation==Operation::Uninstall?UninstallNames[index]:operation==Operation::LegacyUpdate?LegacyNames[index]:RestoreNames[index]; }
+const wchar_t* StepDescription(Operation operation,int index) { return operation==Operation::Install?StageDescriptions[index]:operation==Operation::Uninstall?UninstallDescriptions[index]:operation==Operation::LegacyUpdate?LegacyDescriptions[index]:RestoreDescriptions[index]; }
 enum class State { Idle, Running, Blocked, Failed, Cancelled, Success, Monitoring, Review };
 enum class Step { Pending, Active, Complete, Failed };
 enum class EventKind { Start, Finish, Log, Failure, Cancel, Success, Blocked, MonitorStart, ProcessExit, Check, Review, BackupDeleted };
@@ -456,6 +458,51 @@ void RunRestore(const Options& options) {
     if(!LaunchFaa(options)) return;
     Post(options,new Event(EventKind::Finish,5)); Post(options,new Event(EventKind::Success,5));
 }
+bool NeedsLegacyUpdate(const std::wstring& root) {
+    if(Exists(Join(root,L".git"))||!Exists(Join(root,L"plugins\\updater\\legacy_bridge.py")))return false;
+    auto compact=[](std::string value) {
+        value.erase(std::remove_if(value.begin(),value.end(),[](char ch){return ch==' '||ch=='\r'||ch=='\n'||ch=='\t';}),value.end());return value;
+    };
+    const std::string state=compact(ReadFileBytes(Join(root,L"update_cache\\update_state.json")));
+    if(state.find("\"update_protocol\":1")!=std::string::npos)return false;
+    if(Exists(Join(root,L"update_cache\\legacy_bridge\\state.json")))return true;
+    const std::string operation=compact(ReadFileBytes(Join(root,L"update_cache\\updater_state.json")));
+    return operation.find("\"phase\":\"update_completed\"")!=std::string::npos;
+}
+bool StartLegacyCacheEntry(const std::wstring& root) {
+    // 正式入口和旧名别名均先退出，由保留区内的同一程序展示进度，避免更新时占用根目录 EXE。
+    const std::wstring directory=Join(root,L"update_cache\\legacy_bridge");
+    const std::wstring executable=Join(directory,L"entry-"+std::to_wstring(GetCurrentProcessId())+L".exe");
+    if(!MakeDirectories(directory)||!CopyFileW(ExePath().c_str(),executable.c_str(),FALSE))return false;
+    std::wstring command=QuoteArgument(executable)+L" --legacy-bridge-root "+QuoteArgument(root);
+    std::vector<wchar_t> buffer(command.begin(),command.end());buffer.push_back(0);
+    STARTUPINFOW startup={};startup.cb=sizeof(startup);PROCESS_INFORMATION process={};
+    if(!CreateProcessW(executable.c_str(),buffer.data(),NULL,NULL,FALSE,0,NULL,directory.c_str(),&startup,&process))return false;
+    CloseHandle(process.hThread);CloseHandle(process.hProcess);return true;
+}
+void RunLegacyUpdate(const Options& options) {
+    Post(options,new Event(EventKind::Start,0,L"正在完成旧版更新过渡",L"将按目标版本的规则重新准备并迁移，完成后请手动运行环境安装器。"));
+    const std::wstring python=Join(options.root,L".venv\\Scripts\\python.exe");
+    const std::wstring script=Join(options.root,L"plugins\\updater\\legacy_bridge.py");
+    int lastStage=0;
+    ProcessResult result=RunProcess(python,{L"-I",L"-X",L"utf8",script,L"--root",options.root},options.root,
+        InstallationEnvironment(options),NULL,[&](const std::wstring& line) {
+            const std::wstring prefix=L"FAA_LEGACY_PHASE:";
+            if(line.find(prefix)==0&&line.size()>prefix.size()+1) {
+                const int stage=line[prefix.size()]-L'0';
+                if(stage>=0&&stage<6) {
+                    lastStage=stage;
+                    for(int previous=0;previous<stage;++previous)Post(options,new Event(EventKind::Finish,previous));
+                    Post(options,new Event(EventKind::Start,stage,LegacyNames[stage],line.substr(prefix.size()+2)));
+                }
+            }
+            WorkerLog(options,line);
+        });
+    if(result.systemError||result.exitCode) {
+        Failure(options,lastStage,L"旧版更新过渡未完成",result.systemError?SystemError(result.systemError):L"原始备份和过渡记录已保留。请查看运行详情，处理后点击重试，或下次运行快速启动入口继续。",Problem::Other);return;
+    }
+    Post(options,new Event(EventKind::Finish,5));Post(options,new Event(EventKind::Success,5));
+}
 DWORD WINAPI Worker(void* parameter) {
     std::unique_ptr<Options> options(reinterpret_cast<Options*>(parameter));
     HANDLE mutex=NULL;
@@ -468,7 +515,8 @@ DWORD WINAPI Worker(void* parameter) {
             if(mutex) CloseHandle(mutex);
             Failure(*options,options->start,L"另一个环境操作正在运行",L"请等待同一 FAA 目录中的其他安装、卸除或恢复操作结束。",Problem::Other); return 0;
         }
-        if(options->quickEntry)RunQuickEntry(*options);
+        if(options->operation==Operation::LegacyUpdate)RunLegacyUpdate(*options);
+        else if(options->quickEntry)RunQuickEntry(*options);
         else if(options->removeBackup) {
             Post(*options,new Event(EventKind::Start,0,L"正在删除所选备份",L"只处理已确认的备份目录，请等待删除完成。"));
             std::wstring error;
@@ -540,8 +588,8 @@ void PaintMain(HDC dc) {
     SolidBrush white(Color::White); graphics.FillRectangle(&white,RectF(0,0,248,height));
     Pen line(Line,1); graphics.DrawLine(&line,248.0f,0.0f,248.0f,height);
     Round(graphics,RectF(26,30,43,43),12,Accent); Text(graphics,L"F",34,29,26,43,30,Color::White,true);
-    Text(graphics,L"FAA",83,30,125,26,21,Ink,true); Text(graphics,L"安装与启动",84,57,120,22,12,Muted);
-    const wchar_t* flow=app.operation==Operation::Install?L"安装与启动流程":app.operation==Operation::Uninstall?L"卸除流程":L"备份恢复流程";
+    Text(graphics,L"FAA",83,30,125,26,21,Ink,true); Text(graphics,app.operation==Operation::LegacyUpdate?L"旧版更新过渡":L"安装与启动",84,57,120,22,12,Muted);
+    const wchar_t* flow=app.operation==Operation::Install?L"安装与启动流程":app.operation==Operation::Uninstall?L"卸除流程":app.operation==Operation::LegacyUpdate?L"旧版更新过渡流程":L"备份恢复流程";
     Text(graphics,flow,28,110,190,24,12,Muted);
     const int count=StepCount(app.operation);
     for(int index=0;index<count;++index) {
@@ -558,7 +606,7 @@ void PaintMain(HDC dc) {
     }
     Text(graphics,L"FAA / 食物大战老鼠自动助手",28,height-34,208,20,10,Muted);
     Text(graphics,L"环境与版本管理",mainX,27,350,22,12,Muted);
-    const wchar_t* heading=app.operation==Operation::Install?L"让 FAA 顺利启动":app.operation==Operation::Uninstall?L"卸除本地运行环境":L"恢复到备份版本";
+    const wchar_t* heading=app.operation==Operation::Install?L"让 FAA 顺利启动":app.operation==Operation::Uninstall?L"卸除本地运行环境":app.operation==Operation::LegacyUpdate?L"完成旧版更新过渡":L"恢复到备份版本";
     Text(graphics,heading,mainX,52,mainWidth-90,40,27,Ink,true);
     if(!app.logExpanded||!app.rootValid) {
         Round(graphics,RectF(mainX,151,mainWidth,292),15,Color::White,Line);
@@ -706,9 +754,10 @@ void Layout() {
 void UpdateControls() {
     const bool running=app.state==State::Running,valid=app.rootValid;
     auto visible=[&](HWND control,bool show){if(control)ShowWindow(control,show?SW_SHOW:SW_HIDE);};
-    visible(app.action,valid);EnableWindow(app.action,valid&&!running);
-    visible(app.network,valid&&app.operation!=Operation::Uninstall);EnableWindow(app.network,valid&&!running);
-    visible(app.settings,valid);EnableWindow(app.settings,valid&&!running);
+    const bool legacy=app.operation==Operation::LegacyUpdate;
+    visible(app.action,valid&&!legacy);EnableWindow(app.action,valid&&!running&&!legacy);
+    visible(app.network,valid&&!legacy&&app.operation!=Operation::Uninstall);EnableWindow(app.network,valid&&!running);
+    visible(app.settings,valid&&!legacy);EnableWindow(app.settings,valid&&!running);
     visible(app.exportLog,valid);EnableWindow(app.exportLog,valid);visible(app.expand,valid);EnableWindow(app.expand,valid);SetWindowTextW(app.expand,app.logExpanded?L"收起":L"放大");
     const bool picker=valid&&!app.logExpanded&&RestorePickerVisible(),blocked=valid&&!app.logExpanded&&app.state==State::Blocked;
     visible(app.backupList,(picker&&!app.backups.empty())||blocked);visible(app.refresh,picker);visible(app.confirm,valid&&!app.logExpanded&&ConfirmationVisible());visible(app.force,blocked&&!app.blockers.empty());
@@ -721,14 +770,14 @@ void UpdateControls() {
     if(deleteFailed)canStart=false;
     if(ConfirmationVisible())canStart=canStart&&confirmed&&(app.operation!=Operation::Restore||!app.backups.empty());
     visible(app.start,valid);EnableWindow(app.start,canStart);
-    const bool cancellable=running&&app.operation!=Operation::Restore;visible(app.cancel,cancellable);EnableWindow(app.cancel,cancellable);
+    const bool cancellable=running&&app.operation!=Operation::Restore&&!legacy;visible(app.cancel,cancellable);EnableWindow(app.cancel,cancellable);
     const bool repair=valid&&app.operation!=Operation::Uninstall&&(app.operation==Operation::Install||app.restoreFilesReady)&&app.state==State::Failed&&(app.problem==Problem::Dependency||app.problem==Problem::Compatibility||app.problem==Problem::Startup);visible(app.repair,repair);
     const wchar_t* label=app.operation==Operation::Install?L"准备并启动 FAA":app.operation==Operation::Uninstall?L"卸除运行环境":L"恢复所选备份";
     if(app.state==State::Review)label=L"继续启动 FAA";
     else if(app.state==State::Blocked)label=L"重新检测";
     else if(app.state==State::Monitoring)label=L"FAA 正在运行";
     else if(app.state==State::Success)label=app.operation==Operation::Uninstall?L"返回安装":L"关闭";
-    else if(app.state==State::Failed)label=deleteFailed?L"请重试删除备份":app.operation==Operation::Restore?(app.restoreFilesReady?L"重试启动":L"重试恢复"):L"重试这一步";
+    else if(app.state==State::Failed)label=legacy?L"重试更新过渡":deleteFailed?L"请重试删除备份":app.operation==Operation::Restore?(app.restoreFilesReady?L"重试启动":L"重试恢复"):L"重试这一步";
     else if(app.state==State::Cancelled)label=L"继续";
     SetWindowTextW(app.start,label);Layout();
 }
@@ -739,7 +788,7 @@ void Reset() {
     app.state=State::Idle;app.stage=0;app.restoreFilesReady=false;app.logExpanded=false;app.faaExited=false;app.title.clear();app.detail.clear();app.logFile.clear();app.logBytes.clear();app.blockers.clear();SetWindowTextW(app.log,L"");
     SendMessageW(app.confirm,BM_SETCHECK,BST_UNCHECKED,0);
     if(app.operation==Operation::Restore)RefreshBackups();
-    AppendLog(app.rootValid?L"[启动器] 已就绪："+std::wstring(app.operation==Operation::Install?L"安装与启动":app.operation==Operation::Uninstall?L"卸除运行环境":L"恢复备份"):L"[启动器] 已锁定："+app.rootProblem);
+    AppendLog(app.rootValid?L"[启动器] 已就绪："+std::wstring(app.operation==Operation::Install?L"安装与启动":app.operation==Operation::Uninstall?L"卸除运行环境":app.operation==Operation::LegacyUpdate?L"旧版更新过渡":L"恢复备份"):L"[启动器] 已锁定："+app.rootProblem);
     UpdateControls();
 }
 void ChangeOperation() {
@@ -767,7 +816,7 @@ void Begin(bool repair=false,bool force=false,bool removeBackup=false) {
     for(int index=options->start;index<StepCount(app.operation);++index)app.steps[index]=Step::Pending;
     if(app.operation==Operation::Restore)app.steps[0]=Step::Complete;
     ResetEvent(app.cancelEvent);if(app.worker){CloseHandle(app.worker);app.worker=NULL;}
-    const std::wstring directory=Join(app.root,L"logs\\launcher");if(MakeDirectories(directory))app.logFile=Join(directory,L"launcher-"+Timestamp()+L".log");
+    const std::wstring directory=Join(app.root,app.operation==Operation::LegacyUpdate?L"update_cache\\legacy_bridge":L"logs\\launcher");if(MakeDirectories(directory))app.logFile=Join(directory,L"launcher-"+Timestamp()+L".log");
     app.state=State::Running;app.startupFailure=false;app.faaExited=false;app.closeAfterCancel=false;
     AppendLog(L"[启动器] 开始操作："+std::wstring(app.operation==Operation::Install?L"安装与启动":app.operation==Operation::Uninstall?L"卸除运行环境":L"恢复备份"));
     UpdateControls();app.worker=CreateThread(NULL,0,Worker,options.get(),0,NULL);
@@ -1045,7 +1094,8 @@ LRESULT CALLBACK MainProc(HWND window,UINT message,WPARAM wParam,LPARAM lParam) 
         app.log=control(L"EDIT",L"",ES_MULTILINE|ES_READONLY|ES_AUTOVSCROLL|WS_VSCROLL|WS_TABSTOP,ID_LOG);
         SendMessageW(app.log,WM_SETFONT,reinterpret_cast<WPARAM>(app.monoFont),TRUE); SendMessageW(app.log,EM_SETLIMITTEXT,128000,0);
         app.cancelEvent=CreateEventW(NULL,TRUE,FALSE,NULL);
-        ChangeOperation();
+        // 过渡流程不属于用户可选的安装操作，不能被组合框默认项重置成安装流程。
+        if(app.operation==Operation::LegacyUpdate)Reset();else ChangeOperation();
         if(!app.rootValid) {
             app.title=L"启动器不在 FAA 根目录";
             app.detail=L"请将安装器放在 FAA 根目录中再启动。";
@@ -1115,6 +1165,10 @@ LRESULT CALLBACK MainProc(HWND window,UINT message,WPARAM wParam,LPARAM lParam) 
             app.state=State::Cancelled;app.steps[app.stage]=Step::Pending;app.title=L"操作已停止";app.detail=app.operation==Operation::Uninstall?L"部分运行环境可能已移除，可以继续卸除或重新安装。":L"已完成的步骤会保留，可以调整设置后继续。";
             AppendLog(L"[启动器] 已停止当前操作。");if(app.closeAfterCancel){DestroyWindow(window);return 0;}
         }else if(event->kind==EventKind::Success){
+            if(app.operation==Operation::LegacyUpdate) {
+                app.state=State::Success;app.title=L"更新完成";app.detail=L"请自行运行 FAA - 环境安装器.exe，准备新版运行环境后启动 FAA。原始版本备份已保留。";
+                AppendLog(L"[更新] "+app.detail);UpdateControls();return 0;
+            }
             app.state=app.debug&&app.operation!=Operation::Uninstall&&!app.faaExited?State::Monitoring:State::Success;
             app.title=app.operation==Operation::Uninstall?L"本地运行环境已卸除":app.operation==Operation::Restore?L"备份恢复完成，FAA 已就绪":L"FAA 已准备就绪";
             app.detail=app.operation==Operation::Uninstall?L"配置和用户数据已保留。下次启动时会重新准备环境。":app.debug?L"此窗口将持续显示 FAA 运行日志。关闭此窗口会停止显示日志，FAA 继续运行。":L"FAA 主窗口已打开，可以开始使用。";
@@ -1159,7 +1213,7 @@ LRESULT CALLBACK MainProc(HWND window,UINT message,WPARAM wParam,LPARAM lParam) 
     }
     if(message==WM_CLOSE){
         if(app.state==State::Running){
-            if(app.operation==Operation::Restore){AppendLog(L"[恢复] 文件恢复或回滚完成后才能关闭窗口。");app.detail=L"正在恢复版本文件，请等待完成后关闭，避免中断恢复或回滚。";UpdateControls();return 0;}
+            if(app.operation==Operation::Restore||app.operation==Operation::LegacyUpdate){AppendLog(L"[版本操作] 文件准备、替换或回滚完成后才能关闭窗口。");app.detail=L"正在处理版本文件，请等待完成后关闭，避免中断替换或回滚。";UpdateControls();return 0;}
             app.closeAfterCancel=true;SetEvent(app.cancelEvent);app.detail=L"正在安全停止当前操作…";UpdateControls();return 0;
         }
         DestroyWindow(window);return 0;
@@ -1271,13 +1325,21 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int show) {
     if(count>1&&arguments[1]==L"--fixture-child") return RunFixtureChild(arguments);
     if(count>2&&arguments[1]==L"--self-test") return RunCoreSelfTests(arguments[2]);
     if(count>2&&arguments[1]==L"--maintenance-self-test") return RunMaintenanceSelfTests(arguments[2]);
+    const bool cachedBridge=count>2&&arguments[1]==L"--legacy-bridge-root";
+    app.root=cachedBridge?arguments[2]:Parent(ExePath());
+    app.rootValid=IsFaaRoot(app.root,app.rootProblem);
+    if(cachedBridge) {
+        if(_wcsicmp(Parent(ExePath()).c_str(),Join(app.root,L"update_cache\\legacy_bridge").c_str())||!app.rootValid||!NeedsLegacyUpdate(app.root))return 2;
+        app.operation=Operation::LegacyUpdate;app.quickEntry=false;
+    } else if(app.quickEntry&&app.rootValid&&NeedsLegacyUpdate(app.root)) {
+        if(StartLegacyCacheEntry(app.root))return 0;
+        MessageBoxW(NULL,(L"无法打开旧版更新过渡界面：\n"+SystemError(GetLastError())+L"\n请保留更新缓存后重新运行快速启动入口。").c_str(),L"FAA 更新过渡",MB_OK|MB_ICONERROR);return 1;
+    }
     // DPI 感知由内嵌 manifest 在创建窗口前启用，兼容较早的 Windows SDK 头文件。
     HDC screen=GetDC(NULL); app.scale=GetDeviceCaps(screen,LOGPIXELSX)/96.0f; ReleaseDC(NULL,screen);
     RECT work={}; SystemParametersInfoW(SPI_GETWORKAREA,0,&work,0);
     // 初始窗口必须放得下整个工作区；缩小物理尺寸时，文字和控件按同一比例缩放。
     app.scale=std::min(app.scale,std::min((work.right-work.left-24)/1040.0f,(work.bottom-work.top-48)/740.0f));
-    app.root=Parent(ExePath());
-    app.rootValid=IsFaaRoot(app.root,app.rootProblem);
     if(app.rootValid) ReadSources();
     ULONG_PTR token=0; GdiplusStartupInput input; GdiplusStartup(&token,&input,NULL);
     INITCOMMONCONTROLSEX common={sizeof(common),ICC_STANDARD_CLASSES|ICC_PROGRESS_CLASS}; InitCommonControlsEx(&common);
@@ -1287,7 +1349,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int show) {
     cls.lpfnWndProc=SettingsProc; cls.lpszClassName=L"FAA.Settings.Native"; RegisterClassW(&cls);
     RECT size={0,0,Px(1040),Px(740)}; AdjustWindowRectEx(&size,WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN,FALSE,0);
     int width=size.right-size.left,height=size.bottom-size.top;
-    const wchar_t* windowTitle=app.quickEntry?L"FAA 启动中":L"FAA 环境安装器";
+    const wchar_t* windowTitle=cachedBridge?L"FAA 旧版更新过渡":app.quickEntry?L"FAA 启动中":L"FAA 环境安装器";
     HWND window=CreateWindowExW(0,L"FAA.Launcher.Native",windowTitle,WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN,
         work.left+(work.right-work.left-width)/2,work.top+(work.bottom-work.top-height)/2,width,height,NULL,NULL,instance,NULL);
     if(!window) return 1;
@@ -1317,7 +1379,14 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int show) {
         WriteFileBytes(arguments[4],app.logBytes);
         DestroyWindow(window); GdiplusShutdown(token); return success?0:1;
     }
-    if(app.quickEntry) {
+    if(cachedBridge) {
+        app.state=State::Running;ResetEvent(app.cancelEvent);
+        app.logFile=Join(Join(app.root,L"update_cache\\legacy_bridge"),L"launcher-"+Timestamp()+L".log");
+        Options* options=new Options;options->root=app.root;options->window=window;options->cancel=app.cancelEvent;options->operation=Operation::LegacyUpdate;
+        app.worker=CreateThread(NULL,0,Worker,options,0,NULL);
+        if(!app.worker){delete options;app.state=State::Failed;app.title=L"无法开始旧版更新过渡";app.detail=SystemError(GetLastError());}
+        UpdateControls();ShowWindow(window,show);UpdateWindow(window);
+    } else if(app.quickEntry) {
         app.state=State::Running;ResetEvent(app.cancelEvent);
         const std::wstring directory=Join(app.root,L"logs\\launcher");
         if(app.rootValid&&MakeDirectories(directory))app.logFile=Join(directory,L"entry-"+Timestamp()+L".log");

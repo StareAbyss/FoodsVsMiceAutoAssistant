@@ -2,6 +2,7 @@
 
 import os
 import ctypes
+import json
 from pathlib import Path
 import shutil
 import subprocess
@@ -178,6 +179,121 @@ class EntryFallbackTests(unittest.TestCase):
         self.run_entry()
         time.sleep(2)
         self.assertFalse((self.root / "installer-calls.txt").exists())
+
+    def test_legacy_handoff_uses_cached_native_ui_and_does_not_loop(self):
+        """真实入口自动交接到缓存进程；完成后等待用户安装，完成记录和源码目录不再次过渡。"""
+        bridge = self.root / "plugins/updater/legacy_bridge.py"
+        bridge.parent.mkdir(parents=True)
+        bridge.write_text('''
+import argparse
+import ctypes
+import json
+import os
+from pathlib import Path
+parser = argparse.ArgumentParser()
+parser.add_argument("--root", type=Path, required=True)
+root = parser.parse_args().root
+calls = root / "native-bridge-calls.json"
+entries = json.loads(calls.read_text(encoding="utf-8")) if calls.exists() else []
+entries.append({"root": str(root), "pid": os.getpid(), "console": bool(ctypes.windll.kernel32.GetConsoleWindow())})
+calls.write_text(json.dumps(entries), encoding="utf-8")
+print("FAA_LEGACY_PHASE:0:checking fixture", flush=True)
+(root / "update_cache/update_state.json").write_text(json.dumps({"update_protocol": 1}), encoding="utf-8")
+print("FAA_LEGACY_PHASE:5:fixture completed", flush=True)
+''', encoding="utf-8")
+        calls = self.root / "native-bridge-calls.json"
+        cache = self.root / "update_cache/legacy_bridge"
+        cache.mkdir(parents=True)
+        user, kernel = ctypes.WinDLL("user32"), ctypes.WinDLL("kernel32")
+        callback = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_void_p, ctypes.c_ssize_t)
+        user.EnumWindows.argtypes = (callback, ctypes.c_ssize_t)
+        user.GetWindowThreadProcessId.argtypes = (ctypes.c_void_p, ctypes.POINTER(ctypes.c_ulong))
+        user.PostMessageW.argtypes = (ctypes.c_void_p, ctypes.c_uint, ctypes.c_size_t, ctypes.c_ssize_t)
+        user.SetWindowPos.argtypes = (ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_uint)
+        kernel.OpenProcess.argtypes = (ctypes.c_ulong, ctypes.c_int, ctypes.c_ulong)
+        kernel.OpenProcess.restype = ctypes.c_void_p
+        kernel.QueryFullProcessImageNameW.argtypes = (ctypes.c_void_p, ctypes.c_ulong, ctypes.c_wchar_p, ctypes.POINTER(ctypes.c_ulong))
+        kernel.WaitForSingleObject.argtypes = (ctypes.c_void_p, ctypes.c_ulong)
+        kernel.TerminateProcess.argtypes = (ctypes.c_void_p, ctypes.c_uint)
+        kernel.CloseHandle.argtypes = (ctypes.c_void_p,)
+
+        for index, name in enumerate(("FAA.exe", "FAA - 快速启动.exe"), start=1):
+            with self.subTest(entry=name):
+                shutil.copy2(ROOT / "FAA - 快速启动.exe", self.root / name)
+                (self.root / "update_cache/update_state.json").write_text('{"commit": "legacy"}', encoding="utf-8")
+                (self.root / "update_cache/updater_state.json").write_text('{"phase": "update_completed"}', encoding="utf-8")
+                for previous_log in cache.glob("launcher-*.log"):
+                    previous_log.unlink()
+                entry = subprocess.Popen([str(self.root / name)])
+                expected_image = cache / f"entry-{entry.pid}.exe"
+                found = []
+
+                @callback
+                def find(window, _):
+                    pid = ctypes.c_ulong()
+                    user.GetWindowThreadProcessId(window, ctypes.byref(pid))
+                    handle = kernel.OpenProcess(0x1000, False, pid.value)
+                    if handle:
+                        try:
+                            image_path, size = ctypes.create_unicode_buffer(32768), ctypes.c_ulong(32768)
+                            if kernel.QueryFullProcessImageNameW(handle, 0, image_path, ctypes.byref(size)):
+                                if Path(image_path.value).resolve() == expected_image.resolve():
+                                    found[:] = [(window, pid.value)]
+                                    return 0
+                        finally:
+                            kernel.CloseHandle(handle)
+                    return 1
+
+                handle = None
+                try:
+                    self.assertEqual(entry.wait(timeout=10), 0)
+                    deadline = time.monotonic() + 10
+                    logs = ""
+                    while time.monotonic() < deadline:
+                        user.EnumWindows(find, 0)
+                        if found:
+                            # 夹具窗口移到屏幕外，不占用用户当前工作区域。
+                            user.SetWindowPos(found[0][0], None, -30000, -30000, 0, 0, 0x15)
+                        logs = "\n".join(path.read_text(encoding="utf-8") for path in cache.glob("launcher-*.log"))
+                        if found and "[更新] 请自行运行 FAA - 环境安装器.exe" in logs:
+                            break
+                        time.sleep(0.02)
+                    self.assertTrue(found, "应由根目录入口派生缓存内的原生进度窗口")
+                    self.assertIn("[更新] 请自行运行 FAA - 环境安装器.exe", logs)
+                    handle = kernel.OpenProcess(0x100001, False, found[0][1])
+                    self.assertTrue(handle)
+                    self.assertEqual(kernel.WaitForSingleObject(handle, 0), 258, "完成页应保留供用户阅读")
+                    entries = json.loads(calls.read_text(encoding="utf-8"))
+                    self.assertEqual(len(entries), index)
+                    self.assertEqual(Path(entries[-1]["root"]), self.root)
+                    self.assertFalse(entries[-1]["console"], "过渡脚本不能打开额外控制台")
+                    self.assertFalse(list(self.root.glob("fixture-*.json")), "更新完成不自动启动 FAA")
+                    self.assertFalse((self.root / "installer-calls.txt").exists())
+                    self.assertFalse((self.root / "uv-calls.txt").exists())
+                finally:
+                    user.EnumWindows(find, 0)
+                    if found:
+                        if handle is None:
+                            handle = kernel.OpenProcess(0x100001, False, found[0][1])
+                        user.PostMessageW(found[0][0], 0x10, 0, 0)
+                        if handle and kernel.WaitForSingleObject(handle, 3000) != 0:
+                            kernel.TerminateProcess(handle, 1)
+                            kernel.WaitForSingleObject(handle, 3000)
+                    if handle:
+                        kernel.CloseHandle(handle)
+                    if entry.poll() is None:
+                        entry.kill()
+                        entry.wait(timeout=5)
+
+        # 即使仍有上一轮 completed 记录，完成协议标识也应让快速入口正常启动 FAA。
+        self.run_entry()
+        self.assertEqual(len(json.loads(calls.read_text(encoding="utf-8"))), 2)
+        self.assertTrue(list(self.root.glob("fixture-*.json")))
+        # 源码目录不应根据本地调试遗留的更新记录运行用户过渡流程。
+        (self.root / ".git").mkdir()
+        (self.root / "update_cache/update_state.json").write_text('{"commit": "legacy"}', encoding="utf-8")
+        self.run_entry()
+        self.assertEqual(len(json.loads(calls.read_text(encoding="utf-8"))), 2)
 
 
 if __name__ == "__main__":

@@ -7,9 +7,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from function.common.distribution_layout import LAUNCHER_EXE
-
-
 def timestamp() -> str:
     return datetime.now().strftime("%Y%m%d-%H%M%S")
 
@@ -25,7 +22,8 @@ def copy_updater_to_temp(root: Path) -> Path:
 
     temp_root = Path(tempfile.gettempdir()) / "FAA-updater"
     temp_root.mkdir(parents=True, exist_ok=True)
-    target = temp_root / f"updater.{timestamp()}.py"
+    # 同一秒内重复准备更新也不能覆盖另一轮正在运行的脚本。
+    target = temp_root / f"updater.{timestamp()}.{os.urandom(6).hex()}.py"
     shutil.copy2(source, target)
     return target
 
@@ -42,7 +40,7 @@ def build_update_command(
     staging: Path,
     updater_script: Path,
     wait_pid: int | None = None,
-    launch: str = LAUNCHER_EXE,
+    launch: str = "",
 ) -> list[str]:
     command = [
         str(select_python_executable(root)),
@@ -64,11 +62,12 @@ def launch_update_from_staging(
     root: Path,
     staging: Path,
     wait_pid: int | None = None,
-    launch: str = LAUNCHER_EXE,
+    launch: str = "",
 ) -> dict[str, Any]:
     root = Path(root).resolve()
     staging = Path(staging).resolve()
-    updater_script = copy_updater_to_temp(root)
+    # 替换规则属于目标版本；临时副本在移动 FAA 源码后仍能独立运行。
+    updater_script = copy_updater_to_temp(staging)
     command = build_update_command(root, staging, updater_script, wait_pid=wait_pid or os.getpid(), launch=launch)
     process = subprocess.Popen(command, cwd=updater_script.parent)
     return {

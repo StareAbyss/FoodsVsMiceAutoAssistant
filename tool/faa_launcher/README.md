@@ -78,7 +78,21 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tool/faa_launcher/build.ps1 
 
 构建产物默认复制到项目根目录，`-OutputDirectory` 可指定成品输出目录。中间文件放在 `dist/faa_launcher/build-随机标识/` 下的独立工作目录；全部编译和成品复制成功后自动清理本次工作目录，失败时保留并输出位置。清理不删除自定义成品目录或其他失败构建；不能删除的文件会明确提示。`-Variant Installer` 或 `-Variant Launcher` 可单独构建一个版本。也可以设置 `FAA_CXX` 或在当前终端 PATH 中提供编译器。MinGW 编译器目录中需要 `windres.exe`。MSVC 构建需要开发者命令行中的 `cl.exe` 和 Windows SDK `rc.exe`。
 
-构建普通入口和正式安装器同时更新 `plugins/root_entries/FAA - 快速启动.exe` 与 `plugins/root_entries/FAA - 环境安装器.exe`，按 `function/common/distribution_layout.py` 的入口白名单复制到用户根目录。普通热更新和恢复保留当前安装器，安装器自身更新需要单独替换。
+构建普通入口和正式安装器同时更新 `plugins/root_entries/FAA - 快速启动.exe` 与 `plugins/root_entries/FAA - 环境安装器.exe`，按 `function/common/distribution_layout.py` 的入口白名单复制到用户根目录。普通热更新部署目标版本的安装器；备份恢复保留正在运行的安装器。
+
+## 已发布旧版本的自动更新过渡
+
+#1055 的本地更新器按固定旧文件名复制和校验源码，更新后也固定启动 `FAA.exe`。源码归档保留满足这些旧路径要求的少量过渡文件；`plugins/root_entries/FAA.exe` 是正式快速入口的同一份二进制别名，不是第三个正式产品。正常发行和新版热更新按白名单只复制两个正式 EXE，不携带旧名称入口或过渡 BAT、PS1；内部过渡代码位于 `plugins/updater/`。
+
+旧更新器首次完成替换后，新原生入口会识别旧更新交接，并在缓存内运行自身副本完成收尾。界面显示获取源码、读取新版规则、迁移原始数据、备份替换等阶段，日志直接显示在窗口中，不打开额外控制台。
+
+过渡需要重新下载首次选定的精确 commit 源码，并从首次更新前的原始备份迁移用户数据。不能把已经被旧迁移规则改写过的中间安装目录当作纯净源码或原始数据。原始备份和目标提交固定记录在 `update_cache/legacy_bridge/state.json`；失败时保留此记录供重试，不改选另一个提交或中间备份。
+
+目标准备进程写入 `update_protocol=1`，用于区分已按目标规则完成的更新与旧更新器交接，避免下次正常启动再次迁移。没有旧更新交接记录的全新安装不会进入过渡。#1056 起已使用正式入口白名单的旧更新器也由正式快速入口识别交接，无需依赖旧名称 `FAA.exe`。
+
+更新完成后收起旧名称入口和带专用标记的过渡脚本，根目录保持正式布局；状态、日志和临时原生程序位于 `update_cache`。界面提示用户自行运行目标版环境安装器，不自动启动 FAA 或安装依赖。
+
+旧用户必须选择包含此过渡支持的新版本。历史 commit 的源码包内容不会被当前改动改变，直接选择不含支持的历史节点仍可能报错。
 
 ## 验证
 
@@ -86,6 +100,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tool/faa_launcher/build.ps1 
 
 ```powershell
 .venv\Scripts\python.exe -m unittest test.faa_launcher.test_launcher test.faa_launcher.test_maintenance test.faa_launcher.test_startup test.faa_launcher.test_runtime_probe test.faa_launcher.test_entry -v
+.venv\Scripts\python.exe -m unittest test.test_update_target_rules test.faa_launcher.test_update_legacy -v
 .venv\Scripts\python.exe tool/faa_launcher/verify_pe.py "FAA - 环境安装器.exe"
 .venv\Scripts\python.exe tool/faa_launcher/verify_pe.py "FAA - 快速启动.exe"
 ```
@@ -97,6 +112,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tool/faa_launcher/build.ps1 
 环境检测测试覆盖必需项失败、可选项继续、原生组件崩溃、超时、协议异常和锁定版本不符，并在隔离目录实际执行 EXE 内嵌检测。该测试通过隔离环境的 `.pth` 复用当前开发环境依赖，不安装或修改开发依赖。
 
 `test.faa_launcher.test_build_cleanup` 在独立源码副本中验证构建成功后的中间文件清理、自定义成品与其他失败现场保留；实际编译测试通过 `FAA_CXX` 选择编译器。
+
+更新规则集成测试刻意让目标源码新增文件、改变排除项和目录映射，并增加旧版不知道的数据迁移规则，验证当前进程的模块缓存不会代替目标规则。还覆盖确认期间配置变化、最终迁移失败重试、目标更新脚本交接和安装器版本替换。旧版过渡测试从 Git 固定提交读取真实 #1055、#1056、#1057 更新模块，使用本地源码 ZIP 隔离网络，验证首次备份取数、目标规则收尾及根目录兼容文件清理。原生入口交接另用隔离 Python 夹具验证，不启动真实 FAA 或游戏。
 
 ## 文件
 

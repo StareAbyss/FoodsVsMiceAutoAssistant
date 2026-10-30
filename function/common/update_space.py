@@ -2,10 +2,7 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-from function.common.distribution_layout import ENVIRONMENT_INSTALLER_EXE
-
-
-PRESERVED_NAMES = {".venv", "backups", "update_cache", ENVIRONMENT_INSTALLER_EXE}
+PRESERVED_NAMES = {".venv", "backups", "update_cache"}
 
 
 def path_size(path: Path) -> int:
