@@ -485,6 +485,7 @@ void RunLegacyUpdate(const Options& options) {
     const std::wstring python=Join(options.root,L".venv\\Scripts\\python.exe");
     const std::wstring script=Join(options.root,L"plugins\\updater\\legacy_bridge.py");
     int lastStage=0;
+    std::wstring networkError;
     ProcessResult result=RunProcess(python,{L"-I",L"-X",L"utf8",script,L"--root",options.root},options.root,
         InstallationEnvironment(options),NULL,[&](const std::wstring& line) {
             const std::wstring prefix=L"FAA_LEGACY_PHASE:";
@@ -496,10 +497,14 @@ void RunLegacyUpdate(const Options& options) {
                     Post(options,new Event(EventKind::Start,stage,LegacyNames[stage],line.substr(prefix.size()+2)));
                 }
             }
+            const std::wstring networkPrefix=L"FAA_LEGACY_NETWORK_ERROR:";
+            if(line.find(networkPrefix)==0)networkError=line.substr(networkPrefix.size());
             WorkerLog(options,line);
         });
     if(result.systemError||result.exitCode) {
-        Failure(options,lastStage,L"旧版更新过渡未完成",result.systemError?SystemError(result.systemError):L"原始备份和过渡记录已保留。请查看运行详情，处理后点击重试，或下次运行快速启动入口继续。",Problem::Other);return;
+        Failure(options,lastStage,networkError.empty()?L"旧版更新过渡未完成":L"GitHub 网络连接失败",
+            !networkError.empty()?networkError:result.systemError?SystemError(result.systemError):L"原始备份和过渡记录已保留。请查看运行详情，处理后点击重试，或下次运行快速启动入口继续。",
+            networkError.empty()?Problem::Other:Problem::Network);return;
     }
     Post(options,new Event(EventKind::Finish,5));Post(options,new Event(EventKind::Success,5));
 }
@@ -648,7 +653,12 @@ void PaintMain(HDC dc) {
             Text(graphics,app.state==State::Running?L"正在进行 · 第 "+std::to_wstring(app.stage+1)+L" 步":failed?L"需要处理":app.state==State::Monitoring?L"FAA 运行中":app.state==State::Success?L"操作完成":app.state==State::Cancelled?L"已暂停":L"准备就绪",mainX+25,173,mainWidth-50,25,12,failed?Error:Accent,true);
             Text(graphics,app.title.empty()?L"准备好开始了吗？":app.title,mainX+25,209,mainWidth-50,41,25,Ink,true);
             Text(graphics,app.detail.empty()?L"检查安装文件，准备 Python 和运行依赖，再为您打开 FAA。\n首次准备可能需要几分钟，每一步都会显示在这里。":app.detail,mainX+25,260,mainWidth-50,55,13,Muted);
-            if(failed) { Round(graphics,RectF(mainX+24,328,mainWidth-48,61),8,PaleError);Text(graphics,app.operation==Operation::Install?ProblemAdvice(app.problem):L"具体文件与处理结果已保留在运行详情中。处理后可以重试或重新选择操作。",mainX+37,339,mainWidth-74,47,12,Error); }
+            if(failed) {
+                const std::wstring advice=app.operation==Operation::LegacyUpdate&&app.problem==Problem::Network?
+                    L"检查 GitHub 连接、系统时间和代理可信证书后重试。Python 和依赖包镜像设置不影响源码下载。":
+                    app.operation==Operation::Install?ProblemAdvice(app.problem):L"具体文件与处理结果已保留在运行详情中。处理后可以重试或重新选择操作。";
+                Round(graphics,RectF(mainX+24,328,mainWidth-48,61),8,PaleError);Text(graphics,advice,mainX+37,339,mainWidth-74,47,12,Error);
+            }
             else Text(graphics,app.operation==Operation::Uninstall?L"下次启动时会重新准备运行环境。":app.operation==Operation::Restore?L"恢复过程中请保持窗口打开；复制失败时会自动回滚。":app.debug?L"调试启动已开启：FAA 打开后保留此窗口并持续显示日志。":L"按安装包锁定的版本准备依赖，保留您的用户配置。",mainX+25,333,mainWidth-50,45,12,Muted);
             int completed=0;for(int i=0;i<count;++i) if(app.steps[i]==Step::Complete) ++completed;
             float railWidth=mainWidth-50;
@@ -1296,12 +1306,15 @@ int RunStartupSelfTest(const std::wstring& root,const std::wstring& reportPath,c
     // 此入口只启动带专用标记的隔离夹具，不同步或修复维护者的 FAA 环境。
     if(!Exists(Join(root,L".faa-launcher-startup-test"))||Exists(Join(root,L".git"))||Parent(reportPath)!=root)return 2;
     app.quickEntry=false;app.root=root;app.rootValid=true;app.debug=mode==L"debug";
-    app.operation=operation==L"restore"?Operation::Restore:Operation::Install;
+    const bool legacy=operation==L"legacy";
+    app.operation=legacy?Operation::LegacyUpdate:operation==L"restore"?Operation::Restore:Operation::Install;
     app.state=State::Running;app.stage=5;app.faaExited=false;app.closeAfterCancel=false;
     for(int index=0;index<5;++index)app.steps[index]=Step::Complete;
     app.steps[5]=Step::Active;ResetEvent(app.cancelEvent);
     Options options;options.window=app.window;options.cancel=app.cancelEvent;options.root=root;options.debug=app.debug;options.operation=app.operation;
-    bool launched=LaunchFaa(options);
+    UpdateControls();
+    bool launched=false;
+    if(legacy)RunLegacyUpdate(options);else launched=LaunchFaa(options);
     if(launched){Post(options,new Event(EventKind::Finish,5));Post(options,new Event(EventKind::Success,5));}
     DWORD start=GetTickCount();MSG message;
     while(app.state==State::Running&&IsWindow(app.window)&&GetTickCount()-start<2000){
@@ -1311,6 +1324,8 @@ int RunStartupSelfTest(const std::wstring& root,const std::wstring& reportPath,c
     std::ostringstream report;
     report<<"launch_success="<<(launched?1:0)<<"\nwindow_open="<<(IsWindow(app.window)?1:0)<<"\n";
     report<<"monitoring="<<(app.state==State::Monitoring?1:0)<<"\nfailed="<<(app.state==State::Failed?1:0)<<"\n";
+    if(legacy)report<<"stage="<<app.stage<<"\nnetwork="<<(app.problem==Problem::Network?1:0)<<"\nnetwork_visible="<<((GetWindowLongW(app.network,GWL_STYLE)&WS_VISIBLE)?1:0)
+        <<"\ntitle="<<Utf8(app.title)<<"\ndetail="<<Utf8(app.detail)<<"\n";
     return WriteFileBytes(reportPath,report.str())?0:3;
 }
 

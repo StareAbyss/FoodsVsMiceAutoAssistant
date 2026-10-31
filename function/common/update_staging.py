@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
-from function.common.update_manifest import DEFAULT_OWNER, DEFAULT_REPO
+from function.common.update_manifest import DEFAULT_OWNER, DEFAULT_REPO, open_update_url
 from function.common.distribution_layout import (
     PACKAGE_FOLDERS, PACKAGE_FILES, ROOT_ENTRY_DIRECTORY, ROOT_ENTRY_FILES,
     UV_ARCHIVE, ENVIRONMENT_INSTALLER_EXE, LAUNCHER_EXE,
@@ -108,6 +108,14 @@ def download_github_archive(
     dest_zip.parent.mkdir(parents=True, exist_ok=True)
     headers = {"User-Agent": "FAA-Updater"}
 
+    def certificate_retry() -> None:
+        """系统补链可能需要联网，把等待原因显示在下载阶段。"""
+        if progress_callback:
+            progress_callback({
+                "phase": "download_connecting",
+                "message": "Python 证书校验未通过，正在使用 Windows 系统证书验证重新连接；系统可能需要获取缺失的中间证书。",
+            })
+
     def emit_progress(downloaded_bytes: int, total_bytes: int | None, started_at: float) -> None:
         if progress_callback is None:
             return
@@ -139,7 +147,7 @@ def download_github_archive(
                 "message": "正在连接 GitHub 源码包下载地址，尚未收到文件大小",
             })
         try:
-            with urllib.request.urlopen(request, timeout=60) as response:
+            with open_update_url(request, timeout=60, on_certificate_retry=certificate_retry) as response:
                 total_header = response.headers.get("Content-Length")
                 total_bytes = int(total_header) if total_header and total_header.isdigit() else None
                 downloaded_bytes = 0

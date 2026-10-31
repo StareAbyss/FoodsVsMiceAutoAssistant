@@ -54,7 +54,7 @@ def explain_update_error(action: str, exc: Exception) -> str:
     elif "name resolution" in lower_error or "getaddrinfo" in lower_error:
         reason = "无法解析 GitHub 域名，通常是 DNS 或网络连接异常。"
         suggestion = "请检查网络是否可访问 github.com，或尝试更换 DNS/代理。"
-    elif "ssl" in lower_error or "certificate" in lower_error:
+    elif "ssl" in lower_error or "certificate" in lower_error or "证书" in raw_error:
         reason = "HTTPS 证书校验失败，可能与系统证书、代理抓包或安全软件有关。"
         suggestion = "请检查系统时间、代理证书和安全软件设置。"
     elif "403" in lower_error or "rate limit" in lower_error:
