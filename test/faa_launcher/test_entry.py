@@ -163,7 +163,7 @@ class EntryFallbackTests(unittest.TestCase):
 
     def test_early_exit_opens_installer_with_startup_log(self):
         self.run_entry(mode="splash", expected=1)
-        report = next((self.root / "logs/launcher").glob("startup-failure-*.txt"))
+        report = next((self.root / "update_cache/launcher/logs").glob("startup-failure-*.txt"))
         self.assertIn("FAA 尚未成功打开", report.read_text(encoding="utf-8"))
 
     def test_invalid_root_still_opens_installer(self):
@@ -288,6 +288,7 @@ print("FAA_LEGACY_PHASE:5:fixture completed", flush=True)
         # 即使仍有上一轮 completed 记录，完成协议标识也应让快速入口正常启动 FAA。
         self.run_entry()
         self.assertEqual(len(json.loads(calls.read_text(encoding="utf-8"))), 2)
+
         self.assertTrue(list(self.root.glob("fixture-*.json")))
         # 源码目录不应根据本地调试遗留的更新记录运行用户过渡流程。
         (self.root / ".git").mkdir()

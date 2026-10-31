@@ -43,6 +43,93 @@ def countdown_and_exit(seconds: int = 3) -> None:
         time.sleep(1)
 
 
+def notify(message: str, failed: bool = False) -> None:
+    """隐藏执行时用 Windows 原生提示告知结果，不静默启动 FAA 或安装器。"""
+    if sys.platform == "win32":
+        import ctypes
+        ctypes.windll.user32.MessageBoxW(None, message, "FAA 更新工具", 0x10000 | (0x10 if failed else 0x40))
+
+
+def restart_with_clean_stdio(arguments: list[str]) -> None:
+    """接管已发布调用方的旧标准句柄，原进程退出后由干净子进程继续更新。
+
+    旧调用方没有显式重定向标准流。即使实际 Python 中的 stdout 已不可用，
+    venv 跳板仍可能持有旧日志，因此用内部协议交接一次，不依赖 stdout 类型猜测。
+    仅传递可等待的原进程句柄，避免等待 PID 已复用的新进程或猜测释放所需时间。
+    """
+    import ctypes
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.OpenProcess.argtypes = [ctypes.c_uint32, ctypes.c_int, ctypes.c_uint32]
+    kernel.OpenProcess.restype = ctypes.c_void_p
+    kernel.QueryFullProcessImageNameW.argtypes = [ctypes.c_void_p, ctypes.c_uint32, ctypes.c_wchar_p, ctypes.POINTER(ctypes.c_uint32)]
+    kernel.CloseHandle.argtypes = [ctypes.c_void_p]
+
+    def image_path(handle) -> str:
+        """核对实际进程映像，只等待本解释器对应的 venv 父跳板。"""
+        path = ctypes.create_unicode_buffer(32768)
+        size = ctypes.c_uint32(len(path))
+        if not kernel.QueryFullProcessImageNameW(handle, 0, path, ctypes.byref(size)):
+            raise ctypes.WinError(ctypes.get_last_error())
+        return os.path.normcase(os.path.realpath(path.value))
+
+    handles = []
+    try:
+        own = kernel.OpenProcess(0x100000 | 0x1000, True, os.getpid())
+        if not own:
+            raise ctypes.WinError(ctypes.get_last_error())
+        handles.append(own)
+        executable = image_path(own)
+        virtual_executable = os.path.normcase(os.path.realpath(sys.executable))
+        if executable != virtual_executable:
+            parent = kernel.OpenProcess(0x100000 | 0x1000, True, os.getppid())
+            if not parent:
+                raise ctypes.WinError(ctypes.get_last_error())
+            try:
+                if image_path(parent) == virtual_executable:
+                    handles.append(parent)
+                    parent = None
+            finally:
+                if parent:
+                    kernel.CloseHandle(parent)
+        startup = subprocess.STARTUPINFO()
+        startup.lpAttributeList = {"handle_list": handles}
+        command = [getattr(sys, "_base_executable", None) or executable,
+                   "-I", "-X", "utf8", str(Path(sys.argv[0]).resolve()), *arguments,
+                   "--stdio-isolated", "--notify"]
+        for handle in handles:
+            command.extend(["--wait-stdio-handle", str(handle)])
+        subprocess.Popen(
+            command, cwd=Path(sys.argv[0]).resolve().parent, startupinfo=startup,
+            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            close_fds=True, creationflags=subprocess.CREATE_NO_WINDOW,
+        )
+    finally:
+        for handle in handles:
+            kernel.CloseHandle(handle)
+
+
+def wait_for_stdio_release(handles: list[int], timeout_seconds: int) -> None:
+    """等待旧 worker 和已核实的 venv 跳板退出，再开始任何版本文件操作。"""
+    if not handles:
+        return
+    import ctypes
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.WaitForSingleObject.argtypes = [ctypes.c_void_p, ctypes.c_uint32]
+    kernel.WaitForSingleObject.restype = ctypes.c_uint32
+    kernel.CloseHandle.argtypes = [ctypes.c_void_p]
+    deadline = time.monotonic() + timeout_seconds
+    try:
+        for handle in handles:
+            result = kernel.WaitForSingleObject(handle, max(0, int((deadline - time.monotonic()) * 1000)))
+            if result == 0x102:
+                raise TimeoutError("原更新进程或 Python 跳板尚未退出，当前版本未替换。")
+            if result != 0:
+                raise ctypes.WinError(ctypes.get_last_error())
+    finally:
+        for handle in handles:
+            kernel.CloseHandle(handle)
+
+
 def create_log_file(root: Path) -> Path:
     log_dir = root / "update_cache" / "updater_logs"
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -107,9 +194,18 @@ def version_items(root: Path, preserve_entries: set[str] | None = None) -> list[
 
 
 def move_items(items: list[Path], dest_root: Path) -> None:
+    """只在同卷内改名移动，目标同名条目存在时整批停止。
+
+    Windows 日志被其他窗口占用时，shutil.move 会在 rename 失败后尝试复制再删除。
+    删除可能在中途遇到占用，留下两边都不完整的目录，因此版本替换禁止这种退路。
+    调用方负责已成功移动条目的回滚；单项 rename 失败时原条目仍留在原位置。
+    """
     dest_root.mkdir(parents=True, exist_ok=True)
+    collisions = [dest_root / item.name for item in items if os.path.lexists(dest_root / item.name)]
+    if collisions:
+        raise FileExistsError("目标已有同名文件或目录，未执行覆盖或嵌套移动：" + "、".join(map(str, collisions)))
     for item in items:
-        shutil.move(str(item), str(dest_root / item.name))
+        item.rename(dest_root / item.name)
 
 
 def copy_items(items: list[Path], dest_root: Path) -> None:
@@ -123,20 +219,36 @@ def copy_items(items: list[Path], dest_root: Path) -> None:
 
 
 def create_backup(root: Path, backups_root: Path, prefix: str, preserve_entries: set[str] | None = None) -> Path:
+    """逐项备份当前版本，失败时只归还本轮确实移走的原件。
+
+    回滚遇到新出现的同名路径时不合并、不覆盖，原件继续保存在备份目录，
+    并报告无法归还的精确路径；其他已经移动的条目仍尽量归还。
+    """
     backup_dir = backups_root / f"{prefix}.{timestamp()}"
     while backup_dir.exists():
         time.sleep(1)
         backup_dir = backups_root / f"{prefix}.{timestamp()}"
 
+    moved = []
     try:
-        move_items(version_items(root, preserve_entries), backup_dir)
+        for item in version_items(root, preserve_entries):
+            move_items([item], backup_dir)
+            moved.append(backup_dir / item.name)
         current_state = read_json(state_path(root))
         if current_state:
             write_json(backup_dir / ".update_state.json", current_state)
-    except Exception:
-        # 备份阶段也可能被占用文件中断；先归还已移动的条目，避免留下半套当前版本。
-        if backup_dir.exists():
-            move_items([item for item in backup_dir.iterdir() if item.name != ".update_state.json"], root)
+    except Exception as error:
+        unrecovered = []
+        for original in reversed(moved):
+            try:
+                move_items([original], root)
+            except OSError as rollback_error:
+                unrecovered.append(f"{original} -> {root / original.name}：{rollback_error}")
+        if unrecovered:
+            raise RuntimeError(
+                "备份失败，部分原始文件无法自动归还。未覆盖任何同名新文件，请保留以下原件并处理占用或路径冲突：\n"
+                + "\n".join(unrecovered)
+            ) from error
         raise
 
     return backup_dir
@@ -434,6 +546,9 @@ def main() -> None:
     update_parser.add_argument("--launch", default="")
     update_parser.add_argument("--wait-pid", type=int)
     update_parser.add_argument("--wait-timeout", type=int, default=120)
+    update_parser.add_argument("--stdio-isolated", action="store_true", help=argparse.SUPPRESS)
+    update_parser.add_argument("--wait-stdio-handle", type=int, action="append", default=[], help=argparse.SUPPRESS)
+    update_parser.add_argument("--notify", action="store_true", help="完成或失败时显示原生提示")
 
     restore_parser = subparsers.add_parser("restore")
     restore_parser.add_argument("--root", required=True)
@@ -445,6 +560,16 @@ def main() -> None:
     restore_parser.add_argument("--preserve-entry", action="append", default=[])
 
     args = parser.parse_args()
+    # 必须先释放旧启动链的日志句柄；写日志、共享状态和版本文件都在这次交接之后。
+    if args.command == "update" and sys.platform == "win32":
+        try:
+            if not args.stdio_isolated:
+                restart_with_clean_stdio(sys.argv[1:])
+                return
+            wait_for_stdio_release(args.wait_stdio_handle, args.wait_timeout)
+        except Exception as exc:
+            notify(f"更新工具未能完成进程交接，当前版本未替换。\n\n{exc}", failed=True)
+            sys.exit(1)
     root = Path(args.root).resolve()
     log_path = create_log_file(root)
     title = "FAA 自动更新工具" if args.command == "update" else "FAA 版本恢复工具"
@@ -468,9 +593,11 @@ def main() -> None:
                 raise
         console()
         console("操作已完成。")
-        if not getattr(args, "gui", False):
+        if getattr(args, "notify", False):
+            notify(f"版本文件更新完成。\n请自行运行 {ENVIRONMENT_INSTALLER_EXE}，准备新版运行环境后启动 FAA。\n\nFAA 目录：{root}\n更新日志：{log_path}")
+        elif not getattr(args, "gui", False):
             countdown_and_exit(3)
-    except Exception:
+    except Exception as exc:
         error = format_exc()
         log(log_path, "operation failed")
         log(log_path, error)
@@ -478,7 +605,9 @@ def main() -> None:
         console("[错误] 操作失败。")
         console(f"详细日志已写入：{log_path}")
         console(error)
-        if not getattr(args, "gui", False):
+        if getattr(args, "notify", False):
+            notify(f"更新未完成，请查看日志中的原因及回滚结果。\n\n{exc}\n\n更新日志：{log_path}", failed=True)
+        elif not getattr(args, "gui", False):
             countdown_and_exit(10)
         sys.exit(1)
 

@@ -1,6 +1,7 @@
 """在临时目录实际执行目标版本的布局、迁移和更新脚本，核对跨版本责任边界。"""
 
 import json
+import ctypes
 import importlib.util
 import os
 from pathlib import Path
@@ -8,14 +9,15 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from types import SimpleNamespace
+import time
 import unittest
 from unittest.mock import patch
 import zipfile
+import venv
 
 from function.common.distribution_layout import ENVIRONMENT_INSTALLER_EXE, LAUNCHER_EXE
 from function.common.update_staging import StagingError
-from function.core import update_apply, update_prepare
+from function.core import update_prepare
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -115,10 +117,107 @@ def migrate_user_data(source_root, target_root, selected_names=None, allow_missi
         script = self.base / "external-updater.py"
         shutil.copy2(staging / "plugins/updater/updater.py", script)
         return subprocess.run(
-            [sys.executable, "-X", "utf8", str(script), "update", "--root", str(self.root), "--staging", str(staging)],
+            [sys.executable, "-X", "utf8", str(script), "update", "--root", str(self.root), "--staging", str(staging),
+             "--stdio-isolated"],
             cwd=self.base, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             text=True, encoding="utf-8", timeout=35,
         )
+
+    def run_update_parent(self, command, *, locked_stdout=False, expected_phase="update_completed"):
+        """真实父进程启动更新并退出，保留虚拟环境跳板与标准流的 Windows 行为。"""
+        environment = dict(os.environ)
+        temporary = self.base / "process-temp"
+        temporary.mkdir(exist_ok=True)
+        environment.update(TEMP=str(temporary), TMP=str(temporary))
+        log_file = None
+        output = subprocess.PIPE
+        if locked_stdout:
+            import msvcrt
+
+            path = self.root / "logs/launcher_demo/parent-stdout.log"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+            kernel.CreateFileW.argtypes = (
+                ctypes.c_wchar_p, ctypes.c_ulong, ctypes.c_ulong, ctypes.c_void_p,
+                ctypes.c_ulong, ctypes.c_ulong, ctypes.c_void_p,
+            )
+            kernel.CreateFileW.restype = ctypes.c_void_p
+            handle = kernel.CreateFileW(str(path), 0x40000000, 0x1 | 0x2, None, 2, 0x80, None)
+            self.assertNotEqual(handle, ctypes.c_void_p(-1).value)
+            log_file = os.fdopen(msvcrt.open_osfhandle(handle, os.O_WRONLY | os.O_BINARY), "wb", buffering=0)
+            output = log_file
+        process = subprocess.Popen(
+            command, cwd=self.base, env=environment, stdin=subprocess.DEVNULL,
+            stdout=output, stderr=subprocess.STDOUT, creationflags=subprocess.CREATE_NO_WINDOW,
+        )
+        # Popen 已为父 FAA 复制句柄，测试协调进程立即释放自己的原件。
+        if log_file:
+            log_file.close()
+        captured, _ = process.communicate(timeout=50)
+        self.assertEqual(process.returncode, 0, (captured or b"").decode("utf-8", errors="replace"))
+        handoff = json.loads((self.base / "handoff.json").read_text(encoding="utf-8"))
+        if locked_stdout:
+            candidates = [path] if path.exists() else list((self.root / "backups").rglob("parent-stdout.log"))
+            self.assertTrue(candidates, "父进程的日志原件应仍在版本区或备份内")
+            kernel.CloseHandle.argtypes = (ctypes.c_void_p,)
+            probe = kernel.CreateFileW(str(candidates[0]), 0x10000, 0x1 | 0x2 | 0x4, None, 3, 0x80, None)
+            handoff["stdout_delete_error_after_faa_exit"] = (
+                ctypes.get_last_error() if probe == ctypes.c_void_p(-1).value else 0
+            )
+            if probe != ctypes.c_void_p(-1).value:
+                kernel.CloseHandle(probe)
+        kernel, user = ctypes.WinDLL("kernel32"), ctypes.WinDLL("user32")
+        kernel.OpenProcess.argtypes = (ctypes.c_ulong, ctypes.c_int, ctypes.c_ulong)
+        kernel.OpenProcess.restype = ctypes.c_void_p
+        kernel.WaitForSingleObject.argtypes = (ctypes.c_void_p, ctypes.c_ulong)
+        kernel.CloseHandle.argtypes = (ctypes.c_void_p,)
+        callback = ctypes.WINFUNCTYPE(ctypes.c_int, ctypes.c_void_p, ctypes.c_ssize_t)
+        user.EnumWindows.argtypes = (callback, ctypes.c_ssize_t)
+        user.GetWindowThreadProcessId.argtypes = (ctypes.c_void_p, ctypes.POINTER(ctypes.c_ulong))
+        user.GetClassNameW.argtypes = (ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_int)
+        user.PostMessageW.argtypes = (ctypes.c_void_p, ctypes.c_uint, ctypes.c_size_t, ctypes.c_ssize_t)
+        owned = {handoff["pid"]}
+
+        @callback
+        def close_own_completion_dialog(window, _):
+            pid, name = ctypes.c_ulong(), ctypes.create_unicode_buffer(64)
+            user.GetWindowThreadProcessId(window, ctypes.byref(pid))
+            user.GetClassNameW(window, name, len(name))
+            if pid.value in owned and name.value == "#32770":
+                user.PostMessageW(window, 0x10, 0, 0)
+            return 1
+
+        deadline, state = time.monotonic() + 45, {}
+        while time.monotonic() < deadline:
+            for path in (self.root / "update_cache/updater_logs").glob("updater.*.log"):
+                pid = path.stem.rsplit(".", 1)[-1]
+                if pid.isdecimal():
+                    owned.add(int(pid))
+            user.EnumWindows(close_own_completion_dialog, 0)
+            state_file = self.root / "update_cache/updater_state.json"
+            try:
+                state = json.loads(state_file.read_text(encoding="utf-8")) if state_file.exists() else {}
+            except json.JSONDecodeError:
+                continue
+            if state.get("phase") in {"update_completed", "failed"}:
+                break
+            time.sleep(0.02)
+        # 新入口可能先退出交接进程，再由干净子进程执行；不能只等待最初 Popen 的 PID。
+        for pid in owned:
+            handle = kernel.OpenProcess(0x100000, False, pid)
+            if handle:
+                try:
+                    for _ in range(750):
+                        user.EnumWindows(close_own_completion_dialog, 0)
+                        if kernel.WaitForSingleObject(handle, 20) == 0:
+                            break
+                    else:
+                        self.fail(f"本轮更新进程未退出：{pid}")
+                finally:
+                    kernel.CloseHandle(handle)
+        logs = "\n".join(path.read_text(encoding="utf-8") for path in (self.root / "update_cache/updater_logs").glob("*.log"))
+        self.assertEqual(state.get("phase"), expected_phase, logs)
+        return handoff, logs
 
     def test_target_layout_and_migration_override_loaded_local_rules(self):
         staging, result = self.prepare()
@@ -184,16 +283,52 @@ def migrate_user_data(source_root, target_root, selected_names=None, allow_missi
             {"new_format_value": 3},
         )
 
+    @unittest.skipUnless(os.name == "nt", "需要真实 Windows 进程与日志句柄")
     def test_handoff_copies_target_updater_and_disables_automatic_launch(self):
+        """父 FAA 的拒删标准流不能被更新器自持；真正备份成功后仍有缓存日志。"""
+        venv.EnvBuilder(with_pip=False).create(self.root / ".venv")
+        with (self.source / "plugins/updater/updater.py").open("a", encoding="utf-8") as file:
+            file.write('''
+if __name__ == "__main__" and "--stdio-isolated" in sys.argv:
+    import ctypes
+    kernel = ctypes.WinDLL("kernel32")
+    kernel.GetStdHandle.argtypes = (ctypes.c_ulong,)
+    kernel.GetStdHandle.restype = ctypes.c_void_p
+    kernel.GetFileType.argtypes = (ctypes.c_void_p,)
+    root = Path(sys.argv[sys.argv.index("--root") + 1])
+    (root / "update_cache/stdio-fixture.json").write_text(json.dumps({
+        "console": bool(kernel.GetConsoleWindow()),
+        "types": [kernel.GetFileType(kernel.GetStdHandle(value & 0xffffffff)) for value in (-10, -11, -12)],
+    }), encoding="utf-8")
+''')
         staging, _ = self.prepare()
         expected = (staging / "plugins/updater/updater.py").read_bytes()
-        with patch.object(update_apply.tempfile, "gettempdir", return_value=str(self.base)), \
-                patch.object(update_apply.subprocess, "Popen", return_value=SimpleNamespace(pid=1234)):
-            result = update_apply.launch_update_from_staging(self.root, staging, wait_pid=123)
+        parent = '''
+import json, os, sys
+from pathlib import Path
+sys.path.insert(0, sys.argv[1])
+from function.core.update_apply import launch_update_from_staging
+print("FAA parent stdout marker", flush=True)
+result = launch_update_from_staging(Path(sys.argv[2]), Path(sys.argv[3]))
+result["faa_pid"] = os.getpid()
+Path(sys.argv[4]).write_text(json.dumps(result), encoding="utf-8")
+'''
+        result, logs = self.run_update_parent([
+            str(self.root / ".venv/Scripts/pythonw.exe"), "-c", parent,
+            str(ROOT), str(self.root), str(staging), str(self.base / "handoff.json"),
+        ], locked_stdout=True)
         self.assertEqual(Path(result["updater_script"]).read_bytes(), expected)
         command = result["command"]
         self.assertEqual(command[command.index("--launch") + 1], "")
-        self.assertEqual(command[command.index("--wait-pid") + 1], "123")
+        self.assertEqual(command[command.index("--wait-pid") + 1], str(result["faa_pid"]))
+        backup = next((self.root / "backups").glob("FAA.backup.*"))
+        self.assertIn(b"FAA parent stdout marker", (backup / "logs/launcher_demo/parent-stdout.log").read_bytes())
+        self.assertIn("update completed", logs)
+        self.assertEqual(result["stdout_delete_error_after_faa_exit"], 0)
+        self.assertEqual((self.root / "target-only.txt").read_bytes(), b"new version only")
+        streams = json.loads((self.root / "update_cache/stdio-fixture.json").read_text(encoding="utf-8"))
+        self.assertFalse(streams["console"])
+        self.assertEqual(streams["types"], [2, 2, 2], "三个标准流都应指向 NUL 字符设备")
 
     def test_insufficient_initial_space_prevents_download(self):
         """空间不足应在下载之前中止，不创建暂存包或改写用户数据。"""

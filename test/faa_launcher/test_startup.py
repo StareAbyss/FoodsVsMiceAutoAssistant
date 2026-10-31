@@ -78,6 +78,8 @@ class StartupLifecycleTests(unittest.TestCase):
         (self.root / ".faa-launcher-startup-test").touch()
         (self.root / "function").mkdir()
         (self.root / "function" / "faa_main.py").write_text(FIXTURE, encoding="utf-8")
+        (self.root / "logs").mkdir()
+        (self.root / "logs/business.log").write_text("FAA business log", encoding="utf-8")
         self.external = None
 
     def tearDown(self):
@@ -141,14 +143,27 @@ class StartupLifecycleTests(unittest.TestCase):
         finally:
             kernel.CloseHandle(process)
 
+    def assert_startup_logs_do_not_lock_version_area(self):
+        """启动诊断保留在缓存内，运行中的标准流不阻碍程序日志区备份。"""
+        startup = next((self.root / "update_cache/launcher/logs").glob("python-*.log"))
+        renamed = startup.with_suffix(".moved")
+        startup.rename(renamed)
+        renamed.rename(startup)
+        logs = self.root / "logs"
+        moved = self.root / "logs-during-faa"
+        logs.rename(moved)
+        moved.rename(logs)
+
     def test_normal_start_closes_launcher_and_preserves_faa(self):
         self.assertEqual(self.run_launcher(), {"launch_success": "1", "window_open": "0", "monitoring": "0", "failed": "0"})
         self.assert_fixture_still_running()
+        self.assert_startup_logs_do_not_lock_version_area()
 
     def test_debug_start_keeps_log_window_and_preserves_faa(self):
         report = self.run_launcher(mode="debug")
         self.assertEqual((report["launch_success"], report["window_open"], report["monitoring"]), ("1", "1", "1"))
         self.assert_fixture_still_running()
+        self.assert_startup_logs_do_not_lock_version_area()
 
     def test_error_window_prevents_autoclose_even_if_main_is_visible(self):
         report = self.run_launcher(fixture="error")
