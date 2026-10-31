@@ -93,13 +93,13 @@ class TweakPlanSchemaTest(unittest.TestCase):
         )
         self.assertEqual(
             enabled,
-            {"icecream": False, "god": False, "ikun": False, "timer": True},
+            {"icecream": False, "god": False, "ikun": False, "timer": True, "dragon_pot": True},
         )
         self.assertEqual(
             get_tweak_plan_auto_card_enabled(
                 {"meta_data": {"ban_state": {"god": True}}}
             ),
-            {"icecream": True, "god": True, "ikun": True, "timer": True},
+            {"icecream": True, "god": True, "ikun": True, "timer": True, "dragon_pot": True},
         )
 
     def test_disabled_auto_cards_produce_no_recognition_targets(self):

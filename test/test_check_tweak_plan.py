@@ -33,6 +33,7 @@ class CheckTweakPlanTest(unittest.TestCase):
                 "faa_version": "v3.0.0",
                 "tips": "保持原样",
                 "senior_setting": True,
+                "enable_auto_card": {"dragon_pot": False},
             }
             write_plan(path, meta_data)
             before = path.read_bytes()

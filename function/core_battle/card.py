@@ -8,6 +8,7 @@ import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png
 from function.core.faa.faa_mix import FAA
+from function.core.faa.battle_card_roles import ROLE_DRAGON_POT
 from function.core.faa.tweak_plan import get_tweak_plan_random_interval
 from function.core_battle.card_copy_rules import get_creator_god_safe_locations
 from function.globals import EXTRA
@@ -137,6 +138,12 @@ class Card:
 
         # 判定自身是不是极寒冰沙
         self.is_smoothie = "冰沙" in self.name or self.name == "冰激凌-2"
+
+        # 角色标记只约束自动辅助动作，保留战斗方案自行安排的用卡时机。
+        self.is_auto_cooldown = any(
+            role in plan_by_priority.get("roles", [])
+            for role in (ROLE_DRAGON_POT,)
+        )
 
         # 不进入放满自ban的 白名单
         self.ban_white_list = ["极寒冰沙", "冰沙", "冰激凌-2"]
@@ -297,6 +304,10 @@ class Card:
                         CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}] 成功从已保存状态获取")
                     return 1
 
+        # 试色会实际放卡，也必须遵守自动冷却辅助卡的火苗门槛。
+        if self.is_auto_cooldown and not self.faa.fire_elemental_1000:
+            return 0
+
         # 包含点击操作 上锁
         with self.faa.battle_lock:
 
@@ -378,6 +389,9 @@ class Card:
 
         # 未启动自动战斗
         if not self.is_auto_battle:
+            return False
+
+        if self.is_auto_cooldown and not self.faa.fire_elemental_1000:
             return False
 
         # 自身是冰沙但不符合使用条件

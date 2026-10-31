@@ -24,7 +24,7 @@ REMOVED_OPTION_KEYS = {
     "mat_card_first",
     "ban_state",
 }
-AUTO_CARD_KEYS = ("icecream", "god", "ikun", "timer")
+AUTO_CARD_KEYS = ("icecream", "god", "ikun", "timer", "dragon_pot")
 BUILT_IN_TWEAK_PLAN_UUIDS = {
     "!默认": "00000000-0000-0000-0000-000000000000",
     "高级战斗": "00000000-0000-0000-0000-000000000001",

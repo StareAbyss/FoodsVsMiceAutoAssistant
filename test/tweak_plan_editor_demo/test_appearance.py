@@ -172,6 +172,7 @@ class TweakPlanAppearanceTest(unittest.TestCase):
             )
         self.assertNotIn("coffee", self.window.auto_card_selectors)
         self.assertIn("timer", self.window.auto_card_selectors)
+        self.assertIn("dragon_pot", self.window.auto_card_selectors)
         self.assertNotIn("mat", self.window.auto_card_selectors)
         self.assertEqual(
             self.window.auto_mat_card_enabled_selector.combo.itemText(0),

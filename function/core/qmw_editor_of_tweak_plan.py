@@ -53,6 +53,7 @@ AUTO_CARD_LABELS = {
     "god": ("创造神", "仅复制目标允许位置中完整 3×3 的中心格，不推进队列"),
     "ikun": ("幻幻鸡", "存在正数复制目标时自动携带并参与连携"),
     "timer": ("美味计时器", "放在最高复制目标首格；仅二转会按 3×1 范围向内偏移"),
+    "dragon_pot": ("转龙壶", "1000+ 火苗时使用；最高复制目标首格，仅二转按 3×1 向内偏移"),
 }
 DEFAULT_META_DATA_FALLBACK = {
     "recording": {
@@ -74,6 +75,7 @@ DEFAULT_META_DATA_FALLBACK = {
         "god": True,
         "ikun": True,
         "timer": True,
+        "dragon_pot": True,
     },
 }
 

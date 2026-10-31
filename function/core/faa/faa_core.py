@@ -19,6 +19,7 @@ from function.common.process_manager import close_software_by_title, get_path_an
 from function.core.faa.card_limit import get_retained_plan_card_count
 from function.core.faa.battle_card_roles import (
     ROLE_CREATOR_GOD,
+    ROLE_DRAGON_POT,
     ROLE_IKUN,
     ROLE_PLAN,
     ROLE_PRIMARY_MAT,
@@ -33,8 +34,9 @@ from function.core.faa.battle_card_roles import (
     merge_detected_card,
 )
 from function.core.faa.tweak_plan import (
-    build_auto_timer_card,
+    build_auto_cooldown_card,
     get_auto_card_target_names,
+    get_auto_dragon_pot_target_names,
     get_auto_timer_target_names,
     get_kun_cards_for_wave,
     get_tweak_plan_mat_card_first,
@@ -129,6 +131,7 @@ class FAABase:
         self.smoothie_info = None  # 冰沙位置
         self.kun_cards_info: list[dict] | None = None  # 坤位置 也用于标记本场战斗是否需要激活坤函数
         self.timer_info = None  # 美味计时器位置及转职信息
+        self.dragon_pot_info = None  # 转龙壶位置及转职信息
         # 战备阶段解析出的实体卡信息。
         # plan_id 是方案身份，slot_id 是真实卡槽；roles 允许同一张卡同时承担任务、承载或辅助功能。
         self.battle_card_plan: list[dict] = []
@@ -686,10 +689,10 @@ class FAABase:
 
     def init_mat_smoothie_kun_card_info(self: "FAA") -> None:
         """
-        识别本场战斗允许自动使用的承载卡、冰沙和连携卡。
+        识别本场战斗允许自动使用的承载卡、冰沙、连携卡与冷却辅助卡。
 
         微调方案启用某类辅助卡片且战斗方案未包含该卡时，才会识别并生成自动动作。
-        复制卡与美味计时器还要求方案中存在正数 kun 复制目标。
+        复制卡、美味计时器与转龙壶还要求方案中存在正数 kun 复制目标。
         """
 
         self.print_info("战斗中识图查找启用的承载卡/冰沙/连携卡位置, 开始")
@@ -704,6 +707,12 @@ class FAABase:
             exclude_plan_cards=getattr(self, "auto_carry_card", True),
         )
         target_timer_list = get_auto_timer_target_names(
+            battle_plan_tweak=self.battle_plan_tweak,
+            battle_plan=self.battle_plan,
+            card_types=self.card_types,
+            exclude_plan_cards=getattr(self, "auto_carry_card", True),
+        )
+        target_dragon_pot_list = get_auto_dragon_pot_target_names(
             battle_plan_tweak=self.battle_plan_tweak,
             battle_plan=self.battle_plan,
             card_types=self.card_types,
@@ -797,6 +806,12 @@ class FAABase:
             kun_card_dict = scan(target_names_list=target_kun_list, image=image)
             timer_card_dict = scan(
                 target_names_list=target_timer_list,
+                image=image,
+                job_codes=(0, 1, 2),
+                keep_variant=True,
+            )
+            dragon_pot_card_dict = scan(
+                target_names_list=target_dragon_pot_list,
                 image=image,
                 job_codes=(0, 1, 2),
                 keep_variant=True,
@@ -907,22 +922,26 @@ class FAABase:
         self.detected_kun_cards_info = copy.deepcopy(kun_cards_info)
         self.print_info(text="战斗中识图查找连携卡位置, 结果：{}".format(self.kun_cards_info))
 
-        timer_info = None
-        for timer_variant, coordinate in timer_card_dict.items():
-            slot_id = find_slot_id(coordinate)
-            if slot_id is None:
-                continue
-            card = merge_detected_card(
-                self.battle_card_plan,
-                slot_id=slot_id,
-                name="美味计时器",
-                role=ROLE_TIMER,
-            )
-            timer_info = to_runtime_info(card, "美味计时器")
-            timer_info["second_job"] = timer_variant.endswith("-2")
-            break
-        self.timer_info = timer_info
-        self.print_info(text="战斗中识图查找美味计时器位置, 结果：{}".format(self.timer_info))
+        for attribute, name, role, detected_cards in (
+            ("timer_info", "美味计时器", ROLE_TIMER, timer_card_dict),
+            ("dragon_pot_info", "转龙壶", ROLE_DRAGON_POT, dragon_pot_card_dict),
+        ):
+            card_info = None
+            for variant, coordinate in detected_cards.items():
+                slot_id = find_slot_id(coordinate)
+                if slot_id is None:
+                    continue
+                card = merge_detected_card(
+                    self.battle_card_plan,
+                    slot_id=slot_id,
+                    name=name,
+                    role=role,
+                )
+                card_info = to_runtime_info(card, name)
+                card_info["second_job"] = variant.endswith("-2")
+                break
+            setattr(self, attribute, card_info)
+            self.print_info(text=f"战斗中识图查找{name}位置, 结果：{card_info}")
 
         # 只有手动添加任务卡失败时才需要额外扫描。
         # 若任务卡同时就是承载或辅助卡，按 slot_id 合并角色并删除未知槽位占位；最终不会生成两张卡。
@@ -985,6 +1004,7 @@ class FAABase:
         mat_card_info = copy.deepcopy(self.mat_cards_info) or []
         smoothie_info = copy.deepcopy(self.smoothie_info)
         timer_info = copy.deepcopy(self.timer_info)
+        dragon_pot_info = copy.deepcopy(getattr(self, "dragon_pot_info", None))
         resolved_card_plan = copy.deepcopy(
             getattr(self, "battle_card_plan", [])
         )
@@ -1069,8 +1089,9 @@ class FAABase:
                     *mat_card_info,
                     *([smoothie_info] if smoothie_info else []),
                 ]
-                if build_auto_timer_card(timer_info, list_cell_all):
-                    automatic_infos.append(timer_info)
+                for support_info in (timer_info, dragon_pot_info):
+                    if build_auto_cooldown_card(support_info, list_cell_all):
+                        automatic_infos.append(support_info)
                 automatic_infos.extend(get_kun_cards_for_wave(
                     detected_kun_cards=getattr(
                         self,
@@ -1224,15 +1245,19 @@ class FAABase:
                 cards=list_cell_all,
             )
 
-            timer_card = build_auto_timer_card(timer_info, list_cell_all)
-            if timer_card:
-                timer_card["plan_id"] = timer_info.get("plan_id")
-                timer_card["card_id"] = timer_info.get("plan_id")
-                timer_card["slot_id"] = get_slot_id(timer_info)
-                timer_card["roles"] = copy.deepcopy(
-                    timer_info.get("roles", [ROLE_TIMER])
-                )
-                list_cell_all.append(timer_card)
+            for support_info, support_role in (
+                (timer_info, ROLE_TIMER),
+                (dragon_pot_info, ROLE_DRAGON_POT),
+            ):
+                support_card = build_auto_cooldown_card(support_info, list_cell_all)
+                if support_card:
+                    support_card["plan_id"] = support_info.get("plan_id")
+                    support_card["card_id"] = support_info.get("plan_id")
+                    support_card["slot_id"] = get_slot_id(support_info)
+                    support_card["roles"] = copy.deepcopy(
+                        support_info.get("roles", [support_role])
+                    )
+                    list_cell_all.append(support_card)
 
             if smoothie_info:
                 # # 生成从 "1-1" 到 "1-7" 再到 "9-1" 到 "9-7" 的列表

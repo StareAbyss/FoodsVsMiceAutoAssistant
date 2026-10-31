@@ -64,7 +64,7 @@ uv run python -m unittest test.tweak_plan_editor_demo.test_model test.tweak_plan
 - 自动承载已从一般辅助卡中独立为 `auto_mat_card`；`enabled` 控制自动承载，`use_first` 默认开启供 0 费承载优先建立地形，关闭后保留战斗方案首卡优先。
 - 已废弃的 `enable_auto_card.mat` 与 `mat_card_first` 不参与读取。
 - 战斗方案直接写入自动卡，或 card type 展开结果包含该卡时，不再重复携带、识别或注入自动动作。
-- 创造神、幻幻鸡和美味计时器仅在方案存在正数 `kun` 复制目标时参与自动携带与使用。
+- 创造神、幻幻鸡、美味计时器和转龙壶仅在方案存在正数 `kun` 复制目标时参与自动携带与使用。
 - UUID、格式版本和上次编辑 FAA 版本统一使用 PyQt 原生灰色禁用态，不可点击或编辑；新方案使用战斗方案编辑器相同的 `uuid.uuid1()` 规则。
 - 5 份内置方案使用固定 UUID；全零 UUID 的 `!默认` 是只读基准，不能编辑、保存或删除。加载默认方案不再弹窗，提示栏会说明其他方案的缺省/继承项取自该方案。
 - “格式版本”永久只读；加载时展示方案原值，创建、修改或保存后自动更新为 `EXTRA.TWEAK_PLAN_VERSION`。
@@ -84,4 +84,5 @@ uv run python -m unittest test.tweak_plan_editor_demo.test_model test.tweak_plan
 | `enable_auto_card.icecream` | 启用极寒冰沙 | 已接入自动携带与最低优先级使用；方案已包含时不重复加入。 |
 | `enable_auto_card.god` | 启用创造神 | 要求正数 `kun` 目标拥有完整 3×3 安全中心；只越位复制中心格，不推进原卡队列，遍历开启时可复制多个安全中心。 |
 | `enable_auto_card.ikun` | 启用幻幻鸡 | 仅存在正数 `kun` 目标且方案未包含时自动携带、识别和使用。 |
-| `enable_auto_card.timer` | 启用美味计时器 | 默认开启；放在最高正数 `kun` 目标的首格，循环和遍历均关闭，优先级仅高于自动冰沙；仅二转按 3×1 范围向棋盘内侧偏移。 |
+| `enable_auto_card.timer` | 启用美味计时器 | 默认开启；放在最高正数 `kun` 目标的首格，循环和遍历均关闭；仅二转按 3×1 范围向棋盘内侧偏移。 |
+| `enable_auto_card.dragon_pot` | 启用转龙壶 | 默认开启；正常使用和状态试放均要求当前角色达到 1000+ 火苗；与自动美味计时器共用目标、二转偏移和动作生成规则，位于计时器之后、自动冰沙之前；可单独关闭。 |

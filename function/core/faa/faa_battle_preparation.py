@@ -18,6 +18,7 @@ from function.core.faa.card_limit import (
 )
 from function.core.faa.battle_card_roles import (
     ROLE_CREATOR_GOD,
+    ROLE_DRAGON_POT,
     ROLE_IKUN,
     ROLE_PLAN,
     ROLE_PRIMARY_MAT,
@@ -33,6 +34,7 @@ from function.core.faa.battle_card_roles import (
 )
 from function.core.faa.tweak_plan import (
     get_auto_card_target_names,
+    get_auto_dragon_pot_target_names,
     get_auto_timer_target_names,
 )
 from function.globals import SIGNAL, EXTRA
@@ -969,6 +971,20 @@ class BattlePreparation:
                 make_card_requirement(
                     name="美味计时器",
                     roles=[ROLE_TIMER],
+                    plan_id=None,
+                    can_failed=True,
+                    source="extra",
+                )
+            )
+        if get_auto_dragon_pot_target_names(
+            battle_plan_tweak=self.battle_plan_tweak,
+            battle_plan=self.battle_plan,
+            card_types=self.card_types,
+        ):
+            required_cards_list.append(
+                make_card_requirement(
+                    name="转龙壶",
+                    roles=[ROLE_DRAGON_POT],
                     plan_id=None,
                     can_failed=True,
                     source="extra",

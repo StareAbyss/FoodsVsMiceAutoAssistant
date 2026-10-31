@@ -9,6 +9,7 @@ AUTO_CARD_DEFAULTS = {
     "god": True,
     "ikun": True,
     "timer": True,
+    "dragon_pot": True,
 }
 
 # 高练度承载卡可以做到 0 费用，优先铺承载能让后续卡片直接落在有效地形上；
@@ -315,7 +316,60 @@ def get_auto_timer_target_names(
     Returns:
         需要识别时返回 ``["美味计时器"]``，否则返回空列表。
     """
-    if not get_tweak_plan_auto_timer_enabled(battle_plan_tweak):
+    return _get_auto_cooldown_target_names(
+        battle_plan_tweak, battle_plan, "timer", "美味计时器",
+        card_types, exclude_plan_cards,
+    )
+
+
+def get_auto_dragon_pot_target_names(
+        battle_plan_tweak: dict,
+        battle_plan: dict,
+        card_types: list[dict] | None = None,
+        exclude_plan_cards: bool = True,
+) -> list[str]:
+    """
+    按与美味计时器相同的条件获取自动转龙壶识别目标。
+
+    Args:
+        battle_plan_tweak: 当前微调方案。
+        battle_plan: 当前战斗方案，用于检查正数 ``kun`` 目标。
+        card_types: 卡片类型配置。
+        exclude_plan_cards: 是否排除方案直接写入或类型展开后包含的转龙壶。
+            手动卡组开场扫描时传入 ``False``，避免方案名称与实际卡片不一致而漏扫。
+
+    Returns:
+        需要识别时返回 ``["转龙壶"]``，否则返回空列表。
+    """
+    return _get_auto_cooldown_target_names(
+        battle_plan_tweak, battle_plan, "dragon_pot", "转龙壶",
+        card_types, exclude_plan_cards,
+    )
+
+
+def _get_auto_cooldown_target_names(
+        battle_plan_tweak: dict,
+        battle_plan: dict,
+        option_key: str,
+        card_name: str,
+        card_types: list[dict] | None,
+        exclude_plan_cards: bool,
+) -> list[str]:
+    """
+    共用冷却辅助卡的开关、复制目标检查和方案卡去重规则。
+
+    Args:
+        battle_plan_tweak: 当前微调方案。
+        battle_plan: 当前战斗方案。
+        option_key: ``enable_auto_card`` 中对应的开关键名。
+        card_name: 要自动携带和识别的卡名。
+        card_types: 用于展开方案类型卡的配置。
+        exclude_plan_cards: 是否根据方案名称排除重复辅助卡。
+
+    Returns:
+        允许自动使用时返回只含目标卡名的列表，否则返回空列表。
+    """
+    if not get_tweak_plan_auto_card_enabled(battle_plan_tweak)[option_key]:
         return []
     if get_highest_kun_target(battle_plan) is None:
         return []
@@ -325,11 +379,11 @@ def get_auto_timer_target_names(
         if exclude_plan_cards
         else set()
     )
-    # 传入 card_types 时，冷却辅助类会展开为实际计时器；
+    # 传入 card_types 时，冷却辅助类会展开为实际卡名；
     # 未传入时仍需直接识别历史方案使用的两个类型名，保持独立调用这个函数也安全。
-    if existing.intersection({"美味计时器", "冷却辅助", "冷却拐"}):
+    if existing.intersection({card_name, "冷却辅助", "冷却拐"}):
         return []
-    return ["美味计时器"]
+    return [card_name]
 
 
 def offset_timer_location(location: str) -> str:
@@ -348,15 +402,30 @@ def offset_timer_location(location: str) -> str:
 
 def build_auto_timer_card(timer_info: dict | None, cards: list[dict]) -> dict | None:
     """按最高正数 ``kun`` 目标的首格生成美味计时器动作。"""
+    return build_auto_cooldown_card(timer_info, cards)
+
+
+def build_auto_cooldown_card(card_info: dict | None, cards: list[dict]) -> dict | None:
+    """
+    为自动美味计时器和转龙壶生成相同规则的放卡动作。
+
+    Args:
+        card_info: 开场识别出的辅助卡信息，包含名称、卡片 ID 和二转状态。
+        cards: 当前波次按优先级排列的放卡动作。
+
+    Returns:
+        以最高正数 ``kun`` 目标首格为落点的动作，二转向棋盘内侧修正；
+        未识别到辅助卡或当前波次没有复制目标时返回 ``None``。
+    """
     target = get_highest_kun_target_from_cards(cards)
-    if not timer_info or target is None:
+    if not card_info or target is None:
         return None
     target_location = target["location"][0]
-    if timer_info.get("second_job", False):
+    if card_info.get("second_job", False):
         target_location = offset_timer_location(target_location)
     return {
-        "name": timer_info["name"],
-        "card_id": timer_info["card_id"],
+        "name": card_info["name"],
+        "card_id": card_info["card_id"],
         "location": [target_location],
         "ergodic": False,
         "queue": False,
