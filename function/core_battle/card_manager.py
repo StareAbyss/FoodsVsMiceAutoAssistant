@@ -16,7 +16,6 @@ from PyQt6.QtCore import QThread, pyqtSignal
 from function.common.bg_img_screenshot import capture_image_png, capture_image_png_all
 from function.common.faa_view_events import FAA_VIEW_EVENTS
 from function.core.faa.battle_card_roles import resolve_insert_use_card_events
-from function.core.faa.tweak_plan import get_tweak_plan_random_interval
 from function.core_battle.card import Card, CardKun, SpecialCard
 from function.core_battle.card_queue import CardQueue
 from function.core_battle.special_card_strategy import solve_special_card_problem, solve_maximize_score_problem
@@ -784,21 +783,8 @@ class ThreadCheckTimer(QThread):
         self.stopped = False
         self.timer = None
         self.checked_round = 0
-        self.check_interval = check_interval  # 默认0.5s
+        self.check_interval = check_interval  # 正式战斗流程传入 1 秒
         self.thread_dict = thread_dict  # 线程列表，以便动态修改参数
-        self.check_interval_count = None
-        if faa.battle_plan_tweak:
-            self.faa.print_info(f"[战斗执行器] ThreadCheckTimer - check - 应用微调方案: {self.faa.battle_plan_tweak}")
-            random_active, random_interval = get_tweak_plan_random_interval(
-                self.faa.battle_plan_tweak
-            )
-            if random_active and random_interval is not None:
-                # 放卡间隔与重置单轮放卡间隔原初比例大约为0.036：1
-                self.check_interval_count = (
-                    random_interval[0] + random_interval[1]
-                ) * 5 // 1
-        else:
-            self.faa.print_info(f"[战斗执行器] ThreadCheckTimer - check - 不应用微调方案")
 
     def run(self):
         self.timer = Timer(interval=self.check_interval, function=self.callback_timer)
@@ -887,12 +873,11 @@ class ThreadCheckTimer(QThread):
                 self.signal_change_card_plan.emit()
                 return
 
-        # 先清空现有队列 再初始化队列 这里的重置队列要适应放卡间隔
-        if self.check_interval_count is None or (self.checked_round % self.check_interval_count == 1):
-            self.card_queue.queue.clear()
-            self.card_queue.init_card_queue(
-                game_image=game_image,
-                check_interval=self.check_interval)
+        # 每次检测都刷新卡片状态并重新装填队列，放卡后的随机等待不改变检测频率。
+        self.card_queue.queue.clear()
+        self.card_queue.init_card_queue(
+            game_image=game_image,
+            check_interval=self.check_interval)
 
         # 更新火苗
         self.faa.update_fire_elemental_1000(img=game_image)
