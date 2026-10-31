@@ -61,8 +61,8 @@ class AutoCooldownEnergyTest(unittest.TestCase):
         card.put_card = Mock()
         return card
 
-    def test_low_fire_blocks_dragon_pot_for_each_player(self):
-        for name, role in (("转龙壶", ROLE_DRAGON_POT),):
+    def test_low_fire_blocks_both_auto_cards_for_each_player(self):
+        for name, role in (("美味计时器", ROLE_TIMER), ("转龙壶", ROLE_DRAGON_POT)):
             for player in (1, 2):
                 with self.subTest(name=name, player=player):
                     card = self.make_card(name, [role, ROLE_QUEST], False, player=player)
@@ -71,9 +71,9 @@ class AutoCooldownEnergyTest(unittest.TestCase):
                     card.choice_card.assert_not_called()
                     card.put_card.assert_not_called()
 
-    def test_high_fire_allows_dragon_pot_without_taking_smoothie_lock(self):
+    def test_high_fire_allows_both_cards_without_taking_smoothie_lock(self):
         self.namespace["EXTRA"].SMOOTHIE_LOCK_TIME = 7
-        for name, role in (("转龙壶", ROLE_DRAGON_POT),):
+        for name, role in (("美味计时器", ROLE_TIMER), ("转龙壶", ROLE_DRAGON_POT)):
             with self.subTest(name=name):
                 card = self.make_card(name, [role], True, is_group=True)
                 self.assertTrue(card.use_card())
@@ -82,7 +82,7 @@ class AutoCooldownEnergyTest(unittest.TestCase):
         self.assertEqual(self.namespace["EXTRA"].SMOOTHIE_LOCK_TIME, 7)
 
     def test_energy_changes_take_effect_on_every_attempt(self):
-        for name, role in (("转龙壶", ROLE_DRAGON_POT),):
+        for name, role in (("美味计时器", ROLE_TIMER), ("转龙壶", ROLE_DRAGON_POT)):
             with self.subTest(name=name):
                 card = self.make_card(name, [role], False)
                 self.assertFalse(card.use_card())
@@ -93,7 +93,7 @@ class AutoCooldownEnergyTest(unittest.TestCase):
                 card.put_card.assert_called_once()
 
     def test_low_fire_blocks_unknown_state_trial_and_high_fire_resumes_it(self):
-        for name, role in (("转龙壶", ROLE_DRAGON_POT),):
+        for name, role in (("美味计时器", ROLE_TIMER), ("转龙壶", ROLE_DRAGON_POT)):
             with self.subTest(name=name):
                 card = self.make_card(name, [role], False)
                 current = np.zeros((1, 36, 3), dtype=np.uint8)
@@ -109,7 +109,7 @@ class AutoCooldownEnergyTest(unittest.TestCase):
                 card.put_card.assert_called_once()
 
     def test_high_fire_still_requires_card_usable_status(self):
-        for name, role in (("转龙壶", ROLE_DRAGON_POT),):
+        for name, role in (("美味计时器", ROLE_TIMER), ("转龙壶", ROLE_DRAGON_POT)):
             with self.subTest(name=name):
                 card = self.make_card(name, [role], True)
                 card.fresh_status = Mock()
@@ -126,12 +126,6 @@ class AutoCooldownEnergyTest(unittest.TestCase):
         smoothie = self.make_card("极寒冰沙", [], False)
         self.assertFalse(smoothie.use_card())
         smoothie.put_card.assert_not_called()
-
-    def test_timer_auto_role_keeps_existing_low_fire_behavior(self):
-        """转龙壶门槛不顺带改变自动美味计时器的使用条件。"""
-        timer = self.make_card("美味计时器", [ROLE_TIMER], False)
-        self.assertTrue(timer.use_card())
-        timer.put_card.assert_called_once()
 
 
 if __name__ == "__main__":

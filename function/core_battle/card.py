@@ -8,7 +8,7 @@ import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png
 from function.core.faa.faa_mix import FAA
-from function.core.faa.battle_card_roles import ROLE_DRAGON_POT
+from function.core.faa.battle_card_roles import ROLE_DRAGON_POT, ROLE_TIMER
 from function.core.faa.tweak_plan import get_tweak_plan_random_interval
 from function.core_battle.card_copy_rules import get_creator_god_safe_locations
 from function.globals import EXTRA
@@ -142,7 +142,7 @@ class Card:
         # 角色标记只约束自动辅助动作，保留战斗方案自行安排的用卡时机。
         self.is_auto_cooldown = any(
             role in plan_by_priority.get("roles", [])
-            for role in (ROLE_DRAGON_POT,)
+            for role in (ROLE_TIMER, ROLE_DRAGON_POT)
         )
 
         # 不进入放满自ban的 白名单

@@ -84,5 +84,5 @@ uv run python -m unittest test.tweak_plan_editor_demo.test_model test.tweak_plan
 | `enable_auto_card.icecream` | 启用极寒冰沙 | 已接入自动携带与最低优先级使用；方案已包含时不重复加入。 |
 | `enable_auto_card.god` | 启用创造神 | 要求正数 `kun` 目标拥有完整 3×3 安全中心；只越位复制中心格，不推进原卡队列，遍历开启时可复制多个安全中心。 |
 | `enable_auto_card.ikun` | 启用幻幻鸡 | 仅存在正数 `kun` 目标且方案未包含时自动携带、识别和使用。 |
-| `enable_auto_card.timer` | 启用美味计时器 | 默认开启；放在最高正数 `kun` 目标的首格，循环和遍历均关闭；仅二转按 3×1 范围向棋盘内侧偏移。 |
+| `enable_auto_card.timer` | 启用美味计时器 | 默认开启；正常使用和状态试放均要求当前角色达到 1000+ 火苗；放在最高正数 `kun` 目标的首格，循环和遍历均关闭；仅二转按 3×1 范围向棋盘内侧偏移。 |
 | `enable_auto_card.dragon_pot` | 启用转龙壶 | 默认开启；正常使用和状态试放均要求当前角色达到 1000+ 火苗；与自动美味计时器共用目标、二转偏移和动作生成规则，位于计时器之后、自动冰沙之前；可单独关闭。 |
