@@ -3975,14 +3975,15 @@ class FAABase:
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=905, y=475)
         time.sleep(2)
 
-        # 下拉20次正好到底, 所以循环8次. 游戏自带复位 不需要手动复位
-        for page in range(8):
+        # 每轮下滑2次，首屏加10轮下滑共扫描11次，累计20次点击仍能覆盖背包底部。
+        # 75格背包满载时保留相邻扫描的重叠，避免道具一直被上下边缘截断；游戏自带复位。
+        for page in range(11):
 
             self.print_info(f"[删除物品] 背包第{page + 1}页, 将开始查找删除目标...")
 
-            # 下拉三次每轮 慢点执行....
+            # 每轮下拉两次，保留原来的点击间隔和图标刷新等待。
             if page != 0:
-                for _ in range(3):
+                for _ in range(2):
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=920, y=420)
                     time.sleep(0.5)
                 time.sleep(2)
