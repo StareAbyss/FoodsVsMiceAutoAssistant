@@ -295,6 +295,22 @@ print("FAA_LEGACY_PHASE:5:fixture completed", flush=True)
         self.run_entry()
         self.assertEqual(len(json.loads(calls.read_text(encoding="utf-8"))), 2)
 
+        # 由真实隐藏子进程上报下载失败，核对原生事件最终落在网络错误页的对应步骤。
+        (self.root / ".git").rmdir()
+        bridge.write_text('''
+print("FAA_LEGACY_PHASE:1:正在连接 GitHub", flush=True)
+print("FAA_LEGACY_NETWORK_ERROR:GitHub HTTPS 证书校验失败，原始备份和过渡记录已保留。", flush=True)
+raise SystemExit(1)
+''', encoding="utf-8")
+        report = startup.StartupLifecycleTests.run_launcher(self, operation="legacy")
+        self.assertEqual(report["failed"], "1")
+        self.assertEqual(report["window_open"], "1")
+        self.assertEqual(report["stage"], "1")
+        self.assertEqual(report["network"], "1")
+        self.assertEqual(report["network_visible"], "0", "GitHub 失败不能引导用户修改 Python 镜像")
+        self.assertIn("GitHub", report["title"])
+        self.assertIn("证书", report["detail"])
+
 
 if __name__ == "__main__":
     unittest.main()

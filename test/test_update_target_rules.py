@@ -24,6 +24,7 @@ TARGET_MODULES = (
     "function/common/update_staging.py",
     "function/common/update_state.py",
     "function/common/update_manifest.py",
+    "function/common/windows_https.py",
     "function/common/update_space.py",
     "function/core/update_prepare.py",
     "function/core/settings_migration.py",

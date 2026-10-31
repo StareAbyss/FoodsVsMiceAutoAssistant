@@ -2,6 +2,8 @@ import http.client
 import json
 import os
 import re
+import ssl
+import sys
 import time
 import urllib.error
 import urllib.parse
@@ -19,6 +21,69 @@ MANIFEST_CACHE_RELATIVE_PATH = Path("update_cache") / "update_manifest_cache.jso
 
 class GitHubRateLimitError(RuntimeError):
     pass
+
+
+class _CertificateStoreError(urllib.error.URLError):
+    """本地证书包无法加载，可交给 Windows 自己的信任库继续验证。"""
+
+
+def create_https_context() -> ssl.SSLContext:
+    """为 GitHub API 和源码下载保留系统信任，并补充环境中已有的公共 CA。
+
+    Windows 默认上下文会读取 CA、ROOT 证书存储，但部分 Python 环境的信任链仍不完整。
+    certifi 已由项目的 requests 依赖提供；这里只读取已安装的证书包，不下载证书或关闭校验。
+
+    Returns:
+        启用证书链和域名校验的 HTTPS 上下文；未安装 certifi 时只使用系统默认信任。
+
+    Raises:
+        urllib.error.URLError: 系统信任库或已安装的 certifi 证书包无法加载，停止网络请求。
+    """
+    try:
+        context = ssl.create_default_context()
+        try:
+            import certifi
+        except ModuleNotFoundError as exc:
+            if exc.name == "certifi":
+                return context
+            raise
+        # 追加公共 CA，不能用 cafile 参数直接创建上下文，否则会跳过系统和代理的可信证书。
+        context.load_verify_locations(cafile=certifi.where())
+        return context
+    except Exception as exc:
+        # 保留原始异常；请求入口可在 Windows 使用系统信任库重试，但不能关闭校验。
+        raise _CertificateStoreError(f"HTTPS 证书信任库准备失败，请检查运行环境和可信证书：{exc}") from exc
+
+
+def open_update_url(request: urllib.request.Request, timeout: float, on_certificate_retry=None):
+    """证书校验失败时在 Windows 用系统 HTTPS 栈重新验证同一请求。
+
+    保留 Python 的既有网络行为；只对证书错误启用系统重试，不把超时、HTTP 错误等
+    一般失败当作更换验证方式的依据。Windows 验证仍失败时向上报告，不能忽略校验。
+
+    Args:
+        request: GitHub API 或源码下载请求。
+        timeout: 网络阶段超时秒数。
+        on_certificate_retry: 可选回调，通知界面当前正在进行系统证书验证。
+
+    Returns:
+        可用于 with 和 read 的 HTTPS 响应。
+    """
+    try:
+        return urllib.request.urlopen(request, timeout=timeout, context=create_https_context())
+    except urllib.error.URLError as error:
+        certificate_error = isinstance(error, _CertificateStoreError) or isinstance(error.reason, ssl.SSLCertVerificationError)
+        if sys.platform != "win32" or not certificate_error:
+            raise
+        original = error
+    from function.common.windows_https import open_windows_https
+    if on_certificate_retry:
+        on_certificate_retry()
+    try:
+        return open_windows_https(request, timeout)
+    except Exception as error:
+        # 两次失败都保留在日志中，便于区分 Python 信任链与 Windows 系统策略问题。
+        raise error from original
 
 
 class GitHubClient:
@@ -41,7 +106,7 @@ class GitHubClient:
         for attempt in range(retries + 1):
             request = urllib.request.Request(url, headers=headers)
             try:
-                with urllib.request.urlopen(request, timeout=20) as response:
+                with open_update_url(request, timeout=20) as response:
                     return json.loads(response.read().decode("utf-8"))
             except urllib.error.HTTPError as exc:
                 if exc.code == 403:

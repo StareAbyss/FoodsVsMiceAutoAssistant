@@ -169,6 +169,48 @@ def migrate_user_data(source_root, target_root, selected_names=None, allow_missi
         self.assertEqual(retry.returncode, 0, retry.stdout)
         self.assert_completed(fixture, backup)
 
+    def test_https_failure_reports_network_reason_and_keeps_original_backup(self):
+        """第二次下载真实握手失败时，CLI 保留原始备份与交接记录并说明证书原因。"""
+        from test.test_update_https import LocalHttpsFixture
+
+        fixture, backup = self.historical_fixture(1055, "82659f2b84b6bf893de0f1d33199130194a214f1")
+        before = {path.relative_to(backup): path.read_bytes() for path in backup.rglob("*") if path.is_file()}
+        version_state = (fixture.root / "update_cache/update_state.json").read_bytes()
+        tls = LocalHttpsFixture()
+        self.addCleanup(tls.close)
+        endpoint = tls.start("unknown")
+        wrapper = '''
+import ssl, sys, urllib.request
+from unittest.mock import patch
+sys.path.insert(0, sys.argv[1])
+from plugins.updater import legacy_bridge
+real_context, real_request = ssl.create_default_context, urllib.request.Request
+system_ca, additional_ca, endpoint = sys.argv[2:5]
+def request(url, *args, **kwargs):
+    return real_request(endpoint if str(url).startswith("https://github.com/") else url, *args, **kwargs)
+sys.argv = ["legacy_bridge.py", "--root", sys.argv[1]]
+with patch.object(ssl, "create_default_context", side_effect=lambda: real_context(cafile=system_ca)), \\
+        patch("certifi.where", return_value=additional_ca), patch.object(urllib.request, "Request", side_effect=request):
+    raise SystemExit(legacy_bridge.main())
+'''
+        result = subprocess.run([
+            sys.executable, "-I", "-X", "utf8", "-c", wrapper, str(fixture.root),
+            str(tls.ca("system")), str(tls.ca("additional")), endpoint,
+        ], cwd=fixture.base, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            text=True, encoding="utf-8", timeout=30)
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn("SSLCertVerificationError", result.stdout)
+        self.assertIn("FAA_LEGACY_NETWORK_ERROR:", result.stdout)
+        self.assertIn("证书", result.stdout)
+        self.assertIn("原始备份和过渡记录已保留", result.stdout)
+        self.assertIn("代理", result.stdout)
+        self.assertIn("Python 和依赖包镜像设置不影响 GitHub", result.stdout)
+        pending = json.loads((fixture.root / "update_cache/legacy_bridge/state.json").read_text(encoding="utf-8"))
+        self.assertEqual(Path(pending["backup"]), backup)
+        self.assertEqual((fixture.root / "update_cache/update_state.json").read_bytes(), version_state)
+        self.assertEqual({path.relative_to(backup): path.read_bytes() for path in backup.rglob("*") if path.is_file()}, before)
+        self.assertFalse((fixture.root / "update_cache/legacy_bridge/source.zip").exists())
+
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--historical":

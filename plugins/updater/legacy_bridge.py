@@ -2,13 +2,17 @@
 
 import argparse
 import hashlib
+import http.client
 import importlib.util
 import json
 from pathlib import Path
 import re
 import shutil
+import ssl
 import sys
 import time
+import traceback
+import urllib.error
 
 
 STATE_RELATIVE_PATH = Path("update_cache/legacy_bridge/state.json")
@@ -163,14 +167,29 @@ def complete_legacy_update(root: Path, archive_path: Path | None = None, on_prog
     phase(5, "更新完成，请自行运行 FAA - 环境安装器.exe，准备新版环境后启动 FAA")
 
 
-def main() -> None:
+def main() -> int:
     """由原生快速入口隐藏执行；失败原因持续保留在界面和桥接日志中。"""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", required=True, type=Path)
     parser.add_argument("--archive", type=Path)
     arguments = parser.parse_args()
-    complete_legacy_update(arguments.root, arguments.archive)
+    try:
+        complete_legacy_update(arguments.root, arguments.archive)
+        return 0
+    except (urllib.error.URLError, ssl.SSLError, TimeoutError, ConnectionError, http.client.HTTPException) as exc:
+        # 原生界面需要简短说明；完整异常仍经捕获输出写入过渡日志，不隐藏具体证书或网络原因。
+        traceback.print_exc()
+        reason = exc.reason if isinstance(exc, urllib.error.URLError) else exc
+        if isinstance(reason, ssl.SSLError) or "certificate" in str(reason).lower() or "证书" in str(reason):
+            message = "GitHub HTTPS 证书校验或信任库加载失败。原始备份和过渡记录已保留。"
+            advice = "请检查系统时间、Windows 可信证书及代理或安全软件的证书设置；修复后可点击重试。"
+        else:
+            message = "无法连接 GitHub 或下载源码时连接中断。原始备份和过渡记录已保留。"
+            advice = "请检查 GitHub 网络连接、DNS 和代理，或稍后重试。"
+        print(f"FAA_LEGACY_NETWORK_ERROR:{message}", flush=True)
+        print(f"[更新] [网络] {advice} Python 和依赖包镜像设置不影响 GitHub 源码下载。", flush=True)
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
