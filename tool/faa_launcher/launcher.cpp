@@ -252,10 +252,12 @@ bool LaunchFaa(const Options& options) {
         Failure(options, 5, L"没有找到 Python 启动程序", L"运行环境不完整，请使用“修复依赖”后重新启动。", Problem::Dependency);
         return false;
     }
-    const std::wstring startupLog = Join(options.root, L"logs\\launcher\\python-" + Timestamp() + L".log");
+    const std::wstring startupLog = Join(options.root, L"update_cache\\launcher\\logs\\python-" + Timestamp() + L".log");
     MakeDirectories(Parent(startupLog));
     SECURITY_ATTRIBUTES security = {sizeof(security), NULL, TRUE};
-    HANDLE log = CreateFileW(startupLog.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, &security, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+    // Python 虚拟环境跳板可能持续持有此句柄；Windows 不允许移动含打开文件的父目录，
+    // 因此启动诊断放在更新时保留的缓存区。共享删除只保证日志文件本身可改名。
+    HANDLE log = CreateFileW(startupLog.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, &security, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
     if (log == INVALID_HANDLE_VALUE) { Failure(options, 5, L"无法创建启动日志", SystemError(GetLastError()), Problem::Permission); return false; }
     HANDLE input = CreateFileW(L"NUL", GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, &security, OPEN_EXISTING, 0, NULL);
     HANDLE job = CreateJobObjectW(NULL, NULL);
@@ -352,10 +354,10 @@ void RunInstall(const Options& options) {
             for (const wchar_t* path : required) if (!Exists(Join(options.root, path))) {
                 Failure(options, 0, L"没有找到完整的 FAA 文件", L"缺少文件：" + Join(options.root, path), Problem::Files); return;
             }
-            if (!MakeDirectories(Join(options.root, L"logs\\launcher"))) {
+            if (!MakeDirectories(Join(options.root, L"update_cache\\launcher\\logs"))) {
                 Failure(options, 0, L"FAA 文件夹不可写", SystemError(GetLastError()), Problem::Permission); return;
             }
-            const std::wstring probe = Join(options.root, L"logs\\launcher\\write-check-" + Timestamp());
+            const std::wstring probe = Join(options.root, L"update_cache\\launcher\\logs\\write-check-" + Timestamp());
             if (!WriteFileBytes(probe, "FAA write check")) { Failure(options, 0, L"无法写入 FAA 文件夹", SystemError(GetLastError()), Problem::Permission); return; }
             DeleteFileW(probe.c_str());
             WorkerLog(options, L"[启动器] 文件检查通过：" + options.root);
@@ -686,7 +688,7 @@ bool OpenEnvironmentInstaller(const Event& failure) {
     const std::wstring installer=Join(app.root,L"FAA - 环境安装器.exe");
     std::wstring report;
     if(app.rootValid) {
-        report=Join(app.root,L"logs\\launcher\\startup-failure-"+Timestamp()+L".txt");
+        report=Join(app.root,L"update_cache\\launcher\\logs\\startup-failure-"+Timestamp()+L".txt");
         auto single=[](std::wstring value){for(auto& character:value)if(character==L'\r'||character==L'\n')character=L' ';return value;};
         std::string body="FAA_STARTUP_FAILURE_V1\n"+std::to_string(failure.stage)+"\n"+std::to_string(static_cast<int>(failure.problem))+"\n"+
             Utf8(single(failure.title))+"\n"+Utf8(single(failure.detail))+"\n"+app.logBytes;
@@ -704,7 +706,7 @@ bool OpenEnvironmentInstaller(const Event& failure) {
 }
 bool ImportStartupFailure(const std::wstring& path) {
     WIN32_FILE_ATTRIBUTE_DATA attributes={};
-    if(_wcsicmp(Parent(path).c_str(),Join(app.root,L"logs\\launcher").c_str())||BaseName(path).find(L"startup-failure-")!=0||
+    if(_wcsicmp(Parent(path).c_str(),Join(app.root,L"update_cache\\launcher\\logs").c_str())||BaseName(path).find(L"startup-failure-")!=0||
         !GetFileAttributesExW(path.c_str(),GetFileExInfoStandard,&attributes)||attributes.nFileSizeHigh||attributes.nFileSizeLow>2*1024*1024)return false;
     std::istringstream input(ReadFileBytes(path));std::string magic,stageText,problemText,title,detail;
     if(!std::getline(input,magic)||magic!="FAA_STARTUP_FAILURE_V1"||!std::getline(input,stageText)||!std::getline(input,problemText)||!std::getline(input,title)||!std::getline(input,detail))return false;
@@ -826,7 +828,7 @@ void Begin(bool repair=false,bool force=false,bool removeBackup=false) {
     for(int index=options->start;index<StepCount(app.operation);++index)app.steps[index]=Step::Pending;
     if(app.operation==Operation::Restore)app.steps[0]=Step::Complete;
     ResetEvent(app.cancelEvent);if(app.worker){CloseHandle(app.worker);app.worker=NULL;}
-    const std::wstring directory=Join(app.root,app.operation==Operation::LegacyUpdate?L"update_cache\\legacy_bridge":L"logs\\launcher");if(MakeDirectories(directory))app.logFile=Join(directory,L"launcher-"+Timestamp()+L".log");
+    const std::wstring directory=Join(app.root,app.operation==Operation::LegacyUpdate?L"update_cache\\legacy_bridge":L"update_cache\\launcher\\logs");if(MakeDirectories(directory))app.logFile=Join(directory,L"launcher-"+Timestamp()+L".log");
     app.state=State::Running;app.startupFailure=false;app.faaExited=false;app.closeAfterCancel=false;
     AppendLog(L"[启动器] 开始操作："+std::wstring(app.operation==Operation::Install?L"安装与启动":app.operation==Operation::Uninstall?L"卸除运行环境":L"恢复备份"));
     UpdateControls();app.worker=CreateThread(NULL,0,Worker,options.get(),0,NULL);
@@ -1403,7 +1405,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,LPWSTR,int show) {
         UpdateControls();ShowWindow(window,show);UpdateWindow(window);
     } else if(app.quickEntry) {
         app.state=State::Running;ResetEvent(app.cancelEvent);
-        const std::wstring directory=Join(app.root,L"logs\\launcher");
+        const std::wstring directory=Join(app.root,L"update_cache\\launcher\\logs");
         if(app.rootValid&&MakeDirectories(directory))app.logFile=Join(directory,L"entry-"+Timestamp()+L".log");
         Options* options=new Options;options->root=app.root;options->window=window;options->cancel=app.cancelEvent;options->quickEntry=true;
         app.worker=CreateThread(NULL,0,Worker,options,0,NULL);

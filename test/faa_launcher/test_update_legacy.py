@@ -1,12 +1,13 @@
 """使用未修改的历史更新模块验证自动过渡，而不是给旧安装手动覆盖补丁。"""
 
-import importlib.util
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
 import unittest
 from unittest.mock import patch
+import venv
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -19,31 +20,31 @@ HISTORICAL_MODULES = (
 TARGET_COMMIT = "e" * 40
 
 
-def run_historical_update(root: Path, archive: Path, number: int) -> None:
+def run_historical_update(root: Path, archive: Path, number: int, target_commit: str = TARGET_COMMIT) -> None:
     """独立进程加载用户原有版本的更新器，实际准备、迁移、备份和替换一次。"""
     sys.path.insert(0, str(root))
-    from function.core.update_apply import build_update_command
+    from function.core.update_apply import build_update_command, launch_update_from_staging
     from function.core.update_prepare import prepare_update_from_archive
 
     with patch("function.common.update_manifest.GitHubClient.compare_commits", return_value={"status": "ahead"}):
-        result = prepare_update_from_archive(root, archive, {"commit": TARGET_COMMIT, "title": "过渡验证"})
+        result = prepare_update_from_archive(root, archive, {"commit": target_commit, "title": "过渡验证"})
     staging = Path(result["staging"]["path"])
     command = build_update_command(root, staging, root / "plugins/updater/updater.py")
-    expected = "FAA.exe" if number == 1055 else "FAA - 快速启动.exe"
+    expected = "" if number >= 1059 else "FAA.exe" if number <= 1055 else "FAA - 快速启动.exe"
     assert command[command.index("--launch") + 1] == expected
-    assert not (staging / "target-only.txt").exists(), "历史复制器不应知道目标新增文件"
-    assert not (staging / "config/new_user_format.json").exists(), "历史迁移器不应执行新增规则"
-    spec = importlib.util.spec_from_file_location("historical_updater", root / "plugins/updater/updater.py")
-    updater = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(updater)
-    # 只停止最后启动进程这一动作；旧 updater 的文件操作和状态记录全部保留。
-    updater.update(root, staging, None)
-    assert not (root / "config/target_user.json").exists(), "测试要求原始用户数据只在旧备份中保留"
-    assert "update_protocol" not in json.loads((root / "update_cache/update_state.json").read_text(encoding="utf-8"))
+    if number < 1059:
+        assert not (staging / "target-only.txt").exists(), "历史复制器不应知道目标新增文件"
+        assert not (staging / "config/new_user_format.json").exists(), "历史迁移器不应执行新增规则"
+    # 仅用已有 launch 参数抑制最后打开游戏；原版 Popen、标准流及虚拟环境跳板全部实际运行。
+    handoff = launch_update_from_staging(root, staging, launch="")
+    handoff["faa_pid"] = os.getpid()
+    (root.parent / "handoff.json").write_text(json.dumps(handoff), encoding="utf-8")
 
 
+@unittest.skipUnless(os.name == "nt", "需要真实 Windows 虚拟环境启动链")
 class LegacyUpdateTests(unittest.TestCase):
-    def historical_fixture(self, number, commit):
+    def historical_fixture(self, number, commit, *, locked_stdout=None, expected_phase="update_completed",
+                           target_revision=None, parent_python="pythonw.exe"):
         """生成真实历史模块和包含正式兼容文件的目标源码，仅联网部分使用本地 ZIP。"""
         from plugins.updater.legacy_bridge import COMPATIBILITY_FILES
         from test.test_update_target_rules import TargetUpdateRulesTests
@@ -68,6 +69,7 @@ class LegacyUpdateTests(unittest.TestCase):
             ).stdout)
         for relative in ("function/__init__.py", "function/common/__init__.py", "function/core/__init__.py"):
             (root / relative).write_bytes(b"")
+        venv.EnvBuilder(with_pip=False).create(root / ".venv")
         (root / "update_cache").mkdir()
         (root / "update_cache/update_state.json").write_text(json.dumps({"commit": commit}), encoding="utf-8")
         (root / "battle_plan").mkdir()
@@ -95,13 +97,23 @@ def migrate_user_data(source_root, target_root, selected_names=None, allow_missi
         raise ValueError("legacy target migration blocked by fixture")
     return _migrate_before_failure_check(source_root, target_root, selected_names, allow_missing_target)
 ''')
+        if target_revision:
+            # A/B 保持同一个旧执行环境，只替换下载目标，观察进入目标代码前的行为是否不同。
+            for relative in HISTORICAL_MODULES:
+                (source / relative).write_bytes(subprocess.check_output(
+                    ["git", "show", f"{target_revision}:{relative}"], cwd=ROOT,
+                ))
         fixture.make_archive()
-        result = subprocess.run(
-            [sys.executable, "-X", "utf8", str(Path(__file__).resolve()), "--historical", str(root), str(fixture.archive), str(number)],
-            cwd=fixture.base, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-            text=True, encoding="utf-8", timeout=30,
-        )
-        self.assertEqual(result.returncode, 0, result.stdout)
+        handoff, logs = fixture.run_update_parent([
+            str(root / ".venv/Scripts" / parent_python), "-X", "utf8", str(Path(__file__).resolve()),
+            "--historical", str(root), str(fixture.archive), str(number), target_revision or TARGET_COMMIT,
+        ], locked_stdout=number >= 1059 if locked_stdout is None else locked_stdout, expected_phase=expected_phase)
+        fixture.stdout_delete_error = handoff.get("stdout_delete_error_after_faa_exit")
+        if expected_phase != "update_completed":
+            return fixture, logs
+        self.assertFalse((root / "config/target_user.json").exists(), "原始自定义文件只保留在首次备份")
+        if number < 1059:
+            self.assertNotIn("update_protocol", json.loads((root / "update_cache/update_state.json").read_text(encoding="utf-8")))
         operation = json.loads((root / "update_cache/updater_state.json").read_text(encoding="utf-8"))
         original_backup = Path(operation["details"]["backup"])
         self.assertEqual((original_backup / "old-version.txt").read_bytes(), b"old version")
@@ -144,6 +156,7 @@ def migrate_user_data(source_root, target_root, selected_names=None, allow_missi
 
     def test_unmodified_historical_versions_complete_target_rules_and_cleanup(self):
         for number, commit in (
+            (1032, "d51eb5810af92c5623fbb2798c9ffc2720dd7a93"),
             (1055, "82659f2b84b6bf893de0f1d33199130194a214f1"),
             (1056, "a885ea31"),
             (1057, "39ae8583"),
@@ -153,6 +166,29 @@ def migrate_user_data(source_root, target_root, selected_names=None, allow_missi
                 result = self.run_bridge(fixture)
                 self.assertEqual(result.returncode, 0, result.stdout)
                 self.assert_completed(fixture, backup)
+        # 1059 已执行目标 updater，原有 Popen 仍继承日志；两种 Python 入口都不能偶发自锁。
+        for parent in ("python.exe", "pythonw.exe"):
+            for iteration in range(3):
+                with self.subTest(version=1059, parent=parent, iteration=iteration):
+                    fixture, backup = self.historical_fixture(
+                        1059, "1392a92247e82a5e98e62eb3ea5517b816a592c8", parent_python=parent,
+                    )
+                    self.assert_completed(fixture, backup)
+
+    def test_old_locked_stdout_fails_before_target_code_for_both_targets(self):
+        """旧启动环境自持日志时，更新到旧目标与新目标均在旧备份阶段失败。"""
+        for name, revision in (("1055", "82659f2b84b6bf893de0f1d33199130194a214f1"), ("current", None)):
+            with self.subTest(target=name):
+                fixture, logs = self.historical_fixture(
+                    1032, "d51eb5810af92c5623fbb2798c9ffc2720dd7a93",
+                    locked_stdout=True, expected_phase="failed", target_revision=revision,
+                )
+                self.assertIn("launcher_demo", logs)
+                self.assertRegex(logs, r"WinError (5|32)")
+                self.assertEqual(fixture.stdout_delete_error, 32, "FAA 父进程退出后，旧子更新链仍持有拒删日志句柄")
+                self.assertFalse((fixture.root / "target-only.txt").exists())
+                state = json.loads((fixture.root / "update_cache/update_state.json").read_text(encoding="utf-8"))
+                self.assertEqual(state["commit"], "d51eb5810af92c5623fbb2798c9ffc2720dd7a93")
 
     def test_failed_bridge_retries_from_same_original_backup(self):
         fixture, backup = self.historical_fixture(1055, "82659f2b84b6bf893de0f1d33199130194a214f1")
@@ -214,6 +250,6 @@ with patch.object(ssl, "create_default_context", side_effect=lambda: real_contex
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--historical":
-        run_historical_update(Path(sys.argv[2]), Path(sys.argv[3]), int(sys.argv[4]))
+        run_historical_update(Path(sys.argv[2]), Path(sys.argv[3]), int(sys.argv[4]), sys.argv[5])
     else:
         unittest.main()

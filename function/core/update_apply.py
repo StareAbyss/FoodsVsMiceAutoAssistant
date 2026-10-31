@@ -69,7 +69,14 @@ def launch_update_from_staging(
     # 替换规则属于目标版本；临时副本在移动 FAA 源码后仍能独立运行。
     updater_script = copy_updater_to_temp(staging)
     command = build_update_command(root, staging, updater_script, wait_pid=wait_pid or os.getpid(), launch=launch)
-    process = subprocess.Popen(command, cwd=updater_script.parent)
+    command.extend(["--stdio-isolated", "--notify"])
+    # Python 虚拟环境跳板也可能保留继承的标准句柄；仅 close_fds=True 不能确保
+    # 脱离 FAA 启动日志。显式重定向三条标准流，避免更新器自己锁住待备份的 logs。
+    process = subprocess.Popen(
+        command, cwd=updater_script.parent,
+        stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        close_fds=True, creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
+    )
     return {
         "pid": process.pid,
         "command": command,

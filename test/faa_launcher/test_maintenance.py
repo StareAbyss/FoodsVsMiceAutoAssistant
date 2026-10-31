@@ -1,8 +1,10 @@
 """在隔离目录中验证图形恢复入口的文件保留和回滚。"""
 
 import contextlib
+import ctypes
 import importlib.util
 import io
+import os
 import subprocess
 import sys
 import tempfile
@@ -124,26 +126,63 @@ class GuiRestoreTests(unittest.TestCase):
             self.assertFalse((root / "partial.txt").exists())
             self.assertIn("restore_rollback_started", phases)
 
-    def test_backup_failure_returns_already_moved_files(self):
-        with tempfile.TemporaryDirectory(prefix="FAA 备份中断 ") as directory:
-            root = Path(directory)
-            (root / "first.txt").write_text("first", encoding="utf-8")
-            (root / "second.txt").write_text("second", encoding="utf-8")
-            original = updater.shutil.move
-            calls = 0
+    @unittest.skipUnless(os.name == "nt", "需要真实 Windows 文件共享锁")
+    def test_locked_log_returns_moved_items_without_copying_and_allows_retry(self):
+        """日志拒绝删除共享时，备份中止并完整归还版本区；关闭句柄后可重试。"""
+        with tempfile.TemporaryDirectory(prefix="FAA 备份真实日志占用 ") as directory:
+            root = Path(directory) / "FAA"
+            files = {
+                "config/settings.json": b'{"user": "preserved"}',
+                "function/core/main.py": b"original application",
+                "FAA.exe": b"original launcher",
+                "logs/launcher_demo/python-20261030-550.log": b"active launcher log",
+            }
+            for relative, content in files.items():
+                path = root / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(content)
+            log_path = root / "logs/launcher_demo/python-20261030-550.log"
+            original_identity = log_path.stat().st_ino
+            kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+            kernel.CreateFileW.argtypes = (
+                ctypes.c_wchar_p, ctypes.c_ulong, ctypes.c_ulong, ctypes.c_void_p,
+                ctypes.c_ulong, ctypes.c_ulong, ctypes.c_void_p,
+            )
+            kernel.CreateFileW.restype = ctypes.c_void_p
+            kernel.CloseHandle.argtypes = (ctypes.c_void_p,)
+            # 保持读写共享，但不授予 FILE_SHARE_DELETE，模拟仍打开日志的启动器。
+            handle = kernel.CreateFileW(str(log_path), 0x80000000, 0x1 | 0x2, None, 3, 0x80, None)
+            self.assertNotEqual(handle, ctypes.c_void_p(-1).value, ctypes.WinError(ctypes.get_last_error()))
+            original_items = updater.version_items
+            try:
+                # 只固定枚举顺序，确保真实锁错误发生前已有目录和 EXE 被实际移走。
+                with patch.object(updater, "version_items", side_effect=lambda *args, **kwargs: sorted(
+                    original_items(*args, **kwargs), key=lambda path: path.name == "logs",
+                )), patch.object(updater.shutil, "copytree", wraps=updater.shutil.copytree) as copied, \
+                        patch.object(updater.shutil, "rmtree", wraps=updater.shutil.rmtree) as removed:
+                    with self.assertRaises(OSError):
+                        updater.create_backup(root, root / "backups", "FAA.backup")
+                copied.assert_not_called()
+                removed.assert_not_called()
+                self.assertEqual(log_path.stat().st_ino, original_identity)
+                restored = {
+                    path.relative_to(root).as_posix(): path.read_bytes()
+                    for path in root.rglob("*")
+                    if path.is_file() and "backups" not in path.relative_to(root).parts
+                }
+                self.assertEqual(restored, files, "失败后不能丢文件或产生 logs/logs 等嵌套目录")
+                self.assertFalse((root / "logs/logs").exists())
+                self.assertFalse(any(path.is_file() for path in (root / "backups").rglob("*")))
+            finally:
+                kernel.CloseHandle(handle)
 
-            def fail_second_move(source, target):
-                nonlocal calls
-                calls += 1
-                if calls == 2:
-                    raise PermissionError("fixture locked file")
-                return original(source, target)
-
-            with patch.object(updater.shutil, "move", side_effect=fail_second_move):
-                with self.assertRaises(PermissionError):
-                    updater.create_backup(root, root / "backups", "FAA.before-restore")
-            self.assertEqual((root / "first.txt").read_text(encoding="utf-8"), "first")
-            self.assertEqual((root / "second.txt").read_text(encoding="utf-8"), "second")
+            backup = updater.create_backup(root, root / "backups", "FAA.backup")
+            self.assertEqual({
+                path.relative_to(backup).as_posix(): path.read_bytes()
+                for path in backup.rglob("*") if path.is_file()
+            }, files)
+            for relative in files:
+                self.assertFalse((root / relative).exists(), relative)
 
     def test_preservation_cannot_escape_root(self):
         with tempfile.TemporaryDirectory(prefix="FAA 保留路径 ") as directory:
