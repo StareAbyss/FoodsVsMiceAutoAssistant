@@ -66,6 +66,9 @@ class ThreadWithException(threading.Thread):
     def raise_exception(self):
         """发送错误 终止线程"""
         thread_id = self.get_id()
+        # 登录失败由返回值结束子线程后，主窗口仍会统一停止本轮任务。
+        if thread_id is None:
+            return
         # 精髓就是这句话，给线程发过去一个exceptions，线程就那边响应完就停了
         res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, ctypes.py_object(SystemExit))
         if res > 1:

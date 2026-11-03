@@ -43,23 +43,24 @@ class ReloadGameRetryTest(unittest.TestCase):
             patch.object(faa_core, "loop_match_ps_in_w", return_value=False),
             patch.object(faa_core.CUS_LOGGER, "warning"),
         ):
-            with self.assertRaisesRegex(RuntimeError, "登录失败"):
-                faa_core.FAABase.reload_game(faa)
+            success, reason = faa_core.FAABase.reload_game(faa)
 
+        self.assertFalse(success)
+        self.assertIn("连续10次刷新", reason)
         self.assertEqual(faa.click_refresh_btn.call_count, 10)
-        dialog.assert_called_once()
-        self.assertIn("连续10次", dialog.call_args.kwargs["text"])
+        dialog.assert_not_called()
 
     def test_invalid_platform_fails_without_refreshing(self):
         faa = self.make_faa(platform="不存在的区服")
         dialog = Mock()
 
         with patch.object(faa_core, "SIGNAL", SimpleNamespace(DIALOG=SimpleNamespace(emit=dialog))):
-            with self.assertRaisesRegex(RuntimeError, "登录失败"):
-                faa_core.FAABase.reload_game(faa)
+            success, reason = faa_core.FAABase.reload_game(faa)
 
+        self.assertFalse(success)
+        self.assertIn("区服设置", reason)
         faa.click_refresh_btn.assert_not_called()
-        dialog.assert_called_once()
+        dialog.assert_not_called()
 
     def test_success_after_transient_refresh_failures_stops_retrying(self):
         faa = self.make_faa()
@@ -69,7 +70,7 @@ class ReloadGameRetryTest(unittest.TestCase):
         fake_time = SimpleNamespace(sleep=Mock(), monotonic=lambda: next(clock))
 
         def find_image(**kwargs):
-            if str(kwargs.get("template", "")).endswith("3_健康游戏公告_确定.png"):
+            if kwargs.get("template") is faa_core.RESOURCE_P["common"]["登录"]["通用"]["3_健康游戏公告_确定.png"]:
                 return 2, (100, 100)
             return 1, None
 
@@ -84,10 +85,40 @@ class ReloadGameRetryTest(unittest.TestCase):
             patch.object(faa_core, "capture_image_png", return_value=object()),
             patch.object(faa_core, "T_ACTION_QUEUE_TIMER", SimpleNamespace(add_click_to_queue=Mock())),
         ):
-            self.assertTrue(faa_core.FAABase.reload_game(faa))
+            self.assertEqual(faa_core.FAABase.reload_game(faa), (True, ""))
 
         self.assertEqual(faa.click_refresh_btn.call_count, 3)
         dialog.assert_not_called()
+
+    def test_missing_credentials_stop_both_platforms_without_loading_wait_or_retry(self):
+        for platform in ("4399", "QQ空间"):
+            with self.subTest(platform=platform):
+                faa = self.make_faa(platform)
+                faa.opt["4399_login_info"]["use_password"] = True
+                faa.opt["qq_login_info"] = {"use_password": True}
+                faa.opt["login_credentials"] = {}
+                login_images = faa_core.RESOURCE_P["common"]["登录"]["4399"]
+                labels = {id(login_images[name]) for name in (
+                    "4399_账号密码登录_已选中.png", "4399_用户名.png", "4399_密码.png", "4399_登录按钮.png",
+                )}
+
+                def find_image(**kwargs):
+                    if id(kwargs.get("template")) in labels:
+                        return 2, (100, 100)
+                    return 1, None
+
+                with (
+                    patch.object(faa_core.time, "sleep"),
+                    patch.object(faa_core.time, "monotonic", side_effect=count(step=1)),
+                    patch.object(faa_core, "faa_get_handle", return_value=1),
+                    patch.object(faa_core, "match_p_in_w", side_effect=find_image),
+                    patch.object(faa_core, "loop_match_p_in_w", return_value=True),
+                    patch.object(faa_core, "loop_match_ps_in_w", return_value=False),
+                ):
+                    success, reason = faa_core.FAABase.reload_game(faa)
+                self.assertFalse(success)
+                self.assertIn("账号或密码未正确设置", reason)
+                self.assertEqual(faa.click_refresh_btn.call_count, 1)
 
 
 if __name__ == "__main__":

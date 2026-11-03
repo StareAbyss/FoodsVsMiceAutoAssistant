@@ -995,6 +995,18 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.thread_todo_2.signal_todo_lock.connect(self.thread_todo_1.change_lock)
         self.thread_todo_1.signal_todo_lock.connect(self.thread_todo_2.change_lock)
 
+        def stop_failed_task(message: str) -> None:
+            """停止本轮双线程任务，并只展示最先传回的失败原因。"""
+            # 两个Todo可能同时失败；主线程关闭任务后，排队到达的失败信号直接忽略。
+            if not self.thread_todo_running:
+                return
+            self.todo_end()
+            CUS_LOGGER.error(f"[登录] [任务序列] {message}")
+            SIGNAL.DIALOG.emit(title="登录错误", text=message)
+
+        self.thread_todo_1.signal_task_failed.connect(stop_failed_task)
+        self.thread_todo_2.signal_task_failed.connect(stop_failed_task)
+
         # 启动线程
         self.thread_todo_1.start()
 

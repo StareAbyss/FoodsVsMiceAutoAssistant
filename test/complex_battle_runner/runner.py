@@ -330,10 +330,11 @@ def initialize_runtime(settings: dict, config: dict):
         def __init__(self):
             super().__init__(faa_dict=faa_dict, opt=settings, todo_id=1)
             self.failure = None
+            self.failure_reason = None
 
         def run(self):
             try:
-                self.battle_1_n_n(
+                self.failure_reason = self.battle_1_n_n(
                     quest_list=[resolved_config],
                     extra_title="复杂关卡测试",
                 )
@@ -418,6 +419,10 @@ def run_complex_battle(config: dict, settings_file: str, check_only: bool = Fals
         error, failure_traceback = todo.failure
         print(failure_traceback, file=sys.stderr)
         raise error
+
+    if todo.failure_reason:
+        print(todo.failure_reason, file=sys.stderr)
+        return 1
 
     print("[复杂关卡测试] 战斗入口执行完成。")
     return 0

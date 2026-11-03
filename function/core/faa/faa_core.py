@@ -1796,9 +1796,15 @@ class FAABase:
         else:
             return close()
 
-    def reload_game(self: "FAA") -> bool:
+    def reload_game(self: "FAA") -> tuple[bool, str]:
+        """最多刷新十次以确认游戏主页，返回成功状态及失败原因。
 
-        def load_login_credentials(platform: str) -> tuple[str, str]:
+        Returns:
+            成功返回 ``(True, "")``；配置无效或十次重试耗尽返回 ``(False, 原因)``。
+            失败原因由任务入口统一展示，本函数不弹出错误框。
+        """
+
+        def load_login_credentials(platform: str) -> tuple[str, str, str]:
             """
             从主界面传入的配置中读取当前玩家登录账号。
 
@@ -1806,28 +1812,24 @@ class FAABase:
                 platform: ``login_credentials`` 中的平台字段名。
 
             Returns:
-                用户名与密码。
-
-            Raises:
-                RuntimeError: 当前玩家的账号或密码未正确配置。
+                用户名、密码及错误原因；配置有效时错误原因为空字符串。
             """
-            try:
-                player_account = self.opt["login_credentials"][platform][f"{self.player}p"]
-                username = player_account["username"]
-                password = player_account["password"]
-                if not username or not password:
-                    raise ValueError("账号或密码为空")
-                return username, password
-            except Exception as error:
-                error_by_merged_dialog(
-                    e=error,
-                    extra_message=f"无法读取 {platform} 登录信息，请检查登录设置。",
-                    title="登录信息错误",
-                )
-                raise RuntimeError(f"{platform} 登录信息不可用") from error
+            message = f"{platform} 的{self.player}P账号或密码未正确设置，请检查自动登录设定。"
+            player_account = self.opt
+            for key in ("login_credentials", platform, f"{self.player}p"):
+                if not isinstance(player_account, dict):
+                    return "", "", message
+                player_account = player_account.get(key)
+            if not isinstance(player_account, dict):
+                return "", "", message
+            username = player_account.get("username")
+            password = player_account.get("password")
+            if not isinstance(username, str) or not username or not isinstance(password, str) or not password:
+                return "", "", message
+            return username, password, ""
 
-        def login_4399() -> bool:
-            """根据已校验的文字标签位置完成4399账号密码登录。"""
+        def login_4399() -> tuple[bool, str]:
+            """完成4399密码登录，返回提交状态及配置错误原因；页面未就绪时原因为空。"""
             full_range = [0, 0, 2596, 1440]
 
             def find(image_name: str, tolerance: float = 0.95):
@@ -1868,7 +1870,7 @@ class FAABase:
             if selected is None:
                 unselected = find("4399_账号密码登录_未选中.png", tolerance=0.999)
                 if unselected is None:
-                    return False
+                    return False, ""
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle_browser,
                     x=unselected[0],
@@ -1876,15 +1878,17 @@ class FAABase:
                 )
                 time.sleep(1)
                 if find("4399_账号密码登录_已选中.png", tolerance=0.999) is None:
-                    return False
+                    return False, ""
 
             username_label = find("4399_用户名.png")
             password_label = find("4399_密码.png")
             login_button = find("4399_登录按钮.png")
             if username_label is None or password_label is None or login_button is None:
-                return False
+                return False, ""
 
-            username, password = load_login_credentials(platform="4399")
+            username, password, error_message = load_login_credentials(platform="4399")
+            if error_message:
+                return False, error_message
 
             # 沿用QQ空间的双号错开方式，减少同时填写账号密码时的焦点竞争。
             if self.player == 2:
@@ -1903,7 +1907,7 @@ class FAABase:
             if find("4399_自动登录_已勾选.png", tolerance=0.995) is None:
                 unchecked = find("4399_自动登录_未勾选.png", tolerance=0.995)
                 if unchecked is None:
-                    return False
+                    return False, ""
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle_browser,
                     x=unchecked[0] - 30,
@@ -1911,7 +1915,7 @@ class FAABase:
                 )
                 time.sleep(0.5)
                 if find("4399_自动登录_已勾选.png", tolerance=0.995) is None:
-                    return False
+                    return False, ""
 
             T_ACTION_QUEUE_TIMER.add_click_to_queue(
                 handle=self.handle_browser,
@@ -1919,9 +1923,9 @@ class FAABase:
                 y=login_button[1],
             )
             time.sleep(3)
-            return True
+            return True, ""
 
-        def login_qq_space(fresh_count: int) -> bool:
+        def login_qq_space(fresh_count: int) -> tuple[bool, str]:
             """
             未找到选服入口时，按配置登录 QQ 空间并进入目标服务器。
 
@@ -1929,7 +1933,7 @@ class FAABase:
                 fresh_count: 本次刷新轮次，用于定位登录日志。
 
             Returns:
-                是否成功点击登录后的目标服务器入口。
+                是否成功点击目标服务器入口，以及配置错误原因；页面未就绪时原因为空。
             """
 
             self.print_debug(text="[刷新游戏] QQ空间未找到选服按钮，尝试配置的登录方式")
@@ -1947,10 +1951,12 @@ class FAABase:
                 ):
                     # 自动登录可能已经越过登录页；交由后续公告和主页识别确认。
                     self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] [QQ登录] 未找到密码登录入口，继续等待游戏加载")
-                    return False
+                    return False, ""
 
                 # 确认处于密码登录页后才读取账号，避免自动登录时因未填写密码而误报。
-                username, password = load_login_credentials(platform="qq")
+                username, password, error_message = load_login_credentials(platform="qq")
+                if error_message:
+                    return False, error_message
 
                 # 2p 多等待一段时间，保证1p先完成登录，避免抢占焦点。
                 if self.player == 2:
@@ -1983,7 +1989,7 @@ class FAABase:
                     click=True,
                 ):
                     self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] [QQ登录] 账号输入框获取焦点失败")
-                    return False
+                    return False, ""
 
                 # 输入框获取焦点后不能额外等待，否则双号登录时可能被另一窗口抢占。
                 for key in username:
@@ -2003,7 +2009,7 @@ class FAABase:
                     click=True,
                 ):
                     self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] [QQ登录] 密码输入框获取焦点失败")
-                    return False
+                    return False, ""
 
                 for key in password:
                     T_ACTION_QUEUE_TIMER.char_input(handle=self.handle_browser, char=key)
@@ -2038,11 +2044,11 @@ class FAABase:
             if qq_login_result:
                 if wait_for_server_button(try_enter_server_qq_space):
                     self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] QQ空间平台 - 成功点击进入按钮")
-                    return True
+                    return True, ""
                 self.print_warning(text=f"[刷新游戏] [第{fresh_count}轮] QQ空间平台 - 登录后未能点击进入按钮")
 
             self.print_warning(text="[刷新游戏] [QQ登录] 未能完成登录或选服，继续等待健康游戏公告和主页")
-            return False
+            return False, ""
 
         def try_close_sub_account_list() -> bool:
 
@@ -2373,25 +2379,21 @@ class FAABase:
             # 重新获取句柄, 此时游戏界面的句柄已经改变
             self.handle = faa_get_handle(channel=self.channel, mode="flash")
 
-        def main() -> bool:
+        def main() -> tuple[bool, str]:
             """最多刷新十次以进入游戏；区服等确定无效的配置立即失败。
 
             Returns:
-                是否成功确认游戏主页。
+                是否成功确认游戏主页及失败原因；成功时原因为空字符串。
             """
 
             platform = self.opt["login_settings"]["platform"]
             if platform not in ("4399", "QQ空间", "QQ大厅"):
                 message = f"区服设置“{platform}”无效，请在首页重新选择。"
-                self.print_error(text=f"[刷新游戏] {message}")
-                SIGNAL.DIALOG.emit(title="登录错误", text=message)
-                return False
+                return False, message
             qq_space_server = self.opt["login_settings"]["qq_space_server"]
             if platform == "QQ空间" and qq_space_server not in range(7):
                 message = "QQ空间具体区服设置无效，请重新选择最近登录或3366 1～6服。"
-                self.print_error(text=f"[刷新游戏] {message}")
-                SIGNAL.DIALOG.emit(title="登录错误", text=message)
-                return False
+                return False, message
 
             # 游戏加载卡顿可能导致单轮识图失败；仅在连续十轮失败后中断任务。
             max_attempts = 10
@@ -2433,7 +2435,10 @@ class FAABase:
                         lambda: try_enter_server_4399() or try_enter_server_4399_wd()
                     )
                     if not platform_entry_succeeded and self.opt["4399_login_info"]["use_password"]:
-                        if login_4399():
+                        login_succeeded, error_message = login_4399()
+                        if error_message:
+                            return False, error_message
+                        if login_succeeded:
                             platform_entry_succeeded = wait_for_server_button(
                                 lambda: try_enter_server_4399() or try_enter_server_4399_wd()
                             )
@@ -2441,7 +2446,9 @@ class FAABase:
                     platform_entry_succeeded = wait_for_server_button(try_enter_server_qq_space)
                     if not platform_entry_succeeded:
                         if self.opt["qq_login_info"]["use_password"]:
-                            platform_entry_succeeded = login_qq_space(fresh_count=fresh_count)
+                            platform_entry_succeeded, error_message = login_qq_space(fresh_count=fresh_count)
+                            if error_message:
+                                return False, error_message
                         else:
                             # 保留原有头像一键登录，但仅在入口实际可见时触发。
                             status, _ = match_p_in_w(
@@ -2452,7 +2459,9 @@ class FAABase:
                                 match_tolerance=0.95,
                             )
                             if status == 2:
-                                platform_entry_succeeded = login_qq_space(fresh_count=fresh_count)
+                                platform_entry_succeeded, error_message = login_qq_space(fresh_count=fresh_count)
+                                if error_message:
+                                    return False, error_message
                 elif platform == "QQ大厅":
                     platform_entry_succeeded = wait_for_server_button(try_enter_server_qq_hall)
 
@@ -2486,22 +2495,16 @@ class FAABase:
 
                 action_after_success()
                 self.print_info(text=f"[刷新游戏] [第{fresh_count}轮] 顺利完成")
-                return True
+                return True, ""
 
             message = (
                 f"连续{max_attempts}次刷新仍未能进入游戏。\n"
                 f"最后一次失败：{last_failure_message}\n"
                 "程序已中断，请检查区服、账号状态、网络与识图资源。"
             )
-            CUS_LOGGER.warning(f"[刷新游戏] {message}")
-            SIGNAL.DIALOG.emit(title="登录错误", text=message)
-            return False
+            return False, message
 
-        if main():
-            return True
-        raise RuntimeError(
-            "登录失败，已按区服设置中断程序；请检查首页区服与自动登录设定。"
-        )
+        return main()
 
     def start_360(self):
 
@@ -3063,9 +3066,12 @@ class FAABase:
         else:
             return "你游币用完了! 氪不了一点 orz"
 
-    def fed_and_watered(self: "FAA") -> None:
+    def fed_and_watered(self: "FAA") -> str | None:
         """
         公会施肥浇水功能
+
+        Returns:
+            正常完成或跳过返回 None；恢复登录失败时返回原因，不再继续操作公会界面。
         """
 
         def goto_guild_and_in_guild():
@@ -3402,7 +3408,7 @@ class FAABase:
             now = datetime.now(beijing_tz)
             if now.weekday() == 3 and 0 <= now.hour < 12:
                 SIGNAL.PRINT_TO_UI.emit("[种树 浇水 施肥 摘果 领取] 周四0-12点, 跳过本流程, 以防领取到上一期道具.")
-                return
+                return None
 
             SIGNAL.PRINT_TO_UI.emit(f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 开始执行... 最多{max_try_times}次")
 
@@ -3414,12 +3420,16 @@ class FAABase:
                     if reload_time != 3:
                         SIGNAL.PRINT_TO_UI.emit(
                             f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入公会页失败... 刷新再试({reload_time}/3)")
-                        self.reload_game()
+                        success, error_message = self.reload_game()
+                        if not success:
+                            return error_message
                         continue
                     else:
                         SIGNAL.PRINT_TO_UI.emit(
                             f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住了! 进入公会页失败... 刷新跳过({reload_time}/3)")
-                        self.reload_game()
+                        success, error_message = self.reload_game()
+                        if not success:
+                            return error_message
                         break
 
                 # 循环到任务完成或出现bug
@@ -3430,13 +3440,17 @@ class FAABase:
                         SIGNAL.PRINT_TO_UI.emit(
                             f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住 "
                             f"本轮循环施肥尝试:{try_times}次, 刷新, 再试, ({reload_time}/3)")
-                        self.reload_game()
+                        success, error_message = self.reload_game()
+                        if not success:
+                            return error_message
                         continue
                     else:
                         SIGNAL.PRINT_TO_UI.emit(
                             f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 锑食卡住 "
                             f"本轮循环施肥尝试:{try_times}次, 刷新, 跳过, ({reload_time}/3)")
-                        self.reload_game()
+                        success, error_message = self.reload_game()
+                        if not success:
+                            return error_message
                         break
 
                 if completed:
@@ -3451,10 +3465,12 @@ class FAABase:
                 if try_times >= max_try_times:
                     SIGNAL.PRINT_TO_UI.emit(
                         f"[种树 浇水 施肥 摘果 领取] [{self.player}p] 尝试{max_try_times}次, 肥料不够! 或全是解散公会! 刷新, 跳过 ")
-                    self.reload_game()
+                    success, error_message = self.reload_game()
+                    if not success:
+                        return error_message
                     break
 
-        fed_and_watered_main()
+        return fed_and_watered_main()
 
     def use_items_consumables(self: "FAA") -> None:
 
@@ -4044,7 +4060,8 @@ class FAABase:
         # 关闭背包
         self.action_exit(mode="普通红叉")
 
-    def loop_cross_server(self: "FAA", deck: int):
+    def loop_cross_server(self: "FAA", deck: int) -> str | None:
+        """循环跨服远征；恢复登录失败时返回原因，停止后续建房。"""
 
         first_time = True
 
@@ -4087,7 +4104,9 @@ class FAABase:
                 click=True)
             if not find:
                 self.print_warning(text="30s找不到[开始/准备]字样! 创建房间可能失败! 直接reload游戏防止卡死")
-                self.reload_game()
+                success, error_message = self.reload_game()
+                if not success:
+                    return error_message
                 first_time = True
                 continue
 
@@ -4119,7 +4138,9 @@ class FAABase:
                 self.print_debug(text="找到[火苗标识物], 战斗进行中...")
             else:
                 self.print_warning(text="30s找不到[火苗标识物]! 进入游戏! 直接reload游戏防止卡死")
-                self.reload_game()
+                success, error_message = self.reload_game()
+                if not success:
+                    return error_message
                 first_time = True
                 continue
 

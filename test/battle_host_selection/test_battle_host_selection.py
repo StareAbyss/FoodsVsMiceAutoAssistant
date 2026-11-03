@@ -86,7 +86,7 @@ class BattleHostSelectionTest(unittest.TestCase):
         for faa in task.faa_dict.values():
             faa.action_goto_stage = MethodType(stage_jump.FAAActionInterfaceJump.action_goto_stage, faa)
         original_players = [1, 2]
-        self.assertTrue(self.run_battle(task, player=original_players, max_times=2))
+        self.assertIsNone(self.run_battle(task, player=original_players, max_times=2))
         self.assertEqual(original_players, [1, 2])
         for template, handle in (("create", 2), ("start", 2), ("accept", 1)):
             matches = [entry.kwargs for entry in self.matcher.call_args_list
@@ -122,7 +122,7 @@ class BattleHostSelectionTest(unittest.TestCase):
                 with self.subTest(stage_id=stage_id, order=order):
                     task = self.make_task()
                     original = list(order)
-                    self.assertTrue(self.run_battle(task, stage_id=stage_id, player=order))
+                    self.assertIsNone(self.run_battle(task, stage_id=stage_id, player=order))
                     task.battle.assert_called_once_with(player_a=2, player_b=1, change_card=True)
                     self.assertTrue(task.faa_dict[2].is_main)
                     self.assertFalse(task.faa_dict[1].is_main)
@@ -135,7 +135,7 @@ class BattleHostSelectionTest(unittest.TestCase):
                 task = self.make_task()
                 self.matcher.reset_mock()
                 original = list(order)
-                self.assertTrue(self.run_battle(task, stage_id="CS-1-1", player=order))
+                self.assertIsNone(self.run_battle(task, stage_id="CS-1-1", player=order))
                 task.battle.assert_called_once_with(player_a=1, player_b=2, change_card=True)
                 self.assertTrue(task.faa_dict[1].is_main)
                 self.assertFalse(task.faa_dict[2].is_main)
@@ -148,7 +148,7 @@ class BattleHostSelectionTest(unittest.TestCase):
             for pid in (1, 2):
                 with self.subTest(stage_id=stage_id, pid=pid):
                     task = self.make_task()
-                    self.assertTrue(self.run_battle(task, stage_id=stage_id, player=[pid]))
+                    self.assertIsNone(self.run_battle(task, stage_id=stage_id, player=[pid]))
                     task.battle.assert_called_once_with(player_a=pid, player_b=None, change_card=True)
                     self.assertFalse(task.faa_dict[pid].is_group)
                     task.faa_dict[3 - pid].set_config_for_battle.assert_not_called()
@@ -161,7 +161,7 @@ class BattleHostSelectionTest(unittest.TestCase):
                     task = self.make_task()
                     self.signal.PRINT_TO_UI.emit.reset_mock()
                     original = list(order)
-                    self.assertTrue(self.run_battle(task, stage_id=stage_id, player=order))
+                    self.assertIsNone(self.run_battle(task, stage_id=stage_id, player=order))
                     task.battle.assert_called_once_with(player_a=1, player_b=None, change_card=True)
                     self.assertFalse(task.faa_dict[1].is_group)
                     task.faa_dict[2].set_config_for_battle.assert_not_called()
@@ -176,7 +176,7 @@ class BattleHostSelectionTest(unittest.TestCase):
                 with self.subTest(stage_id=stage_id, order=order):
                     task = self.make_task()
                     original = list(order)
-                    self.assertTrue(self.run_battle(task, stage_id=stage_id, player=order, is_cu=True))
+                    self.assertIsNone(self.run_battle(task, stage_id=stage_id, player=order, is_cu=True))
                     task.battle.assert_called_once_with(player_a=order[0], player_b=order[1], change_card=True)
                     self.assertTrue(task.faa_dict[order[0]].is_main)
                     self.assertFalse(task.faa_dict[order[1]].is_main)
@@ -188,7 +188,7 @@ class BattleHostSelectionTest(unittest.TestCase):
         """战斗失败刷新并重新进房后，房主、队友和刷新顺序保持一致。"""
         task = self.make_task()
         task.battle.side_effect = [(1, {}, 0), (0, {}, 1)]
-        self.assertTrue(self.run_battle(task, max_times=2))
+        self.assertIsNone(self.run_battle(task, max_times=2))
         task.batch_reload_game.assert_called_once_with(player=[2, 1])
         self.assertEqual(task.battle.call_args_list, [
             call(player_a=2, player_b=1, change_card=True),
