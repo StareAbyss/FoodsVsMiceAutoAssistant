@@ -43,8 +43,10 @@ from function.scattered.loots_and_chest_data_save_and_post import loots_and_ches
 
 
 class ThreadTodo(QThread):
+    """编排任务；业务动作正常完成或跳过返回 None，登录失败返回原因并逐层结束当前流程。"""
     signal_start_todo_2_battle = pyqtSignal(dict)
     signal_todo_lock = pyqtSignal(bool)
+    signal_task_failed = pyqtSignal(str)
 
     def __init__(self, faa_dict, opt, todo_id, running_task_sequence_uuid=None):
         """
@@ -244,7 +246,7 @@ class ThreadTodo(QThread):
     业务代码 - 战斗以外
     """
 
-    def batch_delete_items(self, player: list = None):
+    def batch_delete_items(self, player: list = None) -> str | None:
         """
         批量删除物品
         :param player: [1] [2] [1,2]
@@ -298,12 +300,13 @@ class ThreadTodo(QThread):
             return
 
         SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 即将刷新游戏以清除二级输入的状态...", color_level=2)
-        self.batch_reload_game(player=player)
+        if error_message := self.batch_reload_game(player=player):
+            return error_message
 
         self.model_end_print(text=title_text)
         return
 
-    def batch_dark_crystal(self, player: list = None):
+    def batch_dark_crystal(self, player: list = None) -> str | None:
         """
         批量兑换暗晶
         :param player: [1] [2] [1,2]
@@ -357,12 +360,13 @@ class ThreadTodo(QThread):
             return
 
         SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 即将刷新游戏以清除二级输入的状态...", color_level=2)
-        self.batch_reload_game(player=player)
+        if error_message := self.batch_reload_game(player=player):
+            return error_message
 
         self.model_end_print(text=title_text)
         return
 
-    def batch_buy_magic_tower_times(self, player: list = None, buy_times: int = 1):
+    def batch_buy_magic_tower_times(self, player: list = None, buy_times: int = 1) -> str | None:
         """批量输入二级密码、购买单人魔塔次数，并刷新游戏。"""
 
         title_text = "魔塔买次数"
@@ -446,12 +450,13 @@ class ThreadTodo(QThread):
             text=f"[{title_text}] 即将刷新游戏以清除二级输入的状态...",
             color_level=2,
         )
-        self.batch_reload_game(player=player)
+        if error_message := self.batch_reload_game(player=player):
+            return error_message
 
         self.model_end_print(text=title_text)
         return
 
-    def batch_disenchant_gem(self, player: list = None):
+    def batch_disenchant_gem(self, player: list = None) -> str | None:
         """
         批量分解宝石
         :param player: [1] [2] [1,2]
@@ -505,16 +510,21 @@ class ThreadTodo(QThread):
             return
 
         SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] 即将刷新游戏以清除二级输入的状态...", color_level=2)
-        self.batch_reload_game(player=player)
+        if error_message := self.batch_reload_game(player=player):
+            return error_message
 
         self.model_end_print(text=title_text)
         return
 
-    def batch_reload_game(self, player: list = None):
+    def batch_reload_game(self, player: list = None) -> str | None:
         """
-        批量启动 reload 游戏
-        :param player: [1] [2] [1,2]
-        :return:
+        并行刷新目标角色，将登录失败原因汇总返回。
+
+        Args:
+            player: 目标玩家编号列表，省略时操作所有已注册角色。
+
+        Returns:
+            成功返回 None；失败返回包含玩家编号的原因，由任务入口统一提示。
         """
 
         player = self.check_player(title="刷新游戏", player=player)
@@ -554,14 +564,17 @@ class ThreadTodo(QThread):
             self.thread_2p.join()
 
         failed_players = []
-        if 1 in player and self.thread_1p.return_value is not True:
-            failed_players.append("1P")
-        if 2 in player and self.thread_2p.return_value is not True:
-            failed_players.append("2P")
+        for player_id in player:
+            thread = self.thread_1p if player_id == 1 else self.thread_2p
+            if thread.return_value is None:
+                # 异常或中断不会返回登录结果；异常堆栈由公用线程报告，此处只阻止继续调度。
+                return f"{player_id}P登录流程已中断，未获得有效结果，详见日志。"
+            success, reason = thread.return_value
+            if success:
+                continue
+            failed_players.append(f"{player_id}P：{reason or '未能确认游戏主页'}")
         if failed_players:
-            raise RuntimeError(
-                f"登录失败，已中断任务：{', '.join(failed_players)}。请检查首页区服与自动登录设定。"
-            )
+            return "登录失败，已中断任务。\n" + "\n".join(failed_players)
 
         SIGNAL.PRINT_TO_UI.emit("刷新游戏, 完成", color_level=2)
 
@@ -771,10 +784,11 @@ class ThreadTodo(QThread):
                 )
 
         # 只刷新尝试过输入二级密码的角色，清除本次输入留下的登录状态。
-        self.batch_reload_game(player=stamp_players)
+        if error_message := self.batch_reload_game(player=stamp_players):
+            return error_message
         self.model_end_print(text=title_text)
 
-    def batch_fed_and_watered(self, player: list = None):
+    def batch_fed_and_watered(self, player: list = None) -> str | None:
 
         title_text = "浇水 施肥 摘果"
 
@@ -782,14 +796,23 @@ class ThreadTodo(QThread):
 
         self.model_start_print(text=title_text)
 
+        def water_one(faa: FAA) -> str:
+            """将正常完成的 None 转为空字符串，保留线程无结果的 None 供调度识别中断。"""
+            return faa.fed_and_watered() or ""
+
         for pid in player:
             # 创建进程 -> 开始进程 -> 阻塞主进程
             self.thread_1p = ThreadWithException(
-                target=self.faa_dict[pid].fed_and_watered,
+                target=water_one,
                 name=f"{pid}P Thread - FedAndWatered",
-                kwargs={})
+                kwargs={"faa": self.faa_dict[pid]})
             self.thread_1p.start()
             self.thread_1p.join()
+
+            if self.thread_1p.return_value is None:
+                return f"{pid}P浇水施肥流程已中断，未获得有效结果，详见日志。"
+            if error_message := self.thread_1p.return_value:
+                return f"{pid}P：{error_message}"
 
         self.model_end_print(text=title_text)
 
@@ -875,7 +898,7 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=title_text)
 
-    def batch_scan_all_task(self, player: list = None, quests: list = None):
+    def batch_scan_all_task(self, player: list = None, quests: list = None) -> str | None:
         """
         :param player: 默认[1,2] 可选: [1] [2] [1,2] [2,1]
         :param quests: list 可包含内容: "扫描 刷关"
@@ -916,7 +939,8 @@ class ThreadTodo(QThread):
             if 1 in player:
                 pack1p = self.thread_1p.get_return_value()
                 if pack1p:
-                    self.battle_1_n_n(quest_list=pack1p[0], task_names=pack1p[1])
+                    if error_message := self.battle_1_n_n(quest_list=pack1p[0], task_names=pack1p[1]):
+                        return error_message
             if 2 in player:
                 self.thread_2p = ThreadWithException(
                     target=self.faa_dict[2].action_scan_task_type,
@@ -929,7 +953,8 @@ class ThreadTodo(QThread):
             if 2 in player:
                 pack2p = self.thread_2p.get_return_value()
                 if pack2p:
-                    self.battle_1_n_n(quest_list=pack2p[0], task_names=pack2p[1])
+                    if error_message := self.battle_1_n_n(quest_list=pack2p[0], task_names=pack2p[1]):
+                        return error_message
 
             SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] [{mode}] 完成")
 
@@ -1001,7 +1026,7 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=title_text)
 
-    def batch_loop_cross_server(self, player: list = None, deck: int = 1, name: str = "威望"):
+    def batch_loop_cross_server(self, player: list = None, deck: int = 1, name: str = "威望") -> str | None:
 
         title_text = "无限跨服刷" + name
 
@@ -1027,10 +1052,16 @@ class ThreadTodo(QThread):
                     kwargs={"deck": deck})
                 self.thread_2p.start()
 
-            if 1 in player:
-                self.thread_1p.join()
-            if 2 in player:
-                self.thread_2p.join()
+            threads = {pid: self.thread_1p if pid == 1 else self.thread_2p for pid in player}
+            # 跨服循环正常情况下不会返回；任一角色退出后立即上报，不能等另一个无限循环结束。
+            while all(thread.is_alive() for thread in threads.values()):
+                time.sleep(0.1)
+            failed_players = []
+            for pid, thread in threads.items():
+                if not thread.is_alive():
+                    thread.join()
+                    failed_players.append(f"{pid}P：{thread.return_value or '跨服远征流程已中断，详见日志。'}")
+            return "\n".join(failed_players)
         else:
             quest_list = [
                 {
@@ -1049,7 +1080,8 @@ class ThreadTodo(QThread):
                         "last_time_player_b": ["竞技岛"]},
                     "is_cu": False
                 }]
-            self.battle_1_n_n(quest_list=quest_list, extra_title=title_text)
+            if error_message := self.battle_1_n_n(quest_list=quest_list, extra_title=title_text):
+                return error_message
 
     """
     业务代码 - 战斗相关
@@ -1111,13 +1143,13 @@ class ThreadTodo(QThread):
 
         return True
 
-    def goto_stage_and_invite(self, stage_id, mt_wb_first_time, player_a, player_b) -> bool:
+    def goto_stage_and_invite(self, stage_id, mt_wb_first_time, player_a, player_b) -> tuple[bool, str | None]:
         """
         :param stage_id:
         :param mt_wb_first_time: 世界boss或魔塔关卡, 第一次进入房间.
         :param player_a: 房主pid
         :param player_b: 队友pid
-        :return: 是否最终成功邀请
+        :return: 是否成功邀请，以及登录失败原因；正常邀请失败的原因为 None。
         """
 
         is_cs = "CS" in stage_id
@@ -1141,13 +1173,13 @@ class ThreadTodo(QThread):
 
                 if is_cs:
                     # 跨服副本，自带特殊邀请规则，直接退出
-                    return True
+                    return True, None
 
                 invite_success = self.invite(player_a=player_a, player_b=player_b)
                 if invite_success:
                     SIGNAL.PRINT_TO_UI.emit(text="[单本轮战] 邀请成功")
                     # 邀请成功 返回退出
-                    return True
+                    return True, None
 
                 mt_wb_first_time = True
 
@@ -1158,9 +1190,10 @@ class ThreadTodo(QThread):
                 faa_b.action_exit(mode="竞技岛")
 
             SIGNAL.PRINT_TO_UI.emit(text=f"[单本轮战] 多次邀请失败, 刷新后继续重试, 刷新({try_round}/3)")
-            self.batch_reload_game()
+            if error_message := self.batch_reload_game():
+                return False, error_message
 
-        return False
+        return False, None
 
     def battle(self, player_a, player_b, change_card=True):
         """
@@ -1575,11 +1608,12 @@ class ThreadTodo(QThread):
 
         return result_id, result_drop_by_dict, result_spend_time
 
-    def n_battle_customize_battle_error_print(self, success_battle_time):
+    def n_battle_customize_battle_error_print(self, success_battle_time) -> str | None:
         # 结束提示文本
         SIGNAL.PRINT_TO_UI.emit(
             text=f"[单本轮战] 第{success_battle_time}次, 出现未知异常! 刷新后卡死, 以防止更多问题, 出现此问题可上报作者")
-        self.batch_reload_game()
+        if error_message := self.batch_reload_game():
+            return error_message
         sleep(60 * 60 * 24)
 
     def battle_1_1_n(
@@ -1587,7 +1621,7 @@ class ThreadTodo(QThread):
         global_plan_active, deck, battle_plan_1p, battle_plan_2p,
         quest_card, ban_card_list, max_card_num,
         extra_title, vase_num=None, battle_plan_tweak=None, is_cu=False
-    ):
+    ) -> str | None:
         """
         核心詹欧函数
         1轮次 1关卡 n次数
@@ -1809,42 +1843,42 @@ class ThreadTodo(QThread):
             """
             :param need_goto_stage:
             :param need_change_card:
-            :return: result_id, need_change_card, need_goto_stage
+            :return: 是否进入关卡、是否换卡、是否重新进入关卡，以及登录失败原因。
             """
             # 自建房 直接返回
             if is_cu:
-                return True, need_change_card, need_goto_stage
+                return True, need_change_card, need_goto_stage, None
 
             # 非自建房
             if ("MT" in stage_id) and (not is_group):
                 # 魔塔 单人前往副本
                 faa_a.action_goto_stage(mt_wb_first_time=need_goto_stage)  # 第一次使用 mt_wb_first_time, 之后则不用
-                return True, True, False
+                return True, True, False, None
 
             if ("MT" in stage_id) and is_group:
                 # 多人前往副本
-                invite_success = self.goto_stage_and_invite(
+                invite_success, error_message = self.goto_stage_and_invite(
                     stage_id=stage_id, mt_wb_first_time=need_goto_stage, player_a=pid_a, player_b=pid_b)
-                return invite_success, True, False
+                return invite_success, True, False, error_message
 
             if "WB" in stage_id:
                 faa_a.action_goto_stage(mt_wb_first_time=need_goto_stage)  # 第一次使用 mt_wb_first_time, 之后则不用
-                return True, True, False
+                return True, True, False, None
 
             # 非魔塔
             if need_goto_stage and (not is_group):
                 # 常规 单人前往副本
                 faa_a.action_goto_stage()
-                return True, need_change_card, False
+                return True, need_change_card, False, None
 
             if need_goto_stage and is_group:
                 # 常规 多人前往副本
-                invite_success = self.goto_stage_and_invite(
+                invite_success, error_message = self.goto_stage_and_invite(
                     stage_id=stage_id, mt_wb_first_time=False, player_a=pid_a, player_b=pid_b)
-                return invite_success, need_change_card, False
+                return invite_success, need_change_card, False, error_message
 
             if not need_goto_stage:
-                return True, need_change_card, need_goto_stage
+                return True, need_change_card, need_goto_stage, None
 
         def multi_round_battle():
 
@@ -1866,13 +1900,16 @@ class ThreadTodo(QThread):
 
                 # 前往关卡, 尝试根据某些特征查找 战斗时的子关卡
                 # 修正 faa类 内部的 stage info 的 b_id 参数;
-                goto_stage_and_invite_success, need_change_card, need_goto_stage = goto_stage(
+                goto_stage_and_invite_success, need_change_card, need_goto_stage, error_message = goto_stage(
                     need_goto_stage=need_goto_stage, need_change_card=need_change_card)
+                if error_message:
+                    return [], error_message
 
                 if not goto_stage_and_invite_success:
                     SIGNAL.PRINT_TO_UI.emit(
                         text=f"{title}第{battle_count}次, 邀请过程中多次失败,刷新次数达到上限, 跳过本次单本连战")
-                    self.batch_reload_game(player=player)
+                    if error_message := self.batch_reload_game(player=player):
+                        return [], error_message
                     break
 
                 # 再次加载全局关卡方案 修正了b_id后会使用不同的配置
@@ -1997,7 +2034,8 @@ class ThreadTodo(QThread):
 
                 if is_cu and (result_id == 1 or result_id == 2):
                     # 进入异常 但是自定义
-                    self.n_battle_customize_battle_error_print(success_battle_time=battle_count)
+                    if error_message := self.n_battle_customize_battle_error_print(success_battle_time=battle_count):
+                        return [], error_message
                     break
 
                 if result_id == 1:
@@ -2005,23 +2043,26 @@ class ThreadTodo(QThread):
                     SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count}次, 流程出现错误, 重试本次, 重启再来")
                     need_goto_stage = True
                     need_change_card = True
-                    self.batch_reload_game(player=player)
+                    if error_message := self.batch_reload_game(player=player):
+                        return [], error_message
 
                 if result_id == 2:
                     # 进入异常 跳过本次
                     SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count}次, 流程出现错误, 跳过本次, 重启跳过")
                     need_goto_stage = True
                     need_change_card = True
-                    self.batch_reload_game(player=player)
+                    if error_message := self.batch_reload_game(player=player):
+                        return [], error_message
                     continue
 
                 if result_id == 3:
                     # 放弃所有次数 自动选卡 但没有对应的卡片! 最严重的报错!
                     SIGNAL.PRINT_TO_UI.emit(text=f"{title}第{battle_count}次, 流程严重错误, 放弃本关全部作战!")
-                    self.batch_reload_game(player=player)
+                    if error_message := self.batch_reload_game(player=player):
+                        return [], error_message
                     break
 
-            return result_list
+            return result_list, None
 
         def end_statistic_print(result_list):
             """
@@ -2090,17 +2131,19 @@ class ThreadTodo(QThread):
 
             # 基本参数检测
             if not check_skip():
-                return False
+                return None
 
             # 进行 1本n次 返回 成功的每次战斗结果组成的list
-            result_list = multi_round_battle()
+            result_list, error_message = multi_round_battle()
+            if error_message:
+                return error_message
 
             # 根据多次战斗结果组成的list 打印 1本n次 的汇总结果
             end_statistic_print(result_list=result_list)
 
             SIGNAL.PRINT_TO_UI.emit(text=f"{title}{stage_id} {max_times}次 完成 ", color_level=5)
 
-            return True
+            return None
 
         return main()
 
@@ -2175,7 +2218,7 @@ class ThreadTodo(QThread):
         SIGNAL.PRINT_TO_UI.emit(text=text, time=False)
         SIGNAL.IMAGE_TO_UI.emit(image=create_drops_image(count_dict=count_dict["chests"]))
 
-    def battle_1_n_n(self, quest_list, extra_title=None, need_lock=False, task_names=None):
+    def battle_1_n_n(self, quest_list, extra_title=None, need_lock=False, task_names=None) -> str | None:
         """
         1轮次 n关卡 n次数
         (副本外 -> (副本内战斗 * n次) -> 副本外) * 重复n次
@@ -2187,6 +2230,9 @@ class ThreadTodo(QThread):
         :param extra_title: 输出中的额外文本 会自动加上 [ ]
         :param need_lock:  用于多线程单人作战时设定为True 以进行上锁解锁
         :param task_names:  用于显示单个任务名称
+
+        Returns:
+            正常完成返回 None；登录失败返回原因，不继续后续关卡或等待另一线程解锁。
         """
         # 输出文本的title
         extra_title = f"[{extra_title}] " if extra_title else ""
@@ -2242,7 +2288,7 @@ class ThreadTodo(QThread):
 
             SIGNAL.PRINT_TO_UI.emit(text=",".join(text_parts), color_level=4)
 
-            self.battle_1_1_n(
+            if error_message := self.battle_1_1_n(
                 stage_id=quest["stage_id"],
                 player=quest["player"],
                 need_key=quest["need_key"],
@@ -2259,7 +2305,8 @@ class ThreadTodo(QThread):
                 extra_title=extra_title,
                 vase_num=vase_num,  # 可缺省
                 is_cu=is_cu  # 可缺省
-            )
+            ):
+                return error_message
 
             SIGNAL.PRINT_TO_UI.emit(
                 text="{}事项{}, 完成".format(
@@ -2291,7 +2338,7 @@ class ThreadTodo(QThread):
     def easy_battle(
         self, text_, stage_id, player, max_times,
         global_plan_active, deck, battle_plan_1p, battle_plan_2p, dict_exit, is_cu=False
-    ):
+    ) -> str | None:
         """仅调用 n_battle的简易作战"""
         self.model_start_print(text=text_)
 
@@ -2315,12 +2362,13 @@ class ThreadTodo(QThread):
                 "dict_exit": dict_exit,
                 "is_cu": is_cu
             }]
-        self.battle_1_n_n(quest_list=quest_list)
+        if error_message := self.battle_1_n_n(quest_list=quest_list):
+            return error_message
 
         self.model_end_print(text=text_)
 
     def offer_reward(self, text_, max_times_1, max_times_2, max_times_3, max_times_4,
-                     global_plan_active, deck, battle_plan_1p, battle_plan_2p):
+                     global_plan_active, deck, battle_plan_1p, battle_plan_2p) -> str | None:
 
         self.model_start_print(text=text_)
 
@@ -2349,7 +2397,8 @@ class ThreadTodo(QThread):
                     "last_time_player_b": ["竞技岛"]}
             })
 
-        self.battle_1_n_n(quest_list=quest_list)
+        if error_message := self.battle_1_n_n(quest_list=quest_list):
+            return error_message
 
         # 领取奖励
         self.faa_dict[1].action_receive_quest_rewards(mode="悬赏任务")
@@ -2359,7 +2408,7 @@ class ThreadTodo(QThread):
 
     def guild_or_spouse_quest(
         self, text_, quest_mode,
-        global_plan_active, deck, battle_plan_1p, battle_plan_2p, battle_plan_tweak, stage=False):
+        global_plan_active, deck, battle_plan_1p, battle_plan_2p, battle_plan_tweak, stage=False) -> str | None:
         """
         完成公会or情侣任务
         :param text_:
@@ -2413,11 +2462,13 @@ class ThreadTodo(QThread):
             quest_list[i]["battle_plan_tweak"] = battle_plan_tweak
 
         # 完成任务
-        self.battle_1_n_n(quest_list=quest_list)
+        if error_message := self.battle_1_n_n(quest_list=quest_list):
+            return error_message
 
         # 激活删除物品高危功能(可选)
         if quest_mode == "公会任务":
-            self.batch_delete_items(player=[1, 2])
+            if error_message := self.batch_delete_items(player=[1, 2]):
+                return error_message
 
         # 领取奖励一次 + 公会任务模式下领取普通任务奖励(公会点)一次
         SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 检查领取奖励中...")
@@ -2428,7 +2479,7 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=text_)
 
-    def guild_dungeon(self, text_, global_plan_active, deck, battle_plan_1p, battle_plan_2p):
+    def guild_dungeon(self, text_, global_plan_active, deck, battle_plan_1p, battle_plan_2p) -> str | None:
 
         self.model_start_print(text=text_)
         if self.faa_dict[1].channel == self.faa_dict[2].channel:
@@ -2457,7 +2508,8 @@ class ThreadTodo(QThread):
                     "last_time_player_b": ["竞技岛"]}
             })
 
-        self.battle_1_n_n(quest_list=quest_list)
+        if error_message := self.battle_1_n_n(quest_list=quest_list):
+            return error_message
 
         self.model_end_print(text=text_)
 
@@ -2465,7 +2517,7 @@ class ThreadTodo(QThread):
     使用battle_1_n_n为核心的变种 [双线程][单人]
     """
 
-    def alone_magic_tower(self):
+    def alone_magic_tower(self) -> str | None:
 
         c_opt = self.opt_todo_plans
 
@@ -2473,7 +2525,7 @@ class ThreadTodo(QThread):
             for player in [1, 2]:
                 my_opt = c_opt[f"magic_tower_alone_{player}"]
                 if my_opt["active"]:
-                    self.easy_battle(
+                    if error_message := self.easy_battle(
                         text_="[魔塔单人] [多线程{}P]".format(player),
                         stage_id="MT-1-" + str(my_opt["stage"]),
                         player=[player],
@@ -2488,7 +2540,8 @@ class ThreadTodo(QThread):
                             "last_time_player_a": ["普通红叉"],
                             "last_time_player_b": []
                         }
-                    )
+                    ):
+                        return error_message
 
         def multi_player():
             quest_lists = {}
@@ -2519,10 +2572,11 @@ class ThreadTodo(QThread):
                 "extra_title": "多线程单人] [2P",
                 "need_lock": True
             })
-            self.battle_1_n_n(
+            if error_message := self.battle_1_n_n(
                 quest_list=quest_lists[1],
                 extra_title="多线程单人] [1P",
-                need_lock=True)
+                need_lock=True):
+                return error_message
 
         def main():
             text_ = "单人魔塔"
@@ -2531,19 +2585,22 @@ class ThreadTodo(QThread):
             if active_player_count == 1:
                 # 单人情况 以easy battle 完成即可
                 self.model_start_print(text=text_)
-                one_player()
+                if error_message := one_player():
+                    return error_message
                 self.model_end_print(text=text_)
             if active_player_count == 2:
                 # 多人情况 直接调用以lock battle 完成1P 以信号调用另一个todo 完成2P
                 self.model_start_print(text=text_)
-                multi_player()
+                if error_message := multi_player():
+                    return error_message
                 self.model_end_print(text=text_)
                 # 休息五秒, 防止1P后完成任务, 跨线程解锁2P需要一定时间, 却在1P线程中再次激发start2P线程, 导致2P线程瘫痪
                 sleep(5)
 
-        main()
+        if error_message := main():
+            return error_message
 
-    def alone_magic_tower_prison(self):
+    def alone_magic_tower_prison(self) -> str | None:
 
         c_opt = self.opt_todo_plans
 
@@ -2576,7 +2633,8 @@ class ThreadTodo(QThread):
                                 }
                             }
                         )
-                    self.battle_1_n_n(quest_list=quest_list)
+                    if error_message := self.battle_1_n_n(quest_list=quest_list):
+                        return error_message
 
         def multi_player():
             quest_lists = {}
@@ -2612,10 +2670,11 @@ class ThreadTodo(QThread):
                 "quest_list": quest_lists[2],
                 "extra_title": "多线程单人] [2P",
                 "need_lock": True})
-            self.battle_1_n_n(
+            if error_message := self.battle_1_n_n(
                 quest_list=quest_lists[1],
                 extra_title="多线程单人] [1P",
-                need_lock=True)
+                need_lock=True):
+                return error_message
 
         def main():
             text_ = "魔塔密室"
@@ -2624,19 +2683,22 @@ class ThreadTodo(QThread):
             if active_player_count == 1:
                 # 单人情况 以easy battle 完成即可
                 self.model_start_print(text=text_)
-                one_player()
+                if error_message := one_player():
+                    return error_message
                 self.model_end_print(text=text_)
             if active_player_count == 2:
                 # 多人情况 直接调用以lock battle 完成1P 以信号调用另一个todo 完成2P
                 self.model_start_print(text=text_)
-                multi_player()
+                if error_message := multi_player():
+                    return error_message
                 self.model_end_print(text=text_)
                 # 休息五秒, 防止1P后完成任务, 跨线程解锁2P需要一定时间, 却在1P线程中再次激发start2P线程, 导致2P线程瘫痪
                 sleep(5)
 
-        main()
+        if error_message := main():
+            return error_message
 
-    def pet_temple(self):
+    def pet_temple(self) -> str | None:
 
         c_opt = self.opt_todo_plans
 
@@ -2644,7 +2706,7 @@ class ThreadTodo(QThread):
             for player in [1, 2]:
                 my_opt = c_opt[f"pet_temple_{player}"]
                 if my_opt["active"]:
-                    self.easy_battle(
+                    if error_message := self.easy_battle(
                         text_=f"[萌宠神殿] [{player}P]",
                         stage_id="PT-0-" + str(my_opt["stage"]),
                         player=[player],
@@ -2659,7 +2721,8 @@ class ThreadTodo(QThread):
                             "last_time_player_a": ["回到上一级", "普通红叉"],
                             "last_time_player_b": ["回到上一级", "普通红叉"]
                         }
-                    )
+                    ):
+                        return error_message
 
         def multi_player():
             quest_lists = {}
@@ -2690,10 +2753,11 @@ class ThreadTodo(QThread):
                 "extra_title": "多线程单人] [2P",
                 "need_lock": True
             })
-            self.battle_1_n_n(
+            if error_message := self.battle_1_n_n(
                 quest_list=quest_lists[1],
                 extra_title="多线程单人] [1P",
-                need_lock=True)
+                need_lock=True):
+                return error_message
 
         def main():
             text_ = "萌宠神殿"
@@ -2705,29 +2769,34 @@ class ThreadTodo(QThread):
             if active_player_count == 1:
                 # 单人情况 以easy battle 完成即可
                 self.model_start_print(text=text_)
-                one_player()
+                if error_message := one_player():
+                    return error_message
                 self.model_end_print(text=text_)
             if active_player_count == 2:
                 # 多人情况 直接调用以lock battle 完成1P 以信号调用另一个todo 完成2P
                 self.model_start_print(text=text_)
-                multi_player()
+                if error_message := multi_player():
+                    return error_message
                 self.model_end_print(text=text_)
                 # 休息五秒, 防止1P后完成任务, 跨线程解锁2P需要一定时间, 却在1P线程中再次激发start2P线程, 导致2P线程瘫痪
                 sleep(5)
 
-        main()
+        if error_message := main():
+            return error_message
 
     """
     高级模式
     """
 
-    def task_sequence(self, text_, task_begin_id: int, task_sequence_uuid: str):
+    def task_sequence(self, text_, task_begin_id: int, task_sequence_uuid: str) -> tuple[bool, bool, str | None]:
         """
         自定义任务序列
         :param text_: 其实是title
         :param task_begin_id: 从第几号任务开始
         :param task_sequence_uuid: 任务序列的UUID
-        :return:
+
+        Returns:
+            是否运行常规任务、是否运行自建房，以及登录失败原因；正常结束时原因为 None。
         """
 
         def merge_continuous_battle_task(task_sequence: list):
@@ -2904,7 +2973,7 @@ class ThreadTodo(QThread):
 
         if task_begin_id > max_tid:
             SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 开始事项id > 该方案最高id! 将直接跳过!")
-            return
+            return False, False, None
 
         # 由于任务id从1开始, 故需要减1
         # 去除序号小于stage_begin的任务
@@ -2922,10 +2991,11 @@ class ThreadTodo(QThread):
         for task in task_sequence:
             match task["task_type"]:
                 case "战斗":
-                    self.battle_1_n_n(
+                    if error_message := self.battle_1_n_n(
                         quest_list=task["task_args"],
                         extra_title=None
-                    )
+                    ):
+                        return main_task_active, active_singleton, error_message
                     main_task_active = True
                     active_singleton = False
                 case "战斗-多线程":
@@ -2934,10 +3004,11 @@ class ThreadTodo(QThread):
                         "extra_title": f"多线程单人",
                         "need_lock": True
                     })
-                    self.battle_1_n_n(
+                    if error_message := self.battle_1_n_n(
                         quest_list=task["task_args"]["solo_quests_1"],
                         extra_title=f"多线程单人",
-                        need_lock=True)
+                        need_lock=True):
+                        return main_task_active, active_singleton, error_message
                     main_task_active = True
                     active_singleton = False
 
@@ -2949,30 +3020,35 @@ class ThreadTodo(QThread):
                     main_task_active = True
 
                 case "刷新游戏":
-                    self.batch_reload_game(
+                    if error_message := self.batch_reload_game(
                         player=task["task_args"]["player"],
-                    )
+                    ):
+                        return main_task_active, active_singleton, error_message
 
                 case "清背包":
-                    self.batch_delete_items(player=task["task_args"]["player"])
+                    if error_message := self.batch_delete_items(player=task["task_args"]["player"]):
+                        return main_task_active, active_singleton, error_message
                     main_task_active = True
                     active_singleton = False
 
                 case "兑换暗晶":
-                    self.batch_dark_crystal(player=task["task_args"]["player"])
+                    if error_message := self.batch_dark_crystal(player=task["task_args"]["player"]):
+                        return main_task_active, active_singleton, error_message
                     main_task_active = True
                     active_singleton = False
 
                 case "魔塔买次数":
-                    self.batch_buy_magic_tower_times(
+                    if error_message := self.batch_buy_magic_tower_times(
                         player=task["task_args"]["player"],
                         buy_times=task["task_args"].get("buy_times", 1),
-                    )
+                    ):
+                        return main_task_active, active_singleton, error_message
                     main_task_active = True
                     active_singleton = False
 
                 case '分解宝石':
-                    self.batch_disenchant_gem(player=task["task_args"]["player"])
+                    if error_message := self.batch_disenchant_gem(player=task["task_args"]["player"]):
+                        return main_task_active, active_singleton, error_message
                     main_task_active = True
                     active_singleton = False
 
@@ -2997,21 +3073,24 @@ class ThreadTodo(QThread):
                     # 领取温馨礼包(可选)
                     self.batch_get_warm_gift(player=task["task_args"]["player"])
                     # 日氪(可选)
-                    self.batch_top_up_money(player=task["task_args"]["player"])
+                    if error_message := self.batch_top_up_money(player=task["task_args"]["player"]):
+                        return main_task_active, active_singleton, error_message
                     # 常规日常签到
-                    self.batch_sign_in(player=task["task_args"]["player"])
+                    if error_message := self.batch_sign_in(player=task["task_args"]["player"]):
+                        return main_task_active, active_singleton, error_message
                     main_task_active = True
                     active_singleton = False
 
                 case "浇水施肥摘果":
-                    self.batch_fed_and_watered(
+                    if error_message := self.batch_fed_and_watered(
                         player=task["task_args"]["player"]
-                    )
+                    ):
+                        return main_task_active, active_singleton, error_message
                     main_task_active = True
                     active_singleton = False
 
                 case "公会任务":
-                    self.guild_or_spouse_quest(
+                    if error_message := self.guild_or_spouse_quest(
                         text_="公会任务",
                         quest_mode="公会任务",
                         global_plan_active=task["task_args"]["global_plan_active"],
@@ -3020,12 +3099,13 @@ class ThreadTodo(QThread):
                         battle_plan_2p=task["task_args"]["battle_plan_2p"],
                         battle_plan_tweak=task["task_args"].get("battle_plan_tweak", None),
                         stage=task["task_args"]["cross_server"],
-                    )
+                    ):
+                        return main_task_active, active_singleton, error_message
                     main_task_active = True
                     active_singleton = False
 
                 case "情侣任务":
-                    self.guild_or_spouse_quest(
+                    if error_message := self.guild_or_spouse_quest(
                         text_="情侣任务",
                         quest_mode="情侣任务",
                         global_plan_active=task["task_args"]["global_plan_active"],
@@ -3033,7 +3113,8 @@ class ThreadTodo(QThread):
                         battle_plan_1p=task["task_args"]["battle_plan_1p"],
                         battle_plan_2p=task["task_args"]["battle_plan_2p"],
                         battle_plan_tweak=task["task_args"].get("battle_plan_tweak", None),
-                    )
+                    ):
+                        return main_task_active, active_singleton, error_message
                     main_task_active = True
                     active_singleton = False
 
@@ -3050,7 +3131,8 @@ class ThreadTodo(QThread):
                     )
 
                 case "查漏补缺":
-                    self.checking_undo(player=task["task_args"]["player"], )
+                    if error_message := self.checking_undo(player=task["task_args"]["player"], ):
+                        return main_task_active, active_singleton, error_message
                     main_task_active = True
                     active_singleton = False
 
@@ -3071,15 +3153,17 @@ class ThreadTodo(QThread):
                     active_singleton = False
 
                 case "美食大赛":
-                    self.auto_food()
+                    if error_message := self.auto_food():
+                        return main_task_active, active_singleton, error_message
                     main_task_active = True
                     active_singleton = False
 
                 case "跨服刷威望":
-                    self.batch_loop_cross_server(
+                    if error_message := self.batch_loop_cross_server(
                         player=task["task_args"]["player"],
                         deck=1,
-                        name="威望")
+                        name="威望"):
+                        return main_task_active, active_singleton, error_message
                     main_task_active = True
                     active_singleton = False
 
@@ -3088,15 +3172,16 @@ class ThreadTodo(QThread):
                         "scan": "扫描",
                         "battle": "刷关"
                     }
-                    self.batch_scan_all_task(
+                    if error_message := self.batch_scan_all_task(
                         player=task["task_args"]["player"],
                         quests=[v for k, v in all_quests.items() if task["task_args"][k]]
-                    )
+                    ):
+                        return main_task_active, active_singleton, error_message
                     main_task_active = True
                     active_singleton = False
 
                 case "自建房战斗":
-                    self.easy_battle(
+                    if error_message := self.easy_battle(
                         text_="自建房战斗",
                         stage_id=task["task_args"]["stage_id"],
                         player=task["task_args"]["player"],
@@ -3112,13 +3197,16 @@ class ThreadTodo(QThread):
                             "last_time_player_b": []
                         },
                         is_cu=True
-                    )
+                    ):
+                        return main_task_active, active_singleton, error_message
                     active_singleton = True
                 case "任务序列":
-                    main_task_active, in_active_singleton = self.task_sequence(
+                    main_task_active, in_active_singleton, error_message = self.task_sequence(
                         text_="嵌套任务序列",
                         task_begin_id=task["task_args"]["sequence_integer"],
                         task_sequence_uuid=task["task_args"]["task_sequence_uuid"])
+                    if error_message:
+                        return main_task_active, active_singleton, error_message
                     active_singleton = active_singleton and in_active_singleton
                 case _:
                     # 记录错误日志
@@ -3128,9 +3216,9 @@ class ThreadTodo(QThread):
 
         # 战斗结束
         self.model_end_print(text=text_)
-        return main_task_active, active_singleton
+        return main_task_active, active_singleton, None
 
-    def checking_undo(self, player: list[int] | None = None) -> None:
+    def checking_undo(self, player: list[int] | None = None) -> str | None:
 
         title_text = "查漏补缺"
 
@@ -3172,7 +3260,8 @@ class ThreadTodo(QThread):
 
         # 再执行公会任务
         if quest_list:
-            self.battle_1_n_n(quest_list=quest_list)
+            if error_message := self.battle_1_n_n(quest_list=quest_list):
+                return error_message
             # 创建进程 -> 开始进程 -> 阻塞主进程
             if 1 in player:
                 self.thread_1p = ThreadWithException(
@@ -3352,7 +3441,8 @@ class ThreadTodo(QThread):
 
             # 步骤1 从高到低测出最高声望可能关卡
             for max_stage in [4, 3, 2, 1]:
-                self.battle_1_n_n(quest_list=build_bounty_quest(max_stage=max_stage))
+                if error_message := self.battle_1_n_n(quest_list=build_bounty_quest(max_stage=max_stage)):
+                    return error_message
                 start_bounty_check_threads()
                 if update_bounty_status(max_stage=max_stage, compare_with_before=True):
                     continue
@@ -3362,7 +3452,8 @@ class ThreadTodo(QThread):
             count = 0
             MaxBountyTime = 11
             while (not is_reputation_completed()) and count < MaxBountyTime:
-                self.battle_1_n_n(quest_list=build_bounty_quest(max_stage=max_stage))
+                if error_message := self.battle_1_n_n(quest_list=build_bounty_quest(max_stage=max_stage)):
+                    return error_message
                 count += 1
                 # 打完一把检查是否声望满了
                 start_bounty_check_threads()
@@ -3378,12 +3469,12 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=title_text)
 
-    def auto_food(self):
+    def auto_food(self) -> str | None:
 
         def a_round():
             """
             一轮美食大赛战斗
-            :return: 是否还有任务在美食大赛中
+            :return: 是否还有大赛任务，以及登录失败原因；正常执行时原因为 None。
             """
 
             # 两个号分别读取任务
@@ -3397,7 +3488,7 @@ class ThreadTodo(QThread):
 
             if not quest_list:
                 SIGNAL.PRINT_TO_UI.emit(text=f"[全自动大赛] 识别不到任何任务, 已完成")
-                return False
+                return False, None
 
             # 去重两边都一毛一样的双人任务
             unique_data = []
@@ -3449,7 +3540,7 @@ class ThreadTodo(QThread):
                             quest["tag"] = "暂时跳过, 先做关卡id小的任务"
                     quest_list_will_do = quest_list_min_stage_id
                 else:
-                    return False
+                    return False, None
 
             # 记录 尝试次数
             for quest in quest_list_will_do:
@@ -3517,17 +3608,20 @@ class ThreadTodo(QThread):
                         "extra_title": "多线程单人] [2P",
                         "need_lock": True
                     })
-                    self.battle_1_n_n(
+                    if error_message := self.battle_1_n_n(
                         quest_list=solo_quests_1,
                         extra_title="多线程单人] [1P",
-                        need_lock=True)
+                        need_lock=True):
+                        return False, error_message
                 else:
-                    self.battle_1_n_n(quest_list=quest_list_will_do)
+                    if error_message := self.battle_1_n_n(quest_list=quest_list_will_do):
+                        return False, error_message
 
             else:
-                self.battle_1_n_n(quest_list=quest_list_will_do)
+                if error_message := self.battle_1_n_n(quest_list=quest_list_will_do):
+                    return False, error_message
 
-            return True
+            return True, None
 
         def auto_food_main():
             text_ = "全自动大赛"
@@ -3546,7 +3640,9 @@ class ThreadTodo(QThread):
                 i += 1
                 SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 第{i}次循环，开始", color_level=1)
 
-                round_result = a_round()
+                round_result, error_message = a_round()
+                if error_message:
+                    return error_message
 
                 SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 第{i}次循环，结束", color_level=1)
                 if not round_result:
@@ -3556,7 +3652,7 @@ class ThreadTodo(QThread):
 
             self.model_end_print(text=text_)
 
-        auto_food_main()
+        return auto_food_main()
 
     """
     天知强卡器
@@ -3696,10 +3792,13 @@ class ThreadTodo(QThread):
             SIGNAL.PRINT_TO_UI.emit("每一个大类的任务开始前均会重启游戏以防止bug...")
 
             self.remove_outdated_log_images()
-            main_task_active, active_singleton = self.task_sequence(
+            main_task_active, active_singleton, error_message = self.task_sequence(
                 text_="主序列",
                 task_begin_id=1,
                 task_sequence_uuid=self.task_sequence_uuid)
+            if error_message:
+                self.signal_task_failed.emit(error_message)
+                return
 
             if main_task_active:
                 if self.opt["login_settings"]["login_close_settings"]:
@@ -3726,19 +3825,20 @@ class ThreadTodo(QThread):
 
             # 全部完成了发个信号
             SIGNAL.END.emit()
-        else:
+        elif self.todo_id == 2:
             # 运行方案
-            if self.todo_id == 2:
-                self.run_thread_2()
+            if error_message := self.run_thread_2():
+                self.signal_task_failed.emit(error_message)
 
-    def run_thread_2(self):
+    def run_thread_2(self) -> str | None:
         """多线程作战时的第二线程, 负责2P"""
 
-        self.battle_1_n_n(
+        error_message = self.battle_1_n_n(
             quest_list=self.extra_opt["quest_list"],
             extra_title=self.extra_opt["extra_title"],
             need_lock=self.extra_opt["need_lock"])
         self.extra_opt = None
+        return error_message
 
     def start_360(self):
 

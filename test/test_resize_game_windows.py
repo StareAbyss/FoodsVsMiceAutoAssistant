@@ -78,7 +78,7 @@ class ResizeGameWindowsTest(unittest.TestCase):
             "base_settings": {"game_name": "游戏", "name_1p": "1P", "name_2p": "2P"},
             "login_settings": {"platform": "QQ空间", "fresh_resize_360_windows": True},
         }
-        reload_game = Mock(return_value=True)
+        reload_game = Mock(return_value=(True, ""))
         task = SimpleNamespace(
             opt=settings,
             check_player=Mock(return_value=[1]),
