@@ -658,7 +658,7 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=title_text)
 
-    def batch_top_up_money(self, player):
+    def batch_top_up_money(self, player) -> str | None:
         """日氪"""
 
         title_text = "日氪"
@@ -690,14 +690,16 @@ class ThreadTodo(QThread):
             self.thread_1p.join()
 
             money_result = self.thread_1p.get_return_value()
-            if money_result:
-                SIGNAL.PRINT_TO_UI.emit(f'[{pid}P] 日氪1元结束, 结果: {money_result}', color_level=2)
-            else:
-                SIGNAL.PRINT_TO_UI.emit(f'[{pid}P] 日氪1元结束, 函数被手动中断! 未获得有效结果.', color_level=2)
+            if money_result is None:
+                return f"{pid}P日氪流程已中断，未获得有效结果。"
+            result_message, login_error = money_result
+            if login_error:
+                return f"{pid}P：{login_error}"
+            SIGNAL.PRINT_TO_UI.emit(f'[{pid}P] 日氪1元结束, 结果: {result_message}', color_level=2)
 
         self.model_end_print(text=title_text)
 
-    def batch_sign_in(self, player: list = None):
+    def batch_sign_in(self, player: list = None) -> str | None:
         """批量完成常规签到，再为已配置二级密码的角色盖章。"""
 
         title_text = "每日签到"

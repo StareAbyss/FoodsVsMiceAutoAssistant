@@ -2863,10 +2863,22 @@ class FAABase:
 
         return completed
 
-    def sign_top_up_money(self: "FAA"):
+    def sign_top_up_money(self: "FAA") -> tuple[str, str]:
         """日氪一元! 仅限4399 游币哦!
         为什么这么慢! 因为... 锑食太卡了!
+
+        Returns:
+            日氪结果说明及恢复登录的错误原因；登录正常时错误原因为空字符串。
         """
+
+        def reload_after_fatal_error(message: str) -> tuple[str, str]:
+            """刷新充值失败的界面，返回原操作结果及登录失败原因供调度中断。"""
+            self.print_warning(text=f"[日氪] {message} 即将刷新游戏以重置界面状态。")
+
+            # 页面复核或退出失败时，充值可能已完成，只刷新界面，不重新执行充值。
+            success, error_message = self.reload_game()
+            error_message = "" if success else error_message
+            return message, error_message
 
         def exit_ui():
             # 确定退出了该界面
@@ -2901,7 +2913,7 @@ class FAABase:
             after_sleep=0.5,
             click=False)
         if not find:
-            return "本期日氪没有假期票Skip... 或进入每日必冲失败, 请联系开发者!"
+            return "本期日氪没有假期票Skip... 或进入每日必冲失败, 请联系开发者!", ""
 
         # 尝试领取 / 尝试进入充值界面 一元档
         CUS_LOGGER.debug("尝试领取 / 尝试进入充值界面...")
@@ -2919,7 +2931,7 @@ class FAABase:
         if find:
             # 退出充值界面
             exit_ui()
-            return "你今天氪过, 但未领取, 已帮忙领取, 下次别忘了哦~"
+            return "你今天氪过, 但未领取, 已帮忙领取, 下次别忘了哦~", ""
 
         find = loop_match_p_in_w(
             source_handle=self.handle,
@@ -2934,7 +2946,7 @@ class FAABase:
         if not find:
             # 退出充值界面
             exit_ui()
-            return "今天氪过了~"
+            return "今天氪过了~", ""
 
         or_rect = get_window_position(self.handle)
         browser_rect = get_window_position(self.handle_browser)
@@ -2959,7 +2971,7 @@ class FAABase:
             deviation=deviation
         )
         if not find:
-            return "步骤: 充值界面-点击游币兑换. 出现致命失误! 请联系开发者!"
+            return reload_after_fatal_error("步骤: 充值界面-点击游币兑换. 出现致命失误! 请联系开发者!")
 
         # 切换到游币选项, 准备输入一元开氪
         CUS_LOGGER.debug("充值界面 点击 氪金值输入框")
@@ -2979,7 +2991,7 @@ class FAABase:
             deviation=deviation
         )
         if not find:
-            return "步骤: 充值界面-点击-氪金值输入框. 出现致命失误! 请联系开发者!"
+            return reload_after_fatal_error("步骤: 充值界面-点击-氪金值输入框. 出现致命失误! 请联系开发者!")
 
         CUS_LOGGER.debug("充值界面 输入1元")
         T_ACTION_QUEUE_TIMER.add_keyboard_up_down_to_queue(handle=self.handle_browser, key="1")
@@ -3000,7 +3012,7 @@ class FAABase:
             click_handle=self.handle_browser,
             deviation=deviation)
         if not find:
-            return "步骤: 充值界面-复核-氪金值输入1元. 出现致命失误! 请联系开发者!"
+            return reload_after_fatal_error("步骤: 充值界面-复核-氪金值输入1元. 出现致命失误! 请联系开发者!")
 
         """点击氪金按钮 完成氪金"""
         CUS_LOGGER.debug("点击氪金按钮")
@@ -3017,7 +3029,7 @@ class FAABase:
             click_handle=self.handle_browser,
             deviation=deviation)
         if not find:
-            return "步骤: 充值界面-点击-立刻充值按钮. 出现致命失误! 请联系开发者!"
+            return reload_after_fatal_error("步骤: 充值界面-点击-立刻充值按钮. 出现致命失误! 请联系开发者!")
 
         # 退出到 每日充值界面
         CUS_LOGGER.debug("回到 每日必充 界面")
@@ -3034,7 +3046,7 @@ class FAABase:
             click_handle=self.handle_browser,
             deviation=deviation)
         if not find:
-            return "步骤: 充值界面-点击-退出充值界面按钮. 出现致命失误! 请联系开发者!"
+            return reload_after_fatal_error("步骤: 充值界面-点击-退出充值界面按钮. 出现致命失误! 请联系开发者!")
 
         # 退出充值界面 刷新界面状态 才有领取按钮
         CUS_LOGGER.debug("尝试退出日氪界面...")
@@ -3062,9 +3074,9 @@ class FAABase:
         exit_ui()
 
         if find:
-            return "成功氪金并领取~"
+            return "成功氪金并领取~", ""
         else:
-            return "你游币用完了! 氪不了一点 orz"
+            return "你游币用完了! 氪不了一点 orz", ""
 
     def fed_and_watered(self: "FAA") -> str | None:
         """
