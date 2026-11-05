@@ -1796,10 +1796,10 @@ class FAABase:
             return close()
 
     def reload_game(self: "FAA") -> tuple[bool, str]:
-        """最多刷新十次以确认游戏主页，返回成功状态及失败原因。
+        """刷新确认游戏主页；启用自动启动时，十次失败后重开当前窗口再试十次。
 
         Returns:
-            成功返回 ``(True, "")``；配置无效或十次重试耗尽返回 ``(False, 原因)``。
+            成功返回 ``(True, "")``；配置无效或刷新及重启重试耗尽返回 ``(False, 原因)``。
             失败原因由任务入口统一展示，本函数不弹出错误框。
         """
 
@@ -2379,7 +2379,7 @@ class FAABase:
             self.handle = faa_get_handle(channel=self.channel, mode="flash")
 
         def main() -> tuple[bool, str]:
-            """最多刷新十次以进入游戏；区服等确定无效的配置立即失败。
+            """每阶段最多刷新十次，按自动启动配置允许重开一次；无效配置立即失败。
 
             Returns:
                 是否成功确认游戏主页及失败原因；成功时原因为空字符串。
@@ -2394,10 +2394,32 @@ class FAABase:
                 message = "QQ空间具体区服设置无效，请重新选择最近登录或3366 1～6服。"
                 return False, message
 
-            # 游戏加载卡顿可能导致单轮识图失败；仅在连续十轮失败后中断任务。
+            # 维护后的页面重定向可能无法靠刷新恢复，自动启动开启时允许重开当前账号一次。
             max_attempts = 10
+            login_settings = self.opt["login_settings"]
+            allow_restart = login_settings.get("login_open_settings", False)
+            total_attempts = max_attempts * (2 if allow_restart else 1)
             last_failure_message = ""
-            for fresh_count in range(1, max_attempts + 1):
+            for attempt in range(1, total_attempts + 1):
+                if attempt == max_attempts + 1:
+                    account_key = "first_num" if self.player == 1 else "second_num"
+                    if not login_settings.get(account_key) or not login_settings.get("login_path"):
+                        return False, (
+                            f"连续{max_attempts}次刷新仍未能进入游戏。\n"
+                            f"{self.player}P自动启动的小号编号或大厅路径未配置，无法重启，已中断任务。\n"
+                            f"最后一次失败：{last_failure_message}"
+                        )
+                    self.print_warning(text=(
+                        f"[刷新游戏] [{self.player}P] 连续{max_attempts}次刷新失败，"
+                        "关闭当前游戏窗口并重新启动，再尝试十次。"
+                    ))
+                    # 两个账号可能并行恢复，只关闭当前窗口，不清理共享大厅及后台进程。
+                    close_software_by_title(window_title=self.channel)
+                    # 等待当前窗口退出，避免启动命令被仍在关闭的窗口接收。
+                    time.sleep(1)
+                    self.start_360()
+
+                fresh_count = (attempt - 1) % max_attempts + 1
 
                 self.print_info(text=f"[刷新游戏] [第{fresh_count}轮] 即将开始...")
 
@@ -2496,8 +2518,12 @@ class FAABase:
                 self.print_info(text=f"[刷新游戏] [第{fresh_count}轮] 顺利完成")
                 return True, ""
 
+            failure_summary = (
+                f"重启游戏窗口后再次连续{max_attempts}次刷新仍未能进入游戏（共{total_attempts}次）。"
+                if allow_restart else f"连续{max_attempts}次刷新仍未能进入游戏。"
+            )
             message = (
-                f"连续{max_attempts}次刷新仍未能进入游戏。\n"
+                f"{failure_summary}\n"
                 f"最后一次失败：{last_failure_message}\n"
                 "程序已中断，请检查区服、账号状态、网络与识图资源。"
             )
