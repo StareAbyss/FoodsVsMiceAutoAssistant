@@ -962,7 +962,7 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=title_text)
 
-    def batch_use_items_consumables(self, player: list = None):
+    def batch_use_bag_consumables(self, player: list = None):
 
         title_text = "使用绑定消耗品"
 
@@ -973,7 +973,7 @@ class ThreadTodo(QThread):
         # 创建进程 -> 开始进程 -> 阻塞主进程
         if 1 in player:
             self.thread_1p = ThreadWithException(
-                target=self.faa_dict[1].use_items_consumables,
+                target=self.faa_dict[1].use_bag_consumables,
                 name="1P Thread - UseItems",
                 kwargs={})
             self.thread_1p.start()
@@ -983,7 +983,7 @@ class ThreadTodo(QThread):
 
         if 2 in player:
             self.thread_2p = ThreadWithException(
-                target=self.faa_dict[2].use_items_consumables,
+                target=self.faa_dict[2].use_bag_consumables,
                 name="2P Thread - UseItems",
                 kwargs={})
             self.thread_2p.start()
@@ -3121,7 +3121,7 @@ class ThreadTodo(QThread):
                     active_singleton = False
 
                 case "使用消耗品":
-                    self.batch_use_items_consumables(
+                    self.batch_use_bag_consumables(
                         player=task["task_args"]["player"],
                     )
                     main_task_active = True
