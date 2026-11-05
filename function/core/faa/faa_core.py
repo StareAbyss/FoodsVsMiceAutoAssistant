@@ -13,7 +13,6 @@ from function.common.bg_img_match import match_p_in_w, match_ps_in_w, loop_match
     match_all_p_in_w
 from function.common.bg_img_screenshot import capture_image_png, png_cropping
 from function.common.get_system_dpi import get_window_position, get_system_dpi
-from function.common.image_processing.overlay_images import overlay_images
 from function.common.process_manager import close_software_by_title, get_path_and_sub_titles, \
     close_all_software_by_name, start_software_with_args
 from function.core.faa.card_limit import get_retained_plan_card_count
@@ -3484,257 +3483,38 @@ class FAABase:
 
         return fed_and_watered_main()
 
-    def use_items_consumables(self: "FAA") -> None:
+    def use_bag_consumables(self: "FAA", items=None, *, scan_only=False,
+                            inventory_reader=None, item_locator=None, use_checker=None, control=None,
+                            inventory_sorter=None, use_ready=None):
+        """按物品数量字典使用或扫描背包，返回确认数量或专用库存报告。"""
 
-        SIGNAL.PRINT_TO_UI.emit(text=f"[使用绑定消耗品] [{self.player}P] 开始.")
+        from function.scattered.bag_operations import use_bag_consumables
 
-        # 打开背包
-        self.print_debug(text="打开背包")
-        self.action_bottom_menu(mode="背包")
-        SIGNAL.PRINT_TO_UI.emit(text=f"[使用绑定消耗品] [{self.player}P] [装备栏] 图标需要加载, 等待10s")
-        time.sleep(10)
-
-        # 8次查找 7次下拉 查找所有正确图标 不需要升到最顶, 打开背包会自动重置
-        for i in range(8):
-
-            self.print_debug(text="第{}页物品".format(i + 1))
-
-            # 第一次循环，点一下整理键
-            if i == 0:
-                # 点击整理物品按钮
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=905, y=475)
-                time.sleep(2)
-            # 最后一次循环，点一下整理键且回到背包最开始，尝试但大概率失败的, 处理在下层获得的物品
-            elif i == 7:
-                # 点击整理物品按钮
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=905, y=475)
-                time.sleep(2)
-                # 点击滚动条最上方以返回背包开始
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=916, y=115)
-                time.sleep(2)
-            # 第一次以外, 下滑3次 (一共下滑20次就到底部了)
-            else:
-                for j in range(3):
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=920, y=422)
-                    time.sleep(0.2)
-
-            for item_name, item_image in g_resources.RESOURCE_CP["背包_装备_需使用的"].items():
-
-                self.print_debug(text="物品:{}本页 开始查找".format(item_name))
-
-                # 添加绑定角标
-                item_image = overlay_images(
-                    img_background=item_image,
-                    img_overlay=RESOURCE_P["item"]["物品-绑定角标-背包.png"])  # 特别注意 背包和战利品使用的角标不一样!!!
-
-                while True:
-
-                    # 单一物品: 无脑点击点掉X 不再识图
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=450, y=190)
-                    time.sleep(0.1)
-
-                    # 礼包物品1: 在限定范围内 找红叉点掉 y=180-220
-                    loop_match_p_in_w(
-                        source_handle=self.handle,
-                        source_root_handle=self.handle_360,
-                        source_range=[680, 260, 720, 290],
-                        template=RESOURCE_P["common"]["退出.png"],
-                        match_tolerance=0.98,
-                        match_interval=0.2,
-                        match_failed_check=0,
-                        after_sleep=0.1,
-                        click=True)
-
-                    # 礼包物品2: 在限定范围内 找红叉点掉 y=260-290
-                    loop_match_p_in_w(
-                        source_handle=self.handle,
-                        source_root_handle=self.handle_360,
-                        source_range=[680, 180, 720, 220],
-                        template=RESOURCE_P["common"]["退出.png"],
-                        match_tolerance=0.98,
-                        match_interval=0.2,
-                        match_failed_check=0,
-                        after_sleep=0.1,
-                        click=True)
-
-                    # 在限定范围内 找物品
-                    _, find = match_p_in_w(
-                        source_handle=self.handle,
-                        source_range=[466, 88, 910, 435],
-                        template=item_image,
-                        template_name=item_name,
-                        mask=RESOURCE_P["item"]["物品-掩模-不绑定.png"],
-                        match_tolerance=0.99,
-                        test_print=True)
-
-                    if find:
-                        # 点击物品图标 以使用
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=find[0] + 466, y=find[1] + 88)
-
-                        # 在限定范围内 找到并点击物品 使用它
-                        find = loop_match_p_in_w(
-                            source_handle=self.handle,
-                            source_root_handle=self.handle_360,
-                            source_range=[466, 86, 950, 500],
-                            template=RESOURCE_P["item"]["物品-背包-使用.png"],
-                            match_tolerance=0.98,
-                            match_interval=0.2,
-                            match_failed_check=1,
-                            after_sleep=0.5,
-                            click=True)
-
-                        # 鼠标选中 使用按钮 会有色差, 第一次找不到则再来一次
-                        if not find:
-                            loop_match_p_in_w(
-                                source_handle=self.handle,
-                                source_root_handle=self.handle_360,
-                                source_range=[466, 86, 950, 500],
-                                template=RESOURCE_P["item"]["物品-背包-使用-被选中.png"],
-                                match_tolerance=0.98,
-                                match_interval=0.2,
-                                match_failed_check=1,
-                                after_sleep=0.5,
-                                click=True)
-
-                    else:
-                        # 没有找到对应物品 skip
-                        break
-
-                self.print_debug(text="物品:{}本页 已全部找到".format(item_name))
-
-        # 无脑点击点掉X 不再识图
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=450, y=190)
-        time.sleep(0.1)
-        # 在限定范围内 找红叉点掉
-        loop_match_p_in_w(
-            source_handle=self.handle,
-            source_root_handle=self.handle_360,
-            source_range=[425, 170, 715, 220],
-            template=RESOURCE_P["common"]["退出.png"],
-            match_tolerance=0.98,
-            match_interval=0.2,
-            match_failed_check=0,
-            after_sleep=0.1,
-            click=True)
-
-        # 关闭背包
-        self.action_exit(mode="普通红叉")
-
-        SIGNAL.PRINT_TO_UI.emit(text=f"[使用绑定消耗品] [{self.player}P] 结束.")
+        return use_bag_consumables(
+            self,
+            items=items,
+            scan_only=scan_only,
+            inventory_reader=inventory_reader,
+            item_locator=item_locator,
+            use_checker=use_checker,
+            control=control,
+            inventory_sorter=inventory_sorter,
+            use_ready=use_ready
+        )
 
     def use_items_double_card(self: "FAA", max_times: int) -> None:
+        """工作日使用指定次数的双暴卡，周六和周日跳过。
+
+        Args:
+            max_times: 计划消耗数量；确认扣减后计数，连续失败由通用背包入口停止。
+
+        Returns:
+            None: 周末直接返回，工作日使用后返回。
         """
-        使用双倍暴击卡的函数。
-
-        在周六或周日不执行操作，其余时间会尝试使用指定数量的双倍暴击卡。
-
-        :param max_times: 最大使用次数
-        :return: None
-        """
-
-        def is_saturday_or_sunday():
-            # 获取北京时间是星期几（0=星期一，1=星期二，...，5=星期六，6=星期日）
-            weekday = datetime.now(pytz.timezone('Asia/Shanghai')).weekday()
-
-            # 判断今天是否是星期六或星期日
-            if weekday == 5 or weekday == 6:
-                return True
-            else:
-                return False
-
-        def loop_use_double_card():
-            used_success = 0
-
-            # 8次查找 7次下拉 不需要升到最顶,打开背包会自动重置
-            for i in range(8):
-
-                self.print_debug(text=f"[使用双暴卡] 第{i + 1}页物品 开始查找")
-
-                # 第一次以外, 下滑3次点击 一共3*7=21次, 20次到底
-                if i != 0:
-                    for j in range(3):
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=920, y=422)
-                        time.sleep(0.2)
-
-                while True:
-
-                    if used_success == max_times:
-                        break
-
-                    # 在限定范围内 找物品
-                    find = loop_match_p_in_w(
-                        source_handle=self.handle,
-                        source_root_handle=self.handle_360,
-                        source_range=[466, 86, 910, 435],
-                        template=RESOURCE_P["item"]["物品-双暴卡.png"],
-                        match_tolerance=0.98,
-                        match_interval=0.2,
-                        match_failed_check=2,
-                        after_sleep=0.05,
-                        click=True)
-
-                    if find:
-                        self.print_debug(text="[使用双暴卡] 成功使用一张双暴卡")
-                        used_success += 1
-
-                        # 在限定范围内 找到并点击物品 使用它
-                        find = loop_match_p_in_w(
-                            source_handle=self.handle,
-                            source_root_handle=self.handle_360,
-                            source_range=[466, 86, 950, 500],
-                            template=RESOURCE_P["item"]["物品-背包-使用.png"],
-                            match_tolerance=0.95,
-                            match_interval=0.2,
-                            match_failed_check=1,
-                            after_sleep=0.5,
-                            click=True)
-
-                        # 鼠标选中 使用按钮 会有色差, 第一次找不到则再来一次
-                        if not find:
-                            loop_match_p_in_w(
-                                source_handle=self.handle,
-                                source_root_handle=self.handle_360,
-                                source_range=[466, 86, 950, 500],
-                                template=RESOURCE_P["item"]["物品-背包-使用-被选中.png"],
-                                match_tolerance=0.90,
-                                match_interval=0.2,
-                                match_failed_check=1,
-                                after_sleep=0.5,
-                                click=True)
-
-                    else:
-                        # 没有找到对应物品 skip
-                        self.print_debug(text=f"[使用双暴卡] 第{i + 1}页物品 未找到")
-                        break
-
-                if used_success == max_times:
-                    break
-
-            if used_success == max_times:
-                self.print_debug(text=f"[使用双暴卡] 成功使用{used_success}张双暴卡")
-            else:
-                self.print_debug(text=f"[使用双暴卡] 成功使用{used_success}张双暴卡 数量不达标")
-
-        def main():
-            self.print_debug(text="[使用双暴卡] 开始")
-
-            if is_saturday_or_sunday():
-                SIGNAL.PRINT_TO_UI.emit(text="[使用双暴卡] 今天是星期六 / 星期日, 跳过")
-                return
-
-            # 打开背包
-            self.print_debug(text="打开背包")
-            self.action_bottom_menu(mode="背包")
-            if self.player == 1:
-                SIGNAL.PRINT_TO_UI.emit(text=f"[使用双暴卡] [{self.player}P] [装备栏] 图标需要加载, 等待10s")
-            time.sleep(10)
-
-            loop_use_double_card()
-
-            # 关闭背包
-            self.action_exit(mode="普通红叉")
-
-        main()
+        if datetime.now(pytz.timezone("Asia/Shanghai")).weekday() >= 5:
+            SIGNAL.PRINT_TO_UI.emit(text="[使用双暴卡] 今天是星期六 / 星期日, 跳过")
+            return
+        self.use_bag_consumables(items={"物品-双暴卡.png": max_times})
 
     def _wait_level_2_password_dialog(self: "FAA") -> bool:
         """
