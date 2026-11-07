@@ -30,8 +30,10 @@
   说明配置、战斗方案、任务序列、关卡信息和日志目录的数据约定。
 - [05-extension-test-and-troubleshooting.md](./05-extension-test-and-troubleshooting.md)
   说明扩展接口、OCR 插件、测试目录和常见故障。
-- [战利品资源与失败样本处理规范](../tool/item_resource/README.md)
-  说明失败战利品的三态归因、各种可能性、资源补入和日志清理边界。
+- [图像资源自动流水线](../tool/image_resource_pipeline/README.md)
+  说明原始数据获取、共用模块、战利品与准备房间卡片的命令入口及产出位置。
+- [战利品资源与失败样本处理规范](../tool/image_resource_pipeline/loot/README.md)
+  说明战利品三名单同步、图片更新、失败样本建议及日志清理边界。
 
 ## 仓库模块地图
 

@@ -5,16 +5,11 @@ import shutil
 import sys
 from pathlib import Path
 
-from item_resource_common import (
-    DEFAULT_CLASSIFY_CSV,
-    DEFAULT_LOOT_ROOT,
-    classify_name_map,
-    collect_pngs,
-    find_default_excel,
-    parse_target_items,
-    sort_rows_by_type_name,
-    write_csv,
-)
+from .paths import DEFAULT_CLASSIFY_CSV, DEFAULT_LOOT_ROOT
+from .classification import classify_name_map, parse_target_items
+from ..common.files import collect_pngs, sort_rows_by_type_name, write_csv
+from ..common.excel import find_default_excel
+from ..common.snapshot_files import resolve_excel_path
 
 
 OTHER_CATEGORY = "其他类型"
@@ -22,7 +17,7 @@ OTHER_CATEGORY = "其他类型"
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="一次性把现有战利品识别资源按 Excel 分类整理到子目录。")
-    parser.add_argument("--excel", type=Path, default=None, help="资源 Excel，默认自动查找当前目录 xlsx")
+    parser.add_argument("--excel", type=Path, default=None, help="resource/db 内的资源 Excel，默认选择最新快照")
     parser.add_argument("--loot-root", type=Path, default=DEFAULT_LOOT_ROOT, help="现有战利品资源目录")
     parser.add_argument("--plan", type=Path, default=DEFAULT_CLASSIFY_CSV, help="迁移计划 CSV")
     parser.add_argument("--apply", action="store_true", help="执行移动；默认只生成计划")
@@ -36,6 +31,15 @@ def target_path_for(loot_root: Path, name_to_category: dict[str, str], source: P
 
 def main() -> int:
     args = build_arg_parser().parse_args()
+    if args.excel is not None:
+        resolve_excel_path(args.excel)
+    from ..sources.snapshots import ensure_snapshots
+
+    # 显式指定 db 快照时不刷新 Excel，避免发布新快照时删掉本次指定的输入。
+    kinds = ("compose", "CardFusion") if args.excel is not None else ("excel", "compose", "CardFusion")
+    refreshed = ensure_snapshots(kinds=kinds)
+    for kind, error in refreshed.errors.items():
+        print(f"Warning: {kind} 更新失败，沿用已有快照: {error}")
     excel_path = args.excel or find_default_excel()
     items = parse_target_items(excel_path, include_manual_skill_books=True)
     name_to_category = classify_name_map(items)

@@ -7,6 +7,7 @@ import numpy as np
 
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
+from function.common.loot_policy import BLACKLIST_FILENAME, WHITELIST_FILENAME, read_drop_list
 
 
 def im_read(img_path):
@@ -26,9 +27,10 @@ def im_read(img_path):
 """RESOURCE_P 常规图片资源 通常为静态 可以直接调用"""
 
 RESOURCE_P = {}
-ITEM_LOOT_BLACKLIST_CSV = os.path.join(PATHS["root"], "resource", "image", "item", "无法掉落道具名单.csv")
-_ITEM_LOOT_BLACKLIST_CACHE = None
-_ITEM_LOOT_BLACKLIST_CACHE_MTIME = None
+ITEM_LOOT_BLACKLIST_CSV = os.path.join(PATHS["root"], "resource", "image", "item", BLACKLIST_FILENAME)
+ITEM_LOOT_WHITELIST_CSV = os.path.join(PATHS["root"], "resource", "image", "item", WHITELIST_FILENAME)
+_ITEM_LOOT_POLICY_CACHE = None
+_ITEM_LOOT_POLICY_SIGNATURE = None
 
 
 def add_to_resource_img(relative_path, img):
@@ -99,45 +101,40 @@ def get_item_loot_blacklist():
     """
     读取不会在战利品中掉落的物品名单。
 
-    黑名单 CSV 位于 `resource/image/item/无法掉落道具名单.csv`，只包含 `类型,名称` 两列。
+    黑名单 CSV 位于 `resource/image/item/道具可掉落-黑名单.csv`，只包含 `类型,名称` 两列。
     战利品资源本身按 `resource/image/item/战利品/类型/名称.png` 存放，因此读取后转换为
     `(类型, 名称.png)` 集合供展平资源时过滤。
 
     Returns:
         set[tuple[str, str]]: 需要从战利品识别临时平铺资源中排除的 `(类型, 文件名)` 集合。
     """
-    global _ITEM_LOOT_BLACKLIST_CACHE
-    global _ITEM_LOOT_BLACKLIST_CACHE_MTIME
-
-    if not os.path.exists(ITEM_LOOT_BLACKLIST_CSV):
-        _ITEM_LOOT_BLACKLIST_CACHE = set()
-        _ITEM_LOOT_BLACKLIST_CACHE_MTIME = None
-        return _ITEM_LOOT_BLACKLIST_CACHE
-
-    csv_mtime = os.path.getmtime(ITEM_LOOT_BLACKLIST_CSV)
-    if _ITEM_LOOT_BLACKLIST_CACHE is not None and _ITEM_LOOT_BLACKLIST_CACHE_MTIME == csv_mtime:
-        return _ITEM_LOOT_BLACKLIST_CACHE
-
-    blacklist = set()
-    with open(ITEM_LOOT_BLACKLIST_CSV, newline="", encoding="utf-8-sig") as file:
-        reader = csv.reader(file)
-        next(reader, None)
-        for row in reader:
-            if len(row) < 2:
-                continue
-            item_type = row[0].strip()
-            item_name = row[1].strip()
-            if item_type and item_name:
-                blacklist.add((item_type, f"{item_name}.png"))
-
-    _ITEM_LOOT_BLACKLIST_CACHE = blacklist
-    _ITEM_LOOT_BLACKLIST_CACHE_MTIME = csv_mtime
-    return _ITEM_LOOT_BLACKLIST_CACHE
+    return get_item_loot_policy()[1]
 
 
-def flatten_item_loot_images(resource_node, blacklist, item_type=None):
+def get_item_loot_policy_signature():
+    """以两份名单的修改时间和大小标记版本，让识别缓存随人工修改失效。"""
+    return tuple((stat.st_mtime_ns, stat.st_size) for stat in (
+        os.stat(ITEM_LOOT_WHITELIST_CSV), os.stat(ITEM_LOOT_BLACKLIST_CSV)))
+
+
+def get_item_loot_policy():
+    """读取并缓存人工黑白名单；缺失或损坏时明确报错，冲突物品不进入识别。"""
+    global _ITEM_LOOT_POLICY_CACHE, _ITEM_LOOT_POLICY_SIGNATURE
+    signature = get_item_loot_policy_signature()
+    if _ITEM_LOOT_POLICY_CACHE is None or signature != _ITEM_LOOT_POLICY_SIGNATURE:
+        white = read_drop_list(ITEM_LOOT_WHITELIST_CSV)
+        black = read_drop_list(ITEM_LOOT_BLACKLIST_CSV)
+        _ITEM_LOOT_POLICY_CACHE = (
+            {(category, name + ".png") for category, name in white - black},
+            {(category, name + ".png") for category, name in black},
+        )
+        _ITEM_LOOT_POLICY_SIGNATURE = signature
+    return _ITEM_LOOT_POLICY_CACHE
+
+
+def flatten_item_loot_images(resource_node, blacklist, item_type=None, whitelist=None):
     """
-    将战利品资源节点展平，并排除不会实际掉落的黑名单物品。
+    将战利品资源节点展平，只放行人工白名单且未被黑名单排除的物品。
 
     战利品目录的第一层子目录即物品类型；黑名单使用 `类型,名称` 标记。展平时保留历史的
     `{文件名: 图片对象}` 返回形式，但不会把黑名单物品放入识别候选。
@@ -146,6 +143,7 @@ def flatten_item_loot_images(resource_node, blacklist, item_type=None):
         resource_node: RESOURCE_P["item"]["战利品"] 或其子节点。
         blacklist: `get_item_loot_blacklist()` 返回的 `(类型, 文件名)` 集合。
         item_type: 当前递归所在的第一层物品类型。
+        whitelist: 人工允许识别的 `(类型, 文件名)` 集合，未提供时不放行图片。
 
     Returns:
         dict[str, numpy.ndarray]: 已过滤黑名单的战利品平铺资源映射。
@@ -161,8 +159,9 @@ def flatten_item_loot_images(resource_node, blacklist, item_type=None):
                 resource_node=value,
                 blacklist=blacklist,
                 item_type=next_item_type,
+                whitelist=whitelist,
             ))
-        elif (item_type, name) not in blacklist:
+        elif whitelist is not None and (item_type, name) in whitelist and (item_type, name) not in blacklist:
             flat_images[name] = value
     return flat_images
 
@@ -175,11 +174,13 @@ def get_item_loot_images():
     调用本函数获得兼容旧调用方式的 `{图片文件名: 图片对象}` 映射。
 
     Returns:
-        dict[str, numpy.ndarray]: 包含战利品目录及其子分类目录下全部图片的平铺映射。
+        dict[str, numpy.ndarray]: 仅包含人工白名单且不在黑名单中的图片。
     """
+    whitelist, blacklist = get_item_loot_policy()
     return flatten_item_loot_images(
         resource_node=RESOURCE_P.get("item", {}).get("战利品", {}),
-        blacklist=get_item_loot_blacklist(),
+        blacklist=blacklist,
+        whitelist=whitelist,
     )
 
 

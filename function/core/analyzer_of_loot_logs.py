@@ -300,7 +300,8 @@ def _get_loot_match_cache():
     获取战利品模板预处理缓存。
 
     `fresh_resource_img()` 会整体替换 `RESOURCE_P`，因此用战利品资源节点的对象 id
-    判断缓存是否仍然有效。资源被刷新后，下次识别会自动重建缓存。
+    判断缓存是否仍然有效，并结合人工黑白名单的文件版本。
+    资源刷新或名单修改后，下次识别会自动重建缓存。
 
     Returns:
         dict: `_build_loot_match_cache` 返回的缓存结构。
@@ -309,7 +310,7 @@ def _get_loot_match_cache():
     global _LOOT_MATCH_CACHE_RESOURCE_ID
 
     resource_node = g_resources.RESOURCE_P.get("item", {}).get("战利品", {})
-    resource_id = id(resource_node)
+    resource_id = (id(resource_node), g_resources.get_item_loot_policy_signature())
     if _LOOT_MATCH_CACHE is None or _LOOT_MATCH_CACHE_RESOURCE_ID != resource_id:
         _LOOT_MATCH_CACHE = _build_loot_match_cache()
         _LOOT_MATCH_CACHE_RESOURCE_ID = resource_id

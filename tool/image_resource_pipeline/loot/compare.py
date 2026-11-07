@@ -4,19 +4,10 @@ import argparse
 import sys
 from pathlib import Path
 
-from item_resource_common import (
-    DEFAULT_COMPARE_EXTRA_CSV,
-    DEFAULT_COMPARE_MISSING_CSV,
-    DEFAULT_COMPARE_SAME_CSV,
-    DEFAULT_LOOT_BLACKLIST_CSV,
-    DEFAULT_LOOT_ROOT,
-    DEFAULT_OUTPUT_ROOT,
-    category_for_path,
-    collect_pngs,
-    read_loot_blacklist,
-    sort_rows_by_type_name,
-    write_csv,
-)
+from .paths import (DEFAULT_COMPARE_EXTRA_CSV, DEFAULT_COMPARE_MISSING_CSV, DEFAULT_COMPARE_SAME_CSV,
+                    DEFAULT_LOOT_BLACKLIST_CSV, DEFAULT_LOOT_ROOT, DEFAULT_OUTPUT_ROOT)
+from ..common.files import category_for_path, collect_pngs, sort_rows_by_type_name, write_csv
+from .sync import read_loot_blacklist
 
 
 def build_arg_parser() -> argparse.ArgumentParser:

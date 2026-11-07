@@ -28,7 +28,7 @@ ARCHIVE_WORK_RELATIVE_PATH = Path("update_cache") / "staging_archives"
 PRESERVE_FAILED_STAGING_COUNT = 2
 
 IMAGE_RESOURCE_EXCEL_PATTERN = "点我获取更多图像资源 *.xlsx"
-IMAGE_RESOURCE_EXCEL_DATE_RE = re.compile(r"点我获取更多图像资源 (?P<date>\d{4}-\d{2}-\d{2})\.xlsx$")
+IMAGE_RESOURCE_EXCEL_DATE_RE = re.compile(r"点我获取更多图像资源 (?P<date>\d{4}-\d{2}-\d{2})(?:_(?P<time>\d{2}-\d{2}-\d{2}))?\.xlsx$")
 
 
 
@@ -255,20 +255,24 @@ def image_resource_excel_sort_key(path: Path) -> tuple[int, float, str]:
     match = IMAGE_RESOURCE_EXCEL_DATE_RE.fullmatch(path.name)
     if match:
         try:
-            file_date = datetime.strptime(match.group("date"), "%Y-%m-%d").date()
-            return file_date.toordinal(), path.stat().st_mtime, path.name
+            stamp = match.group("date") + ("_" + match.group("time") if match.group("time") else "")
+            file_time = datetime.strptime(stamp, "%Y-%m-%d_%H-%M-%S" if match.group("time") else "%Y-%m-%d")
+            return file_time.timestamp(), path.stat().st_mtime, path.name
         except ValueError:
             pass
     return -1, path.stat().st_mtime, path.name
 
 
 def copy_latest_image_resource_excel(source_root: Path, dest_root: Path) -> Path | None:
-    excel_files = [path for path in source_root.glob(IMAGE_RESOURCE_EXCEL_PATTERN) if path.is_file()]
+    db_dir = source_root / "resource" / "db"
+    excel_files = [path for path in db_dir.glob(IMAGE_RESOURCE_EXCEL_PATTERN)
+                   if path.is_file() and image_resource_excel_sort_key(path)[0] >= 0]
     if not excel_files:
         return None
 
     latest_file = max(excel_files, key=image_resource_excel_sort_key)
-    destination = dest_root / latest_file.name
+    destination = dest_root / latest_file.relative_to(source_root)
+    destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(latest_file, destination)
     return destination
 

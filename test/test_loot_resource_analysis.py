@@ -1,4 +1,3 @@
-import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -6,19 +5,16 @@ from pathlib import Path
 import numpy as np
 
 
-ROOT = Path(__file__).resolve().parents[1]
-ITEM_RESOURCE_TOOL = ROOT / "tool" / "item_resource"
-sys.path.insert(0, str(ITEM_RESOURCE_TOOL))
 
-from analyze_failed_loot_images import (  # noqa: E402
+from tool.image_resource_pipeline.loot.matching import (  # noqa: E402
     Candidate,
     MatchScore,
     confidence_for,
     drop_status_for,
     parse_failed_count,
 )
-from compare_loot_resources import build_missing_rows, build_same_rows  # noqa: E402
-from item_resource_common import read_loot_blacklist  # noqa: E402
+from tool.image_resource_pipeline.loot.compare import build_missing_rows, build_same_rows  # noqa: E402
+from tool.image_resource_pipeline.loot.sync import read_loot_blacklist  # noqa: E402
 
 
 def make_candidate(*, in_formal_resources=False, blacklisted=False):

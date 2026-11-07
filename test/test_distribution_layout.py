@@ -51,6 +51,7 @@ class DistributionLayoutTests(unittest.TestCase):
         write("plugins/launcher_scripts/bin/uv.exe", b"local cache")
         write("tool/faa_launcher/build.ps1", b"developer tool")
         write(".git/HEAD", b"source only")
+        write("image_resource_db.local.json", b"private database configuration fixture")
         excel = Path("resource/db/点我获取更多图像资源 2026-10-27.xlsx")
         write(excel)
         return excel
@@ -80,6 +81,8 @@ class DistributionLayoutTests(unittest.TestCase):
             self.assertFalse((release / "extra-entry.exe").exists())
             self.assertFalse((release / "config/settings.json").exists())
             self.assertFalse((release / ".git").exists())
+            self.assertFalse((release / "image_resource_db.local.json").exists())
+            self.assertFalse((staging / "image_resource_db.local.json").exists())
 
     def test_missing_source_exe_fails_before_replacing_existing_output(self):
         with tempfile.TemporaryDirectory(prefix="FAA 缺失入口保护 ") as directory:

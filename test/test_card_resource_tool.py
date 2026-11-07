@@ -4,15 +4,50 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from tool.card_resource.get_card_resource_tool import (
-    build_card_prepare_room_url,
-    build_card_stage_categories,
-    parse_excel_cards,
-    write_card_stage_categories,
+from tool.image_resource_pipeline.cards.paths import DEFAULT_BLACKLIST_PATH
+from tool.image_resource_pipeline.cards.models import ExcelCard
+from tool.image_resource_pipeline.cards.catalog import (
+    build_card_prepare_room_url, parse_excel_cards, read_blacklist_names, split_blacklisted_cards,
 )
+from tool.image_resource_pipeline.cards.chains import build_plan, parse_evolution_chains
+from tool.image_resource_pipeline.cards.reports import build_card_stage_categories, write_card_stage_categories
 
 
 class CardResourceToolTest(unittest.TestCase):
+    def test_blacklist_reader_preserves_names_and_exact_ids(self):
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            path = Path(temporary_dir) / "blacklist.csv"
+            path.write_text("名称\n未实装卡片\n0x113901e0\n", encoding="utf-8-sig")
+            self.assertEqual(read_blacklist_names(path), {"未实装卡片", "0x113901e0"})
+
+    def test_retired_smoothie_id_is_blocked_without_removing_icecream_transfer(self):
+        cards = {
+            item_id: ExcelCard(item_id, name, (build_card_prepare_room_url(item_id),), row)
+            for row, (item_id, name) in enumerate((
+                ("0x113901d0", "冰激凌"),
+                ("0x113901de", "果蔬冰淇淋"),
+                ("0x113901df", "极寒冰沙"),
+                ("0x113901e0", "极寒冰沙"),
+                ("0x11100000", "魔法棉花糖"),
+            ), start=2)
+        }
+        active, blocked = split_blacklisted_cards(cards, read_blacklist_names(DEFAULT_BLACKLIST_PATH))
+        self.assertEqual(set(active), {"0x113901d0", "0x113901de", "0x113901df"})
+        self.assertEqual({row["Excel ID"] for row in blocked}, {"0x113901e0", "0x11100000"})
+
+        compose = """
+        <ComposeorUpgrade><Translate desc="果蔬冰淇淋" id="0x113901de">
+            <Material><raw_item desc="冰激凌" id="0x113901d0"/></Material>
+        </Translate><Translate desc="极寒冰沙" id="0x113901df">
+            <Material><raw_item desc="果蔬冰淇淋" id="0x113901de"/></Material>
+        </Translate></ComposeorUpgrade>
+        """.encode("utf-8")
+        planned, _, _, singles = build_plan(parse_evolution_chains(compose), [], active)
+        self.assertEqual({card.filename for card in planned}, {
+            "冰激凌-0.png", "冰激凌-1.png", "冰激凌-2.png",
+        })
+        self.assertEqual(singles, [])
+
     def test_build_card_prepare_room_url_uses_fixed_cdn_path(self):
         self.assertEqual(
             build_card_prepare_room_url("0x1112059e"),
@@ -40,7 +75,7 @@ class CardResourceToolTest(unittest.TestCase):
         ]
 
         with patch(
-            "tool.card_resource.get_card_resource_tool.read_xlsx_rows",
+            "tool.image_resource_pipeline.cards.catalog.read_xlsx_rows",
             return_value=rows,
         ):
             cards = parse_excel_cards(Path("unused.xlsx"))
