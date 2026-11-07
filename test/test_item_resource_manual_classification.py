@@ -2,7 +2,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from tool.item_resource.item_resource_common import parse_target_items
+from tool.image_resource_pipeline.loot.classification import parse_target_items
 
 
 class ManualLootClassificationTests(unittest.TestCase):
@@ -13,7 +13,7 @@ class ManualLootClassificationTests(unittest.TestCase):
             {"A": "0x12618820", "B": "普通活动道具", "E": "https://example.invalid/event.png"},
         ]
 
-        with patch("tool.item_resource.item_resource_common.read_xlsx_rows", return_value=rows):
+        with patch("tool.image_resource_pipeline.loot.classification.read_xlsx_rows", return_value=rows):
             items = parse_target_items(Path("unused.xlsx"))
 
         self.assertEqual(len(items), 1)

@@ -13,7 +13,7 @@ from function.common.distribution_layout import (
 )
 
 
-IMAGE_RESOURCE_EXCEL_DATE_RE = re.compile(r"点我获取更多图像资源 (?P<date>\d{4}-\d{2}-\d{2})\.xlsx$")
+IMAGE_RESOURCE_EXCEL_DATE_RE = re.compile(r"点我获取更多图像资源 (?P<date>\d{4}-\d{2}-\d{2})(?:_(?P<time>\d{2}-\d{2}-\d{2}))?\.xlsx$")
 
 
 def image_resource_excel_sort_key(path: Path) -> tuple[int, float, str]:
@@ -29,8 +29,9 @@ def image_resource_excel_sort_key(path: Path) -> tuple[int, float, str]:
     match = IMAGE_RESOURCE_EXCEL_DATE_RE.fullmatch(path.name)
     if match:
         try:
-            file_date = datetime.strptime(match.group("date"), "%Y-%m-%d").date()
-            return file_date.toordinal(), path.stat().st_mtime, path.name
+            stamp = match.group("date") + ("_" + match.group("time") if match.group("time") else "")
+            file_time = datetime.strptime(stamp, "%Y-%m-%d_%H-%M-%S" if match.group("time") else "%Y-%m-%d")
+            return file_time.timestamp(), path.stat().st_mtime, path.name
         except ValueError:
             pass
     return -1, path.stat().st_mtime, path.name
@@ -210,13 +211,15 @@ def require_existing_excel(project_root: Path, message: str) -> Path:
 
 
 def get_latest_existing_excel_file(project_root: Path):
-    all_excel_files = [Path(path) for path in glob.glob(str(project_root / "点我获取更多图像资源 *.xlsx"))]
+    db_dir = project_root / "resource" / "db"
+    all_excel_files = [path for path in db_dir.glob("点我获取更多图像资源 *.xlsx")
+                       if path.is_file() and image_resource_excel_sort_key(path)[0] >= 0]
     if all_excel_files:
         latest_file = max(all_excel_files, key=image_resource_excel_sort_key)
         print(f"[OK] 使用最近的文件: {latest_file}")
         return latest_file.relative_to(project_root)
 
-    print("Warning: 未找到任何图像资源文件")
+    print("Warning: resource/db 未找到图像资源 Excel 快照")
     return None
 
 
@@ -255,7 +258,7 @@ def main():
     try:
         latest_excel = require_existing_excel(
             project_root,
-            "未找到已有的图像资源 Excel，打包已中断。发布前应独立运行图像资源校验流程，"
+            "resource/db 未找到已有的图像资源 Excel，打包已中断。发布前应独立运行图像资源校验流程，"
             "完成人工审核和资源 PR 后，再从干净的发行 tag 工作树打包。",
         )
     except (FileNotFoundError, RuntimeError) as exc:
