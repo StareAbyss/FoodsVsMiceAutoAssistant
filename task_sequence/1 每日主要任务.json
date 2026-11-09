@@ -100,7 +100,7 @@
     {
         "task_type": "战斗",
         "task_id": 8,
-        "enabled": true,
+        "enabled": false,
         "alias": "勇士本",
         "tooltip": "",
         "task_args": {
