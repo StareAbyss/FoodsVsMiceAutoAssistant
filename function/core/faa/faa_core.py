@@ -922,8 +922,8 @@ class FAABase:
         self.print_info(text="战斗中识图查找连携卡位置, 结果：{}".format(self.kun_cards_info))
 
         for attribute, name, role, detected_cards in (
-            ("timer_info", "美味计时器", ROLE_TIMER, timer_card_dict),
-            ("dragon_pot_info", "转龙壶", ROLE_DRAGON_POT, dragon_pot_card_dict),
+                ("timer_info", "美味计时器", ROLE_TIMER, timer_card_dict),
+                ("dragon_pot_info", "转龙壶", ROLE_DRAGON_POT, dragon_pot_card_dict),
         ):
             card_info = None
             for variant, coordinate in detected_cards.items():
@@ -1245,8 +1245,8 @@ class FAABase:
             )
 
             for support_info, support_role in (
-                (timer_info, ROLE_TIMER),
-                (dragon_pot_info, ROLE_DRAGON_POT),
+                    (timer_info, ROLE_TIMER),
+                    (dragon_pot_info, ROLE_DRAGON_POT),
             ):
                 support_card = build_auto_cooldown_card(support_info, list_cell_all)
                 if support_card:
@@ -1949,7 +1949,8 @@ class FAABase:
                     click=True,
                 ):
                     # 自动登录可能已经越过登录页；交由后续公告和主页识别确认。
-                    self.print_debug(text=f"[刷新游戏] [第{fresh_count}轮] [QQ登录] 未找到密码登录入口，继续等待游戏加载")
+                    self.print_debug(
+                        text=f"[刷新游戏] [第{fresh_count}轮] [QQ登录] 未找到密码登录入口，继续等待游戏加载")
                     return False, ""
 
                 # 确认处于密码登录页后才读取账号，避免自动登录时因未填写密码而误报。
@@ -3611,12 +3612,12 @@ class FAABase:
             return False
         # 背包红叉位于右上角；先确认面板打开，再切换到防御卡栏。
         if not loop_match_p_in_w(
-                source_handle=self.handle,
-                source_root_handle=self.handle_360,
-                source_range=[900, 40, 940, 85],
-                template=g_resources.RESOURCE_P["common"]["退出.png"],
-                match_failed_check=3,
-                click=False):
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=[900, 40, 940, 85],
+            template=g_resources.RESOURCE_P["common"]["退出.png"],
+            match_failed_check=3,
+            click=False):
             return False
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=650, y=65)
         time.sleep(1)

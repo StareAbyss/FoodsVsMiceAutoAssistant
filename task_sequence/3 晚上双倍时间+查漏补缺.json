@@ -505,8 +505,34 @@
         }
     },
     {
-        "task_type": "领取任务奖励",
+        "task_type": "签到",
         "task_id": 19,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "查漏补缺",
+        "task_id": 20,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "领取任务奖励",
+        "task_id": 21,
         "enabled": true,
         "alias": "",
         "tooltip": "",
