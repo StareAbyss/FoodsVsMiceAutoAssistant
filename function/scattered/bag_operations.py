@@ -491,9 +491,15 @@ class _BagTemplates:
         from function.globals import g_resources
 
         self.entries, self.origins, self.calibrated = {}, {}, set()
+        bag_mask = None
+        if any(template.shape[:2] == (44, 44) for template in images.values()):
+            item_resources = g_resources.RESOURCE_P["item"]
+            bag_mask = item_resources["物品-掩模-不绑定.png"].copy()
+            binding = item_resources["物品-绑定角标-背包.png"]
+            # 背包图标可带绑定角标。屏蔽角标及其半透明边缘，让原图同时匹配两种状态。
+            bag_mask[binding[:, :, 3] > 0] = (0, 0, 0, 255)
         for name, template in images.items():
-            mask = (g_resources.RESOURCE_P["item"]["物品-掩模-不绑定.png"]
-                    if template.shape[:2] == (44, 44) else None)
+            mask = bag_mask if template.shape[:2] == (44, 44) else None
             self.entries[name] = (template, mask)
             height, width = template.shape[:2]
             self.origins[name] = (1, 1) if (height, width) == (44, 44) else (

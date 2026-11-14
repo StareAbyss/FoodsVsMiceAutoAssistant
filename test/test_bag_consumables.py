@@ -278,6 +278,24 @@ class CountedBagRoundsTests(unittest.TestCase):
 
 
 class BagQuantityTests(unittest.TestCase):
+    def test_drop_rate_originals_match_with_or_without_backpack_binding_and_quantity(self):
+        from function.common.image_processing.overlay_images import overlay_images
+
+        resources = g_resources.RESOURCE_P["item"]
+        names = ("物品-双暴卡.png", "物品-三暴卡.png")
+        matcher = _BagTemplates({name: resources[name] for name in names})
+        background = np.full((44, 44, 4), [61, 38, 20, 255], dtype=np.uint8)
+        for name in names:
+            for bound in (False, True):
+                with self.subTest(name=name, bound=bound):
+                    icon = overlay_images(background, resources[name])
+                    if bound:
+                        icon = overlay_images(icon, resources["物品-绑定角标-背包.png"])
+                    icon[36:42, 36:43, :3] = 255
+                    cell = np.zeros((49, 49, 4), dtype=np.uint8)
+                    cell[1:45, 1:45] = icon
+                    self.assertEqual([target for target in names if matcher.matches(cell, target)], [name])
+
     def test_last_item_replaced_by_another_one_is_not_retried_or_used(self):
         original = np.ones((596, 950, 3), np.uint8)
         replacement = np.full_like(original, 2)
@@ -394,14 +412,23 @@ class DoubleCardScheduleTests(unittest.TestCase):
             self.assertEqual(str(clock.now.call_args.args[0]), "Asia/Shanghai")
             faa.use_bag_consumables.assert_called_once_with(items={"物品-双暴卡.png": 3})
 
+    def test_three_times_uses_only_the_three_times_drop_rate_card(self):
+        faa = SimpleNamespace(use_bag_consumables=Mock())
+        with patch("function.core.faa.faa_core.datetime") as clock:
+            clock.now.return_value.weekday.return_value = 0
+            FAABase.use_items_double_card(faa, max_times=2, multiplier=3)
+        faa.use_bag_consumables.assert_called_once_with(items={"物品-三暴卡.png": 2})
+
     def test_weekends_skip(self):
         for weekday in (5, 6):
-            faa = SimpleNamespace(use_bag_consumables=Mock())
-            with self.subTest(weekday=weekday), patch("function.core.faa.faa_core.datetime") as clock, \
-                    patch("function.globals.SIGNAL.PRINT_TO_UI", SimpleNamespace(emit=Mock())):
-                clock.now.return_value.weekday.return_value = weekday
-                FAABase.use_items_double_card(faa, 3)
-            faa.use_bag_consumables.assert_not_called()
+            for multiplier in (2, 3):
+                faa = SimpleNamespace(use_bag_consumables=Mock())
+                with self.subTest(weekday=weekday, multiplier=multiplier), \
+                        patch("function.core.faa.faa_core.datetime") as clock, \
+                        patch("function.globals.SIGNAL.PRINT_TO_UI", SimpleNamespace(emit=Mock())):
+                    clock.now.return_value.weekday.return_value = weekday
+                    FAABase.use_items_double_card(faa, 3, multiplier=multiplier)
+                faa.use_bag_consumables.assert_not_called()
 
 
 class BagTaskEntryTests(unittest.TestCase):
