@@ -995,9 +995,9 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=title_text)
 
-    def batch_use_items_double_card(self, player: list = None, max_times: int = 1):
+    def batch_use_items_double_card(self, player: list = None, max_times: int = 1, multiplier: int = 2):
 
-        title_text = "使用双爆卡"
+        title_text = f"使用{multiplier}倍爆率卡"
 
         player = self.check_player(title=title_text, player=player)
 
@@ -1008,7 +1008,7 @@ class ThreadTodo(QThread):
             self.thread_1p = ThreadWithException(
                 target=self.faa_dict[1].use_items_double_card,
                 name="1P Thread - UseItems - DoubleCard",
-                kwargs={"max_times": max_times})
+                kwargs={"max_times": max_times, "multiplier": multiplier})
             self.thread_1p.start()
 
         if 2 in player and 1 in player:
@@ -1018,7 +1018,7 @@ class ThreadTodo(QThread):
             self.thread_2p = ThreadWithException(
                 target=self.faa_dict[2].use_items_double_card,
                 name="2P Thread - UseItems - DoubleCard",
-                kwargs={"max_times": max_times})
+                kwargs={"max_times": max_times, "multiplier": multiplier})
             self.thread_2p.start()
 
         if 1 in player:
@@ -3017,7 +3017,8 @@ class ThreadTodo(QThread):
                 case "双暴卡":
                     self.batch_use_items_double_card(
                         player=task["task_args"]["player"],
-                        max_times=task["task_args"]["max_times"]
+                        max_times=task["task_args"]["max_times"],
+                        multiplier=task["task_args"].get("multiplier", 2),
                     )
                     main_task_active = True
 

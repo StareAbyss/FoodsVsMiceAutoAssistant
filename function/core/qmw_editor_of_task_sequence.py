@@ -345,7 +345,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 'FAA第三代全自动美食大赛模块\n'
                 '会自动触发美食大赛进度领取',
             '双暴卡':
-                '使用双暴卡',
+                '使用2倍或3倍爆率卡，周六、周日跳过',
             '使用消耗品':
                 '使用背包中的消耗品',
             '清背包':
@@ -455,6 +455,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 task["task_args"] = {
                     "player": [1, 2],  # or [1] [2]
                     "max_times": 1,
+                    "multiplier": 2,
                 }
             case '刷新游戏':
                 task["task_args"] = {
@@ -867,7 +868,14 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
             addElement(line_layout=line_layout, label_widget=PlayerLabel, input_widget=PlayerComboBox)
 
-            # 战斗次数
+            MultiplierComboBox = QComboBox()
+            MultiplierComboBox.setObjectName("w_multiplier")
+            MultiplierComboBox.addItem("2倍爆率", 2)
+            MultiplierComboBox.addItem("3倍爆率", 3)
+            MultiplierComboBox.setCurrentIndex(MultiplierComboBox.findData(task["task_args"].get("multiplier", 2)))
+            addElement(line_layout=line_layout, label_widget=QLabel('倍率'), input_widget=MultiplierComboBox)
+
+            # 使用次数
             TimesLabel = QLabel('次数')
             MaxTimesSpinBox = QSpinBox()
             MaxTimesSpinBox.setObjectName("w_max_times")
@@ -1301,6 +1309,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
                 case "双暴卡":
                     task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
+                    MultiplierComboBox = LineWidget.findChild(QComboBox, 'w_multiplier')
+                    task_args['multiplier'] = MultiplierComboBox.currentData()
 
                     # 最大次数
                     MaxTimesSpinBox = LineWidget.findChild(QSpinBox, 'w_max_times')

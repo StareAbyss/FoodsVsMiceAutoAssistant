@@ -3529,19 +3529,26 @@ class FAABase:
             use_ready=use_ready
         )
 
-    def use_items_double_card(self: "FAA", max_times: int) -> None:
-        """工作日使用指定次数的双暴卡，周六和周日跳过。
+    def use_items_double_card(self: "FAA", max_times: int, multiplier: int = 2) -> None:
+        """工作日使用指定倍率的爆率卡，周六和周日跳过。
 
         Args:
             max_times: 计划消耗数量；确认扣减后计数，连续失败由通用背包入口停止。
+            multiplier: 2倍或3倍爆率，旧任务默认2倍。
 
         Returns:
             None: 周末直接返回，工作日使用后返回。
+
+        Raises:
+            ValueError: 倍率不受支持，未操作背包。
         """
+        templates = {2: "物品-双暴卡.png", 3: "物品-三暴卡.png"}
+        if type(multiplier) is not int or multiplier not in templates:
+            raise ValueError(f"爆率卡倍率仅支持2或3，收到 {multiplier!r}")
         if datetime.now(pytz.timezone("Asia/Shanghai")).weekday() >= 5:
-            SIGNAL.PRINT_TO_UI.emit(text="[使用双暴卡] 今天是星期六 / 星期日, 跳过")
+            SIGNAL.PRINT_TO_UI.emit(text=f"[使用{multiplier}倍爆率卡] 今天是周六或周日，跳过")
             return
-        self.use_bag_consumables(items={"物品-双暴卡.png": max_times})
+        self.use_bag_consumables(items={templates[multiplier]: max_times})
 
     def _wait_level_2_password_dialog(self: "FAA") -> bool:
         """
