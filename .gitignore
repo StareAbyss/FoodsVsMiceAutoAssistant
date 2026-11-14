@@ -64,6 +64,7 @@ test/**/output/**/*.npy
 /battle_plan/测试.json
 /task_sequence/测试.json
 /tool/optimization/calculation_grind_chest.py
+/docs/ai_agent_todo_list/FAA内部组件化重构TODO.md
 
 # 忽略从图像资源数据库导出的本地 Excel
 /点我获取更多图像资源 *.xlsx
