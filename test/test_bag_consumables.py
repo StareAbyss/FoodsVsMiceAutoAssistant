@@ -1,5 +1,9 @@
 """背包物品配额、数量核对和三次未减少防护；全部使用假窗口。"""
 
+from contextlib import contextmanager
+import json
+import os
+from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock, patch
@@ -8,11 +12,12 @@ import numpy as np
 
 from function.core.faa.faa_core import FAABase
 from function.globals import g_resources
+from function.scattered.bag_consumable_outcomes import BagConsumableOutcomes, OUTCOME_FILENAME, icon_digest
 from function.scattered.bag_operations import (
     BagItem, _BagPage, _BagPages, _BagRow, _BagTemplates, _BagUseSession, _wait_bag_count, read_bag_item_count,
     _use_selected_bag_consumable, use_bag_consumables, use_targeted_consumables,
 )
-from contextlib import contextmanager
+from test.output_paths import get_test_output_dir
 
 
 @contextmanager
@@ -80,18 +85,15 @@ class BagDictionaryTests(unittest.TestCase):
         def count(_faa, point, _control=None, previous=None, **_kwargs):
             return stock[points[tuple(point)]]
 
-        def matcher(**kwargs):
-            return (2, (20, 30)) if "source_img" not in kwargs and kwargs["template"] is \
-                g_resources.RESOURCE_P["item"]["物品-背包-使用.png"] else (1, None)
-
-        with patch("function.scattered.bag_operations._BagPages", return_value=pages), \
+        with patch("function.scattered.bag_operations.BagConsumableOutcomes") as outcomes, \
+                patch("function.scattered.bag_operations._BagPages", return_value=pages), \
                 patch("function.scattered.bag_operations._wait_bag_count", side_effect=count), \
-                patch("function.scattered.bag_operations.read_bag_item_count", side_effect=lambda _image, point: stock[points[tuple(point)]]), \
                 patch("function.scattered.bag_operations.sort_equipment_inventory", side_effect=lambda *_args: events.append("sort")), \
-                patch("function.common.bg_img_match.match_p_in_w", side_effect=matcher), \
+                patch("function.scattered.bag_operations._find_bag_use_button", return_value=(486, 116)), \
                 patch("function.common.bg_img_screenshot.capture_image_png", return_value=np.zeros((596, 950, 4), np.uint8)), \
                 patch("function.globals.thread_action_queue.T_ACTION_QUEUE_TIMER.add_click_to_queue", side_effect=click), \
                 patch("function.globals.SIGNAL.DIALOG", self.dialog), virtual_clock():
+            outcomes.return_value.get.return_value = frozenset({"none"})
             result = FAABase.use_bag_consumables(self.faa, items=items, scan_only=scan_only)
         return result, submitted
 
@@ -184,6 +186,7 @@ class BagDictionaryTests(unittest.TestCase):
 
         with patch("function.scattered.bag_operations._BagPages", return_value=pages), \
                 patch("function.scattered.bag_operations._BagUseSession.use", use), \
+                patch("function.scattered.bag_operations.BagConsumableOutcomes"), \
                 patch("function.scattered.bag_operations.sort_equipment_inventory"), virtual_clock():
             result = use_bag_consumables(self.faa, {"A.png": 3})
         self.assertEqual(result, {"A.png": 3})
@@ -191,15 +194,13 @@ class BagDictionaryTests(unittest.TestCase):
 
 
 class BagRewardCloseTests(unittest.TestCase):
-    def exercise(self, frames, window="gift"):
+    def exercise(self, frames, window="gift", outcomes=(), preferred=None):
         """模拟使用菜单延迟退出及奖励关闭动画，执行真实单件处理。"""
         sequence = iter(frames)
         self.clicks = []
         self.capture = Mock(side_effect=lambda **_kwargs: next(sequence, frames[-1]))
 
         def match(**kwargs):
-            if "source_img" not in kwargs:
-                return 2, (20, 30)
             frame, template = kwargs["source_img"], kwargs["template"]
             rect = [680, 188, 714, 218] if window == "gift" else [432, 178, 466, 208]
             if kwargs["source_range"] == rect:
@@ -212,32 +213,127 @@ class BagRewardCloseTests(unittest.TestCase):
 
         with patch("function.common.bg_img_match.match_p_in_w", side_effect=match), \
                 patch("function.common.bg_img_screenshot.capture_image_png", self.capture), \
-                patch("function.scattered.bag_operations.read_bag_item_count", side_effect=lambda image, _point: 1 if image == "closed" else 2), \
                 patch("function.globals.thread_action_queue.T_ACTION_QUEUE_TIMER.add_click_to_queue",
-                      side_effect=lambda **kwargs: self.clicks.append((kwargs["x"], kwargs["y"]))), virtual_clock():
-            return _use_selected_bag_consumable(SimpleNamespace(handle=1, handle_360=2), ("A",), (490, 112), previous_count=2)
+                      side_effect=lambda **kwargs: self.clicks.append((kwargs["x"], kwargs["y"]))), virtual_clock() as (_, delays):
+            self.delays = delays
+            return _use_selected_bag_consumable(SimpleNamespace(handle=1, handle_360=2), ("A",), (490, 112),
+                                                outcomes=outcomes, preferred=preferred)
 
     def test_delayed_reward_and_hover_close_wait_for_real_disappearance(self):
         for window, point in (("single", (448, 192)), ("gift", (696, 202))):
             for reward in ("reward", "hover"):
                 with self.subTest(window=window, reward=reward):
-                    self.assertEqual(self.exercise(["menu", "pending", "pending", reward, reward, reward, "closed"], window), 1)
+                    self.assertEqual(self.exercise(["menu", "pending", "pending", reward, reward, reward, "closed"], window),
+                                     "single" if window == "single" else "multiple")
                     self.assertEqual(self.clicks, [(490, 112), (486, 116), point])
                     self.assertEqual(self.capture.call_count, 7)
 
     def test_stuck_reward_stops_without_repeated_close_or_consumption(self):
-        with self.assertRaisesRegex(RuntimeError, "3秒内未关闭"):
-            self.exercise(["reward"])
+        with self.assertRaisesRegex(RuntimeError, "2秒内未关闭"):
+            self.exercise(["menu", "reward"])
         self.assertEqual(self.clicks, [(490, 112), (486, 116), (696, 202)])
 
     def test_no_reward_window_never_clicks_a_fixed_close_point(self):
-        self.assertEqual(self.exercise(["pending", "closed", "closed"]), 1)
+        self.assertEqual(self.exercise(["menu", "closed"]), "none")
         self.assertEqual(self.clicks, [(490, 112), (486, 116)])
+        self.assertAlmostEqual(sum(self.delays), 2.25)
+        self.assertEqual(self.exercise(["menu", "closed"], outcomes={"none"}), "none")
+        self.assertEqual(self.delays, [.2, .05])
+
+    def test_expected_reward_timeout_defers_to_count_verification(self):
+        self.assertEqual(self.exercise(["menu", "closed"], outcomes={"multiple"}), "none")
+        self.assertAlmostEqual(sum(self.delays), 2.25)
+        self.assertEqual(self.clicks, [(490, 112), (486, 116)])
+
+    def test_learned_popup_type_still_accepts_the_other_verified_position(self):
+        self.assertEqual(self.exercise(["menu", "reward", "closed"], window="single", outcomes={"multiple"}), "single")
+        self.assertEqual(self.clicks, [(490, 112), (486, 116), (448, 192)])
+
+    def test_new_stack_with_possible_popup_waits_even_if_no_popup_is_also_known(self):
+        known = {"none", "multiple"}
+        self.assertEqual(self.exercise(["menu", "closed"], outcomes=known), "none")
+        self.assertAlmostEqual(sum(self.delays), 2.25)
+        self.assertEqual(self.exercise(["menu", "closed"], outcomes=known, preferred="none"), "none")
+        self.assertEqual(self.delays, [.2, .05])
 
     def test_recognition_error_does_not_count_as_closed(self):
         with self.assertRaisesRegex(RuntimeError, "奖励窗识别失败"):
-            self.exercise(["error"])
+            self.exercise(["menu", "error"])
         self.assertEqual(self.clicks, [(490, 112), (486, 116)])
+
+
+class BagOutcomeCacheTests(unittest.TestCase):
+    def test_sha256_uses_actual_image_and_ignores_opaque_alpha_channel(self):
+        image = np.full((44, 44, 4), 255, dtype=np.uint8)
+        self.assertEqual(icon_digest(image), icon_digest(image[:, :, :3].copy()))
+        changed = image.copy()
+        changed[2, 5, 1] = 0
+        self.assertNotEqual(icon_digest(image), icon_digest(changed))
+
+    def test_preserves_three_lists_and_shares_learned_result_across_players(self):
+        from function.globals.get_paths import PATHS
+
+        with TemporaryDirectory(dir=get_test_output_dir("card_enhancer_runtime", "unit")) as folder, \
+                patch.dict(PATHS, {"logs": folder}):
+            seed = os.path.join(PATHS["root"], "resource", "template", OUTCOME_FILENAME)
+            with open(seed, encoding="utf-8") as stream:
+                expected = json.load(stream)
+            first, second = BagConsumableOutcomes(), BagConsumableOutcomes()
+            with open(first.path, encoding="utf-8") as stream:
+                self.assertEqual(json.load(stream), expected)
+            first.learn("1" * 64, "single")
+            second.learn("2" * 64, "none")
+            self.assertEqual(first.get("2" * 64), {"none"})
+            self.assertEqual(second.get("1" * 64), {"single"})
+            first.learn("1" * 64, "multiple")
+            with open(first.path, encoding="utf-8") as stream:
+                result = json.load(stream)
+            self.assertIn("1" * 64, result["single"])
+            self.assertIn("1" * 64, result["multiple"])
+            self.assertIn("2" * 64, result["none"])
+            with patch("function.scattered.bag_consumable_outcomes._CURRENT", {}):
+                self.assertEqual(BagConsumableOutcomes().get("1" * 64), {"single", "multiple"})
+
+    def test_failed_deduction_does_not_learn_a_scene(self):
+        faa = SimpleNamespace(handle=1, handle_360=2)
+        with patch("function.scattered.bag_operations.BagConsumableOutcomes") as cache, \
+                patch("function.scattered.bag_operations._wait_bag_count", side_effect=[4, 4, 4, 3]), \
+                patch("function.scattered.bag_operations._use_selected_bag_consumable", return_value="none"):
+            cache.return_value.get.return_value = frozenset()
+            session = _BagUseSession(faa, {"A": 2}, digests={"A": "1" * 64})
+            self.assertEqual(session.use("A", (490, 112)), 4)
+            cache.return_value.learn.assert_not_called()
+            self.assertEqual(session.use("A", (490, 112)), 3)
+            cache.return_value.learn.assert_called_once_with("1" * 64, "none")
+
+    def test_confirmed_popup_is_preferred_only_for_the_current_stack(self):
+        faa = SimpleNamespace(handle=1, handle_360=2)
+        digest = "1" * 64
+        known = frozenset({"single", "multiple"})
+        with patch("function.scattered.bag_operations.BagConsumableOutcomes") as cache, \
+                patch("function.scattered.bag_operations._wait_bag_count", side_effect=[3, 2, 2, 1, 2, 1]), \
+                patch("function.scattered.bag_operations._use_selected_bag_consumable",
+                      side_effect=["multiple", "multiple", "single"]) as use:
+            cache.return_value.get.side_effect = [frozenset({"single"}), known, known]
+            session = _BagUseSession(faa, {"A": 3}, digests={"A": digest})
+            session.use("A", (490, 112))
+            session.use("A", (490, 112))
+            session.begin_stack()
+            session.use("A", (539, 112))
+        self.assertEqual([call.kwargs["preferred"] for call in use.call_args_list], [None, "multiple", None])
+        cache.return_value.learn.assert_called_once_with(digest, "multiple")
+
+    def test_expected_popup_absent_and_quantity_unchanged_stops_without_learning(self):
+        faa = SimpleNamespace(handle=1, handle_360=2)
+        with patch("function.scattered.bag_operations.BagConsumableOutcomes") as cache, \
+                patch("function.scattered.bag_operations._wait_bag_count", side_effect=[4, 4]), \
+                patch("function.scattered.bag_operations._use_selected_bag_consumable", return_value="none") as use:
+            cache.return_value.get.return_value = {"single"}
+            session = _BagUseSession(faa, {"A": 2}, digests={"A": "1" * 64})
+            with self.assertRaisesRegex(RuntimeError, "未确认奖励窗或数量扣减"):
+                session.use("A", (490, 112))
+        use.assert_called_once()
+        cache.return_value.learn.assert_not_called()
 
 
 class CountedBagRoundsTests(unittest.TestCase):
@@ -304,12 +400,14 @@ class BagQuantityTests(unittest.TestCase):
         session = _BagUseSession(SimpleNamespace(handle=1, handle_360=2), {"A": 2}, templates=templates)
 
         with patch("function.common.bg_img_screenshot.capture_image_png", side_effect=lambda **_kwargs: current[0]), \
+                patch("function.scattered.bag_operations.find_bag_reward_close", return_value=None), \
+                patch("function.scattered.bag_operations._find_bag_use_button", return_value=None), \
                 patch("function.scattered.bag_operations._use_selected_bag_consumable",
                       side_effect=lambda *_args, **_kwargs: current.__setitem__(0, replacement)) as consume, virtual_clock():
             self.assertEqual(session.use("A", (490, 112)), 0)
             self.assertEqual(session.used, {"A": 1})
             self.assertEqual(session.failures, {"A": 0})
-            with self.assertRaisesRegex(RuntimeError, "无法识别"):
+            with self.assertRaisesRegex(RuntimeError, "无法确认"):
                 session.use("A", (490, 112))
         consume.assert_called_once()
 
@@ -380,9 +478,11 @@ class BagQuantityTests(unittest.TestCase):
 
     def test_unreadable_count_never_becomes_full_bag_failure(self):
         with patch("function.common.bg_img_screenshot.capture_image_png"), \
+                patch("function.scattered.bag_operations.find_bag_reward_close", return_value=None), \
+                patch("function.scattered.bag_operations._find_bag_use_button", return_value=None), \
                 patch("function.scattered.bag_operations.read_bag_item_count", return_value=None), \
                 patch("function.globals.SIGNAL.DIALOG", Mock()) as dialog, virtual_clock():
-            with self.assertRaisesRegex(RuntimeError, "无法识别"):
+            with self.assertRaisesRegex(RuntimeError, "无法确认"):
                 _wait_bag_count(SimpleNamespace(handle=1, handle_360=2), (490, 112), previous=20)
         dialog.emit.assert_not_called()
 
