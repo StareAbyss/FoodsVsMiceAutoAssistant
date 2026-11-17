@@ -109,11 +109,6 @@
         "first_num": 1,
         "second_num": 2
     },
-    "tce": {
-        "enhance_card_active": false,
-        "decompose_gem_active": false,
-        "tce_path": ""
-    },
     "skin_type": 1,
     "qq_login_info": {
         "use_password": false

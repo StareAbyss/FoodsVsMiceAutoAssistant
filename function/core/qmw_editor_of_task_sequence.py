@@ -403,9 +403,6 @@ class QMWEditorOfTaskSequence(QMainWindow):
             '跨服刷威望':
                 '跨服务器刷取威望值\n'
                 '无限执行直到被其他定时任务中止/手动停止',
-            '天知强卡器':
-                '联动激活天知强卡器\n'
-                '无限执行直到被其他定时任务中止/手动停止/天知强卡器自爆',
             '拓展脚本':
                 '使用FAA-拓展脚本编辑器编写\n'
                 '再在此处调用, 可以实现刷技能/抽奖池等简单的功能~',
@@ -531,10 +528,6 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     "player": [1, 2],  # or [1] [2]
                 }
             case '跨服刷威望':
-                task["task_args"] = {
-                    "player": [1, 2],  # or [1] [2]
-                }
-            case '天知强卡器':
                 task["task_args"] = {
                     "player": [1, 2],  # or [1] [2]
                 }
@@ -995,10 +988,6 @@ class QMWEditorOfTaskSequence(QMainWindow):
             # Player
             addElement_player_normal(line_layout=line_layout)
 
-        def card_enhancer(line_layout):
-            # Player
-            addElement_player_normal(line_layout=line_layout)
-
         def custom_extension_addon_script(line_layout):
 
             # Player
@@ -1110,8 +1099,6 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 check_for_gaps(line_layout=line_layout)
             case '跨服刷威望':
                 cross_server_prestige(line_layout=line_layout)
-            case '天知强卡器':
-                card_enhancer(line_layout=line_layout)
             case '拓展脚本':
                 custom_extension_addon_script(line_layout=line_layout)
             case '美食大赛':
@@ -1121,6 +1108,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 battle(line_layout=line_layout)
             case '任务序列':
                 task_sequence(line_layout=line_layout)
+            case _:
+                line_layout.addWidget(QLabel("当前版本不支持此任务，执行时会跳过"))
 
         # 创建一个水平弹簧
         spacer = QSpacerItem(5, 15, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.MinimumExpanding)
@@ -1392,9 +1381,6 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 case "跨服刷威望":
                     task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
 
-                case "天知强卡器":
-                    task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
-
                 case '拓展脚本':
                     ScriptPathLineEdit = LineWidget.findChild(QLineEdit, 'w_script_path')
                     task_args['script_path'] = ScriptPathLineEdit.text()
@@ -1462,6 +1448,9 @@ class QMWEditorOfTaskSequence(QMainWindow):
                             'task_sequence_uuid', "00000000-0000-0000-0000-000000000000")
 
                     task_args['task_sequence_uuid'] = uuid
+
+                case _:
+                    task_args = original_task_data.get('task_args', {})
 
             data_line["task_args"] = task_args
 
