@@ -535,10 +535,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
         init_battle_plan(self.CustomizeBattle_1P, my_opt["customize_battle"]["battle_plan_1p"])
         init_battle_plan(self.CustomizeBattle_2P, my_opt["customize_battle"]["battle_plan_2p"])
 
-        # 启动天知强卡器
-        self.StartTCE_Active.setChecked(my_opt["tce"]["active"])
-        self.TCE_Group.setCurrentText(my_opt["tce"]["player"])
-
         # 一个提示弹窗
         self.cant_find_battle_plan_in_uuid_show_dialog()
 
@@ -800,12 +796,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.skin10.toggled.connect(self.on_skin_state_changed)
             self.skin11.toggled.connect(self.on_skin_state_changed)
 
-        def tce_settings() -> None:
-            my_opt = self.opt["tce"]
-            self.TCEEnhanceCard_Active.setChecked(my_opt["enhance_card_active"])
-            self.TCEDecomposeGem_Active.setChecked(my_opt["decompose_gem_active"])
-            self.TCE_path_input.setText(my_opt["tce_path"])
-
         def login_qq_space_info_ui() -> None:
             """读取 QQ 空间登录设置与内存中的账号密码。"""
 
@@ -837,7 +827,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
         level_2()
         skin_set()
         accelerate_settings()
-        tce_settings()
         login_qq_space_info_ui()
         login_4399_info_ui()
 
@@ -1076,10 +1065,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
         my_transformer_b(self.CustomizeBattle_1P, "customize_battle", "battle_plan_1p")
         my_transformer_b(self.CustomizeBattle_2P, "customize_battle", "battle_plan_2p")
 
-        # 天知强卡器
-        my_opt["tce"]["active"] = self.StartTCE_Active.isChecked()
-        my_opt["tce"]["player"] = self.TCE_Group.currentText()
-
     def ui_to_opt(self) -> None:
 
         def base_settings() -> None:
@@ -1309,12 +1294,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["2p"]["active"] = self.Level2_2P_Active.isChecked()
             credentials["2p"]["password"] = self.Level2_2P_Password.text()
 
-        def tce_settings() -> None:
-            my_opt = self.opt["tce"]
-            my_opt["enhance_card_active"] = self.TCEEnhanceCard_Active.isChecked()
-            my_opt["decompose_gem_active"] = self.TCEDecomposeGem_Active.isChecked()
-            my_opt["tce_path"] = self.TCE_path_input.text()
-
         def login_qq_space_info_opt() -> None:
             """将 QQ 空间登录设置和账号密码写入内存配置。"""
             my_opt = self.opt["qq_login_info"]
@@ -1347,7 +1326,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
         login_settings()
         skin_settings()
         level_2()
-        tce_settings()
         login_qq_space_info_opt()
         login_4399_info_opt()
 

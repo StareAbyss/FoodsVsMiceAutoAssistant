@@ -15,7 +15,7 @@ import psutil
 import win32con
 import win32gui
 from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtWidgets import QMessageBox, QFileDialog, QVBoxLayout, QPushButton, QWidget
+from PyQt6.QtWidgets import QMessageBox, QVBoxLayout, QPushButton, QWidget
 
 from function.common.process_manager import get_path_and_sub_titles
 from function.common.startup_manager import *
@@ -318,9 +318,6 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 一键获取路径与窗口名
         self.oneclick_getpath.clicked.connect(self.click_btn_set_360_path)
-
-        # 选择天知强卡器路径
-        self.TCE_path_select_btn.clicked.connect(self.click_btn_select_tce_path)
 
         # 重启应用程序按钮
         self.Button_Refreshed.clicked.connect(self.restart_application)
@@ -1478,22 +1475,6 @@ class QMainWindowService(QMainWindowLoadSettings):
         # self.Name1P_Input.setText(name_1p)
         # if name_2p:
         #     self.Name2P_Input.setText(name_2p)
-
-    def click_btn_select_tce_path(self):
-        file_dialog = QFileDialog()
-        file_dialog.setFileMode(QFileDialog.FileMode.ExistingFile)  # 选择已存在的文件
-        file_dialog.setNameFilter("Executable Files (*.exe)")  # 过滤文件类型
-
-        if file_dialog.exec():
-            selected_files = file_dialog.selectedFiles()
-            if selected_files:
-                file_path = selected_files[0]
-                if file_path.lower().endswith("天知强卡器.exe") or file_path.lower().endswith(
-                        r"\天知强卡器.exe"):  # 增加了对文件名的判断，做了兼容
-                    self.TCE_path_input.setText(file_path)
-                else:
-                    QMessageBox.warning(self, "警告", "请选择名为 '天知强卡器.exe' 的文件！")
-                    self.TCE_path_input.clear()
 
     def click_btn_reset_card_status_memory(self):
         # 弹出是或否选项

@@ -2,7 +2,6 @@ import copy
 import datetime
 import json
 import os
-import subprocess
 import time
 
 from function.core.qmw_task_plan_editor import init_db
@@ -12,12 +11,10 @@ from function.scattered.split_task import load_tasks_from_db_and_create_puzzle
 from collections import defaultdict
 from time import sleep
 
-import psutil
 import requests
 from PyQt6.QtCore import *
 from requests import RequestException
 
-from function.common.tce_pipe_communication_thread import TCEPipeCommunicationThread
 from function.common.bg_img_match import loop_match_p_in_w, match_p_in_w
 from function.common.process_manager import close_software_by_title, get_path_and_sub_titles, \
     close_all_software_by_name, start_software_with_args
@@ -3139,13 +3136,6 @@ class ThreadTodo(QThread):
                     main_task_active = True
                     active_singleton = False
 
-                case "天知强卡器":
-                    self.tce(
-                        player=task["task_args"]["player"]
-                    )
-                    main_task_active = True
-                    active_singleton = False
-
                 case '拓展脚本':
                     self.extension_addon(
                         script_path=task["task_args"]["script_path"],
@@ -3656,100 +3646,6 @@ class ThreadTodo(QThread):
             self.model_end_print(text=text_)
 
         return auto_food_main()
-
-    """
-    天知强卡器
-    """
-
-    def tce(self, player: str):
-        """
-        :param player: "1P" or "2P"
-        :return:
-        """
-
-        if (not self.opt["tce"]["enhance_card_active"]) and (not self.opt["tce"]["decompose_gem_active"]):
-            SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 未开启任何功能 不启动!", color_level=1)
-            return
-
-        SIGNAL.PRINT_TO_UI.emit(text="尝试召唤天知强卡器, 与FAA签订契约, 成为魔法少女吧!", color_level=1)
-
-        # 启动TCE命名管道线程
-        tce_pipe_thread = TCEPipeCommunicationThread()
-        tce_pipe_thread.start()
-
-        # 尝试启动强卡器
-        path = self.opt["tce"]["tce_path"]
-        if not path:
-            SIGNAL.DIALOG.emit(
-                title="前面的功能, 以后再来探索吧!",
-                text="你还没有天知强卡器哦, 所以说你没有资格呐!\n深渊桑: 没有设置路径! 请在进阶设置完成!")
-            return
-
-        tce_sub_process = subprocess.Popen(path, cwd=os.path.dirname(path))
-        tce_start_time = datetime.datetime.now()
-
-        # 等待强卡器连接，最多等待三十秒
-        for _ in range(30):
-            time.sleep(1)
-            if tce_pipe_thread.running:
-                break
-        else:
-            # 强卡器连接失败，关掉管道线程
-            SIGNAL.DIALOG.emit(
-                title="天知强卡器召唤失败T_T",
-                text="和天知强卡器的羁绊还不够!\n深渊桑: 30s内未能建立连接! 请使用v0.4.0+版本的天知强卡器!")
-            tce_pipe_thread.stop()
-
-        if player:
-            handle = self.faa_dict[1].handle
-        else:
-            handle = self.faa_dict[2].handle
-
-        if self.opt["tce"]["enhance_card_active"]:
-            SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 卡片强化开始", color_level=1)
-            tce_pipe_thread.enhance_card(handle)
-            SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 卡片强化完成", color_level=1)
-
-        if self.opt["tce"]["decompose_gem_active"]:
-            SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 宝石分解开始", color_level=1)
-            tce_pipe_thread.decompose_gem(handle)
-            SIGNAL.PRINT_TO_UI.emit(text="[天知强卡器] 宝石分解完成", color_level=1)
-
-        # 关闭TCE命名管道线程
-        tce_pipe_thread.stop()
-
-        time_passed = datetime.datetime.now() - tce_start_time
-
-        def trans_time_to_str(time_passed):
-            # 将时间差转换为天、小时、分钟和秒
-            days = time_passed.days
-            hours, remainder = divmod(time_passed.seconds, 3600)
-            minutes, seconds = divmod(remainder, 60)
-
-            # 根据时间差的不同部分构建输出字符串
-            if days > 0:
-                time_str = "{}天{}小时{}分钟{}秒".format(days, hours, minutes, seconds)
-            elif hours > 0:
-                time_str = "{}小时{}分钟{}秒".format(hours, minutes, seconds)
-            elif minutes > 0:
-                time_str = "{}分钟{}秒".format(minutes, seconds)
-            else:
-                time_str = "{}秒".format(seconds)
-
-            return time_str
-
-        time_str = trans_time_to_str(time_passed)
-
-        SIGNAL.PRINT_TO_UI.emit(
-            text=f"[天知强卡器] 再见了天知强卡器，希望你喜欢这{time_str}来属于你的戏份",
-            color_level=1)
-
-        # 杀死天知强卡器
-        parent = psutil.Process(tce_sub_process.pid)
-        for child in parent.children(recursive=True):
-            child.terminate()
-        parent.terminate()
-        parent.wait(timeout=5)  # 等待进程终止，超时时间为5秒
 
     """
     自定义脚本 - FAA自动化拓展插件
