@@ -6,7 +6,7 @@ import os
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, call, patch
 
 import numpy as np
 
@@ -532,19 +532,24 @@ class DoubleCardScheduleTests(unittest.TestCase):
 
 
 class BagTaskEntryTests(unittest.TestCase):
-    def test_selected_players_use_the_new_entry(self):
+    def test_selected_players_use_consumables_and_report_confirmed_total(self):
         from function.core import todo
 
+        used = {1: {"A.png": 2, "B.png": 3}, 2: {}}
         for players in ([1], [2], [1, 2]):
             with self.subTest(players=players):
                 task = SimpleNamespace(
                     check_player=Mock(return_value=players), model_start_print=Mock(), model_end_print=Mock(),
-                    faa_dict={pid: SimpleNamespace(use_bag_consumables=Mock()) for pid in (1, 2)},
+                    faa_dict={pid: SimpleNamespace(use_bag_consumables=Mock(return_value=used[pid])) for pid in used},
                 )
-                with patch.object(todo, "sleep"):
+                with patch.object(todo, "sleep"), patch("function.globals.SIGNAL.PRINT_TO_UI", Mock()) as output:
                     todo.ThreadTodo.batch_use_bag_consumables(task, player=players)
                 for pid in (1, 2):
                     self.assertEqual(task.faa_dict[pid].use_bag_consumables.call_count, int(pid in players))
+                self.assertCountEqual(output.emit.call_args_list, [
+                    call(text=f"[使用绑定消耗品] [{pid}P] 本次运行总计使用了{sum(used[pid].values())}个物品")
+                    for pid in players
+                ])
                 task.model_end_print.assert_called_once_with(text="使用绑定消耗品")
 
 

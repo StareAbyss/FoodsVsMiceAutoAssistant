@@ -963,6 +963,12 @@ class ThreadTodo(QThread):
 
         title_text = "使用绑定消耗品"
 
+        def use_and_report(player_id):
+            """每位玩家用完后立即播报已确认的消耗量。"""
+            used = self.faa_dict[player_id].use_bag_consumables()
+            total = sum(used.values())
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] [{player_id}P] 本次运行总计使用了{total}个物品")
+
         player = self.check_player(title=title_text, player=player)
 
         self.model_start_print(text=title_text)
@@ -970,9 +976,9 @@ class ThreadTodo(QThread):
         # 创建进程 -> 开始进程 -> 阻塞主进程
         if 1 in player:
             self.thread_1p = ThreadWithException(
-                target=self.faa_dict[1].use_bag_consumables,
+                target=use_and_report,
                 name="1P Thread - UseItems",
-                kwargs={})
+                kwargs={"player_id": 1})
             self.thread_1p.start()
 
         if 1 in player and 2 in player:
@@ -980,9 +986,9 @@ class ThreadTodo(QThread):
 
         if 2 in player:
             self.thread_2p = ThreadWithException(
-                target=self.faa_dict[2].use_bag_consumables,
+                target=use_and_report,
                 name="2P Thread - UseItems",
-                kwargs={})
+                kwargs={"player_id": 2})
             self.thread_2p.start()
 
         if 1 in player:
