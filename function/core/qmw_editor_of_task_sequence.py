@@ -12,6 +12,7 @@ from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSpinBox, QCheckBox, QWidget, QListWidgetItem, QFileDialog, QMessageBox, QApplication, QListWidget, QSpacerItem, \
     QSizePolicy, QFrame, QAbstractItemView, QInputDialog, QToolButton
+from function.widget.MultiLevelMenu import MultiLevelMenu
 from function.widget.SearchableComboBox import SearchableComboBox
 
 from function.globals import EXTRA
@@ -22,6 +23,10 @@ from function.scattered.check_tweak_plan import refresh_all_tweak_plan
 from function.scattered.get_list_battle_plan import get_list_battle_plan, get_list_tweak_plan
 from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
 from function.scattered.get_task_sequence_list import get_task_sequence_list
+from function.scattered.read_json_to_stage_info import build_stage_menu_data
+
+
+DEFAULT_BATTLE_STAGE_ID = "NO-1-7"
 
 
 def QCVerticalLine():
@@ -43,8 +48,8 @@ def QCVerticalLine():
 
 
 def ui_to_list_get_cus_battle_opt(LineWidget, task_args):
-    GlobalPlanActiveCheckBox = LineWidget.findChild(QCheckBox, 'w_global_plan_active')
-    task_args['global_plan_active'] = GlobalPlanActiveCheckBox.isChecked()
+    plan_mode = LineWidget.findChild(QComboBox, 'w_global_plan_active')
+    task_args['global_plan_active'] = plan_mode.currentData()
 
     DeckComboBox = LineWidget.plan_opt_window.findChild(QComboBox, 'w_deck')
     task_args['deck'] = int(DeckComboBox.currentIndex())
@@ -284,6 +289,15 @@ class QMWEditorOfTaskSequence(QMainWindow):
         self.current_task_sequence_meta_data = None
         self.file_path = None
 
+        with open(os.path.join(PATHS["config"], "stage_info.json"), encoding="utf-8") as file:
+            self.stage_menu_data = build_stage_menu_data(json.load(file), include_battle_modes=True)
+        self.stage_labels = {}
+        for category, maps in self.stage_menu_data.items():
+            short_category = "假期" if category == "欢乐假期" else category[:2]
+            for map_name, entries in maps.items():
+                for name, stage_id in entries:
+                    self.stage_labels[stage_id] = (f"{short_category}>{name}", f"{category} > {map_name} > {name}")
+
         # 外观
         self.UICss()
 
@@ -325,7 +339,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 '部分依赖此模块复位的功能中包含了该操作',
             '战斗':
                 '从进入关卡到完成战斗的完整流程\n'
-                '支持几乎所有关卡, 具体请参考右上角的关卡代号一览',
+                '点击关卡名称可从多级菜单选择关卡',
             '公会任务':
                 '扫描并完成公会任务\n'
                 '完整流程:\n'
@@ -439,7 +453,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
         match task_type:
             case '战斗':
                 task["task_args"] = {
-                    "stage_id": "NO-1-7",
+                    "stage_id": DEFAULT_BATTLE_STAGE_ID,
                     "max_times": 1,
                     "need_key": True,
                     "player": [2, 1],
@@ -542,7 +556,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 }
             case '自建房战斗':
                 task["task_args"] = {
-                    "stage_id": "NO-1-7",
+                    "stage_id": DEFAULT_BATTLE_STAGE_ID,
                     "max_times": 1,
                     "need_key": True,
                     "player": [2, 1],
@@ -709,28 +723,30 @@ class QMWEditorOfTaskSequence(QMainWindow):
             addElement(line_layout=line_layout, label_widget=PlayerLabel, input_widget=PlayerComboBox)
 
         def add_custom_plan_widget(line_layout):
+            plan_tooltip = (
+                "继承：优先使用关卡方案，未配置关卡方案时使用全局方案。\n"
+                "独立：使用本条任务单独设置的卡组、1P／2P 战斗方案和微调方案，点击齿轮编辑。"
+            )
+            plan_mode = QComboBox()
+            plan_mode.setObjectName("w_global_plan_active")
+            plan_mode.addItem("继承", True)
+            plan_mode.addItem("独立", False)
+            plan_mode.setCurrentIndex(plan_mode.findData(task["task_args"]["global_plan_active"]))
+            plan_mode.setToolTip(plan_tooltip)
 
-            # 全局关卡方案
-            GlobalPlanActiveCheckBox = QCheckBox()
-            GlobalPlanActiveCheckBox.setObjectName("w_global_plan_active")
-            GlobalPlanActiveCheckBox.setChecked(task["task_args"]["global_plan_active"])
+            plan_label = QLabel("方案")
+            plan_label.setToolTip(plan_tooltip)
             addElement(
                 line_layout=line_layout,
-                label_widget=QLabel('应用全局&关卡方案'),
-                input_widget=GlobalPlanActiveCheckBox)
+                label_widget=plan_label,
+                input_widget=plan_mode,
+                end_line=False)
 
             # 创建齿轮按钮
-            GearLabel = QLabel('独立方案')
-            line_layout.addWidget(GearLabel)
             GearButton = QToolButton()
             GearButton.setObjectName("gear_button")
             GearButton.setText("⚙")
-            if task["task_args"]["global_plan_active"]:
-                GearButton.hide()
-                GearLabel.hide()
-            else:
-                GearButton.show()
-                GearLabel.show()
+            GearButton.setToolTip("编辑独立方案")
             GearButton.setFixedSize(20, 20)
             line_layout.addWidget(GearButton)
 
@@ -779,10 +795,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
             # 定义切换子窗口的函数
             def toggle_options_widget():
-                # 检查全局方案是否激活，如果激活则不允许打开子窗口
-                if GlobalPlanActiveCheckBox.isChecked():
-                    return  # 全局方案激活时不打开子窗口
-
+                """打开或收起本条任务的独立方案设置。"""
                 if options_widget.isVisible():
                     options_widget.hide()
                 else:
@@ -791,28 +804,43 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     options_widget.show()
                     options_widget.move(pos.x(), pos.y() - options_widget.height())
 
-            # 当全局方案状态改变时，同步更新按钮状态
-            def on_global_plan_changed(state):
-                # 如果全局方案被激活，隐藏子窗口
-                if state == Qt.CheckState.Checked.value:
-                    if options_widget.isVisible():
-                        options_widget.hide()
-                    GearButton.hide()
-                    GearLabel.hide()
-                else:
-                    GearButton.show()
-                    GearLabel.show()
+            def update_plan_controls():
+                """仅在独立模式显示齿轮，切回继承时收起独立方案窗口。"""
+                inherit_plan = plan_mode.currentData()
+                GearButton.setVisible(not inherit_plan)
+                if inherit_plan:
+                    options_widget.hide()
 
             GearButton.clicked.connect(toggle_options_widget)
-            GlobalPlanActiveCheckBox.stateChanged.connect(on_global_plan_changed)
+            plan_mode.currentIndexChanged.connect(update_plan_controls)
+            update_plan_controls()
 
         def battle(line_layout):
             # 所选关卡
-            StageIdLineEdit = QLineEdit()
-            StageIdLineEdit.setObjectName("w_stage_id")
-            StageIdLineEdit.setFixedWidth(70)
-            StageIdLineEdit.setText(task["task_args"]["stage_id"])
-            addElement(line_layout=line_layout, label_widget=QLabel('关卡'), input_widget=StageIdLineEdit)
+            stage_selector = MultiLevelMenu()
+            stage_selector.setObjectName("w_stage_id")
+            stage_selector.setStyleSheet("text-align: left; padding-left: 5px;")
+            # 以 FAA 字体下的“主线>魔塔蛋糕第100层”测量，包含内置皮肤的按钮边距和菜单箭头。
+            stage_selector.setFixedWidth(161)
+
+            def show_stage(stage_id):
+                """显示关卡简称，并保存执行战斗所需的关卡编号。"""
+                if not isinstance(stage_id, str) or stage_id not in self.stage_labels:
+                    stage_id = DEFAULT_BATTLE_STAGE_ID
+                label, full_path = self.stage_labels[stage_id]
+                stage_selector.setText(label)
+                stage_selector.setToolTip(full_path)
+                stage_selector.setProperty("stage_id", stage_id)
+
+            def populate_stage_menu():
+                """首次展开时创建菜单，避免加载长序列时为每一行预建全部选项。"""
+                stage_selector.add_menu(data=self.stage_menu_data)
+                stage_selector.menu.aboutToShow.disconnect(populate_stage_menu)
+
+            show_stage(task["task_args"].get("stage_id"))
+            stage_selector.on_selected.connect(lambda _, stage_id: show_stage(stage_id))
+            stage_selector.menu.aboutToShow.connect(populate_stage_menu)
+            addElement(line_layout=line_layout, label_widget=QLabel('关卡'), input_widget=stage_selector)
 
             # 战斗次数
             MaxTimesSpinBox = QSpinBox()
@@ -1065,7 +1093,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             addElement(line_layout=line_layout, label_widget=TaskSequenceLabel, input_widget=TaskSequenceComboBox)
 
         match task_type:
-            case '战斗':
+            case '战斗' | '自建房战斗':
                 battle(line_layout=line_layout)
             case '双暴卡':
                 double_card(line_layout=line_layout)
@@ -1104,8 +1132,6 @@ class QMWEditorOfTaskSequence(QMainWindow):
             case '美食大赛':
                 # 美食大赛任务没有参数，所以不需要添加任何控件
                 pass
-            case '自建房战斗':
-                battle(line_layout=line_layout)
             case '任务序列':
                 task_sequence(line_layout=line_layout)
             case _:
@@ -1269,9 +1295,9 @@ class QMWEditorOfTaskSequence(QMainWindow):
             task_args = data_line["task_args"]
 
             match task_type:
-                case '战斗':
-                    StageIdLineEdit = LineWidget.findChild(QLineEdit, 'w_stage_id')
-                    task_args['stage_id'] = StageIdLineEdit.text()
+                case '战斗' | '自建房战斗':
+                    stage_selector = LineWidget.findChild(MultiLevelMenu, 'w_stage_id')
+                    task_args['stage_id'] = stage_selector.property("stage_id")
 
                     MaxTimesSpinBox = LineWidget.findChild(QSpinBox, 'w_max_times')
                     task_args['max_times'] = MaxTimesSpinBox.value()
@@ -1393,33 +1419,6 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 case "美食大赛":
                     # 美食大赛任务没有参数
                     pass
-
-                case "自建房战斗":
-                    StageIdLineEdit = LineWidget.findChild(QLineEdit, 'w_stage_id')
-                    task_args['stage_id'] = StageIdLineEdit.text()
-
-                    MaxTimesSpinBox = LineWidget.findChild(QSpinBox, 'w_max_times')
-                    task_args['max_times'] = MaxTimesSpinBox.value()
-
-                    NeedKeyCheckBox = LineWidget.findChild(QCheckBox, 'w_need_key')
-                    task_args['need_key'] = NeedKeyCheckBox.isChecked()
-
-                    PlayerComboBox = LineWidget.findChild(QComboBox, 'w_player')
-                    text = PlayerComboBox.currentText()
-                    return_list = {"1P": [1], "2P": [2], "1P房主": [1, 2], "2P房主": [2, 1]}[text]
-                    task_args['player'] = return_list
-
-                    task_args = ui_to_list_get_cus_battle_opt(LineWidget=LineWidget, task_args=task_args)
-
-                    # 固定值 魔塔 / 萌宠神殿 / 勇士副本有专门的退出函数的, 会自动修改
-                    task_args["quest_card"] = "None"
-                    task_args["ban_card_list"] = []
-                    task_args["dict_exit"] = {
-                        "other_time_player_a": [],
-                        "other_time_player_b": [],
-                        "last_time_player_a": ["竞技岛"],
-                        "last_time_player_b": ["竞技岛"]
-                    }
 
                 case "任务序列":
                     # 获取整数输入框的值

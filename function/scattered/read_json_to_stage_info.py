@@ -9,6 +9,51 @@ from function.globals.log import CUS_LOGGER
 MAT_CARD_TYPE_CONFIG = None
 
 
+def build_stage_menu_data(stage_info: dict, *, include_battle_modes: bool = False) -> dict:
+    """将关卡配置转换为多级菜单数据，可补充用于执行战斗的关卡和模式。
+
+    Args:
+        stage_info: 按类别、地图和关卡组织的关卡配置。
+        include_battle_modes: 是否加入自动识别、爬塔及没有独立配置的双人魔塔楼层。
+
+    Returns:
+        类别名到地图子菜单的字典，每个子菜单包含（关卡名，关卡编号）列表。
+    """
+    battle_modes = {
+        ("MT", "1"): ("单人爬塔", "MT-1-0"),
+        ("MT", "2"): ("双人爬塔", "MT-2-0"),
+        ("PT", "0"): ("萌宠神殿爬塔", "PT-0-0"),
+    }
+    stage_menu = {}
+    for type_id, category in stage_info.items():
+        if type_id in ("default", "name", "tooltip", "update_time"):
+            continue
+        maps = stage_menu[category["name"]] = {}
+        if include_battle_modes and type_id == "WB":
+            maps["自动模式"] = [("自动识别", "WB-0-0")]
+
+        for map_id, stage_map in category.items():
+            if map_id in ("name", "tooltip"):
+                continue
+            names = {f"{type_id}-{map_id}-{stage_id}": stage["name"]
+                     for stage_id, stage in stage_map.items() if stage_id not in ("name", "tooltip")}
+
+            if include_battle_modes and (type_id, map_id) == ("MT", "2"):
+                # 双人魔塔按楼层定位，合法楼层即使没有单独的战斗配置也可直接选择。
+                names = {
+                    code: names.get(code, f"双人魔塔第{code.rsplit('-', 1)[1]}层")
+                    for code in EXTRA.TRUE_STAGE_ID if code.startswith("MT-2-") and code != "MT-2-0"
+                }
+
+            entries = [(name, code) for code, name in names.items()]
+            mode = battle_modes.get((type_id, map_id))
+            if include_battle_modes and mode and mode[1] not in names:
+                entries.insert(0, mode)
+            maps[stage_map["name"]] = entries
+
+    return stage_menu
+
+
 def load_mat_card_type_config():
     """
     加载卡片材质类型配置文件

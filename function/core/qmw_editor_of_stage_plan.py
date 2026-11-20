@@ -11,6 +11,7 @@ from function.globals.get_paths import PATHS
 from function.scattered.check_battle_plan import refresh_all_battle_plan
 from function.scattered.check_tweak_plan import refresh_all_tweak_plan
 from function.scattered.get_list_battle_plan import get_list_battle_plan, get_list_tweak_plan
+from function.scattered.read_json_to_stage_info import build_stage_menu_data
 
 """
 关卡方案编辑器
@@ -89,32 +90,8 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.set_stage_input_widget_usable(state=False)
 
     def init_stage_selector(self):
-        """
-        多层菜单
-        初始化关卡选择，从stage_info或更多内容里导入关卡，选择后可以显示障碍物或更多内容
-        菜单使用字典，其值只能为字典或列表。键值对中的键恒定为子菜单，而值为选项；列表中元素只能是元组，为关卡名，关卡id
-        """
-        stage_dict = {}
-        for type_id, stage_info_1 in self.stage_info.items():
-            if type_id in ["default", "name", "tooltip", "update_time"]:
-                continue
-            type_name = stage_info_1["name"]
-            stage_dict[type_name] = {}
-
-            for sub_type_id, stage_info_2 in stage_info_1.items():
-                if sub_type_id in ["name", "tooltip"]:
-                    continue
-                sub_type_name = stage_info_2["name"]
-                stage_dict[type_name][sub_type_name] = []
-
-                for stage_id, stage_info_3 in stage_info_2.items():
-                    if stage_id in ["name", "tooltip"]:
-                        continue
-                    stage_name = stage_info_3["name"]
-                    stage_code = f"{type_id}-{sub_type_id}-{stage_id}"
-                    stage_dict[type_name][sub_type_name].append((stage_name, stage_code))
-
-        self.stage_selector.add_menu(data=stage_dict)
+        """加载可单独配置方案的关卡。"""
+        self.stage_selector.add_menu(data=build_stage_menu_data(self.stage_info))
 
     def init_battle_plan_selector(self):
         """

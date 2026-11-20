@@ -20,6 +20,7 @@ from function.scattered.class_battle_plan_v3d0 import json_to_obj, TriggerWaveTi
     ActionLoopUseCards, ActionInsertUseCard, ActionShovel, ActionUseGem, ActionEscape, ActionBanCard, Event, BattlePlan, \
     obj_to_json, Card, MetaData, \
     CardLoopConfig, ActionRandomSingleCard, ActionRandomMultiCard
+from function.scattered.read_json_to_stage_info import build_stage_menu_data
 from function.widget.MultiLevelMenu import MultiLevelMenu
 from function.widget.CardNameSelector import CardCatalog, CardNameSelectorWidget
 
@@ -2514,32 +2515,8 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.setFont(my_font)
 
     def init_stage_selector(self):
-        """
-        多层菜单
-        初始化关卡选择，从stage_info或更多内容里导入关卡，选择后可以显示障碍物或更多内容
-        菜单使用字典，其值只能为字典或列表。键值对中的键恒定为子菜单，而值为选项；列表中元素只能是元组，为关卡名，关卡id
-        """
-        stage_dict = {}
-        for type_id, stage_info_1 in self.stage_info_all.items():
-            if type_id in ["default", "name", "tooltip", "update_time"]:
-                continue
-            type_name = stage_info_1["name"]
-            stage_dict[type_name] = {}
-
-            for sub_type_id, stage_info_2 in stage_info_1.items():
-                if sub_type_id in ["name", "tooltip"]:
-                    continue
-                sub_type_name = stage_info_2["name"]
-                stage_dict[type_name][sub_type_name] = []
-
-                for stage_id, stage_info_3 in stage_info_2.items():
-                    if stage_id in ["name", "tooltip"]:
-                        continue
-                    stage_name = stage_info_3["name"]
-                    stage_code = f"{type_id}-{sub_type_id}-{stage_id}"
-                    stage_dict[type_name][sub_type_name].append((stage_name, stage_code))
-
-        self.WidgetStageSelector.add_menu(data=stage_dict)
+        """加载可预览障碍的关卡。"""
+        self.WidgetStageSelector.add_menu(data=build_stage_menu_data(self.stage_info_all))
 
     """更改当前关卡"""
 
