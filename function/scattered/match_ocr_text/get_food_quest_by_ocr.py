@@ -2,11 +2,14 @@ import time
 
 from function.common.bg_img_match import match_p_in_w
 from function.common.bg_img_screenshot import capture_image_png
-from function.globals import SIGNAL
+from function.globals import SIGNAL, g_resources
 from function.globals.g_resources import RESOURCE_P
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
-from function.scattered.match_ocr_text.match_text import match
+from function.scattered.match_ocr_text.food_contest_ocr import (
+    build_food_glyph_index,
+    match_food_task,
+)
 
 
 def food_match_ocr_text(self):
@@ -49,16 +52,7 @@ def food_match_ocr_text(self):
                 )
                 # 确保图像为BGR格式，OpenCV默认使用BGR
 
-                # 显示图像
-                # 测试看截图是否正确
-                # cv2.imshow('Quest Image', quest_img_bgr)
-                # cv2.waitKey(0)  # 等待按键
-                # cv2.destroyAllWindows()
-
                 quest_imgs.append(quest_img)
-
-            # if i == 2:
-            #     break
 
     return quest_imgs
 
@@ -69,9 +63,13 @@ def extract_text_from_images(images):
     """
     seen = set()  # 用于记录已见过的元素
     unique_results = []  # 存储去重后的结果
+    templates = g_resources.flatten_resource_images(g_resources.RESOURCE_P["ocr"]["美食大赛"])
+    index = build_food_glyph_index(templates)
 
     for source in images:
-        text_result = match(source=source, mode="美食大赛")
+        text_result = match_food_task(source, index)
+        if text_result is None:
+            continue
         # 只有当text_result不在seen集合中时才添加到unique_results和seen中
         if text_result not in seen:
             unique_results.append(text_result)
