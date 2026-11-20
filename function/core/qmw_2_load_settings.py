@@ -154,6 +154,17 @@ def check_settings_file(file_path, template_path) -> None:
         with open(file=template_path, mode="r", encoding="UTF-8") as file:
             data_template = json.load(file)
 
+    advanced_settings = data_settings.get("advanced_settings")
+    if isinstance(advanced_settings, dict):
+        # 在模板补齐默认值前，将旧版共用卡组迁移到两个角色。
+        legacy_deck = advanced_settings.pop("cus_auto_carry_card_value", 6)
+        if type(legacy_deck) is not int or not 1 <= legacy_deck <= 6:
+            legacy_deck = 6
+        for player in ("1p", "2p"):
+            key = f"cus_auto_carry_card_value_{player}"
+            deck = advanced_settings.get(key, legacy_deck)
+            advanced_settings[key] = deck if type(deck) is int and 1 <= deck <= 6 else 6
+
     data_settings = merge_settings_with_template(settings=data_settings, template=data_template)
 
     with EXTRA.FILE_LOCK:
@@ -650,7 +661,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
             # 自动带卡
             self.CusAutoCarryCardActive.setChecked(my_opt["cus_auto_carry_card_active"])
-            self.CusAutoCarryCardValueInput.setCurrentIndex(my_opt["cus_auto_carry_card_value"] - 1)
+            self.CusAutoCarryCardValueInput.setCurrentIndex(my_opt["cus_auto_carry_card_value_1p"] - 1)
+            self.CusAutoCarryCardValueInput2P.setCurrentIndex(my_opt["cus_auto_carry_card_value_2p"] - 1)
 
             # 单局最大战斗时间
             self.MaxBattleTimeActive.setChecked(my_opt["max_battle_time_active"])
@@ -1155,7 +1167,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
             # 自动带卡
             my_opt["cus_auto_carry_card_active"] = self.CusAutoCarryCardActive.isChecked()
-            my_opt["cus_auto_carry_card_value"] = self.CusAutoCarryCardValueInput.currentIndex() + 1
+            my_opt["cus_auto_carry_card_value_1p"] = self.CusAutoCarryCardValueInput.currentIndex() + 1
+            my_opt["cus_auto_carry_card_value_2p"] = self.CusAutoCarryCardValueInput2P.currentIndex() + 1
 
             # 单局最大战斗时间
             my_opt["max_battle_time_active"] = self.MaxBattleTimeActive.isChecked()
@@ -1450,7 +1463,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         self.CusAutoCarryCardActive.stateChanged.connect(
             lambda state: toggle_widgets_on_checked(
-                state, [self.CusAutoCarryCardValueInput])
+                state, [self.CusAutoCarryCardValueInput, self.CusAutoCarryCardValueInput2P])
         )
         self.MaxBattleTimeActive.stateChanged.connect(
             lambda state: toggle_widgets_on_checked(

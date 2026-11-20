@@ -1933,23 +1933,25 @@ class ThreadTodo(QThread):
 
                 # 根据卡组编号(0-6), 转化为游戏内操作时选择的卡组编号(1-6)和是否激活启动带卡策略
                 auto_carry_card = deck == 0
+                battle_deck_a = battle_deck_b = 6 if auto_carry_card else deck
                 if auto_carry_card:
-                    if self.opt["advanced_settings"]["cus_auto_carry_card_active"]:
-                        new_deck = self.opt["advanced_settings"]["cus_auto_carry_card_value"]
-                    else:
-                        new_deck = 6
-                else:
-                    new_deck = deck
+                    advanced_settings = self.opt["advanced_settings"]
+                    if advanced_settings["cus_auto_carry_card_active"]:
+                        # 独立战斗调试入口可能直接读取尚未由主窗口迁移的旧配置。
+                        legacy_deck = advanced_settings.get("cus_auto_carry_card_value", 6)
+                        battle_deck_a = advanced_settings.get(f"cus_auto_carry_card_value_{pid_a}p", legacy_deck)
+                        if is_group:
+                            battle_deck_b = advanced_settings.get(f"cus_auto_carry_card_value_{pid_b}p", legacy_deck)
 
                 # 将战斗方案加载至FAA
                 faa_a.set_battle_plan(
-                    deck=new_deck,
+                    deck=battle_deck_a,
                     auto_carry_card=auto_carry_card,
                     battle_plan_uuid=battle_plan_a,
                     battle_plan_tweak_uuid=battle_plan_tweak)
                 if is_group:
                     faa_b.set_battle_plan(
-                        deck=new_deck,
+                        deck=battle_deck_b,
                         auto_carry_card=auto_carry_card,
                         battle_plan_uuid=battle_plan_b,
                         battle_plan_tweak_uuid=battle_plan_tweak)
@@ -1961,7 +1963,7 @@ class ThreadTodo(QThread):
                     # 方案变化的时候刷新一次
                     text_for_print = (
                         f"{title}第{battle_count}次, 将使用以下配置."
-                        f"【卡组: {"自动带卡" if auto_carry_card else new_deck}】"
+                        f"【卡组: {"自动带卡" if auto_carry_card else battle_deck_a}】"
                     )
 
                     player_for_print = {(1,): "1P单人", (2,): '2P单人', (1, 2): '1P房主', (2, 1): '2P房主'}[

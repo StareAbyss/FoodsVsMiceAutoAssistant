@@ -705,6 +705,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
             "CusFullBanTimeValueInput",
             "MaxBattleTimeValueInput",
             "CusAutoCarryCardValueInput",
+            "CusAutoCarryCardValueInput2P",
             "AccelerateValue",
             "AccelerateCustomizeValue",
             "BattleSeniorIntervalValueInput",

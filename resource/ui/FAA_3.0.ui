@@ -6097,7 +6097,7 @@ FAA放卡核心原理简述:
                         </layout>
                        </item>
                        <item>
-                        <layout class="QHBoxLayout" name="CusAutoCarryCardLayout">
+                        <layout class="QHBoxLayout" name="CusAutoCarryCardLayout" stretch="1,1">
                          <property name="spacing">
                           <number>5</number>
                          </property>
@@ -6137,7 +6137,8 @@ FAA放卡核心原理简述:
                             </size>
                            </property>
                            <property name="toolTip">
-                            <string>不激活即为使用默认值</string>
+                            <string>勾选后，1P 和 2P 分别使用各自所选的卡组。
+未勾选时，两名角色均使用默认的 6 号卡组。</string>
                            </property>
                            <property name="text">
                             <string>自定自动带卡卡组</string>
@@ -6148,67 +6149,154 @@ FAA放卡核心原理简述:
                           </widget>
                          </item>
                          <item>
-                          <widget class="QComboBox" name="CusAutoCarryCardValueInput">
-                           <property name="sizePolicy">
-                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                             <horstretch>0</horstretch>
-                             <verstretch>0</verstretch>
-                            </sizepolicy>
-                           </property>
-                           <property name="minimumSize">
-                            <size>
-                             <width>0</width>
-                             <height>0</height>
-                            </size>
-                           </property>
-                           <property name="maximumSize">
-                            <size>
-                             <width>16777215</width>
-                             <height>50</height>
-                            </size>
-                           </property>
-                           <property name="toolTip">
-                            <string>默认值: 6号卡组
-当使用自动带卡时, 将以该编号的卡组为基础, 开始选卡.
-请提前清空该卡组, 并在最后一格带好咖啡粉并保存.</string>
-                           </property>
-                           <property name="currentText">
-                            <string>6</string>
-                           </property>
-                           <property name="currentIndex">
+                          <layout class="QHBoxLayout" name="CusAutoCarryCardPlayersLayout" stretch="1,1">
+                           <property name="spacing">
                             <number>5</number>
                            </property>
                            <item>
-                            <property name="text">
-                             <string>1</string>
-                            </property>
+                            <layout class="QHBoxLayout" name="CusAutoCarryCard1PLayout">
+                             <property name="spacing">
+                              <number>5</number>
+                             </property>
+                             <item>
+                              <widget class="QLabel" name="CusAutoCarryCard1PLabel">
+                               <property name="text">
+                                <string>1P</string>
+                               </property>
+                               <property name="buddy">
+                                <cstring>CusAutoCarryCardValueInput</cstring>
+                               </property>
+                              </widget>
+                             </item>
+                             <item>
+                              <widget class="QComboBox" name="CusAutoCarryCardValueInput">
+                               <property name="sizePolicy">
+                                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                                 <horstretch>0</horstretch>
+                                 <verstretch>0</verstretch>
+                                </sizepolicy>
+                               </property>
+                               <property name="minimumSize">
+                                <size>
+                                 <width>0</width>
+                                 <height>0</height>
+                                </size>
+                               </property>
+                               <property name="maximumSize">
+                                <size>
+                                 <width>16777215</width>
+                                 <height>50</height>
+                                </size>
+                               </property>
+                               <property name="toolTip">
+                                <string>默认值: 6号卡组
+    当使用自动带卡时, 将以该编号的卡组为基础, 开始选卡.
+    请提前清空该卡组, 并在最后一格带好咖啡粉并保存.</string>
+                               </property>
+                               <property name="currentText">
+                                <string>6</string>
+                               </property>
+                               <property name="currentIndex">
+                                <number>5</number>
+                               </property>
+                               <item>
+                                <property name="text">
+                                 <string>1</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>2</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>3</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>4</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>5</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>6</string>
+                                </property>
+                               </item>
+                              </widget>
+                             </item>
+                            </layout>
                            </item>
                            <item>
-                            <property name="text">
-                             <string>2</string>
-                            </property>
+                            <layout class="QHBoxLayout" name="CusAutoCarryCard2PLayout">
+                             <property name="spacing">
+                              <number>5</number>
+                             </property>
+                             <item>
+                              <widget class="QLabel" name="CusAutoCarryCard2PLabel">
+                               <property name="text">
+                                <string>2P</string>
+                               </property>
+                               <property name="buddy">
+                                <cstring>CusAutoCarryCardValueInput2P</cstring>
+                               </property>
+                              </widget>
+                             </item>
+                             <item>
+                              <widget class="QComboBox" name="CusAutoCarryCardValueInput2P">
+                               <property name="sizePolicy">
+                                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                                 <horstretch>0</horstretch>
+                                 <verstretch>0</verstretch>
+                                </sizepolicy>
+                               </property>
+                               <property name="toolTip">
+                                <string>请选择 2P 的自动带卡卡组。请提前清空该卡组，并在最后一格带好咖啡粉并保存。</string>
+                               </property>
+                               <property name="currentIndex">
+                                <number>5</number>
+                               </property>
+                               <item>
+                                <property name="text">
+                                 <string>1</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>2</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>3</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>4</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>5</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>6</string>
+                                </property>
+                               </item>
+                              </widget>
+                             </item>
+                            </layout>
                            </item>
-                           <item>
-                            <property name="text">
-                             <string>3</string>
-                            </property>
-                           </item>
-                           <item>
-                            <property name="text">
-                             <string>4</string>
-                            </property>
-                           </item>
-                           <item>
-                            <property name="text">
-                             <string>5</string>
-                            </property>
-                           </item>
-                           <item>
-                            <property name="text">
-                             <string>6</string>
-                            </property>
-                           </item>
-                          </widget>
+                          </layout>
                          </item>
                         </layout>
                        </item>

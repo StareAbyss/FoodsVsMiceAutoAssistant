@@ -44,6 +44,10 @@
 - QQ 登录信息
 - 4399 登录信息
 
+自动带卡卡组编号保存在 `advanced_settings.cus_auto_carry_card_value_1p` 和
+`advanced_settings.cus_auto_carry_card_value_2p`，取值为 1～6，默认均为 6。
+主程序启动时会将旧的共用编号迁移到缺少编号的角色并移除旧字段。
+
 登录相关字段：
 
 - `login_settings.platform`：固定为 `4399`、`QQ空间`、`QQ大厅` 之一；刷新时只识别所选平台。
