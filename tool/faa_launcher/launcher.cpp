@@ -262,7 +262,9 @@ bool LaunchFaa(const Options& options) {
     HANDLE input = CreateFileW(L"NUL", GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, &security, OPEN_EXISTING, 0, NULL);
     HANDLE job = CreateJobObjectW(NULL, NULL);
     JOBOBJECT_EXTENDED_LIMIT_INFORMATION limits = {};
-    limits.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+    // FAA 启动的外部游戏大厅可主动脱离，启动阶段的 FAA 子进程仍由 Job 管理。
+    limits.BasicLimitInformation.LimitFlags =
+        JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | JOB_OBJECT_LIMIT_BREAKAWAY_OK;
     if (!job || !SetInformationJobObject(job, JobObjectExtendedLimitInformation, &limits, sizeof(limits))) {
         DWORD error = GetLastError(); if (job) CloseHandle(job); CloseHandle(input); CloseHandle(log);
         Failure(options, 5, L"无法管理启动进程", SystemError(error), Problem::Startup); return false;
@@ -305,7 +307,7 @@ bool LaunchFaa(const Options& options) {
     if (success || search.error) {
         // 主窗口已就绪，或出现需要用户阅读的错误对话框时，让进程独立保留。
         // 清除 kill 标志后再关 Job，避免关闭启动助手把 FAA 或它的错误提示一起关掉。
-        limits.BasicLimitInformation.LimitFlags = 0;
+        limits.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_BREAKAWAY_OK;
         if (!SetInformationJobObject(job, JobObjectExtendedLimitInformation, &limits, sizeof(limits))) success = false;
     }
     CloseHandle(job); CloseHandle(process.hProcess);
