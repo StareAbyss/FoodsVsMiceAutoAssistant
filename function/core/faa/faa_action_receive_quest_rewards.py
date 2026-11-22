@@ -25,6 +25,11 @@ class FAAActionReceiveQuestRewards:
     领取各种任务奖励的动作
     """
 
+    @staticmethod
+    def _quest_reward_click_result(count: int) -> str:
+        """按发出的领取点击汇报可多次领奖的任务。"""
+        return f"已点击领取 {count} 项奖励"
+
     def action_receive_quest_rewards_normal(self: "FAA"):
         """领取普通任务奖励"""
 
@@ -497,38 +502,51 @@ class FAAActionReceiveQuestRewards:
             self.print_debug(text="[领取奖励] [美食大赛] 未完成任意任务")
 
     def action_receive_quest_rewards_monopoly(self: "FAA"):
-        handle = self.handle
-        action_top_menu = self.action_top_menu
+        """按页领取大富翁骰子奖励，统计已点击的领取项。"""
+        if not self.action_top_menu(mode="大富翁"):
+            return "未找到大富翁入口"
 
-        # 进入对应地图
-        find = action_top_menu(mode="大富翁")
+        templates = RESOURCE_P["common"]["大富翁奖励"]
+        source = {"source_handle": self.handle, "source_root_handle": self.handle_360}
 
-        if find:
+        def wait_for_page(page):
+            """等待页码更新后再处理奖励按钮。"""
+            return loop_match_p_in_w(
+                **source, source_range=[806, 437, 867, 477],
+                template=templates[f"第{page}页.png"], match_tolerance=0.99,
+                match_failed_check=2, click=False,
+            )
 
-            y_dict = {
-                0: 167,
-                1: 217,
-                2: 266,
-                3: 320,
-                4: 366,
-                5: 417
-            }
+        claimed = 0
+        # 活动入口的点击回执早于界面加载。页码出现后才允许操作奖励栏。
+        if not wait_for_page(1):
+            return "未找到大富翁奖励第一页"
 
-            for i in range(3):
+        try:
+            for page, row_count in enumerate((6, 6, 2), start=1):
+                if page > 1:
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=875, y=457)
+                    if not wait_for_page(page):
+                        return f"{self._quest_reward_click_result(claimed)}，未能翻到第 {page} 页"
 
-                if i > 0:
-                    # 下一页
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=878, y=458)
-                    time.sleep(0.5)
+                for row in range(row_count):
+                    y = 167 + 50 * row
+                    button = {
+                        **source, "source_range": [734, y - 23, 797, y + 23],
+                        "template": templates["领取_灰色.png"], "match_tolerance": 0.98,
+                    }
+                    status, _ = match_p_in_w(**button)
+                    if status != 1:
+                        continue
 
-                # 点击每一个有效位置
-                for j in range(6):
-                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=768, y=y_dict[j])
-                    time.sleep(0.1)
-
-            # 退出界面
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=928, y=16)
+                    # 当前页的任务行确实存在；灰色按钮表示不可领。
+                    T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=765, y=y)
+                    claimed += 1
+        finally:
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=932, y=16)
             time.sleep(0.5)
+
+        return self._quest_reward_click_result(claimed)
 
     def action_goto_information_island_and_click(self: "FAA"):
 
