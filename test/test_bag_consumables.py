@@ -15,7 +15,7 @@ from function.globals import g_resources
 from function.scattered.bag_consumable_outcomes import BagConsumableOutcomes, OUTCOME_FILENAME, icon_digest
 from function.scattered.bag_operations import (
     BagItem, _BagPage, _BagPages, _BagRow, _BagTemplates, _BagUseSession, _wait_bag_count, read_bag_item_count,
-    _use_selected_bag_consumable, use_bag_consumables, use_targeted_consumables,
+    _use_selected_bag_consumable, close_bag_reward_windows, use_bag_consumables, use_targeted_consumables,
 )
 from test.output_paths import get_test_output_dir
 
@@ -47,7 +47,8 @@ class BagDictionaryTests(unittest.TestCase):
         self.addCleanup(resources.stop)
         self.dialog = Mock()
 
-    def execute(self, items, *, stock=None, outcomes=None, scan_only=False, rewards=None):
+    def execute(self, items, *, stock=None, outcomes=None, scan_only=False, rewards=None, popup=False,
+                cleanup_error=None):
         """运行真实计量及单次使用，只替换页面识别、数字读取、队列和时钟。"""
         names = tuple(items)
         stock = {name: 20 for name in names} if stock is None else dict(stock)
@@ -65,22 +66,33 @@ class BagDictionaryTests(unittest.TestCase):
                                 iterate=lambda _scan: iter((_BagPage(88, 108, 413, (row(),)),)),
                                 offset=0, first_phase=88, verify=Mock())
         self.scans, self.events = pages.scan, events
+        self.finish = Mock()
+        self.finish.reward.side_effect = cleanup_error or close_bag_reward_windows
+        self.finish.attach_mock(self.faa.action_exit, "backpack")
+        self.finish.attach_mock(self.dialog.emit, "dialog")
         points = {(490 + 49 * i, 112): name for i, name in enumerate(names)}
         outcome = iter(outcomes) if outcomes is not None else None
         submitted, selected = [], [None]
+        reward_close = ((432, 178, 466, 208), (448, 192))
+        reward_visible = False
 
         def click(**kwargs):
+            nonlocal reward_visible
             point = (kwargs["x"], kwargs["y"])
             if point in points:
                 selected[0] = points[point]
             elif point == (486, 116):
                 name = selected[0]
+                selected[0] = None
                 submitted.append(name)
                 events.append(name)
                 if outcome is None or next(outcome):
                     stock[name] -= 1
                     for child, amount in (rewards or {}).get(name, {}).items():
                         stock[child] = stock.get(child, 0) + amount
+                    reward_visible = popup
+            elif point == reward_close[1]:
+                reward_visible = False
 
         def count(_faa, point, _control=None, previous=None, **_kwargs):
             return stock[points[tuple(point)]]
@@ -89,11 +101,16 @@ class BagDictionaryTests(unittest.TestCase):
                 patch("function.scattered.bag_operations._BagPages", return_value=pages), \
                 patch("function.scattered.bag_operations._wait_bag_count", side_effect=count), \
                 patch("function.scattered.bag_operations.sort_equipment_inventory", side_effect=lambda *_args: events.append("sort")), \
-                patch("function.scattered.bag_operations._find_bag_use_button", return_value=(486, 116)), \
+                patch("function.scattered.bag_operations._find_bag_use_button",
+                      side_effect=lambda _image: (486, 116) if selected[0] else None), \
+                patch("function.scattered.bag_operations.find_bag_reward_close",
+                      side_effect=lambda *_args, **_kwargs: reward_close if reward_visible else None), \
+                patch("function.scattered.bag_operations.close_bag_reward_windows", self.finish.reward), \
                 patch("function.common.bg_img_screenshot.capture_image_png", return_value=np.zeros((596, 950, 4), np.uint8)), \
                 patch("function.globals.thread_action_queue.T_ACTION_QUEUE_TIMER.add_click_to_queue", side_effect=click), \
+                patch("function.globals.SIGNAL.PRINT_TO_UI", self.finish.log), \
                 patch("function.globals.SIGNAL.DIALOG", self.dialog), virtual_clock():
-            outcomes.return_value.get.return_value = frozenset({"none"})
+            outcomes.return_value.get.return_value = {"single" if popup else "none"}
             result = FAABase.use_bag_consumables(self.faa, items=items, scan_only=scan_only)
         return result, submitted
 
@@ -118,9 +135,12 @@ class BagDictionaryTests(unittest.TestCase):
     def test_three_failures_stop_all_items_and_emit_existing_dialog(self):
         result, submitted = self.execute({"A.png": 999, "B.png": 6}, outcomes=[False] * 3)
         self.assertEqual((result, submitted), ({"A.png": 0, "B.png": 0}, ["A.png"] * 3))
-        self.dialog.emit.assert_called_once()
-        self.assertIn("道具栏可能已满", self.dialog.emit.call_args.kwargs["text"])
-        self.faa.action_exit.assert_called_once_with(mode="普通红叉")
+        self.assertEqual(self.finish.mock_calls, [
+            call.reward(self.faa, None),
+            call.backpack(mode="普通红叉", raw_range=[896, 39, 938, 82]),
+            call.log.emit(text="[1P] 使用消耗品出现错误，背包满了。", color_level=3),
+            call.dialog(title="[1P] 物品使用已停止", text="使用消耗品出现错误，背包满了。"),
+        ])
 
     def test_success_resets_failure_streak(self):
         result, submitted = self.execute({"A.png": 2}, outcomes=[False, False, True, False, False, True])
@@ -158,6 +178,27 @@ class BagDictionaryTests(unittest.TestCase):
         self.assertEqual(submitted, ["A.png", "B.png", "C.png"])
         self.assertEqual(result, {"A.png": 1, "B.png": 1, "C.png": 1})
         self.assertEqual(self.scans.call_count, 3)
+
+    def test_last_package_can_refill_its_slot_only_for_the_next_scan(self):
+        for limit, used in ((999, 3), (2, 2)):
+            with self.subTest(limit=limit):
+                result, submitted = self.execute({"A.png": limit}, stock={"A.png": 1},
+                                                 rewards={"A.png": {"A.png": 1}}, popup=True)
+                self.assertEqual((result, submitted), ({"A.png": used}, ["A.png"] * used))
+                self.assertEqual(self.events, ["sort", "scan", "A.png"] * used)
+                self.dialog.emit.assert_not_called()
+
+    def test_unchanged_last_item_without_reward_stops_after_one_attempt(self):
+        result, submitted = self.execute({"A.png": 999}, stock={"A.png": 1}, outcomes=[False],
+                                         cleanup_error=RuntimeError("奖励窗关闭失败"))
+        self.assertEqual((result, submitted), ({"A.png": 0}, ["A.png"]))
+        self.assertEqual(self.events, ["sort", "scan", "A.png"])
+        self.assertEqual(self.finish.mock_calls, [
+            call.reward(self.faa, None),
+            call.backpack(mode="普通红叉", raw_range=[896, 39, 938, 82]),
+            call.log.emit(text="[1P] 使用消耗品出现错误，背包满了。", color_level=3),
+            call.dialog(title="[1P] 物品使用已停止", text="使用消耗品出现错误，背包满了。"),
+        ])
 
     def test_rounds_do_not_reset_item_allowances(self):
         result, submitted = self.execute({"A.png": 1, "B.png": 2}, stock={"A.png": 1, "B.png": 1},
@@ -205,9 +246,9 @@ class BagRewardCloseTests(unittest.TestCase):
             rect = [680, 188, 714, 218] if window == "gift" else [432, 178, 466, 208]
             if kwargs["source_range"] == rect:
                 name = "退出_被选中.png" if frame == "hover" else "退出.png"
-                if frame in ("reward", "hover", "error") and template is g_resources.RESOURCE_P["common"][name]:
+                if frame in ("reward", "hover", "error", "residual") and template is g_resources.RESOURCE_P["common"][name]:
                     return (0, None) if frame == "error" else (2, (16, 14))
-            if frame == "menu" and template is g_resources.RESOURCE_P["item"]["物品-背包-使用.png"]:
+            if frame in ("menu", "residual") and template is g_resources.RESOURCE_P["item"]["物品-背包-使用.png"]:
                 return 2, (20, 30)
             return 1, None
 
@@ -260,6 +301,11 @@ class BagRewardCloseTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "奖励窗识别失败"):
             self.exercise(["menu", "error"])
         self.assertEqual(self.clicks, [(490, 112), (486, 116)])
+
+    def test_residual_reward_blocks_consumption_even_when_use_button_is_visible(self):
+        with self.assertRaisesRegex(RuntimeError, "使用前仍有奖励窗"):
+            self.exercise(["residual"])
+        self.assertEqual(self.clicks, [(490, 112)])
 
 
 class BagOutcomeCacheTests(unittest.TestCase):
@@ -335,6 +381,21 @@ class BagOutcomeCacheTests(unittest.TestCase):
         use.assert_called_once()
         cache.return_value.learn.assert_not_called()
 
+    def test_late_reward_finishes_last_item_without_reading_replacement_count(self):
+        faa = SimpleNamespace(handle=1, handle_360=2)
+        reward = ((680, 188, 714, 218), (696, 202))
+        with patch("function.scattered.bag_operations.BagConsumableOutcomes") as cache, \
+                patch("function.scattered.bag_operations._wait_bag_count", side_effect=[1, reward]) as count, \
+                patch("function.scattered.bag_operations._use_selected_bag_consumable", return_value="none"), \
+                patch("function.scattered.bag_operations.close_bag_reward_windows") as close:
+            cache.return_value.get.return_value = {"none"}
+            session = _BagUseSession(faa, {"A": 2}, templates=Mock(), digests={"A": "1" * 64})
+            self.assertEqual(session.use("A", (490, 112)), 0)
+        self.assertEqual(count.call_count, 2)
+        close.assert_called_once_with(faa, None, reward=reward)
+        cache.return_value.learn.assert_called_once_with("1" * 64, "multiple")
+        self.assertEqual(session.used, {"A": 1})
+
 
 class CountedBagRoundsTests(unittest.TestCase):
     def test_callback_reader_finds_new_earlier_item_after_resorting(self):
@@ -396,7 +457,8 @@ class BagQuantityTests(unittest.TestCase):
         original = np.ones((596, 950, 3), np.uint8)
         replacement = np.full_like(original, 2)
         current = [original]
-        templates = SimpleNamespace(matches=lambda block, _name: np.all(block == 1))
+        templates = SimpleNamespace(entries={"A": 1, "B": 2})
+        templates.matches = lambda block, name: np.all(block == templates.entries[name])
         session = _BagUseSession(SimpleNamespace(handle=1, handle_360=2), {"A": 2}, templates=templates)
 
         with patch("function.common.bg_img_screenshot.capture_image_png", side_effect=lambda **_kwargs: current[0]), \
@@ -410,6 +472,15 @@ class BagQuantityTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "无法确认"):
                 session.use("A", (490, 112))
         consume.assert_called_once()
+
+    def test_stable_unknown_replacement_is_not_counted_as_exhausted(self):
+        image = np.full((596, 950, 3), 2, np.uint8)
+        templates = SimpleNamespace(matches=Mock(return_value=False), entries={"A": 1})
+        with patch("function.scattered.bag_operations._capture_bag", return_value=image), \
+                patch("function.scattered.bag_operations.find_bag_reward_close", return_value=None), \
+                patch("function.scattered.bag_operations._find_bag_use_button", return_value=None), virtual_clock():
+            with self.assertRaisesRegex(RuntimeError, "无法确认"):
+                _wait_bag_count(SimpleNamespace(), (490, 112), previous=1, templates=templates, name="A")
 
     def test_full_memory_scan_stops_at_real_empty_tail_but_keeps_unknown_cells(self):
         unknown = BagItem(None, None, None)

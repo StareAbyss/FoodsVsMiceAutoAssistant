@@ -49,7 +49,7 @@ class FAAActionInterfaceJump:
                 find = loop_match_p_in_w(
                     source_handle=handle,
                     source_root_handle=handle_360,
-                    source_range=[0, 0, 950, 600],
+                    source_range=raw_range,
                     template=RESOURCE_P["common"]["退出_被选中.png"],
                     match_failed_check=5,
                     after_sleep=1.5,
