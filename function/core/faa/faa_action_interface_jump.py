@@ -276,16 +276,22 @@ class FAAActionInterfaceJump:
             after_sleep=0.2,
             click=True
         )
+        if not find:
+            self.print_warning(text=f"[地图跳转] 世界地图中未找到地图 {map_id}")
         return find
 
     def action_goto_single_magic_tower(self: "FAA") -> bool:
         """进入单人魔塔选层界面，但不选择层数或创建房间。"""
+        return self.action_goto_magic_tower(mode="1")
+
+    def action_goto_magic_tower(self: "FAA", mode: str) -> bool:
+        """打开魔塔选层界面，模式 1、2、3 分别对应单人、双人、密室。"""
 
         handle = self.handle
 
         # 魔塔入口位于海底地图。
         if not self.action_goto_map(map_id=5):
-            self.print_warning(text="[魔塔买次数] 前往海底地图失败")
+            self.print_warning(text="[魔塔] 前往海底地图失败")
             return False
 
         # 与常规魔塔跳转保持一致，随机选择一个海底分区。
@@ -301,7 +307,8 @@ class FAAActionInterfaceJump:
         )
         time.sleep(5)
 
-        # 进入魔塔总界面。
+        # 进入魔塔总界面
+        # 2026-08-18 根据反馈 少数用户表示此处会卡住, 现已添加时延 0.2 -> 1
         find = loop_match_p_in_w(
             source_handle=handle,
             source_root_handle=self.handle_360,
@@ -312,18 +319,19 @@ class FAAActionInterfaceJump:
             click=True,
         )
         if not find:
-            self.print_warning(text="[魔塔买次数] 未找到魔塔入口")
+            self.print_warning(text="[魔塔] 未找到魔塔入口")
             return False
 
-        # 魔塔顶部第一个标签为单人模式。
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=46, y=66)
+        # 2026-08-18 根据反馈 少数用户表示此处会卡住, 现已添加时延 0.5 -> 1
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x={"1": 46, "2": 115, "3": 188}[mode], y=66)
         time.sleep(1)
         return True
 
-    def action_goto_stage(self: "FAA", mt_wb_first_time: bool = False) -> None:
+    def action_goto_stage(self: "FAA", mt_wb_first_time: bool = False) -> bool | None:
         """
         只要右上能看到地球 就可以到目标关卡
         :param mt_wb_first_time: 魔塔关卡世界boss, 是否是第一次打. 魔塔第一次塔需要进塔, 第二次只需要选关卡序号; 世界boss第一次需要进入界面, 第二次只需要创建房间.
+        :return: 已确认跳转失败时返回 False；其余流程沿用 None。
         """
 
         handle = self.handle
@@ -398,31 +406,12 @@ class FAAActionInterfaceJump:
         def main_mt():
 
             if mt_wb_first_time:
-                # 前往海底
-                self.action_goto_map(map_id=5)
-
-                # 选区
-                change_to_region(region_list=[1, 2])
-
-            if self.is_main and mt_wb_first_time:
-                # 进入魔塔
-                # 2026-08-18 根据反馈 少数用户表示此处会卡住, 现已添加时延 0.2 -> 1
-                loop_match_p_in_w(
-                    source_handle=handle,
-                    source_root_handle=handle_360,
-                    source_range=[0, 0, 950, 600],
-                    template=RESOURCE_P["stage"]["MT.png"],
-                    match_failed_check=5,
-                    after_sleep=1,
-                    click=True
-                )
-
-                # stage_1 根据模式进行选择
-                my_dict = {"1": 46, "2": 115, "3": 188}
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=my_dict[stage_1], y=66)
-
-                # 2026-08-18 根据反馈 少数用户表示此处会卡住, 现已添加时延 0.5 -> 1
-                time.sleep(1)
+                if self.is_main:
+                    if not self.action_goto_magic_tower(mode=stage_1):
+                        return
+                else:
+                    self.action_goto_map(map_id=5)
+                    change_to_region(region_list=[1, 2])
 
             # 不是房主, 不进行关卡选择和创建房间
             if not self.is_main:
