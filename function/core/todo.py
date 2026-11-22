@@ -864,8 +864,6 @@ class ThreadTodo(QThread):
 
         for mode in quests:
 
-            SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] [{mode}] 开始...")
-
             # 创建进程 -> 开始进程 -> 阻塞主进程
             if 1 in player:
                 self.thread_1p = ThreadWithException(
@@ -892,8 +890,6 @@ class ThreadTodo(QThread):
                 self.thread_1p.join()
             if 2 in player:
                 self.thread_2p.join()
-
-            SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] [{mode}] 完成")
 
         self.model_end_print(text=title_text)
 
