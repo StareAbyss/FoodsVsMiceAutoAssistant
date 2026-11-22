@@ -88,6 +88,8 @@ class BattleHostSelectionTest(unittest.TestCase):
         original_players = [1, 2]
         self.assertIsNone(self.run_battle(task, player=original_players, max_times=2))
         self.assertEqual(original_players, [1, 2])
+        task.faa_dict[2].action_change_activity_list.assert_called_once_with(serial_num=3)
+        task.faa_dict[1].action_change_activity_list.assert_not_called()
         for template, handle in (("create", 2), ("start", 2), ("accept", 1)):
             matches = [entry.kwargs for entry in self.matcher.call_args_list
                        if entry.kwargs["template"] == template]
