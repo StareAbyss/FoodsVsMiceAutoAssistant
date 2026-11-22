@@ -30,31 +30,47 @@ class FAAActionReceiveQuestRewards:
         """按发出的领取点击汇报可多次领奖的任务。"""
         return f"已点击领取 {count} 项奖励"
 
+    def _click_quest_reward_match(self: "FAA", source_range, template, match_tolerance=0.95) -> bool:
+        """从当前窗口截图定位目标，找到后将点击加入队列。"""
+        _, point = match_p_in_w(
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=source_range,
+            template=template,
+            match_tolerance=match_tolerance,
+        )
+        if point is None:
+            return False
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(
+            handle=self.handle, x=source_range[0] + point[0], y=source_range[1] + point[1],
+        )
+        return True
+
     def action_receive_quest_rewards_normal(self: "FAA"):
         """领取普通任务奖励"""
 
         player = self.player
 
+        claimed = 0
+
         def scan_one_page(first_time):
             """扫描一页"""
+            nonlocal claimed
 
             # 最大尝试次数
             max_attempts = 30
 
             # 循环遍历点击完成
             for try_count in range(max_attempts):
-                find = loop_match_p_in_w(
-                    source_handle=self.handle,
-                    source_root_handle=self.handle_360,
+                find = self._click_quest_reward_match(
                     source_range=[335, 120, 420, 545],
                     template=RESOURCE_P["common"]["任务_完成.png"],
-                    match_tolerance=0.95,
-                    match_failed_check=1,
-                    after_sleep=0.5,
-                    click=True)
+                )
                 if find:
-                    # 领取奖励
+                    # 等右侧详情切换到刚选中的任务，再点击领取。
+                    time.sleep(0.5)
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=643, y=534)
+                    claimed += 1
                     time.sleep(0.2)
                 else:
                     break
@@ -69,7 +85,8 @@ class FAAActionReceiveQuestRewards:
                     f"出错时间:{current_time}, 尝试次数:{max_attempts}")
             return first_time
 
-        self.action_bottom_menu(mode="任务")
+        if not self.action_bottom_menu(mode="任务"):
+            return "未找到普通任务入口"
 
         # 复位滑块
         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=413, y=155)
@@ -86,6 +103,7 @@ class FAAActionReceiveQuestRewards:
             first_time=scan_one_page(first_time)
 
         self.action_exit(mode="普通红叉")
+        return self._quest_reward_click_result(claimed)
 
     def action_get_task_menus_normal(self: "FAA"):
         """扫描普通任务图片"""
@@ -312,7 +330,10 @@ class FAAActionReceiveQuestRewards:
     def action_receive_quest_rewards_guild(self: "FAA"):
 
         # 跳转到任务界面
-        self.action_bottom_menu(mode="跳转_公会任务")
+        if not self.action_bottom_menu(mode="跳转_公会任务"):
+            return "未找到公会任务入口"
+        claimed = 0
+        found_completed = False
 
         # 最大尝试次数
         max_attempts = 20
@@ -340,22 +361,26 @@ class FAAActionReceiveQuestRewards:
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["quest_guild"]["completed.png"],
                 match_tolerance=0.99,
+                match_failed_check=5,  # 美食大赛任务完成动画可能遮住任务列表约 4 秒。
+                after_sleep=0.5,
                 click=True,
-                match_failed_check=5,  # 1+4s 因为偶尔会弹出美食大赛完成动画4s 需要充足时间！这个确实脑瘫...
-                after_sleep=0.5)
+            )
             if not result:
                 break
+            found_completed = True
 
-            # 点击“领取”按钮
-            loop_match_p_in_w(
+            # 等选中的任务详情显示后，重新截图定位领取按钮。
+            if loop_match_p_in_w(
                 source_handle=self.handle,
                 source_root_handle=self.handle_360,
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["quest_guild"]["gather.png"],
                 match_tolerance=0.99,
-                click=True,
                 match_failed_check=2,
-                after_sleep=2)  # 2s 完成任务有显眼动画
+                after_sleep=2,
+                click=True,
+            ):
+                claimed += 1
 
         # 如果达到了最大尝试次数
         if try_count == max_attempts - 1:
@@ -367,11 +392,16 @@ class FAAActionReceiveQuestRewards:
 
         # 退出任务界面
         self.action_exit(mode="普通红叉")
+        if found_completed and not claimed:
+            return "找到已完成任务，未识别到领取按钮"
+        return self._quest_reward_click_result(claimed)
 
     def action_receive_quest_rewards_spouse(self: "FAA"):
 
         # 跳转到任务界面
-        self.action_bottom_menu(mode="跳转_情侣任务")
+        if not self.action_bottom_menu(mode="跳转_情侣任务"):
+            return "未找到情侣任务入口"
+        claimed = 0
 
         # 最大尝试次数
         max_attempts = 10
@@ -391,6 +421,7 @@ class FAAActionReceiveQuestRewards:
 
             if not result:
                 break
+            claimed += 1
 
         # 如果达到了最大尝试次数
         if try_count == max_attempts - 1:
@@ -407,15 +438,17 @@ class FAAActionReceiveQuestRewards:
 
         # 退出任务界面
         self.action_exit(mode="普通红叉")
+        return self._quest_reward_click_result(claimed)
 
     def action_receive_quest_rewards_offer_reward(self: "FAA"):
         """
         领取悬赏任务奖励
-        :return: None
         """
 
         # 进入X年活动界面
-        self.action_top_menu(mode="X年活动")
+        if not self.action_top_menu(mode="X年活动"):
+            return "未找到悬赏任务入口"
+        claimed = 0
 
         # 最大尝试次数
         max_attempts = 10
@@ -433,6 +466,7 @@ class FAAActionReceiveQuestRewards:
                 after_sleep=2)
             if not result:
                 break
+            claimed += 1
 
         # 如果达到了最大尝试次数
         if try_count == max_attempts - 1:
@@ -444,10 +478,11 @@ class FAAActionReceiveQuestRewards:
 
         # 退出任务界面
         self.action_exit(mode="关闭悬赏窗口")
+        return self._quest_reward_click_result(claimed)
 
     def action_receive_quest_rewards_food_competition(self: "FAA"):
 
-        found_flag = False  # 记录是否有完成任何一次任务
+        claimed = 0
 
         # 进入美食大赛界面
         find = self.action_top_menu(mode="美食大赛")
@@ -478,8 +513,7 @@ class FAAActionReceiveQuestRewards:
                         # 领取升级有动画
                         self.print_debug(text="[收取奖励] [美食大赛] 完成1个任务")
                         time.sleep(6)
-                        # 更新是否找到flag
-                        found_flag = True
+                        claimed += 1
                     else:
                         break
 
@@ -497,9 +531,11 @@ class FAAActionReceiveQuestRewards:
 
         else:
             self.print_warning(text="[领取奖励] [美食大赛] 未打开界面, 可能大赛未刷新")
+            return "未找到美食大赛入口"
 
-        if not found_flag:
+        if not claimed:
             self.print_debug(text="[领取奖励] [美食大赛] 未完成任意任务")
+        return self._quest_reward_click_result(claimed)
 
     def action_receive_quest_rewards_monopoly(self: "FAA"):
         """按页领取大富翁骰子奖励，统计已点击的领取项。"""
@@ -623,6 +659,8 @@ class FAAActionReceiveQuestRewards:
                 time.sleep(0.2)
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=175, y=365)
                 time.sleep(0.2)
+            return "已执行营地领取"
+        return "未能进入营地"
 
     def action_receive_quest_rewards_magic_tower(self: "FAA") -> str:
         """领取双人魔塔的每周威望排名奖励。"""
@@ -648,26 +686,21 @@ class FAAActionReceiveQuestRewards:
         :return: None
         """
 
-        self.print_debug(text="[领取奖励] [{}] 开始".format(mode))
+        handlers = {
+            "普通任务": self.action_receive_quest_rewards_normal,
+            "公会任务": self.action_receive_quest_rewards_guild,
+            "情侣任务": self.action_receive_quest_rewards_spouse,
+            "悬赏任务": self.action_receive_quest_rewards_offer_reward,
+            "美食大赛": self.action_receive_quest_rewards_food_competition,
+            "大富翁": self.action_receive_quest_rewards_monopoly,
+            "营地任务": self.action_receive_quest_rewards_camp,
+            "魔塔": self.action_receive_quest_rewards_magic_tower,
+        }
 
-        if mode == "普通任务":
-            self.action_receive_quest_rewards_normal()
-        if mode == "公会任务":
-            self.action_receive_quest_rewards_guild()
-        if mode == "情侣任务":
-            self.action_receive_quest_rewards_spouse()
-        if mode == "悬赏任务":
-            self.action_receive_quest_rewards_offer_reward()
-        if mode == "美食大赛":
-            self.action_receive_quest_rewards_food_competition()
-        if mode == "大富翁":
-            self.action_receive_quest_rewards_monopoly()
-        if mode == "营地任务":
-            self.action_receive_quest_rewards_camp()
-        if mode == "魔塔":
-            self.action_receive_quest_rewards_magic_tower()
-
-        self.print_debug(text="[领取奖励] [{}] 结束".format(mode))
+        if action := handlers.get(mode):
+            result = action()
+            if SIGNAL.PRINT_TO_UI is not None:
+                SIGNAL.PRINT_TO_UI.emit(text=f"[领取奖励] [{mode}] [{self.player}P] {result}")
 
     def action_scan_task_type(self: "FAA", mode):
         """
