@@ -624,10 +624,27 @@ class FAAActionReceiveQuestRewards:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=175, y=365)
                 time.sleep(0.2)
 
+    def action_receive_quest_rewards_magic_tower(self: "FAA") -> str:
+        """领取双人魔塔的每周威望排名奖励。"""
+        if not self.action_goto_magic_tower(mode="2"):
+            return "未能进入双人魔塔"
+
+        clicked = loop_match_p_in_w(
+            source_handle=self.handle,
+            source_root_handle=self.handle_360,
+            source_range=[873, 447, 938, 492],
+            template=RESOURCE_P["common"]["魔塔_威望领取.png"],
+            match_failed_check=2,
+            after_sleep=0.8,
+            click=True,
+        )
+        self.action_exit(mode="普通红叉", raw_range=[906, 12, 950, 54])
+        return "已点击领取" if clicked else "未找到可领取项"
+
     def action_receive_quest_rewards(self: "FAA", mode) -> None:
         """
         领取任务奖励, 从任意地图界面开始, 从任意地图界面结束
-        :param mode: "普通任务" "公会任务" "情侣任务" "悬赏任务" "美食大赛" "大富翁" "营地任务"
+        :param mode: "普通任务" "公会任务" "情侣任务" "悬赏任务" "美食大赛" "大富翁" "营地任务" "魔塔"
         :return: None
         """
 
@@ -647,6 +664,8 @@ class FAAActionReceiveQuestRewards:
             self.action_receive_quest_rewards_monopoly()
         if mode == "营地任务":
             self.action_receive_quest_rewards_camp()
+        if mode == "魔塔":
+            self.action_receive_quest_rewards_magic_tower()
 
         self.print_debug(text="[领取奖励] [{}] 结束".format(mode))
 

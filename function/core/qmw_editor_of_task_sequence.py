@@ -498,7 +498,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     "offer_reward": False,
                     "food_competition": False,
                     "monopoly": False,
-                    "camp": False
+                    "camp": False,
+                    "magic_tower": False,
                 }
             case '扫描任务列表':
                 task["task_args"] = {
@@ -955,7 +956,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 QuestLabel = QLabel(c)
                 QuestCheckBox = QCheckBox()
                 QuestCheckBox.setObjectName(f"w_{e}")
-                QuestCheckBox.setChecked(task["task_args"][e])
+                QuestCheckBox.setChecked(task["task_args"].get(e, False))
                 addElement(line_layout=line_layout, label_widget=QuestLabel, input_widget=QuestCheckBox)
 
             add_quest("普通", "normal")
@@ -965,6 +966,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             add_quest("大赛", "food_competition")
             add_quest("营地", "camp")
             add_quest("富翁", "monopoly")
+            add_quest("魔塔", "magic_tower")
 
         def scan_task_menu(line_layout):
 
@@ -1350,7 +1352,10 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
                 case "领取任务奖励":
                     task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
-                    for key in ["normal", "guild", "spouse", "offer_reward", "food_competition", "monopoly", "camp"]:
+                    for key in [
+                        "normal", "guild", "spouse", "offer_reward", "food_competition",
+                        "monopoly", "camp", "magic_tower",
+                    ]:
                         task_args = ui_to_list_check_box(LineWidget=LineWidget, task_args=task_args, key=key)
 
                 case "扫描任务列表":

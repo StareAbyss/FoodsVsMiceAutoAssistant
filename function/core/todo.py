@@ -849,7 +849,7 @@ class ThreadTodo(QThread):
     def batch_receive_all_quest_rewards(self, player: list = None, quests: list = None):
         """
         :param player: 默认[1,2] 可选: [1] [2] [1,2] [2,1]
-        :param quests: list 可包含内容: "普通任务" "公会任务" "情侣任务" "悬赏任务" "美食大赛" "大富翁" "营地任务"
+        :param quests: list 可包含内容: "普通任务" "公会任务" "情侣任务" "悬赏任务" "美食大赛" "大富翁" "营地任务" "魔塔"
         :return:
         """
 
@@ -3068,11 +3068,12 @@ class ThreadTodo(QThread):
                         "offer_reward": "悬赏任务",
                         "food_competition": "美食大赛",
                         "monopoly": "大富翁",
-                        "camp": "营地任务"
+                        "camp": "营地任务",
+                        "magic_tower": "魔塔",
                     }
                     self.batch_receive_all_quest_rewards(
                         player=task["task_args"]["player"],
-                        quests=[v for k, v in all_quests.items() if task["task_args"][k]]
+                        quests=[v for k, v in all_quests.items() if task["task_args"].get(k, False)]
                     )
                     main_task_active = True
                     active_singleton = False
