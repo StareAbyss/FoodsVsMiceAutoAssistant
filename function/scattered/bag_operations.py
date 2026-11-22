@@ -15,6 +15,7 @@ _REWARD_REGIONS = {
     MULTIPLE_REWARDS: (680, 188, 714, 218),
 }
 _USE_BUTTON_REGION = [466, 86, 950, 500]
+_EQUIPMENT_CLOSE_REGION = [896, 39, 938, 82]
 
 
 def _wait_bag_evidence(probe, control=None):
@@ -196,9 +197,16 @@ def _use_selected_bag_consumable(faa, targets, point, *, control=None, use_ready
         else:
             action()
 
+    def find_use_button():
+        """在同一帧确认使用按钮和旧奖励窗，保证后续奖励归属于本次提交。"""
+        image = _capture_bag(faa)
+        if use_ready is None and find_bag_reward_close(image) is not None:
+            raise RuntimeError(f"{targets[0]} 使用前仍有奖励窗，未提交消耗品")
+        return _find_bag_use_button(image)
+
     selected_point = tuple(point)
     click(*selected_point)
-    button = _wait_bag_evidence(lambda: _find_bag_use_button(_capture_bag(faa)), control)
+    button = _wait_bag_evidence(find_use_button, control)
     if button is None:
         raise RuntimeError(f"{targets[0]} 使用按钮2秒内未出现，没有提交消耗品")
     click(*button, consume=True)
@@ -290,11 +298,13 @@ def _wait_bag_count(faa, point, control=None, previous=None, *, templates=None, 
         if templates is not None and not equipment_cell_empty(image, left, top):
             block = image[top:top + 49, left:left + 49]
             if not templates.matches(block, name):
-                # 末件奖励可能立即填回旧格，只在无遮拦的替代图案连续两帧一致时认定旧堆耗尽。
-                signature = block[:, :, :3].tobytes()
-                if previous == 1 and signature == replaced:
-                    return 0
-                replaced = signature
+                if previous == 1:
+                    # 只有可识别的新图标能证明旧物品消失，问号等未知图案可能只是加载中。
+                    signature = block[:, :, :3].tobytes()
+                    if signature == replaced and any(other != name and templates.matches(block, other)
+                                                     for other in templates.entries):
+                        return 0
+                    replaced = signature
                 return None
         replaced = None
         last_count = read_bag_item_count(image, point)
@@ -316,6 +326,10 @@ def _wait_bag_count(faa, point, control=None, previous=None, *, templates=None, 
     if previous is not None and last_count == previous:
         return last_count
     raise RuntimeError("物品图标、数量或背包遮挡2秒内无法确认，已停止使用")
+
+
+class _BagQuantityUnchanged(RuntimeError):
+    """道具数量未变，且本次调用已停止使用。"""
 
 
 class _BagUseSession:
@@ -342,7 +356,7 @@ class _BagUseSession:
         return not self.blocked and self.used[name] < self.items[name] and self.attempts[name] < self.items[name] * 3
 
     def use(self, name, point):
-        """只在扣减确认后记成功，调用方可用返回的剩余量判断堆叠是否耗尽。"""
+        """确认消耗后记账，返回原堆剩余量。原堆耗尽时，同格的新物品交给下一轮。"""
         identity = {"templates": self.templates, "name": name} if self.templates is not None else {}
         previous = _wait_bag_count(self.faa, point, self.control, **identity)
         if previous == 0:
@@ -354,17 +368,25 @@ class _BagUseSession:
             outcomes=outcomes, preferred=self.stack_outcome)
         self.submitted += 1
         self.attempts[name] += 1
-        count_options = {"accept_reward": True} if digest is not None and observed == NO_REWARD else {}
-        current = _wait_bag_count(self.faa, point, self.control, previous, **identity, **count_options)
-        if isinstance(current, tuple):
-            observed = _close_observed_bag_reward(self.faa, current, self.control)
-            current = _wait_bag_count(self.faa, point, self.control, previous, **identity)
+        last_item = self.templates is not None and previous == 1
+        # 奖励可能占回旧格，末件已有新奖励窗确认时，读到的是新物品的数量。
+        current = 0
+        if not (last_item and observed in _REWARD_REGIONS):
+            count_options = {"accept_reward": True} if digest is not None and observed == NO_REWARD else {}
+            current = _wait_bag_count(self.faa, point, self.control, previous, **identity, **count_options)
+            if isinstance(current, tuple):
+                observed = _close_observed_bag_reward(self.faa, current, self.control)
+                current = 0 if last_item else _wait_bag_count(self.faa, point, self.control, previous, **identity)
         if current == previous:
             self.stack_outcome = None
+            if last_item:
+                raise _BagQuantityUnchanged(f"{name} 数量未减少，无法确认末件使用结果")
             if observed == NO_REWARD and outcomes and NO_REWARD not in outcomes:
-                raise RuntimeError(f"{name} 未确认奖励窗或数量扣减，已停止使用")
+                raise _BagQuantityUnchanged(f"{name} 未确认奖励窗或数量扣减")
             self.failures[name] += 1
             if self.failures[name] == 3:
+                if self.templates is not None:
+                    raise _BagQuantityUnchanged(f"{name} 连续3次使用后数量未减少")
                 from function.globals import SIGNAL
                 from function.globals.log import CUS_LOGGER
 
@@ -749,10 +771,6 @@ def _use_named_bag_consumables(faa, items, scan_only=False, control=None, bound_
     templates = _BagTemplates(images)
     if control is not None:
         control.check()
-    if not faa.action_bottom_menu(mode="背包"):
-        raise RuntimeError("FAA背包入口未成功，未使用指定消耗品")
-    # 图标首次进入时异步加载；同一次背包会话的后续轮次不重复这段等待。
-    time.sleep(10)
     digests = None if scan_only else {name: icon_digest(image) for name, image in images.items()}
     session = _BagUseSession(faa, items, control, templates=templates, digests=digests)
 
@@ -760,56 +778,94 @@ def _use_named_bag_consumables(faa, items, scan_only=False, control=None, bound_
         """在途物品核准后退出，不继续翻页、整理或选择下一物品。"""
         return control is not None and control.requested.is_set()
 
-    for _round in range(1 if scan_only else 3):
-        if stopping():
-            break
-        sort_equipment_inventory(faa, control)
-        scanner = _BagPages(faa, templates, control)
-        snapshot = scanner.scan()
-        if scan_only:
-            result = dict.fromkeys(items, 0)
-            for row in snapshot:
-                for item in row.cells:
-                    if item.name in items and (not bound_only or item.bound is True):
-                        result[item.name] += item.count
-            faa.action_exit(mode="普通红叉")
-            return result
-        planned = {(index, column): item for index, row in enumerate(snapshot)
-                   for column, item in enumerate(row.cells)
-                   if item.name in items and session.pending(item.name) and
-                   (not bound_only or item.bound is True)}
-        if not planned:
-            break
-        # 消费阶段只读格线、滑块和当前图案用于位移核验；使用对象来自本轮完整快照。
-        viewer = _BagPages(faa, templates, control, recognize_items=False)
-        for page in viewer.iterate(False):
-            for row in page.rows:
-                index, remainder = divmod(viewer.offset + row.top - viewer.first_phase, 49)
-                if remainder:
-                    raise RuntimeError("消费视图与背包行号无法对齐，未点击物品")
-                for column in range(len(row.cells)):
-                    item = planned.pop((index, column), None)
-                    if item is None or not session.pending(item.name):
-                        continue
-                    point = (490 + 49 * column, row.top + 24)
-                    viewer.verify(item.name, point)
-                    session.begin_stack()
-                    while session.pending(item.name) and not stopping():
-                        if session.use(item.name, point) == 0:
-                            break
-                    if session.blocked or stopping():
-                        break
-                if session.blocked or stopping():
-                    break
-            if session.blocked or stopping() or not any(session.pending(item.name) for item in planned.values()):
+    def run_rounds():
+        """背包打开后执行扫描或使用，返回实测库存或已确认消耗量。"""
+        for _round in range(1 if scan_only else 3):
+            if stopping():
                 break
-        if session.blocked or stopping() or not any(session.pending(name) for name in items):
-            break
-        # 新物品可能填到已用完的前方格子；下一轮重新整理并扫描，不能把当前快照当最终库存。
-    if control is not None:
-        control.check()
-    faa.action_exit(mode="普通红叉")
-    return session.used
+            sort_equipment_inventory(faa, control)
+            scanner = _BagPages(faa, templates, control)
+            snapshot = scanner.scan()
+            if scan_only:
+                result = dict.fromkeys(items, 0)
+                for row in snapshot:
+                    for item in row.cells:
+                        if item.name in items and (not bound_only or item.bound is True):
+                            result[item.name] += item.count
+                return result
+            planned = {(index, column): item for index, row in enumerate(snapshot)
+                       for column, item in enumerate(row.cells)
+                       if item.name in items and session.pending(item.name) and
+                       (not bound_only or item.bound is True)}
+            if not planned:
+                break
+            # 消费阶段只读格线、滑块和当前图案用于位移核验；使用对象来自本轮完整快照。
+            viewer = _BagPages(faa, templates, control, recognize_items=False)
+            for page in viewer.iterate(False):
+                for row in page.rows:
+                    index, remainder = divmod(viewer.offset + row.top - viewer.first_phase, 49)
+                    if remainder:
+                        raise RuntimeError("消费视图与背包行号无法对齐，未点击物品")
+                    for column in range(len(row.cells)):
+                        item = planned.pop((index, column), None)
+                        if item is None or not session.pending(item.name):
+                            continue
+                        point = (490 + 49 * column, row.top + 24)
+                        viewer.verify(item.name, point)
+                        session.begin_stack()
+                        while session.pending(item.name) and not stopping():
+                            if session.use(item.name, point) == 0:
+                                break
+                        if stopping():
+                            break
+                    if stopping():
+                        break
+                if stopping() or not any(session.pending(item.name) for item in planned.values()):
+                    break
+            if stopping() or not any(session.pending(name) for name in items):
+                break
+            # 新物品可能填到已用完的前方格子；下一轮重新整理并扫描，不能把当前快照当最终库存。
+        return session.used
+
+    opened = False
+    try:
+        opened = faa.action_bottom_menu(mode="背包")
+        if not opened:
+            raise RuntimeError("FAA背包入口未成功，未使用指定消耗品")
+        # 装备图标进入背包后异步加载，每次打开只等一次。
+        time.sleep(10)
+        result = run_rounds()
+        if control is not None:
+            control.check()
+        faa.action_exit(mode="普通红叉")
+        return result
+    except Exception as error:
+        if stopping():
+            raise
+        from function.globals import SIGNAL
+        from function.globals.log import CUS_LOGGER
+
+        player = f"[{faa.player}P]"
+        if opened:
+            try:
+                close_bag_reward_windows(faa, control)
+            except Exception:
+                CUS_LOGGER.warning(f"[背包] [使用清理] {player} 奖励窗口关闭失败，继续尝试关闭背包", exc_info=True)
+            try:
+                faa.action_exit(mode="普通红叉", raw_range=_EQUIPMENT_CLOSE_REGION)
+            except Exception:
+                CUS_LOGGER.warning(f"[背包] [使用清理] {player} 背包关闭失败", exc_info=True)
+        if scan_only:
+            raise
+
+        message = ("使用消耗品出现错误，背包满了。" if isinstance(error, _BagQuantityUnchanged)
+                   else "使用消耗品出现错误，已停止本次使用。")
+        CUS_LOGGER.error(f"[背包] [使用停止] {player} {message} {error}", exc_info=True)
+        if SIGNAL.PRINT_TO_UI is not None:
+            SIGNAL.PRINT_TO_UI.emit(text=f"{player} {message}", color_level=3)
+        if SIGNAL.DIALOG is not None:
+            SIGNAL.DIALOG.emit(title=f"{player} 物品使用已停止", text=message)
+        return session.used
 
 
 def use_bag_consumables(faa, items=None, *, scan_only=False,
@@ -832,11 +888,11 @@ def use_bag_consumables(faa, items=None, *, scan_only=False,
     Returns:
         dict | ConsumableReport: 普通使用返回确认消耗量字典，普通扫描返回实际库存字典；
             带库存回调时返回使用前后实扫及提交、确认数量报告。
-            任意物品连续三次未减少都会弹窗并提前结束整次调用。
+            普通使用失败时尝试关闭奖励窗及背包，提示后返回已确认的消耗量。
 
     Raises:
         ValueError: 非法字典、扫描数量不为0、模板缺失或专用回调不完整。
-        RuntimeError: 识图、数量变化或使用结果无法确认；未知数量不作为未减少重试。
+        RuntimeError: 普通扫描或专用调用无法确认识图、库存或使用结果。
     """
     from function.globals import g_resources
 
