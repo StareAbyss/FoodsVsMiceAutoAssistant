@@ -217,43 +217,47 @@ class FAAActionInterfaceJump:
 
         return find
 
+    def _get_activity_list_page(self: "FAA") -> int | None:
+        """从同一帧识别活动清单页。世界地图图标可见时，才能确认第三页为空。"""
+        image = capture_image_png(handle=self.handle, root_handle=self.handle_360, raw_range=[0, 0, 950, 110])
+        templates = RESOURCE_P["common"]["顶部菜单"]
+        for page, markers in ((1, ("每日签到.png", "VIP签到.png")), (2, ("举报.png", "萌宠神殿.png"))):
+            for marker in markers:
+                status, _ = match_p_in_w(
+                    source_img=image, source_range=[250, 0, 800, 110], template=templates[marker])
+                if status == 2:
+                    return page
+                if status == 0:
+                    return None
+        status, _ = match_p_in_w(
+            source_img=image, source_range=[795, 0, 880, 110], template=templates["大地图.png"])
+        return 3 if status == 2 else None
+
     def action_change_activity_list(self: "FAA", serial_num: int) -> bool:
-        """切换顶部活动清单到指定的有图标页面。
-
-        游戏顶部菜单现在按“第一页 -> 第二页 -> 空白页”循环。不能再根据
-        “是否出现举报图标”只点击一次，因为从第二页点击一次会进入空白页。
-        这里最多检查三个连续状态，命中目标页标记后立即停止。
-        """
-
-        handle = self.handle
-        handle_360 = self.handle_360
-
-        page_markers = {
-            1: "每日签到.png",
-            2: "举报.png",
-        }
-        marker_name = page_markers.get(serial_num)
-        if marker_name is None:
+        """切换顶部活动清单到指定页。第三页收起活动图标，适合在地图上选关。"""
+        if serial_num not in (1, 2, 3):
             self.print_warning(text=f"[顶部菜单] 不支持的活动清单页码: {serial_num}")
             return False
 
-        for page_index in range(3):
-            _, find = match_p_in_w(
-                source_handle=handle,
-                source_root_handle=handle_360,
-                source_range=[250, 0, 800, 110],
-                template=RESOURCE_P["common"]["顶部菜单"][marker_name],
-            )
-            if find:
-                return True
+        def wait_for_page(expected_page=None):
+            """等待动作队列和画面刷新，忽略不符合下一页顺序的过渡画面。"""
+            for attempt in range(5):
+                page = self._get_activity_list_page()
+                if page is not None and (expected_page is None or page == expected_page):
+                    return page
+                if attempt < 4:
+                    time.sleep(0.2)
+            return None
 
-            # 当前页不是目标页，翻页；三态中的最后一个状态检查完后不再多点一次。
-            if page_index < 2:
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=785, y=30)
-                time.sleep(0.5)
-
-        self.print_warning(text=f"[顶部菜单] 未能切换到活动清单第 {serial_num} 页")
-        return False
+        page = wait_for_page()
+        for _ in range(2):
+            if page is None or page == serial_num:
+                break
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=30)
+            page = wait_for_page(expected_page=page % 3 + 1)
+        if page != serial_num:
+            self.print_warning(text=f"[顶部菜单] 未能切换到活动清单第 {serial_num} 页")
+        return page == serial_num
 
     def action_goto_map(self: "FAA", map_id) -> bool:
         """
@@ -379,7 +383,7 @@ class FAAActionInterfaceJump:
             # 仅限主角色创建关卡
             if self.is_main:
                 # 防止被活动列表遮住
-                self.action_change_activity_list(serial_num=2)
+                self.action_change_activity_list(serial_num=3)
 
                 # 选择关卡
                 loop_match_p_in_w(
@@ -595,8 +599,8 @@ class FAAActionInterfaceJump:
                 self.action_top_menu(mode="龙渊除厄")
             else:
                 # 旧番外关卡仍从探险营地地图进入。
-                self.action_change_activity_list(2)
                 self.action_goto_map(map_id=10)
+                self.action_change_activity_list(serial_num=3)
 
                 # 探险营地以外的旧番外地图需要先乘船。
                 if stage_1 != "1":
@@ -883,7 +887,7 @@ class FAAActionInterfaceJump:
             # 仅限主角色创建关卡
             if self.is_main:
                 # 防止被活动列表遮住
-                self.action_change_activity_list(serial_num=2)
+                self.action_change_activity_list(serial_num=3)
 
                 # 选择关卡
                 my_dict = {
@@ -921,7 +925,7 @@ class FAAActionInterfaceJump:
             # 仅限主角色创建关卡
             if self.is_main:
                 # 防止被活动列表遮住
-                self.action_change_activity_list(serial_num=2)
+                self.action_change_activity_list(serial_num=3)
                 exchange_dict = {
                     "MU-1-1": "NO-1-7", "MU-1-2": "NO-1-14",
                     "MU-2-1": "NO-2-5", "MU-2-2": "NO-2-10", "MU-2-3": "NO-2-15",
