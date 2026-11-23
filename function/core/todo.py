@@ -1736,12 +1736,12 @@ class ThreadTodo(QThread):
                 plan_source_log = f"活跃总表「{stage_plan_name or '默认'}」"
                 try:
                     with EXTRA.FILE_LOCK:
-                        with open(file=stage_plan_path or os.path.join(PATHS["config"], 'stage_plan.json'), mode="r",
+                        with open(file=stage_plan_path or os.path.join(PATHS["stage_plan"], '默认.json'), mode="r",
                                   encoding="UTF-8") as file:
                             stage_plan = json.load(file)
                 except FileNotFoundError:
                     stage_plan = {}
-                    plan_source_log = f"活跃总表「{stage_plan_name or '默认'}」文件缺失, 回退旧路径"
+                    plan_source_log = f"活跃总表「{stage_plan_name or '默认'}」文件缺失, 回退默认总表"
 
                 g_plan = stage_plan.get(stage_id_, None)
                 plan_source_log += " - 关卡明确定义" if g_plan else " - 未定义, 使用 global"

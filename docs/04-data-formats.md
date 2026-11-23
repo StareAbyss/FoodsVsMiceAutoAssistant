@@ -202,11 +202,11 @@ FAA 启动和用户点击打开微调方案编辑器时，会扫描协议版本�
 
 关卡总表不是关卡静态信息，而是“关卡到方案”的映射文件，决定某个关卡默认用哪个卡组、战斗方案和微调方案。每份 JSON 是一套完整的“全局方案 + 全关卡方案”，文件名即方案名。
 
-一键长草页的“关卡总表方案”下拉框决定运行时读取哪一份，选中结果保存在 `settings.json` 的 `base_settings.stage_plan`。`todo.py` 执行继承方案时按该字段拼接 `stage_plan/<名字>.json` 读取，文件缺失时回退旧的 `config/stage_plan.json`。
+仓库自带 `stage_plan/默认.json` 作为默认总表。关卡方案编辑器的“设为活跃”按钮决定运行时读取哪一份，选中结果保存在 `settings.json` 的 `base_settings.stage_plan`。`todo.py` 执行继承方案时按该字段拼接 `stage_plan/<名字>.json` 读取，文件缺失时回退旧路径。
 
 文件结构：`global` 保存全局方案；每个关卡号是一个独立覆盖项，字段为 `skip / deck / battle_plan:[1P,2P] / tweak_plan?`。与全局方案相同且未设跳过的关卡不会写出，运行时自动回退到全局。编辑器未覆盖的关卡（如世界 Boss）在保存时原样保留。
 
-升级迁移时若发现旧的 `config/stage_plan.json`，会挪到 `stage_plan/old.json` 并把 `base_settings.stage_plan` 设为 `old`。
+仓库内不放 `old.json`。老版本用户在升级时若残留 `config/stage_plan.json`，启动时会自动挪到 `stage_plan/old.json` 并把 `base_settings.stage_plan` 设为 `old`，以保留其原有配置。全新安装则使用 `默认.json`。
 
 ## 资源与日志目录
 
