@@ -402,6 +402,39 @@ border:none</string>
             <number>0</number>
            </property>
            <item>
+            <layout class="QHBoxLayout" name="Lay_StagePlanSelect">
+             <property name="leftMargin">
+              <number>5</number>
+             </property>
+             <property name="topMargin">
+              <number>5</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="Label_StagePlan">
+               <property name="text">
+                <string>关卡总表方案</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="StagePlanCombo"/>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_StagePlan">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item>
             <layout class="QHBoxLayout" name="Lay_Tab1" stretch="5,3">
              <property name="sizeConstraint">
               <enum>QLayout::SetDefaultConstraint</enum>

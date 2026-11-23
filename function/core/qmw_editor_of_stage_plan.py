@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
     QApplication,
     QCheckBox,
     QComboBox,
+    QFileDialog,
     QHBoxLayout,
     QInputDialog,
     QLabel,
@@ -27,6 +28,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+from function.globals import EXTRA
 from function.globals.get_paths import PATHS
 from function.scattered.get_list_battle_plan import get_list_battle_plan, get_list_tweak_plan
 from function.widget.SearchableComboBox import SearchableComboBox
@@ -188,6 +190,34 @@ data_dict = {
         ["生肖副本", "CZ-0-? (1-4)"], ["欢乐假期", "HH-0-0"], ["巅峰对决", "WB-0-0"],
     ],
 }
+
+
+# ---------------------------------------------------------------------------
+# 名称 <-> UUID 转换（编辑器用方案名，stage_plan.json 用 UUID）
+# ---------------------------------------------------------------------------
+
+def plan_name_to_uuid(name: str, mapping: dict) -> str:
+    """按方案名找 UUID；找不到返回空串，由调用方提示。"""
+    for uuid, path in mapping.items():
+        if os.path.splitext(os.path.basename(path))[0] == name:
+            return uuid
+    return ""
+
+
+def plan_uuid_to_name(uuid: str, mapping: dict) -> str:
+    """按 UUID 找方案名；找不到返回空串。"""
+    path = mapping.get(uuid)
+    if not path:
+        return ""
+    return os.path.splitext(os.path.basename(path))[0]
+
+
+def deck_text_to_int(text: str) -> int:
+    return 0 if text == DECK_OPTIONS[0] else int(text)
+
+
+def deck_int_to_text(value: int) -> str:
+    return DECK_OPTIONS[0] if value == 0 else str(value)
 
 
 # ---------------------------------------------------------------------------
@@ -367,6 +397,7 @@ class StagePlanTableModel(QAbstractTableModel):
         self._header_font.setBold(True)
         self._muted_color = QColor(140, 140, 140)
         self.global_plan = GlobalPlan()
+        self._extra_entries: dict[str, dict] = {}
 
     @staticmethod
     def _fields(obj) -> dict:
@@ -558,6 +589,94 @@ class StagePlanTableModel(QAbstractTableModel):
             self.index(HEADER_ROWS + cat.page_size - 1, start_col + SUBCOLS - 1),
         )
 
+    # ---- 序列化 / 反序列化 ----
+    def all_stages(self) -> list[StageEntry]:
+        return [stage for cat in self.categories for stage in cat.stages]
+
+    def apply_global(self, data: dict) -> None:
+        """从 stage_plan JSON 载入全局方案（UUID -> 名称）。"""
+        # 记住编辑器关卡表之外的条目（如世界 Boss），保存时原样保留，避免丢失
+        known = {stage.code for stage in self.all_stages()}
+        self._extra_entries = {
+            code: entry for code, entry in data.items()
+            if code != "global" and code not in known
+        }
+        g = data.get("global", {})
+        battle = g.get("battle_plan", ["", ""])
+        self.global_plan.deck = deck_int_to_text(int(g.get("deck", 0)))
+        self.global_plan.plan_1p = plan_uuid_to_name(
+            battle[0] if len(battle) > 0 else "", EXTRA.BATTLE_PLAN_UUID_TO_PATH) or DEFAULT_PLAN_1P
+        self.global_plan.plan_2p = plan_uuid_to_name(
+            battle[1] if len(battle) > 1 else "", EXTRA.BATTLE_PLAN_UUID_TO_PATH) or DEFAULT_PLAN_2P
+
+    def apply_stages(self, data: dict) -> None:
+        """从 stage_plan JSON 载入各关卡覆盖项。"""
+        g_fields = self._fields(self.global_plan)
+        for stage in self.all_stages():
+            entry = data.get(stage.code)
+            if entry is None:
+                stage.override = False
+                stage.skip = False
+                continue
+            battle = entry.get("battle_plan", ["", ""])
+            stage.skip = bool(entry.get("skip", False))
+            stage.deck = deck_int_to_text(int(entry.get("deck", 0)))
+            stage.plan_1p = plan_uuid_to_name(
+                battle[0] if len(battle) > 0 else "", EXTRA.BATTLE_PLAN_UUID_TO_PATH) or self.global_plan.plan_1p
+            stage.plan_2p = plan_uuid_to_name(
+                battle[1] if len(battle) > 1 else "", EXTRA.BATTLE_PLAN_UUID_TO_PATH) or self.global_plan.plan_2p
+            tweak_uuid = entry.get("tweak_plan", "")
+            stage.tweak = plan_uuid_to_name(tweak_uuid, EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH) or DEFAULT_TWEAK
+            stage.override = self._fields(stage) != g_fields or stage.skip
+
+    def export(self) -> tuple[dict, list[str]]:
+        """导出为 stage_plan JSON 结构；返回 (数据, 找不到的方案名列表)。"""
+        missing: list[str] = []
+
+        def resolve(name: str, mapping: dict, fallback: str) -> str:
+            uuid = plan_name_to_uuid(name, mapping)
+            if uuid:
+                return uuid
+            missing.append(name)
+            return plan_name_to_uuid(fallback, mapping)
+
+        g = self.global_plan
+        data = {
+            "global": {
+                "skip": False,
+                "deck": deck_text_to_int(g.deck),
+                "battle_plan": [
+                    resolve(g.plan_1p, EXTRA.BATTLE_PLAN_UUID_TO_PATH, DEFAULT_PLAN_1P),
+                    resolve(g.plan_2p, EXTRA.BATTLE_PLAN_UUID_TO_PATH, DEFAULT_PLAN_2P),
+                ],
+            }
+        }
+        for stage in self.all_stages():
+            if not stage.override:
+                # 跟随全局的关卡不写出，运行时自动回退到 global
+                continue
+            tweak_uuid = plan_name_to_uuid(stage.tweak, EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH)
+            if not tweak_uuid:
+                tweak_uuid = plan_name_to_uuid(DEFAULT_TWEAK, EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH)
+            entry = {
+                "skip": stage.skip,
+                "deck": deck_text_to_int(stage.deck),
+                "battle_plan": [
+                    resolve(stage.plan_1p, EXTRA.BATTLE_PLAN_UUID_TO_PATH, g.plan_1p),
+                    resolve(stage.plan_2p, EXTRA.BATTLE_PLAN_UUID_TO_PATH, g.plan_2p),
+                ],
+                "tweak_plan": tweak_uuid,
+            }
+            data[stage.code] = entry
+        # 编辑器未覆盖的关卡（如世界 Boss）原样保留
+        data.update(self._extra_entries)
+        return data, missing
+
+    def refresh_all(self) -> None:
+        top_left = self.index(HEADER_ROWS, 0)
+        bottom_right = self.index(self.rowCount() - 1, self.columnCount() - 1)
+        self.dataChanged.emit(top_left, bottom_right)
+
 
 class PlanComboDelegate(QStyledItemDelegate):
     """把方案单元格始终绘制成下拉框外观，编辑时立即弹出列表，并支持多选同步。"""
@@ -685,7 +804,8 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.setWindowTitle("全局方案&战斗方案编辑")
         self.resize(1500, 720)
 
-        self._config_names = ["默认方案"]  # TODO: 下一步接入独立 JSON 配置后从这里读取
+        self._current_file: str = ""  # 当前编辑的 stage_plan JSON 路径
+        self._config_names = self._list_config_names()
         self._name_map = load_stage_name_map()
         self._battle_plan_names = self._safe_plan_names(get_list_battle_plan)
         self._tweak_plan_names = self._safe_plan_names(get_list_tweak_plan)
@@ -706,6 +826,22 @@ class QMWEditorOfStagePlan(QMainWindow):
             return getter(with_extension=False)
         except OSError:
             return []
+
+    @staticmethod
+    def _list_config_names() -> list[str]:
+        """列出 stage_plan 目录下所有 JSON 方案名（不含扩展名）。"""
+        folder = PATHS["stage_plan"]
+        if not os.path.isdir(folder):
+            return []
+        return sorted(
+            os.path.splitext(name)[0]
+            for name in os.listdir(folder)
+            if name.lower().endswith(".json")
+        )
+
+    @staticmethod
+    def _config_path(name: str) -> str:
+        return os.path.join(PATHS["stage_plan"], name + ".json")
 
     def refresh_plan_lists(self) -> None:
         """重新读取方案清单，使新建/重命名后的方案立即进入下拉。"""
@@ -734,6 +870,9 @@ class QMWEditorOfStagePlan(QMainWindow):
         main_widget.setLayout(layout)
         self.setCentralWidget(main_widget)
 
+        if self._config_names:
+            self._load_config(self._config_names[0])
+
     def _build_global_bar(self) -> QHBoxLayout:
         """表格上方的全局方案编辑区。"""
         bar = QHBoxLayout()
@@ -761,13 +900,13 @@ class QMWEditorOfStagePlan(QMainWindow):
         return bar
 
     def _build_config_bar(self) -> QHBoxLayout:
-        """顶部“可切换 JSON 配置”工具栏（本轮只做 UI，不落盘）。"""
+        """顶部总表选择、载入与保存工具栏。"""
         bar = QHBoxLayout()
         bar.addWidget(QLabel("总表配置："))
 
         self.config_combo = QComboBox()
         self.config_combo.addItems(self._config_names)
-        self.config_combo.currentIndexChanged.connect(self._on_config_changed)
+        self.config_combo.currentTextChanged.connect(self._on_config_changed)
         bar.addWidget(self.config_combo)
 
         self.btn_new_config = QPushButton("新建")
@@ -776,9 +915,13 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.btn_rename_config.clicked.connect(self._rename_config)
         self.btn_delete_config = QPushButton("删除")
         self.btn_delete_config.clicked.connect(self._delete_config)
-        bar.addWidget(self.btn_new_config)
-        bar.addWidget(self.btn_rename_config)
-        bar.addWidget(self.btn_delete_config)
+        self.btn_save = QPushButton("保存")
+        self.btn_save.clicked.connect(self._save_config)
+        self.btn_save_as = QPushButton("另存为")
+        self.btn_save_as.clicked.connect(self._save_as_config)
+        for btn in (self.btn_new_config, self.btn_rename_config, self.btn_delete_config,
+                    self.btn_save, self.btn_save_as):
+            bar.addWidget(btn)
         bar.addStretch(1)
         return bar
 
@@ -891,50 +1034,139 @@ class QMWEditorOfStagePlan(QMainWindow):
         finally:
             self._syncing_check = False
 
-    # ---- 配置切换（UI 结构） ----
-    def _on_config_changed(self, index: int):
-        if index < 0:
+    # ---- 配置读写 ----
+    def _load_config(self, name: str) -> None:
+        """从 stage_plan/<name>.json 载入总表。"""
+        path = self._config_path(name)
+        if not os.path.isfile(path):
             return
-        # TODO: 下一步接入独立 JSON 配置后，切换时载入对应总表数据
-        self.setWindowTitle(f"全局方案&战斗方案编辑 - {self._config_names[index]}")
+        try:
+            with EXTRA.FILE_LOCK:
+                with open(path, "r", encoding="UTF-8") as file:
+                    data = json.load(file)
+        except (OSError, json.JSONDecodeError):
+            QMessageBox.warning(self, "提示", f"无法读取总表「{name}」。")
+            return
+        self._current_file = path
+        self.model.apply_global(data)
+        self.model.apply_stages(data)
+        self.model.refresh_all()
+        self._sync_global_widgets()
+        self.setWindowTitle(f"全局方案&战斗方案编辑 - {name}")
+
+    def _sync_global_widgets(self) -> None:
+        """全局方案载入后刷新顶部全局控件。"""
+        g = self.model.global_plan
+        self.global_deck.blockSignals(True)
+        self.global_deck.setCurrentText(g.deck)
+        self.global_deck.blockSignals(False)
+        for field in ("plan_1p", "plan_2p"):
+            combo = getattr(self, f"global_{field}")
+            combo.blockSignals(True)
+            combo.setCurrentText(getattr(g, field))
+            combo.blockSignals(False)
+
+    def _do_save(self, path: str) -> bool:
+        data, missing = self.model.export()
+        if missing:
+            names = "、".join(sorted(set(missing)))
+            QMessageBox.warning(self, "方案名找不到", f"以下方案名找不到对应方案，已回退默认：\n{names}")
+        try:
+            with EXTRA.FILE_LOCK:
+                with open(path, "w", encoding="UTF-8") as file:
+                    json.dump(data, file, ensure_ascii=False, indent=4)
+        except OSError:
+            QMessageBox.warning(self, "提示", "保存失败。")
+            return False
+        self._current_file = path
+        QMessageBox.information(self, "成功", "总表已保存~")
+        return True
+
+    def _save_config(self):
+        if not self._current_file:
+            QMessageBox.information(self, "提示", "请先选择或另存为一个总表。")
+            return
+        self._do_save(self._current_file)
+
+    def _save_as_config(self):
+        path, _ = QFileDialog.getSaveFileName(
+            self, "另存为总表", PATHS["stage_plan"], "JSON Files (*.json)")
+        if not path:
+            return
+        path = os.path.splitext(path)[0] + ".json"
+        if not self._do_save(path):
+            return
+        name = os.path.splitext(os.path.basename(path))[0]
+        if name not in [self.config_combo.itemText(i) for i in range(self.config_combo.count())]:
+            self.config_combo.addItem(name)
+        self.config_combo.setCurrentText(name)
+
+    def _on_config_changed(self, name: str):
+        if not name:
+            return
+        self._load_config(name)
 
     def _new_config(self):
         name, ok = QInputDialog.getText(self, "新建总表", "输入总表名称：")
         name = name.strip()
         if not ok or not name:
             return
-        if name in self._config_names:
+        path = self._config_path(name)
+        if os.path.exists(path):
             QMessageBox.warning(self, "提示", "该名称已存在。")
             return
+        # 以当前总表为基础创建空壳：只写全局，关卡全部跟随
+        data = {"global": self.model.global_plan.as_dict()}
+        data["global"]["deck"] = deck_text_to_int(data["global"]["deck"])
+        data["global"]["battle_plan"] = [
+            plan_name_to_uuid(self.model.global_plan.plan_1p, EXTRA.BATTLE_PLAN_UUID_TO_PATH),
+            plan_name_to_uuid(self.model.global_plan.plan_2p, EXTRA.BATTLE_PLAN_UUID_TO_PATH),
+        ]
+        with EXTRA.FILE_LOCK:
+            with open(path, "w", encoding="UTF-8") as file:
+                json.dump(data, file, ensure_ascii=False, indent=4)
         self._config_names.append(name)
         self.config_combo.addItem(name)
         self.config_combo.setCurrentText(name)
 
     def _rename_config(self):
-        current = self.config_combo.currentText()
-        name, ok = QInputDialog.getText(self, "重命名总表", "输入新名称：", text=current)
+        old = self.config_combo.currentText()
+        name, ok = QInputDialog.getText(self, "重命名总表", "输入新名称：", text=old)
         name = name.strip()
-        if not ok or not name:
+        if not ok or not name or name == old:
             return
-        if name in self._config_names:
+        old_path, new_path = self._config_path(old), self._config_path(name)
+        if os.path.exists(new_path):
             QMessageBox.warning(self, "提示", "该名称已存在。")
+            return
+        try:
+            os.rename(old_path, new_path)
+        except OSError:
+            QMessageBox.warning(self, "提示", "重命名失败。")
             return
         index = self.config_combo.currentIndex()
         self._config_names[index] = name
         self.config_combo.setItemText(index, name)
+        if self._current_file == old_path:
+            self._current_file = new_path
 
     def _delete_config(self):
         if len(self._config_names) <= 1:
             QMessageBox.warning(self, "提示", "至少保留一个总表。")
             return
-        index = self.config_combo.currentIndex()
-        name = self.config_combo.itemText(index)
+        name = self.config_combo.currentText()
         ret = QMessageBox.question(
             self, "删除总表", f"确定删除总表「{name}」？",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
         )
         if ret != QMessageBox.StandardButton.Yes:
             return
+        try:
+            os.remove(self._config_path(name))
+        except OSError:
+            QMessageBox.warning(self, "提示", "删除失败。")
+            return
+        index = self.config_combo.currentIndex()
         self._config_names.pop(index)
         self.config_combo.removeItem(index)
 

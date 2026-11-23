@@ -26,6 +26,7 @@ from function.scattered.check_tweak_plan import (
 )
 from function.scattered.get_list_battle_plan import get_list_battle_plan
 from function.scattered.get_task_sequence_list import get_task_sequence_list
+from function.scattered.get_stage_plan_list import get_stage_plan_list
 from function.scattered.test_route_connectivity import test_route_connectivity
 from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
 
@@ -574,6 +575,9 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.ZoomRatio_Output.setText(str(EXTRA.ZOOM_RATE) + "(自动)")
             self.Level1P_Input.setValue(my_opt["level_1p"])
             self.Level2P_Input.setValue(my_opt["level_2p"])
+            self.StagePlanCombo.clear()
+            self.StagePlanCombo.addItems(get_stage_plan_list(with_extension=False))
+            self.StagePlanCombo.setCurrentText(my_opt.get("stage_plan", ""))
 
         def timer_settings() -> None:
             h_validator = QRegularExpressionValidator(QRegularExpression(r"^(?:[01][0-9]|2[0-3])$"))
@@ -1087,6 +1091,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.ZoomRatio_Output.setText(str(EXTRA.ZOOM_RATE) + "(自动)")
             my_opt["level_1p"] = self.Level1P_Input.value()
             my_opt["level_2p"] = self.Level2P_Input.value()
+            my_opt["stage_plan"] = self.StagePlanCombo.currentText()
 
         def check_time_settings() -> None:
             for i in range(1, 6):

@@ -5,7 +5,8 @@
         "name_2p": "\u5c0f\u53f72",
         "zoom_ratio": 0,
         "level_1p": 60,
-        "level_2p": 60
+        "level_2p": 60,
+        "stage_plan": "old"
     },
     "timer": {
         "1": {

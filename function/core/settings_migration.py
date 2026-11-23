@@ -28,12 +28,13 @@ MIGRATION_CONFIGS = [
         ],
     },
     {
-        "name": "配置文件 - 关卡全局方案",
+        "name": "配置文件 - 关卡总表方案",
         "group": "配置文件",
-        "type": "file",
+        "type": "folder_replace",
         "locations": [
-            Path("config") / "stage_plan.json",
+            Path("stage_plan"),
         ],
+        "target_location": Path("stage_plan"),
     },
     {
         "name": "配置文件 - 自定义关卡信息",

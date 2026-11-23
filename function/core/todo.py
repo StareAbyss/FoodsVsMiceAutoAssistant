@@ -1708,10 +1708,12 @@ class ThreadTodo(QThread):
                 stage_id_ = faa_a.stage_info["b_id"]
 
             if global_plan_active:
-                # 获取 g_plan
+                # 获取 g_plan：优先读一键长草页选定的关卡总表，缺失时回退旧路径
+                stage_plan_name = self.opt.get("base_settings", {}).get("stage_plan", "")
+                stage_plan_path = os.path.join(PATHS["stage_plan"], stage_plan_name + ".json") if stage_plan_name else ""
                 try:
                     with EXTRA.FILE_LOCK:
-                        with open(file=os.path.join(PATHS["config"], 'stage_plan.json'), mode="r",
+                        with open(file=stage_plan_path or os.path.join(PATHS["config"], 'stage_plan.json'), mode="r",
                                   encoding="UTF-8") as file:
                             stage_plan = json.load(file)
                 except FileNotFoundError:
