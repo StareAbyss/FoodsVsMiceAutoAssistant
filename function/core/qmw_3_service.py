@@ -1292,7 +1292,6 @@ class QMainWindowService(QMainWindowLoadSettings):
         window.setFont(self.font)
         self.set_stylesheet(window)
         # 刷新一次战斗方案
-        window.refresh_battle_plan_selector()
         window.show()
 
     def click_btn_open_settings_migrator(self):
