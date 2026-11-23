@@ -843,6 +843,27 @@ class QMWEditorOfStagePlan(QMainWindow):
     def _config_path(name: str) -> str:
         return os.path.join(PATHS["stage_plan"], name + ".json")
 
+    @staticmethod
+    def _active_plan_name() -> str:
+        path = os.path.join(PATHS["config"], "settings.json")
+        try:
+            with EXTRA.FILE_LOCK:
+                with open(path, "r", encoding="UTF-8") as file:
+                    data = json.load(file)
+        except (OSError, json.JSONDecodeError):
+            return ""
+        return data.get("base_settings", {}).get("stage_plan", "")
+
+    def _refresh_active_button(self) -> None:
+        current = self.config_combo.currentText()
+        active = self._active_plan_name()
+        if current and current == active:
+            self.btn_set_active.setText("已设为活跃")
+            self.btn_set_active.setEnabled(False)
+        else:
+            self.btn_set_active.setText("设为活跃")
+            self.btn_set_active.setEnabled(bool(current))
+
     def refresh_plan_lists(self) -> None:
         """重新读取方案清单，使新建/重命名后的方案立即进入下拉。"""
         self._battle_plan_names = self._safe_plan_names(get_list_battle_plan)
@@ -908,6 +929,11 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.config_combo.addItems(self._config_names)
         self.config_combo.currentTextChanged.connect(self._on_config_changed)
         bar.addWidget(self.config_combo)
+
+        self.btn_set_active = QPushButton("设为活跃")
+        self.btn_set_active.clicked.connect(self._set_active)
+        bar.addWidget(self.btn_set_active)
+        self._refresh_active_button()
 
         self.btn_new_config = QPushButton("新建")
         self.btn_new_config.clicked.connect(self._new_config)
@@ -1100,11 +1126,31 @@ class QMWEditorOfStagePlan(QMainWindow):
         if name not in [self.config_combo.itemText(i) for i in range(self.config_combo.count())]:
             self.config_combo.addItem(name)
         self.config_combo.setCurrentText(name)
+        self._refresh_active_button()
 
     def _on_config_changed(self, name: str):
+        self._refresh_active_button()
         if not name:
             return
         self._load_config(name)
+
+    def _set_active(self):
+        """把当前总表写入 settings.json 的 base_settings.stage_plan。"""
+        name = self.config_combo.currentText()
+        if not name:
+            return
+        path = os.path.join(PATHS["config"], "settings.json")
+        try:
+            with EXTRA.FILE_LOCK:
+                with open(path, "r", encoding="UTF-8") as file:
+                    data = json.load(file)
+                data.setdefault("base_settings", {})["stage_plan"] = name
+                with open(path, "w", encoding="UTF-8") as file:
+                    json.dump(data, file, ensure_ascii=False, indent=4)
+        except (OSError, json.JSONDecodeError):
+            QMessageBox.warning(self, "提示", "写入 settings.json 失败。")
+            return
+        self._refresh_active_button()
 
     def _new_config(self):
         name, ok = QInputDialog.getText(self, "新建总表", "输入总表名称：")
@@ -1128,6 +1174,7 @@ class QMWEditorOfStagePlan(QMainWindow):
         self._config_names.append(name)
         self.config_combo.addItem(name)
         self.config_combo.setCurrentText(name)
+        self._refresh_active_button()
 
     def _rename_config(self):
         old = self.config_combo.currentText()
@@ -1149,6 +1196,16 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.config_combo.setItemText(index, name)
         if self._current_file == old_path:
             self._current_file = new_path
+        # 若被重命名的正是活跃总表，同步更新 settings.json
+        if self._active_plan_name() == old:
+            path = os.path.join(PATHS["config"], "settings.json")
+            with EXTRA.FILE_LOCK:
+                with open(path, "r", encoding="UTF-8") as file:
+                    data = json.load(file)
+                data.setdefault("base_settings", {})["stage_plan"] = name
+                with open(path, "w", encoding="UTF-8") as file:
+                    json.dump(data, file, ensure_ascii=False, indent=4)
+        self._refresh_active_button()
 
     def _delete_config(self):
         if len(self._config_names) <= 1:
@@ -1169,6 +1226,7 @@ class QMWEditorOfStagePlan(QMainWindow):
         index = self.config_combo.currentIndex()
         self._config_names.pop(index)
         self.config_combo.removeItem(index)
+        self._refresh_active_button()
 
     def showEvent(self, event):
         self.refresh_plan_lists()
