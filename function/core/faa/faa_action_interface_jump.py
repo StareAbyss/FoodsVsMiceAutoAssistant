@@ -1,6 +1,6 @@
 import random
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from function.common.bg_img_match import loop_match_p_in_w, match_p_in_w
 from function.common.bg_img_screenshot import capture_image_png
@@ -217,8 +217,11 @@ class FAAActionInterfaceJump:
 
         return find
 
-    def action_change_activity_list(self: "FAA", serial_num: int) -> bool:
-        """切换顶部活动清单到指定的有图标页面。
+    def action_change_activity_list(self: "FAA", serial_num: Literal[0, 1, 2]) -> bool:
+        """切换顶部活动清单到指定的页面。
+        - 0 - 空白页
+        - 1 - 第一页
+        - 2 - 第二页
 
         游戏顶部菜单现在按“第一页 -> 第二页 -> 空白页”循环。不能再根据
         “是否出现举报图标”只点击一次，因为从第二页点击一次会进入空白页。
@@ -230,25 +233,34 @@ class FAAActionInterfaceJump:
 
         page_markers = {
             1: "每日签到.png",
-            2: "举报.png",
+            2: "欢乐假期.png", # 之前用举报.png，但空间服没有聊天举报按钮
         }
-        marker_name = page_markers.get(serial_num)
-        if marker_name is None:
+        if serial_num not in {0, 1, 2}:
             self.print_warning(text=f"[顶部菜单] 不支持的活动清单页码: {serial_num}")
             return False
 
-        for page_index in range(3):
+        def find_icon(marker_name: str) -> bool:
             _, find = match_p_in_w(
                 source_handle=handle,
                 source_root_handle=handle_360,
                 source_range=[250, 0, 800, 110],
                 template=RESOURCE_P["common"]["顶部菜单"][marker_name],
             )
-            if find:
-                return True
+            return bool(find)
+
+        for checked_loops in range(3):
+            if serial_num == 0:
+                if not find_icon(page_markers[1]) and not find_icon(page_markers[2]):
+                    return True
+            elif serial_num == 1:
+                if find_icon(page_markers[1]):
+                    return True
+            elif serial_num == 2:
+                if find_icon(page_markers[2]):
+                    return True
 
             # 当前页不是目标页，翻页；三态中的最后一个状态检查完后不再多点一次。
-            if page_index < 2:
+            if checked_loops < 2:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=785, y=30)
                 time.sleep(0.5)
 
@@ -371,7 +383,7 @@ class FAAActionInterfaceJump:
             # 仅限主角色创建关卡
             if self.is_main:
                 # 防止被活动列表遮住
-                self.action_change_activity_list(serial_num=2)
+                self.action_change_activity_list(serial_num=0)
 
                 # 选择关卡
                 loop_match_p_in_w(
@@ -894,7 +906,7 @@ class FAAActionInterfaceJump:
             # 仅限主角色创建关卡
             if self.is_main:
                 # 防止被活动列表遮住
-                self.action_change_activity_list(serial_num=2)
+                self.action_change_activity_list(serial_num=0)
 
                 # 选择关卡
                 my_dict = {
@@ -932,7 +944,7 @@ class FAAActionInterfaceJump:
             # 仅限主角色创建关卡
             if self.is_main:
                 # 防止被活动列表遮住
-                self.action_change_activity_list(serial_num=2)
+                self.action_change_activity_list(serial_num=0)
                 exchange_dict = {
                     "MU-1-1": "NO-1-7", "MU-1-2": "NO-1-14",
                     "MU-2-1": "NO-2-5", "MU-2-2": "NO-2-10", "MU-2-3": "NO-2-15",
