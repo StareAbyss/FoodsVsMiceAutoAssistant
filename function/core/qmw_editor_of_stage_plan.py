@@ -58,6 +58,8 @@ DEFAULT_TWEAK = "!默认"
 
 # 分类底色沿用原来的黄色半透明，按分组索引奇偶交替，使“间隔”表达分类
 GROUP_COLORS = (QColor(255, 255, 0, 50), None)
+# 跟随全局方案的关卡行底色
+FOLLOW_GLOBAL_COLOR = QColor(0, 200, 0, 55)
 
 # 类别的分组与分页规则：
 # group_size：每几关一组；group_by_entry：data_dict 每个条目为一组；page_size：覆盖默认分页
@@ -399,9 +401,12 @@ class StagePlanTableModel(QAbstractTableModel):
         if stage is None:
             return None
 
-        # 分组底色：黄色按分组索引奇偶交替，使间隔表达分类
-        if role == Qt.ItemDataRole.BackgroundRole and stage.group_index is not None:
-            return GROUP_COLORS[stage.group_index % 2]
+        if role == Qt.ItemDataRole.BackgroundRole:
+            # 绿色只标注跟随全局的卡组/1P/2P 三列；其余列仍按分组交替黄色
+            if sub in (SUBCOL_DECK, SUBCOL_1P, SUBCOL_2P) and not stage.override and not stage.skip:
+                return FOLLOW_GLOBAL_COLOR
+            if stage.group_index is not None:
+                return GROUP_COLORS[stage.group_index % 2]
 
         if sub == SUBCOL_STAGE:
             if role == Qt.ItemDataRole.DisplayRole:
