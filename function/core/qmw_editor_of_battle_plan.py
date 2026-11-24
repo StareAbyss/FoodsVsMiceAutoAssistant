@@ -132,8 +132,9 @@ def create_vertical_line():
 
 class QMWEditorOfBattlePlan(QMainWindow):
 
-    def __init__(self, func_open_tip):
+    def __init__(self, func_open_tip, on_plan_saved=None):
         super().__init__()
+        self.on_plan_saved = on_plan_saved
 
         """布局和控件放置"""
 
@@ -2271,6 +2272,10 @@ class QMWEditorOfBattlePlan(QMainWindow):
         self.init_battle_plan()
 
         self.BtnSave.setEnabled(True)
+
+        # 通知外部（如关卡总表编辑器）刷新方案列表
+        if self.on_plan_saved:
+            self.on_plan_saved()
 
     """打开战斗方案"""
 

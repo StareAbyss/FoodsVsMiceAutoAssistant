@@ -810,8 +810,9 @@ class StagePlanTableView(QTableView):
 # ---------------------------------------------------------------------------
 
 class QMWEditorOfStagePlan(QMainWindow):
-    def __init__(self):
+    def __init__(self, on_active_changed=None):
         super().__init__()
+        self.on_active_changed = on_active_changed
         self.setWindowTitle("全局方案&战斗方案编辑")
         self.resize(1500, 720)
 
@@ -903,7 +904,14 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.setCentralWidget(main_widget)
 
         if self._config_names:
-            self._load_config(self._config_names[0])
+            # 优先呈现 settings.json 里设为活跃的总表，找不到时回退第一份
+            active_name = self._active_plan_name()
+            if active_name not in self._config_names:
+                active_name = self._config_names[0]
+            self.config_combo.blockSignals(True)
+            self.config_combo.setCurrentText(active_name)
+            self.config_combo.blockSignals(False)
+            self._load_config(active_name)
 
     def _build_global_bar(self) -> QHBoxLayout:
         """表格上方的全局方案编辑区。"""
@@ -1163,6 +1171,9 @@ class QMWEditorOfStagePlan(QMainWindow):
             QMessageBox.warning(self, "提示", "写入 settings.json 失败。")
             return
         self._refresh_active_button()
+        # 通知主窗口同步内存配置，避免一键长草页保存时把该写入刷掉
+        if self.on_active_changed:
+            self.on_active_changed(name)
 
     def _new_config(self):
         name, ok = QInputDialog.getText(self, "新建总表", "输入总表名称：")
@@ -1203,7 +1214,7 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.config_combo.setItemText(index, name)
         if self._current_file == old_path:
             self._current_file = new_path
-        # 若被重命名的正是活跃总表，同步更新 settings.json
+        # 若被重命名的正是活跃总表，同步更新 settings.json 并通知主窗口
         if self._active_plan_name() == old:
             path = os.path.join(PATHS["config"], "settings.json")
             with EXTRA.FILE_LOCK:
@@ -1212,6 +1223,8 @@ class QMWEditorOfStagePlan(QMainWindow):
                 data.setdefault("base_settings", {})["stage_plan"] = name
                 with open(path, "w", encoding="UTF-8") as file:
                     json.dump(data, file, ensure_ascii=False, indent=4)
+            if self.on_active_changed:
+                self.on_active_changed(name)
         self._refresh_active_button()
 
     def _delete_config(self):
