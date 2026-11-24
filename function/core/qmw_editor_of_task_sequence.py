@@ -25,7 +25,6 @@ from function.scattered.check_task_sequence import fresh_and_check_all_task_sequ
 from function.scattered.get_task_sequence_list import get_task_sequence_list
 from function.scattered.read_json_to_stage_info import build_stage_menu_data
 
-
 DEFAULT_BATTLE_STAGE_ID = "NO-1-7"
 
 
@@ -258,6 +257,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
         """
         super().__init__()
         self.father = father
+        self.single_player = False
         # 主布局
         self.lay_main = QVBoxLayout()
 
@@ -306,6 +306,30 @@ class QMWEditorOfTaskSequence(QMainWindow):
         for _, file_path in EXTRA.TASK_SEQUENCE_UUID_TO_PATH.items():
             if "旧版UI模拟.json" in file_path:
                 self.open_task_sequence(file_path=file_path)
+
+    def set_single_player(self, enabled: bool) -> None:
+        """更新现有任务行，玩家与方案的原值留给双人模式使用。"""
+        self.single_player = enabled
+        task_list = self.WidgetTaskSequenceList
+        for index in range(task_list.count()):
+            item = task_list.item(index)
+            row = task_list.itemWidget(item)
+            self.apply_player_mode_to_row(row)
+            item.setSizeHint(row.sizeHint())
+
+    def apply_player_mode_to_row(self, row: QWidget) -> None:
+        """在单人模式隐藏任务的玩家选择及独立方案的 2P 字段。"""
+        for widget in (
+                row.findChild(QComboBox, "w_player"),
+                row.findChild(QLabel, "w_player_label"),
+        ):
+            if widget is not None:
+                widget.setVisible(not self.single_player)
+        options = getattr(row, "plan_opt_window", None)
+        if options is not None:
+            options.plan_2p_label.setVisible(not self.single_player)
+            options.plan_2p_input.setVisible(not self.single_player)
+            options.adjustSize()
 
     def UICss(self):
         """
@@ -694,6 +718,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
             # 添加标签控件(如果有)
             if label_widget is not None:
+                if input_widget.objectName() == "w_player":
+                    label_widget.setObjectName("w_player_label")
                 layout.addWidget(label_widget)
 
             # 添加输入控件
@@ -1155,6 +1181,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
         delete_button.setObjectName("delete_button")
         line_layout.addWidget(delete_button)
 
+        self.apply_player_mode_to_row(line_widget)
         return line_widget
 
     def update_task_id(self):

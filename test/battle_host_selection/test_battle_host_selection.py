@@ -44,7 +44,7 @@ class BattleHostSelectionTest(unittest.TestCase):
         players = {}
         for pid in (1, 2):
             faa = SimpleNamespace(
-                handle=pid, handle_360=pid + 10, random_seed=0, is_used_key=False,
+                channel=f"{pid}P", handle=pid, handle_360=pid + 10, random_seed=0, is_used_key=False,
                 action_goto_stage=Mock(), action_goto_map=Mock(),
                 action_change_activity_list=Mock(), action_exit=Mock(), set_battle_plan=Mock(),
                 check_stage_id_is_true=Mock(return_value=True),
@@ -143,6 +143,40 @@ class BattleHostSelectionTest(unittest.TestCase):
                 self.assertFalse(task.faa_dict[2].is_main)
                 self.matcher.assert_not_called()
                 self.assertEqual(order, original)
+
+    def test_dual_tower_expands_either_solo_selection_to_second_player_host(self):
+        for order in ([1], [2]):
+            with self.subTest(order=order):
+                task = self.make_task()
+                self.assertIsNone(self.run_battle(task, stage_id="MT-2-1", player=order))
+                task.battle.assert_called_once_with(player_a=2, player_b=1, change_card=True)
+
+    def test_dual_tower_skips_when_two_distinct_windows_are_unavailable(self):
+        for single_mode in (True, False):
+            with self.subTest(single_mode=single_mode):
+                task = self.make_task()
+                if single_mode:
+                    del task.faa_dict[2]
+                else:
+                    task.faa_dict[2].channel = task.faa_dict[1].channel
+                self.assertIsNone(self.run_battle(task, stage_id="MT-2-0", player=[2, 1]))
+                task.battle.assert_not_called()
+                for faa in task.faa_dict.values():
+                    faa.action_goto_stage.assert_not_called()
+
+    def test_invalid_player_list_is_not_silently_reassigned(self):
+        task = self.make_task()
+        for players in ([2, 2], [True], [1, 2, 1], []):
+            with self.subTest(players=players):
+                self.assertIsNone(self.run_battle(task, stage_id="MT-2-1", player=players))
+        task.battle.assert_not_called()
+
+    def test_custom_room_tower_map_does_not_force_group_or_navigation(self):
+        task = self.make_task()
+        del task.faa_dict[2]
+        self.assertIsNone(self.run_battle(task, stage_id="MT-2-1", player=[1], is_cu=True))
+        task.battle.assert_called_once_with(player_a=1, player_b=None, change_card=True)
+        task.faa_dict[1].action_goto_stage.assert_not_called()
 
     def test_single_player_keeps_selected_account(self):
         """单人任务继续使用选定账号，包括 2P 单人魔塔。"""

@@ -32,10 +32,11 @@ class LoginResultPropagationTest(unittest.TestCase):
         self.signal.DIALOG.emit.assert_not_called()
         self.assertFalse(any("刷新游戏, 完成" in str(call) for call in self.signal.PRINT_TO_UI.emit.call_args_list))
 
-    def sequence_task(self, tasks):
+    def sequence_task(self, tasks, players=(1, 2)):
         """隔离任务文件读取，保留任务分派和嵌套序列的真实代码。"""
         task = SimpleNamespace(
             task_sequence_uuid="test",
+            faa_dict={player: Mock() for player in players},
             model_end_print=Mock(), batch_reload_game=Mock(return_value="选服设置错误"),
             batch_get_warm_gift=Mock(), batch_top_up_money=Mock(return_value=None),
             batch_sign_in=Mock(return_value=None),
@@ -48,6 +49,31 @@ class LoginResultPropagationTest(unittest.TestCase):
             context.start()
             self.addCleanup(context.stop)
         return task
+
+    def test_single_player_sequence_routes_all_player_choices_to_1p(self):
+        task = self.sequence_task([
+            [
+                {"task_id": 1, "task_type": "战斗", "task_args": {"player": [1]}},
+                {"task_id": 2, "task_type": "战斗", "task_args": {"player": [2]}},
+                {"task_id": 3, "task_type": "战斗", "task_args": {"player": [2, 1]}},
+                {"task_id": 4, "task_type": "扫描公会贡献", "task_args": {"player": 2}},
+                {"task_id": 5, "task_type": "任务序列", "task_args": {
+                    "sequence_integer": 1, "task_sequence_uuid": "nested",
+                }},
+            ],
+            [{"task_id": 1, "task_type": "签到", "task_args": {"player": [1, 2]}}],
+        ], players=(1,))
+        task.battle_1_n_n = Mock(return_value=None)
+        task.signal_start_todo_2_battle = Mock()
+        task.batch_scan_guild_info = Mock()
+
+        self.assertIsNone(task.task_sequence("主序列", 1, "test")[2])
+        task.battle_1_n_n.assert_called_once()
+        quests = task.battle_1_n_n.call_args.kwargs["quest_list"]
+        self.assertEqual([quest["player"] for quest in quests], [[1], [1], [1]])
+        task.signal_start_todo_2_battle.emit.assert_not_called()
+        task.batch_scan_guild_info.assert_called_once_with(player=1)
+        task.batch_sign_in.assert_called_once_with(player=[1])
 
     def test_nested_sequence_stops_before_next_task(self):
         task = self.sequence_task([
@@ -62,6 +88,46 @@ class LoginResultPropagationTest(unittest.TestCase):
         self.assertEqual(task.task_sequence("主序列", 1, "test"), (False, False, "选服设置错误"))
         task.batch_sign_in.assert_not_called()
         task.model_end_print.assert_not_called()
+
+    def test_required_team_is_dispatched_as_group_before_splitting_threads(self):
+        task = self.sequence_task([[
+            {"task_id": 1, "task_type": "战斗", "task_args": {"stage_id": "MT-2-1", "player": [1]}},
+            {"task_id": 2, "task_type": "战斗", "task_args": {"stage_id": "MT-2-2", "player": [2]}},
+            {"task_id": 3, "task_type": "战斗", "task_args": {"stage_id": "MT-2-3", "player": [2, 2]}},
+        ]])
+        task.battle_1_n_n = Mock(return_value=None)
+        task.signal_start_todo_2_battle = Mock()
+        self.assertIsNone(task.task_sequence("主序列", 1, "test")[2])
+        quest_list = task.battle_1_n_n.call_args.kwargs["quest_list"]
+        self.assertEqual([(q["stage_id"], q["player"]) for q in quest_list], [
+            ("MT-2-1", [1, 2]), ("MT-2-2", [1, 2]),
+        ])
+        task.signal_start_todo_2_battle.emit.assert_not_called()
+
+    def test_food_contest_skips_unavailable_team_quests_before_counting(self):
+        def quest(name, players, stage="NO-1-7"):
+            return {
+                "quest_text": name, "player": players, "stage_id": stage,
+                "need_key": True, "max_times": 1, "ban_card_list": [],
+            }
+
+        solo = quest("单人任务", [1])
+        grouped = quest("组队任务", [2, 1])
+        tower = quest("双人魔塔", [1], "MT-2-1")
+        faa = Mock()
+        faa.match_quests.side_effect = [[solo, grouped, tower], [grouped, tower]]
+        task = SimpleNamespace(
+            faa_dict={1: faa}, model_start_print=Mock(), model_end_print=Mock(),
+            battle_1_n_n=Mock(return_value=None), signal_start_todo_2_battle=Mock(),
+        )
+        self.assertIsNone(todo.ThreadTodo.auto_food(task))
+        task.battle_1_n_n.assert_called_once_with(quest_list=[solo])
+        self.assertEqual(task.auto_food_try_count_dict, {("[1]", "单人任务"): 1})
+        task.signal_start_todo_2_battle.emit.assert_not_called()
+        output = [entry.kwargs.get("text", "") for entry in self.signal.PRINT_TO_UI.emit.call_args_list]
+        self.assertTrue(any("无可执行任务" in line for line in output))
+        self.assertTrue(any("需要双人组队" in line for line in output))
+        self.assertFalse(any("需要双人组队" in line and "/3" in line for line in output))
 
     def test_top_up_recovery_failure_stops_sign_in(self):
         task = self.sequence_task([
