@@ -39,6 +39,7 @@ from function.core.faa.tweak_plan import (
     get_auto_timer_target_names,
     get_kun_cards_for_wave,
     get_tweak_plan_mat_card_first,
+    get_tweak_plan_random_interval,
     insert_mat_cards_by_priority,
 )
 from function.core_battle.get_location_in_battle import get_location_card_deck_in_battle
@@ -683,6 +684,25 @@ class FAABase:
         # 如果缺失, 外部的检测函数会拦下来不继续的
         self.battle_plan = g_resources.RESOURCE_B.get(battle_plan_uuid, None)
         self.battle_plan_tweak = g_resources.RESOURCE_T.get(battle_plan_tweak_uuid, None)
+
+        if self.stage_info and self.stage_info["b_id"].startswith("WB-"):
+            active, interval = get_tweak_plan_random_interval(self.battle_plan_tweak)
+            if (
+                not active or interval is None
+                or not 0 <= interval[0] <= interval[1] < float("inf")
+                or interval[1] == 0
+            ):
+                # 只调整本场的放卡间隔，避免共享微调方案影响下一场或另一名玩家。
+                default_interval = [0.05, 0.25]
+                self.battle_plan_tweak = copy.deepcopy(self.battle_plan_tweak or {})
+                self.battle_plan_tweak.setdefault("meta_data", {})["cd_after_use_random"] = {
+                    "active": True,
+                    "range": default_interval,
+                }
+                SIGNAL.PRINT_TO_UI.emit(
+                    text=f"[巅峰对决] [{self.player}P] 绿玩警告. 本场自动补上放卡后随机间隔 "
+                         f"{default_interval[0]:g}～{default_interval[1]:g} 秒"
+                )
 
     """战斗完整的过程中的任务函数"""
 
