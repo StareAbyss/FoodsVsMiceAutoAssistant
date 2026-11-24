@@ -2,6 +2,8 @@ import random
 import time
 from typing import TYPE_CHECKING
 
+import numpy as np
+
 from function.common.bg_img_match import loop_match_p_in_w, match_p_in_w
 from function.common.bg_img_screenshot import capture_image_png
 from function.globals import g_resources, SIGNAL
@@ -11,6 +13,24 @@ from function.scattered.match_ocr_text.get_stage_name_by_ocr import screen_get_s
 
 if TYPE_CHECKING:
     from function.core.faa.faa_mix import FAA
+
+
+# 龙渊入口的识图范围为实测模板位置四周各扩 10 像素。
+LONGYUAN_STAGE_ENTRY_RANGES = {
+    "1": [332, 95, 404, 160],
+    "2": [314, 167, 388, 233],
+    "3": [176, 186, 266, 268],
+    "4": [131, 297, 204, 363],
+    "5": [208, 345, 281, 411],
+    "6": [255, 274, 349, 358],
+    "7": [380, 335, 452, 401],
+    "8": [423, 263, 495, 327],
+    "9": [499, 206, 573, 271],
+    "10": [572, 246, 644, 312],
+    "11": [672, 172, 762, 253],
+}
+# 不同关卡的完整气泡共用外框和角标，需提高阈值以排除仅外观相近的入口。
+LONGYUAN_STAGE_ENTRY_TOLERANCE = 0.97
 
 
 class FAAActionInterfaceJump:
@@ -634,13 +654,24 @@ class FAAActionInterfaceJump:
             # 仅限主角色创建关卡
             if self.is_main:
                 # 选择关卡
-                loop_match_p_in_w(
+                stage_template = RESOURCE_P["stage"][f'{self.stage_info["id"]}.png']
+                template_mask = None
+                if stage_1 == "6" and stage_template.shape[2] == 4:
+                    # 气泡和角标以外的透明像素是地图背景，必须显式传掩模才能跳过。
+                    template_mask = np.repeat(stage_template[:, :, 3:4], 3, axis=2)
+
+                found = loop_match_p_in_w(
                     source_handle=handle,
                     source_root_handle=handle_360,
-                    source_range=[0, 0, 950, 600],
-                    template=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
+                    source_range=LONGYUAN_STAGE_ENTRY_RANGES[stage_2] if stage_1 == "6" else [0, 0, 950, 600],
+                    template=stage_template,
+                    template_mask=template_mask,
+                    match_tolerance=LONGYUAN_STAGE_ENTRY_TOLERANCE if stage_1 == "6" else 0.95,
                     after_sleep=0.2,
                     click=True)
+                if stage_1 == "6" and not found:
+                    # 入口未打开时，房间密码坐标仍落在龙渊地图上。
+                    return False
 
                 # 设置密码
                 click_set_password()
@@ -972,7 +1003,7 @@ class FAAActionInterfaceJump:
             elif stage_0 == "OR":
                 main_or()
             elif stage_0 == "EX":
-                main_ex()
+                return main_ex()
             elif stage_0 == "PT":
                 main_pt()
             elif stage_0 == "GD":
