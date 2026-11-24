@@ -25,6 +25,7 @@ from function.scattered.check_tweak_plan import (
     scan_and_migrate_tweak_plans,
 )
 from function.scattered.get_list_battle_plan import get_list_battle_plan
+from function.scattered.get_channel_name import DUAL_PLAYER_MODE, SINGLE_PLAYER_MODE
 from function.scattered.get_task_sequence_list import get_task_sequence_list
 from function.scattered.test_route_connectivity import test_route_connectivity
 from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
@@ -546,6 +547,30 @@ class QMainWindowLoadSettings(QMainWindowLog):
         # 一个提示弹窗
         self.cant_find_battle_plan_in_uuid_show_dialog()
 
+    def apply_player_mode(self) -> None:
+        """按玩家模式调整基础和进阶设置的可见范围，保留隐藏控件中的值。"""
+        single_player = self.opt["base_settings"].get("player_mode") == SINGLE_PLAYER_MODE
+        mode = SINGLE_PLAYER_MODE if single_player else DUAL_PLAYER_MODE
+        self.PlayerModeButton.setText(f"目前为：{mode}\n点击切换")
+
+        second_player_widgets = (
+            self.BaseConfig2PRow,
+            self.LoginSettingsAccountIndex2PLabel, self.login_second,
+            self.Login4399Account2PLabel, self.Login4399Username2PInput, self.Login4399Password2PInput,
+            self.LoginQQSpaceUsername2PLabel, self.LoginQQSpaceUsername2PInput,
+            self.LoginQQSpacePassword2PInput, self.LoginQQSpacePassword2PLabel,
+            self.TopUpMoney_2P, self.GetWarmGift_2P_Active, self.GetWarmGift_2P_Text, self.GetWarmGift_2P_Link,
+            self.Level2_2P_Active, self.Level2_2P_Text, self.Level2_2P_Password, self.AutoPickUp_2P,
+            self.CusAutoCarryCard2PLabel, self.CusAutoCarryCardValueInput2P,
+        )
+        for widget in second_player_widgets:
+            widget.setVisible(not single_player)
+
+        self.CusAutoCarryCardPlayersLayout.setStretch(1, 0 if single_player else 1)
+        self.task_editor.set_single_player(single_player)
+        self.LoginSettingsDialog.adjustSize()
+        self.resize_advanced_settings_content()
+
     def opt_to_ui_init(self) -> None:
         # comboBox.setCurrentIndex时 如果超过了已有预设 会显示为空 不会报错
         # comboBox.clear时 会把所有选项设定为默认选项
@@ -838,6 +863,7 @@ class QMainWindowLoadSettings(QMainWindowLog):
         accelerate_settings()
         login_qq_space_info_ui()
         login_4399_info_ui()
+        self.apply_player_mode()
 
         self.CurrentPlan.clear()
         task_sequence_list = get_task_sequence_list(with_extension=False)

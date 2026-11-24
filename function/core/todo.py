@@ -39,6 +39,25 @@ from function.scattered.loots_and_chest_data_save_and_post import loots_and_ches
     loots_and_chests_data_post_to_sever, loots_and_chests_statistics_to_json
 
 
+def _valid_battle_players(player) -> bool:
+    """校验战斗的玩家列表，双人列表的顺序表示房主。"""
+    return (
+        isinstance(player, list)
+        and all(type(pid) is int for pid in player)
+        and player in ([1], [2], [1, 2], [2, 1])
+    )
+
+
+def _requires_two_battle_players(stage_id, *, is_cu=False) -> bool:
+    """判断自动进关的玩法是否要求双人；自建房的地图编号不决定组队人数。"""
+    return not is_cu and isinstance(stage_id, str) and stage_id.startswith("MT-2-")
+
+
+def _has_two_battle_players(faa_dict: dict) -> bool:
+    """判断本次运行是否有两个不同的账号窗口可用。"""
+    return 1 in faa_dict and 2 in faa_dict and faa_dict[1].channel != faa_dict[2].channel
+
+
 class ThreadTodo(QThread):
     """编排任务；业务动作正常完成或跳过返回 None，登录失败返回原因并逐层结束当前流程。"""
     signal_start_todo_2_battle = pyqtSignal(dict)
@@ -159,8 +178,8 @@ class ThreadTodo(QThread):
         if player is None:
             player = [1, 2]
         # 如果只有一个角色
-        if self.faa_dict[1].channel == self.faa_dict[2].channel:
-            if player == [1, 2]:
+        if 2 not in self.faa_dict or self.faa_dict[1].channel == self.faa_dict[2].channel:
+            if len(player) > 1:
                 CUS_LOGGER.warning(f"[{title}] 您仅注册了一个角色却选择了双人选项, 已自动修正为1P单人")
             player = [1]
         return player
@@ -253,8 +272,7 @@ class ThreadTodo(QThread):
         self.model_start_print(text=title_text)
 
         # 默认值 单人判定 错误值
-        player = player or [1, 2]
-        player = [1] if self.faa_dict[1].channel == self.faa_dict[2].channel else player
+        player = list(self.check_player(title=title_text, player=player or None))
         if player not in [[1, 2], [1], [2]]:
             raise ValueError(f"batch_delete_items -  player not in [[1,2],[1],[2]], your value {player}.")
 
@@ -313,8 +331,7 @@ class ThreadTodo(QThread):
         self.model_start_print(text=title_text)
 
         # 默认值 单人判定 错误值
-        player = player or [1, 2]
-        player = [1] if self.faa_dict[1].channel == self.faa_dict[2].channel else player
+        player = list(self.check_player(title=title_text, player=player or None))
         if player not in [[1, 2], [1], [2]]:
             raise ValueError(f"batch_dark_crystal -  player not in [[1,2],[1],[2]], your value {player}.")
 
@@ -463,8 +480,7 @@ class ThreadTodo(QThread):
         self.model_start_print(text=title_text)
 
         # 默认值 单人判定 错误值
-        player = player or [1, 2]
-        player = [1] if self.faa_dict[1].channel == self.faa_dict[2].channel else player
+        player = list(self.check_player(title=title_text, player=player or None))
         if player not in [[1, 2], [1], [2]]:
             raise ValueError(f"batch_disenchant_gem -  player not in [[1,2],[1],[2]], your value {player}.")
 
@@ -533,7 +549,7 @@ class ThreadTodo(QThread):
             batch_resize_window(
                 game_name=self.opt["base_settings"]["game_name"],
                 name_1p=self.opt["base_settings"]["name_1p"],
-                name_2p=self.opt["base_settings"]["name_2p"],
+                name_2p=self.opt["base_settings"]["name_2p"] if 2 in self.faa_dict else None,
                 platform=self.opt["login_settings"]["platform"],
             )
 
@@ -579,33 +595,17 @@ class ThreadTodo(QThread):
 
         SIGNAL.PRINT_TO_UI.emit("退回登录界面, 开始", color_level=1)
 
-        # 创建进程 -> 开始进程 -> 阻塞主进程
-        self.thread_1p = ThreadWithException(
-            target=self.faa_dict[1].click_return_btn,
-            name="1P Thread - Reload - Back",
-            kwargs={})
-        self.thread_2p = ThreadWithException(
-            target=self.faa_dict[2].click_return_btn,
-            name="2P Thread - Reload - Back",
-            kwargs={})
-        self.thread_1p.start()
-        self.thread_2p.start()
-        self.thread_1p.join()
-        self.thread_2p.join()
-
-        # 创建进程 -> 开始进程 -> 阻塞主进程
-        self.thread_1p = ThreadWithException(
-            target=self.faa_dict[1].click_refresh_btn,
-            name="1P Thread - Reload - Fresh",
-            kwargs={})
-        self.thread_2p = ThreadWithException(
-            target=self.faa_dict[2].click_refresh_btn,
-            name="2P Thread - Reload - Fresh",
-            kwargs={})
-        self.thread_1p.start()
-        self.thread_2p.start()
-        self.thread_1p.join()
-        self.thread_2p.join()
+        for action in ("click_return_btn", "click_refresh_btn"):
+            threads = {}
+            for player, faa in self.faa_dict.items():
+                thread = ThreadWithException(
+                    target=getattr(faa, action), name=f"{player}P Thread - {action}", kwargs={})
+                setattr(self, f"thread_{player}p", thread)
+                threads[player] = thread
+            for thread in threads.values():
+                thread.start()
+            for thread in threads.values():
+                thread.join()
 
         SIGNAL.PRINT_TO_UI.emit("退回登录界面, 完成", color_level=1)
 
@@ -1633,6 +1633,17 @@ class ThreadTodo(QThread):
         """参数预处理"""
         title = f"[单本轮战] {extra_title}" if extra_title else f"[单本轮战] "
 
+        if not _valid_battle_players(player):
+            SIGNAL.PRINT_TO_UI.emit(text=f"{title}{stage_id} 玩家配置无效（{player!r}），跳过")
+            return None
+
+        requires_two = _requires_two_battle_players(stage_id, is_cu=is_cu)
+        if 2 not in self.faa_dict:
+            player = [1]
+        elif requires_two and len(player) == 1 and _has_two_battle_players(self.faa_dict):
+            # 先补齐参战账号，再交给统一的房主规则确定顺序。
+            player = [1, 2]
+
         # 判断是不是组队
         is_group = len(player) > 1
 
@@ -1797,6 +1808,10 @@ class ThreadTodo(QThread):
 
             if not faa_a.check_stage_id_is_true():
                 SIGNAL.PRINT_TO_UI.emit(text=f"{title}[{pid_a}P] 关卡名称错误, 跳过")
+                return False
+
+            if requires_two and (not is_group or not _has_two_battle_players(self.faa_dict)):
+                SIGNAL.PRINT_TO_UI.emit(text=f"{title}{stage_id} 需要两个不同的账号窗口，已跳过")
                 return False
 
             # 关卡激活校验
@@ -2253,6 +2268,10 @@ class ThreadTodo(QThread):
         for i in range(len(quest_list)):
 
             quest = quest_list[i]
+            if not _valid_battle_players(quest.get("player")):
+                SIGNAL.PRINT_TO_UI.emit(
+                    text=f"{title}{quest.get('stage_id')} 玩家配置无效（{quest.get('player')!r}），跳过")
+                continue
             if task_names is not None:
                 SIGNAL.PRINT_TO_UI.emit(text=f"[双线程单人] {self.todo_id}P已开始任务{task_names[i]}!", color_level=3)
 
@@ -2345,12 +2364,8 @@ class ThreadTodo(QThread):
         """仅调用 n_battle的简易作战"""
         self.model_start_print(text=text_)
 
-        player = self.check_player(title="通用战斗", player=player)
-
-        if player == [1] and "MT-2-" in stage_id:
-            SIGNAL.PRINT_TO_UI.emit(text="[通用战斗] 单人无法进行魔塔双人战! 即将强制跳过本步骤!", color_level=1)
-            self.model_end_print(text=text_)
-            return
+        if player is None or _valid_battle_players(player):
+            player = self.check_player(title="通用战斗", player=player)
 
         quest_list = [
             {
@@ -2375,7 +2390,7 @@ class ThreadTodo(QThread):
 
         self.model_start_print(text=text_)
 
-        if self.faa_dict[1].channel == self.faa_dict[2].channel:
+        if 2 not in self.faa_dict or self.faa_dict[1].channel == self.faa_dict[2].channel:
             SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 仅有一位角色, 即将强制跳过本步骤!", color_level=1)
             self.model_end_print(text=text_)
             return
@@ -2427,7 +2442,7 @@ class ThreadTodo(QThread):
 
         self.model_start_print(text=text_)
 
-        if self.faa_dict[1].channel == self.faa_dict[2].channel:
+        if 2 not in self.faa_dict or self.faa_dict[1].channel == self.faa_dict[2].channel:
             SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 仅有一位角色, 即将强制跳过本步骤!", color_level=1)
             self.model_end_print(text=text_)
             return
@@ -2485,7 +2500,7 @@ class ThreadTodo(QThread):
     def guild_dungeon(self, text_, global_plan_active, deck, battle_plan_1p, battle_plan_2p) -> str | None:
 
         self.model_start_print(text=text_)
-        if self.faa_dict[1].channel == self.faa_dict[2].channel:
+        if 2 not in self.faa_dict or self.faa_dict[1].channel == self.faa_dict[2].channel:
             SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 仅有一位角色, 即将强制跳过本步骤!", color_level=1)
             self.model_end_print(text=text_)
             return
@@ -2525,7 +2540,7 @@ class ThreadTodo(QThread):
         c_opt = self.opt_todo_plans
 
         def one_player():
-            for player in [1, 2]:
+            for player in self.faa_dict:
                 my_opt = c_opt[f"magic_tower_alone_{player}"]
                 if my_opt["active"]:
                     if error_message := self.easy_battle(
@@ -2584,7 +2599,7 @@ class ThreadTodo(QThread):
         def main():
             text_ = "单人魔塔"
             # 计算需使用该功能的玩家数
-            active_player_count = sum(c_opt[f"magic_tower_alone_{player_id}"]["active"] for player_id in [1, 2])
+            active_player_count = sum(c_opt[f"magic_tower_alone_{player_id}"]["active"] for player_id in self.faa_dict)
             if active_player_count == 1:
                 # 单人情况 以easy battle 完成即可
                 self.model_start_print(text=text_)
@@ -2608,7 +2623,7 @@ class ThreadTodo(QThread):
         c_opt = self.opt_todo_plans
 
         def one_player():
-            for player in [1, 2]:
+            for player in self.faa_dict:
                 my_opt = c_opt[f"magic_tower_prison_{player}"]
                 if my_opt["stage"]:
                     stage_list = ["MT-3-1", "MT-3-2", "MT-3-3", "MT-3-4"]
@@ -2682,7 +2697,7 @@ class ThreadTodo(QThread):
         def main():
             text_ = "魔塔密室"
             # 计算需使用该功能的玩家数
-            active_player_count = sum(c_opt[f"magic_tower_prison_{player_id}"]["active"] for player_id in [1, 2])
+            active_player_count = sum(c_opt[f"magic_tower_prison_{player_id}"]["active"] for player_id in self.faa_dict)
             if active_player_count == 1:
                 # 单人情况 以easy battle 完成即可
                 self.model_start_print(text=text_)
@@ -2706,7 +2721,7 @@ class ThreadTodo(QThread):
         c_opt = self.opt_todo_plans
 
         def one_player():
-            for player in [1, 2]:
+            for player in self.faa_dict:
                 my_opt = c_opt[f"pet_temple_{player}"]
                 if my_opt["active"]:
                     if error_message := self.easy_battle(
@@ -2765,7 +2780,7 @@ class ThreadTodo(QThread):
         def main():
             text_ = "萌宠神殿"
             active_player_count = 0
-            for player_id in [1, 2]:
+            for player_id in self.faa_dict:
                 my_opt = c_opt[f"pet_temple_{player_id}"]
                 if my_opt["active"]:
                     active_player_count += 1
@@ -2984,6 +2999,25 @@ class ThreadTodo(QThread):
             task for task in task_sequence
             if not task.get("meta_data", False) and task.get("enabled", True) and task["task_id"] >= task_begin_id
         ]
+        active_tasks = []
+        for task in task_sequence:
+            args = task.get("task_args", {})
+            if task["task_type"] in ("战斗", "自建房战斗"):
+                players = args.get("player") if isinstance(args, dict) else None
+                if not _valid_battle_players(players):
+                    SIGNAL.PRINT_TO_UI.emit(
+                        text=f"[{text_}] 事项 {task['task_id']} 玩家配置无效（{players!r}），跳过")
+                    continue
+            if 2 not in self.faa_dict and "player" in args:
+                args["player"] = 1 if isinstance(args["player"], int) else [1]
+            elif (task["task_type"] == "战斗" and len(args["player"]) == 1
+                  and _requires_two_battle_players(args.get("stage_id"))
+                  and _has_two_battle_players(self.faa_dict)):
+                # 拆分线程前标记为组队，避免两个单人线程分别占用同一组账号。
+                args["player"] = [1, 2]
+            active_tasks.append(task)
+        task_sequence = active_tasks
+
         # 根据战斗和其他事项拆分 让战斗事项的参数构成 n本 n次 为一组的汇总
         task_sequence = merge_continuous_battle_task(task_sequence=task_sequence)
         # 让战斗事项按 多线程单人 和 单线程常规 拆分
@@ -3475,14 +3509,10 @@ class ThreadTodo(QThread):
             :return: 是否还有大赛任务，以及登录失败原因；正常执行时原因为 None。
             """
 
-            # 两个号分别读取任务
-            SIGNAL.PRINT_TO_UI.emit(text=f"[全自动大赛] [1P] 文字识别结果如下: ", color_level=2)
-            quest_list_1 = self.faa_dict[1].match_quests(mode="美食大赛-新")
-
-            SIGNAL.PRINT_TO_UI.emit(text=f"[全自动大赛] [2P] 文字识别结果如下: ", color_level=2)
-            quest_list_2 = self.faa_dict[2].match_quests(mode="美食大赛-新")
-
-            quest_list = quest_list_1 + quest_list_2
+            quest_list = []
+            for player, faa in self.faa_dict.items():
+                SIGNAL.PRINT_TO_UI.emit(text=f"[全自动大赛] [{player}P] 文字识别结果如下: ", color_level=2)
+                quest_list.extend(faa.match_quests(mode="美食大赛-新"))
 
             if not quest_list:
                 SIGNAL.PRINT_TO_UI.emit(text=f"[全自动大赛] 识别不到任何任务, 已完成")
@@ -3495,16 +3525,22 @@ class ThreadTodo(QThread):
                     unique_data.append(quest)
             quest_list = unique_data
 
-            # 初始化尝试次数记录
-            for quest in quest_list:
-                quest_key = (str(quest["player"]), quest["quest_text"])
-                if quest_key not in self.auto_food_try_count_dict.keys():
-                    self.auto_food_try_count_dict[quest_key] = 0
+            def is_team_quest(quest):
+                """按大赛任务要求和关卡玩法判断是否需要组队。"""
+                return len(quest["player"]) > 1 or _requires_two_battle_players(quest["stage_id"])
 
-            # 去除尝试过多的任务
+            # 无法组队的任务只用于展示，不进入候选或创建尝试计数。
+            team_available = _has_two_battle_players(self.faa_dict)
+            unavailable_tag = "需要双人组队，本次已跳过"
+
+            # 初始化尝试次数记录
             quest_list_will_do = []
             for quest in quest_list:
-                if self.auto_food_try_count_dict[(str(quest["player"]), quest["quest_text"])] < 3:
+                if not team_available and is_team_quest(quest):
+                    quest["tag"] = unavailable_tag
+                    continue
+                quest_key = (str(quest["player"]), quest["quest_text"])
+                if self.auto_food_try_count_dict.setdefault(quest_key, 0) < 3:
                     quest_list_will_do.append(quest)
                 else:
                     quest["tag"] = "禁用, 尝试过多"
@@ -3514,12 +3550,12 @@ class ThreadTodo(QThread):
                 CUS_LOGGER.info(quest)
 
             # 全部单人任务
-            solo_quests = [quest for quest in quest_list_will_do if len(quest["player"]) == 1]
+            solo_quests = [quest for quest in quest_list_will_do if not is_team_quest(quest)]
             # 全部双人任务
-            multi_player_quests = [quest for quest in quest_list_will_do if len(quest["player"]) > 1]
+            multi_player_quests = [quest for quest in quest_list_will_do if is_team_quest(quest)]
 
             if solo_quests:
-                quest_list_will_do = solo_quests if solo_quests else multi_player_quests
+                quest_list_will_do = solo_quests
                 for quest in multi_player_quests:
                     quest["tag"] = "暂时跳过, 先做单人任务"
             else:
@@ -3537,9 +3573,6 @@ class ThreadTodo(QThread):
                         if quest not in quest_list_min_stage_id:
                             quest["tag"] = "暂时跳过, 先做关卡id小的任务"
                     quest_list_will_do = quest_list_min_stage_id
-                else:
-                    return False, None
-
             # 记录 尝试次数
             for quest in quest_list_will_do:
                 quest_key = (str(quest["player"]), quest["quest_text"])
@@ -3550,7 +3583,7 @@ class ThreadTodo(QThread):
             for i in range(len(quest_list)):
                 quest = quest_list[i]
 
-                if len(quest["player"]) == 2:
+                if is_team_quest(quest):
                     player_text = "组队"
                 else:
                     player_text = f"单人{quest['player'][0]}P"
@@ -3580,7 +3613,7 @@ class ThreadTodo(QThread):
                     text_parts.append(f"设置为花瓶的玩家:{vase_num}p")
 
                 quest_tag = quest.get("tag", "即将执行")
-                if "暂时跳过" not in quest_tag:
+                if quest_tag != unavailable_tag and "暂时跳过" not in quest_tag:
                     # 输出尝试次数
                     quest_try_times = self.auto_food_try_count_dict[(str(quest["player"]), quest["quest_text"])]
                     text_parts.append(f"尝试次数:{quest_try_times}/3")
@@ -3593,6 +3626,10 @@ class ThreadTodo(QThread):
             SIGNAL.PRINT_TO_UI.emit(text="[全自动大赛] 步骤: 识别任务目标, 已完成, 结果如下:", color_level=2)
             for text in texts_list:
                 SIGNAL.PRINT_TO_UI.emit(text=text, color_level=2)
+
+            if not quest_list_will_do:
+                SIGNAL.PRINT_TO_UI.emit(text="[全自动大赛] 无可执行任务，结束本次调度", color_level=1)
+                return False, None
 
             # 双线程单人 or 单线程双人启动
             if solo_quests:
@@ -3626,8 +3663,8 @@ class ThreadTodo(QThread):
             self.model_start_print(text=text_)
 
             # 先领一下已经完成的大赛任务
-            self.faa_dict[1].action_receive_quest_rewards(mode="美食大赛")
-            self.faa_dict[2].action_receive_quest_rewards(mode="美食大赛")
+            for faa in self.faa_dict.values():
+                faa.action_receive_quest_rewards(mode="美食大赛")
 
             # 重置美食大赛任务 ban dict
             # 用于防止缺乏钥匙/次数时无限重复某些关卡, key: (player: int, quest_text: str), value: int
@@ -3645,8 +3682,6 @@ class ThreadTodo(QThread):
                 SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 第{i}次循环，结束", color_level=1)
                 if not round_result:
                     break
-
-            SIGNAL.PRINT_TO_UI.emit(text=f"[{text_}] 所有被记录的任务已完成!", color_level=1)
 
             self.model_end_print(text=text_)
 
@@ -3747,8 +3782,8 @@ class ThreadTodo(QThread):
     def start_360(self):
 
         handles = {
-            1: faa_get_handle(channel=self.faa_dict[1].channel, mode="360"),
-            2: faa_get_handle(channel=self.faa_dict[2].channel, mode="360")
+            player: faa_get_handle(channel=faa.channel, mode="360")
+            for player, faa in self.faa_dict.items()
         }
 
         def start_one(pid, game_id, account_id, executable_path, wait_sleep_time):
@@ -3769,6 +3804,7 @@ class ThreadTodo(QThread):
             return
 
         only_one_role = (
+            2 not in handles or
             self.opt["login_settings"]["first_num"] == self.opt["login_settings"]["second_num"] or
             self.opt["base_settings"]["name_1p"] == self.opt["base_settings"]["name_2p"]
         )
@@ -3835,19 +3871,3 @@ class ThreadTodo(QThread):
             CUS_LOGGER.debug(f"[操作游戏大厅] 关闭名称为: [{software_name}] 的应用程序下的所有窗口, 开始")
             close_all_software_by_name(software_name=software_name)
             CUS_LOGGER.debug(f"[操作游戏大厅] 关闭名称为: [{software_name}] 的应用程序下的所有窗口, 成功")
-
-    def test_args(self):
-        """防呆测试"""
-        handles = {
-            1: faa_get_handle(channel=self.faa_dict[1].channel, mode="360"),
-            2: faa_get_handle(channel=self.faa_dict[2].channel, mode="360")}
-        for player, handle in handles.items():
-            if handle is None or handle == 0:
-                # 报错弹窗
-                SIGNAL.DIALOG.emit(
-                    title="出错！(╬◣д◢)",
-                    text=f"{player}P存在错误的窗口名或游戏名称, 请在基础设定处重新拖拽至游戏窗口后保存.")
-                # 强制夹断
-                return False
-        SIGNAL.PRINT_TO_UI.emit(text=f"[检测重要参数] 所有小号窗口已开启, 继续进行...", color_level=1)
-        return True

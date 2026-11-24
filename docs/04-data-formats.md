@@ -44,6 +44,8 @@
 - QQ 登录信息
 - 4399 登录信息
 
+`base_settings.player_mode` 取值为“单人模式”或“双人模式”，缺省为“双人模式”。2P 参数随设置保存，以便切回双人模式。
+
 自动带卡卡组编号保存在 `advanced_settings.cus_auto_carry_card_value_1p` 和
 `advanced_settings.cus_auto_carry_card_value_2p`，取值为 1～6，默认均为 6。
 主程序启动时会将旧的共用编号迁移到缺少编号的角色并移除旧字段。

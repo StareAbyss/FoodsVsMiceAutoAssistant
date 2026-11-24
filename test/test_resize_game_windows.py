@@ -71,6 +71,15 @@ class ResizeGameWindowsTest(unittest.TestCase):
             game_name="游戏", name_1p="1P", name_2p="2P", platform="QQ空间"
         )
 
+    def test_single_player_resize_only_looks_up_1p(self):
+        with (
+            patch.object(resize_360_windows, "faa_get_handle", return_value=123) as lookup,
+            patch.object(resize_360_windows.win32gui, "SetWindowPos") as position,
+        ):
+            resize_360_windows.batch_resize_window("游戏", "1P", None, "QQ空间")
+        lookup.assert_called_once_with(channel="1P | 游戏", mode="360")
+        position.assert_called_once()
+
     def test_refresh_resize_passes_selected_platform_and_finishes_reload(self):
         from function.core import todo
 
@@ -82,7 +91,7 @@ class ResizeGameWindowsTest(unittest.TestCase):
         task = SimpleNamespace(
             opt=settings,
             check_player=Mock(return_value=[1]),
-            faa_dict={1: SimpleNamespace(reload_game=reload_game)},
+            faa_dict={1: SimpleNamespace(reload_game=reload_game), 2: Mock()},
         )
         with (
             patch.object(todo, "batch_resize_window") as resize,

@@ -56,7 +56,7 @@ from function.scattered.check_task_sequence import fresh_and_check_all_task_sequ
 from function.scattered.check_battle_plan import check_all_battle_plan, refresh_all_battle_plan
 from function.scattered.check_tweak_plan import refresh_all_tweak_plan
 from function.scattered.gat_handle import faa_get_handle
-from function.scattered.get_channel_name import get_channel_name
+from function.scattered.get_channel_name import DUAL_PLAYER_MODE, SINGLE_PLAYER_MODE, get_player_channels
 from function.scattered.get_stage_info_online import get_stage_info_online
 from function.scattered.guild_contribution_exporter import export_selected_date_excel
 from function.scattered.resize_360_windows import batch_resize_window
@@ -306,6 +306,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 保存方案按钮 函数绑定
         self.Button_Save.clicked.connect(self.click_btn_save)
+        self.PlayerModeButton.clicked.connect(self.switch_player_mode)
         self.WindowHandleToolButton.clicked.connect(self.open_window_handle_tool)
 
         # 隐藏(拖动)窗口到屏幕视图外 函数绑定
@@ -857,12 +858,13 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def open_window_handle_tool(self) -> None:
         """按当前基础设定打开内置句柄工具，拖取后回填对应角色的窗口名。"""
-        channels = get_channel_name(
-            game_name=self.GameName_Input.text(),
-            name_1p=self.Name1P_Input.text(),
-            name_2p=self.Name2P_Input.text(),
-        )
-        tool = QMWWindowHandleTool(self, dict(enumerate(channels, start=1)))
+        base_settings = {
+            "player_mode": self.opt["base_settings"].get("player_mode"),
+            "game_name": self.GameName_Input.text(),
+            "name_1p": self.Name1P_Input.text(),
+            "name_2p": self.Name2P_Input.text(),
+        }
+        tool = QMWWindowHandleTool(self, get_player_channels(base_settings))
 
         def apply_window_title(player: int, title: str) -> None:
             """按窗口标题回填共享游戏名及当前角色窗口名。"""
@@ -875,6 +877,26 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.set_stylesheet(tool)
         tool.exec()
         tool.deleteLater()
+
+    def switch_player_mode(self) -> None:
+        """确认后保存玩家模式，下一次启动任务时按新模式创建角色。"""
+        base_settings = self.opt["base_settings"]
+        single_player = base_settings.get("player_mode") == SINGLE_PLAYER_MODE
+        new_mode = DUAL_PLAYER_MODE if single_player else SINGLE_PLAYER_MODE
+        detail = (
+            "将配置并执行1+2P的策略"
+            if single_player else "仅配置并执行1P的策略，原2P策略不会丢失"
+        )
+        answer = QMessageBox.question(
+            self, "切换玩家模式", f"确认切换为{new_mode}？\n{detail}",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+        base_settings["player_mode"] = new_mode
+        self.opt_to_json()
+        self.apply_player_mode()
 
     def check_startup_status(self) -> None:
         """
@@ -912,10 +934,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         # self.ui_to_opt()
 
         # 获取窗口名称
-        channel_1p, channel_2p = get_channel_name(
-            game_name=self.opt["base_settings"]["game_name"],
-            name_1p=self.opt["base_settings"]["name_1p"],
-            name_2p=self.opt["base_settings"]["name_2p"])
+        channels = get_player_channels(self.opt["base_settings"])
 
         """UI处理"""
         # 设置flag
@@ -955,18 +974,13 @@ class QMainWindowService(QMainWindowLoadSettings):
         the_360_lock = threading.Lock()
         # 开始创建faa
         faa_dict = {
-            1: FAA(
-                channel=channel_1p,
-                player=1,
-                opt=self.opt,
-                the_360_lock=the_360_lock,
-                random_seed=random_seed),
-            2: FAA(
-                channel=channel_2p,
-                player=2,
+            player: FAA(
+                channel=channel,
+                player=player,
                 opt=self.opt,
                 the_360_lock=the_360_lock,
                 random_seed=random_seed)
+            for player, channel in channels.items()
         }
 
         # 创建新的todo并启动线程
@@ -975,18 +989,6 @@ class QMainWindowService(QMainWindowLoadSettings):
             opt=self.opt,
             todo_id=1,
             running_task_sequence_uuid=running_task_sequence_uuid)
-
-        # 多线程作战时的第二线程
-        self.thread_todo_2 = ThreadTodo(
-            faa_dict=faa_dict,
-            opt=self.opt,
-            todo_id=2,
-            running_task_sequence_uuid=running_task_sequence_uuid)
-
-        # 链接信号以进行多线程单人
-        self.thread_todo_1.signal_start_todo_2_battle.connect(self.thread_todo_2.set_extra_opt_and_start)
-        self.thread_todo_2.signal_todo_lock.connect(self.thread_todo_1.change_lock)
-        self.thread_todo_1.signal_todo_lock.connect(self.thread_todo_2.change_lock)
 
         def stop_failed_task(message: str) -> None:
             """停止本轮双线程任务，并只展示最先传回的失败原因。"""
@@ -998,7 +1000,19 @@ class QMainWindowService(QMainWindowLoadSettings):
             SIGNAL.DIALOG.emit(title="登录错误", text=message)
 
         self.thread_todo_1.signal_task_failed.connect(stop_failed_task)
-        self.thread_todo_2.signal_task_failed.connect(stop_failed_task)
+
+        if 2 in faa_dict:
+            self.thread_todo_2 = ThreadTodo(
+                faa_dict=faa_dict,
+                opt=self.opt,
+                todo_id=2,
+                running_task_sequence_uuid=running_task_sequence_uuid)
+            self.thread_todo_1.signal_start_todo_2_battle.connect(self.thread_todo_2.set_extra_opt_and_start)
+            self.thread_todo_2.signal_todo_lock.connect(self.thread_todo_1.change_lock)
+            self.thread_todo_1.signal_todo_lock.connect(self.thread_todo_2.change_lock)
+            self.thread_todo_2.signal_task_failed.connect(stop_failed_task)
+        else:
+            self.thread_todo_2 = None
 
         # 启动线程
         self.thread_todo_1.start()
@@ -1050,7 +1064,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         }
         CUS_LOGGER.debug(f"[任务序列] 结束后线程状态检查")
         for q_thread_name, q_thread_obj in q_threads.items():
-            CUS_LOGGER.debug(f"[任务序列] {q_thread_name} 正在运行: {q_thread_obj.isRunning()}")
+            if q_thread_obj is not None:
+                CUS_LOGGER.debug(f"[任务序列] {q_thread_name} 正在运行: {q_thread_obj.isRunning()}")
 
         self.is_ending = False  # 完成完整的线程结束
 
@@ -1169,15 +1184,10 @@ class QMainWindowService(QMainWindowLoadSettings):
         """
 
         # 获取窗口名称
-        channel_1p, channel_2p = get_channel_name(
-            game_name=self.opt["base_settings"]["game_name"],
-            name_1p=self.opt["base_settings"]["name_1p"],
-            name_2p=self.opt["base_settings"]["name_2p"])
-
-        # 不通过就直接结束弹窗
         handles = {
-            1: faa_get_handle(channel=channel_1p, mode="360"),
-            2: faa_get_handle(channel=channel_2p, mode="360")}
+            player: faa_get_handle(channel=channel, mode="360")
+            for player, channel in get_player_channels(self.opt["base_settings"]).items()
+        }
         for player, handle in handles.items():
             if handle is None or handle == 0:
                 # 报错弹窗
@@ -1188,8 +1198,7 @@ class QMainWindowService(QMainWindowLoadSettings):
                 return
 
         if self.game_window_is_hide:
-            for p_id in [1, 2]:
-                handle = handles[p_id]
+            for handle in handles.values():
                 # 激活目标窗口
                 win32gui.SetForegroundWindow(handle)
                 # 将窗口置于顶部
@@ -1214,8 +1223,7 @@ class QMainWindowService(QMainWindowLoadSettings):
             )
             self.game_window_is_hide = False
         else:
-            for p_id in [1, 2]:
-                handle = handles[p_id]
+            for handle in handles.values():
                 # 将窗口置于Z序的底部，但不改变活动状态
                 win32gui.SetWindowPos(
                     handle,
@@ -1226,6 +1234,9 @@ class QMainWindowService(QMainWindowLoadSettings):
                 # 也许有一天能写出真正的老板键 大概
             self.game_window_is_hide = True
 
+        next_action = "置于屏幕顶层" if self.game_window_is_hide else "置于屏幕最底层"
+        self.Button_WindowHide.setText(f"切换窗口层级\n{next_action}")
+
     def click_btn_batch_resize_window(self):
 
         try:
@@ -1233,7 +1244,8 @@ class QMainWindowService(QMainWindowLoadSettings):
             batch_resize_window(
                 game_name=self.opt["base_settings"]["game_name"],
                 name_1p=self.opt["base_settings"]["name_1p"],
-                name_2p=self.opt["base_settings"]["name_2p"],
+                name_2p=(self.opt["base_settings"]["name_2p"]
+                         if self.opt["base_settings"].get("player_mode") != SINGLE_PLAYER_MODE else None),
                 platform=self.opt["login_settings"]["platform"],
             )
         except Exception as e:

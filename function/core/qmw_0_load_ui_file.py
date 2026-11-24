@@ -84,15 +84,6 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
 
             content_layout = self.AdvancedSettingsArea.widget().layout()
 
-            def resize_content_height() -> None:
-                """只按内容调整高度，避免平台切换时内容区宽度跳动。"""
-                current_width = self.AdvancedSettingsAreaWidget.width()
-                content_layout.activate()
-                self.AdvancedSettingsAreaWidget.resize(
-                    current_width,
-                    content_layout.sizeHint().height(),
-                )
-
             def refresh_login_platform_ui(platform: str) -> None:
                 """只显示当前一级区服需要用户填写的设置。"""
                 is_4399 = platform == "4399"
@@ -171,7 +162,9 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
             login_4399_layout.addWidget(self.Login4399UsePasswordCheckBox, 0, 0, 1, 2)
 
             for row, player in ((1, 1), (2, 2)):
-                login_4399_layout.addWidget(QLabel(f"{player}P 账号"), row, 0)
+                account_label = QLabel(f"{player}P 账号")
+                setattr(self, f"Login4399Account{player}PLabel", account_label)
+                login_4399_layout.addWidget(account_label, row, 0)
                 account_layout = QHBoxLayout()
                 username = QLineEdit()
                 username.setObjectName(f"Login4399Username{player}PInput")
@@ -212,7 +205,7 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
                     content_layout.takeAt(index)
             for row, section in enumerate(sections):
                 content_layout.addWidget(section, row, 0)
-            resize_content_height()
+            self.resize_advanced_settings_content()
 
             self.LoginPlatformCombo.currentTextChanged.connect(refresh_login_platform_ui)
             refresh_login_platform_ui(self.LoginPlatformCombo.currentText())
@@ -256,6 +249,12 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
         self.fade_in_animation.setEasingCurve(QEasingCurve.Type.InCubic)
         self.fade_in_animation.setStartValue(0.0)
         self.fade_in_animation.setEndValue(1.0)
+
+    def resize_advanced_settings_content(self) -> None:
+        """根据可见设置调整内容高度，同时保持滚动区的宽度。"""
+        content = self.AdvancedSettingsAreaWidget
+        content.layout().activate()
+        content.resize(content.width(), content.layout().sizeHint().height())
 
     def get_theme(self):
         if self.palette().color(QtGui.QPalette.ColorRole.Window).lightness() < 128:

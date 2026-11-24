@@ -8,7 +8,7 @@ from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
 
 
-def batch_resize_window(game_name, name_1p: str, name_2p: str, platform: str):
+def batch_resize_window(game_name, name_1p: str, name_2p: str | None, platform: str):
     """
     按所选区服调整360窗口尺寸与位置。
 
@@ -18,16 +18,16 @@ def batch_resize_window(game_name, name_1p: str, name_2p: str, platform: str):
     Args:
         game_name: 游戏名称，用于取得两个窗口的频道名。
         name_1p: 1P窗口名。
-        name_2p: 2P窗口名。
+        name_2p: 2P窗口名，单人模式传入 None。
         platform: 首页选择的区服。
     """
 
     # 获取窗口名称
-    channel_1p, channel_2p = get_channel_name(game_name=game_name, name_1p=name_1p, name_2p=name_2p)
+    channel_1p, channel_2p = get_channel_name(game_name=game_name, name_1p=name_1p, name_2p=name_2p or "")
 
     handles = {
         1: faa_get_handle(channel=channel_1p, mode="360"),
-        2: faa_get_handle(channel=channel_2p, mode="360")}
+        2: faa_get_handle(channel=channel_2p, mode="360") if name_2p is not None else 0}
     extra_width, extra_height = (20, 75) if platform == "QQ空间" else (0, 0)
     width = int((955 + extra_width) * EXTRA.ZOOM_RATE)
     height = int((668 + extra_height) * EXTRA.ZOOM_RATE)
