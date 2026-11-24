@@ -1152,39 +1152,16 @@ border:none</string>
                   <number>5</number>
                  </property>
                  <item>
-                  <widget class="DragLabel" name="Label_drag">
+                  <widget class="QPushButton" name="WindowHandleToolButton">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>23</height>
-                    </size>
-                   </property>
-                   <property name="cursor">
-                    <cursorShape>CrossCursor</cursorShape>
-                   </property>
-                   <property name="layoutDirection">
-                    <enum>Qt::LeftToRight</enum>
-                   </property>
-                   <property name="autoFillBackground">
-                    <bool>false</bool>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true">QLabel {
-	border: 1px solid grey;/* 灰色边框，宽度为2像素 */
-	border-radius: 4px;/* 边框圆角半径为5像素 */
-}</string>
-                   </property>
                    <property name="text">
-                    <string>请拖到1P窗口</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
+                    <string>获取窗口句柄
+测试游戏画面</string>
                    </property>
                   </widget>
                  </item>
@@ -7494,13 +7471,6 @@ FAA放卡核心原理简述:
    </property>
   </action>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>DragLabel</class>
-   <extends>QLabel</extends>
-   <header>resource.ui.draglabel</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections>
   <connection>

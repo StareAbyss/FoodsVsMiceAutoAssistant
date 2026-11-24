@@ -45,6 +45,7 @@ from function.core.qmw_tips.qmw_tip_update import QMWTipUpdate
 from function.core.qmw_tips.qmw_tip_warm_gift import QMWTipWarmGift
 from function.core.qmw_useful_tools_widget import UsefulToolsWidget
 from function.core.qmw_faa_view import QMWFAAView
+from function.core.qmw_window_handle_tool import QMWWindowHandleTool
 from function.core.todo import ThreadTodo
 from function.globals import EXTRA, SIGNAL
 from function.globals import g_resources
@@ -305,6 +306,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 保存方案按钮 函数绑定
         self.Button_Save.clicked.connect(self.click_btn_save)
+        self.WindowHandleToolButton.clicked.connect(self.open_window_handle_tool)
 
         # 隐藏(拖动)窗口到屏幕视图外 函数绑定
         self.Button_WindowHide.clicked.connect(self.click_btn_hide_window)
@@ -368,9 +370,6 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.DateSelector.selectionChanged.connect(self.guild_manager_table_update)
         self.ExportGuildContributionButton.clicked.connect(self.export_guild_contribution_excel)
 
-        # 连接自定义信号到槽函数，从而修改编辑框内容
-        self.Label_drag.windowNameChanged1.connect(self.updateEditBox1)
-        self.Label_drag.windowNameChanged2.connect(self.updateEditBox2)
         """QQ空间与 4399 登录信息保存"""
 
         self.LoginQQSpaceSaveButton.clicked.connect(self.save_all_login_credentials_button_on_clicked)
@@ -856,26 +855,26 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 默认按照第3列(总贡)降序排序
         self.GuildMemberInfoTable.sortByColumn(2, QtCore.Qt.SortOrder.DescendingOrder)
 
-    def updateEditBox1(self, window_name: str):
+    def open_window_handle_tool(self) -> None:
+        """按当前基础设定打开内置句柄工具，拖取后回填对应角色的窗口名。"""
+        channels = get_channel_name(
+            game_name=self.GameName_Input.text(),
+            name_1p=self.Name1P_Input.text(),
+            name_2p=self.Name2P_Input.text(),
+        )
+        tool = QMWWindowHandleTool(self, dict(enumerate(channels, start=1)))
 
-        """更新1P编辑框内容的槽函数"""
-        if '|' in window_name:
-            names = window_name.split('|')
-            self.Name1P_Input.setText(names[0].strip())
-            self.GameName_Input.setText(names[1].strip())
-        else:
-            self.Name1P_Input.setText("")
-            self.GameName_Input.setText(window_name)
+        def apply_window_title(player: int, title: str) -> None:
+            """按窗口标题回填共享游戏名及当前角色窗口名。"""
+            name, separator, game = title.partition("|")
+            name_input = self.Name1P_Input if player == 1 else self.Name2P_Input
+            name_input.setText(name.strip() if separator else "")
+            self.GameName_Input.setText(game.strip() if separator else title)
 
-    def updateEditBox2(self, window_name):
-        """更新2P编辑框内容的槽函数"""
-        if '|' in window_name:
-            names = window_name.split('|')
-            self.Name2P_Input.setText(names[0].strip())
-            self.GameName_Input.setText(names[1].strip())
-        else:
-            self.Name2P_Input.setText("")
-            self.GameName_Input.setText(window_name)
+        tool.window_selected.connect(apply_window_title)
+        self.set_stylesheet(tool)
+        tool.exec()
+        tool.deleteLater()
 
     def check_startup_status(self) -> None:
         """
