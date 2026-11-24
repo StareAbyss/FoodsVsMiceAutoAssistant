@@ -30,15 +30,13 @@ class MidSignalPrint:
         # “普通说明”出现多套灰色。复制一份防止调用方意外修改全局配置。
         self.color_scheme = EXTRA.USER_TEXT_COLOR_SCHEMES.get(EXTRA.THEME).copy()
 
-    def emit(self, text, color_level=9, color=None, time=True, is_line=False, line_type="normal"):
+    def emit(self, text, color_level=9, color=None, time=True):
         """
         打印文本到 日志 + 用户UI
         :param text: 正文文本
         :param color_level: int 1 to 9
         :param color: 支持直接使用颜色代码
         :param time: 是否显示打印时间
-        :param is_line: 是否替换本行为横线
-        :param line_type: str normal/top/bottom
         :return:
         """
         # 用户可在运行中切换亮暗主题，因此每次输出前同步一次色表；否则日志
@@ -48,13 +46,6 @@ class MidSignalPrint:
             color = self.color_scheme[color_level]
         elif not color:
             color = self.color_scheme[9]
-        if is_line:
-            text = "—" * 44
-            time = False
-            if line_type == "top":
-                text = "‾" * 67
-            if line_type == "bottom":
-                text = "_" * 59
         # 处理缺省参数
         self.__signal_1.emit(text, color, time)
 
