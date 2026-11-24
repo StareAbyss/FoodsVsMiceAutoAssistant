@@ -75,10 +75,7 @@ def format_startup_plan_check_text(
         )
     if battle_result.has_issues or tweak_result.has_issues or tweak_uuid_result.has_issues:
         return "部分战斗方案或微调方案检查失败，请查看启动后的汇总提示。"
-    return (
-        "已检查 [战斗方案] 与 [微调方案] 版本，均为最新版本"
-        f"(v{battle_result.current_version} / v{tweak_result.current_version} 协议)"
-    )
+    return "正在校验配置和方案"
 
 
 def ensure_file_same_as_template(file_path, template_path) -> None:

@@ -94,6 +94,7 @@
                 1,
                 2
             ],
+            "multiplier": 2,
             "max_times": 1
         }
     },
@@ -169,7 +170,8 @@
             "offer_reward": true,
             "food_competition": false,
             "monopoly": false,
-            "camp": false
+            "camp": false,
+            "magic_tower": false
         }
     },
     {
@@ -319,7 +321,8 @@
             "offer_reward": false,
             "food_competition": true,
             "monopoly": true,
-            "camp": true
+            "camp": true,
+            "magic_tower": false
         }
     },
     {

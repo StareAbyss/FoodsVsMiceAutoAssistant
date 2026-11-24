@@ -79,7 +79,6 @@
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "6-4",
                             "5-4",
                             "5-3",
                             "5-5",
@@ -87,6 +86,7 @@
                             "5-6",
                             "5-1",
                             "5-7",
+                            "6-4",
                             "6-3",
                             "6-5",
                             "6-2",
@@ -161,7 +161,7 @@
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "6-4",
+                            "5-4",
                             "8-4",
                             "8-3",
                             "8-5",
@@ -184,13 +184,14 @@
                         "ergodic": true,
                         "queue": false,
                         "location": [
-                            "4-1"
+                            "4-1",
+                            "4-7"
                         ],
                         "kun": 0
                     },
                     {
                         "card_id": 8,
-                        "ergodic": false,
+                        "ergodic": true,
                         "queue": false,
                         "location": [
                             "1-1",
@@ -204,7 +205,7 @@
                     {
                         "card_id": 9,
                         "ergodic": true,
-                        "queue": true,
+                        "queue": false,
                         "location": [
                             "4-4",
                             "4-2",

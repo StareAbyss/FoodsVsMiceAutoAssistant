@@ -932,7 +932,6 @@ class QMainWindowService(QMainWindowLoadSettings):
             self.start_print()
 
         # 设置输出文本
-        SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom", color_level=2)
         if running_task_sequence_uuid in list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys()):
             running_task_sequence_path = EXTRA.TASK_SEQUENCE_UUID_TO_PATH[running_task_sequence_uuid]
             running_task_sequence_name = os.path.splitext(os.path.basename(running_task_sequence_path))[0]
@@ -947,8 +946,6 @@ class QMainWindowService(QMainWindowLoadSettings):
             self.is_start = False
             self.todo_end()
             return
-
-        SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top", color_level=2)
 
         """线程处理"""
         # 启动点击处理线程
@@ -1042,9 +1039,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 设置按钮文本
         self.Button_Start.setText("执行序列\nLink Start")
         # 设置输出文本
-        SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom", color_level=2)
         SIGNAL.PRINT_TO_UI.emit("[任务序列] 已关闭全部线程", color_level=1)
-        SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top", color_level=2)
         # 当前正在运行 的 文本 修改
         self.Label_RunningStateTask.setText(f"任务序列线程状态: 未运行")
 
