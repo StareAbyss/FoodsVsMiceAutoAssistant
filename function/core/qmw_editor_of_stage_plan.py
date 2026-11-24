@@ -226,20 +226,22 @@ def deck_int_to_text(value: int) -> str:
 
 @dataclass
 class GlobalPlan:
-    """全局方案只含卡组与 1P/2P；缺省关卡跟随它，三字段全相同的关卡会随它更新。"""
+    """全局方案：卡组、1P/2P 与微调；缺省关卡跟随它，四字段都相同的关卡随它更新。"""
     deck: str = DECK_OPTIONS[0]
     plan_1p: str = DEFAULT_PLAN_1P
     plan_2p: str = DEFAULT_PLAN_2P
+    tweak: str = DEFAULT_TWEAK
 
     def as_dict(self) -> dict:
         return {
             "deck": self.deck, "plan_1p": self.plan_1p, "plan_2p": self.plan_2p,
+            "tweak": self.tweak,
         }
 
 
 @dataclass
 class StageEntry:
-    """总表中的一行关卡；override=False 时方案列跟随全局，跳过与微调始终独立。"""
+    """总表中的一行关卡；override=False 时四列方案跟随全局，跳过始终独立。"""
     name: str
     code: str
     group_index: int | None = None
@@ -401,9 +403,10 @@ class StagePlanTableModel(QAbstractTableModel):
 
     @staticmethod
     def _fields(obj) -> dict:
-        """参与全局同步的三个方案字段。"""
+        """参与全局同步的四个方案字段。"""
         return {
-            "deck": obj.deck, "plan_1p": obj.plan_1p, "plan_2p": obj.plan_2p,
+            "deck": obj.deck, "plan_1p": obj.plan_1p,
+            "plan_2p": obj.plan_2p, "tweak": obj.tweak,
         }
 
     def _source(self, stage: StageEntry):
@@ -433,8 +436,8 @@ class StagePlanTableModel(QAbstractTableModel):
             return None
 
         if role == Qt.ItemDataRole.BackgroundRole:
-            # 绿色只标注跟随全局的卡组/1P/2P 三列；其余列仍按分组交替黄色
-            if sub in (SUBCOL_DECK, SUBCOL_1P, SUBCOL_2P) and not stage.override and not stage.skip:
+            # 绿色标注跟随全局的卡组/1P/2P/微调四列；其余列仍按分组交替黄色
+            if sub in (SUBCOL_DECK, SUBCOL_1P, SUBCOL_2P, SUBCOL_TWEAK) and not stage.override and not stage.skip:
                 return FOLLOW_GLOBAL_COLOR
             if stage.group_index is not None:
                 return GROUP_COLORS[stage.group_index % 2]
@@ -458,7 +461,7 @@ class StagePlanTableModel(QAbstractTableModel):
             SUBCOL_DECK: source.deck,
             SUBCOL_1P: source.plan_1p,
             SUBCOL_2P: source.plan_2p,
-            SUBCOL_TWEAK: stage.tweak,
+            SUBCOL_TWEAK: source.tweak,
         }.get(sub)
         if role in (Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.EditRole):
             return value
@@ -547,10 +550,15 @@ class StagePlanTableModel(QAbstractTableModel):
                 checked = value if isinstance(value, bool) else value in (
                     Qt.CheckState.Checked, Qt.CheckState.Checked.value)
                 setattr(stage, field, checked)
-                if field == "skip" and checked and not stage.override:
-                    # 勾选跳过后脱离全局，先固化当前全局方案，避免显示跳变
-                    for key, item in self._fields(self.global_plan).items():
-                        setattr(stage, key, item)
+                if field == "skip":
+                    if checked and not stage.override:
+                        # 勾选跳过后脱离全局，先固化当前全局方案，避免显示跳变
+                        for key, item in self._fields(self.global_plan).items():
+                            setattr(stage, key, item)
+                        stage.override = True
+                    elif not checked and stage.override and self._fields(stage) == self._fields(self.global_plan):
+                        # 取消跳过且方案与全局一致时回归跟随
+                        stage.override = False
             else:
                 setattr(stage, field, value)
 
@@ -560,7 +568,7 @@ class StagePlanTableModel(QAbstractTableModel):
         return True
 
     def set_global(self, field: str, value) -> None:
-        """修改全局方案；未跳过且方案三字段都与旧全局相同的关卡整体更新为新全局。"""
+        """修改全局方案；未跳过且四个方案字段都与旧全局相同的关卡整体更新为新全局。"""
         old_fields = self._fields(self.global_plan)
         setattr(self.global_plan, field, value)
         new_fields = self._fields(self.global_plan)
@@ -608,6 +616,8 @@ class StagePlanTableModel(QAbstractTableModel):
             battle[0] if len(battle) > 0 else "", EXTRA.BATTLE_PLAN_UUID_TO_PATH) or DEFAULT_PLAN_1P
         self.global_plan.plan_2p = plan_uuid_to_name(
             battle[1] if len(battle) > 1 else "", EXTRA.BATTLE_PLAN_UUID_TO_PATH) or DEFAULT_PLAN_2P
+        self.global_plan.tweak = plan_uuid_to_name(
+            g.get("tweak_plan", ""), EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH) or DEFAULT_TWEAK
 
     def apply_stages(self, data: dict) -> None:
         """从 stage_plan JSON 载入各关卡覆盖项。"""
@@ -649,6 +659,7 @@ class StagePlanTableModel(QAbstractTableModel):
                     resolve(g.plan_1p, EXTRA.BATTLE_PLAN_UUID_TO_PATH, DEFAULT_PLAN_1P),
                     resolve(g.plan_2p, EXTRA.BATTLE_PLAN_UUID_TO_PATH, DEFAULT_PLAN_2P),
                 ],
+                "tweak_plan": resolve(g.tweak, EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH, DEFAULT_TWEAK),
             }
         }
         for stage in self.all_stages():
@@ -909,6 +920,7 @@ class QMWEditorOfStagePlan(QMainWindow):
         for label, field, items in (
             ("1P", "plan_1p", list(self._battle_plan_names)),
             ("2P", "plan_2p", list(self._battle_plan_names)),
+            ("微调", "tweak", list(self._tweak_plan_names)),
         ):
             combo = SearchableComboBox(items)
             combo.setCurrentText(getattr(self.model.global_plan, field))
@@ -1086,7 +1098,7 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.global_deck.blockSignals(True)
         self.global_deck.setCurrentText(g.deck)
         self.global_deck.blockSignals(False)
-        for field in ("plan_1p", "plan_2p"):
+        for field in ("plan_1p", "plan_2p", "tweak"):
             combo = getattr(self, f"global_{field}")
             combo.blockSignals(True)
             combo.setCurrentText(getattr(g, field))
@@ -1161,13 +1173,8 @@ class QMWEditorOfStagePlan(QMainWindow):
         if os.path.exists(path):
             QMessageBox.warning(self, "提示", "该名称已存在。")
             return
-        # 以当前总表为基础创建空壳：只写全局，关卡全部跟随
-        data = {"global": self.model.global_plan.as_dict()}
-        data["global"]["deck"] = deck_text_to_int(data["global"]["deck"])
-        data["global"]["battle_plan"] = [
-            plan_name_to_uuid(self.model.global_plan.plan_1p, EXTRA.BATTLE_PLAN_UUID_TO_PATH),
-            plan_name_to_uuid(self.model.global_plan.plan_2p, EXTRA.BATTLE_PLAN_UUID_TO_PATH),
-        ]
+        # 以当前总表为基础创建空壳：关卡全部跟随全局时 export 只写出 global
+        data, _ = self.model.export()
         with EXTRA.FILE_LOCK:
             with open(path, "w", encoding="UTF-8") as file:
                 json.dump(data, file, ensure_ascii=False, indent=4)
