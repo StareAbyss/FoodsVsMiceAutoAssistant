@@ -902,7 +902,11 @@ class QMWEditorOfTaskSequence(QMainWindow):
             # 所选关卡
             stage_selector = MultiLevelMenu()
             stage_selector.setObjectName("w_stage_id")
-            stage_selector.setStyleSheet("text-align: left; padding-left: 5px;")
+            stage_selector.setStyleSheet("""
+                QPushButton#w_stage_id { text-align: left; padding-left: 5px; }
+                QMenu::item { padding: 2px 14px 2px 6px; }
+                QMenu::indicator { width: 0px; }
+            """)
             # 以 FAA 字体下的“主线>魔塔蛋糕第100层”测量，包含内置皮肤的按钮边距和菜单箭头。
             stage_selector.setFixedWidth(161)
 

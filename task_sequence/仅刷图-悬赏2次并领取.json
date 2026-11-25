@@ -136,5 +136,26 @@
                 ]
             }
         }
+    },
+    {
+        "task_type": "领取任务奖励",
+        "task_id": 5,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ],
+            "normal": false,
+            "guild": false,
+            "spouse": false,
+            "offer_reward": true,
+            "food_competition": false,
+            "monopoly": false,
+            "camp": false,
+            "magic_tower": false
+        }
     }
 ]

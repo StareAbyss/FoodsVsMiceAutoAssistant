@@ -86,7 +86,7 @@
     {
         "task_type": "双暴卡",
         "task_id": 7,
-        "enabled": true,
+        "enabled": false,
         "alias": "",
         "tooltip": "",
         "task_args": {
@@ -135,8 +135,8 @@
         "task_type": "任务序列",
         "task_id": 9,
         "enabled": true,
-        "alias": "45场满掉落",
-        "tooltip": "",
+        "alias": "战斗-45场掉落",
+        "tooltip": "战斗-45场掉落",
         "task_args": {
             "sequence_integer": 1,
             "task_sequence_uuid": "7e3be558-9267-11f1-9abb-9ebad9391dd9"
@@ -146,7 +146,7 @@
         "task_type": "任务序列",
         "task_id": 10,
         "enabled": true,
-        "alias": "悬赏任务",
+        "alias": "战斗-悬赏任务",
         "tooltip": "",
         "task_args": {
             "sequence_integer": 1,
@@ -154,24 +154,14 @@
         }
     },
     {
-        "task_type": "领取任务奖励",
+        "task_type": "任务序列",
         "task_id": 11,
         "enabled": true,
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "player": [
-                1,
-                2
-            ],
-            "normal": false,
-            "guild": false,
-            "spouse": false,
-            "offer_reward": true,
-            "food_competition": false,
-            "monopoly": false,
-            "camp": false,
-            "magic_tower": false
+            "sequence_integer": 1,
+            "task_sequence_uuid": "a620f3cb-e7db-11f1-9062-e8750ddd6ed7"
         }
     },
     {
@@ -228,72 +218,8 @@
         }
     },
     {
-        "task_type": "战斗",
-        "task_id": 14,
-        "enabled": true,
-        "alias": "世界BOSS 1P",
-        "tooltip": "",
-        "task_args": {
-            "stage_id": "WB-0-0",
-            "max_times": 1,
-            "need_key": true,
-            "player": [
-                1
-            ],
-            "global_plan_active": true,
-            "deck": 0,
-            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
-            "quest_card": "None",
-            "ban_card_list": [],
-            "dict_exit": {
-                "other_time_player_a": [],
-                "other_time_player_b": [],
-                "last_time_player_a": [
-                    "竞技岛"
-                ],
-                "last_time_player_b": [
-                    "竞技岛"
-                ]
-            }
-        }
-    },
-    {
-        "task_type": "战斗",
-        "task_id": 15,
-        "enabled": true,
-        "alias": "世界BOSS 2P",
-        "tooltip": "",
-        "task_args": {
-            "stage_id": "WB-0-0",
-            "max_times": 1,
-            "need_key": true,
-            "player": [
-                2
-            ],
-            "global_plan_active": true,
-            "deck": 0,
-            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
-            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
-            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
-            "quest_card": "None",
-            "ban_card_list": [],
-            "dict_exit": {
-                "other_time_player_a": [],
-                "other_time_player_b": [],
-                "last_time_player_a": [
-                    "竞技岛"
-                ],
-                "last_time_player_b": [
-                    "竞技岛"
-                ]
-            }
-        }
-    },
-    {
         "task_type": "清背包",
-        "task_id": 16,
+        "task_id": 14,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -306,7 +232,7 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 17,
+        "task_id": 15,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -316,18 +242,18 @@
                 2
             ],
             "normal": true,
-            "guild": false,
-            "spouse": false,
-            "offer_reward": false,
+            "guild": true,
+            "spouse": true,
+            "offer_reward": true,
             "food_competition": true,
             "monopoly": true,
             "camp": true,
-            "magic_tower": false
+            "magic_tower": true
         }
     },
     {
         "task_type": "美食大赛",
-        "task_id": 18,
+        "task_id": 16,
         "enabled": true,
         "alias": "",
         "tooltip": "",
