@@ -994,6 +994,21 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=title_text)
 
+    def batch_world_boss_sweep(self, player: list[int]) -> None:
+        """逐个角色完成巅峰对决扫荡，并报告已确认的次数。"""
+        title = "巅峰对决扫荡"
+        self.model_start_print(text=title)
+        for player_id in self.check_player(title=title, player=player):
+            count = self.faa_dict[player_id].action_world_boss_sweep()
+            if count is None:
+                detail = "未确认扫荡结果，请在游戏中查看"
+            elif count == 0:
+                detail = "当前无可扫荡次数，请检查今日挑战积分、剩余次数和扫荡券"
+            else:
+                detail = f"已扫荡 {count} 次"
+            SIGNAL.PRINT_TO_UI.emit(text=f"[{title}] [{player_id}P] {detail}")
+        self.model_end_print(text=title)
+
     def batch_use_items_double_card(self, player: list = None, max_times: int = 1, multiplier: int = 2):
 
         title_text = f"使用{multiplier}倍爆率卡"
@@ -3056,6 +3071,11 @@ class ThreadTodo(QThread):
                         multiplier=task["task_args"].get("multiplier", 2),
                     )
                     main_task_active = True
+
+                case "巅峰对决扫荡":
+                    self.batch_world_boss_sweep(player=task["task_args"]["player"])
+                    main_task_active = True
+                    active_singleton = False
 
                 case "刷新游戏":
                     if error_message := self.batch_reload_game(
