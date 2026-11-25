@@ -1344,9 +1344,9 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 }
             }
             data.append(copy.deepcopy(self.current_task_sequence_meta_data))
-        list_line_widgets = self.WidgetTaskSequenceList.findChildren(QWidget, 'line_widget')
-
-        for LineWidget in list_line_widgets:
+        for index in range(self.WidgetTaskSequenceList.count()):
+            item = self.WidgetTaskSequenceList.item(index)
+            LineWidget = self.WidgetTaskSequenceList.itemWidget(item)
             data_line = {}
 
             # 从控件属性中获取原始任务数据
@@ -1680,8 +1680,6 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 with open(new_file_path, 'w', encoding='utf-8') as file:
                     json.dump(export_list, file, ensure_ascii=False, indent=4)
 
-            QMessageBox.information(self.father, "成功!", "<任务序列> 已保存成功~")
-
         except Exception as e:
             error_by_single_dialog(
                 e=e, parent=self,
@@ -1700,6 +1698,22 @@ class QMWEditorOfTaskSequence(QMainWindow):
             self.father.TaskSequenceLabelCurrentEditUUID.setText(f"{current_uuid}")
 
         self.father.TaskSequenceButtonSaveJson.setEnabled(True)
+
+        first_task = next((task for task in export_list if "task_type" in task and task.get("enabled", True)), None)
+        if first_task is not None and first_task["task_type"] != "刷新游戏":
+            reminder = QMessageBox(
+                QMessageBox.Icon.Warning,
+                "任务序列已保存",
+                "检测到任务序列第一项不是刷新游戏。\n"
+                "无刷新序列仅可用于：被其他序列嵌套调用；进入游戏后单次调用。\n"
+                "不可定时启动该序列。",
+                parent=self.father,
+            )
+            button = reminder.addButton("好的，我已了解", QMessageBox.ButtonRole.AcceptRole)
+            reminder.setDefaultButton(button)
+            reminder.exec()
+        else:
+            QMessageBox.information(self.father, "成功!", "<任务序列> 已保存成功~")
 
     def edit_alias(self, label, task):
         """
