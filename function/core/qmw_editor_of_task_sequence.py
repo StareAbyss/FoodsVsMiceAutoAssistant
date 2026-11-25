@@ -8,10 +8,10 @@ from PyQt6.QtCore import Qt, QPoint, QEventLoop
 
 from function.scattered.output_error import error_by_single_dialog
 
-from PyQt6.QtGui import QIcon
+from PyQt6.QtGui import QColor, QIcon, QPalette
 from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QPushButton, QComboBox, QHBoxLayout, QLabel, QLineEdit, \
     QSpinBox, QCheckBox, QWidget, QListWidgetItem, QFileDialog, QMessageBox, QApplication, QListWidget, QSpacerItem, \
-    QSizePolicy, QFrame, QAbstractItemView, QInputDialog, QToolButton
+    QSizePolicy, QFrame, QAbstractItemView, QInputDialog, QToolButton, QStyledItemDelegate
 from function.widget.MultiLevelMenu import MultiLevelMenu
 from function.widget.SearchableComboBox import SearchableComboBox
 
@@ -26,6 +26,18 @@ from function.scattered.get_task_sequence_list import get_task_sequence_list
 from function.scattered.read_json_to_stage_info import build_stage_menu_data
 
 DEFAULT_BATTLE_STAGE_ID = "NO-1-7"
+PASSWORD_REQUIRED_TASK_TYPES = ("清背包", "兑换暗晶", "魔塔买次数", "分解宝石")
+TASK_PICKER_LABEL_ROLE = Qt.ItemDataRole.UserRole + 1
+
+
+class TaskPickerItemDelegate(QStyledItemDelegate):
+    """在展开的任务列表中显示补充说明和圆点。"""
+
+    def initStyleOption(self, option, index):
+        super().initStyleOption(option, index)
+        label = index.data(TASK_PICKER_LABEL_ROLE)
+        if label:
+            option.text = label
 
 
 def QCVerticalLine():
@@ -453,17 +465,47 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 '使用此功能前请勿刷新',
         }
 
-        # 添加项目并设置 tooltip
-        for index, task_type in enumerate(task_descriptions.keys()):
-            self.father.TaskSequenceComboBoxAddTask.addItem(task_type)
-            self.father.TaskSequenceComboBoxAddTask.setItemData(
-                index, task_descriptions[task_type], Qt.ItemDataRole.ToolTipRole)
+        task_groups = (
+            ("流程控制", ("刷新游戏", "任务序列")),
+            ("常规战斗", ("战斗", "公会任务", "情侣任务", "美食大赛")),
+            ("日常流程", ("签到", "浇水施肥摘果", "领取任务奖励", "扫描公会贡献", "查漏补缺")),
+            ("资产管理", ("使用消耗品", "清背包", "分解宝石", "兑换暗晶")),
+            ("战斗附属", ("双暴卡", "魔塔买次数")),
+            ("其他 - 维护较少可能有bug", ("自建房战斗", "跨服刷威望", "拓展脚本", "扫描任务列表")),
+        )
+        combo = self.father.TaskSequenceComboBoxAddTask
+        combo.setItemDelegate(TaskPickerItemDelegate(combo))
+        heading_color = QColor(EXTRA.THEME_HIGHLIGHT_COLOR)
+        heading_color.setAlpha(51)
+        heading_text = combo.palette().brush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text)
+        for title, task_types in task_groups:
+            combo.addItem(title)
+            heading = combo.model().item(combo.count() - 1)
+            heading.setFlags(Qt.ItemFlag.NoItemFlags)
+            heading.setBackground(heading_color)
+            heading.setForeground(heading_text)
+            for task_type in task_types:
+                label = "扩展脚本" if task_type == "拓展脚本" else task_type
+                popup_label = f"• {label}"
+                if task_type in PASSWORD_REQUIRED_TASK_TYPES:
+                    popup_label += "「需要二级密码」"
+                elif task_type == "任务序列":
+                    popup_label += "「嵌套运行」"
+                combo.addItem(label, task_type)
+                row = combo.count() - 1
+                combo.setItemData(row, popup_label, TASK_PICKER_LABEL_ROLE)
+                combo.setItemData(row, task_descriptions[task_type], Qt.ItemDataRole.ToolTipRole)
+        combo.setCurrentIndex(combo.findData("刷新游戏"))
+        combo.setMaxVisibleItems(combo.count())
 
     def add_task_by_button(self):
         """
         点击按钮, 添加一项任务(行)
         """
-        task_type = self.father.TaskSequenceComboBoxAddTask.currentText()
+        combo = self.father.TaskSequenceComboBoxAddTask
+        task_type = combo.currentData()
+        if not task_type:
+            return
 
         # 默认值
         task = {
@@ -692,6 +734,18 @@ class QMWEditorOfTaskSequence(QMainWindow):
         layout.addWidget(IdLabel)
 
         task_type = task['task_type']
+
+        background_color = None
+        if task_type == "刷新游戏":
+            background_color = "rgba(255, 48, 64, 51)"
+        elif task_type in PASSWORD_REQUIRED_TASK_TYPES:
+            background_color = "rgba(255, 145, 0, 51)"
+
+        if background_color:
+            line_widget.setAttribute(Qt.WidgetAttribute.WA_StyledBackground)
+            line_widget.setStyleSheet(
+                f"QWidget#line_widget {{ background-color: {background_color}; }}"
+            )
 
         # 显示别名，如果没有别名则显示任务类型
         display_text = task.get('alias', '') if task.get('alias', '') else task_type
