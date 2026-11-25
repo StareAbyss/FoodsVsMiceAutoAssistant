@@ -6,8 +6,24 @@
         }
     },
     {
-        "task_type": "清背包",
+        "task_type": "刷新游戏",
         "task_id": 1,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "清背包",
+        "task_id": 2,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "player": [
                 1,
@@ -17,7 +33,10 @@
     },
     {
         "task_type": "战斗",
-        "task_id": 2,
+        "task_id": 3,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "stage_id": "EX-1-1",
             "max_times": 1,
@@ -30,6 +49,7 @@
             "deck": 1,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -46,7 +66,10 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 3,
+        "task_id": 4,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "player": [
                 1,
@@ -58,12 +81,16 @@
             "offer_reward": false,
             "food_competition": false,
             "monopoly": false,
-            "camp": true
+            "camp": true,
+            "magic_tower": false
         }
     },
     {
         "task_type": "战斗",
-        "task_id": 4,
+        "task_id": 5,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "stage_id": "EX-1-2",
             "max_times": 1,
@@ -76,6 +103,7 @@
             "deck": 1,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -92,7 +120,10 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 5,
+        "task_id": 6,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "player": [
                 1,
@@ -104,12 +135,16 @@
             "offer_reward": false,
             "food_competition": false,
             "monopoly": false,
-            "camp": true
+            "camp": true,
+            "magic_tower": false
         }
     },
     {
         "task_type": "战斗",
-        "task_id": 6,
+        "task_id": 7,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "stage_id": "EX-1-3",
             "max_times": 1,
@@ -122,6 +157,7 @@
             "deck": 1,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -138,7 +174,10 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 7,
+        "task_id": 8,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "player": [
                 1,
@@ -150,12 +189,16 @@
             "offer_reward": false,
             "food_competition": false,
             "monopoly": false,
-            "camp": true
+            "camp": true,
+            "magic_tower": false
         }
     },
     {
         "task_type": "战斗",
-        "task_id": 8,
+        "task_id": 9,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "stage_id": "EX-1-4",
             "max_times": 1,
@@ -168,6 +211,7 @@
             "deck": 1,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -184,7 +228,10 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 9,
+        "task_id": 10,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "player": [
                 1,
@@ -196,12 +243,16 @@
             "offer_reward": false,
             "food_competition": false,
             "monopoly": false,
-            "camp": true
+            "camp": true,
+            "magic_tower": false
         }
     },
     {
         "task_type": "战斗",
-        "task_id": 10,
+        "task_id": 11,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "stage_id": "EX-1-5",
             "max_times": 1,
@@ -214,6 +265,7 @@
             "deck": 1,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -230,7 +282,10 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 11,
+        "task_id": 12,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "player": [
                 1,
@@ -242,12 +297,16 @@
             "offer_reward": false,
             "food_competition": false,
             "monopoly": false,
-            "camp": true
+            "camp": true,
+            "magic_tower": false
         }
     },
     {
         "task_type": "战斗",
-        "task_id": 12,
+        "task_id": 13,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "stage_id": "EX-1-6",
             "max_times": 1,
@@ -260,6 +319,7 @@
             "deck": 1,
             "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
             "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -276,7 +336,10 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 13,
+        "task_id": 14,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "player": [
                 1,
@@ -288,7 +351,8 @@
             "offer_reward": false,
             "food_competition": false,
             "monopoly": false,
-            "camp": true
+            "camp": true,
+            "magic_tower": false
         }
     }
 ]

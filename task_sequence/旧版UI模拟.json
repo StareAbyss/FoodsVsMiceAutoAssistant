@@ -32,7 +32,7 @@
         }
     },
     {
-        "task_type": "使用消耗品",
+        "task_type": "分解宝石",
         "task_id": 3,
         "enabled": true,
         "alias": "",
@@ -45,7 +45,7 @@
         }
     },
     {
-        "task_type": "分解宝石",
+        "task_type": "使用消耗品",
         "task_id": 4,
         "enabled": true,
         "alias": "",
@@ -94,6 +94,7 @@
                 1,
                 2
             ],
+            "multiplier": 2,
             "max_times": 1
         }
     },
@@ -151,7 +152,7 @@
         "tooltip": "允许您自由编辑[关卡/事项]进行作战.\n推荐您在对FAA有一定了解后再使用.",
         "task_args": {
             "sequence_integer": 1,
-            "task_sequence_uuid": "9c8dbb74-de80-11f0-8b4e-f4c88a4ed544"
+            "task_sequence_uuid": "7e3be558-9267-11f1-9abb-9ebad9391dd9"
         }
     },
     {
@@ -336,7 +337,8 @@
             "offer_reward": true,
             "food_competition": false,
             "monopoly": false,
-            "camp": false
+            "camp": false,
+            "magic_tower": false
         }
     },
     {
@@ -1105,13 +1107,16 @@
         }
     },
     {
-        "task_type": "扫描公会贡献",
+        "task_type": "刷新游戏",
         "task_id": 44,
         "enabled": true,
         "alias": "",
         "tooltip": "",
         "task_args": {
-            "player": 1
+            "player": [
+                1,
+                2
+            ]
         }
     },
     {
@@ -1128,8 +1133,18 @@
         }
     },
     {
-        "task_type": "领取任务奖励",
+        "task_type": "扫描公会贡献",
         "task_id": 46,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": 1
+        }
+    },
+    {
+        "task_type": "领取任务奖励",
+        "task_id": 47,
         "enabled": true,
         "alias": "",
         "tooltip": "包括: 普通任务/美食大赛/大富翁\n若背包爆满会卡死!\n推荐开启高级功能-自动清理背包杂物,以避免该问题!\n清理步骤将附加在该任务之前",
@@ -1144,12 +1159,13 @@
             "offer_reward": false,
             "food_competition": true,
             "monopoly": true,
-            "camp": false
+            "camp": false,
+            "magic_tower": false
         }
     },
     {
         "task_type": "使用消耗品",
-        "task_id": 47,
+        "task_id": 48,
         "enabled": true,
         "alias": "",
         "tooltip": "若背包爆满会卡死!",
@@ -1162,7 +1178,7 @@
     },
     {
         "task_type": "查漏补缺",
-        "task_id": 48,
+        "task_id": 49,
         "enabled": true,
         "alias": "",
         "tooltip": "自动检查签到，施肥，悬赏声望",
@@ -1175,15 +1191,15 @@
     },
     {
         "task_type": "美食大赛",
-        "task_id": 49,
-        "enabled": true,
+        "task_id": 50,
+        "enabled": false,
         "alias": "",
         "tooltip": "使用FAA-文字识别技术 X 语义解析\n自动生成战斗方案\n该功能会无限循环\n直至没有任务\n或所有任务均已失败三次被跳过.\n更多详情见战斗逻辑介绍相应章节.",
         "task_args": {}
     },
     {
         "task_type": "跨服刷威望",
-        "task_id": 50,
+        "task_id": 51,
         "enabled": false,
         "alias": "",
         "tooltip": "该功能会无限循环\n直至游戏崩溃\n或定时启动其他任务将其中断",
@@ -1196,7 +1212,7 @@
     },
     {
         "task_type": "战斗",
-        "task_id": 51,
+        "task_id": 52,
         "enabled": false,
         "alias": "跨服刷经验",
         "tooltip": "跨服刷经验",
@@ -1229,7 +1245,7 @@
     },
     {
         "task_type": "自建房战斗",
-        "task_id": 52,
+        "task_id": 53,
         "enabled": false,
         "alias": "",
         "tooltip": "* 该功能仅能单独启用!不可与其他功能配合!\n* 该功能仅用于带其他人刷关.通常的战斗, 均应该使用常规单本连战. \n* 该模式下, !!!不含任何防卡死!!! 机制!\n* 该模式仅能在战斗结束后仍在房间内的关卡多次连续作战. 否则仅能打一次. 包括但不限于: 魔塔蛋糕/巅峰对决.",

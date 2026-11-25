@@ -184,7 +184,7 @@
         }
     },
     {
-        "task_type": "兑换暗晶",
+        "task_type": "清背包",
         "task_id": 7,
         "enabled": true,
         "alias": "",
@@ -197,7 +197,7 @@
         }
     },
     {
-        "task_type": "清背包",
+        "task_type": "兑换暗晶",
         "task_id": 8,
         "enabled": true,
         "alias": "",
