@@ -304,6 +304,109 @@ class FAAActionInterfaceJump:
             self.print_warning(text=f"[地图跳转] 世界地图中未找到地图 {map_id}")
         return find
 
+    def action_world_boss_sweep(self: "FAA") -> int | None:
+        """使用当前角色的扫荡券，填写游戏允许的最大次数并提交一次。
+
+        Returns:
+            游戏确认的扫荡次数。没有可扫荡次数时为 0，识图或结算未确认时为 None。
+        """
+        templates = RESOURCE_P["world_boss"]["sweep"]
+        regions = {
+            "open": [807, 541, 881, 592],
+            "title": [409, 59, 557, 111],
+            "plus": [721, 296, 767, 341],
+            "zero": [588, 377, 697, 424],
+            "start": [589, 415, 703, 464],
+            "result": [289, 119, 373, 160],
+            "close_panel": [746, 74, 795, 122],
+            "close_home": [906, 0, 950, 43],
+        }
+
+        def find(name, *, click=False, timeout=0):
+            """在世界 BOSS 对应区域内识别控件，点击交给动作队列。"""
+            return loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=regions[name],
+                template=templates[f"{name}.png"],
+                # 计数只差一个字形，常规阈值会将部分非零次数误认成 0。
+                match_tolerance=0.998 if name == "zero" else 0.985,
+                match_failed_check=timeout,
+                click=click,
+            )
+
+        def selected_count_image():
+            """截取已选次数中的数字，避开随背包券数变化的分母。"""
+            return capture_image_png(
+                handle=self.handle,
+                root_handle=self.handle_360,
+                raw_range=[599, 388, 689, 412],
+            )[:, :, :3]
+
+        # 扫荡与挑战共用巅峰对决入口。直接打开首页，避免进入战斗房间。
+        if not find("title") and not find("open") and not self.action_top_menu(mode="巅峰对决"):
+            self.print_warning("[巅峰对决扫荡] 未找到巅峰对决入口")
+            return None
+
+        try:
+            if find("title"):
+                # 重新打开面板，让可能由人工设置的次数回到 0。
+                find("close_panel", click=True)
+            if not find("open", click=True, timeout=12) or not find("title", timeout=5):
+                self.print_warning("[巅峰对决扫荡] 未能打开扫荡面板")
+                return None
+            if not find("zero"):
+                self.print_warning("[巅峰对决扫荡] 未能确认扫荡次数已归零")
+                return None
+
+            selected = 0
+            number_image = selected_count_image()
+            selection_deadline = time.monotonic() + 45
+            while time.monotonic() < selection_deadline:
+                if not find("plus", click=True, timeout=0.8):
+                    if selected == 0 and find("title") and find("zero"):
+                        return 0
+                    self.print_warning("[巅峰对决扫荡] 选择次数时未能确认加号")
+                    return None
+
+                # 到达额度或券数上限时加号依然可点，只有扫荡次数是否增加能区分。
+                deadline = time.monotonic() + 1.5
+                while time.monotonic() < deadline:
+                    time.sleep(0.2)
+                    updated = selected_count_image()
+                    if not np.array_equal(updated, number_image):
+                        if not find("title") or not find("start"):
+                            self.print_warning("[巅峰对决扫荡] 选择次数时扫荡面板状态发生变化")
+                            return None
+                        selected += 1
+                        number_image = updated
+                        break
+                else:
+                    break
+            else:
+                self.print_warning("[巅峰对决扫荡] 未能确认已选到最大扫荡次数")
+                return None
+
+            if selected == 0:
+                if find("title") and find("zero"):
+                    return 0
+                self.print_warning("[巅峰对决扫荡] 未能确认扫荡面板状态")
+                return None
+
+            if not find("title") or find("zero") or not find("start", click=True):
+                self.print_warning("[巅峰对决扫荡] 未能确认可提交的扫荡面板")
+                return None
+            if not find("result", timeout=90):
+                # 提交后只有结算能确认结果。超时时不能再次提交，以免重复扣券。
+                self.print_warning("[巅峰对决扫荡] 已点击开始，但未确认结算结果")
+                return None
+            return selected
+        finally:
+            if find("title"):
+                find("close_panel", click=True, timeout=2)
+            if find("open", timeout=2) and not find("close_home", click=True, timeout=2):
+                self.print_warning("[巅峰对决扫荡] 未能关闭巅峰对决首页")
+
     def action_goto_single_magic_tower(self: "FAA") -> bool:
         """进入单人魔塔选层界面，但不选择层数或创建房间。"""
         return self.action_goto_magic_tower(mode="1")

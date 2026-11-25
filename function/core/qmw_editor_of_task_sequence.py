@@ -396,6 +396,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 '会自动触发美食大赛进度领取',
             '双暴卡':
                 '使用2倍或3倍爆率卡，周六、周日跳过',
+            '巅峰对决扫荡':
+                '使用扫荡券完成当前可扫荡的全部次数。当天需先手动挑战并获得积分。',
             '使用消耗品':
                 '使用背包中的消耗品',
             '清背包':
@@ -470,7 +472,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             ("常规战斗", ("战斗", "公会任务", "情侣任务", "美食大赛")),
             ("日常流程", ("签到", "浇水施肥摘果", "领取任务奖励", "扫描公会贡献", "查漏补缺")),
             ("资产管理", ("使用消耗品", "清背包", "分解宝石", "兑换暗晶")),
-            ("战斗附属", ("双暴卡", "魔塔买次数")),
+            ("战斗附属", ("双暴卡", "魔塔买次数", "巅峰对决扫荡")),
             ("其他 - 维护较少可能有bug", ("自建房战斗", "跨服刷威望", "拓展脚本", "扫描任务列表")),
         )
         combo = self.father.TaskSequenceComboBoxAddTask
@@ -534,7 +536,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                     "max_times": 1,
                     "multiplier": 2,
                 }
-            case '刷新游戏':
+            case '刷新游戏' | '巅峰对决扫荡':
                 task["task_args"] = {
                     "player": [1, 2],  # or [1] [2]
                 }
@@ -1179,6 +1181,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 battle(line_layout=line_layout)
             case '双暴卡':
                 double_card(line_layout=line_layout)
+            case '巅峰对决扫荡':
+                addElement_player_normal(line_layout=line_layout)
             case '刷新游戏':
                 fresh_game(line_layout=line_layout)
             case '清背包':
@@ -1428,7 +1432,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 case '分解宝石':
                     task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
 
-                case "刷新游戏":
+                case "刷新游戏" | "巅峰对决扫荡":
                     task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
 
                 case "领取任务奖励":

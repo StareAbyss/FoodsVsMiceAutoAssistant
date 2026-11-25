@@ -1028,8 +1028,85 @@
         }
     },
     {
-        "task_type": "扫描公会贡献",
+        "task_type": "战斗",
         "task_id": 41,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "stage_id": "WB-0-0",
+            "max_times": 1,
+            "need_key": true,
+            "player": [
+                1
+            ],
+            "global_plan_active": false,
+            "deck": 0,
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
+            "quest_card": "None",
+            "ban_card_list": [],
+            "dict_exit": {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": [
+                    "竞技岛"
+                ],
+                "last_time_player_b": [
+                    "竞技岛"
+                ]
+            }
+        }
+    },
+    {
+        "task_type": "战斗",
+        "task_id": 42,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "stage_id": "WB-0-0",
+            "max_times": 1,
+            "need_key": true,
+            "player": [
+                2
+            ],
+            "global_plan_active": false,
+            "deck": 0,
+            "battle_plan_1p": "00000000-0000-0000-0000-000000000000",
+            "battle_plan_2p": "00000000-0000-0000-0000-000000000001",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
+            "quest_card": "None",
+            "ban_card_list": [],
+            "dict_exit": {
+                "other_time_player_a": [],
+                "other_time_player_b": [],
+                "last_time_player_a": [
+                    "竞技岛"
+                ],
+                "last_time_player_b": [
+                    "竞技岛"
+                ]
+            }
+        }
+    },
+    {
+        "task_type": "巅峰对决扫荡",
+        "task_id": 43,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "扫描公会贡献",
+        "task_id": 44,
         "enabled": true,
         "alias": "",
         "tooltip": "",
@@ -1039,7 +1116,7 @@
     },
     {
         "task_type": "清背包",
-        "task_id": 42,
+        "task_id": 45,
         "enabled": true,
         "alias": "",
         "tooltip": "若背包爆满会卡死!",
@@ -1052,7 +1129,7 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 43,
+        "task_id": 46,
         "enabled": true,
         "alias": "",
         "tooltip": "包括: 普通任务/美食大赛/大富翁\n若背包爆满会卡死!\n推荐开启高级功能-自动清理背包杂物,以避免该问题!\n清理步骤将附加在该任务之前",
@@ -1072,7 +1149,7 @@
     },
     {
         "task_type": "使用消耗品",
-        "task_id": 44,
+        "task_id": 47,
         "enabled": true,
         "alias": "",
         "tooltip": "若背包爆满会卡死!",
@@ -1085,7 +1162,7 @@
     },
     {
         "task_type": "查漏补缺",
-        "task_id": 45,
+        "task_id": 48,
         "enabled": true,
         "alias": "",
         "tooltip": "自动检查签到，施肥，悬赏声望",
@@ -1098,7 +1175,7 @@
     },
     {
         "task_type": "美食大赛",
-        "task_id": 46,
+        "task_id": 49,
         "enabled": true,
         "alias": "",
         "tooltip": "使用FAA-文字识别技术 X 语义解析\n自动生成战斗方案\n该功能会无限循环\n直至没有任务\n或所有任务均已失败三次被跳过.\n更多详情见战斗逻辑介绍相应章节.",
@@ -1106,7 +1183,7 @@
     },
     {
         "task_type": "跨服刷威望",
-        "task_id": 47,
+        "task_id": 50,
         "enabled": false,
         "alias": "",
         "tooltip": "该功能会无限循环\n直至游戏崩溃\n或定时启动其他任务将其中断",
@@ -1119,7 +1196,7 @@
     },
     {
         "task_type": "战斗",
-        "task_id": 48,
+        "task_id": 51,
         "enabled": false,
         "alias": "跨服刷经验",
         "tooltip": "跨服刷经验",
@@ -1152,7 +1229,7 @@
     },
     {
         "task_type": "自建房战斗",
-        "task_id": 49,
+        "task_id": 52,
         "enabled": false,
         "alias": "",
         "tooltip": "* 该功能仅能单独启用!不可与其他功能配合!\n* 该功能仅用于带其他人刷关.通常的战斗, 均应该使用常规单本连战. \n* 该模式下, !!!不含任何防卡死!!! 机制!\n* 该模式仅能在战斗结束后仍在房间内的关卡多次连续作战. 否则仅能打一次. 包括但不限于: 魔塔蛋糕/巅峰对决.",
