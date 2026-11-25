@@ -1816,7 +1816,7 @@ class FAABase:
             return close()
 
     def reload_game(self: "FAA") -> tuple[bool, str]:
-        """刷新确认游戏主页；启用自动启动时，十次失败后重开当前窗口再试十次。
+        """按分段超时刷新并确认游戏主页，满足自动启动条件时可重开当前窗口一次。
 
         Returns:
             成功返回 ``(True, "")``；配置无效或刷新及重启重试耗尽返回 ``(False, 原因)``。
@@ -2242,68 +2242,15 @@ class FAABase:
 
             return my_result
 
-        def wait_game_home_page(timeout: float) -> bool:
-            """在限定时间内确认游戏底部菜单已经完整出现。"""
-
-            result = loop_match_ps_in_w(
-                source_handle=self.handle_browser,
-                source_root_handle=self.handle_360,
-                template_opts=[
-                    {
-                        "source_range": [850, 570, 2596, 1440],
-                        "template": RESOURCE_P["common"]["底部菜单"]["跳转.png"],
-                        "match_tolerance": 0.99,
-                    }, {
-                        "source_range": [615, 570, 2596, 1440],
-                        "template": RESOURCE_P["common"]["底部菜单"]["任务.png"],
-                        "match_tolerance": 0.99,
-                    }, {
-                        "source_range": [890, 570, 2596, 1440],
-                        "template": RESOURCE_P["common"]["底部菜单"]["后退.png"],
-                        "match_tolerance": 0.99,
-                    }
-                ],
-                return_mode="and",
-                match_interval=0.5,
-                match_failed_check=timeout,
-            )
-            return result
-
-        def wait_health_notice() -> bool:
-            """等待并关闭阻挡游戏的健康公告，最多等待三分钟。"""
-            deadline = time.monotonic() + 180
-            while time.monotonic() < deadline:
-                game_handle = faa_get_handle(channel=self.channel, mode="flash")
-                if game_handle:
-                    status, position = match_p_in_w(
-                        source_handle=game_handle,
-                        source_root_handle=self.handle_360,
-                        source_range=[0, 0, 2596, 1440],
-                        template=RESOURCE_P["common"]["登录"]["通用"]["3_健康游戏公告_确定.png"],
-                        match_tolerance=0.97,
-                    )
-                    if status == 2:
-                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
-                            handle=game_handle,
-                            x=position[0],
-                            y=position[1],
-                        )
-                        self.print_debug(text="[刷新游戏] [登录弹窗] 已点击健康游戏公告，等待后续界面")
-                        time.sleep(2)
-                        return True
-                time.sleep(0.5)
-
-            self.print_debug(text="[刷新游戏] [登录弹窗] 180秒内未出现健康游戏公告，继续确认游戏主页")
-            return False
-
-        def confirm_home_and_close_popups() -> bool:
-            """关闭两类活动弹窗，并连续三次确认游戏主页菜单。"""
+        def confirm_home_and_close_popups(timeout: int) -> bool:
+            """在本次限定秒数内关闭登录弹窗，并连续三次确认游戏主页菜单。"""
             check_range = [0, 0, 2596, 1440]
             close_range = [650, 0, 2560, 400]
+            health_notice_closed = False
             stamp_closed = False
             holiday_closed = False
             home_count = 0
-            deadline = time.monotonic() + 7
+            deadline = time.monotonic() + timeout
 
             while time.monotonic() < deadline:
                 # 活动弹窗出现前可能重新加载游戏窗口，旧 Flash 句柄会失效。
@@ -2319,6 +2266,24 @@ class FAABase:
                     root_handle=self.handle_360,
                     raw_range=check_range,
                 )
+
+                # 部分平台刷新后直接进入主页，没有健康公告，因此同一轮也要识别主页。
+                if not health_notice_closed:
+                    status, position = match_p_in_w(
+                        source_img=source_image,
+                        source_range=check_range,
+                        template=RESOURCE_P["common"]["登录"]["通用"]["3_健康游戏公告_确定.png"],
+                        match_tolerance=0.97,
+                    )
+                    if status == 2:
+                        T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                            handle=game_handle, x=position[0], y=position[1]
+                        )
+                        health_notice_closed = True
+                        home_count = 0
+                        self.print_debug(text="[刷新游戏] [登录弹窗] 已点击健康游戏公告，等待后续界面")
+                        time.sleep(min(2, max(0, deadline - time.monotonic())))
+                        continue
 
                 popup_name = None
                 popup_position = None
@@ -2356,9 +2321,8 @@ class FAABase:
                         holiday_closed = True
                     home_count = 0
                     self.print_debug(text=f"[刷新游戏] [登录弹窗] 已点击{popup_name}关闭按钮")
-                    time.sleep(2)
-                    # 关闭弹窗后可能再次短暂读条，重新给主页确认完整的7秒。
-                    deadline = time.monotonic() + 7
+                    # 关闭弹窗后可能短暂读条，等待时间计入本次超时。
+                    time.sleep(min(2, max(0, deadline - time.monotonic())))
                     continue
 
                 home_result = match_ps_in_w(
@@ -2386,7 +2350,7 @@ class FAABase:
                     return True
                 time.sleep(min(1, max(0, deadline - time.monotonic())))
 
-            self.print_warning(text="[刷新游戏] [登录弹窗] 7秒内未能连续3次确认游戏主页")
+            self.print_warning(text=f"[刷新游戏] [登录弹窗] {timeout}秒内未能连续3次确认游戏主页")
             return False
 
         def action_after_success() -> None:
@@ -2400,7 +2364,7 @@ class FAABase:
             self.handle = faa_get_handle(channel=self.channel, mode="flash")
 
         def main() -> tuple[bool, str]:
-            """每阶段最多刷新十次，按自动启动配置允许重开一次；无效配置立即失败。
+            """按加载超时分段刷新，失败后按自动启动配置决定是否重开一次。
 
             Returns:
                 是否成功确认游戏主页及失败原因；成功时原因为空字符串。
@@ -2416,24 +2380,17 @@ class FAABase:
                 return False, message
 
             # 维护后的页面重定向可能无法靠刷新恢复，自动启动开启时允许重开当前账号一次。
-            max_attempts = 10
+            timeouts = (30, 30, 60, 120, 180)
+            max_attempts = len(timeouts)
             login_settings = self.opt["login_settings"]
-            allow_restart = login_settings.get("login_open_settings", False)
+            auto_start = login_settings.get("login_open_settings", False)
+            account_key = "first_num" if self.player == 1 else "second_num"
+            restart_configured = bool(login_settings.get(account_key) and login_settings.get("login_path"))
+            allow_restart = auto_start and restart_configured
             total_attempts = max_attempts * (2 if allow_restart else 1)
             last_failure_message = ""
             for attempt in range(1, total_attempts + 1):
                 if attempt == max_attempts + 1:
-                    account_key = "first_num" if self.player == 1 else "second_num"
-                    if not login_settings.get(account_key) or not login_settings.get("login_path"):
-                        return False, (
-                            f"连续{max_attempts}次刷新仍未能进入游戏。\n"
-                            f"{self.player}P自动启动的小号编号或大厅路径未配置，无法重启，已中断任务。\n"
-                            f"最后一次失败：{last_failure_message}"
-                        )
-                    self.print_warning(text=(
-                        f"[刷新游戏] [{self.player}P] 连续{max_attempts}次刷新失败，"
-                        "关闭当前游戏窗口并重新启动，再尝试十次。"
-                    ))
                     # 两个账号可能并行恢复，只关闭当前窗口，不清理共享大厅及后台进程。
                     close_software_by_title(window_title=self.channel)
                     # 等待当前窗口退出，避免启动命令被仍在关闭的窗口接收。
@@ -2442,7 +2399,18 @@ class FAABase:
 
                 fresh_count = (attempt - 1) % max_attempts + 1
 
-                self.print_info(text=f"[刷新游戏] [第{fresh_count}轮] 即将开始...")
+                timeout = timeouts[fresh_count - 1]
+                if allow_restart and attempt == max_attempts:
+                    next_action = "重开游戏大厅并重试"
+                elif attempt == total_attempts:
+                    next_action = "停止刷新"
+                else:
+                    next_action = "重试"
+                SIGNAL.PRINT_TO_UI.emit(
+                    text=f"[刷新游戏] [{self.player}P] 尝试次数({fresh_count}/{max_attempts})，"
+                         f"{timeout}秒内未进入游戏则{next_action}",
+                    color_level=1,
+                )
 
                 # 先重新获取 360 和 浏览器的句柄
                 self.handle_browser = faa_get_handle(channel=self.channel, mode="browser")
@@ -2507,21 +2475,7 @@ class FAABase:
                 elif platform == "QQ大厅":
                     platform_entry_succeeded = wait_for_server_button(try_enter_server_qq_hall)
 
-                # 平台已自动登录时，刷新可能直接进入主页而不再经过登录页和选服页。
-                # 所有区服统一确认这一状态，避免将正常加载误判为登录失败。
-
-                if not platform_entry_succeeded:
-                    game_home_page_ready = wait_game_home_page(timeout=0)
-                    if game_home_page_ready:
-                        platform_entry_succeeded = True
-                        self.print_debug(text="[刷新游戏] 已由平台自动登录并直接进入游戏主页")
-
-                """先清除阻挡游戏的公告，再处理活动弹窗并确认主页"""
-                self.print_debug(text="[刷新游戏] 等待健康游戏公告，随后确认游戏主页...")
-                wait_health_notice()
-                goto_game_home_page_success = confirm_home_and_close_popups()
-
-                if not goto_game_home_page_success:
+                if not confirm_home_and_close_popups(timeout=timeout):
                     if platform_entry_succeeded:
                         last_failure_message = (
                             f"已按区服“{platform}”点击登录/选服，但未能进入游戏主页。\n"
@@ -2536,13 +2490,15 @@ class FAABase:
                     continue
 
                 action_after_success()
-                self.print_info(text=f"[刷新游戏] [第{fresh_count}轮] 顺利完成")
+                SIGNAL.PRINT_TO_UI.emit(text=f"[进入游戏] [{self.player}P] 成功", color_level=1)
                 return True, ""
 
             failure_summary = (
                 f"重启游戏窗口后再次连续{max_attempts}次刷新仍未能进入游戏（共{total_attempts}次）。"
                 if allow_restart else f"连续{max_attempts}次刷新仍未能进入游戏。"
             )
+            if auto_start and not restart_configured:
+                failure_summary += f"\n{self.player}P自动启动的小号编号或大厅路径未配置，无法重启。"
             message = (
                 f"{failure_summary}\n"
                 f"最后一次失败：{last_failure_message}\n"
