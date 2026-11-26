@@ -1,10 +1,12 @@
 import copy
 import json
+import os
 import shutil
 import time
 import uuid
 from pathlib import Path
-from typing import Iterable
+from tempfile import TemporaryDirectory
+from typing import Callable, Iterable
 
 
 DEFAULT_UUIDS = {
@@ -376,7 +378,7 @@ def process_uuid_json_folder(folder_from: Path, folder_to: Path, uuid_kind: str)
     return {"operation": "uuid_json_folder", "uuid_kind": uuid_kind, "items": items, "summary": summary}
 
 
-def migrate_one(config: dict) -> bool:
+def migrate_one(config: dict, on_file_copied: Callable[[Path], None] | None = None) -> bool:
     migration_type = config["type"]
 
     path_from = config.get("path_from")
@@ -389,14 +391,24 @@ def migrate_one(config: dict) -> bool:
     path_to = Path(path_to)
 
     if migration_type == "file":
-        path_to.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(path_from, path_to)
+        def copy_config_file(source: Path, target: Path) -> None:
+            """文件内容和元数据复制完成后再替换，失败时保留目标配置。"""
+            if target.is_file() and source.samefile(target):
+                raise shutil.SameFileError(f"'{source}' 与 '{target}' 是同一个文件")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with TemporaryDirectory(dir=target.parent) as temp_dir:
+                temp_file = Path(temp_dir) / target.name
+                shutil.copy2(source, temp_file)
+                os.replace(temp_file, target)
+                if on_file_copied is not None:
+                    on_file_copied(target)
+
+        copy_config_file(path_from, path_to)
         companion_files = []
         for companion in config.get("companion_paths", []):
             companion_from = Path(companion["path_from"])
             companion_to = Path(companion["path_to"])
-            companion_to.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(companion_from, companion_to)
+            copy_config_file(companion_from, companion_to)
             companion_files.append({"from": str(companion_from), "to": str(companion_to)})
         config["detail"] = {
             "operation": "copy_file",
@@ -427,6 +439,7 @@ def migrate_user_data(
     target_root: Path,
     selected_names: set[str] | None = None,
     allow_missing_target: bool = True,
+    on_file_copied: Callable[[Path], None] | None = None,
 ) -> list[dict]:
     plan = build_migration_plan(source_root, target_root, allow_missing_target=allow_missing_target)
 
@@ -442,7 +455,7 @@ def migrate_user_data(
             results.append(config)
             continue
 
-        migrate_one(config)
+        migrate_one(config, on_file_copied=on_file_copied)
         config["status"] = "migrated"
         results.append(config)
 

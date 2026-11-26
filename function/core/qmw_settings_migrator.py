@@ -1,6 +1,8 @@
 import os
 import os.path
+from pathlib import Path
 
+from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QMessageBox, \
     QFileDialog, QHBoxLayout, QCheckBox, QGroupBox
@@ -10,6 +12,8 @@ from function.core.settings_migration import build_migration_plan, get_migration
 
 
 class QMWSettingsMigrator(QMainWindow):
+    main_settings_migrated = pyqtSignal()
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("配置迁移工具 - 请注意查看鼠标提示信息!")
@@ -144,12 +148,23 @@ class QMWSettingsMigrator(QMainWindow):
             for config in self.configs
             if self.widgets_checkbox[config["name"]].isChecked()
         }
-        results = migrate_user_data(
-            source_root=self.target_path,
-            target_root=PATHS["root"],
-            selected_names=selected_names,
-            allow_missing_target=False,
-        )
+        def on_file_copied(path: Path) -> None:
+            if path == Path(PATHS["config"]) / "settings.json":
+                # 核心文件写入后立刻停用自动保存，后续迁移失败时也需要保留它。
+                self.main_settings_migrated.emit()
+
+        try:
+            results = migrate_user_data(
+                source_root=self.target_path,
+                target_root=PATHS["root"],
+                selected_names=selected_names,
+                allow_missing_target=False,
+                on_file_copied=on_file_copied,
+            )
+        except OSError as error:
+            QMessageBox.warning(self, "迁移未完成", f"{error}\n已迁入的文件会保留，请重启 FAA 后检查配置。")
+            return
+
         for config in results:
             if config["status"] == "migrated":
                 self.widgets_label[config["name"]].setText("迁移成功!")
@@ -157,7 +172,7 @@ class QMWSettingsMigrator(QMainWindow):
         QMessageBox.information(
             self,
             "完成迁移全部!",
-            "迁移已完成, 请不要保存配置, 直接重启FAA即可正确应用~")
+            "迁移已完成，请重启 FAA 以应用迁入的配置。")
 
     @staticmethod
     def format_config_paths(config: dict) -> str:

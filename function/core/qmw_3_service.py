@@ -1,4 +1,5 @@
-﻿import datetime
+﻿import copy
+import datetime
 import ctypes
 import json
 import os
@@ -225,6 +226,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 额外窗口 - 配置迁移器
         self.window_settings_migrator = QMWSettingsMigrator()
+        self.window_settings_migrator.main_settings_migrated.connect(self.on_main_settings_migrated)
         self.OpenSettingsMigrator_Button.clicked.connect(self.click_btn_open_settings_migrator)
 
         # 额外窗口 - 实用小工具
@@ -305,7 +307,6 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.Button_StartTimer.clicked.connect(self.todo_timer_click_btn)
 
         # 保存方案按钮 函数绑定
-        self.Button_Save.clicked.connect(self.click_btn_save)
         self.PlayerModeButton.clicked.connect(self.switch_player_mode)
         self.WindowHandleToolButton.clicked.connect(self.open_window_handle_tool)
 
@@ -596,19 +597,52 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.refresh_update_progress_label()
 
     def save_all_login_credentials_button_on_clicked(self):
-        """两个平台的保存按钮均会统一保存账号密码和二级密码。"""
-        self.ui_to_opt()
-        with EXTRA.FILE_LOCK:
-            save_login_credentials(
-                file_path=Path(self.login_credentials_path),
-                credentials=self.opt["login_credentials"],
-            )
-        QMessageBox.information(
-            self,
-            "提示",
-            "登录信息已加密保存。",
-            QMessageBox.StandardButton.Ok,
-        )
+        """在自动登录设置中手动加密保存账号和密码。"""
+        if self.save_login_credentials_from_ui():
+            QMessageBox.information(self, "提示", "登录信息已加密保存。")
+
+    def save_login_credentials_from_ui(self) -> bool:
+        """把已经填写的账号和密码加密写入凭据文件，成功后才更新内存。"""
+        if self._settings_migrated:
+            QMessageBox.warning(self, "配置已迁移", "请重启 FAA 以应用迁入的配置。")
+            return False
+
+        credentials = copy.deepcopy(self.opt["login_credentials"])
+        for player in (1, 2):
+            key = f"{player}p"
+            credentials["level_2"][key]["password"] = getattr(self, f"Level2_{player}P_Password").text()
+            for platform, prefix in (("qq", "LoginQQSpace"), ("4399", "Login4399")):
+                credentials[platform][key]["username"] = getattr(self, f"{prefix}Username{player}PInput").text().strip()
+                credentials[platform][key]["password"] = getattr(self, f"{prefix}Password{player}PInput").text()
+
+        file_path = Path(self.login_credentials_path)
+        if credentials != self.opt["login_credentials"] or not file_path.is_file():
+            try:
+                with EXTRA.FILE_LOCK:
+                    save_login_credentials(file_path=file_path, credentials=credentials)
+            except Exception as error:
+                CUS_LOGGER.error(f"[登录] [保存凭据] 无法加密或写入 {file_path}: {error}")
+                QMessageBox.warning(self, "登录信息保存失败", "请检查配置目录和系统机器码后重试。")
+                return False
+            self.opt["login_credentials"] = credentials
+        return True
+
+    def prepare_run_settings(self) -> bool:
+        """手动启动前写入凭据，并检查米苏物流地址。"""
+        if not self.save_login_credentials_from_ui():
+            return False
+
+        url = self.MisuLogistics_Link.text()
+        reachable, detail = test_route_connectivity(url=url)
+        if url and not reachable:
+            CUS_LOGGER.warning(f"[米苏物流] 自定义地址测试失败，改用默认地址：{detail}")
+            self.MisuLogistics_Link.clear()
+            reachable, detail = test_route_connectivity()
+        if reachable:
+            CUS_LOGGER.info(f"[米苏物流] 连通性测试通过：{detail}")
+        else:
+            CUS_LOGGER.warning(f"[米苏物流] 默认地址测试失败：{detail}")
+        return True
 
     """公会管理器页面"""
 
@@ -856,15 +890,18 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 默认按照第3列(总贡)降序排序
         self.GuildMemberInfoTable.sortByColumn(2, QtCore.Qt.SortOrder.DescendingOrder)
 
-    def open_window_handle_tool(self) -> None:
-        """按当前基础设定打开内置句柄工具，拖取后回填对应角色的窗口名。"""
-        base_settings = {
+    def current_window_settings(self) -> dict:
+        """窗口工具直接读取当前输入，避免自动保存延时内使用旧窗口名。"""
+        return {
             "player_mode": self.opt["base_settings"].get("player_mode"),
             "game_name": self.GameName_Input.text(),
             "name_1p": self.Name1P_Input.text(),
             "name_2p": self.Name2P_Input.text(),
         }
-        tool = QMWWindowHandleTool(self, get_player_channels(base_settings))
+
+    def open_window_handle_tool(self) -> None:
+        """按当前基础设定打开内置句柄工具，拖取后回填对应角色的窗口名。"""
+        tool = QMWWindowHandleTool(self, get_player_channels(self.current_window_settings()))
 
         def apply_window_title(player: int, title: str) -> None:
             """按窗口标题回填共享游戏名及当前角色窗口名。"""
@@ -895,7 +932,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         if answer != QMessageBox.StandardButton.Yes:
             return
         base_settings["player_mode"] = new_mode
-        self.opt_to_json()
+        self._settings_write_pending = True
+        self.flush_settings()
         self.apply_player_mode()
 
     def check_startup_status(self) -> None:
@@ -919,22 +957,29 @@ class QMainWindowService(QMainWindowLoadSettings):
         todo线程的启动函数
         task_sequence_uuid为定时启动的uuid
         """
-        self.is_start = True
+        if self._settings_migrated:
+            SIGNAL.PRINT_TO_UI.emit("[任务序列] 配置已迁移，请重启 FAA 后再启动任务。", color_level=1)
+            return
         if task_sequence_uuid is None:
-            running_task_sequence_uuid = self.opt["current_plan"]
+            if not self.flush_settings():
+                return
+            run_opt = self.opt
+            running_task_sequence_uuid = run_opt["current_plan"]
         else:
+            if not self.todo_timer_running:
+                return
+            # 定时触发沿用激活时的快照，其中的物流地址已经校验。
+            run_opt = self.todo_timer_manager.opt
             running_task_sequence_uuid = task_sequence_uuid
 
+        self.is_start = True
         # 先检测是否已经在启动状态, 如果是, 立刻关闭 然后继续执行
         if self.thread_todo_running:
             SIGNAL.PRINT_TO_UI.emit("[定时任务] 检测到线程已启动, 正在关闭", color_level=1)
             self.todo_end()
 
-        # 先读取界面上的方案
-        # self.ui_to_opt()
-
         # 获取窗口名称
-        channels = get_player_channels(self.opt["base_settings"])
+        channels = get_player_channels(run_opt["base_settings"])
 
         """UI处理"""
         # 设置flag
@@ -966,7 +1011,9 @@ class QMainWindowService(QMainWindowLoadSettings):
             return
 
         """线程处理"""
-        # 启动点击处理线程
+        # 在上一轮任务结束后应用运行时共用参数。
+        self.apply_runtime_settings(run_opt)
+        T_ACTION_QUEUE_TIMER.interval_time = 1 / EXTRA.CLICK_PER_SECOND
         T_ACTION_QUEUE_TIMER.start()
 
         # 生成随机数种子
@@ -977,7 +1024,7 @@ class QMainWindowService(QMainWindowLoadSettings):
             player: FAA(
                 channel=channel,
                 player=player,
-                opt=self.opt,
+                opt=run_opt,
                 the_360_lock=the_360_lock,
                 random_seed=random_seed)
             for player, channel in channels.items()
@@ -986,7 +1033,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 创建新的todo并启动线程
         self.thread_todo_1 = ThreadTodo(
             faa_dict=faa_dict,
-            opt=self.opt,
+            opt=run_opt,
             todo_id=1,
             running_task_sequence_uuid=running_task_sequence_uuid)
 
@@ -1004,7 +1051,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         if 2 in faa_dict:
             self.thread_todo_2 = ThreadTodo(
                 faa_dict=faa_dict,
-                opt=self.opt,
+                opt=run_opt,
                 todo_id=2,
                 running_task_sequence_uuid=running_task_sequence_uuid)
             self.thread_todo_1.signal_start_todo_2_battle.connect(self.thread_todo_2.set_extra_opt_and_start)
@@ -1074,22 +1121,23 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 线程没有激活
         if not (self.thread_todo_running or self.is_ending or self.is_start):
-            self.todo_start()
+            if self.prepare_run_settings():
+                self.todo_start()
 
         elif not self.is_ending:  # 加强鲁棒性，用于防熊
             self.todo_end()
 
     def todo_timer_start(self):
-        # 先读取界面上的方案
-        self.ui_to_opt()
+        if not self.flush_settings():
+            return
         # 检查时间是否重复，方案是否存在
         time_list = []
         for i in range(1, 6):
             timer_opt = self.opt["timer"][str(i)]
             if timer_opt["active"]:
-                h_text = getattr(self, f'Timer{i}_H').text()
-                m_text = getattr(self, f'Timer{i}_M').text()
-                tar_time = {"h": h_text, "m": m_text}
+                h_text = f'{timer_opt["h"]:02d}'
+                m_text = f'{timer_opt["m"]:02d}'
+                tar_time = (timer_opt["h"], timer_opt["m"])
                 plan_identifier = timer_opt["plan"]
                 if plan_identifier == "" or plan_identifier == -1:
                     SIGNAL.PRINT_TO_UI.emit(
@@ -1118,6 +1166,13 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.todo_timer_manager.start()
         # 锁定相关设置的ui
         for i in range(1, 6):
+            timer_opt = self.opt["timer"][str(i)]
+            if timer_opt["active"]:
+                # 补齐空白和一位数，让锁定的界面显示实际采用的时间。
+                for field in ("h", "m"):
+                    widget = getattr(self, f"Timer{i}_{field.upper()}")
+                    with QtCore.QSignalBlocker(widget):
+                        widget.setText(f"{timer_opt[field]:02d}")
             for comp in ['Active', 'H', 'M', 'Plan']:
                 getattr(self, f'Timer{i}_{comp}').setEnabled(False)
 
@@ -1142,8 +1197,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         """开始计时器"""
 
         if not self.todo_timer_running:
-            # 线程没有激活
-            self.todo_timer_start()
+            if self.prepare_run_settings():
+                self.todo_timer_start()
         else:
             self.todo_timer_stop()
 
@@ -1186,14 +1241,14 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 获取窗口名称
         handles = {
             player: faa_get_handle(channel=channel, mode="360")
-            for player, channel in get_player_channels(self.opt["base_settings"]).items()
+            for player, channel in get_player_channels(self.current_window_settings()).items()
         }
         for player, handle in handles.items():
             if handle is None or handle == 0:
                 # 报错弹窗
                 SIGNAL.DIALOG.emit(
                     title="出错！(╬◣д◢)",
-                    text=f"{player}P存在错误的窗口名或游戏名称, 请在基础设定处重新拖拽至游戏窗口后保存."
+                    text=f"{player}P存在错误的窗口名或游戏名称, 请通过基础设定中的句柄工具重新拖取游戏窗口。"
                 )
                 return
 
@@ -1241,18 +1296,18 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         try:
             # 获取窗口名称
+            base_settings = self.current_window_settings()
             batch_resize_window(
-                game_name=self.opt["base_settings"]["game_name"],
-                name_1p=self.opt["base_settings"]["name_1p"],
-                name_2p=(self.opt["base_settings"]["name_2p"]
-                         if self.opt["base_settings"].get("player_mode") != SINGLE_PLAYER_MODE else None),
-                platform=self.opt["login_settings"]["platform"],
+                game_name=base_settings["game_name"],
+                name_1p=base_settings["name_1p"],
+                name_2p=None if base_settings["player_mode"] == SINGLE_PLAYER_MODE else base_settings["name_2p"],
+                platform=self.LoginPlatformCombo.currentText(),
             )
         except Exception as e:
             # 报错弹窗
             SIGNAL.DIALOG.emit(
                 title="出错！(╬◣д◢)",
-                text=f"存在错误的窗口名或游戏名称, 请在基础设定处重新拖拽至游戏窗口后保存."
+                text=f"存在错误的窗口名或游戏名称, 请通过基础设定中的句柄工具重新拖取游戏窗口。"
             )
 
     """打开其他窗口"""
@@ -1434,7 +1489,6 @@ class QMainWindowService(QMainWindowLoadSettings):
             '一键逆天（bushi',
             '使用该功能前, 要打开360大厅的对应的小号\n'
             '本功能会自动填写360大厅的路径\n'
-            '记得要保存哦！\n'
             '确定要进行此操作吗?',
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No)
@@ -1578,6 +1632,10 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def closeEvent(self, event):
         """FAA 使用强制进程退出，必须先完成视角工具的 MP4 文件写入。"""
+        if not self.flush_settings():
+            QMessageBox.warning(self, "设置保存失败", "请检查配置目录的写入权限或文件占用后，再关闭 FAA。")
+            event.ignore()
+            return
         if self.window_faa_view is not None:
             self.window_faa_view.shutdown()
         super().closeEvent(event)
@@ -1825,6 +1883,10 @@ class QMainWindowService(QMainWindowLoadSettings):
                 self.finish_update_progress("更新准备完成，用户取消了本次替换")
                 return
 
+            if not self.flush_settings():
+                self.finish_update_progress("设置保存失败，已停止替换")
+                return
+
             launch_info = launch_update_from_staging(PATHS["root"], staging_path)
             self.finish_update_progress(f"外部 updater 已启动，PID={launch_info['pid']}，主程序即将退出")
             SIGNAL.PRINT_TO_UI.emit(f"[更新] 已启动外部 updater，PID={launch_info['pid']}。主程序即将退出。", color_level=1)
@@ -1851,6 +1913,10 @@ class QMainWindowService(QMainWindowLoadSettings):
             QMessageBox.StandardButton.No)
 
         if reply != QMessageBox.StandardButton.Yes:
+            return
+
+        if not self.flush_settings():
+            QMessageBox.warning(self, "设置保存失败", "请检查配置目录的写入权限或文件占用后，再重启 FAA。")
             return
 
         CUS_LOGGER.info("[重启] 用户请求重启应用程序，开始清理流程...")
