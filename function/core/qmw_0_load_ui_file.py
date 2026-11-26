@@ -179,9 +179,12 @@ class QMainWindowLoadUI(QtWidgets.QMainWindow):
                 account_layout.addWidget(password)
                 login_4399_layout.addLayout(account_layout, row, 1)
 
-            self.Login4399SaveButton = QPushButton("保存 4399 登录信息")
+            self.Login4399SaveButton = QPushButton("保存登录信息")
             self.Login4399SaveButton.setObjectName("Login4399SaveButton")
             login_4399_layout.addWidget(self.Login4399SaveButton, 3, 0, 1, 2)
+            self.Login4399HelpButton = QPushButton("密码登录说明")
+            self.Login4399HelpButton.setObjectName("Login4399HelpButton")
+            login_4399_layout.addWidget(self.Login4399HelpButton, 4, 0, 1, 2)
             login_layout.addWidget(self.Login4399Group)
 
             # QQ空间的登录方式属于登录模块，移入当前区域。
