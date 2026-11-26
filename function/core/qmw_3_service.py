@@ -209,7 +209,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 额外窗口 - 战斗方案编辑器
         self.window_tip_editor_of_battle_plan = QMWTipEditorOfBattlePlan()
         self.window_editor_of_battle_plan = QMWEditorOfBattlePlan(
-            func_open_tip=self.click_btn_tip_editor_of_battle_plan)
+            func_open_tip=self.click_btn_tip_editor_of_battle_plan,
+            on_plan_saved=self.on_battle_plan_saved)
         self.OpenEditorOfBattlePlan_Button.clicked.connect(self.click_btn_open_editor_of_battle_plan)
 
         # 额外窗口 - 微调方案编辑器。入口紧邻战斗方案编辑器，便于用户按
@@ -221,7 +222,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.OpenEditorOfTweakPlan_Button.clicked.connect(self.click_btn_open_editor_of_tweak_plan)
 
         # 额外窗口 - 关卡方案编辑器
-        self.window_editor_of_stage_plan = QMWEditorOfStagePlan()
+        self.window_editor_of_stage_plan = QMWEditorOfStagePlan(
+            on_active_changed=self.on_stage_plan_active_changed)
         self.OpenEditorOfStagePlan_Button.clicked.connect(self.click_btn_open_editor_of_stage_plan)
 
         # 额外窗口 - 配置迁移器
@@ -1349,12 +1351,22 @@ class QMainWindowService(QMainWindowLoadSettings):
         refresh_all_tweak_plan()
         g_resources.fresh_resource_t()
 
+    def on_battle_plan_saved(self):
+        """战斗方案新建/另存为后，刷新索引、资源与关卡总表的下拉选项。"""
+        refresh_all_battle_plan()
+        g_resources.fresh_resource_b()
+        self.window_editor_of_stage_plan.refresh_plan_lists()
+
+    def on_stage_plan_active_changed(self, name: str):
+        """关卡总表设为活跃后，同步主窗口内存配置，避免保存主页时覆盖该字段。"""
+        if hasattr(self, "opt") and isinstance(self.opt, dict):
+            self.opt.setdefault("base_settings", {})["stage_plan"] = name
+
     def click_btn_open_editor_of_stage_plan(self):
         window = self.window_editor_of_stage_plan
         window.setFont(self.font)
         self.set_stylesheet(window)
         # 刷新一次战斗方案
-        window.refresh_battle_plan_selector()
         window.show()
 
     def click_btn_open_settings_migrator(self):

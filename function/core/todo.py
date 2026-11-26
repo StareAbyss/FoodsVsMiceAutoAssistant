@@ -1633,10 +1633,23 @@ class ThreadTodo(QThread):
         sleep(60 * 60 * 24)
 
     def battle_1_1_n(
-        self, stage_id, player, need_key, max_times, dict_exit,
-        global_plan_active, deck, battle_plan_1p, battle_plan_2p,
-        quest_card, ban_card_list, max_card_num,
-        extra_title, vase_num=None, battle_plan_tweak=None, is_cu=False
+        self,
+        stage_id: str,
+        player: list[int],
+        need_key: bool,
+        max_times: int,
+        dict_exit: dict,
+        global_plan_active: bool,
+        deck: int,
+        battle_plan_1p: str,
+        battle_plan_2p: str,
+        quest_card: str | None,
+        ban_card_list: list | None,
+        max_card_num: int | None,
+        extra_title: str,
+        vase_num: int | None = None,
+        battle_plan_tweak: str | None = None,
+        is_cu: bool = False,
     ) -> str | None:
         """
         核心詹欧函数
@@ -1728,22 +1741,36 @@ class ThreadTodo(QThread):
         # 默认不跳过, 必须由全局关卡方案设定此值为 True
         skip = False
 
-        def load_g_plan(skip_, deck_, battle_plan_1p_, battle_plan_2p_, battle_plan_tweak_, stage_id_=None):
+        def load_g_plan(
+            skip_: bool,
+            deck_: int,
+            battle_plan_1p_: str,
+            battle_plan_2p_: str,
+            battle_plan_tweak_: str | None,
+            stage_id_: str | None = None,
+        ) -> tuple[bool, int, str, str | None, str | None]:
+            """决定本次战斗实际使用的方案组合，并记录其来源。"""
+            plan_source_log = ""
 
             if stage_id_ is None:
                 stage_id_ = faa_a.stage_info["b_id"]
 
             if global_plan_active:
-                # 获取 g_plan
+                # 获取 g_plan：优先读 settings.json 里面的关卡总表，缺失时回退旧路径
+                stage_plan_name = self.opt.get("base_settings", {}).get("stage_plan", "")
+                stage_plan_path = os.path.join(PATHS["stage_plan"], stage_plan_name + ".json") if stage_plan_name else ""
+                plan_source_log = f"活跃总表「{stage_plan_name or '默认'}」"
                 try:
                     with EXTRA.FILE_LOCK:
-                        with open(file=os.path.join(PATHS["config"], 'stage_plan.json'), mode="r",
+                        with open(file=stage_plan_path or os.path.join(PATHS["stage_plan"], '默认.json'), mode="r",
                                   encoding="UTF-8") as file:
                             stage_plan = json.load(file)
                 except FileNotFoundError:
                     stage_plan = {}
+                    plan_source_log = f"活跃总表「{stage_plan_name or '默认'}」文件缺失, 回退默认总表"
 
                 g_plan = stage_plan.get(stage_id_, None)
+                plan_source_log += " - 关卡明确定义" if g_plan else " - 未定义, 使用 global"
 
                 if not g_plan:
                     # 2.1.0-beta.2+ 包含全局方案的情况
@@ -1751,6 +1778,7 @@ class ThreadTodo(QThread):
 
                 if not g_plan:
                     # 2.1.0-beta.1- 不包含全局方案的情况
+                    plan_source_log += " - 总表无 global, 使用内置默认方案"
                     g_plan = {
                         "skip": False,
                         "deck": 0,
@@ -1781,19 +1809,27 @@ class ThreadTodo(QThread):
                         # 可组队关卡, 但设置了仅单人作战
                         battle_plan_1p_ = g_plan["battle_plan"][0]
                         battle_plan_2p_ = g_plan["battle_plan"][1]
+            else:
+                plan_source_log = "外部传入(任务/主配置)"
 
             # "f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"是大赛专用花瓶方案
             if vase_num:
                 if vase_num == 1:
                     battle_plan_1p_ = "f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"
                     battle_plan_tweak_ = "00000000-0000-0000-0000-000000000003"
+                    plan_source_log += " - 花瓶方案覆盖(1P)"
                 elif vase_num == 2:
                     battle_plan_2p_ = "f0a6a87f-abcc-11f0-9b77-f4c88a4ed544"
                     battle_plan_tweak_ = "00000000-0000-0000-0000-000000000003"
+                    plan_source_log += " - 花瓶方案覆盖(2P)"
 
             battle_plan_a_ = battle_plan_1p_ if pid_a == 1 else battle_plan_2p_
             battle_plan_b_ = (battle_plan_1p_ if pid_b == 1 else battle_plan_2p_) if is_group else None
 
+            CUS_LOGGER.info(
+                f"{title}[{stage_id_}] 战斗方案来源: {plan_source_log}; "
+                f"卡组: {deck_}, 1P: {battle_plan_a_}, 2P: {battle_plan_b_}, 微调: {battle_plan_tweak_}"
+            )
             return skip_, deck_, battle_plan_a_, battle_plan_b_, battle_plan_tweak_
 
         # 如果没有传入 battle_plan_tweak, 则设置为默认方案

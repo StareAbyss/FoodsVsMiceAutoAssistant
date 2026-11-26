@@ -214,6 +214,9 @@ class QMainWindowLoadSettings(QMainWindowLog):
             file_path=self.opt_path,
             template_path=os.path.join(PATHS["root"], 'resource', 'template', 'settings.json'))
 
+        # 老版本升级：残留的 config/stage_plan.json 挪成 stage_plan/old.json 并设为活跃
+        self._migrate_legacy_stage_plan()
+
         # 检测&修复 关键方案是否完全一致
         ensure_file_same_as_template(
             file_path=os.path.join(PATHS["root"], 'tweak_plan', '!默认.json'),
@@ -302,6 +305,28 @@ class QMainWindowLoadSettings(QMainWindowLog):
         layout.addWidget(self.task_editor)
 
         self.task_editor.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+    def _migrate_legacy_stage_plan(self) -> None:
+        """把旧版本残留的 config/stage_plan.json 挪到 stage_plan/old.json 并设为活跃总表。"""
+        legacy_path = os.path.join(PATHS["config"], "stage_plan.json")
+        if not os.path.isfile(legacy_path):
+            return
+
+        old_path = os.path.join(PATHS["stage_plan"], "old.json")
+        with EXTRA.FILE_LOCK:
+            if os.path.exists(old_path):
+                # 已经迁移过，避免覆盖用户正在使用的 old
+                os.remove(legacy_path)
+            else:
+                shutil.move(legacy_path, old_path)
+
+            with open(self.opt_path, "r", encoding="UTF-8") as file:
+                data = json.load(file)
+            data.setdefault("base_settings", {})["stage_plan"] = "old"
+            with open(self.opt_path, "w", encoding="UTF-8") as file:
+                json.dump(data, file, ensure_ascii=False, indent=4)
+
+        CUS_LOGGER.info("[迁移] 旧版 config/stage_plan.json 已转为 stage_plan/old.json 并设为活跃总表")
 
     """opt和json的交互"""
 
