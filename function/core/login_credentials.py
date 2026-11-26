@@ -1,6 +1,8 @@
 import copy
 import json
+import os
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from function.core.my_crypto import decrypt_data, encrypt_data
 from function.globals.log import CUS_LOGGER
@@ -133,7 +135,7 @@ def load_login_credentials(file_path: Path, legacy_settings: dict | None = None)
 
 
 def save_login_credentials(file_path: Path, credentials: dict) -> None:
-    """把内存中的明文凭据统一加密写入 config 专用文件。"""
+    """加密后原子替换凭据文件，写入中断时保留原文件。"""
     encrypted_credentials = _merge_with_template(credentials)
     for players in encrypted_credentials.values():
         for fields in players.values():
@@ -142,5 +144,8 @@ def save_login_credentials(file_path: Path, credentials: dict) -> None:
 
     file_path = Path(file_path)
     file_path.parent.mkdir(parents=True, exist_ok=True)
-    with file_path.open(mode="w", encoding="utf-8") as file:
-        json.dump(encrypted_credentials, file, ensure_ascii=False, indent=4)
+    with TemporaryDirectory(dir=file_path.parent) as temp_dir:
+        temp_path = Path(temp_dir) / file_path.name
+        with temp_path.open(mode="w", encoding="utf-8") as file:
+            json.dump(encrypted_credentials, file, ensure_ascii=False, indent=4)
+        os.replace(temp_path, file_path)

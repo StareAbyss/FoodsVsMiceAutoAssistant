@@ -2250,36 +2250,6 @@ border:none</string>
                <item>
                 <layout class="QHBoxLayout" name="Lay_StartButton">
                  <item>
-                  <widget class="QPushButton" name="Button_Save">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>点击应用任务序列为当前配置.
-请注意 先应用后运行!</string>
-                   </property>
-                   <property name="text">
-                    <string>应用并保存
-Apply Save</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
                   <widget class="QPushButton" name="Button_StartTimer">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -2329,8 +2299,7 @@ Timer Start</string>
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>点击开始运行当前选中方案.
-请注意 先点击保存配置后运行, 未保存的配置将不被应用!</string>
+                    <string>执行当前选中的任务序列。</string>
                    </property>
                    <property name="text">
                     <string>执行序列

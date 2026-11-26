@@ -72,10 +72,6 @@ def fresh_and_check_all_task_sequence():
                         need_save = True
                         # 确保uuid唯一性
                         time.sleep(0.001)
-
-                    # 更新uuid列表
-                    task_sequence_uuid_list.append(uuid_v1)
-                    task_sequence_uuid_to_path[uuid_v1] = file_path
             else:
                 # 空的任务序列文件
                 uuid_v1 = str(uuid.uuid1())
@@ -88,14 +84,14 @@ def fresh_and_check_all_task_sequence():
                 need_save = True
                 added[sequence_name] += "为空序列添加了meta_data信息;"
 
-                # 更新uuid列表
-                task_sequence_uuid_list.append(uuid_v1)
-                task_sequence_uuid_to_path[uuid_v1] = file_path
-
             # 保存
             if need_save:
                 with open(file=file_path, mode='w', encoding='utf-8') as file:
                     json.dump(json_data, file, ensure_ascii=False, indent=4)
+
+            uuid_v1 = json_data[0]["meta_data"]["uuid"]
+            task_sequence_uuid_list.append(uuid_v1)
+            task_sequence_uuid_to_path[uuid_v1] = file_path
 
     EXTRA.TASK_SEQUENCE_UUID_TO_PATH = task_sequence_uuid_to_path
 

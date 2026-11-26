@@ -7,13 +7,13 @@ from pathlib import Path
 
 from function.scattered.output_error import error_by_single_dialog
 
-from PyQt6.QtCore import QRegularExpression
+from PyQt6.QtCore import QIODevice, QRegularExpression, QSaveFile, QSignalBlocker, QTimer
 from PyQt6.QtGui import QRegularExpressionValidator, QIntValidator
 from PyQt6.QtWidgets import QApplication, QMessageBox, QVBoxLayout, QSizePolicy
 
 from function.core.qmw_1_log import QMainWindowLog
 from function.core.qmw_editor_of_task_sequence import QMWEditorOfTaskSequence
-from function.core.login_credentials import load_login_credentials, save_login_credentials
+from function.core.login_credentials import load_login_credentials
 from function.globals import EXTRA, SIGNAL
 from function.globals import g_resources
 from function.globals.get_paths import PATHS
@@ -27,8 +27,22 @@ from function.scattered.check_tweak_plan import (
 from function.scattered.get_list_battle_plan import get_list_battle_plan
 from function.scattered.get_channel_name import DUAL_PLAYER_MODE, SINGLE_PLAYER_MODE
 from function.scattered.get_task_sequence_list import get_task_sequence_list
-from function.scattered.test_route_connectivity import test_route_connectivity
 from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
+
+
+def write_settings_json(file_path: str | Path, settings: dict) -> None:
+    """原子替换主配置，避免写入中断留下不完整的 JSON。"""
+    data = json.dumps(settings, ensure_ascii=False, indent=4).encode("utf-8")
+    with EXTRA.FILE_LOCK:
+        file = QSaveFile(str(file_path))
+        if not file.open(QIODevice.OpenModeFlag.WriteOnly):
+            raise OSError(file.errorString())
+        if file.write(data) != len(data):
+            error = file.errorString()
+            file.cancelWriting()
+            raise OSError(error)
+        if not file.commit():
+            raise OSError(file.errorString())
 
 
 def ensure_file_exists(file_path, template_path) -> None:
@@ -165,9 +179,7 @@ def check_settings_file(file_path, template_path) -> None:
 
     data_settings = merge_settings_with_template(settings=data_settings, template=data_template)
 
-    with EXTRA.FILE_LOCK:
-        with open(file=file_path, mode="w", encoding="UTF-8") as file:
-            json.dump(obj=data_settings, fp=file, ensure_ascii=False, indent=4)
+    write_settings_json(file_path, data_settings)
 
     CUS_LOGGER.info(f"[订正FAA基础配置文件] 订正完成.")
 
@@ -258,6 +270,16 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
         # 保留默认主题的名字
         self.default_style_name = QApplication.style().name()
+        self.apply_runtime_settings(self.opt)
+
+        self._settings_write_pending = False
+        self._settings_migrated = False
+        self._settings_save_timer = QTimer(self)
+        self._settings_save_timer.setSingleShot(True)
+        self._settings_save_timer.setInterval(350)
+        self._settings_save_timer.timeout.connect(self.flush_settings)
+        self.connect_settings_autosave()
+        self.task_editor.sequence_saved.connect(self.refresh_task_sequence_choices)
 
     def replace_taskeditor_layout_with_task_editor(self):
         """
@@ -323,21 +345,10 @@ class QMainWindowLoadSettings(QMainWindowLog):
         return None
 
     def opt_to_json(self) -> None:
-        settings = copy.deepcopy(self.opt)
-        credentials = settings.pop("login_credentials")
-
-        # dict → str 转换True和true
-        json_str = json.dumps(settings, ensure_ascii=False, indent=4)
-
-        with EXTRA.FILE_LOCK:
-            with open(file=self.opt_path, mode="w", encoding="UTF-8") as file:
-                file.write(json_str)
-            save_login_credentials(
-                file_path=Path(self.login_credentials_path),
-                credentials=credentials,
-            )
-
-        return None
+        """把主界面配置写入磁盘，登录凭据由专用文件保存。"""
+        settings = self.opt.copy()
+        settings.pop("login_credentials")
+        write_settings_json(self.opt_path, settings)
 
     """ui和opt的交互"""
 
@@ -347,11 +358,11 @@ class QMainWindowLoadSettings(QMainWindowLog):
             QMessageBox.information(
                 self,
                 "警告",
-                "您删除了被配置使用的战斗方案.\n对应的战斗方案已恢复为默认方案! 请点击保存配置!",
+                "您删除了被配置使用的战斗方案.\n对应的战斗方案已恢复为默认方案!",
                 QMessageBox.StandardButton.Ok
             )
 
-    # opt -> ui
+
 
     def opt_to_ui_todo_plans(self) -> None:
         """
@@ -544,7 +555,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
         init_battle_plan(self.CustomizeBattle_1P, my_opt["customize_battle"]["battle_plan_1p"])
         init_battle_plan(self.CustomizeBattle_2P, my_opt["customize_battle"]["battle_plan_2p"])
 
-        # 一个提示弹窗
         self.cant_find_battle_plan_in_uuid_show_dialog()
 
     def apply_player_mode(self) -> None:
@@ -572,22 +582,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
         self.resize_advanced_settings_content()
 
     def opt_to_ui_init(self) -> None:
-        # comboBox.setCurrentIndex时 如果超过了已有预设 会显示为空 不会报错
-        # comboBox.clear时 会把所有选项设定为默认选项
-        battle_plan_name_list = get_list_battle_plan(with_extension=False)
-        task_sequence_name_list = get_task_sequence_list(with_extension=False)
-        refresh_all_battle_plan()
-        refresh_all_tweak_plan()
-        g_resources.fresh_resource_b()
-        g_resources.fresh_resource_t()
-
-        fresh_and_check_all_task_sequence()
-        task_sequence_uuid_list = (
-            list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
-            if hasattr(EXTRA, 'TASK_SEQUENCE_UUID_TO_PATH')
-            else []
-        )
-
         def base_settings() -> None:
             my_opt = self.opt["base_settings"]
             self.GameName_Input.setText(my_opt["game_name"])
@@ -598,19 +592,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.Level2P_Input.setValue(my_opt["level_2p"])
 
         def timer_settings() -> None:
-            h_validator = QRegularExpressionValidator(QRegularExpression(r"^(?:[01][0-9]|2[0-3])$"))
+            h_validator = QRegularExpressionValidator(QRegularExpression(r"^(?:[01]?[0-9]|2[0-3])$"))
             m_validator = QRegularExpressionValidator(QRegularExpression(r"^[0-5]?[0-9]$"))
-
-            # 获取任务序列列表而不是方案列表
-            task_sequence_name_list = get_task_sequence_list(with_extension=False)
-
-            # 确保任务序列UUID映射是最新的
-            fresh_and_check_all_task_sequence()
-            task_sequence_uuid_list = (
-                list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys())
-                if hasattr(EXTRA, 'TASK_SEQUENCE_UUID_TO_PATH')
-                else []
-            )
 
             for timer_index in range(1, 6):
                 my_opt = self.opt["timer"][f"{timer_index}"]
@@ -622,27 +605,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
 
                 getattr(self, f"Timer{timer_index}_H").setText(h_text)
                 getattr(self, f"Timer{timer_index}_M").setText(m_text)
-
-                # 使用任务序列列表替换原来的方案列表
-                combo_box = getattr(self, f"Timer{timer_index}_Plan")
-                combo_box.clear()
-                for idx, name in enumerate(task_sequence_name_list):
-                    uuid = task_sequence_uuid_list[idx] if idx < len(task_sequence_uuid_list) else ""
-                    combo_box.addItem(name, {"uuid": uuid})
-
-                # 根据保存的UUID或索引设置当前选中项
-                plan_identifier = my_opt["plan"]
-                current_index = 0  # 默认选中第一个
-
-                if isinstance(plan_identifier, str) and plan_identifier:  # UUID
-                    try:
-                        current_index = task_sequence_uuid_list.index(plan_identifier)
-                    except (ValueError, AttributeError):
-                        current_index = 0
-                elif isinstance(plan_identifier, int) and plan_identifier >= 0:  # 索引（向后兼容）
-                    current_index = plan_identifier
-
-                combo_box.setCurrentIndex(current_index)
 
                 getattr(self, f"Timer{timer_index}_H").setValidator(h_validator)
                 getattr(self, f"Timer{timer_index}_M").setValidator(m_validator)
@@ -664,22 +626,18 @@ class QMainWindowLoadSettings(QMainWindowLog):
             # 翻牌次数
             self.CusFlopTimesActive.setChecked(my_opt["cus_flop_times_active"])
             self.CusFlopTimesValueInput.setValue(my_opt["cus_flop_times_value"])
-            EXTRA.FLOP_TIMES = my_opt["cus_flop_times_value"] if my_opt["cus_flop_times_active"] else 2
 
             # 点击频率
             self.CusCPSActive.setChecked(my_opt["cus_cps_active"])
             self.CusCPSValueInput.setValue(my_opt["cus_cps_value"])
-            EXTRA.CLICK_PER_SECOND = my_opt["cus_cps_value"] if my_opt["cus_cps_active"] else 120
 
             # 最低FPS
             self.CusLowestFPSActive.setChecked(my_opt["cus_lowest_fps_active"])
             self.CusLowestFPSValueInput.setValue(my_opt["cus_lowest_fps_value"])
-            EXTRA.LOWEST_FPS = my_opt["cus_lowest_fps_value"] if my_opt["cus_lowest_fps_active"] else 10
 
             # 自定放满禁用时间 毫秒转为秒
             self.CusFullBanTimeActive.setChecked(my_opt["cus_full_ban_active"])
             self.CusFullBanTimeValueInput.setValue(my_opt["cus_full_ban_value"])
-            EXTRA.FULL_BAN_TIME = my_opt["cus_full_ban_value"] / 1000 if my_opt["cus_full_ban_active"] else 5
 
             # 自动带卡
             self.CusAutoCarryCardActive.setChecked(my_opt["cus_auto_carry_card_active"])
@@ -689,7 +647,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
             # 单局最大战斗时间
             self.MaxBattleTimeActive.setChecked(my_opt["max_battle_time_active"])
             self.MaxBattleTimeValueInput.setValue(my_opt["max_battle_time_value"])
-            EXTRA.MAX_BATTLE_TIME = my_opt["max_battle_time_value"] if my_opt["max_battle_time_active"] else 0
 
             # 是否启动用卡
             self.AutoUseCard.setChecked(my_opt["auto_use_card"])
@@ -712,29 +669,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
             self.AccelerateSettlementActive.setChecked(my_opt["settlement_active"])
             self.AccelerateCustomizeActive.setChecked(my_opt["customize_active"])
             self.AccelerateCustomizeValue.setValue(my_opt["customize_value"])  # 加速时长
-
-            def set_accelerate_value(duration, active, value, customize_active=False, customize_value=100):
-                if not active:
-                    return 0
-                speed = customize_value if customize_active else value
-                return duration / (speed / 100)
-
-            if my_opt["active"]:
-                EXTRA.ACCELERATE_START_UP_VALUE = set_accelerate_value(
-                    duration=1,
-                    active=my_opt["start_up_active"],
-                    value=my_opt["value"],
-                    customize_active=my_opt["customize_active"],
-                    customize_value=my_opt["customize_value"]
-                )
-                EXTRA.ACCELERATE_SETTLEMENT_VALUE = set_accelerate_value(
-                    duration=12,
-                    active=my_opt["settlement_active"],
-                    value=my_opt["value"]
-                )
-            else:
-                EXTRA.ACCELERATE_START_UP_VALUE = 0
-                EXTRA.ACCELERATE_SETTLEMENT_VALUE = 0
 
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
@@ -865,29 +799,34 @@ class QMainWindowLoadSettings(QMainWindowLog):
         login_4399_info_ui()
         self.apply_player_mode()
 
-        self.CurrentPlan.clear()
-        task_sequence_list = get_task_sequence_list(with_extension=False)
+        self.refresh_task_sequence_choices()
 
-        task_sequence_uuid_list = fresh_and_check_all_task_sequence()
+    def refresh_task_sequence_choices(self) -> None:
+        """任务序列手动保存后，按 UUID 更新首页和定时选择项。"""
+        uuid_list = fresh_and_check_all_task_sequence()
+        choices = [(os.path.splitext(os.path.basename(EXTRA.TASK_SEQUENCE_UUID_TO_PATH[uuid]))[0], uuid)
+                   for uuid in uuid_list]
+        selectors = [(self.CurrentPlan, self.opt["current_plan"])]
+        selectors.extend((getattr(self, f"Timer{i}_Plan"), self.opt["timer"][str(i)]["plan"])
+                         for i in range(1, 6))
 
-        # 添加项目和UUID数据
-        for idx, name in enumerate(task_sequence_list):
-            uuid = task_sequence_uuid_list[idx] if idx < len(task_sequence_uuid_list) else ""
-            self.CurrentPlan.addItem(name, userData={"uuid": uuid})
+        for combo, saved_plan in selectors:
+            item = combo.currentData()
+            selected = item["uuid"] if isinstance(item, dict) else saved_plan
+            if selected in uuid_list:
+                index = uuid_list.index(selected)
+            else:
+                index = selected if isinstance(selected, int) and 0 <= selected < len(choices) else 0
 
-        # 根据保存的UUID设置当前选中项
-        plan_identifier = self.opt["current_plan"]
-        current_index = 0  # 默认选中第一个
+            # 列表重建时暂时没有选项，无需保存中间状态。
+            with QSignalBlocker(combo):
+                combo.clear()
+                for name, uuid in choices:
+                    combo.addItem(name, {"uuid": uuid})
+                combo.setCurrentIndex(index)
 
-        # 只处理UUID，不处理索引
-        if isinstance(plan_identifier, str) and plan_identifier and plan_identifier in task_sequence_uuid_list:
-            current_index = task_sequence_uuid_list.index(plan_identifier)
-
-        self.CurrentPlan.setCurrentIndex(current_index)
-
-        # 如果当前选中项超出范围，则选中最后一项
-        if self.CurrentPlan.currentIndex() >= self.CurrentPlan.count():
-            self.CurrentPlan.setCurrentIndex(self.CurrentPlan.count() - 1)
+        if hasattr(self, "_settings_save_timer"):
+            self._settings_save_timer.start()
 
     # ui -> opt
 
@@ -1111,23 +1050,20 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["level_1p"] = self.Level1P_Input.value()
             my_opt["level_2p"] = self.Level2P_Input.value()
 
-        def check_time_settings() -> None:
-            for i in range(1, 6):
-                # 依次检查文本内容是否为空
-                if getattr(self, f"Timer{i}_H").text() == "":
-                    h_text = str("0").zfill(2)
-                    getattr(self, f"Timer{i}_H").setText(h_text)
-
-                if getattr(self, f"Timer{i}_M").text() == "":
-                    m_text = str("0").zfill(2)
-                    getattr(self, f"Timer{i}_M").setText(m_text)
+        def read_number(widget, previous: int, maximum: int) -> int:
+            """输入未完成时保留上次有效数值，也允许输入一位数的小时。"""
+            try:
+                value = int(widget.text())
+            except ValueError:
+                return previous
+            return value if 0 <= value <= maximum else previous
 
         def timer_settings() -> None:
             for i in range(1, 6):
                 my_opt = self.opt["timer"][f"{i}"]
                 my_opt["active"] = getattr(self, f"Timer{i}_Active").isChecked()
-                my_opt["h"] = int(getattr(self, f"Timer{i}_H").text())
-                my_opt["m"] = int(getattr(self, f"Timer{i}_M").text())
+                my_opt["h"] = read_number(getattr(self, f"Timer{i}_H"), my_opt["h"], 23)
+                my_opt["m"] = read_number(getattr(self, f"Timer{i}_M"), my_opt["m"], 59)
 
                 # 获取当前选中的任务序列UUID而不是索引
                 combo_box = getattr(self, f"Timer{i}_Plan")
@@ -1142,13 +1078,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
                         my_opt["plan"] = current_index
                 else:
                     my_opt["plan"] = ""
-
-        # 保存当前选中项的UUID而不是索引
-        current_index = self.CurrentPlan.currentIndex()
-        if 0 <= current_index < self.CurrentPlan.count():
-            item_data = self.CurrentPlan.itemData(current_index)
-            if item_data and "uuid" in item_data:
-                self.opt["current_plan"] = item_data["uuid"]
 
         def advanced_settings() -> None:
             my_opt = self.opt["advanced_settings"]
@@ -1171,22 +1100,18 @@ class QMainWindowLoadSettings(QMainWindowLog):
             # 翻牌次数
             my_opt["cus_flop_times_active"] = self.CusFlopTimesActive.isChecked()
             my_opt["cus_flop_times_value"] = self.CusFlopTimesValueInput.value()
-            EXTRA.FLOP_TIMES = my_opt["cus_flop_times_value"] if my_opt["cus_flop_times_active"] else 2
 
             # 点击频率
             my_opt["cus_cps_active"] = self.CusCPSActive.isChecked()
             my_opt["cus_cps_value"] = self.CusCPSValueInput.value()
-            EXTRA.CLICK_PER_SECOND = my_opt["cus_cps_value"] if my_opt["cus_cps_active"] else 120
 
             # 最低FPS
             my_opt["cus_lowest_fps_active"] = self.CusLowestFPSActive.isChecked()
             my_opt["cus_lowest_fps_value"] = self.CusLowestFPSValueInput.value()
-            EXTRA.LOWEST_FPS = my_opt["cus_lowest_fps_value"] if my_opt["cus_lowest_fps_active"] else 10
 
             # 自定放满禁用时间 毫秒转为秒
             my_opt["cus_full_ban_active"] = self.CusFullBanTimeActive.isChecked()
             my_opt["cus_full_ban_value"] = self.CusFullBanTimeValueInput.value()
-            EXTRA.FULL_BAN_TIME = my_opt["cus_full_ban_value"] / 1000 if my_opt["cus_full_ban_active"] else 5
 
             # 自动带卡
             my_opt["cus_auto_carry_card_active"] = self.CusAutoCarryCardActive.isChecked()
@@ -1196,40 +1121,13 @@ class QMainWindowLoadSettings(QMainWindowLog):
             # 单局最大战斗时间
             my_opt["max_battle_time_active"] = self.MaxBattleTimeActive.isChecked()
             my_opt["max_battle_time_value"] = self.MaxBattleTimeValueInput.value()
-            EXTRA.MAX_BATTLE_TIME = my_opt["max_battle_time_value"] if my_opt["max_battle_time_active"] else 0
 
             # 自动放卡
             my_opt["auto_use_card"] = self.AutoUseCard.isChecked()
 
             """其他"""
 
-            # link 需要额外的检查
-            url = self.MisuLogistics_Link.text()
-            result_bool, _ = test_route_connectivity(url=url)
-
-            if url != "":
-                if result_bool:
-                    my_opt["misu_logistics_link"] = url
-                    SIGNAL.PRINT_TO_UI.emit(
-                        text=f"FAA X 米苏物流 连通性测试 使用非默认url:{url} 成功!", color_level=3)
-                else:
-                    SIGNAL.PRINT_TO_UI.emit(
-                        text=f"FAA X 米苏物流 连通性测试 使用非默认url:{url} 失败! 将修正为默认url重试", color_level=1)
-                    url = ""
-                    my_opt["misu_logistics_link"] = url
-                    self.MisuLogistics_Link.setText(url)
-                    result_bool, _ = test_route_connectivity(url=url)
-
-            if url == "":
-                if result_bool:
-                    my_opt["misu_logistics_link"] = url
-                    SIGNAL.PRINT_TO_UI.emit(
-                        text=f"FAA X 米苏物流 连通性测试 使用默认url 成功!", color_level=3)
-                else:
-                    SIGNAL.PRINT_TO_UI.emit(
-                        text=f"FAA X 米苏物流 连通性测试 使用默认url 失败!", color_level=1)
-                    SIGNAL.PRINT_TO_UI.emit(
-                        text=f"内置url可能已过期, 推荐更新url, 以防请求等待超时, 降低战斗效率!!!", color_level=1)
+            my_opt["misu_logistics_link"] = self.MisuLogistics_Link.text()
 
         def senior_settings() -> None:
             my_opt = self.opt["senior_settings"]
@@ -1251,29 +1149,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["settlement_active"] = self.AccelerateSettlementActive.isChecked()
             my_opt["customize_active"] = self.AccelerateCustomizeActive.isChecked()
             my_opt["customize_value"] = self.AccelerateCustomizeValue.value()
-
-            def set_accelerate_value(duration, active, value, customize_active=False, customize_value=100):
-                if not active:
-                    return 0
-                speed = customize_value if customize_active else value
-                return duration / (speed / 100)
-
-            if my_opt["active"]:
-                EXTRA.ACCELERATE_START_UP_VALUE = set_accelerate_value(
-                    duration=1,
-                    active=my_opt["start_up_active"],
-                    value=my_opt["value"],
-                    customize_active=my_opt["customize_active"],
-                    customize_value=my_opt["customize_value"]
-                )
-                EXTRA.ACCELERATE_SETTLEMENT_VALUE = set_accelerate_value(
-                    duration=12,
-                    active=my_opt["settlement_active"],
-                    value=my_opt["value"]
-                )
-            else:
-                EXTRA.ACCELERATE_START_UP_VALUE = 0
-                EXTRA.ACCELERATE_SETTLEMENT_VALUE = 0
 
         def skin_settings() -> None:
             # 定义一个字典，将复选框对象映射到对应的值
@@ -1307,7 +1182,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["platform"] = self.LoginPlatformCombo.currentText()
             my_opt["qq_space_server"] = self.LoginQQSpaceServerCombo.currentIndex()
             my_opt["server_wait_enabled"] = self.LoginServerWaitCheckBox.isChecked()
-            my_opt["server_wait_seconds"] = max(0, int(self.LoginServerWaitTimeInput.text() or 0))
+            my_opt["server_wait_seconds"] = read_number(
+                self.LoginServerWaitTimeInput, my_opt["server_wait_seconds"], 3600)
             my_opt["login_open_settings"] = self.open360.isChecked()
             my_opt["fresh_resize_360_windows"] = self.resize360.isChecked()
             my_opt["login_close_settings"] = self.close360.isChecked()
@@ -1322,38 +1198,8 @@ class QMainWindowLoadSettings(QMainWindowLog):
             my_opt["2p"]["active"] = self.GetWarmGift_2P_Active.isChecked()
             my_opt["2p"]["link"] = self.GetWarmGift_2P_Link.text()
 
-        def level_2() -> None:
-            my_opt = self.opt["level_2"]
-            credentials = self.opt["login_credentials"]["level_2"]
-            my_opt["1p"]["active"] = self.Level2_1P_Active.isChecked()
-            credentials["1p"]["password"] = self.Level2_1P_Password.text()
-            my_opt["2p"]["active"] = self.Level2_2P_Active.isChecked()
-            credentials["2p"]["password"] = self.Level2_2P_Password.text()
-
-        def login_qq_space_info_opt() -> None:
-            """将 QQ 空间登录设置和账号密码写入内存配置。"""
-            my_opt = self.opt["qq_login_info"]
-            my_opt["use_password"] = self.LoginQQSpaceUsePasswordCheckBox.isChecked()
-
-            credentials = self.opt["login_credentials"]["qq"]
-            credentials["1p"]["username"] = self.LoginQQSpaceUsername1PInput.text().strip()
-            credentials["1p"]["password"] = self.LoginQQSpacePassword1PInput.text()
-            credentials["2p"]["username"] = self.LoginQQSpaceUsername2PInput.text().strip()
-            credentials["2p"]["password"] = self.LoginQQSpacePassword2PInput.text()
-
-        def login_4399_info_opt() -> None:
-            my_opt = self.opt["4399_login_info"]
-            my_opt["use_password"] = self.Login4399UsePasswordCheckBox.isChecked()
-
-            credentials = self.opt["login_credentials"]["4399"]
-            credentials["1p"]["username"] = self.Login4399Username1PInput.text().strip()
-            credentials["1p"]["password"] = self.Login4399Password1PInput.text()
-            credentials["2p"]["username"] = self.Login4399Username2PInput.text().strip()
-            credentials["2p"]["password"] = self.Login4399Password2PInput.text()
-
         base_settings()
         accelerate_settings()
-        check_time_settings()
         timer_settings()
         advanced_settings()
         senior_settings()
@@ -1361,9 +1207,10 @@ class QMainWindowLoadSettings(QMainWindowLog):
         log_settings()
         login_settings()
         skin_settings()
-        level_2()
-        login_qq_space_info_opt()
-        login_4399_info_opt()
+        for player in (1, 2):
+            self.opt["level_2"][f"{player}p"]["active"] = getattr(self, f"Level2_{player}P_Active").isChecked()
+        self.opt["qq_login_info"]["use_password"] = self.LoginQQSpaceUsePasswordCheckBox.isChecked()
+        self.opt["4399_login_info"]["use_password"] = self.Login4399UsePasswordCheckBox.isChecked()
 
         # 保存当前选中项的UUID
         current_index = self.CurrentPlan.currentIndex()
@@ -1375,9 +1222,6 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 self.opt["current_plan"] = ""  # 如果没有UUID，则保存空字符串
         else:
             self.opt["current_plan"] = ""  # 默认值
-
-        # 一个提示弹窗
-        self.cant_find_battle_plan_in_uuid_show_dialog()
 
     # 勾选 全局方案 -> 锁定其他几项设置
     def set_connect_for_lock_widget(self) -> None:
@@ -1527,17 +1371,144 @@ class QMainWindowLoadSettings(QMainWindowLog):
                 state, [self.EndExitGame])
         )
 
-    """按钮动作"""
+    def connect_settings_autosave(self) -> None:
+        """只有映射到主配置的控件才触发自动保存。"""
+        def connect(signal_name, *widgets):
+            for widget in widgets:
+                getattr(widget, signal_name).connect(lambda *_: self._settings_save_timer.start())
 
-    def click_btn_save(self) -> None:
-        """点击保存配置按钮的函数"""
-        SIGNAL.PRINT_TO_UI.emit(text="", time=False)
+        connect(
+            "textChanged",
+            self.GameName_Input,
+            self.Name1P_Input,
+            self.Name2P_Input,
+            self.MisuLogistics_Link,
+            self.LoginServerWaitTimeInput,
+            self.LoginSettings360PathInput,
+            self.GetWarmGift_1P_Link,
+            self.GetWarmGift_2P_Link,
+        )
+        connect(
+            "valueChanged",
+            self.Level1P_Input,
+            self.Level2P_Input,
+            self.CusFlopTimesValueInput,
+            self.CusCPSValueInput,
+            self.CusLowestFPSValueInput,
+            self.CusFullBanTimeValueInput,
+            self.MaxBattleTimeValueInput,
+            self.BattleSeniorIntervalValueInput,
+            self.AccelerateValue,
+            self.AccelerateCustomizeValue,
+            self.senior_log_clean,
+            self.other_log_clean,
+            self.login_first,
+            self.login_second,
+        )
+        connect(
+            "currentIndexChanged",
+            self.CurrentPlan,
+            self.CusAutoCarryCardValueInput,
+            self.CusAutoCarryCardValueInput2P,
+            self.LoginPlatformCombo,
+            self.LoginQQSpaceServerCombo,
+        )
+        connect(
+            "toggled",
+            self.TopUpMoney_1P,
+            self.TopUpMoney_2P,
+            self.EndExitGame,
+            self.AutoPickUp_1P,
+            self.AutoPickUp_2P,
+            self.CusFlopTimesActive,
+            self.CusCPSActive,
+            self.CusLowestFPSActive,
+            self.CusFullBanTimeActive,
+            self.CusAutoCarryCardActive,
+            self.MaxBattleTimeActive,
+            self.AutoUseCard,
+            self.BattleSeniorActive,
+            self.BattleSeniorLogFull,
+            self.BattleSeniorGPUActive,
+            self.AccelerateActive,
+            self.AccelerateStartUpActive,
+            self.AccelerateSettlementActive,
+            self.AccelerateCustomizeActive,
+            self.LoginServerWaitCheckBox,
+            self.open360,
+            self.resize360,
+            self.close360,
+            self.GetWarmGift_1P_Active,
+            self.GetWarmGift_2P_Active,
+            self.Level2_1P_Active,
+            self.Level2_2P_Active,
+            self.LoginQQSpaceUsePasswordCheckBox,
+            self.Login4399UsePasswordCheckBox,
+            *(getattr(self, f"skin{i}") for i in range(1, 12)),
+        )
+
+        for i in range(1, 6):
+            connect("toggled", getattr(self, f"Timer{i}_Active"))
+            connect("textChanged", getattr(self, f"Timer{i}_H"))
+            connect("textChanged", getattr(self, f"Timer{i}_M"))
+            connect("currentIndexChanged", getattr(self, f"Timer{i}_Plan"))
+
+    def on_main_settings_migrated(self) -> None:
+        """重启前保留迁移工具写入的新文件，避免旧界面覆盖迁入的配置。"""
+        self._settings_migrated = True
+        self._settings_save_timer.stop()
+
+    def flush_settings(self) -> bool:
+        """读取界面并保存改动，写入失败时保留最新值以便下次重试。"""
+        self._settings_save_timer.stop()
+        if self._settings_migrated:
+            return True
+        previous = copy.deepcopy(self.opt)
         self.ui_to_opt()
-        self.opt_to_json()
-        self.opt_to_ui_init()
-        SIGNAL.PRINT_TO_UI.emit(
-            text=f"任务序列:[{self.CurrentPlan.currentText()}] 已设为活跃序列! 点击开始将运行它 ~",
-            color_level=3)
+        self._settings_write_pending |= self.opt != previous
+        if self._settings_write_pending:
+            try:
+                self.opt_to_json()
+            except OSError as error:
+                CUS_LOGGER.error(f"[主界面] [保存设置] 无法写入 {self.opt_path}: {error}")
+                SIGNAL.PRINT_TO_UI.emit("主界面设置保存失败，当前更改仍保留在界面中。", color_level=1)
+                return False
+            self._settings_write_pending = False
+        return True
+
+    def apply_runtime_settings(self, opt: dict) -> None:
+        """在任务启动时应用仍由战斗线程共用的参数。"""
+        my_opt = opt["advanced_settings"]
+        EXTRA.FLOP_TIMES = my_opt["cus_flop_times_value"] if my_opt["cus_flop_times_active"] else 2
+        EXTRA.CLICK_PER_SECOND = my_opt["cus_cps_value"] if my_opt["cus_cps_active"] else 120
+        EXTRA.LOWEST_FPS = my_opt["cus_lowest_fps_value"] if my_opt["cus_lowest_fps_active"] else 10
+        EXTRA.FULL_BAN_TIME = my_opt["cus_full_ban_value"] / 1000 if my_opt["cus_full_ban_active"] else 5
+        EXTRA.MAX_BATTLE_TIME = my_opt["max_battle_time_value"] if my_opt["max_battle_time_active"] else 0
+
+        my_opt = opt["accelerate"]
+
+        def set_accelerate_value(duration, active, value, customize_active=False, customize_value=100):
+            if not active:
+                return 0
+            speed = customize_value if customize_active else value
+            return duration / (speed / 100)
+
+        if my_opt["active"]:
+            EXTRA.ACCELERATE_START_UP_VALUE = set_accelerate_value(
+                duration=1,
+                active=my_opt["start_up_active"],
+                value=my_opt["value"],
+                customize_active=my_opt["customize_active"],
+                customize_value=my_opt["customize_value"]
+            )
+            EXTRA.ACCELERATE_SETTLEMENT_VALUE = set_accelerate_value(
+                duration=12,
+                active=my_opt["settlement_active"],
+                value=my_opt["value"]
+            )
+        else:
+            EXTRA.ACCELERATE_START_UP_VALUE = 0
+            EXTRA.ACCELERATE_SETTLEMENT_VALUE = 0
 
     """其他"""
 
@@ -1655,8 +1626,6 @@ if __name__ == "__main__":
         # 注册函数：开始/结束按钮
         button = window.Button_Start
         button.clicked.connect(lambda: window.click_btn_start())
-        button = window.Button_Save
-        button.clicked.connect(lambda: window.click_btn_save())
         button = window.Button_AdvancedSettings
         button.clicked.connect(lambda: window.click_btn_advanced_settings())
         # 主窗口 实现

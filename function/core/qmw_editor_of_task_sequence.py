@@ -4,7 +4,7 @@ import os
 import sys
 import uuid
 
-from PyQt6.QtCore import Qt, QPoint, QEventLoop
+from PyQt6.QtCore import Qt, QPoint, QEventLoop, pyqtSignal
 
 from function.scattered.output_error import error_by_single_dialog
 
@@ -263,6 +263,8 @@ class BattlePlanOptionsWidget(QMainWindow):
 
 
 class QMWEditorOfTaskSequence(QMainWindow):
+    sequence_saved = pyqtSignal()
+
     def __init__(self, father=None):
         """
         初始化，完成界面布局，绑定信号与槽，初始化变量
@@ -1706,6 +1708,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
             self.father.TaskSequenceLabelCurrentEditUUID.setText(f"{current_uuid}")
 
         self.father.TaskSequenceButtonSaveJson.setEnabled(True)
+        self.sequence_saved.emit()
 
         first_task = next((task for task in export_list if "task_type" in task and task.get("enabled", True)), None)
         if first_task is not None and first_task["task_type"] != "刷新游戏":
