@@ -39,7 +39,7 @@ from function.core.qmw_tips.qmw_tip_editor_of_battle_plan import QMWTipEditorOfB
 from function.core.qmw_tips.qmw_tip_level2 import QMWTipLevels2
 from function.core.qmw_tips.qmw_tip_login_settings import QMWTipLoginSettings
 from function.core.qmw_tips.qmw_tip_misu_logistics import QMWTipMisuLogistics
-from function.core.qmw_tips.qmw_tip_qqlogin import QMWTipQQlogin
+from function.core.qmw_tips.qmw_tip_password_login import QMWTipPasswordLogin
 from function.core.qmw_tips.qmw_tip_server_wait import QMWTipServerWait
 from function.core.qmw_tips.qmw_tip_stage_id import QMWTipStageID
 from function.core.qmw_tips.qmw_tip_update import QMWTipUpdate
@@ -279,9 +279,10 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.window_tip_accelerate_settings = QMWTipAccelerateSettings()
         self.AccelerateTipButton.clicked.connect(self.click_btn_tip_accelerate_settings)
 
-        # 额外窗口 - QQ密码登录说明
-        self.window_tip_qq_space_login = QMWTipQQlogin()
-        self.LoginQQSpaceHelpButton.clicked.connect(self.show_qq_space_login_help)
+        # 额外窗口 - 密码登录说明
+        self.window_tip_password_login = QMWTipPasswordLogin()
+        self.LoginQQSpaceHelpButton.clicked.connect(self.show_password_login_help)
+        self.Login4399HelpButton.clicked.connect(self.show_password_login_help)
 
         # 额外窗口 - 刷新后等待选服说明
         self.window_tip_server_wait = QMWTipServerWait()
@@ -1439,11 +1440,14 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.set_stylesheet(window)
         window.show()
 
-    def show_qq_space_login_help(self):
-        window = self.window_tip_qq_space_login
-        window.setFont(self.font)
+    def show_password_login_help(self) -> None:
+        """打开 QQ 空间和 4399 共用的密码登录说明。"""
+        window = self.window_tip_password_login
+        window.setFont(self.font())
         self.set_stylesheet(window)
         window.show()
+        window.raise_()
+        window.activateWindow()
 
     def show_server_wait_help(self):
         window = self.window_tip_server_wait
