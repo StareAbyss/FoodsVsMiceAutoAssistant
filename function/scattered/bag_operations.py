@@ -754,7 +754,8 @@ class _BagPages:
         raise RuntimeError("待使用格子的图标与本轮背包快照不符，已停止使用")
 
 
-def _use_named_bag_consumables(faa, items, scan_only=False, control=None, bound_only=False):
+def _use_named_bag_consumables(faa, items, scan_only=False, control=None, bound_only=False,
+                               open_thirteen_spice=False):
     """每轮先整理、扫描完整占用前缀再使用，最多三轮共享同一份物品额度。"""
     from function.globals import g_resources
 
@@ -766,6 +767,22 @@ def _use_named_bag_consumables(faa, items, scan_only=False, control=None, bound_
         if image is None or isinstance(image, dict):
             raise ValueError(f"缺少指定消耗品模板：{name}")
         images[name] = image
+    card_names, gift_names = set(), set()
+    if open_thirteen_spice:
+        # 通用包裹图案不能单独区分十三香；卡牌包只作为排序边界，不加入消费额度。
+        cards = g_resources.RESOURCE_CP.get("卡牌包", {})
+        gifts = g_resources.RESOURCE_CP.get("十三香礼包", {})
+        if not cards or not gifts:
+            raise ValueError("自动开十三香礼包缺少卡牌包或礼包模板")
+        card_names = {f"卡牌包/{name}" for name in cards}
+        gift_names = {f"十三香礼包/{name}" for name in gifts}
+        images.update({f"卡牌包/{name}": image for name, image in cards.items()})
+        images.update({f"十三香礼包/{name}": image for name, image in gifts.items()})
+        # 相同通用图案只保留带位置限制的候选，避免重复命中或绕过边界。
+        for name in gifts:
+            images.pop(name, None)
+        items = {name: count for name, count in items.items() if name not in gifts}
+        items.update(dict.fromkeys(gift_names, 999))
     if not scan_only and not any(items.values()):
         return dict.fromkeys(items, 0)
     templates = _BagTemplates(images)
@@ -793,10 +810,16 @@ def _use_named_bag_consumables(faa, items, scan_only=False, control=None, bound_
                         if item.name in items and (not bound_only or item.bound is True):
                             result[item.name] += item.count
                 return result
+            # 完整快照的行列顺序覆盖跨页及重合行；每次整理后重新确定最后一个绑定卡牌包。
+            last_card = max(((index, column) for index, row in enumerate(snapshot)
+                             for column, item in enumerate(row.cells)
+                             if item.name in card_names and item.bound is True), default=None)
             planned = {(index, column): item for index, row in enumerate(snapshot)
                        for column, item in enumerate(row.cells)
                        if item.name in items and session.pending(item.name) and
-                       (not bound_only or item.bound is True)}
+                       (not bound_only or item.bound is True) and
+                       (item.name not in gift_names or
+                        item.bound is True and last_card is not None and (index, column) > last_card)}
             if not planned:
                 break
             # 消费阶段只读格线、滑块和当前图案用于位移核验；使用对象来自本轮完整快照。
@@ -870,7 +893,7 @@ def _use_named_bag_consumables(faa, items, scan_only=False, control=None, bound_
 
 def use_bag_consumables(faa, items=None, *, scan_only=False,
                         inventory_reader=None, item_locator=None, use_checker=None, control=None,
-                        inventory_sorter=None, use_ready=None):
+                        inventory_sorter=None, use_ready=None, open_thirteen_spice=False):
     """按数量字典使用或扫描背包，最多三轮共享额度；默认使用配置中的绑定物品，每种最多999个。
 
     Args:
@@ -884,6 +907,7 @@ def use_bag_consumables(faa, items=None, *, scan_only=False,
         control: 可选中止对象。
         inventory_sorter: 专用整理及位置记忆失效回调。
         use_ready: 专用奖励完成判定，最多2秒。
+        open_thirteen_spice: 默认关闭；普通批量使用时按卡牌包排序位置筛选绑定十三香礼包。
 
     Returns:
         dict | ConsumableReport: 普通使用返回确认消耗量字典，普通扫描返回实际库存字典；
@@ -896,18 +920,21 @@ def use_bag_consumables(faa, items=None, *, scan_only=False,
     """
     from function.globals import g_resources
 
+    if open_thirteen_spice and (items is not None or scan_only):
+        raise ValueError("自动开十三香礼包仅支持普通批量使用")
     bound_only = items is None
     if items is None:
         if scan_only or any(callback is not None for callback in (
                 inventory_reader, item_locator, use_checker, control, inventory_sorter, use_ready)):
             raise ValueError("定向消耗品参数缺少物品白名单字典")
         items = {name: 999 for name in g_resources.RESOURCE_CP.get("背包_装备_需使用的", {})}
-        if not items:
+        if not items and not open_thirteen_spice:
             return {}
-    _validate_bag_items(items, scan_only)
+    if items or not open_thirteen_spice:
+        _validate_bag_items(items, scan_only)
     if any(callback is not None for callback in (
             inventory_reader, item_locator, use_checker, inventory_sorter, use_ready)):
         return use_targeted_consumables(
             faa, items, scan_only=scan_only, inventory_reader=inventory_reader, item_locator=item_locator,
             use_checker=use_checker, control=control, inventory_sorter=inventory_sorter, use_ready=use_ready)
-    return _use_named_bag_consumables(faa, items, scan_only, control, bound_only)
+    return _use_named_bag_consumables(faa, items, scan_only, control, bound_only, open_thirteen_spice)

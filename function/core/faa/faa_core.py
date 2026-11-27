@@ -3488,7 +3488,7 @@ class FAABase:
 
     def use_bag_consumables(self: "FAA", items=None, *, scan_only=False,
                             inventory_reader=None, item_locator=None, use_checker=None, control=None,
-                            inventory_sorter=None, use_ready=None):
+                            inventory_sorter=None, use_ready=None, open_thirteen_spice=False):
         """按物品数量字典使用或扫描背包，返回确认数量或专用库存报告。"""
 
         from function.scattered.bag_operations import use_bag_consumables
@@ -3502,7 +3502,8 @@ class FAABase:
             use_checker=use_checker,
             control=control,
             inventory_sorter=inventory_sorter,
-            use_ready=use_ready
+            use_ready=use_ready,
+            open_thirteen_spice=open_thirteen_spice
         )
 
     def use_items_double_card(self: "FAA", max_times: int, multiplier: int = 2) -> None:

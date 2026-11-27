@@ -401,7 +401,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
             '巅峰对决扫荡':
                 '使用扫荡券完成当前可扫荡的全部次数。当天需先手动挑战并获得积分。',
             '使用消耗品':
-                '使用背包中的消耗品',
+                '使用背包中的绑定消耗品，可勾选自动开十三香礼包\n'
+                '按整理后卡牌包的位置判断通用礼包，默认关闭',
             '清背包':
                 '删除背包中的垃圾\n'
                 '需进阶设置-二级密码处进行设定\n'
@@ -602,6 +603,7 @@ class QMWEditorOfTaskSequence(QMainWindow):
                 }
             case '使用消耗品':
                 task["task_args"] = {
+                    "open_thirteen_spice": False,
                     "player": [1, 2],  # or [1] [2]
                 }
             case '扫描公会贡献':
@@ -1080,8 +1082,13 @@ class QMWEditorOfTaskSequence(QMainWindow):
             addElement_player_normal(line_layout=line_layout)
 
         def use_consumable(line_layout):
-            # Player
             addElement_player_normal(line_layout=line_layout)
+            OpenThirteenSpiceCheckBox = QCheckBox()
+            OpenThirteenSpiceCheckBox.setObjectName("w_open_thirteen_spice")
+            OpenThirteenSpiceCheckBox.setChecked(task["task_args"].get("open_thirteen_spice", False))
+            OpenThirteenSpiceCheckBox.setToolTip("按整理后的卡牌包位置判断绑定通用礼包；未找到卡牌包时不打开")
+            addElement(line_layout=line_layout, label_widget=QLabel("自动开十三香礼包"),
+                       input_widget=OpenThirteenSpiceCheckBox)
 
         def scan_guild_contribution(line_layout):
             # Player
@@ -1491,6 +1498,8 @@ class QMWEditorOfTaskSequence(QMainWindow):
 
                 case "使用消耗品":
                     task_args = ui_to_list_player(LineWidget=LineWidget, task_args=task_args)
+                    task_args["open_thirteen_spice"] = LineWidget.findChild(
+                        QCheckBox, "w_open_thirteen_spice").isChecked()
 
                 case '扫描公会贡献':
                     PlayerComboBox = LineWidget.findChild(QComboBox, 'w_player')

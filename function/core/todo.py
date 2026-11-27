@@ -955,13 +955,13 @@ class ThreadTodo(QThread):
 
         self.model_end_print(text=title_text)
 
-    def batch_use_bag_consumables(self, player: list = None):
+    def batch_use_bag_consumables(self, player: list = None, open_thirteen_spice: bool = False):
 
         title_text = "使用绑定消耗品"
 
         def use_and_report(player_id):
             """每位玩家用完后立即播报已确认的消耗量。"""
-            used = self.faa_dict[player_id].use_bag_consumables()
+            used = self.faa_dict[player_id].use_bag_consumables(open_thirteen_spice=open_thirteen_spice)
             total = sum(used.values())
             SIGNAL.PRINT_TO_UI.emit(text=f"[{title_text}] [{player_id}P] 本次运行总计使用了{total}个物品")
 
@@ -3180,6 +3180,7 @@ class ThreadTodo(QThread):
                 case "使用消耗品":
                     self.batch_use_bag_consumables(
                         player=task["task_args"]["player"],
+                        open_thirteen_spice=task["task_args"].get("open_thirteen_spice", False),
                     )
                     main_task_active = True
                     active_singleton = False
