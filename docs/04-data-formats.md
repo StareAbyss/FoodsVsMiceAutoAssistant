@@ -1,0 +1,250 @@
+# 数据格式与配置约定
+
+## 模块职责
+
+这一部分说明项目运行时依赖的几类核心数据：
+
+- 主配置 `settings.json`
+- 登录凭据 `login_credentials.json`
+- 战斗方案 `battle_plan/*.json`
+- 微调方案 `tweak_plan/*.json`
+- 任务序列 `task_sequence/*.json`
+- 关卡信息配置 `stage_info*.json`
+- 运行日志与输出目录
+
+## 关键文件/类
+
+- `resource/template/settings.json`
+- `resource/template/login_credentials.json`
+- `function/core/qmw_2_load_settings.py`
+- `function/scattered/class_battle_plan_v3d0.py`
+- `function/scattered/check_battle_plan.py`
+- `function/scattered/check_tweak_plan.py`
+- `function/scattered/check_task_sequence.py`
+- `function/scattered/read_json_to_stage_info.py`
+- `config/stage_plan.json`
+
+## `settings.json`
+
+### 职责
+
+主配置文件，承载主窗口绝大多数状态，包括：
+
+- 账号与基础设置
+- 定时计划
+- 当前方案
+- 高级设置
+- 加速
+- 温馨礼包
+- 二级密码开关
+- 高级战斗设置
+- 日志设置
+- 登录设置
+- 皮肤
+- QQ 登录信息
+- 4399 登录信息
+
+`base_settings.player_mode` 取值为“单人模式”或“双人模式”，缺省为“双人模式”。2P 参数随设置保存，以便切回双人模式。
+
+自动带卡卡组编号保存在 `advanced_settings.cus_auto_carry_card_value_1p` 和
+`advanced_settings.cus_auto_carry_card_value_2p`，取值为 1～6，默认均为 6。
+主程序启动时会将旧的共用编号迁移到缺少编号的角色并移除旧字段。
+
+登录相关字段：
+
+- `login_settings.platform`：固定为 `4399`、`QQ空间`、`QQ大厅` 之一；刷新时只识别所选平台。
+- `login_settings.qq_space_server`：QQ空间的具体区服，`0` 为最近登录，`1`～`6` 为对应的 3366 服务器。
+- `login_settings.server_wait_enabled` / `server_wait_seconds`：刷新后等待选服的开关与秒数，适用于所选平台。
+- `qq_login_info`：QQ空间密码登录开关。
+- 刷新登录对临时识图或连接失败最多重试 10 轮；区服无效或缺少必需凭据时立即失败。
+- `4399_login_info`：4399 密码登录开关。
+- `config/login_credentials.json`：统一保存 QQ空间、4399 的账号密码与二级密码；密码使用本机机器码加密。
+
+凭据文件中的平台账号都按 `1p`、`2p` 保存用户名和机器码加密后的密码。登录识图按
+`resource/image/common/登录/<平台或通用>/` 分类；3366 与 QQ空间共用登录和选服识图。
+
+### 代码约定
+
+- UI 实际读写的是 `config/settings.json`
+- `qmw_2_load_settings.py` 里有两条模板相关路径：
+  - 缺文件引导使用 `resource/template/settings_template.json`
+  - 结构补全与类型纠正使用 `resource/template/settings.json`
+- 当前仓库快照里能直接看到的是后者，因此首次生成配置文件时要特别留意前者是否存在
+
+## 战斗方案
+
+### 存放位置
+
+- `battle_plan/`
+  正常战斗方案
+- `battle_plan_not_active/`
+  不参与 FAA 读取的存档区
+
+### v3 数据模型
+
+`class_battle_plan_v3d0.py` 中定义了核心 dataclass：
+
+- `MetaData`
+  - `uuid`
+  - `tips`
+  - `player_position`
+  - `version`
+- `Card`
+  - `card_id`
+  - `name`
+- `Event`
+  - `trigger`
+  - `action`
+
+常见动作类型：
+
+- `loop_use_cards`
+- `insert_use_card`
+- `insert_use_gem`
+- `shovel`
+- `ban_card`
+- `escape`
+- `random_single_card`
+- `random_multi_card`
+
+### 校验与迁移
+
+FAA 启动和用户点击打开战斗方案编辑器时，会执行
+`check_all_battle_plan()`，随后另行刷新索引：
+
+- 检查 JSON 是否能解析
+- 读取 `meta_data.version`
+- 如果还是 v2，尝试自动迁移到 v3
+- 修复 UUID 冲突
+- 更新 `EXTRA.BATTLE_PLAN_UUID_TO_PATH`
+
+关卡方案编辑器和任务序列编辑器只调用
+`refresh_all_battle_plan()` 重建 UUID 路径索引，不检查、不迁移也不写回方案。
+
+## 微调方案
+
+### 存放位置
+
+- `tweak_plan/`
+
+### 作用
+
+微调方案不是完整战斗方案，而是附加行为控制。运行时会和关卡方案、战斗方案一起参与决策。
+
+`meta_data.enable_auto_card.dragon_pot` 控制转龙壶的自动携带、战斗识别和自动使用，缺省为 `true`，
+可在微调方案编辑器中独立关闭。该字段使用当前 v0.3 的可缺省布尔值规则，旧方案无需补写字段。
+转龙壶与美味计时器共用放置逻辑：选择当前波次最高正数 `kun` 目标的首格，同值时保留原顺序，
+关闭循环和遍历，二转按 3×1 范围向棋盘内侧偏移。战斗方案直接包含该卡或类型展开后包含该卡时不重复加入；
+手动卡组开场识别以实际卡片为准。两张冷却辅助卡均位于方案动作之后、自动冰沙之前，计时器在转龙壶之前。
+两张自动冷却辅助卡在正常使用和状态未知时的试放前，都要求当前角色的 `fire_elemental_1000` 为真，
+即沿用现有的“1000+ 火苗”画面识别条件；火苗不足时保留动作，待满足条件后再使用，不影响战前自动携带。
+转龙壶的战斗识别模板使用 `resource/image/card/战斗/转龙壶-{转职编号}-{费用状态}.png`，
+转职编号为 `0/1/2`，费用状态为 `0/1`；未识别到卡片时不生成自动放卡动作。
+
+### 校验
+
+FAA 启动和用户点击打开微调方案编辑器时，会扫描协议版本并调用
+`check_all_tweak_plan_uuids()` 检查 UUID：
+
+- 检查 JSON
+- 将可兼容的低版本字段迁移到当前协议
+- 当前协议字段异常时尽量修复，高版本方案只提示升级
+- 修复 UUID 冲突
+- 更新 `EXTRA.TWEAK_BATTLE_PLAN_UUID_TO_PATH`
+
+其他刷新入口只调用 `refresh_all_tweak_plan()` 重建 UUID 路径索引，不迁移、
+不修复也不写回方案。
+
+## 任务序列
+
+### 存放位置
+
+- `task_sequence/`
+
+### 结构特征
+
+任务序列文件是一个列表，第一项通常是：
+
+- `meta_data.uuid`
+- `meta_data.version`
+
+后续每项描述一个任务节点和其参数。
+
+「巅峰对决扫荡」的 `task_args` 仅保存 `player`，值为 `[1]`、`[2]` 或 `[1, 2]`。
+
+无法识别的旧任务会在编辑器中标为不支持，运行时记录提示并跳过，不影响后续任务。
+
+### 校验
+
+`fresh_and_check_all_task_sequence()` 会：
+
+- 确保文件是合法列表
+- 自动插入 `meta_data`
+- 自动生成或修复 UUID
+- 修复重复 UUID
+- 更新 `EXTRA.TASK_SEQUENCE_UUID_TO_PATH`
+
+## 关卡信息配置
+
+### 主要文件
+
+- `config/stage_info_extra.json`
+- `config/stage_info_online.json`
+- `config/stage_info.json`
+- `config/stage_plan.json`
+
+### 读取优先级
+
+`read_json_to_stage_info()` 的优先级是：
+
+1. `stage_info_extra.json`
+2. `stage_info_online.json`
+3. `stage_info.json`
+4. `default`
+
+### `stage_plan.json`
+
+它不是关卡静态信息，而是“关卡到方案”的映射文件，决定某个关卡默认用哪个卡组、战斗方案和微调方案。
+
+## 资源与日志目录
+
+### 输入型目录
+
+- `config/cus_images/`
+  用户自定义识图模板。
+- `resource/image/`
+  内建识图模板。
+- `resource/model/`
+  ONNX 模型。
+
+### 输出型目录
+
+- `logs/chests_image/`
+- `logs/loots_image/`
+- `logs/match_failed/`
+- `logs/result_json/`
+- `logs/yolo_output/`
+- `logs/guild_manager/`
+- `logs/recording/`
+
+这些目录在 `get_paths.py` 导入时就会自动检查和创建。
+
+## 扩展点
+
+- 新增战斗方案字段：
+  - 先改 `class_battle_plan_v3d0.py`
+  - 再改编辑器与运行时解析
+- 新增主配置字段：
+  - 先改模板
+  - 再改 `qmw_2_load_settings.py`
+- 新增关卡属性：
+  - 先改 `stage_info*.json`
+  - 再改 `read_json_to_stage_info()` 的解释逻辑
+
+## 常见坑
+
+- UUID 映射表是在启动期刷新的，手改 JSON 后若不重新加载，内存态可能还是旧值。
+- 任务序列和战斗方案都带自动修复逻辑，运行时看到文件被改写通常不是 bug，而是启动期校正。
+- `stage_plan.json` 和 `stage_info.json` 职责不同：
+  - 前者决定“用哪个方案”
+  - 后者描述“这个关卡本身是什么属性”

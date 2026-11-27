@@ -9,13 +9,25 @@ __pycache__/
 # 忽略所有 .pyc 文件 即python缓存
 *.pyc
 
-# 忽略settings.json 用户配置文件
+# 忽略虚拟环境
+.venv/
+
+# 忽略本地数据库连接配置
+image_resource_db.local.json
+
+# 忽略本地分发产物
+dist/
+
+# 忽略本地更新与备份运行数据
+backups/
+update_cache/
+
+# 忽略本机用户配置与加密登录凭据
 config/settings.json
+config/login_credentials.json
 
 # 忽略用户自截图文件
-config/cus_images/用户自截/空间服登录界面_1P.png
-config/cus_images/用户自截/空间服登录界面_2P.png
-config/cus_images/用户自截/跨服远征_1p.png
+config/cus_images/用户自截/
 
 # 忽略用户 开/删物品 额外文件
 config/cus_images/背包_装备_需使用的/任意通用包裹.png
@@ -25,23 +37,34 @@ config/cus_images/背包_装备_需使用的/浮空酬劳.png
 config/cus_images/背包_装备_需使用的/星际酬劳.png
 
 # 忽略运行产生的文件 主要是日志
-logs/chests_image/*.png
-logs/loots_image/*.png
+logs/
 
-logs/match_failed/texts_美食大赛/blocks/*.png
-logs/match_failed/texts_美食大赛/blocks_half/*.png
-
-logs/match_failed/texts_关卡名称/blocks/*.png
-logs/match_failed/texts_关卡名称/blocks_half/*.png
-
-logs/guild_manager/guild_member_images/*.png
-logs/guild_manager/guild_members_data.json
-
-logs/match_failed/loots/*.png
-
-logs/result_json/*.json
-logs/*.log
-logs/*.json
+# 忽略运行时生成的卡片状态判定图像，仅保留内置的 0、1、2 组
+/resource/image/card/状态判定/[3-9]/
+/resource/image/card/状态判定/[1-9][0-9]*/
 
 # 忽略 main.spec
 main.spec
+
+# 忽略其他开发资源
+resource_other/
+
+# 忽略各测试 output 目录中的本地生成物，不影响脚本、文档和测试夹具
+test/**/output/**/*.png
+test/**/output/**/*.jpg
+test/**/output/**/*.jpeg
+test/**/output/**/*.bmp
+test/**/output/**/*.gif
+test/**/output/**/*.webp
+test/**/output/**/*.csv
+test/**/output/**/*.log
+test/**/output/**/*.npy
+
+# 忽略仅供本地调试和计算的个人文件
+/battle_plan/测试.json
+/task_sequence/测试.json
+/tool/optimization/calculation_grind_chest.py
+/docs/ai_agent_todo_list/FAA内部组件化重构TODO.md
+
+# 忽略从图像资源数据库导出的本地 Excel
+/点我获取更多图像资源 *.xlsx

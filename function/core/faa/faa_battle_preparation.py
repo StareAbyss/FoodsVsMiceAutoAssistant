@@ -1,4 +1,5 @@
 import copy
+import os
 import re
 import time
 from typing import TYPE_CHECKING
@@ -10,6 +11,32 @@ from function.common.bg_img_match import loop_match_ps_in_w, loop_match_p_in_w, 
 from function.common.bg_img_screenshot import capture_image_png
 from function.common.image_processing.overlay_images import overlay_images
 from function.core.analyzer_of_loot_logs import match_items_from_image_and_save
+from function.core.faa.card_limit import (
+    get_manual_card_slots_to_remove,
+    get_required_manual_mat_slot,
+    get_retained_plan_card_count,
+)
+from function.core.faa.battle_card_roles import (
+    ROLE_CREATOR_GOD,
+    ROLE_DRAGON_POT,
+    ROLE_IKUN,
+    ROLE_PLAN,
+    ROLE_PRIMARY_MAT,
+    ROLE_QUEST,
+    ROLE_SECONDARY_MAT,
+    ROLE_SMOOTHIE,
+    ROLE_TIMER,
+    apply_removed_slots,
+    assign_successful_slot,
+    attach_quest_role,
+    make_card_requirement,
+    retain_cards_by_role,
+)
+from function.core.faa.tweak_plan import (
+    get_auto_card_target_names,
+    get_auto_dragon_pot_target_names,
+    get_auto_timer_target_names,
+)
 from function.globals import SIGNAL, EXTRA
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
@@ -152,7 +179,7 @@ class BattlePreparation:
         """第二 匹配转职"""
         targets_1 = []
         if "-" in card_name:
-            targets_1.append(card_name)#真：精确匹配
+            targets_1.append(card_name)  # 真：精确匹配
         else:
             for card in targets_0:
                 # 精准匹配
@@ -160,17 +187,29 @@ class BattlePreparation:
                     targets_1.append(card)
                 # 模糊匹配 允许任意变种
                 else:
-                    targets_1 += [f"{card}-{i}" for i in range(3, -1, -1)]
+                    resource_prefix = f"{card}-"
+                    available_targets = []
+                    for resource_name in RESOURCE_P["card"]["准备房间"]:
+                        if not resource_name.startswith(resource_prefix) or not resource_name.endswith(".png"):
+                            continue
+                        precise_name = resource_name[:-4]
+                        stage_text = precise_name.rsplit("-", 1)[-1]
+                        if stage_text.isdigit():
+                            available_targets.append((int(stage_text), precise_name))
+                    targets_1 += [
+                        precise_name
+                        for _, precise_name in sorted(available_targets, reverse=True)
+                    ]
 
         # 只携带被记录图片的卡
         targets_1 = [card for card in targets_1 if (card + ".png") in RESOURCE_P["card"]["准备房间"]]
 
         return targets_1
 
-    def _scan_card(self: "FAA", all_cards_precise_names):
+    def _scan_card(self: "FAA", required_cards_list):
         """
         战备选卡阶段 - 扫描所有卡片 找到符合标准的卡片中等级最高者
-        :param all_cards_precise_names: 二维
+        :param required_cards_list: 二维
         第0维代表卡组 其中每个值都代表标识名确立的一张卡片
         第1维代表标识名确立的一张卡片  其中每个值都代表精准名确立的一张卡片 不含.png后缀
         :return:
@@ -183,17 +222,20 @@ class BattlePreparation:
         # 老板本 一共20点击到底部, 向下点 10轮 x 2次 = 20 次滑块, 识别11次
         # 但仍然会出现识别不到的问题(我的背包太大啦), 故直接改成了最细的粒度, 希望能解决该问题.
 
-        # 复位滑块
-        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=209)
+        # 房间会继承上次选卡的滚动位置；点击滑块本身可能无法回顶，需再点向上箭头。
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=930, y=200)
+        time.sleep(0.5)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=187)
         time.sleep(0.5)
 
         match_img_result_dict = {}
 
-        # 以所有卡牌名称(不重复)为键, 识别结果为值的字典
-        for card_precise_names in all_cards_precise_names:
-            for card_precise_name in card_precise_names:
-                if card_precise_name not in match_img_result_dict.keys():
-                    match_img_result_dict[card_precise_name] = {"found": False, "position": 0}
+        # 初始化 以所有卡牌名称为键(去重)
+        # 识别结果为值的字典
+        for card in required_cards_list:
+            for card_name in card['names']:
+                if card_name not in match_img_result_dict.keys():
+                    match_img_result_dict[card_name] = {"found": False, "position": 0}
 
         # 先处理叠加图片
         resource_p = {}
@@ -254,27 +296,25 @@ class BattlePreparation:
                 time.sleep(0.03)
 
         # 根据结果重新生成一个list 包含了每一个 标识名称 对应的 精准名称 找到的 最高等级的卡, 如果没找到 则为None
-        scan_card_result_list = []
-        scan_card_position_list = []
-        for card_precise_names in all_cards_precise_names:
-            for card_precise_name in card_precise_names:
+        for cards in required_cards_list:
+            for card_name in cards['names']:
                 # 成功查找
-                if match_img_result_dict[card_precise_name]["found"]:
-                    scan_card_result_list.append(card_precise_name)
-                    scan_card_position_list.append(match_img_result_dict[card_precise_name]["position"])
-                    card_name_without_id = card_precise_name.split("-")[0]
-                    # 将所有名称相同(不含转职的 -X)的卡片都设置为 未找到
+                if match_img_result_dict[card_name]["found"]:
+                    # 添加结果
+                    cards['result_name'] = card_name
+                    cards['result_position'] = match_img_result_dict[card_name]["position"]
+                    # 将所有名称相同(不含转职的 -X)的卡片都设置为 未找到 防止重复
+                    card_name_without_id = card_name.split("-")[0]
                     for i in [0, 1, 2, 3]:
-                        card_be_used = match_img_result_dict.get(f"{card_name_without_id}-{i}")
-                        if card_be_used:
-                            card_be_used["found"] = False
+                        if match_img_result_dict.get(f"{card_name_without_id}-{i}"):
+                            match_img_result_dict[f"{card_name_without_id}-{i}"]["found"] = False
                     break
             else:
                 # 没有找到
-                scan_card_result_list.append(None)
-                scan_card_position_list.append(None)
+                cards['result_name'] = None
+                cards['result_position'] = None
 
-        return scan_card_result_list, scan_card_position_list
+        return required_cards_list
 
     def _add_card(self: "FAA", card_name, tar_page_num=None) -> bool:
         """
@@ -310,15 +350,17 @@ class BattlePreparation:
         # 大大降低了操作速度 防止卡顿造成选卡失败~
         for target in targets:
 
-            # 复位滑块
-            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=209)
-            time.sleep(0.25)
+            # 与预扫描保持相同回顶步骤，避免第一行只露半截或预扫描定位偏移。
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=930, y=200)
+            time.sleep(0.5)
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=931, y=187)
+            time.sleep(0.5)
 
             for i in range(21):
                 if tar_page_num is None or i >= tar_page_num:
 
-                    # 等一下实际的游戏控件刷新, 因为画面刷新 ≠ 控件刷新
-                    time.sleep(0.3)
+                    # 等一下实际的游戏控件刷新，并在选卡点击前额外留出响应时间
+                    time.sleep(0.4)
 
                     # 需要刷新游戏帧数
                     find = loop_match_p_in_w(
@@ -330,7 +372,7 @@ class BattlePreparation:
                         match_tolerance=0.998,
                         match_failed_check=0.2,
                         match_interval=0.1,
-                        after_sleep=0.25,
+                        after_sleep=0.35,
                         click=True)
                     if find:
                         found_card = True
@@ -366,108 +408,182 @@ class BattlePreparation:
 
         return False
 
-    def _add_cards(self: "FAA", card_name_list: list, can_failed_list: list):
+    def _auto_carry_card_add_cards(self: "FAA"):
         """
         战备选卡阶段 - 按顺序选中若干张卡添加到卡组
-        :param card_name_list: list [str, ...] 包含若干卡片 标识名称(Identifier Name)
-        可以为 合法类名(Valid Class Name) 模糊名称(Fuzzy Name, 卡片不转职名称) 精准名称(Precise Name, 模糊名-转职数字)
-        最终都可以拓展为若干个 精准名称
-        :param can_failed_list: 和card_name_list 一一对应 每一张卡是否允许失败
-        :return: 是否成功选卡每一张
+        :return: 选卡是不是全部成功
         """
-        self.print_debug(text="[选取卡片] 开始, 总计: {}张".format(len(card_name_list)))
 
-        # 先展开 战斗方案中 带卡的 标识名称 为 精确名称 包含.png后缀
+        # required_cards_list = list:[dict{"card_name": str, "can_failed": bool},...]
+        # card_name str 为卡片的标识名称(Identifier Name) 可以为:
+        # 合法类名(Valid Class Name)
+        # 模糊名称(Fuzzy Name, 卡片不转职名称)
+        # 精准名称(Precise Name, 模糊名-转职数字)
+        # 最终都可以拓展为 list [str:精准名称,...]
+        required_cards_list = self._auto_carry_card_get_card_name_list_from_battle_plan()
+        self.print_debug(text="[选取卡片] 开始, 总计: {}张".format(len(required_cards_list)))
+
+        # 先展开 战斗方案中 带卡的 str标识名称 为 list精确名称
         # 一个标识名称 应对多个精准名
-        all_cards_precise_names = []
-        for card_name in card_name_list:
-            precise_names = self._card_name_to_tar_list(card_name=card_name)
-            all_cards_precise_names.append(precise_names)
-
-        def add_quest_card():
-            """
-            再展开 任务卡 查看任务卡是否已经存在于卡组中
-            如果在 则将faa的任务卡变回None 并修改可用的精准名称 确保携带正确的变种卡片
-            如果不在 则添加这张卡 并要求带卡必须成功
-            这里的逻辑还有一些极端状态下的小问题 但应该不影响使用
-            """
-
-            # 使用的上级变量包括
-            # all_cards_precise_names
-            # can_failed_list
-
-            if self.quest_card is None or self.quest_card == "None":
-                return
-
-            qc_precise_names = self._card_name_to_tar_list(card_name=copy.deepcopy(self.quest_card))
-            qc_precise_in_plan_names = []
-            for precise_names in all_cards_precise_names:
-                for precise_name in precise_names:
-                    if precise_name in qc_precise_names:
-                        self.quest_card = None
-                        qc_precise_in_plan_names.append(precise_name)
-
-            for i, precise_names in enumerate(all_cards_precise_names):
-                # 如果一张卡有精准名称属于任务卡的要求 那么 这张卡仅保留符合任务要求的精准名称
-                if any(item in precise_names for item in qc_precise_in_plan_names):
-                    all_cards_precise_names[i] = [pn for pn in precise_names if pn in qc_precise_in_plan_names]
-
-            # 任务卡在战斗方案带卡中找到了~ 结束
-            if qc_precise_in_plan_names:
-                return
-
-            # 根据战斗方案 插入到方案末位
-            battle_plan = copy.deepcopy(self.battle_plan)
-            card_ids = [card["card_id"] for card in battle_plan["cards"]]
-            max_card_id = max(card_ids)
-
-            # 插入卡片
-            all_cards_precise_names.insert(max_card_id, qc_precise_names)
-            if len(qc_precise_names)!=0:
-                card_name_list.insert(max_card_id, qc_precise_names[-1])
-            else:
-                card_name_list.insert(max_card_id, "不存在的卡片名称")
-            # 不允许失败
-            can_failed_list.insert(max_card_id, False)
+        for card in required_cards_list:
+            card["names"] = self._card_name_to_tar_list(card_name=card["name"])
 
         # 自动带卡版本的 任务卡添加
-        add_quest_card()
+        self._auto_carry_card_add_quest_card(required_cards_list=required_cards_list)
+
+        # 自动带卡只在生成清单时少带卡；它和下方手动卡组的按槽删除是两条独立操作路径。
+        # 两者仅通过相同的保留优先级获得一致的最终卡组。
+        required_cards_list = self._auto_carry_card_apply_limit(required_cards_list)
 
         # 一轮识别 识别同一张卡的所有精准名称中 哪一个是实际存在且优先级最高的
-        self.print_debug(text="[选取卡片] 将尝试查找以下卡片(组): {}, 是否允许失败: {}".format(
-            all_cards_precise_names, can_failed_list))
+        self.print_debug(text="[选取卡片] 将尝试查找以下卡片(组)")
+        for required_card in required_cards_list:
+            self.print_debug(text=f"[选取卡片] {required_card}")
 
-        scan_card_name_list, scan_card_position_list = self._scan_card(
-            all_cards_precise_names=all_cards_precise_names)
+        required_cards_list = self._scan_card(required_cards_list=required_cards_list)
 
-        self.print_debug(text="[选取卡片] 经识别将查找以下有效卡片: {}, 位置: {}".format(
-            scan_card_name_list, scan_card_position_list))
+        self.print_debug(text="[选取卡片] 经识别，有效卡片如下")
+        for required_card in required_cards_list:
+            self.print_debug(text=f"[选取卡片] {required_card}")
 
         # 如果不允许失败 提前检查
         failed_card_list = []
-        for index in range(len(can_failed_list)):
-            if (scan_card_name_list[index] is None) and (not can_failed_list[index]):
-                failed_card_list.append(card_name_list[index])
-                self.print_debug(text="[缺失卡片] 卡片列表: {}, 缺失索引: {}".format(card_name_list, index))
-
+        for required_card in required_cards_list:
+            if (not required_card['can_failed']) and (required_card['result_name'] is None):
+                failed_card_list.append(required_card['name'])
+                self.print_debug(
+                    text=f"[缺失卡片] 卡片名称: {required_card['name']}; 展开卡片列表: {required_card['names']}")
         if failed_card_list:
             self.print_debug(text="[选取卡片] 结束, 结果: 因查找失败中断")
             SIGNAL.PRINT_TO_UI.emit(text=f"[{self.player}P] 缺失必要绑定卡片: {', '.join(failed_card_list)}")
             return False
 
-        for index in range(len(scan_card_name_list)):
-            card_name = scan_card_name_list[index]
-            tar_position = scan_card_position_list[index]
-            if card_name is None:
-                continue
-            # 理论上 经过了筛查 选卡失败基本上仅是因为 和其他卡片有冲突 这只会出现在非必要承载卡 可以忽视
-            result = self._add_card(card_name=card_name, tar_page_num=tar_position)
+        successful_cards = []
+        next_slot_id = 1
+        for card in required_cards_list:
 
-            self.print_debug(text="[选取卡片] [{}] 完成, 结果: {}".format(card_name, "成功" if result else "失败"))
+            # 压根就找不到这张卡 跳过跳过
+            if card['result_name'] is None:
+                continue
+
+            # 理论上 经过了筛查 选卡失败基本上仅是因为 和其他卡片有冲突 这只会出现在非必要承载卡 可以忽视
+            result = self._add_card(
+                card_name=card['result_name'],
+                tar_page_num=card['result_position'])
+
+            self.print_debug(text="[选取卡片] 完成, 卡片初始名称:{}, 卡片最终名称:{}, 结果: {}".format(
+                card['name'], card['result_name'], "成功" if result else "失败"))
+
+            if result:
+                assign_successful_slot(
+                    card=card,
+                    slot_id=next_slot_id,
+                    precise_name=card["result_name"],
+                )
+                successful_cards.append(card)
+                next_slot_id += 1
+            elif not card["can_failed"]:
+                SIGNAL.PRINT_TO_UI.emit(
+                    text=f"[{self.player}P] 必要卡片“{card['name']}”点击添加失败，已中断本场战斗"
+                )
+                return False
+
+        # 战备阶段到此才真正知道自动带卡的物理顺序。
+        # 后续战斗解析只消费这份 plan_id / slot_id 映射；承载和辅助角色仍可由开场识图补充。
+        self.battle_card_plan = successful_cards
+        self.battle_card_plan_ready = True
 
         return True
 
-    def _add_quest_card(self: "FAA"):
+    def _auto_carry_card_add_quest_card(self: "FAA", required_cards_list: list) -> None:
+        """
+        将任务卡合并到自动带卡清单。
+
+        方案卡、承载或自动辅助卡只要可以解析为任务卡，就直接在同一实体卡上增加任务角色并收窄候选。
+        任务角色会在限卡时提升该卡的保留优先级，因而不需要再制造一张同名任务卡。
+
+        Args:
+            required_cards_list: 已展开精准名称、尚未执行限卡筛选的自动带卡清单。
+        """
+
+        if self.quest_card in (None, "None"):
+            return
+
+        quest_card_name = copy.deepcopy(self.quest_card)
+        quest_card_precise_names = self._card_name_to_tar_list(card_name=quest_card_name)
+        quest_owner = attach_quest_role(
+            cards=required_cards_list,
+            quest_precise_names=quest_card_precise_names,
+        )
+        if quest_owner is not None:
+            self.print_debug(
+                text=(
+                    f"[任务卡] “{quest_owner['name']}”承担任务卡“{quest_card_name}”，"
+                    f"角色为{quest_owner['roles']}，候选限制为：{quest_owner['names']}"
+                )
+            )
+            return
+
+        # 任务卡需要手动添加
+
+        # 自动带卡的物理顺序必须与玩家手动卡组约定一致：方案卡之后紧接任务卡预留位，
+        # 然后才是承载和其他自动卡；这样任务卡的实际 ID 永远是“当前保留方案卡数量 + 1”。
+        plan_card_count = sum(
+            ROLE_PLAN in card.get("roles", [])
+            for card in required_cards_list
+        )
+        quest_requirement = make_card_requirement(
+            name=quest_card_name,
+            roles=[ROLE_QUEST],
+            plan_id=None,
+            can_failed=False,
+            source="quest",
+        )
+        quest_requirement["names"] = quest_card_precise_names
+        required_cards_list.insert(
+            plan_card_count,
+            quest_requirement,
+        )
+
+    def _auto_carry_card_apply_limit(self: "FAA", required_cards_list: list) -> list:
+        """
+        在自动带卡清单中落实限卡优先级，但不改变最终物理排列。
+
+        第一张承载是关卡地形前提，任务承担者是任务前提，之后才按方案 ID 从小到大保留。
+        任务角色可以和任意已有角色共存，同一实体卡只占一个限卡名额；
+        剩余名额再按原清单顺序留给其他自动附加卡。
+        """
+        if self.max_card_num is None:
+            return required_cards_list
+
+        result = retain_cards_by_role(
+            cards=required_cards_list,
+            max_card_num=self.max_card_num,
+        )
+
+        self.print_debug(
+            text=(
+                f"[自动带卡] 最大卡片数量限制为{self.max_card_num}张，"
+                "已按必要承载、任务卡、方案卡顺序保留，并Ban掉咖啡粉"
+            )
+        )
+        if not self.ban_card_list:
+            self.ban_card_list = ["咖啡粉"]
+        elif "咖啡粉" not in self.ban_card_list:
+            self.ban_card_list += ["咖啡粉"]
+        return result
+
+    def _manual_carry_add_quest_card(self: "FAA") -> bool | None:
+        """
+        尝试把任务卡加入手动卡组预留空位。
+
+        手动卡组的方案卡名称和实际卡片没有一一对应关系，因此无法在战备阶段判断任务卡是否已经存在。添加失败时不再抹掉任务要求，
+        而是假定卡片可能因已在卡组中而呈灰色；FAA 会继续本场战斗，
+        并在开场识图时尝试补全其真实槽位。
+
+        Returns:
+            ``True`` 表示成功加入；``False`` 表示按已在卡组中处理；没有任务卡要求时返回 ``None``。
+        """
 
         quest_card = copy.deepcopy(self.quest_card)
 
@@ -477,7 +593,7 @@ class BattlePreparation:
 
         if not_need_add:
             self.print_debug(text=f"[添加任务卡] 不需要,跳过")
-            return
+            return None
         else:
             self.print_debug(text=f"[添加任务卡] 开始, 目标:{quest_card}")
 
@@ -485,10 +601,126 @@ class BattlePreparation:
         found_card = self._add_card(card_name=quest_card)
 
         if not found_card:
-            # 如果没有找到 类属性 战斗方案 需要调整为None, 防止在战斗中使用对应卡片的动作序列出现
-            self.quest_card = "None"
+            SIGNAL.PRINT_TO_UI.emit(
+                text=(
+                    f"[{self.player}P] 手动带卡未能从背包添加任务卡“{quest_card}”。"
+                    "该卡可能已在当前卡组中而显示为灰色，FAA仍会尝试本场战斗；"
+                    "若卡组实际没有该卡，本次任务可能无法完成。"
+                ),
+                color_level=2,
+            )
 
         self.print_debug(text="[添加任务卡] 完成, 结果:{}".format("成功" if found_card else "失败"))
+        return found_card
+
+    def _manual_carry_remove_cards_for_card_num_limit(self: "FAA") -> None:
+        """
+        手动卡组限卡路径：按固定槽位从 21 向前移除所有非保留位置。
+
+        手动卡组约定为“方案卡 + 任务卡空位 + 木盘子 + 麦芽糖 + 其他”。
+        倒序点击可避免删卡导致后续卡片左移后破坏尚未处理的低位槽。
+        该函数不参与自动带卡；自动带卡会在生成清单时直接少带对应卡片。
+        """
+        if self.max_card_num is None:
+            return
+
+        has_quest_card = self.quest_card not in (None, "None")
+        slots_to_remove = get_manual_card_slots_to_remove(
+            plan_card_count=len(self.battle_plan.get("cards", [])),
+            max_card_num=self.max_card_num,
+            stage_info=self.stage_info,
+            has_quest_card=has_quest_card,
+        )
+        if not slots_to_remove:
+            return
+
+        # 卡组最左页固定显示 1..11，最右页固定显示 11..21；
+        # 槽位 11 是两页重叠项。这里统一在最右页处理 11，回到最左页只处理 10..1。
+        second_page_slots = [slot for slot in slots_to_remove if slot >= 11]
+        first_page_slots = [slot for slot in slots_to_remove if slot <= 10]
+
+        def remove_visible_slot(page_slot_id: int) -> None:
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                handle=self.handle,
+                x=410 + (page_slot_id - 1) * 48,
+                y=73,
+            )
+            time.sleep(0.1)
+
+        if second_page_slots:
+            for _ in range(6):
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle,
+                    x=930,
+                    y=85,
+                )
+                time.sleep(0.1)
+            for slot_id in second_page_slots:
+                remove_visible_slot(slot_id - 10)
+
+        if first_page_slots:
+            for _ in range(6):
+                T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                    handle=self.handle,
+                    x=930,
+                    y=55,
+                )
+                time.sleep(0.1)
+            for slot_id in first_page_slots:
+                remove_visible_slot(slot_id)
+
+    def _build_manual_battle_card_plan(self: "FAA", quest_add_result: bool | None) -> None:
+        """
+        建立手动卡组的方案 ID、已知槽位和任务状态。
+
+        手动卡组只保证方案 ID 与前部物理槽一一对应，名称可以完全不同。
+        承载和辅助卡的位置保持未知，进入战斗后继续通过识图补全。
+        任务卡成功加入时位于保留方案卡之后；添加失败时保留一个未知槽位的任务占位，供战斗开场扫描尝试绑定。
+
+        Args:
+            quest_add_result: ``_add_quest_card`` 的结果。
+        """
+        has_quest_requirement = self.quest_card not in (None, "None")
+        retained_plan_count = get_retained_plan_card_count(
+            plan_card_count=len(self.battle_plan.get("cards", [])),
+            max_card_num=self.max_card_num,
+            stage_info=self.stage_info,
+            has_quest_card=has_quest_requirement,
+        )
+
+        cards = []
+        for plan_card in sorted(
+            self.battle_plan.get("cards", []),
+            key=lambda item: item["card_id"],
+        )[:retained_plan_count]:
+            card = make_card_requirement(
+                name=plan_card["name"],
+                roles=[ROLE_PLAN],
+                plan_id=plan_card["card_id"],
+                can_failed=False,
+                source="battle_plan",
+            )
+            # 手动卡组规范要求方案 ID 与开头的物理槽一一对应。
+            card["slot_id"] = plan_card["card_id"]
+            cards.append(card)
+
+        if has_quest_requirement:
+            quest_card = make_card_requirement(
+                name=self.quest_card,
+                roles=[ROLE_QUEST],
+                plan_id=None,
+                can_failed=quest_add_result is False,
+                source="quest",
+            )
+            if quest_add_result:
+                quest_card["slot_id"] = retained_plan_count + 1
+            else:
+                quest_card["assumed_existing"] = True
+            cards.append(quest_card)
+
+        self.battle_card_plan = cards
+        self.battle_card_plan_ready = True
+        self.manual_quest_card_assumed = quest_add_result is False
 
     def _remove_ban_card(self: "FAA"):
         """寻找并移除需要ban的卡, 现已支持跨页ban"""
@@ -609,144 +841,200 @@ class BattlePreparation:
             banned_card_index = sorted(banned_card_index)
             self.banned_card_index = banned_card_index
 
-    def _check_stage_name(self: "FAA", text, t_type="id"):
+    def _change_stage_bid(self: "FAA", new_stage_id):
         """
-        :param text str 对应的值
-        :param t_type str "id" or "name"
         根据检测出的关卡ID或关卡名，改变faa当前的stage_info
         """
 
         # 原有的关卡id
         old_stage_id = copy.deepcopy(self.stage_info["id"])
 
+        self.stage_info = read_json_to_stage_info(
+            stage_id=old_stage_id,
+            stage_id_for_battle=new_stage_id
+        )
+
+        stage_name = self.stage_info["name"]
+        SIGNAL.PRINT_TO_UI.emit(f"检测到特殊关卡：{stage_name}，已为你启用对应关卡信息(铲卡/承载)", 7)
+
+    def _get_stage_info_from_battle_name(self: "FAA", stage_name):
+
+        # 原有的关卡id
+        old_stage_id = copy.deepcopy(self.stage_info["id"])
+        special_stage = True
+
         # 特殊关卡列表占位符
         happy_holiday_list = []
         reward_list = []
         roaming_list = []
 
-        special_stage = False
+        match stage_name:
+            case _ if "魔塔蛋糕" in stage_name:
+                level = stage_name.replace("魔塔蛋糕第", "").replace("层", "")
+                self.stage_info = read_json_to_stage_info(
+                    stage_id=old_stage_id,
+                    stage_id_for_battle=f"MT-1-{level}"
+                )
 
-        if t_type == "id":
+            case _ if "双人魔塔" in stage_name:
+                level = stage_name.replace("双人魔塔第", "").replace("层", "")
+                self.stage_info = read_json_to_stage_info(
+                    stage_id=old_stage_id,
+                    stage_id_for_battle=f"MT-2-{level}")
 
-            self.stage_info = read_json_to_stage_info(
-                stage_id=old_stage_id,
-                stage_id_for_battle=text
-            )
-            special_stage = True
-            stage_name = self.stage_info["name"]
+            case _ if "萌宠神殿" in stage_name:
+                level = stage_name.replace("萌宠神殿第", "").replace("层", "")
+                self.stage_info = read_json_to_stage_info(
+                    stage_id=old_stage_id,
+                    stage_id_for_battle=f"PT-0-{level}"
+                )
 
-        elif t_type == "name":
+            case _ if stage_name in happy_holiday_list:
+                pass
 
-            stage_name = text
-            special_stage = True
+            case _ if stage_name in reward_list:
+                pass
 
-            match stage_name:
-                case _ if "魔塔蛋糕" in stage_name:
-                    level = stage_name.replace("魔塔蛋糕第", "").replace("层", "")
-                    self.stage_info = read_json_to_stage_info(
-                        stage_id=old_stage_id,
-                        stage_id_for_battle=f"MT-1-{level}"
-                    )
+            case _ if stage_name in roaming_list:
+                pass
 
-                case _ if "双人魔塔" in stage_name:
-                    level = stage_name.replace("双人魔塔第", "").replace("层", "")
-                    self.stage_info = read_json_to_stage_info(
-                        stage_id=old_stage_id,
-                        stage_id_for_battle=f"MT-2-{level}")
-
-                case _ if "萌宠神殿" in stage_name:
-                    level = stage_name.replace("萌宠神殿第", "").replace("层", "")
-                    self.stage_info = read_json_to_stage_info(
-                        stage_id=old_stage_id,
-                        stage_id_for_battle=f"PT-0-{level}"
-                    )
-
-                case _ if stage_name in happy_holiday_list:
-                    pass
-
-                case _ if stage_name in reward_list:
-                    pass
-
-                case _ if stage_name in roaming_list:
-                    pass
-
-                case _:
-                    # 查找失败
-                    special_stage = False
-
-        else:
-            stage_name = "UnKnown"
+            case _:
+                # 查找失败
+                special_stage = False
+                stage_name = "UnKnown"
 
         if special_stage:
-            SIGNAL.PRINT_TO_UI.emit(f"检测到特殊关卡：{stage_name}，已为你启用对应关卡方案", 7)
+            SIGNAL.PRINT_TO_UI.emit(f"检测到特殊关卡：{stage_name}，已为你启用对应关卡信息(铲卡/承载)", 7)
 
-    def _get_card_name_list_from_battle_plan(self: "FAA"):
-        #强制禁用状态
-        ban_mat = False
-        ban_icecream = False
-        ban_god = False
-        ban_ikun = False
-        ban_coffee = False
-        if self.battle_plan_tweak:
-            ban_state = self.battle_plan_tweak["meta_data"].get("ban_state", None)
-            if ban_state:
-                ban_mat=ban_state.get("mat", False)
-                ban_icecream=ban_state.get("icecream", False)
-                ban_god=ban_state.get("god", False)
-                ban_ikun=ban_state.get("ikun", False)
-                ban_coffee=ban_state.get("coffee", False)
-            pass
-        my_dict = {}
-        mats = copy.deepcopy(self.stage_info["mat_card"])
+    def _auto_carry_card_get_card_name_list_from_battle_plan(self: "FAA"):
+        """
+        根据战斗方案和微调方案生成自动带卡清单。
 
-        # 直接从cards 中获取 顺带保险排序一下
-        for card in self.battle_plan["cards"]:
-            my_dict[card["card_id"]] = card["name"]
+        微调方案 v0.3 使用正向开关控制自动辅助卡片与承载卡功能；
+        同一状态还会在战斗初始化阶段关闭对应的智能使用功能。
 
-        # 根据id 排序 并取其中的value为list
-        sorted_list = list(dict(sorted(my_dict.items())).values())
-        # 和 card_list 一一对应 顺序一致 代表这张卡是否允许被跳过
-        can_failed_list = [False for _ in sorted_list]
+        最终物理顺序保持为：方案卡、独立任务卡、第一承载、其他辅助卡、第二张及后续承载。
+        任务卡若由已有卡承担，就只给该实体卡追加角色，不会额外占据一个物理槽位。
 
-        # 如果需要任意承载卡 第一张卡设定为 有效承载 置于末位
-        if len(mats) >= 1 and not ban_mat:
-            sorted_list += ["有效承载"]
-            can_failed_list += [False]
+        Returns:
+            按卡片优先级排列的自动带卡要求列表。
+        """
+        target_mat_list, target_smoothie_list, target_kun_list = get_auto_card_target_names(
+            stage_mat_card_names=self.stage_info["mat_card"],
+            battle_plan_tweak=self.battle_plan_tweak,
+            battle_plan=self.battle_plan,
+            card_types=self.card_types,
+        )
 
-        # 添加冰沙 复制类 置于末位 允许找不到
-        if not ban_icecream:
-            sorted_list += ["冰激凌-2"]
-            can_failed_list += [True]
-        if not ban_god:
-            sorted_list += ["创造神"]
-            can_failed_list += [True]
-        if not ban_ikun:
-            sorted_list += ["幻幻鸡"]
-            can_failed_list += [True]
+        required_cards_list = []
+        # JSON 中的 card_id 只作为稳定的方案身份保存为 plan_id；
+        # 真实卡槽要等自动带卡点击成功后，按实际加入顺序写入 slot_id。
+        for card in sorted(
+            self.battle_plan["cards"],
+            key=lambda item: item["card_id"],
+        ):
+            required_cards_list.append(make_card_requirement(
+                name=card["name"],
+                roles=[ROLE_PLAN],
+                plan_id=card["card_id"],
+                can_failed=False,
+                source="battle_plan",
+            ))
 
-        # 如果有效承载数量 >= 2 置于末位 允许找不到
-        if len(mats) >= 2 and not ban_mat:
-            for _ in range(len(mats) - 1):
-                sorted_list += ["有效承载"]
-                can_failed_list += [True]
+        # 任务卡稍后由 _auto_carry_card_add_quest_card 插入此处；
+        # 之后按用户的固定卡组约定加入承载，避免承载抢占方案卡或任务卡的 ID。
+        if target_mat_list:
+            primary_mat_name = "有效承载"
+            if self.max_card_num is not None:
+                # 限卡时自动带卡必须和手动固定卡组保留同一种标准承载。
+                # 其他高优先级承载仍可在不限卡时使用；限卡时只有木盘子和麦芽糖参与固定槽选择。
+                primary_mat_name = {
+                    "wood": "木盘子",
+                    "malt": "麦芽糖",
+                }.get(get_required_manual_mat_slot(self.stage_info), "有效承载")
+            required_cards_list.append(make_card_requirement(
+                name=primary_mat_name,
+                roles=[ROLE_PRIMARY_MAT],
+                plan_id=None,
+                can_failed=False,
+                source="mat",
+            ))
 
-        # 根据最大卡片数量限制 移除卡片
-        if self.max_card_num is not None:
-            self.print_debug(text=f"[自动带卡] 最大卡片数量限制为{self.max_card_num}张, 激活自动剔除, 并Ban掉咖啡粉")
-            sorted_list = sorted_list[:self.max_card_num]
-            can_failed_list = can_failed_list[:self.max_card_num]
+        # 一般辅助卡位于第一承载之后、后续承载之前。它们允许找不到；
+        # 如果同时承担任务角色，任务解析会自动将 can_failed 提升为 False。
+        if get_auto_timer_target_names(
+            battle_plan_tweak=self.battle_plan_tweak,
+            battle_plan=self.battle_plan,
+            card_types=self.card_types,
+        ):
+            required_cards_list.append(
+                make_card_requirement(
+                    name="美味计时器",
+                    roles=[ROLE_TIMER],
+                    plan_id=None,
+                    can_failed=True,
+                    source="extra",
+                )
+            )
+        if get_auto_dragon_pot_target_names(
+            battle_plan_tweak=self.battle_plan_tweak,
+            battle_plan=self.battle_plan,
+            card_types=self.card_types,
+        ):
+            required_cards_list.append(
+                make_card_requirement(
+                    name="转龙壶",
+                    roles=[ROLE_DRAGON_POT],
+                    plan_id=None,
+                    can_failed=True,
+                    source="extra",
+                )
+            )
+        if target_smoothie_list:
+            required_cards_list.append(
+                make_card_requirement(
+                    name="冰激凌-2",
+                    roles=[ROLE_SMOOTHIE],
+                    plan_id=None,
+                    can_failed=True,
+                    source="extra",
+                )
+            )
+        if "创造神" in target_kun_list:
+            required_cards_list.append(
+                make_card_requirement(
+                    name="创造神",
+                    roles=[ROLE_CREATOR_GOD],
+                    plan_id=None,
+                    can_failed=True,
+                    source="extra",
+                )
+            )
+        if "幻幻鸡" in target_kun_list:
+            required_cards_list.append(
+                make_card_requirement(
+                    name="幻幻鸡",
+                    roles=[ROLE_IKUN],
+                    plan_id=None,
+                    can_failed=True,
+                    source="extra",
+                )
+            )
 
-            # 只要有禁用 就把咖啡粉顺手ban了.
-            if not self.ban_card_list:
-                self.ban_card_list = ["咖啡粉"]
-            else:
-                self.ban_card_list += ["咖啡粉"]
-        if ban_coffee:
-            if not self.ban_card_list:
-                self.ban_card_list = ["咖啡粉"]
-            elif "咖啡粉" not in self.ban_card_list:
-                self.ban_card_list += ["咖啡粉"]
-        return sorted_list, can_failed_list
+        # 后续承载仍使用“有效承载”候选和扫描去重来寻找不同实体卡；
+        # 槽位到战斗开场后由图像识别复核，因此这里不推算具体承载名称。
+        for _ in range(max(0, len(target_mat_list) - 1)):
+            required_cards_list.append(
+                make_card_requirement(
+                    name="有效承载",
+                    roles=[ROLE_SECONDARY_MAT],
+                    plan_id=None,
+                    can_failed=True,
+                    source="extra",
+                )
+            )
+
+        return required_cards_list
 
     def check_create_room_success(self: "FAA"):
         """
@@ -771,10 +1059,10 @@ class BattlePreparation:
             return 2
         return 0
 
-    def battle_preparation_change_deck(self: "FAA") -> int:
+    def battle_preparation_change_deck(self: "FAA") -> bool:
         """
         战前准备 修改卡组
-        :return: 0-正常结束 1-重启本次 2-跳过本次 3-跳过所有次数
+        :return: 是否成功找卡
         """
 
         # 选择卡组
@@ -786,24 +1074,30 @@ class BattlePreparation:
             y=121)
         time.sleep(1.0)
 
-        """寻找并卡片, 包括自动带卡 / 任务要求的带卡和禁卡"""
+        """寻找卡片, 包括自动带卡 / 任务要求的带卡和禁卡"""
 
+        # 自动带卡
         if self.auto_carry_card:
+            if not self._auto_carry_card_add_cards():
+                return False
 
-            card_name_list, can_failed_list = self._get_card_name_list_from_battle_plan()
-            success = self._add_cards(card_name_list=card_name_list, can_failed_list=can_failed_list)
-            # 失败就会直接跳过本关卡全部场次！
-            if not success:
-                return 3
-
+        # 手动带卡
         else:
             # 任务需求的带卡
             # 在自动带卡中会自动处理该流程, 此处是手动带卡时对任务要求的处理
-            self._add_quest_card()
+            quest_add_result = self._manual_carry_add_quest_card()
 
+            # 手动带卡只按用户固定卡组的物理槽位执行倒序删除。
+            # 不要复用自动带卡的清单生成与筛选流程。
+            self._manual_carry_remove_cards_for_card_num_limit()
+            self._build_manual_battle_card_plan(quest_add_result=quest_add_result)
+
+        # 移除被禁用的卡牌
         self._remove_ban_card()
 
-        return 0
+        # 根据遭到移除的卡片情报 重排卡片的槽位信息
+        apply_removed_slots(cards=self.battle_card_plan, removed_slots=self.banned_card_index)
+        return True
 
     def start_and_ensure_entry(self: "FAA"):
         """开始并确保进入成功"""
@@ -867,7 +1161,9 @@ class BattlePreparation:
         # duration is ms
         duration = EXTRA.ACCELERATE_START_UP_VALUE
         if duration > 0:
-            self.click_accelerate_btn(mode="normal")
+            accelerate_result = self.click_accelerate_btn(mode="normal")
+            if not accelerate_result:
+                return 0  # 0-一切顺利
             time.sleep(duration / 1000)
             self.click_accelerate_btn(mode="normal")
             # 检查已经关闭加速
@@ -877,7 +1173,8 @@ class BattlePreparation:
 
     """初始化战斗方案部分"""
 
-    # 在FAA中实现 需要修改FAA的类属性
+    # 在FAA中实现
+    # 需要修改FAA的类属性
 
     """战斗结束战利品的领取和捕获图片并识别部分"""
 
@@ -964,11 +1261,13 @@ class BattlePreparation:
             time.sleep(0.05)
 
             # 定义保存路径和文件名格式
-            img_path = "{}\\{}_{}P_{}.png".format(
-                PATHS["logs"] + "\\loots_image",
-                stage_info["id"],  # 注意 此处一定要使用内部一定正确的id! b_id可能是用户随笔输入的
-                player,
-                time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+            img_path = os.path.join(
+                PATHS["logs"],
+                "loots_image",
+                "{}_{}P_{}.png".format(
+                    stage_info["id"],  # 注意 此处一定要使用内部一定正确的id! b_id可能是用户随笔输入的
+                    player,
+                    time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime()))
             )
 
             # 捕获战利品截图 动作+拼接
@@ -999,13 +1298,14 @@ class BattlePreparation:
         is_group = self.is_group
         print_info = self.print_info
         print_warning = self.print_warning
+        accelerate_true = False
 
         if EXTRA.ACCELERATE_SETTLEMENT_VALUE:
             print_info(text="[翻宝箱UI] 开始加速...")
-            self.click_accelerate_btn(mode="normal")
+            accelerate_true = self.click_accelerate_btn(mode="normal")
 
-        # 休息一会再识图 如果有加速, 少休息一会
-        time.sleep(7 / (EXTRA.ACCELERATE_SETTLEMENT_VALUE if EXTRA.ACCELERATE_SETTLEMENT_VALUE != 0 else 1))
+        # 休息一会再识图 如果加速成功, 少休息一会
+        time.sleep(7 / EXTRA.ACCELERATE_SETTLEMENT_VALUE if accelerate_true else 7)
 
         find = loop_match_p_in_w(
             source_handle=handle,
@@ -1023,8 +1323,6 @@ class BattlePreparation:
 
         if EXTRA.ACCELERATE_SETTLEMENT_VALUE:
             print_info(text="[翻宝箱UI] 捕获到正确标志, 停止加速...")
-            self.click_accelerate_btn(mode="normal")
-            # 检查已经关闭加速
             self.click_accelerate_btn(mode="stop")
         else:
             print_info(text="[翻宝箱UI] 捕获到正确标志, 继续...")
@@ -1087,11 +1385,13 @@ class BattlePreparation:
         chest_items_image = cv2.hconcat(chest_images)
 
         # 定义保存路径和文件名格式
-        img_path = "{}\\{}_{}P_{}.png".format(
-            PATHS["logs"] + "\\chests_image",
-            stage_info["id"],
-            player,
-            time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime())
+        img_path = os.path.join(
+            PATHS["logs"],
+            "chests_image",
+            "{}_{}P_{}.png".format(
+                stage_info["id"],
+                player,
+                time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime()))
         )
 
         # 分析图片，获取战利品字典

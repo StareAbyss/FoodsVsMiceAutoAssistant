@@ -2,6 +2,8 @@ import random
 import time
 from typing import TYPE_CHECKING
 
+import numpy as np
+
 from function.common.bg_img_match import loop_match_p_in_w, match_p_in_w
 from function.common.bg_img_screenshot import capture_image_png
 from function.globals import g_resources, SIGNAL
@@ -11,6 +13,24 @@ from function.scattered.match_ocr_text.get_stage_name_by_ocr import screen_get_s
 
 if TYPE_CHECKING:
     from function.core.faa.faa_mix import FAA
+
+
+# 龙渊入口的识图范围为实测模板位置四周各扩 10 像素。
+LONGYUAN_STAGE_ENTRY_RANGES = {
+    "1": [332, 95, 404, 160],
+    "2": [314, 167, 388, 233],
+    "3": [176, 186, 266, 268],
+    "4": [131, 297, 204, 363],
+    "5": [208, 345, 281, 411],
+    "6": [255, 274, 349, 358],
+    "7": [380, 335, 452, 401],
+    "8": [423, 263, 495, 327],
+    "9": [499, 206, 573, 271],
+    "10": [572, 246, 644, 312],
+    "11": [672, 172, 762, 253],
+}
+# 不同关卡的完整气泡共用外框和角标，需提高阈值以排除仅外观相近的入口。
+LONGYUAN_STAGE_ENTRY_TOLERANCE = 0.97
 
 
 class FAAActionInterfaceJump:
@@ -49,7 +69,7 @@ class FAAActionInterfaceJump:
                 find = loop_match_p_in_w(
                     source_handle=handle,
                     source_root_handle=handle_360,
-                    source_range=[0, 0, 950, 600],
+                    source_range=raw_range,
                     template=RESOURCE_P["common"]["退出_被选中.png"],
                     match_failed_check=5,
                     after_sleep=1.5,
@@ -101,7 +121,7 @@ class FAAActionInterfaceJump:
     def action_top_menu(self: "FAA", mode: str) -> bool:
         """
         点击上方菜单栏, 包含:
-        VIP签到|X年活动|塔罗寻宝|大地图|大富翁|欢乐假期|每日签到|美食大赛|美食活动|萌宠神殿|跨服远征|月卡福利
+        VIP签到|X年活动|塔罗寻宝|大地图|大富翁|欢乐假期|每日签到|美食大赛|美食活动|萌宠神殿|跨服远征|月卡福利|龙渊除厄
         其中跨服会跳转到二区
         :return bool 是否进入成功
         """
@@ -123,7 +143,7 @@ class FAAActionInterfaceJump:
                 source_range=[250, 0, 880, 110],
                 template=RESOURCE_P["common"]["顶部菜单"]["{}.png".format(mode)],
                 match_failed_check=3,
-                after_sleep=1.5,
+                after_sleep=0.2,
                 click=True)
             if find:
                 print_debug(text="[顶部菜单] [{}] 3s内跳转成功".format(mode))
@@ -145,6 +165,7 @@ class FAAActionInterfaceJump:
                 source_range=[0, 0, 950, 200],
                 template=RESOURCE_P["common"]["跨服副本_ui.png"],
                 match_failed_check=10,
+                after_sleep=0.2,
                 click=False,
             )
 
@@ -159,7 +180,10 @@ class FAAActionInterfaceJump:
         return find
 
     def action_bottom_menu(self: "FAA", mode: str) -> bool:
-        """点击下方菜单栏, 包含:任务/后退/背包/跳转_公会任务/跳转_公会副本/跳转_情侣任务/跳转_竞技场/跳转_缘分树"""
+        """
+        点击下方菜单栏, 包含:任务/后退/背包/跳转_公会任务/跳转_公会副本/跳转_情侣任务/跳转_竞技场/跳转_缘分树
+        动作完成后休息 1s
+        """
 
         handle = self.handle
         handle_360 = self.handle_360
@@ -171,7 +195,8 @@ class FAAActionInterfaceJump:
                 mode == "任务" or
                 mode == "后退" or
                 mode == "背包" or
-                mode == "公会"
+                mode == "公会" or
+                mode == '合成屋'
         ):
             find = loop_match_p_in_w(
                 source_handle=handle,
@@ -204,7 +229,7 @@ class FAAActionInterfaceJump:
                 source_range=[520, 170, 950, 600],
                 template=RESOURCE_P["common"]["底部菜单"]["{}.png".format(mode)],
                 match_failed_check=3,
-                after_sleep=0.5,
+                after_sleep=1,
                 click=True)
 
         if not find:
@@ -212,27 +237,47 @@ class FAAActionInterfaceJump:
 
         return find
 
-    def action_change_activity_list(self: "FAA", serial_num: int) -> None:
-        """检测顶部的活动清单, 1为第一页, 2为第二页(有举报图标的一页)"""
+    def _get_activity_list_page(self: "FAA") -> int | None:
+        """从同一帧识别活动清单页。世界地图图标可见时，才能确认第三页为空。"""
+        image = capture_image_png(handle=self.handle, root_handle=self.handle_360, raw_range=[0, 0, 950, 110])
+        templates = RESOURCE_P["common"]["顶部菜单"]
+        for page, markers in ((1, ("每日签到.png", "VIP签到.png")), (2, ("举报.png", "萌宠神殿.png"))):
+            for marker in markers:
+                status, _ = match_p_in_w(
+                    source_img=image, source_range=[250, 0, 800, 110], template=templates[marker])
+                if status == 2:
+                    return page
+                if status == 0:
+                    return None
+        status, _ = match_p_in_w(
+            source_img=image, source_range=[795, 0, 880, 110], template=templates["大地图.png"])
+        return 3 if status == 2 else None
 
-        handle = self.handle
-        handle_360 = self.handle_360
+    def action_change_activity_list(self: "FAA", serial_num: int) -> bool:
+        """切换顶部活动清单到指定页。第三页收起活动图标，适合在地图上选关。"""
+        if serial_num not in (1, 2, 3):
+            self.print_warning(text=f"[顶部菜单] 不支持的活动清单页码: {serial_num}")
+            return False
 
-        _, find = match_p_in_w(
-            source_handle=handle,
-            source_root_handle=handle_360,
-            source_range=[0, 0, 950, 600],
-            template=RESOURCE_P["common"]["顶部菜单"]["举报.png"])
+        def wait_for_page(expected_page=None):
+            """等待动作队列和画面刷新，忽略不符合下一页顺序的过渡画面。"""
+            for attempt in range(5):
+                page = self._get_activity_list_page()
+                if page is not None and (expected_page is None or page == expected_page):
+                    return page
+                if attempt < 4:
+                    time.sleep(0.2)
+            return None
 
-        if serial_num == 1:
-            if find:
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=785, y=30)
-                time.sleep(0.5)
-
-        if serial_num == 2:
-            if not find:
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=785, y=30)
-                time.sleep(0.5)
+        page = wait_for_page()
+        for _ in range(2):
+            if page is None or page == serial_num:
+                break
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=785, y=30)
+            page = wait_for_page(expected_page=page % 3 + 1)
+        if page != serial_num:
+            self.print_warning(text=f"[顶部菜单] 未能切换到活动清单第 {serial_num} 页")
+        return page == serial_num
 
     def action_goto_map(self: "FAA", map_id) -> bool:
         """
@@ -252,15 +297,168 @@ class FAAActionInterfaceJump:
             template=RESOURCE_P["map"]["{}.png".format(map_id)],
             match_tolerance=0.99,
             match_failed_check=5,
-            after_sleep=2,
+            after_sleep=0.2,
             click=True
         )
+        if not find:
+            self.print_warning(text=f"[地图跳转] 世界地图中未找到地图 {map_id}")
         return find
 
-    def action_goto_stage(self: "FAA", mt_wb_first_time: bool = False) -> None:
+    def action_world_boss_sweep(self: "FAA") -> int | None:
+        """使用当前角色的扫荡券，填写游戏允许的最大次数并提交一次。
+
+        Returns:
+            游戏确认的扫荡次数。没有可扫荡次数时为 0，识图或结算未确认时为 None。
+        """
+        templates = RESOURCE_P["world_boss"]["sweep"]
+        regions = {
+            "open": [807, 541, 881, 592],
+            "title": [409, 59, 557, 111],
+            "plus": [721, 296, 767, 341],
+            "zero": [588, 377, 697, 424],
+            "start": [589, 415, 703, 464],
+            "result": [289, 119, 373, 160],
+            "close_panel": [746, 74, 795, 122],
+            "close_home": [906, 0, 950, 43],
+        }
+
+        def find(name, *, click=False, timeout=0):
+            """在世界 BOSS 对应区域内识别控件，点击交给动作队列。"""
+            return loop_match_p_in_w(
+                source_handle=self.handle,
+                source_root_handle=self.handle_360,
+                source_range=regions[name],
+                template=templates[f"{name}.png"],
+                # 计数只差一个字形，常规阈值会将部分非零次数误认成 0。
+                match_tolerance=0.998 if name == "zero" else 0.985,
+                match_failed_check=timeout,
+                click=click,
+            )
+
+        def selected_count_image():
+            """截取已选次数中的数字，避开随背包券数变化的分母。"""
+            return capture_image_png(
+                handle=self.handle,
+                root_handle=self.handle_360,
+                raw_range=[599, 388, 689, 412],
+            )[:, :, :3]
+
+        # 扫荡与挑战共用巅峰对决入口。直接打开首页，避免进入战斗房间。
+        if not find("title") and not find("open") and not self.action_top_menu(mode="巅峰对决"):
+            self.print_warning("[巅峰对决扫荡] 未找到巅峰对决入口")
+            return None
+
+        try:
+            if find("title"):
+                # 重新打开面板，让可能由人工设置的次数回到 0。
+                find("close_panel", click=True)
+            if not find("open", click=True, timeout=12) or not find("title", timeout=5):
+                self.print_warning("[巅峰对决扫荡] 未能打开扫荡面板")
+                return None
+            if not find("zero"):
+                self.print_warning("[巅峰对决扫荡] 未能确认扫荡次数已归零")
+                return None
+
+            selected = 0
+            number_image = selected_count_image()
+            selection_deadline = time.monotonic() + 45
+            while time.monotonic() < selection_deadline:
+                if not find("plus", click=True, timeout=0.8):
+                    if selected == 0 and find("title") and find("zero"):
+                        return 0
+                    self.print_warning("[巅峰对决扫荡] 选择次数时未能确认加号")
+                    return None
+
+                # 到达额度或券数上限时加号依然可点，只有扫荡次数是否增加能区分。
+                deadline = time.monotonic() + 1.5
+                while time.monotonic() < deadline:
+                    time.sleep(0.2)
+                    updated = selected_count_image()
+                    if not np.array_equal(updated, number_image):
+                        if not find("title") or not find("start"):
+                            self.print_warning("[巅峰对决扫荡] 选择次数时扫荡面板状态发生变化")
+                            return None
+                        selected += 1
+                        number_image = updated
+                        break
+                else:
+                    break
+            else:
+                self.print_warning("[巅峰对决扫荡] 未能确认已选到最大扫荡次数")
+                return None
+
+            if selected == 0:
+                if find("title") and find("zero"):
+                    return 0
+                self.print_warning("[巅峰对决扫荡] 未能确认扫荡面板状态")
+                return None
+
+            if not find("title") or find("zero") or not find("start", click=True):
+                self.print_warning("[巅峰对决扫荡] 未能确认可提交的扫荡面板")
+                return None
+            if not find("result", timeout=90):
+                # 提交后只有结算能确认结果。超时时不能再次提交，以免重复扣券。
+                self.print_warning("[巅峰对决扫荡] 已点击开始，但未确认结算结果")
+                return None
+            return selected
+        finally:
+            if find("title"):
+                find("close_panel", click=True, timeout=2)
+            if find("open", timeout=2) and not find("close_home", click=True, timeout=2):
+                self.print_warning("[巅峰对决扫荡] 未能关闭巅峰对决首页")
+
+    def action_goto_single_magic_tower(self: "FAA") -> bool:
+        """进入单人魔塔选层界面，但不选择层数或创建房间。"""
+        return self.action_goto_magic_tower(mode="1")
+
+    def action_goto_magic_tower(self: "FAA", mode: str) -> bool:
+        """打开魔塔选层界面，模式 1、2、3 分别对应单人、双人、密室。"""
+
+        handle = self.handle
+
+        # 魔塔入口位于海底地图。
+        if not self.action_goto_map(map_id=5):
+            self.print_warning(text="[魔塔] 前往海底地图失败")
+            return False
+
+        # 与常规魔塔跳转保持一致，随机选择一个海底分区。
+        random.seed(self.random_seed)
+        region_id = random.randint(1, 2)
+        time.sleep(5)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=803, y=84)
+        time.sleep(1)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(
+            handle=handle,
+            x=779,
+            y={1: 85, 2: 110}[region_id],
+        )
+        time.sleep(5)
+
+        # 进入魔塔总界面
+        # 2026-08-18 根据反馈 少数用户表示此处会卡住, 现已添加时延 0.2 -> 1
+        find = loop_match_p_in_w(
+            source_handle=handle,
+            source_root_handle=self.handle_360,
+            source_range=[0, 0, 950, 600],
+            template=RESOURCE_P["stage"]["MT.png"],
+            match_failed_check=5,
+            after_sleep=1,
+            click=True,
+        )
+        if not find:
+            self.print_warning(text="[魔塔] 未找到魔塔入口")
+            return False
+
+        # 2026-08-18 根据反馈 少数用户表示此处会卡住, 现已添加时延 0.5 -> 1
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x={"1": 46, "2": 115, "3": 188}[mode], y=66)
+        time.sleep(1)
+        return True
+
+    def action_goto_stage(self: "FAA", mt_wb_first_time: bool = False) -> bool | None:
         """
         只要右上能看到地球 就可以到目标关卡
         :param mt_wb_first_time: 魔塔关卡世界boss, 是否是第一次打. 魔塔第一次塔需要进塔, 第二次只需要选关卡序号; 世界boss第一次需要进入界面, 第二次只需要创建房间.
+        :return: 已确认跳转失败时返回 False；其余流程沿用 None。
         """
 
         handle = self.handle
@@ -308,7 +506,7 @@ class FAAActionInterfaceJump:
             # 仅限主角色创建关卡
             if self.is_main:
                 # 防止被活动列表遮住
-                self.action_change_activity_list(serial_num=2)
+                self.action_change_activity_list(serial_num=3)
 
                 # 选择关卡
                 loop_match_p_in_w(
@@ -317,7 +515,7 @@ class FAAActionInterfaceJump:
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
                     match_tolerance=0.995,
-                    after_sleep=1,
+                    after_sleep=0.2,
                     click=True)
 
                 # 设置密码
@@ -329,38 +527,22 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                    after_sleep=1,
+                    after_sleep=0.2,
                     click=True)
 
         def main_mt():
 
             if mt_wb_first_time:
-                # 前往海底
-                self.action_goto_map(map_id=5)
-
-                # 选区
-                change_to_region(region_list=[1, 2])
-
-            if self.is_main and mt_wb_first_time:
-                # 进入魔塔
-                loop_match_p_in_w(
-                    source_handle=handle,
-                    source_root_handle=handle_360,
-                    source_range=[0, 0, 950, 600],
-                    template=RESOURCE_P["stage"]["MT.png"],
-                    match_failed_check=5,
-                    after_sleep=2,
-                    click=True
-                )
-
-                # stage_1 根据模式进行选择
-                my_dict = {"1": 46, "2": 115, "3": 188}
-                T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=my_dict[stage_1], y=66)
-                time.sleep(0.5)
+                if self.is_main:
+                    if not self.action_goto_magic_tower(mode=stage_1):
+                        return
+                else:
+                    self.action_goto_map(map_id=5)
+                    change_to_region(region_list=[1, 2])
 
             # 不是房主, 不进行关卡选择和创建房间
             if not self.is_main:
-                return
+                return None
 
             # 选择了密室 直接识图找关卡
             if stage_1 == "3":
@@ -369,23 +551,27 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
-                    after_sleep=0.3,
+                    after_sleep=0.5,
                     click=True)
 
-            # 单双人爬塔 等于0则为爬塔模式 即选择最高层 从下到上遍历所有层数
+            # 单双人爬塔 等于0则为自动爬塔模式 即选择最高层 从下到上遍历所有层数
+            # 2026-08-18 根据反馈 少数用户表示此处会卡住, 每次翻页时延 0.1 -> 0.2
+
             if stage_1 != "3" and stage_2 == "0":
                 # 到魔塔最低一层
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=47, y=579)
                 time.sleep(0.3)
 
-                for i in range(11):
-                    # 下一页
+                # 此处翻页11就够了, 预留12给未来
+                for i in range(12):
+                    # 翻页
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=152, y=577)
-                    time.sleep(0.1)
+                    time.sleep(0.3)
 
                     for j in range(15):
+                        # 遍历本页所有层数
                         T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=110, y=542 - 30.8 * j)
-                        time.sleep(0.1)
+                        time.sleep(0.2)
 
             # 单双人爬塔 指定层数
             if stage_1 != "3" and stage_2 != "0":
@@ -393,7 +579,7 @@ class FAAActionInterfaceJump:
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=47, y=579)
                 time.sleep(0.3)
 
-                # 向右到对应位置
+                # 向右翻页到对应位置
                 my_left = int((int(stage_2) - 1) / 15)
                 for i in range(my_left):
                     T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=handle, x=152, y=577)
@@ -412,11 +598,15 @@ class FAAActionInterfaceJump:
                 source_root_handle=handle_360,
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
-                after_sleep=1,
+                after_sleep=0.2,
                 click=True)
 
-            # 识别出当前关卡名称
-            return screen_get_stage_name(self.handle, self.handle_360)
+            if stage_2 == "0":
+                stage_name = screen_get_stage_name(self.handle, self.handle_360)
+                stage_id_extra = self._get_stage_info_from_battle_name(stage_name=stage_name)
+                return stage_id_extra
+
+            return None
 
         def main_cs():
 
@@ -511,7 +701,7 @@ class FAAActionInterfaceJump:
                 source_range=[0, 0, 950, 600],
                 template=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
                 match_tolerance=0.95,
-                after_sleep=3,
+                after_sleep=0.2,
                 click=True)
 
             # 切区
@@ -527,52 +717,64 @@ class FAAActionInterfaceJump:
                 time.sleep(0.5)
 
         def main_ex():
+            if stage_1 == "6":
+                # 龙渊除厄从顶部活动菜单直接进入，不经过旧番外地图和船只。
+                self.action_top_menu(mode="龙渊除厄")
+            else:
+                # 旧番外关卡仍从探险营地地图进入。
+                self.action_goto_map(map_id=10)
+                self.action_change_activity_list(serial_num=3)
 
-            # 防止被活动列表遮住
-            self.action_change_activity_list(2)
-
-            # 进入对应地图
-            self.action_goto_map(map_id=10)
-
-            # 不是营地
-            if stage_1 != "1":
-                # 找船
-                loop_match_p_in_w(
-                    source_handle=handle,
-                    source_root_handle=handle_360,
-                    source_range=[0, 0, 950, 600],
-                    template=RESOURCE_P["stage"]["EX-Ship.png"],
-                    after_sleep=1.5,
-                    click=True)
-
-                # 找地图图标，需要防止因点过一次后图片放大造成的无法点击
-                if not (loop_match_p_in_w(
-                        source_handle=handle,
-                        source_root_handle=handle_360,
-                        source_range=[0, 0, 950, 600],
-                        template=RESOURCE_P["stage"]["EX-{}.png".format(stage_1)],
-                        after_sleep=1.5,
-                        click=True)):
+                # 探险营地以外的旧番外地图需要先乘船。
+                if stage_1 != "1":
                     loop_match_p_in_w(
                         source_handle=handle,
                         source_root_handle=handle_360,
                         source_range=[0, 0, 950, 600],
-                        template=RESOURCE_P["stage"]["EX-{}_1.png".format(stage_1)],
-                        after_sleep=1.5,
+                        template=RESOURCE_P["stage"]["EX-Ship.png"],
+                        after_sleep=0.2,
                         click=True)
+
+                    # 地图图标点击后会放大，因此准备两种模板依次识别。
+                    if not loop_match_p_in_w(
+                            source_handle=handle,
+                            source_root_handle=handle_360,
+                            source_range=[0, 0, 950, 600],
+                            template=RESOURCE_P["stage"]["EX-{}.png".format(stage_1)],
+                            after_sleep=0.2,
+                            click=True):
+                        loop_match_p_in_w(
+                            source_handle=handle,
+                            source_root_handle=handle_360,
+                            source_range=[0, 0, 950, 600],
+                            template=RESOURCE_P["stage"]["EX-{}_1.png".format(stage_1)],
+                            after_sleep=0.2,
+                            click=True)
+
             # 切区
             change_to_region(region_list=[1, 2])
 
             # 仅限主角色创建关卡
             if self.is_main:
                 # 选择关卡
-                loop_match_p_in_w(
+                stage_template = RESOURCE_P["stage"][f'{self.stage_info["id"]}.png']
+                template_mask = None
+                if stage_1 == "6" and stage_template.shape[2] == 4:
+                    # 气泡和角标以外的透明像素是地图背景，必须显式传掩模才能跳过。
+                    template_mask = np.repeat(stage_template[:, :, 3:4], 3, axis=2)
+
+                found = loop_match_p_in_w(
                     source_handle=handle,
                     source_root_handle=handle_360,
-                    source_range=[0, 0, 950, 600],
-                    template=RESOURCE_P["stage"]["{}.png".format(self.stage_info["id"])],
-                    after_sleep=0.5,
+                    source_range=LONGYUAN_STAGE_ENTRY_RANGES[stage_2] if stage_1 == "6" else [0, 0, 950, 600],
+                    template=stage_template,
+                    template_mask=template_mask,
+                    match_tolerance=LONGYUAN_STAGE_ENTRY_TOLERANCE if stage_1 == "6" else 0.95,
+                    after_sleep=0.2,
                     click=True)
+                if stage_1 == "6" and not found:
+                    # 入口未打开时，房间密码坐标仍落在龙渊地图上。
+                    return False
 
                 # 设置密码
                 click_set_password()
@@ -583,7 +785,7 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                    after_sleep=0.5,
+                    after_sleep=0.2,
                     click=True)
 
         def main_pt():
@@ -620,7 +822,7 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["common"]["战斗"]["战斗前_魔塔_创建房间.png"],
-                    after_sleep=1,
+                    after_sleep=0.2,
                     click=True)
 
         def main_gd():
@@ -712,7 +914,7 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[680, 20, 850, 65],
                     template=RESOURCE_P["world_boss"][boss_img_name],
-                    match_tolerance=0.99,
+                    match_tolerance=0.975,
                     match_interval=0.2,
                     match_failed_check=1,
                     after_sleep=0,
@@ -722,14 +924,15 @@ class FAAActionInterfaceJump:
                     boss_name = boss_img_name.split('.')[0]
                     break
 
-            buff_img_names_list = [img_name for img_name in RESOURCE_P["world_boss"].keys() if img_name.startswith(boss_name + "-")]
+            buff_img_names_list = [
+                img_name for img_name in RESOURCE_P["world_boss"].keys() if img_name.startswith(boss_name + "-")]
             for buff_img_name in buff_img_names_list:
                 result = loop_match_p_in_w(
                     source_handle=handle,
                     source_root_handle=handle_360,
                     source_range=[830, 270, 910, 350],
                     template=RESOURCE_P["world_boss"][buff_img_name],
-                    match_tolerance=0.99,
+                    match_tolerance=0.975,
                     match_interval=0.2,
                     match_failed_check=1,
                     after_sleep=0,
@@ -762,7 +965,7 @@ class FAAActionInterfaceJump:
                     source_range=[155, 385, 225, 450],
                     template=RESOURCE_P["stage"]["WA-0-0.png"],
                     match_tolerance=0.995,
-                    after_sleep=1,
+                    after_sleep=0.2,
                     click=True)
 
                 # 遍历所有关卡图像 查看目前属于哪个
@@ -802,7 +1005,7 @@ class FAAActionInterfaceJump:
                     source_range=[370, 505, 530, 550],
                     template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
                     match_tolerance=0.99,
-                    after_sleep=1,
+                    after_sleep=0.2,
                     click=True)
 
         def main_cz():
@@ -818,7 +1021,7 @@ class FAAActionInterfaceJump:
             # 仅限主角色创建关卡
             if self.is_main:
                 # 防止被活动列表遮住
-                self.action_change_activity_list(serial_num=2)
+                self.action_change_activity_list(serial_num=3)
 
                 # 选择关卡
                 my_dict = {
@@ -842,7 +1045,7 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                    after_sleep=1,
+                    after_sleep=0.2,
                     click=True)
 
         def main_mu():
@@ -856,7 +1059,7 @@ class FAAActionInterfaceJump:
             # 仅限主角色创建关卡
             if self.is_main:
                 # 防止被活动列表遮住
-                self.action_change_activity_list(serial_num=2)
+                self.action_change_activity_list(serial_num=3)
                 exchange_dict = {
                     "MU-1-1": "NO-1-7", "MU-1-2": "NO-1-14",
                     "MU-2-1": "NO-2-5", "MU-2-2": "NO-2-10", "MU-2-3": "NO-2-15",
@@ -868,7 +1071,7 @@ class FAAActionInterfaceJump:
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["stage"]["{}.png".format(exchange_dict[self.stage_info["id"]])],
                     match_tolerance=0.995,
-                    after_sleep=1,
+                    after_sleep=0.2,
                     click=True)
                 # 选择关卡
                 loop_match_p_in_w(
@@ -876,8 +1079,8 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[90, 200, 130, 300],
                     template=RESOURCE_P["stage"]["MU-1.png"],
-                    match_tolerance=0.995,
-                    after_sleep=1,
+                    match_tolerance=0.95,
+                    after_sleep=0.2,
                     click=True)
                 # 设置密码
                 time.sleep(0.5)
@@ -889,7 +1092,7 @@ class FAAActionInterfaceJump:
                     source_root_handle=handle_360,
                     source_range=[0, 0, 950, 600],
                     template=RESOURCE_P["common"]["战斗"]["战斗前_创建房间.png"],
-                    after_sleep=1,
+                    after_sleep=0.2,
                     click=True)
 
         def main():
@@ -897,13 +1100,13 @@ class FAAActionInterfaceJump:
             if stage_0 == "NO":
                 main_no()
             elif stage_0 == "MT":
-                main_mt()
+                stage_id_extra = main_mt()
             elif stage_0 == "CS":
                 main_cs()
             elif stage_0 == "OR":
                 main_or()
             elif stage_0 == "EX":
-                main_ex()
+                return main_ex()
             elif stage_0 == "PT":
                 main_pt()
             elif stage_0 == "GD":
@@ -923,15 +1126,9 @@ class FAAActionInterfaceJump:
                 SIGNAL.DIALOG.emit("ERROR", "跳转关卡失败! 请检查关卡代号是否正确")
                 SIGNAL.END.emit()
 
-            # 识别出当前关卡名称
-            stage_name = screen_get_stage_name(self.handle, self.handle_360)
-            self.print_debug(text=f"关卡名称识别结果: 当前关卡 - {stage_name}")
-
             if stage_id_extra:
+                # 检测可能的关卡名变种，如果符合特定关卡，则修改当前战斗的关卡信息
                 # 根据新的关卡id 作为战斗id覆盖 模式id不变
-                self._check_stage_name(text=stage_id_extra, t_type="id")
-            else:
-                # 检测关卡名变种，如果符合特定关卡，则修改当前战斗的关卡信息
-                self._check_stage_name(text=stage_name, t_type="name")
+                self._change_stage_bid(new_stage_id=stage_id_extra)
 
         return main()

@@ -1,4 +1,5 @@
 import json
+import os
 from dataclasses import dataclass, asdict
 from typing import List, Union, Dict
 
@@ -52,28 +53,38 @@ class ActionInsertUseCard:
     after_shovel_time: int
     type: str = "insert_use_card"
 
+
 @dataclass
 class ActionShovel:
     time: float
     location: str
     type: str = "shovel"
 
+
 @dataclass
 class ActionUseGem:
     gem_id: int
     type: str = "insert_use_gem"
+
+
 @dataclass
 class ActionEscape:
     time: float
     type: str = "escape"
+
+
 @dataclass
 class ActionRandomSingleCard:
     card_index: int
     type: str = "random_single_card"
+
+
 @dataclass
 class ActionRandomMultiCard:
     card_indices: List[int]
     type: str = "random_multi_card"
+
+
 @dataclass
 class ActionBanCard:
     start_time: float
@@ -81,10 +92,12 @@ class ActionBanCard:
     card_id: int
     type: str = "ban_card"
 
+
 @dataclass
 class Event:
     trigger: Union[TriggerWaveTimer]
-    action: Union[ActionLoopUseCards, ActionInsertUseCard, ActionUseGem, ActionShovel, ActionBanCard, ActionEscape, ActionRandomSingleCard, ActionRandomMultiCard]
+    action: Union[
+        ActionLoopUseCards, ActionInsertUseCard, ActionUseGem, ActionShovel, ActionBanCard, ActionEscape, ActionRandomSingleCard, ActionRandomMultiCard]
 
 
 @dataclass
@@ -148,7 +161,7 @@ def convert_v2_to_v3(v2_data: Dict) -> Dict:
 
     meta = {
         "uuid": v2_data["uuid"],
-        "tips": v2_data["tips"] if v2_data.get("tips", None) else v2_data.get("tip", ""), # 部分小版本该参数有小变化
+        "tips": v2_data["tips"] if v2_data.get("tips", None) else v2_data.get("tip", ""),  # 部分小版本该参数有小变化
         "player_position": v2_data["player"],
         "version": "3.0"  # 根据需求可改为 "v3.0"
     }
@@ -185,7 +198,7 @@ def convert_v2_to_v3(v2_data: Dict) -> Dict:
                     "ergodic": c["ergodic"],
                     "queue": c["queue"],
                     "location": c["location"],
-                    "kun": c.get("kun",0)  # 部分小版本该参数不存在
+                    "kun": c.get("kun", 0)  # 部分小版本该参数不存在
                 } for c in v2_data["card"]["default"]
             ]
         }
@@ -220,14 +233,14 @@ def convert_v2_to_v3(v2_data: Dict) -> Dict:
 if __name__ == '__main__':
     def test_load_v2_json_to_dict():
         # 读取 JSON 文件
-        file_path = PATHS["battle_plan"] + "\\NO-6-10-1P 多拿滋.json"
+        file_path = os.path.join(PATHS["battle_plan"], 'NO-6-10-1P 多拿滋.json')
         with open(file=file_path, mode='r', encoding='utf-8') as file:
             return json.load(file)
 
 
     def test_load_v3_json_to_dict():
         # 读取 JSON 文件
-        file_path = PATHS["battle_plan"] + "\\新版方案示例-触发器和动作内联于事件.json"
+        file_path = os.path.join(PATHS["battle_plan"], '新版方案示例-触发器和动作内联于事件.json')
         with open(file=file_path, mode='r', encoding='utf-8') as file:
             return json.load(file)
 

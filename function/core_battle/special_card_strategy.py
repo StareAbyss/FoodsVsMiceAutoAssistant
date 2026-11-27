@@ -1,4 +1,5 @@
 from pulp import *
+
 from function.globals.log import CUS_LOGGER
 
 # 为简化函数的调用，将策略添加到全局中
@@ -7,11 +8,11 @@ STRATEGIES_2 = {}
 COPY_STRATEGY = {}
 COPY_STRATEGY_2 = {}
 
-
-STRATEGIES_OB= {}
+STRATEGIES_OB = {}
 STRATEGIES_2_OB = {}
 COPY_STRATEGY_OB = {}
 COPY_STRATEGY_2_OB = {}
+
 
 def generate_coverage(strategy_id):
     """
@@ -72,12 +73,15 @@ def generate_extra_coverage(strategy_id, extra):
             return ([(i, j) for i in range(-2, 2) for j in range(-1, 2)] +
                     [(i, 0) for i in range(-8, 9)] +
                     [(0, j) for j in range(-6, 7)])
-def generate_row_col_coverage(row, col):
-        half_row = row // 2
-        half_col = col // 2
-        return [(i, j) for i in range(-half_col, half_col + 1) for j in range(-half_row, half_row + 1)]  # row行col列
 
-def add_strategy(player, strategy_id,  card,cost=0, rows=None, cols=None, extra=None):
+
+def generate_row_col_coverage(row, col):
+    half_row = row // 2
+    half_col = col // 2
+    return [(i, j) for i in range(-half_col, half_col + 1) for j in range(-half_row, half_row + 1)]  # row行col列
+
+
+def add_strategy(player, strategy_id, card, cost=0, rows=None, cols=None, extra=None):
     """
     添加策略到策略字典中，并动态生成唯一的策略ID和覆盖范围
     :param player:
@@ -88,8 +92,6 @@ def add_strategy(player, strategy_id,  card,cost=0, rows=None, cols=None, extra=
     :param cols: 十字的列数（仅用于十字策略）
     :param extra:
     """
-
-
 
     # 根据策略类型ID生成覆盖范围
     if strategy_id == 8:  # 如果是十字策略
@@ -113,19 +115,16 @@ def add_strategy(player, strategy_id,  card,cost=0, rows=None, cols=None, extra=
         else:
             STRATEGIES_2[card] = {"coverage": coverage, "cost": cost}
 
-def add_strategy_ob(player, strategy_id,  card, extra1=None, extra2=None):
+
+def add_strategy_ob(player, strategy_id, card, extra1=None, extra2=None):
     """
     添加清障策略到策略字典中并动态生成覆盖范围
     :param player:
     :param strategy_id: 策略的类型ID
-    :param cost: 策略的成本
     :param card:
-    :param rows: 十字的行数（仅用于十字策略）
-    :param cols: 十字的列数（仅用于十字策略）
-    :param extra:
+    :param extra1:
+    :param extra2:
     """
-
-
 
     # 根据策略类型ID生成覆盖范围
     if strategy_id == 18:
@@ -146,6 +145,7 @@ def add_strategy_ob(player, strategy_id,  card, extra1=None, extra2=None):
             COPY_STRATEGY_2_OB[card] = {"coverage": coverage}
         else:
             STRATEGIES_2_OB[card] = {"coverage": coverage}
+
 
 def solve_special_card_problem(points_to_cover, obstacles, card_list_can_use):
     """
@@ -174,8 +174,6 @@ def solve_special_card_problem(points_to_cover, obstacles, card_list_can_use):
     global COPY_STRATEGY_2
     COPY_STRATEGY = {}
     COPY_STRATEGY_2 = {}
-
-
 
     # 添加策略
     for i in range(1, 3):  # 遍历可用列表添加策略
@@ -308,7 +306,6 @@ def solve_special_card_problem(points_to_cover, obstacles, card_list_can_use):
 
         # 对于每一个复制策略c，检查其对应的所有原始策略s
         for s in STRATEGIES.keys():
-
             # 确保原始策略s至少在地图上的一个位置被放置
             prob += (lpSum([x[i, j, s]
                             for i in range(1, MAP_WIDTH + 1)
@@ -321,7 +318,6 @@ def solve_special_card_problem(points_to_cover, obstacles, card_list_can_use):
 
         # 对于每一个复制策略c，检查其对应的所有原始策略
         for s in STRATEGIES_2.keys():
-
             # 确保原始策略s至少在地图上的一个位置被放置
             prob += (lpSum([z[i, j, s]
                             for i in range(1, MAP_WIDTH + 1)
@@ -364,6 +360,7 @@ def solve_special_card_problem(points_to_cover, obstacles, card_list_can_use):
     else:
         return None
 
+
 # # 定义待处理点位列表
 # points_to_cover = ["9-5", "3-2", "9-2", "1-1"]  # 添加所有待处理点位
 # # 定义障碍列表
@@ -380,10 +377,10 @@ def solve_maximize_score_problem(obstacles, score_matrix, card_list_can_use, sco
     :param score_threshold: 分数阈值，低于此值的位置视为0分
     :return: strategy1, strategy2 两个玩家的最佳策略
     """
-    
+
     # 定义问题 - 最大化
     prob = LpProblem("Maximize_Score_Problem", LpMaximize)
-    
+
     # 定义常量
     MAP_WIDTH = 9  # x坐标范围 1-9
     MAP_HEIGHT = 7  # y坐标范围 1-7
@@ -398,36 +395,34 @@ def solve_maximize_score_problem(obstacles, score_matrix, card_list_can_use, sco
             else:
                 processed_row.append(score)
         processed_score_matrix.append(processed_row)
-    
+
     # 更新障碍物列表，将非零评分位置也加入障碍物
     enhanced_obstacles = set(obstacles)  # 原始障碍物
     for j in range(MAP_HEIGHT):
         for i in range(MAP_WIDTH):
             if processed_score_matrix[j][i] > 0:
-                enhanced_obstacles.add(f"{i+1}-{j+1}")  # 转换为1基索引并添加到障碍物列表
-    
+                enhanced_obstacles.add(f"{i + 1}-{j + 1}")  # 转换为1基索引并添加到障碍物列表
+
     # 定义策略字典
     global STRATEGIES_OB
     global STRATEGIES_2_OB
     STRATEGIES_OB = {}
     STRATEGIES_2_OB = {}
-    
+
     # 定义复制策略字典
     global COPY_STRATEGY_OB
     global COPY_STRATEGY_2_OB
     COPY_STRATEGY_OB = {}
     COPY_STRATEGY_2_OB = {}
-    
 
-    
     # 添加策略
     for i in range(1, 3):  # 遍历可用列表添加策略
         for card in card_list_can_use[i]:
             if card.card_type == 18:
-                add_strategy_ob(i, card.card_type,  extra1=card.rows, extra2=card.cols, card=card)
-            else:#全屏清障卡
-                add_strategy_ob(i, 15,  card=card)
-    
+                add_strategy_ob(i, card.card_type, extra1=card.rows, extra2=card.cols, card=card)
+            else:  # 全屏清障卡
+                add_strategy_ob(i, 15, card=card)
+
     # 创建决策变量
     x = LpVariable.dicts(
         name="strategy",
@@ -452,7 +447,7 @@ def solve_maximize_score_problem(obstacles, score_matrix, card_list_can_use, sco
                  for j in range(1, MAP_HEIGHT + 1)
                  for s in STRATEGIES_2_OB.keys()],
         cat='Binary')
-    
+
     # 创建复制对策变量
     w = LpVariable.dicts(
         name="copy_strategy2",
@@ -461,20 +456,20 @@ def solve_maximize_score_problem(obstacles, score_matrix, card_list_can_use, sco
                  for s in STRATEGIES_2_OB.keys()
                  for c in COPY_STRATEGY_2_OB.keys()],
         cat='Binary')
-    
+
     # 创建辅助变量，表示每个位置是否被覆盖
     covered = LpVariable.dicts(
         name="covered",
-        indices=[(i, j) 
-                 for i in range(1, MAP_WIDTH + 1) 
+        indices=[(i, j)
+                 for i in range(1, MAP_WIDTH + 1)
                  for j in range(1, MAP_HEIGHT + 1)],
         cat='Binary')
-    
+
     # 目标函数 - 最大化被覆盖位置的总得分（每个位置只计算一次）
-    prob += lpSum([processed_score_matrix[j-1][i-1] * covered[i, j]
+    prob += lpSum([processed_score_matrix[j - 1][i - 1] * covered[i, j]
                    for i in range(1, MAP_WIDTH + 1)
                    for j in range(1, MAP_HEIGHT + 1)])
-    
+
     # 约束条件
     # 1. 不能在障碍上放置对策（包括评分大于0的位置）
     for obstacle in enhanced_obstacles:
@@ -487,7 +482,7 @@ def solve_maximize_score_problem(obstacles, score_matrix, card_list_can_use, sco
             prob += z[i, j, s] == 0
             for c in COPY_STRATEGY_2_OB.keys():
                 prob += w[i, j, s, c] == 0
-                
+
     # 2. 每个策略只能被放置一次
     for s in STRATEGIES_OB.keys():
         prob += lpSum([x[i, j, s]
@@ -497,7 +492,7 @@ def solve_maximize_score_problem(obstacles, score_matrix, card_list_can_use, sco
         prob += lpSum([z[i, j, s]
                        for i in range(1, MAP_WIDTH + 1)
                        for j in range(1, MAP_HEIGHT + 1)]) <= 1
-        
+
     # 3. 每个复制对策只能被放置一次
     for s in STRATEGIES_OB.keys():
         for c in COPY_STRATEGY_OB.keys():
@@ -509,7 +504,7 @@ def solve_maximize_score_problem(obstacles, score_matrix, card_list_can_use, sco
             prob += lpSum([w[i, j, s, c]
                            for i in range(1, MAP_WIDTH + 1)
                            for j in range(1, MAP_HEIGHT + 1)]) <= 1
-            
+
     # 4. 约束条件：如果复制对策被放置，则对应的原始对策必须被放置至少一次
     for c in COPY_STRATEGY_OB.keys():
         # 对于每一个复制策略c，检查其对应的所有原始策略s
@@ -521,7 +516,7 @@ def solve_maximize_score_problem(obstacles, score_matrix, card_list_can_use, sco
                      lpSum([y[i, j, s, c]
                             for i in range(1, MAP_WIDTH + 1)
                             for j in range(1, MAP_HEIGHT + 1)]))
-                            
+
     for c in COPY_STRATEGY_2_OB.keys():
         # 对于每一个复制策略c，检查其对应的所有原始策略
         for s in STRATEGIES_2_OB.keys():
@@ -532,44 +527,44 @@ def solve_maximize_score_problem(obstacles, score_matrix, card_list_can_use, sco
                      lpSum([w[i, j, s, c]
                             for i in range(1, MAP_WIDTH + 1)
                             for j in range(1, MAP_HEIGHT + 1)]))
-    
+
     # 5. 覆盖约束：如果某个位置被任何策略覆盖，则covered变量为1
     for i in range(1, MAP_WIDTH + 1):
         for j in range(1, MAP_HEIGHT + 1):
             # 收集所有可能覆盖位置(i,j)的策略
             cover_constraints = []
-            
+
             # 玩家1的标准策略
             for s in STRATEGIES_OB.keys():
                 for offset_i, offset_j in STRATEGIES_OB[s]["coverage"]:
                     # 检查是否有策略在(i-offset_i, j-offset_j)位置放置可以覆盖(i,j)
                     place_i, place_j = i - offset_i, j - offset_j
-                    if (1 <= place_i <= MAP_WIDTH and 1 <= place_j <= MAP_HEIGHT):
+                    if 1 <= place_i <= MAP_WIDTH and 1 <= place_j <= MAP_HEIGHT:
                         cover_constraints.append(x[place_i, place_j, s])
-            
+
             # 玩家1的复制策略
             for s in STRATEGIES_OB.keys():
                 for c in COPY_STRATEGY_OB.keys():
                     for offset_i, offset_j in STRATEGIES_OB[s]["coverage"]:
                         place_i, place_j = i - offset_i, j - offset_j
-                        if (1 <= place_i <= MAP_WIDTH and 1 <= place_j <= MAP_HEIGHT):
+                        if 1 <= place_i <= MAP_WIDTH and 1 <= place_j <= MAP_HEIGHT:
                             cover_constraints.append(y[place_i, place_j, s, c])
-            
+
             # 玩家2的标准策略
             for s in STRATEGIES_2_OB.keys():
                 for offset_i, offset_j in STRATEGIES_2_OB[s]["coverage"]:
                     place_i, place_j = i - offset_i, j - offset_j
-                    if (1 <= place_i <= MAP_WIDTH and 1 <= place_j <= MAP_HEIGHT):
+                    if 1 <= place_i <= MAP_WIDTH and 1 <= place_j <= MAP_HEIGHT:
                         cover_constraints.append(z[place_i, place_j, s])
-            
+
             # 玩家2的复制策略
             for s in STRATEGIES_2_OB.keys():
                 for c in COPY_STRATEGY_2_OB.keys():
                     for offset_i, offset_j in STRATEGIES_2_OB[s]["coverage"]:
                         place_i, place_j = i - offset_i, j - offset_j
-                        if (1 <= place_i <= MAP_WIDTH and 1 <= place_j <= MAP_HEIGHT):
+                        if 1 <= place_i <= MAP_WIDTH and 1 <= place_j <= MAP_HEIGHT:
                             cover_constraints.append(w[place_i, place_j, s, c])
-            
+
             # 约束：如果任何策略覆盖了位置(i,j)，则covered[i,j]必须为1
             if cover_constraints:
                 prob += covered[i, j] <= lpSum(cover_constraints)
@@ -577,27 +572,27 @@ def solve_maximize_score_problem(obstacles, score_matrix, card_list_can_use, sco
                 prob += covered[i, j] >= lpSum(cover_constraints) / len(cover_constraints) if cover_constraints else 0
             else:
                 prob += covered[i, j] == 0
-    
+
     # 求解问题
     prob.solve(PULP_CBC_CMD(msg=0))  # 禁止输出求解过程信息
-    
+
     # 输出结果
     CUS_LOGGER.debug(f"Status: {LpStatus[prob.status]}")
     if LpStatus[prob.status] == "Optimal":  # 有解
         CUS_LOGGER.debug(f"最大得分为 = {value(prob.objective)}")
         strategy1 = {}
         strategy2 = {}
-        
+
         # 计算每个策略产生的有效得分
         strategy1_scores = {}
         strategy2_scores = {}
-        
+
         # 构建位置到分数的映射，用于计算每个策略的得分
         position_scores = {}
         for j in range(MAP_HEIGHT):
             for i in range(MAP_WIDTH):
-                position_scores[(i+1, j+1)] = processed_score_matrix[j][i]
-        
+                position_scores[(i + 1, j + 1)] = processed_score_matrix[j][i]
+
         for i in range(1, MAP_WIDTH + 1):
             for j in range(1, MAP_HEIGHT + 1):
                 for s in STRATEGIES_OB.keys():
@@ -608,7 +603,7 @@ def solve_maximize_score_problem(obstacles, score_matrix, card_list_can_use, sco
                         covered_positions = set()
                         for offset_i, offset_j in STRATEGIES_OB[s]["coverage"]:
                             pos_i, pos_j = i + offset_i, j + offset_j
-                            if (1 <= pos_i <= MAP_WIDTH and 1 <= pos_j <= MAP_HEIGHT):
+                            if 1 <= pos_i <= MAP_WIDTH and 1 <= pos_j <= MAP_HEIGHT:
                                 # 检查这个位置是否是可得分位置（不在原始障碍物中，且得分大于0）
                                 if f"{pos_i}-{pos_j}" not in obstacles and position_scores.get((pos_i, pos_j), 0) > 0:
                                     # 检查这个位置是否已经被其他卡牌覆盖
@@ -625,16 +620,18 @@ def solve_maximize_score_problem(obstacles, score_matrix, card_list_can_use, sco
                             covered_positions = set()
                             for offset_i, offset_j in STRATEGIES_OB[s]["coverage"]:
                                 pos_i, pos_j = i + offset_i, j + offset_j
-                                if (1 <= pos_i <= MAP_WIDTH and 1 <= pos_j <= MAP_HEIGHT):
+                                if 1 <= pos_i <= MAP_WIDTH and 1 <= pos_j <= MAP_HEIGHT:
                                     # 检查这个位置是否是可得分位置（不在原始障碍物中，且得分大于0）
-                                    if f"{pos_i}-{pos_j}" not in obstacles and position_scores.get((pos_i, pos_j), 0) > 0:
+                                    if f"{pos_i}-{pos_j}" not in obstacles and position_scores.get((pos_i, pos_j),
+                                                                                                   0) > 0:
                                         # 检查这个位置是否已经被其他卡牌覆盖
                                         if (pos_i, pos_j) not in covered_positions:
                                             score += position_scores.get((pos_i, pos_j), 0)
                                             covered_positions.add((pos_i, pos_j))
                             strategy1_scores[c] = score
-                            CUS_LOGGER.debug(f"1p复制类对策卡 {c.name} 复制了对策卡 {s.name} 放置于 ({i},{j})，产生有效得分: {score}")
-                            
+                            CUS_LOGGER.debug(
+                                f"1p复制类对策卡 {c.name} 复制了对策卡 {s.name} 放置于 ({i},{j})，产生有效得分: {score}")
+
                 for s in STRATEGIES_2_OB.keys():
                     if value(z[i, j, s]) == 1:
                         strategy2[s] = [i, j]
@@ -643,7 +640,7 @@ def solve_maximize_score_problem(obstacles, score_matrix, card_list_can_use, sco
                         covered_positions = set()
                         for offset_i, offset_j in STRATEGIES_2_OB[s]["coverage"]:
                             pos_i, pos_j = i + offset_i, j + offset_j
-                            if (1 <= pos_i <= MAP_WIDTH and 1 <= pos_j <= MAP_HEIGHT):
+                            if 1 <= pos_i <= MAP_WIDTH and 1 <= pos_j <= MAP_HEIGHT:
                                 # 检查这个位置是否是可得分位置（不在原始障碍物中，且得分大于0）
                                 if f"{pos_i}-{pos_j}" not in obstacles and position_scores.get((pos_i, pos_j), 0) > 0:
                                     # 检查这个位置是否已经被其他卡牌覆盖
@@ -660,16 +657,18 @@ def solve_maximize_score_problem(obstacles, score_matrix, card_list_can_use, sco
                             covered_positions = set()
                             for offset_i, offset_j in STRATEGIES_2_OB[s]["coverage"]:
                                 pos_i, pos_j = i + offset_i, j + offset_j
-                                if (1 <= pos_i <= MAP_WIDTH and 1 <= pos_j <= MAP_HEIGHT):
+                                if 1 <= pos_i <= MAP_WIDTH and 1 <= pos_j <= MAP_HEIGHT:
                                     # 检查这个位置是否是可得分位置（不在原始障碍物中，且得分大于0）
-                                    if f"{pos_i}-{pos_j}" not in obstacles and position_scores.get((pos_i, pos_j), 0) > 0:
+                                    if f"{pos_i}-{pos_j}" not in obstacles and position_scores.get((pos_i, pos_j),
+                                                                                                   0) > 0:
                                         # 检查这个位置是否已经被其他卡牌覆盖
                                         if (pos_i, pos_j) not in covered_positions:
                                             score += position_scores.get((pos_i, pos_j), 0)
                                             covered_positions.add((pos_i, pos_j))
                             strategy2_scores[c] = score
-                            CUS_LOGGER.debug(f"2p复制类对策卡 {c.name} 复制了对策卡 {s.name} 放置于 ({i},{j})，产生有效得分: {score}")
-                            
+                            CUS_LOGGER.debug(
+                                f"2p复制类对策卡 {c.name} 复制了对策卡 {s.name} 放置于 ({i},{j})，产生有效得分: {score}")
+
         return strategy1, strategy2, strategy1_scores, strategy2_scores
     else:
         return None

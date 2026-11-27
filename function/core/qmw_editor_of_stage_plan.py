@@ -1,17 +1,17 @@
 import copy
 import json
+import os
 
-from function.globals.loadings import loading
-
-loading.update_progress(55,"正在加载FAA全局&关卡方案编辑器...")
-from PyQt6 import uic
+from PyQt6 import uic, QtCore
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QMainWindow
 
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
-from function.scattered.check_battle_plan import fresh_and_check_all_battle_plan, fresh_and_check_all_tweak_plan
+from function.scattered.check_battle_plan import refresh_all_battle_plan
+from function.scattered.check_tweak_plan import refresh_all_tweak_plan
 from function.scattered.get_list_battle_plan import get_list_battle_plan, get_list_tweak_plan
+from function.scattered.read_json_to_stage_info import build_stage_menu_data
 
 """
 关卡方案编辑器
@@ -27,10 +27,10 @@ class QMWEditorOfStagePlan(QMainWindow):
         super().__init__(parent)
 
         # 读取ui
-        uic.loadUi(PATHS["root"] + '\\resource\\ui\\StagePlanEditor.ui', self)
+        uic.loadUi(os.path.join(PATHS["root"], 'resource', 'ui', 'StagePlanEditor.ui'), self)
 
         self.setWindowTitle('全局方案 & 关卡方案 编辑器')
-        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
+        self.setWindowIcon(QIcon(os.path.join(PATHS["logo"], '圆角-FetDeathWing-450x.png')))
 
         # 初始化战斗方案变量
         self.battle_plan_uuid_list = None
@@ -42,11 +42,11 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.init_battle_plan_selector()
 
         # 获取stage_info
-        with open(file=PATHS["config"] + "//stage_info.json", mode="r", encoding="UTF-8") as file:
+        with open(file=os.path.join(PATHS["config"], 'stage_info.json'), mode="r", encoding="UTF-8") as file:
             self.stage_info = json.load(file)
 
         # 获取stage_plan文件中的信息
-        self.stage_plan_path = PATHS["config"] + "//stage_plan.json"
+        self.stage_plan_path = os.path.join(PATHS["config"], 'stage_plan.json')
         try:
             with open(file=self.stage_plan_path, mode="r", encoding="UTF-8") as file:
                 self.stage_plan = json.load(file)
@@ -83,7 +83,6 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.StageBattlePlanBox2P.currentIndexChanged.connect(self.stage_state_changed)
         self.StageTweakBattlePlanBox.currentIndexChanged.connect(self.stage_state_changed)
 
-
         # 加载全局方案到ui
         self.init_global_state_ui()
 
@@ -91,39 +90,15 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.set_stage_input_widget_usable(state=False)
 
     def init_stage_selector(self):
-        """
-        多层菜单
-        初始化关卡选择，从stage_info或更多内容里导入关卡，选择后可以显示障碍物或更多内容
-        菜单使用字典，其值只能为字典或列表。键值对中的键恒定为子菜单，而值为选项；列表中元素只能是元组，为关卡名，关卡id
-        """
-        stage_dict = {}
-        for type_id, stage_info_1 in self.stage_info.items():
-            if type_id in ["default", "name", "tooltip", "update_time"]:
-                continue
-            type_name = stage_info_1["name"]
-            stage_dict[type_name] = {}
-
-            for sub_type_id, stage_info_2 in stage_info_1.items():
-                if sub_type_id in ["name", "tooltip"]:
-                    continue
-                sub_type_name = stage_info_2["name"]
-                stage_dict[type_name][sub_type_name] = []
-
-                for stage_id, stage_info_3 in stage_info_2.items():
-                    if stage_id in ["name", "tooltip"]:
-                        continue
-                    stage_name = stage_info_3["name"]
-                    stage_code = f"{type_id}-{sub_type_id}-{stage_id}"
-                    stage_dict[type_name][sub_type_name].append((stage_name, stage_code))
-
-        self.stage_selector.add_menu(data=stage_dict)
+        """加载可单独配置方案的关卡。"""
+        self.stage_selector.add_menu(data=build_stage_menu_data(self.stage_info))
 
     def init_battle_plan_selector(self):
         """
         初始化战斗方案选择框
         """
-        fresh_and_check_all_battle_plan()
-        fresh_and_check_all_tweak_plan()
+        refresh_all_battle_plan()
+        refresh_all_tweak_plan()
         self.battle_plan_name_list = get_list_battle_plan(with_extension=False)
         self.tweak_plan_name_list = get_list_tweak_plan(with_extension=False)
         self.battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
@@ -140,8 +115,8 @@ class QMWEditorOfStagePlan(QMainWindow):
         """
         刷新战斗方案选择框，保持指向的战斗方案不变, 并读取最新的战斗方案们.
         """
-        fresh_and_check_all_battle_plan()
-        fresh_and_check_all_tweak_plan()
+        refresh_all_battle_plan()
+        refresh_all_tweak_plan()
         self.battle_plan_name_list = get_list_battle_plan(with_extension=False)
         self.tweak_plan_name_list = get_list_tweak_plan(with_extension=False)
         self.battle_plan_uuid_list = list(EXTRA.BATTLE_PLAN_UUID_TO_PATH.keys())
@@ -160,6 +135,7 @@ class QMWEditorOfStagePlan(QMainWindow):
             widget.setCurrentIndex(current_index)
             # 恢复控件信号
             widget.blockSignals(False)
+
         def change_two(widget):
             # 存储当前的索引
             current_index = widget.currentIndex()
@@ -175,15 +151,16 @@ class QMWEditorOfStagePlan(QMainWindow):
             widget.blockSignals(False)
 
         change_one(widget=self.GlobalBattlePlanBox1P)
-        change_one(widget=self.GlobalBattlePlanBox1P)
+        change_one(widget=self.GlobalBattlePlanBox2P)
         change_one(widget=self.StageBattlePlanBox1P)
         change_one(widget=self.StageBattlePlanBox2P)
         change_two(widget=self.StageTweakBattlePlanBox)
 
+    @QtCore.pyqtSlot(str, str)
     def stage_selector_changed(self, text, stage):
         """
         关卡选择改变，更新UI
-        :param text: 显示在菜单中的文本
+        :param text: 预留参数 对应
         :param stage: 关卡id
         """
         self.current_stage = stage
@@ -192,7 +169,7 @@ class QMWEditorOfStagePlan(QMainWindow):
         if stage in self.stage_plan.keys():
             self.label_10.setText("编辑关卡方案")
         else:
-            self.label_10.setText("编辑关卡方案 (同步中, 修改全局方案将单向映射至关卡方案)")
+            self.label_10.setText("编辑关卡方案 (本关方案同步中, 修改全局方案将单向映射至此)")
             self.stage_plan[stage] = copy.deepcopy(self.stage_plan["global"])
 
         self.init_stage_state_ui()
@@ -200,6 +177,7 @@ class QMWEditorOfStagePlan(QMainWindow):
         # 解锁 允许交互
         self.set_stage_input_widget_usable(state=True)
 
+    @QtCore.pyqtSlot()
     def global_state_changed(self):
         """
         全局关卡方案的状态改变处理器，实时更新并保存
@@ -208,7 +186,7 @@ class QMWEditorOfStagePlan(QMainWindow):
 
         if self.current_stage:
             if self.stage_plan["global"] == self.stage_plan[self.current_stage]:
-                self.label_10.setText("编辑关卡方案 (同步中, 修改全局方案将单向映射至关卡方案)")
+                self.label_10.setText("编辑关卡方案 (本关方案同步中, 修改全局方案将单向映射至此)")
                 synchronization = True
             else:
                 self.label_10.setText("编辑关卡方案")
@@ -249,6 +227,7 @@ class QMWEditorOfStagePlan(QMainWindow):
         # 实时存储
         self.save_stage_plan()
 
+    @QtCore.pyqtSlot()
     def stage_state_changed(self):
         """
         状态改变处理器，实时更新并保存
@@ -273,7 +252,7 @@ class QMWEditorOfStagePlan(QMainWindow):
 
         if self.stage_plan.get(self.current_stage, None):
             if self.stage_plan["global"] == self.stage_plan[self.current_stage]:
-                self.label_10.setText("编辑关卡方案 (同步中, 修改全局方案将单向映射至关卡方案)")
+                self.label_10.setText("编辑关卡方案 (本关方案同步中, 修改全局方案将单向映射至此)")
             else:
                 self.label_10.setText("编辑关卡方案")
 
@@ -313,7 +292,7 @@ class QMWEditorOfStagePlan(QMainWindow):
             index = 0
         self.StageBattlePlanBox2P.setCurrentIndex(index)
         try:
-            index = self.tweak_plan_uuid_list.index(self.stage_plan[self.current_stage].get("tweak_plan",0))
+            index = self.tweak_plan_uuid_list.index(self.stage_plan[self.current_stage].get("tweak_plan", 0))
         except ValueError:
             index = 0
         self.StageTweakBattlePlanBox.setCurrentIndex(index)
@@ -336,7 +315,6 @@ class QMWEditorOfStagePlan(QMainWindow):
         self.StageDeckBox.blockSignals(False)
         self.StageBattlePlanBox1P.blockSignals(False)
         self.StageBattlePlanBox2P.blockSignals(False)
-
 
     def init_global_state_ui(self):
         """

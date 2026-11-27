@@ -1,9 +1,10 @@
 import logging
+import os
 import sys
 
 import colorlog
-from PyQt6.QtWidgets import QApplication, QMessageBox
 from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtWidgets import QApplication, QMessageBox
 
 from function.globals.get_paths import PATHS
 
@@ -48,8 +49,6 @@ class CusLogger(logging.Logger):
         super().__init__(name)
         self.setLevel(logging.DEBUG)
 
-
-
         # 其他原有处理器配置...
         keywords = ["property", "widget", "push", "layout"]
         keyword_filter = KeywordFilter(keywords)
@@ -57,7 +56,7 @@ class CusLogger(logging.Logger):
         # --------- 常规日志文件处理器 ---------
 
         file_handler = logging.FileHandler(
-            filename=PATHS["logs"] + '\\normal_log.log',
+            filename=os.path.join(PATHS["logs"], 'normal_log.log'),
             mode='w',
             encoding='utf-8'
         )
@@ -70,7 +69,7 @@ class CusLogger(logging.Logger):
         # --------- 错误日志文件处理器 ---------
 
         error_file_handler = logging.FileHandler(
-            filename=PATHS["logs"] + '\\error_log.log',
+            filename=os.path.join(PATHS["logs"], 'error_log.log'),
             mode='w',
             encoding='utf-8'
         )
@@ -84,7 +83,7 @@ class CusLogger(logging.Logger):
         # --------- 高危日志文件处理器 ---------
 
         critical_file_handler = logging.FileHandler(
-            filename=PATHS["logs"] + '\\critical_log.log',
+            filename=os.path.join(PATHS["logs"], 'critical_log.log'),
             mode='w',
             encoding='utf-8'
         )

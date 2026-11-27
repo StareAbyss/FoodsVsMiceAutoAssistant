@@ -5,6 +5,7 @@ import psutil
 import win32con
 import win32gui
 import win32process
+import winerror
 
 
 def close_all_software_by_name(software_name: str):
@@ -44,8 +45,18 @@ def close_software_by_title(window_title: str):
 
 
 def start_software_with_args(executable_path, *args):
+    """启动外部程序，优先让它脱离 FAA 启动器的 Windows Job。"""
+    command = [executable_path, *args]
+    flags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
     try:
-        process = subprocess.Popen([executable_path] + list(args))
+        try:
+            # 分离控制台不会阻止继承 Job。独立运行的游戏大厅必须显式脱离。
+            process = subprocess.Popen(command, creationflags=flags | subprocess.CREATE_BREAKAWAY_FROM_JOB)
+        except OSError as error:
+            if error.winerror != winerror.ERROR_ACCESS_DENIED:
+                raise
+            # 旧启动器或外部 Job 可能未允许脱离，沿用普通启动以免大厅无法打开。
+            process = subprocess.Popen(command, creationflags=flags)
         print(f"已启动 {executable_path} 并传递参数 {args}")
         return process
     except Exception as e:

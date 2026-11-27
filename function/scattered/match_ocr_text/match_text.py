@@ -16,11 +16,25 @@ def find_topmost_text_pixel_in_range(gray_img, col_start, col_end, row_start, ro
     return None
 
 
-def split_into_characters(line, mode="美食大赛"):
+def _legacy_templates(mode):
+    """取得包含间隔像素的旧规格模板，用于识别和记录缺字。"""
+    templates = g_resources.RESOURCE_P["ocr"][mode]
+    if mode != "美食大赛":
+        return templates
+    return {
+        name: np.pad(image, ((0, 0), (0, 1)), constant_values=255)
+        if image.shape in ((14, 7), (14, 14)) else image
+        for name, image in g_resources.flatten_resource_images(templates).items()
+    }
+
+
+def split_into_characters(line, mode="美食大赛", templates=None):
     """从行图像中分割出单个字符图像"""
     characters = []
     line_gray = line
     width, _ = line_gray.shape[::-1]
+    if templates is None:
+        templates = _legacy_templates(mode)
 
     # 美食大赛 西文字符宽度 8 中文字符宽度 15
     latin_width = 8
@@ -41,7 +55,7 @@ def split_into_characters(line, mode="美食大赛"):
         latin_block = line_gray[:, start_pos:start_pos + latin_width]
         latin_match = match_block_equal_in_images(
             block_array=latin_block,
-            images=g_resources.RESOURCE_P["ocr"][mode])
+            images=templates)
 
         # 如果匹配到西文字符，添加到字符列表并更新起始位置
         if latin_match:
@@ -62,7 +76,7 @@ def split_into_characters(line, mode="美食大赛"):
 
         chinese_match = match_block_equal_in_images(
             block_array=chinese_block,
-            images=g_resources.RESOURCE_P["ocr"][mode])
+            images=templates)
 
         if not chinese_match:
 
@@ -76,7 +90,7 @@ def split_into_characters(line, mode="美食大赛"):
                     block_array=latin_block,
                     images=g_resources.RESOURCE_LOG_IMG[f"texts_{mode}"]["blocks_half"])
                 if not result:
-                    cus_path = PATHS["logs"] + f"\\match_failed\\texts_{mode}\\blocks_half"
+                    cus_path = os.path.join(PATHS["logs"], "match_failed", f"texts_{mode}", "blocks_half")
 
                     # 获得最小的未使用的id
                     used_ids = set()
@@ -87,7 +101,7 @@ def split_into_characters(line, mode="美食大赛"):
                     while name_id in used_ids:
                         name_id += 1
 
-                    save_path = f"{cus_path}\\unknown_{name_id}.png"
+                    save_path = os.path.join(cus_path, f"unknown_{name_id}.png")
                     cv2.imencode('.png', latin_block)[1].tofile(save_path)
 
                 # 保存全分割
@@ -95,7 +109,7 @@ def split_into_characters(line, mode="美食大赛"):
                     block_array=chinese_block,
                     images=g_resources.RESOURCE_LOG_IMG[f"texts_{mode}"]["blocks"])
                 if not result:
-                    cus_path = PATHS["logs"] + f"\\match_failed\\texts_{mode}\\blocks"
+                    cus_path = os.path.join(PATHS["logs"], "match_failed", f"texts_{mode}", "blocks")
 
                     # 获得最小的未使用的id
                     used_ids = set()
@@ -106,7 +120,7 @@ def split_into_characters(line, mode="美食大赛"):
                     while name_id in used_ids:
                         name_id += 1
 
-                    save_path = f"{cus_path}\\unknown_{name_id}.png"
+                    save_path = os.path.join(cus_path, f"unknown_{name_id}.png")
                     cv2.imencode('.png', chinese_block)[1].tofile(save_path)
 
         characters.append(chinese_block)
@@ -115,7 +129,7 @@ def split_into_characters(line, mode="美食大赛"):
     return characters
 
 
-def split_block(img_source, mode="美食大赛"):
+def split_block(img_source, mode="美食大赛", templates=None):
     """分块一张图片, 用于美食大赛"""
     img = img_source
 
@@ -159,35 +173,30 @@ def split_block(img_source, mode="美食大赛"):
 
             # 根据找到的基线动态裁剪line1和line2
             line_height = 14
-            if topmost_text_row is not None:
-                line1 = img[topmost_text_row:topmost_text_row + line_height, 54:377]
-                line2 = img[topmost_text_row + line_height + 2:topmost_text_row + 2 * line_height + 2, 54:377]
-                # 将行图像转换为灰度图像 注意 只有两个维度!
-                line1 = cv2.cvtColor(line1, cv2.COLOR_BGR2GRAY)
-                line2 = cv2.cvtColor(line2, cv2.COLOR_BGR2GRAY)
-            else:
-                line1 = None
-                line2 = None
-
+            if topmost_text_row is None:
+                return []
+            line1 = gray[topmost_text_row:topmost_text_row + line_height, 54:377]
+            line2 = gray[topmost_text_row + line_height + 2:topmost_text_row + 2 * line_height + 2, 54:377]
             lines = [line1, line2]
         case "关卡名称":
             lines = [gray]
 
     character_blocks = []
     for line in lines:
-        character_blocks += split_into_characters(line=line, mode=mode)
+        character_blocks += split_into_characters(line=line, mode=mode, templates=templates)
     return character_blocks
 
 
 def match(source, mode="美食大赛"):
     """识别一张图片, 美食大赛"""
-    blocks = split_block(img_source=source, mode=mode)
+    templates = _legacy_templates(mode)
+    blocks = split_block(img_source=source, mode=mode, templates=templates)
     result_str = ""
     for block in blocks:
 
         result = match_block_equal_in_images(
             block_array=block,
-            images=g_resources.RESOURCE_P["ocr"][mode])
+            images=templates)
 
         if result:
             result_str += result
@@ -201,7 +210,7 @@ def match(source, mode="美食大赛"):
 if __name__ == '__main__':
     def main():
         # 从source文件夹里面读取所有图片
-        source_path = PATHS["image"]["current"] + "/ocr/source"
+        source_path = os.path.join(PATHS["image"]["current"], 'ocr', 'source')
 
         # 请补充 兼容中文路径
         sources = []

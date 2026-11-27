@@ -1,0 +1,24 @@
+[
+  {
+    "template_path": "F:/My Project/Python/FoodsVsMousesAutoAssistant/cus_extension_addon_script/刷技能/resource/欢乐假期.png",
+    "tolerance": 0.98,
+    "interval": 0.1,
+    "timeout": 3.0,
+    "after_sleep": 0.2,
+    "need_click": true,
+    "click_input_enabled": false,
+    "click_input": "",
+    "check_offset_enabled": true,
+    "check_run_code": false,
+    "offset_x": 0,
+    "offset_y": 0,
+    "source_range": [
+      0,
+      0,
+      2000,
+      2000
+    ],
+    "code": "",
+    "hwnd_type": "NativeWindowClass"
+  }
+]

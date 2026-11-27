@@ -10,6 +10,7 @@ from PyQt6.QtCore import QThread
 
 from function.globals import EXTRA
 from function.globals.log import CUS_LOGGER
+from function.common.faa_view_events import FAA_VIEW_EVENTS
 
 
 class ThreadActionQueueTimer(QThread):
@@ -182,10 +183,13 @@ class ThreadActionQueueTimer(QThread):
 
     def do_left_mouse_click(self, handle, x, y):
         """执行动作函数 子函数"""
+        view_x, view_y = x, y
         x = int(x * self.zoom_rate)
         y = int(y * self.zoom_rate)
-        windll.user32.PostMessageW(handle, 0x0201, 0, y << 16 | x)
-        windll.user32.PostMessageW(handle, 0x0202, 0, y << 16 | x)
+        pressed = windll.user32.PostMessageW(handle, 0x0201, 0, y << 16 | x)
+        released = windll.user32.PostMessageW(handle, 0x0202, 0, y << 16 | x)
+        if pressed and released:
+            FAA_VIEW_EVENTS.click(handle, view_x, view_y)
 
     def do_left_mouse_move_to(self, handle, x, y):
         """执行动作函数 子函数"""

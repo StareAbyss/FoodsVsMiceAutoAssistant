@@ -1,40 +1,52 @@
-import ctypes
+﻿import copy
 import datetime
+import ctypes
 import json
 import os
 import random
 import shutil
 import sqlite3
+import subprocess
+import sys
 import threading
 import webbrowser
+from pathlib import Path
 
+import psutil
 import win32con
 import win32gui
 from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtWidgets import QMessageBox, QFileDialog, QTableWidgetItem, QVBoxLayout, QPushButton, QWidget
+from PyQt6.QtWidgets import QMessageBox, QVBoxLayout, QPushButton, QWidget
 
 from function.common.process_manager import get_path_and_sub_titles
 from function.common.startup_manager import *
+from function.common.update_backup import backup_summary
+from function.common.update_state import detect_local_state
+from function.common.distribution_layout import LAUNCHER_EXE
 from function.core.faa.faa_mix import FAA
-from function.core.my_crypto import encrypt_data
-from function.core.performance_analysis import run_analysis_in_thread
+from function.core.login_credentials import save_login_credentials
+from function.core.performance_analysis import QMWPerformanceAnalysis, run_analysis_in_thread
 from function.core.qmw_2_load_settings import CommonHelper, QMainWindowLoadSettings
 from function.core.qmw_editor_of_battle_plan import QMWEditorOfBattlePlan
 from function.core.qmw_editor_of_stage_plan import QMWEditorOfStagePlan
+from function.core.qmw_editor_of_tweak_plan import QMWEditorOfTweakPlan, show_plan_check_dialog
 from function.core.qmw_settings_migrator import QMWSettingsMigrator
 from function.core.qmw_task_plan_editor import TaskEditor
-from function.core.qmw_tip_accelerate_settings import QMWTipAccelerateSettings
-from function.core.qmw_tip_battle import QMWTipBattle
-from function.core.qmw_tip_battle_senior import QMWTipBattleSenior
-from function.core.qmw_tip_editor_of_battle_plan import QMWTipEditorOfBattlePlan
-from function.core.qmw_tip_level2 import QMWTipLevels2
-from function.core.qmw_tip_login_settings import QMWTipLoginSettings
-from function.core.qmw_tip_misu_logistics import QMWTipMisuLogistics
-from function.core.qmw_tip_qqlogin import QMWTipQQlogin
-from function.core.qmw_tip_sleep import QMWTipSleep
-from function.core.qmw_tip_stage_id import QMWTipStageID
-from function.core.qmw_tip_warm_gift import QMWTipWarmGift
+from function.core.qmw_tips.qmw_tip_accelerate_settings import QMWTipAccelerateSettings
+from function.core.qmw_tips.qmw_tip_battle import QMWTipBattle
+from function.core.qmw_tips.qmw_tip_battle_senior import QMWTipBattleSenior
+from function.core.qmw_tips.qmw_tip_editor_of_battle_plan import QMWTipEditorOfBattlePlan
+from function.core.qmw_tips.qmw_tip_level2 import QMWTipLevels2
+from function.core.qmw_tips.qmw_tip_login_settings import QMWTipLoginSettings
+from function.core.qmw_tips.qmw_tip_misu_logistics import QMWTipMisuLogistics
+from function.core.qmw_tips.qmw_tip_password_login import QMWTipPasswordLogin
+from function.core.qmw_tips.qmw_tip_server_wait import QMWTipServerWait
+from function.core.qmw_tips.qmw_tip_stage_id import QMWTipStageID
+from function.core.qmw_tips.qmw_tip_update import QMWTipUpdate
+from function.core.qmw_tips.qmw_tip_warm_gift import QMWTipWarmGift
 from function.core.qmw_useful_tools_widget import UsefulToolsWidget
+from function.core.qmw_faa_view import QMWFAAView
+from function.core.qmw_window_handle_tool import QMWWindowHandleTool
 from function.core.todo import ThreadTodo
 from function.globals import EXTRA, SIGNAL
 from function.globals import g_resources
@@ -42,11 +54,122 @@ from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.check_task_sequence import fresh_and_check_all_task_sequence
+from function.scattered.check_battle_plan import check_all_battle_plan, refresh_all_battle_plan
+from function.scattered.check_tweak_plan import refresh_all_tweak_plan
 from function.scattered.gat_handle import faa_get_handle
-from function.scattered.get_channel_name import get_channel_name
+from function.scattered.get_channel_name import DUAL_PLAYER_MODE, SINGLE_PLAYER_MODE, get_player_channels
 from function.scattered.get_stage_info_online import get_stage_info_online
+from function.scattered.guild_contribution_exporter import export_selected_date_excel
+from function.scattered.resize_360_windows import batch_resize_window
 from function.scattered.test_route_connectivity import test_route_connectivity
 from function.scattered.todo_timer_manager import TodoTimerManager
+
+from function.core.git_update_manager import prepare_release_update, refresh_dev_manifest, refresh_release_manifest
+from function.core.update_apply import launch_update_from_staging
+
+
+def apply_windows_taskbar_icon(window):
+    """将 FAA 图标写入 Windows 原生窗口句柄，修正任务栏仍显示 pythonw 图标的问题。"""
+    if sys.platform != "win32":
+        return
+
+    icon_path = os.path.join(PATHS["logo"], "\u5706\u89d2-FetDeathWing-256x-AllSize.ico")
+    if not os.path.exists(icon_path):
+        return
+
+    try:
+        hwnd = int(window.winId())
+        if not hwnd:
+            return
+
+        window.setWindowIcon(QtGui.QIcon(icon_path))
+
+        user32 = ctypes.windll.user32
+        user32.LoadImageW.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_wchar_p,
+            ctypes.c_uint,
+            ctypes.c_int,
+            ctypes.c_int,
+            ctypes.c_uint,
+        ]
+        user32.LoadImageW.restype = ctypes.c_void_p
+        user32.SendMessageW.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_size_t, ctypes.c_void_p]
+        user32.SendMessageW.restype = ctypes.c_void_p
+
+        image_icon = 1
+        lr_load_from_file = 0x00000010
+        wm_set_icon = 0x0080
+        icon_small = 0
+        icon_big = 1
+        gclp_hicon = -14
+        gclp_hiconsm = -34
+
+        big_size = user32.GetSystemMetrics(11) or 32
+        small_size = user32.GetSystemMetrics(49) or 16
+        big_icon = user32.LoadImageW(None, icon_path, image_icon, big_size, big_size, lr_load_from_file)
+        small_icon = user32.LoadImageW(None, icon_path, image_icon, small_size, small_size, lr_load_from_file)
+
+        hwnd_ptr = ctypes.c_void_p(hwnd)
+        if big_icon:
+            user32.SendMessageW(hwnd_ptr, wm_set_icon, icon_big, ctypes.c_void_p(big_icon))
+        if small_icon:
+            user32.SendMessageW(hwnd_ptr, wm_set_icon, icon_small, ctypes.c_void_p(small_icon))
+
+        set_class_long = getattr(user32, "SetClassLongPtrW", None)
+        if set_class_long is not None:
+            set_class_long.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p]
+            set_class_long.restype = ctypes.c_void_p
+            to_class_icon_arg = ctypes.c_void_p
+        else:
+            set_class_long = user32.SetClassLongW
+            set_class_long.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_long]
+            set_class_long.restype = ctypes.c_long
+            to_class_icon_arg = ctypes.c_long
+        if big_icon:
+            set_class_long(hwnd_ptr, gclp_hicon, to_class_icon_arg(big_icon))
+        if small_icon:
+            set_class_long(hwnd_ptr, gclp_hiconsm, to_class_icon_arg(small_icon))
+
+        # Windows 任务栏最终读取 HWND 图标；Qt 图标和原生大小图标都设置一次更稳。
+        # 原生图标句柄需要和窗口同生命周期保留，避免被回收后任务栏图标丢失。
+        window._faa_native_taskbar_icons = (big_icon, small_icon)
+    except Exception as e:
+        CUS_LOGGER.debug(f"设置主窗口任务栏图标失败: {e}")
+
+
+def bring_main_window_to_front_once(window):
+    """启动完成时短暂置前主窗口，但不保持永久置顶。"""
+    window.showNormal()
+    window.raise_()
+    window.activateWindow()
+
+    if sys.platform != "win32":
+        return
+
+    try:
+        hwnd = int(window.winId())
+        if not hwnd:
+            return
+
+        flags = win32con.SWP_NOMOVE | win32con.SWP_NOSIZE | win32con.SWP_SHOWWINDOW
+        win32gui.ShowWindow(hwnd, win32con.SW_SHOWNORMAL)
+
+        # 只在启动时短暂置顶一次，避免 FAA 被其他窗口压住；随后立即解除置顶状态。
+        win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0, flags)
+
+        def release_topmost():
+            try:
+                win32gui.SetWindowPos(hwnd, win32con.HWND_NOTOPMOST, 0, 0, 0, 0, flags)
+                window.raise_()
+                window.activateWindow()
+            except Exception as e:
+                CUS_LOGGER.debug(f"解除主窗口临时置顶失败: {e}")
+
+        QtCore.QTimer.singleShot(500, release_topmost)
+        win32gui.SetForegroundWindow(hwnd)
+    except Exception as e:
+        CUS_LOGGER.debug(f"启动时置前主窗口失败: {e}")
 
 
 class QMainWindowService(QMainWindowLoadSettings):
@@ -54,9 +177,9 @@ class QMainWindowService(QMainWindowLoadSettings):
     signal_todo_start = QtCore.pyqtSignal(object)  # 可通过该信号以某个 方案uuid 开启一趟流程
     signal_guild_manager_fresh = QtCore.pyqtSignal()  # 刷新公会管理器数据, 于扫描后
 
-    def __init__(self):
+    def __init__(self, initial_local_state=None, startup_progress=None):
         # 继承父类构造方法
-        super().__init__()
+        super().__init__(startup_progress=startup_progress)
 
         # 添加一些信号到列表中方便调用
         SIGNAL.GUILD_MANAGER_FRESH = self.signal_guild_manager_fresh
@@ -89,6 +212,13 @@ class QMainWindowService(QMainWindowLoadSettings):
             func_open_tip=self.click_btn_tip_editor_of_battle_plan)
         self.OpenEditorOfBattlePlan_Button.clicked.connect(self.click_btn_open_editor_of_battle_plan)
 
+        # 额外窗口 - 微调方案编辑器。入口紧邻战斗方案编辑器，便于用户按
+        # “基础放卡方案 -> 单场行为微调”的顺序完成配置。
+        self.window_editor_of_tweak_plan = QMWEditorOfTweakPlan(
+            parent=self,
+            on_plan_library_changed=self.refresh_tweak_plan_resources,
+        )
+        self.OpenEditorOfTweakPlan_Button.clicked.connect(self.click_btn_open_editor_of_tweak_plan)
 
         # 额外窗口 - 关卡方案编辑器
         self.window_editor_of_stage_plan = QMWEditorOfStagePlan()
@@ -96,13 +226,19 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 额外窗口 - 配置迁移器
         self.window_settings_migrator = QMWSettingsMigrator()
+        self.window_settings_migrator.main_settings_migrated.connect(self.on_main_settings_migrated)
         self.OpenSettingsMigrator_Button.clicked.connect(self.click_btn_open_settings_migrator)
 
         # 额外窗口 - 实用小工具
         self.window_useful_tools = UsefulToolsWidget(self)
+        self.window_faa_view = None
         self.OpenUsefulTools_Button.clicked.connect(self.click_btn_open_useful_tools)
+        self.OpenFAAView_Button.clicked.connect(self.click_btn_open_faa_view)
         # # 额外窗口 - 其它工具
         self.OpenOtherTools_Button.clicked.connect(self.click_btn_open_other_tools)
+
+        # 额外窗口 - 性能分析
+        self.window_performance_analysis = QMWPerformanceAnalysis(parent=self)
 
         # 额外窗口 - 日氪链接
         self.TopUpMoneyTipButton.clicked.connect(
@@ -143,13 +279,14 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.window_tip_accelerate_settings = QMWTipAccelerateSettings()
         self.AccelerateTipButton.clicked.connect(self.click_btn_tip_accelerate_settings)
 
-        # 额外窗口 - QQ密码登录说明
-        self.window_tip_qqlogin = QMWTipQQlogin()
-        self.QQloginTipButton.clicked.connect(self.click_btn_tip_qqlogin)
+        # 额外窗口 - 密码登录说明
+        self.window_tip_password_login = QMWTipPasswordLogin()
+        self.LoginQQSpaceHelpButton.clicked.connect(self.show_password_login_help)
+        self.Login4399HelpButton.clicked.connect(self.show_password_login_help)
 
-        # 额外窗口 - QQ登录额外休眠说明
-        self.window_tip_sleep = QMWTipSleep()
-        self.SleepTipButton.clicked.connect(self.click_btn_tip_sleep)
+        # 额外窗口 - 刷新后等待选服说明
+        self.window_tip_server_wait = QMWTipServerWait()
+        self.LoginServerWaitHelpButton.clicked.connect(self.show_server_wait_help)
 
         # 米苏物流 - tip窗口
         self.window_tip_misu_logistics = QMWTipMisuLogistics()
@@ -171,12 +308,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.Button_StartTimer.clicked.connect(self.todo_timer_click_btn)
 
         # 保存方案按钮 函数绑定
-        self.Button_Save.clicked.connect(self.click_btn_save)
-
-        # 方案修改按钮 函数绑定
-        self.Button_DeletePlan.clicked.connect(self.delete_current_plan)
-        self.Button_RenamePlan.clicked.connect(self.rename_current_plan)
-
+        self.PlayerModeButton.clicked.connect(self.switch_player_mode)
+        self.WindowHandleToolButton.clicked.connect(self.open_window_handle_tool)
 
         # 隐藏(拖动)窗口到屏幕视图外 函数绑定
         self.Button_WindowHide.clicked.connect(self.click_btn_hide_window)
@@ -191,8 +324,34 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 一键获取路径与窗口名
         self.oneclick_getpath.clicked.connect(self.click_btn_set_360_path)
 
-        # 选择天知强卡器路径
-        self.TCE_path_select_btn.clicked.connect(self.click_btn_select_tce_path)
+        # 重启应用程序按钮
+        self.Button_Refreshed.clicked.connect(self.restart_application)
+
+        # 版本更新相关按钮
+        self.CheckUpdateButton.clicked.connect(self.click_btn_check_update)
+        self.ForceUpdateButton.clicked.connect(self.click_btn_force_update)
+        self.NormalUpdateButton.clicked.connect(self.click_btn_normal_update)
+        self.UpdateHelpButton.clicked.connect(self.click_btn_tip_update)
+        self.CheckUpdateButton.setText("加载正式版更新列表")
+        self.NormalUpdateButton.setText("更新至选中的版本")
+        self.NormalUpdateButton.setEnabled(False)
+        self.ForceUpdateButton.setText("加载开发版更新列表")
+        self.DevMoreUpdateButton.setText("加载更多开发者更新内容")
+        self.DevMoreUpdateButton.clicked.connect(self.click_btn_load_more_dev_updates)
+        self.DevMoreUpdateButton.setEnabled(False)
+        self.update_candidates = []
+        self.update_target_mode = "release"
+        self.dev_manifest_pages = 1
+        self.window_tip_update = QMWTipUpdate()
+        self.setup_update_state_labels()
+        self.refresh_update_state_label(local_state=initial_local_state)
+        self.update_progress_started_at = None
+        self.update_progress_step = "空闲"
+        self.update_download_progress = None
+        self.update_progress_timer = QtCore.QTimer(self)
+        self.update_progress_timer.setInterval(1000)
+        self.update_progress_timer.timeout.connect(self.refresh_update_progress_label)
+        self.refresh_update_progress_label()
 
         # 线程状态
         self.is_ending = False  # 线程是否正在结束
@@ -212,85 +371,324 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 根据日历日期，调整表格视图
         self.DateSelector.selectionChanged.connect(self.guild_manager_table_update)
+        self.ExportGuildContributionButton.clicked.connect(self.export_guild_contribution_excel)
 
-        # 连接自定义信号到槽函数，从而修改编辑框内容
-        self.Label_drag.windowNameChanged1.connect(self.updateEditBox1)
-        self.Label_drag.windowNameChanged2.connect(self.updateEditBox2)
-        """QQ密码登录模块"""
+        """QQ空间与 4399 登录信息保存"""
 
-        self.SavePasswordButton.clicked.connect(self.save_password_button_on_clicked)
-        self.ChoosePathButton.clicked.connect(self.choose_path_button_on_clicked)
+        self.LoginQQSpaceSaveButton.clicked.connect(self.save_all_login_credentials_button_on_clicked)
+        self.Login4399SaveButton.clicked.connect(self.save_all_login_credentials_button_on_clicked)
 
-        """插件脚本执行模块"""
-        # 关键：监听单元格变化，实现自动追加行
-        self.tableWidget_extension.cellChanged.connect(self.on_cell_changed)
+    @staticmethod
+    def _format_file_size(size_bytes):
+        units = ["B", "KB", "MB", "GB", "TB"]
+        size = float(size_bytes)
+        for unit in units:
+            if size < 1024 or unit == units[-1]:
+                return f"{size:.2f} {unit}" if unit != "B" else f"{int(size)} {unit}"
+            size /= 1024
 
-    def on_cell_changed(self, row, column):
-        # 防重复触发标志
-        if hasattr(self, "_is_adding_row") and self._is_adding_row:
+    def warn_recording_size_if_needed(self):
+        recording_path = os.path.join(PATHS["logs"], "recording")
+        if not os.path.isdir(recording_path):
             return
 
-        # 仅当编辑的是最后一行且第一列(脚本路径)有内容时触发
-        if row == self.tableWidget_extension.rowCount() - 1 and column == 1:
-            item = self.tableWidget_extension.item(row, 1)
-            if item and item.text().strip():  # 检查第一列是否非空
-                self._is_adding_row = True
+        video_count = 0
+        total_size = 0
+        for root, _, files in os.walk(recording_path):
+            for file_name in files:
+                file_path = os.path.join(root, file_name)
+                try:
+                    total_size += os.path.getsize(file_path)
+                    video_count += 1
+                except OSError:
+                    continue
 
-                # 追加新行
-                new_row = self.tableWidget_extension.rowCount()
-                self.tableWidget_extension.insertRow(new_row)
+        if total_size <= 1024 ** 3:
+            return
 
-                # 设置新行第三列(重复次数)默认为1
-                self.tableWidget_extension.setItem(new_row, 2, QTableWidgetItem("1"))
+        size_text = self._format_file_size(total_size)
+        recording_url = QtCore.QUrl.fromLocalFile(recording_path).toString()
+        warning_text = (
+            f"FAA已为您录制了{video_count}条视频，大小总计{size_text}，"
+            f"<a href='{recording_url}'>点击跳转</a>查看，请注意清理！"
+        )
+        SIGNAL.PRINT_TO_UI.emit("", time=False)
+        SIGNAL.PRINT_TO_UI.emit(warning_text, color_level=1, time=False)
 
-                # 设置新行第四列(角色代号)默认为3
-                self.tableWidget_extension.setItem(new_row, 3, QTableWidgetItem("3"))
+    def warn_update_backups_if_needed(self):
+        summary = backup_summary(Path(PATHS["root"]))
+        if summary["count"] <= 0:
+            return
 
-                # 自动聚焦到新行的第一列(脚本名)
-                self.tableWidget_extension.setCurrentCell(new_row, 0)
+        if summary["total_size"] <= 512 * 1024 * 1024:
+            return
 
-                self._is_adding_row = False
+        backups_path = os.path.join(PATHS["root"], "backups")
+        backups_url = QtCore.QUrl.fromLocalFile(backups_path).toString()
+        warning_text = (
+            f"FAA 已保留 {summary['count']} 个更新备份，大小总计 {summary['total_size_text']}，"
+            f"<a href='{backups_url}'>点击跳转</a>查看，也可以使用 FAA 安装器的“恢复到备份”页面查看和清理。"
+        )
+        SIGNAL.PRINT_TO_UI.emit("", time=False)
+        SIGNAL.PRINT_TO_UI.emit(warning_text, color_level=1, time=False)
 
-    def choose_path_button_on_clicked(self):
-        """"用于连接ChoosePathButton的函数，选择存储路径"""
-        # 弹出一个文件夹选择对话框
-        folder_path = QFileDialog.getExistingDirectory(self, "选择文件夹")
+    def warn_update_state_if_needed(self):
+        local_state = detect_local_state(Path(PATHS["root"]))
+        warnings = local_state.get("warnings", [])
+        if not warnings:
+            return
 
-        # 如果用户选择了文件夹，保存路径到编辑框
-        if folder_path:
-            self.path_edit.setText(folder_path)
+        SIGNAL.PRINT_TO_UI.emit("", time=False)
+        for warning in warnings:
+            SIGNAL.PRINT_TO_UI.emit(f"[更新状态] {warning}", color_level=1, time=False)
 
-    def save_password_button_on_clicked(self):
-        """"用于连接SavePasswordButton的函数，保存QQ密码信息"""
-        # 1p
-        username_1p = self.username_edit_1.text()
-        password_1p = self.password_edit_1.text()
+    def setup_update_state_labels(self):
+        """绑定更新页顶部 2x2 状态标签。"""
+        self.update_state_labels = {
+            "version": self.UpdateVersionInfoLabel,
+            "node": self.UpdateNodeInfoLabel,
+            "version_type": self.UpdateBranchInfoLabel,
+            "source": self.UpdateSourceInfoLabel,
+        }
+        if hasattr(self, "UpdateStateGridLayout"):
+            self.UpdateStateGridLayout.setColumnStretch(0, 1)
+            self.UpdateStateGridLayout.setColumnStretch(1, 1)
 
-        password_1p = encrypt_data(password_1p)
+        for label in self.update_state_labels.values():
+            label.setWordWrap(True)
+            label.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignTop)
+            label.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextSelectableByMouse)
 
-        # 2p
-        username_2p = self.username_edit_2.text()
-        password_2p = self.password_edit_2.text()
-        password_2p = encrypt_data(password_2p)
+    def refresh_update_state_label(self, local_state: dict | None = None, release_entry: dict | None = None):
+        """
+        刷新更新页顶部的本地版本状态摘要。
 
-        save_path = self.path_edit.text()
-        QQ_account = {
-            "1p": {
-                "username": username_1p,
-                "password": password_1p
-            },
-            "2p": {
-                "username": username_2p,
-                "password": password_2p
-            }
+        Args:
+            local_state: 已读取的本地版本状态；为空时现场读取。
+            release_entry: 当前版本对应的正式版 manifest 条目，用于补充 PR 合并时间。
+        """
+        if local_state is None:
+            local_state = detect_local_state(Path(PATHS["root"]))
+        release_entry = release_entry or {}
+        for key, text in self._build_update_state_texts(local_state, release_entry).items():
+            self.update_state_labels[key].setText(text)
+
+    def _build_update_state_texts(self, local_state: dict, release_entry: dict) -> dict[str, str]:
+        """生成更新页顶部 2x2 状态标签文本。"""
+        version = local_state.get("version") or "未知"
+        tag = local_state.get("tag") or "未记录"
+        pr = local_state.get("pr")
+        pr_text = f"#{pr}" if pr else "未记录"
+        commit = local_state.get("commit") or ""
+        commit_text = commit[:12] if commit else "未记录"
+        merged_at = release_entry.get("merged_at") or local_state.get("merged_at") or "未记录"
+        return {
+            "version": f"当前版本：{version}",
+            "node": f"更新节点：PR {pr_text} / {commit_text} / {merged_at}",
+            "version_type": f"版本类型：{self._format_version_type(version, tag)}",
+            "source": f"版本信息和当前状态来源：{self._format_update_state_source(local_state)}",
         }
 
-        save_path = os.path.join(save_path, "QQ_account.json")
-        with open(save_path, "w", encoding="utf-8") as json_file:
-            json.dump(QQ_account, json_file, ensure_ascii=False, indent=4)
-        QMessageBox.information(self, "提示", f"您的登录信息已经保存到{save_path}", QMessageBox.StandardButton.Ok)
+    @staticmethod
+    def _format_version_type(version: str, tag: str) -> str:
+        if version != "未知" and version == tag:
+            return "内部版本号与Git Tag一致，为标准发行版"
+        return "无GitTag，为中间版本，有可能不稳定的特性"
+
+    @staticmethod
+    def _format_update_state_source(local_state: dict) -> str:
+        source_key = local_state.get("source")
+        if source_key == "git":
+            return "Git工作区 - 有本地改动" if local_state.get("dirty") else "Git工作区 - 干净"
+        if source_key == "update_state":
+            return "用户本地 - 版本状态文件正常运作"
+        return "用户本地 - 版本状态文件异常运作，使用项目全局VERSION变量"
+
+    def _ensure_update_allowed_outside_git_worktree(self) -> bool:
+        local_state = detect_local_state(Path(PATHS["root"]))
+        if local_state.get("source") != "git":
+            return True
+
+        self.refresh_update_state_label(local_state=local_state)
+        message = (
+            "当前运行目录是真实 Git 开发工作区。\n\n"
+            "为避免热更新覆盖开发者源码工作区，本功能已被阻止。\n"
+            "请先打包为标准发行包，再在打包后的目录中测试热更新。"
+        )
+        SIGNAL.PRINT_TO_UI.emit("[更新状态] 已阻止在 Git 开发工作区执行热更新。", color_level=1)
+        QMessageBox.warning(self, "开发者工作区不允许执行更新", message)
+        return False
+
+    def refresh_update_progress_label(self):
+        """刷新更新页的当前操作阶段和等待时间。"""
+        if self.update_progress_started_at is None:
+            self.UpdateProgressLabel.setText(f"更新进度：{self.update_progress_step}")
+            return
+
+        elapsed = int((datetime.datetime.now() - self.update_progress_started_at).total_seconds())
+        progress_detail = self._format_update_download_progress()
+        suffix = f"，{progress_detail}" if progress_detail else ""
+        end = "。" if progress_detail else ""
+        self.UpdateProgressLabel.setText(f"更新进度：{self.update_progress_step}，已等待 {elapsed} 秒{suffix}{end}")
+
+    @staticmethod
+    def _format_update_progress_mb(size_bytes: int | float | None) -> str:
+        if size_bytes is None:
+            return "未知"
+        return f"{float(size_bytes) / 1024 / 1024:.2f}"
+
+    def _format_update_download_progress(self) -> str:
+        """生成下载阶段的体积、百分比、速度和预计剩余时间文本。"""
+        progress = self.update_download_progress
+        if not progress:
+            return ""
+        if progress.get("phase") != "download":
+            return progress.get("message", "")
+
+        downloaded = progress.get("downloaded_bytes") or 0
+        total = progress.get("total_bytes")
+        speed = progress.get("speed_bytes_per_second") or 0
+        speed_text = f"{speed / 1024 / 1024:.2f}MB/s"
+
+        if total:
+            percent = progress.get("percent")
+            percent_text = f"{percent:.1f}%" if percent is not None else "--%"
+            remaining = progress.get("remaining_seconds")
+            remaining_text = f"{int(remaining + 0.5)}秒" if remaining is not None else "未知"
+            return (
+                f"{self._format_update_progress_mb(downloaded)}/"
+                f"{self._format_update_progress_mb(total)} MB，"
+                f"{percent_text}，{speed_text}，预计还需{remaining_text}"
+            )
+
+        return (
+            f"已下载 {self._format_update_progress_mb(downloaded)} MB，{speed_text}，"
+            "Github正在生成下载文件中大小未知"
+        )
+
+    def update_download_progress_detail(self, progress: dict):
+        """接收下载 worker 上报的字节级进度，并刷新更新页进度文本。"""
+        self.update_download_progress = progress
+        self.refresh_update_progress_label()
+
+    def start_update_progress(self, step: str):
+        """
+        开始展示一个耗时更新阶段。
+
+        Args:
+            step: 展示给用户的当前阶段说明，例如正在请求 GitHub 或正在准备 staging。
+        """
+        self.update_progress_step = step
+        self.update_progress_started_at = datetime.datetime.now()
+        self.update_download_progress = None
+        self.refresh_update_progress_label()
+        self.update_progress_timer.start()
+
+    def finish_update_progress(self, step: str):
+        """
+        结束当前耗时阶段，并保留最后的结果说明。
+
+        Args:
+            step: 操作完成后的摘要，通常包含成功、失败或取消原因。
+        """
+        self.update_progress_timer.stop()
+        self.update_progress_started_at = None
+        self.update_progress_step = step
+        self.update_download_progress = None
+        self.refresh_update_progress_label()
+
+    def save_all_login_credentials_button_on_clicked(self):
+        """在自动登录设置中手动加密保存账号和密码。"""
+        if self.save_login_credentials_from_ui():
+            QMessageBox.information(self, "提示", "登录信息已加密保存。")
+
+    def save_login_credentials_from_ui(self) -> bool:
+        """把已经填写的账号和密码加密写入凭据文件，成功后才更新内存。"""
+        if self._settings_migrated:
+            QMessageBox.warning(self, "配置已迁移", "请重启 FAA 以应用迁入的配置。")
+            return False
+
+        credentials = copy.deepcopy(self.opt["login_credentials"])
+        for player in (1, 2):
+            key = f"{player}p"
+            credentials["level_2"][key]["password"] = getattr(self, f"Level2_{player}P_Password").text()
+            for platform, prefix in (("qq", "LoginQQSpace"), ("4399", "Login4399")):
+                credentials[platform][key]["username"] = getattr(self, f"{prefix}Username{player}PInput").text().strip()
+                credentials[platform][key]["password"] = getattr(self, f"{prefix}Password{player}PInput").text()
+
+        file_path = Path(self.login_credentials_path)
+        if credentials != self.opt["login_credentials"] or not file_path.is_file():
+            try:
+                with EXTRA.FILE_LOCK:
+                    save_login_credentials(file_path=file_path, credentials=credentials)
+            except Exception as error:
+                CUS_LOGGER.error(f"[登录] [保存凭据] 无法加密或写入 {file_path}: {error}")
+                QMessageBox.warning(self, "登录信息保存失败", "请检查配置目录和系统机器码后重试。")
+                return False
+            self.opt["login_credentials"] = credentials
+        return True
+
+    def prepare_run_settings(self) -> bool:
+        """手动启动前写入凭据，并检查米苏物流地址。"""
+        if not self.save_login_credentials_from_ui():
+            return False
+
+        url = self.MisuLogistics_Link.text()
+        reachable, detail = test_route_connectivity(url=url)
+        if url and not reachable:
+            CUS_LOGGER.warning(f"[米苏物流] 自定义地址测试失败，改用默认地址：{detail}")
+            self.MisuLogistics_Link.clear()
+            reachable, detail = test_route_connectivity()
+        if reachable:
+            CUS_LOGGER.info(f"[米苏物流] 连通性测试通过：{detail}")
+        else:
+            CUS_LOGGER.warning(f"[米苏物流] 默认地址测试失败：{detail}")
+        return True
 
     """公会管理器页面"""
+
+    def export_guild_contribution_excel(self):
+        """只导出日历当前所选日期的公会贡献数据。"""
+        target_date = self.DateSelector.selectedDate().toString('yyyy-MM-dd')
+        guild_manager_dir = Path(PATHS["logs"]) / "guild_manager"
+        output_path = guild_manager_dir / f"公会贡献数据导出_{target_date}.xlsx"
+        try:
+            with EXTRA.FILE_LOCK:
+                output_path = export_selected_date_excel(
+                    members_data=self.guild_manager_data,
+                    target_date=target_date,
+                    guild_manager_dir=guild_manager_dir,
+                )
+        except PermissionError:
+            message = (
+                f"无法写入导出文件：\n{output_path}\n\n"
+                "同名表格可能正在被 Excel 或 WPS 占用，"
+                "请关闭该文件后重新导出。"
+            )
+            CUS_LOGGER.warning(
+                f"[公会管理器] [导出Excel] 文件无法写入，请关闭已打开的同名表格后重试: {output_path}")
+            QMessageBox.warning(self, "导出失败", message)
+            return
+        except ValueError as error:
+            CUS_LOGGER.warning(f"[公会管理器] [导出Excel] 导出失败: {error}")
+            QMessageBox.warning(self, "导出失败", str(error))
+            return
+        except OSError:
+            message = f"导出文件读写失败，请检查目录是否可用：\n{guild_manager_dir}"
+            CUS_LOGGER.warning(
+                f"[公会管理器] [导出Excel] 导出目录无法正常读写: {guild_manager_dir}")
+            QMessageBox.warning(self, "导出失败", message)
+            return
+
+        CUS_LOGGER.info(
+            f"[公会管理器] [导出Excel] 已生成 {target_date} 数据表 {output_path}")
+        QMessageBox.information(
+            self,
+            "导出完成",
+            f"文件已保存到：\n{guild_manager_dir}\n\n"
+            f"{target_date} 数据表：{output_path.name}",
+            QMessageBox.StandardButton.Ok,
+        )
 
     def guild_manager_table_init(self):
         """
@@ -318,7 +716,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     def guild_manager_table_load_data(self):
         # guild manager 相关
-        guild_manager_file = f"{PATHS['logs']}\\guild_manager\\guild_manager_data.json"
+        guild_manager_file = os.path.join(PATHS["logs"], "guild_manager", "guild_manager_data.json")
         # 额外窗口，公会管理器
         if os.path.exists(guild_manager_file):
             with EXTRA.FILE_LOCK:
@@ -391,7 +789,7 @@ class QMainWindowService(QMainWindowLoadSettings):
 
             # 添加成员图片
             member_hash = member['name_image_hash']
-            name_image_path = f"{PATHS['logs']}\\guild_manager\\guild_member_images\\{member_hash}.png"
+            name_image_path = os.path.join(PATHS["logs"], "guild_manager", "guild_member_images", f"{member_hash}.png")
             pixmap = QtGui.QPixmap(name_image_path)
             qtw_item = QtWidgets.QTableWidgetItem()
 
@@ -493,26 +891,51 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 默认按照第3列(总贡)降序排序
         self.GuildMemberInfoTable.sortByColumn(2, QtCore.Qt.SortOrder.DescendingOrder)
 
-    def updateEditBox1(self, window_name: str):
+    def current_window_settings(self) -> dict:
+        """窗口工具直接读取当前输入，避免自动保存延时内使用旧窗口名。"""
+        return {
+            "player_mode": self.opt["base_settings"].get("player_mode"),
+            "game_name": self.GameName_Input.text(),
+            "name_1p": self.Name1P_Input.text(),
+            "name_2p": self.Name2P_Input.text(),
+        }
 
-        """更新1P编辑框内容的槽函数"""
-        if '|' in window_name:
-            names = window_name.split('|')
-            self.Name1P_Input.setText(names[0].strip())
-            self.GameName_Input.setText(names[1].strip())
-        else:
-            self.Name1P_Input.setText("")
-            self.GameName_Input.setText(window_name)
+    def open_window_handle_tool(self) -> None:
+        """按当前基础设定打开内置句柄工具，拖取后回填对应角色的窗口名。"""
+        tool = QMWWindowHandleTool(self, get_player_channels(self.current_window_settings()))
 
-    def updateEditBox2(self, window_name):
-        """更新2P编辑框内容的槽函数"""
-        if '|' in window_name:
-            names = window_name.split('|')
-            self.Name2P_Input.setText(names[0].strip())
-            self.GameName_Input.setText(names[1].strip())
-        else:
-            self.Name2P_Input.setText("")
-            self.GameName_Input.setText(window_name)
+        def apply_window_title(player: int, title: str) -> None:
+            """按窗口标题回填共享游戏名及当前角色窗口名。"""
+            name, separator, game = title.partition("|")
+            name_input = self.Name1P_Input if player == 1 else self.Name2P_Input
+            name_input.setText(name.strip() if separator else "")
+            self.GameName_Input.setText(game.strip() if separator else title)
+
+        tool.window_selected.connect(apply_window_title)
+        self.set_stylesheet(tool)
+        tool.exec()
+        tool.deleteLater()
+
+    def switch_player_mode(self) -> None:
+        """确认后保存玩家模式，下一次启动任务时按新模式创建角色。"""
+        base_settings = self.opt["base_settings"]
+        single_player = base_settings.get("player_mode") == SINGLE_PLAYER_MODE
+        new_mode = DUAL_PLAYER_MODE if single_player else SINGLE_PLAYER_MODE
+        detail = (
+            "将配置并执行1+2P的策略"
+            if single_player else "仅配置并执行1P的策略，原2P策略不会丢失"
+        )
+        answer = QMessageBox.question(
+            self, "切换玩家模式", f"确认切换为{new_mode}？\n{detail}",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+        base_settings["player_mode"] = new_mode
+        self._settings_write_pending = True
+        self.flush_settings()
+        self.apply_player_mode()
 
     def check_startup_status(self) -> None:
         """
@@ -530,30 +953,34 @@ class QMainWindowService(QMainWindowLoadSettings):
 
     """主线程管理"""
 
-    def todo_start(self,task_sequence_uuid=None):
+    def todo_start(self, task_sequence_uuid=None):
         """
         todo线程的启动函数
         task_sequence_uuid为定时启动的uuid
         """
-        self.is_start = True
+        if self._settings_migrated:
+            SIGNAL.PRINT_TO_UI.emit("[任务序列] 配置已迁移，请重启 FAA 后再启动任务。", color_level=1)
+            return
         if task_sequence_uuid is None:
-            running_task_sequence_uuid = self.opt["current_plan"]
+            if not self.flush_settings():
+                return
+            run_opt = self.opt
+            running_task_sequence_uuid = run_opt["current_plan"]
         else:
+            if not self.todo_timer_running:
+                return
+            # 定时触发沿用激活时的快照，其中的物流地址已经校验。
+            run_opt = self.todo_timer_manager.opt
             running_task_sequence_uuid = task_sequence_uuid
 
+        self.is_start = True
         # 先检测是否已经在启动状态, 如果是, 立刻关闭 然后继续执行
         if self.thread_todo_running:
             SIGNAL.PRINT_TO_UI.emit("[定时任务] 检测到线程已启动, 正在关闭", color_level=1)
             self.todo_end()
 
-        # 先读取界面上的方案
-        # self.ui_to_opt()
-
         # 获取窗口名称
-        channel_1p, channel_2p = get_channel_name(
-            game_name=self.opt["base_settings"]["game_name"],
-            name_1p=self.opt["base_settings"]["name_1p"],
-            name_2p=self.opt["base_settings"]["name_2p"])
+        channels = get_player_channels(run_opt["base_settings"])
 
         """UI处理"""
         # 设置flag
@@ -567,26 +994,27 @@ class QMainWindowService(QMainWindowLoadSettings):
             # 清屏并输出(仅限手动)
             self.TextBrowser.clear()
             self.start_print()
-        
+
         # 设置输出文本
-        SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom", color_level=2)
         if running_task_sequence_uuid in list(EXTRA.TASK_SEQUENCE_UUID_TO_PATH.keys()):
             running_task_sequence_path = EXTRA.TASK_SEQUENCE_UUID_TO_PATH[running_task_sequence_uuid]
             running_task_sequence_name = os.path.splitext(os.path.basename(running_task_sequence_path))[0]
-            SIGNAL.PRINT_TO_UI.emit(f"[任务序列] 链接开始 Todo线程开启 - 执行任务序列: {running_task_sequence_name}", color_level=1)
+            SIGNAL.PRINT_TO_UI.emit(
+                f"[任务序列] 链接开始 Todo线程开启 - 执行任务序列: {running_task_sequence_name}",
+                color_level=1)
             # 当前正在运行 的 文本 修改
-            self.Label_RunningState.setText(f"任务序列线程状态: 运行中       运行任务序列: {running_task_sequence_name}")
+            self.Label_RunningStateTask.setText(
+                f"任务序列线程状态: 运行中 ({running_task_sequence_name})")
         else:
             SIGNAL.PRINT_TO_UI.emit(f"[任务序列] 未知(索引错误)", color_level=1)
             self.is_start = False
             self.todo_end()
             return
 
-
-        SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top", color_level=2)
-
         """线程处理"""
-        # 启动点击处理线程
+        # 在上一轮任务结束后应用运行时共用参数。
+        self.apply_runtime_settings(run_opt)
+        T_ACTION_QUEUE_TIMER.interval_time = 1 / EXTRA.CLICK_PER_SECOND
         T_ACTION_QUEUE_TIMER.start()
 
         # 生成随机数种子
@@ -594,48 +1022,45 @@ class QMainWindowService(QMainWindowLoadSettings):
         the_360_lock = threading.Lock()
         # 开始创建faa
         faa_dict = {
-            1: FAA(
-                channel=channel_1p,
-                player=1,
-                character_level=self.opt["base_settings"]["level_1p"],
-                is_auto_battle=self.opt["advanced_settings"]["auto_use_card"],
-                is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_1p"],
-                QQ_login_info=self.opt["QQ_login_info"],
-                extra_sleep=self.opt["extra_sleep"],
-                opt=self.opt,
-                the_360_lock=the_360_lock,
-                random_seed=random_seed),
-            2: FAA(
-                channel=channel_2p,
-                player=2,
-                character_level=self.opt["base_settings"]["level_2p"],
-                is_auto_battle=self.opt["advanced_settings"]["auto_use_card"],
-                is_auto_pickup=self.opt["advanced_settings"]["auto_pickup_2p"],
-                QQ_login_info=self.opt["QQ_login_info"],
-                extra_sleep=self.opt["extra_sleep"],
-                opt=self.opt,
+            player: FAA(
+                channel=channel,
+                player=player,
+                opt=run_opt,
                 the_360_lock=the_360_lock,
                 random_seed=random_seed)
+            for player, channel in channels.items()
         }
 
         # 创建新的todo并启动线程
         self.thread_todo_1 = ThreadTodo(
             faa_dict=faa_dict,
-            opt=self.opt,
+            opt=run_opt,
             todo_id=1,
             running_task_sequence_uuid=running_task_sequence_uuid)
 
-        # 多线程作战时的第二线程
-        self.thread_todo_2 = ThreadTodo(
-            faa_dict=faa_dict,
-            opt=self.opt,
-            todo_id=2,
-            running_task_sequence_uuid=running_task_sequence_uuid)
+        def stop_failed_task(message: str) -> None:
+            """停止本轮双线程任务，并只展示最先传回的失败原因。"""
+            # 两个Todo可能同时失败；主线程关闭任务后，排队到达的失败信号直接忽略。
+            if not self.thread_todo_running:
+                return
+            self.todo_end()
+            CUS_LOGGER.error(f"[登录] [任务序列] {message}")
+            SIGNAL.DIALOG.emit(title="登录错误", text=message)
 
-        # 链接信号以进行多线程单人
-        self.thread_todo_1.signal_start_todo_2_battle.connect(self.thread_todo_2.set_extra_opt_and_start)
-        self.thread_todo_2.signal_todo_lock.connect(self.thread_todo_1.change_lock)
-        self.thread_todo_1.signal_todo_lock.connect(self.thread_todo_2.change_lock)
+        self.thread_todo_1.signal_task_failed.connect(stop_failed_task)
+
+        if 2 in faa_dict:
+            self.thread_todo_2 = ThreadTodo(
+                faa_dict=faa_dict,
+                opt=run_opt,
+                todo_id=2,
+                running_task_sequence_uuid=running_task_sequence_uuid)
+            self.thread_todo_1.signal_start_todo_2_battle.connect(self.thread_todo_2.set_extra_opt_and_start)
+            self.thread_todo_2.signal_todo_lock.connect(self.thread_todo_1.change_lock)
+            self.thread_todo_1.signal_todo_lock.connect(self.thread_todo_2.change_lock)
+            self.thread_todo_2.signal_task_failed.connect(stop_failed_task)
+        else:
+            self.thread_todo_2 = None
 
         # 启动线程
         self.thread_todo_1.start()
@@ -673,13 +1098,11 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 设置flag
         self.thread_todo_running = False
         # 设置按钮文本
-        self.Button_Start.setText("开始任务\nLink Start")
+        self.Button_Start.setText("执行序列\nLink Start")
         # 设置输出文本
-        SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="bottom", color_level=2)
         SIGNAL.PRINT_TO_UI.emit("[任务序列] 已关闭全部线程", color_level=1)
-        SIGNAL.PRINT_TO_UI.emit("", is_line=True, line_type="top", color_level=2)
         # 当前正在运行 的 文本 修改
-        self.Label_RunningState.setText(f"任务序列线程状态: 未运行")
+        self.Label_RunningStateTask.setText(f"任务序列线程状态: 未运行")
 
         # 调试打印 确定所有内部线程的状态 是否还是运行激活状态
         q_threads = {
@@ -689,7 +1112,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         }
         CUS_LOGGER.debug(f"[任务序列] 结束后线程状态检查")
         for q_thread_name, q_thread_obj in q_threads.items():
-            CUS_LOGGER.debug(f"[任务序列] {q_thread_name} 正在运行: {q_thread_obj.isRunning()}")
+            if q_thread_obj is not None:
+                CUS_LOGGER.debug(f"[任务序列] {q_thread_name} 正在运行: {q_thread_obj.isRunning()}")
 
         self.is_ending = False  # 完成完整的线程结束
 
@@ -698,25 +1122,28 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 线程没有激活
         if not (self.thread_todo_running or self.is_ending or self.is_start):
-            self.todo_start()
+            if self.prepare_run_settings():
+                self.todo_start()
 
         elif not self.is_ending:  # 加强鲁棒性，用于防熊
             self.todo_end()
 
     def todo_timer_start(self):
-        # 先读取界面上的方案
-        self.ui_to_opt()
+        if not self.flush_settings():
+            return
         # 检查时间是否重复，方案是否存在
         time_list = []
         for i in range(1, 6):
             timer_opt = self.opt["timer"][str(i)]
             if timer_opt["active"]:
-                h_text = getattr(self, f'Timer{i}_H').text()
-                m_text = getattr(self, f'Timer{i}_M').text()
-                tar_time = {"h": h_text, "m": m_text}
+                h_text = f'{timer_opt["h"]:02d}'
+                m_text = f'{timer_opt["m"]:02d}'
+                tar_time = (timer_opt["h"], timer_opt["m"])
                 plan_identifier = timer_opt["plan"]
                 if plan_identifier == "" or plan_identifier == -1:
-                    SIGNAL.PRINT_TO_UI.emit(f"[定时任务] {h_text}:{m_text} 的定时任务未选择方案，启动失败!",color_level=1)
+                    SIGNAL.PRINT_TO_UI.emit(
+                        f"[定时任务] {h_text}:{m_text} 的定时任务未选择方案，启动失败!",
+                        color_level=1)
                     return
                 if tar_time in time_list:
                     SIGNAL.PRINT_TO_UI.emit(f"[定时任务] {h_text}:{m_text} 的定时任务时间重复，启动失败!", color_level=1)
@@ -730,6 +1157,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 设置输出文本
         SIGNAL.PRINT_TO_UI.emit("", time=False)
         SIGNAL.PRINT_TO_UI.emit("[定时任务] 已启动!", color_level=1)
+        self.Label_RunningStateTimer.setText(
+            f"定时任务线程状态: 运行中")
         # 设置Flag
         self.todo_timer_running = True
         # 新设todo timer manager的opt
@@ -738,6 +1167,13 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.todo_timer_manager.start()
         # 锁定相关设置的ui
         for i in range(1, 6):
+            timer_opt = self.opt["timer"][str(i)]
+            if timer_opt["active"]:
+                # 补齐空白和一位数，让锁定的界面显示实际采用的时间。
+                for field in ("h", "m"):
+                    widget = getattr(self, f"Timer{i}_{field.upper()}")
+                    with QtCore.QSignalBlocker(widget):
+                        widget.setText(f"{timer_opt[field]:02d}")
             for comp in ['Active', 'H', 'M', 'Plan']:
                 getattr(self, f'Timer{i}_{comp}').setEnabled(False)
 
@@ -747,6 +1183,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         # 设置输出文本
         SIGNAL.PRINT_TO_UI.emit("", time=False)
         SIGNAL.PRINT_TO_UI.emit("[定时任务] 定时作战已关闭!", color_level=1)
+        self.Label_RunningStateTimer.setText(
+            f"定时任务线程状态: 未运行")
         # 设置Flag
         self.todo_timer_running = False
         # 关闭线程群
@@ -760,8 +1198,8 @@ class QMainWindowService(QMainWindowLoadSettings):
         """开始计时器"""
 
         if not self.todo_timer_running:
-            # 线程没有激活
-            self.todo_timer_start()
+            if self.prepare_run_settings():
+                self.todo_timer_start()
         else:
             self.todo_timer_stop()
 
@@ -802,26 +1240,21 @@ class QMainWindowService(QMainWindowLoadSettings):
         """
 
         # 获取窗口名称
-        channel_1p, channel_2p = get_channel_name(
-            game_name=self.opt["base_settings"]["game_name"],
-            name_1p=self.opt["base_settings"]["name_1p"],
-            name_2p=self.opt["base_settings"]["name_2p"])
-
-        # 不通过就直接结束弹窗
         handles = {
-            1: faa_get_handle(channel=channel_1p, mode="360"),
-            2: faa_get_handle(channel=channel_2p, mode="360")}
+            player: faa_get_handle(channel=channel, mode="360")
+            for player, channel in get_player_channels(self.current_window_settings()).items()
+        }
         for player, handle in handles.items():
             if handle is None or handle == 0:
                 # 报错弹窗
                 SIGNAL.DIALOG.emit(
-                    "出错！(╬◣д◢)",
-                    f"{player}P存在错误的窗口名或游戏名称, 请参考 [使用前看我!.pdf] 或 [README.md]")
+                    title="出错！(╬◣д◢)",
+                    text=f"{player}P存在错误的窗口名或游戏名称, 请通过基础设定中的句柄工具重新拖取游戏窗口。"
+                )
                 return
 
         if self.game_window_is_hide:
-            for p_id in [1, 2]:
-                handle = handles[p_id]
+            for handle in handles.values():
                 # 激活目标窗口
                 win32gui.SetForegroundWindow(handle)
                 # 将窗口置于顶部
@@ -846,8 +1279,7 @@ class QMainWindowService(QMainWindowLoadSettings):
             )
             self.game_window_is_hide = False
         else:
-            for p_id in [1, 2]:
-                handle = handles[p_id]
+            for handle in handles.values():
                 # 将窗口置于Z序的底部，但不改变活动状态
                 win32gui.SetWindowPos(
                     handle,
@@ -858,94 +1290,64 @@ class QMainWindowService(QMainWindowLoadSettings):
                 # 也许有一天能写出真正的老板键 大概
             self.game_window_is_hide = True
 
+        next_action = "置于屏幕顶层" if self.game_window_is_hide else "置于屏幕最底层"
+        self.Button_WindowHide.setText(f"切换窗口层级\n{next_action}")
+
     def click_btn_batch_resize_window(self):
-        """
-        调整窗口大小并设置窗口位置
-        :return:
-        """
 
-        # 获取窗口名称
-        channel_1p, channel_2p = get_channel_name(
-            game_name=self.opt["base_settings"]["game_name"],
-            name_1p=self.opt["base_settings"]["name_1p"],
-            name_2p=self.opt["base_settings"]["name_2p"])
-
-        handles = {
-            1: faa_get_handle(channel=channel_1p, mode="360"),
-            2: faa_get_handle(channel=channel_2p, mode="360")}
-        width = int(955 * EXTRA.ZOOM_RATE)
-        height = int(668 * EXTRA.ZOOM_RATE)
-
-        # 获取屏幕工作区域大小
-        user32 = ctypes.windll.user32
-        screen_width = user32.GetSystemMetrics(0)
-        screen_height = user32.GetSystemMetrics(1)
-
-        if height * 2 <= screen_height:
-
-            # 第一个窗口放置在屏幕右上角,最小大小
-            win32gui.SetWindowPos(
-                handles[1],
-                win32con.HWND_TOP,
-                screen_width - width,  # X坐标：屏幕宽度减去窗口宽度
-                0,  # Y坐标：顶部对齐
-                width,
-                height,
-                win32con.SWP_SHOWWINDOW
+        try:
+            # 获取窗口名称
+            base_settings = self.current_window_settings()
+            batch_resize_window(
+                game_name=base_settings["game_name"],
+                name_1p=base_settings["name_1p"],
+                name_2p=None if base_settings["player_mode"] == SINGLE_PLAYER_MODE else base_settings["name_2p"],
+                platform=self.LoginPlatformCombo.currentText(),
             )
-
-            if handles[2]:
-                # 第二个窗口放置在第一个窗口下方（紧贴）,最小大小
-                win32gui.SetWindowPos(
-                    handles[2],
-                    win32con.HWND_TOP,
-                    screen_width - width,  # X坐标
-                    height,  # Y坐标
-                    width,
-                    height,
-                    win32con.SWP_SHOWWINDOW
-                )
-        else:
-            if handles[2]:
-                # 顶部居中，宽度占满屏幕，高度最小
-                win32gui.SetWindowPos(
-                    handles[1],
-                    win32con.HWND_TOP,
-                    0,  # X坐标：屏幕宽度减去窗口宽度
-                    0,  # Y坐标：顶部对齐
-                    int(screen_width/2),
-                    height,
-                    win32con.SWP_SHOWWINDOW
-                )
-                win32gui.SetWindowPos(
-                    handles[2],
-                    win32con.HWND_TOP,
-                    int(screen_width/2),  # X坐标：屏幕宽度减去窗口宽度
-                    0,  # Y坐标：顶部对齐
-                    int(screen_width/2),
-                    height,
-                    win32con.SWP_SHOWWINDOW
-                )
-            else:
-                # 第一个窗口放置在屏幕右上角,最小大小
-                win32gui.SetWindowPos(
-                    handles[1],
-                    win32con.HWND_TOP,
-                    screen_width - width,  # X坐标：屏幕宽度减去窗口宽度
-                    0,  # Y坐标：顶部对齐
-                    width,
-                    height,
-                    win32con.SWP_SHOWWINDOW
-                )
+        except Exception as e:
+            # 报错弹窗
+            SIGNAL.DIALOG.emit(
+                title="出错！(╬◣д◢)",
+                text=f"存在错误的窗口名或游戏名称, 请通过基础设定中的句柄工具重新拖取游戏窗口。"
+            )
 
     """打开其他窗口"""
 
     def click_btn_open_editor_of_battle_plan(self):
+        check_result = check_all_battle_plan()
+        refresh_all_battle_plan()
+        g_resources.fresh_resource_b()
         window = self.window_editor_of_battle_plan
         window.set_my_font(self.font)
         self.set_stylesheet(window)
         window.show()
+        if check_result.has_issues:
+            QtCore.QTimer.singleShot(
+                0,
+                lambda: show_plan_check_dialog(
+                    window,
+                    "战斗方案检查",
+                    check_result.dialog_text(),
+                ),
+            )
 
+    def click_btn_open_editor_of_tweak_plan(self):
+        """打开正式微调方案编辑器，并同步磁盘上的方案变化。"""
+        window = self.window_editor_of_tweak_plan
+        window.setFont(self.font)
+        # 微调编辑器刻意保留原生 PyQt 控件外观，只继承应用级字体和 Palette；
+        # 不叠加旧皮肤的整窗 QSS，避免下拉框和数字框出现另一套美术样式。
+        window.refresh_plan_library(check_versions=True)
+        self.refresh_tweak_plan_resources()
+        window.show()
+        window.raise_()
+        window.activateWindow()
+
+    @staticmethod
+    def refresh_tweak_plan_resources():
+        """让新建、重命名、删除后的方案立即进入 FAA 内存资源。"""
+        refresh_all_tweak_plan()
+        g_resources.fresh_resource_t()
 
     def click_btn_open_editor_of_stage_plan(self):
         window = self.window_editor_of_stage_plan
@@ -961,6 +1363,15 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.set_stylesheet(window)
         window.show()
 
+    def click_btn_open_performance_analysis(self):
+        """打开性能分析独立窗口，并把窗口提升到前台。"""
+        window = self.window_performance_analysis
+        window.setFont(self.font)
+        self.set_stylesheet(window)
+        window.show()
+        window.raise_()
+        window.activateWindow()
+
     def click_btn_open_useful_tools(self):
         pass
         window = self.window_useful_tools
@@ -972,8 +1383,8 @@ class QMainWindowService(QMainWindowLoadSettings):
             window.show()
         else:
             SIGNAL.DIALOG.emit(
-                "出错！(╬◣д◢)",
-                "请打开游戏窗口后再使用小工具！")
+                title="出错！(╬◣д◢)",
+                text="请打开游戏窗口后再使用小工具！")
 
     def click_btn_tip_warm_gift(self):
         window = self.window_tip_warm_gift
@@ -1029,14 +1440,24 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.set_stylesheet(window)
         window.show()
 
-    def click_btn_tip_qqlogin(self):
-        window = self.window_tip_qqlogin
+    def show_password_login_help(self) -> None:
+        """打开 QQ 空间和 4399 共用的密码登录说明。"""
+        window = self.window_tip_password_login
+        window.setFont(self.font())
+        self.set_stylesheet(window)
+        window.show()
+        window.raise_()
+        window.activateWindow()
+
+    def show_server_wait_help(self):
+        window = self.window_tip_server_wait
         window.setFont(self.font)
         self.set_stylesheet(window)
         window.show()
 
-    def click_btn_tip_sleep(self):
-        window = self.window_tip_sleep
+    def click_btn_tip_update(self):
+        """打开更新与备份说明窗口。"""
+        window = self.window_tip_update
         window.setFont(self.font)
         self.set_stylesheet(window)
         window.show()
@@ -1051,15 +1472,15 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         result_bool, result_print = test_route_connectivity(url=url)
         SIGNAL.DIALOG.emit(
-            "链接成功!" if result_bool else "连接失败...",
-            result_print
+            title="链接成功!" if result_bool else "连接失败...",
+            text=result_print
         )
 
     def click_btn_misu_logistics_get_stage_info_online(self):
         result_print = get_stage_info_online()
         SIGNAL.DIALOG.emit(
-            "尝试完成",
-            result_print
+            title="尝试完成",
+            text=result_print
         )
 
     def click_btn_misu_logistics_set_default(self):
@@ -1072,7 +1493,6 @@ class QMainWindowService(QMainWindowLoadSettings):
             '一键逆天（bushi',
             '使用该功能前, 要打开360大厅的对应的小号\n'
             '本功能会自动填写360大厅的路径\n'
-            '记得要保存哦！\n'
             '确定要进行此操作吗?',
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No)
@@ -1082,8 +1502,9 @@ class QMainWindowService(QMainWindowLoadSettings):
         path, title = get_path_and_sub_titles()
         if not path:
             SIGNAL.DIALOG.emit(
-                "哎呦！(╥﹏╥)",
-                f"未正确获取路径，请确保已打开360大厅及授予FAA管理员权限")
+                title="哎呦！(╥﹏╥)",
+                text=f"未正确获取路径，请确保已打开360大厅及授予FAA管理员权限"
+            )
             return
         self.LoginSettings360PathInput.setText(path)
 
@@ -1118,22 +1539,6 @@ class QMainWindowService(QMainWindowLoadSettings):
         # self.Name1P_Input.setText(name_1p)
         # if name_2p:
         #     self.Name2P_Input.setText(name_2p)
-
-    def click_btn_select_tce_path(self):
-        file_dialog = QFileDialog()
-        file_dialog.setFileMode(QFileDialog.FileMode.ExistingFile)  # 选择已存在的文件
-        file_dialog.setNameFilter("Executable Files (*.exe)")  # 过滤文件类型
-
-        if file_dialog.exec():
-            selected_files = file_dialog.selectedFiles()
-            if selected_files:
-                file_path = selected_files[0]
-                if file_path.lower().endswith("天知强卡器.exe") or file_path.lower().endswith(
-                        r"\天知强卡器.exe"):  # 增加了对文件名的判断，做了兼容
-                    self.TCE_path_input.setText(file_path)
-                else:
-                    QMessageBox.warning(self, "警告", "请选择名为 '天知强卡器.exe' 的文件！")
-                    self.TCE_path_input.clear()
 
     def click_btn_reset_card_status_memory(self):
         # 弹出是或否选项
@@ -1187,7 +1592,7 @@ class QMainWindowService(QMainWindowLoadSettings):
     def click_btn_open_other_tools(self):
         # 创建新窗口
         self.tools_window = QWidget()
-        self.tools_window.setWindowTitle("其它工具")
+        self.tools_window.setWindowTitle("更多工具")
         self.tools_window.resize(300, 200)
 
         # 创建垂直布局
@@ -1195,17 +1600,391 @@ class QMainWindowService(QMainWindowLoadSettings):
 
         # 创建按钮
         self.open_task_btn = QPushButton("任务计划编辑器")
+        self.open_task_btn.setToolTip("打开任务计划数据库编辑器")
         layout.addWidget(self.open_task_btn)
 
+        # 性能分析属于诊断类能力，收到“更多工具”中，避免占用高级设置
+        # 左侧的一级入口；分析窗口本身仍在主窗口初始化时创建，以持续接收采样。
+        self.open_performance_btn = QPushButton("性能分析")
+        self.open_performance_btn.setToolTip("查看 FAA 运行时性能采样与分析结果")
+        layout.addWidget(self.open_performance_btn)
+
         # 数据库连接
-        db_path = PATHS["db"] + "/tasks.db"
+        db_path = os.path.join(PATHS["db"], 'tasks.db')
         db_conn = sqlite3.connect(db_path)
 
         # 按钮点击连接
         self.open_task_btn.clicked.connect(lambda: self.open_task_editor(db_conn))
+        self.open_performance_btn.clicked.connect(self.click_btn_open_performance_analysis)
+
+        self.tools_window.setFont(self.font)
+        self.set_stylesheet(self.tools_window)
 
         # 显示窗口
         self.tools_window.show()
+
+    def click_btn_open_faa_view(self):
+        """复用 FAA视角窗口；首次点击入口时才创建并启动实时预览。"""
+        if self.window_faa_view is None:
+            self.window_faa_view = QMWFAAView(self)
+            self.window_faa_view.setFont(self.font)
+            self.set_stylesheet(self.window_faa_view)
+            QtWidgets.QApplication.instance().aboutToQuit.connect(self.window_faa_view.shutdown)
+        self.window_faa_view.showNormal()
+        self.window_faa_view.raise_()
+        self.window_faa_view.activateWindow()
+
+    def closeEvent(self, event):
+        """FAA 使用强制进程退出，必须先完成视角工具的 MP4 文件写入。"""
+        if not self.flush_settings():
+            QMessageBox.warning(self, "设置保存失败", "请检查配置目录的写入权限或文件占用后，再关闭 FAA。")
+            event.ignore()
+            return
+        if self.window_faa_view is not None:
+            self.window_faa_view.shutdown()
+        super().closeEvent(event)
+
+    @staticmethod
+    def _git_log_callback(level, msg):
+        """Git 日志回调 - 根据等级映射颜色"""
+        color_map = {"INFO": 3, "WARNING": 2, "ERROR": 1}
+        SIGNAL.PRINT_TO_UI.emit(f"[Git] {msg}", color_level=color_map.get(level, 3))
+
+    def click_btn_check_update(self):
+        """加载带版本 tag 的正式版更新列表。"""
+        SIGNAL.PRINT_TO_UI.emit("[更新] 正在刷新正式版本列表...", color_level=1)
+        self.start_update_progress("正在请求 GitHub 正式版 tag 列表")
+        self.CheckUpdateButton.setEnabled(False)
+        self.ForceUpdateButton.setEnabled(False)
+        self.DevMoreUpdateButton.setEnabled(False)
+        self.NormalUpdateButton.setEnabled(False)
+
+        def on_check_result(success, message, payload):
+            """接收正式版 manifest worker 结果并更新表格和按钮状态。"""
+            if success:
+                SIGNAL.PRINT_TO_UI.emit(f"[更新] {message}", color_level=2)
+            else:
+                SIGNAL.PRINT_TO_UI.emit(f"[更新] {message}", color_level=0)
+
+            if payload and payload.get("state_warning"):
+                SIGNAL.PRINT_TO_UI.emit(f"[更新状态] {payload['state_warning']}", color_level=1)
+
+            versions = payload.get("versions", []) if payload else []
+            local_state = payload.get("local_state", {}) if payload else {}
+            current_release = payload.get("current_release", {}) if payload else {}
+            if success:
+                self.refresh_update_state_label(local_state=local_state, release_entry=current_release)
+            self._fill_update_table(versions, mode="release")
+            self.update_candidates = versions
+            self.update_target_mode = "release"
+            if success and not versions:
+                self.finish_update_progress("您已经是最新版本！")
+            else:
+                self.finish_update_progress(
+                    f"正式版列表加载完成，共 {len(versions)} 个候选版本" if success
+                    else f"正式版列表加载失败：{message}"
+                )
+            self.NormalUpdateButton.setText("更新至选中的版本")
+
+            self.CheckUpdateButton.setEnabled(True)
+            self.ForceUpdateButton.setEnabled(True)
+            self.DevMoreUpdateButton.setEnabled(False)
+            self.NormalUpdateButton.setEnabled(bool(versions))
+
+        self.git_worker = refresh_release_manifest()
+        self.git_worker.result.connect(on_check_result)
+
+    def _selected_update_target(self):
+        """
+        获取更新表格中当前选中的目标版本。
+
+        Returns:
+            目标版本 dict；没有候选项时返回 None。若用户没有手动选中行，
+            默认使用候选列表第一项，避免刷新后必须额外点击一次。
+        """
+        candidates = getattr(self, "update_candidates", [])
+        if not candidates:
+            return None
+
+        row = self.GitHistoryView.currentRow()
+        if 0 <= row < len(candidates):
+            return candidates[row]
+        return candidates[0]
+
+    def _fill_update_table(self, entries, mode: str):
+        """
+        将正式版 tag 或开发版 PR 合并提交渲染到更新表格。
+
+        Args:
+            entries: 来自 manifest worker 的版本候选列表。
+            mode: release 表示正式版列表，developer 表示开发版 PR 合并提交列表。
+        """
+        self.GitHistoryView.setColumnCount(5)
+        self.GitHistoryView.setHorizontalHeaderLabels(['版本/类型', 'PR', '提交哈希', '时间', '标题'])
+        self.GitHistoryView.setRowCount(0)
+
+        for entry in entries:
+            row_position = self.GitHistoryView.rowCount()
+            self.GitHistoryView.insertRow(row_position)
+            values = [
+                entry.get("tag", "") if mode == "release" else "开发",
+                f"#{entry.get('pr')}" if entry.get("pr") else "",
+                entry.get("commit", "")[:12],
+                entry.get("merged_at", ""),
+                entry.get("title") or entry.get("summary", ""),
+            ]
+            for column, value in enumerate(values):
+                item = QtWidgets.QTableWidgetItem(str(value))
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsEditable)
+                if column == 4:
+                    item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignTop)
+                self.GitHistoryView.setItem(row_position, column, item)
+
+        header = self.GitHistoryView.horizontalHeader()
+        header.resizeSection(0, 90)
+        header.resizeSection(1, 70)
+        header.resizeSection(2, 120)
+        header.resizeSection(3, 160)
+        self.GitHistoryView.resizeRowsToContents()
+
+    def click_btn_force_update(self):
+        """进入开发版更新模式，加载最近的 PR merge commit 列表。"""
+        reply = QMessageBox.warning(
+            self,
+            '开发者更新模式',
+            '即将显示 main 分支最近的 PR 合并提交。\n'
+            '这些提交未必是正式版本，不保证可以正常运行。\n'
+            '请确认你知道自己在做什么。',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+
+        self.dev_manifest_pages = 1
+        self._refresh_dev_updates(max_pages=self.dev_manifest_pages, stop_at_cached=True)
+
+    def click_btn_load_more_dev_updates(self):
+        """继续向更早的 main 分支 PR 合并提交翻页。"""
+        self.dev_manifest_pages = max(getattr(self, "dev_manifest_pages", 1) + 1, 2)
+        self._refresh_dev_updates(max_pages=self.dev_manifest_pages, stop_at_cached=False)
+
+    def _refresh_dev_updates(self, max_pages: int, stop_at_cached: bool):
+        """
+        刷新开发版候选列表。
+
+        Args:
+            max_pages: 本次最多读取的 GitHub API 分页数量。
+            stop_at_cached: 读取到本地缓存已知提交时是否提前停止，用于降低访问量。
+        """
+        SIGNAL.PRINT_TO_UI.emit(f"[更新] 正在刷新开发者 PR 合并提交列表，页数={max_pages}...", color_level=1)
+        self.start_update_progress(f"正在请求 GitHub 开发版 PR 合并提交列表，第 {max_pages} 页范围")
+        self.CheckUpdateButton.setEnabled(False)
+        self.ForceUpdateButton.setEnabled(False)
+        self.DevMoreUpdateButton.setEnabled(False)
+        self.NormalUpdateButton.setEnabled(False)
+
+        def on_dev_result(success, message, payload):
+            """接收开发版 manifest worker 结果并刷新 PR 合并提交列表。"""
+            if success:
+                SIGNAL.PRINT_TO_UI.emit(f"[更新] {message}", color_level=2)
+            else:
+                SIGNAL.PRINT_TO_UI.emit(f"[更新] {message}", color_level=0)
+
+            dev_commits = payload.get("dev_commits", []) if payload else []
+            self._fill_update_table(dev_commits, mode="developer")
+            self.update_candidates = dev_commits
+            self.update_target_mode = "developer"
+            self.finish_update_progress(
+                f"开发版列表加载完成，共 {len(dev_commits)} 个 PR 合并提交" if success
+                else f"开发版列表加载失败：{message}"
+            )
+            self.NormalUpdateButton.setText("更新至选中的版本")
+
+            self.CheckUpdateButton.setEnabled(True)
+            self.ForceUpdateButton.setEnabled(True)
+            self.DevMoreUpdateButton.setEnabled(bool(dev_commits))
+            self.NormalUpdateButton.setEnabled(bool(dev_commits))
+
+        self.git_worker = refresh_dev_manifest(max_pages=max_pages, stop_at_cached=stop_at_cached)
+        self.git_worker.result.connect(on_dev_result)
+
+    def click_btn_normal_update(self):
+        """准备并确认应用用户在表格中选中的更新目标。"""
+        if not self._ensure_update_allowed_outside_git_worktree():
+            return
+
+        target = self._selected_update_target()
+        if not target:
+            QMessageBox.information(self, "暂无可用更新", "请先点击“检查更新”刷新正式版本列表。")
+            return
+        mode = getattr(self, "update_target_mode", "release")
+        target_name = target.get("tag") or f"PR #{target.get('pr')} / {target.get('commit', '')[:12]}"
+
+        reply = QMessageBox.question(
+            self,
+            '准备更新',
+            f"即将准备更新至 {target_name}。\n"
+            "准备阶段会下载目标源码包，按目标版本的规则生成发行目录并预览数据迁移，不会立刻替换当前目录。\n"
+            "准备完成后会再次确认是否执行替换。",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No)
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+
+        SIGNAL.PRINT_TO_UI.emit(f"[更新] 正在准备 {target_name}...", color_level=1)
+        self.start_update_progress(f"正在下载并准备更新到 {target_name}")
+        self.CheckUpdateButton.setEnabled(False)
+        self.ForceUpdateButton.setEnabled(False)
+        self.DevMoreUpdateButton.setEnabled(False)
+        self.NormalUpdateButton.setEnabled(False)
+
+        def on_prepare_result(success, message, payload):
+            """接收 staging 准备结果，空间足够且用户确认后启动外部 updater。"""
+            self.CheckUpdateButton.setEnabled(True)
+            self.ForceUpdateButton.setEnabled(True)
+            self.DevMoreUpdateButton.setEnabled(self.update_target_mode == "developer" and bool(self.update_candidates))
+            self.NormalUpdateButton.setEnabled(True)
+            if not success:
+                self.finish_update_progress(f"更新准备失败：{message}")
+
+            if not success:
+                SIGNAL.PRINT_TO_UI.emit(f"[更新] {message}", color_level=0)
+                SIGNAL.DIALOG.emit("更新准备失败", message)
+                return
+
+            space = payload.get("space", {})
+            validation = payload.get("target_validation", {})
+            if validation.get("status") == "compare_failed":
+                SIGNAL.PRINT_TO_UI.emit(f"[更新状态] {validation.get('message')}", color_level=1)
+
+            SIGNAL.PRINT_TO_UI.emit(
+                f"[更新] 准备完成。需要空间 {space.get('required_text')}，可用 {space.get('available_text')}",
+                color_level=2 if space.get("enough") else 0,
+            )
+
+            self.finish_update_progress("更新准备完成，正在等待确认是否执行替换")
+
+            if not space.get("enough", False):
+                self.finish_update_progress("更新准备完成，但磁盘空间不足，已停止替换")
+                SIGNAL.DIALOG.emit(
+                    "磁盘空间不足",
+                    f"更新已准备但不会执行替换。\n需要：{space.get('required_text')}\n可用：{space.get('available_text')}"
+                )
+                return
+
+            staging_path = payload.get("staging", {}).get("path", "")
+            reply_apply = QMessageBox.question(
+                self,
+                '执行更新替换',
+                f"更新准备完成，staging 位于：\n{staging_path}\n\n"
+                "接下来会启动目标版本的更新工具。当前程序退出后，会重新迁移最终配置，再备份并替换版本文件。\n"
+                "更新完成后请自行运行 FAA - 环境安装器.exe，准备新版运行环境后启动 FAA。\n"
+                "是否现在执行？",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No)
+            if reply_apply != QMessageBox.StandardButton.Yes:
+                self.finish_update_progress("更新准备完成，用户取消了本次替换")
+                return
+
+            if not self.flush_settings():
+                self.finish_update_progress("设置保存失败，已停止替换")
+                return
+
+            launch_info = launch_update_from_staging(PATHS["root"], staging_path)
+            self.finish_update_progress(f"外部 updater 已启动，PID={launch_info['pid']}，主程序即将退出")
+            SIGNAL.PRINT_TO_UI.emit(f"[更新] 已启动外部 updater，PID={launch_info['pid']}。主程序即将退出。", color_level=1)
+            QtCore.QTimer.singleShot(500, QtWidgets.QApplication.quit)
+
+        self.git_worker = prepare_release_update(target, auto_start=False)
+        self.git_worker.progress.connect(self.update_download_progress_detail)
+        self.git_worker.result.connect(on_prepare_result)
+        self.git_worker.start()
+
+    def restart_application(self):
+        """
+        重启整个应用程序
+        停止当前任务后优先使用根目录快速启动入口，源码环境缺少入口时直接启动 Python。
+        """
+
+        # 弹窗确认
+        reply = QMessageBox.question(
+            self,
+            '重启 FAA',
+            '确定要重启 FAA 吗？\n'
+            '这将关闭所有正在运行的任务和线程，然后重新启动程序。',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No)
+
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+
+        if not self.flush_settings():
+            QMessageBox.warning(self, "设置保存失败", "请检查配置目录的写入权限或文件占用后，再重启 FAA。")
+            return
+
+        CUS_LOGGER.info("[重启] 用户请求重启应用程序，开始清理流程...")
+        if self.thread_todo_running:
+            CUS_LOGGER.info("[重启] 正在停止 todo 主线程...")
+            self.todo_end()
+        if self.todo_timer_running:
+            CUS_LOGGER.info("[重启] 正在停止定时任务管理器...")
+            self.todo_timer_stop()
+        CUS_LOGGER.info("[重启] 所有线程已停止，准备重启...")
+
+        # 启动新进程 - 根据启动方式选择正确的命令
+        try:
+            CUS_LOGGER.debug(f"[重启] 工作目录：{PATHS['root']}")
+
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
+            root_entry = os.path.join(PATHS["root"], LAUNCHER_EXE)
+            if os.path.isfile(root_entry):
+                CUS_LOGGER.debug(f"[重启] 使用根目录固定入口：{root_entry}")
+                process = subprocess.Popen(
+                    [root_entry],
+                    cwd=PATHS["root"],
+                    shell=False,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                    startupinfo=startupinfo
+                )
+            else:
+                python_executable = sys.executable
+                main_script = os.path.join(PATHS["root"], "function", "faa_main.py")
+                main_script_abs = os.path.abspath(main_script)
+                try:
+                    parent_process = psutil.Process().parent()
+                    parent_cmdline = parent_process.cmdline() if parent_process else []
+                    mode = any('-m' in arg for arg in parent_cmdline)
+                except Exception:
+                    mode = False
+
+                if mode:
+                    cmd_args = [python_executable, '-m', 'function.faa_main']
+                else:
+                    cmd_args = [python_executable, main_script_abs]
+                CUS_LOGGER.debug(f"[重启] 启动命令：{' '.join(cmd_args)}")
+                CUS_LOGGER.debug(f"[重启] 主脚本路径：{main_script_abs}")
+                process = subprocess.Popen(
+                    cmd_args,
+                    cwd=PATHS["root"],
+                    creationflags=subprocess.CREATE_NEW_CONSOLE,
+                    startupinfo=startupinfo
+                )
+
+            CUS_LOGGER.info(f"[重启] 新进程 PID: {process.pid}")
+        except Exception as e:
+            CUS_LOGGER.error(f"[重启] 启动新进程失败：{e}")
+            QMessageBox.critical(
+                self,
+                '重启失败',
+                f'无法启动新进程：{str(e)}',
+                QMessageBox.StandardButton.Ok)
+            return
+        CUS_LOGGER.info("[重启] 关闭当前应用...")
+        self.close()
+        os._exit(0)
 
     def open_task_editor(self, db_conn):
         """打开任务计划编辑器"""
@@ -1213,8 +1992,7 @@ class QMainWindowService(QMainWindowLoadSettings):
         self.task_editor.show()
 
 
-def faa_start_main(app=None, loading=None):
-    loading.update_progress(95)
+def faa_start_main(app=None, loading=None, local_state=None):
     # app.setStyle("Windows")
     # app.setStyle("WindowsVista")
     # app.setStyle("Fusion")
@@ -1222,23 +2000,49 @@ def faa_start_main(app=None, loading=None):
 
     """字体"""
 
-    font = EXTRA.Q_FONT
-
     # 设定 全局字体
-    app.setFont(font)
+    app.setFont(EXTRA.Q_FONT)
 
     # 实例化 主窗口
-    window = QMainWindowService()
+    window = QMainWindowService(
+        initial_local_state=local_state,
+        startup_progress=loading.update_progress,
+    )
+    # Qt 事件循环此时已在运行，由 QApplication 持有强引用，
+    # 避免本函数返回后顶层窗口被 Python 回收。
+    app.faa_main_window = window
 
     # 设置 窗口字体
-    window.font = font
-    # 先停止播放gif再更新进度到100避免线程安全问题
-    loading.anim.stop()
+    window.font = EXTRA.Q_FONT
     loading.update_progress(100, "载入完成！！！")
     # 主窗口 实现
     window.show()
+    plan_check_sections = []
+    if window.battle_plan_scan_result.has_issues:
+        plan_check_sections.append(window.battle_plan_scan_result.dialog_text())
+    if window.tweak_plan_scan_result.has_issues:
+        plan_check_sections.append(window.tweak_plan_scan_result.dialog_text())
+    if window.tweak_plan_uuid_check_result.has_issues:
+        plan_check_sections.append(
+            "微调方案 UUID 检查与修复\n"
+            + "\n".join(window.tweak_plan_uuid_check_result.messages)
+        )
+    if plan_check_sections:
+        QtCore.QTimer.singleShot(
+            0,
+            lambda: show_plan_check_dialog(
+                window,
+                "战斗方案与微调方案检查",
+                "\n\n".join(plan_check_sections),
+            ),
+        )
+    QtCore.QTimer.singleShot(100, lambda: apply_windows_taskbar_icon(window))
+    QtCore.QTimer.singleShot(250, lambda: bring_main_window_to_front_once(window))
     # 主窗口淡入动画
     window.fade_in_animation.start()
+    QtCore.QTimer.singleShot(0, window.warn_recording_size_if_needed)
+    QtCore.QTimer.singleShot(0, window.warn_update_backups_if_needed)
+    QtCore.QTimer.singleShot(0, window.warn_update_state_if_needed)
 
     # 性能分析监控启动
     run_analysis_in_thread(window)

@@ -1,42 +1,28 @@
 import random
 
-from PyQt6.QtCore import Qt, QPointF, QPropertyAnimation, QEasingCurve, QPoint, QSize, QThread
-from PyQt6.QtGui import QColor, QMovie
+from PyQt6.QtCore import (
+    Qt,
+    QPointF,
+    QPropertyAnimation,
+    QEasingCurve,
+    pyqtSignal,
+    pyqtSlot,
+)
+from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QWidget, QProgressBar, QLabel, QVBoxLayout, QGraphicsDropShadowEffect
-
-from function.globals.get_paths import PATHS
-
-
-class AnimationThread(QThread):
-
-    def __init__(self, loading):
-        super().__init__()
-        self._is_running = True  # 线程运行状态标志
-        self.loading = loading
-
-    def run(self):
-        while self._is_running:
-            QThread.msleep(50)  # 控制帧率 (单位：毫秒)
-            self.loading.gif_movie.jumpToNextFrame(),
-            self.loading.repaint()
-
-    def stop(self):
-        """安全停止线程的方法"""
-        self._is_running = False
-        self.wait()  # 等待线程自然退出
 
 
 class LoadingWindow(QWidget):
+    progress_requested = pyqtSignal(int, object)
+
     def __init__(self):
         super().__init__()
         self.animation = None
         self.loading_texts_pool = None
-        self.gif_movie = None
-        self.gif_label = None
         self.progress_bar = None
         self.label = None
         self.init_ui()
-        self.anim = AnimationThread(self)
+        self.progress_requested.connect(self._apply_progress)
 
     def init_ui(self):
         self.setWindowFlags(Qt.WindowType.SplashScreen |
@@ -56,15 +42,6 @@ class LoadingWindow(QWidget):
         self.progress_bar = QProgressBar()
         self.progress_bar.setFixedSize(240, 20)  # 固定大小便于定位
         self.progress_bar.setValue(0)
-
-        # 添加 GIF 标签（覆盖在进度条上）
-        self.gif_label = QLabel(self)
-        self.gif_label.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.gif_label.setFixedSize(77, 96)
-        self.gif_label.setScaledContents(True)
-        self.gif_movie = QMovie(PATHS["ui"] + "\\progress.gif")
-        self.gif_movie.setScaledSize(QSize(77, 96))
-        self.gif_label.setMovie(self.gif_movie)
 
         container_layout.addWidget(self.label)
         container_layout.addWidget(self.progress_bar)
@@ -129,9 +106,12 @@ class LoadingWindow(QWidget):
                 """)
 
     def update_progress(self, value, text=None):
+        """线程安全地请求更新加载界面。"""
+        self.progress_requested.emit(int(value), text)
+
+    @pyqtSlot(int, object)
+    def _apply_progress(self, value, text=None):
         self.progress_bar.setValue(value)
-        if value > 0:
-            self.update_gif_position(value)
         if value >= 100:
             # 进度条到达100触发淡出动画
             self.start_fade_out()
@@ -149,26 +129,3 @@ class LoadingWindow(QWidget):
         self.animation.setEndValue(0.0)
         self.animation.start()
         self.animation.finished.connect(self.hide)
-
-    def update_gif_position(self, value):
-        """根据进度值动态调整 GIF 位置"""
-        bar_width = self.progress_bar.width()
-        bar_height = self.progress_bar.height()
-        gif_size = self.gif_label.width()
-        padding_left = 5
-
-        # 计算有效进度宽度（排除 padding）
-        effective_width = bar_width - 2 * padding_left
-        current_x = int(padding_left + effective_width * (value / 100.0) - gif_size / 2)
-
-        # 获取进度条在主窗口中的位置
-        bar_global_pos = self.progress_bar.mapToGlobal(QPoint(0, 0))
-        window_global_pos = self.mapToGlobal(QPoint(0, 0))
-        bar_in_window_pos = bar_global_pos - window_global_pos
-        self.gif_label.raise_()
-        self.gif_label.show()
-        # 设置 GIF 位置（修正锚点偏移）
-        self.gif_label.move(
-            bar_in_window_pos.x() + current_x,
-            bar_in_window_pos.y() + (bar_height - gif_size) // 2
-        )

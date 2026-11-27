@@ -1,7 +1,9 @@
 import ctypes
 import threading
 
+from function.globals import SIGNAL
 from function.globals.log import CUS_LOGGER
+from function.scattered.output_error import error_by_merged_dialog
 
 
 class ThreadWithException(threading.Thread):
@@ -35,11 +37,14 @@ class ThreadWithException(threading.Thread):
     def run(self):
         try:
             if self.is_print:
-                CUS_LOGGER.debug("[{}] Start".format(self.name))
+                CUS_LOGGER.debug(f"[{self.name}] Start")
             self.return_value = self.target(**self.kwargs)
+        except Exception as e:
+            SIGNAL.PRINT_TO_UI.emit(f"任务发生错误, 子线程已中断, 详见日志或信息框体.")
+            error_by_merged_dialog(e=e, extra_message=f"任务执行器的子线程中发生错误 - {self.name}")
         finally:
             if self.is_print:
-                CUS_LOGGER.debug("[{}] End".format(self.name))
+                CUS_LOGGER.debug(f"[{self.name}] End")
 
     def get_id(self):
         """获取进程的唯一id"""
@@ -61,6 +66,9 @@ class ThreadWithException(threading.Thread):
     def raise_exception(self):
         """发送错误 终止线程"""
         thread_id = self.get_id()
+        # 登录失败由返回值结束子线程后，主窗口仍会统一停止本轮任务。
+        if thread_id is None:
+            return
         # 精髓就是这句话，给线程发过去一个exceptions，线程就那边响应完就停了
         res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, ctypes.py_object(SystemExit))
         if res > 1:

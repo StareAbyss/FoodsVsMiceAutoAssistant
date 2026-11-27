@@ -1,0 +1,136 @@
+{
+    "player_positions": [],
+    "meta_data": {
+        "uuid": "",
+        "tips": ""
+    },
+    "cards": [
+        {
+            "card_id": 1,
+            "name": "花火龙"
+        },
+        {
+            "card_id": 2,
+            "name": "海星"
+        },
+        {
+            "card_id": 3,
+            "name": "冰桶炸弹"
+        }
+    ],
+    "actions": {
+        "place_card": [
+            {
+                "action_id": 0,
+                "card_id": 1,
+                "ergodic": true,
+                "queue": true,
+                "location": [
+                    "1-1",
+                    "1-7",
+                    "1-4",
+                    "1-3",
+                    "1-5",
+                    "1-2",
+                    "1-6"
+                ],
+                "kun": 0
+            },
+            {
+                "action_id": 1,
+                "card_id": 2,
+                "ergodic": true,
+                "queue": true,
+                "location": [
+                    "2-1",
+                    "2-7",
+                    "2-4",
+                    "2-3",
+                    "2-5",
+                    "2-2",
+                    "2-6"
+                ],
+                "kun": 1
+            }
+        ],
+        "execute_card": [
+            {
+                "action_id": 0,
+                "card_id": 3,
+                "location": [
+                    "5-4"
+                ]
+            }
+        ],
+        "sleep": [
+            {
+                "action_id": 0,
+                "time": 5
+            }
+        ],
+        "shovel": [
+            {
+                "action_id": 0,
+                "location": [
+                    "1-4",
+                    "1-5"
+                ]
+            }
+        ]
+    },
+    "events": [
+        {
+            "event_id": 0,
+            "event_data": {
+                "trigger": {
+                    "type": "wave",
+                    "args": {
+                        "wave_id": 0,
+                        "time": 0
+                    }
+                }
+            },
+            "action_data": [
+                {
+                    "type": "shovel",
+                    "actions_id": 0
+                },
+                {
+                    "type": "shovel",
+                    "actions_id": 0
+                },
+                {
+                    "type": "sleep",
+                    "actions_id": 0
+                },
+                {
+                    "type": "execute_card",
+                    "actions_id": 2
+                },
+                {
+                    "type": "shovel",
+                    "actions_id": 0
+                }
+            ]
+        },
+        {
+            "event_id": 1,
+            "event_data": {
+                "trigger": {
+                    "type": "wave",
+                    "args": {
+                        "wave_id": 0,
+                        "time": null
+                    }
+                }
+            },
+            "action_data": {
+                "type": "execute",
+                "actions_id": [
+                    1,
+                    2
+                ]
+            }
+        }
+    ]
+}

@@ -1,13 +1,18 @@
 import os
-from PIL import Image
 import sys
+
+from PIL import Image
+
 script_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(script_path)
 from model import OcrHandle
+
 # 初始化OCR处理器
 ocr = OcrHandle()
-def try_ocr(path,size=960):
-# 加载图片
+
+
+def try_ocr(path, size=960):
+    # 加载图片
     img = Image.open(path).convert("RGB")
 
     # 执行OCR识别
@@ -16,7 +21,6 @@ def try_ocr(path,size=960):
     # draw_bbox(img, box)
 
     return results
-
 
 
 def try_ocr_sort(path):

@@ -8,6 +8,7 @@ from requests import RequestException
 
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
+from function.scattered.output_error import error_by_merged_dialog
 
 if TYPE_CHECKING:
     from function.core.faa.faa_mix import FAA
@@ -24,7 +25,7 @@ def loots_and_chests_statistics_to_json(faa: "FAA", loots_dict, chests_dict) -> 
 
     player = faa.player
 
-    file_path = "{}\\result_json\\{}P掉落汇总.json".format(PATHS["logs"], player)
+    file_path = os.path.join(PATHS["logs"], "result_json", f"{player}P掉落汇总.json")
     # 注意 此处一定要使用内部一定正确的id! b_id可能是用户随笔输入的
     stage_id = faa.stage_info["id"]
 
@@ -40,9 +41,14 @@ def loots_and_chests_statistics_to_json(faa: "FAA", loots_dict, chests_dict) -> 
             try:
                 with open(file=file_path, mode="r", encoding="utf-8") as json_file:
                     json_data = json.load(json_file)
-            except (json.JSONDecodeError, Exception):
+            except (json.JSONDecodeError, Exception) as e:
                 # 如果JSON文件损坏，初始化一个新的空字典
                 json_data = {}
+                error_by_merged_dialog(
+                    e=e,
+                    extra_message=f"战利品记录文件:{file_path})不符合JSON标准格式! 已强制清空并继续运行!",
+                    title="JSON文件解析错误"
+                )
     else:
         # 如果文件不存在，初始化
         json_data = {}
@@ -76,7 +82,7 @@ def loots_and_chests_detail_to_json(faa: "FAA", loots_dict, chests_dict) -> dict
     :return:
     """
 
-    file_path = "{}\\result_json\\{}P掉落明细.json".format(PATHS["logs"], faa.player)
+    file_path = os.path.join(PATHS["logs"], "result_json", f"{faa.player}P掉落明细.json")
 
     # 注意 此处一定要使用内部一定正确的id字段! b_id字段可能是用户在自建房模式下, 随笔输入的
     stage_id = faa.stage_info["id"]
@@ -95,9 +101,14 @@ def loots_and_chests_detail_to_json(faa: "FAA", loots_dict, chests_dict) -> dict
             try:
                 with open(file=file_path, mode="r", encoding="utf-8") as json_file:
                     json_data = json.load(json_file)
-            except (json.JSONDecodeError, Exception):
+            except (json.JSONDecodeError, Exception) as e:
                 # 如果JSON文件损坏，初始化一个新的空字典
                 json_data = {}
+                error_by_merged_dialog(
+                    e=e,
+                    extra_message=f"战利品记录文件:{file_path})不符合JSON标准格式! 已强制清空并继续运行!",
+                    title="JSON文件解析错误"
+                )
     else:
         # 如果文件不存在，初始化
         json_data = {}
@@ -132,7 +143,7 @@ def loots_and_chests_data_post_to_sever(detail_data, url=None) -> bool:
         # 检查响应状态码,如果不是2xx则引发异常 会被log捕获
         response.raise_for_status()
         return True
-    except RequestException as e:
+    except RequestException:
         return False
 
 # if __name__ == '__main__':

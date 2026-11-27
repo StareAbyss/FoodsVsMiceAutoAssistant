@@ -8,16 +8,17 @@ import traceback
 from ctypes import windll
 from threading import Timer, Thread
 from typing import Union, TYPE_CHECKING
-import numpy as np
-import cv2
 
+import cv2
+import numpy as np
 from PyQt6.QtCore import QThread, pyqtSignal
 
 from function.common.bg_img_screenshot import capture_image_png, capture_image_png_all
+from function.common.faa_view_events import FAA_VIEW_EVENTS
+from function.core.faa.battle_card_roles import resolve_insert_use_card_events
 from function.core_battle.card import Card, CardKun, SpecialCard
 from function.core_battle.card_queue import CardQueue
-from function.core_battle.special_card_strategy import solve_special_card_problem, solve_maximize_score_problem, \
-    STRATEGIES_OB, STRATEGIES_2_OB
+from function.core_battle.special_card_strategy import solve_special_card_problem, solve_maximize_score_problem
 from function.globals import EXTRA, SIGNAL
 from function.globals.get_paths import PATHS
 from function.globals.location_card_cell_in_battle import COORDINATE_CARD_CELL_IN_BATTLE
@@ -31,7 +32,7 @@ if TYPE_CHECKING:
 
 def is_special_card(card_name):
     """判断是否为特殊卡，并返回匹配文件所在子目录的名称"""
-    base_path = PATHS["image"]["card"] + "\\特殊对策卡"
+    base_path = os.path.join(PATHS["image"]["card"], '特殊对策卡')
     card_name = os.path.splitext(card_name)[0]  # 移除传入名字的扩展名
 
     # 遍历目录及其子目录
@@ -68,9 +69,11 @@ def is_special_card(card_name):
 
     # 如果没有找到匹配的文件，返回匹配状态为False
     return {"found": False}
+
+
 def is_obstacle_card(card_name):
     """判断是否为清障类卡，并返回匹配文件所在子目录的名称"""
-    base_path = PATHS["image"]["card"] + "\\障碍对策"
+    base_path = os.path.join(PATHS["image"]["card"], '障碍对策')
     card_name = os.path.splitext(card_name)[0]  # 移除传入名字的扩展名
 
     # 遍历目录及其子目录
@@ -103,6 +106,7 @@ def is_obstacle_card(card_name):
 
     # 如果没有找到匹配的文件，返回匹配状态为False
     return {"found": False}
+
 
 # # 示例使用
 # card_name = "电音镭射喵"
@@ -346,6 +350,7 @@ class CardManager(QThread):
                                 set_priority=set_priority,
                                 card_type=result2["card_type"])
                             self.obstacle_card_list[pid].append(s_card)
+
             for pid in self.pid_list:
 
                 faa = self.faa_dict[pid]
@@ -364,10 +369,11 @@ class CardManager(QThread):
                 kun_cards_info = self.faa_dict[pid].kun_cards_info
                 if kun_cards_info:
                     for kun_card_info in kun_cards_info:
+                        c_id = kun_card_info.get("slot_id",kun_card_info.get("card_id"))
                         kun_card = CardKun(
                             faa=self.faa_dict[pid],
                             name=kun_card_info["name"],
-                            c_id=kun_card_info["card_id"],
+                            c_id=c_id,
                             coordinate_from=kun_card_info["coordinate_from"],
                         )
                         kun_cards.append(kun_card)
@@ -562,27 +568,29 @@ class CardManager(QThread):
             time.sleep(self.click_sleep)
 
         CUS_LOGGER.debug(f"成功定时铲")
-    def _ban_card_state_change(self, pid, cid,state):
+
+    def _ban_card_state_change(self, pid, cid, state):
         faa = self.faa_dict[pid]
-        #cid参数为零将会通一对所有卡的ban状态进行修改
-        if cid!=0:
-            card=self.card_list_unique[pid][cid-1]
+        # cid参数为零将会通一对所有卡的ban状态进行修改
+        if cid != 0:
+            card = self.card_list_unique[pid][cid - 1]
 
             with faa.battle_lock:
-                card.banning=state
+                card.banning = state
                 CUS_LOGGER.debug(f"成功改变ban卡{card.name}状态{state}")
         else:
             with faa.battle_lock:
                 for card in self.card_list_unique[pid]:
-                    card.banning=state
+                    card.banning = state
             CUS_LOGGER.debug(f"成功改变所有卡状态{state}")
 
-    def _insert_use_card(self, pid, card_id, location):
+    def _insert_use_card(self, pid, slot_id, location):
+        """使用定时事件已经解析出的真实卡槽执行一次放卡。"""
 
         faa = self.faa_dict[pid]
         # 做两次动作 保证百分百放下来!
         for _ in range(2):
-            faa.use_card_once(card_id=card_id, location=location, click_space=True)
+            faa.use_card_once(card_id=slot_id, location=location, click_space=True)
 
         CUS_LOGGER.debug("成功定时放卡")
 
@@ -593,7 +601,7 @@ class CardManager(QThread):
 
             def try_get_picture_now(handle):
                 windll.user32.SetProcessDPIAware()
-                output_base_path = PATHS["logs"] + "\\yolo_output"
+                output_base_path = os.path.join(PATHS["logs"], 'yolo_output')
                 now = datetime.datetime.now()
                 timestamp = now.strftime("%Y%m%d%H%M%S")
                 output_img_path = f"{output_base_path}/images/{timestamp}.png"
@@ -601,7 +609,7 @@ class CardManager(QThread):
                 cv2.imwrite(output_img_path, original_image)
 
             try_get_picture_now(handle=faa.handle)
-            CUS_LOGGER.debug(f"成功定时放卡{card_id}于{location}")
+            CUS_LOGGER.debug(f"成功定时放卡，卡槽{slot_id}，位置{location}")
 
     def _insert_use_gem(self, pid, gid):
 
@@ -621,6 +629,7 @@ class CardManager(QThread):
                     CUS_LOGGER.warning(f"[战斗执行器] ThreadTimePutCardTimer - use_gemstone - 错误: id={id} 不存在")
 
         CUS_LOGGER.debug("成功定时宝石技能")
+
     def _escape(self, pid):
 
         faa = self.faa_dict[pid]
@@ -629,20 +638,20 @@ class CardManager(QThread):
 
             CUS_LOGGER.debug(f"[战斗执行器] ThreadTimePutCardTimer - _escape 玩家{pid}逃跑中")
             if self.is_group:
-                if self.thread_dict.get(pid):#检测线程
+                if self.thread_dict.get(pid):  # 检测线程
                     self.thread_dict[pid].stop()
-                    self.thread_dict[pid]=None
-                if self.thread_dict.get(pid+2):#用卡线程
-                    self.thread_dict[pid+2].stop()
-                    self.thread_dict[pid+2]=None
-                if self.thread_dict.get(pid+4):#定时线程
-                    self.thread_dict[pid+4].stop()
-                    self.thread_dict[pid+4]=None
-                #将打关参数改为单人
+                    self.thread_dict[pid] = None
+                if self.thread_dict.get(pid + 2):  # 用卡线程
+                    self.thread_dict[pid + 2].stop()
+                    self.thread_dict[pid + 2] = None
+                if self.thread_dict.get(pid + 4):  # 定时线程
+                    self.thread_dict[pid + 4].stop()
+                    self.thread_dict[pid + 4] = None
+                # 将打关参数改为单人
                 self.pid_list.remove(pid)
-                self.is_group=False
+                self.is_group = False
                 if self.thread_dict.get(7):
-                    self.thread_dict[7].is_group=False
+                    self.thread_dict[7].is_group = False
                     self.thread_dict[7].pid_list.remove(pid)
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=faa.handle, x=924, y=576)
                 time.sleep(self.click_sleep)
@@ -683,11 +692,11 @@ class CardManager(QThread):
 
         # 获取队列中所有卡片（每个item是(priority, card)的元组）
         items = []
-        count=0
+        count = 0
         while card_queue.empty():
             time.sleep(0.1)
-            count+=1
-            if count>100:
+            count += 1
+            if count > 100:
                 break
         if card_queue.empty():
             CUS_LOGGER.debug(f"获取队列超时")
@@ -726,6 +735,7 @@ class CardManager(QThread):
         CUS_LOGGER.debug(f"打乱前: {[item[1].name for item in items]}")
         CUS_LOGGER.debug(f"打乱后: {[item[1].name for item in reordered]}")
         card_queue.print_self()
+
     def create_insert_timer_and_start(self, interval, func_name, func_kwargs):
 
         match func_name:
@@ -736,9 +746,9 @@ class CardManager(QThread):
             case "insert_use_gem":
                 func = self._insert_use_gem
             case "ban_card":
-                func=self._ban_card_state_change
+                func = self._ban_card_state_change
             case "escape":
-                func=self._escape
+                func = self._escape
             case "random_single_card":  # 新增单卡随机处理
                 func = self._handle_random_single_card
             case "random_multi_card":  # 新增多卡随机处理
@@ -773,18 +783,8 @@ class ThreadCheckTimer(QThread):
         self.stopped = False
         self.timer = None
         self.checked_round = 0
-        self.check_interval = check_interval  # 默认0.5s
+        self.check_interval = check_interval  # 正式战斗流程传入 1 秒
         self.thread_dict = thread_dict  # 线程列表，以便动态修改参数
-        self.check_interval_count = None
-        if faa.battle_plan_tweak:
-            self.faa.print_info(f"[战斗执行器] ThreadCheckTimer - check - 应用微调方案: {self.faa.battle_plan_tweak}")
-            meta_data = self.faa.battle_plan_tweak.get('meta_data', {})
-            cd_after_use_random_range = meta_data.get('cd_after_use_random_range')
-            if cd_after_use_random_range:
-                # 放卡间隔与重置单轮放卡间隔原初比例大约为0.036：1
-                self.check_interval_count = (cd_after_use_random_range[0] + cd_after_use_random_range[1]) * 5 // 1
-        else:
-            self.faa.print_info(f"[战斗执行器] ThreadCheckTimer - check - 不应用微调方案")
 
     def run(self):
         self.timer = Timer(interval=self.check_interval, function=self.callback_timer)
@@ -873,12 +873,11 @@ class ThreadCheckTimer(QThread):
                 self.signal_change_card_plan.emit()
                 return
 
-        # 先清空现有队列 再初始化队列 这里的重置队列要适应放卡间隔
-        if self.check_interval_count is None or (self.checked_round % self.check_interval_count == 1):
-            self.card_queue.queue.clear()
-            self.card_queue.init_card_queue(
-                game_image=game_image,
-                check_interval=self.check_interval)
+        # 每次检测都刷新卡片状态并重新装填队列，放卡后的随机等待不改变检测频率。
+        self.card_queue.queue.clear()
+        self.card_queue.init_card_queue(
+            game_image=game_image,
+            check_interval=self.check_interval)
 
         # 更新火苗
         self.faa.update_fire_elemental_1000(img=game_image)
@@ -1035,10 +1034,18 @@ class ThreadInsertUseCardTimer(QThread):
         self.first_wave_this_init = True
 
         # 筛选出对应的战斗方案们
-        self.insert_use_card_plan = [event for event in self.faa.battle_plan["events"] if (
-                event["trigger"]["type"] == "wave_timer" and
-                event["action"]["type"] == "insert_use_card"
-        )]
+        # 原始定时事件使用方案 card_id。限卡或禁卡会让方案卡缺失、剩余卡槽前移，
+        # 因此必须先删除无实体卡的事件，再把保留事件映射到真实 slot_id。
+        # 整个事件在这里被过滤，可以保证无效事件附带的前铲和后铲也不会执行。
+        self.insert_use_card_plan = resolve_insert_use_card_events(
+            events=self.faa.battle_plan["events"],
+            cards=getattr(self.faa, "battle_card_plan", []),
+            resolved_plan_ready=getattr(
+                self.faa,
+                "battle_card_plan_ready",
+                False,
+            ),
+        )
         self.insert_use_shovel = [event for event in self.faa.battle_plan["events"] if (
                 event["trigger"]["type"] == "wave_timer" and
                 event["action"]["type"] == "shovel"
@@ -1064,17 +1071,21 @@ class ThreadInsertUseCardTimer(QThread):
                 event["action"]["type"] == "random_multi_card"
         )]
 
-        # 内联 card_name 字段
-        for event in self.insert_use_card_plan:
-            event["action"]["name"] = next((card["name"] for card in self.faa.battle_plan["cards"]), "")
-
         self.running = False
         self.timer = None
 
     def run(self):
 
         # 没有定时放卡plan，那就整个线程一开始就结束好了
-        if (not self.insert_use_card_plan) and (not self.insert_use_shovel) and (not self.insert_use_gem_plan) and (not self.insert_escape_plan) and (not self.insert_ban_card_plan) and (not self.insert_random_single_plan) and (not self.insert_random_multi_plan):
+        if (
+            (not self.insert_use_card_plan) and
+            (not self.insert_use_shovel) and
+            (not self.insert_use_gem_plan) and
+            (not self.insert_escape_plan) and
+            (not self.insert_ban_card_plan) and
+            (not self.insert_random_single_plan) and
+            (not self.insert_random_multi_plan)
+        ):
             self.faa.print_debug('[战斗执行器] ThreadInsertUseCardTimer 方案不包含定时操作 不启用')
             return
 
@@ -1163,7 +1174,7 @@ class ThreadInsertUseCardTimer(QThread):
                 func_name="insert_use_card",
                 func_kwargs={
                     "pid": self.pid,
-                    "card_id": battle_event["action"]["card_id"],
+                    "slot_id": battle_event["action"]["slot_id"],
                     "location": battle_event["action"]["location"]}
             )
 
@@ -1257,7 +1268,8 @@ class ThreadInsertUseCardTimer(QThread):
 
 class ThreadUseSpecialCardTimer(QThread):
     def __init__(self, faa_dict, callback_interval, read_queue, is_group: bool,
-                 bomb_card_list,obstacle_card_list,break_ice_card_list, ice_boom_dict_list, the_9th_fan_dict_list, shield_dict_list):
+                 bomb_card_list, obstacle_card_list, break_ice_card_list, ice_boom_dict_list, the_9th_fan_dict_list,
+                 shield_dict_list):
         """
         :param faa_dict:faa实例字典
         :param callback_interval:读取频率
@@ -1283,7 +1295,7 @@ class ThreadUseSpecialCardTimer(QThread):
         self.card_list_can_use = {1: [], 2: []}
         self.card_list_can_use_obstacle = {1: [], 2: []}
         self.pid_list = [1, 2] if self.is_group else [1]
-        self.obstacle=self.faa_dict[1].stage_info["obstacle"].copy()
+        self.obstacle = self.faa_dict[1].stage_info["obstacle"].copy()
         self.obstacle.extend(self.faa_dict[1].battle_plan["meta_data"]["player_position"])
         if self.is_group:
             self.obstacle.extend(self.faa_dict[2].battle_plan["meta_data"]["player_position"])
@@ -1297,16 +1309,16 @@ class ThreadUseSpecialCardTimer(QThread):
         self.shield_dict_list = shield_dict_list
 
         self.shield_used_dict_list = {1: [], 2: []}
-        
+
         # 添加记忆化障碍情况的属性
         self.obstacle_memory = []  # 存储最近几次的障碍情况
         self.score_matrix = np.zeros((7, 9))  # 7x9的评分矩阵，初始化为0
         self.max_memory_length = 5  # 最大记忆长度
-        
+
         # 添加策略执行历史记录
         self.strategy_history = []  # 存储最近几次的策略执行记录
         self.max_strategy_history_length = 3  # 最大策略历史记录长度
-        
+
         # 添加可调节参数
         self.min_appearances_for_real_obstacle = 2  # 判断为真实障碍的最小出现次数
         self.strategy_effect_duration = 3.3  # 策略效果持续时间（秒）
@@ -1320,12 +1332,14 @@ class ThreadUseSpecialCardTimer(QThread):
         调整建议：
         增大该值：系统变得更保守，只有非常确定的障碍才会被处理
         减小该值：系统变得更敏感，可能会处理一些偶发的障碍
+
         2. 策略效果参数
         strategy_effect_duration (默认值: 3.3)
         用途：策略被认为有效的持续时间（秒）
         调整建议：
         增大该值：系统会给策略更长的生效时间窗口
         减小该值：系统会更快地重新评估策略效果
+
         3. 评分调整参数
         score_reduction_during_strategy (默认值: 3)
         用途：当位置受策略影响时的评分降低值
@@ -1342,6 +1356,7 @@ class ThreadUseSpecialCardTimer(QThread):
         调整建议：
         增大该值：系统更快地忘记已不存在的障碍
         减小该值：系统更缓慢地降低不存在障碍的评分
+
         4. 记忆长度参数
         max_memory_length (默认值: 5)
         用途：保存的障碍检测历史记录的最大数量
@@ -1354,11 +1369,11 @@ class ThreadUseSpecialCardTimer(QThread):
         增大该值：系统考虑更多的策略历史，但可能增加计算负担
         减小该值：系统只关注最近的策略，计算更快但可能遗漏信息
         """
-        
+
         # 添加可视化相关的属性
         self.visualization_thread = None
         self.visualization_running = False
-        
+
         # 添加用于存储策略影响前评分矩阵的属性
         self.previous_score_matrix = np.zeros((7, 9))  # 7x9的评分矩阵，初始化为0
         self.now_score_matrix = np.zeros((7, 9))  # 7x9的评分矩阵，初始化为0
@@ -1375,7 +1390,6 @@ class ThreadUseSpecialCardTimer(QThread):
         self.exec()
 
         self.running = False
-
 
     def stop(self):
         self.faa_dict[1].print_info("[战斗执行器] ThreadUseSpecialCardTimer stop方法已激活")
@@ -1399,7 +1413,6 @@ class ThreadUseSpecialCardTimer(QThread):
         self.wait()
         # print("[战斗执行器] ThreadUseCardTimer - stop - 线程已等待完成")
 
-
     def fresh_all_card_status(self):
         for pid in self.pid_list:
             faa = self.faa_dict[pid]
@@ -1411,10 +1424,11 @@ class ThreadUseSpecialCardTimer(QThread):
                 for card in card_list_list:
                     card.fresh_status(game_image)
 
-
     def check_special_card(self):
 
         result = self.read_queue.get()  # 不管能不能用对策卡先提取信息再说，免得队列堆积
+        # 高级识图在独立进程运行；诊断只旁路读取已有结果，不改变后续对策判定。
+        result = FAA_VIEW_EVENTS.consume_senior_result(result)
         CUS_LOGGER.debug(f"从管道获取到状态信息：{result} ")
         if result is None:
             return
@@ -1426,7 +1440,7 @@ class ThreadUseSpecialCardTimer(QThread):
         if not self.pid_list:
             return
 
-        wave, god_wind, need_boom_locations, obstacle,ice = result  # 分别为是否波次，是否神风及待炸点位列表,可清除障碍列表
+        wave, god_wind, need_boom_locations, obstacle, ice = result  # 分别为是否波次，是否神风及待炸点位列表,可清除障碍列表
 
         # 合并障碍物列表，将冰块位置也作为障碍物处理
         combined_obstacles = self.obstacle.copy()
@@ -1436,12 +1450,11 @@ class ThreadUseSpecialCardTimer(QThread):
         # 更新障碍记忆
         if obstacle is not None:
             self.update_obstacle_memory(obstacle)
-            
+
             # 打印当前评分矩阵用于调试
             CUS_LOGGER.debug(f"当前障碍评分矩阵:\n{self.score_matrix}")
 
-        
-        if wave or god_wind or need_boom_locations or  obstacle:  # 任意一个就刷新状态
+        if wave or god_wind or need_boom_locations or obstacle:  # 任意一个就刷新状态
             CUS_LOGGER.debug(f"刷新特殊放卡状态")
             self.todo_dict = {1: [], 2: []}  # 1 2 对应两个角色
         else:
@@ -1499,7 +1512,7 @@ class ThreadUseSpecialCardTimer(QThread):
                     if card.status_usable:
                         self.card_list_can_use_obstacle[pid].append(card)
             CUS_LOGGER.debug(f"当前可用清障卡片队列{self.card_list_can_use_obstacle}")
-            self.handle_maximize_score_strategy(obstacle,combined_obstacles)
+            self.handle_maximize_score_strategy(obstacle, combined_obstacles)
 
         if need_boom_locations:
             self.card_list_can_use = {1: [], 2: []}
@@ -1621,21 +1634,20 @@ class ThreadUseSpecialCardTimer(QThread):
             "time": time.time(),
             "obstacles": set(current_obstacles)
         })
-        
+
         # 如果记忆超过最大长度，则移除最旧的记录
         if len(self.obstacle_memory) > self.max_memory_length:
             self.obstacle_memory.pop(0)
-            
+
         CUS_LOGGER.debug(f"更新障碍记忆，当前记忆长度: {len(self.obstacle_memory)}")
 
-    def handle_maximize_score_strategy(self, current_obstacles,combined_obstacles):
+    def handle_maximize_score_strategy(self, current_obstacles, combined_obstacles):
         """
         处理最大化得分策略（与爆炸点位最小化成本策略独立）
         :param current_obstacles: 当前障碍列表
         :param combined_obstacles: 结合了冰块的完整障碍列表
         """
 
-        
         # 根据记忆化的历史障碍信息生成可靠的评分矩阵
         self.update_score_matrix_from_memory(current_obstacles)
 
@@ -1655,16 +1667,16 @@ class ThreadUseSpecialCardTimer(QThread):
 
         if result is not None:
             strategy1, strategy2, strategy1_scores, strategy2_scores = result
-            
+
             # 导入策略字典
             from function.core_battle.special_card_strategy import STRATEGIES_OB, STRATEGIES_2_OB
-            
+
             # 为策略1添加覆盖范围信息
             strategy1_with_coverage = {}
             for card, pos in strategy1.items():
                 coverage = STRATEGIES_OB.get(card, {}).get("coverage", [])
                 strategy1_with_coverage[card] = {"pos": pos, "coverage": coverage}
-            
+
             # 为策略2添加覆盖范围信息
             strategy2_with_coverage = {}
             for card, pos in strategy2.items():
@@ -1679,10 +1691,10 @@ class ThreadUseSpecialCardTimer(QThread):
                 "scores1": strategy1_scores,
                 "scores2": strategy2_scores
             }
-            
+
             # 正式记录策略执行历史
             self.strategy_history.append(strategy_record)
-            
+
             # 如果历史记录超过最大长度，则移除最旧的记录
             if len(self.strategy_history) > self.max_strategy_history_length:
                 self.strategy_history.pop(0)
@@ -1695,8 +1707,6 @@ class ThreadUseSpecialCardTimer(QThread):
                     # 将计算完成的放卡结构 写入到对应角色的todo dict 中
                     self.todo_dict[pid].append({"card": card, "location": [f"{pos[0]}-{pos[1]}"]})
 
-
-
     def update_score_matrix_from_memory(self, current_obstacles, strategy_history=None):
         """
         根据记忆化的障碍历史更新评分矩阵，用于确定真正存在的障碍
@@ -1705,13 +1715,13 @@ class ThreadUseSpecialCardTimer(QThread):
         """
         # 重置评分矩阵
         self.score_matrix = np.zeros((7, 9))
-        
+
         # 如果没有历史记录，则无需更新
         if not self.obstacle_memory:
             return
-        
+
         current_time = time.time()
-        
+
         # 统计每个位置在历史中作为障碍出现的次数，并考虑时间因素
         for record in self.obstacle_memory:
             time_diff = current_time - record["time"]
@@ -1719,15 +1729,16 @@ class ThreadUseSpecialCardTimer(QThread):
             time_weight = 1.0
             if self.strategy_effect_duration > 0:
                 # 距离现在越近权重越高，最多1.5倍权重
-                time_weight = min(1.5, max(0.5, 1.0 + (0.5 * (self.strategy_effect_duration - time_diff) / self.strategy_effect_duration)))
-            
+                time_weight = min(1.5, max(0.5, 1.0 + (
+                        0.5 * (self.strategy_effect_duration - time_diff) / self.strategy_effect_duration)))
+
             for obstacle in record["obstacles"]:
                 # 解析障碍位置 "x-y" 格式
                 x, y = map(int, obstacle.split('-'))
                 # 转换为0基索引
                 if 1 <= x <= 9 and 1 <= y <= 7:
-                    self.score_matrix[y-1][x-1] += time_weight
-        
+                    self.score_matrix[y - 1][x - 1] += time_weight
+
         current_time = time.time()
         current_obstacle_set = set(current_obstacles)
         # 在执行策略前保存评分矩阵，确保正确反映策略执行前的状态
@@ -1735,17 +1746,17 @@ class ThreadUseSpecialCardTimer(QThread):
         # 对于每个位置，根据出现频率和策略影响来调整评分
         for y in range(7):
             for x in range(9):
-                coord = f"{x+1}-{y+1}"
-                
+                coord = f"{x + 1}-{y + 1}"
+
                 # 检查该位置在最近几次检测中的出现次数
                 recent_appearances = 0
                 for record in self.obstacle_memory:
                     if coord in record["obstacles"]:
                         recent_appearances += 1
-                
+
                 # 检查最近是否有策略作用于该位置
-                recent_strategy_effect = self.check_recent_strategy_effect(x+1, y+1, current_time, strategy_history)
-                
+                recent_strategy_effect = self.check_recent_strategy_effect(x + 1, y + 1, current_time, strategy_history)
+
                 # 使用可调节参数的核心逻辑：
                 # 1. 如果位置在最近记忆中多次出现（≥min_appearances_for_real_obstacle）
                 #    - 如果最近没有策略影响：认为是真实障碍，使用原始评分
@@ -1754,14 +1765,14 @@ class ThreadUseSpecialCardTimer(QThread):
                 #    - 如果最近有策略影响：进一步降低评分（策略可能已生效）
                 #    - 如果最近无策略影响：可能是偶尔出现的误检，降低评分
                 # 3. 如果当前位置没有该障碍：降低评分（可能已被清除）
-                
+
                 if recent_appearances >= self.min_appearances_for_real_obstacle:  # 最近多次出现
                     if recent_strategy_effect > 0:  # 最近有策略影响
                         # 策略可能正在生效，暂时降低评分
                         # 直接使用设定的评分降低值
                         reduction = self.score_reduction_during_strategy
                         self.score_matrix[y][x] = max(
-                            self.min_score_after_strategy_effect, 
+                            self.min_score_after_strategy_effect,
                             self.score_matrix[y][x] - reduction)
                     # 如果最近无策略影响，保持原始评分（认为是真实障碍）
                 else:  # 出现次数较少
@@ -1771,11 +1782,11 @@ class ThreadUseSpecialCardTimer(QThread):
                         reduction = self.score_reduction_during_strategy
                         self.score_matrix[y][x] = max(0, self.score_matrix[y][x] - reduction)
                     # 如果无策略影响且出现次数少，评分已在初始化时设为0
-                
+
         # 对于当前未检测到的障碍，进一步降低评分
         for y in range(7):
             for x in range(9):
-                coord = f"{x+1}-{y+1}"
+                coord = f"{x + 1}-{y + 1}"
                 # 如果该位置当前不是障碍但历史评分大于0，则降低评分
                 if self.score_matrix[y][x] > 0 and coord not in current_obstacle_set:
                     self.score_matrix[y][x] = max(0, self.score_matrix[y][x] - self.score_reduction_when_absent)
@@ -1789,11 +1800,11 @@ class ThreadUseSpecialCardTimer(QThread):
         :param strategy_history: 策略历史记录（可选，默认使用self.strategy_history）
         :return: 是否有最近策略作用
         """
-        
+
         # 如果提供了策略历史记录，则使用它，否则使用默认的历史记录
         if strategy_history is None:
             strategy_history = self.strategy_history
-        
+
         # 检查最近的策略执行记录
         for record in strategy_history:
             # 使用可调节参数：只考虑策略效果持续时间内的策略执行记录
@@ -1809,7 +1820,7 @@ class ThreadUseSpecialCardTimer(QThread):
                         # 检查该策略是否覆盖了指定位置
                         if target_x == x and target_y == y:
                             return 1.0  # 返回固定权重1.0，确保评分降低值为2
-                
+
                 # 检查策略2
                 for card, info in record["strategy2"].items():
                     pos = info["pos"]
@@ -1820,7 +1831,7 @@ class ThreadUseSpecialCardTimer(QThread):
                         # 检查该策略是否覆盖了指定位置
                         if target_x == x and target_y == y:
                             return 1.0  # 返回固定权重1.0，确保评分降低值为2
-        
+
         return 0.0  # 没有策略影响则返回0
 
     def start_visualization(self):
@@ -1841,7 +1852,7 @@ class ThreadUseSpecialCardTimer(QThread):
         self.visualization_running = False
         if self.visualization_thread and self.visualization_thread.is_alive():
             self.visualization_thread.join(timeout=1.0)
-        self.visualization_thread=None
+        self.visualization_thread = None
         CUS_LOGGER.info("[战斗执行器] 障碍评分可视化线程已停止")
 
     def visualization_worker(self):
@@ -1869,12 +1880,12 @@ class ThreadUseSpecialCardTimer(QThread):
         img[:] = (30, 30, 30)
         cell_height = display_height // 7
         cell_width = display_width // 9
-        
+
         # 计算两个矩阵的最大评分
         max_score_before = np.max(self.previous_score_matrix) if np.max(self.previous_score_matrix) > 0 else 1
         max_score_after = np.max(self.score_matrix) if np.max(self.score_matrix) > 0 else 1
         max_score = max(max_score_before, max_score_after)
-        
+
         for y in range(7):
             for x in range(9):
                 # 计算单元格位置
@@ -1908,7 +1919,7 @@ class ThreadUseSpecialCardTimer(QThread):
                     text_x = x1 + (cell_width - text_size[0]) // 2
                     text_y = y1 + (cell_height + text_size[1]) // 2
                     cv2.putText(img, text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)
-        
+
         # 显示当前生效的策略
         self.overlay_active_strategies(img, cell_width, cell_height)
         cv2.imshow("障碍评分矩阵及清障卡预判覆盖范围", img)
@@ -1925,20 +1936,23 @@ class ThreadUseSpecialCardTimer(QThread):
         current_time = time.time()
         for record in self.strategy_history:
             time_diff = current_time - record["time"]
-            
+
             # 检查策略是否仍在生效期内
             if time_diff <= self.strategy_effect_duration:
                 alpha = 0.3  # 透明度
                 for card, info in record["strategy1"].items():
                     coverage = info["coverage"]
                     pos = info["pos"]
-                    self.draw_card_coverage(img, coverage, pos, (0, 255, 0), alpha, cell_width, cell_height, offset_y)  # 绿色表示策略1
+                    self.draw_card_coverage(img, coverage, pos, (0, 255, 0), alpha, cell_width, cell_height,
+                                            offset_y)  # 绿色表示策略1
                 for card, info in record["strategy2"].items():
                     coverage = info["coverage"]
                     pos = info["pos"]
-                    self.draw_card_coverage(img, coverage, pos, (255, 0, 0), alpha, cell_width, cell_height, offset_y)  # 红色表示策略2
+                    self.draw_card_coverage(img, coverage, pos, (255, 0, 0), alpha, cell_width, cell_height,
+                                            offset_y)  # 红色表示策略2
 
-    def draw_card_coverage(self, img, coverage, pos, color, alpha, cell_width, cell_height, offset_y=0):
+    @staticmethod
+    def draw_card_coverage(img, coverage, pos, color, alpha, cell_width, cell_height, offset_y=0):
         """
         绘制卡片的覆盖范围
         :param img: 图像对象
@@ -1951,7 +1965,7 @@ class ThreadUseSpecialCardTimer(QThread):
         :param offset_y: Y轴偏移量
         """
         card_x, card_y = pos[0], pos[1]
-        
+
         for offset_x, offset_y in coverage:
             target_x = card_x + offset_x
             target_y = card_y + offset_y

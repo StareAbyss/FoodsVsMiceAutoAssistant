@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
@@ -211,7 +211,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>本软件免费且开源  鼠标悬停在控件上可查看提示信息</string>
+             <string>免费 开源 鼠标悬停在控件上查看提示信息</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -230,6 +230,32 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="Button_Refreshed">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>40</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="cursor">
+             <cursorShape>PointingHandCursor</cursorShape>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">background-color: transparent;
+border:none</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QPushButton" name="Button_MostMinimized">
@@ -437,7 +463,7 @@ border:none</string>
               </layout>
              </item>
              <item>
-              <layout class="QVBoxLayout" name="Lay_Tab1_Right" stretch="1,1,1,1,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,2">
+              <layout class="QVBoxLayout" name="Lay_Tab1_Right" stretch="0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,2">
                <property name="leftMargin">
                 <number>0</number>
                </property>
@@ -476,6 +502,9 @@ border:none</string>
                  </property>
                  <item>
                   <layout class="QHBoxLayout" name="LayBaseConfig1_2" stretch="2,3">
+                   <property name="spacing">
+                    <number>5</number>
+                   </property>
                    <property name="sizeConstraint">
                     <enum>QLayout::SetDefaultConstraint</enum>
                    </property>
@@ -483,13 +512,13 @@ border:none</string>
                     <number>5</number>
                    </property>
                    <property name="topMargin">
-                    <number>5</number>
+                    <number>0</number>
                    </property>
                    <property name="rightMargin">
                     <number>5</number>
                    </property>
                    <property name="bottomMargin">
-                    <number>5</number>
+                    <number>0</number>
                    </property>
                    <item>
                     <widget class="QLabel" name="ZoomRatio_Text">
@@ -570,13 +599,13 @@ border:none</string>
                     <number>5</number>
                    </property>
                    <property name="topMargin">
-                    <number>5</number>
+                    <number>0</number>
                    </property>
                    <property name="rightMargin">
                     <number>5</number>
                    </property>
                    <property name="bottomMargin">
-                    <number>5</number>
+                    <number>0</number>
                    </property>
                    <item>
                     <widget class="QLabel" name="GameName_Text">
@@ -660,6 +689,9 @@ border:none</string>
                  </property>
                  <item>
                   <layout class="QHBoxLayout" name="LayBaseConfig1_Left" stretch="2,3">
+                   <property name="spacing">
+                    <number>5</number>
+                   </property>
                    <property name="sizeConstraint">
                     <enum>QLayout::SetDefaultConstraint</enum>
                    </property>
@@ -667,13 +699,13 @@ border:none</string>
                     <number>5</number>
                    </property>
                    <property name="topMargin">
-                    <number>5</number>
+                    <number>0</number>
                    </property>
                    <property name="rightMargin">
                     <number>5</number>
                    </property>
                    <property name="bottomMargin">
-                    <number>5</number>
+                    <number>0</number>
                    </property>
                    <item>
                     <widget class="QLabel" name="Name1P_Text">
@@ -740,7 +772,7 @@ border:none</string>
                   </layout>
                  </item>
                  <item>
-                  <layout class="QHBoxLayout" name="LayBaseConfig1_Right">
+                  <layout class="QHBoxLayout" name="horizontalLayout_15" stretch="2,3">
                    <property name="spacing">
                     <number>5</number>
                    </property>
@@ -751,110 +783,13 @@ border:none</string>
                     <number>5</number>
                    </property>
                    <property name="topMargin">
-                    <number>5</number>
+                    <number>0</number>
                    </property>
                    <property name="rightMargin">
                     <number>5</number>
                    </property>
                    <property name="bottomMargin">
-                    <number>5</number>
-                   </property>
-                   <item>
-                    <widget class="QLabel" name="Name2P_Text">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="minimumSize">
-                      <size>
-                       <width>60</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>16777215</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                     <property name="text">
-                      <string>2P窗口名</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLineEdit" name="Name2P_Input">
-                     <property name="enabled">
-                      <bool>false</bool>
-                     </property>
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="minimumSize">
-                      <size>
-                       <width>0</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>200</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                     <property name="tabletTracking">
-                      <bool>false</bool>
-                     </property>
-                     <property name="toolTip">
-                      <string>请使用下方拖动功能, 获取该参数</string>
-                     </property>
-                     <property name="autoFillBackground">
-                      <bool>false</bool>
-                     </property>
-                     <property name="text">
-                      <string/>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="Lay_BaseConfig3" stretch="1,1">
-                 <property name="leftMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="topMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="rightMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="bottomMargin">
-                  <number>0</number>
-                 </property>
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_15" stretch="2,3">
-                   <property name="sizeConstraint">
-                    <enum>QLayout::SetDefaultConstraint</enum>
-                   </property>
-                   <property name="leftMargin">
-                    <number>5</number>
-                   </property>
-                   <property name="topMargin">
-                    <number>5</number>
-                   </property>
-                   <property name="rightMargin">
-                    <number>5</number>
-                   </property>
-                   <property name="bottomMargin">
-                    <number>5</number>
+                    <number>0</number>
                    </property>
                    <item>
                     <widget class="QLabel" name="Level1P_Text">
@@ -917,82 +852,283 @@ border:none</string>
                    </item>
                   </layout>
                  </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QWidget" name="BaseConfig2PRow">
+                 <layout class="QHBoxLayout" name="Lay_BaseConfig3" stretch="1,1">
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <layout class="QHBoxLayout" name="LayBaseConfig1_Right" stretch="2,3">
+                    <property name="spacing">
+                     <number>5</number>
+                    </property>
+                    <property name="sizeConstraint">
+                     <enum>QLayout::SetDefaultConstraint</enum>
+                    </property>
+                    <property name="leftMargin">
+                     <number>5</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>5</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QLabel" name="Name2P_Text">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>60</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string>2P窗口名</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="Name2P_Input">
+                      <property name="enabled">
+                       <bool>false</bool>
+                      </property>
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>200</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="tabletTracking">
+                       <bool>false</bool>
+                      </property>
+                      <property name="toolTip">
+                       <string>请使用下方拖动功能, 获取该参数</string>
+                      </property>
+                      <property name="autoFillBackground">
+                       <bool>false</bool>
+                      </property>
+                      <property name="text">
+                       <string/>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_16" stretch="2,3">
+                    <property name="spacing">
+                     <number>5</number>
+                    </property>
+                    <property name="sizeConstraint">
+                     <enum>QLayout::SetDefaultConstraint</enum>
+                    </property>
+                    <property name="leftMargin">
+                     <number>5</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>0</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>5</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>0</number>
+                    </property>
+                    <item>
+                     <widget class="QLabel" name="Level2P_Text">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>60</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>16777215</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="text">
+                       <string>2P等级</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QSpinBox" name="Level2P_Input">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
+                      <property name="minimumSize">
+                       <size>
+                        <width>0</width>
+                        <height>0</height>
+                       </size>
+                      </property>
+                      <property name="maximumSize">
+                       <size>
+                        <width>200</width>
+                        <height>16777215</height>
+                       </size>
+                      </property>
+                      <property name="toolTip">
+                       <string>您游戏角色的等级</string>
+                      </property>
+                      <property name="minimum">
+                       <number>1</number>
+                      </property>
+                      <property name="maximum">
+                       <number>80</number>
+                      </property>
+                      <property name="value">
+                       <number>80</number>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="LoginPlatformHomeLayout" stretch="0,0">
+                 <property name="spacing">
+                  <number>5</number>
+                 </property>
                  <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_16">
+                  <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="2,3">
                    <property name="spacing">
                     <number>5</number>
-                   </property>
-                   <property name="sizeConstraint">
-                    <enum>QLayout::SetDefaultConstraint</enum>
                    </property>
                    <property name="leftMargin">
                     <number>5</number>
                    </property>
                    <property name="topMargin">
-                    <number>5</number>
+                    <number>0</number>
                    </property>
                    <property name="rightMargin">
                     <number>5</number>
                    </property>
                    <property name="bottomMargin">
-                    <number>5</number>
+                    <number>0</number>
                    </property>
                    <item>
-                    <widget class="QLabel" name="Level2P_Text">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="minimumSize">
-                      <size>
-                       <width>60</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>16777215</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                     <property name="text">
-                      <string>2P等级</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QSpinBox" name="Level2P_Input">
+                    <widget class="QLabel" name="LoginPlatformLabel">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                        <horstretch>0</horstretch>
                        <verstretch>0</verstretch>
                       </sizepolicy>
                      </property>
-                     <property name="minimumSize">
-                      <size>
-                       <width>0</width>
-                       <height>0</height>
-                      </size>
+                     <property name="text">
+                      <string>区服</string>
                      </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>200</width>
-                       <height>16777215</height>
-                      </size>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QComboBox" name="LoginPlatformCombo">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
                      </property>
                      <property name="toolTip">
-                      <string>您游戏角色的等级</string>
+                      <string>选择游戏区服</string>
                      </property>
-                     <property name="minimum">
-                      <number>1</number>
+                     <item>
+                      <property name="text">
+                       <string>4399</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>QQ空间</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>QQ大厅</string>
+                      </property>
+                     </item>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_8">
+                   <property name="spacing">
+                    <number>5</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>5</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>5</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QPushButton" name="LoginAutoSettingsButton">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
                      </property>
-                     <property name="maximum">
-                      <number>80</number>
-                     </property>
-                     <property name="value">
-                      <number>80</number>
+                     <property name="text">
+                      <string>自动登录设定</string>
                      </property>
                     </widget>
                    </item>
@@ -1001,7 +1137,7 @@ border:none</string>
                 </layout>
                </item>
                <item>
-                <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,1,0">
+                <layout class="QGridLayout" name="WindowControlsLayout" rowstretch="1,1" columnstretch="1,1">
                  <property name="spacing">
                   <number>5</number>
                  </property>
@@ -1009,52 +1145,43 @@ border:none</string>
                   <number>5</number>
                  </property>
                  <property name="topMargin">
-                  <number>5</number>
+                  <number>0</number>
                  </property>
                  <property name="rightMargin">
                   <number>5</number>
                  </property>
                  <property name="bottomMargin">
-                  <number>5</number>
+                  <number>0</number>
                  </property>
-                 <item>
-                  <widget class="DragLabel" name="Label_drag">
+                 <item row="0" column="0">
+                  <widget class="QPushButton" name="PlayerModeButton">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>23</height>
-                    </size>
-                   </property>
-                   <property name="cursor">
-                    <cursorShape>CrossCursor</cursorShape>
-                   </property>
-                   <property name="layoutDirection">
-                    <enum>Qt::LeftToRight</enum>
-                   </property>
-                   <property name="autoFillBackground">
-                    <bool>false</bool>
-                   </property>
-                   <property name="styleSheet">
-                    <string notr="true">QLabel {
-	border: 1px solid grey;/* 灰色边框，宽度为2像素 */
-	border-radius: 4px;/* 边框圆角半径为5像素 */
-}</string>
-                   </property>
                    <property name="text">
-                    <string>请拖到1P窗口</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
+                    <string>目前为：双人模式
+点击切换</string>
                    </property>
                   </widget>
                  </item>
-                 <item>
+                 <item row="0" column="1">
+                  <widget class="QPushButton" name="WindowHandleToolButton">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string>获取窗口句柄
+测试游戏画面</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
                   <widget class="QPushButton" name="Button_WindowHide">
                    <property name="sizePolicy">
                     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -1078,14 +1205,22 @@ border:none</string>
                     <bool>true</bool>
                    </property>
                    <property name="text">
-                    <string>点击切换 - 将窗口拖到屏幕最底层</string>
+                    <string>切换窗口层级
+置于屏幕最底层</string>
                    </property>
                   </widget>
                  </item>
-                 <item>
+                 <item row="1" column="1">
                   <widget class="QPushButton" name="Button_WindowReSize">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="text">
-                    <string>点击调整 - 自动调整布局窗口位置</string>
+                    <string>自动调整窗口
+大小与位置</string>
                    </property>
                   </widget>
                  </item>
@@ -2038,6 +2173,16 @@ border:none</string>
                 </layout>
                </item>
                <item>
+                <widget class="QLabel" name="Label_RunningStateTimer">
+                 <property name="text">
+                  <string>定时任务线程状态: 未运行</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+               <item>
                 <spacer name="verticalSpacer">
                  <property name="orientation">
                   <enum>Qt::Vertical</enum>
@@ -2058,165 +2203,6 @@ border:none</string>
                 </widget>
                </item>
                <item>
-                <spacer name="verticalSpacer_3">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="QLabel" name="Label_CurrentPlan">
-                 <property name="text">
-                  <string>当前选中方案</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="Lay_CurrentPlan_1" stretch="0">
-                 <property name="sizeConstraint">
-                  <enum>QLayout::SetDefaultConstraint</enum>
-                 </property>
-                 <property name="leftMargin">
-                  <number>5</number>
-                 </property>
-                 <property name="topMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="rightMargin">
-                  <number>5</number>
-                 </property>
-                 <property name="bottomMargin">
-                  <number>0</number>
-                 </property>
-                 <item>
-                  <widget class="QComboBox" name="CurrentPlan">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <layout class="QHBoxLayout" name="Lay_CurrentPlan_2" stretch="0,0">
-                 <property name="sizeConstraint">
-                  <enum>QLayout::SetDefaultConstraint</enum>
-                 </property>
-                 <property name="leftMargin">
-                  <number>5</number>
-                 </property>
-                 <property name="topMargin">
-                  <number>0</number>
-                 </property>
-                 <property name="rightMargin">
-                  <number>5</number>
-                 </property>
-                 <property name="bottomMargin">
-                  <number>0</number>
-                 </property>
-                 <item>
-                  <widget class="QPushButton" name="Button_RenamePlan">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>重命名当前选中的方案, 但Default方案不可更改哦~</string>
-                   </property>
-                   <property name="text">
-                    <string>重命名方案</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QPushButton" name="Button_DeletePlan">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>删除当前选中的方案, 但Default方案不会被删哦~</string>
-                   </property>
-                   <property name="text">
-                    <string>删除此方案</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
-                <spacer name="verticalSpacer_6">
-                 <property name="orientation">
-                  <enum>Qt::Vertical</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>20</width>
-                   <height>40</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item>
-                <widget class="Line" name="line_102">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
-               <item>
                 <spacer name="verticalSpacer_5">
                  <property name="orientation">
                   <enum>Qt::Vertical</enum>
@@ -2230,7 +2216,7 @@ border:none</string>
                 </spacer>
                </item>
                <item>
-                <widget class="QLabel" name="Label_RunningState">
+                <widget class="QLabel" name="Label_RunningStateTask">
                  <property name="text">
                   <string>任务序列线程状态: 未运行</string>
                  </property>
@@ -2240,37 +2226,29 @@ border:none</string>
                 </widget>
                </item>
                <item>
+                <widget class="QComboBox" name="CurrentPlan">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+               <item>
                 <layout class="QHBoxLayout" name="Lay_StartButton">
-                 <item>
-                  <widget class="QPushButton" name="Button_Save">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="toolTip">
-                    <string>点击保存配置.
-请注意 先点击保存配置后运行, 未保存的配置将不被应用!</string>
-                   </property>
-                   <property name="text">
-                    <string>保存配置
-Save Config</string>
-                   </property>
-                  </widget>
-                 </item>
                  <item>
                   <widget class="QPushButton" name="Button_StartTimer">
                    <property name="sizePolicy">
@@ -2321,11 +2299,10 @@ Timer Start</string>
                     </size>
                    </property>
                    <property name="toolTip">
-                    <string>点击开始运行当前选中方案.
-请注意 先点击保存配置后运行, 未保存的配置将不被应用!</string>
+                    <string>执行当前选中的任务序列。</string>
                    </property>
                    <property name="text">
-                    <string>开始任务
+                    <string>执行序列
 Link Start</string>
                    </property>
                   </widget>
@@ -2340,7 +2317,7 @@ Link Start</string>
          </widget>
          <widget class="QWidget" name="Tab2">
           <attribute name="title">
-           <string>任务列表</string>
+           <string>任务序列</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_2">
            <property name="spacing">
@@ -2359,24 +2336,24 @@ Link Start</string>
             <number>0</number>
            </property>
            <item>
-            <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
+            <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0">
              <property name="spacing">
               <number>3</number>
              </property>
              <property name="leftMargin">
-              <number>0</number>
+              <number>5</number>
              </property>
              <property name="topMargin">
-              <number>0</number>
+              <number>5</number>
              </property>
              <property name="rightMargin">
-              <number>0</number>
+              <number>5</number>
              </property>
              <property name="bottomMargin">
-              <number>0</number>
+              <number>5</number>
              </property>
              <item>
-              <layout class="QHBoxLayout" name="_2" stretch="1,2,0,1">
+              <layout class="QHBoxLayout" name="_2" stretch="2,0,1">
                <property name="leftMargin">
                 <number>5</number>
                </property>
@@ -2390,43 +2367,22 @@ Link Start</string>
                 <number>0</number>
                </property>
                <item>
-                <layout class="QHBoxLayout" name="horizontalLayout_3">
-                 <item>
-                  <widget class="QLabel" name="CurrentPlan_Label_Text">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="text">
-                    <string>正在编辑方案: </string>
-                   </property>
-                   <property name="buddy">
-                    <cstring>ControlSettingsGroup</cstring>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QLabel" name="CurrentPlan_Label_Change">
-                   <property name="text">
-                    <string>???</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </item>
-               <item>
                 <widget class="QLabel" name="label">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>25</height>
+                  </size>
+                 </property>
                  <property name="text">
-                  <string>程序开始执行后, 会锁定正在运行的方案, 不应用实时更改.</string>
+                  <string>应用配置并开始执行后，将加载到内存中，不应用实时更改  左键长按拖动排序，左键双击修改别名，右键单击修改鼠标提示信息</string>
                  </property>
                 </widget>
                </item>
                <item>
                 <widget class="QPushButton" name="BattleTipButton">
                  <property name="sizePolicy">
-                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
@@ -2439,8 +2395,8 @@ Link Start</string>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>16777215</width>
-                   <height>16777215</height>
+                   <width>80</width>
+                   <height>25</height>
                   </size>
                  </property>
                  <property name="toolTip">
@@ -2454,7 +2410,7 @@ Link Start</string>
                <item>
                 <widget class="QPushButton" name="StageIDTipButton">
                  <property name="sizePolicy">
-                  <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                    <horstretch>0</horstretch>
                    <verstretch>0</verstretch>
                   </sizepolicy>
@@ -2467,8 +2423,8 @@ Link Start</string>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>16777215</width>
-                   <height>16777215</height>
+                   <width>80</width>
+                   <height>25</height>
                   </size>
                  </property>
                  <property name="toolTip">
@@ -2482,25 +2438,240 @@ Link Start</string>
               </layout>
              </item>
              <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_3">
+               <property name="leftMargin">
+                <number>0</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>0</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_14" stretch="0,0,0">
+                 <property name="spacing">
+                  <number>5</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>5</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="TaskSequenceLabelCurrentEditNameText">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>当前方案名称:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="TaskSequenceLabelCurrentEditName">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>???</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_2">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_19">
+                 <property name="spacing">
+                  <number>5</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>5</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>5</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="TaskSequenceLabelCurrentEditUUIDText">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>当前方案UUID：</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="TaskSequenceLabelCurrentEditUUID">
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>25</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>???</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_3">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </item>
+             <item>
               <layout class="QVBoxLayout" name="taskeditor_layout">
                <property name="spacing">
-                <number>3</number>
+                <number>0</number>
                </property>
                <property name="sizeConstraint">
                 <enum>QLayout::SetDefaultConstraint</enum>
                </property>
                <property name="leftMargin">
-                <number>5</number>
+                <number>0</number>
                </property>
                <property name="topMargin">
-                <number>5</number>
+                <number>0</number>
                </property>
                <property name="rightMargin">
-                <number>5</number>
+                <number>0</number>
                </property>
                <property name="bottomMargin">
-                <number>5</number>
+                <number>0</number>
                </property>
+               <item>
+                <spacer name="verticalSpacer_18">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_20">
+               <item>
+                <widget class="QPushButton" name="TaskSequenceButtonAddTask">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>添加任务</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QComboBox" name="TaskSequenceComboBoxAddTask">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_21">
+               <item>
+                <widget class="QPushButton" name="TaskSequenceButtonLoadJson">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>加载任务序列</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="TaskSequenceButtonSaveJson">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>保存</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="TaskSequenceButtonSaveAsJson">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>25</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>另存为</string>
+                 </property>
+                </widget>
+               </item>
               </layout>
              </item>
             </layout>
@@ -2542,7 +2713,7 @@ Link Start</string>
               <number>5</number>
              </property>
              <item>
-              <layout class="QVBoxLayout" name="Tab3LeftLayout1" stretch="6,1,1,1,1,0">
+              <layout class="QVBoxLayout" name="Tab3LeftLayout1" stretch="6,1,1,1,1,1,1">
                <property name="spacing">
                 <number>5</number>
                </property>
@@ -2572,13 +2743,13 @@ Link Start</string>
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>40</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
                    <width>16777215</width>
-                   <height>60</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="toolTip">
@@ -2586,6 +2757,34 @@ Link Start</string>
                  </property>
                  <property name="text">
                   <string>战斗方案编辑器</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="OpenEditorOfTweakPlan_Button">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>50</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>50</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>创建、浏览和编辑微调方案</string>
+                 </property>
+                 <property name="text">
+                  <string>微调方案编辑器</string>
                  </property>
                 </widget>
                </item>
@@ -2600,13 +2799,13 @@ Link Start</string>
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>40</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
                    <width>16777215</width>
-                   <height>60</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="toolTip">
@@ -2628,13 +2827,13 @@ Link Start</string>
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>40</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
                    <width>16777215</width>
-                   <height>60</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="toolTip">
@@ -2656,13 +2855,13 @@ Link Start</string>
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>40</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
                    <width>16777215</width>
-                   <height>60</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="toolTip">
@@ -2670,6 +2869,34 @@ Link Start</string>
                  </property>
                  <property name="text">
                   <string>实用小工具</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="OpenFAAView_Button">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>50</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>50</height>
+                  </size>
+                 </property>
+                 <property name="toolTip">
+                  <string>实时查看 1P/2P 游戏画面、FAA 点击与识图效果，并可录制带特效的视频</string>
+                 </property>
+                 <property name="text">
+                  <string>FAA视角</string>
                  </property>
                 </widget>
                </item>
@@ -2684,13 +2911,13 @@ Link Start</string>
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>40</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
                    <width>16777215</width>
-                   <height>60</height>
+                   <height>50</height>
                   </size>
                  </property>
                  <property name="text">
@@ -2723,26 +2950,13 @@ Link Start</string>
                   <x>0</x>
                   <y>0</y>
                   <width>560</width>
-                  <height>2500</height>
+                  <height>2350</height>
                  </rect>
                 </property>
                 <layout class="QGridLayout" name="gridLayout_2">
-                 <item row="8" column="0">
-                  <spacer name="verticalSpacer_11">
-                   <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>20</width>
-                     <height>40</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
                  <item row="2" column="0">
                   <widget class="QWidget" name="ControlSettingsGroup" native="true">
-                   <layout class="QVBoxLayout" name="LoginSettingsLayout" stretch="0,0,0">
+                   <layout class="QVBoxLayout" name="LoginSettingsLayout" stretch="0,0">
                     <property name="spacing">
                      <number>5</number>
                     </property>
@@ -2875,6 +3089,13 @@ Link Start</string>
                         <widget class="QCheckBox" name="open360">
                          <property name="text">
                           <string>登陆前若未打开, 打开360游戏大厅</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QCheckBox" name="resize360">
+                         <property name="text">
+                          <string>每次刷新游戏后, 自动调整360游戏大厅位置 (自启动360后推荐开启)</string>
                          </property>
                         </widget>
                        </item>
@@ -3219,158 +3440,21 @@ Link Start</string>
                       </layout>
                      </widget>
                     </item>
-                    <item>
-                     <widget class="QGroupBox" name="groupBox_6">
-                      <property name="title">
-                       <string>天知强卡器联动</string>
-                      </property>
-                      <layout class="QVBoxLayout" name="verticalLayout_17">
-                       <item>
-                        <layout class="QHBoxLayout" name="horizontalLayout_17">
-                         <property name="leftMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="topMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="rightMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="bottomMargin">
-                          <number>0</number>
-                         </property>
-                         <item>
-                          <widget class="QLabel" name="TCE_Path">
-                           <property name="text">
-                            <string>路径：</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QLineEdit" name="TCE_path_input"/>
-                         </item>
-                         <item>
-                          <widget class="QPushButton" name="TCE_path_select_btn">
-                           <property name="text">
-                            <string>点我选择路径</string>
-                           </property>
-                          </widget>
-                         </item>
-                        </layout>
-                       </item>
-                       <item>
-                        <layout class="QHBoxLayout" name="horizontalLayout_18">
-                         <property name="spacing">
-                          <number>5</number>
-                         </property>
-                         <property name="leftMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="topMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="rightMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="bottomMargin">
-                          <number>0</number>
-                         </property>
-                         <item>
-                          <widget class="QCheckBox" name="TCEDecomposeGem_Active">
-                           <property name="text">
-                            <string>分解宝石</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QCheckBox" name="TCEEnhanceCard_Active">
-                           <property name="text">
-                            <string>强化卡片</string>
-                           </property>
-                          </widget>
-                         </item>
-                        </layout>
-                       </item>
-                      </layout>
-                     </widget>
-                    </item>
                    </layout>
                   </widget>
                  </item>
-                 <item row="9" column="0">
-                  <widget class="QGroupBox" name="groupBox_14">
-                   <property name="title">
-                    <string>FAA任务结束后自动执行插件脚本</string>
+                 <item row="8" column="0">
+                  <spacer name="verticalSpacer_11">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
                    </property>
-                   <layout class="QGridLayout" name="gridLayout_4">
-                    <item row="0" column="0">
-                     <widget class="QTableWidget" name="tableWidget_extension">
-                      <property name="minimumSize">
-                       <size>
-                        <width>0</width>
-                        <height>150</height>
-                       </size>
-                      </property>
-                      <property name="toolTip">
-                       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;请使用自定义插件来编写脚本，然后在此处填入脚本的路径。&lt;/p&gt;&lt;p&gt;这些任务会在FAA的“任务列表”都执行完之后再执行。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                      </property>
-                      <attribute name="horizontalHeaderDefaultSectionSize">
-                       <number>120</number>
-                      </attribute>
-                      <attribute name="horizontalHeaderStretchLastSection">
-                       <bool>true</bool>
-                      </attribute>
-                      <row>
-                       <property name="text">
-                        <string>1</string>
-                       </property>
-                      </row>
-                      <column>
-                       <property name="text">
-                        <string>脚本名</string>
-                       </property>
-                       <property name="toolTip">
-                        <string>脚本名可以随便设置，用来表示脚本的功能。（可以为空）</string>
-                       </property>
-                      </column>
-                      <column>
-                       <property name="text">
-                        <string>脚本路径</string>
-                       </property>
-                       <property name="toolTip">
-                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;填入json文件的绝对路径，而不是json文件所在的文件夹。&lt;/p&gt;&lt;p&gt;注意：这个表格会自动添加末行，不具备删除行的功能，但当脚本路径为空时，软件会自动跳过那一行,并且保存并重新打开FAA后，脚本路径为空的行会自动删去。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                       </property>
-                      </column>
-                      <column>
-                       <property name="text">
-                        <string>重复次数</string>
-                       </property>
-                       <property name="toolTip">
-                        <string>默认为1次，为0次时不执行</string>
-                       </property>
-                      </column>
-                      <column>
-                       <property name="text">
-                        <string>角色</string>
-                       </property>
-                       <property name="toolTip">
-                        <string>角色：1为1p，2为2p，3为1p和2p，为其他值时不执行</string>
-                       </property>
-                      </column>
-                      <item row="0" column="2">
-                       <property name="text">
-                        <string>1</string>
-                       </property>
-                      </item>
-                      <item row="0" column="3">
-                       <property name="text">
-                        <string>3</string>
-                       </property>
-                      </item>
-                     </widget>
-                    </item>
-                   </layout>
-                  </widget>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                  </spacer>
                  </item>
                  <item row="6" column="0">
                   <widget class="QWidget" name="OtherSettingsGroup" native="true">
@@ -3932,13 +4016,13 @@ Link Start</string>
                      </spacer>
                     </item>
                     <item>
-                     <widget class="QGroupBox" name="groupBox_12">
+                     <widget class="QGroupBox" name="LoginQQSpaceGroup">
                       <property name="title">
                        <string>QQ空间 - 密码登录</string>
                       </property>
-                      <layout class="QGridLayout" name="gridLayout">
+                      <layout class="QGridLayout" name="LoginQQSpaceLayout">
                        <item row="2" column="0">
-                        <layout class="QHBoxLayout" name="Lay_Level2_1P_2" stretch="1,8">
+                        <layout class="QHBoxLayout" name="LoginQQSpaceUsername2PLayout" stretch="1,8">
                          <property name="spacing">
                           <number>5</number>
                          </property>
@@ -3955,7 +4039,7 @@ Link Start</string>
                           <number>0</number>
                          </property>
                          <item>
-                          <widget class="QLabel" name="Level2_1P_Text_2">
+                          <widget class="QLabel" name="LoginQQSpaceUsername2PLabel">
                            <property name="minimumSize">
                             <size>
                              <width>70</width>
@@ -3977,9 +4061,9 @@ Link Start</string>
                           </widget>
                          </item>
                          <item>
-                          <widget class="QLineEdit" name="username_edit_2">
+                          <widget class="QLineEdit" name="LoginQQSpaceUsername2PInput">
                            <property name="sizePolicy">
-                            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                              <horstretch>0</horstretch>
                              <verstretch>0</verstretch>
                             </sizepolicy>
@@ -3993,7 +4077,7 @@ Link Start</string>
                            <property name="maximumSize">
                             <size>
                              <width>1000</width>
-                             <height>100</height>
+                             <height>30</height>
                             </size>
                            </property>
                            <property name="tabletTracking">
@@ -4016,7 +4100,7 @@ Link Start</string>
                         </layout>
                        </item>
                        <item row="4" column="0" colspan="2">
-                        <widget class="QPushButton" name="SavePasswordButton">
+                        <widget class="QPushButton" name="LoginQQSpaceSaveButton">
                          <property name="sizePolicy">
                           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                            <horstretch>0</horstretch>
@@ -4044,14 +4128,14 @@ Link Start</string>
                         </widget>
                        </item>
                        <item row="5" column="0" colspan="2">
-                        <widget class="QPushButton" name="QQloginTipButton">
+                        <widget class="QPushButton" name="LoginQQSpaceHelpButton">
                          <property name="text">
-                          <string>查看相关教学/说明</string>
+                          <string>密码登录说明</string>
                          </property>
                         </widget>
                        </item>
                        <item row="1" column="0">
-                        <layout class="QHBoxLayout" name="Lay_Level2_1P_3" stretch="1,8">
+                        <layout class="QHBoxLayout" name="LoginQQSpaceUsername1PLayout" stretch="1,8">
                          <property name="spacing">
                           <number>5</number>
                          </property>
@@ -4068,7 +4152,7 @@ Link Start</string>
                           <number>0</number>
                          </property>
                          <item>
-                          <widget class="QLabel" name="Level2_1P_Text_3">
+                          <widget class="QLabel" name="LoginQQSpaceUsername1PLabel">
                            <property name="minimumSize">
                             <size>
                              <width>70</width>
@@ -4090,9 +4174,9 @@ Link Start</string>
                           </widget>
                          </item>
                          <item>
-                          <widget class="QLineEdit" name="username_edit_1">
+                          <widget class="QLineEdit" name="LoginQQSpaceUsername1PInput">
                            <property name="sizePolicy">
-                            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                              <horstretch>0</horstretch>
                              <verstretch>0</verstretch>
                             </sizepolicy>
@@ -4106,7 +4190,7 @@ Link Start</string>
                            <property name="maximumSize">
                             <size>
                              <width>1000</width>
-                             <height>100</height>
+                             <height>30</height>
                             </size>
                            </property>
                            <property name="tabletTracking">
@@ -4129,7 +4213,7 @@ Link Start</string>
                         </layout>
                        </item>
                        <item row="1" column="1">
-                        <layout class="QHBoxLayout" name="Lay_Level2_1P_7" stretch="1,8">
+                        <layout class="QHBoxLayout" name="LoginQQSpacePassword1PLayout" stretch="1,8">
                          <property name="spacing">
                           <number>5</number>
                          </property>
@@ -4146,7 +4230,7 @@ Link Start</string>
                           <number>0</number>
                          </property>
                          <item>
-                          <widget class="QLabel" name="Level2_1P_Text_8">
+                          <widget class="QLabel" name="LoginQQSpacePassword1PLabel">
                            <property name="minimumSize">
                             <size>
                              <width>0</width>
@@ -4168,9 +4252,9 @@ Link Start</string>
                           </widget>
                          </item>
                          <item>
-                          <widget class="QLineEdit" name="password_edit_1">
+                          <widget class="QLineEdit" name="LoginQQSpacePassword1PInput">
                            <property name="sizePolicy">
-                            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                              <horstretch>0</horstretch>
                              <verstretch>0</verstretch>
                             </sizepolicy>
@@ -4184,7 +4268,7 @@ Link Start</string>
                            <property name="maximumSize">
                             <size>
                              <width>1000</width>
-                             <height>100</height>
+                             <height>30</height>
                             </size>
                            </property>
                            <property name="tabletTracking">
@@ -4197,7 +4281,7 @@ Link Start</string>
                             <string/>
                            </property>
                            <property name="echoMode">
-                            <enum>QLineEdit::PasswordEchoOnEdit</enum>
+                            <enum>QLineEdit::Password</enum>
                            </property>
                            <property name="clearButtonEnabled">
                             <bool>true</bool>
@@ -4207,14 +4291,14 @@ Link Start</string>
                         </layout>
                        </item>
                        <item row="0" column="0" colspan="2">
-                        <widget class="QCheckBox" name="checkbox_use_password">
+                        <widget class="QCheckBox" name="LoginQQSpaceUsePasswordCheckBox">
                          <property name="text">
                           <string>使用密码进行登录</string>
                          </property>
                         </widget>
                        </item>
                        <item row="2" column="1">
-                        <layout class="QHBoxLayout" name="Lay_Level2_1P_6" stretch="1,8">
+                        <layout class="QHBoxLayout" name="LoginQQSpacePassword2PLayout" stretch="1,8">
                          <property name="spacing">
                           <number>5</number>
                          </property>
@@ -4231,7 +4315,7 @@ Link Start</string>
                           <number>0</number>
                          </property>
                          <item>
-                          <widget class="QLabel" name="Level2_1P_Text_7">
+                          <widget class="QLabel" name="LoginQQSpacePassword2PLabel">
                            <property name="minimumSize">
                             <size>
                              <width>0</width>
@@ -4253,9 +4337,9 @@ Link Start</string>
                           </widget>
                          </item>
                          <item>
-                          <widget class="QLineEdit" name="password_edit_2">
+                          <widget class="QLineEdit" name="LoginQQSpacePassword2PInput">
                            <property name="sizePolicy">
-                            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                              <horstretch>0</horstretch>
                              <verstretch>0</verstretch>
                             </sizepolicy>
@@ -4269,7 +4353,7 @@ Link Start</string>
                            <property name="maximumSize">
                             <size>
                              <width>1000</width>
-                             <height>100</height>
+                             <height>30</height>
                             </size>
                            </property>
                            <property name="tabletTracking">
@@ -4282,92 +4366,10 @@ Link Start</string>
                             <string/>
                            </property>
                            <property name="echoMode">
-                            <enum>QLineEdit::PasswordEchoOnEdit</enum>
+                            <enum>QLineEdit::Password</enum>
                            </property>
                            <property name="clearButtonEnabled">
                             <bool>true</bool>
-                           </property>
-                          </widget>
-                         </item>
-                        </layout>
-                       </item>
-                       <item row="3" column="0" colspan="2">
-                        <layout class="QHBoxLayout" name="Lay_MisuLogistics_2" stretch="0,6,0">
-                         <property name="spacing">
-                          <number>5</number>
-                         </property>
-                         <property name="leftMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="topMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="rightMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="bottomMargin">
-                          <number>0</number>
-                         </property>
-                         <item>
-                          <widget class="QLabel" name="label_5">
-                           <property name="minimumSize">
-                            <size>
-                             <width>70</width>
-                             <height>0</height>
-                            </size>
-                           </property>
-                           <property name="maximumSize">
-                            <size>
-                             <width>70</width>
-                             <height>16777215</height>
-                            </size>
-                           </property>
-                           <property name="text">
-                            <string>保存路径</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QLineEdit" name="path_edit">
-                           <property name="sizePolicy">
-                            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                             <horstretch>0</horstretch>
-                             <verstretch>0</verstretch>
-                            </sizepolicy>
-                           </property>
-                           <property name="minimumSize">
-                            <size>
-                             <width>0</width>
-                             <height>0</height>
-                            </size>
-                           </property>
-                           <property name="maximumSize">
-                            <size>
-                             <width>1000</width>
-                             <height>100</height>
-                            </size>
-                           </property>
-                           <property name="tabletTracking">
-                            <bool>false</bool>
-                           </property>
-                           <property name="autoFillBackground">
-                            <bool>false</bool>
-                           </property>
-                           <property name="text">
-                            <string/>
-                           </property>
-                           <property name="echoMode">
-                            <enum>QLineEdit::Normal</enum>
-                           </property>
-                           <property name="clearButtonEnabled">
-                            <bool>true</bool>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QPushButton" name="ChoosePathButton">
-                           <property name="text">
-                            <string>选择文件夹</string>
                            </property>
                           </widget>
                          </item>
@@ -4377,99 +4379,118 @@ Link Start</string>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QGroupBox" name="groupBox_13">
+                     <widget class="QGroupBox" name="LoginServerWaitGroup">
                       <property name="title">
-                       <string>QQ空间 - 额外设置</string>
+                       <string>刷新后等待选服</string>
                       </property>
-                      <layout class="QGridLayout" name="gridLayout_3">
-                       <item row="1" column="0">
-                        <layout class="QHBoxLayout" name="Lay_MisuLogistics_3" stretch="0,0">
-                         <property name="spacing">
-                          <number>5</number>
-                         </property>
-                         <property name="leftMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="topMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="rightMargin">
-                          <number>0</number>
-                         </property>
-                         <property name="bottomMargin">
-                          <number>0</number>
-                         </property>
-                         <item>
-                          <widget class="QLabel" name="label_6">
-                           <property name="minimumSize">
-                            <size>
-                             <width>120</width>
-                             <height>0</height>
-                            </size>
-                           </property>
-                           <property name="maximumSize">
-                            <size>
-                             <width>120</width>
-                             <height>16777215</height>
-                            </size>
-                           </property>
-                           <property name="text">
-                            <string>休眠时间</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QLineEdit" name="sleep_time_edit">
-                           <property name="sizePolicy">
-                            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                             <horstretch>0</horstretch>
-                             <verstretch>0</verstretch>
-                            </sizepolicy>
-                           </property>
-                           <property name="minimumSize">
-                            <size>
-                             <width>0</width>
-                             <height>0</height>
-                            </size>
-                           </property>
-                           <property name="maximumSize">
-                            <size>
-                             <width>1000</width>
-                             <height>100</height>
-                            </size>
-                           </property>
-                           <property name="tabletTracking">
-                            <bool>false</bool>
-                           </property>
-                           <property name="autoFillBackground">
-                            <bool>false</bool>
-                           </property>
-                           <property name="text">
-                            <string/>
-                           </property>
-                           <property name="echoMode">
-                            <enum>QLineEdit::Normal</enum>
-                           </property>
-                           <property name="clearButtonEnabled">
-                            <bool>true</bool>
-                           </property>
-                          </widget>
-                         </item>
-                        </layout>
-                       </item>
-                       <item row="0" column="0">
-                        <widget class="QCheckBox" name="checkbox_need_sleep">
-                         <property name="text">
-                          <string>刷新后额外休眠</string>
-                         </property>
-                        </widget>
-                       </item>
-                       <item row="2" column="0">
-                        <widget class="QPushButton" name="SleepTipButton">
+                      <layout class="QGridLayout" name="LoginServerWaitLayout">
+                       <item row="4" column="0">
+                        <widget class="QPushButton" name="LoginServerWaitHelpButton">
                          <property name="text">
                           <string>查看相关教学/说明</string>
                          </property>
                         </widget>
+                       </item>
+                       <item row="0" column="0">
+                        <layout class="QHBoxLayout" name="LoginServerWaitOptionsLayout" stretch="1,1">
+                         <property name="spacing">
+                          <number>5</number>
+                         </property>
+                         <property name="leftMargin">
+                          <number>5</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>5</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>5</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>5</number>
+                         </property>
+                         <item>
+                          <widget class="QCheckBox" name="LoginServerWaitCheckBox">
+                           <property name="text">
+                            <string>额外等待选服按钮出现</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <layout class="QHBoxLayout" name="LoginServerWaitTimeLayout" stretch="0,0">
+                           <property name="spacing">
+                            <number>5</number>
+                           </property>
+                           <property name="leftMargin">
+                            <number>0</number>
+                           </property>
+                           <property name="topMargin">
+                            <number>0</number>
+                           </property>
+                           <property name="rightMargin">
+                            <number>0</number>
+                           </property>
+                           <property name="bottomMargin">
+                            <number>0</number>
+                           </property>
+                           <item>
+                            <widget class="QLabel" name="LoginServerWaitTimeLabel">
+                             <property name="minimumSize">
+                              <size>
+                               <width>95</width>
+                               <height>0</height>
+                              </size>
+                             </property>
+                             <property name="maximumSize">
+                              <size>
+                               <width>95</width>
+                               <height>16777215</height>
+                              </size>
+                             </property>
+                             <property name="text">
+                              <string>最长等待（秒）</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QLineEdit" name="LoginServerWaitTimeInput">
+                             <property name="sizePolicy">
+                              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                               <horstretch>0</horstretch>
+                               <verstretch>0</verstretch>
+                              </sizepolicy>
+                             </property>
+                             <property name="minimumSize">
+                              <size>
+                               <width>0</width>
+                               <height>0</height>
+                              </size>
+                             </property>
+                             <property name="maximumSize">
+                              <size>
+                               <width>1000</width>
+                               <height>28</height>
+                              </size>
+                             </property>
+                             <property name="tabletTracking">
+                              <bool>false</bool>
+                             </property>
+                             <property name="autoFillBackground">
+                              <bool>false</bool>
+                             </property>
+                             <property name="text">
+                              <string/>
+                             </property>
+                             <property name="echoMode">
+                              <enum>QLineEdit::Normal</enum>
+                             </property>
+                             <property name="clearButtonEnabled">
+                              <bool>true</bool>
+                             </property>
+                            </widget>
+                           </item>
+                          </layout>
+                         </item>
+                        </layout>
                        </item>
                       </layout>
                      </widget>
@@ -4768,7 +4789,7 @@ Link Start</string>
                             <string/>
                            </property>
                            <property name="echoMode">
-                            <enum>QLineEdit::PasswordEchoOnEdit</enum>
+                            <enum>QLineEdit::Password</enum>
                            </property>
                            <property name="clearButtonEnabled">
                             <bool>true</bool>
@@ -4874,7 +4895,7 @@ Link Start</string>
                             <string/>
                            </property>
                            <property name="echoMode">
-                            <enum>QLineEdit::PasswordEchoOnEdit</enum>
+                            <enum>QLineEdit::Password</enum>
                            </property>
                            <property name="clearButtonEnabled">
                             <bool>true</bool>
@@ -5017,7 +5038,7 @@ Link Start</string>
                             <string/>
                            </property>
                            <property name="echoMode">
-                            <enum>QLineEdit::PasswordEchoOnEdit</enum>
+                            <enum>QLineEdit::Password</enum>
                            </property>
                            <property name="clearButtonEnabled">
                             <bool>true</bool>
@@ -5123,7 +5144,7 @@ Link Start</string>
                             <string/>
                            </property>
                            <property name="echoMode">
-                            <enum>QLineEdit::PasswordEchoOnEdit</enum>
+                            <enum>QLineEdit::Password</enum>
                            </property>
                            <property name="clearButtonEnabled">
                             <bool>true</bool>
@@ -5168,6 +5189,32 @@ Link Start</string>
                  </item>
                  <item row="3" column="0">
                   <spacer name="verticalSpacer_23">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>1000</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item row="5" column="0">
+                  <spacer name="verticalSpacer_26">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>1000</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item row="1" column="0">
+                  <spacer name="verticalSpacer_17">
                    <property name="orientation">
                     <enum>Qt::Vertical</enum>
                    </property>
@@ -6020,7 +6067,7 @@ FAA放卡核心原理简述:
                         </layout>
                        </item>
                        <item>
-                        <layout class="QHBoxLayout" name="CusAutoCarryCardLayout">
+                        <layout class="QHBoxLayout" name="CusAutoCarryCardLayout" stretch="1,1">
                          <property name="spacing">
                           <number>5</number>
                          </property>
@@ -6060,7 +6107,8 @@ FAA放卡核心原理简述:
                             </size>
                            </property>
                            <property name="toolTip">
-                            <string>不激活即为使用默认值</string>
+                            <string>勾选后，1P 和 2P 分别使用各自所选的卡组。
+未勾选时，两名角色均使用默认的 6 号卡组。</string>
                            </property>
                            <property name="text">
                             <string>自定自动带卡卡组</string>
@@ -6071,67 +6119,154 @@ FAA放卡核心原理简述:
                           </widget>
                          </item>
                          <item>
-                          <widget class="QComboBox" name="CusAutoCarryCardValueInput">
-                           <property name="sizePolicy">
-                            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                             <horstretch>0</horstretch>
-                             <verstretch>0</verstretch>
-                            </sizepolicy>
-                           </property>
-                           <property name="minimumSize">
-                            <size>
-                             <width>0</width>
-                             <height>0</height>
-                            </size>
-                           </property>
-                           <property name="maximumSize">
-                            <size>
-                             <width>16777215</width>
-                             <height>50</height>
-                            </size>
-                           </property>
-                           <property name="toolTip">
-                            <string>默认值: 6号卡组
-当使用自动带卡时, 将以该编号的卡组为基础, 开始选卡.
-请提前清空该卡组, 并在最后一格带好咖啡粉并保存.</string>
-                           </property>
-                           <property name="currentText">
-                            <string>6</string>
-                           </property>
-                           <property name="currentIndex">
+                          <layout class="QHBoxLayout" name="CusAutoCarryCardPlayersLayout" stretch="1,1">
+                           <property name="spacing">
                             <number>5</number>
                            </property>
                            <item>
-                            <property name="text">
-                             <string>1</string>
-                            </property>
+                            <layout class="QHBoxLayout" name="CusAutoCarryCard1PLayout">
+                             <property name="spacing">
+                              <number>5</number>
+                             </property>
+                             <item>
+                              <widget class="QLabel" name="CusAutoCarryCard1PLabel">
+                               <property name="text">
+                                <string>1P</string>
+                               </property>
+                               <property name="buddy">
+                                <cstring>CusAutoCarryCardValueInput</cstring>
+                               </property>
+                              </widget>
+                             </item>
+                             <item>
+                              <widget class="QComboBox" name="CusAutoCarryCardValueInput">
+                               <property name="sizePolicy">
+                                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                                 <horstretch>0</horstretch>
+                                 <verstretch>0</verstretch>
+                                </sizepolicy>
+                               </property>
+                               <property name="minimumSize">
+                                <size>
+                                 <width>0</width>
+                                 <height>0</height>
+                                </size>
+                               </property>
+                               <property name="maximumSize">
+                                <size>
+                                 <width>16777215</width>
+                                 <height>50</height>
+                                </size>
+                               </property>
+                               <property name="toolTip">
+                                <string>默认值: 6号卡组
+    当使用自动带卡时, 将以该编号的卡组为基础, 开始选卡.
+    请提前清空该卡组, 并在最后一格带好咖啡粉并保存.</string>
+                               </property>
+                               <property name="currentText">
+                                <string>6</string>
+                               </property>
+                               <property name="currentIndex">
+                                <number>5</number>
+                               </property>
+                               <item>
+                                <property name="text">
+                                 <string>1</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>2</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>3</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>4</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>5</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>6</string>
+                                </property>
+                               </item>
+                              </widget>
+                             </item>
+                            </layout>
                            </item>
                            <item>
-                            <property name="text">
-                             <string>2</string>
-                            </property>
+                            <layout class="QHBoxLayout" name="CusAutoCarryCard2PLayout">
+                             <property name="spacing">
+                              <number>5</number>
+                             </property>
+                             <item>
+                              <widget class="QLabel" name="CusAutoCarryCard2PLabel">
+                               <property name="text">
+                                <string>2P</string>
+                               </property>
+                               <property name="buddy">
+                                <cstring>CusAutoCarryCardValueInput2P</cstring>
+                               </property>
+                              </widget>
+                             </item>
+                             <item>
+                              <widget class="QComboBox" name="CusAutoCarryCardValueInput2P">
+                               <property name="sizePolicy">
+                                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                                 <horstretch>0</horstretch>
+                                 <verstretch>0</verstretch>
+                                </sizepolicy>
+                               </property>
+                               <property name="toolTip">
+                                <string>请选择 2P 的自动带卡卡组。请提前清空该卡组，并在最后一格带好咖啡粉并保存。</string>
+                               </property>
+                               <property name="currentIndex">
+                                <number>5</number>
+                               </property>
+                               <item>
+                                <property name="text">
+                                 <string>1</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>2</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>3</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>4</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>5</string>
+                                </property>
+                               </item>
+                               <item>
+                                <property name="text">
+                                 <string>6</string>
+                                </property>
+                               </item>
+                              </widget>
+                             </item>
+                            </layout>
                            </item>
-                           <item>
-                            <property name="text">
-                             <string>3</string>
-                            </property>
-                           </item>
-                           <item>
-                            <property name="text">
-                             <string>4</string>
-                            </property>
-                           </item>
-                           <item>
-                            <property name="text">
-                             <string>5</string>
-                            </property>
-                           </item>
-                           <item>
-                            <property name="text">
-                             <string>6</string>
-                            </property>
-                           </item>
-                          </widget>
+                          </layout>
                          </item>
                         </layout>
                        </item>
@@ -6843,32 +6978,6 @@ FAA放卡核心原理简述:
                    </layout>
                   </widget>
                  </item>
-                 <item row="5" column="0">
-                  <spacer name="verticalSpacer_26">
-                   <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>20</width>
-                     <height>1000</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                 <item row="1" column="0">
-                  <spacer name="verticalSpacer_17">
-                   <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>20</width>
-                     <height>1000</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
                 </layout>
                </widget>
               </widget>
@@ -6917,72 +7026,12 @@ FAA放卡核心原理简述:
              <item>
               <widget class="QLabel" name="label_10">
                <property name="text">
-                <string>公会贡献点扫描器</string>
+                <string>公会贡献点管理器</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
               </widget>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="Lay_AdvancedSettings_Bottom_2" stretch="0,1">
-               <property name="leftMargin">
-                <number>5</number>
-               </property>
-               <property name="topMargin">
-                <number>5</number>
-               </property>
-               <property name="rightMargin">
-                <number>5</number>
-               </property>
-               <property name="bottomMargin">
-                <number>5</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="label_12">
-                 <property name="text">
-                  <string>启用</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QComboBox" name="GuildManager_Active">
-                 <property name="sizePolicy">
-                  <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                   <horstretch>0</horstretch>
-                   <verstretch>0</verstretch>
-                  </sizepolicy>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>0</width>
-                   <height>0</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>2000</width>
-                   <height>50</height>
-                  </size>
-                 </property>
-                 <item>
-                  <property name="text">
-                   <string>不启用</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>1P启用</string>
-                  </property>
-                 </item>
-                 <item>
-                  <property name="text">
-                   <string>2P启用</string>
-                  </property>
-                 </item>
-                </widget>
-               </item>
-              </layout>
              </item>
              <item>
               <widget class="QCalendarWidget" name="DateSelector">
@@ -7018,15 +7067,35 @@ FAA放卡核心原理简述:
              <item>
               <widget class="QLabel" name="label_11">
                <property name="text">
-                <string>
-说明
-启用后，在领取奖励时
-所选的那一P
-会扫描公会的所有成员
+                <string>说明
+在任务序列中启用扫描公会贡献
+对应的那1P, 会扫描公会的所有成员
 自动生成表格</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="ExportGuildContributionButton">
+               <property name="minimumSize">
+                <size>
+                 <width>120</width>
+                 <height>32</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>240</width>
+                 <height>40</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>只导出当前日历所选日期的公会贡献数据</string>
+               </property>
+               <property name="text">
+                <string>导出 Excel</string>
                </property>
               </widget>
              </item>
@@ -7192,7 +7261,7 @@ FAA放卡核心原理简述:
                  <item>
                   <widget class="QLabel" name="SkinWidget_Label">
                    <property name="styleSheet">
-                    <string notr="true">font: 30pt &quot;ShouShuti&quot;;</string>
+                    <string notr="true">font-size: 30pt;</string>
                    </property>
                    <property name="text">
                     <string>更多超绝皮肤锐意制作中...
@@ -7212,255 +7281,166 @@ FAA放卡核心原理简述:
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="Tab6">
+         <widget class="QWidget" name="tab">
           <attribute name="title">
-           <string>性能分析</string>
+           <string>检查更新</string>
           </attribute>
-          <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <layout class="QHBoxLayout" name="horizontalLayout_22">
            <item>
-            <layout class="QVBoxLayout" name="IoLayout">
+            <layout class="QVBoxLayout" name="UpdateLayout">
              <item>
-              <widget class="QLabel" name="label_8">
-               <property name="text">
-                <string>磁盘io读写</string>
+              <layout class="QGridLayout" name="UpdateStateGridLayout">
+               <property name="horizontalSpacing">
+                <number>24</number>
                </property>
-              </widget>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_8">
-               <item>
-                <widget class="QLabel" name="label_14">
+               <property name="verticalSpacing">
+                <number>6</number>
+               </property>
+               <item row="0" column="0">
+                <widget class="QLabel" name="UpdateVersionInfoLabel">
                  <property name="text">
-                  <string>总读取字节数</string>
+                  <string>当前版本：读取中...</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                 </property>
+                 <property name="wordWrap">
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
-               <item>
-                <widget class="QLabel" name="read_bytes_label">
+               <item row="0" column="1">
+                <widget class="QLabel" name="UpdateNodeInfoLabel">
                  <property name="text">
-                  <string>Null</string>
+                  <string>更新节点：读取中...</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                 </property>
+                 <property name="wordWrap">
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
-              </layout>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_9">
-               <item>
-                <widget class="QLabel" name="label_20">
+               <item row="1" column="0">
+                <widget class="QLabel" name="UpdateBranchInfoLabel">
                  <property name="text">
-                  <string>总写入字节数</string>
+                  <string>版本类型：读取中...</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                 </property>
+                 <property name="wordWrap">
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
-               <item>
-                <widget class="QLabel" name="write_bytes_label">
+               <item row="1" column="1">
+                <widget class="QLabel" name="UpdateSourceInfoLabel">
                  <property name="text">
-                  <string>Null</string>
+                  <string>版本信息和当前状态来源：读取中...</string>
                  </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <spacer name="verticalSpacer_13">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QLabel" name="Io_panel">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>假装出现了一个仪表盘
-未完待续</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="verticalSpacer_14">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="MemoryLayout">
-             <item>
-              <widget class="QLabel" name="label_9">
-               <property name="text">
-                <string>内存占用</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_10">
-               <item>
-                <widget class="QLabel" name="label_15">
-                 <property name="text">
-                  <string>总内存使用量</string>
+                 <property name="alignment">
+                  <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
                  </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="total_memory_rss_label">
-                 <property name="text">
-                  <string>Null</string>
+                 <property name="wordWrap">
+                  <bool>true</bool>
                  </property>
                 </widget>
                </item>
               </layout>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_11">
-               <item>
-                <widget class="QLabel" name="label_21">
+              <widget class="QLabel" name="UpdateProgressLabel">
+               <property name="text">
+                <string>更新进度：空闲</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QGridLayout" name="UpdateButtonLayout">
+               <property name="spacing">
+                <number>8</number>
+               </property>
+               <item row="0" column="0">
+                <widget class="QPushButton" name="CheckUpdateButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>34</height>
+                  </size>
+                 </property>
                  <property name="text">
-                  <string>总内存使用率</string>
+                  <string>加载正式版更新列表</string>
                  </property>
                 </widget>
                </item>
-               <item>
-                <widget class="QLabel" name="total_memory_percent_label">
+               <item row="0" column="1">
+                <widget class="QPushButton" name="NormalUpdateButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>34</height>
+                  </size>
+                 </property>
                  <property name="text">
-                  <string>Null</string>
+                  <string>更新至选中的版本</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QPushButton" name="ForceUpdateButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>34</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>加载开发版更新列表</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QPushButton" name="DevMoreUpdateButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>34</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>加载更多开发者更新内容</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0" colspan="2">
+                <widget class="QPushButton" name="UpdateHelpButton">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>34</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string>查看相关说明</string>
                  </property>
                 </widget>
                </item>
               </layout>
              </item>
              <item>
-              <spacer name="verticalSpacer_9">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
+              <widget class="QTableWidget" name="GitHistoryView">
+               <property name="wordWrap">
+                <bool>true</bool>
                </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QLabel" name="Memory_panel">
-               <property name="text">
-                <string>假装出现了一个仪表盘
-未完待续</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
+               <attribute name="horizontalHeaderStretchLastSection">
+                <bool>true</bool>
+               </attribute>
               </widget>
-             </item>
-             <item>
-              <spacer name="verticalSpacer_15">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QVBoxLayout" name="CpuLayout">
-             <item>
-              <widget class="QLabel" name="label_13">
-               <property name="text">
-                <string>cpu占用</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_12">
-               <item>
-                <widget class="QLabel" name="label_16">
-                 <property name="text">
-                  <string>总CPU使用率</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="total_cpu_percent_label">
-                 <property name="text">
-                  <string>Null</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_2">
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="verticalSpacer_8">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QLabel" name="cpu_panel">
-               <property name="text">
-                <string>假装出现了一个仪表盘
-未完待续</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="verticalSpacer_16">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>40</height>
-                </size>
-               </property>
-              </spacer>
              </item>
             </layout>
            </item>
@@ -7484,13 +7464,6 @@ FAA放卡核心原理简述:
    </property>
   </action>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>DragLabel</class>
-   <extends>QLabel</extends>
-   <header>resource.ui.draglabel</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections>
   <connection>

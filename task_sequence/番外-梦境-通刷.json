@@ -6,8 +6,24 @@
         }
     },
     {
-        "task_type": "战斗",
+        "task_type": "刷新游戏",
         "task_id": 1,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
+        "task_args": {
+            "player": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "task_type": "战斗",
+        "task_id": 2,
+        "enabled": false,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "stage_id": "EX-5-1",
             "max_times": 1,
@@ -20,6 +36,7 @@
             "deck": 5,
             "battle_plan_1p": "784dd55c-4175-11ef-8114-f44efc5bf671",
             "battle_plan_2p": "784e12d8-4175-11ef-8d06-f44efc5bf671",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -36,7 +53,10 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 2,
+        "task_id": 3,
+        "enabled": false,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "player": [
                 1,
@@ -53,7 +73,10 @@
     },
     {
         "task_type": "战斗",
-        "task_id": 3,
+        "task_id": 4,
+        "enabled": false,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "stage_id": "EX-5-2",
             "max_times": 1,
@@ -66,6 +89,7 @@
             "deck": 5,
             "battle_plan_1p": "784dd55c-4175-11ef-8114-f44efc5bf671",
             "battle_plan_2p": "784e12d8-4175-11ef-8d06-f44efc5bf671",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -82,7 +106,10 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 4,
+        "task_id": 5,
+        "enabled": false,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "player": [
                 1,
@@ -99,7 +126,10 @@
     },
     {
         "task_type": "战斗",
-        "task_id": 5,
+        "task_id": 6,
+        "enabled": false,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "stage_id": "EX-5-3",
             "max_times": 1,
@@ -112,6 +142,7 @@
             "deck": 5,
             "battle_plan_1p": "784dd55c-4175-11ef-8114-f44efc5bf671",
             "battle_plan_2p": "784e12d8-4175-11ef-8d06-f44efc5bf671",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -128,7 +159,10 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 6,
+        "task_id": 7,
+        "enabled": false,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "player": [
                 1,
@@ -145,7 +179,10 @@
     },
     {
         "task_type": "战斗",
-        "task_id": 7,
+        "task_id": 8,
+        "enabled": false,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "stage_id": "EX-5-4",
             "max_times": 1,
@@ -158,6 +195,7 @@
             "deck": 5,
             "battle_plan_1p": "784dd55c-4175-11ef-8114-f44efc5bf671",
             "battle_plan_2p": "784dd55c-4175-11ef-8114-f44efc5bf671",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -174,7 +212,10 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 8,
+        "task_id": 9,
+        "enabled": false,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "player": [
                 1,
@@ -191,7 +232,10 @@
     },
     {
         "task_type": "战斗",
-        "task_id": 9,
+        "task_id": 10,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "stage_id": "EX-5-5",
             "max_times": 1,
@@ -204,6 +248,7 @@
             "deck": 5,
             "battle_plan_1p": "784dd55c-4175-11ef-8114-f44efc5bf671",
             "battle_plan_2p": "784e12d8-4175-11ef-8d06-f44efc5bf671",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -220,7 +265,10 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 10,
+        "task_id": 11,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "player": [
                 1,
@@ -237,7 +285,10 @@
     },
     {
         "task_type": "战斗",
-        "task_id": 11,
+        "task_id": 12,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "stage_id": "EX-5-6",
             "max_times": 1,
@@ -250,6 +301,7 @@
             "deck": 6,
             "battle_plan_1p": "784e4f1c-4175-11ef-bf35-f44efc5bf671",
             "battle_plan_2p": "784e8be6-4175-11ef-9131-f44efc5bf671",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -266,7 +318,10 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 12,
+        "task_id": 13,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "player": [
                 1,
@@ -283,7 +338,10 @@
     },
     {
         "task_type": "战斗",
-        "task_id": 13,
+        "task_id": 14,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "stage_id": "EX-5-7",
             "max_times": 1,
@@ -296,6 +354,7 @@
             "deck": 6,
             "battle_plan_1p": "784e4f1c-4175-11ef-bf35-f44efc5bf671",
             "battle_plan_2p": "784e8be6-4175-11ef-9131-f44efc5bf671",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -312,7 +371,10 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 14,
+        "task_id": 15,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "player": [
                 1,
@@ -329,7 +391,10 @@
     },
     {
         "task_type": "战斗",
-        "task_id": 15,
+        "task_id": 16,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "stage_id": "EX-5-8",
             "max_times": 1,
@@ -342,6 +407,7 @@
             "deck": 6,
             "battle_plan_1p": "784e4f1c-4175-11ef-bf35-f44efc5bf671",
             "battle_plan_2p": "784e8be6-4175-11ef-9131-f44efc5bf671",
+            "battle_plan_tweak": "00000000-0000-0000-0000-000000000000",
             "quest_card": "None",
             "ban_card_list": [],
             "dict_exit": {
@@ -358,7 +424,10 @@
     },
     {
         "task_type": "领取任务奖励",
-        "task_id": 16,
+        "task_id": 17,
+        "enabled": true,
+        "alias": "",
+        "tooltip": "",
         "task_args": {
             "player": [
                 1,

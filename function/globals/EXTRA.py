@@ -1,9 +1,7 @@
 import itertools
+import os
 import threading
 
-from function.globals.loadings import loading
-
-loading.update_progress(18,"正在载入全局设置...")
 from PyQt6 import QtGui
 
 from function.globals.get_paths import PATHS
@@ -17,10 +15,25 @@ from function.scattered.ethical_core import ethical_core
 """
 
 
+_Q_FONT = None
+
+
 def get_q_font():
+    """在 Qt 应用创建后加载并缓存 FAA 字体。
+
+    QFontDatabase 依赖 QGuiApplication。如果在普通单元测试导入本模块时
+    就调用 addApplicationFont，Windows 上的 Qt6Gui.dll 会在 Python 退出时发生 0xc0000005 访问冲突。
+    """
+    global _Q_FONT
+
+    if QtGui.QGuiApplication.instance() is None:
+        raise RuntimeError("Q_FONT must be initialized after QApplication is created")
+
+    if _Q_FONT is not None:
+        return _Q_FONT
+
     # 读取字体文件
-    font_id = QtGui.QFontDatabase.addApplicationFont(PATHS["font"] + "\\SmileySans-Oblique.ttf")
-    QtGui.QFontDatabase.addApplicationFont(PATHS["font"] + "\\手书体.ttf")
+    font_id = QtGui.QFontDatabase.addApplicationFont(os.path.join(PATHS["font"], 'SmileySans-Oblique.ttf'))
 
     # 获取字体家族名称
     font_families = QtGui.QFontDatabase.applicationFontFamilies(font_id)
@@ -30,7 +43,15 @@ def get_q_font():
     font_family = font_families[0]
 
     # 创建 QFont 对象并设置大小
-    return QtGui.QFont(font_family, 11)
+    _Q_FONT = QtGui.QFont(font_family, 11)
+    return _Q_FONT
+
+
+def __getattr__(name):
+    """保留 ``EXTRA.Q_FONT`` 的旧接口，但把初始化延迟到首次使用。"""
+    if name == "Q_FONT":
+        return get_q_font()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def get_true_stage_id():
@@ -71,6 +92,7 @@ def get_true_stage_id():
     stage_ids += generate_stage_ids("EX", [3, 3], [1, 5])
     stage_ids += generate_stage_ids("EX", [4, 4], [1, 6])
     stage_ids += generate_stage_ids("EX", [5, 5], [1, 8])
+    stage_ids += generate_stage_ids("EX", [6, 6], [1, 11])
     # 跨服
     stage_ids += generate_stage_ids("CS", [1, 7], [1, 8])
     # 魔塔
@@ -86,7 +108,8 @@ def get_true_stage_id():
     # 假期
     stage_ids += ["HH-0-0"]
     # 世界boss
-    stage_ids += generate_stage_ids("WB", [0, 0], [0, 100])
+    stage_ids += ["WB-0-0"]   # 0为自动模式
+    stage_ids += generate_stage_ids("WB", [0, 100], [1, 3])
     # 多元奇遇
     stage_ids += generate_stage_ids("MU", [1, 1], [1, 2])
     stage_ids += generate_stage_ids("MU", [2, 2], [1, 3])
@@ -98,45 +121,64 @@ def get_true_stage_id():
 
 
 # 版本号
-VERSION = "v2.3.0"
+VERSION = "v3.2.2"
+
+# 当前 FAA 战斗方案 的 格式版本
+BATTLE_PLAN_VERSION = "3.0"
+
+# 当前 FAA 微调方案 的 格式版本
+TWEAK_PLAN_VERSION = "0.3"
 
 # 缩放倍率
 ZOOM_RATE = 1.0
 
 # 样式
 THEME = "dark"
+THEME_HIGHLIGHT_COLOR = "#FF0000"
 
-# 翻牌次数
-FLOP_TIMES = 2
+# 用户文字色表：日志与其他面向用户的说明文字共用，随亮色/暗色主题切换。
+# 数字等级保持 MidSignalPrint 的既有含义；9 为普通说明使用的灰色。
+USER_TEXT_COLOR_SCHEMES = {
+    "light": {
+        1: "C80000", 2: "E67800", 3: "006400", 4: "009688",
+        5: "0056A6", 6: "003153", 7: "5E2D79", 8: "4B0082",
+        9: "999999",
+    },
+    "dark": {
+        1: "FF4C4C", 2: "FFA500", 3: "00FF00", 4: "20B2AA",
+        5: "1E90FF", 6: "4682B4", 7: "9370DB", 8: "8A2BE2",
+        9: "CCCCCC",
+    },
+}
 
-# 每秒点击次数
-CLICK_PER_SECOND = 120
 
-# FAA可以处理的游戏画面最低帧数
-LOWEST_FPS = 10
+def get_user_text_color(color_level: int = 9, theme: str | None = None) -> str:
+    """从 FAA 使用者文字色表取得不含 ``#`` 的 RGB 色值。"""
+    color_scheme = USER_TEXT_COLOR_SCHEMES.get(
+        theme or THEME,
+        USER_TEXT_COLOR_SCHEMES["dark"],
+    )
+    return color_scheme.get(color_level, color_scheme[9])
 
-# FAA卡片放满后的禁用时长 秒
-FULL_BAN_TIME = 5
+# 战斗参数
+FLOP_TIMES = 2  # 翻牌次数
+CLICK_PER_SECOND = 120  # 每秒点击次数
+LOWEST_FPS = 10  # FAA可以处理的游戏画面最低帧数
+FULL_BAN_TIME = 5  # FAA卡片放满后的禁用时长 秒
+MAX_BATTLE_TIME = 0  # FAA战斗最长时间 Min
+SMOOTHIE_LOCK_TIME = 0  # 在双人作战时, 极寒冰沙 全局锁
+# GEM_SKILL_LOCK_TIME = 0
 
 # FAA开局和结算加速时长 0则不加速
 ACCELERATE_START_UP_VALUE = 0
 ACCELERATE_SETTLEMENT_VALUE = 0
 
-# FAA战斗最长时间 Min
-MAX_BATTLE_TIME = 0
-
-# 在双人作战时, 极寒冰沙 全局锁
-SMOOTHIE_LOCK_TIME = 0
-# GEM_SKILL_LOCK_TIME = 0
-
 # 在多线程双人时, 文件读写 全局锁, 一般是用于json读写, 也被用于logs中loots unmatched 的读写
 FILE_LOCK = threading.Lock()
 
-# 额外日志 - 战斗中 会详细显示每秒的卡片状态和当前放了哪张卡
-EXTRA_LOG_BATTLE = False  # 默认 False
-
-# 额外日志 - 战斗中 会详细显示match图片的细节
-EXTRA_LOG_MATCH = True  # 默认 True
+# 额外日志
+EXTRA_LOG_BATTLE = False  # 默认 False 战斗中 会详细显示每秒的卡片状态和当前放了哪张卡
+EXTRA_LOG_MATCH = True  # 默认 True  战斗中 会详细显示match图片的细节
 
 # 储存战斗方案/微调方案/任务序列 的 uuid -> 具体路径 key是保持了插入顺序因此是有序的
 BATTLE_PLAN_UUID_TO_PATH = {}
@@ -152,5 +194,3 @@ print("伦理模块开启:", ETHICAL_MODE)
 
 # 正确的关卡id们
 TRUE_STAGE_ID = get_true_stage_id()
-
-Q_FONT = get_q_font()

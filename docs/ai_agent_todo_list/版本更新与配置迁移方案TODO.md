@@ -1,0 +1,380 @@
+# 版本更新与配置迁移方案 TODO
+
+本文记录当前版本更新系统的最终方向、已落地内容、剩余风险和后续测试方案。后续 AI 优先阅读本文件，不需要再回溯旧 `plugins/git_plus` 热更新实现。
+
+## 当前结论
+
+- 只有一种面向普通用户的正式更新通道，不再区分正式版 / 公测版。
+- 普通用户更新目标是“带版本 tag 的 PR merge commit”。
+- 开发者模式更新目标是 `main` 上高于当前版本位置的 PR merge commit。
+- 不向普通用户展示普通单 parent commit。
+- 不在当前运行目录原地 `git pull`、`reset --hard`、`clean` 或切换分支。
+- 更新流程采用“下载到 staging -> 迁移用户数据 -> 外部 updater 替换版本区”。
+- 回退通过更新前备份恢复，不通过选择旧 commit 实现。
+- 普通更新保留 `.venv/`、`backups/`、`update_cache/`，环境安装器随目标版本部署；备份恢复额外保留正在运行的安装器和明确指定的日志。
+- 除保留区外，根目录其他内容视为版本区。未被迁移器迁移的旧版本内容可以随旧版本进入备份。
+- `logs/` 不整体保留，只有迁移规则明确列出的内容才迁移。
+- `FAA - 快速启动.exe` 是普通用户原生启动入口，仅使用已有环境尝试启动 FAA 并识别本次主窗口；启动失败时自动打开 `FAA - 环境安装器.exe` 并传入错误报告。
+- 正式入口固定为根目录的 `FAA - 快速启动.exe` 与 `FAA - 环境安装器.exe`，源码成品统一位于 `plugins/root_entries/`。
+- 发行和 staging 共用目标源码内的 `function/common/distribution_layout.py` 白名单，不分发运行时 BAT、PS1、未列入清单的程序或本机 bin 缓存。热更新不得用当前运行版本的布局清单整理或校验目标版本。
+- 目标版本的标准库准备入口在隔离子进程中执行发行整理、校验和用户数据迁移；外部更新进程也取自目标候选目录。
+- 热更新完成后提示用户自行打开环境安装器，不自动启动或安装依赖。
+
+## 已落地
+
+- [x] 新增 `function/common/update_state.py`
+  - 读取 `.git`、`update_cache/update_state.json`、`EXTRA.VERSION`。
+  - 生成和维护当前安装状态。
+
+- [x] 改造 `一键生成分发资源.py`
+  - 打包时自动写入 `dist/FAA/update_cache/update_state.json`。
+  - 将两个正式 EXE、固定 uv ZIP 和 `plugins/updater/updater.py` 纳入分发资源。
+
+- [x] 新增 `function/common/update_manifest.py`
+  - 通过 GitHub API 读取版本 tag。
+  - 只处理 `vX.Y.Z` 形式 tag。
+  - 确认 tag 指向 PR merge commit。
+  - 通过 `/commits/{sha}/pulls` 反查 PR 编号、标题、链接。
+  - 支持读取 `main` 上 PR merge commit 作为开发者列表。
+  - 写入 `update_cache/update_manifest_cache.json`。
+  - 普通模式跳过已缓存 tag。
+  - 开发者模式遇到已缓存 commit 或当前 commit 即停止翻页。
+  - PR 反查结果缓存到 `pulls_by_commit`，减少重复访问。
+  - 处理 GitHub rate limit、断流、连接关闭等网络异常。
+
+- [x] 新增 `function/common/update_staging.py`
+  - 从 GitHub zip archive 构建 `update_cache/staging/FAA.update.new/`。
+  - 解压时剥离 GitHub archive 中由仓库名和完整 commit 组成的公共顶层目录，避免深安装路径触发 Windows 路径长度限制。
+  - 不把 `.git` 带入 staging。
+  - 当前进程只负责解压并调用目标 `plugins/updater/prepare.py`，不执行旧版的发行清单或迁移函数。
+  - 目标进程按自身规则将源码布局转换为分发布局，排除不应进入分发包的配置和缓存。
+  - 开始新 staging 前把旧 staging 移动到 `update_cache/failed_staging/`。
+  - `failed_staging/` 最多保留 2 份。
+  - 目标版本必须提供独立准备入口和更新执行核心，不从当前安装目录补入旧更新脚本。
+  - staging 中自动写入目标版本的 `update_cache/update_state.json`。
+  - 按共用发行布局校验两个正式 EXE、固定 uv ZIP、更新执行核心、项目入口及资源，不要求运行时脚本。
+
+- [x] 新增 `function/common/update_space.py`
+  - 估算当前版本区大小、staging 大小、磁盘可用空间和安全余量。
+  - `.venv/`、`backups/`、`update_cache/` 不计入版本区备份大小。
+
+- [x] `plugins/updater/prepare.py` 提供目标版本的标准库准备接口。
+  - 源码转发行、完整性校验和用户数据迁移都在目标源码的隔离进程中完成。
+  - 预览和 FAA 退出后的最终准备共用该接口，失败后保留计划以便从纯净源码重试。
+  - 目标版本状态写入 `update_protocol=1`，区分旧更新器交接与已完成的新协议更新。
+
+- [x] 已发布旧更新器的自动过渡。
+  - 源码归档提供旧复制器要求的最小路径，正常发行白名单不复制旧入口或 BAT、PS1。
+  - 原生快速入口在缓存内运行自身副本，按精确提交重新获取源码，从首次原始备份执行目标规则。
+  - 成功后清理根目录过渡文件并提示手动运行环境安装器；失败保留原始备份和固定过渡记录供重试。
+
+- [x] 新增 `function/common/update_backup.py`
+  - 列出 `backups/` 下由 updater 管理的备份。
+  - 读取备份 `.update_state.json`。
+  - 支持受限删除，只允许删除 `backups/` 内符合命名规则的备份目录。
+
+- [x] 新增 `function/core/settings_migration.py`
+  - 抽出无 UI 的迁移核心。
+  - 支持 `migrate_user_data(source_root, target_root, selected_names)`。
+  - 支持整文件覆盖、整目录替换、普通文件夹合并和 UUID JSON 合并。
+  - 战斗方案、微调方案、任务序列均按 UUID 合并，避免旧配置覆盖新版内置方案。
+
+- [x] 新增微调方案协议扫描与兼容迁移
+  - FAA 启动和手动打开微调方案编辑器时扫描全部 `meta_data.version`。
+  - 低版本及当前版本结构异常的方案尽量转换到当前协议，并保留有效 UUID。
+  - 高版本方案只提示升级，不由旧 FAA 写回。
+  - 全部异常集中在单个可滚动弹窗中展示；扫描正常时不弹窗。
+
+- [x] 分离战斗方案与微调方案的“刷新”和“检查”
+  - 完整检查只在 FAA 启动和用户点击打开对应方案编辑器时执行。
+  - FAA 启动时合并展示战斗方案、微调方案的检查进度和异常汇总。
+  - 保存主界面配置以及编辑关卡方案、任务序列时，只重建 UUID 路径索引，
+    不迁移、不修复、不写回方案文件。
+
+- [x] 改造 `function/core/qmw_settings_migrator.py`
+  - UI 迁移器复用无 UI 迁移核心。
+  - UI 只负责选择目录、勾选迁移项和展示结果。
+  - 重新选择来源目录时重置复选框状态。
+
+- [x] 新增 `function/core/update_prepare.py`
+  - 先粗估空间，再串联目标版本的 staging 准备和迁移预览。
+  - 不启动 updater，不替换当前目录。
+  - 支持 `prepare_update_from_github()` 和 `prepare_update_from_archive()`。
+  - 迁移报告写入 staging 内 `update_cache/migration_report.json`。
+
+- [x] 新增 `function/core/update_apply.py`
+  - 将目标候选目录中的 `plugins/updater/updater.py` 复制到 `%TEMP%/FAA-updater/`。
+  - 优先使用当前 `.venv/Scripts/python.exe` 启动 updater。
+  - 传入主进程 PID，让 updater 等待主进程退出后再替换。
+  - 默认不传入自动启动入口，更新完成后由用户运行环境安装器。
+
+- [x] 新增并改造 `plugins/updater/updater.py`
+  - 支持 `update` 和 `restore` 两种模式。
+  - update：当前版本区移动到 `backups/FAA.backup.<timestamp>/`，staging 版本区移动到根目录。
+  - update 在主程序退出后先重新调用目标准备入口，重建干净候选并迁移最终用户数据，再复核空间；此阶段失败不移动当前版本。
+  - restore：当前版本区先移动到 `FAA.before-restore.*`，再从指定备份恢复。
+  - 保留 `.venv/`、`backups/`、`update_cache/`。
+  - 支持 `--wait-pid`、`--wait-timeout`。
+  - 每个关键阶段写入 `update_cache/updater_state.json`。
+  - 日志写入 `update_cache/updater_logs/`。
+  - 更新或恢复失败时尽量回滚，并保留失败现场。
+
+- [x] 原生安装器的“恢复到备份”页面统一管理备份。
+  - 支持刷新、查看版本及完整元数据、删除和恢复。
+  - 恢复时调用内嵌 updater，保留安装器与当前日志；恢复前保存当前版本，失败时尝试回滚。
+  - 删除限制在当前 backups 下的受管目录，不跟随目录链接；不完整备份可删除但不可恢复。
+
+- [x] 改造更新页 UI 和逻辑
+  - [x] `resource/ui/FAA_3.0.ui` 已直接包含更新状态 label、进度 label 和 3 行按钮布局。
+  - [x] 第 1 行：加载正式版更新列表 / 更新至选中的版本。
+  - [x] 第 2 行：加载开发版更新列表 / 加载更多开发者更新内容。
+  - [x] 第 3 行：查看相关说明，横跨整行。
+  - [x] `function/core/qmw_3_service.py` 接入正式版列表、开发者列表、更新准备和说明窗口。
+  - [x] 更新页显示当前版本、tag、PR、commit、分支、来源、状态。
+  - [x] 更新页显示当前操作阶段和已等待秒数。
+  - [x] 网络错误会转换成用户可理解的提示，例如连接断开、读取不完整、超时、DNS、证书、rate limit。
+  - [x] 旧原地 Git 更新按钮和旧 Git 配置按钮已移除。
+
+- [x] 删除旧 `plugins/git_plus` 更新模块
+  - 不再依赖内置 MinGit。
+  - 不再导入 `plugins.git_plus.GitSDK`。
+  - 不再对当前运行目录执行原地 Git 覆写。
+
+## 版本与 PR 规则
+
+术语：
+
+```text
+PR merge commit = main 上形如 “Merge pull request #927 ...” 的双 parent commit
+正式版本 = 打了版本 tag 的 PR merge commit
+开发者版本 = main 上未必打 tag 的 PR merge commit
+```
+
+远端事实：
+
+- 仓库：`https://github.com/StareAbyss/FoodsVsMiceAutoAssistant`
+- 默认分支：`main`
+- 本地开发分支通常为：`dev`
+- 已抽查 tag：
+  - `v3.0.2` -> PR `#895`
+  - `v3.0.1` -> PR `#879`
+  - `v3.0.0` -> PR `#861`
+  - `v2.3.0` -> PR `#820`
+
+仍需仓库管理员人工确认：
+
+- [ ] `main` 是否强制通过 PR 合并。
+- [ ] 是否禁止直接 push 到 `main`。
+- [ ] 是否禁止 force push。
+- [ ] 是否保留 `Allow merge commits`。
+- [ ] 是否关闭或避免使用 `Squash merging` / `Rebase merging`。
+
+如果继续把 PR merge commit 作为版本单位，仓库应固定使用 `Create a merge commit` 合并方式。公开 API 不能可靠确认完整分支保护设置。
+
+## 标准更新流程
+
+```text
+1. 更新页读取本地 update_manifest_cache.json 和 update_state.json。
+2. 用户点击刷新时访问 GitHub。
+3. 普通模式读取 tag 并解析为 PR merge commit。
+4. 开发者模式分页读取 main commits 并过滤 PR merge commit。
+5. 用户选择目标版本。
+6. 校验目标 commit 是否高于当前 commit。
+7. 下载前粗估空间，下载目标源码 ZIP，并解压到 update_cache/staging_work/source/。
+8. 使用现有 Python 的隔离子进程执行目标源码的 plugins/updater/prepare.py。
+9. 目标进程按自己的发行规则构建 update_cache/staging/FAA.update.new/。
+10. 目标进程按自己的规则迁移用户数据、校验候选版本。
+11. 写入迁移报告、更新计划和空间评估；保留纯净目标源码。
+12. 用户二次确认。
+13. 将目标候选目录中的 updater 复制到 %TEMP%/FAA-updater/。
+14. 主程序启动 updater 并退出。
+15. updater 等待主程序退出。
+16. updater 用保留的纯净源码重建候选，迁移 FAA 退出时保存的最终数据，并再次复核空间。
+17. 最终准备成功后，updater 备份当前版本区并把新版本文件移入根目录；失败时尝试回滚。
+18. 更新完成后提示用户自行打开 FAA - 环境安装器.exe，按新版锁文件准备或修复依赖。
+19. 新 FAA 启动时处理配置补全、战斗方案和微调方案的格式兼容。
+```
+
+禁止流程：
+
+```text
+删除当前根目录 -> 移动新版进来
+```
+
+原因：容易误删 `.venv/`、`backups/`、`update_cache/`。
+
+## 迁移规则现状
+
+迁移系统采用白名单规则。只有本节列出的用户数据会进入新版 staging；其余版本区文件会随旧版本进入 `backups/`，不会自动进入新版。
+
+### 整文件覆盖
+
+这些文件以来源 FAA 为准，直接覆盖目标 FAA 的同路径文件：
+
+- [x] `config/settings.json`
+  - 兼容旧路径：`config/opt_main.json`
+  - 该文件仍是整文件覆盖；启动时再由模板补全缺失字段和修正类型。
+  - 迁移此项时，若存在 `config/login_credentials.json`，会作为伴随文件一并迁移。
+- [x] `config/stage_plan.json`
+- [x] `config/stage_info_extra.json`
+
+### UI 分组
+
+配置迁移工具 UI 使用 `QGroupBox` 分为四组：
+
+- `配置文件`
+  - `配置文件 - 核心`
+  - `配置文件 - 关卡全局方案`
+  - `配置文件 - 自定义关卡信息`
+- `用户自定义图像`
+  - `用户自截`
+  - `背包道具 - 需删除`
+  - `背包装备 - 需使用`
+- `方案与任务`
+  - `战斗方案`
+  - `微调方案`
+  - `自定义任务序列`
+- `其他用户数据`
+  - `公会管理器数据`
+  - `战斗方案 - 未激活`
+
+### 整目录替换
+
+这些目录以来源 FAA 为准。每个目录独立显示为一个迁移选项；迁移前先清空目标目录，再完整复制来源目录：
+
+- [x] `config/cus_images/用户自截/`
+  - 兼容旧路径：`resource/image/common/用户自截/`
+- [x] `config/cus_images/背包_道具_需删除的/`
+- [x] `config/cus_images/背包_装备_需使用的/`
+
+整目录替换只在来源目录存在时执行；来源目录不存在时不会清空目标目录。
+
+### UUID JSON 合并
+
+常用迁移项按以下顺序展示，并按 UUID 合并，不再按文件名覆盖：
+
+- [x] `battle_plan/`
+- [x] `tweak_plan/`
+- [x] `task_sequence/`
+
+其他迁移项放入 `其他用户数据` 分组：
+
+- [x] `battle_plan_not_active/`
+
+通用规则：
+
+- 同 UUID：不迁移来源文件，保留目标 FAA 原文件。
+- 默认 UUID：不迁移，保留目标 FAA 内置方案。
+- UUID 不同但文件名相同：迁移来源文件，并在文件名后追加 ` (1)`、` (2)` 等数字，保留两者。
+- 来源文件缺少 UUID：按对应类型的现有 UUID 生成逻辑生成新 UUID，再迁移。
+- 来源目录内部 UUID 撞车：第一个合法文件保留原 UUID；后续同 UUID 文件生成新 UUID 后迁移。
+- 来源 JSON 损坏或结构无法识别：不迁移，并在迁移报告中记录。
+- 目标 JSON 损坏：不作为有效 UUID 参与去重，不主动删除。
+
+UUID 读取位置：
+
+- 战斗方案：`meta_data.uuid`，兼容旧版顶层 `uuid`。
+- 微调方案：`meta_data.uuid`。
+- 任务序列：第一项的 `meta_data.uuid`。
+
+### 普通文件夹合并
+
+- [x] `logs/guild_manager/**`
+  - 用于保留公会管理器数据。
+  - 当前仍是普通合并复制，不清空目标目录。
+
+### 暂不迁移
+
+以下内容暂不进入迁移白名单：
+
+- [x] `resource/db/tasks.db`
+- [x] `cus_extension_addon_script/**`
+- [x] 扩展插件产生的用户数据
+- [x] `logs/` 下除 `logs/guild_manager/**` 外的日志、截图、录屏、识别失败样本和统计产物
+- [x] `.git/`、`.venv/`、`backups/`、`update_cache/` 等更新保留区或开发目录
+
+仍需细化：
+
+- [ ] `settings.json` 后续是否升级为字段级迁移，避免旧整文件覆盖新版默认配置。
+- [ ] 迁移后生成更详细的引用校验报告，检查 `stage_plan`、`task_sequence` 引用的战斗方案 / 微调方案 UUID 是否存在。
+- [ ] 更新流程是否允许用户在更新前勾选迁移内容，待定。
+
+## 已知风险
+
+- [ ] 迁移清单不完整导致用户数据没有进入新版 staging。
+- [ ] `settings.json` 整文件覆盖可能覆盖新版默认配置。
+- [x] `task_sequence` 按文件名覆盖，可能覆盖新版内置任务。
+- [ ] 仓库合并策略变化后，PR merge commit 不再稳定存在。
+- [ ] GitHub 网络质量不稳定，刷新列表或下载 archive 可能失败。
+- [ ] 当前更新流程还缺少完整端到端人工演练。
+
+已处理的高风险点：
+
+- [x] GitHub archive 的完整 commit 顶层目录叠加超长说明文件名，导致 Windows 解压路径超过 `MAX_PATH`。
+- [x] 主程序运行中替换自身导致 Windows 文件占用。
+- [x] 下载成功但迁移失败留下半成品目录。
+- [x] 替换成功但新版无法启动，没有回滚入口。
+- [x] Git 拉取可变 branch HEAD 导致用户之间版本不一致。
+- [x] 磁盘空间不足导致备份或替换中途失败。
+- [x] GitHub API rate limit 导致无法刷新远端列表。
+- [x] 清理根目录时误删保留区。
+- [x] updater 从 FAA 根目录运行导致 cwd 占用。
+- [x] 已有环境不完整或依赖不符导致新版启动失败时，快速启动器会交给环境安装器，由用户按新版锁文件修复。
+- [x] 上次 staging 半成品被误当作本次更新结果。
+
+## 与旧热更新 commit 的关系
+
+3 月前后 syfoud 的旧热更新提交主要包含：
+
+- `function/core/git_update_manager.py`
+- `function/core/qmw_3_service.py`
+- `resource/ui/FAA_3.0.ui`
+- `plugins/git_plus/**`
+
+旧方案核心是内置 MinGit，并在当前运行目录执行原地 Git 初始化、拉取、切换和覆写。该方向已经被新方案替代。
+
+当前状态：
+
+- [x] `plugins/git_plus/**` 已删除。
+- [x] `plugins.git_plus.GitSDK` 引用已清空。
+- [x] 旧 Git 配置按钮已清理。
+- [x] `.ui` 中隐藏的旧更新按钮残留已清理。
+- [x] `git_update_manager.py` 保留文件名，但职责已改为 GitHub tag/PR worker。
+- [x] `qmw_3_service.py` 保留更新入口，但逻辑已改为新 staging/updater 流程。
+
+结论：旧热更新 commit 中仍值得保留的是“更新入口”和“重启入口”的业务位置，不保留旧原地 Git 更新实现。
+
+## 待测试
+
+基础检查：
+
+- [ ] `uv run python -m py_compile function/common/update_manifest.py function/common/update_staging.py function/common/update_state.py function/common/update_backup.py function/common/update_space.py function/core/git_update_manager.py function/core/settings_migration.py function/core/update_prepare.py function/core/update_apply.py plugins/updater/updater.py function/core/qmw_3_service.py`
+- [ ] 启动主程序，确认更新页控件显示正常。
+- [ ] 点击“查看相关说明”，确认说明窗口可打开。
+- [ ] 在原生安装器的“恢复到备份”页检查详情、删除和恢复；确认 FAA 更新页的说明按钮横跨整行。
+
+离线/低风险测试：
+
+- [ ] 用本地 archive 调用 `prepare_update_from_archive()`，确认 staging 构建成功。
+- [ ] 检查 staging 不包含 `.git`。
+- [ ] 检查 staging 根目录包含两个正式 EXE，并包含固定 uv ZIP、updater.py、pyproject.toml、uv.lock、function 与 resource；不包含运行时脚本、未列入清单的程序或 bin 缓存。
+- [ ] 检查 staging 内 `update_cache/update_state.json` 正确写入目标版本。
+- [ ] 检查 staging 内 `update_cache/migration_report.json` 正确记录迁移结果。
+
+真实流程测试：
+
+- [ ] 刷新正式版更新列表。
+- [ ] 刷新开发版更新列表。
+- [ ] 加载更多开发者更新内容。
+- [ ] 选择一个目标版本并准备 staging，但在二次确认时取消，确认当前目录未被替换。
+- [ ] 在测试副本中执行完整 update，确认备份、替换、启动入口均正常。
+- [ ] 在测试副本中执行 restore，确认可恢复到指定备份。
+- [ ] 模拟 GitHub 断流、超时、rate limit，确认 UI 提示可理解。
+
+## 待决策
+
+1. 用户可勾选迁移内容时，哪些项目默认勾选？
+2. 是否允许更新界面提供“仅准备 staging，不执行替换”的开发调试按钮？
+3. 是否需要 CI 或维护脚本预生成云端 `update_manifest.json`？
+4. `tweak_plan/**` 和扩展插件数据的迁移边界如何定义？
+5. 更新失败后的 `failed_staging/` 是否只保留 2 份，还是提供 UI 管理入口？

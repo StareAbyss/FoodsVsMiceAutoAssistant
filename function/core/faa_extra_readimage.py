@@ -15,17 +15,25 @@ def producer(time_num, handle, read_queue, is_log, is_gpu):
         session = onnxdetect.initialize_session(is_gpu)
         while True:
             # 获取图像并进行目标检测
+            diagnostics = []
+            observed_at = time.monotonic()
             result = onnxdetect.get_mouse_position(
                 capture_image_png_all(handle),
                 is_log,
-                session
+                session,
+                diagnostics=diagnostics
             )
 
             # 检查结果是否有效
             if result is not None:
                 information = parse_positions(*result)  # 加工信息
                 # 将检测结果放入队列
-                read_queue.put(information)
+                read_queue.put({
+                    "information": information,
+                    "view_handle": handle,
+                    "view_matches": diagnostics,
+                    "observed_at": observed_at,
+                })
                 wave, godwind, positions,obstacle,ice = information
                 # 遍历所有检测到的目标
                 CUS_LOGGER.debug(

@@ -1,8 +1,114 @@
 import json
+import os
 
 from function.globals import EXTRA
 from function.globals.get_paths import PATHS
 from function.globals.log import CUS_LOGGER
+
+# 全局变量，用于缓存卡片类型配置
+MAT_CARD_TYPE_CONFIG = None
+
+
+def build_stage_menu_data(stage_info: dict, *, include_battle_modes: bool = False) -> dict:
+    """将关卡配置转换为多级菜单数据，可补充用于执行战斗的关卡和模式。
+
+    Args:
+        stage_info: 按类别、地图和关卡组织的关卡配置。
+        include_battle_modes: 是否加入自动识别、爬塔及没有独立配置的双人魔塔楼层。
+
+    Returns:
+        类别名到地图子菜单的字典，每个子菜单包含（关卡名，关卡编号）列表。
+    """
+    battle_modes = {
+        ("MT", "1"): ("单人爬塔", "MT-1-0"),
+        ("MT", "2"): ("双人爬塔", "MT-2-0"),
+        ("PT", "0"): ("萌宠神殿爬塔", "PT-0-0"),
+    }
+    stage_menu = {}
+    for type_id, category in stage_info.items():
+        if type_id in ("default", "name", "tooltip", "update_time"):
+            continue
+        maps = stage_menu[category["name"]] = {}
+        if include_battle_modes and type_id == "WB":
+            maps["自动模式"] = [("自动识别", "WB-0-0")]
+
+        for map_id, stage_map in category.items():
+            if map_id in ("name", "tooltip"):
+                continue
+            names = {f"{type_id}-{map_id}-{stage_id}": stage["name"]
+                     for stage_id, stage in stage_map.items() if stage_id not in ("name", "tooltip")}
+
+            if include_battle_modes and (type_id, map_id) == ("MT", "2"):
+                # 双人魔塔按楼层定位，合法楼层即使没有单独的战斗配置也可直接选择。
+                names = {
+                    code: names.get(code, f"双人魔塔第{code.rsplit('-', 1)[1]}层")
+                    for code in EXTRA.TRUE_STAGE_ID if code.startswith("MT-2-") and code != "MT-2-0"
+                }
+
+            entries = [(name, code) for code, name in names.items()]
+            mode = battle_modes.get((type_id, map_id))
+            if include_battle_modes and mode and mode[1] not in names:
+                entries.insert(0, mode)
+            maps[stage_map["name"]] = entries
+
+    return stage_menu
+
+
+def load_mat_card_type_config():
+    """
+    加载卡片材质类型配置文件
+    返回一个字典，key为类型名称，value为卡片列表
+    """
+    global MAT_CARD_TYPE_CONFIG
+
+    # 如果已经加载过，直接返回缓存
+    if MAT_CARD_TYPE_CONFIG is not None:
+        return MAT_CARD_TYPE_CONFIG
+
+    try:
+        config_path = os.path.join(PATHS["config"], 'card_type_mat.json')
+        with open(file=config_path, mode="r", encoding="UTF-8") as file:
+            MAT_CARD_TYPE_CONFIG = json.load(file)
+        CUS_LOGGER.info(f"成功加载卡片材质类型配置: {config_path}")
+    except FileNotFoundError:
+        CUS_LOGGER.warning(f"卡片材质类型配置文件不存在: {config_path}，使用空配置. 无法自动使用承载!")
+        MAT_CARD_TYPE_CONFIG = {}
+    except json.JSONDecodeError as e:
+        CUS_LOGGER.error(f"卡片材质类型配置文件格式错误: {e}，使用空配置. 无法自动使用承载!")
+        MAT_CARD_TYPE_CONFIG = {}
+
+    return MAT_CARD_TYPE_CONFIG
+
+
+def init_mat_card_type_to_card_list(stage_info) -> dict:
+    """
+    根据关卡信息中的 mat_card_type 字段，初始化 mat_card 卡片列表
+
+    优先级：
+    1. 如果 stage_info 中已有 mat_card，直接使用
+    2. 如果 stage_info 中有 mat_card_type，从配置文件查找对应的卡片列表
+    3. 默认设置为空列表
+    """
+    # 优先手动指定的卡片列表
+    if stage_info.get("mat_card", False):
+        return stage_info
+
+    # 否则根据类型从配置文件查找
+    if stage_info.get("mat_card_type", False):
+        mat_card_type = stage_info["mat_card_type"]
+
+        # 加载配置文件
+        config = load_mat_card_type_config()
+
+        # 从配置中获取对应的卡片列表，如果找不到则使用空列表
+        mat_card = config.get(mat_card_type, [])
+
+        stage_info["mat_card"] = mat_card
+        return stage_info
+
+    # 默认无
+    stage_info["mat_card"] = []
+    return stage_info
 
 
 def read_json_to_stage_info(stage_id, stage_id_for_battle=None):
@@ -18,15 +124,15 @@ def read_json_to_stage_info(stage_id, stage_id_for_battle=None):
     configs = []
     with EXTRA.FILE_LOCK:
 
-        with open(file=PATHS["config"] + "//stage_info_extra.json", mode="r", encoding="UTF-8") as file:
+        with open(file=os.path.join(PATHS["config"], 'stage_info_extra.json'), mode="r", encoding="UTF-8") as file:
             stages_info_extra = json.load(file)
             configs.append(("stage_info_extra.json", stages_info_extra))
 
-        with open(file=PATHS["config"] + "//stage_info_online.json", mode="r", encoding="UTF-8") as file:
+        with open(file=os.path.join(PATHS["config"], 'stage_info_online.json'), mode="r", encoding="UTF-8") as file:
             stages_info_online = json.load(file)
             configs.append(("stage_info_online.json", stages_info_online))
 
-        with open(file=PATHS["config"] + "//stage_info.json", mode="r", encoding="UTF-8") as file:
+        with open(file=os.path.join(PATHS["config"], 'stage_info.json'), mode="r", encoding="UTF-8") as file:
             stages_info = json.load(file)
             configs.append(("stage_info.json", stages_info))
 
@@ -41,14 +147,21 @@ def read_json_to_stage_info(stage_id, stage_id_for_battle=None):
     stage_0, stage_1, stage_2 = stage_id_for_battle.split("-")  # type map stage
 
     # 如果找到预设
+    used_config_name = None
     for config_name, information in configs:
         try_stage_info = information.get(stage_0, {}).get(stage_1, {}).get(stage_2, None)
         if try_stage_info:
             stage_info = {**stage_info, **try_stage_info}
-            CUS_LOGGER.info("从 {} 读取关卡信息: {}".format(config_name, stage_info))
+            used_config_name = config_name
             break
+
+    # 转化
+    stage_info = init_mat_card_type_to_card_list(stage_info)
+
+    if used_config_name:
+        CUS_LOGGER.info(f"从 {used_config_name} 读取关卡信息: {stage_info}")
     else:
-        CUS_LOGGER.info("未找到预设，使用默认关卡信息: {}".format(stage_info))
+        CUS_LOGGER.info(f"未找到预设，使用默认关卡信息: {stage_info}")
 
     return stage_info
 

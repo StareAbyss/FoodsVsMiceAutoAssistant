@@ -1,0 +1,32 @@
+{
+    "meta_data": {
+        "uuid": "00000000-0000-0000-0000-000000000000",
+        "version": "0.3",
+        "faa_version": "v3.1.1",
+        "tips": "默认微调参数，仅供查阅。其他方案缺省的字段按此处取值。",
+        "recording": {
+            "active": false,
+            "timestamp": false,
+            "player": 1
+        },
+        "cd_after_use_random": {
+            "active": false,
+            "range": [
+                0.05,
+                0.25
+            ]
+        },
+        "senior_setting": false,
+        "auto_mat_card": {
+            "enabled": true,
+            "use_first": true
+        },
+        "enable_auto_card": {
+            "icecream": true,
+            "god": true,
+            "ikun": true,
+            "timer": true,
+            "dragon_pot": true
+        }
+    }
+}

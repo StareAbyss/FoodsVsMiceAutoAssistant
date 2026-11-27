@@ -1,3 +1,4 @@
+import copy
 import os
 import random
 import time
@@ -7,6 +8,9 @@ import numpy as np
 
 from function.common.bg_img_screenshot import capture_image_png
 from function.core.faa.faa_mix import FAA
+from function.core.faa.battle_card_roles import ROLE_DRAGON_POT, ROLE_TIMER
+from function.core.faa.tweak_plan import get_tweak_plan_random_interval
+from function.core_battle.card_copy_rules import get_creator_god_safe_locations
 from function.globals import EXTRA
 from function.globals.g_resources import RESOURCE_P
 from function.globals.get_paths import PATHS
@@ -17,7 +21,7 @@ from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 """
 重要提醒：
 FAA 的 放卡位置 的变量有两种
-location 为格子 str 格式 例如 "1-1","3-7" 
+location 为格子 str 格式 例如 "1-1","3-7"
 coordinate 为坐标 list[x:int,y:int] 格式 例如 [500,600], [300,200]
 """
 
@@ -65,6 +69,7 @@ def check_pixel_similarity(img_source, img_template, start, end, threshold=16):
 
 
 class Card:
+    FULL_BAN_TIME_FACTORS = (1.0, 1.5, 2.0, 3.0)
 
     def __init__(self, set_priority: int, faa: FAA):
         # 直接塞进来一个faa的实例地址, 直接从该实例中拉取方法和属性作为参数~
@@ -78,11 +83,10 @@ class Card:
         self.need_key = self.faa.need_key
         self.is_auto_battle = self.faa.is_auto_battle
         self.player = self.faa.player
-        self.cd_after_use_random_range = self.faa.battle_plan_tweak.get('meta_data', {}).get('cd_after_use_random_range', None)
-        if self.cd_after_use_random_range:
-            self.cd_after_use_random_active = True
-        else:
-            self.cd_after_use_random_active = False
+        (
+            self.cd_after_use_random_active,
+            self.cd_after_use_random_range,
+        ) = get_tweak_plan_random_interval(self.faa.battle_plan_tweak)
 
         """从 FAA类 的 battle_plan_card 中读取的属性"""
         plan = self.faa.battle_plan_card
@@ -93,8 +97,10 @@ class Card:
         self.ergodic = plan_by_priority.get("ergodic", True)
         self.queue = plan_by_priority.get("queue", True)
 
-        # 卡片拿去的位置 - 代号 int 和 坐标 list[x,y]
-        self.c_id = plan_by_priority.get("card_id", 1)
+        # card_id 保留战斗方案身份，slot_id 才是本场战斗中取卡的真实槽位。
+        # fallback 兼容尚未产生新字段的旧战斗信息。
+        self.plan_id = plan_by_priority.get("card_id")
+        self.c_id = plan_by_priority.get("slot_id",plan_by_priority.get("card_id", 1))
         self.coordinate_from = plan_by_priority.get("coordinate_from", [10, 10])
 
         # 卡片放置的位置 - 代号 list["1-1",...] 和 坐标 list[[x,y],....]
@@ -124,21 +130,38 @@ class Card:
         # 状态
         self.status_cd = False  # 冷却完成 默认已完成
         self.status_usable = False  # 可用
-        self.status_ban = 0  # 被ban时间 放卡，但已摆满, 导致放卡后立刻检测到可用，则进入该ban状态8s
+        self.status_ban = 0  # 被ban时间 放卡，但已摆满, 导致放卡后立刻检测到可用，则进入该ban状态
+        self.full_ban_count = 0  # 连续触发放满自ban的次数
 
         # 是否是当前角色的坤目标
         self.is_kun_target = False
 
         # 判定自身是不是极寒冰沙
-        self.is_smoothie = "冰沙" in self.name
+        self.is_smoothie = "冰沙" in self.name or self.name == "冰激凌-2"
+
+        # 角色标记只约束自动辅助动作，保留战斗方案自行安排的用卡时机。
+        self.is_auto_cooldown = any(
+            role in plan_by_priority.get("roles", [])
+            for role in (ROLE_TIMER, ROLE_DRAGON_POT)
+        )
 
         # 不进入放满自ban的 白名单
-        self.ban_white_list = ["极寒冰沙", "冰沙"]
+        self.ban_white_list = ["极寒冰沙", "冰沙", "冰激凌-2"]
 
         # 是否可以放卡（主要是瓜皮类）
         self.can_use = True
-        #默认禁用为false
-        self.banning=False
+        # 默认禁用为false
+        self.banning = False
+
+        self.mat_card_first_coordinate_to = None
+        self.mat_card_loop_to_first_coordinate_to_count = 0
+        # 如果是岩浆/毒气/海底类承载卡，记录循环的起点，否则为None
+        if self.faa.stage_info["mat_card_type"] in ["岩浆", "毒气", "海底"]:
+            if len(self.coordinate_to) >= 1:
+                for mat_card in self.faa.stage_info["mat_card"]:
+                    if self.name in mat_card:
+                        self.mat_card_first_coordinate_to = copy.deepcopy(self.coordinate_to[0])
+                        break
 
     def choice_card(self):
         """
@@ -178,9 +201,49 @@ class Card:
                 self.location.remove(self.location[0])
                 self.coordinate_to.append(self.coordinate_to[0])
                 self.coordinate_to.remove(self.coordinate_to[0])
+                # 承载卡特殊策略 - 对于无法被破坏的持续性承载 每放满2圈后自锁600s
+                # 不是对应的承载类型 该参数是None 直接判定跳过
+                if self.mat_card_first_coordinate_to:
+                    # 放满了一圈
+                    if self.coordinate_to[0] == self.mat_card_first_coordinate_to:
+                        # 计数+1
+                        self.mat_card_loop_to_first_coordinate_to_count += 1
+                        # 放满了2整圈
+                        if self.mat_card_loop_to_first_coordinate_to_count >= 2:
+                            self.mat_card_loop_to_first_coordinate_to_count = 0
+                            self.status_ban = 600
+                            if EXTRA.EXTRA_LOG_BATTLE:
+                                CUS_LOGGER.debug(f"[{self.faa.player}P] {self.name}触发了10分钟自锁")
 
         # 放完卡后强制自ban 1s 这游戏似乎没有cd更短的卡片了!
-        self.status_ban = 1
+        if self.status_ban <= 1:
+            self.status_ban = 1
+
+    def put_card_for_creator_god(self) -> bool:
+        """在安全 3×3 中心格越过当前队列放置，且不改变队列顺序。"""
+        safe_locations = get_creator_god_safe_locations(self.location)
+        if not safe_locations:
+            return False
+
+        if self.ergodic:
+            put_locations = safe_locations
+        else:
+            put_locations = [safe_locations[0], safe_locations[0]]
+
+        for location in put_locations:
+            coordinate = COORDINATE_CARD_CELL_IN_BATTLE[location]
+            T_ACTION_QUEUE_TIMER.add_click_to_queue(
+                handle=self.handle,
+                x=coordinate[0],
+                y=coordinate[1],
+            )
+            time.sleep(self.click_sleep)
+
+        T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=295, y=485)
+        time.sleep(self.click_sleep)
+        T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=295, y=485)
+        time.sleep(self.click_sleep)
+        return True
 
     def get_card_current_img(self, game_image=None):
         """
@@ -241,6 +304,10 @@ class Card:
                         CUS_LOGGER.info(f"[战斗执行器] [{self.player}P] [{self.name}] 成功从已保存状态获取")
                     return 1
 
+        # 试色会实际放卡，也必须遵守自动冷却辅助卡的火苗门槛。
+        if self.is_auto_cooldown and not self.faa.fire_elemental_1000:
+            return 0
+
         # 包含点击操作 上锁
         with self.faa.battle_lock:
 
@@ -298,6 +365,22 @@ class Card:
         """预留接口, 让高级放卡可以仅覆写这一小部分"""
         self.put_card()
 
+    def record_full_ban(self):
+        """记录一次放满失败, 并按连续失败次数递增本次自ban时长。"""
+        self.full_ban_count += 1
+        factor_index = min(self.full_ban_count - 1, len(self.FULL_BAN_TIME_FACTORS) - 1)
+        factor = self.FULL_BAN_TIME_FACTORS[factor_index]
+        self.status_ban = EXTRA.FULL_BAN_TIME * factor
+
+        if EXTRA.EXTRA_LOG_BATTLE:
+            CUS_LOGGER.debug(
+                f"[战斗执行器] [{self.player}P] [{self.name}] "
+                f"第{self.full_ban_count}次连续放满, 自ban {self.status_ban:.2f}s")
+
+    def reset_full_ban_count(self):
+        """放置成功后清空连续放满失败计数。"""
+        self.full_ban_count = 0
+
     def use_card(self) -> bool:
         """
         使用这张卡本身
@@ -306,6 +389,9 @@ class Card:
 
         # 未启动自动战斗
         if not self.is_auto_battle:
+            return False
+
+        if self.is_auto_cooldown and not self.faa.fire_elemental_1000:
             return False
 
         # 自身是冰沙但不符合使用条件
@@ -334,24 +420,24 @@ class Card:
             if not self.status_usable:
                 # CUS_LOGGER.debug(f"不可用状态")
                 return False
+
             # 点击 选中卡片
             self.choice_card()
             time.sleep(self.click_sleep)
             # 放卡
             self.put_card()
+
             # 等待游戏画面刷新后更新状态
             time.sleep(self.max_game_frame_interval)
             self.fresh_status()  # 如果放卡后还可用,自ban 若干s
 
             if self.status_usable and (self.name not in self.ban_white_list):
                 # 放满了 如果不在白名单 就自ban
-                self.status_ban = EXTRA.FULL_BAN_TIME
-
-                # if self.player == 1:
-                #     CUS_LOGGER.debug(f"[1P] {self.name} 因使用后仍可用进行了自ban")
-                #     T_ACTION_QUEUE_TIMER.print_queue_statue()
+                self.record_full_ban()
 
                 return False
+
+            self.reset_full_ban_count()
 
             # 放置成功 应用放卡间隔
             if self.cd_after_use_random_active:
@@ -367,6 +453,14 @@ class Card:
                 kun_count = 0
                 for kun_card in self.kun_cards:
 
+                    # 创造神只能复制完整 3×3 范围的中心格。先检查目标再判断
+                    # 可用状态和多复制卡等待，避免无合法落点时产生无意义延迟。
+                    if (
+                            kun_card.name == "创造神"
+                            and not get_creator_god_safe_locations(self.location)
+                    ):
+                        continue
+
                     # 坤-如果不可用状态 放弃本次用卡
                     if not kun_card.status_usable:
                         continue
@@ -381,7 +475,10 @@ class Card:
                     time.sleep(self.click_sleep)
 
                     # 坤-放卡
-                    self.put_card()
+                    if kun_card.name == "创造神":
+                        self.put_card_for_creator_god()
+                    else:
+                        self.put_card()
 
                     # 等待游戏画面刷新后更新状态
                     time.sleep(self.max_game_frame_interval)
@@ -416,7 +513,7 @@ class Card:
                                 return
 
                 new_state_group_id = len(RESOURCE_P["card"]["状态判定"])
-                path_images_group = PATHS["image"]["card"] + "\\状态判定\\" + str(new_state_group_id)
+                path_images_group = os.path.join(PATHS["image"]["card"], '状态判定', str(new_state_group_id))
                 if not os.path.exists(path_images_group):
                     # 创建文件夹
                     os.makedirs(path_images_group)
@@ -426,7 +523,7 @@ class Card:
                     RESOURCE_P["card"]["状态判定"][new_state_group_id][f"{state_name}.png"] = self.state_images[
                         state_name]
                     # 保存到本地
-                    path = f"{path_images_group}\\{state_name}.png"
+                    path = os.path.join(path_images_group, f"{state_name}.png")
                     cv2.imencode(ext=".png", img=self.state_images[state_name])[1].tofile(path)
                 CUS_LOGGER.debug(f"[战斗执行器] [{self.player}P] 成功获取到行的卡片状态图片! 保存成功!")
 
@@ -441,11 +538,10 @@ class CardKun(Card):
         self.name = name
         self.c_id = c_id
         self.coordinate_from = coordinate_from
-        self.cd_after_use_random_range = self.faa.battle_plan_tweak.get('meta_data', {}).get('cd_after_use_random_range', None)
-        if self.cd_after_use_random_range:
-            self.cd_after_use_random_active = True
-        else:
-            self.cd_after_use_random_active = False
+        (
+            self.cd_after_use_random_active,
+            self.cd_after_use_random_range,
+        ) = get_tweak_plan_random_interval(self.faa.battle_plan_tweak)
 
     def use_card(self):
         """
@@ -507,7 +603,7 @@ class SpecialCard(Card):
         self.card_type = card_type  # 11冰桶 12护罩 14草扇 其他炸弹
 
         # 要秒铲的有草扇（吹风类）跟护罩炸弹
-        self.need_shovel = self.card_type == 12 or (self.card_type == 14 and self.energy==1)
+        self.need_shovel = self.card_type == 12 or (self.card_type == 14 and self.energy == 1)
 
         # 炸弹类卡的自我属性
         self.rows = rows
@@ -553,7 +649,7 @@ class SpecialCard(Card):
                 # 点击 放下卡片
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(
                     handle=self.handle, x=self.coordinate_to[0][0], y=self.coordinate_to[0][1])
-                #避免已有承载导致放置失败
+                # 避免已有承载导致放置失败
                 T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=295, y=485)
                 time.sleep(self.click_sleep)
                 T_ACTION_QUEUE_TIMER.add_click_to_queue(handle=self.handle, x=295, y=485)

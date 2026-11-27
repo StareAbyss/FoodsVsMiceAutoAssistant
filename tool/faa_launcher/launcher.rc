@@ -1,0 +1,30 @@
+#include <windows.h>
+1 RT_MANIFEST "launcher.manifest"
+2 RCDATA "../../plugins/updater/updater.py"
+3 RCDATA "runtime_probe.py"
+4 ICON "launcher.generated.ico"
+1 VERSIONINFO
+FILEVERSION 0,1,0,0
+PRODUCTVERSION 0,1,0,0
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "080404B0"
+    BEGIN
+#ifdef FAA_ENTRY_BUILD
+      VALUE "FileDescription", "FAA Launcher\0"
+      VALUE "ProductName", "FAA Launcher\0"
+#else
+      VALUE "FileDescription", "FAA Environment Installer\0"
+      VALUE "ProductName", "FAA Environment Installer\0"
+#endif
+      VALUE "FileVersion", "0.1.0\0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0804, 1200
+  END
+END

@@ -1,6 +1,6 @@
+import os
 import sys
-from function.globals.loadings import loading
-loading.update_progress(75,"正在加载妙妙小工具...")
+
 from PyQt6.QtCore import Qt, QPoint, pyqtSignal
 from PyQt6.QtGui import QPixmap, QPainter, QColor, QPen, QIcon
 from PyQt6.QtWidgets import (
@@ -12,7 +12,7 @@ from function.globals.get_paths import PATHS
 from function.globals.thread_action_queue import T_ACTION_QUEUE_TIMER
 from function.scattered.gat_handle import faa_get_handle
 from function.scattered.get_channel_name import get_channel_name
-from function.tools.useful_tools import *
+from function.core.useful_tools import *
 
 
 class Magnifier(QLabel):
@@ -89,7 +89,7 @@ class DraggablePointer(QLabel):
         super().__init__(parent)
         self.setCursor(Qt.CursorShape.OpenHandCursor)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setPixmap(QPixmap(f"{PATHS['logo']}\\圆角-FetDeathWing-450x.png").scaled(32, 32))
+        self.setPixmap(QPixmap(os.path.join(PATHS["logo"], "圆角-FetDeathWing-450x.png")).scaled(32, 32))
         self.setFixedSize(32, 32)
         self.drag_offset = QPoint()
 
@@ -118,7 +118,7 @@ class UsefulToolsWidget(QWidget):
         self.faa = faa
 
         self.setWindowTitle("实用小工具")
-        self.setWindowIcon(QIcon(PATHS["logo"] + "\\圆角-FetDeathWing-450x.png"))
+        self.setWindowIcon(QIcon(os.path.join(PATHS["logo"], '圆角-FetDeathWing-450x.png')))
         self.setFixedSize(300, 250)
 
         self.gacha_thread: GachaGoldThread | None = None
@@ -234,14 +234,14 @@ class UsefulToolsWidget(QWidget):
         )
 
     def on_gold_clicked(self):
-        #print("执行金币许愿池操作...")
+        # print("执行金币许愿池操作...")
         self.gacha_thread = GachaGoldThread(self.target_handle)
         self.btn_gold_start.setEnabled(False)
         self.btn_gold_stop.setEnabled(True)
         self.gacha_thread.start()
 
     def on_gold_stop_clicked(self):
-        #print("停止执行金币许愿池操作...")
+        # print("停止执行金币许愿池操作...")
         if self.gacha_thread:
             self.gacha_thread.stop()
             self.gacha_thread.wait()
@@ -271,8 +271,8 @@ class GachaGoldThread(QThread):
             if not result:
                 # 出现错误，停止线程并弹窗
                 SIGNAL.DIALOG.emit(
-                    "出错！(╬◣д◢)",
-                    message)
+                    title="出错！(╬◣д◢)",
+                    text=message)
                 self.stop()
                 break
 

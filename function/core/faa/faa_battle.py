@@ -1,6 +1,7 @@
 import copy
-import time
 import json
+import os
+import time
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -23,9 +24,6 @@ class FAABattle:
     def __init__(self):
         self.recorder = None
 
-
-
-
     def faa_battle_re_init(self: "FAA"):
         """战斗前调用, 重新初始化部分每场战斗都要重新刷新的该内私有属性"""
         self.is_used_key = False
@@ -45,7 +43,7 @@ class FAABattle:
         # 读取禁用卡片名单
         self.banned_card_names = []
         try:
-            with open(PATHS["config"] + "//banned_cards.json", "r", encoding="utf-8") as file:
+            with open(os.path.join(PATHS["config"], 'banned_cards.json'), "r", encoding="utf-8") as file:
                 self.banned_card_names = json.load(file)
         except FileNotFoundError:
             # 如果文件不存在，使用默认名单
@@ -141,11 +139,12 @@ class FAABattle:
             match_tolerance=0.95,
             template=RESOURCE_P["common"]["战斗"]["战斗中_继续作战.png"])
 
-        # 立刻清空列表 就算堵. 也不会对点继续作战造成影响了!
-        T_ACTION_QUEUE_TIMER.action_queue.queue.clear()
-
         if not find:
             return False
+
+        # 只有进入继续作战界面时才丢弃战斗中的待执行操作，
+        # 避免定时检测在正常战斗期间反复清空放卡队列。
+        T_ACTION_QUEUE_TIMER.action_queue.queue.clear()
 
         self.print_info(text="找到了 [继续作战] 图标")
 
@@ -239,7 +238,7 @@ class FAABattle:
             source_img=img
         )
 
-        return result
+        return True if result else False
 
     def check_wave(self: "FAA", img=None) -> bool:
         """识图检测目前的波次"""
@@ -266,7 +265,6 @@ class FAABattle:
             return False
 
         CUS_LOGGER.info(f"[{self.player}P] 当前波次:{new_wave}, 已检测到转变, 即将启动变阵方案")
-
 
         # 备份旧方案
         plans = {
@@ -307,7 +305,9 @@ class FAABattle:
                                         break
 
                                 if not is_banned:
-                                    location_cid[p_type][location].append(card["card_id"])
+                                    location_cid[p_type][location].append(
+                                        card.get("slot_id", card.get("card_id"))
+                                    )
 
                 if location_cid["old"][location] == location_cid["new"][location]:
                     continue
@@ -384,7 +384,6 @@ class FAABattle:
 
             # 点一下空白
             if click_space:
-
                 T_ACTION_QUEUE_TIMER.add_move_to_queue(handle=self.handle, x=295, y=485)
                 time.sleep(self.click_sleep)
 
@@ -435,10 +434,14 @@ class FAABattle:
         #     # self.print_debug("战斗火苗能量>1000:", self.fire_elemental_1000)
         #     CUS_LOGGER.debug(f"有没有1000火{self.fire_elemental_1000}")
 
-    def start_battle_recording(self,timestamp):
+    def start_battle_recording(self, timestamp):
         """战斗开始时启动录制"""
         if hasattr(self, 'handle'):
-            self.recorder = WindowRecorder(output_file=PATHS["logs"]+"//recording//",window_title=self.channel,handle=self.handle,see_time= timestamp)
+            self.recorder = WindowRecorder(
+                output_file=os.path.join(PATHS["logs"], 'recording'),
+                window_title=self.channel,
+                handle=self.handle,
+                see_time=timestamp)
             self.recorder.start_recording()
             CUS_LOGGER.info("战斗录制已启动")
 
@@ -448,4 +451,4 @@ class FAABattle:
             if self.recorder is not None:
                 self.recorder.stop_recording()
                 CUS_LOGGER.info(f"战斗录制已保存")
-                self.recorder= None
+                self.recorder = None

@@ -228,8 +228,8 @@ class ImageSettingsWidget(QWidget):
         action_layout.addWidget(QLabel("截图区域:"))
         self.x1_group = ParamGroupWidget("X1:", 0, 0, "", is_float=False, label_fixed_width=20, spin_fixed_width=60)
         self.y1_group = ParamGroupWidget("Y1:", 0, 0, "", is_float=False, label_fixed_width=20, spin_fixed_width=60)
-        self.x2_group = ParamGroupWidget("X2:", 2000, 0, "", is_float=False, label_fixed_width=20, spin_fixed_width=60)
-        self.y2_group = ParamGroupWidget("Y2:", 2000, 0, "", is_float=False, label_fixed_width=20, spin_fixed_width=60)
+        self.x2_group = ParamGroupWidget("X2:", 2596, 0, "", is_float=False, label_fixed_width=20, spin_fixed_width=60)
+        self.y2_group = ParamGroupWidget("Y2:", 1440, 0, "", is_float=False, label_fixed_width=20, spin_fixed_width=60)
         action_layout.addWidget(self.x1_group)
         action_layout.addWidget(self.y1_group)
         action_layout.addWidget(self.x2_group)
@@ -518,7 +518,10 @@ class ExtensionMainWindow(QMainWindow):
         # 创建 QTextEdit 用于显示长文本
         self.log_output = QTextEdit()
         self.log_output.setText(
-            "欢迎使用自定义识图插件。\n你可以在网站：https://stareabyss.github.io/FAA-WebSite/guide/start/自定义识图脚本教程.html 中查看使用教程。\n\n注意：当你使用别人发给你的配置文件时，记得修改配置中的图片路径，保证其与你的电脑一致\n")
+            "欢迎使用自定义识图插件。\n"
+            "你可以在网站：https://stareabyss.github.io/FAA-WebSite/guide/start/自定义识图脚本教程.html 中查看使用教程。\n"
+            "\n"
+            "注意：当你使用别人发给你的配置文件时，记得修改配置中的图片路径，保证其与你的电脑一致")
         self.log_output.setWordWrapMode(QTextOption.WrapMode.WordWrap)  # 启用自动换行
         self.log_output.setMinimumHeight(100)  # 设置最小高度
         self.log_output.setReadOnly(True)  # 设置为只读，防止编辑
