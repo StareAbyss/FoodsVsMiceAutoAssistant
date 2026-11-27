@@ -18,7 +18,19 @@ from PyQt6.QtWidgets import QApplication, QWidget
 
 from function.common.bg_img_match import match_all_p_in_w, match_p_in_w, match_ps_in_w
 from function.common.faa_view_events import FAA_VIEW_EVENTS, FAAViewEvents
-from function.core.qmw_faa_view import FAAViewWorker, QMWFAAView, VIEW_HEIGHT, VIEW_WIDTH, compose_view_frame
+from function.core.qmw_faa_view import (
+    BOTTOM_BAR_HEIGHT,
+    FAAViewWorker,
+    QMWFAAView,
+    SOURCE_GAME,
+    SOURCE_HALL_CONTENT,
+    SOURCE_HALL_FRAME,
+    VIEW_HEIGHT,
+    VIEW_WIDTH,
+    compose_view_frame,
+    fit_frame,
+    resolve_window,
+)
 from function.globals.thread_action_queue import ThreadActionQueueTimer
 from test.output_paths import get_test_output_dir
 
@@ -333,6 +345,131 @@ class ViewWindowTest(unittest.TestCase):
         APP.processEvents()
         path = os.path.join(str(get_test_output_dir("faa_view")), "window.png")
         self.assertTrue(self.window.grab().save(path))
+
+
+class HallGeometryTest(unittest.TestCase):
+    """不依赖窗口的大厅几何规则：图层解析与录像缩放。"""
+
+    def test_resolve_window_hall_frame_skips_child_lookup(self):
+        def lookup(channel, mode):
+            return {"360": 11}.get(mode, 0)
+
+        with patch("function.core.qmw_faa_view.faa_get_handle", side_effect=lookup) as patched:
+            self.assertEqual(resolve_window("游戏", SOURCE_HALL_FRAME), (11, 11))
+        self.assertEqual([call.kwargs["mode"] for call in patched.call_args_list], ["360"])
+
+    def test_resolve_window_content_layer_requires_child(self):
+        def lookup(channel, mode):
+            return {"360": 11, "browser": 33}.get(mode, 0)
+
+        with patch("function.core.qmw_faa_view.faa_get_handle", side_effect=lookup):
+            with patch("function.core.qmw_faa_view.win32gui.IsChild", return_value=True):
+                self.assertEqual(resolve_window("游戏", SOURCE_HALL_CONTENT), (11, 33))
+            # 内容层不是该玩家外壳的子窗口时视为不可用，避免切成另一个玩家的画面。
+            with patch("function.core.qmw_faa_view.win32gui.IsChild", return_value=False):
+                self.assertEqual(resolve_window("游戏", SOURCE_HALL_CONTENT), (11, 0))
+
+    def test_fit_frame_letterboxes_to_locked_size(self):
+        image = np.full((50, 100, 3), 200, dtype=np.uint8)
+        fitted = fit_frame(image, (200, 200))
+        self.assertEqual(fitted.shape, (200, 200, 3))
+        self.assertEqual(int(fitted[0:50].max()), 0)
+        self.assertEqual(int(fitted[100, 100].max()), 200)
+
+
+class HallViewWindowTest(unittest.TestCase):
+    """覆盖大厅画面来源：DPI 黑边裁剪、画布尺寸与录像分辨率。"""
+
+    def setUp(self):
+        FAA_VIEW_EVENTS.select(0)
+        FAA_VIEW_EVENTS.configure(True, True)
+        self.hall_content = np.full((897, 1423, 4), (62, 48, 32, 255), dtype=np.uint8)
+        self.hall_content[:598, :949, :3] = (100, 180, 220)
+        self.hall_frame = np.full((1003, 1423, 4), (62, 48, 32, 255), dtype=np.uint8)
+        self.hall_frame[:669, :949, :3] = (100, 180, 220)
+        # 用可变持有者切换大厅截图，避免在测试里反复重建 patch。
+        self.hall_image = self.hall_content
+        self.capture_patch = patch("function.core.qmw_faa_view.capture_image_png", side_effect=lambda *args: game_image())
+        self.capture_all_patch = patch(
+            "function.core.qmw_faa_view.capture_image_png_all",
+            side_effect=lambda *args, **kwargs: self.hall_image,
+        )
+        self.handle_patch = patch("function.core.qmw_faa_view.faa_get_handle", side_effect=self.handles)
+        self.valid_patch = patch("function.core.qmw_faa_view.win32gui.IsWindow", return_value=True)
+        self.child_patch = patch("function.core.qmw_faa_view.win32gui.IsChild", return_value=True)
+        self.scale_patch = patch("function.core.qmw_faa_view.hall_crop_scale", return_value=1.5)
+        for item in (self.capture_patch, self.capture_all_patch, self.handle_patch,
+                     self.valid_patch, self.child_patch, self.scale_patch):
+            item.start()
+        self.owner = QWidget()
+        self.owner.opt = {"base_settings": {"game_name": "游戏", "name_1p": "", "name_2p": "玩家二"}}
+        self.window = QMWFAAView(self.owner)
+
+    def handles(self, channel, mode):
+        return {"360": 11, "browser": 33, "flash": 22}[mode]
+
+    def tearDown(self):
+        self.window.close()
+        self.owner.close()
+        for item in (self.capture_patch, self.capture_all_patch, self.handle_patch,
+                     self.valid_patch, self.child_patch, self.scale_patch):
+            item.stop()
+        FAA_VIEW_EVENTS.select(0)
+
+    def switch_to(self, index, expected_handle):
+        self.window.source.setCurrentIndex(index)
+        self.assertTrue(wait_until(
+            lambda: FAA_VIEW_EVENTS.handle == expected_handle and self.window.start_button.isEnabled()))
+
+    def test_hall_content_crops_dpi_padding_and_grows_canvas(self):
+        self.window.show()
+        self.assertTrue(wait_until(lambda: self.window.start_button.isEnabled()))
+        self.switch_to(1, 33)
+        frame, ready, _, _ = self.window.worker.snapshot()
+        self.assertTrue(ready)
+        # 大厅是 DPI 不感知窗口：1423×897 客户区里只有 949×598 是真实绘制，画布按裁剪后尺寸。
+        self.assertEqual(frame.size(), QSize(950, 598 + BOTTOM_BAR_HEIGHT))
+
+    def test_hall_frame_source_uses_outer_window(self):
+        self.window.show()
+        self.assertTrue(wait_until(lambda: self.window.start_button.isEnabled()))
+        self.hall_image = self.hall_frame
+        self.switch_to(2, 11)
+        frame, ready, _, _ = self.window.worker.snapshot()
+        self.assertTrue(ready)
+        # 外框层包含 360 自己的工具栏，画布比内容层高。
+        self.assertEqual(frame.size(), QSize(950, 669 + BOTTOM_BAR_HEIGHT))
+
+    def test_hall_recording_locks_even_canvas_size(self):
+        self.window.show()
+        self.assertTrue(wait_until(lambda: self.window.start_button.isEnabled()))
+        self.hall_image = self.hall_frame
+        self.switch_to(2, 11)
+        with tempfile.TemporaryDirectory(dir=str(get_test_output_dir("faa_view"))) as directory:
+            path = os.path.join(directory, "大厅录像.mp4")
+            with patch("function.core.qmw_faa_view.QFileDialog.getSaveFileName", return_value=(path, "")):
+                self.window._start_recording()
+            self.assertTrue(wait_until(lambda: self.window.stop_button.isEnabled()))
+            self.assertFalse(self.window.source.isEnabled())
+            time.sleep(0.2)
+            self.window.stop_button.click()
+            self.assertTrue(wait_until(lambda: self.window.start_button.isEnabled()))
+            capture = cv2.VideoCapture(path)
+            try:
+                self.assertTrue(capture.isOpened())
+                self.assertEqual(int(capture.get(cv2.CAP_PROP_FRAME_WIDTH)), 950)
+                # 829 是奇数，录像高度向下取偶。
+                self.assertEqual(int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)), 828)
+            finally:
+                capture.release()
+
+    def test_game_source_keeps_fixed_canvas(self):
+        self.window.show()
+        self.assertTrue(wait_until(lambda: self.window.start_button.isEnabled()))
+        self.switch_to(0, 22)
+        frame, ready, _, _ = self.window.worker.snapshot()
+        self.assertTrue(ready)
+        self.assertEqual(frame.size(), QSize(VIEW_WIDTH, VIEW_HEIGHT))
 
 
 if __name__ == "__main__":
